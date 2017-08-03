@@ -1,0 +1,82 @@
+package tests
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/yudai/gojsondiff"
+
+	"github.com/elastic/apm-server/processor"
+)
+
+const ApprovedSuffix = ".approved.json"
+const ReceivedSuffix = ".received.json"
+
+func ApproveJson(received map[string]interface{}, name string) error {
+	cwd, _ := os.Getwd()
+	path := filepath.Join(cwd, name)
+	receivedPath := path + ReceivedSuffix
+
+	r, _ := json.MarshalIndent(received, "", "    ")
+	ioutil.WriteFile(receivedPath, r, 0644)
+
+	_, diff, err := Compare(path)
+	if err != nil {
+		return err
+	}
+	if len(diff.Deltas()) > 0 {
+		return errors.New(fmt.Sprintf("Received data differ from approved data. Run 'make update' and then 'approvals' to verify the Diff."))
+	}
+
+	os.Remove(receivedPath)
+	return nil
+}
+
+func Compare(path string) ([]byte, gojsondiff.Diff, error) {
+	received, err := ioutil.ReadFile(path + ReceivedSuffix)
+	if err != nil {
+		fmt.Println("Cannot read file ", path, err)
+		return nil, nil, err
+	}
+	approved, err := ioutil.ReadFile(path + ApprovedSuffix)
+	if err != nil {
+		approved = []byte("{}")
+	}
+
+	differ := gojsondiff.New()
+	d, err := differ.Compare(approved, received)
+	return approved, d, err
+}
+
+type RequestInfo struct {
+	Name string
+	Path string
+}
+
+func TestProcessRequests(t *testing.T, fn processor.NewProcessor, requestInfo []RequestInfo) {
+	assert := assert.New(t)
+	for _, info := range requestInfo {
+		data, err := LoadData(info.Path)
+		assert.Nil(err)
+
+		p := fn()
+		err = p.Validate(bytes.NewReader(data))
+		assert.NoError(err)
+
+		events := p.Transform()
+		assert.NoError(err)
+		receivedJson := map[string]interface{}{"events": events}
+		verifyErr := ApproveJson(receivedJson, info.Name)
+		if verifyErr != nil {
+			assert.Fail(fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
+
+		}
+	}
+}

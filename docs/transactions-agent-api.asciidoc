@@ -1,0 +1,107 @@
+= New sampling transactions API draft
+
+== Focus
+
+Mostly cleaning up of legacy problems:
+
+ * Being able to connect stack frames to the correct transaction
+ * `extra` is now `context`
+ * Allow for context (extra) on individual traces as well as on the transaction as a whole
+ * `app_uuid` is just `app_id` now, to indicate that it doesn't need to be a UUID
+ * Be more intuitive
+ * Have a json-schema specification
+
+Below is an example that shows both a request to a Node endpoint and a page-load of a React app.
+
+[source,json]
+----
+include::./data/intake-api/generated/transactions.json[]
+----
+
+In case of vaidation errors, here's how an error response would look:
+
+[source,json]
+----
+include::./data/intake-api/transactions_error_response.json[]
+----
+
+= FAQ
+
+> What is the sort order of the `stacktrace` array?
+
+Stack traces are sorted with the most recent stack frame at index 0 of the `stacktrace` array.
+
+> Do we still need the `duration` list, is not redundant?
+
+We need the `duration` list on the transactions because the "samples" list does not contain every measurement. They are just samples.
+
+> Instead of having a parent index, would be cleaner to nest children frames?
+
+this could be non-trivial to express in JSON Schema (see .e.g. [this SO answer](http://stackoverflow.com/a/30960100/45691) ). Also, AFAIK, we'll never store it in a nested format, so it might be unnecessary to build the tree structure, just to flatten it again server side.
+
+> What about including some transaction IDs for distributed tracing?
+
+Let's do this when the rest of the functionality to support distributed tracing is done
+
+> Regarding `context`: Maybe we could distinguish between `required` / `optional` / `user-provided` context. This way the required context could be explicit in the protocol and it would give us better explicit semantics than just having `context`
+
+Hamid: We have discussed it before, my general opinion is that it should have at least one structurally open property (it is called _debug in the current version). The rest of the properties in context could impose their own restrictions (or keep it open if that makes more sense like in the case of user-defined extra context).
+
+
+> What do we need to do to show a list of top 100 SQL queries in an app?
+
+If you think about a situation where we want to show the most queried for SQL queries and how long they took, how do you do that? (also consider showing the top AJAX requests or top html/js/css/img resources.)
+
+If we assume that we sample some transactions, let's say a 100 requests hit a Node.js endpoint. To save memory in the client, we keep 10 of them. We only keep one sample for each bucket. We calculate the bucket of a transaction by floor(duration/15). We send it up, and now make a query that extracts all the SQL calls and show it in a list according to how much accumulated time is spent on each query (number of queries x avg. query time). However, this will show a skewed picture because we cannot get the real number of queries, because a lot of queries were not sampled. In fact, it's easy to imagine that because we sampled the transactions, it could will happen that it looks like SQL queries that happen in fast transactions have the same number of queries as SQL queries that happens in slow transactions.
+
+We cannot generally assume that we have parameterized SQL queries. The psycopg2 module for python for example, will have `LIMIT 100 OFFSET 4` in the SQL we see. So, I see these options:
+
+- Include a SQL parser in the agents that knows how to take a SQL query and remove all the values. This will allow us to do real counting in the agent. We would then send up a summary (4x `SELECT a from b`, 2x `UPDATE TABLE a SET b=c` etc.). This will be the most accurate, but also requires the most work (SQL parsing is not trivial).
+- Do some kind of sampling in the agents. Send up a bunch of SQL queries that are not generalized (have actual values), parse them in the server, do the grouping there. With this, it will be difficult to show how many times a specific SQL query is being executed.
+- Send up all SQL queries that are being executed. Do the parsing/grouping in the server.
+
+> What's the agent property meant to convey?
+
+The agent version that sends the payload. E.g. `opbeat-node/4.1.4` as shown in the example or `opbeat-python/3.1.4` for the python agent
+
+> What's the platform property meant to convey?
+
+This is the `x-platform` header we already have today
+
+> How much of the stuff inside the two context objects are defined in the spec?
+
+I'm not sure. I think we should not restrict the context objects, but decide on a convention for `user` etc.
+
+> I imagine a trace parent refers to the index in the traces array?
+
+Yes
+
+> Is there any change in the `stacktrace` object?
+
+No change.
+
+> Our current convention of "staff only" properties starting with underscore is fine in my opinion. but regardless of the convention we need the concept of "staff only" context.
+
+> If the root element is an array of transactions, streaming the data would be easier
+
+> Why is it necessary to include app_id in the payload. don't we just call the rest api with app_id in there?
+
+The app_uuid is in the URL today, yes. However, I'm planning for us to remove the concept of `app_id`s entirely. Ideally, we would just have an `app_name` that users could set arbitrarity, and it would create an app in Opbeat (Elastic stack APM)
+
+> platform and agent could be included in the transaction context (Current version is this way)
+
+It seems redundant to put it in the context for each of the transactions. It will be the same for all of them. The backend could make sure it's saved in the context of each transaction to make sure the information is available.
+
+> Referring to the parent trace
+
+We're using 0-based numerical ids in traces to refer to the parent trace. The only requirement for the ids is that they're unique within the transaction (No assumption about the order or continuity of the ids).
+
+> What is the duration unit?
+
+* The agent sends durations in milliseconds to the server as float
+* The server stores durations in microseconds in elasticsearch as long
+
+> What is the date format used?
+
+The date format used is `2017-05-09T15:04:05.999999Z` which is UTC without a timezone offset. The agents have to convert the date to UTC.
+The number of decimals are not important, so `2017-05-09T15:04:05.999999Z` and `2017-05-09T15:04:05.999Z` are supported.

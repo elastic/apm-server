@@ -1,0 +1,17 @@
+= Elasticsearch example docs
+
+The following are example documents which are sent to elasticsearch from the server.
+
+== Transaction
+
+[source,json]
+----
+include::./data/elasticsearch/transaction.json[]
+----
+
+== Trace
+
+[source,json]
+----
+include::./data/elasticsearch/trace.json[]
+----

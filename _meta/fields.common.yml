@@ -1,0 +1,207 @@
+- key: apm
+  title: General APM fields
+  description:
+  fields:
+    - name: processor.name
+      type: keyword
+      description: Processor name
+    - name: processor.event
+      type: keyword
+      description: Processor event
+
+    - name: context
+      type: group
+      description: >
+        General context fields.
+      fields:
+        - name: user
+          type: group
+          fields:
+          - name: username
+            type: keyword
+            description: >
+              The username of the user who experienced this event
+
+          - name: id
+            type: keyword
+            description: >
+              Identifier of the user who experienced this event
+
+          - name: email
+            type: keyword
+            description: >
+              Email of the user who experienced this event
+
+        - name: request
+          type: group
+          fields:
+          - name: url
+            type: group
+            description: >
+              The http URL of the request leading to this event.
+            fields:
+              - name: raw
+                type: keyword
+                description: >
+                  The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top
+
+              - name: protocol
+                type: keyword
+                description: >
+                  The protocol of the request, e.g. "https:"
+              - name: hostname
+                type: keyword
+                description: >
+                  The hostname of the request, e.g. "example.com"
+              - name: port
+                type: keyword
+                description: >
+                  The port of the request, e.g. 443
+              - name: pathname
+                type: keyword
+                description: >
+                  The path of the request, e.g. "/search"
+              - name: search
+                type: keyword
+                description: >
+                  The search describes the query string of the request, e.g. "q=elasticsearch"
+              - name: hash
+                type: keyword
+                description: >
+                  The hash of the request URL, e.g. "top"
+
+          - name: method
+            type: keyword
+            description: >
+              The http method of the request leading to this event.
+
+          - name: user_agent
+            type: keyword
+            description: >
+              The user agent used by user who experienced this event
+
+          - name: remote_ip
+            type: ip
+            description: >
+              IP address of the remote system what sent the request that resulted in this event
+
+        - name: response
+          type: group
+          fields:
+
+          - name: status.code
+            type: long
+            description: >
+              Http response status code
+
+          - name: status.message
+            type: text
+            description: >
+              Http response status message
+
+        - name: tags
+          type: object
+          object_type: keyword
+          description: >
+            Flat mapping of user-defined tags
+
+        - name: system
+          type: group
+          description: >
+            Optional system fields
+          fields:
+
+            - name: hostname
+              type: keyword
+              description: >
+                The host that records the event.
+
+            - name: architecture
+              type: keyword
+              description: >
+                The architecture of the host that records the event.
+
+            - name: platform
+              type: keyword
+              description: >
+                The platform of the host that records the event.
+
+        - name: app
+          type: group
+          description: >
+            App fields
+          fields:
+
+            - name: name
+              type: keyword
+              description: >
+                Unique App name.
+
+            - name: version
+              type: keyword
+              description: >
+                App version.
+
+            - name: git_ref
+              type: keyword
+              description: >
+                App git reference.
+
+            - name: pid
+              type: long
+              description: >
+                Numeric process ID of the app process.
+
+            - name: argv
+              type: array
+              enabled: false
+
+            - name: title
+              type: keyword
+              description: >
+                App title.
+
+            - name: language.name
+              type: keyword
+              description: >
+                Language name.
+
+            - name: language.version
+              type: keyword
+              description: >
+                Language version.
+
+            - name: runtime.name
+              type: keyword
+              description: >
+                Runtime name.
+
+            - name: runtime.version
+              type: keyword
+              description: >
+                Runtime version.
+
+            - name: framework.name
+              type: keyword
+              description: >
+                Framework name.
+
+            - name: framework.version
+              type: keyword
+              description: >
+                Framework version.
+
+            - name: agent.name
+              type: keyword
+              description: >
+                Agent name.
+
+            - name: agent.version
+              type: keyword
+              description: >
+                Agent version.
+
+            - name: custom
+              type: object
+              enabled: false
+              description: Arbitrary custom information. 

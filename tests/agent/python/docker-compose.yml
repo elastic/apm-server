@@ -1,0 +1,6 @@
+version: '3.0'
+services:
+  pythonagent:
+    build: .
+    ports:
+      - 5000:5000

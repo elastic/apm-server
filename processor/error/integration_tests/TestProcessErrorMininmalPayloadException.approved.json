@@ -1,0 +1,26 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-09T15:04:05.999999Z",
+            "context": {
+                "app": {
+                    "agent": {
+                        "name": "python",
+                        "version": "1.0"
+                    },
+                    "name": "1234_app-12a3"
+                }
+            },
+            "error": {
+                "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+                "exception": {
+                    "message": ""
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+Flask==0.12.2
+blinker
+git+https://github.com/opbeat/opbeat_python.git@feature/sampling#egg=opbeat
+

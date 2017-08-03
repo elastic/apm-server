@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "doc/spec/system.json",
+    "title": "System",
+    "type": "object",
+    "properties": {
+        "architecture": {
+            "description": "Architecture of the system the agent is running on.",
+            "type": ["string", "null"]
+        },
+        "hostname": {
+            "description": "Hostname of the system the agent is running on.",
+            "type": ["string", "null"]
+        },
+        "platform": {
+            "description": "Name of the system platform the agent is running on.",
+            "type": ["string", "null"]
+        }
+    }
+}

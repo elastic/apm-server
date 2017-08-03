@@ -1,0 +1,27 @@
+= Exception API Current Version
+
+The following description of the current API is taken from https://opbeat.com/docs/api/intake/v1/#-error-logging-[Opbeat Docs].
+This should be the starting point to discuss current weaknesses if any and improve if necessary, and to create a validation schema.
+
+To send log records e.g. exceptions, warning messages etc., you need to send a HTTP POST request to Opbeat. Information pertaining to the log record must be sent as a JSON object to the endpoint.
+
+Please see Authentication section for details regarding authentication.
+
+== JSON Schema
+[source,json]
+----
+include::./spec/exceptions/exception.json[]
+----
+
+== Example
+....
+$ curl https://intake.opbeat.com/api/v1/organizations/<organization-id>/apps/<app-id>/errors/ \
+    -v -H "Authorization: Bearer <secret-token-id>" \
+    -H "Content-Type: application/json" \
+    --data '{"message": "SyntaxError: Wattttt!"}'
+....
+
+[source,json]
+----
+include::./data/intake-api/generated/exception.json[]
+----

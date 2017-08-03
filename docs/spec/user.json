@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/user.json",
+    "title": "User",
+    "description": "Describes the authenticated User for a request.",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": ["string", "number", "null"]
+        },    
+        "email": {
+            "type": ["string", "null"]
+        },
+        "username": {
+            "type": ["string", "null"]
+        }
+    }
+}

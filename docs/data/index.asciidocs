@@ -1,0 +1,6 @@
+= Data JSON objects
+
+The data directory contains two sub directories:
+
+* intake-api: All JSON objects coming form the agents to the server
+* elasticesarch: All JSON objects sent to elasticsearch by the server

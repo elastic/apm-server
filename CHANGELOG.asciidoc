@@ -1,0 +1,17 @@
+=== Apm-Server version HEAD
+https://github.com/elastic/apm-server/compare/x...master[View commits]
+
+==== Breaking changes
+
+
+==== Bugfixes
+
+
+==== Added
+
+
+==== Deprecated
+
+
+==== Known Issue
+

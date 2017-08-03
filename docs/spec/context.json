@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "doc/spec/context.json",
+  "title": "Context",
+  "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
+  "type": ["object","null"],
+  "properties": {
+    "custom": {
+      "description": "An arbitrary mapping of additional metadata to store with the event.",
+      "type": ["object", "null"],
+      "properties": {}
+    },
+    "response": {
+        "type": ["object", "null"],
+        "properties": {
+            "finished": {
+                "type": ["boolean", "null"]
+            },
+            "headers": {
+                "type": ["object", "null"],
+                "properties": {
+                    "content-type": {
+                        "type": ["string", "null"]
+                    }
+                }
+            },
+            "headers_sent": {
+                "type": ["boolean", "null"]
+            },
+            "status": {
+                "type": ["object","null"],
+                "properties": {
+                    "code": {
+                        "type": ["number", "null"]
+                    },
+                    "message": {
+                        "type": ["string", "null"]
+                    }
+                }
+            }
+        }
+    },
+    "request": {
+      "$ref": "request.json"
+    },
+    "tags": {
+      "type": ["object", "null"],
+      "additionalProperties": {"type": "string"}
+    },
+    "user":{
+      "$ref": "user.json"
+    }
+  }
+}

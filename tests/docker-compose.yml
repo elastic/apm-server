@@ -1,0 +1,33 @@
+version: '2.1'
+services:
+  apm-server:
+    depends_on:
+      - elasticsearch
+      - kibana
+      - agent-python
+    build: .
+    ports:
+      - "8080:8080"
+    command: ./apm-server -E output.elasticsearch.hosts=[http://elastic:changeme@elasticsearch:9200] -E apm-server.host=0.0.0.0:8080 -e
+
+  elasticsearch:
+    extends:
+      file: _beats/testing/environments/snapshot.yml
+      service: elasticsearch
+    ports:
+      - "9200:9200"
+
+  kibana:
+    extends:
+      file: _beats/testing/environments/snapshot.yml
+      service: kibana
+    ports:
+      - "5601:5601"
+
+  agent-python:
+    build: ./tests/agent/python
+    ports:
+      - "8000:8000"
+    environment:
+      OPBEAT_SERVER: "http://apm-server:8080"
+      TRACES_SEND_FREQ_SECS: "1"

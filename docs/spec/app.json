@@ -1,0 +1,80 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "doc/spec/app.json",
+    "title": "App",
+    "type": "object",
+    "properties": {
+        "agent": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "required": ["name", "version"]
+        },
+        "argv": {
+            "type": ["array","null"],
+            "minItems": 0
+        },
+        "framework": {
+            "type": ["object","null"],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "required": ["name", "version"]
+        },
+        "git_ref": {
+            "description": "Git Reference of the app emitting this event",
+            "type": ["string", "null"]
+        },
+        "language": {
+            "type": ["object","null"],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "required": ["name", "version"]
+        },
+        "name": {
+            "description": "Immutable name of the app emitting this event",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9 _\\-]+$"
+        },
+        "pid": {
+            "type": ["number", "null"]
+        },
+        "process_title": {
+            "type": ["string", "null"]
+        },
+        "runtime": {
+            "type": ["object","null"],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "required": ["name", "version"]
+        },
+        "version": {
+            "description": "Version of the app emitting this event",
+            "type": ["string", "null"]
+        }
+    },
+    "required": ["agent", "name"]
+}

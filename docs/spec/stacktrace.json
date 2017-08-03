@@ -1,0 +1,56 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/stacktrace.json",
+    "title": "Stacktrace",
+    "type": "object",
+    "description": "A stacktrace contains a list of stack frames, each with various bits (most optional) describing the context of that frame",
+    "properties":{
+        "abs_path": {
+            "description": "The absolute path of the file involved in the stack frame",
+            "type": ["string", "null"]
+        },
+        "colno": {
+            "description": "Column number",
+            "type": ["number", "null"]
+        },
+        "context_line": {
+            "description": "The line of code part of the stack frame",
+            "type": ["string", "null"]
+        },
+        "filename": {
+            "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
+            "type": "string"
+        },
+        "function": {
+            "description": "The function involved in the stack frame",
+            "type": ["string", "null"]
+        },
+        "in_app": {
+            "type": ["boolean", "null"]
+        },
+        "lineno": {
+            "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
+            "type": "number"
+        },
+        "module": {
+            "description": "The module to which frame belongs to",
+            "type": ["string", "null"]
+        },
+        "post_context": {
+            "description": "The lines of code after the stack frame",
+            "type": ["array", "null"],
+            "minItems": 0
+        },
+        "pre_context": {
+            "description": "The lines of code before the stack frame",
+             "type": ["array", "null"],
+            "minItems": 0
+        },
+        "vars": {
+            "description": "Local variables for this stack frame",
+            "type": ["object", "null"],
+            "properties": { }
+        }
+    },
+    "required": ["filename", "lineno"]
+}

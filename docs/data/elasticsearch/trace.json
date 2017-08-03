@@ -1,0 +1,64 @@
+{
+    "@timestamp": "2017-05-30T18:53:27.154Z",
+    "context": {
+        "app": {
+            "agent": {
+                "name": "opbeat-node",
+                "version": "3.14.0"
+            },
+            "git_ref": "ba1df27",
+            "name": "1234_app-12a3"
+        },
+        "sql": "SELECT * FROM product_types WHERE user_id=?"
+    },
+    "processor": {
+        "event": "trace",
+        "name": "transaction"
+    },
+    "trace": {
+        "duration": {
+            "us": 3781
+        },
+        "id": 0,
+        "name": "SELECT FROM product_types",
+        "stacktrace": [
+            {
+                "abs_path": "net.js",
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "    return result",
+                        "}"
+                    ],
+                    "pre": [
+                        "  var trans = this.currentTransaction",
+                        ""
+                    ]
+                },
+                "filename": "net.js",
+                "function": "onread",
+                "in_app": false,
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 547
+                },
+                "module": "some module",
+                "vars": {
+                    "key": "value"
+                }
+            },
+            {
+                "filename": "my2file.js",
+                "line": {
+                    "number": 10
+                }
+            }
+        ],
+        "start": {
+            "us": 2830
+        },
+        "transaction_id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
+        "type": "db.postgresql.query"
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/errors/wrapper.json",
+    "title": "Errors Wrapper",
+    "description": "List of errors wrapped in an object containing some other attributes normalized away form the errors themselves",
+    "type": "object",
+    "properties": {
+        "app": {
+            "$ref": "../app.json"
+        },
+        "errors": {
+            "type": "array",
+            "items": {
+                "$ref": "error.json"
+            },
+            "minItems": 1
+        },
+        "system": {
+            "$ref": "../system.json"
+        }
+    },
+    "required": [
+        "app",
+        "errors"
+    ]
+}

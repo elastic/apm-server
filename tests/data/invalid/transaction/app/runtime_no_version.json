@@ -1,0 +1,22 @@
+{
+    "app": {
+        "name": "app1",
+        "agent": {
+          "name": "python",
+          "version": "1.0"
+        },
+        "runtime": {
+          "name": "cpython"
+        }
+    },
+    "transactions": [
+        {
+            "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9",
+            "name": "GET /api/types",
+            "type": "request",
+            "duration": 1.0,
+            "timestamp": "2017-05-30T18:53:27.154Z",
+            "traces": []
+        }
+    ]
+}

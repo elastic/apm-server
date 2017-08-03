@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/transactions/trace.json",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type":["number", "null"],
+            "description": "The locally unique ID of the trace."
+        },
+        "context": {
+            "type": ["object", "null"],
+            "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
+            "properties":{
+                "sql": {
+                   "type": ["string", "null"] 
+                }          
+            }
+        },
+        "duration": {
+            "type": "number",
+            "description": "Duration of the trace in milliseconds"
+        },
+        "name": {
+            "type": "string",
+            "description": "Generic designation of a trace in the scope of a transaction"
+        },
+        "parent": {
+            "type":["number", "null"],
+            "description": "The locally unique ID of the parent of the trace."
+        },
+        "stacktrace": {
+            "type": ["array", "null"],
+            "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
+            "items": {
+                "$ref": "./../stacktrace.json"
+            },
+            "minItems": 0
+        },
+        "start": {
+            "type": "number",
+            "description": "Offset relative to the transaction's timestamp identifying the start of the trace, in milliseconds"
+        },
+        "type": {
+            "type": "string",
+            "description": "Keyword of specific relevance in the app's domain (eg: 'db.postgresql.query', 'template.erb', etc)"
+        }
+    },
+    "dependencies": {
+        "parent": { "required": ["id"] }
+    },
+    "required": ["duration", "name", "start", "type"]
+}

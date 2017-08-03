@@ -1,0 +1,103 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/errors/error.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored app",
+    "properties": {
+        "context": {
+            "$ref": "./../context.json"
+        },
+        "culprit": {
+            "description": "Function call which was the primary perpetrator of this event.",
+            "type": ["string","null"]
+        },
+        "exception": {
+            "description": "A standard exception.",
+            "type": ["object","null"],
+            "properties": {
+                "code": {
+                    "type": ["string", "number", "null"]
+                },
+                "message": {
+                   "description": "The exception's error message.",
+                   "type": "string"
+                },
+                "module": {
+                    "description": "Describes the exception type's module namespace.",
+                    "type": ["string", "null"]
+                },
+                "attributes": {
+                    "type": ["object", "null"]
+                },
+                "stacktrace": {
+                    "type": ["array","null"],
+                    "items": {
+                        "$ref": "./../stacktrace.json"
+                    },
+                    "minItems": 0
+                },
+                "type": {
+                    "type": ["string", "null"]
+                },
+                "uncaught": {
+                    "type": ["boolean", "null"]
+                }
+            },
+            "required": ["message"]
+        },
+        "id": {
+          "type": ["string","null"],
+          "description": "UUID for the error",
+          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+        },
+        "log": {
+            "type": ["object", "null"],
+            "properties": {
+                "level": {
+                    "description": "The record severity.",
+                    "type": ["string", "null"],
+                    "default": "error",
+                    "enum": [
+                        "debug",
+                        "info",
+                        "warning",
+                        "error",
+                        "fatal"
+                    ]
+                },
+                "logger_name": {
+                    "description": "The name of the logger which created the record.",
+                    "type": ["string", "null"],
+                    "default": "default"
+                },
+                "message": {
+                    "description": "The exception's error message.",
+                    "type": "string"
+                },
+                "param_message": {
+                    "description": "A parametrized message. E.g. Could not connect to %s. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
+                    "type": ["string", "null"]
+                
+                },
+                "stacktrace": {
+                    "type": ["array","null"],
+                    "items": {
+                        "$ref": "./../stacktrace.json"
+                    },
+                    "minItems": 0
+                }
+            },
+            "required": ["message"]
+        },
+        "timestamp": {
+            "type": "string",
+            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ",
+            "pattern": "^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})(\\.\\d{1,6})?Z"
+        }
+    },
+    "required": ["timestamp"],
+    "anyOf": [
+      { "required": ["exception"] },
+      { "required": ["log"] }
+    ]
+}

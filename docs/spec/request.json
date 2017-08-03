@@ -1,0 +1,79 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/http.json",
+    "title": "Request",
+    "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
+    "type": "object",
+    "properties": {
+        "body": {
+          "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
+          "type": ["object", "string", "null"]
+        },
+        "env": {
+          "description": "The env variable is a compounded of environment information passed from the webserver.",
+          "type": ["object", "null"],
+          "properties": {}
+        },
+        "headers": {
+          "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
+          "type": ["object", "null"],
+          "properties": {
+              "content-type": {
+                  "type": ["string", "null"]
+              },
+              "cookies": {
+                  "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
+                  "type": ["string", "null"]
+              },
+              "user-agent": {
+                  "type": ["string", "null"]
+              }
+          }
+        },
+        "method": {
+            "description": "HTTP method.",
+            "type": "string"
+        },
+        "socket": {
+            "type": ["object", "null"],
+            "properties": {
+                "encrypted": {
+                    "description": "Indicates whether request was sent as SSL/HTTPS request.",
+                    "type": ["boolean", "null"]
+                },
+                "remote_address": {
+                    "type": ["string", "null"]
+                }
+            }
+        },
+        "url": {
+            "description": "A complete Url, with scheme, host and path.",
+            "type": "object",
+            "properties": {
+                "raw": {
+                    "type": ["string", "null"]
+                },
+                "protocol": {
+                    "type": ["string", "null"]
+                },
+                "hostname": {
+                    "type": ["string", "null"]
+                },
+                "port": {
+                    "type": ["string", "null"]
+                },
+                "pathname": {
+                    "type": ["string", "null"]
+                },
+                "search": {
+                    "description": "The search describes the query string of the request. It is expected to have values delimited by ampersands.",
+                    "type": ["string", "null"]
+                },
+                "hash": {
+                    "type": ["string", "null"]
+                }
+            }
+        }
+    },
+    "required": ["url", "method"]
+}

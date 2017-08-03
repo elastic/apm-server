@@ -1,0 +1,17 @@
+{
+    "app": {
+        "name": "app1",
+        "agent": {
+            "name": "python",
+            "version": "1.0"
+        }
+    },
+    "errors": [
+        {
+            "timestamp": "2017-05-30T18:53:27.",
+            "exception": {
+                "message": "SyntaxError: Something!"
+            }
+        }
+    ]
+}

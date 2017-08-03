@@ -1,0 +1,16 @@
+{
+    "app": {
+        "name": "app1",
+        "agent": {
+            "name": "python",
+            "version": "1.0"
+        }
+    },
+    "errors": [
+        {
+            "timestamp": "2017-05-09T15:04:05.999999Z",
+            "log": {
+            }
+        }
+    ]
+}
