@@ -23,7 +23,7 @@ before-build:
 
 # Collects all dependencies and then calls update
 .PHONY: collect
-collect: imports fields go-generate create-docs
+collect: imports fields go-generate create-docs notice
 
 # Generates imports for all modules and metricsets
 .PHONY: imports
@@ -61,4 +61,8 @@ check-full: check
 	@git diff | cat
 	@git update-index --refresh
 	@git diff-index --exit-code HEAD --
-	
+
+.PHONY: notice
+notice: python-env
+	@echo "Generating NOTICE"
+	@$(PYTHON_ENV)/bin/python ${ES_BEATS}/dev-tools/generate_notice.py .
