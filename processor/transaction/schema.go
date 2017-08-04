@@ -184,7 +184,7 @@ var transactionSchema = `{
               "content-type": {
                   "type": ["string", "null"]
               },
-              "cookies": {
+              "cookie": {
                   "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
                   "type": ["string", "null"]
               },
@@ -236,6 +236,10 @@ var transactionSchema = `{
                     "type": ["string", "null"]
                 }
             }
+        },
+        "cookies": {
+            "description": "A parsed key-value object of cookies",
+            "type": ["object", "null"]
         }
     },
     "required": ["url", "method"]

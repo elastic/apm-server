@@ -36,6 +36,8 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"errors.context.request.headers.array",
 		"errors.context.request.env.SERVER_SOFTWARE",
 		"errors.context.request.env.GATEWAY_INTERFACE",
+		"errors.context.request.cookies.c1",
+		"errors.context.request.cookies.c2",
 		"errors.context.tags.organization_uuid",
 	}
 	jsonKeysDoc, _ := tests.ArrayDiff(jsonKeys, undocumented)
