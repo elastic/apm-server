@@ -13,8 +13,7 @@ This is the Apm-Server.
 + Fork the repo with the Github interface and clone it:
 
 ```
-mkdir -p ${GOPATH}/src/github.com/elastic/apm-server
-cd ${GOPATH}/src/github.com/elastic/apm-server
+cd ${GOPATH}/src/github.com/elastic/
 git clone https://github.com/[USER]/apm-server
 ```
 Note that it should be cloned from the fork (replace [USER] with your Github user), not from origin.
@@ -31,7 +30,6 @@ in the same directory with the name apm-server.
 make
 ```
 
-
 ### Run
 
 To run Apm-Server with debugging output enabled, run:
@@ -39,7 +37,6 @@ To run Apm-Server with debugging output enabled, run:
 ```
 ./apm-server -c apm-server.yml -e -d "*"
 ```
-
 
 ### Test
 
@@ -51,6 +48,7 @@ make testsuite
 
 alternatively:
 ```
+make unit
 make unit-tests
 make system-tests
 make integration-tests
@@ -69,10 +67,9 @@ To generate etc/apm-server.template.json and etc/apm-server.asciidoc
 make update
 ```
 
-
 ### Cleanup
 
-To clean  Apm-Server source code, run the following commands:
+To clean Apm-Server source code, run the following commands:
 
 ```
 make fmt
@@ -86,7 +83,6 @@ make clean
 
 For further development, check out the [beat developer guide](https://www.elastic.co/guide/en/beats/libbeat/current/new-beat.html).
 
-
 ## Packaging
 
 The beat frameworks provides tools to crosscompile and package your beat for different platforms. This requires [docker](https://www.docker.com/) and vendoring as described above. To build packages of your beat, run the following command:
@@ -96,7 +92,6 @@ make package
 ```
 
 This will fetch and create all images required for the build process. The hole process to finish can take several minutes.
-
 
 ## Update Dependencies
 
@@ -131,3 +126,15 @@ get this running execute the following commands.
 * Open `localhost:5601` in your browser and log into Kibana with `elastic` and `changeme`
 * Create the `apm-server-*` index pattern
 * In Kibana go to the Discovery tab and you should see data
+
+For manual testing with specific agents, check instructions at `tests/agent/[LANG]/README.md`
+
+## Documentation
+
+A JSON-Schema spec for the API lives in `docs/spec`. 
+ElasticSearch fields are defined in `_meta/fields.generated.yml`.
+Examples of input and output documents can be found at `docs/data/intake-api` and `docs/data/elasticsearch` respectively.
+
+## Help
+
+`make help`
