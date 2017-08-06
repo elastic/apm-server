@@ -18,8 +18,8 @@ class Test(BaseTest):
         """
 
         # TODO Needs cleanup when https://github.com/elastic/beats/pull/4769 merged
-        base_name = "apmserver-tests"
-        beat_version = "0.1.0"
+        base_name = "apm-server-tests"
+        beat_version = "0.1.1"
         index_name = base_name + "-" + beat_version + "-1"
 
         self.render_config_template(
@@ -63,7 +63,7 @@ class Test(BaseTest):
 
         # make sure template is loaded
         self.wait_until(
-            lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests-0.1.0' loaded"))
+            lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests-0.1.1' loaded"))
 
         self.wait_until(lambda: es.indices.exists(index_name))
         es.indices.refresh(index=index_name)
