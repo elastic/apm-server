@@ -38,24 +38,8 @@ To run Apm-Server with debugging output enabled, run:
 ./apm-server -c apm-server.yml -e -d "*"
 ```
 
-### Test
-
-To test Apm-Server, run the following command:
-
-```
-make testsuite
-```
-
-alternatively:
-```
-make unit
-make unit-tests
-make system-tests
-make integration-tests
-make coverage-report
-```
-
-The test coverage is reported in the folder `./build/coverage/`
+### Testing
+For Testing check out the [testing guide](TESTING.md)
 
 ### Update
 
