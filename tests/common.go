@@ -6,6 +6,11 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
+	"strings"
+
+	"github.com/fatih/set"
+
+	"github.com/elastic/beats/libbeat/common"
 )
 
 func UnmarshalData(file string, data interface{}) error {
@@ -98,6 +103,43 @@ func FlattenJsonKeys(data interface{}, prefix string, flattened *[]string) {
 			FlattenJsonKeys(v, prefix, flattened)
 		}
 	}
+}
+
+func FlattenMapStr(m interface{}, prefix string, keysBlacklist *set.Set, flattened *set.Set) {
+	if commonMapStr, ok := m.(common.MapStr); ok {
+		for k, v := range commonMapStr {
+			flattenMapStr(k, v, prefix, keysBlacklist, flattened)
+		}
+	} else if mapStr, ok := m.(map[string]interface{}); ok {
+		for k, v := range mapStr {
+			flattenMapStr(k, v, prefix, keysBlacklist, flattened)
+		}
+	}
+	if prefix != "" && !isBlacklistedKey(keysBlacklist, prefix) {
+		flattened.Add(prefix)
+	}
+}
+
+func flattenMapStr(k string, v interface{}, prefix string, keysBlacklist *set.Set, flattened *set.Set) {
+	flattenedKey := StrConcat(prefix, k, ".")
+	if !isBlacklistedKey(keysBlacklist, flattenedKey) {
+		flattened.Add(flattenedKey)
+	}
+	_, okCommonMapStr := v.(common.MapStr)
+	_, okMapStr := v.(map[string]interface{})
+	if okCommonMapStr || okMapStr {
+		FlattenMapStr(v, flattenedKey, keysBlacklist, flattened)
+	}
+}
+
+func isBlacklistedKey(keysBlacklist *set.Set, key string) bool {
+	for _, disabledKey := range keysBlacklist.List() {
+		if strings.HasPrefix(key, disabledKey.(string)) {
+			return true
+
+		}
+	}
+	return false
 }
 
 func StrConcat(pre string, post string, delimiter string) string {

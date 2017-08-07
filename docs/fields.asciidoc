@@ -49,6 +49,21 @@ General context fields.
 
 
 
+[float]
+=== `context.tags`
+
+type: object
+
+Flat mapping of user-defined tags
+
+
+[float]
+=== `context.custom`
+
+type: object
+
+Arbitrary custom information.
+
 
 [float]
 === `context.user.username`
@@ -74,6 +89,31 @@ type: keyword
 Email of the user who experienced this event
 
 
+
+[float]
+=== `context.request.headers`
+
+type: object
+
+[float]
+=== `context.request.cookies`
+
+type: object
+
+[float]
+=== `context.request.socket`
+
+type: object
+
+[float]
+=== `context.request.env`
+
+type: object
+
+[float]
+=== `context.request.body`
+
+type: object
 
 [float]
 == url fields
@@ -146,21 +186,11 @@ type: keyword
 The http method of the request leading to this event.
 
 
-[float]
-=== `context.request.user_agent`
-
-type: keyword
-
-The user agent used by user who experienced this event
-
 
 [float]
-=== `context.request.remote_ip`
+=== `context.response.headers`
 
-type: ip
-
-IP address of the remote system what sent the request that resulted in this event
-
+type: object
 
 
 [float]
@@ -180,12 +210,9 @@ Http response status message
 
 
 [float]
-=== `context.tags`
+=== `context.response.finished`
 
-type: object
-
-Flat mapping of user-defined tags
-
+type: boolean
 
 [float]
 == system fields
@@ -263,11 +290,12 @@ Numeric process ID of the app process.
 type: array
 
 [float]
-=== `context.app.title`
+=== `context.app.process_title`
 
 type: keyword
 
-App title.
+App process_title.
+
 
 
 [float]
@@ -286,6 +314,7 @@ type: keyword
 Language version.
 
 
+
 [float]
 === `context.app.runtime.name`
 
@@ -300,6 +329,7 @@ Runtime name.
 type: keyword
 
 Runtime version.
+
 
 
 [float]
@@ -318,6 +348,7 @@ type: keyword
 Framework version.
 
 
+
 [float]
 === `context.app.agent.name`
 
@@ -333,13 +364,6 @@ type: keyword
 
 Agent version.
 
-
-[float]
-=== `context.app.custom`
-
-type: object
-
-Arbitrary custom information.
 
 [[exported-fields-apm-error]]
 == APM Error fields
@@ -362,14 +386,6 @@ A UUID4 error ID.
 type: text
 
 Function call which was the primary perpetrator of this event.
-
-[float]
-=== `error.context`
-
-type: object
-
-Arbitrary contextual information related to the error.
-
 
 [float]
 === `error.checksum`
@@ -561,14 +577,6 @@ type: array
 A list of frames.
 
 
-[float]
-=== `trace.context`
-
-type: object
-
-Context data of the trace, e.g. the executed SQL query, or the URL of the http request.
-
-
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 
@@ -621,14 +629,6 @@ Total duration of this transaction, in microseconds.
 type: keyword
 
 The result of the transaction. HTTP status code for HTTP-related transactions.
-
-
-[float]
-=== `transaction.context`
-
-type: object
-
-Arbitrary contextual information related to the transaction
 
 
 [[exported-fields-beat]]

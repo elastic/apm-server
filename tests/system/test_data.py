@@ -32,11 +32,6 @@ class Test(ServerBaseTest):
                 del(event["context"])
             self.assert_fields_are_documented(event)
 
-        for event in output:
-            if 'context' in event.keys():
-                del(event["context"])
-            self.assert_fields_are_documented(event)
-
     def test_generate_error(self):
         """
         Generates example output documents for exceptions including stacktrace

@@ -14,12 +14,6 @@
           type: text
           description: Function call which was the primary perpetrator of this event.
 
-        - name: context
-          type: object
-          enabled: false
-          description: >
-            Arbitrary contextual information related to the error.
-
         - name: checksum
           type: keyword
           description: >
