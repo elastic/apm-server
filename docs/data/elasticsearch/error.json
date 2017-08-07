@@ -96,7 +96,7 @@
         }
     },
     "error": {
-        "checksum": "c7e028d3a68b04d07cfc04aa5a8260af",
+        "checksum": "4cfd552c0f4a291894c3558466f92151",
         "culprit": "my.module.function_name",
         "exception": {
             "attributes": {

@@ -12,6 +12,39 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
+func baseException() *Exception {
+	return &Exception{Message: "exception message"}
+}
+
+func (e *Exception) withCode(code interface{}) *Exception {
+	e.Code = code
+	return e
+}
+
+func (e *Exception) withType(etype string) *Exception {
+	e.Type = &etype
+	return e
+}
+
+func (e *Exception) withFrames(frames []m.StacktraceFrame) *Exception {
+	e.StacktraceFrames = frames
+	return e
+}
+
+func baseLog() *Log {
+	return &Log{Message: "error log message"}
+}
+
+func (l *Log) withParamMsg(msg string) *Log {
+	l.ParamMessage = &msg
+	return l
+}
+
+func (l *Log) withFrames(frames []m.StacktraceFrame) *Log {
+	l.StacktraceFrames = frames
+	return l
+}
+
 func TestEventTransform(t *testing.T) {
 	id := "45678"
 	culprit := "some trigger"
@@ -26,7 +59,7 @@ func TestEventTransform(t *testing.T) {
 	exception := Exception{
 		Type:             &errorType,
 		Code:             codeFloat,
-		Message:          &exMsg,
+		Message:          exMsg,
 		Module:           &module,
 		Uncaught:         &uncaught,
 		Attributes:       attributes,
@@ -39,7 +72,7 @@ func TestEventTransform(t *testing.T) {
 	paramMsg := "param message"
 	log := Log{
 		Level:        &level,
-		Message:      &logMsg,
+		Message:      logMsg,
 		ParamMessage: &paramMsg,
 		LoggerName:   &loggerName,
 	}
@@ -61,14 +94,15 @@ func TestEventTransform(t *testing.T) {
 			Msg:    "Minimal Event, default stacktrace transformation fn",
 		},
 		{
-			Event: Event{Exception: Exception{Code: "13"}},
+			Event: Event{Exception: baseException().withCode("13")},
 			Output: common.MapStr{
-				"checksum": hex.EncodeToString(md5.New().Sum(nil)),
+				"exception": common.MapStr{"code": "13", "message": "exception message"},
+				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
 			},
 			Msg: "Minimal Event, default stacktrace transformation fn",
 		},
 		{
-			Event: Event{Log: Log{Message: &logMsg}},
+			Event: Event{Log: baseLog()},
 			Output: common.MapStr{
 				"log":      common.MapStr{"message": "error log message"},
 				"checksum": hex.EncodeToString(md5.New().Sum(nil)),
@@ -76,7 +110,7 @@ func TestEventTransform(t *testing.T) {
 			Msg: "Minimal Event wth log, default stacktrace transformation fn",
 		},
 		{
-			Event: Event{Exception: Exception{Message: &exMsg, Code: "13"}},
+			Event: Event{Exception: baseException().withCode("13")},
 			Output: common.MapStr{
 				"exception": common.MapStr{"message": "exception message", "code": "13"},
 				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
@@ -84,7 +118,7 @@ func TestEventTransform(t *testing.T) {
 			Msg: "Minimal Event wth exception, string code, default stacktrace transformation fn",
 		},
 		{
-			Event: Event{Exception: Exception{Message: &exMsg, Code: 13}},
+			Event: Event{Exception: baseException().withCode(13)},
 			Output: common.MapStr{
 				"exception": common.MapStr{"message": "exception message", "code": "13"},
 				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
@@ -92,7 +126,7 @@ func TestEventTransform(t *testing.T) {
 			Msg: "Minimal Event wth exception, int code, default stacktrace transformation fn",
 		},
 		{
-			Event: Event{Exception: Exception{Message: &exMsg, Code: 13.0}},
+			Event: Event{Exception: baseException().withCode(13.0)},
 			Output: common.MapStr{
 				"exception": common.MapStr{"message": "exception message", "code": "13"},
 				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
@@ -105,8 +139,8 @@ func TestEventTransform(t *testing.T) {
 				Timestamp: ts,
 				Culprit:   &culprit,
 				Context:   context,
-				Exception: exception,
-				Log:       log,
+				Exception: &exception,
+				Log:       &log,
 			},
 			Output: common.MapStr{
 				"id":      "45678",
@@ -128,7 +162,7 @@ func TestEventTransform(t *testing.T) {
 					"logger_name":   "logger",
 					"level":         "level",
 				},
-				"checksum": "8f9f94692ac3850d564a54d4ed69b0ad",
+				"checksum": "d47ca09e1cfd512804f5d55cecd34262",
 			},
 			Msg: "Full Event with frames",
 		},
@@ -152,13 +186,13 @@ func TestExplicitChecksum(t *testing.T) {
 
 	checkSum := hex.EncodeToString(md5With(attr))
 
-	e1 := Event{Log: Log{ParamMessage: &attr}}
-	e2 := Event{Exception: Exception{Type: &attr}}
-	e3 := Event{Log: Log{StacktraceFrames: []m.StacktraceFrame{{Function: &attr}}}}
-	e4 := Event{Exception: Exception{StacktraceFrames: []m.StacktraceFrame{{Function: &attr}}}}
+	e1 := Event{Log: baseLog().withParamMsg(attr)}
+	e2 := Event{Exception: baseException().withType(attr)}
+	e3 := Event{Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &attr}})}
+	e4 := Event{Exception: baseException().withFrames([]m.StacktraceFrame{{Function: &attr}})}
 	e5 := Event{
-		Log:       Log{StacktraceFrames: []m.StacktraceFrame{{Function: &diffAttr}}},
-		Exception: Exception{StacktraceFrames: []m.StacktraceFrame{{Function: &attr}}},
+		Log:       baseLog().withFrames([]m.StacktraceFrame{{Function: &diffAttr}}),
+		Exception: baseException().withFrames([]m.StacktraceFrame{{Function: &attr}}),
 	}
 
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
@@ -172,10 +206,10 @@ func TestFallbackChecksum(t *testing.T) {
 
 	checkSum := hex.EncodeToString(md5With(filename, string(lineno)))
 
-	e := Event{Exception: Exception{StacktraceFrames: []m.StacktraceFrame{{Lineno: lineno, Filename: filename}}}}
+	e := Event{Exception: baseException().withFrames([]m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
 	assert.Equal(t, checkSum, e.calcChecksum())
 
-	e = Event{Exception: Exception{}, Log: Log{StacktraceFrames: []m.StacktraceFrame{{Lineno: lineno, Filename: filename}}}}
+	e = Event{Exception: baseException(), Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
 	assert.Equal(t, checkSum, e.calcChecksum())
 }
 
@@ -188,11 +222,9 @@ func TestNoFallbackChecksum(t *testing.T) {
 	checkSum := hex.EncodeToString(md5With(module, function))
 
 	e := Event{
-		Exception: Exception{
-			StacktraceFrames: []m.StacktraceFrame{
-				{Lineno: lineno, Module: &module, Filename: filename, Function: &function},
-			},
-		},
+		Exception: baseException().withFrames([]m.StacktraceFrame{
+			{Lineno: lineno, Module: &module, Filename: filename, Function: &function},
+		}),
 	}
 	assert.Equal(t, checkSum, e.calcChecksum())
 }
@@ -206,125 +238,125 @@ func TestGroupableEvents(t *testing.T) {
 	}{
 		{
 			e1: Event{
-				Log: Log{ParamMessage: &value},
+				Log: baseLog().withParamMsg(value),
 			},
 			e2: Event{
-				Log: Log{ParamMessage: &value},
+				Log: baseLog().withParamMsg(value),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Exception: Exception{Type: &value},
+				Exception: baseException().withType(value),
 			},
 			e2: Event{
-				Exception: Exception{Type: &value},
+				Log: baseLog().withParamMsg(value),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: Log{ParamMessage: &value}, Exception: Exception{Type: &value},
+				Log: baseLog().withParamMsg(value), Exception: baseException().withType(value),
 			},
 			e2: Event{
-				Log: Log{ParamMessage: &value}, Exception: Exception{Type: &value},
+				Log: baseLog().withParamMsg(value), Exception: baseException().withType(value),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: Log{ParamMessage: &value}, Exception: Exception{Type: &value},
+				Log: baseLog().withParamMsg(value), Exception: baseException().withType(value),
 			},
 			e2: Event{
-				Log: Log{ParamMessage: &value},
+				Log: baseLog().withParamMsg(value),
 			},
 			result: false,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Function: &value, Lineno: 10}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 10}}),
 			},
 			e2: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Function: &value, Lineno: 57}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 57}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Lineno: 10}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 10}}),
 			},
 			e2: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Lineno: 57}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 57}}),
 			},
 			result: false,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Lineno: 0}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 0}}),
 			},
 			e2:     Event{},
 			result: false,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Module: &value}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Module: &value}}),
 			},
 			e2: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Filename: value}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Filename: value}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Filename: "name"}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Filename: "name"}}),
 			},
 			e2: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Module: &value, Filename: "name"}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Module: &value, Filename: "name"}}),
 			},
 			result: false,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Module: &value, Filename: "name"}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Module: &value, Filename: "name"}}),
 			},
 			e2: Event{
-				Exception: Exception{StacktraceFrames: []m.StacktraceFrame{{Module: &value, Filename: "nameEx"}}},
+				Exception: baseException().withFrames([]m.StacktraceFrame{{Module: &value, Filename: "nameEx"}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Filename: "name"}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Filename: "name"}}),
 			},
 			e2: Event{
-				Exception: Exception{StacktraceFrames: []m.StacktraceFrame{{Filename: "name"}}},
+				Exception: baseException().withFrames([]m.StacktraceFrame{{Filename: "name"}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Lineno: 10}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 10}}),
 			},
 			e2: Event{
-				Exception: Exception{StacktraceFrames: []m.StacktraceFrame{{Lineno: 10}}},
+				Exception: baseException().withFrames([]m.StacktraceFrame{{Lineno: 10}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: Log{StacktraceFrames: []m.StacktraceFrame{{Function: &value, Lineno: 10}}},
+				Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 10}}),
 			},
 			e2: Event{
-				Exception: Exception{StacktraceFrames: []m.StacktraceFrame{{Function: &value, Lineno: 57}}},
+				Exception: baseException().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 57}}),
 			},
 			result: true,
 		},
 	}
 
-	for _, test := range tests {
+	for idx, test := range tests {
 		sameGroup := test.e1.calcChecksum() == test.e2.calcChecksum()
 		assert.Equal(t, test.result, sameGroup,
-			"checksum mismatch", test.e1.Id, test.e2.Id)
+			"checksum mismatch", idx)
 	}
 }
 

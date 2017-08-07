@@ -13,7 +13,6 @@ import (
 func TestPayloadTransform(t *testing.T) {
 	app := m.App{Name: "myapp"}
 	ts := "2017-05-09T15:04:05.999999Z"
-	msg := ""
 
 	tests := []struct {
 		Payload Payload
@@ -50,8 +49,8 @@ func TestPayloadTransform(t *testing.T) {
 				Events: []Event{{
 					Timestamp: ts,
 					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
-					Exception: Exception{Message: &msg},
-					Log:       Log{Message: &msg},
+					Exception: baseException(),
+					Log:       baseLog(),
 				}},
 			},
 			Output: []common.MapStr{
@@ -67,8 +66,8 @@ func TestPayloadTransform(t *testing.T) {
 					},
 					"error": common.MapStr{
 						"checksum":  "d41d8cd98f00b204e9800998ecf8427e",
-						"exception": common.MapStr{"message": ""},
-						"log":       common.MapStr{"message": ""},
+						"exception": common.MapStr{"message": "exception message"},
+						"log":       common.MapStr{"message": "error log message"},
 					},
 					"processor": common.MapStr{"event": "error", "name": "error"},
 				},

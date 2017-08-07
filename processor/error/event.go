@@ -16,8 +16,8 @@ type Event struct {
 	Id        *string       `json:"id"`
 	Culprit   *string       `json:"culprit"`
 	Context   common.MapStr `json:"context"`
-	Exception Exception     `json:"exception"`
-	Log       Log           `json:"log"`
+	Exception *Exception    `json:"exception"`
+	Log       *Log          `json:"log"`
 	Timestamp string        `json:"timestamp"`
 
 	enhancer            utility.MapStrEnhancer
@@ -27,7 +27,7 @@ type Event struct {
 
 type Exception struct {
 	Code             interface{}        `json:"code"`
-	Message          *string            `json:"message"`
+	Message          string             `json:"message"`
 	Module           *string            `json:"module"`
 	Attributes       interface{}        `json:"attributes"`
 	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
@@ -37,7 +37,7 @@ type Exception struct {
 
 type Log struct {
 	Level            *string            `json:"level"`
-	Message          *string            `json:"message"`
+	Message          string             `json:"message"`
 	ParamMessage     *string            `json:"param_message"`
 	LoggerName       *string            `json:"logger_name"`
 	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
@@ -75,7 +75,7 @@ func (e *Event) Transform() common.MapStr {
 }
 
 func (e *Event) addException() {
-	if e.Exception.Message == nil {
+	if e.Exception == nil {
 		return
 	}
 	ex := common.MapStr{}
@@ -100,7 +100,7 @@ func (e *Event) addException() {
 }
 
 func (e *Event) addLog() {
-	if e.Log.Message == nil {
+	if e.Log == nil {
 		return
 	}
 	log := common.MapStr{}
@@ -148,15 +148,18 @@ func (e *Event) calcChecksum() string {
 		}
 	}
 
-	add(e.Log.ParamMessage)
-	add(e.Exception.Type)
-
 	var frames m.StacktraceFrames
-	if len(e.Exception.StacktraceFrames) > 0 {
+	if e.Exception != nil {
+		add(e.Exception.Type)
 		frames = e.Exception.StacktraceFrames
-	} else {
-		frames = e.Log.StacktraceFrames
 	}
+	if e.Log != nil {
+		add(e.Log.ParamMessage)
+		if frames == nil || len(frames) == 0 {
+			frames = e.Log.StacktraceFrames
+		}
+	}
+
 	for _, st := range frames {
 		addEither(st.Module, st.Filename)
 		addEither(st.Function, string(st.Lineno))
