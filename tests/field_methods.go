@@ -9,7 +9,29 @@ import (
 	"github.com/elastic/beats/libbeat/template"
 )
 
-func LoadFields(yamlPath string) ([]template.Field, error) {
+func fetchFlattenedFieldNames(paths []string, addFn addField) (*set.Set, error) {
+	fields := set.New()
+	for _, path := range paths {
+		f, err := loadFields(path)
+		if err != nil {
+			return nil, err
+		}
+		flattenFieldNames(f, "", addFn, fields)
+	}
+	return fields, nil
+}
+
+func flattenFieldNames(fields []template.Field, prefix string, addFn addField, flattened *set.Set) {
+	for _, field := range fields {
+		flattenedKey := StrConcat(prefix, field.Name, ".")
+		if addFn(field) {
+			flattened.Add(flattenedKey)
+		}
+		flattenFieldNames(field.Fields, flattenedKey, addFn, flattened)
+	}
+}
+
+func loadFields(yamlPath string) ([]template.Field, error) {
 	fields := []template.Field{}
 
 	yaml, err := ioutil.ReadFile(yamlPath)
@@ -27,22 +49,27 @@ func LoadFields(yamlPath string) ([]template.Field, error) {
 	return fields, err
 }
 
-func FlattenFieldNames(fields []template.Field, onlyDisabled bool) *set.Set {
-	keys := set.New()
-	for _, field := range fields {
-		flatten(field, "", onlyDisabled, keys)
-	}
-	return keys
+type addField func(f template.Field) bool
+
+func addAllFields(f template.Field) bool {
+	return shouldAddField(f, false)
 }
 
-func flatten(field template.Field, prefix string, onlyDisabled bool, flattened *set.Set) {
-	flattenedKey := StrConcat(prefix, field.Name, ".")
-	if shouldAddField(field, onlyDisabled) {
-		flattened.Add(flattenedKey)
+func addOnlyDisabledFields(f template.Field) bool {
+	return shouldAddField(f, true)
+}
+
+func addKeywordFields(f template.Field) bool {
+	if f.Type == "keyword" {
+		return true
+	} else if len(f.MultiFields) > 0 {
+		for _, mf := range f.MultiFields {
+			if mf.Type == "keyword" {
+				return true
+			}
+		}
 	}
-	for _, f := range field.Fields {
-		flatten(f, flattenedKey, onlyDisabled, flattened)
-	}
+	return false
 }
 
 func shouldAddField(f template.Field, onlyDisabled bool) bool {

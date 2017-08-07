@@ -22,7 +22,8 @@
         },
         "name": {
             "type": "string",
-            "description": "Generic designation of a trace in the scope of a transaction"
+            "description": "Generic designation of a trace in the scope of a transaction",
+            "maxLength": 1024
         },
         "parent": {
             "type":["number", "null"],
@@ -42,7 +43,8 @@
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the app's domain (eg: 'db.postgresql.query', 'template.erb', etc)"
+            "description": "Keyword of specific relevance in the app's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+            "maxLength": 1024
         }
     },
     "dependencies": {

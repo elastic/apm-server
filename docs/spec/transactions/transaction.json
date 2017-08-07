@@ -18,11 +18,13 @@
         },
         "name": {
             "type": "string",
-            "description": "Generic designation of a transaction in the scope of a single app (eg: 'GET /users/:id')"
+            "description": "Generic designation of a transaction in the scope of a single app (eg: 'GET /users/:id')",
+            "maxLength": 1024
         },
         "result": {
           	"type": "string",
-          	"description": "The result of the transaction. HTTP status code for HTTP-related transactions."
+          	"description": "The result of the transaction. HTTP status code for HTTP-related transactions.",
+            "maxLength": 1024
         },
         "timestamp": {
             "type": "string",
@@ -38,7 +40,8 @@
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the app's domain (eg: 'request', 'cache', etc)"
+            "description": "Keyword of specific relevance in the app's domain (eg: 'request', 'cache', etc)",
+            "maxLength": 1024
         }
     },
     "required": ["id", "name", "duration", "type", "timestamp"]

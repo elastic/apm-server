@@ -4,18 +4,24 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetSchemaProperties(t *testing.T) {
-	schema, err := GetSchemaProperties(strings.NewReader(test_schema))
+	schema, err := schemaStruct(strings.NewReader(test_schema))
 	assert.Nil(t, err)
-	flattened := []string{}
-	FlattenSchemaProperties(schema, "", &flattened)
-	expected := []string{"app", "app.name", "app.version", "app.argv", "app.language", "app.language.name", "app.language.version", "errors", "errors.timestamp", "errors.message", "errors.stacktrace", "errors.stacktrace.abs_path", "errors.stacktrace.filename", "errors.id"}
+	flattened := set.New()
+	addFn := func(s *Schema) bool { return false }
+	flattenSchemaNames(schema, "", addFn, flattened)
+	assert.Equal(t, set.New(), flattened)
 
-	diff, _ := ArrayDiff(expected, flattened)
-	assert.Equal(t, []string{}, diff)
+	addFn = func(s *Schema) bool { return true }
+	flattenSchemaNames(schema, "", addFn, flattened)
+	expected := set.New("app", "app.name", "app.version", "app.argv", "app.language", "app.language.name", "app.language.version", "errors", "errors.timestamp", "errors.message", "errors.stacktrace", "errors.stacktrace.abs_path", "errors.stacktrace.filename", "errors.id")
+
+	assert.Equal(t, 0, set.Difference(expected, flattened).(*set.Set).Size())
+
 }
 
 var test_schema = `{

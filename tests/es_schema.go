@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/fatih/set"
@@ -14,7 +15,8 @@ import (
 
 func TestEventAttrsDocumentedInEsSchemaTemplate(t *testing.T, fieldPaths []string, fn processor.NewProcessor, undocumentedFieldNames *set.Set) {
 	assert := assert.New(t)
-	fieldNames, disabledFieldNames, err := fetchFieldNames(fieldPaths)
+	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
+	disabledFieldNames, err := fetchFlattenedFieldNames(fieldPaths, addOnlyDisabledFields)
 	fieldNames = set.Difference(fieldNames, disabledFieldNames).(*set.Set)
 	assert.NoError(err)
 
@@ -27,7 +29,7 @@ func TestEventAttrsDocumentedInEsSchemaTemplate(t *testing.T, fieldPaths []strin
 
 func TestEsDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor, undocumentedFieldNames *set.Set) {
 	assert := assert.New(t)
-	fieldNames, _, err := fetchFieldNames(fieldPaths)
+	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
 	assert.NoError(err)
 
 	eventNames, err := fetchEventNames(fn, set.New(), undocumentedFieldNames)
@@ -36,20 +38,6 @@ func TestEsDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn process
 	unusedNames := set.Difference(fieldNames, eventNames)
 	assert.Equal(0, unusedNames.Size(), fmt.Sprintf("Documented Fields missing in event: %v", unusedNames))
 
-}
-
-func fetchFieldNames(paths []string) (*set.Set, *set.Set, error) {
-	fields := set.New()
-	fieldsDisabledIndex := set.New()
-	for _, path := range paths {
-		f, err := LoadFields(path)
-		if err != nil {
-			return nil, nil, err
-		}
-		fields = set.Union(fields, FlattenFieldNames(f, false)).(*set.Set)
-		fieldsDisabledIndex = set.Union(fieldsDisabledIndex, FlattenFieldNames(f, true)).(*set.Set)
-	}
-	return fields, fieldsDisabledIndex, nil
 }
 
 func fetchEventNames(fn processor.NewProcessor, disabledNames *set.Set, nonIndexedNames *set.Set) (*set.Set, error) {
@@ -69,8 +57,45 @@ func fetchEventNames(fn processor.NewProcessor, disabledNames *set.Set, nonIndex
 				continue
 			}
 			e := event[k].(common.MapStr)
-			FlattenMapStr(e, k, blacklisted, eventNames)
+			flattenMapStr(e, k, blacklisted, eventNames)
 		}
 	}
 	return eventNames, nil
+}
+
+func flattenMapStr(m interface{}, prefix string, keysBlacklist *set.Set, flattened *set.Set) {
+	if commonMapStr, ok := m.(common.MapStr); ok {
+		for k, v := range commonMapStr {
+			flattenMapStrStr(k, v, prefix, keysBlacklist, flattened)
+		}
+	} else if mapStr, ok := m.(map[string]interface{}); ok {
+		for k, v := range mapStr {
+			flattenMapStrStr(k, v, prefix, keysBlacklist, flattened)
+		}
+	}
+	if prefix != "" && !isBlacklistedKey(keysBlacklist, prefix) {
+		flattened.Add(prefix)
+	}
+}
+
+func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *set.Set, flattened *set.Set) {
+	flattenedKey := StrConcat(prefix, k, ".")
+	if !isBlacklistedKey(keysBlacklist, flattenedKey) {
+		flattened.Add(flattenedKey)
+	}
+	_, okCommonMapStr := v.(common.MapStr)
+	_, okMapStr := v.(map[string]interface{})
+	if okCommonMapStr || okMapStr {
+		flattenMapStr(v, flattenedKey, keysBlacklist, flattened)
+	}
+}
+
+func isBlacklistedKey(keysBlacklist *set.Set, key string) bool {
+	for _, disabledKey := range keysBlacklist.List() {
+		if strings.HasPrefix(key, disabledKey.(string)) {
+			return true
+
+		}
+	}
+	return false
 }

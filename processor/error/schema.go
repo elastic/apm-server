@@ -21,10 +21,12 @@ var errorSchema = `{
             "type": "object",
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
@@ -37,26 +39,31 @@ var errorSchema = `{
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
         },
         "git_ref": {
             "description": "Git Reference of the app emitting this event",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "language": {
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
@@ -70,23 +77,27 @@ var errorSchema = `{
             "type": ["number", "null"]
         },
         "process_title": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "runtime": {
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
         },
         "version": {
             "description": "Version of the app emitting this event",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     },
     "required": ["agent", "name"]
@@ -175,7 +186,8 @@ var errorSchema = `{
         },
         "method": {
             "description": "HTTP method.",
-            "type": "string"
+            "type": "string",
+            "maxLength": 1024
         },
         "socket": {
             "type": ["object", "null"],
@@ -194,26 +206,33 @@ var errorSchema = `{
             "type": "object",
             "properties": {
                 "raw": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "protocol": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "hostname": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "port": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "pathname": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "search": {
                     "description": "The search describes the query string of the request. It is expected to have values delimited by ampersands.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "hash": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 }
             }
         },
@@ -226,7 +245,10 @@ var errorSchema = `{
     },
     "tags": {
       "type": ["object", "null"],
-      "additionalProperties": {"type": "string"}
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 1024
+      }
     },
     "user":{
           "$schema": "http://json-schema.org/draft-04/schema#",
@@ -236,13 +258,16 @@ var errorSchema = `{
     "type": "object",
     "properties": {
         "id": {
-            "type": ["string", "number", "null"]
+            "type": ["string", "number", "null"],
+            "maxLength": 1024
         },    
         "email": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "username": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     }
     }
@@ -257,7 +282,8 @@ var errorSchema = `{
             "type": ["object","null"],
             "properties": {
                 "code": {
-                    "type": ["string", "number", "null"]
+                    "type": ["string", "number", "null"],
+                    "maxLength": 1024
                 },
                 "message": {
                    "description": "The exception's error message.",
@@ -265,7 +291,8 @@ var errorSchema = `{
                 },
                 "module": {
                     "description": "Describes the exception type's module namespace.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "attributes": {
                     "type": ["object", "null"]
@@ -331,7 +358,8 @@ var errorSchema = `{
                     "minItems": 0
                 },
                 "type": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "uncaught": {
                     "type": ["boolean", "null"]
@@ -357,12 +385,14 @@ var errorSchema = `{
                         "warning",
                         "error",
                         "fatal"
-                    ]
+                    ],
+                    "maxLength": 1024
                 },
                 "logger_name": {
                     "description": "The name of the logger which created the record.",
                     "type": ["string", "null"],
-                    "default": "default"
+                    "default": "default",
+                    "maxLength": 1024
                 },
                 "message": {
                     "description": "The exception's error message.",
@@ -370,7 +400,8 @@ var errorSchema = `{
                 },
                 "param_message": {
                     "description": "A parametrized message. E.g. Could not connect to %s. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 
                 },
                 "stacktrace": {
@@ -458,15 +489,18 @@ var errorSchema = `{
     "properties": {
         "architecture": {
             "description": "Architecture of the system the agent is running on.",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "hostname": {
             "description": "Hostname of the system the agent is running on.",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "platform": {
             "description": "Name of the system platform the agent is running on.",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     }
         }

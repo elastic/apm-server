@@ -1,11 +1,9 @@
 package integration_tests
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/fatih/set"
 
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
@@ -13,18 +11,9 @@ import (
 
 //Check whether attributes are added to the example payload but not to the schema
 func TestPayloadAttributesInSchema(t *testing.T) {
-	var payload interface{}
-	tests.UnmarshalValidData("transaction", &payload)
-	jsonKeys := []string{}
-	tests.FlattenJsonKeys(payload, "", &jsonKeys)
-
-	schema, err := tests.GetSchemaProperties(strings.NewReader(transaction.Schema()))
-	assert.Nil(t, err)
-	schemaKeys := []string{}
-	tests.FlattenSchemaProperties(schema, "", &schemaKeys)
 
 	//only add attributes that should not be documented by the schema
-	undocumented := []string{
+	undocumented := set.New(
 		"transactions.traces.stacktrace.vars.key",
 		"transactions.context.request.headers.some-other-header",
 		"transactions.context.request.headers.array",
@@ -40,17 +29,15 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"transactions.context.custom.and_objects.foo",
 		"transactions.context.tags",
 		"transactions.context.tags.organization_uuid",
-	}
-	jsonKeysDoc, _ := tests.ArrayDiff(jsonKeys, undocumented)
-	missing, _ := tests.ArrayDiff(jsonKeysDoc, schemaKeys)
-	if len(missing) > 0 {
-		msg := fmt.Sprintf("Json Transaction Payload fields missing in Schema %v", missing)
-		assert.Fail(t, msg)
-	}
+	)
+	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, transaction.Schema())
+}
 
-	missing, _ = tests.ArrayDiff(schemaKeys, jsonKeys)
-	if len(missing) > 0 {
-		msg := fmt.Sprintf("Json Transaction schema fields missing in Payload %v", missing)
-		assert.Fail(t, msg)
+func TestJsonSchemaKeywordLimitation(t *testing.T) {
+	fieldsPaths := []string{
+		"./../../../_meta/fields.common.yml",
+		"./../_meta/fields.yml",
 	}
+	exceptions := set.New("processor.event", "processor.name", "context.app.name", "transaction.id", "trace.transaction_id")
+	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, transaction.Schema(), exceptions)
 }

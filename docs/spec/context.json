@@ -45,7 +45,10 @@
     },
     "tags": {
       "type": ["object", "null"],
-      "additionalProperties": {"type": "string"}
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 1024
+      }
     },
     "user":{
       "$ref": "user.json"

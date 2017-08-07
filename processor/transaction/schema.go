@@ -21,10 +21,12 @@ var transactionSchema = `{
             "type": "object",
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
@@ -37,26 +39,31 @@ var transactionSchema = `{
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
         },
         "git_ref": {
             "description": "Git Reference of the app emitting this event",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "language": {
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
@@ -70,23 +77,27 @@ var transactionSchema = `{
             "type": ["number", "null"]
         },
         "process_title": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "runtime": {
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
         },
         "version": {
             "description": "Version of the app emitting this event",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     },
     "required": ["agent", "name"]
@@ -99,15 +110,18 @@ var transactionSchema = `{
     "properties": {
         "architecture": {
             "description": "Architecture of the system the agent is running on.",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "hostname": {
             "description": "Hostname of the system the agent is running on.",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "platform": {
             "description": "Name of the system platform the agent is running on.",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     }
         },
@@ -195,7 +209,8 @@ var transactionSchema = `{
         },
         "method": {
             "description": "HTTP method.",
-            "type": "string"
+            "type": "string",
+            "maxLength": 1024
         },
         "socket": {
             "type": ["object", "null"],
@@ -214,26 +229,33 @@ var transactionSchema = `{
             "type": "object",
             "properties": {
                 "raw": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "protocol": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "hostname": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "port": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "pathname": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "search": {
                     "description": "The search describes the query string of the request. It is expected to have values delimited by ampersands.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "hash": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 }
             }
         },
@@ -246,7 +268,10 @@ var transactionSchema = `{
     },
     "tags": {
       "type": ["object", "null"],
-      "additionalProperties": {"type": "string"}
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 1024
+      }
     },
     "user":{
           "$schema": "http://json-schema.org/draft-04/schema#",
@@ -256,13 +281,16 @@ var transactionSchema = `{
     "type": "object",
     "properties": {
         "id": {
-            "type": ["string", "number", "null"]
+            "type": ["string", "number", "null"],
+            "maxLength": 1024
         },    
         "email": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "username": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     }
     }
@@ -279,11 +307,13 @@ var transactionSchema = `{
         },
         "name": {
             "type": "string",
-            "description": "Generic designation of a transaction in the scope of a single app (eg: 'GET /users/:id')"
+            "description": "Generic designation of a transaction in the scope of a single app (eg: 'GET /users/:id')",
+            "maxLength": 1024
         },
         "result": {
           	"type": "string",
-          	"description": "The result of the transaction. HTTP status code for HTTP-related transactions."
+          	"description": "The result of the transaction. HTTP status code for HTTP-related transactions.",
+            "maxLength": 1024
         },
         "timestamp": {
             "type": "string",
@@ -316,7 +346,8 @@ var transactionSchema = `{
         },
         "name": {
             "type": "string",
-            "description": "Generic designation of a trace in the scope of a transaction"
+            "description": "Generic designation of a trace in the scope of a transaction",
+            "maxLength": 1024
         },
         "parent": {
             "type":["number", "null"],
@@ -389,7 +420,8 @@ var transactionSchema = `{
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the app's domain (eg: 'db.postgresql.query', 'template.erb', etc)"
+            "description": "Keyword of specific relevance in the app's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+            "maxLength": 1024
         }
     },
     "dependencies": {
@@ -401,7 +433,8 @@ var transactionSchema = `{
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the app's domain (eg: 'request', 'cache', etc)"
+            "description": "Keyword of specific relevance in the app's domain (eg: 'request', 'cache', etc)",
+            "maxLength": 1024
         }
     },
     "required": ["id", "name", "duration", "type", "timestamp"]

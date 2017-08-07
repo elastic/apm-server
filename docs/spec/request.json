@@ -32,7 +32,8 @@
         },
         "method": {
             "description": "HTTP method.",
-            "type": "string"
+            "type": "string",
+            "maxLength": 1024
         },
         "socket": {
             "type": ["object", "null"],
@@ -51,26 +52,33 @@
             "type": "object",
             "properties": {
                 "raw": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "protocol": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "hostname": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "port": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "pathname": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "search": {
                     "description": "The search describes the query string of the request. It is expected to have values delimited by ampersands.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "hash": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 }
             }
         },
