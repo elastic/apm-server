@@ -549,6 +549,18 @@
 			"revisionTime": "2017-07-28T07:19:26Z"
 		},
 		{
+			"checksumSHA1": "fn+kbDtM+S2J80sBO8l+BvJbvN4=",
+			"path": "github.com/elastic/beats/libbeat/publisher/queue",
+			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
+			"revisionTime": "2017-08-03T08:00:47Z"
+		},
+		{
+			"checksumSHA1": "Nvy4Zq0CDl9sJjTgsxDJg0MUTXM=",
+			"path": "github.com/elastic/beats/libbeat/publisher/queue/memqueue",
+			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
+			"revisionTime": "2017-08-03T08:00:47Z"
+		},
+		{
 			"checksumSHA1": "kT9MLdbYAKYJ0lWfjqX8fbrZTiY=",
 			"path": "github.com/elastic/beats/libbeat/service",
 			"revision": "f240148065af94d55c5149e444482b9635801f27",
@@ -557,8 +569,8 @@
 		{
 			"checksumSHA1": "Vk8ZhOtmPC8B2hzBayRKSeq8HTM=",
 			"path": "github.com/elastic/beats/libbeat/setup/kibana",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
+			"revisionTime": "2017-08-03T08:00:47Z"
 		},
 		{
 			"checksumSHA1": "/x+/ly2ewMYm13s+ziFKg+ahSyk=",
@@ -569,8 +581,8 @@
 		{
 			"checksumSHA1": "7PJnZYfyxNG+Qz2Sx/G/sdJfujQ=",
 			"path": "github.com/elastic/beats/libbeat/testing",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
+			"revisionTime": "2017-08-03T08:00:47Z"
 		},
 		{
 			"checksumSHA1": "HviBA/yN/8aYDJSnP7lk004sbM0=",

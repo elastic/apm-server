@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+BEATS_VERSION?=master
 # Move to directory
 BASEDIR=$(dirname "$0")
 cd $BASEDIR
@@ -10,6 +11,10 @@ rm -rf dev-tools script libbeat testing repo
 # Check out master repo for updating
 GIT_CLONE=./repo
 git clone https://github.com/elastic/beats.git $GIT_CLONE
+
+cd $GIT_CLONE
+git checkout $BEATS_VERSION
+cd ..
 
 # TODO: allow to check out specific branch / tag
 
