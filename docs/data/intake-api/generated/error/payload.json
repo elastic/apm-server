@@ -175,13 +175,17 @@
                     "headers": {
                         "user-agent": "Mozilla Chrome Edge",
                         "content-type": "text/html",
-                        "cookies": "c1=v1;c2=v2",
+                        "cookie": "c1=v1; c2=v2",
                         "some-other-header": "foo",
                         "array": [
                             "foo",
                             "bar",
                             "baz"
                         ]
+                    },
+                    "cookies": {
+                        "c1": "v1",
+                        "c2": "v2"
                     },
                     "env": {
                         "SERVER_SOFTWARE": "nginx",

@@ -31,6 +31,8 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"transactions.context.request.env.SERVER_SOFTWARE",
 		"transactions.context.request.env.GATEWAY_INTERFACE",
 		"transactions.context.request.body",
+		"transactions.context.request.cookies.c1",
+		"transactions.context.request.cookies.c2",
 		"transactions.context.custom",
 		"transactions.context.custom.my_key",
 		"transactions.context.custom.some_other_value",
