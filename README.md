@@ -14,7 +14,7 @@ This is the Apm-Server.
 
 ```
 cd ${GOPATH}/src/github.com/elastic/
-git clone https://github.com/[USER]/apm-server
+git clone git@github.com:[USER]/apm-server.git
 ```
 Note that it should be cloned from the fork (replace [USER] with your Github user), not from origin.
 
