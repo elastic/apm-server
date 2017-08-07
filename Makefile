@@ -61,6 +61,7 @@ stop-env:
 check-full: check
 	@# Validate that all updates were committed
 	@$(MAKE) update
+	@$(MAKE) check
 	@git diff | cat
 	@git update-index --refresh
 	@git diff-index --exit-code HEAD --

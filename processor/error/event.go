@@ -50,13 +50,13 @@ func (e *Event) DocType() string {
 func (e *Event) Mappings(pa *Payload) (string, []m.SMapping, []m.FMapping) {
 	return e.Timestamp,
 		[]m.SMapping{
-			{"processor.name", processorName},
-			{"processor.event", e.DocType()},
+			{Key: "processor.name", Value: processorName},
+			{Key: "processor.event", Value: e.DocType()},
 		}, []m.FMapping{
-			{e.DocType(), e.Transform},
-			{"context", func() common.MapStr { return e.Context }},
-			{"context.app", pa.App.Transform},
-			{"context.system", pa.System.Transform},
+			{Key: e.DocType(), Apply: e.Transform},
+			{Key: "context", Apply: func() common.MapStr { return e.Context }},
+			{Key: "context.app", Apply: pa.App.Transform},
+			{Key: "context.system", Apply: pa.System.Transform},
 		}
 }
 
