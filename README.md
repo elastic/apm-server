@@ -1,6 +1,8 @@
-# Apm-Server
+# Apm-Server (Experimental)
 
-This is the Apm-Server.
+The Apm-Server receives data from the elastic apm-agents and stores the data into Elasticsearch.
+
+By default the Apm-Server listens on `localhost` for incoming events. For further options check the configuration file.
 
 ## Getting Started with Apm-Server
 
