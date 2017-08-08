@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 func TestCreateSchemaInvalidResource(t *testing.T) {
@@ -68,6 +69,6 @@ type Person struct {
 	Age  int    `json:"age"`
 }
 
-func (p Person) Transform() []common.MapStr {
+func (p Person) Transform() []beat.Event {
 	return nil
 }

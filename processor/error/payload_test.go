@@ -7,12 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	m "github.com/elastic/apm-server/processor/model"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestPayloadTransform(t *testing.T) {
 	app := m.App{Name: "myapp"}
 	ts := "2017-05-09T15:04:05.999999Z"
+	expectedTime, err := utility.ParseTime(ts)
+	assert.NoError(t, err)
 
 	tests := []struct {
 		Payload Payload
@@ -28,7 +31,6 @@ func TestPayloadTransform(t *testing.T) {
 			Payload: Payload{App: app, Events: []Event{{Timestamp: ts}}},
 			Output: []common.MapStr{
 				{
-					"@timestamp": ts,
 					"context": common.MapStr{
 						"app": common.MapStr{
 							"agent": common.MapStr{"name": "", "version": ""},
@@ -55,8 +57,6 @@ func TestPayloadTransform(t *testing.T) {
 			},
 			Output: []common.MapStr{
 				{
-					"@timestamp": ts,
-
 					"context": common.MapStr{
 						"foo": "bar", "user": common.MapStr{"email": "m@m.com"},
 						"app": common.MapStr{
@@ -77,7 +77,10 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Payload.Transform()
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		outputEvents := test.Payload.Transform()
+		for j, outputEvent := range outputEvents {
+			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+			assert.Equal(t, expectedTime, outputEvent.Timestamp)
+		}
 	}
 }

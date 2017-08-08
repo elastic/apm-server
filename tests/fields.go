@@ -54,11 +54,11 @@ func fetchEventNames(fn processor.NewProcessor, disabledNames *set.Set, nonIndex
 
 	eventNames := set.New()
 	for _, event := range events {
-		for k, _ := range event {
+		for k, _ := range event.Fields {
 			if k == "@timestamp" {
 				continue
 			}
-			e := event[k].(common.MapStr)
+			e := event.Fields[k]
 			flattenMapStr(e, k, blacklisted, eventNames)
 		}
 	}

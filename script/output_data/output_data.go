@@ -65,7 +65,7 @@ func generate() error {
 				checked[key] = struct{}{}
 				file := filepath.Join(outputPath, event.(string)+".json")
 
-				output, err := json.MarshalIndent(d, "", "    ")
+				output, err := json.MarshalIndent(d.Fields, "", "    ")
 				err = ioutil.WriteFile(file, output, 0644)
 				if err != nil {
 					return err

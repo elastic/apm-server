@@ -3,7 +3,7 @@ package error
 import (
 	pr "github.com/elastic/apm-server/processor"
 	m "github.com/elastic/apm-server/processor/model"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 type Payload struct {
@@ -12,8 +12,8 @@ type Payload struct {
 	Events []Event   `json:"errors"`
 }
 
-func (pa *Payload) Transform() []common.MapStr {
-	var events []common.MapStr
+func (pa *Payload) Transform() []beat.Event {
+	var events []beat.Event
 
 	for _, e := range pa.Events {
 		events = append(events, pr.CreateDoc(e.Mappings(pa)))

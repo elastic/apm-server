@@ -14,6 +14,7 @@ import (
 	"github.com/yudai/gojsondiff"
 
 	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/beats/libbeat/common"
 )
 
 const ApprovedSuffix = ".approved.json"
@@ -72,7 +73,14 @@ func TestProcessRequests(t *testing.T, fn processor.NewProcessor, requestInfo []
 
 		events := p.Transform()
 		assert.NoError(err)
-		receivedJson := map[string]interface{}{"events": events}
+
+		// extract Fields and write to received.json
+		eventFields := make([]common.MapStr, len(events))
+		for idx, event := range events {
+			eventFields[idx] = event.Fields
+		}
+
+		receivedJson := map[string]interface{}{"events": eventFields}
 		verifyErr := ApproveJson(receivedJson, info.Name)
 		if verifyErr != nil {
 			assert.Fail(fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))

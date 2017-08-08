@@ -4,7 +4,7 @@ import (
 	"io"
 
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/publisher/beat"
 
 	"github.com/santhosh-tekuri/jsonschema"
 )
@@ -29,7 +29,7 @@ type processor struct {
 	schema  *jsonschema.Schema
 }
 
-func (p *processor) Transform() []common.MapStr {
+func (p *processor) Transform() []beat.Event {
 	return p.payload.Transform()
 }
 

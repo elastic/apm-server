@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	m "github.com/elastic/apm-server/processor/model"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -23,10 +24,11 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	ts := "2017-05-09T15:04:05.999999Z"
+	expectedTime, err := utility.ParseTime(ts)
+	assert.NoError(t, err)
 
 	txValid := Event{Timestamp: ts}
 	txValidEs := common.MapStr{
-		"@timestamp": ts,
 		"context": common.MapStr{
 			"app": common.MapStr{
 				"name":  "myapp",
@@ -46,7 +48,6 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	txValidWithSystem := common.MapStr{
-		"@timestamp": ts,
 		"processor": common.MapStr{
 			"event": "transaction",
 			"name":  "transaction",
@@ -71,8 +72,6 @@ func TestPayloadTransform(t *testing.T) {
 	}
 	txWithContext := Event{Timestamp: ts, Context: common.MapStr{"foo": "bar", "user": common.MapStr{"id": "55"}}}
 	txWithContextEs := common.MapStr{
-		"@timestamp": ts,
-
 		"processor": common.MapStr{
 			"event": "transaction",
 			"name":  "transaction",
@@ -99,7 +98,6 @@ func TestPayloadTransform(t *testing.T) {
 	traces := []Trace{{}}
 	txValidWithTrace := Event{Timestamp: ts, Traces: traces}
 	traceEs := common.MapStr{
-		"@timestamp": ts,
 		"context": common.MapStr{
 			"app": common.MapStr{
 				"name":  "myapp",
@@ -158,7 +156,11 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Payload.Transform()
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		outputEvents := test.Payload.Transform()
+		for j, outputEvent := range outputEvents {
+			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+			assert.Equal(t, expectedTime, outputEvent.Timestamp)
+		}
+
 	}
 }

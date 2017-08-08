@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 var debugHandler = flag.Bool("debugHandler", false, "Enable for having catchall endpoint enabled")
@@ -36,7 +37,7 @@ func New(cfg *common.Config) (*Server, error) {
 	return &Server{config: config}, nil
 }
 
-func (s *Server) create(successCallback func([]common.MapStr), host string) *http.Server {
+func (s *Server) create(successCallback func([]beat.Event), host string) *http.Server {
 	mux := http.NewServeMux()
 
 	for path, p := range processor.Registry.GetProcessors() {
@@ -78,7 +79,7 @@ func (s *Server) create(successCallback func([]common.MapStr), host string) *htt
 	}
 }
 
-func (s *Server) Start(successCallback func([]common.MapStr), host string) {
+func (s *Server) Start(successCallback func([]beat.Event), host string) {
 	s.http = s.create(successCallback, host)
 	go s.http.ListenAndServe()
 }
@@ -89,7 +90,7 @@ func (s *Server) Stop() error {
 	return err
 }
 
-func (s *Server) createHandler(p processor.Processor, successCallback func([]common.MapStr)) func(w http.ResponseWriter, r *http.Request) {
+func (s *Server) createHandler(p processor.Processor, successCallback func([]beat.Event)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request - URI: %s ; Method: %s", r.RequestURI, r.Method)
 
