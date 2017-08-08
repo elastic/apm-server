@@ -245,350 +245,466 @@
 		{
 			"checksumSHA1": "r51V6KYLtYm1JnSTz1FemYg23Rg=",
 			"path": "github.com/elastic/beats/libbeat/api",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "zrk3kbKnnBowzinQ3kvNxcRO7xk=",
+			"checksumSHA1": "nLhlWzQPLGuDpxS90Bm2dZc7+6g=",
 			"path": "github.com/elastic/beats/libbeat/beat",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "MDBESe+A4gBSnGcg3ehNPV79Hik=",
 			"path": "github.com/elastic/beats/libbeat/cfgfile",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "I995GwOlIbzUq1HSAH459G3VIfA=",
+			"checksumSHA1": "2kqOKr2w2/sfI8z0CE5ir3+WH/4=",
 			"path": "github.com/elastic/beats/libbeat/cmd",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "dkqK6nYwhlFFUln/alDoqK9yehM=",
 			"path": "github.com/elastic/beats/libbeat/cmd/export",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "UTryw97XdTPWqSvhKgrNazUKnIA=",
 			"path": "github.com/elastic/beats/libbeat/cmd/test",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "K4HbuHokZkn0055WdezBPqKwhq0=",
+			"checksumSHA1": "1dThT5WUstH783xuXDOghG+RhBk=",
 			"path": "github.com/elastic/beats/libbeat/common",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "SS/yBENBeoNVCAu+TQcDylo4CPg=",
 			"path": "github.com/elastic/beats/libbeat/common/atomic",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "kbrbRXK+vEBW+gBucQX1gmn07nE=",
 			"path": "github.com/elastic/beats/libbeat/common/cfgwarn",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "7bGcM14M5R8BuQLqKdWfbbQaKEM=",
 			"path": "github.com/elastic/beats/libbeat/common/dtfmt",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "3GxLcVX/OFwXDi0VJNnJrafkq8A=",
 			"path": "github.com/elastic/beats/libbeat/common/file",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "SpYYaA+reMPUXaVHj7UIAOGx7a8=",
 			"path": "github.com/elastic/beats/libbeat/common/fmtstr",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "aV7tYJdH9nFFQdMVyGjuycYVTJA=",
 			"path": "github.com/elastic/beats/libbeat/common/jsontransform",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "+djyNKl6NRWKJFOBZGTiXliyBm8=",
 			"path": "github.com/elastic/beats/libbeat/common/match",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "CGDTSl2i0mxPNln+8qLD9aEgqzI=",
 			"path": "github.com/elastic/beats/libbeat/common/op",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "8exGjSEBI+fSKXMHdWI2e2lX5D0=",
 			"path": "github.com/elastic/beats/libbeat/common/schema",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "WmqoD6kF9VraYUmjXacgWSHd2v4=",
 			"path": "github.com/elastic/beats/libbeat/common/schema/mapstriface",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "zi4xMJ43/IzPCPNXs8iBc0WI2sE=",
 			"path": "github.com/elastic/beats/libbeat/common/streambuf",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "FdYxwnZLSme4uPLCrXScu9IkISU=",
 			"path": "github.com/elastic/beats/libbeat/dashboards",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "wC9sNrhYx1dr3mz2cXKQIBFZlxo=",
 			"path": "github.com/elastic/beats/libbeat/logp",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "kZBPfX0Pv2dLMP5Iho9Mx/hXz9o=",
 			"path": "github.com/elastic/beats/libbeat/monitoring",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "tRfILb+3nS9S5xf1GTqyGVbvGnU=",
 			"path": "github.com/elastic/beats/libbeat/monitoring/adapter",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "aYw7xpX7bh/TR4bJ4wb/X8AzzLg=",
 			"path": "github.com/elastic/beats/libbeat/monitoring/report",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "7PC10pl6gbEkiiNeeTe0yof5AVM=",
+			"checksumSHA1": "iYskzBUtOaKEbRGbLDiq1lpUmE8=",
 			"path": "github.com/elastic/beats/libbeat/monitoring/report/elasticsearch",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "MfmdEudbBKEpoE15TUCrKXipK4w=",
 			"path": "github.com/elastic/beats/libbeat/outputs",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "5ZVIPMIKQY/TUCmo11+ifIcPt7o=",
 			"path": "github.com/elastic/beats/libbeat/outputs/codec",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "LeYgR6fI3+I+hG/5LE5Z3sdkGzs=",
 			"path": "github.com/elastic/beats/libbeat/outputs/codec/format",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "QehKGtFeMlE+2xfPMCcBjLku+Pc=",
 			"path": "github.com/elastic/beats/libbeat/outputs/codec/json",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "iLBtW3PsfJfjpCaokjfsLV2JNeA=",
 			"path": "github.com/elastic/beats/libbeat/outputs/console",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "bKvpDTsIsmwVd5EgWqeK0LPk3Tk=",
 			"path": "github.com/elastic/beats/libbeat/outputs/elasticsearch",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "2/rtlVYaZDpoihLYdmaEoA++gR4=",
 			"path": "github.com/elastic/beats/libbeat/outputs/fileout",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "lMdMDsdzLHqKX7Cur3+zZ64RyTg=",
 			"path": "github.com/elastic/beats/libbeat/outputs/kafka",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "X0EFjBK56DggRt4kSRZ1UXxARG8=",
 			"path": "github.com/elastic/beats/libbeat/outputs/logstash",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "fQJ7nDwzPQ24jEwhozlijWUfC+o=",
 			"path": "github.com/elastic/beats/libbeat/outputs/outil",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "9SP1E3xdHdbxovvN79ZIhXfb3nw=",
 			"path": "github.com/elastic/beats/libbeat/outputs/redis",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "DXyLGeGve0QaVS9H0GjrS0pbZhs=",
 			"path": "github.com/elastic/beats/libbeat/outputs/transport",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "d5b9Ra0zcwznwemxEJmyW28FZJ0=",
 			"path": "github.com/elastic/beats/libbeat/paths",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "exsokVRNBBYrCZsEM7XR+mAdOvA=",
+			"checksumSHA1": "2ef0H1yIcmjczaj6LsUc17/ss6I=",
 			"path": "github.com/elastic/beats/libbeat/plugin",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "mF+UyB1WmB/TnKvhiR5AdAn7Pqw=",
 			"path": "github.com/elastic/beats/libbeat/processors",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "YItEVZghyofuijZ3FkwcNhnBgws=",
 			"path": "github.com/elastic/beats/libbeat/processors/actions",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "zRkBRdpNqlkFXIJg66mcVg07uQ0=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_cloud_metadata",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "kXPuBxOH2Ym5LiJqNmG1ehMW0jU=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_docker_metadata",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "j1QpQSnodtzMYiNknhV7l5PX1Ws=",
+			"checksumSHA1": "MuN70EWiHjrfvrebKQs/BYh/kyE=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_kubernetes_metadata",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "yF3dEX+Cjyu3aLkuALxWlFteMEw=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_locale",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "cdkZWpqfSlldHSDwRybioZwMguM=",
 			"path": "github.com/elastic/beats/libbeat/publisher",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "ftmsSpe94KKRIei+hfi9GVDfkuU=",
 			"path": "github.com/elastic/beats/libbeat/publisher/bc/publisher",
 			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revisionTime": "2017-07-28T07:19:26Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "B+7ttvRC8tm3LJoa3lnZb91buzQ=",
+			"checksumSHA1": "lDzOqs8+fRo5uTYqBocUpafrXg8=",
 			"path": "github.com/elastic/beats/libbeat/publisher/beat",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "h/FWcbUZrr4jSczVEsSH9SsaCGU=",
 			"path": "github.com/elastic/beats/libbeat/publisher/broker",
 			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revisionTime": "2017-07-28T07:19:26Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "anYB4tIWyeRa73+pYq/TkqEv0CE=",
 			"path": "github.com/elastic/beats/libbeat/publisher/broker/membroker",
 			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revisionTime": "2017-07-28T07:19:26Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "btf3XhwPROVy4JtECpH0eL3nGwg=",
 			"path": "github.com/elastic/beats/libbeat/publisher/includes",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "fD22lZzc66CJuYWgzLBakHgd6Ec=",
+			"checksumSHA1": "8R0UznmdYo7dmOJQnvD5k6iJ98Q=",
 			"path": "github.com/elastic/beats/libbeat/publisher/pipeline",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "fn+kbDtM+S2J80sBO8l+BvJbvN4=",
 			"path": "github.com/elastic/beats/libbeat/publisher/queue",
-			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
-			"revisionTime": "2017-08-03T08:00:47Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "Nvy4Zq0CDl9sJjTgsxDJg0MUTXM=",
 			"path": "github.com/elastic/beats/libbeat/publisher/queue/memqueue",
-			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
-			"revisionTime": "2017-08-03T08:00:47Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "kT9MLdbYAKYJ0lWfjqX8fbrZTiY=",
 			"path": "github.com/elastic/beats/libbeat/service",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "Vk8ZhOtmPC8B2hzBayRKSeq8HTM=",
 			"path": "github.com/elastic/beats/libbeat/setup/kibana",
-			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
-			"revisionTime": "2017-08-03T08:00:47Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "/x+/ly2ewMYm13s+ziFKg+ahSyk=",
+			"checksumSHA1": "4Y71lkAKZPJ9Vb1s7qQIGpOGSFE=",
 			"path": "github.com/elastic/beats/libbeat/template",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "7PJnZYfyxNG+Qz2Sx/G/sdJfujQ=",
 			"path": "github.com/elastic/beats/libbeat/testing",
-			"revision": "23d9fe69e8a4367fc31915553596129a2ca8267b",
-			"revisionTime": "2017-08-03T08:00:47Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "HviBA/yN/8aYDJSnP7lk004sbM0=",
 			"path": "github.com/elastic/beats/libbeat/version",
-			"revision": "f240148065af94d55c5149e444482b9635801f27",
-			"revisionTime": "2017-07-28T07:19:26Z"
+			"revision": "0008c722eba848c3e48be81c4a270e51b024ace2",
+			"revisionTime": "2017-08-08T09:57:48Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "3jizmlZPCyo6FAZY8Trk9jA8NH4=",

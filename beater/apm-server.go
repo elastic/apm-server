@@ -2,20 +2,21 @@ package beater
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/server"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/publisher/bc/publisher"
+	pub "github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 type ApmServer struct {
 	done   chan struct{}
 	server *server.Server
 	config config.Config
-	client publisher.Client
+	client pub.Client
 }
 
 // Creates beater
@@ -34,15 +35,38 @@ func New(_ *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 
 func (bt *ApmServer) Run(b *beat.Beat) error {
 	logp.Info("apm-server is running! Hit CTRL-C to stop it.")
-	bt.client = b.Publisher.Connect()
+	var err error
+	bt.client, err = b.Publisher.Connect()
+	if err != nil {
+		return err
+	}
 	defer bt.client.Close()
 
 	callback := func(data []common.MapStr) {
+		var events []pub.Event
+
+		for _, d := range data {
+			ts, ok := d["@timestamp"].(string)
+			if !ok {
+				logp.Err("No timestamp exists in the event")
+				continue
+			}
+			delete(d, "@timestamp")
+			t, err := time.Parse("2017-05-09T15:04:05.999999Z", ts)
+			if err != nil {
+				logp.Err("Problem parsing timestamp: %v", ts)
+			}
+			e := pub.Event{
+				Fields:    d,
+				Timestamp: t,
+			}
+			events = append(events, e)
+		}
+
 		// Publishing does not wait for publishing to be acked
-		go bt.client.PublishEvents(data)
+		go bt.client.PublishAll(events)
 	}
 
-	var err error
 	bt.server, err = server.New(bt.config.Server)
 	if err != nil {
 		return err
