@@ -5,6 +5,9 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 
 
 ==== Bugfixes
+*Bugfixes in fields.yml leading to ES schema changes*
+- changed `context.system.title` to `context.system.process_title`, removed `transaction.context`, `trace.context` (already available on top level). {pull}10[10]
+
 
 
 ==== Added
