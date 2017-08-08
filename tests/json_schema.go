@@ -12,10 +12,10 @@ import (
 )
 
 type Schema struct {
-	Title      string             `json:"title"`
-	Properties map[string]*Schema `json:"properties"`
-	Items      *Schema            `json:"items"`
-	MaxLength  int                `json:maxLength`
+	Title      string
+	Properties map[string]*Schema
+	Items      *Schema
+	MaxLength  int
 }
 type Mapping struct {
 	from string
