@@ -40,11 +40,6 @@
           description: >
             The result of the transaction. HTTP status code for HTTP-related transactions.
 
-        - name: context
-          type: object
-          enabled: false
-          description: >
-            Arbitrary contextual information related to the transaction
 
 - key: apm-trace
   title: APM Trance
@@ -100,10 +95,4 @@
           enabled: false
           description: >
             A list of frames.
-
-        - name: context
-          type: object
-          enabled: false
-          description: >
-            Context data of the trace, e.g. the executed SQL query, or the URL of the http request.
 

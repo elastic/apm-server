@@ -863,6 +863,12 @@
 			"revisionTime": "2017-05-23T20:24:04Z"
 		},
 		{
+			"checksumSHA1": "mkMkG0GY/ZNBbIW1NCHb1/rCzGY=",
+			"path": "github.com/fatih/set",
+			"revision": "27c40922c40b43fe04554d8223a402af3ea333f3",
+			"revisionTime": "2014-12-10T08:48:24Z"
+		},
+		{
 			"checksumSHA1": "2UmMbNHc8FBr98mJFN1k8ISOIHk=",
 			"origin": "github.com/elastic/beats/vendor/github.com/garyburd/redigo/internal",
 			"path": "github.com/garyburd/redigo/internal",

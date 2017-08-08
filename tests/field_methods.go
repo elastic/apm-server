@@ -3,6 +3,8 @@ package tests
 import (
 	"io/ioutil"
 
+	"github.com/fatih/set"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/template"
 )
@@ -25,23 +27,22 @@ func LoadFields(yamlPath string) ([]template.Field, error) {
 	return fields, err
 }
 
-func FlattenFieldNames(fields []template.Field, onlyDisabled bool) []string {
-	keys := []string{}
+func FlattenFieldNames(fields []template.Field, onlyDisabled bool) *set.Set {
+	keys := set.New()
 	for _, field := range fields {
-		keys = flatten(field, "", onlyDisabled, keys)
+		flatten(field, "", onlyDisabled, keys)
 	}
 	return keys
 }
 
-func flatten(field template.Field, prefix string, onlyDisabled bool, flattened []string) []string {
+func flatten(field template.Field, prefix string, onlyDisabled bool, flattened *set.Set) {
 	flattenedKey := StrConcat(prefix, field.Name, ".")
 	if shouldAddField(field, onlyDisabled) {
-		flattened = append(flattened, flattenedKey)
+		flattened.Add(flattenedKey)
 	}
 	for _, f := range field.Fields {
-		flattened = flatten(f, flattenedKey, onlyDisabled, flattened)
+		flatten(f, flattenedKey, onlyDisabled, flattened)
 	}
-	return flattened
 }
 
 func shouldAddField(f template.Field, onlyDisabled bool) bool {

@@ -5,6 +5,7 @@
     - name: processor.name
       type: keyword
       description: Processor name
+
     - name: processor.event
       type: keyword
       description: Processor event
@@ -13,7 +14,20 @@
       type: group
       description: >
         General context fields.
+      dynamic: false
       fields:
+
+        - name: tags
+          type: object
+          object_type: keyword
+          description: >
+            Flat mapping of user-defined tags
+
+        - name: custom
+          type: object
+          enabled: false
+          description: Arbitrary custom information. 
+
         - name: user
           type: group
           fields:
@@ -35,6 +49,27 @@
         - name: request
           type: group
           fields:
+
+          - name: headers 
+            type: object 
+            enabled: false
+
+          - name: cookies 
+            type: object 
+            enabled: false
+
+          - name: socket 
+            type: object 
+            enabled: false
+
+          - name: env 
+            type: object 
+            enabled: false
+
+          - name: body 
+            type: object 
+            enabled: false
+
           - name: url
             type: group
             description: >
@@ -49,22 +84,27 @@
                 type: keyword
                 description: >
                   The protocol of the request, e.g. "https:"
+
               - name: hostname
                 type: keyword
                 description: >
                   The hostname of the request, e.g. "example.com"
+
               - name: port
                 type: keyword
                 description: >
                   The port of the request, e.g. 443
+
               - name: pathname
                 type: keyword
                 description: >
                   The path of the request, e.g. "/search"
+
               - name: search
                 type: keyword
                 description: >
                   The search describes the query string of the request, e.g. "q=elasticsearch"
+
               - name: hash
                 type: keyword
                 description: >
@@ -75,35 +115,31 @@
             description: >
               The http method of the request leading to this event.
 
-          - name: user_agent
-            type: keyword
-            description: >
-              The user agent used by user who experienced this event
-
-          - name: remote_ip
-            type: ip
-            description: >
-              IP address of the remote system what sent the request that resulted in this event
-
         - name: response
           type: group
           fields:
 
-          - name: status.code
-            type: long
-            description: >
-              Http response status code
+          - name: headers 
+            type: object 
+            enabled: false
 
-          - name: status.message
-            type: text
-            description: >
-              Http response status message
+          - name: status 
+            type: group
+            fields:
 
-        - name: tags
-          type: object
-          object_type: keyword
-          description: >
-            Flat mapping of user-defined tags
+            - name: code
+              type: long
+              description: >
+                Http response status code
+
+            - name: message
+              type: text
+              description: >
+                Http response status message
+
+          - name: finished 
+            type: boolean 
+
 
         - name: system
           type: group
@@ -156,52 +192,64 @@
               type: array
               enabled: false
 
-            - name: title
+            - name: process_title
               type: keyword
               description: >
-                App title.
+                App process_title.
 
-            - name: language.name
-              type: keyword
-              description: >
-                Language name.
+            - name: language
+              type: group
+              fields:
 
-            - name: language.version
-              type: keyword
-              description: >
-                Language version.
+              - name: name
+                type: keyword
+                description: >
+                  Language name.
 
-            - name: runtime.name
-              type: keyword
-              description: >
-                Runtime name.
+              - name: version
+                type: keyword
+                description: >
+                  Language version.
 
-            - name: runtime.version
-              type: keyword
-              description: >
-                Runtime version.
+            - name: runtime 
+              type: group
+              fields:
 
-            - name: framework.name
-              type: keyword
-              description: >
-                Framework name.
+              - name: name
+                type: keyword
+                description: >
+                  Runtime name.
 
-            - name: framework.version
-              type: keyword
-              description: >
-                Framework version.
+              - name: version
+                type: keyword
+                description: >
+                  Runtime version.
 
-            - name: agent.name
-              type: keyword
-              description: >
-                Agent name.
+            - name: framework 
+              type: group
+              fields:
 
-            - name: agent.version
-              type: keyword
-              description: >
-                Agent version.
+              - name: name
+                type: keyword
+                description: >
+                  Framework name.
 
-            - name: custom
-              type: object
-              enabled: false
-              description: Arbitrary custom information. 
+              - name: version
+                type: keyword
+                description: >
+                  Framework version.
+
+            - name: agent 
+              type: group
+              fields:
+
+              - name: name
+                type: keyword
+                description: >
+                  Agent name.
+
+              - name: version
+                type: keyword
+                description: >
+                  Agent version.
+
