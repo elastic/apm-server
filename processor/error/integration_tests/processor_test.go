@@ -37,7 +37,6 @@ func TestProcessorFailedValidation(t *testing.T) {
 		{"no_exception_message.json", "missing properties: \"message\""},
 		{"no_log_or_exception.json", "missing properties: \"exception\""},
 		{"no_log_or_exception.json", "missing properties: \"log\""},
-		{"no_timestamp.json", "missing properties: \"timestamp\""},
 		{"no_app.json", "missing properties: \"app\""},
 		{"no_http_url.json", "missing properties: \"url\""},
 		{"no_http_method.json", "missing properties: \"method\""},

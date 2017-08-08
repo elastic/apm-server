@@ -100,7 +100,7 @@ var transactionSchema = `{
             "maxLength": 1024
         }
     },
-    "required": ["agent", "name"]
+    "required": ["name"]
         },
         "system": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
@@ -437,7 +437,7 @@ var transactionSchema = `{
             "maxLength": 1024
         }
     },
-    "required": ["id", "name", "duration", "type", "timestamp"]
+    "required": ["id", "name", "duration", "type"]
             },
             "minItems": 1
         }

@@ -100,7 +100,7 @@ var errorSchema = `{
             "maxLength": 1024
         }
     },
-    "required": ["agent", "name"]
+    "required": ["name"]
         },
         "errors": {
             "type": "array",
@@ -473,7 +473,6 @@ var errorSchema = `{
             "pattern": "^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})(\\.\\d{1,6})?Z"
         }
     },
-    "required": ["timestamp"],
     "anyOf": [
       { "required": ["exception"] },
       { "required": ["log"] }
