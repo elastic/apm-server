@@ -16,7 +16,8 @@
             "type": ["object","null"],
             "properties": {
                 "code": {
-                    "type": ["string", "number", "null"]
+                    "type": ["string", "number", "null"],
+                    "maxLength": 1024
                 },
                 "message": {
                    "description": "The exception's error message.",
@@ -24,7 +25,8 @@
                 },
                 "module": {
                     "description": "Describes the exception type's module namespace.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "attributes": {
                     "type": ["object", "null"]
@@ -37,7 +39,8 @@
                     "minItems": 0
                 },
                 "type": {
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "uncaught": {
                     "type": ["boolean", "null"]
@@ -63,12 +66,14 @@
                         "warning",
                         "error",
                         "fatal"
-                    ]
+                    ],
+                    "maxLength": 1024
                 },
                 "logger_name": {
                     "description": "The name of the logger which created the record.",
                     "type": ["string", "null"],
-                    "default": "default"
+                    "default": "default",
+                    "maxLength": 1024
                 },
                 "message": {
                     "description": "The exception's error message.",
@@ -76,7 +81,8 @@
                 },
                 "param_message": {
                     "description": "A parametrized message. E.g. Could not connect to %s. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 
                 },
                 "stacktrace": {

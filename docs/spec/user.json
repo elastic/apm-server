@@ -6,13 +6,16 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": ["string", "number", "null"]
+            "type": ["string", "number", "null"],
+            "maxLength": 1024
         },    
         "email": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "username": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     }
 }

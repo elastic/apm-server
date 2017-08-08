@@ -8,10 +8,12 @@
             "type": "object",
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
@@ -24,26 +26,31 @@
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
         },
         "git_ref": {
             "description": "Git Reference of the app emitting this event",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "language": {
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
@@ -57,23 +64,27 @@
             "type": ["number", "null"]
         },
         "process_title": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         },
         "runtime": {
             "type": ["object","null"],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1024
                 }
             },
             "required": ["name", "version"]
         },
         "version": {
             "description": "Version of the app emitting this event",
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "maxLength": 1024
         }
     },
     "required": ["agent", "name"]
