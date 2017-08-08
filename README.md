@@ -111,9 +111,15 @@ Govendor will automatically pick the files needed.
 
 ### Framework Update
 
-To update the beats framework run `make update-framework`. This will fetch the most recent version of beats from master and copy
+To update the beats framework run `make update-beats`. This will fetch the most recent version of beats from master and copy
 the files which are needed for the framework part to the `_beats` directory. These are files like libbeat config files and
 scripts which are used for testing or packaging.
+
+To update the dependency to a specific commit or branch run command as following:
+
+```
+BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
+```
 
 ## Test environment
 

@@ -7,14 +7,15 @@ TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
 PREFIX?=.
 NOTICE_FILE=NOTICE
+BEATS_VERSION?=master
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
 
 # updates beats updates the framework part and go parts of beats
 update-beats:
-	govendor fetch github.com/elastic/beats/...
-	sh _beats/update.sh
+	govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
+	BEATS_VERSION=$(BEATS_VERSION) sh _beats/update.sh
 	$(MAKE) update
 
 # This is called by the beats packer before building starts
