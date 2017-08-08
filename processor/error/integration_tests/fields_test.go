@@ -9,12 +9,12 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
-func TestTemplate(t *testing.T) {
+func TestFields(t *testing.T) {
 	fieldsPaths := []string{
 		"./../../../_meta/fields.common.yml",
 		"./../_meta/fields.yml",
 	}
 	undocumentedKeys := set.New("context.tags.organization_uuid")
-	tests.TestEventAttrsDocumentedInEsSchemaTemplate(t, fieldsPaths, er.NewProcessor, undocumentedKeys)
-	tests.TestEsDocumentedFieldsInEvent(t, fieldsPaths, er.NewProcessor, undocumentedKeys)
+	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, er.NewProcessor, undocumentedKeys)
+	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, er.NewProcessor, undocumentedKeys)
 }

@@ -15,6 +15,6 @@ func TestEsDocumentation(t *testing.T) {
 		"./../_meta/fields.yml",
 	}
 	undocumentedKeys := set.New("context.tags.organization_uuid", "context.sql")
-	tests.TestEventAttrsDocumentedInEsSchemaTemplate(t, fieldsPaths, transaction.NewProcessor, undocumentedKeys)
-	tests.TestEsDocumentedFieldsInEvent(t, fieldsPaths, transaction.NewProcessor, undocumentedKeys)
+	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, transaction.NewProcessor, undocumentedKeys)
+	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, transaction.NewProcessor, undocumentedKeys)
 }
