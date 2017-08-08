@@ -1,4 +1,4 @@
-package integration_tests
+package package_tests
 
 import (
 	"testing"
