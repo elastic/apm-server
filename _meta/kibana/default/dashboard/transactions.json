@@ -1,0 +1,68 @@
+{
+  "objects": [
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"index\":\"apm-server-*\",\"filter\":[],\"query\":{\"language\":\"lucene\",\"query\":\"\"}}"
+        },
+        "title": "APM: Top Transactions",
+        "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+        "version": 1,
+        "visState": "{\"aggs\":[{\"enabled\":true,\"id\":\"2\",\"params\":{\"customLabel\":\"Transaction\",\"field\":\"transaction.name.keyword\",\"order\":\"desc\",\"orderBy\":\"1\",\"size\":1000},\"schema\":\"bucket\",\"type\":\"terms\"},{\"enabled\":true,\"id\":\"5\",\"params\":{\"aggregate\":\"concat\",\"customLabel\":\"Type\",\"field\":\"transaction.type\",\"size\":1,\"sortField\":\"@timestamp\",\"sortOrder\":\"desc\"},\"schema\":\"metric\",\"type\":\"top_hits\"},{\"enabled\":true,\"id\":\"1\",\"params\":{\"customLabel\":\"Avg. Resp Time (ms)\",\"field\":\"transaction.duration.us\"},\"schema\":\"metric\",\"type\":\"avg\"},{\"enabled\":true,\"id\":\"3\",\"params\":{\"customLabel\":\"Resp Time (ms)\",\"field\":\"transaction.duration.us\",\"percents\":[95]},\"schema\":\"metric\",\"type\":\"percentiles\"},{\"enabled\":true,\"id\":\"4\",\"params\":{\"aggregate\":\"concat\",\"customLabel\":\"View Traces\",\"field\":\"transaction.id\",\"size\":1,\"sortField\":\"@timestamp\",\"sortOrder\":\"desc\"},\"schema\":\"metric\",\"type\":\"top_hits\"}],\"params\":{\"perPage\":25,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"title\":\"APM: Top Transactions\",\"type\":\"table\"}"
+      },
+      "id": "a2e199b0-7820-11e7-8c47-65b845b5cfb3",
+      "type": "visualization",
+      "version": 2
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{}"
+        },
+        "title": "APM: Response Times",
+        "uiStateJSON": "{}",
+        "version": 1,
+        "visState": "{\"title\":\"APM: Response Times\",\"type\":\"metrics\",\"params\":{\"id\":\"61ca57f0-469d-11e7-af02-69e470af7417\",\"type\":\"timeseries\",\"series\":[{\"id\":\"61ca57f1-469d-11e7-af02-69e470af7417\",\"color\":\"rgba(0,156,224,1)\",\"split_mode\":\"everything\",\"metrics\":[{\"id\":\"61ca57f2-469d-11e7-af02-69e470af7417\",\"type\":\"avg\",\"field\":\"transaction.duration.us\"}],\"seperate_axis\":0,\"axis_position\":\"right\",\"formatter\":\"number\",\"chart_type\":\"line\",\"line_width\":\"2\",\"point_size\":1,\"fill\":\"0\",\"stacked\":\"none\",\"value_template\":\"{{value}} us\",\"label\":\"Average (us)\"},{\"id\":\"79921480-7821-11e7-8745-07eaffcb65e5\",\"color\":\"rgba(115,216,255,1)\",\"split_mode\":\"everything\",\"metrics\":[{\"id\":\"79921481-7821-11e7-8745-07eaffcb65e5\",\"type\":\"percentile\",\"field\":\"transaction.duration.us\",\"percentiles\":[{\"value\":\"95\",\"percentile\":\"\",\"shade\":0.2,\"id\":\"858ec670-7821-11e7-8745-07eaffcb65e5\",\"mode\":\"line\"}]}],\"seperate_axis\":0,\"axis_position\":\"right\",\"formatter\":\"number\",\"chart_type\":\"line\",\"line_width\":1,\"point_size\":1,\"fill\":0.5,\"stacked\":\"none\",\"value_template\":\"{{value}} us\",\"label\":\"95th Percentile (us)\"},{\"id\":\"c1e42de0-7821-11e7-8745-07eaffcb65e5\",\"color\":\"rgba(254,146,0,1)\",\"split_mode\":\"everything\",\"metrics\":[{\"id\":\"c1e42de1-7821-11e7-8745-07eaffcb65e5\",\"type\":\"percentile\",\"field\":\"transaction.duration.us\",\"percentiles\":[{\"value\":\"99\",\"percentile\":\"\",\"shade\":0.2,\"id\":\"858ec670-7821-11e7-8745-07eaffcb65e5\",\"mode\":\"line\"}]}],\"seperate_axis\":0,\"axis_position\":\"right\",\"formatter\":\"number\",\"chart_type\":\"line\",\"line_width\":\"2\",\"point_size\":1,\"fill\":\"0\",\"stacked\":\"none\",\"value_template\":\"{{value}} us\",\"label\":\"99th Percentile (us)\"}],\"time_field\":\"@timestamp\",\"index_pattern\":\"apm*\",\"interval\":\"auto\",\"axis_position\":\"left\",\"axis_formatter\":\"number\",\"show_legend\":1,\"show_grid\":1,\"legend_position\":\"right\"},\"aggs\":[]}"
+      },
+      "id": "09bcf890-7822-11e7-8c47-65b845b5cfb3",
+      "type": "visualization",
+      "version": 2
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{}"
+        },
+        "title": "APM: Request Per Minute",
+        "uiStateJSON": "{}",
+        "version": 1,
+        "visState": "{\"title\":\"APM: Request Per Minute\",\"type\":\"metrics\",\"params\":{\"id\":\"61ca57f0-469d-11e7-af02-69e470af7417\",\"type\":\"timeseries\",\"series\":[{\"id\":\"61ca57f1-469d-11e7-af02-69e470af7417\",\"color\":\"rgba(0,156,224,1)\",\"split_mode\":\"filters\",\"metrics\":[{\"id\":\"61ca57f2-469d-11e7-af02-69e470af7417\",\"type\":\"count\"},{\"id\":\"0f590450-7823-11e7-9f81-b71e0e910b34\",\"type\":\"cumulative_sum\",\"field\":\"61ca57f2-469d-11e7-af02-69e470af7417\"},{\"unit\":\"1m\",\"id\":\"15bdacb0-7823-11e7-9f81-b71e0e910b34\",\"type\":\"derivative\",\"field\":\"0f590450-7823-11e7-9f81-b71e0e910b34\"},{\"unit\":\"\",\"id\":\"1fba21d0-7823-11e7-9f81-b71e0e910b34\",\"type\":\"positive_only\",\"field\":\"15bdacb0-7823-11e7-9f81-b71e0e910b34\"}],\"seperate_axis\":0,\"axis_position\":\"right\",\"formatter\":\"number\",\"chart_type\":\"line\",\"line_width\":\"2\",\"point_size\":\"0\",\"fill\":\"0\",\"stacked\":\"none\",\"split_filters\":[{\"filter\":\"context.response.status.code:[200 TO 299]\",\"label\":\"2xx\",\"color\":\"rgba(0,156,224,1)\",\"id\":\"72e54a20-7822-11e7-9f81-b71e0e910b34\"},{\"filter\":\"context.response.status.code:[300 TO 399]\",\"label\":\"3xx\",\"color\":\"rgba(0,98,177,1)\",\"id\":\"afd4a7a0-7822-11e7-9f81-b71e0e910b34\"},{\"filter\":\"context.response.status.code:[400 TO 499]\",\"label\":\"4xx\",\"color\":\"rgba(251,158,0,1)\",\"id\":\"e3761f80-7822-11e7-9f81-b71e0e910b34\"},{\"filter\":\"context.response.status.code:[500 TO 599]\",\"label\":\"5xx\",\"color\":\"rgba(244,78,59,1)\",\"id\":\"fb035410-7822-11e7-9f81-b71e0e910b34\"}],\"label\":\"\",\"value_template\":\"{{value}} rpm\"}],\"time_field\":\"@timestamp\",\"index_pattern\":\"apm*\",\"interval\":\"auto\",\"axis_position\":\"left\",\"axis_formatter\":\"number\",\"show_legend\":1,\"show_grid\":1},\"aggs\":[]}"
+      },
+      "id": "55606a60-7823-11e7-8c47-65b845b5cfb3",
+      "type": "visualization",
+      "version": 2
+    },
+    {
+      "attributes": {
+        "description": "",
+        "hits": 0,
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\":{\"language\":\"lucene\",\"query\":\"context.app.name:opbeans-backend\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
+        },
+        "optionsJSON": "{\"darkTheme\":false}",
+        "panelsJSON": "[{\"col\":1,\"id\":\"a2e199b0-7820-11e7-8c47-65b845b5cfb3\",\"panelIndex\":1,\"row\":4,\"size_x\":12,\"size_y\":10,\"type\":\"visualization\"},{\"col\":1,\"id\":\"09bcf890-7822-11e7-8c47-65b845b5cfb3\",\"panelIndex\":2,\"row\":1,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"},{\"col\":7,\"id\":\"55606a60-7823-11e7-8c47-65b845b5cfb3\",\"panelIndex\":3,\"row\":1,\"size_x\":6,\"size_y\":3,\"type\":\"visualization\"}]",
+        "timeRestore": false,
+        "title": "APM: Transactions",
+        "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
+        "version": 1
+      },
+      "id": "41b5d920-7821-11e7-8c47-65b845b5cfb3",
+      "type": "dashboard",
+      "version": 2
+    }
+  ],
+  "version": "6.0.0-beta1-SNAPSHOT"
+}
