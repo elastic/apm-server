@@ -13,8 +13,8 @@ var http = require('http')
 http.createServer(function (req, res) {
   console.log(req.method, req.url)
 
-  response.writeHead(200, {'Content-Type': 'text/plain'})
-  response.end('Hello World\n')
+  res.writeHead(200, {'Content-Type': 'text/plain'})
+  res.end('Hello World\n')
 
   opbeat.captureError(new Error('Ups, something broke'))
 }).listen(8081, function () {
