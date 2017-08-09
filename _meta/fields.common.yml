@@ -67,8 +67,8 @@
             enabled: false
 
           - name: body 
-            type: object 
-            enabled: false
+            type: text 
+            index: false
 
           - name: url
             type: group
