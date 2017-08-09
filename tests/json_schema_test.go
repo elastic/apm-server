@@ -88,10 +88,7 @@ var test_schema = `{
                         "type": ["array", "null"],
                         "items": {
                             "$schema": "http://json-schema.org/draft-04/schema#",
-                            "$id": "docs/spec/stacktrace.json",
-                            "title": "Stacktrace",
                             "type": "object",
-                            "description": "A stacktrace contains a list of stack frames, each with various bits (most optional) describing the context of that frame",
                             "properties":{
                                 "abs_path": {
                                   "description": "The absolute path of the file involved in the stack frame",
