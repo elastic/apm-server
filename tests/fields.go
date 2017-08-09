@@ -153,7 +153,7 @@ func addOnlyDisabledFields(f template.Field) bool {
 }
 
 func addKeywordFields(f template.Field) bool {
-	if f.Type == "keyword" {
+	if f.Type == "keyword" || f.ObjectType == "keyword" {
 		return true
 	} else if len(f.MultiFields) > 0 {
 		for _, mf := range f.MultiFields {

@@ -12,10 +12,11 @@ import (
 )
 
 type Schema struct {
-	Title      string
-	Properties map[string]*Schema
-	Items      *Schema
-	MaxLength  int
+	Title                string
+	Properties           map[string]*Schema
+	AdditionalProperties map[string]interface{}
+	Items                *Schema
+	MaxLength            int
 }
 type Mapping struct {
 	from string
@@ -124,6 +125,11 @@ func addAllPropNames(s *Schema) bool { return true }
 func addLengthRestrictedPropNames(s *Schema) bool {
 	if s.MaxLength == 1024 {
 		return true
+	} else if val, ok := s.AdditionalProperties["maxLength"]; ok {
+		if valF, okF := val.(float64); okF && valF == 1024 {
+			return true
+
+		}
 	}
 	return false
 }
