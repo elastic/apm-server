@@ -38,7 +38,6 @@ func TestTransactionProcessorValidationFailed(t *testing.T) {
 		{"app/runtime_no_name.json", "missing properties: \"name\""},
 		{"app/runtime_no_version.json", "missing properties: \"version\""},
 		{"app/no_name.json", "missing properties: \"name\""},
-		{"app/no_agent.json", "missing properties: \"agent\""},
 		{"no_app.json", "missing properties: \"app\""},
 		{"empty_payload.json", "minimum 1 items allowed"},
 		{"invalid_id.json", "[#/properties/transactions/items/properties/id/pattern] does not match pattern"},
@@ -52,7 +51,7 @@ func TestTransactionProcessorValidationFailed(t *testing.T) {
 		assert.Nil(t, err)
 		p := transaction.NewProcessor()
 		err = p.Validate(bytes.NewReader(data))
-		assert.NotNil(t, err)
+		assert.NotNil(t, err, fmt.Sprintf("file %v passed, but should have failed", dataRow[0]))
 		assert.True(t, strings.Contains(err.Error(), dataRow[1]), fmt.Sprintf("'%v' not found in '%v'", dataRow[1], err.Error()))
 	}
 }
