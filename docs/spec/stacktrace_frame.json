@@ -3,7 +3,7 @@
     "$id": "docs/spec/stacktrace.json",
     "title": "Stacktrace",
     "type": "object",
-    "description": "A stacktrace contains a list of stack frames, each with various bits (most optional) describing the context of that frame",
+    "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
     "properties":{
         "abs_path": {
             "description": "The absolute path of the file involved in the stack frame",
