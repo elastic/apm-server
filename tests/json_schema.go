@@ -15,6 +15,7 @@ type Schema struct {
 	Title                string
 	Properties           map[string]*Schema
 	AdditionalProperties map[string]interface{}
+	PatternProperties    map[string]interface{}
 	Items                *Schema
 	MaxLength            int
 }
@@ -128,8 +129,17 @@ func addLengthRestrictedPropNames(s *Schema) bool {
 	} else if val, ok := s.AdditionalProperties["maxLength"]; ok {
 		if valF, okF := val.(float64); okF && valF == 1024 {
 			return true
-
 		}
+	} else if len(s.PatternProperties) > 0 {
+		for _, v := range s.PatternProperties {
+			val, ok := v.(map[string]interface{})["maxLength"]
+			if ok && val.(float64) == 1024 {
+				continue
+			} else {
+				return false
+			}
+		}
+		return true
 	}
 	return false
 }

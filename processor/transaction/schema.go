@@ -268,10 +268,14 @@ var transactionSchema = `{
     },
     "tags": {
       "type": ["object", "null"],
-      "additionalProperties": {
-        "type": "string",
-        "maxLength": 1024
-      }
+      "regexProperties": true,
+      "patternProperties": {
+        "^[^.*]*$": {
+            "type": "string",
+            "maxLength": 1024
+          }
+      },
+      "additionalProperties": false
     },
     "user":{
           "$schema": "http://json-schema.org/draft-04/schema#",
