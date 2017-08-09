@@ -47,9 +47,9 @@ func (e *Event) DocType() string {
 	return "error"
 }
 
-func (e *Event) Mappings(pa *Payload) ([]m.SMapping, []m.FMapping) {
-	return []m.SMapping{
-			{"@timestamp", e.Timestamp},
+func (e *Event) Mappings(pa *Payload) (string, []m.SMapping, []m.FMapping) {
+	return e.Timestamp,
+		[]m.SMapping{
 			{"processor.name", processorName},
 			{"processor.event", e.DocType()},
 		}, []m.FMapping{

@@ -8,7 +8,7 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/publisher/bc/publisher"
+	publisher "github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 type ApmServer struct {
@@ -34,15 +34,18 @@ func New(_ *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 
 func (bt *ApmServer) Run(b *beat.Beat) error {
 	logp.Info("apm-server is running! Hit CTRL-C to stop it.")
-	bt.client = b.Publisher.Connect()
+	var err error
+	bt.client, err = b.Publisher.Connect()
+	if err != nil {
+		return err
+	}
 	defer bt.client.Close()
 
-	callback := func(data []common.MapStr) {
+	callback := func(events []publisher.Event) {
 		// Publishing does not wait for publishing to be acked
-		go bt.client.PublishEvents(data)
+		go bt.client.PublishAll(events)
 	}
 
-	var err error
 	bt.server, err = server.New(bt.config.Server)
 	if err != nil {
 		return err

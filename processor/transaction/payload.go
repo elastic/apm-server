@@ -3,7 +3,7 @@ package transaction
 import (
 	pr "github.com/elastic/apm-server/processor"
 	m "github.com/elastic/apm-server/processor/model"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 type Payload struct {
@@ -12,16 +12,16 @@ type Payload struct {
 	Events []Event   `json:"transactions"`
 }
 
-func (pa *Payload) Transform() []common.MapStr {
-	var docs []common.MapStr
+func (pa *Payload) Transform() []beat.Event {
+	var events []beat.Event
 	for _, tx := range pa.Events {
 
-		docs = append(docs, pr.CreateDoc(tx.Mappings(pa)))
+		events = append(events, pr.CreateDoc(tx.Mappings(pa)))
 
 		for _, tr := range tx.Traces {
-			docs = append(docs, pr.CreateDoc(tr.Mappings(pa, tx)))
+			events = append(events, pr.CreateDoc(tr.Mappings(pa, tx)))
 		}
 	}
 
-	return docs
+	return events
 }
