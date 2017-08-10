@@ -4,6 +4,7 @@ import (
 	"compress/zlib"
 	"context"
 	"crypto/subtle"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -95,18 +96,18 @@ func (s *Server) createHandler(p processor.Processor, successCallback func([]bea
 		logp.Debug("handler", "Request - URI: %s ; Method: %s", r.RequestURI, r.Method)
 
 		if !checkSecretToken(r, s.config.SecretToken) {
-			sendError(w, 401, "Invalid token", true)
+			sendError(w, r, 401, "Invalid token", true)
 			return
 		}
 
 		if r.Method != "POST" {
-			sendError(w, 405, "Only post requests are supported", false)
+			sendError(w, r, 405, "Only post requests are supported", false)
 			return
 		}
 
 		reader, err := decodeData(r)
 		if err != nil {
-			sendError(w, 400, fmt.Sprintf("Decoding error: %s", err.Error()), true)
+			sendError(w, r, 400, fmt.Sprintf("Decoding error: %s", err.Error()), true)
 			return
 		}
 		defer reader.Close()
@@ -115,7 +116,7 @@ func (s *Server) createHandler(p processor.Processor, successCallback func([]bea
 		limitedReader := io.LimitReader(reader, s.config.MaxUnzippedSize)
 		err = p.Validate(limitedReader)
 		if err != nil {
-			sendError(w, 400, fmt.Sprintf("Data Validation error: %s", err), true)
+			sendError(w, r, 400, fmt.Sprintf("Data Validation error: %s", err), true)
 			return
 		}
 
@@ -126,11 +127,26 @@ func (s *Server) createHandler(p processor.Processor, successCallback func([]bea
 	}
 }
 
-func sendError(w http.ResponseWriter, code int, error string, log bool) {
+func sendError(w http.ResponseWriter, r *http.Request, code int, error string, log bool) {
 	w.WriteHeader(code)
-	w.Write([]byte(error))
-	if log {
-		logp.Err(error)
+
+	acceptHeader := r.Header.Get("Accept")
+	// send JSON if the client will accept it
+	if strings.Contains(acceptHeader, "*/*") || strings.Contains(acceptHeader, "application/json") {
+		buf, err := json.Marshal(map[string]interface{}{
+			"error": error,
+		})
+
+		if err != nil {
+			logp.Err("Error while generating a JSON error response: %v", err)
+		} else {
+			w.Write(buf)
+		}
+	} else {
+		w.Write([]byte(error))
+		if log {
+			logp.Err(error)
+		}
 	}
 }
 
