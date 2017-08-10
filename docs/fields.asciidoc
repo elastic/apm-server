@@ -115,6 +115,8 @@ type: object
 
 type: text
 
+Field is not indexed.
+
 [float]
 == url fields
 

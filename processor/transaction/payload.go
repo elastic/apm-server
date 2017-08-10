@@ -3,7 +3,7 @@ package transaction
 import (
 	pr "github.com/elastic/apm-server/processor"
 	m "github.com/elastic/apm-server/processor/model"
-	"github.com/elastic/beats/libbeat/publisher/beat"
+	"github.com/elastic/beats/libbeat/beat"
 )
 
 type Payload struct {

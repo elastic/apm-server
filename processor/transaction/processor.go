@@ -4,7 +4,7 @@ import (
 	"io"
 
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/beats/libbeat/publisher/beat"
+	"github.com/elastic/beats/libbeat/beat"
 
 	"github.com/santhosh-tekuri/jsonschema"
 )
