@@ -1035,6 +1035,12 @@
 			"revisionTime": "2017-06-28T12:00:33Z"
 		},
 		{
+			"checksumSHA1": "pa+ZwMzIv+u+BlL8Q2xgL9cQtJg=",
+			"path": "github.com/kabukky/httpscerts",
+			"revision": "617593d7dcb39c9ed617bb62c5e2056244d02184",
+			"revisionTime": "2015-03-20T12:54:33Z"
+		},
+		{
 			"checksumSHA1": "+CqJGh7NIDMnHgScq9sl9tPrnVM=",
 			"origin": "github.com/elastic/beats/vendor/github.com/klauspost/compress/flate",
 			"path": "github.com/klauspost/compress/flate",

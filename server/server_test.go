@@ -2,25 +2,210 @@ package server
 
 import (
 	"bytes"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"io/ioutil"
+
+	"net/http"
+	"net/http/httptest"
+
+	"crypto/tls"
+
+	"os"
+	"time"
+
+	"github.com/kabukky/httpscerts"
+
+	"net"
+
+	"strings"
+
+	"path"
+
+	"github.com/docker/docker/pkg/ioutils"
+	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/beats/libbeat/beat"
 )
+
+var tmpCertPath string
+
+func TestMain(m *testing.M) {
+	var err error
+	tmpCertPath, err = ioutils.TempDir("", "apm-server_test_certs_")
+
+	if err != nil {
+		panic(err)
+	}
+	code := m.Run()
+	if code == 0 {
+		err = os.RemoveAll(tmpCertPath)
+	}
+	os.Exit(code)
+}
+
+func setupHTTP() (http.Handler, *bytes.Reader) {
+	s, _ := New(nil)
+	s.Start(func(_ []beat.Event) {}, "localhost:8080")
+	waitForServer(false, "localhost:8080")
+	data, _ := tests.LoadValidData("transaction")
+	return s.http.Handler, bytes.NewReader(data)
+}
+
+func setupHTTPS(t *testing.T, useCert bool, domain string) (*Server, string, []byte) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	s, _ := New(nil)
+	s.config.SSLEnabled = true
+	if useCert {
+		cert := path.Join(tmpCertPath, t.Name()+time.Now().String()+".crt")
+		key := strings.Replace(cert, ".crt", ".key", -1)
+		t.Log("generating certificate in ", cert)
+		httpscerts.Generate(cert, key, domain)
+		s.config.SSLCert = cert
+		s.config.SSLPrivateKey = key
+	}
+
+	host := randomAddr()
+	t.Log("Starting server on ", host)
+	s.Start(func(_ []beat.Event) {}, host)
+
+	waitForServer(true, host)
+
+	data, _ := tests.LoadValidData("transaction")
+
+	return s, host, data
+}
+
+func randomAddr() string {
+	l, _ := net.Listen("tcp", "localhost:0")
+	l.Close()
+	return l.Addr().String()
+}
+
+func insecureClient() *http.Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	return &http.Client{Transport: tr}
+}
+
+func waitForServer(secure bool, host string) {
+	var check = func() int {
+		var res *http.Response
+		var err error
+		if secure {
+			res, err = insecureClient().Get("https://" + host + "/healthcheck")
+		} else {
+			res, err = http.Get("http://" + host + "/healthcheck")
+		}
+		if err != nil {
+			return 500
+		}
+		return res.StatusCode
+	}
+
+	for i := 0; i <= 500; i++ {
+		time.Sleep(time.Second / 50)
+		if check() == 200 {
+			return
+		}
+	}
+	panic("server start timeout (5 seconds)")
+}
 
 func TestDecode(t *testing.T) {
 	transactionBytes, err := tests.LoadValidData("transaction")
 	assert.Nil(t, err)
 	buffer := bytes.NewReader(transactionBytes)
-	req, err := http.NewRequest("POST", "/transactions", buffer)
+
+	req, err := http.NewRequest("POST", "_", buffer)
 	req.Header.Add("Content-Type", "application/json")
+	assert.Nil(t, err)
+
 	res, err := decodeData(req)
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
+
+	body, err := ioutil.ReadAll(res)
+	assert.Nil(t, err)
+	assert.Equal(t, transactionBytes, body)
+}
+
+func TestServerOk(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	h, buffer := setupHTTP()
+
+	req, err := http.NewRequest("POST", transaction.Endpoint, buffer)
+	req.Header.Add("Content-Type", "application/json")
+	assert.Nil(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	assert.Equal(t, rr.Code, 202, rr.Body.String())
+}
+
+func TestServerNoContentType(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	h, buffer := setupHTTP()
+
+	req, err := http.NewRequest("POST", transaction.Endpoint, buffer)
+	assert.Nil(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	assert.Equal(t, rr.Code, 400, rr.Body.String())
+}
+
+func TestServerSecureUnknownCA(t *testing.T) {
+
+	s, host, data := setupHTTPS(t, true, "127.0.0.1")
+	defer s.Stop()
+
+	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
+
+	assert.Contains(t, err.Error(), "x509: certificate signed by unknown authority")
+}
+
+func TestServerSecureSkipVerify(t *testing.T) {
+
+	s, host, data := setupHTTPS(t, true, "127.0.0.1")
+	defer s.Stop()
+
+	res, err := insecureClient().Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
+
+	assert.Nil(t, err)
+	assert.Equal(t, res.StatusCode, 202)
+}
+
+func TestServerSecureBadDomain(t *testing.T) {
+
+	s, host, data := setupHTTPS(t, true, "ELASTIC")
+	defer s.Stop()
+
+	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
+
+	assert.Contains(t, err.Error(), "x509: cannot validate certificate for 127.0.0.1")
+}
+
+func TestServerBadProtocol(t *testing.T) {
+
+	s, host, data := setupHTTPS(t, true, "localhost")
+	defer s.Stop()
+
+	_, err := http.Post("http://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
+
+	assert.Contains(t, err.Error(), "malformed HTTP response")
 }
 
 func TestJSONFailureResponse(t *testing.T) {

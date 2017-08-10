@@ -10,6 +10,9 @@ type Config struct {
 	ReadTimeout     time.Duration `config:"read_timeout"`
 	WriteTimeout    time.Duration `config:"write_timeout"`
 	SecretToken     string        `config:"secret_token"`
+	SSLEnabled      bool          `config:"ssl.enabled"`
+	SSLPrivateKey   string        `config:"ssl.key"`
+	SSLCert         string        `config:"ssl.certificate"`
 }
 
 var defaultConfig = Config{
