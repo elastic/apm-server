@@ -49,12 +49,14 @@ create-docs:
 	cp tests/data/valid/error/* docs/data/intake-api/generated/error/
 	cp tests/data/valid/transaction/* docs/data/intake-api/generated/transaction/
 
+# Start manual testing environment with agents
 start-env:
-	docker-compose build
-	docker-compose up -d
+	docker-compose -f tests/docker-compose.yml build
+	docker-compose -f tests/docker-compose.yml up -d
 
+# Stop manual testing environment with agents
 stop-env:
-	docker-compose down -v
+	docker-compose -f tests/docker-compose.yml down -v
 
 check-full: check
 	@# Validate that all updates were committed
