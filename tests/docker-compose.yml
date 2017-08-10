@@ -12,20 +12,20 @@ services:
 
   elasticsearch:
     extends:
-      file: _beats/testing/environments/snapshot.yml
+      file: ../_beats/testing/environments/snapshot.yml
       service: elasticsearch
     ports:
       - "9200:9200"
 
   kibana:
     extends:
-      file: _beats/testing/environments/snapshot.yml
+      file: ../_beats/testing/environments/snapshot.yml
       service: kibana
     ports:
       - "5601:5601"
 
   agent-python:
-    build: ./tests/agent/python
+    build: ./agent/python
     ports:
       - "8000:8000"
     environment:
