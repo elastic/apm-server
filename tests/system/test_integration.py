@@ -59,7 +59,7 @@ class Test(BaseTest):
         transactions = json.loads(open(f).read())
         url = 'http://localhost:8080/v1/transactions'
         r = requests.post(url, json=transactions)
-        assert r.status_code == 201
+        assert r.status_code == 202
 
         # make sure template is loaded
         self.wait_until(

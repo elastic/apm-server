@@ -121,7 +121,7 @@ func (s *Server) createHandler(p processor.Processor, successCallback func([]bea
 
 		list := p.Transform()
 
-		w.WriteHeader(201)
+		w.WriteHeader(202)
 		successCallback(list)
 	}
 }

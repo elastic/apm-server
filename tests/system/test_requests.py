@@ -18,7 +18,7 @@ class Test(ServerBaseTest):
         transactions = self.get_payload()
         r = requests.post(self.transactions_url, data=transactions,
                           headers={'Content-Type': 'application/json'})
-        assert r.status_code == 201
+        assert r.status_code == 202
 
     def test_empty(self):
         transactions = {}
@@ -61,7 +61,7 @@ class Test(ServerBaseTest):
 
         r = requests.post(self.transactions_url, data=out.getvalue(),
                           headers={'Content-Encoding': 'gzip', 'Content-Type': 'application/json'})
-        assert r.status_code == 201
+        assert r.status_code == 202
 
     def test_deflat(self):
         transactions = self.get_payload()
@@ -73,7 +73,7 @@ class Test(ServerBaseTest):
 
         r = requests.post(self.transactions_url, data=compressed_data,
                           headers={'Content-Encoding': 'deflate', 'Content-Type': 'application/json'})
-        assert r.status_code == 201
+        assert r.status_code == 202
 
     def test_gzip_error(self):
         data = self.get_payload()

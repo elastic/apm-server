@@ -32,7 +32,7 @@ class Test(BaseTest):
         assert r.status_code == 401
 
         r = requests.post(url, json=transactions, headers={'Authorization': 'Bearer 1234'})
-        assert r.status_code == 201
+        assert r.status_code == 202
 
         r = requests.post(url, json=transactions, headers={'Authorization': 'Bearer wrongtoken'})
         assert r.status_code == 401
