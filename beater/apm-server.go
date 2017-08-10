@@ -8,14 +8,13 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	publisher "github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 type ApmServer struct {
 	done   chan struct{}
 	server *server.Server
 	config config.Config
-	client publisher.Client
+	client beat.Client
 }
 
 // Creates beater
@@ -41,7 +40,7 @@ func (bt *ApmServer) Run(b *beat.Beat) error {
 	}
 	defer bt.client.Close()
 
-	callback := func(events []publisher.Event) {
+	callback := func(events []beat.Event) {
 		// Publishing does not wait for publishing to be acked
 		go bt.client.PublishAll(events)
 	}

@@ -14,9 +14,9 @@ import (
 	"compress/gzip"
 
 	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/publisher/beat"
 )
 
 var debugHandler = flag.Bool("debugHandler", false, "Enable for having catchall endpoint enabled")
