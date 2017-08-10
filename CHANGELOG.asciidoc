@@ -2,7 +2,7 @@
 https://github.com/elastic/apm-server/compare/x...master[View commits]
 
 ==== Breaking changes
-
+- changed response status code in the API from 201 to 202 {pull}34[34]
 
 ==== Bugfixes
 - changed `context.system.title` to `context.system.process_title`, removed `transaction.context`, `trace.context` (already available on top level). {pull}10[10]
