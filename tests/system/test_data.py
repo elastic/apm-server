@@ -21,7 +21,7 @@ class Test(ServerBaseTest):
         transactions = json.loads(open(f).read())
         url = 'http://localhost:8080/v1/transactions'
         r = requests.post(url, json=transactions)
-        assert r.status_code == 201
+        assert r.status_code == 202
 
         self.wait_until(lambda: self.output_count(lambda x: x >= 2))
 
@@ -43,7 +43,7 @@ class Test(ServerBaseTest):
 
         url = 'http://localhost:8080/v1/errors'
         r = requests.post(url, json=errors)
-        assert r.status_code == 201
+        assert r.status_code == 202
 
         self.wait_until(lambda: self.output_count(lambda x: x >= 1))
 
