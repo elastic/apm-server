@@ -323,6 +323,45 @@ type: keyword
 Agent version.
 
 
+[float]
+== db fields
+
+An object containing contextual data for database traces
+
+
+
+[float]
+=== `context.db.instance`
+
+type: text
+
+Database instance name
+
+
+[float]
+=== `context.db.statement`
+
+type: text
+
+A database statement (e.g. query) for the given database type
+
+
+[float]
+=== `context.db.type`
+
+type: text
+
+Database type. For any SQL database, "sql". For others, the lower-case database category, e.g. "cassandra", "hbase", or "redis"
+
+
+[float]
+=== `context.db.user`
+
+type: text
+
+Username for accessing database
+
+
 [[exported-fields-apm-error]]
 == APM Error fields
 

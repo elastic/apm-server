@@ -47,7 +47,7 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 	assert.Equal(0, undocumentedNames.Size(), fmt.Sprintf("Event attributes not documented in fields.yml: %v", undocumentedNames))
 }
 
-func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor) {
+func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor, exceptions *set.Set) {
 	assert := assert.New(t)
 	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
 	assert.NoError(err)
@@ -55,7 +55,7 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 	eventNames, err := fetchEventNames(fn, set.New())
 	assert.NoError(err)
 
-	unusedNames := set.Difference(fieldNames, eventNames)
+	unusedNames := set.Difference(fieldNames, eventNames, exceptions)
 	assert.Equal(0, unusedNames.Size(), fmt.Sprintf("Documented Fields missing in event: %v", unusedNames))
 }
 

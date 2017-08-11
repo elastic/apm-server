@@ -11,9 +11,28 @@
             "type": ["object", "null"],
             "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
             "properties":{
-                "sql": {
-                   "type": ["string", "null"] 
-                }          
+                "db": {
+                    "type": ["object", "null"],
+                    "description": "An object containing contextual data for database traces",
+                    "properties": {
+                        "instance": {
+                           "type": ["string", "null"],
+                           "description": "Database instance name"
+                        },
+                        "statement": {
+                           "type": ["string", "null"],
+                           "description": "A database statement (e.g. query) for the given database type"
+                        },
+                        "type": {
+                           "type": ["string", "null"],
+                           "description": "Database type. For any SQL database, \"sql\". For others, the lower-case database category, e.g. \"cassandra\", \"hbase\", or \"redis\""
+                        },
+                        "user": {
+                           "type": ["string", "null"],
+                           "description": "Username for accessing database"
+                        }
+                    }
+                }
             }
         },
         "duration": {
