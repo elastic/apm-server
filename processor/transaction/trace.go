@@ -42,12 +42,12 @@ func (t *Trace) Transform(transactionId string) common.MapStr {
 
 func (t *Trace) Mappings(pa *Payload, tx Event) (string, []m.SMapping, []m.FMapping) {
 	return tx.Timestamp, []m.SMapping{
-			{"processor.name", processorName},
-			{"processor.event", t.DocType()},
+			{Key: "processor.name", Value: processorName},
+			{Key: "processor.event", Value: t.DocType()},
 		}, []m.FMapping{
-			{t.DocType(), func() common.MapStr { return t.Transform(tx.Id) }},
-			{"context", func() common.MapStr { return t.Context }},
-			{"context.app", pa.App.MinimalTransform},
+			{Key: t.DocType(), Apply: func() common.MapStr { return t.Transform(tx.Id) }},
+			{Key: "context", Apply: func() common.MapStr { return t.Context }},
+			{Key: "context.app", Apply: pa.App.MinimalTransform},
 		}
 }
 

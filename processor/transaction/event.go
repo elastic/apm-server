@@ -34,12 +34,12 @@ func (t *Event) Transform() common.MapStr {
 func (t *Event) Mappings(pa *Payload) (string, []m.SMapping, []m.FMapping) {
 	return t.Timestamp,
 		[]m.SMapping{
-			{"processor.name", processorName},
-			{"processor.event", t.DocType()},
+			{Key: "processor.name", Value: processorName},
+			{Key: "processor.event", Value: t.DocType()},
 		}, []m.FMapping{
-			{t.DocType(), t.Transform},
-			{"context", func() common.MapStr { return t.Context }},
-			{"context.app", pa.App.Transform},
-			{"context.system", pa.System.Transform},
+			{Key: t.DocType(), Apply: t.Transform},
+			{Key: "context", Apply: func() common.MapStr { return t.Context }},
+			{Key: "context.app", Apply: pa.App.Transform},
+			{Key: "context.system", Apply: pa.System.Transform},
 		}
 }
