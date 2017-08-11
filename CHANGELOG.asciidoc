@@ -12,6 +12,8 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 
 ==== Added
 
+- apm-server now returns JSON error responses when the Accept header allows for it.
+
 
 ==== Deprecated
 
