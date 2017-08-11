@@ -128,8 +128,11 @@ func (s *Server) createHandler(p processor.Processor, successCallback func([]bea
 }
 
 func sendError(w http.ResponseWriter, r *http.Request, code int, error string, log bool) {
-	w.WriteHeader(code)
+	if log {
+		logp.Err(error)
+	}
 
+	w.WriteHeader(code)
 	acceptHeader := r.Header.Get("Accept")
 	// send JSON if the client will accept it
 	if strings.Contains(acceptHeader, "*/*") || strings.Contains(acceptHeader, "application/json") {
@@ -139,14 +142,12 @@ func sendError(w http.ResponseWriter, r *http.Request, code int, error string, l
 
 		if err != nil {
 			logp.Err("Error while generating a JSON error response: %v", err)
-		} else {
-			w.Write(buf)
+			return
 		}
+
+		w.Write(buf)
 	} else {
 		w.Write([]byte(error))
-		if log {
-			logp.Err(error)
-		}
 	}
 }
 
