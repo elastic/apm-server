@@ -47,7 +47,7 @@
       "type": ["object", "null"],
       "regexProperties": true,
       "patternProperties": {
-        "^[^.*]*$": {
+        "^[^.*\"]*$": {
             "type": "string",
             "maxLength": 1024
           }
