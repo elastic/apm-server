@@ -10,10 +10,11 @@ import (
 )
 
 func init() {
-	pr.Registry.AddProcessor("/v1/transactions", NewProcessor())
+	pr.Registry.AddProcessor(Endpoint, NewProcessor())
 }
 
 const (
+	Endpoint      = "/v1/transactions"
 	processorName = "transaction"
 )
 

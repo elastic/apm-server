@@ -50,9 +50,6 @@ func (s *Server) create(successCallback func([]beat.Event), host string) *http.S
 		mux.HandleFunc(path, handler)
 	}
 
-	// healthcheck handler, which always returns a 200 response, indicating
-	// that we're ready to work
-
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	})
@@ -80,9 +77,20 @@ func (s *Server) create(successCallback func([]beat.Event), host string) *http.S
 	}
 }
 
+func enableSSL(config Config) bool {
+	if config.SSLEnabled == nil {
+		return config.SSLCert != "" && config.SSLPrivateKey != ""
+	}
+	return *config.SSLEnabled
+}
+
 func (s *Server) Start(successCallback func([]beat.Event), host string) {
 	s.http = s.create(successCallback, host)
-	go s.http.ListenAndServe()
+	if enableSSL(s.config) {
+		go s.http.ListenAndServeTLS(s.config.SSLCert, s.config.SSLPrivateKey)
+	} else {
+		go s.http.ListenAndServe()
+	}
 }
 
 func (s *Server) Stop() error {
