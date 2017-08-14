@@ -69,7 +69,7 @@ func setupHTTPS(t *testing.T, useCert bool, domain string) (*Server, string, []b
 	truthy := true
 	s.config.SSLEnabled = &truthy
 	if useCert {
-		cert := path.Join(tmpCertPath, t.Name()+time.Now().String()+".crt")
+		cert := path.Join(tmpCertPath, t.Name()+".crt")
 		key := strings.Replace(cert, ".crt", ".key", -1)
 		t.Log("generating certificate in ", cert)
 		httpscerts.Generate(cert, key, domain)
