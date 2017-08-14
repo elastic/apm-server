@@ -77,9 +77,16 @@ func (s *Server) create(successCallback func([]beat.Event), host string) *http.S
 	}
 }
 
+func enableSSL(config Config) bool {
+	if config.SSLEnabled == nil {
+		return config.SSLCert != "" && config.SSLPrivateKey != ""
+	}
+	return *config.SSLEnabled
+}
+
 func (s *Server) Start(successCallback func([]beat.Event), host string) {
 	s.http = s.create(successCallback, host)
-	if s.config.SSLEnabled {
+	if enableSSL(s.config) {
 		go s.http.ListenAndServeTLS(s.config.SSLCert, s.config.SSLPrivateKey)
 	} else {
 		go s.http.ListenAndServe()

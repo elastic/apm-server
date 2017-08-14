@@ -25,6 +25,7 @@ import (
 	"path"
 
 	"github.com/docker/docker/pkg/ioutils"
+
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
@@ -60,7 +61,8 @@ func setupHTTPS(t *testing.T, useCert bool, domain string) (*Server, string, []b
 	}
 
 	s, _ := New(nil)
-	s.config.SSLEnabled = true
+	truthy := true
+	s.config.SSLEnabled = &truthy
 	if useCert {
 		cert := path.Join(tmpCertPath, t.Name()+time.Now().String()+".crt")
 		key := strings.Replace(cert, ".crt", ".key", -1)
@@ -206,6 +208,26 @@ func TestServerBadProtocol(t *testing.T) {
 	_, err := http.Post("http://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
 	assert.Contains(t, err.Error(), "malformed HTTP response")
+}
+
+func TestSSLEnabled(t *testing.T) {
+	truthy := true
+	falsy := false
+
+	cases := [][]interface{}{
+		{Config{}, false},
+		{Config{SSLEnabled: &truthy}, true},
+		{Config{SSLEnabled: &falsy}, false},
+		{Config{SSLCert: "cert"}, false},
+		{Config{SSLCert: "cert", SSLPrivateKey: "key"}, true},
+		{Config{SSLCert: "cert", SSLPrivateKey: "key", SSLEnabled: &falsy}, false},
+	}
+
+	for idx, testCase := range cases {
+		config := testCase[0].(Config)
+		expected := testCase[1].(bool)
+		assert.Equal(t, expected, enableSSL(config), "Test Case %d should be %t", idx, expected)
+	}
 }
 
 func TestJSONFailureResponse(t *testing.T) {
