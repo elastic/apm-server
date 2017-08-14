@@ -116,13 +116,13 @@ func waitForServer(secure bool, host string) {
 		return res.StatusCode
 	}
 
-	for i := 0; i <= 500; i++ {
+	for i := 0; i <= 1000; i++ {
 		time.Sleep(time.Second / 50)
 		if check() == 200 {
 			return
 		}
 	}
-	panic("server start timeout (5 seconds)")
+	panic("server start timeout (10 seconds)")
 }
 
 func TestDecode(t *testing.T) {
