@@ -7,8 +7,9 @@ set -euox pipefail
 # Setup Go.
 export GOPATH=${WORKSPACE}
 export PATH=${GOPATH}/bin:${PATH}
-if [ -f ".go-version" ]; then
-  eval "$(gvm $(cat .go-version))"
+go_file="_beats/.go-version"
+if [ -f "$go_file" ]; then
+  eval "$(gvm $(cat $go_file))"
 else
   eval "$(gvm 1.8.3)"
 fi
