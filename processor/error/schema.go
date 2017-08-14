@@ -71,7 +71,7 @@ var errorSchema = `{
         "name": {
             "description": "Immutable name of the app emitting this event",
             "type": "string",
-            "pattern": "^[a-zA-Z0-9 _\\-]+$"
+            "pattern": "^[a-zA-Z0-9 _-]+$"
         },
         "pid": {
             "type": ["number", "null"]
@@ -247,7 +247,7 @@ var errorSchema = `{
       "type": ["object", "null"],
       "regexProperties": true,
       "patternProperties": {
-        "^[^.*]*$": {
+        "^[^.*\"]*$": {
             "type": "string",
             "maxLength": 1024
           }

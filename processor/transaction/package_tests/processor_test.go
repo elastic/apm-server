@@ -41,6 +41,7 @@ func TestTransactionProcessorValidationFailed(t *testing.T) {
 		{"app/no_agent.json", "missing properties: \"agent\""},
 		{"no_app.json", "missing properties: \"app\""},
 		{"invalid_tag_dot.json", "[#/properties/transactions/items/properties/context/properties/tags/additionalProperties]"},
+		{"invalid_tag_quote.json", "[#/properties/transactions/items/properties/context/properties/tags/additionalProperties]"},
 		{"invalid_tag_asterisk.json", "[#/properties/transactions/items/properties/context/properties/tags/additionalProperties]"},
 		{"empty_payload.json", "minimum 1 items allowed"},
 		{"invalid_id.json", "[#/properties/transactions/items/properties/id/pattern] does not match pattern"},
