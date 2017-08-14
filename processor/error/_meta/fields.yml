@@ -4,7 +4,9 @@
   fields:
     - name: error
       type: group
+      dynamic: false
       fields:
+
         - name: id
           type: keyword
           description: >
@@ -17,13 +19,14 @@
         - name: checksum
           type: keyword
           description: >
-            Checksum of the logged error for use in grouping
+            Checksum of the logged error for use in grouping.
 
         - name: exception
           type: group
           description: >
             Information about the originally thrown error.
           fields:
+
             - name: code
               type: keyword
               description: The error code set when the error happened, e.g. database error code.
@@ -50,7 +53,7 @@
               description: Indicator whether the error was caught somewhere in the code or not.
 
             - name: stacktrace
-              type: array
+              type: object 
               enabled: false
               description: >
                 The stacktrace at the time when the original error occured. The stacktrace contains a list of frames describing the context of the specific frames.
@@ -61,6 +64,7 @@
           description: >
             Additional information added by logging the error.
           fields:
+
             - name: level
               type: keyword
               description: The severity of the record.
@@ -78,7 +82,7 @@
               description: Equal to message, but with placeholders replaced.
 
             - name: stacktrace
-              type: array
+              type: object 
               enabled: false
               description: >
                 The stacktrace at the time when the error was logged. The stacktrace contains a list of frames describing the context of the specific frames.
