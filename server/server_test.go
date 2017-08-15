@@ -191,7 +191,27 @@ func TestServerSecureBadDomain(t *testing.T) {
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
-	assert.Contains(t, err.Error(), "x509: cannot validate certificate for 127.0.0.1")
+	msgs := []string{
+		"x509: certificate signed by unknown authority",
+		"x509: cannot validate certificate for 127.0.0.1",
+	}
+	checkErrMsg := strings.Contains(err.Error(), msgs[0]) || strings.Contains(err.Error(), msgs[1])
+	assert.True(t, checkErrMsg, err.Error())
+}
+
+func TestServerSecureBadIP(t *testing.T) {
+
+	s, host, data := setupHTTPS(t, true, "192.168.10.11")
+	defer s.Stop()
+
+	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
+
+	msgs := []string{
+		"x509: certificate signed by unknown authority",
+		"x509: certificate is valid for 192.168.10.11, not 127.0.0.1",
+	}
+	checkErrMsg := strings.Contains(err.Error(), msgs[0]) || strings.Contains(err.Error(), msgs[1])
+	assert.True(t, checkErrMsg, err.Error())
 }
 
 func TestServerBadProtocol(t *testing.T) {
