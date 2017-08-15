@@ -9,14 +9,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
-
-	"path/filepath"
 
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
@@ -43,8 +42,9 @@ func TestMain(m *testing.M) {
 
 func setupHTTP() (http.Handler, *bytes.Reader) {
 	s, _ := New(nil)
-	s.Start(func(_ []beat.Event) {}, "localhost:8080")
-	waitForServer(false, "localhost:8080")
+	host := randomAddr()
+	s.Start(func(_ []beat.Event) {}, host)
+	waitForServer(false, host)
 	data, _ := tests.LoadValidData("transaction")
 	return s.http.Handler, bytes.NewReader(data)
 }
@@ -56,14 +56,14 @@ func setupHTTPS(t *testing.T, useCert bool, domain string) (*Server, string, []b
 
 	s, _ := New(nil)
 	truthy := true
-	s.config.SSLEnabled = &truthy
+	s.config.SSL = &SSLConfig{Enabled: &truthy}
 	if useCert {
 		cert := path.Join(tmpCertPath, t.Name()+".crt")
 		key := strings.Replace(cert, ".crt", ".key", -1)
 		t.Log("generating certificate in ", cert)
 		httpscerts.Generate(cert, key, domain)
-		s.config.SSLCert = cert
-		s.config.SSLPrivateKey = key
+		s.config.SSL.Cert = cert
+		s.config.SSL.PrivateKey = key
 	}
 
 	host := randomAddr()
@@ -99,6 +99,7 @@ func waitForServer(secure bool, host string) {
 		} else {
 			res, err = http.Get("http://" + host + "/healthcheck")
 		}
+
 		if err != nil {
 			return 500
 		}
@@ -230,17 +231,17 @@ func TestSSLEnabled(t *testing.T) {
 
 	cases := [][]interface{}{
 		{Config{}, false},
-		{Config{SSLEnabled: &truthy}, true},
-		{Config{SSLEnabled: &falsy}, false},
-		{Config{SSLCert: "cert"}, false},
-		{Config{SSLCert: "cert", SSLPrivateKey: "key"}, true},
-		{Config{SSLCert: "cert", SSLPrivateKey: "key", SSLEnabled: &falsy}, false},
+		{Config{SSL: &SSLConfig{Enabled: &truthy}}, true},
+		{Config{SSL: &SSLConfig{Enabled: &falsy}}, false},
+		{Config{SSL: &SSLConfig{Cert: "cert"}}, true},
+		{Config{SSL: &SSLConfig{Cert: "cert", PrivateKey: "key"}}, true},
+		{Config{SSL: &SSLConfig{Cert: "cert", PrivateKey: "key", Enabled: &falsy}}, false},
 	}
 
 	for idx, testCase := range cases {
 		config := testCase[0].(Config)
 		expected := testCase[1].(bool)
-		assert.Equal(t, expected, enableSSL(config), "Test Case %d should be %t", idx, expected)
+		assert.Equal(t, expected, config.SSL.IsEnabled(), "Test Case %d should be %t", idx, expected)
 	}
 }
 

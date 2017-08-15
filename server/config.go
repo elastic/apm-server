@@ -10,9 +10,17 @@ type Config struct {
 	ReadTimeout     time.Duration `config:"read_timeout"`
 	WriteTimeout    time.Duration `config:"write_timeout"`
 	SecretToken     string        `config:"secret_token"`
-	SSLEnabled      *bool         `config:"ssl.enabled"`
-	SSLPrivateKey   string        `config:"ssl.key"`
-	SSLCert         string        `config:"ssl.certificate"`
+	SSL             *SSLConfig    `config:"ssl"`
+}
+
+type SSLConfig struct {
+	Enabled    *bool  `config:"enabled"`
+	PrivateKey string `config:"key"`
+	Cert       string `config:"certificate"`
+}
+
+func (c *SSLConfig) IsEnabled() bool {
+	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
 var defaultConfig = Config{
