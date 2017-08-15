@@ -2,30 +2,20 @@ package server
 
 import (
 	"bytes"
-	"runtime"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
+	"crypto/tls"
 	"io/ioutil"
-
+	"net"
 	"net/http"
 	"net/http/httptest"
-
-	"crypto/tls"
-
 	"os"
+	"path"
+	"strings"
+	"testing"
 	"time"
 
-	"github.com/kabukky/httpscerts"
-
-	"net"
-
-	"strings"
-
-	"path"
-
 	"github.com/docker/docker/pkg/ioutils"
+	"github.com/kabukky/httpscerts"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
@@ -59,10 +49,6 @@ func setupHTTP() (http.Handler, *bytes.Reader) {
 func setupHTTPS(t *testing.T, useCert bool, domain string) (*Server, string, []byte) {
 	if testing.Short() {
 		t.Skip("skipping server test")
-	}
-
-	if runtime.GOOS == "windows" {
-		t.Skip("Skip test on windows as currently not passing.")
 	}
 
 	s, _ := New(nil)
