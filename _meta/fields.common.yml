@@ -4,11 +4,11 @@
   fields:
     - name: processor.name
       type: keyword
-      description: Processor name
+      description: Processor name.
 
     - name: processor.event
       type: keyword
-      description: Processor event
+      description: Processor event.
 
     - name: context
       type: group
@@ -20,95 +20,73 @@
         - name: tags
           type: object
           object_type: keyword
+          dynamic: true 
           description: >
-            Flat mapping of user-defined tags
-
-        - name: custom
-          type: object
-          enabled: false
-          description: Arbitrary custom information. 
+            Flat mapping of user-defined tags.
 
         - name: user
           type: group
           fields:
+
           - name: username
             type: keyword
             description: >
-              The username of the user who experienced this event
+              The username of the user who experienced this event.
 
           - name: id
             type: keyword
             description: >
-              Identifier of the user who experienced this event
+              Identifier of the user who experienced this event.
 
           - name: email
             type: keyword
             description: >
-              Email of the user who experienced this event
+              Email of the user who experienced this event.
 
         - name: request
           type: group
           fields:
-
-          - name: headers 
-            type: object 
-            enabled: false
-
-          - name: cookies 
-            type: object 
-            enabled: false
-
-          - name: socket 
-            type: object 
-            enabled: false
-
-          - name: env 
-            type: object 
-            enabled: false
-
-          - name: body 
-            type: text 
-            index: false
 
           - name: url
             type: group
             description: >
               The http URL of the request leading to this event.
             fields:
+
               - name: raw
                 type: keyword
                 description: >
-                  The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top
+                  The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
               - name: protocol
                 type: keyword
                 description: >
-                  The protocol of the request, e.g. "https:"
+                  The protocol of the request, e.g. "https:".
 
               - name: hostname
                 type: keyword
                 description: >
-                  The hostname of the request, e.g. "example.com"
+                  The hostname of the request, e.g. "example.com".
 
               - name: port
                 type: keyword
                 description: >
-                  The port of the request, e.g. 443
+                  The port of the request, e.g. 443.
 
               - name: pathname
                 type: keyword
                 description: >
-                  The path of the request, e.g. "/search"
+                  The path of the request, e.g. "/search".
 
               - name: search
                 type: keyword
                 description: >
-                  The search describes the query string of the request, e.g. "q=elasticsearch"
+                  The search describes the query string of the request, e.g. "q=elasticsearch".
 
               - name: hash
                 type: keyword
                 description: >
-                  The hash of the request URL, e.g. "top"
+                  The hash of the request URL, e.g. "top".
 
           - name: method
             type: keyword
@@ -119,10 +97,6 @@
           type: group
           fields:
 
-          - name: headers 
-            type: object 
-            enabled: false
-
           - name: status 
             type: group
             fields:
@@ -130,21 +104,20 @@
             - name: code
               type: long
               description: >
-                Http response status code
+                Http response status code.
 
             - name: message
               type: text
               description: >
-                Http response status message
+                Http response status message.
 
           - name: finished 
             type: boolean 
 
-
         - name: system
           type: group
           description: >
-            Optional system fields
+            Optional system fields.
           fields:
 
             - name: hostname
@@ -165,7 +138,7 @@
         - name: app
           type: group
           description: >
-            App fields
+            App fields.
           fields:
 
             - name: name
@@ -187,10 +160,6 @@
               type: long
               description: >
                 Numeric process ID of the app process.
-
-            - name: argv
-              type: array
-              enabled: false
 
             - name: process_title
               type: keyword

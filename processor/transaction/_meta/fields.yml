@@ -4,11 +4,12 @@
   fields:
     - name: transaction
       type: group
+      dynamic: false
       fields:
         - name: id
           type: keyword
           description: >
-            a UUID4 transaction ID
+            A UUID4 transaction ID.
 
         - name: name
           type: text
@@ -24,12 +25,13 @@
         - name: type
           type: keyword
           description: >
-            The transaction type, e.g. "request", or "job"
+            The transaction type, e.g. "request", or "job".
 
         - name: duration
           type: group
           description:
           fields:
+
             - name: us
               type: long
               description: >
@@ -43,11 +45,13 @@
 
 - key: apm-trace
   title: APM Trance
-  description: Trace-specific data for APM
+  description: Trace-specific data for APM.
   fields:
     - name: trace
       type: group
+      dynamic: false
       fields:
+
         - name: id
           type: long
           description: >
@@ -56,17 +60,17 @@
         - name: transaction_id
           type: keyword
           description: >
-            Reference to the transaction this trace is part of
+            Reference to the transaction this trace is part of.
 
         - name: name
           type: keyword
           description: >
-            Generic name of the trace
+            Generic name of the trace.
 
         - name: type
           type: keyword
           description: >
-            Type of the trace. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get
+            Type of the trace. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
 
         - name: start
           type: group
@@ -75,11 +79,13 @@
             - name: us
               type: long
               description: >
-                Start time of the trace in microseconds, relative to the start time of the transaction
+                Start time of the trace in microseconds, relative to the start time of the transaction.
+
         - name: duration
           type: group
           description:
           fields:
+
             - name: us
               type: long
               description: >
@@ -89,10 +95,4 @@
           type: long
           description: >
              The parent trace id for recreating the full ancestor path.
-
-        - name: stacktrace
-          type: array
-          enabled: false
-          description: >
-            A list of frames.
 

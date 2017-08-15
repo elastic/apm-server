@@ -15,36 +15,52 @@ import (
 	"github.com/elastic/beats/libbeat/template"
 )
 
-func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn processor.NewProcessor, undocumentedFieldNames *set.Set) {
+func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn processor.NewProcessor) {
 	assert := assert.New(t)
 	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
 	disabledFieldNames, err := fetchFlattenedFieldNames(fieldPaths, addOnlyDisabledFields)
-	fieldNames = set.Difference(fieldNames, disabledFieldNames).(*set.Set)
+	undocumentedFieldNames := set.New(
+		"processor",
+		//dynamically indexed:
+		"context.tags.organization_uuid",
+		//known not-indexed fields:
+		"context.custom",
+		"context.request.headers",
+		"context.request.cookies",
+		"context.request.socket",
+		"context.request.env",
+		"context.request.body",
+		"context.response.headers",
+		"context.app.argv",
+		"error.exception.attributes",
+		"error.exception.stacktrace",
+		"error.log.stacktrace",
+		"trace.stacktrace",
+		"context.sql",
+	)
+	blacklistedFieldNames := set.Union(disabledFieldNames, undocumentedFieldNames).(*set.Set)
+
+	eventNames, err := fetchEventNames(fn, blacklistedFieldNames)
 	assert.NoError(err)
 
-	eventNames, err := fetchEventNames(fn, disabledFieldNames, undocumentedFieldNames)
-	assert.NoError(err)
-
-	undocumentedNames := set.Difference(eventNames, fieldNames, set.New("processor"))
+	undocumentedNames := set.Difference(eventNames, fieldNames, blacklistedFieldNames)
 	assert.Equal(0, undocumentedNames.Size(), fmt.Sprintf("Event attributes not documented in fields.yml: %v", undocumentedNames))
 }
 
-func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor, undocumentedFieldNames *set.Set) {
+func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor) {
 	assert := assert.New(t)
 	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
 	assert.NoError(err)
 
-	eventNames, err := fetchEventNames(fn, set.New(), undocumentedFieldNames)
+	eventNames, err := fetchEventNames(fn, set.New())
 	assert.NoError(err)
 
 	unusedNames := set.Difference(fieldNames, eventNames)
 	assert.Equal(0, unusedNames.Size(), fmt.Sprintf("Documented Fields missing in event: %v", unusedNames))
-
 }
 
-func fetchEventNames(fn processor.NewProcessor, disabledNames *set.Set, nonIndexedNames *set.Set) (*set.Set, error) {
+func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
 	p := fn()
-	blacklisted := set.Union(disabledNames, nonIndexedNames).(*set.Set)
 	data, _ := LoadValidData(p.Name())
 	err := p.Validate(bytes.NewReader(data))
 	if err != nil {

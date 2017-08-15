@@ -33,14 +33,14 @@ None
 
 type: keyword
 
-Processor name
+Processor name.
 
 [float]
 === `processor.event`
 
 type: keyword
 
-Processor event
+Processor event.
 
 [float]
 == context fields
@@ -54,15 +54,8 @@ General context fields.
 
 type: object
 
-Flat mapping of user-defined tags
+Flat mapping of user-defined tags.
 
-
-[float]
-=== `context.custom`
-
-type: object
-
-Arbitrary custom information.
 
 
 [float]
@@ -70,7 +63,7 @@ Arbitrary custom information.
 
 type: keyword
 
-The username of the user who experienced this event
+The username of the user who experienced this event.
 
 
 [float]
@@ -78,7 +71,7 @@ The username of the user who experienced this event
 
 type: keyword
 
-Identifier of the user who experienced this event
+Identifier of the user who experienced this event.
 
 
 [float]
@@ -86,36 +79,9 @@ Identifier of the user who experienced this event
 
 type: keyword
 
-Email of the user who experienced this event
+Email of the user who experienced this event.
 
 
-
-[float]
-=== `context.request.headers`
-
-type: object
-
-[float]
-=== `context.request.cookies`
-
-type: object
-
-[float]
-=== `context.request.socket`
-
-type: object
-
-[float]
-=== `context.request.env`
-
-type: object
-
-[float]
-=== `context.request.body`
-
-type: text
-
-Field is not indexed.
 
 [float]
 == url fields
@@ -129,7 +95,7 @@ The http URL of the request leading to this event.
 
 type: keyword
 
-The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top
+The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
 [float]
@@ -137,7 +103,7 @@ The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elast
 
 type: keyword
 
-The protocol of the request, e.g. "https:"
+The protocol of the request, e.g. "https:".
 
 
 [float]
@@ -145,7 +111,7 @@ The protocol of the request, e.g. "https:"
 
 type: keyword
 
-The hostname of the request, e.g. "example.com"
+The hostname of the request, e.g. "example.com".
 
 
 [float]
@@ -153,7 +119,7 @@ The hostname of the request, e.g. "example.com"
 
 type: keyword
 
-The port of the request, e.g. 443
+The port of the request, e.g. 443.
 
 
 [float]
@@ -161,7 +127,7 @@ The port of the request, e.g. 443
 
 type: keyword
 
-The path of the request, e.g. "/search"
+The path of the request, e.g. "/search".
 
 
 [float]
@@ -169,7 +135,7 @@ The path of the request, e.g. "/search"
 
 type: keyword
 
-The search describes the query string of the request, e.g. "q=elasticsearch"
+The search describes the query string of the request, e.g. "q=elasticsearch".
 
 
 [float]
@@ -177,7 +143,7 @@ The search describes the query string of the request, e.g. "q=elasticsearch"
 
 type: keyword
 
-The hash of the request URL, e.g. "top"
+The hash of the request URL, e.g. "top".
 
 
 [float]
@@ -189,18 +155,13 @@ The http method of the request leading to this event.
 
 
 
-[float]
-=== `context.response.headers`
-
-type: object
-
 
 [float]
 === `context.response.status.code`
 
 type: long
 
-Http response status code
+Http response status code.
 
 
 [float]
@@ -208,7 +169,7 @@ Http response status code
 
 type: text
 
-Http response status message
+Http response status message.
 
 
 [float]
@@ -219,7 +180,7 @@ type: boolean
 [float]
 == system fields
 
-Optional system fields
+Optional system fields.
 
 
 
@@ -250,7 +211,7 @@ The platform of the host that records the event.
 [float]
 == app fields
 
-App fields
+App fields.
 
 
 
@@ -285,11 +246,6 @@ type: long
 
 Numeric process ID of the app process.
 
-
-[float]
-=== `context.app.argv`
-
-type: array
 
 [float]
 === `context.app.process_title`
@@ -394,7 +350,7 @@ Function call which was the primary perpetrator of this event.
 
 type: keyword
 
-Checksum of the logged error for use in grouping
+Checksum of the logged error for use in grouping.
 
 
 [float]
@@ -426,14 +382,6 @@ type: keyword
 The module namespace of the original error.
 
 [float]
-=== `error.exception.attributes`
-
-type: object
-
-Arbitrary properties related to the original error.
-
-
-[float]
 === `error.exception.type`
 
 type: keyword
@@ -444,14 +392,6 @@ type: keyword
 type: boolean
 
 Indicator whether the error was caught somewhere in the code or not.
-
-[float]
-=== `error.exception.stacktrace`
-
-type: array
-
-The stacktrace at the time when the original error occured. The stacktrace contains a list of frames describing the context of the specific frames.
-
 
 [float]
 == log fields
@@ -488,18 +428,10 @@ type: keyword
 
 Equal to message, but with placeholders replaced.
 
-[float]
-=== `error.log.stacktrace`
-
-type: array
-
-The stacktrace at the time when the error was logged. The stacktrace contains a list of frames describing the context of the specific frames.
-
-
 [[exported-fields-apm-trace]]
 == APM Trance fields
 
-Trace-specific data for APM
+Trace-specific data for APM.
 
 
 
@@ -516,7 +448,7 @@ A locally unique ID of the trace.
 
 type: keyword
 
-Reference to the transaction this trace is part of
+Reference to the transaction this trace is part of.
 
 
 [float]
@@ -524,7 +456,7 @@ Reference to the transaction this trace is part of
 
 type: keyword
 
-Generic name of the trace
+Generic name of the trace.
 
 
 [float]
@@ -532,7 +464,7 @@ Generic name of the trace
 
 type: keyword
 
-Type of the trace. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get
+Type of the trace. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
 
 
 [float]
@@ -546,7 +478,7 @@ None
 
 type: long
 
-Start time of the trace in microseconds, relative to the start time of the transaction
+Start time of the trace in microseconds, relative to the start time of the transaction.
 
 
 [float]
@@ -571,14 +503,6 @@ type: long
 The parent trace id for recreating the full ancestor path.
 
 
-[float]
-=== `trace.stacktrace`
-
-type: array
-
-A list of frames.
-
-
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 
@@ -591,7 +515,7 @@ Transaction-specific data for APM
 
 type: keyword
 
-a UUID4 transaction ID
+A UUID4 transaction ID.
 
 
 [float]
@@ -608,7 +532,7 @@ TODO: investigate use of "path_hierarchy" tokenizer
 
 type: keyword
 
-The transaction type, e.g. "request", or "job"
+The transaction type, e.g. "request", or "job".
 
 
 [float]
