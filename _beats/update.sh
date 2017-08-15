@@ -42,6 +42,9 @@ cp -r $GIT_CLONE/libbeat/tests/system/beat libbeat/tests/system/beat
 mkdir -p libbeat/docs
 cp $GIT_CLONE/libbeat/docs/version.asciidoc libbeat/docs/version.asciidoc
 
+# Add go version file for CI
+cp $GIT_CLONE/.go-version .go-version
+
 # Get system test dependencies
 cp -r $GIT_CLONE/testing testing
 

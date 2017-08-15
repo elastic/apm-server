@@ -15,8 +15,8 @@ function Exec
 # Setup Go.
 $env:GOPATH = $env:WORKSPACE
 $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
-if (Test-Path -PathType leaf .go-version) {
-    & gvm --format=powershell $(Get-Content .go-version) | Invoke-Expression
+if (Test-Path -PathType leaf _beats\.go-version) {
+    & gvm --format=powershell $(Get-Content _beats\.go-version) | Invoke-Expression
 } else {
     & gvm --format=powershell 1.8.3 | Invoke-Expression
 }
@@ -33,7 +33,7 @@ exec { go build } "Build FAILURE"
 
 
 cp .\_meta\fields.common.yml .\_meta\fields.generated.yml
-cat processors\*\_meta\fields.yml | Out-File -append -encoding UTF8 -filepath .\_meta\fields.generated.yml
+cat processor\*\_meta\fields.yml | Out-File -append -encoding UTF8 -filepath .\_meta\fields.generated.yml
 cp .\_meta\fields.generated.yml .\fields.yml
 
 
