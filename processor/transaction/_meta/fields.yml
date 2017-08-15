@@ -96,9 +96,3 @@
           description: >
              The parent trace id for recreating the full ancestor path.
 
-        - name: stacktrace
-          type: object 
-          enabled: false
-          description: >
-            A list of frames.
-

@@ -57,13 +57,6 @@ type: object
 Flat mapping of user-defined tags.
 
 
-[float]
-=== `context.custom`
-
-type: object
-
-Arbitrary custom information.
-
 
 [float]
 === `context.user.username`
@@ -89,26 +82,6 @@ type: keyword
 Email of the user who experienced this event.
 
 
-
-[float]
-=== `context.request.headers`
-
-type: object
-
-[float]
-=== `context.request.cookies`
-
-type: object
-
-[float]
-=== `context.request.socket`
-
-type: object
-
-[float]
-=== `context.request.env`
-
-type: object
 
 [float]
 == url fields
@@ -181,11 +154,6 @@ type: keyword
 The http method of the request leading to this event.
 
 
-
-[float]
-=== `context.response.headers`
-
-type: object
 
 
 [float]
@@ -414,14 +382,6 @@ type: keyword
 The module namespace of the original error.
 
 [float]
-=== `error.exception.attributes`
-
-type: object
-
-Arbitrary properties related to the original error.
-
-
-[float]
 === `error.exception.type`
 
 type: keyword
@@ -432,14 +392,6 @@ type: keyword
 type: boolean
 
 Indicator whether the error was caught somewhere in the code or not.
-
-[float]
-=== `error.exception.stacktrace`
-
-type: object
-
-The stacktrace at the time when the original error occured. The stacktrace contains a list of frames describing the context of the specific frames.
-
 
 [float]
 == log fields
@@ -475,14 +427,6 @@ The additionally logged error message.
 type: keyword
 
 Equal to message, but with placeholders replaced.
-
-[float]
-=== `error.log.stacktrace`
-
-type: object
-
-The stacktrace at the time when the error was logged. The stacktrace contains a list of frames describing the context of the specific frames.
-
 
 [[exported-fields-apm-trace]]
 == APM Trance fields
@@ -557,14 +501,6 @@ Duration of the trace, in microseconds.
 type: long
 
 The parent trace id for recreating the full ancestor path.
-
-
-[float]
-=== `trace.stacktrace`
-
-type: object
-
-A list of frames.
 
 
 [[exported-fields-apm-transaction]]

@@ -24,11 +24,6 @@
           description: >
             Flat mapping of user-defined tags.
 
-        - name: custom
-          type: object
-          enabled: false
-          description: Arbitrary custom information. 
-
         - name: user
           type: group
           fields:
@@ -51,22 +46,6 @@
         - name: request
           type: group
           fields:
-
-          - name: headers 
-            type: object 
-            enabled: false
-
-          - name: cookies 
-            type: object 
-            enabled: false
-
-          - name: socket 
-            type: object 
-            enabled: false
-
-          - name: env 
-            type: object 
-            enabled: false
 
           - name: url
             type: group
@@ -117,10 +96,6 @@
         - name: response
           type: group
           fields:
-
-          - name: headers 
-            type: object 
-            enabled: false
 
           - name: status 
             type: group

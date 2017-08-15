@@ -39,24 +39,12 @@
               type: keyword
               description: The module namespace of the original error.
 
-            - name: attributes
-              type: object
-              enabled: false
-              description: >
-                Arbitrary properties related to the original error.
-
             - name: type
               type: keyword
 
             - name: uncaught
               type: boolean
               description: Indicator whether the error was caught somewhere in the code or not.
-
-            - name: stacktrace
-              type: object 
-              enabled: false
-              description: >
-                The stacktrace at the time when the original error occured. The stacktrace contains a list of frames describing the context of the specific frames.
 
 
         - name: log
@@ -80,10 +68,4 @@
             - name: param_message
               type: keyword
               description: Equal to message, but with placeholders replaced.
-
-            - name: stacktrace
-              type: object 
-              enabled: false
-              description: >
-                The stacktrace at the time when the error was logged. The stacktrace contains a list of frames describing the context of the specific frames.
 

@@ -24,12 +24,23 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		//dynamically indexed:
 		"context.tags.organization_uuid",
 		//known not-indexed fields:
+		"context.custom",
+		"context.request.headers",
+		"context.request.cookies",
+		"context.request.socket",
+		"context.request.env",
 		"context.request.body",
+		"context.response.headers",
 		"context.app.argv",
-		"context.sql")
+		"error.exception.attributes",
+		"error.exception.stacktrace",
+		"error.log.stacktrace",
+		"trace.stacktrace",
+		"context.sql",
+	)
 	blacklistedFieldNames := set.Union(disabledFieldNames, undocumentedFieldNames).(*set.Set)
 
-	eventNames, err := fetchEventNames(fn, disabledFieldNames)
+	eventNames, err := fetchEventNames(fn, blacklistedFieldNames)
 	assert.NoError(err)
 
 	undocumentedNames := set.Difference(eventNames, fieldNames, blacklistedFieldNames)
