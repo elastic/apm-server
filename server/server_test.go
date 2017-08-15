@@ -2,30 +2,21 @@ package server
 
 import (
 	"bytes"
-	"runtime"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
+	"crypto/tls"
 	"io/ioutil"
-
+	"net"
 	"net/http"
 	"net/http/httptest"
-
-	"crypto/tls"
-
 	"os"
+	"path"
+	"strings"
+	"testing"
 	"time"
 
 	"github.com/kabukky/httpscerts"
+	"github.com/stretchr/testify/assert"
 
-	"net"
-
-	"strings"
-
-	"path"
-
-	"github.com/docker/docker/pkg/ioutils"
+	"path/filepath"
 
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
@@ -35,15 +26,17 @@ import (
 var tmpCertPath string
 
 func TestMain(m *testing.M) {
-	var err error
-	tmpCertPath, err = ioutils.TempDir("", "apm-server_test_certs_")
-
+	current, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
+
+	tmpCertPath = filepath.Join(current, "test_certs")
+	os.Mkdir(tmpCertPath, os.ModePerm)
+
 	code := m.Run()
 	if code == 0 {
-		err = os.RemoveAll(tmpCertPath)
+		os.RemoveAll(tmpCertPath)
 	}
 	os.Exit(code)
 }
@@ -59,10 +52,6 @@ func setupHTTP() (http.Handler, *bytes.Reader) {
 func setupHTTPS(t *testing.T, useCert bool, domain string) (*Server, string, []byte) {
 	if testing.Short() {
 		t.Skip("skipping server test")
-	}
-
-	if runtime.GOOS == "windows" {
-		t.Skip("Skip test on windows as currently not passing.")
 	}
 
 	s, _ := New(nil)
@@ -202,7 +191,27 @@ func TestServerSecureBadDomain(t *testing.T) {
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
-	assert.Contains(t, err.Error(), "x509: cannot validate certificate for 127.0.0.1")
+	msgs := []string{
+		"x509: certificate signed by unknown authority",
+		"x509: cannot validate certificate for 127.0.0.1",
+	}
+	checkErrMsg := strings.Contains(err.Error(), msgs[0]) || strings.Contains(err.Error(), msgs[1])
+	assert.True(t, checkErrMsg, err.Error())
+}
+
+func TestServerSecureBadIP(t *testing.T) {
+
+	s, host, data := setupHTTPS(t, true, "192.168.10.11")
+	defer s.Stop()
+
+	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
+
+	msgs := []string{
+		"x509: certificate signed by unknown authority",
+		"x509: certificate is valid for 192.168.10.11, not 127.0.0.1",
+	}
+	checkErrMsg := strings.Contains(err.Error(), msgs[0]) || strings.Contains(err.Error(), msgs[1])
+	assert.True(t, checkErrMsg, err.Error())
 }
 
 func TestServerBadProtocol(t *testing.T) {
