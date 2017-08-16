@@ -60,6 +60,7 @@
                         "some-other-header": "foo",
                         "user-agent": "Mozilla Chrome Edge"
                     },
+                    "http_version": "1.1",
                     "method": "POST",
                     "socket": {
                         "encrypted": true,

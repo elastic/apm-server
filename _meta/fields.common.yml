@@ -88,6 +88,11 @@
                 description: >
                   The hash of the request URL, e.g. "top".
 
+          - name: http_version
+            type: keyword
+            description: >
+              The http version of the request leading to this event.
+
           - name: method
             type: keyword
             description: >
