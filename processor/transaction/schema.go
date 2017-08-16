@@ -167,16 +167,8 @@ var transactionSchema = `{
             "headers_sent": {
                 "type": ["boolean", "null"]
             },
-            "status": {
-                "type": ["object","null"],
-                "properties": {
-                    "code": {
-                        "type": ["number", "null"]
-                    },
-                    "message": {
-                        "type": ["string", "null"]
-                    }
-                }
+            "status_code": {
+                "type": ["number", "null"]
             }
         }
     },
