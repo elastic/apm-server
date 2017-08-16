@@ -8,7 +8,11 @@
     "custom": {
       "description": "An arbitrary mapping of additional metadata to store with the event.",
       "type": ["object", "null"],
-      "properties": {}
+      "regexProperties": true,
+      "patternProperties": {
+        "^[^.*\"]*$": { }
+      },
+      "additionalProperties": false
     },
     "response": {
         "type": ["object", "null"],

@@ -1,0 +1,9 @@
+{
+    "name": "SELECT FROM product_types",
+    "type": "db.postgresql.query",
+    "duration": 3.781912,
+    "stacktrace": [],
+    "context": {
+        "user": "john"
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "name": "app1",
+    "agent": {
+      "name": "python"
+    }
+}
