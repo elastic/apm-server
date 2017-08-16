@@ -2,6 +2,7 @@
 /build
 /data
 /logs
+/server/test_certs
 
 .DS_Store
 *.pyc
