@@ -11,12 +11,34 @@ from elasticsearch import Elasticsearch
 class Test(BaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_load_docs_with_template(self):
+    def test_load_docs_with_template_and_add_transaction(self):
         """
-        This test starts the beat with a loaded template and sends data to elasticsearch.
-        It verifies that all data makes it into ES means data is compatible with the template.
+        This test starts the beat with a loaded template and sends transaction data to elasticsearch.
+        It verifies that all data make it into ES means data is compatible with the template.
         """
+        f = os.path.abspath(os.path.join(self.beat_path,
+                                         'tests',
+                                         'data',
+                                         'valid',
+                                         'transaction',
+                                         'payload.json'))
+        self.load_docs_with_template(f, 'transactions', 9)
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_load_docs_with_template_and_add_error(self):
+        """
+        This test starts the beat with a loaded template and sends error data to elasticsearch.
+        It verifies that all data make it into ES means data is compatible with the template.
+        """
+        f = os.path.abspath(os.path.join(self.beat_path,
+                                         'tests',
+                                         'data',
+                                         'valid',
+                                         'error',
+                                         'payload.json'))
+        self.load_docs_with_template(f, 'errors', 4)
+
+    def load_docs_with_template(self, data_path, endpoint, expected_events_count):
         # TODO Needs cleanup when https://github.com/elastic/beats/pull/4769 merged
         base_name = "apm-server-tests"
         beat_version = "0.1.1"
@@ -50,15 +72,9 @@ class Test(BaseTest):
         self.apmserver_proc = self.start_beat()
         self.wait_until(lambda: self.log_contains("apm-server is running"))
 
-        f = os.path.abspath(os.path.join(self.beat_path,
-                                         'tests',
-                                         'data',
-                                         'valid',
-                                         'transaction',
-                                         'payload.json'))
-        transactions = json.loads(open(f).read())
-        url = 'http://localhost:8080/v1/transactions'
-        r = requests.post(url, json=transactions)
+        payload = json.loads(open(data_path).read())
+        url = 'http://localhost:8080/v1/' + endpoint
+        r = requests.post(url, json=payload)
         assert r.status_code == 202
 
         # make sure template is loaded
@@ -68,10 +84,11 @@ class Test(BaseTest):
         self.wait_until(lambda: es.indices.exists(index_name))
         es.indices.refresh(index=index_name)
 
-        self.wait_until(lambda: es.count(index=index_name)['count'] == 9)
+        self.wait_until(lambda: es.count(index=index_name)['count'] == expected_events_count)
 
         res = es.count(index=index_name)
-        assert 9 == res['count']
+        assert expected_events_count == res['count']
+        self. apmserver_proc.check_kill_and_wait()
 
         # Makes sure no error or warnings were logged
         self.assert_no_logged_warnings()
