@@ -11,10 +11,10 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 - changed type of `context.request.body` from `object` to `text`. {pull}27[27]
 
 
-
 ==== Added
 
 - apm-server now returns JSON error responses when the Accept header allows for it.
+- Added `context.request.http_version` property {pull}52[52]
 
 
 ==== Deprecated

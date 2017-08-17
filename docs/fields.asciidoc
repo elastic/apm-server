@@ -147,6 +147,14 @@ The hash of the request URL, e.g. "top".
 
 
 [float]
+=== `context.request.http_version`
+
+type: keyword
+
+The http version of the request leading to this event.
+
+
+[float]
 === `context.request.method`
 
 type: keyword

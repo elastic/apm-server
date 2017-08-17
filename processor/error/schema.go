@@ -189,6 +189,11 @@ var errorSchema = `{
               }
           }
         },
+        "http_version": {
+            "description": "HTTP version.",
+            "type": "string",
+            "maxLength": 1024
+        },
         "method": {
             "description": "HTTP method.",
             "type": "string",
