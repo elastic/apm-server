@@ -1,6 +1,6 @@
 # Node agent testing
 
-This is to setup an environment for the manual testing of the [node agent](https://github.com/opbeat/opbeat-node) with the server.
+This is to setup an environment for the manual testing of the [node agent](https://github.com/elastic/apm-agent-nodejs) with the server.
 
 
 # Setup
@@ -21,20 +21,6 @@ make start
 ## Access node endpoint
 
 In both setups the endpoint can be accessed through `localhost:8081`.
-
-
-## Changes required
-
-As the node agent currently does not use the new API yet, if you want to test transactions the endpoint must be changed. Change the file `processor/transaction/processor.go` as following:
-
-```
-    // From
-	processor.Registry.AddProcessor("/transactions", &Processor{})
-	// To
-	processor.Registry.AddProcessor("/", &Processor{})
-```
-
-This will fetch all requests coming in into transactions.
 
 
 ### Docker

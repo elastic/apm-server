@@ -6,4 +6,4 @@ stop:
 	docker-compose down -v
 
 setup:
-	npm install opbeat/opbeat-node#elastic-agent --save
+	npm install elastic-apm --save
