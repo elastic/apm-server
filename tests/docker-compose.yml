@@ -29,5 +29,5 @@ services:
     ports:
       - "8000:8000"
     environment:
-      OPBEAT_SERVER: "http://apm-server:8080"
+      APM_SERVER: "http://apm-server:8080"
       TRACES_SEND_FREQ_SECS: "1"

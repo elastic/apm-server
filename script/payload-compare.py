@@ -62,7 +62,7 @@ def gen_transaction(TRANSACTION_UUIDS, TRACE_UUIDS):
             "timestamp": "2017-05-09T10:23:{}Z".format(random.randint(0, 60)),
             "context": {
                 "user": {
-                    "email": "ron@opbeat.com"
+                    "email": "ron@elastic.com"
                 },
                 "request": {
                     "headers": {

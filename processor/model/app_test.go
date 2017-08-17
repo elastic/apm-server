@@ -25,7 +25,7 @@ func TestAppTransform(t *testing.T) {
 	rtVersion := "8.0.0"
 	fwName := "Express"
 	fwVersion := "1.2.3"
-	agentName := "opbeat-node"
+	agentName := "elastic-node"
 	agentVersion := "1.0.0"
 	tests := []struct {
 		App    App
@@ -90,7 +90,7 @@ func TestAppTransform(t *testing.T) {
 					"version": "1.2.3",
 				},
 				"agent": common.MapStr{
-					"name":    "opbeat-node",
+					"name":    "elastic-node",
 					"version": "1.0.0",
 				},
 			},
