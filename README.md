@@ -8,8 +8,8 @@ trying out APM and have feedback or problems, please post them on the [Discuss f
 
 To run Elastic APM for your own applications you need the following setup:
 
-* Install & Run [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/_installation.html) and [Kibana](https://www.elastic.co/guide/en/kibana/6.0/install.html)
-* Build and run the APM Server
+* Install & run [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/_installation.html) and [Kibana](https://www.elastic.co/guide/en/kibana/6.0/install.html)
+* Install, build and run the [APM Server](#apm-server-development)
 * Install the [Node.js](https://github.com/elastic/apm-agent-nodejs) or [Python](https://github.com/elastic/apm-agent-python) APM Agent. The agents are libraries in your application that run inside of your application process.
 * Load UI dashboards into Kibana. The dashboards will give you an overview of application response times, requests per minutes, error occurrences and more.
 
@@ -132,10 +132,7 @@ BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
 ```
 
 ## Documentation
-
-A JSON-Schema spec for the API lives in `docs/spec`. 
-ElasticSearch fields are defined in `_meta/fields.generated.yml`.
-Examples of input and output documents can be found at `docs/data/intake-api` and `docs/data/elasticsearch` respectively.
+The [Documentation](docs/index.asciidoc) for the Intake-API and Elasticsearch can be found in `docs/data`. 
 
 ## Help
 
