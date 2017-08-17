@@ -62,7 +62,7 @@ def gen_transaction(TRANSACTION_UUIDS, TRACE_UUIDS):
             "timestamp": "2017-05-09T10:23:{}Z".format(random.randint(0, 60)),
             "context": {
                 "user": {
-                    "email": "ron@opbeat.com"
+                    "email": "ron@elastic.com"
                 },
                 "request": {
                     "headers": {
@@ -153,7 +153,7 @@ def run(SHOULD_GROUP, TRACE_UUIDS, TRANSACTION_UUIDS):
 
     payload = {
         "app_id": "my-app",
-        "agent": "opbeat-node/4.1.4",
+        "agent": "elastic-node/4.1.4",
         "platform": "lang=python/2.7.1 platform=CPython framework=Django/1.11.1",
         "transactions": transactions
     }

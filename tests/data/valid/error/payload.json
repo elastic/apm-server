@@ -22,7 +22,7 @@
             "version": "1.2.3"
         },
         "agent": {
-            "name": "opbeat-node",
+            "name": "elastic-node",
             "version": "3.14.0"
         }
     },
@@ -68,7 +68,7 @@
                         "lineno": 102,
                         "function": "instrumented",
                         "in_app": false,
-                        "abs_path": "/Users/watson/code/node_modules/opbeat/lib/instrumentation/index.js",
+                        "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
                         "vars": {
                             "key": "value"
                         },
@@ -130,7 +130,7 @@
                         "lineno": 102,
                         "function": "instrumented",
                         "in_app": false,
-                        "abs_path": "/Users/watson/code/node_modules/opbeat/lib/instrumentation/index.js",
+                        "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
                         "vars": {
                             "key": "value"
                         },
