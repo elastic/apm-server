@@ -1,19 +1,9 @@
-from apmserver import BaseTest
+from apmserver import ServerBaseTest
+import requests
 
-import os
 
+class Test(ServerBaseTest):
 
-class Test(BaseTest):
-
-    def test_base(self):
-        """
-        Basic test with exiting apmserver normally
-        """
-        self.render_config_template(
-            path=os.path.abspath(self.working_dir) + "/log/*"
-        )
-
-        apmserver_proc = self.start_beat()
-        self.wait_until(lambda: self.log_contains("apm-server is running"))
-        exit_code = apmserver_proc.kill_and_wait()
-        assert exit_code == 0
+    def test_health(self):
+        r = requests.get("http://localhost:8080/healthcheck")
+        assert r.status_code == 200, r.status_code
