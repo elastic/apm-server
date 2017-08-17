@@ -25,6 +25,7 @@ curl --user elastic:changeme -XPOST http://localhost:5601/api/kibana/dashboards/
 ```
 
 Here's a screenshot of one of the dashboards:
+
 ![Kibana APM dashboard](https://cldup.com/fBs7ofUk3X.png)
 
 ## APM Server Development
