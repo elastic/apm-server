@@ -22,7 +22,7 @@
             "version": "1.2.3"
         },
         "agent": {
-            "name": "opbeat-node",
+            "name": "elastic-node",
             "version": "3.14.0"
         }
     },

@@ -4,7 +4,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [
@@ -118,7 +118,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "git_ref": "ba1df27",
@@ -186,7 +186,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "git_ref": "ba1df27",
@@ -215,7 +215,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "git_ref": "ba1df27",
@@ -244,7 +244,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "git_ref": "ba1df27",
@@ -273,7 +273,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [
@@ -321,7 +321,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [
@@ -369,7 +369,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [
@@ -417,7 +417,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "git_ref": "ba1df27",

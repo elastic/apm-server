@@ -1,17 +1,11 @@
-= Apm Server Docs
+= APM Server Docs
 
-Welcome to the Apm Server documentation.
+Welcome to the APM Server documentation.
 
+== API Description
+link:transaction-api.asciidoc[Transaction API]
 
-== Configuring Index Pattern
+link:error-api.asciidoc[Error API]
 
-The same Apm Server process can handle data from multiple apps. If you want to send data from each app to separate indices, you can include the app name in the Elasticsearch index pattern in the following manner:
+link:elasticsearch-docs.asciidoc[Elasticsearch]
 
-[source,yaml]
-----
-output.elasticsearch:
-  index: "apm-server-%{[app.name]}-%{[beat.version]}-%{+yyyy.MM.dd}"
-----
-
-This will have the effect that all events end up in app-specific indices.
-It will enable you to set security restrictions based on your index pattern.
