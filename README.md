@@ -49,7 +49,7 @@ Note that it should be cloned from the fork (replace [USER] with your Github use
 
 ### Build
 
-To build the binary for Apm-Server run the command below. This will generate a binary
+To build the binary for APM Server run the command below. This will generate a binary
 in the same directory with the name apm-server.
 
 ```
@@ -58,7 +58,7 @@ make
 
 ### Run
 
-To run Apm-Server with debugging output enabled, run:
+To run APM Server with debugging output enabled, run:
 
 ```
 ./apm-server -c apm-server.yml -e -d "*"
@@ -79,7 +79,7 @@ make update
 
 ### Cleanup
 
-To clean Apm-Server source code, run the following commands:
+To clean APM Server source code, run the following commands:
 
 ```
 make fmt
@@ -130,20 +130,6 @@ To update the dependency to a specific commit or branch run command as following
 ```
 BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
 ```
-
-## Test environment
-
-For manual testing with the elastic stack and the agents there is a test environment based on docker. To
-get this running execute the following commands.
-
-* Run `make start-env`
-* Run 3 times around your table, it takes ES quite a bit to startup completely with X-Pack
-* Go to `localhost:5000` or `localhost:5000/error` and press refresh a few times
-* Open `localhost:5601` in your browser and log into Kibana with `elastic` and `changeme`
-* Create the `apm-server-*` index pattern
-* In Kibana go to the Discovery tab and you should see data
-
-For manual testing with specific agents, check instructions at `tests/agent/[LANG]/README.md`
 
 ## Documentation
 
