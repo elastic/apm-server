@@ -15,6 +15,14 @@ To run Elastic APM for your own applications you need the following setup:
 By default the agents send data to localhost, the APM Server listens on localhost and sends data to Elasticsearch on localhost.
 If your setups involves multiple hosts, you need to adjust the configuration options accordingly.
 
+## Load Dashboards
+
+To get started with APM we provide some example dashboards. Currently the dashboards have to be loaded manually with the following command:
+
+```
+curl --user elastic:changeme -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
+```
+
 ## APM Server Development
 
 ### Requirements
