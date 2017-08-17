@@ -5,11 +5,11 @@ RUN mkdir -p /app
 
 WORKDIR /app
 
-RUN git clone https://github.com/opbeat/opbeans-python.git .
+RUN git clone https://github.com/elastic/apm-agent-python
 
 RUN pip install -Ur requirements.txt
-RUN pip uninstall opbeat -y
-RUN pip install git+https://github.com/opbeat/opbeat_python.git@feature/sampling#egg=opbeat
+RUN pip uninstall apm-agent-python -y
+RUN pip install git+https://github.com/elastic/apm-agent-python.git@master
 
 RUN bunzip2 -k demo/db.sql.bz2
 RUN ./manage.py collectstatic

@@ -1,6 +1,6 @@
 # Python agent testing
 
-This is to setup an environment for the manual testing of the [python agent](https://github.com/opbeat/opbeat_python) with the server.
+This is to setup an environment for the manual testing of the [python agent](https://github.com/elastic/apm-agent-python) with the server.
 
 
 # Setup
@@ -21,11 +21,6 @@ make start
 ## Access node endpoint
 
 In both setups the endpoint can be accessed through `localhost:5000`.
-
-
-## Running the server
-
-As the python agent still outputs to the old paths, run `apm-server -debug -e -d "*"` so a path is opened also for `/`. Like this you see which requests come in. As soon as the python agent is adapted, this should not be needed anymore.
 
 
 ### Docker

@@ -3,17 +3,16 @@
 import os
 
 from flask import Flask, render_template, request, redirect, url_for
-from opbeat.contrib.flask import Opbeat
-
+from elasticapm.contrib.flask import ElasticAPM
 
 app = Flask(__name__)
 app.debug = True
-app.config['OPBEAT'] = {
+app.config['APM'] = {
     'SERVERS': [os.environ.get('apm-server', 'http://localhost:8080')],
     'DEBUG': True,
 }
 
-opbeat = Opbeat(
+apm = ElasticAPM(
     app,
     organization_id='123',
     app_id='123',
