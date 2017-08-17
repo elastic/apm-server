@@ -1,44 +1,36 @@
-from apmserver import BaseTest
+from apmserver import AccessTest
 
-import os
 import requests
-import json
 
 
-class Test(BaseTest):
+class Test(AccessTest):
 
     def test_with_token(self):
         """
         Test that access works with token
         """
-        self.render_config_template(
-            path=os.path.abspath(self.working_dir) + "/log/*",
-            secret_token="1234",
-        )
-
-        f = os.path.abspath(os.path.join(self.beat_path,
-                                         'tests',
-                                         'data',
-                                         'valid',
-                                         'transaction',
-                                         'payload.json'))
-        transactions = json.loads(open(f).read())
-
-        apmserver_proc = self.start_beat()
-        self.wait_until(lambda: self.log_contains("apm-server is running"))
 
         url = 'http://localhost:8080/v1/transactions'
-        r = requests.post(url, json=transactions)
-        assert r.status_code == 401
+        transactions = self.get_payload()
 
-        r = requests.post(url, json=transactions, headers={'Authorization': 'Bearer 1234'})
-        assert r.status_code == 202
+        ctype = {'Content-Type': 'application/json'}.items()
 
-        r = requests.post(url, json=transactions, headers={'Authorization': 'Bearer wrongtoken'})
-        assert r.status_code == 401
+        def oauth(v): return {'Authorization': v}.items()
 
-        r = requests.post(url, json=transactions, headers={'Authorization': 'Wrongbearer 1234'})
-        assert r.status_code == 401
+        r = requests.post(url, data=transactions, headers=dict(ctype))
+        assert r.status_code == 401, r.status_code
 
-        exit_code = apmserver_proc.kill_and_wait()
-        assert exit_code == 0
+        r = requests.post(url,
+                          data=transactions,
+                          headers=dict(ctype + oauth('Bearer 1234')))
+        assert r.status_code == 202, r.status_code
+
+        r = requests.post(url,
+                          data=transactions,
+                          headers=dict(ctype + oauth('Bearer wrongtoken')))
+        assert r.status_code == 401, r.status_code
+
+        r = requests.post(url,
+                          data=transactions,
+                          headers=dict(ctype + oauth('Wrongbearer 1234')))
+        assert r.status_code == 401, r.status_code
