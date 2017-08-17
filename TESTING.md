@@ -1,6 +1,7 @@
-# Apm-Server-Testing
+# APM Server-Testing
 
-To run the full testsuite of Apm-Server, run:
+## Automated Testing
+To run the full testsuite of APM Server, run:
 
 ```
 make testsuite
@@ -10,7 +11,7 @@ make testsuite
 Alternatively only specific tests can be run:
 
 ```
-Make unit
+make unit
 ```
 
 Runs tests not relying on external dependencies. If tests coverage should be printed, run `make unit-tests` instead.
@@ -36,3 +37,18 @@ Some tests make use of the concept of snapshot testing. If those tests were run 
 * running tests as described above will create a `*.received.json` file for every newly created of changed snapshot.
 * run `make update` to create the `approvals` binary that supports viewing the changes. 
 * run `./approvals` to review and interactively accept the changes. 
+
+## Manual Testing
+
+For manual testing with the elastic stack and the agents there is a test environment based on docker. To
+get this running execute the following commands.
+
+* Run `make start-env`
+* Run 3 times around your table, it takes ES quite a bit to startup completely with X-Pack
+* Go to `localhost:5000` or `localhost:5000/error` and press refresh a few times
+* Open `localhost:5601` in your browser and log into Kibana with `elastic` and `changeme`
+* Create the `apm-server-*` index pattern
+* In Kibana go to the Discovery tab and you should see data
+
+For manual testing with specific agents, check instructions at `tests/agent/[LANG]/README.md`
+
