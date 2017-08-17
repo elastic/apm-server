@@ -1,10 +1,21 @@
-# Apm-Server (Experimental)
+# APM Server (Experimental)
 
-The Apm-Server receives data from the elastic apm-agents and stores the data into Elasticsearch.
+The APM Server receives data from the Elastic APM agents and stores the data into Elasticsearch. The APM Server and the
+APM agents are currently experimental and under heavy development which can also includes breaking changes. If you are
+trying out APM and have feedback or problems, please post them on the [Discuss forum](https://discuss.elastic.co/c/apm).
 
-By default the Apm-Server listens on `localhost` for incoming events. For further options check the configuration file.
+## APM Getting Started
 
-## Getting Started with Apm-Server
+To run Elastic APM for your own applications you need the following setup:
+
+* Install & Run [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/_installation.html) and [Kibana](https://www.elastic.co/guide/en/kibana/6.0/install.html)
+* Build and run the APM Server
+* Install the [Node.js](https://github.com/elastic/apm-agent-nodejs) or [Python](https://github.com/elastic/apm-agent-python) APM Agent in your app
+
+By default the agents send data to localhost, the APM Server listens on localhost and sends data to Elasticsearch on localhost.
+If your setups involves multiple hosts, you need to adjust the configuration options accordingly.
+
+## APM Server Development
 
 ### Requirements
 
