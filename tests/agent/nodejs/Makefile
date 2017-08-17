@@ -6,4 +6,4 @@ stop:
 	docker-compose down -v
 
 setup:
-	npm install elastic-apm --save
+	npm install elastic/apm-agent-nodejs
