@@ -15,7 +15,7 @@ class Test(ServerBaseTest):
     transactions_url = 'http://localhost:8080/v1/transactions'
 
     def test_ok(self):
-        transactions = self.get_payload()
+        transactions = self.get_transaction_payload()
         r = requests.post(self.transactions_url, data=transactions,
                           headers={'Content-Type': 'application/json'})
         assert r.status_code == 202, r.status_code
@@ -45,7 +45,7 @@ class Test(ServerBaseTest):
         assert r.status_code == 200, r.status_code
 
     def test_gzip(self):
-        transactions = self.get_payload()
+        transactions = self.get_transaction_payload()
 
         out = ""
         try:
@@ -64,7 +64,7 @@ class Test(ServerBaseTest):
         assert r.status_code == 202, r.status_code
 
     def test_deflat(self):
-        transactions = self.get_payload()
+        transactions = self.get_transaction_payload()
         compressed_data = None
         try:
             compressed_data = zlib.compress(transactions)
@@ -76,14 +76,14 @@ class Test(ServerBaseTest):
         assert r.status_code == 202, r.status_code
 
     def test_gzip_error(self):
-        data = self.get_payload()
+        data = self.get_transaction_payload()
 
         r = requests.post(self.transactions_url, data=data,
                           headers={'Content-Encoding': 'gzip', 'Content-Type': 'application/json'})
         assert r.status_code == 400, r.status_code
 
     def test_deflate_error(self):
-        data = self.get_payload()
+        data = self.get_transaction_payload()
 
         r = requests.post(self.transactions_url, data=data,
                           headers={'Content-Encoding': 'deflate', 'Content-Type': 'application/json'})
@@ -93,7 +93,7 @@ class Test(ServerBaseTest):
 class SecureTest(SecureServerBaseTest):
 
     def test_https_ok(self):
-        transactions = self.get_payload()
+        transactions = self.get_transaction_payload()
         r = requests.post("https://localhost:8080/v1/transactions",
                           data=transactions,
                           headers={'Content-Type': 'application/json'},
@@ -102,7 +102,7 @@ class SecureTest(SecureServerBaseTest):
 
     @raises(SSLError)
     def test_https_verify(self):
-        transactions = self.get_payload()
+        transactions = self.get_transaction_payload()
         requests.post("https://localhost:8080/v1/transactions",
                       data=transactions,
                       headers={'Content-Type': 'application/json'})

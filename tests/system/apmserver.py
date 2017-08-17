@@ -18,7 +18,7 @@ class BaseTest(TestCase):
         cls.beat_path = "../../"
         super(BaseTest, cls).setUpClass()
 
-    def get_payload(self):
+    def get_transaction_payload(self):
         path = os.path.abspath(os.path.join(self.beat_path,
                                             'tests',
                                             'data',

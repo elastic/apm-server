@@ -11,7 +11,7 @@ class Test(AccessTest):
         """
 
         url = 'http://localhost:8080/v1/transactions'
-        transactions = self.get_payload()
+        transactions = self.get_transaction_payload()
 
         ctype = {'Content-Type': 'application/json'}.items()
 
