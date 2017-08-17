@@ -71,7 +71,8 @@ var transactionSchema = `{
         "name": {
             "description": "Immutable name of the app emitting this event",
             "type": "string",
-            "pattern": "^[a-zA-Z0-9 _-]+$"
+            "pattern": "^[a-zA-Z0-9 _-]+$",
+            "maxLength": 1024
         },
         "pid": {
             "type": ["number", "null"]
@@ -143,7 +144,11 @@ var transactionSchema = `{
     "custom": {
       "description": "An arbitrary mapping of additional metadata to store with the event.",
       "type": ["object", "null"],
-      "properties": {}
+      "regexProperties": true,
+      "patternProperties": {
+        "^[^.*\"]*$": { }
+      },
+      "additionalProperties": false
     },
     "response": {
         "type": ["object", "null"],

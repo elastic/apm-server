@@ -1,0 +1,9 @@
+{
+    "name": "SELECT FROM product_types",
+    "start": 2.83092,
+    "duration": 3.781912,
+    "stacktrace": [],
+    "context": {
+        "user": "john"
+    }
+}

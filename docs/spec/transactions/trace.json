@@ -33,7 +33,7 @@
             "type": ["array", "null"],
             "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
             "items": {
-                "$ref": "./../stacktrace_frame.json"
+                "$ref": "../stacktrace_frame.json"
             },
             "minItems": 0
         },
