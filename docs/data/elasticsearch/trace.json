@@ -8,7 +8,12 @@
             "git_ref": "ba1df27",
             "name": "1234_app-12a3"
         },
-        "sql": "SELECT * FROM product_types WHERE user_id=?"
+        "db": {
+            "instance": "customers",
+            "statement": "SELECT * FROM product_types WHERE user_id=?",
+            "type": "sql",
+            "user": "readonly_user"
+        }
     },
     "processor": {
         "event": "trace",
