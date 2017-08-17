@@ -4,7 +4,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "name": "1234_app-12a3"

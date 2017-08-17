@@ -2,7 +2,7 @@
     "app": {
         "name": "1234_app-12a3",
         "agent": {
-            "name": "opbeat-node",
+            "name": "elastic-node",
             "version": "3.14.0"
         }
     },

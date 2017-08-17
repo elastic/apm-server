@@ -153,7 +153,7 @@ def run(SHOULD_GROUP, TRACE_UUIDS, TRANSACTION_UUIDS):
 
     payload = {
         "app_id": "my-app",
-        "agent": "opbeat-node/4.1.4",
+        "agent": "elastic-node/4.1.4",
         "platform": "lang=python/2.7.1 platform=CPython framework=Django/1.11.1",
         "transactions": transactions
     }

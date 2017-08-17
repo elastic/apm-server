@@ -4,7 +4,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [
@@ -137,7 +137,7 @@
                             }
                         },
                         {
-                            "abs_path": "/Users/watson/code/node_modules/opbeat/lib/instrumentation/index.js",
+                            "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
                             "context": {
                                 "post": [
                                     "    ins.currentTransaction = prev",
@@ -206,7 +206,7 @@
                             }
                         },
                         {
-                            "abs_path": "/Users/watson/code/node_modules/opbeat/lib/instrumentation/index.js",
+                            "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
                             "context": {
                                 "post": [
                                     "    ins.currentTransaction = prev",
@@ -250,7 +250,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [
@@ -298,7 +298,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [
@@ -345,7 +345,7 @@
             "context": {
                 "app": {
                     "agent": {
-                        "name": "opbeat-node",
+                        "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "argv": [

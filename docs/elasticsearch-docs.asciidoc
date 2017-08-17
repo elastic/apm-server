@@ -1,17 +1,17 @@
-= Elasticsearch example docs
+= Elasticsearch
 
-The following are example documents which are sent to elasticsearch from the server.
+== Example docs
 
-== Transaction
+The following are example documents sent to Elasticsearch from the APM Server.
 
-[source,json]
-----
-include::./data/elasticsearch/transaction.json[]
-----
+link:./data/elasticsearch/transaction.json[Transaction Document]
 
-== Trace
+link:./data/elasticsearch/trace.json[Trace Document]
 
-[source,json]
-----
-include::./data/elasticsearch/trace.json[]
-----
+link:./data/elasticsearch/error.json[Error Document]
+
+== Indexed Fields
+link:fields.asciidoc[See indexed fields in Elasticsearch]
+
+== Changing the Index-Pattern
+link:index_pattern.asiidoc[Index-Pattern]
