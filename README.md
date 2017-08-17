@@ -10,18 +10,22 @@ To run Elastic APM for your own applications you need the following setup:
 
 * Install & Run [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/_installation.html) and [Kibana](https://www.elastic.co/guide/en/kibana/6.0/install.html)
 * Build and run the APM Server
-* Install the [Node.js](https://github.com/elastic/apm-agent-nodejs) or [Python](https://github.com/elastic/apm-agent-python) APM Agent in your app
+* Install the [Node.js](https://github.com/elastic/apm-agent-nodejs) or [Python](https://github.com/elastic/apm-agent-python) APM Agent. The agents are libraries in your application that run inside of your application process.
+* Loads UI dashboards into Kibana. The dashboards will give you an overview of application response times, requests per minutes, error occurrences and more.
 
 By default the agents send data to localhost, the APM Server listens on localhost and sends data to Elasticsearch on localhost.
 If your setups involves multiple hosts, you need to adjust the configuration options accordingly.
 
 ## Load Dashboards
 
-To get started with APM we provide some example dashboards. Currently the dashboards have to be loaded manually with the following command:
+The current UI consists of pre-built, customizable Kibana dashboards. The dashboards are shipped with the APM Server. For now, the dashboards have to be loaded manually with the following command:
 
 ```
 curl --user elastic:changeme -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
 ```
+
+Here's a screenshot of one of the dashboards:
+![Kibana APM dashboard](https://cldup.com/fBs7ofUk3X.png)
 
 ## APM Server Development
 
