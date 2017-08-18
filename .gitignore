@@ -3,7 +3,7 @@
 /data
 /logs
 /server/test_certs
-
+**/*.received.json
 .DS_Store
 *.pyc
 
