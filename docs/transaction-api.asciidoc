@@ -1,12 +1,14 @@
-= Transaction API
+== Transaction API
 
 To send transaction records you need to send a HTTP POST request to the APM Server `transactions` endpoint. Information pertaining to the record must be sent as a JSON object to the endpoint.
 
-link:spec/transactions/payload.json[JSON Schema]
+link:./spec/transactions/payload.json[JSON Schema]
 
-== Example
-....
+=== Example
+
+["source","sh",subs="attributes"]
+------------------------------------------------------------
 $ curl http://localhost:8080/v1/transactions --header "Content-Type:application/json" --data @docs/data/intake-api/generated/transaction/payload.json
-....
+------------------------------------------------------------
 
-link:data/intake-api/generated/transaction/payload.json[Example Payload]
+link:./data/intake-api/generated/transaction/payload.json[Example Payload]
