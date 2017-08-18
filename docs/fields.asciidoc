@@ -163,21 +163,12 @@ The http method of the request leading to this event.
 
 
 
-
 [float]
-=== `context.response.status.code`
+=== `context.response.status_code`
 
 type: long
 
 Http response status code.
-
-
-[float]
-=== `context.response.status.message`
-
-type: text
-
-Http response status message.
 
 
 [float]

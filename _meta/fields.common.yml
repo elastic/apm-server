@@ -102,19 +102,10 @@
           type: group
           fields:
 
-          - name: status 
-            type: group
-            fields:
-
-            - name: code
-              type: long
-              description: >
-                Http response status code.
-
-            - name: message
-              type: text
-              description: >
-                Http response status message.
+          - name: status_code
+            type: long
+            description: >
+              Http response status code.
 
           - name: finished 
             type: boolean 

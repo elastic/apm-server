@@ -195,10 +195,7 @@
                     "body": "Hello World"
                 },
                 "response": {
-                    "status": {
-                        "code": 200,
-                        "message": "OK"
-                    },
+                    "status_code": 200,
                     "headers": {
                         "content-type": "application/json"
                     },

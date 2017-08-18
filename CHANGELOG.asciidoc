@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 - Changed response status code in the API from 201 to 202 {pull}34[34]
 - Set dynamic mapping to false, enable only for `context.tags`. Fix issues with indexing. Removed from index: `request.headers_sent`, `app.argv`. Changes take place with {pull}43[43], after updating beats framework. 
 - Remove `context.db.sql` and add `context.db.instance`, `context.db.statement`, `context.db.type` and `context.db.user` instead {pull}38[38].
+- Changed `context.response.status` object to simply storing `context.response.status_code` as a number {pull}49[49]
 
 ==== Bugfixes
 - changed `context.system.title` to `context.system.process_title`, removed `transaction.context`, `trace.context` (already available on top level). {pull}10[10]
