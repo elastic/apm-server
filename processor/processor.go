@@ -7,7 +7,6 @@ import (
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 type NewProcessor func() Processor
@@ -31,10 +30,8 @@ func CreateDoc(strTime string, docMappings []m.DocMapping) beat.Event {
 	}
 
 	// This assumes JSON Spec has already validated the timestamp to be the correct format.
-	timestamp, err := utility.ParseTime(strTime)
-	if err != nil {
-		logp.Err("Unable to parse timestamp %s: %s", strTime, err)
-	}
+	timestamp, _ := utility.ParseTime(strTime)
+
 	return beat.Event{
 		Fields:    doc,
 		Timestamp: timestamp,
