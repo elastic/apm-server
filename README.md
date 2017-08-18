@@ -12,7 +12,7 @@ To run Elastic APM for your own applications you need the following setup:
 * Install & run [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/_installation.html) and [Kibana](https://www.elastic.co/guide/en/kibana/6.0/install.html)
 * Install, build and run the [APM Server](#apm-server-development)
 * Install the [Node.js](https://github.com/elastic/apm-agent-nodejs) or [Python](https://github.com/elastic/apm-agent-python) APM Agent. The agents are libraries in your application that run inside of your application process.
-* Load UI dashboards into Kibana. The dashboards will give you an overview of application response times, requests per minutes, error occurrences and more.
+* [Load UI dashboards](#load-dashboards) into Kibana. The dashboards will give you an overview of application response times, requests per minutes, error occurrences and more.
 
 By default the agents send data to localhost, the APM Server listens on localhost and sends data to Elasticsearch on localhost.
 If your setups involves multiple hosts, you need to adjust the configuration options accordingly.
