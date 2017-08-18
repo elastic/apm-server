@@ -22,11 +22,8 @@ type Payload interface {
 	Transform() []beat.Event
 }
 
-func CreateDoc(strTime string, baseMappings []m.SMapping, docMappings []m.FMapping) beat.Event {
+func CreateDoc(strTime string, docMappings []m.DocMapping) beat.Event {
 	doc := common.MapStr{}
-	for _, mapping := range baseMappings {
-		doc.Put(mapping.Key, mapping.Value)
-	}
 	for _, mapping := range docMappings {
 		if out := mapping.Apply(); out != nil {
 			doc.Put(mapping.Key, out)

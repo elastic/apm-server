@@ -31,12 +31,12 @@ func (t *Event) Transform() common.MapStr {
 	return tx
 }
 
-func (t *Event) Mappings(pa *Payload) (string, []m.SMapping, []m.FMapping) {
+func (t *Event) Mappings(pa *Payload) (string, []m.DocMapping) {
 	return t.Timestamp,
-		[]m.SMapping{
-			{Key: "processor.name", Value: processorName},
-			{Key: "processor.event", Value: t.DocType()},
-		}, []m.FMapping{
+		[]m.DocMapping{
+			{Key: "processor", Apply: func() common.MapStr {
+				return common.MapStr{"name": processorName, "event": t.DocType()}
+			}},
 			{Key: t.DocType(), Apply: t.Transform},
 			{Key: "context", Apply: func() common.MapStr { return t.Context }},
 			{Key: "context.app", Apply: pa.App.Transform},
