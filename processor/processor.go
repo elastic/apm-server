@@ -7,7 +7,6 @@ import (
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 type NewProcessor func() Processor
@@ -22,11 +21,8 @@ type Payload interface {
 	Transform() []beat.Event
 }
 
-func CreateDoc(strTime string, baseMappings []m.SMapping, docMappings []m.FMapping) beat.Event {
+func CreateDoc(strTime string, docMappings []m.DocMapping) beat.Event {
 	doc := common.MapStr{}
-	for _, mapping := range baseMappings {
-		doc.Put(mapping.Key, mapping.Value)
-	}
 	for _, mapping := range docMappings {
 		if out := mapping.Apply(); out != nil {
 			doc.Put(mapping.Key, out)
@@ -34,10 +30,8 @@ func CreateDoc(strTime string, baseMappings []m.SMapping, docMappings []m.FMappi
 	}
 
 	// This assumes JSON Spec has already validated the timestamp to be the correct format.
-	timestamp, err := utility.ParseTime(strTime)
-	if err != nil {
-		logp.Err("Unable to parse timestamp %s: %s", strTime, err)
-	}
+	timestamp, _ := utility.ParseTime(strTime)
+
 	return beat.Event{
 		Fields:    doc,
 		Timestamp: timestamp,
