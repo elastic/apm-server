@@ -4,16 +4,16 @@
 
 apm-server:
   # Defines the host and port the server is listening on
-  host: "localhost:8080"
 
-  #server.max_unzipped_size:
-  #server.max_header_bytes:
-  #server.read_timeout: 2s
-  #server.write_timeout: 2s
+  #host: "localhost:8080"
+  #max_unzipped_size:
+  #max_header_bytes:
+  #read_timeout: 2s
+  #write_timeout: 2s
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>
-  #server.secret_token:
+  #secret_token:
 
 #================================ General =====================================
 

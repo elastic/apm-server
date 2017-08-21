@@ -3,37 +3,35 @@ package beater
 import (
 	"fmt"
 
-	"github.com/elastic/apm-server/config"
-	"github.com/elastic/apm-server/server"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-type ApmServer struct {
+type beater struct {
 	done   chan struct{}
-	server *server.Server
-	config config.Config
+	config Config
 	client beat.Client
 }
 
 // Creates beater
-func New(_ *beat.Beat, cfg *common.Config) (beat.Beater, error) {
-	config := config.DefaultConfig
-	if err := cfg.Unpack(&config); err != nil {
+func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
+	beaterConfig := defaultConfig
+	if err := ucfg.Unpack(&beaterConfig); err != nil {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
 	}
 
-	bt := &ApmServer{
+	bt := &beater{
 		done:   make(chan struct{}),
-		config: config,
+		config: beaterConfig,
 	}
 	return bt, nil
 }
 
-func (bt *ApmServer) Run(b *beat.Beat) error {
-	logp.Info("apm-server is running! Hit CTRL-C to stop it.")
+func (bt *beater) Run(b *beat.Beat) error {
+
 	var err error
+
 	bt.client, err = b.Publisher.Connect()
 	if err != nil {
 		return err
@@ -45,19 +43,17 @@ func (bt *ApmServer) Run(b *beat.Beat) error {
 		go bt.client.PublishAll(events)
 	}
 
-	bt.server, err = server.New(bt.config.Server)
-	if err != nil {
-		return err
-	}
-	bt.server.Start(callback, bt.config.Host)
-	defer bt.server.Stop()
+	server := newServer(bt.config, callback)
+	start(server, bt.config.SSL)
+	defer stop(server)
 
+	logp.Info("apm-server is running! Hit CTRL-C to stop it.")
 	// Blocks until service is shut down
 	<-bt.done
 
 	return nil
 }
 
-func (bt *ApmServer) Stop() {
+func (bt *beater) Stop() {
 	close(bt.done)
 }

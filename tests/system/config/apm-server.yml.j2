@@ -2,11 +2,10 @@
 
 apm-server:
   host: "localhost:8080"
-  server:
-    secret_token: {{ secret_token }}
-    ssl.enabled: {{ ssl_enabled }}
-    ssl.certificate:  {{ ssl_cert }}
-    ssl.key: {{ ssl_key }}
+  secret_token: {{ secret_token }}
+  ssl.enabled: {{ ssl_enabled }}
+  ssl.certificate:  {{ ssl_cert }}
+  ssl.key: {{ ssl_key }}
 
 ############################# Output ##########################################
 
