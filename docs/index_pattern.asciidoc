@@ -1,4 +1,4 @@
-== Configuring Index Pattern
+=== Configuring Index Pattern
 
 The same APM Server process can handle data from multiple apps. If you want to send data from each app to separate indices, you can include the app name in the Elasticsearch index pattern in the following manner:
 

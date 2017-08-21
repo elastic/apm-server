@@ -1,6 +1,7 @@
-= Elasticsearch
+[[elasticsearch-docs]]
+== Elasticsearch
 
-== Example docs
+=== Example docs
 
 The following are example documents sent to Elasticsearch from the APM Server.
 
@@ -10,8 +11,8 @@ link:./data/elasticsearch/trace.json[Trace Document]
 
 link:./data/elasticsearch/error.json[Error Document]
 
-== Indexed Fields
-link:fields.asciidoc[See indexed fields in Elasticsearch]
 
-== Changing the Index-Pattern
-link:index_pattern.asiidoc[Index-Pattern]
+
+include::./fields.asciidoc[See indexed fields in Elasticsearch]
+
+include::./index_pattern.asciidoc[Index-Pattern]

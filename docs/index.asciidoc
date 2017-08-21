@@ -1,11 +1,6 @@
 = APM Server Docs
 
-Welcome to the APM Server documentation.
+== APM Server
+Welcome to the APM Server Docs.
 
-== API Description
-link:transaction-api.asciidoc[Transaction API]
-
-link:error-api.asciidoc[Error API]
-
-link:elasticsearch-docs.asciidoc[Elasticsearch]
-
+include::./api.asciidoc[API]
