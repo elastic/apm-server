@@ -18,7 +18,9 @@ import (
 func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn processor.NewProcessor) {
 	assert := assert.New(t)
 	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
+	assert.NoError(err)
 	disabledFieldNames, err := fetchFlattenedFieldNames(fieldPaths, addOnlyDisabledFields)
+	assert.NoError(err)
 	undocumentedFieldNames := set.New(
 		"processor",
 		//dynamically indexed:
