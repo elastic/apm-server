@@ -3,6 +3,8 @@ package processor
 import (
 	"io"
 
+	"github.com/elastic/beats/libbeat/logp"
+
 	m "github.com/elastic/apm-server/processor/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
@@ -29,8 +31,10 @@ func CreateDoc(strTime string, docMappings []m.DocMapping) beat.Event {
 		}
 	}
 
-	// This assumes JSON Spec has already validated the timestamp to be the correct format.
-	timestamp, _ := utility.ParseTime(strTime)
+	timestamp, err := utility.ParseTime(strTime)
+	if err != nil {
+		logp.Err("Unable to parse timestamp %s: %s", strTime, err)
+	}
 
 	return beat.Event{
 		Fields:    doc,
