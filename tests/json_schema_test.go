@@ -102,6 +102,7 @@ func TestTransactionSchema(t *testing.T) {
 		{File: "invalid_timestamp2.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "invalid_timestamp3.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "invalid_timestamp4.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
+		{File: "invalid_timestamp5.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
 	}
 	testDataAgainstSchema(t, testData, "transactions/transaction", "transaction", `"$ref": "../docs/spec/transactions/`)
 }
@@ -121,6 +122,7 @@ func TestErrorSchema(t *testing.T) {
 		{File: "invalid_timestamp2.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "invalid_timestamp3.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "invalid_timestamp4.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
+		{File: "invalid_timestamp5.json", Error: "[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "no_log_message.json", Error: "missing properties: \"message\""},
 		{File: "no_exception_message.json", Error: "missing properties: \"message\""},
 		{File: "no_log_or_exception.json", Error: "missing properties: \"exception\""},
