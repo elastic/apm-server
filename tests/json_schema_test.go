@@ -160,6 +160,7 @@ func testDataAgainstSchema(t *testing.T, testData []schemaTestData, schemaPath s
 	}
 	path := filepath.Join("data/invalid/", filePath)
 	filesInDir, err := ioutil.ReadDir(path)
+	assert.Nil(t, err)
 	for _, f := range filesInDir {
 		assert.True(t, filesToTest.Has(f.Name()), fmt.Sprintf("Did you miss to add the file %v to `json_schema_tests`?", filepath.Join(path, f.Name())))
 	}
