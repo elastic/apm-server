@@ -6,13 +6,13 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 )
 
-type Payload struct {
+type payload struct {
 	App    m.App     `json:"app"`
 	System *m.System `json:"system"`
 	Events []Event   `json:"errors"`
 }
 
-func (pa *Payload) Transform() []beat.Event {
+func (pa *payload) Transform() []beat.Event {
 	var events []beat.Event
 
 	for _, e := range pa.Events {

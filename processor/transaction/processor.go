@@ -20,7 +20,7 @@ const (
 
 func NewProcessor() pr.Processor {
 	return &processor{
-		payload: &Payload{},
+		payload: &payload{},
 		schema:  pr.CreateSchema(transactionSchema, processorName),
 	}
 }

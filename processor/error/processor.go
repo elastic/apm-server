@@ -20,12 +20,12 @@ const (
 func NewProcessor() pr.Processor {
 	schema := pr.CreateSchema(errorSchema, processorName)
 	return &processor{
-		&Payload{},
+		&payload{},
 		schema}
 }
 
 type processor struct {
-	payload *Payload
+	payload pr.Payload
 	schema  *jsonschema.Schema
 }
 

@@ -31,7 +31,7 @@ func (t *Event) Transform() common.MapStr {
 	return tx
 }
 
-func (t *Event) Mappings(pa *Payload) (string, []m.DocMapping) {
+func (t *Event) Mappings(pa *payload) (string, []m.DocMapping) {
 	return t.Timestamp,
 		[]m.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
