@@ -1,6 +1,7 @@
 {
     "events": [
         {
+            "@timestamp": "2017-05-09T15:04:05.999999Z",
             "context": {
                 "app": {
                     "agent": {
@@ -245,6 +246,7 @@
             }
         },
         {
+            "@timestamp": "2017-05-09T15:04:05.1Z",
             "context": {
                 "app": {
                     "agent": {
@@ -293,6 +295,7 @@
             }
         },
         {
+            "@timestamp": "2017-05-09T15:04:05Z",
             "context": {
                 "app": {
                     "agent": {
@@ -340,6 +343,7 @@
             }
         },
         {
+            "@timestamp": "2017-05-09T15:04:05.999Z",
             "context": {
                 "app": {
                     "agent": {
