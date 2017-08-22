@@ -1,6 +1,7 @@
 {
     "events": [
         {
+            "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
                 "app": {
                     "agent": {
@@ -24,6 +25,7 @@
             }
         },
         {
+            "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
                 "app": {
                     "agent": {
