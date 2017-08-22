@@ -78,6 +78,7 @@ func TestProcessRequests(t *testing.T, fn processor.NewProcessor, requestInfo []
 		eventFields := make([]common.MapStr, len(events))
 		for idx, event := range events {
 			eventFields[idx] = event.Fields
+			eventFields[idx]["@timestamp"] = event.Timestamp
 		}
 
 		receivedJson := map[string]interface{}{"events": eventFields}
