@@ -16,10 +16,10 @@
           type: text
           description: Function call which was the primary perpetrator of this event.
 
-        - name: checksum
+        - name: grouping_key 
           type: keyword
           description: >
-            Checksum of the logged error for use in grouping.
+            GroupingKey of the logged error for use in grouping.
 
         - name: exception
           type: group

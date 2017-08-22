@@ -38,7 +38,7 @@ func TestPayloadTransform(t *testing.T) {
 						},
 					},
 					"error": common.MapStr{
-						"checksum": "d41d8cd98f00b204e9800998ecf8427e",
+						"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 					},
 					"processor": common.MapStr{"event": "error", "name": "error"},
 				},
@@ -65,9 +65,9 @@ func TestPayloadTransform(t *testing.T) {
 						},
 					},
 					"error": common.MapStr{
-						"checksum":  "d41d8cd98f00b204e9800998ecf8427e",
-						"exception": common.MapStr{"message": "exception message"},
-						"log":       common.MapStr{"message": "error log message"},
+						"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+						"exception":    common.MapStr{"message": "exception message"},
+						"log":          common.MapStr{"message": "error log message"},
 					},
 					"processor": common.MapStr{"event": "error", "name": "error"},
 				},

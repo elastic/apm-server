@@ -80,7 +80,7 @@ func TestEventTransform(t *testing.T) {
 	context := common.MapStr{"user": common.MapStr{"id": "888"}, "c1": "val"}
 
 	emptyOut := common.MapStr{
-		"checksum": hex.EncodeToString(md5.New().Sum(nil)),
+		"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 	}
 
 	tests := []struct {
@@ -96,40 +96,40 @@ func TestEventTransform(t *testing.T) {
 		{
 			Event: Event{Exception: baseException().withCode("13")},
 			Output: common.MapStr{
-				"exception": common.MapStr{"code": "13", "message": "exception message"},
-				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
+				"exception":    common.MapStr{"code": "13", "message": "exception message"},
+				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 			},
 			Msg: "Minimal Event, default stacktrace transformation fn",
 		},
 		{
 			Event: Event{Log: baseLog()},
 			Output: common.MapStr{
-				"log":      common.MapStr{"message": "error log message"},
-				"checksum": hex.EncodeToString(md5.New().Sum(nil)),
+				"log":          common.MapStr{"message": "error log message"},
+				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 			},
 			Msg: "Minimal Event wth log, default stacktrace transformation fn",
 		},
 		{
 			Event: Event{Exception: baseException().withCode("13")},
 			Output: common.MapStr{
-				"exception": common.MapStr{"message": "exception message", "code": "13"},
-				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
+				"exception":    common.MapStr{"message": "exception message", "code": "13"},
+				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 			},
 			Msg: "Minimal Event wth exception, string code, default stacktrace transformation fn",
 		},
 		{
 			Event: Event{Exception: baseException().withCode(13)},
 			Output: common.MapStr{
-				"exception": common.MapStr{"message": "exception message", "code": "13"},
-				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
+				"exception":    common.MapStr{"message": "exception message", "code": "13"},
+				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 			},
 			Msg: "Minimal Event wth exception, int code, default stacktrace transformation fn",
 		},
 		{
 			Event: Event{Exception: baseException().withCode(13.0)},
 			Output: common.MapStr{
-				"exception": common.MapStr{"message": "exception message", "code": "13"},
-				"checksum":  hex.EncodeToString(md5.New().Sum(nil)),
+				"exception":    common.MapStr{"message": "exception message", "code": "13"},
+				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 			},
 			Msg: "Minimal Event wth exception, float code, default stacktrace transformation fn",
 		},
@@ -162,7 +162,7 @@ func TestEventTransform(t *testing.T) {
 					"logger_name":   "logger",
 					"level":         "level",
 				},
-				"checksum": "d47ca09e1cfd512804f5d55cecd34262",
+				"grouping_key": "d47ca09e1cfd512804f5d55cecd34262",
 			},
 			Msg: "Full Event with frames",
 		},
@@ -174,17 +174,17 @@ func TestEventTransform(t *testing.T) {
 	}
 }
 
-func TestEmptyChecksum(t *testing.T) {
-	emptyCheckSum := hex.EncodeToString(md5.New().Sum(nil))
+func TestEmptyGroupingKey(t *testing.T) {
+	emptyGroupingKey := hex.EncodeToString(md5.New().Sum(nil))
 	e := Event{}
-	assert.Equal(t, emptyCheckSum, e.calcChecksum())
+	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey())
 }
 
-func TestExplicitChecksum(t *testing.T) {
+func TestExplicitGroupingKey(t *testing.T) {
 	attr := "hello world"
 	diffAttr := "huhu"
 
-	checkSum := hex.EncodeToString(md5With(attr))
+	groupingKey := hex.EncodeToString(md5With(attr))
 
 	e1 := Event{Log: baseLog().withParamMsg(attr)}
 	e2 := Event{Exception: baseException().withType(attr)}
@@ -196,37 +196,37 @@ func TestExplicitChecksum(t *testing.T) {
 	}
 
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
-		assert.Equal(t, checkSum, e.calcChecksum(), "checksum mismatch", idx)
+		assert.Equal(t, groupingKey, e.calcGroupingKey(), "grouping_key mismatch", idx)
 	}
 }
 
-func TestFallbackChecksum(t *testing.T) {
+func TestFallbackGroupingKey(t *testing.T) {
 	lineno := 12
 	filename := "file"
 
-	checkSum := hex.EncodeToString(md5With(filename, string(lineno)))
+	groupingKey := hex.EncodeToString(md5With(filename, string(lineno)))
 
 	e := Event{Exception: baseException().withFrames([]m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
-	assert.Equal(t, checkSum, e.calcChecksum())
+	assert.Equal(t, groupingKey, e.calcGroupingKey())
 
 	e = Event{Exception: baseException(), Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
-	assert.Equal(t, checkSum, e.calcChecksum())
+	assert.Equal(t, groupingKey, e.calcGroupingKey())
 }
 
-func TestNoFallbackChecksum(t *testing.T) {
+func TestNoFallbackGroupingKey(t *testing.T) {
 	lineno := 1
 	function := "function"
 	filename := "file"
 	module := "module"
 
-	checkSum := hex.EncodeToString(md5With(module, function))
+	groupingKey := hex.EncodeToString(md5With(module, function))
 
 	e := Event{
 		Exception: baseException().withFrames([]m.StacktraceFrame{
 			{Lineno: lineno, Module: &module, Filename: filename, Function: &function},
 		}),
 	}
-	assert.Equal(t, checkSum, e.calcChecksum())
+	assert.Equal(t, groupingKey, e.calcGroupingKey())
 }
 
 func TestGroupableEvents(t *testing.T) {
@@ -354,9 +354,9 @@ func TestGroupableEvents(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		sameGroup := test.e1.calcChecksum() == test.e2.calcChecksum()
+		sameGroup := test.e1.calcGroupingKey() == test.e2.calcGroupingKey()
 		assert.Equal(t, test.result, sameGroup,
-			"checksum mismatch", idx)
+			"grouping_key mismatch", idx)
 	}
 }
 

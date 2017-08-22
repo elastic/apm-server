@@ -384,11 +384,11 @@ type: text
 Function call which was the primary perpetrator of this event.
 
 [float]
-=== `error.checksum`
+=== `error.grouping_key`
 
 type: keyword
 
-Checksum of the logged error for use in grouping.
+GroupingKey of the logged error for use in grouping.
 
 
 [float]

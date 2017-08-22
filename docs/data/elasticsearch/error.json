@@ -97,7 +97,6 @@
         }
     },
     "error": {
-        "checksum": "4cfd552c0f4a291894c3558466f92151",
         "culprit": "my.module.function_name",
         "exception": {
             "attributes": {
@@ -169,6 +168,7 @@
             "type": "DbError",
             "uncaught": true
         },
+        "grouping_key": "4cfd552c0f4a291894c3558466f92151",
         "id": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
         "log": {
             "level": "warning",
