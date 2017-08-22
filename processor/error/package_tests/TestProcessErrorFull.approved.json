@@ -99,7 +99,6 @@
                 }
             },
             "error": {
-                "checksum": "4cfd552c0f4a291894c3558466f92151",
                 "culprit": "my.module.function_name",
                 "exception": {
                     "attributes": {
@@ -171,6 +170,7 @@
                     "type": "DbError",
                     "uncaught": true
                 },
+                "grouping_key": "4cfd552c0f4a291894c3558466f92151",
                 "id": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "log": {
                     "level": "warning",
@@ -280,11 +280,11 @@
                 }
             },
             "error": {
-                "checksum": "d41d8cd98f00b204e9800998ecf8427e",
                 "exception": {
                     "code": "35",
                     "message": "foo is not defined"
                 },
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
                 "id": "9f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             },
             "processor": {
@@ -328,10 +328,10 @@
                 }
             },
             "error": {
-                "checksum": "d41d8cd98f00b204e9800998ecf8427e",
                 "exception": {
                     "message": "foo.bar is not a function"
                 },
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
                 "id": "9f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             },
             "processor": {
@@ -375,7 +375,7 @@
                 }
             },
             "error": {
-                "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
                 "id": "9f0e9d67-c185-4d21-a6f4-4673ed561ec8",
                 "log": {
                     "message": "Cannot read property 'baz' of undefined"

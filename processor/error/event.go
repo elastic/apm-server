@@ -69,7 +69,7 @@ func (e *Event) Transform() common.MapStr {
 
 	e.addException()
 	e.addLog()
-	e.addChecksum()
+	e.addGroupingKey()
 
 	return e.data
 }
@@ -128,11 +128,11 @@ func (e *Event) transformStacktrace(frames m.StacktraceFrames) []common.MapStr {
 	return e.TransformStacktrace(&st)
 }
 
-func (e *Event) addChecksum() {
-	e.add("checksum", e.calcChecksum())
+func (e *Event) addGroupingKey() {
+	e.add("grouping_key", e.calcGroupingKey())
 }
 
-func (e *Event) calcChecksum() string {
+func (e *Event) calcGroupingKey() string {
 	hash := md5.New()
 
 	add := func(s *string) bool {
