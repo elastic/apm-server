@@ -1,4 +1,4 @@
-package server
+package beater
 
 import (
 	"bytes"
@@ -40,41 +40,53 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func setupHTTP() (http.Handler, *bytes.Reader) {
-	s, _ := New(nil)
-	host := randomAddr()
-	s.Start(func(_ []beat.Event) {}, host)
-	waitForServer(false, host)
-	data, _ := tests.LoadValidData("transaction")
-	return s.http.Handler, bytes.NewReader(data)
-}
-
-func setupHTTPS(t *testing.T, useCert bool, domain string) (*Server, string, []byte) {
+func setupHTTP(t *testing.T) (*http.Server, *http.Request) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
 
-	s, _ := New(nil)
-	truthy := true
-	s.config.SSL = &SSLConfig{Enabled: &truthy}
+	host := randomAddr()
+	cfg := defaultConfig
+	cfg.Host = host
+	apm := newServer(cfg, func(_ []beat.Event) {})
+	start(apm, cfg.SSL)
+	waitForServer(false, host)
+	data, _ := tests.LoadValidData("transaction")
+	req, err := http.NewRequest("POST", transaction.Endpoint, bytes.NewReader(data))
+	assert.Nil(t, err)
+	return apm, req
+}
+
+func setupHTTPS(t *testing.T, useCert bool, domain string) (*http.Server, string, []byte) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	host := randomAddr()
+	cfg := defaultConfig
+	cfg.Host = host
+	apm := newServer(cfg, func(_ []beat.Event) {})
 	if useCert {
 		cert := path.Join(tmpCertPath, t.Name()+".crt")
 		key := strings.Replace(cert, ".crt", ".key", -1)
 		t.Log("generating certificate in ", cert)
 		httpscerts.Generate(cert, key, domain)
-		s.config.SSL.Cert = cert
-		s.config.SSL.PrivateKey = key
+		cfg.SSL = &SSLConfig{Cert: cert, PrivateKey: key}
 	}
 
-	host := randomAddr()
 	t.Log("Starting server on ", host)
-	s.Start(func(_ []beat.Event) {}, host)
+	start(apm, cfg.SSL)
 
 	waitForServer(true, host)
 
 	data, _ := tests.LoadValidData("transaction")
 
-	return s, host, data
+	return apm, host, data
+}
+
+func tearDown(t *testing.T, apm *http.Server) {
+	err := stop(apm)
+	assert.Nil(t, err, err)
 }
 
 func randomAddr() string {
@@ -134,40 +146,28 @@ func TestDecode(t *testing.T) {
 }
 
 func TestServerOk(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping server test")
-	}
-
-	h, buffer := setupHTTP()
-
-	req, err := http.NewRequest("POST", transaction.Endpoint, buffer)
+	apm, req := setupHTTP(t)
 	req.Header.Add("Content-Type", "application/json")
-	assert.Nil(t, err)
+	defer tearDown(t, apm)
 
 	rr := httptest.NewRecorder()
-	h.ServeHTTP(rr, req)
-	assert.Equal(t, rr.Code, 202, rr.Body.String())
+	apm.Handler.ServeHTTP(rr, req)
+	assert.Equal(t, 202, rr.Code, rr.Body.String())
 }
 
 func TestServerNoContentType(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping server test")
-	}
-
-	h, buffer := setupHTTP()
-
-	req, err := http.NewRequest("POST", transaction.Endpoint, buffer)
-	assert.Nil(t, err)
+	apm, req := setupHTTP(t)
+	defer tearDown(t, apm)
 
 	rr := httptest.NewRecorder()
-	h.ServeHTTP(rr, req)
-	assert.Equal(t, rr.Code, 400, rr.Body.String())
+	apm.Handler.ServeHTTP(rr, req)
+	assert.Equal(t, 400, rr.Code, rr.Body.String())
 }
 
 func TestServerSecureUnknownCA(t *testing.T) {
 
-	s, host, data := setupHTTPS(t, true, "127.0.0.1")
-	defer s.Stop()
+	apm, host, data := setupHTTPS(t, true, "127.0.0.1")
+	defer tearDown(t, apm)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -176,8 +176,8 @@ func TestServerSecureUnknownCA(t *testing.T) {
 
 func TestServerSecureSkipVerify(t *testing.T) {
 
-	s, host, data := setupHTTPS(t, true, "127.0.0.1")
-	defer s.Stop()
+	apm, host, data := setupHTTPS(t, true, "127.0.0.1")
+	defer tearDown(t, apm)
 
 	res, err := insecureClient().Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -187,8 +187,8 @@ func TestServerSecureSkipVerify(t *testing.T) {
 
 func TestServerSecureBadDomain(t *testing.T) {
 
-	s, host, data := setupHTTPS(t, true, "ELASTIC")
-	defer s.Stop()
+	apm, host, data := setupHTTPS(t, true, "ELASTIC")
+	defer tearDown(t, apm)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -202,8 +202,8 @@ func TestServerSecureBadDomain(t *testing.T) {
 
 func TestServerSecureBadIP(t *testing.T) {
 
-	s, host, data := setupHTTPS(t, true, "192.168.10.11")
-	defer s.Stop()
+	apm, host, data := setupHTTPS(t, true, "192.168.10.11")
+	defer tearDown(t, apm)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -217,8 +217,8 @@ func TestServerSecureBadIP(t *testing.T) {
 
 func TestServerBadProtocol(t *testing.T) {
 
-	s, host, data := setupHTTPS(t, true, "localhost")
-	defer s.Stop()
+	apm, host, data := setupHTTPS(t, true, "localhost")
+	defer tearDown(t, apm)
 
 	_, err := http.Post("http://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -233,15 +233,15 @@ func TestSSLEnabled(t *testing.T) {
 		{Config{}, false},
 		{Config{SSL: &SSLConfig{Enabled: &truthy}}, true},
 		{Config{SSL: &SSLConfig{Enabled: &falsy}}, false},
-		{Config{SSL: &SSLConfig{Cert: "cert"}}, true},
-		{Config{SSL: &SSLConfig{Cert: "cert", PrivateKey: "key"}}, true},
-		{Config{SSL: &SSLConfig{Cert: "cert", PrivateKey: "key", Enabled: &falsy}}, false},
+		{Config{SSL: &SSLConfig{Cert: "Cert"}}, true},
+		{Config{SSL: &SSLConfig{Cert: "Cert", PrivateKey: "key"}}, true},
+		{Config{SSL: &SSLConfig{Cert: "Cert", PrivateKey: "key", Enabled: &falsy}}, false},
 	}
 
 	for idx, testCase := range cases {
 		config := testCase[0].(Config)
 		expected := testCase[1].(bool)
-		assert.Equal(t, expected, config.SSL.IsEnabled(), "Test Case %d should be %t", idx, expected)
+		assert.Equal(t, expected, config.SSL.isEnabled(), "Test Case %d should be %t", idx, expected)
 	}
 }
 

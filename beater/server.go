@@ -1,4 +1,4 @@
-package server
+package beater
 
 import (
 	"compress/gzip"
@@ -6,43 +6,29 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
+	"flag"
+	"io/ioutil"
+
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-var debugHandler = flag.Bool("debugHandler", false, "Enable for having catchall endpoint enabled")
+var debugHandler = flag.Bool("debugHandler", false, "Enable for having catchall endpoint Enabled")
 
-type Server struct {
-	config Config
-	http   *http.Server
-}
+type successCallback func([]beat.Event)
 
-func New(cfg *common.Config) (*Server, error) {
-	config := defaultConfig
-	if cfg != nil {
-		if err := cfg.Unpack(&config); err != nil {
-			return nil, fmt.Errorf("Error unpacking config: %v", err)
-		}
-	}
-
-	return &Server{config: config}, nil
-}
-
-func (s *Server) create(successCallback func([]beat.Event), host string) *http.Server {
+func newServer(config Config, publish successCallback) *http.Server {
 	mux := http.NewServeMux()
 
 	for path, p := range processor.Registry.GetProcessors() {
 
-		handler := s.createHandler(p, successCallback)
+		handler := createHandler(p, config, publish)
 
 		logp.Info("Path %s added to request handler", path)
 
@@ -55,7 +41,7 @@ func (s *Server) create(successCallback func([]beat.Event), host string) *http.S
 
 	// TODO: Remove or find nicer way before going GA
 	if *debugHandler {
-		logp.Warn("Debug handler enabled")
+		logp.Warn("Debug handler Enabled")
 		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			reader, err := decodeData(r)
 			if err != nil {
@@ -68,34 +54,35 @@ func (s *Server) create(successCallback func([]beat.Event), host string) *http.S
 	}
 
 	return &http.Server{
-		Addr:           host,
+		Addr:           config.Host,
 		Handler:        mux,
-		ReadTimeout:    s.config.ReadTimeout,
-		WriteTimeout:   s.config.WriteTimeout,
-		MaxHeaderBytes: s.config.MaxHeaderBytes,
+		ReadTimeout:    config.ReadTimeout,
+		WriteTimeout:   config.WriteTimeout,
+		MaxHeaderBytes: config.MaxHeaderBytes,
 	}
 }
 
-func (s *Server) Start(successCallback func([]beat.Event), host string) {
-	s.http = s.create(successCallback, host)
-	if s.config.SSL.IsEnabled() {
-		go s.http.ListenAndServeTLS(s.config.SSL.Cert, s.config.SSL.PrivateKey)
+func start(server *http.Server, ssl *SSLConfig) {
+	if ssl.isEnabled() {
+		go server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
 	} else {
-		go s.http.ListenAndServe()
+		go server.ListenAndServe()
 	}
 }
 
-func (s *Server) Stop() error {
+func stop(server *http.Server) error {
 	c := context.TODO()
-	err := s.http.Shutdown(c)
+	err := server.Shutdown(c)
 	return err
 }
 
-func (s *Server) createHandler(p processor.Processor, successCallback func([]beat.Event)) func(w http.ResponseWriter, r *http.Request) {
+type handler func(w http.ResponseWriter, r *http.Request)
+
+func createHandler(p processor.Processor, config Config, publish successCallback) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request - URI: %s ; Method: %s", r.RequestURI, r.Method)
 
-		if !checkSecretToken(r, s.config.SecretToken) {
+		if !checkSecretToken(r, config.SecretToken) {
 			sendError(w, r, 401, "Invalid token", true)
 			return
 		}
@@ -113,7 +100,7 @@ func (s *Server) createHandler(p processor.Processor, successCallback func([]bea
 		defer reader.Close()
 
 		// Limit size of request to prevent for example zip bombs
-		limitedReader := io.LimitReader(reader, s.config.MaxUnzippedSize)
+		limitedReader := io.LimitReader(reader, config.MaxUnzippedSize)
 		err = p.Validate(limitedReader)
 		if err != nil {
 			sendError(w, r, 400, fmt.Sprintf("Data Validation error: %s", err), true)
@@ -123,7 +110,7 @@ func (s *Server) createHandler(p processor.Processor, successCallback func([]bea
 		list := p.Transform()
 
 		w.WriteHeader(202)
-		successCallback(list)
+		publish(list)
 	}
 }
 
