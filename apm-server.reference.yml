@@ -126,6 +126,19 @@ apm-server:
 #processors:
 #- add_docker_metadata: ~
 
+#============================= Elastic Cloud ==================================
+
+# These settings simplify using apm-server with the Elastic Cloud (https://cloud.elastic.co/).
+
+# The cloud.id setting overwrites the `output.elasticsearch.hosts` and
+# `setup.kibana.host` options.
+# You can find the `cloud.id` in the Elastic Cloud web UI.
+#cloud.id:
+
+# The cloud.auth setting overwrites the `output.elasticsearch.username` and
+# `output.elasticsearch.password` settings. The format is `<user>:<pass>`.
+#cloud.auth:
+
 #================================ Outputs ======================================
 
 # Configure what outputs to use when sending the data collected by the beat.
@@ -160,6 +173,7 @@ output.elasticsearch:
 
   # Optional index name. The default is "apm-server" plus date
   # and generates [apm-server-]YYYY.MM.DD keys.
+  # In case you modify this pattern you must update setup.template.name and setup.template.pattern accordingly.
   #index: "apm-server-%{[beat.version]}-%{+yyyy.MM.dd}"
 
   # Optional ingest node pipeline. By default no pipeline will be used.
@@ -617,10 +631,14 @@ output.elasticsearch:
 # Set to false to disable template loading.
 #setup.template.enabled: true
 
-# Template name. By default the template name is apm-server.
-# The version of the beat will always be appended to the given name
-# so the final name is apm-server-%{[beat.version]}.
-#setup.template.name: "apm-server"
+# Template name. By default the template name is "apm-server-%{[beat.version]}"
+# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
+#setup.template.name: "apm-server-%{[beat.version]}"
+
+# Template patttern. By default the template patter is "-%{[beat.version]}-*" to apply to the default index settings.
+# The first part is the version of the beat and then -* is used to match all daily indicies.
+# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
+#setup.template.pattern: "apm-server-%{[beat.version]}-*"
 
 # Path to fields.yml file to generate the template
 #setup.template.fields: "${path.config}/fields.yml"

@@ -37,7 +37,6 @@ class Test(ElasticTest):
         self.load_docs_with_template(f, 'errors', 4)
 
     def load_docs_with_template(self, data_path, endpoint, expected_events_count):
-        # TODO Needs cleanup when https://github.com/elastic/beats/pull/4769 merged
 
         payload = json.loads(open(data_path).read())
         url = 'http://localhost:8080/v1/' + endpoint
@@ -46,7 +45,7 @@ class Test(ElasticTest):
 
         # make sure template is loaded
         self.wait_until(
-            lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests-0.1.1' loaded"))
+            lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests' loaded"))
 
         self.wait_until(lambda: self.es.indices.exists(self.index_name))
         self.es.indices.refresh(index=self.index_name)

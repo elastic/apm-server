@@ -7,6 +7,15 @@ apm-server:
   ssl.certificate:  {{ ssl_cert }}
   ssl.key: {{ ssl_key }}
 
+############################# Setup ##########################################
+
+{% if index_name %}
+
+setup.template.name: {{ index_name }}
+setup.template.pattern: {{ index_name }}*
+
+{% endif %}
+
 ############################# Output ##########################################
 
 # File as output
@@ -30,7 +39,6 @@ output.file:
 {% if elasticsearch_host %}
 output.elasticsearch.hosts: ["{{ elasticsearch_host }}"]
 output.elasticsearch.index: {{ index_name }}
-setup.template.name: {{ template_base_name }}
 {% endif %}
 
 ############################# Beat #########################################
