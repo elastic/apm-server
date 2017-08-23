@@ -1,6 +1,9 @@
-= APM Server Docs
+= APM Server Docs (Experimental)
 
 == APM Server
-Welcome to the APM Server Docs.
+
+Welcome to the APM Server Docs. The documentation pages are still work in progress. For more details also check the APM Server https://github.com/elastic/apm-server[Github repository].
 
 include::./api.asciidoc[API]
+
+
