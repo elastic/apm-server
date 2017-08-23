@@ -26,7 +26,7 @@ type successCallback func([]beat.Event)
 func newServer(config Config, publish successCallback) *http.Server {
 	mux := http.NewServeMux()
 
-	for path, p := range processor.Registry.GetProcessors() {
+	for path, p := range processor.Registry.Processors() {
 
 		handler := createHandler(p, config, publish)
 

@@ -25,7 +25,7 @@ func generate() error {
 	basepath := "tests/data/valid"
 	outputPath := "docs/data/elasticsearch/"
 
-	processors := processor.Registry.GetProcessors()
+	processors := processor.Registry.Processors()
 
 	var checked = map[string]struct{}{}
 
