@@ -7,8 +7,8 @@ services:
       - agent-python
     build: .
     ports:
-      - "8080:8080"
-    command: ./apm-server -E output.elasticsearch.hosts=[http://elastic:changeme@elasticsearch:9200] -E apm-server.host=0.0.0.0:8080 -e
+      - "8200:8200"
+    command: ./apm-server -E output.elasticsearch.hosts=[http://elastic:changeme@elasticsearch:9200] -E apm-server.host=0.0.0.0:8200 -e
 
   elasticsearch:
     extends:
@@ -29,5 +29,5 @@ services:
     ports:
       - "8000:8000"
     environment:
-      APM_SERVER: "http://apm-server:8080"
+      APM_SERVER: "http://apm-server:8200"
       TRACES_SEND_FREQ_SECS: "1"

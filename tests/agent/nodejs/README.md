@@ -25,6 +25,6 @@ In both setups the endpoint can be accessed through `localhost:8081`.
 
 ### Docker
 
-If you have the docker setup, you need to change the `apm-server.yml` to access connections not only on localhost but also from remote. Change `localhost:8080` to `:8080` and restart the server.
+If you have the docker setup, you need to change the `apm-server.yml` to access connections not only on localhost but also from remote. Change `localhost:8200` to `:8200` and restart the server.
 
 In `app.js` change `apiHost: 'localhost',` to contain your local IP.

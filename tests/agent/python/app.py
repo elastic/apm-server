@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.debug = True
 
 app.config['ELASTICAPM'] = {
-    'SERVERS': [os.environ.get('apm-server', 'http://localhost:8080')],
+    'SERVERS': [os.environ.get('apm-server', 'http://localhost:8200')],
     'DEBUG': True,
 }
 
