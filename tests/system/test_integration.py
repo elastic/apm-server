@@ -40,7 +40,7 @@ class Test(ElasticTest):
         # TODO Needs cleanup when https://github.com/elastic/beats/pull/4769 merged
 
         payload = json.loads(open(data_path).read())
-        url = 'http://localhost:8080/v1/' + endpoint
+        url = 'http://localhost:8200/v1/' + endpoint
         r = requests.post(url, json=payload)
         assert r.status_code == 202
 

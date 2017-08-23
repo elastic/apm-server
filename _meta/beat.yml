@@ -1,11 +1,11 @@
-################### Apm-Server Configuration Example #########################
+################### APM Server Configuration Example #########################
 
-############################# Apm-Server ######################################
+############################# APM Server ######################################
 
 apm-server:
   # Defines the host and port the server is listening on
 
-  #host: "localhost:8080"
+  #host: "localhost:8200"
   #max_unzipped_size:
   #max_header_bytes:
   #read_timeout: 2s

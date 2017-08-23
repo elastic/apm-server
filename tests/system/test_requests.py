@@ -12,7 +12,7 @@ except ImportError:
 
 
 class Test(ServerBaseTest):
-    transactions_url = 'http://localhost:8080/v1/transactions'
+    transactions_url = 'http://localhost:8200/v1/transactions'
 
     def test_ok(self):
         transactions = self.get_transaction_payload()
@@ -27,7 +27,7 @@ class Test(ServerBaseTest):
 
     def test_not_existent(self):
         transactions = {}
-        invalid_url = 'http://localhost:8080/transactionX'
+        invalid_url = 'http://localhost:8200/transactionX'
         r = requests.post(invalid_url, json=transactions)
         assert r.status_code == 404, r.status_code
 
@@ -40,7 +40,7 @@ class Test(ServerBaseTest):
         assert r.status_code == 400, r.status_code
 
     def test_healthcheck(self):
-        healtcheck_url = 'http://localhost:8080/healthcheck'
+        healtcheck_url = 'http://localhost:8200/healthcheck'
         r = requests.get(healtcheck_url)
         assert r.status_code == 200, r.status_code
 
@@ -94,7 +94,7 @@ class SecureTest(SecureServerBaseTest):
 
     def test_https_ok(self):
         transactions = self.get_transaction_payload()
-        r = requests.post("https://localhost:8080/v1/transactions",
+        r = requests.post("https://localhost:8200/v1/transactions",
                           data=transactions,
                           headers={'Content-Type': 'application/json'},
                           verify=False)
@@ -103,6 +103,6 @@ class SecureTest(SecureServerBaseTest):
     @raises(SSLError)
     def test_https_verify(self):
         transactions = self.get_transaction_payload()
-        requests.post("https://localhost:8080/v1/transactions",
+        requests.post("https://localhost:8200/v1/transactions",
                       data=transactions,
                       headers={'Content-Type': 'application/json'})

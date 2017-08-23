@@ -10,7 +10,7 @@ class Test(AccessTest):
         Test that access works with token
         """
 
-        url = 'http://localhost:8080/v1/transactions'
+        url = 'http://localhost:8200/v1/transactions'
         transactions = self.get_transaction_payload()
 
         ctype = {'Content-Type': 'application/json'}.items()
