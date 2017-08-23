@@ -49,7 +49,7 @@ func setupHTTP(t *testing.T) (*http.Server, *http.Request) {
 	cfg := defaultConfig
 	cfg.Host = host
 	apm := newServer(cfg, func(_ []beat.Event) {})
-	start(apm, cfg.SSL)
+	go run(apm, cfg.SSL)
 	waitForServer(false, host)
 	data, _ := tests.LoadValidData("transaction")
 	req, err := http.NewRequest("POST", transaction.Endpoint, bytes.NewReader(data))
@@ -75,18 +75,13 @@ func setupHTTPS(t *testing.T, useCert bool, domain string) (*http.Server, string
 	}
 
 	t.Log("Starting server on ", host)
-	start(apm, cfg.SSL)
+	go run(apm, cfg.SSL)
 
 	waitForServer(true, host)
 
 	data, _ := tests.LoadValidData("transaction")
 
 	return apm, host, data
-}
-
-func tearDown(t *testing.T, apm *http.Server) {
-	err := stop(apm)
-	assert.Nil(t, err, err)
 }
 
 func randomAddr() string {
@@ -124,7 +119,7 @@ func waitForServer(secure bool, host string) {
 			return
 		}
 	}
-	panic("server start timeout (10 seconds)")
+	panic("server run timeout (10 seconds)")
 }
 
 func TestDecode(t *testing.T) {
@@ -148,7 +143,7 @@ func TestDecode(t *testing.T) {
 func TestServerOk(t *testing.T) {
 	apm, req := setupHTTP(t)
 	req.Header.Add("Content-Type", "application/json")
-	defer tearDown(t, apm)
+	defer stop(apm)
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
@@ -157,7 +152,7 @@ func TestServerOk(t *testing.T) {
 
 func TestServerNoContentType(t *testing.T) {
 	apm, req := setupHTTP(t)
-	defer tearDown(t, apm)
+	defer stop(apm)
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
@@ -167,7 +162,7 @@ func TestServerNoContentType(t *testing.T) {
 func TestServerSecureUnknownCA(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "127.0.0.1")
-	defer tearDown(t, apm)
+	defer stop(apm)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -177,7 +172,7 @@ func TestServerSecureUnknownCA(t *testing.T) {
 func TestServerSecureSkipVerify(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "127.0.0.1")
-	defer tearDown(t, apm)
+	defer stop(apm)
 
 	res, err := insecureClient().Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -188,7 +183,7 @@ func TestServerSecureSkipVerify(t *testing.T) {
 func TestServerSecureBadDomain(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "ELASTIC")
-	defer tearDown(t, apm)
+	defer stop(apm)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -203,7 +198,7 @@ func TestServerSecureBadDomain(t *testing.T) {
 func TestServerSecureBadIP(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "192.168.10.11")
-	defer tearDown(t, apm)
+	defer stop(apm)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -218,7 +213,7 @@ func TestServerSecureBadIP(t *testing.T) {
 func TestServerBadProtocol(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "localhost")
-	defer tearDown(t, apm)
+	defer stop(apm)
 
 	_, err := http.Post("http://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 

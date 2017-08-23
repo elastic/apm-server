@@ -41,7 +41,7 @@ class ServerBaseTest(BaseTest):
         super(ServerBaseTest, self).setUp()
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
-        self.wait_until(lambda: self.log_contains("apm-server is running"))
+        self.wait_until(lambda: self.log_contains("starting apm-server"))
 
     def tearDown(self):
         super(ServerBaseTest, self).tearDown()
