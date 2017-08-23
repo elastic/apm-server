@@ -3,14 +3,16 @@ package beater
 import (
 	"fmt"
 
+	"net/http"
+
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
 type beater struct {
-	done   chan struct{}
 	config Config
+	server *http.Server
 	client beat.Client
 }
 
@@ -22,7 +24,6 @@ func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	}
 
 	bt := &beater{
-		done:   make(chan struct{}),
 		config: beaterConfig,
 	}
 	return bt, nil
@@ -43,17 +44,18 @@ func (bt *beater) Run(b *beat.Beat) error {
 		go bt.client.PublishAll(events)
 	}
 
-	server := newServer(bt.config, callback)
-	start(server, bt.config.SSL)
-	defer stop(server)
+	bt.server = newServer(bt.config, callback)
+	err = run(bt.server, bt.config.SSL)
+	logp.Err(err.Error())
 
-	logp.Info("apm-server is running! Hit CTRL-C to stop it.")
-	// Blocks until service is shut down
-	<-bt.done
-
-	return nil
+	if err == http.ErrServerClosed {
+		return nil
+	}
+	return err
 }
 
+// Graceful shutdown
 func (bt *beater) Stop() {
-	close(bt.done)
+	logp.Info("stopping apm-server...")
+	stop(bt.server)
 }
