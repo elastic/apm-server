@@ -9,7 +9,7 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 - Changed `error.checksum` to `error.grouping_field` {pull}83[83].
 - Removed `server` namespace within `apm-server` in `apm-server.yml`. `server` properties are lifted up one level {pull}78[78].
 - Changed default APM Server listen port from 8080 to 8200 {pull}91[91].
-
+- Removed `debug` unneeded handler. {pull}85[85].
 
 ==== Bugfixes
 - changed `context.system.title` to `context.system.process_title`, removed `transaction.context`, `trace.context` (already available on top level). {pull}10[10]

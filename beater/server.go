@@ -8,18 +8,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"flag"
-	"io/ioutil"
 
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
 )
-
-var debugHandler = flag.Bool("debugHandler", false, "Enable for having catchall endpoint Enabled")
 
 type successCallback func([]beat.Event)
 
@@ -38,20 +34,6 @@ func newServer(config Config, publish successCallback) *http.Server {
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	})
-
-	// TODO: Remove or find nicer way before going GA
-	if *debugHandler {
-		logp.Warn("Debug handler Enabled")
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			reader, err := decodeData(r)
-			if err != nil {
-				logp.Err("Decode error: %s", err)
-			}
-
-			body, _ := ioutil.ReadAll(reader)
-			logp.Info("Request Body: %+v", string(body))
-		})
-	}
 
 	return &http.Server{
 		Addr:           config.Host,
