@@ -8,7 +8,7 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 - Changed `context.response.status` object to simply storing `context.response.status_code` as a number {pull}49[49].
 - Changed `error.checksum` to `error.grouping_field` {pull}83[49].
 - Removed `server` namespace within `apm-server` in `apm-server.yml`. `server` properties are lifted up one level {pull}78[78].
-- Changed default APM Server listen port from 8080 to 8200.
+- Changed default APM Server listen port from 8080 to 8200 {pull}91[91].
 
 
 ==== Bugfixes
