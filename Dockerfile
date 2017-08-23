@@ -8,12 +8,12 @@ RUN set -x && \
     apt-get clean
 
 # Setup work environment
-ENV apm-server_PATH /go/src/github.com/elastic/apm-server
+ENV APM_SERVER_PATH /go/src/github.com/elastic/apm-server
 
-RUN mkdir -p $apm-server_PATH
-WORKDIR $apm-server_PATH
+RUN mkdir -p $APM_SERVER_PATH
+WORKDIR $APM_SERVER_PATH
 
-COPY . $apm-server_PATH
+COPY . $APM_SERVER_PATH
 
 RUN make
 
