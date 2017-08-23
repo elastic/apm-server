@@ -6,7 +6,7 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 - Set dynamic mapping to false, enable only for `context.tags`. Fix issues with indexing. Removed from index: `request.headers_sent`, `app.argv`. Changes take place with {pull}43[43], after updating beats framework.
 - Remove `context.db.sql` and add `context.db.instance`, `context.db.statement`, `context.db.type` and `context.db.user` instead {pull}38[38].
 - Changed `context.response.status` object to simply storing `context.response.status_code` as a number {pull}49[49].
-- Changed `error.checksum` to `error.grouping_field` {pull}83[49].
+- Changed `error.checksum` to `error.grouping_field` {pull}83[83].
 - Removed `server` namespace within `apm-server` in `apm-server.yml`. `server` properties are lifted up one level {pull}78[78].
 
 ==== Bugfixes
