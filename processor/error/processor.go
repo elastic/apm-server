@@ -25,12 +25,12 @@ func NewProcessor() pr.Processor {
 }
 
 type processor struct {
-	payload pr.Payload
+	payload *payload
 	schema  *jsonschema.Schema
 }
 
 func (p *processor) Transform() []beat.Event {
-	return p.payload.Transform()
+	return p.payload.transform()
 }
 
 func (p *processor) Validate(reader io.Reader) error {

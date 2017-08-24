@@ -12,7 +12,7 @@ type payload struct {
 	Events []Event   `json:"errors"`
 }
 
-func (pa *payload) Transform() []beat.Event {
+func (pa *payload) transform() []beat.Event {
 	var events []beat.Event
 
 	for _, e := range pa.Events {
