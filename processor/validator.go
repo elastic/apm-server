@@ -23,7 +23,7 @@ func CreateSchema(schemaData string, url string) *jsonschema.Schema {
 	return schema
 }
 
-func Validate(reader io.Reader, schema *jsonschema.Schema, data Payload) error {
+func Validate(reader io.Reader, schema *jsonschema.Schema, data interface{}) error {
 	var buf bytes.Buffer
 	dataReader := io.TeeReader(reader, &buf)
 	err := schema.Validate(dataReader)

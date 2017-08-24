@@ -18,17 +18,17 @@ func TestPayloadTransform(t *testing.T) {
 	assert.NoError(t, err)
 
 	tests := []struct {
-		Payload Payload
+		Payload payload
 		Output  []common.MapStr
 		Msg     string
 	}{
 		{
-			Payload: Payload{App: app, Events: []Event{}},
+			Payload: payload{App: app, Events: []Event{}},
 			Output:  nil,
 			Msg:     "Empty Event Array",
 		},
 		{
-			Payload: Payload{App: app, Events: []Event{{Timestamp: ts}}},
+			Payload: payload{App: app, Events: []Event{{Timestamp: ts}}},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
@@ -46,7 +46,7 @@ func TestPayloadTransform(t *testing.T) {
 			Msg: "Payload with valid Event.",
 		},
 		{
-			Payload: Payload{
+			Payload: payload{
 				App: app,
 				Events: []Event{{
 					Timestamp: ts,
@@ -77,7 +77,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.Transform()
+		outputEvents := test.Payload.transform()
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, expectedTime, outputEvent.Timestamp)

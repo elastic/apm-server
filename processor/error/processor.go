@@ -20,17 +20,17 @@ const (
 func NewProcessor() pr.Processor {
 	schema := pr.CreateSchema(errorSchema, processorName)
 	return &processor{
-		&Payload{},
+		&payload{},
 		schema}
 }
 
 type processor struct {
-	payload *Payload
+	payload *payload
 	schema  *jsonschema.Schema
 }
 
 func (p *processor) Transform() []beat.Event {
-	return p.payload.Transform()
+	return p.payload.transform()
 }
 
 func (p *processor) Validate(reader io.Reader) error {

@@ -15,12 +15,8 @@ type NewProcessor func() Processor
 
 type Processor interface {
 	Validate(io.Reader) error
-	Payload
-	Name() string
-}
-
-type Payload interface {
 	Transform() []beat.Event
+	Name() string
 }
 
 func CreateDoc(strTime string, docMappings []m.DocMapping) beat.Event {

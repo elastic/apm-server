@@ -40,7 +40,7 @@ func (t *Trace) Transform(transactionId string) common.MapStr {
 	return tr
 }
 
-func (t *Trace) Mappings(pa *Payload, tx Event) (string, []m.DocMapping) {
+func (t *Trace) Mappings(pa *payload, tx Event) (string, []m.DocMapping) {
 	return tx.Timestamp,
 		[]m.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
