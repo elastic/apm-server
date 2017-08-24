@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -61,17 +60,16 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, fn processor.NewProcessor, requestInfo []RequestInfo) {
+func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := LoadData(info.Path)
 		assert.Nil(err)
 
-		p := fn()
-		err = p.Validate(bytes.NewReader(data))
+		err = p.Validate(data)
 		assert.NoError(err)
 
-		events := p.Transform()
+		events, err := p.Transform(data)
 		assert.NoError(err)
 
 		// extract Fields and write to received.json

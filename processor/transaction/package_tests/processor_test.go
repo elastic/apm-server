@@ -1,7 +1,6 @@
 package package_tests
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,7 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionEmpty", Path: "tests/data/valid/transaction/transaction_empty_values.json"},
 		{Name: "TestProcessTransactionNull", Path: "tests/data/valid/transaction/transaction_null_values.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor, requestInfo)
+	tests.TestProcessRequests(t, transaction.NewProcessor(), requestInfo)
 }
 
 // ensure invalid documents fail the json schema validation already
@@ -27,6 +26,6 @@ func TestTransactionProcessorValidationFailed(t *testing.T) {
 	data, err := tests.LoadInvalidData("transaction")
 	assert.Nil(t, err)
 	p := transaction.NewProcessor()
-	err = p.Validate(bytes.NewReader(data))
+	err = p.Validate(data)
 	assert.NotNil(t, err)
 }

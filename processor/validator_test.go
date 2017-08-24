@@ -25,17 +25,17 @@ func TestCreateSchemaOK(t *testing.T) {
 }
 
 func TestValidateFails(t *testing.T) {
-	data := strings.NewReader(common.MapStr{"age": 12}.String())
+	data := []byte(common.MapStr{"age": 12}.String())
 	schema := CreateSchema(validSchema, "myschema")
-	err := Validate(data, schema, &Person{})
+	err := Validate(data, schema)
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), "missing properties: \"name\""))
 }
 
 func TestValidateOK(t *testing.T) {
-	data := strings.NewReader(common.MapStr{"name": "john"}.String())
+	data := []byte(common.MapStr{"name": "john"}.String())
 	schema := CreateSchema(validSchema, "myschema")
-	err := Validate(data, schema, &Person{})
+	err := Validate(data, schema)
 	assert.Nil(t, err)
 }
 

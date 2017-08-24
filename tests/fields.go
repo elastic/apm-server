@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -64,11 +63,15 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
 	p := fn()
 	data, _ := LoadValidData(p.Name())
-	err := p.Validate(bytes.NewReader(data))
+	err := p.Validate(data)
 	if err != nil {
 		return nil, err
 	}
-	events := p.Transform()
+
+	events, err := p.Transform(data)
+	if err != nil {
+		return nil, err
+	}
 
 	eventNames := set.New()
 	for _, event := range events {
