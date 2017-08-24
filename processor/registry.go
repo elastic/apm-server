@@ -25,10 +25,10 @@ func (r *Register) AddProcessor(path string, p Processor) {
 }
 
 // GetProcessors returns a list of all currently registered processors
-func (r *Register) GetProcessors() map[string]Processor {
+func (r *Register) Processors() map[string]Processor {
 	return r.processors
 }
 
-func (r *Register) GetProcessor(name string) Processor {
+func (r *Register) Processor(name string) Processor {
 	return r.processors[name]
 }
