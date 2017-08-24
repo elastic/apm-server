@@ -80,7 +80,7 @@ type handler func(w http.ResponseWriter, r *http.Request)
 
 func createHandler(p processor.Processor, config Config, publish successCallback) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logp.Debug("handler", "Request - URI: %s ; Method: %s", r.RequestURI, r.Method)
+		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 
 		if !checkSecretToken(r, config.SecretToken) {
 			sendError(w, r, 401, "Invalid token", true)
