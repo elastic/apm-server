@@ -101,13 +101,25 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 
 		// Limit size of request to prevent for example zip bombs
 		limitedReader := io.LimitReader(reader, config.MaxUnzippedSize)
-		err = p.Validate(limitedReader)
+
+		buf, err := ioutil.ReadAll(limitedReader)
 		if err != nil {
-			sendError(w, r, 400, fmt.Sprintf("Data Validation error: %s", err), true)
+			// If we run out of memory, for example
+			sendError(w, r, 500, fmt.Sprintf("Data read error: %s", err), true)
+		}
+
+		err = p.Validate(buf)
+		if err != nil {
+			sendError(w, r, 400, fmt.Sprintf("Data validation error: %s", err), true)
 			return
 		}
 
-		list := p.Transform()
+		list, err := p.Transform(buf)
+
+		if err != nil {
+			sendError(w, r, 500, fmt.Sprintf("Data transformation error: %s", err), true)
+			return
+		}
 
 		w.WriteHeader(202)
 		publish(list)

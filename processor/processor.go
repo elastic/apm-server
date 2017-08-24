@@ -1,8 +1,6 @@
 package processor
 
 import (
-	"io"
-
 	"github.com/elastic/beats/libbeat/logp"
 
 	m "github.com/elastic/apm-server/processor/model"
@@ -14,8 +12,8 @@ import (
 type NewProcessor func() Processor
 
 type Processor interface {
-	Validate(io.Reader) error
-	Transform() []beat.Event
+	Validate([]byte) error
+	Transform([]byte) ([]beat.Event, error)
 	Name() string
 }
 

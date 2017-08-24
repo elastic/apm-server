@@ -42,14 +42,23 @@ func generate() error {
 			return err
 		}
 
-		err = p.Validate(f)
+		data, err := ioutil.ReadAll(f)
 		if err != nil {
 			return err
 		}
 
-		data := p.Transform()
+		err = p.Validate(data)
+		if err != nil {
+			return err
+		}
 
-		for _, d := range data {
+		events, err := p.Transform(data)
+
+		if err != nil {
+			return err
+		}
+
+		for _, d := range events {
 			n, err := d.GetValue("processor.name")
 			if err != nil {
 				return err

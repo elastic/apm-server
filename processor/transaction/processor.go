@@ -1,7 +1,7 @@
 package transaction
 
 import (
-	"io"
+	"encoding/json"
 
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
@@ -20,22 +20,26 @@ const (
 
 func NewProcessor() pr.Processor {
 	return &processor{
-		payload: &payload{},
-		schema:  pr.CreateSchema(transactionSchema, processorName),
+		schema: pr.CreateSchema(transactionSchema, processorName),
 	}
 }
 
 type processor struct {
-	payload *payload
-	schema  *jsonschema.Schema
+	schema *jsonschema.Schema
 }
 
-func (p *processor) Transform() []beat.Event {
-	return p.payload.transform()
+func (p *processor) Validate(buf []byte) error {
+	return pr.Validate(buf, p.schema)
 }
 
-func (p *processor) Validate(reader io.Reader) error {
-	return pr.Validate(reader, p.schema, p.payload)
+func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
+	var pa payload
+	err := json.Unmarshal(buf, &pa)
+	if err != nil {
+		return nil, err
+	}
+
+	return pa.transform(), nil
 }
 
 func (p *processor) Name() string {

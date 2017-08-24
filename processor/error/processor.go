@@ -1,7 +1,7 @@
 package error
 
 import (
-	"io"
+	"encoding/json"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -19,22 +19,25 @@ const (
 
 func NewProcessor() pr.Processor {
 	schema := pr.CreateSchema(errorSchema, processorName)
-	return &processor{
-		&payload{},
-		schema}
+	return &processor{schema}
 }
 
 type processor struct {
-	payload *payload
-	schema  *jsonschema.Schema
+	schema *jsonschema.Schema
 }
 
-func (p *processor) Transform() []beat.Event {
-	return p.payload.transform()
+func (p *processor) Validate(buf []byte) error {
+	return pr.Validate(buf, p.schema)
 }
 
-func (p *processor) Validate(reader io.Reader) error {
-	return pr.Validate(reader, p.schema, p.payload)
+func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
+	var pa payload
+	err := json.Unmarshal(buf, &pa)
+	if err != nil {
+		return nil, err
+	}
+
+	return pa.transform(), nil
 }
 
 func (p *processor) Name() string {

@@ -50,8 +50,10 @@ class Test(ElasticTest):
         self.wait_until(lambda: self.es.indices.exists(self.index_name))
         self.es.indices.refresh(index=self.index_name)
 
-        self.wait_until(lambda: self.es.count(index=self.index_name)[
-                        'count'] == expected_events_count)
+        self.wait_until(
+            lambda: (self.es.count(index=self.index_name)['count'] ==
+                     expected_events_count)
+        )
 
         res = self.es.count(index=self.index_name)
         assert expected_events_count == res['count']
