@@ -73,16 +73,13 @@ class ElasticTest(ServerBaseTest):
     @classmethod
     def setUpClass(cls):
         super(ElasticTest, cls).setUpClass()
-        cls.base_name = "apm-server-tests"
-        cls.beat_version = "0.1.1"
-        cls.index_name = cls.base_name + "-" + cls.beat_version + "-1"
+        cls.index_name = "apm-server-tests"
 
     def config(self):
         cfg = super(ElasticTest, self).config()
         cfg.update({"elasticsearch_host": self.get_elasticsearch_url(),
                     "file_enabled": "false",
-                    "index_name": self.index_name,
-                    "template_base_name": self.base_name})
+                    "index_name": self.index_name})
         return cfg
 
     def setUp(self):
@@ -95,11 +92,11 @@ class ElasticTest(ServerBaseTest):
             self.es.indices.delete(index=self.index_name)
         except:
             pass
-        self.wait_until(lambda: not self.es.indices.exists(self.base_name))
+        self.wait_until(lambda: not self.es.indices.exists(self.index_name))
 
         try:
             self.es.indices.delete_template(
-                name=self.base_name + "-" + self.beat_version)
+                name=self.index_name)
         except:
             pass
 
