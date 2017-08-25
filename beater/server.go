@@ -16,6 +16,14 @@ import (
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
+)
+
+var (
+	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server")
+	requestCounter = monitoring.NewInt(serverMetrics, "requests.counter")
+	responseValid  = monitoring.NewInt(serverMetrics, "response.valid")
+	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 )
 
 type successCallback func([]beat.Event)
@@ -33,7 +41,9 @@ func newServer(config Config, publish successCallback) *http.Server {
 	}
 
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		requestCounter.Inc()
 		w.WriteHeader(200)
+		responseValid.Inc()
 	})
 
 	return &http.Server{
@@ -73,6 +83,7 @@ type handler func(w http.ResponseWriter, r *http.Request)
 func createHandler(p processor.Processor, config Config, publish successCallback) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
+		requestCounter.Inc()
 
 		if !checkSecretToken(r, config.SecretToken) {
 			sendError(w, r, 401, "Invalid token", true)
@@ -114,6 +125,7 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 		}
 
 		w.WriteHeader(202)
+		responseValid.Inc()
 		publish(list)
 	}
 }
@@ -122,6 +134,7 @@ func sendError(w http.ResponseWriter, r *http.Request, code int, error string, l
 	if log {
 		logp.Err(error)
 	}
+	responseErrors.Inc()
 
 	w.WriteHeader(code)
 	acceptHeader := r.Header.Get("Accept")
