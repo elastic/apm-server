@@ -10,6 +10,7 @@ type Config struct {
 	MaxHeaderBytes  int           `config:"max_header_bytes"`
 	ReadTimeout     time.Duration `config:"read_timeout"`
 	WriteTimeout    time.Duration `config:"write_timeout"`
+	ShutdownTimeout time.Duration `config:"shutdown_timeout"`
 	SecretToken     string        `config:"secret_token"`
 	SSL             *SSLConfig    `config:"ssl"`
 }
@@ -30,5 +31,6 @@ var defaultConfig = Config{
 	MaxHeaderBytes:  1048576,          // 1mb
 	ReadTimeout:     2 * time.Second,
 	WriteTimeout:    2 * time.Second,
+	ShutdownTimeout: 5 * time.Second,
 	SecretToken:     "",
 }

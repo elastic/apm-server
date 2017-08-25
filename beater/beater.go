@@ -57,5 +57,5 @@ func (bt *beater) Run(b *beat.Beat) error {
 // Graceful shutdown
 func (bt *beater) Stop() {
 	logp.Info("stopping apm-server...")
-	stop(bt.server)
+	stop(bt.server, bt.config.ShutdownTimeout)
 }
