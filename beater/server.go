@@ -54,18 +54,20 @@ func run(server *http.Server, ssl *SSLConfig) error {
 	}
 }
 
-func stop(server *http.Server, timeout time.Duration) {
+func stop(server *http.Server, timeout time.Duration) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	err := server.Shutdown(ctx)
+	err = server.Shutdown(ctx)
 	if err != nil {
-		logp.Err(err.Error())
-		err = server.Close()
-		if err != nil {
-			logp.Err(err.Error())
-		}
+		defer func() {
+			closeErr := server.Close()
+			if closeErr != nil {
+				err = fmt.Errorf("closing error: %s, %s", closeErr, err)
+			}
+		}()
 	}
+	return err
 }
 
 type handler func(w http.ResponseWriter, r *http.Request)
