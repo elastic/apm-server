@@ -75,7 +75,7 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 
 		if !checkSecretToken(r, config.SecretToken) {
-			sendError(w, r, 401, "Invalid token", true)
+			sendError(w, r, 401, "Invalid token", false)
 			return
 		}
 
@@ -86,7 +86,7 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 
 		reader, err := decodeData(r)
 		if err != nil {
-			sendError(w, r, 400, fmt.Sprintf("Decoding error: %s", err.Error()), true)
+			sendError(w, r, 400, fmt.Sprintf("Decoding error: %s", err.Error()), false)
 			return
 		}
 		defer reader.Close()
@@ -102,12 +102,11 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 
 		err = p.Validate(buf)
 		if err != nil {
-			sendError(w, r, 400, fmt.Sprintf("Data validation error: %s", err), true)
+			sendError(w, r, 400, fmt.Sprintf("Data validation error: %s", err), false)
 			return
 		}
 
 		list, err := p.Transform(buf)
-
 		if err != nil {
 			sendError(w, r, 500, fmt.Sprintf("Data transformation error: %s", err), true)
 			return
@@ -121,6 +120,8 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 func sendError(w http.ResponseWriter, r *http.Request, code int, error string, log bool) {
 	if log {
 		logp.Err(error)
+	} else {
+		logp.Info("%s, code=%d", error, code)
 	}
 
 	w.WriteHeader(code)
