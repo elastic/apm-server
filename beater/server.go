@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
@@ -53,11 +54,17 @@ func run(server *http.Server, ssl *SSLConfig) error {
 	}
 }
 
-func stop(server *http.Server) {
-	c := context.TODO()
-	err := server.Shutdown(c)
+func stop(server *http.Server, timeout time.Duration) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err := server.Shutdown(ctx)
 	if err != nil {
 		logp.Err(err.Error())
+		err = server.Close()
+		if err != nil {
+			logp.Err(err.Error())
+		}
 	}
 }
 

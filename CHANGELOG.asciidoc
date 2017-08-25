@@ -16,12 +16,14 @@ https://github.com/elastic/apm-server/compare/x...master[View commits]
 - changed type of `context.request.body` from `object` to `text`. {pull}27[27]
 - incoming transactions and errors could reuse data from previous POSTs due to payload state being kept in processors {pull}98[98].
 - forced apm-server to stop if/when the underlying http server is not running. Exit code is 0 for SIGINT / SIGTERM, 1 otherwise. {pull}94[94]
+- close http server immediately if it doesn't shutdown gracefully after a configurable timeout. {pull}107[107]
 
 
 ==== Added
 
 - apm-server now returns JSON error responses when the Accept header allows for it.
 - Added `context.request.http_version` property {pull}52[52]
+- Added `shutdown_timeout` config attribute {pull}107[107]
 
 
 ==== Deprecated

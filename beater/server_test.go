@@ -143,7 +143,7 @@ func TestDecode(t *testing.T) {
 func TestServerOk(t *testing.T) {
 	apm, req := setupHTTP(t)
 	req.Header.Add("Content-Type", "application/json")
-	defer stop(apm)
+	defer stop(apm, time.Second)
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
@@ -152,7 +152,7 @@ func TestServerOk(t *testing.T) {
 
 func TestServerNoContentType(t *testing.T) {
 	apm, req := setupHTTP(t)
-	defer stop(apm)
+	defer stop(apm, time.Second)
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
@@ -162,7 +162,7 @@ func TestServerNoContentType(t *testing.T) {
 func TestServerSecureUnknownCA(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "127.0.0.1")
-	defer stop(apm)
+	defer stop(apm, time.Second)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -172,7 +172,7 @@ func TestServerSecureUnknownCA(t *testing.T) {
 func TestServerSecureSkipVerify(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "127.0.0.1")
-	defer stop(apm)
+	defer stop(apm, time.Second)
 
 	res, err := insecureClient().Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -183,7 +183,7 @@ func TestServerSecureSkipVerify(t *testing.T) {
 func TestServerSecureBadDomain(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "ELASTIC")
-	defer stop(apm)
+	defer stop(apm, time.Second)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -198,7 +198,7 @@ func TestServerSecureBadDomain(t *testing.T) {
 func TestServerSecureBadIP(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "192.168.10.11")
-	defer stop(apm)
+	defer stop(apm, time.Second)
 
 	_, err := http.Post("https://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
@@ -213,7 +213,7 @@ func TestServerSecureBadIP(t *testing.T) {
 func TestServerBadProtocol(t *testing.T) {
 
 	apm, host, data := setupHTTPS(t, true, "localhost")
-	defer stop(apm)
+	defer stop(apm, time.Second)
 
 	_, err := http.Post("http://"+host+transaction.Endpoint, "application/json", bytes.NewReader(data))
 
