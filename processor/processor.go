@@ -12,7 +12,7 @@ import (
 type NewProcessor func() Processor
 
 type Processor interface {
-	Validate([]byte) error
+	//Validate([]byte) error
 	Transform([]byte) ([]beat.Event, error)
 	Name() string
 }

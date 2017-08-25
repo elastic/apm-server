@@ -32,7 +32,7 @@ func generate() error {
 	for _, p := range processors {
 
 		// Remove version from name and and s at the end
-		name := p.Name()
+		name := p.Name
 
 		// Create path to test docs
 		path := filepath.Join(basepath, name, filename)
@@ -47,12 +47,12 @@ func generate() error {
 			return err
 		}
 
-		err = p.Validate(data)
+		err = processor.Validate(data, p.Schema)
 		if err != nil {
 			return err
 		}
 
-		events, err := p.Transform(data)
+		events, err := p.Processor.Transform(data)
 
 		if err != nil {
 			return err

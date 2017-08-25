@@ -60,16 +60,16 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo) {
+func TestProcessRequests(t *testing.T, p processor.ProcessorData, requestInfo []RequestInfo) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := LoadData(info.Path)
 		assert.Nil(err)
 
-		err = p.Validate(data)
+		err = processor.Validate(data, p.Schema)
 		assert.NoError(err)
 
-		events, err := p.Transform(data)
+		events, err := p.Processor.Transform(data)
 		assert.NoError(err)
 
 		// extract Fields and write to received.json
