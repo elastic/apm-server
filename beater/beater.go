@@ -13,7 +13,6 @@ import (
 type beater struct {
 	config Config
 	server *http.Server
-	client beat.Client
 }
 
 // Creates beater
@@ -33,15 +32,14 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	var err error
 
-	bt.client, err = b.Publisher.Connect()
-	if err != nil {
-		return err
-	}
-	defer bt.client.Close()
-
-	callback := func(events []beat.Event) {
-		// Publishing does not wait for publishing to be acked
-		go bt.client.PublishAll(events)
+	callback := func(events []beat.Event) error {
+		client, err := b.Publisher.Connect()
+		defer client.Close()
+		if err != nil {
+			return err
+		}
+		client.PublishAll(events)
+		return nil
 	}
 
 	bt.server = newServer(bt.config, callback)

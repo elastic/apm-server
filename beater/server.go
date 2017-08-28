@@ -26,7 +26,7 @@ var (
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 )
 
-type successCallback func([]beat.Event)
+type successCallback func([]beat.Event) error
 
 func newServer(config Config, publish successCallback) *http.Server {
 	mux := http.NewServeMux()
@@ -123,9 +123,14 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 			return
 		}
 
+		err = publish(list)
+		if err != nil {
+			sendError(w, r, 500, fmt.Sprintf(err.Error()), true)
+			return
+		}
+
 		w.WriteHeader(202)
 		responseValid.Inc()
-		publish(list)
 	}
 }
 

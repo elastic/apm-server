@@ -48,7 +48,7 @@ func setupHTTP(t *testing.T) (*http.Server, *http.Request) {
 	host := randomAddr()
 	cfg := defaultConfig
 	cfg.Host = host
-	apm := newServer(cfg, func(_ []beat.Event) {})
+	apm := newServer(cfg, func(_ []beat.Event) error { return nil })
 	go run(apm, cfg.SSL)
 	waitForServer(false, host)
 	data, _ := tests.LoadValidData("transaction")
@@ -65,7 +65,7 @@ func setupHTTPS(t *testing.T, useCert bool, domain string) (*http.Server, string
 	host := randomAddr()
 	cfg := defaultConfig
 	cfg.Host = host
-	apm := newServer(cfg, func(_ []beat.Event) {})
+	apm := newServer(cfg, func(_ []beat.Event) error { return nil })
 	if useCert {
 		cert := path.Join(tmpCertPath, t.Name()+".crt")
 		key := strings.Replace(cert, ".crt", ".key", -1)
