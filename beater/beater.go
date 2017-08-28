@@ -2,7 +2,6 @@ package beater
 
 import (
 	"fmt"
-
 	"net/http"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -46,8 +45,6 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	bt.server = newServer(bt.config, callback)
 	err = run(bt.server, bt.config.SSL)
-	logp.Err(err.Error())
-
 	if err == http.ErrServerClosed {
 		return nil
 	}
@@ -57,5 +54,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 // Graceful shutdown
 func (bt *beater) Stop() {
 	logp.Info("stopping apm-server...")
-	stop(bt.server, bt.config.ShutdownTimeout)
+
+	err := stop(bt.server, bt.config.ShutdownTimeout)
+	if err != nil {
+		logp.Err("Error stopping apm-server: %s", err.Error())
+	}
 }
