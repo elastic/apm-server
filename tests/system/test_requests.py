@@ -5,6 +5,7 @@ from requests.exceptions import SSLError
 import requests
 import zlib
 import gzip
+import time
 try:
     from StringIO import StringIO
 except ImportError:
@@ -16,8 +17,11 @@ class Test(ServerBaseTest):
 
     def test_ok(self):
         transactions = self.get_transaction_payload()
+        print "aaa"
         r = requests.post(self.transactions_url, data=transactions,
                           headers={'Content-Type': 'application/json'})
+        print r
+        time.sleep(1)
         assert r.status_code == 202, r.status_code
 
     def test_empty(self):

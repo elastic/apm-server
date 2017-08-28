@@ -70,7 +70,7 @@ func stop(server *http.Server, timeout time.Duration) {
 
 type handler func(w http.ResponseWriter, r *http.Request)
 
-func createHandler(p processor.Processor, config Config, publish successCallback) handler {
+func createHandler(p processor.ProcessorData, config Config, publish successCallback) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 
@@ -100,13 +100,13 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 			sendError(w, r, 500, fmt.Sprintf("Data read error: %s", err), true)
 		}
 
-		err = p.Validate(buf)
+		err = processor.Validate(buf, p.Schema)
 		if err != nil {
 			sendError(w, r, 400, fmt.Sprintf("Data validation error: %s", err), true)
 			return
 		}
 
-		list, err := p.Transform(buf)
+		list, err := p.Processor.Transform(buf)
 
 		if err != nil {
 			sendError(w, r, 500, fmt.Sprintf("Data transformation error: %s", err), true)

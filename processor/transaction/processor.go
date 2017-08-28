@@ -5,12 +5,10 @@ import (
 
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
-
-	"github.com/santhosh-tekuri/jsonschema"
 )
 
 func init() {
-	pr.Registry.AddProcessor(Endpoint, NewProcessor())
+	pr.Registry.AddProcessor(Endpoint, NewProcessor(), transactionSchema)
 }
 
 const (
@@ -19,18 +17,16 @@ const (
 )
 
 func NewProcessor() pr.Processor {
-	return &processor{
-		schema: pr.CreateSchema(transactionSchema, processorName),
-	}
+	return &processor{}
 }
 
 type processor struct {
-	schema *jsonschema.Schema
+	//schema *jsonschema.Schema
 }
 
-func (p *processor) Validate(buf []byte) error {
+/*func (p *processor) Validate(buf []byte) error {
 	return pr.Validate(buf, p.schema)
-}
+}*/
 
 func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
 	var pa payload

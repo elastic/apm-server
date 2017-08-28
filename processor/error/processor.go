@@ -3,14 +3,12 @@ package error
 import (
 	"encoding/json"
 
-	"github.com/santhosh-tekuri/jsonschema"
-
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
 func init() {
-	pr.Registry.AddProcessor("/v1/errors", NewProcessor())
+	pr.Registry.AddProcessor("/v1/errors", NewProcessor(), errorSchema)
 }
 
 const (
@@ -18,17 +16,17 @@ const (
 )
 
 func NewProcessor() pr.Processor {
-	schema := pr.CreateSchema(errorSchema, processorName)
-	return &processor{schema}
+	//schema := pr.CreateSchema(errorSchema, processorName)
+	return &processor{}
 }
 
 type processor struct {
-	schema *jsonschema.Schema
+	//schema *jsonschema.Schema
 }
 
-func (p *processor) Validate(buf []byte) error {
+/*func (p *processor) Validate(buf []byte) error {
 	return pr.Validate(buf, p.schema)
-}
+}*/
 
 func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
 	var pa payload
