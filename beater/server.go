@@ -26,14 +26,14 @@ var (
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 )
 
-type successCallback func([]beat.Event)
+type addToQueueCallback func([]beat.Event) error
 
-func newServer(config Config, publish successCallback) *http.Server {
+func newServer(config Config, addToQueue addToQueueCallback) *http.Server {
 	mux := http.NewServeMux()
 
 	for path, p := range processor.Registry.Processors() {
 
-		handler := createHandler(p, config, publish)
+		handler := createHandler(p, config, addToQueue)
 
 		logp.Info("Path %s added to request handler", path)
 
@@ -80,7 +80,7 @@ func stop(server *http.Server, timeout time.Duration) {
 
 type handler func(w http.ResponseWriter, r *http.Request)
 
-func createHandler(p processor.Processor, config Config, publish successCallback) handler {
+func createHandler(p processor.Processor, config Config, addToQueue addToQueueCallback) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 		requestCounter.Inc()
@@ -123,9 +123,14 @@ func createHandler(p processor.Processor, config Config, publish successCallback
 			return
 		}
 
-		w.WriteHeader(202)
 		responseValid.Inc()
-		publish(list)
+		err = addToQueue(list)
+		if err != nil {
+			sendError(w, r, 503, fmt.Sprintf("Error adding data to internal queue: %s", err), true)
+			return
+		}
+
+		w.WriteHeader(202)
 	}
 }
 

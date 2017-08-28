@@ -1,7 +1,9 @@
 package beater
 
 import (
+	"errors"
 	"fmt"
+	"sync"
 
 	"net/http"
 
@@ -13,7 +15,6 @@ import (
 type beater struct {
 	config Config
 	server *http.Server
-	client beat.Client
 }
 
 // Creates beater
@@ -29,19 +30,75 @@ func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	return bt, nil
 }
 
+type Eventer struct {
+	eventsLeft int
+	dropped    bool
+	done       chan bool
+}
+
+func (e *Eventer) Closing() {}
+func (e *Eventer) Closed()  {}
+
+func (e *Eventer) checkIfDone() {
+	if e.eventsLeft == 0 {
+		e.done <- true
+	}
+}
+
+func (e *Eventer) reset(eventsLeft int) {
+	e.dropped = false
+	e.eventsLeft = eventsLeft
+}
+
+func (e *Eventer) Published() {
+	e.eventsLeft--
+	e.checkIfDone()
+}
+
+func (e *Eventer) FilteredOut(event beat.Event) {
+	e.eventsLeft--
+	e.checkIfDone()
+}
+
+func (e *Eventer) DroppedOnPublish(event beat.Event) {
+	e.eventsLeft--
+	e.dropped = true
+	e.checkIfDone()
+}
+
 func (bt *beater) Run(b *beat.Beat) error {
+	var mu sync.Mutex
 
-	var err error
+	done := make(chan bool)
+	eventer := Eventer{
+		eventsLeft: 0,
+		done:       done,
+	}
 
-	bt.client, err = b.Publisher.Connect()
+	client, err := b.Publisher.ConnectWith(beat.ClientConfig{
+		PublishMode: beat.DropIfFull,
+		Events:      &eventer,
+	})
 	if err != nil {
 		return err
 	}
-	defer bt.client.Close()
+	defer client.Close()
 
-	callback := func(events []beat.Event) {
-		// Publishing does not wait for publishing to be acked
-		go bt.client.PublishAll(events)
+	callback := func(events []beat.Event) error {
+		mu.Lock()
+		defer mu.Unlock()
+
+		eventer.reset(len(events))
+
+		go client.PublishAll(events)
+
+		select {
+		case <-eventer.done:
+			if eventer.dropped {
+				return errors.New("Queue is full")
+			}
+			return nil
+		}
 	}
 
 	bt.server = newServer(bt.config, callback)
