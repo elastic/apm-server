@@ -1,0 +1,5 @@
+- key: apm-onboarding
+  title: APM Onboarding
+  description: Document without fields to notify end user that apm server is correctly setup
+  fields:
+

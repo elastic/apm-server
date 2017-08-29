@@ -22,6 +22,14 @@ class Test(ElasticTest):
                                          'payload.json'))
         self.load_docs_with_template(f, 'transactions', 9)
 
+        rs = self.es.count(index=self.index_name, body={
+                           "query": {"term": {"processor.event": "transaction"}}})
+        assert rs['count'] == 4, "found {} documents".format(rs['count'])
+
+        rs = self.es.count(index=self.index_name, body={
+                           "query": {"term": {"processor.event": "trace"}}})
+        assert rs['count'] == 5, "found {} documents".format(rs['count'])
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_error(self):
         """
@@ -35,6 +43,10 @@ class Test(ElasticTest):
                                          'error',
                                          'payload.json'))
         self.load_docs_with_template(f, 'errors', 4)
+
+        rs = self.es.count(index=self.index_name, body={
+                           "query": {"term": {"processor.event": "error"}}})
+        assert rs['count'] == 4, "found {} documents".format(rs['count'])
 
     def load_docs_with_template(self, data_path, endpoint, expected_events_count):
 
@@ -55,8 +67,6 @@ class Test(ElasticTest):
                      expected_events_count)
         )
 
-        res = self.es.count(index=self.index_name)
-        assert expected_events_count == res['count']
         # Makes sure no error or warnings were logged
         self.assert_no_logged_warnings()
 

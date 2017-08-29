@@ -25,7 +25,7 @@ func (pa *payload) transform() []beat.Event {
 
 	errorCounter.Add(int64(len(pa.Events)))
 	for _, e := range pa.Events {
-		events = append(events, pr.CreateDoc(e.Mappings(pa)))
+		events = append(events, pr.CreateDocUnsafe(e.Mappings(pa)))
 	}
 	return events
 }

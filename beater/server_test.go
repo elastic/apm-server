@@ -2,7 +2,6 @@ package beater
 
 import (
 	"bytes"
-	"crypto/tls"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -90,34 +89,9 @@ func randomAddr() string {
 	return l.Addr().String()
 }
 
-func insecureClient() *http.Client {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	return &http.Client{Transport: tr}
-}
-
 func waitForServer(secure bool, host string) {
-	var check = func() int {
-		var res *http.Response
-		var err error
-		if secure {
-			res, err = insecureClient().Get("https://" + host + "/healthcheck")
-		} else {
-			res, err = http.Get("http://" + host + "/healthcheck")
-		}
-
-		if err != nil {
-			return 500
-		}
-		return res.StatusCode
-	}
-
-	for i := 0; i <= 1000; i++ {
-		time.Sleep(time.Second / 50)
-		if check() == 200 {
-			return
-		}
+	if isServerUp(secure, host, 1000, time.Second/50) {
+		return
 	}
 	panic("server run timeout (10 seconds)")
 }
