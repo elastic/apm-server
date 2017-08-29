@@ -23,7 +23,6 @@ class Test(ElasticTest):
         # Makes sure no error or warnings were logged
         self.assert_no_logged_warnings()
 
-
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_transaction(self):
         """
