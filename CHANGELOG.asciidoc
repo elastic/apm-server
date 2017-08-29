@@ -1,5 +1,30 @@
+// Use these for links to issue and pulls. Note issues and pulls redirect one to
+// each other on Github, so don't worry too much on using the right prefix.
+:issue: https://github.com/elastic/apm-server/issues/
+:pull: https://github.com/elastic/apm-server/pull/
+
+
 === APM Server version HEAD
-https://github.com/elastic/apm-server/compare/x...master[View commits]
+https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21af0e74...master[View commits]
+
+
+==== Breaking changes
+
+
+==== Bugfixes
+
+
+==== Added
+
+
+==== Deprecated
+
+
+==== Known Issues
+
+
+=== APM Server version 0.2.0
+https://github.com/elastic/apm-server/compare/3ad33b3129c0be3b0e4057efc53948c381a2af79...f9a2086ceed0b918e1a0b3d8ddc140fc21af0e74[View commits]
 
 ==== Breaking changes
 - Changed response status code in the API from 201 to 202 {pull}34[34]
