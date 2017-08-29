@@ -16,6 +16,10 @@ apm-server:
   # send their token in the following format: Authorization: Bearer <secret-token>
   #secret_token:
 
+  #ssl.enabled: false
+  #ssl.certificate : "path/to/cert"
+  #ssl.key : "path/to/private_key"
+
 #================================ General =====================================
 
 # The name of the shipper that publishes the network data. It can be used to group
