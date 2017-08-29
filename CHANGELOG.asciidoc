@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 
 
 ==== Added
+- Send document to output on start of server {pull}117[117]
 
 
 ==== Deprecated

@@ -2,6 +2,10 @@
   title: General APM fields
   description:
   fields:
+    - name: listening
+      type: keyword
+      description: >
+        Address the server is listening on.
     - name: processor.name
       type: keyword
       description: Processor name.
@@ -20,7 +24,7 @@
         - name: tags
           type: object
           object_type: keyword
-          dynamic: true 
+          dynamic: true
           description: >
             Flat mapping of user-defined tags.
 
@@ -107,8 +111,8 @@
             description: >
               Http response status code.
 
-          - name: finished 
-            type: boolean 
+          - name: finished
+            type: boolean
 
         - name: system
           type: group
@@ -176,7 +180,7 @@
                 description: >
                   Language version.
 
-            - name: runtime 
+            - name: runtime
               type: group
               fields:
 
@@ -190,7 +194,7 @@
                 description: >
                   Runtime version.
 
-            - name: framework 
+            - name: framework
               type: group
               fields:
 
@@ -204,7 +208,7 @@
                 description: >
                   Framework version.
 
-            - name: agent 
+            - name: agent
               type: group
               fields:
 

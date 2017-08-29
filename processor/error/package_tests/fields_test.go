@@ -21,6 +21,8 @@ func TestFields(t *testing.T) {
 		"context.db.statement",
 		"context.db.user",
 		"context.db.type",
-		"context.db")
+		"context.db",
+		"listening",
+	)
 	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, er.NewProcessor, notInEvent)
 }

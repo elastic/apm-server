@@ -29,6 +29,14 @@ None
 
 
 [float]
+=== `listening`
+
+type: keyword
+
+Address the server is listening on.
+
+
+[float]
 === `processor.name`
 
 type: keyword
