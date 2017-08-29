@@ -3,12 +3,12 @@ package beater
 import (
 	"errors"
 	"fmt"
-	"sync"
 
 	"net/http"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/common/atomic"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
@@ -31,64 +31,54 @@ func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 }
 
 type Eventer struct {
-	eventsLeft int
-	dropped    bool
-	done       chan bool
+	eventsToBeQueued atomic.Int32
+	eventsToBeAcked  atomic.Int32
+	dropped          bool
+	done             chan bool
 }
 
 func (e *Eventer) Closing() {}
 func (e *Eventer) Closed()  {}
 
 func (e *Eventer) checkIfDone() {
-	if e.eventsLeft == 0 {
+	if e.eventsToBeQueued.Load() == 0 {
 		e.done <- true
 	}
 }
 
-func (e *Eventer) reset(eventsLeft int) {
-	e.dropped = false
-	e.eventsLeft = eventsLeft
-}
-
 func (e *Eventer) Published() {
-	e.eventsLeft--
+	e.eventsToBeQueued.Dec()
 	e.checkIfDone()
 }
 
 func (e *Eventer) FilteredOut(event beat.Event) {
-	e.eventsLeft--
+	e.eventsToBeQueued.Dec()
 	e.checkIfDone()
 }
 
 func (e *Eventer) DroppedOnPublish(event beat.Event) {
-	e.eventsLeft--
+	e.eventsToBeQueued.Dec()
 	e.dropped = true
 	e.checkIfDone()
 }
 
 func (bt *beater) Run(b *beat.Beat) error {
-	var mu sync.Mutex
-
-	done := make(chan bool)
-	eventer := Eventer{
-		eventsLeft: 0,
-		done:       done,
-	}
-
-	client, err := b.Publisher.ConnectWith(beat.ClientConfig{
-		PublishMode: beat.DropIfFull,
-		Events:      &eventer,
-	})
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-
 	callback := func(events []beat.Event) error {
-		mu.Lock()
-		defer mu.Unlock()
+		eventer := Eventer{
+			eventsToBeQueued: atomic.MakeInt32(int32(len(events))),
+			done:             make(chan bool, 1),
+			dropped:          false,
+		}
 
-		eventer.reset(len(events))
+		var client beat.Client
+		client, err := b.Publisher.ConnectWith(beat.ClientConfig{
+			PublishMode: beat.DropIfFull,
+			Events:      &eventer,
+		})
+		defer client.Close()
+		if err != nil {
+			return err
+		}
 
 		go client.PublishAll(events)
 
@@ -102,7 +92,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 
 	bt.server = newServer(bt.config, callback)
-	err = run(bt.server, bt.config.SSL)
+	err := run(bt.server, bt.config.SSL)
 	logp.Err(err.Error())
 
 	if err == http.ErrServerClosed {
