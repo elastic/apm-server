@@ -141,21 +141,20 @@ func sendError(w http.ResponseWriter, r *http.Request, code int, error string, l
 
 	w.WriteHeader(code)
 	acceptHeader := r.Header.Get("Accept")
-	// send JSON if the client will accept it
-	if strings.Contains(acceptHeader, "*/*") || strings.Contains(acceptHeader, "application/json") {
-		buf, err := json.Marshal(map[string]interface{}{
-			"error": error,
-		})
-
-		if err != nil {
-			logp.Err("Error while generating a JSON error response: %v", err)
-			return
-		}
-
-		w.Write(buf)
-	} else {
+	acceptsJSON := strings.Contains(acceptHeader, "*/*") || strings.Contains(acceptHeader, "application/json")
+	if !acceptsJSON {
 		w.Write([]byte(error))
+		return
 	}
+
+	buf, err := json.Marshal(map[string]interface{}{
+		"error": error,
+	})
+	if err != nil {
+		logp.Err("Error while generating a JSON error response: %v", err)
+		return
+	}
+	w.Write(buf)
 }
 
 // checkSecretToken checks the Authorization header. It must be in the form of:
