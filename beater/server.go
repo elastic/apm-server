@@ -46,6 +46,8 @@ func newServer(config Config, publish successCallback) *http.Server {
 		responseValid.Inc()
 	})
 
+	logp.Info("Listening on: %s", config.Host)
+
 	return &http.Server{
 		Addr:           config.Host,
 		Handler:        mux,
