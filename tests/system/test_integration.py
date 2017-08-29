@@ -63,7 +63,7 @@ class Test(ElasticTest):
         self.es.indices.refresh(index=self.index_name)
 
         self.wait_until(
-            lambda: (self.es.count(index=self.index_name)['count'] ==
+            lambda: (self.es.count(index=self.index_name)['count'] >=
                      expected_events_count)
         )
 
