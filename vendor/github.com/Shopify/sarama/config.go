@@ -72,6 +72,12 @@ type Config struct {
 		// Defaults to 10 minutes. Set to 0 to disable. Similar to
 		// `topic.metadata.refresh.interval.ms` in the JVM version.
 		RefreshFrequency time.Duration
+
+		// Whether to maintain a full set of metadata for all topics, or just
+		// the minimal set that has been necessary so far. The full set is simpler
+		// and usually more convenient, but can take up a substantial amount of
+		// memory if you have many topics and partitions. Defaults to true.
+		Full bool
 	}
 
 	// Producer is the namespace for configuration related to producing messages,
@@ -99,7 +105,10 @@ type Config struct {
 		Partitioner PartitionerConstructor
 
 		// Return specifies what channels will be populated. If they are set to true,
-		// you must read from the respective channels to prevent deadlock.
+		// you must read from the respective channels to prevent deadlock. If,
+		// however, this config is used to create a `SyncProducer`, both must be set
+		// to true and you shall not read from the channels since the producer does
+		// this internally.
 		Return struct {
 			// If enabled, successfully delivered messages will be returned on the
 			// Successes channel (default disabled).
@@ -260,6 +269,7 @@ func NewConfig() *Config {
 	c.Metadata.Retry.Max = 3
 	c.Metadata.Retry.Backoff = 250 * time.Millisecond
 	c.Metadata.RefreshFrequency = 10 * time.Minute
+	c.Metadata.Full = true
 
 	c.Producer.MaxMessageBytes = 1000000
 	c.Producer.RequiredAcks = WaitForLocal
@@ -305,10 +315,13 @@ func (c *Config) Validate() error {
 		Logger.Println("Producer.RequiredAcks > 1 is deprecated and will raise an exception with kafka >= 0.8.2.0.")
 	}
 	if c.Producer.MaxMessageBytes >= int(MaxRequestSize) {
-		Logger.Println("Producer.MaxMessageBytes is larger than MaxRequestSize; it will be ignored.")
+		Logger.Println("Producer.MaxMessageBytes must be smaller than MaxRequestSize; it will be ignored.")
 	}
 	if c.Producer.Flush.Bytes >= int(MaxRequestSize) {
-		Logger.Println("Producer.Flush.Bytes is larger than MaxRequestSize; it will be ignored.")
+		Logger.Println("Producer.Flush.Bytes must be smaller than MaxRequestSize; it will be ignored.")
+	}
+	if (c.Producer.Flush.Bytes > 0 || c.Producer.Flush.Messages > 0) && c.Producer.Flush.Frequency == 0 {
+		Logger.Println("Producer.Flush: Bytes or Messages are set, but Frequency is not; messages may not get flushed.")
 	}
 	if c.Producer.Timeout%time.Millisecond != 0 {
 		Logger.Println("Producer.Timeout only supports millisecond resolution; nanoseconds will be truncated.")
