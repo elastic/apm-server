@@ -47,7 +47,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	var checkServer = func() bool {
 		secure := bt.config.SSL.isEnabled()
-		return isServerUp(secure, bt.config.Host, 30, time.Second*10)
+		return isServerUp(secure, bt.config.Host, 10, time.Second*6)
 	}
 	go onboarding.NotifyUp(checkServer, callback)
 
