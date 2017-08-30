@@ -27,11 +27,11 @@ func (pa *payload) transform() []beat.Event {
 	transactionCounter.Add(int64(len(pa.Events)))
 	for _, tx := range pa.Events {
 
-		events = append(events, pr.CreateDoc(tx.Mappings(pa)))
+		events = append(events, pr.CreateDocUnsafe(tx.Mappings(pa)))
 
 		traceCounter.Add(int64(len(tx.Traces)))
 		for _, tr := range tx.Traces {
-			events = append(events, pr.CreateDoc(tr.Mappings(pa, tx)))
+			events = append(events, pr.CreateDocUnsafe(tr.Mappings(pa, tx)))
 		}
 	}
 

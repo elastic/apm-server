@@ -2,9 +2,10 @@ package beater
 
 import (
 	"fmt"
-
 	"net/http"
+	"time"
 
+	"github.com/elastic/apm-server/onboarding"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -44,11 +45,17 @@ func (bt *beater) Run(b *beat.Beat) error {
 		go bt.client.PublishAll(events)
 	}
 
+	var checkServer = func() bool {
+		secure := bt.config.SSL.isEnabled()
+		return isServerUp(secure, bt.config.Host, 10, time.Second*6)
+	}
+	go onboarding.NotifyUp(checkServer, callback)
+
 	bt.server = newServer(bt.config, callback)
 	err = run(bt.server, bt.config.SSL)
-	logp.Err(err.Error())
 
 	if err == http.ErrServerClosed {
+		logp.Info(err.Error())
 		return nil
 	}
 	return err
