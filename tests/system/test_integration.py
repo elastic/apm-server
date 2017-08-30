@@ -4,6 +4,7 @@ import os
 import json
 import requests
 import unittest
+import time
 
 
 class Test(ElasticTest):
@@ -48,6 +49,9 @@ class Test(ElasticTest):
             lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests' loaded"))
 
         self.wait_until(lambda: self.es.indices.exists(self.index_name))
+        # Quick wait to give documents some time to be sent to the index
+        # This is not required but speeds up the tests
+        time.sleep(0.1)
         self.es.indices.refresh(index=self.index_name)
 
         self.wait_until(

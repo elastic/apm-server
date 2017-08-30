@@ -6,8 +6,6 @@ sys.path.append('../../_beats/libbeat/tests/system')
 from beat.beat import TestCase
 from elasticsearch import Elasticsearch
 
-# TODO: rework system tests in go
-
 
 class BaseTest(TestCase):
 
@@ -39,6 +37,8 @@ class ServerBaseTest(BaseTest):
 
     def setUp(self):
         super(ServerBaseTest, self).setUp()
+        shutil.copy(self.beat_path + "/fields.yml", self.working_dir)
+
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
         self.wait_until(lambda: self.log_contains("starting apm-server"))
@@ -83,7 +83,6 @@ class ElasticTest(ServerBaseTest):
         return cfg
 
     def setUp(self):
-        super(ElasticTest, self).setUp()
 
         self.es = Elasticsearch([self.get_elasticsearch_url()])
 
@@ -100,7 +99,7 @@ class ElasticTest(ServerBaseTest):
         except:
             pass
 
-        shutil.copy(self.beat_path + "/fields.yml", self.working_dir)
+        super(ElasticTest, self).setUp()
 
     def get_elasticsearch_url(self):
         """
