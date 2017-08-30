@@ -1,19 +1,20 @@
 package beater
 
 import (
+	"errors"
 	"fmt"
 
 	"net/http"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/common/atomic"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
 type beater struct {
 	config Config
 	server *http.Server
-	client beat.Client
 }
 
 // Creates beater
@@ -29,23 +30,69 @@ func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	return bt, nil
 }
 
-func (bt *beater) Run(b *beat.Beat) error {
+type Eventer struct {
+	eventsToBeQueued atomic.Int32
+	eventsToBeAcked  atomic.Int32
+	dropped          bool
+	done             chan bool
+}
 
-	var err error
+func (e *Eventer) Closing() {}
+func (e *Eventer) Closed()  {}
 
-	bt.client, err = b.Publisher.Connect()
-	if err != nil {
-		return err
+func (e *Eventer) checkIfDone() {
+	if e.eventsToBeQueued.Load() == 0 {
+		e.done <- true
 	}
-	defer bt.client.Close()
+}
 
-	callback := func(events []beat.Event) {
-		// Publishing does not wait for publishing to be acked
-		go bt.client.PublishAll(events)
+func (e *Eventer) Published() {
+	e.eventsToBeQueued.Dec()
+	e.checkIfDone()
+}
+
+func (e *Eventer) FilteredOut(event beat.Event) {
+	e.eventsToBeQueued.Dec()
+	e.checkIfDone()
+}
+
+func (e *Eventer) DroppedOnPublish(event beat.Event) {
+	e.eventsToBeQueued.Dec()
+	e.dropped = true
+	e.checkIfDone()
+}
+
+func (bt *beater) Run(b *beat.Beat) error {
+	callback := func(events []beat.Event) error {
+		eventer := Eventer{
+			eventsToBeQueued: atomic.MakeInt32(int32(len(events))),
+			done:             make(chan bool, 1),
+			dropped:          false,
+		}
+
+		var client beat.Client
+		client, err := b.Publisher.ConnectWith(beat.ClientConfig{
+			PublishMode: beat.DropIfFull,
+			Events:      &eventer,
+		})
+		defer client.Close()
+		if err != nil {
+			return err
+		}
+
+		go client.PublishAll(events)
+
+		select {
+		case <-eventer.done:
+			if eventer.dropped {
+				return errors.New("Queue is full")
+			}
+			return nil
+		}
 	}
 
 	bt.server = newServer(bt.config, callback)
-	err = run(bt.server, bt.config.SSL)
+	err := run(bt.server, bt.config.SSL)
 	logp.Err(err.Error())
 
 	if err == http.ErrServerClosed {
