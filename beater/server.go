@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,14 +27,19 @@ var (
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 )
 
-type successCallback func([]beat.Event)
+type reporter func([]beat.Event) error
 
-func newServer(config Config, publish successCallback) *http.Server {
+var (
+	errInvalidToken    = errors.New("Invalid token")
+	errPOSTRequestOnly = errors.New("Only post requests are supported")
+)
+
+func newServer(config Config, report reporter) *http.Server {
 	mux := http.NewServeMux()
 
 	for path, p := range processor.Registry.Processors() {
 
-		handler := createHandler(p, config, publish)
+		handler := createHandler(p, config, report)
 
 		logp.Info("Path %s added to request handler", path)
 
@@ -82,79 +88,69 @@ func stop(server *http.Server, timeout time.Duration) {
 
 type handler func(w http.ResponseWriter, r *http.Request)
 
-func createHandler(p processor.Processor, config Config, publish successCallback) handler {
+func createHandler(p processor.Processor, config Config, report reporter) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 		requestCounter.Inc()
 
-		if !checkSecretToken(r, config.SecretToken) {
-			sendError(w, r, 401, "Invalid token", false)
-			return
-		}
-
-		if r.Method != "POST" {
-			sendError(w, r, 405, "Only post requests are supported", false)
-			return
-		}
-
-		reader, err := decodeData(r)
-		if err != nil {
-			sendError(w, r, 400, fmt.Sprintf("Decoding error: %s", err.Error()), false)
-			return
-		}
-		defer reader.Close()
-
-		// Limit size of request to prevent for example zip bombs
-		limitedReader := io.LimitReader(reader, config.MaxUnzippedSize)
-
-		buf, err := ioutil.ReadAll(limitedReader)
-		if err != nil {
-			// If we run out of memory, for example
-			sendError(w, r, 500, fmt.Sprintf("Data read error: %s", err), true)
-		}
-
-		err = p.Validate(buf)
-		if err != nil {
-			sendError(w, r, 400, fmt.Sprintf("Data validation error: %s", err), false)
-			return
-		}
-
-		list, err := p.Transform(buf)
-		if err != nil {
-			sendError(w, r, 500, fmt.Sprintf("Data transformation error: %s", err), true)
-			return
-		}
-
-		w.WriteHeader(202)
-		responseValid.Inc()
-		publish(list)
+		code, err := processRequest(r, p, config.SecretToken, config.MaxUnzippedSize, report)
+		sendStatus(w, r, code, err)
 	}
 }
 
-func sendError(w http.ResponseWriter, r *http.Request, code int, error string, log bool) {
-	if log {
-		logp.Err(error)
-	} else {
-		logp.Info("%s, code=%d", error, code)
+func processRequest(
+	r *http.Request,
+	p processor.Processor,
+	secretToken string,
+	maxSize int64,
+	report reporter,
+) (code int, err error) {
+	if !checkSecretToken(r, secretToken) {
+		return reportInfo(401, errInvalidToken)
 	}
-	responseErrors.Inc()
-
-	w.WriteHeader(code)
-	acceptHeader := r.Header.Get("Accept")
-	acceptsJSON := strings.Contains(acceptHeader, "*/*") || strings.Contains(acceptHeader, "application/json")
-	if !acceptsJSON {
-		w.Write([]byte(error))
-		return
+	if r.Method != "POST" {
+		return reportInfo(405, errPOSTRequestOnly)
 	}
 
-	buf, err := json.Marshal(map[string]interface{}{
-		"error": error,
-	})
+	reader, err := decodeData(r)
 	if err != nil {
-		logp.Err("Error while generating a JSON error response: %v", err)
-		return
+		return reportInfo(400, fmt.Errorf("Decoding error: %s", err.Error()))
 	}
-	w.Write(buf)
+	defer reader.Close()
+
+	// Limit size of request to prevent for example zip bombs
+	limitedReader := io.LimitReader(reader, maxSize)
+	buf, err := ioutil.ReadAll(limitedReader)
+	if err != nil {
+		// If we run out of memory, for example
+		return reportError(500, fmt.Errorf("Data read error: %s", err))
+	}
+
+	if err = p.Validate(buf); err != nil {
+		return reportInfo(400, fmt.Errorf("Data validation error: %s", err))
+	}
+
+	list, err := p.Transform(buf)
+	if err != nil {
+		return reportError(500, fmt.Errorf("Data transformation error: %s", err))
+	}
+
+	responseValid.Inc()
+
+	if err = report(list); err != nil {
+		return reportError(503, fmt.Errorf("Error adding data to internal queue: %s", err))
+	}
+	return 202, nil
+}
+
+func reportError(code int, err error) (int, error) {
+	logp.Err(err.Error())
+	return code, err
+}
+
+func reportInfo(code int, err error) (int, error) {
+	logp.Info("%s, code=%d", err.Error(), code)
+	return code, err
 }
 
 // checkSecretToken checks the Authorization header. It must be in the form of:
@@ -190,6 +186,9 @@ func decodeData(req *http.Request) (io.ReadCloser, error) {
 	}
 
 	reader := req.Body
+	if reader == nil {
+		return nil, fmt.Errorf("No content supplied")
+	}
 
 	switch req.Header.Get("Content-Encoding") {
 	case "deflate":
@@ -208,4 +207,37 @@ func decodeData(req *http.Request) (io.ReadCloser, error) {
 	}
 
 	return reader, nil
+}
+
+func acceptsJSON(r *http.Request) bool {
+	h := r.Header.Get("Accept")
+	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
+}
+
+func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
+	w.WriteHeader(code)
+	if err != nil {
+		responseErrors.Inc()
+		if acceptsJSON(r) {
+			w.Header().Add("Content-Type", "application/json")
+			sendJSON(w, map[string]interface{}{"error": err.Error()})
+		} else {
+			w.Header().Add("Content-Type", "text/plain; charset=UTF-8")
+			sendPlain(w, err.Error())
+		}
+	}
+}
+
+func sendJSON(w http.ResponseWriter, msg map[string]interface{}) {
+	buf, err := json.Marshal(msg)
+	if err != nil {
+		logp.Err("Error while generating a JSON error response: %v", err)
+		return
+	}
+
+	w.Write(buf)
+}
+
+func sendPlain(w http.ResponseWriter, msg string) {
+	w.Write([]byte(msg))
 }

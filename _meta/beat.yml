@@ -11,6 +11,7 @@ apm-server:
   #read_timeout: 2s
   #write_timeout: 2s
   #shutdown_timeout: 5s
+  #concurrent_requests: 20
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>
