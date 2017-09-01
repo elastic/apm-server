@@ -20,3 +20,7 @@ apm-server:
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
+
+  # Rate limiter to limit number of events per second. 0 means disabled.
+  #ratelimit.size: 0
+  #ratelimit.burst: 100

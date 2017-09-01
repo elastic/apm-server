@@ -14,6 +14,8 @@ type Config struct {
 	SecretToken        string        `config:"secret_token"`
 	SSL                *SSLConfig    `config:"ssl"`
 	ConcurrentRequests int           `config:"concurrent_requests" validate:"min=1"`
+	RateLimitSize      int           `config:"ratelimit.size"`
+	RateLimitBurst     int           `config:"ratelimit.burst"`
 }
 
 type SSLConfig struct {
@@ -35,4 +37,6 @@ var defaultConfig = Config{
 	WriteTimeout:       2 * time.Second,
 	ShutdownTimeout:    5 * time.Second,
 	SecretToken:        "",
+	RateLimitSize:      0,
+	RateLimitBurst:     100,
 }

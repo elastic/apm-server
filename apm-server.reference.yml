@@ -21,6 +21,10 @@ apm-server:
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
 
+  # Rate limiter to limit number of events per second. 0 means disabled.
+  #ratelimit.size: 0
+  #ratelimit.burst: 100
+
 #================================ General ======================================
 
 # The name of the shipper that publishes the network data. It can be used to group
