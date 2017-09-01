@@ -72,11 +72,11 @@ func TestServerOk(t *testing.T) {
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	server, teardown := setupServer(t, noSSL)
 	defer teardown()
 
 	rr := httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rr, makeTestRequest(t))
+	server.Handler.ServeHTTP(rr, makeTestRequest(t))
 	assert.Equal(t, 400, rr.Code, rr.Body.String())
 }
 
@@ -216,7 +216,7 @@ func TestFailureResponseNoAcceptHeader(t *testing.T) {
 	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
 }
 
-func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
+func setupServer(t *testing.T, ssl *SSLConfig) (*server, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -225,14 +225,15 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	cfg := defaultConfig
 	cfg.Host = host
 	cfg.SSL = ssl
+	cfg.ShutdownTimeout = time.Second
 
-	apm := newServer(cfg, nopReporter)
-	go run(apm, cfg.SSL)
+	server := newServer(cfg, nopReporter)
+	go server.run()
 
 	secure := cfg.SSL != nil
 	waitForServer(secure, host)
 
-	return apm, func() { stop(apm, time.Second) }
+	return server, func() { server.stop() }
 }
 
 var noSSL *SSLConfig
@@ -263,12 +264,12 @@ func makeTestRequest(t *testing.T) *http.Request {
 	return req
 }
 
-func postTestRequest(t *testing.T, apm *http.Server, client *http.Client, schema string) (*http.Response, error) {
+func postTestRequest(t *testing.T, server *server, client *http.Client, schema string) (*http.Response, error) {
 	if client == nil {
 		client = http.DefaultClient
 	}
 
-	addr := fmt.Sprintf("%s://%s%s", schema, apm.Addr, transaction.Endpoint)
+	addr := fmt.Sprintf("%s://%s%s", schema, server.Addr, transaction.Endpoint)
 	return client.Post(addr, "application/json", bytes.NewReader(testData))
 }
 
