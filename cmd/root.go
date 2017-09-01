@@ -18,5 +18,5 @@ var RootCmd *cmd.BeatsRootCmd
 
 func init() {
 	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
-	RootCmd = cmd.GenRootCmdWithRunFlags(Name, "0.2.0", beater.New, runFlags)
+	RootCmd = cmd.GenRootCmdWithRunFlags(Name, "", beater.New, runFlags)
 }
