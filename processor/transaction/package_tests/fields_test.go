@@ -16,5 +16,5 @@ func TestEsDocumentation(t *testing.T) {
 	}
 	processorFn := transaction.NewProcessor
 	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, processorFn)
-	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, processorFn, set.New())
+	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, processorFn, set.New("listening"))
 }

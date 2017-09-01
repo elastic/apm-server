@@ -2,7 +2,6 @@ package beater
 
 import (
 	"fmt"
-
 	"net/http"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -37,11 +36,13 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	defer pub.Stop()
 
-	bt.server = newServer(bt.config, pub.Send)
-	err = run(bt.server, bt.config.SSL)
-	logp.Err(err.Error())
+	go notifyListening(bt.config, pub.Send)
 
+	bt.server = newServer(bt.config, pub.Send)
+
+	err = run(bt.server, bt.config.SSL)
 	if err == http.ErrServerClosed {
+		logp.Info("Listener stopped: %s", err.Error())
 		return nil
 	}
 	return err

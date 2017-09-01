@@ -2,7 +2,6 @@ package beater
 
 import (
 	"bytes"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -277,13 +276,6 @@ func randomAddr() string {
 	l, _ := net.Listen("tcp", "localhost:0")
 	l.Close()
 	return l.Addr().String()
-}
-
-func insecureClient() *http.Client {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	return &http.Client{Transport: tr}
 }
 
 func waitForServer(secure bool, host string) {
