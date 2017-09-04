@@ -6,6 +6,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/common/cfgwarn"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
@@ -16,6 +17,7 @@ type beater struct {
 
 // Creates beater
 func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
+	cfgwarn.Beta("You are using a beta release of the APM Server.")
 	beaterConfig := defaultConfig
 	if err := ucfg.Unpack(&beaterConfig); err != nil {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
