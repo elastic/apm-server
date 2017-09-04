@@ -89,6 +89,7 @@ func stop(server *http.Server, timeout time.Duration) {
 
 func authHandler(secretToken string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCounter.Inc()
 		if !isAuthorized(r, secretToken) {
 			sendStatus(w, r, 401, errInvalidToken)
 			return
@@ -100,7 +101,6 @@ func authHandler(secretToken string, h http.Handler) http.Handler {
 func appHandler(p processor.Processor, config Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
-		requestCounter.Inc()
 		code, err := processRequest(r, p, config.SecretToken, config.MaxUnzippedSize, report)
 		sendStatus(w, r, code, err)
 	})
