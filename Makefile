@@ -7,7 +7,7 @@ TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
 PREFIX?=.
 NOTICE_FILE=NOTICE
-BEATS_VERSION?=master
+BEATS_VERSION?=6.x
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
@@ -15,6 +15,7 @@ BEATS_VERSION?=master
 # updates beats updates the framework part and go parts of beats
 update-beats:
 	govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
+	wget https://raw.githubusercontent.com/elastic/beats/6.0/libbeat/version/version.go -O ./vendor/github.com/elastic/beats/libbeat/version/version.go
 	BEATS_VERSION=$(BEATS_VERSION) sh _beats/update.sh
 	$(MAKE) update
 
