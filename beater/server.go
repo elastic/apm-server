@@ -34,7 +34,7 @@ var (
 	errPOSTRequestOnly = errors.New("Only post requests are supported")
 )
 
-func newServer(config Config, report reporter) *http.Server {
+func newMuxer(config Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	for path, p := range processor.Registry.Processors() {
@@ -51,8 +51,11 @@ func newServer(config Config, report reporter) *http.Server {
 		w.WriteHeader(200)
 		responseValid.Inc()
 	})
+	return mux
+}
 
-	logp.Info("Listening on: %s", config.Host)
+func newServer(config Config, report reporter) *http.Server {
+	mux := newMuxer(config, report)
 
 	return &http.Server{
 		Addr:           config.Host,
@@ -65,6 +68,7 @@ func newServer(config Config, report reporter) *http.Server {
 
 func run(server *http.Server, ssl *SSLConfig) error {
 	logp.Info("starting apm-server! Hit CTRL-C to stop it.")
+	logp.Info("Listening on: %s", server.Addr)
 	if ssl.isEnabled() {
 		return server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
 	} else {
