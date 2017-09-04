@@ -14,7 +14,7 @@ import (
 // outputs.
 type retryer struct {
 	logger   *logp.Logger
-	observer outputObserver
+	observer *observer
 
 	done chan struct{}
 
@@ -54,7 +54,7 @@ const (
 
 func newRetryer(
 	log *logp.Logger,
-	observer outputObserver,
+	observer *observer,
 	out workQueue,
 	c *eventConsumer,
 ) *retryer {

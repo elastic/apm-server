@@ -15,7 +15,7 @@ type Batch struct {
 }
 
 type batchContext struct {
-	observer outputObserver
+	observer *observer
 	retryer  *retryer
 }
 
