@@ -7,7 +7,7 @@ TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
 PREFIX?=.
 NOTICE_FILE=NOTICE
-BEATS_VERSION?=6.x
+BEATS_VERSION?=master
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
