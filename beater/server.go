@@ -67,7 +67,7 @@ func newServer(config Config, report reporter) *http.Server {
 }
 
 func run(server *http.Server, ssl *SSLConfig) error {
-	logp.Info("starting apm-server! Hit CTRL-C to stop it.")
+	logp.Info("Starting apm-server! Hit CTRL-C to stop it.")
 	logp.Info("Listening on: %s", server.Addr)
 	if ssl.isEnabled() {
 		return server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
