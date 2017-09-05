@@ -40,7 +40,7 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 	for path, p := range processor.Registry.Processors() {
 		handler := appHandler(p, config, report)
 		logp.Info("Path %s added to request handler", path)
-		mux.Handle(path, authHandler(config.SecretToken, handler))
+		mux.Handle(path, logHandler(authHandler(config.SecretToken, handler)))
 	}
 
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
@@ -68,9 +68,8 @@ func run(server *http.Server, ssl *SSLConfig) error {
 	logp.Info("Listening on: %s", server.Addr)
 	if ssl.isEnabled() {
 		return server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
-	} else {
-		return server.ListenAndServe()
 	}
+	return server.ListenAndServe()
 }
 
 func stop(server *http.Server, timeout time.Duration) {
@@ -87,10 +86,18 @@ func stop(server *http.Server, timeout time.Duration) {
 	}
 }
 
+func logHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
+		requestCounter.Inc()
+		h.ServeHTTP(w, r)
+	})
+}
+
 func authHandler(secretToken string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestCounter.Inc()
 		if !isAuthorized(r, secretToken) {
+			logp.Err(errInvalidToken.Error())
 			sendStatus(w, r, 401, errInvalidToken)
 			return
 		}
@@ -100,7 +107,6 @@ func authHandler(secretToken string, h http.Handler) http.Handler {
 
 func appHandler(p processor.Processor, config Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 		code, err := processRequest(r, p, config.SecretToken, config.MaxUnzippedSize, report)
 		sendStatus(w, r, code, err)
 	})
