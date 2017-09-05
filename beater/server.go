@@ -169,6 +169,7 @@ func reportInfo(code int, err error) (int, error) {
 //   Authorization: Bearer <secret-token>
 // Bearer must be part of it.
 func isAuthorized(req *http.Request, secretToken string) bool {
+	// No token configured
 	if secretToken == "" {
 		return true
 	}
