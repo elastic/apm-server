@@ -97,8 +97,8 @@ func logHandler(h http.Handler) http.Handler {
 func authHandler(secretToken string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isAuthorized(r, secretToken) {
-			logp.Err(errInvalidToken.Error())
-			sendStatus(w, r, 401, errInvalidToken)
+			code, err := reportInfo(401, errInvalidToken)
+			sendStatus(w, r, code, err)
 			return
 		}
 		h.ServeHTTP(w, r)
