@@ -32,11 +32,11 @@ var transactionSchema = `{
             "required": ["name", "version"]
         },
         "argv": {
-            "type": ["array","null"],
+            "type": ["array", "null"],
             "minItems": 0
         },
         "framework": {
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "type": "string",
@@ -55,7 +55,7 @@ var transactionSchema = `{
             "maxLength": 1024
         },
         "language": {
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "type": "string",
@@ -82,7 +82,7 @@ var transactionSchema = `{
             "maxLength": 1024
         },
         "runtime": {
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "type": "string",
@@ -135,74 +135,74 @@ var transactionSchema = `{
     "description": "Data captured by an agent representing an event occurring in a monitored app",
     "properties": {
         "context": {
-              "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "doc/spec/context.json",
-  "title": "Context",
-  "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
-  "type": ["object","null"],
-  "properties": {
-    "custom": {
-      "description": "An arbitrary mapping of additional metadata to store with the event.",
-      "type": ["object", "null"],
-      "regexProperties": true,
-      "patternProperties": {
-        "^[^.*\"]*$": { }
-      },
-      "additionalProperties": false
-    },
-    "response": {
-        "type": ["object", "null"],
-        "properties": {
-            "finished": {
-                "type": ["boolean", "null"]
+                "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "doc/spec/context.json",
+    "title": "Context",
+    "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
+    "type": ["object", "null"],
+    "properties": {
+        "custom": {
+            "description": "An arbitrary mapping of additional metadata to store with the event.",
+            "type": ["object", "null"],
+            "regexProperties": true,
+            "patternProperties": {
+                "^[^.*\"]*$": {}
             },
-            "headers": {
-                "type": ["object", "null"],
-                "properties": {
-                    "content-type": {
-                        "type": ["string", "null"]
+            "additionalProperties": false
+        },
+        "response": {
+            "type": ["object", "null"],
+            "properties": {
+                "finished": {
+                    "type": ["boolean", "null"]
+                },
+                "headers": {
+                    "type": ["object", "null"],
+                    "properties": {
+                        "content-type": {
+                            "type": ["string", "null"]
+                        }
                     }
+                },
+                "headers_sent": {
+                    "type": ["boolean", "null"]
+                },
+                "status_code": {
+                    "type": ["number", "null"]
                 }
-            },
-            "headers_sent": {
-                "type": ["boolean", "null"]
-            },
-            "status_code": {
-                "type": ["number", "null"]
             }
-        }
-    },
-    "request": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
+        },
+        "request": {
+                "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/http.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
     "type": "object",
     "properties": {
         "body": {
-          "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
-          "type": ["object", "string", "null"]
+            "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
+            "type": ["object", "string", "null"]
         },
         "env": {
-          "description": "The env variable is a compounded of environment information passed from the webserver.",
-          "type": ["object", "null"],
-          "properties": {}
+            "description": "The env variable is a compounded of environment information passed from the webserver.",
+            "type": ["object", "null"],
+            "properties": {}
         },
         "headers": {
-          "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
-          "type": ["object", "null"],
-          "properties": {
-              "content-type": {
-                  "type": ["string", "null"]
-              },
-              "cookie": {
-                  "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
-                  "type": ["string", "null"]
-              },
-              "user-agent": {
-                  "type": ["string", "null"]
-              }
-          }
+            "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
+            "type": ["object", "null"],
+            "properties": {
+                "content-type": {
+                    "type": ["string", "null"]
+                },
+                "cookie": {
+                    "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
+                    "type": ["string", "null"]
+                },
+                "user-agent": {
+                    "type": ["string", "null"]
+                }
+            }
         },
         "http_version": {
             "description": "HTTP version.",
@@ -267,20 +267,20 @@ var transactionSchema = `{
         }
     },
     "required": ["url", "method"]
-    },
-    "tags": {
-      "type": ["object", "null"],
-      "regexProperties": true,
-      "patternProperties": {
-        "^[^.*\"]*$": {
-            "type": "string",
-            "maxLength": 1024
-          }
-      },
-      "additionalProperties": false
-    },
-    "user":{
-          "$schema": "http://json-schema.org/draft-04/schema#",
+        },
+        "tags": {
+            "type": ["object", "null"],
+            "regexProperties": true,
+            "patternProperties": {
+                "^[^.*\"]*$": {
+                    "type": "string",
+                    "maxLength": 1024
+                }
+            },
+            "additionalProperties": false
+        },
+        "user": {
+                "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/user.json",
     "title": "User",
     "description": "Describes the authenticated User for a request.",
@@ -299,8 +299,8 @@ var transactionSchema = `{
             "maxLength": 1024
         }
     }
+        }
     }
-  }
         },
         "duration": {
             "type": "number",
@@ -334,13 +334,13 @@ var transactionSchema = `{
     "type": "object",
     "properties": {
         "id": {
-            "type":["number", "null"],
+            "type": ["number", "null"],
             "description": "The locally unique ID of the trace."
         },
         "context": {
             "type": ["object", "null"],
             "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
-            "properties":{
+            "properties": {
                 "db": {
                     "type": ["object", "null"],
                     "description": "An object containing contextual data for database traces",
@@ -375,7 +375,7 @@ var transactionSchema = `{
             "maxLength": 1024
         },
         "parent": {
-            "type":["number", "null"],
+            "type": ["number", "null"],
             "description": "The locally unique ID of the parent of the trace."
         },
         "stacktrace": {
@@ -387,7 +387,7 @@ var transactionSchema = `{
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
-    "properties":{
+    "properties": {
         "abs_path": {
             "description": "The absolute path of the file involved in the stack frame",
             "type": ["string", "null"]
@@ -432,7 +432,7 @@ var transactionSchema = `{
         "vars": {
             "description": "Local variables for this stack frame",
             "type": ["object", "null"],
-            "properties": { }
+            "properties": {}
         }
     },
     "required": ["filename", "lineno"]
@@ -450,7 +450,9 @@ var transactionSchema = `{
         }
     },
     "dependencies": {
-        "parent": { "required": ["id"] }
+        "parent": {
+            "required": ["id"]
+        }
     },
     "required": ["duration", "name", "start", "type"]
             },
@@ -467,9 +469,6 @@ var transactionSchema = `{
             "minItems": 1
         }
     },
-    "required": [
-        "app",
-        "transactions"
-    ]
+    "required": ["app", "transactions"]
 }
 `

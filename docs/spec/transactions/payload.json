@@ -19,8 +19,5 @@
             "minItems": 1
         }
     },
-    "required": [
-        "app",
-        "transactions"
-    ]
+    "required": ["app", "transactions"]
 }

@@ -9,11 +9,11 @@
         },
         "culprit": {
             "description": "Function call which was the primary perpetrator of this event.",
-            "type": ["string","null"]
+            "type": ["string", "null"]
         },
         "exception": {
             "description": "A standard exception.",
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "code": {
                     "type": ["string", "number", "null"],
@@ -32,7 +32,7 @@
                     "type": ["object", "null"]
                 },
                 "stacktrace": {
-                    "type": ["array","null"],
+                    "type": ["array", "null"],
                     "items": {
                         "$ref": "./../stacktrace_frame.json"
                     },
@@ -49,9 +49,9 @@
             "required": ["message"]
         },
         "id": {
-          "type": ["string","null"],
-          "description": "UUID for the error",
-          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+            "type": ["string", "null"],
+            "description": "UUID for the error",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         },
         "log": {
             "type": ["object", "null"],
@@ -60,13 +60,7 @@
                     "description": "The record severity.",
                     "type": ["string", "null"],
                     "default": "error",
-                    "enum": [
-                        "debug",
-                        "info",
-                        "warning",
-                        "error",
-                        "fatal"
-                    ],
+                    "enum": ["debug", "info", "warning", "error", "fatal"],
                     "maxLength": 1024
                 },
                 "logger_name": {
@@ -86,7 +80,7 @@
                 
                 },
                 "stacktrace": {
-                    "type": ["array","null"],
+                    "type": ["array", "null"],
                     "items": {
                         "$ref": "./../stacktrace_frame.json"
                     },
@@ -103,7 +97,11 @@
     },
     "required": ["timestamp"],
     "anyOf": [
-      { "required": ["exception"] },
-      { "required": ["log"] }
+        {
+            "required": ["exception"]
+        },
+        {
+            "required": ["log"]
+        }
     ]
 }

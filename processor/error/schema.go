@@ -32,11 +32,11 @@ var errorSchema = `{
             "required": ["name", "version"]
         },
         "argv": {
-            "type": ["array","null"],
+            "type": ["array", "null"],
             "minItems": 0
         },
         "framework": {
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "type": "string",
@@ -55,7 +55,7 @@ var errorSchema = `{
             "maxLength": 1024
         },
         "language": {
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "type": "string",
@@ -82,7 +82,7 @@ var errorSchema = `{
             "maxLength": 1024
         },
         "runtime": {
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "type": "string",
@@ -112,74 +112,74 @@ var errorSchema = `{
     "description": "Data captured by an agent representing an event occurring in a monitored app",
     "properties": {
         "context": {
-              "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "doc/spec/context.json",
-  "title": "Context",
-  "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
-  "type": ["object","null"],
-  "properties": {
-    "custom": {
-      "description": "An arbitrary mapping of additional metadata to store with the event.",
-      "type": ["object", "null"],
-      "regexProperties": true,
-      "patternProperties": {
-        "^[^.*\"]*$": { }
-      },
-      "additionalProperties": false
-    },
-    "response": {
-        "type": ["object", "null"],
-        "properties": {
-            "finished": {
-                "type": ["boolean", "null"]
+                "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "doc/spec/context.json",
+    "title": "Context",
+    "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
+    "type": ["object", "null"],
+    "properties": {
+        "custom": {
+            "description": "An arbitrary mapping of additional metadata to store with the event.",
+            "type": ["object", "null"],
+            "regexProperties": true,
+            "patternProperties": {
+                "^[^.*\"]*$": {}
             },
-            "headers": {
-                "type": ["object", "null"],
-                "properties": {
-                    "content-type": {
-                        "type": ["string", "null"]
+            "additionalProperties": false
+        },
+        "response": {
+            "type": ["object", "null"],
+            "properties": {
+                "finished": {
+                    "type": ["boolean", "null"]
+                },
+                "headers": {
+                    "type": ["object", "null"],
+                    "properties": {
+                        "content-type": {
+                            "type": ["string", "null"]
+                        }
                     }
+                },
+                "headers_sent": {
+                    "type": ["boolean", "null"]
+                },
+                "status_code": {
+                    "type": ["number", "null"]
                 }
-            },
-            "headers_sent": {
-                "type": ["boolean", "null"]
-            },
-            "status_code": {
-                "type": ["number", "null"]
             }
-        }
-    },
-    "request": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
+        },
+        "request": {
+                "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/http.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
     "type": "object",
     "properties": {
         "body": {
-          "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
-          "type": ["object", "string", "null"]
+            "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
+            "type": ["object", "string", "null"]
         },
         "env": {
-          "description": "The env variable is a compounded of environment information passed from the webserver.",
-          "type": ["object", "null"],
-          "properties": {}
+            "description": "The env variable is a compounded of environment information passed from the webserver.",
+            "type": ["object", "null"],
+            "properties": {}
         },
         "headers": {
-          "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
-          "type": ["object", "null"],
-          "properties": {
-              "content-type": {
-                  "type": ["string", "null"]
-              },
-              "cookie": {
-                  "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
-                  "type": ["string", "null"]
-              },
-              "user-agent": {
-                  "type": ["string", "null"]
-              }
-          }
+            "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
+            "type": ["object", "null"],
+            "properties": {
+                "content-type": {
+                    "type": ["string", "null"]
+                },
+                "cookie": {
+                    "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
+                    "type": ["string", "null"]
+                },
+                "user-agent": {
+                    "type": ["string", "null"]
+                }
+            }
         },
         "http_version": {
             "description": "HTTP version.",
@@ -244,20 +244,20 @@ var errorSchema = `{
         }
     },
     "required": ["url", "method"]
-    },
-    "tags": {
-      "type": ["object", "null"],
-      "regexProperties": true,
-      "patternProperties": {
-        "^[^.*\"]*$": {
-            "type": "string",
-            "maxLength": 1024
-          }
-      },
-      "additionalProperties": false
-    },
-    "user":{
-          "$schema": "http://json-schema.org/draft-04/schema#",
+        },
+        "tags": {
+            "type": ["object", "null"],
+            "regexProperties": true,
+            "patternProperties": {
+                "^[^.*\"]*$": {
+                    "type": "string",
+                    "maxLength": 1024
+                }
+            },
+            "additionalProperties": false
+        },
+        "user": {
+                "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/user.json",
     "title": "User",
     "description": "Describes the authenticated User for a request.",
@@ -276,16 +276,16 @@ var errorSchema = `{
             "maxLength": 1024
         }
     }
+        }
     }
-  }
         },
         "culprit": {
             "description": "Function call which was the primary perpetrator of this event.",
-            "type": ["string","null"]
+            "type": ["string", "null"]
         },
         "exception": {
             "description": "A standard exception.",
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "code": {
                     "type": ["string", "number", "null"],
@@ -304,14 +304,14 @@ var errorSchema = `{
                     "type": ["object", "null"]
                 },
                 "stacktrace": {
-                    "type": ["array","null"],
+                    "type": ["array", "null"],
                     "items": {
                             "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/stacktrace.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
-    "properties":{
+    "properties": {
         "abs_path": {
             "description": "The absolute path of the file involved in the stack frame",
             "type": ["string", "null"]
@@ -356,7 +356,7 @@ var errorSchema = `{
         "vars": {
             "description": "Local variables for this stack frame",
             "type": ["object", "null"],
-            "properties": { }
+            "properties": {}
         }
     },
     "required": ["filename", "lineno"]
@@ -374,9 +374,9 @@ var errorSchema = `{
             "required": ["message"]
         },
         "id": {
-          "type": ["string","null"],
-          "description": "UUID for the error",
-          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+            "type": ["string", "null"],
+            "description": "UUID for the error",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         },
         "log": {
             "type": ["object", "null"],
@@ -385,13 +385,7 @@ var errorSchema = `{
                     "description": "The record severity.",
                     "type": ["string", "null"],
                     "default": "error",
-                    "enum": [
-                        "debug",
-                        "info",
-                        "warning",
-                        "error",
-                        "fatal"
-                    ],
+                    "enum": ["debug", "info", "warning", "error", "fatal"],
                     "maxLength": 1024
                 },
                 "logger_name": {
@@ -411,14 +405,14 @@ var errorSchema = `{
                 
                 },
                 "stacktrace": {
-                    "type": ["array","null"],
+                    "type": ["array", "null"],
                     "items": {
                             "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/stacktrace.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
-    "properties":{
+    "properties": {
         "abs_path": {
             "description": "The absolute path of the file involved in the stack frame",
             "type": ["string", "null"]
@@ -463,7 +457,7 @@ var errorSchema = `{
         "vars": {
             "description": "Local variables for this stack frame",
             "type": ["object", "null"],
-            "properties": { }
+            "properties": {}
         }
     },
     "required": ["filename", "lineno"]
@@ -481,8 +475,12 @@ var errorSchema = `{
     },
     "required": ["timestamp"],
     "anyOf": [
-      { "required": ["exception"] },
-      { "required": ["log"] }
+        {
+            "required": ["exception"]
+        },
+        {
+            "required": ["log"]
+        }
     ]
             },
             "minItems": 1
@@ -511,9 +509,6 @@ var errorSchema = `{
     }
         }
     },
-    "required": [
-        "app",
-        "errors"
-    ]
+    "required": ["app", "errors"]
 }
 `
