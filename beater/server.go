@@ -38,12 +38,9 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	for path, p := range processor.Registry.Processors() {
-
-		handler := createHandler(p, config, report)
-
+		handler := appHandler(p, config, report)
 		logp.Info("Path %s added to request handler", path)
-
-		mux.HandleFunc(path, handler)
+		mux.Handle(path, logHandler(authHandler(config.SecretToken, handler)))
 	}
 
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
@@ -71,9 +68,8 @@ func run(server *http.Server, ssl *SSLConfig) error {
 	logp.Info("Listening on: %s", server.Addr)
 	if ssl.isEnabled() {
 		return server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
-	} else {
-		return server.ListenAndServe()
 	}
+	return server.ListenAndServe()
 }
 
 func stop(server *http.Server, timeout time.Duration) {
@@ -90,16 +86,30 @@ func stop(server *http.Server, timeout time.Duration) {
 	}
 }
 
-type handler func(w http.ResponseWriter, r *http.Request)
-
-func createHandler(p processor.Processor, config Config, report reporter) handler {
-	return func(w http.ResponseWriter, r *http.Request) {
+func logHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 		requestCounter.Inc()
+		h.ServeHTTP(w, r)
+	})
+}
 
+func authHandler(secretToken string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !isAuthorized(r, secretToken) {
+			code, err := reportInfo(401, errInvalidToken)
+			sendStatus(w, r, code, err)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func appHandler(p processor.Processor, config Config, report reporter) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := processRequest(r, p, config.SecretToken, config.MaxUnzippedSize, report)
 		sendStatus(w, r, code, err)
-	}
+	})
 }
 
 func processRequest(
@@ -109,9 +119,7 @@ func processRequest(
 	maxSize int64,
 	report reporter,
 ) (code int, err error) {
-	if !checkSecretToken(r, secretToken) {
-		return reportInfo(401, errInvalidToken)
-	}
+
 	if r.Method != "POST" {
 		return reportInfo(405, errPOSTRequestOnly)
 	}
@@ -157,29 +165,19 @@ func reportInfo(code int, err error) (int, error) {
 	return code, err
 }
 
-// checkSecretToken checks the Authorization header. It must be in the form of:
-//
+// isAuthorized checks the Authorization header. It must be in the form of:
 //   Authorization: Bearer <secret-token>
-//
 // Bearer must be part of it.
-func checkSecretToken(req *http.Request, secretToken string) bool {
+func isAuthorized(req *http.Request, secretToken string) bool {
 	// No token configured
 	if secretToken == "" {
 		return true
 	}
 	header := req.Header.Get("Authorization")
-
 	parts := strings.Split(header, " ")
-
-	if len(parts) != 2 {
-		// No access
+	if len(parts) != 2 || parts[0] != "Bearer" {
 		return false
 	}
-
-	if parts[0] != "Bearer" {
-		return false
-	}
-
 	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(secretToken)) == 1
 }
 
