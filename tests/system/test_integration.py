@@ -97,6 +97,7 @@ class Test(ElasticTest):
         log = self.get_log()
         log = log.replace("WARN EXPERIMENTAL", "")
         log = log.replace("WARN BETA", "")
+        log = log.replace("WARN ALPHA", "")
         # Jenkins runs as a Windows service and when Jenkins executes theses
         # tests the Beat is confused since it thinks it is running as a service.
         log = log.replace(

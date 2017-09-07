@@ -16,6 +16,7 @@ type beater struct {
 
 // Creates beater
 func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
+	logp.Warn("ALPHA: You are using an alpha release of APM Server.")
 	beaterConfig := defaultConfig
 	if err := ucfg.Unpack(&beaterConfig); err != nil {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
