@@ -13,24 +13,22 @@ class Test(AccessTest):
         url = 'http://localhost:8200/v1/transactions'
         transactions = self.get_transaction_payload()
 
-        ctype = {'Content-Type': 'application/json'}.items()
+        def oauth(v): return {'Authorization': v}
 
-        def oauth(v): return {'Authorization': v}.items()
-
-        r = requests.post(url, data=transactions, headers=dict(ctype))
+        r = requests.post(url, json=transactions)
         assert r.status_code == 401, r.status_code
 
         r = requests.post(url,
-                          data=transactions,
-                          headers=dict(ctype + oauth('Bearer 1234')))
+                          json=transactions,
+                          headers=oauth('Bearer 1234'))
         assert r.status_code == 202, r.status_code
 
         r = requests.post(url,
-                          data=transactions,
-                          headers=dict(ctype + oauth('Bearer wrongtoken')))
+                          json=transactions,
+                          headers=oauth('Bearer wrongtoken'))
         assert r.status_code == 401, r.status_code
 
         r = requests.post(url,
-                          data=transactions,
-                          headers=dict(ctype + oauth('Wrongbearer 1234')))
+                          json=transactions,
+                          headers=oauth('Wrongbearer 1234'))
         assert r.status_code == 401, r.status_code
