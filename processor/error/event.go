@@ -7,6 +7,8 @@ import (
 	"io"
 	"strconv"
 
+	"time"
+
 	m "github.com/elastic/apm-server/processor/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -18,7 +20,7 @@ type Event struct {
 	Context   common.MapStr `json:"context"`
 	Exception *Exception    `json:"exception"`
 	Log       *Log          `json:"log"`
-	Timestamp string        `json:"timestamp"`
+	Timestamp time.Time     `json:"timestamp"`
 
 	enhancer            utility.MapStrEnhancer
 	data                common.MapStr
@@ -47,7 +49,7 @@ func (e *Event) DocType() string {
 	return "error"
 }
 
-func (e *Event) Mappings(pa *payload) (string, []m.DocMapping) {
+func (e *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
 	return e.Timestamp,
 		[]m.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {

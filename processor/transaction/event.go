@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"time"
+
 	m "github.com/elastic/apm-server/processor/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -12,7 +14,7 @@ type Event struct {
 	Type      string        `json:"type"`
 	Result    *string       `json:"result"`
 	Duration  float64       `json:"duration"`
-	Timestamp string        `json:"timestamp"`
+	Timestamp time.Time     `json:"timestamp"`
 	Context   common.MapStr `json:"context"`
 	Traces    []Trace       `json:"traces"`
 }
@@ -31,7 +33,7 @@ func (t *Event) Transform() common.MapStr {
 	return tx
 }
 
-func (t *Event) Mappings(pa *payload) (string, []m.DocMapping) {
+func (t *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
 	return t.Timestamp,
 		[]m.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
