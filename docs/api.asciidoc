@@ -1,10 +1,11 @@
 == API Docs
 
+
+Unless you are implementing an agent, you don't need to know about the specifics of this API. It's is documented here
+
 Details about the different API Endpoints can be found below:
 
 
 include::./transaction-api.asciidoc[Transaction API]
 
 include::./error-api.asciidoc[Error API]
-
-include::./elasticsearch-docs.asciidoc[Elasticsearch]
