@@ -19,10 +19,10 @@ If your setups involves multiple hosts, you need to adjust the configuration opt
 
 ## Load Dashboards
 
-The current UI consists of pre-built, customizable Kibana dashboards. The dashboards are shipped with the APM Server. For now, the dashboards have to be loaded manually with the following command:
+The current UI consists of pre-built, customizable Kibana dashboards. The dashboards are shipped with the APM Server. To install, run the following command:
 
 ```
-curl --user elastic:changeme -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
+./apm-server setup
 ```
 
 Here's a screenshot of one of the dashboards:
