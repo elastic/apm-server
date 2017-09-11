@@ -18,6 +18,10 @@ update-beats:
 	BEATS_VERSION=$(BEATS_VERSION) sh _beats/update.sh
 	$(MAKE) update
 
+.PHONY: index-template
+index-template: ## this overrides the standard index-template cmd from beats
+	go run ${ES_BEATS}/dev-tools/cmd/index_template/index_template.go -index apm -output ${BEAT_GOPATH}/src/${BEAT_PATH}/${BEAT_NAME}.template-es${VERSION}.json -file ${BEAT_GOPATH}/src/${BEAT_PATH}/fields.yml -es.version=${VERSION}
+
 # This is called by the beats packer before building starts
 .PHONY: before-build
 before-build:
