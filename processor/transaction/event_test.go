@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"time"
+
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -36,7 +38,7 @@ func TestEventTransform(t *testing.T) {
 				Name:      "mytransaction",
 				Type:      "tx",
 				Result:    &result,
-				Timestamp: "2017-07-09",
+				Timestamp: time.Now(),
 				Duration:  65.98,
 				Context:   common.MapStr{"foo": "bar"},
 				Traces:    []Trace{},

@@ -17,6 +17,6 @@ func TestImplementProcessorInterface(t *testing.T) {
 }
 
 func TestAddProcessorToRegistryOnInit(t *testing.T) {
-	p := pr.Registry.Processor("/v1/errors")
+	p := pr.Registry.Processor(Endpoint)
 	assert.NotNil(t, p)
 }
