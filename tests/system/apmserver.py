@@ -23,8 +23,7 @@ class BaseTest(TestCase):
                                             'valid',
                                             'transaction',
                                             'payload.json'))
-        transactions = json.loads(open(path).read())
-        return json.dumps(transactions)
+        return json.loads(open(path).read())
 
 
 class ServerBaseTest(BaseTest):

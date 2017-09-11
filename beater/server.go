@@ -144,7 +144,7 @@ func processRequest(
 
 	list, err := p.Transform(buf)
 	if err != nil {
-		return reportError(500, fmt.Errorf("Data transformation error: %s", err))
+		return reportInfo(400, fmt.Errorf("Data transformation error: %s", err))
 	}
 
 	responseValid.Inc()
