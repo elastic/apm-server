@@ -19,8 +19,5 @@
             "$ref": "../system.json"
         }
     },
-    "required": [
-        "app",
-        "errors"
-    ]
+    "required": ["app", "errors"]
 }

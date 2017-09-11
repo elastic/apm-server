@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"time"
+
 	m "github.com/elastic/apm-server/processor/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -40,7 +42,7 @@ func (t *Trace) Transform(transactionId string) common.MapStr {
 	return tr
 }
 
-func (t *Trace) Mappings(pa *payload, tx Event) (string, []m.DocMapping) {
+func (t *Trace) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 	return tx.Timestamp,
 		[]m.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {

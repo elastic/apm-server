@@ -4,13 +4,13 @@
     "type": "object",
     "properties": {
         "id": {
-            "type":["number", "null"],
+            "type": ["number", "null"],
             "description": "The locally unique ID of the trace."
         },
         "context": {
             "type": ["object", "null"],
             "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
-            "properties":{
+            "properties": {
                 "db": {
                     "type": ["object", "null"],
                     "description": "An object containing contextual data for database traces",
@@ -45,7 +45,7 @@
             "maxLength": 1024
         },
         "parent": {
-            "type":["number", "null"],
+            "type": ["number", "null"],
             "description": "The locally unique ID of the parent of the trace."
         },
         "stacktrace": {
@@ -67,7 +67,9 @@
         }
     },
     "dependencies": {
-        "parent": { "required": ["id"] }
+        "parent": {
+            "required": ["id"]
+        }
     },
     "required": ["duration", "name", "start", "type"]
 }
