@@ -39,13 +39,13 @@ class Test(ServerBaseTest):
         r = requests.post(self.transactions_url, json="not json")
         assert r.status_code == 400, r.status_code
 
-    def test_bad_transformation(self):
+    def test_validation_fail(self):
         transactions = self.get_transaction_payload()
         # month and day swapped
         transactions["transactions"][0]["timestamp"] = "2017-30-05T18:53:27.154Z"
         r = requests.post(self.transactions_url, json=transactions)
         assert r.status_code == 400, r.status_code
-        assert "Data transformation error: parsing time" in r.content, r.content
+        assert "Problem validating JSON document against schema" in r.content, r.content
 
     def test_healthcheck(self):
         healtcheck_url = 'http://localhost:8200/healthcheck'
