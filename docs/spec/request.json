@@ -6,29 +6,29 @@
     "type": "object",
     "properties": {
         "body": {
-          "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
-          "type": ["object", "string", "null"]
+            "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
+            "type": ["object", "string", "null"]
         },
         "env": {
-          "description": "The env variable is a compounded of environment information passed from the webserver.",
-          "type": ["object", "null"],
-          "properties": {}
+            "description": "The env variable is a compounded of environment information passed from the webserver.",
+            "type": ["object", "null"],
+            "properties": {}
         },
         "headers": {
-          "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
-          "type": ["object", "null"],
-          "properties": {
-              "content-type": {
-                  "type": ["string", "null"]
-              },
-              "cookie": {
-                  "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
-                  "type": ["string", "null"]
-              },
-              "user-agent": {
-                  "type": ["string", "null"]
-              }
-          }
+            "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
+            "type": ["object", "null"],
+            "properties": {
+                "content-type": {
+                    "type": ["string", "null"]
+                },
+                "cookie": {
+                    "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
+                    "type": ["string", "null"]
+                },
+                "user-agent": {
+                    "type": ["string", "null"]
+                }
+            }
         },
         "http_version": {
             "description": "HTTP version.",

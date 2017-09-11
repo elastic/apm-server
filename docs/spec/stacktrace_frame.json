@@ -4,7 +4,7 @@
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
-    "properties":{
+    "properties": {
         "abs_path": {
             "description": "The absolute path of the file involved in the stack frame",
             "type": ["string", "null"]
@@ -49,7 +49,7 @@
         "vars": {
             "description": "Local variables for this stack frame",
             "type": ["object", "null"],
-            "properties": { }
+            "properties": {}
         }
     },
     "required": ["filename", "lineno"]

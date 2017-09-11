@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	pr.Registry.AddProcessor("/v1/errors", NewProcessor())
+	pr.Registry.AddProcessor(Endpoint, NewProcessor())
 }
 
 var (
@@ -22,6 +22,7 @@ var (
 )
 
 const (
+	Endpoint      = "/v1/errors"
 	processorName = "error"
 )
 

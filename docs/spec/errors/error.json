@@ -9,11 +9,11 @@
         },
         "culprit": {
             "description": "Function call which was the primary perpetrator of this event.",
-            "type": ["string","null"]
+            "type": ["string", "null"]
         },
         "exception": {
             "description": "A standard exception.",
-            "type": ["object","null"],
+            "type": ["object", "null"],
             "properties": {
                 "code": {
                     "type": ["string", "number", "null"],
@@ -32,7 +32,7 @@
                     "type": ["object", "null"]
                 },
                 "stacktrace": {
-                    "type": ["array","null"],
+                    "type": ["array", "null"],
                     "items": {
                         "$ref": "./../stacktrace_frame.json"
                     },
@@ -49,9 +49,9 @@
             "required": ["message"]
         },
         "id": {
-          "type": ["string","null"],
-          "description": "UUID for the error",
-          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+            "type": ["string", "null"],
+            "description": "UUID for the error",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         },
         "log": {
             "type": ["object", "null"],
@@ -60,13 +60,7 @@
                     "description": "The record severity.",
                     "type": ["string", "null"],
                     "default": "error",
-                    "enum": [
-                        "debug",
-                        "info",
-                        "warning",
-                        "error",
-                        "fatal"
-                    ],
+                    "enum": ["debug", "info", "warning", "error", "fatal"],
                     "maxLength": 1024
                 },
                 "logger_name": {
@@ -83,10 +77,10 @@
                     "description": "A parametrized message. E.g. Could not connect to %s. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
                     "type": ["string", "null"],
                     "maxLength": 1024
-                
+
                 },
                 "stacktrace": {
-                    "type": ["array","null"],
+                    "type": ["array", "null"],
                     "items": {
                         "$ref": "./../stacktrace_frame.json"
                     },
@@ -97,13 +91,17 @@
         },
         "timestamp": {
             "type": "string",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ",
-            "pattern": "^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})(\\.\\d{1,6})?Z$"
+            "format": "date-time",
+            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
     "required": ["timestamp"],
     "anyOf": [
-      { "required": ["exception"] },
-      { "required": ["log"] }
+        {
+            "required": ["exception"]
+        },
+        {
+            "required": ["log"]
+        }
     ]
 }
