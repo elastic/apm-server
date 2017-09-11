@@ -6,8 +6,8 @@ For more details also check the APM Server https://github.com/elastic/apm-server
 
 == Overview
 
-The APM Server is central component in the Elastic APM system.
-It receives data from APM agents and processes them into Elasticsearch documents.
+The APM Server is a central component in the Elastic APM system.
+It receives data from APM agents and transforms them into Elasticsearch documents.
 A single APM agent can handle data from multiple apps.
 
 APM Server works by exposing an HTTP server to which agents post the APM data they collect.
