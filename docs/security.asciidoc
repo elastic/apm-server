@@ -3,13 +3,15 @@
 APM Server exposes a HTTP endpoint and as with anything that opens ports on your servers, you should be careful about who can connect to it.
 We recommend using firewall rules to ensure only authorized systems can connect.
 
-There is also the option of setting up TLS to ensure data sent to the APM Server is encrypted.
+There is also the option of setting up SSL to ensure data sent to the APM Server is encrypted.
 
 
-==== TLS setup
+==== SSL setup
 
-
-TBD
+To enable SSL you need a private key and a certificate issued by a certification authority (CA).
+Then you can specify the path to those files in the configuration properties apm-server.ssl.key and apm-server.ssl.certificate respectively.
+This will make the APM Server to serve HTTPS requests instead of HTTP, so you also need to enable SSL in the agent.
+Please check the agent documentation for how to do it.
 
 ==== Secret token
 
