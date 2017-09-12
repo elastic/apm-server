@@ -180,7 +180,7 @@ output.elasticsearch:
   # Optional index name. The default is "apm-server" plus date
   # and generates [apm-server-]YYYY.MM.DD keys.
   # In case you modify this pattern you must update setup.template.name and setup.template.pattern accordingly.
-  #index: "apm-server-%{[beat.version]}-%{+yyyy.MM.dd}"
+  #index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
 
   # Optional ingest node pipeline. By default no pipeline will be used.
   #pipeline: ""
@@ -275,7 +275,7 @@ output.elasticsearch:
 
   # Optional index name. The default index name is set to name of the beat
   # in all lowercase.
-  #index: 'apm-server'
+  #index: 'apm'
 
   # SOCKS5 proxy server URL
   #proxy_url: socks5://user:password@socks5-server:2233
@@ -644,12 +644,12 @@ output.elasticsearch:
 
 # Template name. By default the template name is "apm-server-%{[beat.version]}"
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-#setup.template.name: "apm-server-%{[beat.version]}"
+#setup.template.name: "apm-%{[beat.version]}"
 
 # Template patttern. By default the template pattern is "-%{[beat.version]}-*" to apply to the default index settings.
 # The first part is the version of the beat and then -* is used to match all daily indicies.
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-#setup.template.pattern: "apm-server-%{[beat.version]}-*"
+#setup.template.pattern: "apm-%{[beat.version]}-*"
 
 # Path to fields.yml file to generate the template
 #setup.template.fields: "${path.config}/fields.yml"
