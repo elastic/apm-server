@@ -49,11 +49,6 @@ var transactionSchema = `{
             },
             "required": ["name", "version"]
         },
-        "git_ref": {
-            "description": "Git Reference of the app emitting this event",
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
         "language": {
             "type": ["object", "null"],
             "properties": {
@@ -323,6 +318,7 @@ var transactionSchema = `{
         },
         "timestamp": {
             "type": "string",
+            "pattern": "Z$",
             "format": "date-time",
             "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         },

@@ -47,6 +47,14 @@ class Test(ServerBaseTest):
         assert r.status_code == 400, r.status_code
         assert "Problem validating JSON document against schema" in r.content, r.content
 
+    def test_validation_2_fail(self):
+        transactions = self.get_transaction_payload()
+        # timezone offsets not allowed
+        transactions["transactions"][0]["timestamp"] = "2017-05-30T18:53:27.154+00:20"
+        r = requests.post(self.transactions_url, json=transactions)
+        assert r.status_code == 400, r.status_code
+        assert "Problem validating JSON document against schema" in r.content, r.content
+
     def test_healthcheck(self):
         healtcheck_url = 'http://localhost:8200/healthcheck'
         r = requests.get(healtcheck_url)

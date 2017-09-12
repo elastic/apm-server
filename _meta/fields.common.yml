@@ -151,11 +151,6 @@
               description: >
                 App version.
 
-            - name: git_ref
-              type: keyword
-              description: >
-                App git reference.
-
             - name: pid
               type: long
               description: >
@@ -221,29 +216,3 @@
                 type: keyword
                 description: >
                   Agent version.
-
-        - name: db
-          type: group
-          enabled: false
-          description: >
-              An object containing contextual data for database traces
-          fields:
-            - name: instance
-              type: text
-              description: >
-                  Database instance name
-
-            - name: statement
-              type: text
-              description: >
-                  A database statement (e.g. query) for the given database type
-
-            - name: type
-              type: text
-              description: >
-                  Database type. For any SQL database, "sql". For others, the lower-case database category, e.g. "cassandra", "hbase", or "redis"
-
-            - name: user
-              type: text
-              description: >
-                  Username for accessing database

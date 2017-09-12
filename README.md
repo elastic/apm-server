@@ -57,6 +57,13 @@ in the same directory with the name apm-server.
 make
 ```
 
+You also need to create all files needed by the APM Server by running the additional command below. 
+
+```
+make update
+```
+
+
 ### Run
 
 To run APM Server with debugging output enabled, run:
