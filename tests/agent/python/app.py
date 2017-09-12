@@ -22,6 +22,7 @@ app.config['ELASTIC_APM'] = {
 
 apm = ElasticAPM(app)
 
+
 @app.route('/')
 def index():
     return 'OK'
