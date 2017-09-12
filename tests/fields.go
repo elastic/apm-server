@@ -37,7 +37,11 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
 		"trace.stacktrace",
-		"context.sql",
+		"context.db",
+		"context.db.statement",
+		"context.db.type",
+		"context.db.instance",
+		"context.db.user",
 	)
 	blacklistedFieldNames := set.Union(disabledFieldNames, undocumentedFieldNames).(*set.Set)
 
