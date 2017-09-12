@@ -1,4 +1,5 @@
 BEAT_NAME=apm-server
+BEAT_INDEX_PREFIX=apm
 BEAT_PATH=github.com/elastic/apm-server
 BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
 BEAT_URL=https://${BEAT_PATH}
