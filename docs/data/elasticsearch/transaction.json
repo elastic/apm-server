@@ -13,7 +13,6 @@
                 "name": "Express",
                 "version": "1.2.3"
             },
-            "git_ref": "ba1df27",
             "language": {
                 "name": "ecmascript",
                 "version": "8"
