@@ -189,55 +189,6 @@
       }
     },
     {
-      "id": "d7735b90-7ddf-11e7-b115-df9c90da2df1",
-      "type": "search",
-      "version": 1,
-      "attributes": {
-        "title": "Traces [APM]",
-        "description": "",
-        "hits": 0,
-        "columns": [
-          "trace.type",
-          "trace.name",
-          "trace.duration.us",
-          "trace.start.us"
-        ],
-        "sort": [
-          "trace.start.us",
-          "asc"
-        ],
-        "version": 1,
-        "kibanaSavedObjectMeta": {
-          "searchSourceJSON": "{\"index\":\"59d38220-70b3-11e7-bc2f-f714d5049c68\",\"highlightAll\":true,\"version\":true,\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[{\"meta\":{\"index\":\"59d38220-70b3-11e7-bc2f-f714d5049c68\",\"negate\":false,\"disabled\":false,\"alias\":null,\"type\":\"phrase\",\"key\":\"processor.event\",\"value\":\"trace\",\"params\":{\"query\":\"trace\",\"type\":\"phrase\"}},\"query\":{\"match\":{\"processor.event\":{\"query\":\"trace\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
-        }
-      }
-    },
-    {
-      "id": "3e3de700-7de0-11e7-b115-df9c90da2df1",
-      "type": "dashboard",
-      "version": 1,
-      "attributes": {
-        "title": "[APM] Trace Details",
-        "hits": 0,
-        "description": "",
-        "panelsJSON": "[{\"size_x\":12,\"size_y\":23,\"panelIndex\":1,\"type\":\"search\",\"id\":\"d7735b90-7ddf-11e7-b115-df9c90da2df1\",\"col\":1,\"row\":1,\"columns\":[\"trace.type\",\"trace.name\",\"trace.duration.us\",\"trace.start.us\"],\"sort\":[\"trace.start.us\",\"asc\"]}]",
-        "optionsJSON": "{\"darkTheme\":false}",
-        "uiStateJSON": "{}",
-        "version": 1,
-        "timeRestore": true,
-        "timeTo": "now",
-        "timeFrom": "now-24h",
-        "refreshInterval": {
-          "display": "Off",
-          "pause": false,
-          "value": 0
-        },
-        "kibanaSavedObjectMeta": {
-          "searchSourceJSON": "{\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
-        }
-      }
-    },
-    {
       "id": "a2e199b0-7820-11e7-8c47-65b845b5cfb3",
       "type": "visualization",
       "version": 1,
