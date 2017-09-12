@@ -470,6 +470,7 @@ var errorSchema = `{
         "timestamp": {
             "type": "string",
             "format": "date-time",
+            "pattern": "Z$",
             "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
