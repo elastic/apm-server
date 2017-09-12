@@ -49,11 +49,6 @@ var transactionSchema = `{
             },
             "required": ["name", "version"]
         },
-        "git_ref": {
-            "description": "Git Reference of the app emitting this event",
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
         "language": {
             "type": ["object", "null"],
             "properties": {

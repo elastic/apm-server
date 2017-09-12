@@ -151,11 +151,6 @@
               description: >
                 App version.
 
-            - name: git_ref
-              type: keyword
-              description: >
-                App git reference.
-
             - name: pid
               type: long
               description: >

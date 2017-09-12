@@ -239,14 +239,6 @@ App version.
 
 
 [float]
-=== `context.app.git_ref`
-
-type: keyword
-
-App git reference.
-
-
-[float]
 === `context.app.pid`
 
 type: long
