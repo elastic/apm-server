@@ -41,6 +41,7 @@ fields:
 .PHONY: go-generate
 go-generate:
 	go generate
+	go build tests/scripts/approvals.go
 
 .PHONY: create-docs
 create-docs:
