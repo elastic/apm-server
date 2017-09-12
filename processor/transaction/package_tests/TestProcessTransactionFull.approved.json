@@ -16,7 +16,6 @@
                         "name": "Express",
                         "version": "1.2.3"
                     },
-                    "git_ref": "ba1df27",
                     "language": {
                         "name": "ecmascript",
                         "version": "8"
@@ -121,7 +120,6 @@
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "git_ref": "ba1df27",
                     "name": "1234_app-12a3"
                 },
                 "db": {
@@ -190,7 +188,6 @@
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "git_ref": "ba1df27",
                     "name": "1234_app-12a3"
                 }
             },
@@ -220,7 +217,6 @@
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "git_ref": "ba1df27",
                     "name": "1234_app-12a3"
                 }
             },
@@ -250,7 +246,6 @@
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "git_ref": "ba1df27",
                     "name": "1234_app-12a3"
                 }
             },
@@ -288,7 +283,6 @@
                         "name": "Express",
                         "version": "1.2.3"
                     },
-                    "git_ref": "ba1df27",
                     "language": {
                         "name": "ecmascript",
                         "version": "8"
@@ -337,7 +331,6 @@
                         "name": "Express",
                         "version": "1.2.3"
                     },
-                    "git_ref": "ba1df27",
                     "language": {
                         "name": "ecmascript",
                         "version": "8"
@@ -386,7 +379,6 @@
                         "name": "Express",
                         "version": "1.2.3"
                     },
-                    "git_ref": "ba1df27",
                     "language": {
                         "name": "ecmascript",
                         "version": "8"
@@ -427,7 +419,6 @@
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "git_ref": "ba1df27",
                     "name": "1234_app-12a3"
                 },
                 "db": {

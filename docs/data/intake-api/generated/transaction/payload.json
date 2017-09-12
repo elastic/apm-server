@@ -2,7 +2,6 @@
     "app": {
         "name": "1234_app-12a3",
         "version": "5.1.3",
-        "git_ref": "ba1df27",
         "pid": 1234,
         "process_title": "node",
         "argv": [
