@@ -7,7 +7,7 @@ There are examples of such documents as well as documentation
 
 === Example docs
 
-The following are example documents sent to Elasticsearch from the APM Server.
+The following are example documents sent to Elasticsearch from APM Server.
 
 link:./data/elasticsearch/transaction.json[Transaction Document]
 

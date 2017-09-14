@@ -1,6 +1,6 @@
 == Transaction API
 
-To send transaction records you need to send a HTTP POST request to the APM Server `transactions` endpoint. Information pertaining to the record must be sent as a JSON object to the endpoint.
+To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint. Information pertaining to the record must be sent as a JSON object to the endpoint.
 
 link:./spec/transactions/payload.json[JSON Schema]
 
