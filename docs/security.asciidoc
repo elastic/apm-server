@@ -1,0 +1,17 @@
+=== Security
+
+APM Server exposes a HTTP endpoint and as with anything that opens ports on your servers, you should be careful about who can connect to it.
+We recommend using firewall rules to ensure only authorized systems can connect.
+
+There is also the option of setting up TLS to ensure data sent to APM Server is encrypted.
+
+
+==== TLS setup
+
+
+TBD
+
+==== Secret token
+
+
+TBD
