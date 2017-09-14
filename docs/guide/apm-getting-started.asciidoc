@@ -27,6 +27,8 @@ Elastic APM consists of four components:
 * APM Server
 * Kibana APM UI
 
+image::apm-architecture.png[Architecture of Elastic APM]
+
 *APM agents* are open source libraries written in the same language as your application.
 You install them into your application as you would install any other library.
 The agents hook into your application and start collecting performance metrics and errors automatically when your application starts.
@@ -45,8 +47,6 @@ A single APM Server process can typically handle data from hundreds of agents.
 
 To visualize the data after it's sent to Elasticsearch, you can use the pre-built, open source Kibana dashboards that come with APM Server.
 
-image::apm-architecture.png[Architecture of Elastic APM]
-
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines, and it's easy to get started.
 
 == Install and run Elastic APM
@@ -60,11 +60,11 @@ To get started using Elastic APM, you need to have:
 For information about setting up an Elasticsearch cluster, see the Elasticsearch https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started.html[Getting Started].
 To view the collected data, you need Kibana.
 
- The following sections show how to get started quickly with Elastic APM on a local machine.
+The following sections show how to get started quickly with Elastic APM on a local machine.
 
 === Install and run APM Server
 
-First, _download APM Server_ and extract for your operating system.
+First, https://www.elastic.co/downloads/apm/apm-server[download APM Server] for your operating system and extract the package.
 
 In a production environment, you would put APM Server on it's own machines, similar to how you run Elasticsearch.
 You _can_ run it on the same machines as Elasticsearch, but this is not recommended, as the processes will be competing for resources.
@@ -101,7 +101,7 @@ output:
 ==== Secure access to the API
 The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
 If you change the listen address from `localhost` to something that is accessible from outside of the machine, we recommend setting up firewall rules to ensure that only your own systems can access the API.
-Alternatively, you can use the _secret token and TLS_ to secure access to APM Server API.
+Alternatively, you can use the https://www.elastic.co/guide/en/apm/server/current/_security.html[secret token and TLS] to secure access to APM Server API.
 
 [[dashboards]]
 ==== Install the Kibana dashboards
@@ -172,7 +172,7 @@ $ pip install elastic-apm
 ----------------------------------
 
 The Python agent supports Django and Flask out of the box.
-See _Getting started with Django_ or _Getting started with Flask_ for more information on how to get started.
+See https://www.elastic.co/downloads/apm/django[Getting started with Django] or https://www.elastic.co/downloads/apm/flask[Getting started with Flask] for more information on how to get started.
 
 === Set up Kibana
 
