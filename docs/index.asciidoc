@@ -1,10 +1,9 @@
 = APM Server Docs (Experimental)
 
+== Overview
 Welcome to APM Server Docs.
 The documentation pages are still work in progress.
 For more details also check APM Server https://github.com/elastic/apm-server[Github repository].
-
-== Overview
 
 APM Server is a central component in the Elastic APM system.
 It receives data from APM agents and transforms them into Elasticsearch documents.
