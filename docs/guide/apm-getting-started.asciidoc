@@ -1,8 +1,8 @@
 [[apt-getting-started]]
 = Getting Started with Elastic APM
 
+== Overview
 
-== Introduction
 
 _Elastic APM_ is an application performance monitoring system built on the Elastic Stack.
 It uses Elasticsearch as its data store and allows you to monitor performance of thousands of applications in real time.
@@ -19,8 +19,7 @@ When errors and exceptions get collected, they automatically get a checksum assi
 This makes it possible to discern new errors from errors that have been happening for some time.
 It also makes it much easier to keep an eye on how many times specific errors happen.
 
-== Overview
-
+=== APM Components
 Elastic APM consists of four components:
 
 * Elasticsearch
