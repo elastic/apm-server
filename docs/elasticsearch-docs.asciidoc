@@ -1,6 +1,10 @@
 [[elasticsearch-docs]]
 == Elasticsearch
 
+The documents produced by APM Server have a specific structure.
+There are examples of such documents as well as documentation 
+
+
 === Example docs
 
 The following are example documents sent to Elasticsearch from the APM Server.
@@ -15,4 +19,3 @@ link:./data/elasticsearch/error.json[Error Document]
 
 include::./fields.asciidoc[See indexed fields in Elasticsearch]
 
-include::./index_pattern.asciidoc[Index-Pattern]

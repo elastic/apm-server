@@ -1,0 +1,18 @@
+=== High Availability
+
+The API exposed by APM Server is a regular HTTP JSON API. 
+To achieve high availability, you can place multiple instances of the APM Server behind a regular HTTP load balancer for example HAProxy or nginx.
+
+[ diagram showing multiple APM Servers behind a load balancer ]
+
+If an instance of APM Server should fail, the load balancer will remove it from the load balancing rotation after a short period of time.
+
+The APM Server endpoint `/healthcheck` always returns a `HTTP 200`.
+You can configure your load balancer to send HTTP requests to this endpoint to determine if a given APM Server is up and running.
+
+The APM Server maintains a small buffer internally. Data coming from agents is kept here here until it can be delivered to Elasticsearch.
+Under normal circumstance, data is forwarded to Elasticsearch immediately.
+In situations in which Elasticsearch is down briefly or in situations where there is a sudden influx of data and Elasticsearch cannot ingest it all at once, the buffer acts as a temporary storage until the data can be ingested by Elasticsearch.
+
+This also means that if a given APM Server process fails, for example because the machine its running on experiences an issue, the data that has not yet been forwarded to Elasticsearch is lost.
+
