@@ -1,10 +1,9 @@
 == API Docs
 
-Details about the different API Endpoints can be found below:
+Details about the different API Endpoints exposed by APM Server can be found below.
+Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
 
 include::./transaction-api.asciidoc[Transaction API]
 
 include::./error-api.asciidoc[Error API]
-
-include::./elasticsearch-docs.asciidoc[Elasticsearch]
