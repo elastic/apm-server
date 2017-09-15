@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
+import logging
+import httplib
 
 from flask import Flask, render_template, request, redirect, url_for
 from elasticapm.contrib.flask import ElasticAPM
 
-app = Flask(__name__)
-app.debug = True
 
-app.config['ELASTICAPM'] = {
-    'SERVERS': [os.environ.get('apm-server', 'http://localhost:8200')],
-    'DEBUG': True,
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+httplib.HTTPConnection.debuglevel = 2
+logging.getLogger('httplib').setLevel(logging.INFO)
+
+app = Flask(__name__)
+
+app.config['ELASTIC_APM'] = {
+    'APP_NAME': 'flask-app',
+    'SECRET_TOKEN': '',
 }
 
-apm = ElasticAPM(
-    app,
-    app_name='test-app',
-    secret_token='',
-)
+apm = ElasticAPM(app)
 
 
 @app.route('/')
@@ -31,5 +34,4 @@ def error():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host=os.environ.get('HOST', 'localhost'), port=port)
+    app.run(host='0.0.0.0')
