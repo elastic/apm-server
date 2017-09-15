@@ -171,6 +171,7 @@ func TestJSONFailureResponse(t *testing.T) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, body, []byte(`{"error":"Cannot compare apples to oranges"}`))
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 }
 
 func TestJSONFailureResponseWhenAcceptingAnything(t *testing.T) {
@@ -185,6 +186,7 @@ func TestJSONFailureResponseWhenAcceptingAnything(t *testing.T) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, body, []byte(`{"error":"Cannot compare apples to oranges"}`))
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 }
 
 func TestHTMLFailureResponse(t *testing.T) {
@@ -199,6 +201,7 @@ func TestHTMLFailureResponse(t *testing.T) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
+	assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
 }
 
 func TestFailureResponseNoAcceptHeader(t *testing.T) {
@@ -214,6 +217,7 @@ func TestFailureResponseNoAcceptHeader(t *testing.T) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
+	assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
 }
 
 func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {

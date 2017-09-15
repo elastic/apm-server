@@ -8,9 +8,11 @@
 https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21af0e74\...master[View commits]
 
 ==== Breaking changes
+- Remove `git_ref` from Intake API and Elasticsearch output {pull}158[158].
 
 
 ==== Bugfixes
+- Remove `context.db` from `fields.yml` for consistency, has not been indexed before {pull}159[159].
 
 
 ==== Added
