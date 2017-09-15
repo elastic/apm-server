@@ -30,8 +30,8 @@ var (
 type reporter func([]beat.Event) error
 
 var (
-	errInvalidToken    = errors.New("Invalid token")
-	errPOSTRequestOnly = errors.New("Only post requests are supported")
+	errInvalidToken    = errors.New("invalid token")
+	errPOSTRequestOnly = errors.New("only POST requests are supported")
 )
 
 func newMuxer(config Config, report reporter) *http.ServeMux {
@@ -97,8 +97,7 @@ func logHandler(h http.Handler) http.Handler {
 func authHandler(secretToken string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isAuthorized(r, secretToken) {
-			code, err := reportInfo(401, errInvalidToken)
-			sendStatus(w, r, code, err)
+			sendStatus(w, r, 401, errInvalidToken)
 			return
 		}
 		h.ServeHTTP(w, r)
@@ -107,26 +106,20 @@ func authHandler(secretToken string, h http.Handler) http.Handler {
 
 func appHandler(p processor.Processor, config Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, p, config.SecretToken, config.MaxUnzippedSize, report)
+		code, err := processRequest(r, p, config.MaxUnzippedSize, report)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(
-	r *http.Request,
-	p processor.Processor,
-	secretToken string,
-	maxSize int64,
-	report reporter,
-) (code int, err error) {
+func processRequest(r *http.Request, p processor.Processor, maxSize int64, report reporter) (int, error) {
 
 	if r.Method != "POST" {
-		return reportInfo(405, errPOSTRequestOnly)
+		return 405, errPOSTRequestOnly
 	}
 
 	reader, err := decodeData(r)
 	if err != nil {
-		return reportInfo(400, fmt.Errorf("Decoding error: %s", err.Error()))
+		return 400, err
 	}
 	defer reader.Close()
 
@@ -135,34 +128,23 @@ func processRequest(
 	buf, err := ioutil.ReadAll(limitedReader)
 	if err != nil {
 		// If we run out of memory, for example
-		return reportError(500, fmt.Errorf("Data read error: %s", err))
+		return 500, err
 	}
 
 	if err = p.Validate(buf); err != nil {
-		return reportInfo(400, fmt.Errorf("Data validation error: %s", err))
+		return 400, err
 	}
 
 	list, err := p.Transform(buf)
 	if err != nil {
-		return reportInfo(400, fmt.Errorf("Data transformation error: %s", err))
+		return 400, err
 	}
-
-	responseValid.Inc()
 
 	if err = report(list); err != nil {
-		return reportError(503, fmt.Errorf("Error adding data to internal queue: %s", err))
+		return 503, err
 	}
+
 	return 202, nil
-}
-
-func reportError(code int, err error) (int, error) {
-	logp.Err(err.Error())
-	return code, err
-}
-
-func reportInfo(code int, err error) (int, error) {
-	logp.Info("%s, code=%d", err.Error(), code)
-	return code, err
 }
 
 // isAuthorized checks the Authorization header. It must be in the form of:
@@ -225,8 +207,12 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	w.WriteHeader(code)
 
 	if err == nil {
+		responseValid.Inc()
+		logp.Debug("request", "request successful, code=%d", code)
 		return
 	}
+
+	logp.Err("%s, code=%d", err.Error(), code)
 
 	responseErrors.Inc()
 	if acceptsJSON(r) {
