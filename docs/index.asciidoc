@@ -1,6 +1,7 @@
 = APM Server Docs (Experimental)
 
 == Overview
+
 Welcome to APM Server Docs.
 The documentation pages are still work in progress.
 For more details also check APM Server https://github.com/elastic/apm-server[Github repository].
@@ -14,16 +15,12 @@ This includes performance information about the applications as well as errors t
 
 APM Server is an application built in Go using the beats framework and as such it shares many of the same configuration options as beats.
 
-include::./security.asciidoc[Security]
+include::./security.asciidoc[]
 
+include::./high-availability.asciidoc[]
 
-include::./high-availability.asciidoc[high-availability]
+include::./index_pattern.asciidoc[]
 
+include::./api.asciidoc[]
 
-include::./index_pattern.asciidoc[index-patten]
-
-
-include::./api.asciidoc[API]
-
-include::./elasticsearch-docs.asciidoc[Elasticsearch]
-
+include::./elasticsearch-docs.asciidoc[]
