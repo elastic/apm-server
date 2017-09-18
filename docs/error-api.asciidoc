@@ -1,6 +1,6 @@
 == Error API
 
-To send error records you need to send a HTTP POST request to the APM Server `errors` endpoint. Information pertaining to the error record must be sent as a JSON object to the endpoint.
+To send error records you need to send a HTTP POST request to APM Server `errors` endpoint. Information pertaining to the error record must be sent as a JSON object to the endpoint.
 
 link:./spec/errors/payload.json[JSON Schema]
 
@@ -8,7 +8,9 @@ link:./spec/errors/payload.json[JSON Schema]
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-$ curl http://localhost:8200/v1/errors --header "Content-Type:application/json" --data @docs/data/intake-api/generated/error/payload.json
+curl http://localhost:8200/v1/errors \
+  --header "Content-Type: application/json" \
+  --data @docs/data/intake-api/generated/error/payload.json
 ------------------------------------------------------------
 
 link:./data/intake-api/generated/error/payload.json[Example Payload]

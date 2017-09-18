@@ -217,16 +217,22 @@ func acceptsJSON(r *http.Request) bool {
 }
 
 func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
+	content_type := "text/plain; charset=utf-8"
+	if acceptsJSON(r) {
+		content_type = "application/json"
+	}
+	w.Header().Set("Content-Type", content_type)
 	w.WriteHeader(code)
-	if err != nil {
-		responseErrors.Inc()
-		if acceptsJSON(r) {
-			w.Header().Add("Content-Type", "application/json")
-			sendJSON(w, map[string]interface{}{"error": err.Error()})
-		} else {
-			w.Header().Add("Content-Type", "text/plain; charset=UTF-8")
-			sendPlain(w, err.Error())
-		}
+
+	if err == nil {
+		return
+	}
+
+	responseErrors.Inc()
+	if acceptsJSON(r) {
+		sendJSON(w, map[string]interface{}{"error": err.Error()})
+	} else {
+		sendPlain(w, err.Error())
 	}
 }
 
