@@ -2,8 +2,24 @@
 
 To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint. Information pertaining to the record must be sent as a JSON object to the endpoint.
 
-See the schema definitions for how the transction payload has to look like below.
+--
+See <<transaction-api-examples,Examples>> for sending a request to the transaction endpoint.
 
+See the schema definitions for how the transaction payload has to look like:
+
+* <<transaction-payload-schema>>
+* <<transaction-transaction-schema>>
+* <<transaction-trace-schema>>
+* <<transaction-app-schema>>
+* <<transaction-system-schema>>
+* <<transaction-context-schema>>
+* <<transaction-stacktraceframe-schema>>
+* <<transaction-request-schema>>
+* <<transaction-user-schema>>
+
+--
+
+[[transaction-payload-schema]]
 === Payload
 
 [source,json]
@@ -11,6 +27,7 @@ See the schema definitions for how the transction payload has to look like below
 include::./spec/transactions/payload.json[]
 ----
 
+[[transaction-transaction-schema]]
 === Transaction 
 
 [source,json]
@@ -18,6 +35,7 @@ include::./spec/transactions/payload.json[]
 include::./spec/transactions/transaction.json[]
 ----
 
+[[transaction-trace-schema]]
 === Trace 
 
 [source,json]
@@ -25,6 +43,7 @@ include::./spec/transactions/transaction.json[]
 include::./spec/transactions/trace.json[]
 ----
 
+[[transaction-app-schema]]
 === App
 
 [source,json]
@@ -32,6 +51,7 @@ include::./spec/transactions/trace.json[]
 include::./spec/app.json[]
 ----
 
+[[transaction-system-schema]]
 === System
 
 [source,json]
@@ -39,6 +59,7 @@ include::./spec/app.json[]
 include::./spec/system.json[]
 ----
 
+[[transaction-context-schema]]
 === Context 
 
 [source,json]
@@ -46,6 +67,7 @@ include::./spec/system.json[]
 include::./spec/context.json[]
 ----
 
+[[transaction-stacktraceframe-schema]]
 === Stacktrace Frame 
 
 [source,json]
@@ -53,6 +75,7 @@ include::./spec/context.json[]
 include::./spec/stacktrace_frame.json[]
 ----
 
+[[transaction-request-schema]]
 === Request 
 
 [source,json]
@@ -60,6 +83,7 @@ include::./spec/stacktrace_frame.json[]
 include::./spec/request.json[]
 ----
 
+[[transaction-user-schema]]
 === User
 
 [source,json]
@@ -67,10 +91,10 @@ include::./spec/request.json[]
 include::./spec/user.json[]
 ----
 
+[[transaction-api-examples]]
+=== Examples
 
-=== Example
-
-See the example on how to send a transaction request to the APM Server.
+See the examples on how to send a transaction request to the APM Server.
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------

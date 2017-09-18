@@ -5,6 +5,7 @@ This file is generated! See _meta/fields.yml and scripts/generate_field_docs.py
 
 [[exported-fields]]
 = Exported fields
+:ref:  https://www.elastic.co/guide/en/apm/server/current/exported-fields.html
 
 [partintro]
 

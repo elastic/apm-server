@@ -2,8 +2,23 @@
 
 To send error records you need to send a HTTP POST request to APM Server `errors` endpoint. Information pertaining to the error record must be sent as a JSON object to the endpoint.
 
-See the schema definitions for how the error payload has to look like below.
+--
+See <<error-api-examples,Examples>> for sending a request to the error endpoint.
 
+See the schema definitions for how the error payload has to look like:
+
+* <<error-payload-schema>>
+* <<error-error-schema>>
+* <<error-app-schema>>
+* <<error-system-schema>>
+* <<error-context-schema>>
+* <<error-stacktraceframe-schema>>
+* <<error-request-schema>>
+* <<error-user-schema>>
+
+--
+
+[[error-payload-schema]]
 === Payload
 
 [source,json]
@@ -11,6 +26,7 @@ See the schema definitions for how the error payload has to look like below.
 include::./spec/errors/payload.json[]
 ----
 
+[[error-error-schema]]
 === Error 
 
 [source,json]
@@ -18,6 +34,7 @@ include::./spec/errors/payload.json[]
 include::./spec/errors/error.json[]
 ----
 
+[[error-app-schema]]
 === App
 
 [source,json]
@@ -25,6 +42,7 @@ include::./spec/errors/error.json[]
 include::./spec/app.json[]
 ----
 
+[[error-system-schema]]
 === System
 
 [source,json]
@@ -32,6 +50,7 @@ include::./spec/app.json[]
 include::./spec/system.json[]
 ----
 
+[[error-context-schema]]
 === Context 
 
 [source,json]
@@ -39,6 +58,7 @@ include::./spec/system.json[]
 include::./spec/context.json[]
 ----
 
+[[error-stacktraceframe-schema]]
 === Stacktrace Frame 
 
 [source,json]
@@ -46,6 +66,7 @@ include::./spec/context.json[]
 include::./spec/stacktrace_frame.json[]
 ----
 
+[[error-request-schema]]
 === Request 
 
 [source,json]
@@ -53,6 +74,7 @@ include::./spec/stacktrace_frame.json[]
 include::./spec/request.json[]
 ----
 
+[[error-user-schema]]
 === User
 
 [source,json]
@@ -60,8 +82,8 @@ include::./spec/request.json[]
 include::./spec/user.json[]
 ----
 
-
-=== Example
+[[error-api-examples]]
+=== Examples
 
 See the example on how to send an error request to the APM Server.
 

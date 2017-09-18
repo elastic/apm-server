@@ -2,13 +2,21 @@
 == Elasticsearch
 
 The APM Server produces documents with a specific structure.
-Based on the defined structure a template mapping can be used for Index creation in Elasticsearch.
-See examples below for different document types. 
+The defined structure is used to create an index in Elasticsearch.
+To see which fields are indexed in Elasticsearch, see {ref}/exported-fields.html[Exported Fields].
+See the examples in this section for different document types.
 
 === Example docs
 
-In the following you find example documents sent to Elasticsearch from APM Server.
+--
+In the following you find example documents sent to Elasticsearch from APM Server:
 
+* <<transaction-example>>
+* <<trace-example>>
+* <<error-example>>
+
+--
+[[transaction-example]]
 ==== Transaction document
 
 [source,json]
@@ -16,6 +24,7 @@ In the following you find example documents sent to Elasticsearch from APM Serve
 include::./data/elasticsearch/transaction.json[]
 ----
 
+[[trace-example]]
 ==== Trace document
 
 [source,json]
@@ -23,16 +32,10 @@ include::./data/elasticsearch/transaction.json[]
 include::./data/elasticsearch/trace.json[]
 ----
 
+[[error-example]]
 ==== Error document
 
 [source,json]
 ----
 include::./data/elasticsearch/error.json[]
 ----
-
-
-===  Indexed Fields
-
-See which fields are indexed in Elasticsearch:
-
-include::./fields.asciidoc[]
