@@ -75,6 +75,9 @@ func generate() error {
 				file := filepath.Join(outputPath, event.(string)+".json")
 
 				output, err := json.MarshalIndent(d.Fields, "", "    ")
+				if err != nil {
+					return err
+				}
 				err = ioutil.WriteFile(file, output, 0644)
 				if err != nil {
 					return err
