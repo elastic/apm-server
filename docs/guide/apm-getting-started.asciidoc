@@ -1,7 +1,8 @@
-[[apt-getting-started]]
+[[apm-getting-started]]
 = Getting Started with Elastic APM
 
-== Introduction
+== Overview
+
 
 _Elastic APM_ is an application performance monitoring system built on the Elastic Stack.
 It uses Elasticsearch as its data store and allows you to monitor performance of thousands of applications in real time.
@@ -18,14 +19,15 @@ When errors and exceptions get collected, they automatically get a checksum assi
 This makes it possible to discern new errors from errors that have been happening for some time.
 It also makes it much easier to keep an eye on how many times specific errors happen.
 
-== Overview
-
+=== APM Components
 Elastic APM consists of four components:
 
 * Elasticsearch
 * APM agents
 * APM Server
 * Kibana APM UI
+
+image::apm-architecture.png[Architecture of Elastic APM]
 
 *APM agents* are open source libraries written in the same language as your application.
 You install them into your application as you would install any other library.
@@ -45,8 +47,6 @@ A single APM Server process can typically handle data from hundreds of agents.
 
 To visualize the data after it's sent to Elasticsearch, you can use the pre-built, open source Kibana dashboards that come with APM Server.
 
-image::apm-architecture.png[Architecture of Elastic APM]
-
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines, and it's easy to get started.
 
 == Install and run Elastic APM
@@ -60,11 +60,12 @@ To get started using Elastic APM, you need to have:
 For information about setting up an Elasticsearch cluster, see the Elasticsearch https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started.html[Getting Started].
 To view the collected data, you need Kibana.
 
- The following sections show how to get started quickly with Elastic APM on a local machine.
+The following sections show how to get started quickly with Elastic APM on a local machine.
 
+[float]
 === Install and run APM Server
 
-First, _download APM Server_ and extract for your operating system.
+First, https://www.elastic.co/downloads/apm/apm-server[download APM Server] for your operating system and extract the package.
 
 In a production environment, you would put APM Server on it's own machines, similar to how you run Elasticsearch.
 You _can_ run it on the same machines as Elasticsearch, but this is not recommended, as the processes will be competing for resources.
@@ -97,13 +98,14 @@ output:
     hosts: ElasticsearchAddress:9200
 ----------------------------------
 
-
+[float]
 ==== Secure access to the API
 The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
 If you change the listen address from `localhost` to something that is accessible from outside of the machine, we recommend setting up firewall rules to ensure that only your own systems can access the API.
-Alternatively, you can use the _secret token and TLS_ to secure access to APM Server API.
+Alternatively, you can use the https://www.elastic.co/guide/en/apm/server/current/_security.html[secret token and TLS] to secure access to APM Server API.
 
 [[dashboards]]
+[float]
 ==== Install the Kibana dashboards
 APM Server comes with predefined Kibana dashboards for the data collected.
 You can install the Kibana dashboards that are packaged with APM Server by running `apm-server` with the `setup` argument:
@@ -118,6 +120,7 @@ For detailed instructions on how to install and secure APM Server in your server
 
 Once APM Server is up and running, you need to install an agent in your application.
 
+[float]
 === Install and configure APM agents
 
 Agents are written in the same language as your application.
@@ -125,6 +128,7 @@ Currently, Elastic APM has agents for Node.js and for Python.
 
 Setting up a new application to be monitored requires installing the agent in the application, coming up with a good app name for the application, and then configuring the agents so they know the address of your APM Server and the app name.
 
+[float]
 ==== Choose an app name
 
 The app name is used by Elastic APM to differentiate between data coming from different applications and to group data coming from the same applications.
@@ -136,6 +140,7 @@ Make sure you choose a good app name before you get started.
 
 The app name can only contain alphanumeric characters, spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
+[float]
 ==== Install the Node.js agent
 
 To install the Node.js agent, simply install the elastic-apm module from npm in your application:
@@ -160,8 +165,9 @@ var apm = require('elastic-apm').start({
 ----------------------------------
 
 The Node.js agent supports Express, hapi and Koa out of the box. 
-See the _individual agent documentation_ for more information.
+See the https://www.elastic.co/guide/en/apm/agent/nodejs/current/index.html[individual agent documentation] for more information.
 
+[float]
 ==== Install the Python agent
 
 To install the Python agent, install the Elastic APM module from pypi:
@@ -172,11 +178,11 @@ $ pip install elastic-apm
 ----------------------------------
 
 The Python agent supports Django and Flask out of the box.
-See _Getting started with Django_ or _Getting started with Flask_ for more information on how to get started.
+See https://www.elastic.co/downloads/apm/django[Getting started with Django] or https://www.elastic.co/downloads/apm/flask[Getting started with Flask] for more information on how to get started.
 
+[float]
 === Set up Kibana
 
 You can use the `dashboards` that are packaged with APM Server, as mentioned above.
 
-..Screenshot of Kibana plugin..
 
