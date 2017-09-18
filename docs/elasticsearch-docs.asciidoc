@@ -3,7 +3,7 @@
 
 The APM Server produces documents with a specific structure.
 The defined structure is used to create an index in Elasticsearch.
-To see which fields are indexed in Elasticsearch, see {ref}/exported-fields.html[Exported Fields].
+To see which fields are indexed in Elasticsearch, see <<exported-fields,Exported Fields>>.
 See the examples in this section for different document types.
 
 === Example docs

@@ -24,3 +24,5 @@ include::./index_pattern.asciidoc[]
 include::./api.asciidoc[]
 
 include::./elasticsearch-docs.asciidoc[]
+
+include::./fields.asciidoc[]
