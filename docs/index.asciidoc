@@ -1,3 +1,6 @@
+:branch: current
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
 = APM Server Docs (Experimental)
 
 == Overview
