@@ -1,21 +1,38 @@
 [[elasticsearch-docs]]
 == Elasticsearch
 
-The documents produced by APM Server have a specific structure.
-There are examples of such documents as well as documentation 
-
+The APM Server produces documents with a specific structure.
+Based on the defined structure a template mapping can be used for Index creation in Elasticsearch.
+See examples below for different document types. 
 
 === Example docs
 
-The following are example documents sent to Elasticsearch from APM Server.
+In the following you find example documents sent to Elasticsearch from APM Server.
 
-link:./data/elasticsearch/transaction.json[Transaction Document]
+==== Transaction document
 
-link:./data/elasticsearch/trace.json[Trace Document]
+[source,json]
+----
+include::./data/elasticsearch/transaction.json[]
+----
 
-link:./data/elasticsearch/error.json[Error Document]
+==== Trace document
+
+[source,json]
+----
+include::./data/elasticsearch/trace.json[]
+----
+
+==== Error document
+
+[source,json]
+----
+include::./data/elasticsearch/error.json[]
+----
 
 
+===  Indexed Fields
 
-include::./fields.asciidoc[See indexed fields in Elasticsearch]
+See which fields are indexed in Elasticsearch:
 
+include::./fields.asciidoc[]

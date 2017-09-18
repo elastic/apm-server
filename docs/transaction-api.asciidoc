@@ -2,9 +2,75 @@
 
 To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint. Information pertaining to the record must be sent as a JSON object to the endpoint.
 
-link:./spec/transactions/payload.json[JSON Schema]
+See the schema definitions for how the transction payload has to look like below.
+
+=== Payload
+
+[source,json]
+----
+include::./spec/transactions/payload.json[]
+----
+
+=== Transaction 
+
+[source,json]
+----
+include::./spec/transactions/transaction.json[]
+----
+
+=== Trace 
+
+[source,json]
+----
+include::./spec/transactions/trace.json[]
+----
+
+=== App
+
+[source,json]
+----
+include::./spec/app.json[]
+----
+
+=== System
+
+[source,json]
+----
+include::./spec/system.json[]
+----
+
+=== Context 
+
+[source,json]
+----
+include::./spec/context.json[]
+----
+
+=== Stacktrace Frame 
+
+[source,json]
+----
+include::./spec/stacktrace_frame.json[]
+----
+
+=== Request 
+
+[source,json]
+----
+include::./spec/request.json[]
+----
+
+=== User
+
+[source,json]
+----
+include::./spec/user.json[]
+----
+
 
 === Example
+
+See the example on how to send a transaction request to the APM Server.
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
@@ -13,4 +79,23 @@ curl http://localhost:8200/v1/transactions \
   --data @docs/data/intake-api/generated/transaction/payload.json
 ------------------------------------------------------------
 
-link:./data/intake-api/generated/transaction/payload.json[Example Payload]
+==== Payload with several Transactions
+
+[source,json]
+----
+include::./data/intake-api/generated/transaction/payload.json[]
+----
+
+==== Payload with a minimal Transaction
+
+[source,json]
+----
+include::./data/intake-api/generated/transaction/minimal_payload.json[]
+----
+
+==== Payload with a Transaction with a minimal Trace
+
+[source,json]
+----
+include::./data/intake-api/generated/transaction/minimal_trace.json[]
+----
