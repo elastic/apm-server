@@ -6,10 +6,9 @@ from flask import Flask, render_template, request, redirect, url_for
 from elasticapm.contrib.flask import ElasticAPM
 
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 
-app.config['ELASTICAPM'] = {
-    'SERVERS': [os.environ.get('apm-server', 'http://localhost:8200')],
+app.config['ELASTIC_APM'] = {
     'DEBUG': True,
 }
 
