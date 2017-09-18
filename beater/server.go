@@ -119,7 +119,7 @@ func processRequest(r *http.Request, p processor.Processor, maxSize int64, repor
 
 	reader, err := decodeData(r)
 	if err != nil {
-		return 400, err
+		return 400, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
 	}
 	defer reader.Close()
 
@@ -128,7 +128,8 @@ func processRequest(r *http.Request, p processor.Processor, maxSize int64, repor
 	buf, err := ioutil.ReadAll(limitedReader)
 	if err != nil {
 		// If we run out of memory, for example
-		return 500, err
+		return 500, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
+
 	}
 
 	if err = p.Validate(buf); err != nil {
