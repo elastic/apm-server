@@ -58,11 +58,11 @@ apm-server:
     # before providing a batch of events to the outputs.
     # A value of 0 (the default) ensures events are immediately available
     # to be sent to the outputs.
-    #flush.min_events: 0
+    #flush.min_events: 2048
 
     # Maximum duration after which events are available to the outputs,
     # if the number of events stored in the queue is < min_flush_events.
-    #flush.timeout: 0s
+    #flush.timeout: 1s
 
 # Sets the maximum number of CPUs that can be executing simultaneously. The
 # default is the number of logical CPUs available in the system.
@@ -177,8 +177,8 @@ output.elasticsearch:
   # Number of workers per Elasticsearch host.
   #worker: 1
 
-  # Optional index name. The default is "apm-server" plus date
-  # and generates [apm-server-]YYYY.MM.DD keys.
+  # Optional index name. The default is "apm" plus date
+  # and generates [apm-]YYYY.MM.DD keys.
   # In case you modify this pattern you must update setup.template.name and setup.template.pattern accordingly.
   #index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
 
@@ -273,7 +273,7 @@ output.elasticsearch:
   # if no error is encountered.
   #slow_start: false
 
-  # Optional index name. The default index name is set to name of the beat
+  # Optional index name. The default index name is set to apm
   # in all lowercase.
   #index: 'apm'
 
@@ -642,7 +642,7 @@ output.elasticsearch:
 # Set to false to disable template loading.
 #setup.template.enabled: true
 
-# Template name. By default the template name is "apm-server-%{[beat.version]}"
+# Template name. By default the template name is "apm-%{[beat.version]}"
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
 #setup.template.name: "apm-%{[beat.version]}"
 
@@ -769,6 +769,10 @@ logging.files:
 
   # Number of rotated log files to keep. Oldest files will be deleted first.
   #keepfiles: 7
+
+  # The permissions mask to apply when rotating log files. The default value is 0600.
+  # Must be a valid Unix-style file permissions mask expressed in octal notation.
+  #permissions: 0600
 
 # Set to true to log messages in json format.
 #logging.json: false
