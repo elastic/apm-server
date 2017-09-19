@@ -56,9 +56,10 @@ We designed Elastic APM to run on anything from a regular laptop to thousands of
 
 To get started using Elastic APM, you need to have:
 
-* an Elasticsearch cluster 
+* an Elasticsearch cluster and Kibana (version 5.6 or above)
 * a running APM Server process
 * APM agents installed in your applications
+
 
 For information about setting up an Elasticsearch cluster, see the Elasticsearch {ref}/getting-started.html[Getting Started].
 To view the collected data, you need Kibana.
@@ -104,11 +105,6 @@ output:
 The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
 If you change the listen address from `localhost` to something that is accessible from outside of the machine, we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively, you can use the {apm-server-ref}/_security.html[secret token and TLS] to secure access to APM Server API.
-
-[[compatibility]]
-[float]
-==== Compatibility
-APM Server requires Elasticsearch and Kibana version 5.6 or higher.
 
 [[dashboards]]
 [float]
