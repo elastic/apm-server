@@ -77,14 +77,10 @@ To start APM Server, run:
 
 [source,bash]
 ----------------------------------
-$ curl -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
+$ ./apm-server
 ----------------------------------
 
-If you using an X-Pack secured version of Elastic Stack, add `--user user:pass to the command.
-
-You should see APM Server start up.
-It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
-You can change the defaults by supplying a different addresses on the command line:
+You should see APM Server start up. It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200. You can change the defaults by supplying a different addresses on the command line:
 
 [source,bash]
 ----------------------------------
@@ -117,13 +113,14 @@ APM Server requires Elasticsearch and Kibana version 5.6 or higher.
 [[dashboards]]
 [float]
 ==== Install the Kibana dashboards
-APM Server comes with predefined Kibana dashboards for the data collected.
-You can install the Kibana dashboards that are packaged with APM Server by running `apm-server` with the `setup` argument:
+APM Server comes with predefined Kibana dashboards for the APM data. To install the Kibana dashboards, run the following command:
 
 [source,bash]
 ----------------------------------
-$ ./apm-server setup
+$ curl -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
 ----------------------------------
+
+If you using an X-Pack secured version of Elastic Stack, add `--user user:pass to the command.
 
 .More information
 For detailed instructions on how to install and secure APM Server in your server environment, including details on how to run APM Server in a highly available environment, please see APM Server documentation.
