@@ -1,9 +1,11 @@
 [[transaction-api]]
 == Transaction API
+
 The APM Server exposes an API Endpoint to send transaction records. 
 Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
-To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint. Information pertaining to the record must be sent as a JSON object to the endpoint.
+To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint.
+Information pertaining to the record must be sent as a JSON object to the endpoint.
 
 --
 
@@ -17,6 +19,7 @@ Find more information about:
 [[transaction-schema-definition]]
 [float]
 === Schema Definition
+
 The APM Server uses a JSON Schema for validating the transaction requests. 
 Find details on how the schema is defined:
 
