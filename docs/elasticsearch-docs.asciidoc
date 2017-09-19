@@ -1,21 +1,41 @@
 [[elasticsearch-docs]]
 == Elasticsearch
 
-The documents produced by APM Server have a specific structure.
-There are examples of such documents as well as documentation 
-
+The APM Server produces documents with a specific structure.
+The defined structure is used to create an index in Elasticsearch.
+To see which fields are indexed in Elasticsearch, see <<exported-fields,Exported Fields>>.
+See the examples in this section for different document types.
 
 === Example docs
 
-The following are example documents sent to Elasticsearch from APM Server.
+--
+In the following you find example documents sent to Elasticsearch from APM Server:
 
-link:./data/elasticsearch/transaction.json[Transaction Document]
+* <<transaction-example>>
+* <<trace-example>>
+* <<error-example>>
 
-link:./data/elasticsearch/trace.json[Trace Document]
+--
+[[transaction-example]]
+==== Transaction document
 
-link:./data/elasticsearch/error.json[Error Document]
+[source,json]
+----
+include::./data/elasticsearch/transaction.json[]
+----
 
+[[trace-example]]
+==== Trace document
 
+[source,json]
+----
+include::./data/elasticsearch/trace.json[]
+----
 
-include::./fields.asciidoc[See indexed fields in Elasticsearch]
+[[error-example]]
+==== Error document
 
+[source,json]
+----
+include::./data/elasticsearch/error.json[]
+----
