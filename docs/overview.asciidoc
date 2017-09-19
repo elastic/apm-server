@@ -1,0 +1,39 @@
+[[overview]]
+== Overview 
+
+--
+Welcome to APM Server Docs.
+
+NOTE: The documentation pages are still work in progress.
+For more details also check APM Server https://github.com/elastic/apm-server[Github repository].
+
+APM Server is a central component in the Elastic APM system.
+It receives data from APM agents and transforms them into Elasticsearch documents.
+
+To get an overview about the whole Elastic APM system, please also have a look at the documentation for
+
+* {apm-node-ref}/index.html[APM Node.js Agent]
+* {apm-py-ref}/index.html[APM Python Agent]
+* {ref}/index.html[Elasticsearch]
+
+See how to {apm-get-started}/index.html[Get Started] with the Elastic APM system.
+
+A single APM server can handle data from multiple apps.
+APM Server works by exposing an HTTP server to which agents post the APM data they collect.
+This includes performance information about the applications as well as errors that occur in applications.
+
+APM Server is an application built in Go using the beats framework and as such it shares many of the same configuration options as beats.
+
+In the following you can read more about 
+
+* <<security>>
+* <<high-availability>>
+* <<index-pattern>>
+
+--
+
+include::./security.asciidoc[]
+
+include::./high-availability.asciidoc[]
+
+include::./index_pattern.asciidoc[]

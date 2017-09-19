@@ -1,3 +1,5 @@
+[[high-availability]]
+[float]
 === High Availability
 
 The API exposed by APM Server is a regular HTTP JSON API. 

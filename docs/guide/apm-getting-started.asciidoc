@@ -25,9 +25,9 @@ It also makes it much easier to keep an eye on how many times specific errors ha
 === APM Components
 Elastic APM consists of four components:
 
-* Elasticsearch
-* APM agents
-* APM Server
+* {ref}/index.html[Elasticsearch]
+* {apm-agents-ref}/index.html[APM agents]
+* {apm-server-ref}/index.html[APM Server]
 * Kibana APM UI
 
 image::apm-architecture.png[Architecture of Elastic APM]
@@ -119,7 +119,7 @@ $ ./apm-server setup
 ----------------------------------
 
 .More information
-For detailed instructions on how to install and secure APM Server in your server environment, including details on how to run APM Server in a highly available environment, please see APM Server documentation.
+For detailed instructions on how to install and secure APM Server in your server environment, including details on how to run APM Server in a highly available environment, please see {apm-server-ref}/index.html[APM Server documentation].
 
 Once APM Server is up and running, you need to install an agent in your application.
 
@@ -168,7 +168,7 @@ var apm = require('elastic-apm').start({
 ----------------------------------
 
 The Node.js agent supports Express, hapi and Koa out of the box. 
-See the {apm-node-ref}/index.html[individual agent documentation] for more information.
+See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more details.
 
 [float]
 ==== Install the Python agent
@@ -181,11 +181,9 @@ $ pip install elastic-apm
 ----------------------------------
 
 The Python agent supports Django and Flask out of the box.
-See https://www.elastic.co/downloads/apm/django[Getting started with Django] or https://www.elastic.co/downloads/apm/flask[Getting started with Flask] for more information on how to get started.
+See the {apm-py-ref}/index.html[APM Python Agent documentation] for more details.
 
 [float]
 === Set up Kibana
 
 You can use the `dashboards` that are packaged with APM Server, as mentioned above.
-
-

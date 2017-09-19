@@ -1,12 +1,13 @@
-[[elasticsearch-docs]]
-== Elasticsearch
+[[generated-docs]]
+== Generated Documents
 
 The APM Server produces documents with a specific structure.
-The defined structure is used to create an index in Elasticsearch.
-To see which fields are indexed in Elasticsearch, see <<exported-fields,Exported Fields>>.
+The defined structure can be used to create an index in Elasticsearch.
 See the examples in this section for different document types.
 
-=== Example docs
+[[generated-docs-examples]]
+[float]
+=== Examples
 
 --
 In the following you find example documents sent to Elasticsearch from APM Server:
@@ -17,6 +18,7 @@ In the following you find example documents sent to Elasticsearch from APM Serve
 
 --
 [[transaction-example]]
+[float]
 ==== Transaction document
 
 [source,json]
@@ -25,6 +27,7 @@ include::./data/elasticsearch/transaction.json[]
 ----
 
 [[trace-example]]
+[float]
 ==== Trace document
 
 [source,json]
@@ -33,6 +36,7 @@ include::./data/elasticsearch/trace.json[]
 ----
 
 [[error-example]]
+[float]
 ==== Error document
 
 [source,json]
