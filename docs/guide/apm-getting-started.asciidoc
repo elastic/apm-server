@@ -2,22 +2,22 @@
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 [[apm-gettting-started]]
-= Getting Started with Elastic APM
+= Getting Started with APM
 
 == Overview
 
 
-_Elastic APM_ is an application performance monitoring system built on the Elastic Stack.
+APM is an application performance monitoring system built on the Elastic Stack.
 It uses Elasticsearch as its data store and allows you to monitor performance of thousands of applications in real time.
 
-With Elastic APM, you can automatically collect detailed performance information from inside your applications and it requires only minor changes to your application.
-Elastic APM will automatically instrument your application and measure the response time for incoming requests.
+With APM, you can automatically collect detailed performance information from inside your applications and it requires only minor changes to your application.
+APM will automatically instrument your application and measure the response time for incoming requests.
 It also automatically measures what your application was doing while it was preparing the response.
 For example, external database queries are measured to make it easy to detect slow queries.
 It also measures calls to caches, external HTTP requests etc.
 This makes it possible to pinpoint and fix performance problems and unhandled errors quickly and with minimal effort.
 
-Elastic APM also automatically collects errors and exceptions that are not handled by your application.
+APM also automatically collects errors and exceptions that are not handled by your application.
 When errors and exceptions get collected, they automatically get a checksum assigned based primarily of the stacktrace.
 This makes it possible to discern new errors from errors that have been happening for some time.
 It also makes it much easier to keep an eye on how many times specific errors happen.
@@ -38,7 +38,7 @@ The agents hook into your application and start collecting performance metrics a
 All data that gets collected by agents is buffered for a short period and sent on to APM Server.
 This happens once per minute, by default.
 
-Out of the box, Elastic APM automatically instruments most popular web frameworks, database drivers, calls to caching servers, and HTTP libraries for requests to external services.
+Out of the box, APM automatically instruments most popular web frameworks, database drivers, calls to caching servers, and HTTP libraries for requests to external services.
 For everything else, the agents provide an API that you can call from your application to manually instrument anything you find interesting.
 
 *APM Server* is an open source application written in Go which runs on your servers.
@@ -77,8 +77,10 @@ To start APM Server, run:
 
 [source,bash]
 ----------------------------------
-$ ./apm-server -e 
+$ curl -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
 ----------------------------------
+
+If you using an X-Pack secured version of Elastic Stack, add `--user user:pass to the command.
 
 You should see APM Server start up.
 It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
@@ -106,6 +108,11 @@ output:
 The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
 If you change the listen address from `localhost` to something that is accessible from outside of the machine, we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively, you can use the {apm-server-ref}/_security.html[secret token and TLS] to secure access to APM Server API.
+
+[[compatibility]]
+[float]
+==== Compatibility
+APM Server requires Elasticsearch and Kibana version 5.6 or higher.
 
 [[dashboards]]
 [float]
