@@ -9,14 +9,12 @@ See the examples in this section for different document types.
 [float]
 === Examples
 
---
 In the following you find example documents sent to Elasticsearch from APM Server:
 
 * <<transaction-example>>
 * <<trace-example>>
 * <<error-example>>
 
---
 [[transaction-example]]
 [float]
 ==== Transaction document

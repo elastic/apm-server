@@ -1,7 +1,6 @@
 [[overview]]
 == Overview 
 
---
 Welcome to APM Server Docs.
 
 NOTE: The documentation pages are still work in progress.
@@ -32,8 +31,6 @@ In the following you can read more about
 * <<security>>
 * <<high-availability>>
 * <<index-pattern>>
-
---
 
 include::./security.asciidoc[]
 
