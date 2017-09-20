@@ -4,6 +4,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 [[apm-gettting-started]]
 = Getting Started with APM
 
+[[overview]]
 == Overview
 
 
@@ -22,12 +23,13 @@ When errors and exceptions get collected, they automatically get a checksum assi
 This makes it possible to discern new errors from errors that have been happening for some time.
 It also makes it much easier to keep an eye on how many times specific errors happen.
 
+[[apm-components]]
 === APM Components
 Elastic APM consists of four components:
 
-* Elasticsearch
-* APM agents
-* APM Server
+* {ref}/index.html[Elasticsearch]
+* {apm-agents-ref}/index.html[APM agents]
+* {apm-server-ref}/index.html[APM Server]
 * Kibana APM UI
 
 image::apm-architecture.png[Architecture of Elastic APM]
@@ -52,6 +54,7 @@ To visualize the data after it's sent to Elasticsearch, you can use the pre-buil
 
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines, and it's easy to get started.
 
+[[install-and-run-elastic-apm]]
 == Install and run Elastic APM
 
 To get started using Elastic APM, you need to have:
@@ -66,6 +69,7 @@ To view the collected data, you need Kibana.
 
 The following sections show how to get started quickly with Elastic APM on a local machine.
 
+[[install-and-run-apm-server]]
 [float]
 === Install and run APM Server
 
@@ -100,6 +104,7 @@ output:
     hosts: ElasticsearchAddress:9200
 ----------------------------------
 
+[[secure-access-to-the-api]]
 [float]
 ==== Secure access to the API
 The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
@@ -119,10 +124,11 @@ $ curl -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-typ
 If you are using an X-Pack secured version of Elastic Stack, add `--user user:pass` to the command.
 
 .More information
-For detailed instructions on how to install and secure APM Server in your server environment, including details on how to run APM Server in a highly available environment, please see APM Server documentation.
+For detailed instructions on how to install and secure APM Server in your server environment, including details on how to run APM Server in a highly available environment, please see {apm-server-ref}/index.html[APM Server documentation].
 
 Once APM Server is up and running, you need to install an agent in your application.
 
+[[install-and-configure-apm-agents]]
 [float]
 === Install and configure APM agents
 
@@ -131,6 +137,7 @@ Currently, Elastic APM has agents for Node.js and for Python.
 
 Setting up a new application to be monitored requires installing the agent in the application, coming up with a good app name for the application, and then configuring the agents so they know the address of your APM Server and the app name.
 
+[[choose-app-name]]
 [float]
 ==== Choose an app name
 
@@ -143,6 +150,7 @@ Make sure you choose a good app name before you get started.
 
 The app name can only contain alphanumeric characters, spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
+[[install-nodejs-agent]]
 [float]
 ==== Install the Node.js agent
 
@@ -168,8 +176,9 @@ var apm = require('elastic-apm').start({
 ----------------------------------
 
 The Node.js agent supports Express, hapi and Koa out of the box. 
-See the {apm-node-ref}/index.html[individual agent documentation] for more information.
+See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more details.
 
+[[install-python-agent]]
 [float]
 ==== Install the Python agent
 
@@ -181,11 +190,10 @@ $ pip install elastic-apm
 ----------------------------------
 
 The Python agent supports Django and Flask out of the box.
-See https://www.elastic.co/downloads/apm/django[Getting started with Django] or https://www.elastic.co/downloads/apm/flask[Getting started with Flask] for more information on how to get started.
+See the {apm-py-ref}/index.html[APM Python Agent documentation] for more details.
 
+[[set-up-kibana]]
 [float]
 === Set up Kibana
 
 You can use the `dashboards` that are packaged with APM Server, as mentioned above.
-
-
