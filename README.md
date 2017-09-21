@@ -9,21 +9,6 @@ APM agents are currently experimental and under heavy development which might re
 
 To get started with APM please see our [Getting Started Guide](https://www.elastic.co/guide/en/apm/get-started).
 
-## Load Dashboards
-
-The current UI consists of pre-built, customizable Kibana dashboards. The dashboards are shipped with the APM Server. For now, the dashboards have to be loaded manually with the following command:
-
-```
-curl -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
-```
-
-If you using an X-Pack secured version of Elastic Stack, add `--user user:pass` to the command.
-
-
-Here's a screenshot of one of the dashboards:
-
-![Kibana APM dashboard](https://cldup.com/fBs7ofUk3X.png)
-
 ## APM Server Development
 
 ### Requirements
