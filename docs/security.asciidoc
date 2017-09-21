@@ -1,4 +1,5 @@
 [[security]]
+[float]
 === Security
 
 APM Server exposes a HTTP endpoint and as with anything that opens ports on your servers, 
