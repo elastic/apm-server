@@ -134,7 +134,7 @@ The HTTP API exposed by APM Server listens on `localhost` and port 8200 by defau
 If you change the listen address from `localhost` to something that is accessible from outside of the machine,
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively,
-you can use the {apm-server-ref}/security.html[secret token and TLS] to secure access to APM Server API.
+you can use the {apm-server-ref}/overview.html#security[secret token and TLS] to secure access to APM Server API.
 
 [[kibana-dashboards]]
 [float]
@@ -154,7 +154,9 @@ curl -X POST http://localhost:5601/api/kibana/dashboards/import \
 If you are using an X-Pack secured version of Elastic Stack,
 add `--user user:pass` to the command.
 
+See an example screenshot of a Kibana dashboard:
 image::kibana-dashboard.png[Screenshot of a Kibana Dashboard]
+
 
 .More information
 For detailed instructions on how to install and secure APM Server in your server environment,
