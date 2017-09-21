@@ -153,6 +153,8 @@ curl -X POST http://localhost:5601/api/kibana/dashboards/import \
 If you are using an X-Pack secured version of Elastic Stack,
 add `--user user:pass` to the command.
 
+image::kibana-dashboard.png[Screenshot of a Kibana Dashboard]
+
 .More information
 For detailed instructions on how to install and secure APM Server in your server environment,
 including details on how to run APM Server in a highly available environment,
