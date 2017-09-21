@@ -27,6 +27,7 @@ This makes it possible to discern new errors from errors that have been happenin
 It also makes it much easier to keep an eye on how many times specific errors happen.
 
 [[components]]
+[float]
 === APM Components
 
 Elastic APM consists of four components:
