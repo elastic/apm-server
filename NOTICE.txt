@@ -190,16 +190,6 @@ Apache License 2.0
 
 
 --------------------------------------------------------------------
-Dependency: github.com/elastic/beats
-Version: master
-Revision: 57aaa90929a49ba9b11cdc800c49930df3e24161
-License type (autodetected): Apache License 2.0
-./vendor/github.com/elastic/beats/LICENSE.txt:
---------------------------------------------------------------------
-Apache License 2.0
-
-
---------------------------------------------------------------------
 Dependency: github.com/elastic/go-lumber
 Revision: 616041e345fc33c97bc0eb0fa6b388aa07bca3e1
 License type (autodetected): Apache License 2.0
