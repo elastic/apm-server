@@ -155,8 +155,8 @@ If you are using an X-Pack secured version of Elastic Stack,
 add `--user user:pass` to the command.
 
 See an example screenshot of a Kibana dashboard:
-image::kibana-dashboard.png[Screenshot of a Kibana Dashboard]
 
+image::kibana-dashboard.png[Screenshot of a Kibana Dashboard]
 
 .More information
 For detailed instructions on how to install and secure APM Server in your server environment,
