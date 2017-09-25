@@ -148,7 +148,7 @@ run the following command:
 curl -X POST http://localhost:5601/api/kibana/dashboards/import \
   -H 'Content-type: application/json' \
   -H 'kbn-xsrf: true' \
-  -d @./_meta/kibana/default/dashboard/apm-dashboards.json
+  -d @./kibana/default/dashboard/apm-dashboards.json
 ----------------------------------
 
 If you are using an X-Pack secured version of Elastic Stack,
