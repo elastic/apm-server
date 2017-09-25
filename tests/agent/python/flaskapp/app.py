@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-
-from flask import Flask, render_template, request, redirect, url_for
+import elasticapm
+from flask import Flask
 from elasticapm.contrib.flask import ElasticAPM
 
 app = Flask(__name__)
@@ -10,6 +10,7 @@ app.debug = False
 
 app.config['ELASTIC_APM'] = {
     'DEBUG': True,
+    'TRACES_SEND_FREQ': 3
 }
 
 apm = ElasticAPM(
@@ -24,9 +25,24 @@ def index():
     return 'OK'
 
 
-@app.route('/error')
-def error():
-    raise ValueError(request.args.get('error', ''))
+@app.route('/foo')
+def foo_route():
+    return foo()
+
+
+@elasticapm.trace()
+def foo():
+    return "OK"
+
+
+@app.route('/bar')
+def bar_route():
+    return bar()
+
+
+@elasticapm.trace()
+def bar():
+    return "OK"
 
 
 if __name__ == '__main__':
