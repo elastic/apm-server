@@ -16,8 +16,10 @@ LICENSE_FILE=LICENSE.txt
 
 # updates beats updates the framework part and go parts of beats
 update-beats:
+	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
-	@BEATS_VERSION=$(BEATS_VERSION) sh _beats/update.sh
+	rm -rf _beats
+	@BEATS_VERSION=$(BEATS_VERSION) sh script/update_beats.sh
 	@$(MAKE) update
 
 # This is called by the beats packer before building starts
