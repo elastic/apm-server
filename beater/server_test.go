@@ -132,32 +132,6 @@ func TestServerBadProtocol(t *testing.T) {
 	assert.Contains(t, err.Error(), "malformed HTTP response")
 }
 
-func TestSSLEnabled(t *testing.T) {
-	truthy := true
-	falsy := false
-
-	cases := []struct {
-		config   *SSLConfig
-		expected bool
-	}{
-		{nil, false},
-		{&SSLConfig{Enabled: &truthy}, true},
-		{&SSLConfig{Enabled: &falsy}, false},
-		{&SSLConfig{Cert: "Cert"}, true},
-		{&SSLConfig{Cert: "Cert", PrivateKey: "key"}, true},
-		{&SSLConfig{Cert: "Cert", PrivateKey: "key", Enabled: &falsy}, false},
-	}
-
-	for i, test := range cases {
-		name := fmt.Sprintf("%v %v->%v", i, test.config, test.expected)
-		t.Run(name, func(t *testing.T) {
-			b := test.expected
-			isEnabled := test.config.isEnabled()
-			assert.Equal(t, b, isEnabled, "ssl config but should be %v", b)
-		})
-	}
-}
-
 func TestJSONFailureResponse(t *testing.T) {
 	req, err := http.NewRequest("POST", "/transactions", nil)
 	assert.Nil(t, err)
