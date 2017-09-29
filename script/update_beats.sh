@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-BEATS_VERSION?=master
-# Move to directory
-BASEDIR=$(dirname "$0")
+BEATS_VERSION="${BEATS_VERSION:-master}"
+
+# Find basedir and change to it
+BASEDIR=$(dirname "$0")/../_beats
+mkdir -p $BASEDIR
 cd $BASEDIR
 
 # Cleanup all files to fetch a fresh copy
@@ -50,6 +52,10 @@ cp $GIT_CLONE/.go-version .go-version
 
 # Get system test dependencies
 cp -r $GIT_CLONE/testing testing
+
+# Generate .gitignore file
+echo "libbeat/_meta/fields.generated.yml" > .gitignore
+echo "libbeat/fields.yml" >> .gitignore
 
 # Remove temp repo
 rm -rf repo
