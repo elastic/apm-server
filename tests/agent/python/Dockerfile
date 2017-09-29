@@ -5,7 +5,7 @@ RUN mkdir -p /app
 
 WORKDIR /app
 
-RUN git clone https://github.com/opbeat/opbeans-python.git . && git checkout feature/elastic-apm
+RUN git clone https://github.com/opbeat/opbeans-python.git . 
 
 RUN pip install -Ur requirements.txt
 
