@@ -39,9 +39,12 @@ def handle(r):
         logger.error("Bad response, aborting: {} - {} ({})".format(r.code, r.error, r.request_time))
 
 
-def start_gunicorn(nworkers=4):
-    cmd = ['gunicorn', '-w', str(nworkers), '-b', '0.0.0.0:5000', 'app:app']
-    p = subprocess.Popen(cmd, shell=False)
+def run_process(lang, nworkers=4):
+    if lang == 'node':
+        cmd = ['node', '../../nodejs/app.js']
+    elif lang == 'python':
+        cmd = ['gunicorn', '-w', str(nworkers), '-b', '0.0.0.0:5000', 'app:app']
+    p = subprocess.Popen(cmd)
     return p
 
 
@@ -60,46 +63,77 @@ def send_batch(nreqs):
     ioloop.IOLoop.instance().start()
 
 
-class Gunicorn:
+class Worker:
 
-    def __init__(self, nworkers):
+    def __init__(self, lang, nworkers):
+        self.l = lang
         self.w = nworkers
 
     def __enter__(self):
-        self.p = start_gunicorn(self.w)
+        self.p = run_process(self.l, self.w)
         time.sleep(3)
-        logger.info("Gunicorn ready {}".format(self.p.pid))
+        logger.info("Process ready {}".format(self.p.pid))
 
     def __exit__(self, *args):
         logger.info("Flushing queues")
+        time.sleep(2)
         self.p.terminate()
         time.sleep(10)
-        logger.info("Gunicorn terminated")
+        logger.info("Process terminated")
 
 
-def load_test(nworkers, nreqs):
-    with Gunicorn(nworkers):
+def load_test(lang, nworkers, nreqs):
+    with Worker(lang, nworkers):
         send_batch(nreqs)
 
 
-def check(index_name, size, it):
+EXPECTATIONS = {
+    'node': {
+        'transaction_type': 'request',
+        'url_search': '?',
+        'agent_name': 'nodejs',
+        'framework': 'express',
+        'stacktrace_keys': ['abs_path', 'line', 'filename'],
+        'hostname': 'localhost:5000',
+        'lang_key': 'runtime'
+    },
+    'python': {
+        'transaction_type': 'web.flask',
+        'url_search': '',
+        'agent_name': 'elasticapm-python',
+        'framework': 'flask',
+        'stacktrace_keys': ['abs_path', 'line', 'module', 'filename'],
+        'hostname': 'localhost',
+        'lang_key': 'language'
+    }
+}
+
+
+def check_counts(index_name, size, it):
     count = size * it
+
     es.indices.refresh(index_name)
 
-    def anomaly(x): return x > 100000 or x < 1  # 100000 = 0.1 sec
-
     err = "queried for {}, expected {}, got {}"
-    for (doc_type, c) in [('transaction', count), ('trace', count * 2)]:
-        rs = es.count(index=index_name, body=es_query("processor.event", doc_type))
-        assert rs['count'] == c, err.format(doc_type, c, rs)
 
-    for (trace_name, c) in [('app.foo', count / 2), ('app.bar', count / 2), ('transaction', count)]:
+    for doc_type in ['transaction', 'trace']:
+        rs = es.count(index=index_name, body=es_query("processor.event", doc_type))
+        assert rs['count'] == count, err.format(doc_type, count, rs)
+
+    for trace_name in ['app.foo', 'app.bar']:
         rs = es.count(index=index_name, body=es_query("trace.name", trace_name))
-        assert rs['count'] == c, err.format(trace_name, c, rs)
+        assert rs['count'] == count / 2, err.format(trace_name, count / 2, rs)
 
     for transaction_name in ['GET /foo', 'GET /bar']:
         rs = es.count(index=index_name, body=es_query("transaction.name.keyword", transaction_name))
         assert rs['count'] == count / 2, err.format(transaction_name, count / 2, rs)
+
+
+def check_contents(lang, index_name, it):
+
+    es.indices.refresh(index_name)
+
+    def anomaly(x): return x > 100000 or x < 1  # 100000 = 0.1 sec
 
     transactions_query = es_query("processor.event", "transaction")
     transaction_dict = {}
@@ -117,20 +151,26 @@ def check(index_name, size, it):
             "{} is too far of {} ".format(timestamp, datetime.utcnow())
 
         assert transaction['result'] == '200', transaction['result']
-        assert transaction['type'] == 'web.flask', transaction['type']
+        assert transaction['type'] == EXPECTATIONS[lang]['transaction_type'], transaction['type']
 
         context = lookup(hit, '_source', 'context')
-        assert context['request']['url']['search'] == p_uid, \
-            "{} not in context {}".format(p_uid, context)
-        assert lookup(context, 'app', 'language', 'name') == 'python', context
+        assert context['request']['url']['search'] == EXPECTATIONS[lang]['url_search'] + p_uid, "{} not in context {}".format(p_uid, context)
+
+        assert context['request']['method'] == "GET", context['request']['method']
+        assert context['request']['url']['pathname'] in ("/foo", "/bar"), context['request']['url']['pathname']
+        assert context['request']['url']['hostname'] == EXPECTATIONS[lang]['hostname'], context['request']['url']['hostname']
+
+        if lang == 'node':
+            assert context['response']['status_code'] == 200, context['response']['status_code']
+            assert context['user'] == {}, context
+            assert context['custom'] == {}, context
+
+        assert lookup(context, 'app', EXPECTATIONS[lang]['lang_key'], 'name') == lang, context
         assert lookup(context, 'app', 'name') == 'test-app', context
-        agent_version = __import__('pkg_resources').get_distribution('elastic-apm').version
-        assert lookup(context, 'app', 'agent') == {'version': agent_version, 'name': 'elasticapm-python'}, \
-            "agent version {} not found in context {}".format(agent_version, context)
-        assert lookup(context, 'app', 'framework', 'name') == 'flask', context
-        flask_version = __import__('pkg_resources').get_distribution('flask').version
-        assert lookup(context, 'app', 'framework', 'version') == flask_version, \
-            "flask version {} not found in context {}".format(flask_version, context)
+
+        assert lookup(context, 'app', 'agent', 'name') == EXPECTATIONS[lang]['agent_name'], context
+        assert lookup(context, 'app', 'framework', 'name') == EXPECTATIONS[lang]['framework'], context
+
         assert context['tags'] == {}, context
 
         assert hit['_source']['processor'] == {'name': 'transaction', 'event': 'transaction'}
@@ -139,12 +179,8 @@ def check(index_name, size, it):
     for hit in lookup(es.search(index, body=traces_query), 'hits', 'hits'):
         context = lookup(hit, '_source', 'context')
         assert lookup(context, 'app', 'name') == 'test-app', context
-        agent_version = __import__('pkg_resources').get_distribution('elastic-apm').version
-        assert lookup(context, 'app', 'agent') == {'version': agent_version, 'name': 'elasticapm-python'}, \
-            "agent version {} not found in context {}".format(agent_version, context)
 
         trace = lookup(hit, '_source', 'trace')
-        assert trace.get('parent', 0) == 0, trace['parent']
 
         start = lookup(trace, 'start', 'us')
         assert not anomaly(start), start
@@ -162,19 +198,20 @@ def check(index_name, size, it):
 
         fns = [frame['function'] for frame in stacktrace]
         assert all(fns), fns
-        for attr in ['abs_path', 'line', 'module', 'filename']:
-            assert all(frame[attr] for frame in stacktrace)
+        for attr in EXPECTATIONS[lang]['stacktrace_keys']:
+            assert all(frame.get(attr) for frame in stacktrace), stacktrace[0].keys()
 
         if trace['name'] == 'app.bar':
             assert transaction_name == 'GET /bar', transaction_name
-            assert trace['id'] == 1
+            if lang == 'python':
+                assert trace['id'] == 0, trace['id']
             assert 'bar_route' in fns
         elif trace['name'] == 'app.foo':
             assert transaction_name == 'GET /foo', transaction_name
-            assert trace['id'] == 1
+            if lang == 'python':
+                assert trace['id'] == 0, trace['id']
             assert 'foo_route' in fns
-        elif trace['name'] != 'transaction':
-            assert trace['id'] == 0
+        else:
             assert False, "trace name not expected {}".format(trace['name'])
 
 
@@ -206,13 +243,15 @@ if __name__ == '__main__':
     iters = 10
     size = 1000
     workers = 4
+    lang = 'node'
 
     index = reset()
 
     for it in range(1, iters + 1):
         logger.info("Sending batch {} / {}".format(it, iters))
-        load_test(workers, size)
-        check(index, size, it)
+        load_test(lang, workers, size)
+        check_counts(index, size, it)
+        check_contents(lang, index, it)
         logger.info("So far so good...")
 
     logger.info("ALL DONE")
