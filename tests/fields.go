@@ -11,7 +11,6 @@ import (
 
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/template"
 )
 
 func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn processor.NewProcessor) {
@@ -139,7 +138,7 @@ func fetchFlattenedFieldNames(paths []string, addFn addField) (*set.Set, error) 
 	return fields, nil
 }
 
-func flattenFieldNames(fields []template.Field, prefix string, addFn addField, flattened *set.Set) {
+func flattenFieldNames(fields []common.Field, prefix string, addFn addField, flattened *set.Set) {
 	for _, field := range fields {
 		flattenedKey := StrConcat(prefix, field.Name, ".")
 		if addFn(field) {
@@ -149,8 +148,8 @@ func flattenFieldNames(fields []template.Field, prefix string, addFn addField, f
 	}
 }
 
-func loadFields(yamlPath string) ([]template.Field, error) {
-	fields := []template.Field{}
+func loadFields(yamlPath string) ([]common.Field, error) {
+	fields := []common.Field{}
 
 	yaml, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
@@ -167,17 +166,17 @@ func loadFields(yamlPath string) ([]template.Field, error) {
 	return fields, err
 }
 
-type addField func(f template.Field) bool
+type addField func(f common.Field) bool
 
-func addAllFields(f template.Field) bool {
+func addAllFields(f common.Field) bool {
 	return shouldAddField(f, false)
 }
 
-func addOnlyDisabledFields(f template.Field) bool {
+func addOnlyDisabledFields(f common.Field) bool {
 	return shouldAddField(f, true)
 }
 
-func addKeywordFields(f template.Field) bool {
+func addKeywordFields(f common.Field) bool {
 	if f.Type == "keyword" || f.ObjectType == "keyword" {
 		return true
 	} else if len(f.MultiFields) > 0 {
@@ -190,7 +189,7 @@ func addKeywordFields(f template.Field) bool {
 	return false
 }
 
-func shouldAddField(f template.Field, onlyDisabled bool) bool {
+func shouldAddField(f common.Field, onlyDisabled bool) bool {
 	if f.Name == "" {
 		return false
 	}
