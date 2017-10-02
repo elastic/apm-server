@@ -1,28 +1,42 @@
 'use strict'
 
 var apm = require('elastic-apm').start({
-  // Set required app name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
-  appName: 'nodejs-testapp',
-
-  // Use if APM Server requires a token
-  secretToken: '',
-
-  // Set custom APM Server URL (default: http://localhost:8200)
-  serverUrl: '',
-
-  flushInterval: 1
+  appName: 'test-app', flushInterval: 1
 })
 
-var http = require('http')
 
-http.createServer(function (req, res) {
-  console.log(req.method, req.url)
+var app = require("express")();
 
-  res.writeHead(200, {'Content-Type': 'text/plain'})
-  res.end('Hello World\n')
+app.get("/", function(req, res) {
+    res.send("OK");
+});
 
-  apm.captureError(new Error('Ups, something broke'))
+app.get("/foo", function(req, res) {
+    foo_route()
+    res.send("OK");
+});
 
-}).listen(8081, function () {
-  console.log('server is listening on port 8081')
-})
+function foo_route () {
+    var trace = apm.buildTrace()
+    trace.start('app.foo')
+    trace.end()
+}
+
+app.get("/bar", function(req, res) {
+    bar_route()
+    res.send("OK");
+});
+
+function bar_route () {
+    var trace = apm.buildTrace()
+    trace.start('app.bar')
+    trace.end()
+}
+
+
+app.use(apm.middleware.express())
+
+var server = app.listen(5000, function () {
+    console.log("Listening on %s...", server.address().port);
+});
+
