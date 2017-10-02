@@ -205,7 +205,7 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	cfg.SSL = ssl
 
 	apm := newServer(cfg, nopReporter)
-	go run(apm, cfg.SSL)
+	go run(apm, cfg)
 
 	secure := cfg.SSL != nil
 	waitForServer(secure, host)
