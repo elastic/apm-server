@@ -17,7 +17,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 	}
 
 	server := newServer(config, reporter)
-	go run(server, config.SSL)
+	go run(server, config)
 
 	notifyListening(config, reporter)
 

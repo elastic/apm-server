@@ -63,11 +63,15 @@ func newServer(config Config, report reporter) *http.Server {
 	}
 }
 
-func run(server *http.Server, ssl *SSLConfig) error {
+func run(server *http.Server, config Config) error {
 	logp.Info("Starting apm-server! Hit CTRL-C to stop it.")
 	logp.Info("Listening on: %s", server.Addr)
+	ssl := config.SSL
 	if ssl.isEnabled() {
 		return server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
+	}
+	if config.SecretToken != "" {
+		logp.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	return server.ListenAndServe()
 }
