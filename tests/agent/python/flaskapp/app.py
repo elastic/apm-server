@@ -30,5 +30,7 @@ def error():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host=os.environ.get('HOST', 'localhost'), port=port)
+    port = 8081
+    app.run(host='localhost', port=port)
+
+
