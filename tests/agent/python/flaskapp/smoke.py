@@ -11,13 +11,14 @@ import uuid
 
 p_uid = uuid.uuid4().hex
 
-num_reqs = 0    # use with care
+num_reqs = 0    # global variable to keep track of how many requests has been processed
 
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setLevel(logging.INFO)
-formatter = logging.Formatter('[%(asctime)s] [%(process)s] [%(levelname)s] [%(funcName)s - %(lineno)d]  %(message)s')
+formatter = logging.Formatter(
+    '[%(asctime)s] [%(process)s] [%(levelname)s] [%(funcName)s - %(lineno)d]  %(message)s')
 handler.setFormatter(formatter)
 logger.propagate = False
 logger.addHandler(handler)
@@ -37,28 +38,40 @@ def handle(r):
     except AssertionError:
         num_reqs == 0
         ioloop.IOLoop.instance().stop()
-        logger.error("Bad response, aborting: {} - {} ({})".format(r.code, r.error, r.request_time))
+        logger.error(
+            "Bad response, aborting: {} - {} ({})".format(r.code, r.error, r.request_time))
 
 
 def run_process(lang):
     if lang == 'node':
         cmd = ['node', '../../nodejs/app.js']
     elif lang == 'python':
-        cmd = ['gunicorn', '-w', '4', '-b', '0.0.0.0:8081', 'app:app']
+        cmd = ['gunicorn', '-w', '4', '-b', '0.0.0.0:5000', 'app:app']
     p = subprocess.Popen(cmd)
     return p
 
 
-def send_batch(nreqs):
+def send_batch(nreqs, port=None):
     global num_reqs
     global p_uid
+
+    mix_lang = port is None
 
     http_client = httpclient.AsyncHTTPClient(max_clients=4)
     for _ in range(nreqs):
         num_reqs += 1
-        endpoint = "foo" if num_reqs % 2 == 0 else "bar"
-        url = "http://localhost:8081/" + endpoint + '?' + p_uid
-        http_client.fetch(url, handle, method='GET', connect_timeout=90, request_timeout=120)
+        if mix_lang:
+            num_reqs += 1
+            url_python = "http://localhost:5000/foo"
+            url_node = "http://localhost:8081/bar"
+            for url in [url_node, url_python]:
+                http_client.fetch(url, handle, method='GET',
+                                  connect_timeout=90, request_timeout=120)
+        else:
+            endpoint = "foo" if num_reqs % 2 == 0 else "bar"
+            url = "http://localhost:" + port + "/" + endpoint + '?' + p_uid
+            http_client.fetch(url, handle, method='GET',
+                              connect_timeout=90, request_timeout=120)
 
     logger.info("Starting tornado I/O loop")
     ioloop.IOLoop.instance().start()
@@ -84,8 +97,16 @@ class Worker:
 
 def load_test(lang, nreqs):
     with Worker(lang):
-        send_batch(nreqs)
+        send_batch(nreqs, str(PORTS[lang]))
 
+
+def load_test_mixed_lang(nreqs):
+    with Worker('python'):
+        with Worker('node'):
+            send_batch(nreqs)
+
+
+PORTS = {'node': 8081, 'python': 5000}
 
 EXPECTATIONS = {
     'node': {
@@ -111,19 +132,23 @@ def check_counts(index_name, size, it):
     err = "queried for {}, expected {}, got {}"
 
     for doc_type in ['transaction', 'trace']:
-        rs = es.count(index=index_name, body=es_query("processor.event", doc_type))
+        rs = es.count(index=index_name,
+                      body=es_query("processor.event", doc_type))
         assert rs['count'] == count, err.format(doc_type, count, rs)
 
     for trace_name in ['app.foo', 'app.bar']:
-        rs = es.count(index=index_name, body=es_query("trace.name", trace_name))
+        rs = es.count(index=index_name,
+                      body=es_query("trace.name", trace_name))
         assert rs['count'] == count / 2, err.format(trace_name, count / 2, rs)
 
     for transaction_name in ['GET /foo', 'GET /bar']:
-        rs = es.count(index=index_name, body=es_query("transaction.name.keyword", transaction_name))
-        assert rs['count'] == count / 2, err.format(transaction_name, count / 2, rs)
+        rs = es.count(index=index_name, body=es_query(
+            "transaction.name.keyword", transaction_name))
+        assert rs['count'] == count / 2, \
+            err.format(transaction_name, count / 2, rs)
 
 
-def check_contents(lang, index_name, it):
+def check_contents(lang, it):
 
     def anomaly(x): return x > 100000 or x < 1  # 100000 = 0.1 sec
 
@@ -138,7 +163,8 @@ def check_contents(lang, index_name, it):
 
         assert not anomaly(duration), duration
 
-        timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'), '%Y-%m-%dT%H:%M:%S.%fZ')
+        timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'),
+                                      '%Y-%m-%dT%H:%M:%S.%fZ')
         assert datetime.utcnow() - timedelta(minutes=it) < timestamp < datetime.utcnow(), \
             "{} is too far of {} ".format(timestamp, datetime.utcnow())
 
@@ -146,10 +172,13 @@ def check_contents(lang, index_name, it):
         assert transaction['type'] == 'request'
 
         context = lookup(hit, '_source', 'context')
-        assert context['request']['url']['search'] == EXPECTATIONS[lang]['url_search'] + p_uid, "{} not in context {}".format(p_uid, context)
+        actual_search = context['request']['url']['search']
+        assert actual_search == EXPECTATIONS[lang]['url_search'] + p_uid, \
+            "{} not in context {}".format(p_uid, context)
 
         assert context['request']['method'] == "GET", context['request']['method']
-        assert context['request']['url']['pathname'] in ("/foo", "/bar"), context['request']['url']['pathname']
+        assert context['request']['url']['pathname'] in ("/foo", "/bar"), \
+            context['request']['url']['pathname']
         assert context['request']['url']['hostname'] == 'localhost'
 
         if lang == 'node':
@@ -157,15 +186,21 @@ def check_contents(lang, index_name, it):
             assert context['user'] == {}, context
             assert context['custom'] == {}, context
 
-        assert lookup(context, 'app', EXPECTATIONS[lang]['lang_key'], 'name') == lang, context
+        actual_lang = lookup(
+            context, 'app', EXPECTATIONS[lang]['lang_key'], 'name')
+        assert actual_lang == lang, context
         assert lookup(context, 'app', 'name') == 'test-app', context
 
-        assert lookup(context, 'app', 'agent', 'name') == EXPECTATIONS[lang]['agent_name'], context
-        assert lookup(context, 'app', 'framework', 'name') == EXPECTATIONS[lang]['framework'], context
+        actual_agent = lookup(context, 'app', 'agent', 'name')
+        assert actual_agent == EXPECTATIONS[lang]['agent_name'], context
+
+        actual_framework = lookup(context, 'app', 'framework', 'name')
+        assert actual_framework == EXPECTATIONS[lang]['framework'], context
 
         assert context['tags'] == {}, context
 
-        assert hit['_source']['processor'] == {'name': 'transaction', 'event': 'transaction'}
+        assert hit['_source']['processor'] == {'name': 'transaction',
+                                               'event': 'transaction'}
 
     traces_query = es_query("processor.event", "trace")
     for hit in lookup(es.search(index, body=traces_query), 'hits', 'hits'):
@@ -182,16 +217,19 @@ def check_contents(lang, index_name, it):
 
         transaction_name, transaction_duration = transaction_dict[trace['transaction_id']]
         assert duration < transaction_duration * 10, \
-            "trace duration {} is more than 10X bigger than transaction duration{}".format(duration, transaction_duration)
+            "trace duration {} is more than 10X bigger than transaction duration{}".format(
+                duration, transaction_duration)
 
         stacktrace = trace['stacktrace']
         assert 15 < len(stacktrace) < 30, \
-            "number of frames not expected, got {}, but this assertion might be too strict".format(len(stacktrace))
+            "number of frames not expected, got {}, but this assertion might be too strict".format(
+                len(stacktrace))
 
         fns = [frame['function'] for frame in stacktrace]
         assert all(fns), fns
         for attr in ['abs_path', 'line', 'filename']:
-            assert all(frame.get(attr) for frame in stacktrace), stacktrace[0].keys()
+            assert all(
+                frame.get(attr) for frame in stacktrace), stacktrace[0].keys()
 
         if trace['name'] == 'app.bar':
             assert transaction_name == 'GET /bar', transaction_name
@@ -203,6 +241,41 @@ def check_contents(lang, index_name, it):
             if lang == 'python':
                 assert trace['id'] == 0, trace['id']
             assert 'foo_route' in fns
+        else:
+            assert False, "trace name not expected {}".format(trace['name'])
+
+
+def check_contents_not_mixed():
+
+    transactions_query = es_query("processor.event", "transaction")
+    transaction_dict = {}
+    for hit in lookup(es.search(index, body=transactions_query), 'hits', 'hits'):
+
+        transaction = lookup(hit, '_source', 'transaction')
+        runtime = lookup(hit, '_source', 'context', 'app', 'runtime', 'name')
+
+        if transaction['name'] == 'GET /foo':
+            assert runtime == 'CPython', runtime
+        elif transaction['name'] == 'GET /bar':
+            assert runtime == 'node', runtime
+        else:
+            assert False, transaction['name']
+
+        transaction_dict[transaction['id']] = runtime
+
+    traces_query = es_query("processor.event", "trace")
+    for hit in lookup(es.search(index, body=traces_query), 'hits', 'hits'):
+
+        agent = lookup(hit, '_source', 'context', 'app', 'agent', 'name')
+        trace = lookup(hit, '_source', 'trace')
+        runtime = transaction_dict[trace['transaction_id']]
+
+        if trace['name'] == 'app.bar':
+            assert runtime == 'node', runtime
+            assert agent == EXPECTATIONS['node']['agent_name']
+        elif trace['name'] == 'app.foo':
+            assert runtime == 'CPython', runtime
+            assert agent == EXPECTATIONS['python']['agent_name']
         else:
             assert False, "trace name not expected {}".format(trace['name'])
 
@@ -219,12 +292,12 @@ def es_query(field, val):
 
 
 def reset():
-    f = '../../../../_meta/kibana/default/index-pattern/apmserver.json'
+    f = '../../../../apm-server.template-es.json'
     with open(f) as meta:
         d = json.load(meta)
-        ver = d['version']
+        ver = d['mappings']['doc']['_meta']['version']
 
-    index_name = "apm-server-{}-{}".format(ver, time.strftime('%Y.%m.%d'))
+    index_name = "apm-{}-{}".format(ver, time.strftime('%Y.%m.%d'))
     logger.info("Deleting index of the day {}".format(index_name))
     es.indices.delete(index=index_name, ignore=[400, 404])
     return index_name
@@ -233,9 +306,12 @@ def reset():
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Tests!')
-    parser.add_argument('-l', '--language', help='Either "node" or "python"', required=False, default=None)
-    parser.add_argument('-s', '--size', help='Number of events to send on each iteration', required=False, default=1000)
-    parser.add_argument('-i', '--iterations', help='Number of iterations to do each test', required=False, default=1)
+    parser.add_argument(
+        '-l', '--language', help='Either "node" or "python", defaults to both', default=None)
+    parser.add_argument(
+        '-s', '--size', help='Number of events to send on each iteration', default=1000)
+    parser.add_argument(
+        '-i', '--iterations', help='Number of iterations to do each test', default=1)
 
     args = parser.parse_args()
 
@@ -252,7 +328,18 @@ if __name__ == '__main__':
             load_test(lang, size)
             es.indices.refresh(index)
             check_counts(index, size, it)
-            check_contents(lang, index, it)
+            check_contents(lang, it)
+            logger.info("So far so good...")
+
+    if len(langs) > 1:
+        logger.info("Testing all agents together")
+        index = reset()
+        for it in range(1, iters + 1):
+            logger.info("Sending batch {} / {}".format(it, iters))
+            load_test_mixed_lang(size)
+            es.indices.refresh(index)
+            check_counts(index, size * 2, it)
+            check_contents_not_mixed()
             logger.info("So far so good...")
 
     logger.info("ALL DONE")

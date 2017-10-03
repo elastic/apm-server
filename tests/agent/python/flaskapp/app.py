@@ -46,7 +46,4 @@ def bar():
 
 
 if __name__ == '__main__':
-    port = 8081
-    app.run(host='localhost', port=port)
-
-
+    app.run(host='localhost', port=5000)
