@@ -18,6 +18,7 @@ LICENSE_FILE=LICENSE.txt
 update-beats:
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
+	@govendor fetch github.com/elastic/beats/libbeat/kibana/@$(BEATS_VERSION)
 	rm -rf _beats
 	@BEATS_VERSION=$(BEATS_VERSION) sh script/update_beats.sh
 	@$(MAKE) update
