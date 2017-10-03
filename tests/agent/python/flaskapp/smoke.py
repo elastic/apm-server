@@ -1,3 +1,4 @@
+import argparse
 import time
 from tornado import ioloop, httpclient
 from elasticsearch import Elasticsearch
@@ -39,11 +40,11 @@ def handle(r):
         logger.error("Bad response, aborting: {} - {} ({})".format(r.code, r.error, r.request_time))
 
 
-def run_process(lang, nworkers=4):
+def run_process(lang):
     if lang == 'node':
         cmd = ['node', '../../nodejs/app.js']
     elif lang == 'python':
-        cmd = ['gunicorn', '-w', str(nworkers), '-b', '0.0.0.0:5000', 'app:app']
+        cmd = ['gunicorn', '-w', '4', '-b', '0.0.0.0:8081', 'app:app']
     p = subprocess.Popen(cmd)
     return p
 
@@ -56,7 +57,7 @@ def send_batch(nreqs):
     for _ in range(nreqs):
         num_reqs += 1
         endpoint = "foo" if num_reqs % 2 == 0 else "bar"
-        url = "http://localhost:5000/" + endpoint + '?' + p_uid
+        url = "http://localhost:8081/" + endpoint + '?' + p_uid
         http_client.fetch(url, handle, method='GET', connect_timeout=90, request_timeout=120)
 
     logger.info("Starting tornado I/O loop")
@@ -65,12 +66,11 @@ def send_batch(nreqs):
 
 class Worker:
 
-    def __init__(self, lang, nworkers):
+    def __init__(self, lang):
         self.l = lang
-        self.w = nworkers
 
     def __enter__(self):
-        self.p = run_process(self.l, self.w)
+        self.p = run_process(self.l)
         time.sleep(3)
         logger.info("Process ready {}".format(self.p.pid))
 
@@ -82,28 +82,22 @@ class Worker:
         logger.info("Process terminated")
 
 
-def load_test(lang, nworkers, nreqs):
-    with Worker(lang, nworkers):
+def load_test(lang, nreqs):
+    with Worker(lang):
         send_batch(nreqs)
 
 
 EXPECTATIONS = {
     'node': {
-        'transaction_type': 'request',
         'url_search': '?',
         'agent_name': 'nodejs',
         'framework': 'express',
-        'stacktrace_keys': ['abs_path', 'line', 'filename'],
-        'hostname': 'localhost:5000',
         'lang_key': 'runtime'
     },
     'python': {
-        'transaction_type': 'web.flask',
         'url_search': '',
         'agent_name': 'elasticapm-python',
         'framework': 'flask',
-        'stacktrace_keys': ['abs_path', 'line', 'module', 'filename'],
-        'hostname': 'localhost',
         'lang_key': 'language'
     }
 }
@@ -131,8 +125,6 @@ def check_counts(index_name, size, it):
 
 def check_contents(lang, index_name, it):
 
-    es.indices.refresh(index_name)
-
     def anomaly(x): return x > 100000 or x < 1  # 100000 = 0.1 sec
 
     transactions_query = es_query("processor.event", "transaction")
@@ -151,14 +143,14 @@ def check_contents(lang, index_name, it):
             "{} is too far of {} ".format(timestamp, datetime.utcnow())
 
         assert transaction['result'] == '200', transaction['result']
-        assert transaction['type'] == EXPECTATIONS[lang]['transaction_type'], transaction['type']
+        assert transaction['type'] == 'request'
 
         context = lookup(hit, '_source', 'context')
         assert context['request']['url']['search'] == EXPECTATIONS[lang]['url_search'] + p_uid, "{} not in context {}".format(p_uid, context)
 
         assert context['request']['method'] == "GET", context['request']['method']
         assert context['request']['url']['pathname'] in ("/foo", "/bar"), context['request']['url']['pathname']
-        assert context['request']['url']['hostname'] == EXPECTATIONS[lang]['hostname'], context['request']['url']['hostname']
+        assert context['request']['url']['hostname'] == 'localhost'
 
         if lang == 'node':
             assert context['response']['status_code'] == 200, context['response']['status_code']
@@ -198,7 +190,7 @@ def check_contents(lang, index_name, it):
 
         fns = [frame['function'] for frame in stacktrace]
         assert all(fns), fns
-        for attr in EXPECTATIONS[lang]['stacktrace_keys']:
+        for attr in ['abs_path', 'line', 'filename']:
             assert all(frame.get(attr) for frame in stacktrace), stacktrace[0].keys()
 
         if trace['name'] == 'app.bar':
@@ -239,19 +231,28 @@ def reset():
 
 
 if __name__ == '__main__':
-    # todo make these input-able
-    iters = 10
-    size = 1000
-    workers = 4
-    lang = 'node'
 
-    index = reset()
+    parser = argparse.ArgumentParser(description='Tests!')
+    parser.add_argument('-l', '--language', help='Either "node" or "python"', required=False, default=None)
+    parser.add_argument('-s', '--size', help='Number of events to send on each iteration', required=False, default=1000)
+    parser.add_argument('-i', '--iterations', help='Number of iterations to do each test', required=False, default=1)
 
-    for it in range(1, iters + 1):
-        logger.info("Sending batch {} / {}".format(it, iters))
-        load_test(lang, workers, size)
-        check_counts(index, size, it)
-        check_contents(lang, index, it)
-        logger.info("So far so good...")
+    args = parser.parse_args()
+
+    langs = [args.language] if args.language else ['python', 'node']
+    iters = int(args.iterations)
+    size = int(args.size)
+
+    for lang in langs:
+        logger.info("Testing {} agent".format(lang))
+        index = reset()
+
+        for it in range(1, iters + 1):
+            logger.info("Sending batch {} / {}".format(it, iters))
+            load_test(lang, size)
+            es.indices.refresh(index)
+            check_counts(index, size, it)
+            check_contents(lang, index, it)
+            logger.info("So far so good...")
 
     logger.info("ALL DONE")
