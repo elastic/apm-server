@@ -12,8 +12,9 @@ import (
 //The purpose is to enable using different kinds of transformation, on top of the same data structure.
 //Current transformation:
 //  -ElasticSearch Template
-//Future:
 //  -Kibana Index Pattern
+
+type Fields []Field
 
 type Field struct {
 	Name           string      `config:"name"`
@@ -32,11 +33,38 @@ type Field struct {
 	Index          *bool       `config:"index"`
 	DocValues      *bool       `config:"doc_values"`
 
+	// Kibana specific
+	Analyzed     *bool  `config:"analyzed"`
+	Count        int    `config:"count"`
+	Searchable   *bool  `config:"searchable"`
+	Aggregatable *bool  `config:"aggregatable"`
+	Script       string `config:"script"`
+	// Kibana field format specific
+	Pattern         string `config:"pattern"`
+	InputFormat     string `config:"input_format"`
+	OutputFormat    string `config:"output_format"`
+	OutputPrecision string `config:"output_precision"`
+	LabelTemplate   string `config:"label_template"`
+	UrlTemplate     string `config:"url_template"`
+
 	Path string
 }
 
-type Fields []Field
+type DynamicType struct{ Value interface{} }
 
+func (d *DynamicType) Unpack(s string) error {
+	switch s {
+	case "true":
+		d.Value = true
+	case "false":
+		d.Value = false
+	case "strict":
+		d.Value = s
+	default:
+		return fmt.Errorf("'%v' is invalid dynamic setting", s)
+	}
+	return nil
+}
 func LoadFieldsYaml(path string) (Fields, error) {
 	keys := []Field{}
 
@@ -71,22 +99,6 @@ func GenerateKey(key string) string {
 		key = keys[0] + ".properties." + GenerateKey(keys[1])
 	}
 	return key
-}
-
-type DynamicType struct{ Value interface{} }
-
-func (d *DynamicType) Unpack(s string) error {
-	switch s {
-	case "true":
-		d.Value = true
-	case "false":
-		d.Value = false
-	case "strict":
-		d.Value = s
-	default:
-		return fmt.Errorf("'%v' is invalid dynamic setting", s)
-	}
-	return nil
 }
 
 func (f Fields) hasKey(keys []string) bool {
