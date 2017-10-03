@@ -5,13 +5,13 @@ This is to setup an environment for the manual testing of the [python agent](htt
 
 # Setup
 
-There are two possible setups. If you already have Python installed, you can run the following to commands to get started, with an activated virtualenv and requirements installed::
+There are two possible setups. If you already have Python installed, you can run the following two commands to get started, with an activated virtualenv and requirements installed::
 
 ```
 python flaskapp/app.py
 ```
 
-There is also a docker environment which comes with all the requisits. Run the follwing command to start the environment:
+There is also a docker environment which comes with all the requisites. Run the following command to start the environment:
 
 ```
 make start
