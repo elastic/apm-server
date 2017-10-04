@@ -10,7 +10,7 @@ app.debug = False
 
 app.config['ELASTIC_APM'] = {
     'DEBUG': True,
-    'TRACES_SEND_FREQ': 3
+    'TRACES_SEND_FREQ': 1
 }
 
 apm = ElasticAPM(
