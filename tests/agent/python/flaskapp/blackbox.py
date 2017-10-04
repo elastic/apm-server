@@ -44,7 +44,7 @@ def handle(r):
 
 def run_process(lang):
     if lang == 'node':
-        cmd = ['node', '../../nodejs/app.js']
+        cmd = ['node', '../../nodejs/express/app.js']
     elif lang == 'python':
         cmd = ['gunicorn', '-w', '4', '-b', '0.0.0.0:5000', 'app:app']
     p = subprocess.Popen(cmd)
