@@ -36,6 +36,15 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 		"./../../../_meta/fields.common.yml",
 		"./../_meta/fields.yml",
 	}
-	exceptions := set.New("processor.event", "processor.name", "error.id", "error.log.level", "error.grouping_key", "listening")
+	exceptions := set.New(
+		"processor.event",
+		"processor.name",
+		"error.id",
+		"error.log.level",
+		"error.grouping_key",
+		"listening",
+		"error id icon",
+		"view errors",
+	)
 	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, er.Schema(), exceptions)
 }

@@ -10,6 +10,9 @@
           type: keyword
           description: >
             A UUID4 transaction ID.
+          format: url
+          label_template: "View Traces"
+          url_template: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'trace.transaction_id:{{value}}'))"
 
         - name: name
           type: text
@@ -36,6 +39,10 @@
               type: long
               description: >
                 Total duration of this transaction, in microseconds.
+              format: duration
+              input_format: microseconds
+              output_format: asMilliseconds
+              output_precision: 0
 
         - name: result
           type: keyword
@@ -47,6 +54,10 @@
   title: APM Trance
   description: Trace-specific data for APM.
   fields:
+    - name: view traces
+      format: url
+      label_template: "View Traces"
+
     - name: trace
       type: group
       dynamic: false
@@ -64,11 +75,13 @@
 
         - name: name
           type: keyword
+          count: 1
           description: >
             Generic name of the trace.
 
         - name: type
           type: keyword
+          count: 1
           description: >
             Type of the trace. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
 
@@ -78,6 +91,7 @@
           fields:
             - name: us
               type: long
+              count: 1
               description: >
                 Start time of the trace in microseconds, relative to the start time of the transaction.
 
@@ -88,8 +102,13 @@
 
             - name: us
               type: long
+              count: 1
               description: >
                 Duration of the trace, in microseconds.
+              format: duration
+              input_format: microseconds
+              output_format: asMilliseconds
+              output_precision: 0
 
         - name: parent
           type: long
