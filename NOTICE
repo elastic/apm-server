@@ -181,8 +181,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
+<<<<<<< HEAD:NOTICE
 Version: 6.x
 Revision: 3c53ca66ab1204dc671a33168db9b4dbd81a3d84
+=======
+Version: master
+Revision: 4cb87141eca1f7072f0d2c0ea73ab31ed12f62cb
+>>>>>>> c499ea9... Update to latest beats master. (#220):NOTICE.txt
 License type (autodetected): Apache License 2.0
 ./vendor/github.com/elastic/beats/LICENSE:
 --------------------------------------------------------------------
