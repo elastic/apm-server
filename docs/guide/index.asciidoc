@@ -90,7 +90,7 @@ The following sections show how to get started quickly with Elastic APM on a loc
 [float]
 === Install and run APM Server
 
-First, https://apm-server-snapshots.s3-us-west-2.amazonaws.com/index.html[download APM Server] for your operating system and extract the package.
+First, https://www.elastic.co/downloads/apm/apm-server[download APM Server] for your operating system and extract the package.
 
 In a production environment,
 you would put APM Server on it's own machines,
