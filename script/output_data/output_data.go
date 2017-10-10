@@ -39,7 +39,7 @@ func generate() error {
 
 		f, err := os.Open(path)
 		if err != nil {
-			return err
+			continue
 		}
 
 		data, err := ioutil.ReadAll(f)

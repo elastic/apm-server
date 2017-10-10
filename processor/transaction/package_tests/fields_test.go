@@ -14,7 +14,7 @@ func TestEsDocumentation(t *testing.T) {
 		"./../../../_meta/fields.common.yml",
 		"./../_meta/fields.yml",
 	}
-	processorFn := transaction.NewProcessor
+	processorFn := transaction.NewBackendProcessor
 	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, processorFn)
 	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, processorFn, set.New("listening", "view traces"))
 }

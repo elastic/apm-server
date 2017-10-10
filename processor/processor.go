@@ -10,10 +10,17 @@ import (
 
 type NewProcessor func() Processor
 
+const (
+	Backend  = iota
+	Frontend = iota
+	Nop      = iota
+)
+
 type Processor interface {
 	Validate([]byte) error
 	Transform([]byte) ([]beat.Event, error)
 	Name() string
+	Type() int
 }
 
 func CreateDoc(timestamp time.Time, docMappings []m.DocMapping) beat.Event {
