@@ -11,7 +11,8 @@ import (
 )
 
 func init() {
-	pr.Registry.AddProcessor(Endpoint, NewProcessor())
+	pr.Registry.AddProcessor(BackendEndpoint, NewBackendProcessor())
+	pr.Registry.AddProcessor(FrontendEndpoint, NewFrontendProcessor())
 }
 
 var (
@@ -22,18 +23,28 @@ var (
 )
 
 const (
-	Endpoint      = "/v1/transactions"
-	processorName = "transaction"
+	BackendEndpoint  = "/v1/transactions"
+	FrontendEndpoint = "/v1/client-side/transactions"
+	processorName    = "transaction"
 )
 
-func NewProcessor() pr.Processor {
+func NewBackendProcessor() pr.Processor {
 	return &processor{
 		schema: pr.CreateSchema(transactionSchema, processorName),
+		typ:    pr.Backend,
+	}
+}
+
+func NewFrontendProcessor() pr.Processor {
+	return &processor{
+		schema: pr.CreateSchema(transactionSchema, processorName),
+		typ:    pr.Frontend,
 	}
 }
 
 type processor struct {
 	schema *jsonschema.Schema
+	typ    int
 }
 
 func (p *processor) Validate(buf []byte) error {
@@ -58,4 +69,8 @@ func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
 
 func (p *processor) Name() string {
 	return processorName
+}
+
+func (p *processor) Type() int {
+	return p.typ
 }
