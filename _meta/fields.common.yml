@@ -146,7 +146,9 @@
               description: >
                 Unique App name.
               format: url
-              url_template: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'context.app.name:\"{{value}}\"'))"
+              url_template: 
+                - min_version: 6.0.0
+                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'context.app.name:\"{{value}}\"'))"
               label_template: "{{value}}"
 
             - name: version
