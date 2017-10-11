@@ -11,7 +11,7 @@
       url_template: 
         - min_version: 5.0.0
           value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(query_string:(analyze_wildcard:!t,query:'context.app.name:%22{{value}}%22')))"
-        - min_version: 6.0.0
+        - min_version: 6.0.0-alpha1
           value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'context.app.name:\"{{value}}\"'))"
 
     - name: error id icon
@@ -44,10 +44,10 @@
           format: url
           label_template: "View Error Details"
           url_template: 
-            - min_version: 6.0.0
-              value: "../app/kibana#/dashboard/5f08a870-7c6a-11e7-aa55-3b0d52c71c60?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'error.grouping_key:{{value}}'))"
             - min_version: 5.0.0
               value: "../app/kibana#/dashboard/5f08a870-7c6a-11e7-aa55-3b0d52c71c60?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(query_string:(analyze_wildcard:!t,query:'error.grouping_key:%22{{value}}%22')))"
+            - min_version: 6.0.0-alpha1
+              value: "../app/kibana#/dashboard/5f08a870-7c6a-11e7-aa55-3b0d52c71c60?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'error.grouping_key:{{value}}'))"
 
 
         - name: exception
