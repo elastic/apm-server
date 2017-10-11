@@ -20,7 +20,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-type chainable func(processor.Processor, Config, reporter) http.Handler
+type processorHandler func(processor.Processor, Config, reporter) http.Handler
 
 var (
 	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server")
@@ -31,10 +31,10 @@ var (
 	errInvalidToken    = errors.New("invalid token")
 	errPOSTRequestOnly = errors.New("only POST requests are supported")
 
-	handlerMap = map[int]chainable{
-		processor.Backend:  backendHandler,
-		processor.Frontend: frontendHandler,
-		processor.Nop:      nopHandler,
+	handlerMap = map[int]processorHandler{
+		processor.Backend:     backendHandler,
+		processor.Frontend:    frontendHandler,
+		processor.HealthCheck: healthCheckHandler,
 	}
 )
 
@@ -53,15 +53,15 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 func backendHandler(p processor.Processor, config Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			appHandler(p, config, report)))
+			processRequestHandler(p, config, report)))
 }
 
 func frontendHandler(p processor.Processor, config Config, report reporter) http.Handler {
 	return logHandler(
-		appHandler(p, config, report))
+		processRequestHandler(p, config, report))
 }
 
-func nopHandler(_ processor.Processor, _ Config, _ reporter) http.Handler {
+func healthCheckHandler(_ processor.Processor, _ Config, _ reporter) http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sendStatus(w, r, 200, nil)
@@ -102,7 +102,7 @@ func isAuthorized(req *http.Request, secretToken string) bool {
 	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(secretToken)) == 1
 }
 
-func appHandler(p processor.Processor, config Config, report reporter) http.Handler {
+func processRequestHandler(p processor.Processor, config Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := processRequest(r, p, config.MaxUnzippedSize, report)
 		sendStatus(w, r, code, err)

@@ -11,9 +11,9 @@ import (
 type NewProcessor func() Processor
 
 const (
-	Backend  = iota
-	Frontend = iota
-	Nop      = iota
+	Backend     = iota
+	Frontend    = iota
+	HealthCheck = iota
 )
 
 type Processor interface {

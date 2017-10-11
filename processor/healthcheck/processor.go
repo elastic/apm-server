@@ -33,5 +33,5 @@ func (p *processor) Name() string {
 }
 
 func (p *processor) Type() int {
-	return pr.Nop
+	return pr.HealthCheck
 }
