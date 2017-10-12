@@ -66,6 +66,22 @@ func TestServerHealth(t *testing.T) {
 	assert.Equal(t, 200, rr.Code, rr.Code)
 }
 
+func TestServerFrontendSwitch(t *testing.T) {
+	apm, teardown := setupServer(t, noSSL)
+	defer teardown()
+
+	req, _ := http.NewRequest("POST", transaction.FrontendEndpoint, bytes.NewReader(testData))
+
+	rec := httptest.NewRecorder()
+	apm.Handler.ServeHTTP(rec, req)
+	assert.Equal(t, 403, rec.Code, rec.Body.String())
+
+	apm.Handler = newMuxer(Config{EnableFrontend: true}, nil)
+	rec = httptest.NewRecorder()
+	apm.Handler.ServeHTTP(rec, req)
+	assert.NotEqual(t, 403, rec.Code, rec.Body.String())
+}
+
 func TestServerNoContentType(t *testing.T) {
 	apm, teardown := setupServer(t, noSSL)
 	defer teardown()
