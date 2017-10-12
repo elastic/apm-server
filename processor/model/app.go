@@ -15,7 +15,6 @@ type App struct {
 	Runtime      Runtime   `json:"runtime"`
 	Framework    Framework `json:"framework"`
 	Agent        Agent     `json:"agent"`
-	GitRef       *string   `json:"git_ref"`
 }
 
 type Language struct {
@@ -38,7 +37,6 @@ type Agent struct {
 type TransformApp func(a *App) common.MapStr
 
 func (a *App) MinimalTransform() common.MapStr {
-	enhancer := utility.NewMapStrEnhancer()
 	app := common.MapStr{
 		"name": a.Name,
 		"agent": common.MapStr{
@@ -46,7 +44,6 @@ func (a *App) MinimalTransform() common.MapStr {
 			"version": a.Agent.Version,
 		},
 	}
-	enhancer.Add(app, "git_ref", a.GitRef)
 	return app
 }
 

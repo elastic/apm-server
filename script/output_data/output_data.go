@@ -31,6 +31,10 @@ func generate() error {
 
 	for _, p := range processors {
 
+		if p.Type() == processor.HealthCheck {
+			continue
+		}
+
 		// Remove version from name and and s at the end
 		name := p.Name()
 
@@ -75,6 +79,9 @@ func generate() error {
 				file := filepath.Join(outputPath, event.(string)+".json")
 
 				output, err := json.MarshalIndent(d.Fields, "", "    ")
+				if err != nil {
+					return err
+				}
 				err = ioutil.WriteFile(file, output, 0644)
 				if err != nil {
 					return err

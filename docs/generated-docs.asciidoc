@@ -1,0 +1,43 @@
+[[generated-docs]]
+== Generated Documents
+
+The APM Server produces documents with a specific structure.
+The defined structure can be used to create an index in Elasticsearch.
+See the examples in this section for different document types.
+
+[[generated-docs-examples]]
+[float]
+=== Examples
+
+In the following you find example documents sent to Elasticsearch from APM Server:
+
+* <<transaction-example>>
+* <<trace-example>>
+* <<error-example>>
+
+[[transaction-example]]
+[float]
+==== Transaction document
+
+[source,json]
+----
+include::./data/elasticsearch/transaction.json[]
+----
+
+[[trace-example]]
+[float]
+==== Trace document
+
+[source,json]
+----
+include::./data/elasticsearch/trace.json[]
+----
+
+[[error-example]]
+[float]
+==== Error document
+
+[source,json]
+----
+include::./data/elasticsearch/error.json[]
+----

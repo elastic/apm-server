@@ -5,7 +5,6 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "git_ref": "ba1df27",
             "name": "1234_app-12a3"
         },
         "db": {

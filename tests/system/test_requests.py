@@ -3,6 +3,7 @@ from nose.tools import raises
 from apmserver import ServerBaseTest, SecureServerBaseTest
 from requests.exceptions import SSLError
 import requests
+import json
 import zlib
 import gzip
 try:
@@ -16,8 +17,7 @@ class Test(ServerBaseTest):
 
     def test_ok(self):
         transactions = self.get_transaction_payload()
-        r = requests.post(self.transactions_url, data=transactions,
-                          headers={'Content-Type': 'application/json'})
+        r = requests.post(self.transactions_url, json=transactions)
         assert r.status_code == 202, r.status_code
 
     def test_empty(self):
@@ -39,15 +39,30 @@ class Test(ServerBaseTest):
         r = requests.post(self.transactions_url, json="not json")
         assert r.status_code == 400, r.status_code
 
+    def test_validation_fail(self):
+        transactions = self.get_transaction_payload()
+        # month and day swapped
+        transactions["transactions"][0]["timestamp"] = "2017-30-05T18:53:27.154Z"
+        r = requests.post(self.transactions_url, json=transactions)
+        assert r.status_code == 400, r.status_code
+        assert "Problem validating JSON document against schema" in r.content, r.content
+
+    def test_validation_2_fail(self):
+        transactions = self.get_transaction_payload()
+        # timezone offsets not allowed
+        transactions["transactions"][0]["timestamp"] = "2017-05-30T18:53:27.154+00:20"
+        r = requests.post(self.transactions_url, json=transactions)
+        assert r.status_code == 400, r.status_code
+        assert "Problem validating JSON document against schema" in r.content, r.content
+
     def test_healthcheck(self):
         healtcheck_url = 'http://localhost:8200/healthcheck'
         r = requests.get(healtcheck_url)
         assert r.status_code == 200, r.status_code
 
     def test_gzip(self):
-        transactions = self.get_transaction_payload()
+        transactions = json.dumps(self.get_transaction_payload())
 
-        out = ""
         try:
             out = StringIO()
         except:
@@ -63,9 +78,8 @@ class Test(ServerBaseTest):
                           headers={'Content-Encoding': 'gzip', 'Content-Type': 'application/json'})
         assert r.status_code == 202, r.status_code
 
-    def test_deflat(self):
-        transactions = self.get_transaction_payload()
-        compressed_data = None
+    def test_deflate(self):
+        transactions = json.dumps(self.get_transaction_payload())
         try:
             compressed_data = zlib.compress(transactions)
         except:
@@ -78,7 +92,7 @@ class Test(ServerBaseTest):
     def test_gzip_error(self):
         data = self.get_transaction_payload()
 
-        r = requests.post(self.transactions_url, data=data,
+        r = requests.post(self.transactions_url, json=data,
                           headers={'Content-Encoding': 'gzip', 'Content-Type': 'application/json'})
         assert r.status_code == 400, r.status_code
 
@@ -95,14 +109,11 @@ class SecureTest(SecureServerBaseTest):
     def test_https_ok(self):
         transactions = self.get_transaction_payload()
         r = requests.post("https://localhost:8200/v1/transactions",
-                          data=transactions,
-                          headers={'Content-Type': 'application/json'},
-                          verify=False)
+                          json=transactions, verify=False)
         assert r.status_code == 202, r.status_code
 
     @raises(SSLError)
     def test_https_verify(self):
         transactions = self.get_transaction_payload()
         requests.post("https://localhost:8200/v1/transactions",
-                      data=transactions,
-                      headers={'Content-Type': 'application/json'})
+                      json=transactions)

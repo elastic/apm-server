@@ -140,21 +140,22 @@
           description: >
             App fields.
           fields:
-
             - name: name
               type: keyword
               description: >
                 Unique App name.
+              format: url
+              label_template: "{{value}}"
+              url_template: 
+                - min_version: "5.0.0"
+                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(query_string:(analyze_wildcard:!t,query:'context.app.name:%22{{value}}%22')))"
+                - min_version: "6.0.0-alpha1"
+                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'context.app.name:\"{{value}}\"'))"
 
             - name: version
               type: keyword
               description: >
                 App version.
-
-            - name: git_ref
-              type: keyword
-              description: >
-                App git reference.
 
             - name: pid
               type: long
@@ -221,29 +222,3 @@
                 type: keyword
                 description: >
                   Agent version.
-
-        - name: db
-          type: group
-          enabled: false
-          description: >
-              An object containing contextual data for database traces
-          fields:
-            - name: instance
-              type: text
-              description: >
-                  Database instance name
-
-            - name: statement
-              type: text
-              description: >
-                  A database statement (e.g. query) for the given database type
-
-            - name: type
-              type: text
-              description: >
-                  Database type. For any SQL database, "sql". For others, the lower-case database category, e.g. "cassandra", "hbase", or "redis"
-
-            - name: user
-              type: text
-              description: >
-                  Username for accessing database

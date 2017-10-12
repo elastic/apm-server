@@ -49,11 +49,6 @@ var errorSchema = `{
             },
             "required": ["name", "version"]
         },
-        "git_ref": {
-            "description": "Git Reference of the app emitting this event",
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
         "language": {
             "type": ["object", "null"],
             "properties": {
@@ -402,7 +397,7 @@ var errorSchema = `{
                     "description": "A parametrized message. E.g. Could not connect to %s. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
                     "type": ["string", "null"],
                     "maxLength": 1024
-                
+
                 },
                 "stacktrace": {
                     "type": ["array", "null"],
@@ -469,8 +464,9 @@ var errorSchema = `{
         },
         "timestamp": {
             "type": "string",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ",
-            "pattern": "^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})(\\.\\d{1,6})?Z$"
+            "format": "date-time",
+            "pattern": "Z$",
+            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
     "required": ["timestamp"],

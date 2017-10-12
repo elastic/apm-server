@@ -1,14 +1,158 @@
+[[transaction-api]]
 == Transaction API
 
-To send transaction records you need to send a HTTP POST request to the APM Server `transactions` endpoint. Information pertaining to the record must be sent as a JSON object to the endpoint.
+The APM Server exposes an API Endpoint to send transaction records. 
+Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
-link:./spec/transactions/payload.json[JSON Schema]
+To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint.
+Information pertaining to the record must be sent as a JSON object to the endpoint.
 
-=== Example
+Find more information about: 
+
+* <<transaction-schema-definition>>
+* <<transaction-api-examples>>
+
+
+[[transaction-schema-definition]]
+[float]
+=== Schema Definition
+
+The APM Server uses a JSON Schema for validating the transaction requests. 
+Find details on how the schema is defined:
+
+* <<transaction-payload-schema>>
+* <<transaction-transaction-schema>>
+* <<transaction-trace-schema>>
+* <<transaction-app-schema>>
+* <<transaction-system-schema>>
+* <<transaction-context-schema>>
+* <<transaction-stacktraceframe-schema>>
+* <<transaction-request-schema>>
+* <<transaction-user-schema>>
+
+[[transaction-payload-schema]]
+[float]
+==== Payload
+
+[source,json]
+----
+include::./spec/transactions/payload.json[]
+----
+
+[[transaction-transaction-schema]]
+[float]
+==== Transaction 
+
+[source,json]
+----
+include::./spec/transactions/transaction.json[]
+----
+
+[[transaction-trace-schema]]
+[float]
+==== Trace 
+
+[source,json]
+----
+include::./spec/transactions/trace.json[]
+----
+
+[[transaction-app-schema]]
+[float]
+==== App
+
+[source,json]
+----
+include::./spec/app.json[]
+----
+
+[[transaction-system-schema]]
+[float]
+==== System
+
+[source,json]
+----
+include::./spec/system.json[]
+----
+
+[[transaction-context-schema]]
+[float]
+==== Context 
+
+[source,json]
+----
+include::./spec/context.json[]
+----
+
+[[transaction-stacktraceframe-schema]]
+[float]
+==== Stacktrace Frame 
+
+[source,json]
+----
+include::./spec/stacktrace_frame.json[]
+----
+
+[[transaction-request-schema]]
+[float]
+==== Request 
+
+[source,json]
+----
+include::./spec/request.json[]
+----
+
+[[transaction-user-schema]]
+[float]
+==== User
+
+[source,json]
+----
+include::./spec/user.json[]
+----
+
+[[transaction-api-examples]]
+[float]
+=== Examples
+
+Send an example request to the APM Server:
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-$ curl http://localhost:8200/v1/transactions --header "Content-Type:application/json" --data @docs/data/intake-api/generated/transaction/payload.json
+curl http://localhost:8200/v1/transactions \
+  --header "Content-Type: application/json" \
+  --data @docs/data/intake-api/generated/transaction/payload.json
 ------------------------------------------------------------
 
-link:./data/intake-api/generated/transaction/payload.json[Example Payload]
+See examples on how a transaction request to the APM Server can look like:
+
+* <<payload-with-transactions>>
+* <<payload-with-minimal-transaction>>
+* <<payload-with-minimal-trace>>
+
+[[payload-with-transactions]]
+[float]
+==== Payload with several Transactions
+
+[source,json]
+----
+include::./data/intake-api/generated/transaction/payload.json[]
+----
+
+[[payload-with-minimal-transaction]]
+[float]
+==== Payload with a minimal Transaction
+
+[source,json]
+----
+include::./data/intake-api/generated/transaction/minimal_payload.json[]
+----
+
+[[payload-with-minimal-trace]]
+[float]
+==== Payload with a Transaction with a minimal Trace
+
+[source,json]
+----
+include::./data/intake-api/generated/transaction/minimal_trace.json[]
+----

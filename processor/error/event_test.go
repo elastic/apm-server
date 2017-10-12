@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"time"
+
 	m "github.com/elastic/apm-server/processor/model"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -48,7 +50,6 @@ func (l *Log) withFrames(frames []m.StacktraceFrame) *Log {
 func TestEventTransform(t *testing.T) {
 	id := "45678"
 	culprit := "some trigger"
-	ts := "2017-05-09T15:04:05.999999Z"
 
 	errorType := "error type"
 	codeFloat := 13.0
@@ -136,7 +137,7 @@ func TestEventTransform(t *testing.T) {
 		{
 			Event: Event{
 				Id:        &id,
-				Timestamp: ts,
+				Timestamp: time.Now(),
 				Culprit:   &culprit,
 				Context:   context,
 				Exception: &exception,
