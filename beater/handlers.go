@@ -29,6 +29,7 @@ var (
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 
 	errInvalidToken    = errors.New("invalid token")
+	errForbidden       = errors.New("forbidden request")
 	errPOSTRequestOnly = errors.New("only POST requests are supported")
 
 	handlerMap = map[int]processorHandler{
@@ -58,7 +59,8 @@ func backendHandler(p processor.Processor, config Config, report reporter) http.
 
 func frontendHandler(p processor.Processor, config Config, report reporter) http.Handler {
 	return logHandler(
-		processRequestHandler(p, config, report))
+		frontendSwitchHandler(config.EnableFrontend,
+			processRequestHandler(p, config, report)))
 }
 
 func healthCheckHandler(_ processor.Processor, _ Config, _ reporter) http.Handler {
@@ -73,6 +75,16 @@ func logHandler(h http.Handler) http.Handler {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 		requestCounter.Inc()
 		h.ServeHTTP(w, r)
+	})
+}
+
+func frontendSwitchHandler(feSwitch bool, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if feSwitch {
+			h.ServeHTTP(w, r)
+		} else {
+			sendStatus(w, r, 403, errForbidden)
+		}
 	})
 }
 
