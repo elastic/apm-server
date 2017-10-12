@@ -31,6 +31,10 @@ func generate() error {
 
 	for _, p := range processors {
 
+		if p.Type() == processor.HealthCheck {
+			continue
+		}
+
 		// Remove version from name and and s at the end
 		name := p.Name()
 
@@ -39,7 +43,7 @@ func generate() error {
 
 		f, err := os.Open(path)
 		if err != nil {
-			continue
+			return err
 		}
 
 		data, err := ioutil.ReadAll(f)
