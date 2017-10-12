@@ -1333,6 +1333,12 @@
 			"revisionTime": "2017-06-28T12:00:33Z"
 		},
 		{
+			"checksumSHA1": "vGfePfr0+weQUeTM/71mu+LCFuE=",
+			"path": "golang.org/x/time/rate",
+			"revision": "8be79e1e0910c292df4e79c241bb7e8f7e725959",
+			"revisionTime": "2017-04-24T23:28:54Z"
+		},
+		{
 			"checksumSHA1": "fALlQNY1fM99NesfLJ50KguWsio=",
 			"origin": "github.com/elastic/beats/vendor/gopkg.in/yaml.v2",
 			"path": "gopkg.in/yaml.v2",

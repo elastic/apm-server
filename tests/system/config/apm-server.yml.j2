@@ -7,6 +7,9 @@ apm-server:
   ssl.certificate:  {{ ssl_cert }}
   ssl.key: {{ ssl_key }}
 
+  ratelimit.size: {{ ratelimit_size|default(0) }}
+  ratelimit.burst: {{ ratelimit_burst|default(100) }}
+
 ############################# Setup ##########################################
 
 {% if index_name %}

@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/time/rate"
+
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
@@ -37,9 +39,17 @@ var (
 func newMuxer(config Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 
+	limiter := rate.NewLimiter(rate.Limit(config.RateLimitSize), config.RateLimitBurst)
+
 	for path, p := range processor.Registry.Processors() {
 		handler := appHandler(p, config, report)
 		logp.Info("Path %s added to request handler", path)
+
+		if config.RateLimitSize > 0 {
+			logp.Info("Rate limiter enabled")
+			handler = rateLimitHandler(limiter, config, handler)
+		}
+
 		mux.Handle(path, logHandler(authHandler(config.SecretToken, handler)))
 	}
 
@@ -112,6 +122,28 @@ func appHandler(p processor.Processor, config Config, report reporter) http.Hand
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := processRequest(r, p, config.MaxUnzippedSize, report)
 		sendStatus(w, r, code, err)
+	})
+}
+
+// addRateLimiter adds the rate limiter to the handler
+// This got heavily inspired by http://rodaine.com/2017/05/x-files-time-rate-golang/
+func rateLimitHandler(limiter *rate.Limiter, config Config, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// create a new context from the request with the wait timeout
+		ctx, cancel := context.WithTimeout(r.Context(), config.ReadTimeout)
+		defer cancel() // always cancel the context!
+
+		// Wait errors out if the request cannot be processed within
+		// the deadline. This is preemptive, instead of waiting the
+		// entire duration.
+		if err := limiter.Wait(ctx); err != nil {
+			logp.Err("Too many requests")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+
+		h.ServeHTTP(w, r)
 	})
 }
 
