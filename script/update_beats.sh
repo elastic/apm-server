@@ -18,11 +18,14 @@ cd $GIT_CLONE
 git checkout $BEATS_VERSION
 cd ..
 
+
 # TODO: allow to check out specific branch / tag
 
 # Copy top level files
 cp -r $GIT_CLONE/script script
 cp -r $GIT_CLONE/dev-tools dev-tools
+
+wget https://raw.githubusercontent.com/elastic/beats/6.0/dev-tools/packer/version.yml -O dev-tools/packer/version.yml
 
 # Fetch libbeat dependencies
 mkdir libbeat
