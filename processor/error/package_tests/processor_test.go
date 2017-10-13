@@ -16,13 +16,13 @@ func TestProcessorOK(t *testing.T) {
 		{Name: "TestProcessErrorMininmalPayloadLog", Path: "tests/data/valid/error/minimal_payload_log.json"},
 		{Name: "TestProcessErrorFull", Path: "tests/data/valid/error/payload.json"},
 	}
-	tests.TestProcessRequests(t, er.NewBackendProcessor(), requestInfo)
+	tests.TestProcessRequests(t, er.NewProcessor(), requestInfo)
 }
 
 // ensure invalid documents fail the json schema validation already
 func TestProcessorFailedValidation(t *testing.T) {
 	data, err := tests.LoadInvalidData("error")
 	assert.Nil(t, err)
-	err = er.NewBackendProcessor().Validate(data)
+	err = er.NewProcessor().Validate(data)
 	assert.NotNil(t, err)
 }
