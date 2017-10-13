@@ -12,7 +12,7 @@ make setup
 node app.js
 ```
 
-There is also a docker environment which comes with all the requisits. Run the follwing command to start the environment:
+There is also a docker environment which comes with all the requisites. Run the following command to start the environment:
 
 ```
 make start

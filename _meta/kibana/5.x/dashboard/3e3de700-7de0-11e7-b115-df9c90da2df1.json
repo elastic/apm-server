@@ -1,0 +1,20 @@
+{
+  "title": "[APM] Trace Details",
+  "hits": 0,
+  "description": "",
+  "panelsJSON": "[{\"size_x\":12,\"size_y\":23,\"panelIndex\":1,\"type\":\"search\",\"id\":\"d7735b90-7ddf-11e7-b115-df9c90da2df1\",\"col\":1,\"row\":1,\"columns\":[\"trace.type\",\"trace.name\",\"trace.duration.us\",\"trace.start.us\"],\"sort\":[\"trace.start.us\",\"asc\"]}]",
+  "optionsJSON": "{\"darkTheme\":false}",
+  "uiStateJSON": "{}",
+  "version": 1,
+  "timeRestore": true,
+  "timeTo": "now",
+  "timeFrom": "now-24h",
+  "refreshInterval": {
+    "display": "Off",
+    "pause": false,
+    "value": 0
+  },
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"query\":\"\",\"filter\":[],\"highlightAll\":true,\"version\":true}"
+  }
+}

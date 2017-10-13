@@ -14,6 +14,7 @@ type Config struct {
 	SecretToken        string        `config:"secret_token"`
 	SSL                *SSLConfig    `config:"ssl"`
 	ConcurrentRequests int           `config:"concurrent_requests" validate:"min=1"`
+	EnableFrontend     bool          `config:"enable_frontend"`
 }
 
 type SSLConfig struct {

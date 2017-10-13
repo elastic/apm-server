@@ -7,3 +7,4 @@ stop:
 
 setup:
 	npm install elastic/apm-agent-nodejs
+	npm install express

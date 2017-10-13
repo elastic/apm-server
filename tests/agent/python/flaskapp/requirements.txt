@@ -1,2 +1,6 @@
 Flask==0.12.2
 blinker
+tornado
+gunicorn
+elasticsearch
+git+https://github.com/elastic/apm-agent-python.git@master

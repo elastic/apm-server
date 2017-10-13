@@ -1,0 +1,10 @@
+{
+  "title": "Error Occurrences [APM]",
+  "visState": "{\"title\":\"Error Occurrences [APM]\",\"type\":\"metrics\",\"params\":{\"id\":\"61ca57f0-469d-11e7-af02-69e470af7417\",\"type\":\"timeseries\",\"series\":[{\"id\":\"61ca57f1-469d-11e7-af02-69e470af7417\",\"color\":\"rgba(0,156,224,1)\",\"split_mode\":\"terms\",\"metrics\":[{\"id\":\"61ca57f2-469d-11e7-af02-69e470af7417\",\"type\":\"count\"}],\"seperate_axis\":0,\"axis_position\":\"right\",\"formatter\":\"number\",\"chart_type\":\"bar\",\"line_width\":\"0\",\"point_size\":1,\"fill\":\"1\",\"stacked\":\"none\",\"label\":\"Occurrences\",\"terms_field\":\"error.grouping_key\"}],\"time_field\":\"@timestamp\",\"index_pattern\":\"apm-*\",\"interval\":\"auto\",\"axis_position\":\"left\",\"axis_formatter\":\"number\",\"show_legend\":0,\"show_grid\":1,\"filter\":\"processor.event:error\"},\"aggs\":[]}",
+  "uiStateJSON": "{}",
+  "description": "",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{}"
+  }
+}

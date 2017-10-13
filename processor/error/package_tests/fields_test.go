@@ -14,7 +14,7 @@ func TestFields(t *testing.T) {
 		"./../../../_meta/fields.common.yml",
 		"./../_meta/fields.yml",
 	}
-	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, er.NewProcessor)
+	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, er.NewBackendProcessor)
 
 	notInEvent := set.New(
 		"context.db.instance",
@@ -23,6 +23,8 @@ func TestFields(t *testing.T) {
 		"context.db.type",
 		"context.db",
 		"listening",
+		"error id icon",
+		"view errors",
 	)
-	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, er.NewProcessor, notInEvent)
+	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, er.NewBackendProcessor, notInEvent)
 }
