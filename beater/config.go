@@ -2,6 +2,8 @@ package beater
 
 import (
 	"time"
+
+	"github.com/elastic/beats/libbeat/outputs"
 )
 
 type Config struct {
@@ -24,9 +26,8 @@ type FrontendConfig struct {
 }
 
 type SSLConfig struct {
-	Enabled    *bool  `config:"enabled"`
-	PrivateKey string `config:"key"`
-	Cert       string `config:"certificate"`
+	Enabled     *bool                     `config:"enabled"`
+	Certificate outputs.CertificateConfig `config:",inline"`
 }
 
 func (c *SSLConfig) isEnabled() bool {

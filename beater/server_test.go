@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/beats/libbeat/outputs"
+
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
@@ -247,7 +249,8 @@ func withSSL(t *testing.T, domain string) *SSLConfig {
 	t.Log("generating certificate in ", cert)
 	httpscerts.Generate(cert, key, domain)
 
-	return &SSLConfig{Cert: cert, PrivateKey: key}
+	return &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: cert, Key: key}}
+	//return &SSLConfig{Cert: cert, PrivateKey: key}
 }
 
 func makeTestRequest(t *testing.T) *http.Request {

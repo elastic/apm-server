@@ -20,7 +20,7 @@ apm-server:
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
-
+  #ssl.pass_phrase: "foobar"
   #frontend.enabled: false
 
   # Rate Limit per second and IP address
