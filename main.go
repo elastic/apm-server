@@ -7,8 +7,6 @@ import (
 	"os"
 
 	"github.com/elastic/apm-server/cmd"
-
-	_ "github.com/elastic/apm-server/include"
 )
 
 func main() {

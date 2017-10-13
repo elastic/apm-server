@@ -7,7 +7,7 @@ import (
 )
 
 func BenchmarkWithFileLoading(b *testing.B) {
-	processor := NewBackendProcessor()
+	processor := NewProcessor()
 	for i := 0; i < b.N; i++ {
 		data, _ := tests.LoadValidData("transaction")
 		err := processor.Validate(data)
@@ -19,7 +19,7 @@ func BenchmarkWithFileLoading(b *testing.B) {
 }
 
 func BenchmarkTransactionFileLoadingOnce(b *testing.B) {
-	processor := NewBackendProcessor()
+	processor := NewProcessor()
 	data, _ := tests.LoadValidData("transaction")
 	for i := 0; i < b.N; i++ {
 		err := processor.Validate(data)
