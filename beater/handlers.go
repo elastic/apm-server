@@ -58,9 +58,12 @@ func backendHandler(p processor.Processor, config Config, report reporter) http.
 }
 
 func frontendHandler(p processor.Processor, config Config, report reporter) http.Handler {
-	return logHandler(
-		frontendSwitchHandler(config.EnableFrontend,
-			processRequestHandler(p, config, report)))
+	if config.EnableFrontend {
+		return logHandler(processRequestHandler(p, config, report))
+	} else {
+		return logHandler(errorHandler(403, errForbidden))
+	}
+
 }
 
 func healthCheckHandler(_ processor.Processor, _ Config, _ reporter) http.Handler {
@@ -70,21 +73,17 @@ func healthCheckHandler(_ processor.Processor, _ Config, _ reporter) http.Handle
 		}))
 }
 
+func errorHandler(code int, err error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sendStatus(w, r, code, err)
+	})
+}
+
 func logHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
 		requestCounter.Inc()
 		h.ServeHTTP(w, r)
-	})
-}
-
-func frontendSwitchHandler(feSwitch bool, h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if feSwitch {
-			h.ServeHTTP(w, r)
-		} else {
-			sendStatus(w, r, 403, errForbidden)
-		}
 	})
 }
 
