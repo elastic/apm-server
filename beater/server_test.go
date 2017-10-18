@@ -16,8 +16,6 @@ import (
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/processor/healthcheck"
-	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
 )
@@ -56,7 +54,7 @@ func TestServerHealth(t *testing.T) {
 	apm, teardown := setupServer(t, noSSL)
 	defer teardown()
 
-	req, err := http.NewRequest("GET", healthcheck.Endpoint, nil)
+	req, err := http.NewRequest("GET", HealthCheckURL, nil)
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
@@ -70,7 +68,7 @@ func TestServerFrontendSwitch(t *testing.T) {
 	apm, teardown := setupServer(t, noSSL)
 	defer teardown()
 
-	req, _ := http.NewRequest("POST", transaction.FrontendEndpoint, bytes.NewReader(testData))
+	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
 
 	rec := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rec, req)
@@ -182,7 +180,7 @@ func withSSL(t *testing.T, domain string) *SSLConfig {
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
-	req, err := http.NewRequest("POST", transaction.BackendEndpoint, bytes.NewReader(testData))
+	req, err := http.NewRequest("POST", BackendTransactionsURL, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
@@ -195,7 +193,7 @@ func postTestRequest(t *testing.T, apm *http.Server, client *http.Client, schema
 		client = http.DefaultClient
 	}
 
-	addr := fmt.Sprintf("%s://%s%s", schema, apm.Addr, transaction.BackendEndpoint)
+	addr := fmt.Sprintf("%s://%s%s", schema, apm.Addr, BackendTransactionsURL)
 	return client.Post(addr, "application/json", bytes.NewReader(testData))
 }
 

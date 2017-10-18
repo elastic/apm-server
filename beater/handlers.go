@@ -17,10 +17,28 @@ import (
 
 	"crypto/subtle"
 
+	err "github.com/elastic/apm-server/processor/error"
+	"github.com/elastic/apm-server/processor/healthcheck"
+	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-type processorHandler func(processor.Processor, Config, reporter) http.Handler
+const (
+	BackendTransactionsURL  = "/v1/transactions"
+	FrontendTransactionsURL = "/v1/client-side/transactions"
+	BackendErrorsURL        = "/v1/errors"
+	FrontendErrorsURL       = "/v1/client-side/errors"
+	HealthCheckURL          = "/healthcheck"
+)
+
+type ProcessorFactory func() processor.Processor
+
+type ProcessorHandler func(ProcessorFactory, Config, reporter) http.Handler
+
+type routeMapping struct {
+	ProcessorHandler
+	ProcessorFactory
+}
 
 var (
 	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server")
@@ -32,38 +50,39 @@ var (
 	errForbidden       = errors.New("forbidden request")
 	errPOSTRequestOnly = errors.New("only POST requests are supported")
 
-	handlerMap = map[int]processorHandler{
-		processor.Backend:     backendHandler,
-		processor.Frontend:    frontendHandler,
-		processor.HealthCheck: healthCheckHandler,
+	Routes = map[string]routeMapping{
+		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
+		FrontendTransactionsURL: {frontendHandler, transaction.NewProcessor},
+		BackendErrorsURL:        {backendHandler, err.NewProcessor},
+		FrontendErrorsURL:       {frontendHandler, err.NewProcessor},
+		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
 	}
 )
 
 func newMuxer(config Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	for path, p := range processor.Registry.Processors() {
-		handler := handlerMap[p.Type()]
+	for path, mapping := range Routes {
 		logp.Info("Path %s added to request handler", path)
-		mux.Handle(path, handler(p, config, report))
+		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, config, report))
 	}
 
 	return mux
 }
 
-func backendHandler(p processor.Processor, config Config, report reporter) http.Handler {
+func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			processRequestHandler(p, config, report)))
+			processRequestHandler(pf, config, report)))
 }
 
-func frontendHandler(p processor.Processor, config Config, report reporter) http.Handler {
+func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		frontendSwitchHandler(config.EnableFrontend,
-			processRequestHandler(p, config, report)))
+			processRequestHandler(pf, config, report)))
 }
 
-func healthCheckHandler(_ processor.Processor, _ Config, _ reporter) http.Handler {
+func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sendStatus(w, r, 200, nil)
@@ -114,14 +133,16 @@ func isAuthorized(req *http.Request, secretToken string) bool {
 	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(secretToken)) == 1
 }
 
-func processRequestHandler(p processor.Processor, config Config, report reporter) http.Handler {
+func processRequestHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, p, config.MaxUnzippedSize, report)
+		code, err := processRequest(r, pf, config.MaxUnzippedSize, report)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, p processor.Processor, maxSize int64, report reporter) (int, error) {
+func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter) (int, error) {
+
+	processor := pf()
 
 	if r.Method != "POST" {
 		return 405, errPOSTRequestOnly
@@ -142,11 +163,11 @@ func processRequest(r *http.Request, p processor.Processor, maxSize int64, repor
 
 	}
 
-	if err = p.Validate(buf); err != nil {
+	if err = processor.Validate(buf); err != nil {
 		return 400, err
 	}
 
-	list, err := p.Transform(buf)
+	list, err := processor.Transform(buf)
 	if err != nil {
 		return 400, err
 	}

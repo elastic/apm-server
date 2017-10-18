@@ -7,8 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "github.com/elastic/apm-server/include"
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/beater"
 )
 
 func main() {
@@ -25,15 +24,15 @@ func generate() error {
 	basepath := "tests/data/valid"
 	outputPath := "docs/data/elasticsearch/"
 
-	processors := processor.Registry.Processors()
-
 	var checked = map[string]struct{}{}
 
-	for _, p := range processors {
+	for path, mapping := range beater.Routes {
 
-		if p.Type() == processor.HealthCheck {
+		if path == beater.HealthCheckURL {
 			continue
 		}
+
+		p := mapping.ProcessorFactory()
 
 		// Remove version from name and and s at the end
 		name := p.Name()
