@@ -5,12 +5,7 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 )
 
-func init() {
-	pr.Registry.AddProcessor(Endpoint, NewProcessor())
-}
-
 const (
-	Endpoint      = "/healthcheck"
 	processorName = "healthcheck"
 )
 
@@ -30,8 +25,4 @@ func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
 
 func (p *processor) Name() string {
 	return processorName
-}
-
-func (p *processor) Type() int {
-	return pr.HealthCheck
 }

@@ -8,9 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	// make sure processors are loaded
-	_ "github.com/elastic/apm-server/include"
-
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
