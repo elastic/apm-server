@@ -10,11 +10,6 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 )
 
-func init() {
-	pr.Registry.AddProcessor(BackendEndpoint, NewBackendProcessor())
-	pr.Registry.AddProcessor(FrontendEndpoint, NewFrontendProcessor())
-}
-
 var (
 	transactionMetrics = monitoring.Default.NewRegistry("apm-server.processor.transaction")
 	transformations    = monitoring.NewInt(transactionMetrics, "transformations")
@@ -23,28 +18,17 @@ var (
 )
 
 const (
-	BackendEndpoint  = "/v1/transactions"
-	FrontendEndpoint = "/v1/client-side/transactions"
-	processorName    = "transaction"
+	processorName = "transaction"
 )
 
-func NewBackendProcessor() pr.Processor {
-	return &processor{
-		schema: pr.CreateSchema(transactionSchema, processorName),
-		typ:    pr.Backend,
-	}
-}
+var schema = pr.CreateSchema(transactionSchema, processorName)
 
-func NewFrontendProcessor() pr.Processor {
-	return &processor{
-		schema: pr.CreateSchema(transactionSchema, processorName),
-		typ:    pr.Frontend,
-	}
+func NewProcessor() pr.Processor {
+	return &processor{schema: schema}
 }
 
 type processor struct {
 	schema *jsonschema.Schema
-	typ    int
 }
 
 func (p *processor) Validate(buf []byte) error {
@@ -69,8 +53,4 @@ func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
 
 func (p *processor) Name() string {
 	return processorName
-}
-
-func (p *processor) Type() int {
-	return p.typ
 }

@@ -412,6 +412,14 @@
 		},
 		{
 			"checksumSHA1": "C1/Z/5KZHTwLLFuLRX8WJQfoePg=",
+			"path": "github.com/elastic/beats/libbeat/kibana",
+			"revision": "5db88e80f2a5c956833f57ea973b4db25bdef0e5",
+			"revisionTime": "2017-10-12T15:06:29Z",
+			"version": "6.x",
+			"versionExact": "6.x"
+		},
+		{
+			"checksumSHA1": "C1/Z/5KZHTwLLFuLRX8WJQfoePg=",
 			"path": "github.com/elastic/beats/libbeat/kibana/",
 			"revision": "5db88e80f2a5c956833f57ea973b4db25bdef0e5",
 			"revisionTime": "2017-10-12T15:06:29Z",

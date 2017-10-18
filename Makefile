@@ -40,7 +40,6 @@ collect: imports fields go-generate create-docs notice
 imports:
 	@mkdir -p include
 	@mkdir -p processor
-	@python ${GOPATH}/src/${BEAT_PATH}/script/generate_imports.py ${BEAT_PATH} > include/list.go
 
 .PHONY: fields
 fields:
