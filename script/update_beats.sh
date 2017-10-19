@@ -25,7 +25,7 @@ cd ..
 cp -r $GIT_CLONE/script script
 cp -r $GIT_CLONE/dev-tools dev-tools
 
-wget https://raw.githubusercontent.com/elastic/beats/6.0/dev-tools/packer/version.yml -O dev-tools/packer/version.yml
+curl https://raw.githubusercontent.com/elastic/beats/6.0/dev-tools/packer/version.yml -o dev-tools/packer/version.yml
 
 # Fetch libbeat dependencies
 mkdir libbeat
