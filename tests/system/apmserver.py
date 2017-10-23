@@ -28,6 +28,8 @@ class BaseTest(TestCase):
 
 class ServerBaseTest(BaseTest):
 
+    transactions_url = 'http://localhost:8200/v1/transactions'
+
     def config(self):
         return {
             "ssl_enabled": "false",
@@ -64,6 +66,16 @@ class AccessTest(ServerBaseTest):
     def config(self):
         cfg = super(AccessTest, self).config()
         cfg.update({"secret_token": "1234"})
+        return cfg
+
+
+class ClientSideBaseTest(ServerBaseTest):
+
+    transactions_url = 'http://localhost:8200/v1/client-side/transactions'
+
+    def config(self):
+        cfg = super(ClientSideBaseTest, self).config()
+        cfg.update({"enable_frontend": "true"})
         return cfg
 
 

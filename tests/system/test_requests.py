@@ -1,6 +1,6 @@
 from nose.tools import raises
 
-from apmserver import ServerBaseTest, SecureServerBaseTest
+from apmserver import ServerBaseTest, SecureServerBaseTest, ClientSideBaseTest
 from requests.exceptions import SSLError
 import requests
 import json
@@ -13,7 +13,6 @@ except ImportError:
 
 
 class Test(ServerBaseTest):
-    transactions_url = 'http://localhost:8200/v1/transactions'
 
     def test_ok(self):
         transactions = self.get_transaction_payload()
@@ -54,6 +53,11 @@ class Test(ServerBaseTest):
         r = requests.post(self.transactions_url, json=transactions)
         assert r.status_code == 400, r.status_code
         assert "Problem validating JSON document against schema" in r.content, r.content
+
+    def test_frontend_disabled(self):
+        transactions = self.get_transaction_payload()
+        r = requests.post('http://localhost:8200/v1/client-side/transactions', json=transactions)
+        assert r.status_code == 403, r.status_code
 
     def test_healthcheck(self):
         healtcheck_url = 'http://localhost:8200/healthcheck'
@@ -117,3 +121,11 @@ class SecureTest(SecureServerBaseTest):
         transactions = self.get_transaction_payload()
         requests.post("https://localhost:8200/v1/transactions",
                       json=transactions)
+
+
+class ClientSideTest(ClientSideBaseTest):
+
+    def test_ok(self):
+        transactions = self.get_transaction_payload()
+        r = requests.post(self.transactions_url, json=transactions)
+        assert r.status_code == 202, r.status_code
