@@ -27,7 +27,6 @@ func TestAppSchema(t *testing.T) {
 		{File: "no_framework_name.json", Error: "missing properties: \"name\""},
 		{File: "no_framework_version.json", Error: "missing properties: \"version\""},
 		{File: "no_lang_name.json", Error: "missing properties: \"name\""},
-		{File: "no_lang_version.json", Error: "missing properties: \"version\""},
 		{File: "no_runtime_name.json", Error: "missing properties: \"name\""},
 		{File: "no_runtime_version.json", Error: "missing properties: \"version\""},
 		{File: "no_name.json", Error: "missing properties: \"name\""},
