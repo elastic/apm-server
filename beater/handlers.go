@@ -82,7 +82,7 @@ func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Ha
 func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		frontendSwitchHandler(config.EnableFrontend,
-			corsHandler(config.Origin,
+			corsHandler(config.AllowOrigins,
 				processRequestHandler(pf, config, report))))
 }
 
@@ -137,40 +137,35 @@ func isAuthorized(req *http.Request, secretToken string) bool {
 	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(secretToken)) == 1
 }
 
-func corsHandler(allowedOrigin string, h http.Handler) http.Handler {
+func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 
-	var isSupported = func(requested string, allowed string) bool {
-		rs := true
-		for _, s := range strings.Split(requested, ",") {
-			if !strings.Contains(allowed, s) {
-				rs = false
+	var isAllowed = func(origin string) bool {
+		for _, allowed := range allowedOrigins {
+			if origin == allowed {
+				return true
 			}
 		}
-		return rs
+		return len(allowedOrigins) == 1 && allowedOrigins[0] == "*"
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// origin header is always set by the browser
 		origin := r.Header.Get("Origin")
-		validOrigin := allowedOrigin == "*" || origin == allowedOrigin
+		validOrigin := isAllowed(origin)
 
 		if r.Method == "OPTIONS" {
 
-			requestHeaders := r.Header.Get("Access-Control-Request-Headers")
-			requestMethod := r.Header.Get("Access-Control-Request-Method")
-
-			validHeaders := isSupported(requestHeaders, supportedHeaders)
-			validMethod := isSupported(requestMethod, supportedMethods)
-
 			// setting the ACAO header is the way to tell the browser to go ahead with the request
-			if validOrigin && validHeaders && validMethod {
+			if validOrigin {
 				// do not set the configured origin(s), echo the received origin instead
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 			}
 
 			// tell browsers to cache response requestHeaders for up to 1 hour (browsers might ignore this)
 			w.Header().Set("Access-Control-Max-Age", "3600")
+			// origin must be part of the cache key so that we can handle multiple allowed origins
+			w.Header().Set("Vary", "Origin")
 
 			// required if Access-Control-Request-Method and Access-Control-Request-Headers are in the requestHeaders
 			w.Header().Set("Access-Control-Allow-Methods", supportedMethods)

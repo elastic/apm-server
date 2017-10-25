@@ -15,7 +15,7 @@ type Config struct {
 	SSL                *SSLConfig    `config:"ssl"`
 	ConcurrentRequests int           `config:"concurrent_requests" validate:"min=1"`
 	EnableFrontend     bool          `config:"enable_frontend"`
-	Origin             string        `config:"request_origin"`
+	AllowOrigins       []string      `config:"allow_origins"`
 }
 
 type SSLConfig struct {
@@ -37,5 +37,5 @@ var defaultConfig = Config{
 	WriteTimeout:       2 * time.Second,
 	ShutdownTimeout:    5 * time.Second,
 	SecretToken:        "",
-	Origin:             "*",
+	AllowOrigins:       []string{"*"},
 }

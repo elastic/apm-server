@@ -83,7 +83,7 @@ class CorsBaseTest(ClientSideBaseTest):
 
     def config(self):
         cfg = super(CorsBaseTest, self).config()
-        cfg.update({"request_origin": "http://www.elastic.co"})
+        cfg.update({"allow_origins": ["http://www.elastic.co"]})
         return cfg
 
 

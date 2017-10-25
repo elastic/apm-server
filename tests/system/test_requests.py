@@ -136,6 +136,7 @@ class CorsTest(CorsBaseTest):
     def test_ok(self):
         transactions = self.get_transaction_payload()
         r = requests.post(self.transactions_url, json=transactions, headers={'Origin': 'http://www.elastic.co'})
+        assert r.headers['Access-Control-Allow-Origin'] == 'http://www.elastic.co', r.headers
         assert r.status_code == 202, r.status_code
 
     def test_bad_origin(self):
@@ -149,14 +150,6 @@ class CorsTest(CorsBaseTest):
         r = requests.post(self.transactions_url, json=transactions)
         assert r.status_code == 403, r.status_code
 
-    def test_minimal_preflight(self):
-        transactions = self.get_transaction_payload()
-        r = requests.options(self.transactions_url, json=transactions, headers={'Origin': 'http://www.elastic.co'})
-        assert r.status_code == 200, r.status_code
-        assert r.headers['Access-Control-Allow-Headers'] == 'Content-Type, Content-Encoding, Accept', r.headers
-        assert r.headers['Access-Control-Allow-Origin'] == 'http://www.elastic.co', r.headers
-        assert r.headers['Access-Control-Allow-Methods'] == 'POST, OPTIONS', r.headers
-
     def test_preflight(self):
         transactions = self.get_transaction_payload()
         r = requests.options(self.transactions_url,
@@ -168,13 +161,13 @@ class CorsTest(CorsBaseTest):
         assert r.headers['Access-Control-Allow-Origin'] == 'http://www.elastic.co', r.headers
         assert r.headers['Access-Control-Allow-Headers'] == 'Content-Type, Content-Encoding, Accept', r.headers
         assert r.headers['Access-Control-Allow-Methods'] == 'POST, OPTIONS', r.headers
+        assert r.headers['Vary'] == 'Origin', r.headers
+        assert r.headers['Content-Length'] == '0', r.headers
+        assert r.headers['Access-Control-Max-Age'] == '3600', r.headers
 
     def test_preflight_bad_headers(self):
         transactions = self.get_transaction_payload()
-        for h in [{'Access-Control-Request-Method': 'POST'},
-                  {'Origin': 'www.elastic.co'},
-                  {'Origin': 'http://www.elastic.co', 'Access-Control-Request-Method': 'GET'},
-                  {'Origin': 'http://www.elastic.co', 'Access-Control-Request-Headers': 'Content-Type, Authorization'}]:
+        for h in [{'Access-Control-Request-Method': 'POST'}, {'Origin': 'www.elastic.co'}]:
             r = requests.options(self.transactions_url, json=transactions, headers=h)
             assert r.status_code == 200, r.status_code
             assert 'Access-Control-Allow-Origin' not in r.headers.keys(), r.headers
