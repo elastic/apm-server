@@ -24,4 +24,5 @@ cleanup() {
 }
 trap cleanup EXIT
 
+go get -u github.com/kardianos/govendor
 RACE_DETECTOR=1 make update-beats clean check testsuite
