@@ -92,3 +92,26 @@ func TestFailureResponseNoAcceptHeader(t *testing.T) {
 	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
 	assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
 }
+
+func TestIsAuthorized(t *testing.T) {
+	reqAuth := func(auth string) *http.Request {
+		req, err := http.NewRequest("POST", "/", nil)
+		assert.Nil(t, err)
+		req.Header.Add("Authorization", auth)
+		return req
+	}
+
+	reqNoAuth, err := http.NewRequest("POST", "/", nil)
+	assert.Nil(t, err)
+
+	// Successes
+	assert.True(t, isAuthorized(reqNoAuth, ""))
+	assert.True(t, isAuthorized(reqAuth("foo"), ""))
+	assert.True(t, isAuthorized(reqAuth("Bearer foo"), "foo"))
+
+	// Failures
+	assert.False(t, isAuthorized(reqNoAuth, "foo"))
+	assert.False(t, isAuthorized(reqAuth("Bearer bar"), "foo"))
+	assert.False(t, isAuthorized(reqAuth("Bearer foo extra"), "foo"))
+	assert.False(t, isAuthorized(reqAuth("foo"), "foo"))
+}
