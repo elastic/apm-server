@@ -55,7 +55,7 @@
 
 
 - key: apm-trace
-  title: APM Trance
+  title: APM Trace
   description: Trace-specific data for APM.
   fields:
     - name: view traces
