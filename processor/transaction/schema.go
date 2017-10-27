@@ -57,11 +57,11 @@ var transactionSchema = `{
                     "maxLength": 1024
                 },
                 "version": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
             },
-            "required": ["name", "version"]
+            "required": ["name"]
         },
         "name": {
             "description": "Immutable name of the app emitting this event",

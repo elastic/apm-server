@@ -14,6 +14,7 @@ func TestProcessorOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
 		{Name: "TestProcessErrorMininmalPayloadException", Path: "tests/data/valid/error/minimal_payload_exception.json"},
 		{Name: "TestProcessErrorMininmalPayloadLog", Path: "tests/data/valid/error/minimal_payload_log.json"},
+		{Name: "TestProcessErrorMininmalApp", Path: "tests/data/valid/error/minimal_app.json"},
 		{Name: "TestProcessErrorFull", Path: "tests/data/valid/error/payload.json"},
 	}
 	tests.TestProcessRequests(t, er.NewProcessor(), requestInfo)

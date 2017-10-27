@@ -42,7 +42,7 @@ You also need to create all files needed by the APM Server by running the additi
 ```
 make update
 ```
-
+Note that this requires to have `virtualenv` installed.
 
 ### Run
 
