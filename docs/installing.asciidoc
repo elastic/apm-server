@@ -1,5 +1,5 @@
 [[installing]]
-== Step 1: Installing APM Server
+== Installing APM Server
 
 https://www.elastic.co/downloads/apm/apm-server[Download APM Server] for your operating system and extract the package.
 
