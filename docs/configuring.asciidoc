@@ -36,7 +36,7 @@ output:
     hosts: ElasticsearchAddress:9200
 ----------------------------------
 
-See `apm-server.yml` for more configuration options.
+See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.reference.yml[`apm-server.reference.yml`] for more configuration options.
 
 include::./security.asciidoc[]
 
