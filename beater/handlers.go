@@ -141,11 +141,11 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 
 	var isAllowed = func(origin string) bool {
 		for _, allowed := range allowedOrigins {
-			if origin == allowed {
+			if origin == allowed || allowed == "*" {
 				return true
 			}
 		}
-		return len(allowedOrigins) == 1 && allowedOrigins[0] == "*"
+		return false
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
