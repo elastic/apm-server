@@ -1,0 +1,12 @@
+[[installing]]
+== Installing APM Server
+
+https://www.elastic.co/downloads/apm/apm-server[Download APM Server] for your operating system and extract the package.
+
+You can also install APM Server from our repositories or run it through docker.
+
+* <<running-on-docker>>
+* <<setup-repositories>>
+
+include::./copied-from-beats/running-on-docker.asciidoc[]
+include::./copied-from-beats/repositories.asciidoc[]
