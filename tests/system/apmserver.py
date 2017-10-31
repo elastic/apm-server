@@ -79,6 +79,14 @@ class ClientSideBaseTest(ServerBaseTest):
         return cfg
 
 
+class CorsBaseTest(ClientSideBaseTest):
+
+    def config(self):
+        cfg = super(CorsBaseTest, self).config()
+        cfg.update({"allow_origins": ["http://www.elastic.co"]})
+        return cfg
+
+
 class ElasticTest(ServerBaseTest):
 
     @classmethod
