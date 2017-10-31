@@ -28,12 +28,6 @@ and as such it shares many of the same configuration options as beats.
 
 In the following you can read more about 
 
-* <<security>>
-* <<high-availability>>
-* <<index-pattern>>
+* <<installing>>
+* <<configuring>>
 
-include::./security.asciidoc[]
-
-include::./high-availability.asciidoc[]
-
-include::./index_pattern.asciidoc[]
