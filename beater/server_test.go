@@ -47,7 +47,7 @@ func TestServerOk(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
-	assert.Equal(t, 202, rr.Code, rr.Body.String())
+	assert.Equal(t, http.StatusAccepted, rr.Code, rr.Body.String())
 }
 
 func TestServerHealth(t *testing.T) {
@@ -61,7 +61,7 @@ func TestServerHealth(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
-	assert.Equal(t, 200, rr.Code, rr.Code)
+	assert.Equal(t, http.StatusOK, rr.Code, rr.Code)
 }
 
 func TestServerFrontendSwitch(t *testing.T) {
@@ -72,13 +72,20 @@ func TestServerFrontendSwitch(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rec, req)
-	apm.Handler = newMuxer(Config{EnableFrontend: false, AllowOrigins: []string{"*"}}, nil)
-	assert.Equal(t, 403, rec.Code, rec.Body.String())
+	apm.Handler = newMuxer(
+		Config{
+			Frontend: &FrontendConfig{Enabled: new(bool), AllowOrigins: []string{"*"}}},
+		nil)
+	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
 
-	apm.Handler = newMuxer(Config{EnableFrontend: true, AllowOrigins: []string{"*"}}, nil)
+	true := true
+	apm.Handler = newMuxer(
+		Config{
+			Frontend: &FrontendConfig{Enabled: &true, AllowOrigins: []string{"*"}}},
+		nil)
 	rec = httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rec, req)
-	assert.NotEqual(t, 403, rec.Code, rec.Body.String())
+	assert.NotEqual(t, http.StatusForbidden, rec.Code, rec.Body.String())
 }
 
 func TestServerCORS(t *testing.T) {
@@ -87,14 +94,19 @@ func TestServerCORS(t *testing.T) {
 
 	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
 
-	apm.Handler = newMuxer(Config{EnableFrontend: true,
-		AllowOrigins: []string{"http://notmydomain.com", "http://neitherthisone.com"}},
+	true := true
+	apm.Handler = newMuxer(
+		Config{
+			Frontend: &FrontendConfig{
+				Enabled:      &true,
+				RateLimit:    10,
+				AllowOrigins: []string{"http://notmydomain.com", "http://neitherthisone.com"}}},
 		nil)
 
 	rec := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rec, req)
 
-	assert.Equal(t, 403, rec.Code, rec.Body.String())
+	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
 }
 
 func TestServerNoContentType(t *testing.T) {
@@ -103,7 +115,7 @@ func TestServerNoContentType(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, makeTestRequest(t))
-	assert.Equal(t, 400, rr.Code, rr.Body.String())
+	assert.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
 }
 
 func TestServerSecureUnknownCA(t *testing.T) {
@@ -120,7 +132,7 @@ func TestServerSecureSkipVerify(t *testing.T) {
 
 	res, err := postTestRequest(t, apm, insecureClient(), "https")
 	assert.Nil(t, err)
-	assert.Equal(t, res.StatusCode, 202)
+	assert.Equal(t, res.StatusCode, http.StatusAccepted)
 }
 
 func TestServerSecureBadDomain(t *testing.T) {
@@ -231,14 +243,14 @@ func waitForServer(secure bool, host string) {
 		}
 
 		if err != nil {
-			return 500
+			return http.StatusInternalServerError
 		}
 		return res.StatusCode
 	}
 
 	for i := 0; i <= 1000; i++ {
 		time.Sleep(time.Second / 50)
-		if check() == 200 {
+		if check() == http.StatusOK {
 			return
 		}
 	}
