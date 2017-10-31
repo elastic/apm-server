@@ -1,4 +1,5 @@
 :branch: 6.0
+include::./copied-from-beats/version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 :version: {stack-version}
