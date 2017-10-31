@@ -1,5 +1,5 @@
 :branch: current
-include::../_beats/libbeat/docs/version.asciidoc[]
+include::./copied-from-beats/version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 :version: {stack-version}
