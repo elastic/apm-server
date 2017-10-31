@@ -1,4 +1,4 @@
-:branch: current
+:branch: 6.0
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 [[gettting-started]]
