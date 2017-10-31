@@ -21,6 +21,12 @@ apm-server:
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
 
+  # Comma separated list of permitted origins for frontend. User-agents will send
+  # a origin header that will be validated against this list.
+  # An origin is made of a protocol scheme, host and port, without the url path.
+  # If an item in the list is a single *, everything will be allowed
+  #allow_origins : *
+
 #================================ General ======================================
 
 # The name of the shipper that publishes the network data. It can be used to group

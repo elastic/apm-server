@@ -72,12 +72,29 @@ func TestServerFrontendSwitch(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rec, req)
+	apm.Handler = newMuxer(Config{EnableFrontend: false, AllowOrigins: []string{"*"}}, nil)
 	assert.Equal(t, 403, rec.Code, rec.Body.String())
 
-	apm.Handler = newMuxer(Config{EnableFrontend: true}, nil)
+	apm.Handler = newMuxer(Config{EnableFrontend: true, AllowOrigins: []string{"*"}}, nil)
 	rec = httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rec, req)
 	assert.NotEqual(t, 403, rec.Code, rec.Body.String())
+}
+
+func TestServerCORS(t *testing.T) {
+	apm, teardown := setupServer(t, noSSL)
+	defer teardown()
+
+	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
+
+	apm.Handler = newMuxer(Config{EnableFrontend: true,
+		AllowOrigins: []string{"http://notmydomain.com", "http://neitherthisone.com"}},
+		nil)
+
+	rec := httptest.NewRecorder()
+	apm.Handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 403, rec.Code, rec.Body.String())
 }
 
 func TestServerNoContentType(t *testing.T) {
