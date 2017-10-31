@@ -3,7 +3,7 @@
     "$id": "docs/spec/http.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
         "body": {
             "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
@@ -32,7 +32,7 @@
         },
         "http_version": {
             "description": "HTTP version.",
-            "type": "string",
+            "type": ["string", "null"],
             "maxLength": 1024
         },
         "method": {
