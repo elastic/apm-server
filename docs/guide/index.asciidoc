@@ -147,7 +147,9 @@ To install those run the following command:
 ./apm-server setup
 ----------------------------------
 
-If you are using an X-Pack secured version of Elastic Stack,
+NOTE: If you are using the Elastic stack 6.x please be aware that the dashboards currently only work in Kibana 6.0.0-rc1.
+
+NOTE: If you are using an X-Pack secured version of Elastic Stack,
 add `-E output.elasticsearch.username=user -E output.elasticsearch.password=pass` to the command.
 
 See an example screenshot of a Kibana dashboard:
