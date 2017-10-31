@@ -1,4 +1,4 @@
-:branch: current
+:branch: master
 include::./copied-from-beats/version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
