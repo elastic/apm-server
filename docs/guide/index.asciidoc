@@ -139,31 +139,18 @@ you can use the {apm-server-ref}/configuring.html#security[secret token and TLS]
 [[kibana-dashboards]]
 [float]
 ==== Install the Kibana dashboards
-APM Server comes with predefined Kibana dashboards for the APM data.
-To install the Kibana dashboards for the 6.x releases,
-run the following command:
+APM Server comes with predefined Kibana dashboards and index templates for the APM data.
+To install those run the following command:
 
 [source,bash]
 ----------------------------------
-curl -X POST http://localhost:5601/api/kibana/dashboards/import \
-  -H 'Content-type: application/json' \
-  -H 'kbn-xsrf: true' \
-  -d @./kibana/default/dashboard/apm-dashboards.json
+./apm-server setup
 ----------------------------------
 
-If you are running Kibana 5.6, you need to download the dashboard file first and then load it:
+NOTE: Due to a bug in Kibana 6.0.0.-rc2 the dashboards don't work in Kibana 6.0.0-rc2.
 
-[source,bash]
-----------------------------------
-curl -o apm-dashboards.json https://raw.githubusercontent.com/elastic/apm-server/3177ec4203cc6cab1d85d0c18a2a6a6c2fcc13be/_meta/kibana/5.x/dashboard/apm-dashboards.json
-curl -X POST http://localhost:5601/api/kibana/dashboards/import \
-  -H 'Content-type: application/json' \
-  -H 'kbn-xsrf: true' \
-  -d @./apm-dashboards.json
-----------------------------------
-
-If you are using an X-Pack secured version of Elastic Stack,
-add `--user user:pass` to the command.
+NOTE: If you are using an X-Pack secured version of Elastic Stack,
+add `-E output.elasticsearch.username=user -E output.elasticsearch.password=pass` to the command.
 
 See an example screenshot of a Kibana dashboard:
 
