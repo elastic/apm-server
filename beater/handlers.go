@@ -126,7 +126,9 @@ func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 	cache, _ := lru.New(rateLimitCacheSize)
 
 	var deny = func(ip string) bool {
-		cache.ContainsOrAdd(ip, rate.NewLimiter(rate.Limit(rateLimit), rateLimit*rateLimitBurstMultiplier))
+		if !cache.Contains(ip) {
+			cache.Add(ip, rate.NewLimiter(rate.Limit(rateLimit), rateLimit*rateLimitBurstMultiplier))
+		}
 		var limiter, _ = cache.Get(ip)
 		return !limiter.(*rate.Limiter).Allow()
 	}

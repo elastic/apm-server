@@ -22,6 +22,8 @@ apm-server:
   #ssl.key : "path/to/private_key"
 
   #frontend.enabled: false
+
+  # Rate Limit per second and IP address
   #frontend.rate_limit: 10
 
   # Comma separated list of permitted origins for frontend. User-agents will send
