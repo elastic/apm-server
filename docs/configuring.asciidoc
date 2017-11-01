@@ -1,0 +1,45 @@
+[[configuring]]
+== Configuring and running APM Server 
+
+In a production environment,
+you would put APM Server on its own machines,
+similar to how you run Elasticsearch.
+You _can_ run it on the same machines as Elasticsearch,
+but this is not recommended,
+as the processes will be competing for resources.
+
+To start APM Server, run:
+
+[source,bash]
+----------------------------------
+./apm-server -e
+----------------------------------
+
+You should see APM Server start up.
+It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
+You can change the defaults by supplying a different address on the command line:
+
+[source,bash]
+----------------------------------
+./apm-server -e -E output.elasticsearch.hosts=ElasticsearchAddress:9200 -E apm-server.host=localhost:8200
+----------------------------------
+
+Or you can update the `apm-server.yml` configuration file to change the defaults.
+
+[source,yaml]
+----------------------------------
+apm-server:
+  host: localhost:8200
+
+output:
+  elasticsearch:
+    hosts: ElasticsearchAddress:9200
+----------------------------------
+
+See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.reference.yml[`apm-server.reference.yml`] for more configuration options.
+
+include::./security.asciidoc[]
+
+include::./high-availability.asciidoc[]
+
+include::./index_pattern.asciidoc[]
