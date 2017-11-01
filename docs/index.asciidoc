@@ -1,5 +1,5 @@
 :branch: master
-include::./copied-from-beats/version.asciidoc[]
+include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 :version: {stack-version}
