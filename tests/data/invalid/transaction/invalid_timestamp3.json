@@ -3,6 +3,7 @@
     "name": "GET /api/types",
     "type": "request",
     "duration": 2.0,
+    "result": "200",
     "timestamp": "2017-05-30T18:53:27.Z",
     "traces": []
 }

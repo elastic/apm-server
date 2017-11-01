@@ -15,6 +15,7 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 32.592981,
+            "result": "200",
             "timestamp": "2017-05-30T18:53:27.154Z"
         }
     ]
