@@ -8,7 +8,7 @@ You can get in touch with us through [Discuss](https://discuss.elastic.co/c/apm)
 
 ## Code contributions
 
-If you have a bug fix or new feature that you would like to contribute with, please find or open an issue about it first and explain briefly your approach.
+If you have a bug fix or new feature that you would like to contribute with, please find or open an issue about it first and explain your approach briefly.
 It may be that somebody is already working on it, or that there are circumstances that you should know before putting a lot of effort on it.
 
 You will have to fork the `apm-server` repo, please follow the instructions in the [readme](README.md).
