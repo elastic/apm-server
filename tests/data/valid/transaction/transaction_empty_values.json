@@ -15,6 +15,7 @@
             "type": "request",
             "duration": 32.592981,
             "start": 24.01,
+            "result": "200",
             "timestamp": "2017-05-09T15:04:05.999999Z",
             "traces": []
         }

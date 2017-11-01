@@ -38,6 +38,7 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42Z",
+            "result": "200",
             "context": {
                 "request": null,
                 "response": null,
@@ -52,6 +53,7 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42.281999Z",
+            "result": "200",
             "context": {
                 "request": {
                     "socket": null,
@@ -91,6 +93,7 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42.281Z",
+            "result": "200",
             "context": {
                 "request": {
                     "socket": {
