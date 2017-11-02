@@ -22,6 +22,8 @@ import (
 
 	"net"
 
+	"github.com/ryanuber/go-glob"
+
 	err "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/transaction"
@@ -200,7 +202,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 
 	var isAllowed = func(origin string) bool {
 		for _, allowed := range allowedOrigins {
-			if origin == allowed || allowed == "*" {
+			if glob.Glob(allowed, origin) {
 				return true
 			}
 		}
