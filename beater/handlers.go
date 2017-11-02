@@ -17,6 +17,11 @@ import (
 
 	"crypto/subtle"
 
+	"github.com/hashicorp/golang-lru"
+	"golang.org/x/time/rate"
+
+	"net"
+
 	err "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/transaction"
@@ -29,6 +34,9 @@ const (
 	BackendErrorsURL        = "/v1/errors"
 	FrontendErrorsURL       = "/v1/client-side/errors"
 	HealthCheckURL          = "/healthcheck"
+
+	rateLimitCacheSize       = 1000
+	rateLimitBurstMultiplier = 2
 
 	supportedHeaders = "Content-Type, Content-Encoding, Accept"
 	supportedMethods = "POST, OPTIONS"
@@ -52,6 +60,7 @@ var (
 	errInvalidToken    = errors.New("invalid token")
 	errForbidden       = errors.New("forbidden request")
 	errPOSTRequestOnly = errors.New("only POST requests are supported")
+	errTooManyRequests = errors.New("too many requests")
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
@@ -81,15 +90,16 @@ func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Ha
 
 func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
-		frontendSwitchHandler(config.EnableFrontend,
-			corsHandler(config.AllowOrigins,
-				processRequestHandler(pf, config, report))))
+		frontendSwitchHandler(config.Frontend.isEnabled(),
+			ipRateLimitHandler(config.Frontend.RateLimit,
+				corsHandler(config.Frontend.AllowOrigins,
+					processRequestHandler(pf, config, report)))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sendStatus(w, r, 200, nil)
+			sendStatus(w, r, http.StatusOK, nil)
 		}))
 }
 
@@ -106,15 +116,64 @@ func frontendSwitchHandler(feSwitch bool, h http.Handler) http.Handler {
 		if feSwitch {
 			h.ServeHTTP(w, r)
 		} else {
-			sendStatus(w, r, 403, errForbidden)
+			sendStatus(w, r, http.StatusForbidden, errForbidden)
 		}
 	})
+}
+
+func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
+
+	cache, _ := lru.New(rateLimitCacheSize)
+
+	var deny = func(ip string) bool {
+		if !cache.Contains(ip) {
+			cache.Add(ip, rate.NewLimiter(rate.Limit(rateLimit), rateLimit*rateLimitBurstMultiplier))
+		}
+		var limiter, _ = cache.Get(ip)
+		return !limiter.(*rate.Limiter).Allow()
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if deny(extractIP(r)) {
+			sendStatus(w, r, http.StatusTooManyRequests, errTooManyRequests)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func extractIP(r *http.Request) string {
+	var remoteAddr = func() string {
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			return r.RemoteAddr
+		}
+		return ip
+	}
+
+	var forwarded = func() string {
+		forwardedFor := r.Header.Get("X-Forwarded-For")
+		client := strings.Split(forwardedFor, ",")[0]
+		return strings.TrimSpace(client)
+	}
+
+	var real = func() string {
+		return r.Header.Get("X-Real-IP")
+	}
+
+	if ip := real(); ip != "" {
+		return ip
+	}
+	if ip := forwarded(); ip != "" {
+		return ip
+	}
+	return remoteAddr()
 }
 
 func authHandler(secretToken string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isAuthorized(r, secretToken) {
-			sendStatus(w, r, 401, errInvalidToken)
+			sendStatus(w, r, http.StatusUnauthorized, errInvalidToken)
 			return
 		}
 		h.ServeHTTP(w, r)
@@ -173,7 +232,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 
 			w.Header().Set("Content-Length", "0")
 
-			sendStatus(w, r, 200, nil)
+			sendStatus(w, r, http.StatusOK, nil)
 
 		} else if validOrigin {
 			// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
@@ -181,7 +240,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 			h.ServeHTTP(w, r)
 
 		} else {
-			sendStatus(w, r, 403, errForbidden)
+			sendStatus(w, r, http.StatusForbidden, errForbidden)
 		}
 	})
 }
@@ -198,12 +257,12 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 	processor := pf()
 
 	if r.Method != "POST" {
-		return 405, errPOSTRequestOnly
+		return http.StatusMethodNotAllowed, errPOSTRequestOnly
 	}
 
 	reader, err := decodeData(r)
 	if err != nil {
-		return 400, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
+		return http.StatusBadRequest, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
 	}
 	defer reader.Close()
 
@@ -212,24 +271,24 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 	buf, err := ioutil.ReadAll(limitedReader)
 	if err != nil {
 		// If we run out of memory, for example
-		return 500, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
+		return http.StatusInternalServerError, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
 
 	}
 
 	if err = processor.Validate(buf); err != nil {
-		return 400, err
+		return http.StatusBadRequest, err
 	}
 
 	list, err := processor.Transform(buf)
 	if err != nil {
-		return 400, err
+		return http.StatusBadRequest, err
 	}
 
 	if err = report(list); err != nil {
-		return 503, err
+		return http.StatusServiceUnavailable, err
 	}
 
-	return 202, nil
+	return http.StatusAccepted, nil
 }
 
 func decodeData(req *http.Request) (io.ReadCloser, error) {
