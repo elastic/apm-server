@@ -32,7 +32,7 @@ func TestDecode(t *testing.T) {
 }
 
 func TestJSONFailureResponse(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
+	req, err := http.NewRequest("POST", "_", nil)
 	assert.Nil(t, err)
 
 	req.Header.Set("Accept", "application/json")
@@ -48,7 +48,7 @@ func TestJSONFailureResponse(t *testing.T) {
 }
 
 func TestJSONFailureResponseWhenAcceptingAnything(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
+	req, err := http.NewRequest("POST", "_", nil)
 	assert.Nil(t, err)
 	req.Header.Set("Accept", "*/*")
 	w := httptest.NewRecorder()
@@ -63,7 +63,7 @@ func TestJSONFailureResponseWhenAcceptingAnything(t *testing.T) {
 }
 
 func TestHTMLFailureResponse(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
+	req, err := http.NewRequest("POST", "_", nil)
 	assert.Nil(t, err)
 	req.Header.Set("Accept", "text/html")
 	w := httptest.NewRecorder()
@@ -78,7 +78,7 @@ func TestHTMLFailureResponse(t *testing.T) {
 }
 
 func TestFailureResponseNoAcceptHeader(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
+	req, err := http.NewRequest("POST", "_", nil)
 	assert.Nil(t, err)
 
 	req.Header.Del("Accept")
@@ -95,13 +95,13 @@ func TestFailureResponseNoAcceptHeader(t *testing.T) {
 
 func TestIsAuthorized(t *testing.T) {
 	reqAuth := func(auth string) *http.Request {
-		req, err := http.NewRequest("POST", "/", nil)
+		req, err := http.NewRequest("POST", "_", nil)
 		assert.Nil(t, err)
 		req.Header.Add("Authorization", auth)
 		return req
 	}
 
-	reqNoAuth, err := http.NewRequest("POST", "/", nil)
+	reqNoAuth, err := http.NewRequest("POST", "_", nil)
 	assert.Nil(t, err)
 
 	// Successes
@@ -114,4 +114,31 @@ func TestIsAuthorized(t *testing.T) {
 	assert.False(t, isAuthorized(reqAuth("Bearer bar"), "foo"))
 	assert.False(t, isAuthorized(reqAuth("Bearer foo extra"), "foo"))
 	assert.False(t, isAuthorized(reqAuth("foo"), "foo"))
+}
+
+func TestExtractIP(t *testing.T) {
+	var req = func(real *string, forward *string) *http.Request {
+		req, _ := http.NewRequest("POST", "_", nil)
+		req.RemoteAddr = "10.11.12.13:8080"
+		if real != nil {
+			req.Header.Add("X-Real-IP", *real)
+		}
+		if forward != nil {
+			req.Header.Add("X-Forwarded-For", *forward)
+		}
+		return req
+	}
+
+	real := "54.55.101.102"
+	assert.Equal(t, real, extractIP(req(&real, nil)))
+
+	forwardedFor := "54.56.103.104"
+	assert.Equal(t, real, extractIP(req(&real, &forwardedFor)))
+	assert.Equal(t, forwardedFor, extractIP(req(nil, &forwardedFor)))
+
+	forwardedForMultiple := "54.56.103.104 , 54.57.105.106 , 54.58.107.108"
+	assert.Equal(t, forwardedFor, extractIP(req(nil, &forwardedForMultiple)))
+
+	assert.Equal(t, "10.11.12.13", extractIP(req(nil, nil)))
+	assert.Equal(t, "10.11.12.13", extractIP(req(new(string), new(string))))
 }
