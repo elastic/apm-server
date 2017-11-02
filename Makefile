@@ -22,6 +22,7 @@ update-beats:
 	rm -rf _beats
 	@BEATS_VERSION=$(BEATS_VERSION) sh script/update_beats.sh
 	@$(MAKE) update
+	echo --- Use this commit message: Update beats to `cd vendor/github.com/elastic/beats/ && git rev-parse --short HEAD`
 
 # This is called by the beats packer before building starts
 .PHONY: before-build
