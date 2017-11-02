@@ -26,6 +26,13 @@ func newServer(config Config, report reporter) *http.Server {
 func run(server *http.Server, config Config) error {
 	logp.Info("Starting apm-server! Hit CTRL-C to stop it.")
 	logp.Info("Listening on: %s", server.Addr)
+	switch config.Frontend.isEnabled() {
+	case true:
+		logp.Info("Frontend endpoints enabled!")
+	case false:
+		logp.Info("Frontend endpoints disabled")
+	}
+
 	ssl := config.SSL
 	if ssl.isEnabled() {
 		return server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
