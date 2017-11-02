@@ -21,6 +21,7 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 - Remove `context.db` from `fields.yml` for consistency, has not been indexed before {pull}159[159].
 
 ==== Added
+- Added rate limit per IP for frontend {pull}257[257].
 - Allow null for all optional fields {pull}253[253].
 - Make context.app.language.version optional {pull}246[246].
 - CORS support for frontend {pull}244[244].
