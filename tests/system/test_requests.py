@@ -10,7 +10,6 @@ import time
 from datetime import datetime
 from collections import defaultdict
 import threading
-import urllib3
 
 try:
     from StringIO import StringIO
@@ -118,6 +117,8 @@ class Test(ServerBaseTest):
 class SecureTest(SecureServerBaseTest):
 
     def test_https_ok(self):
+        import urllib3
+
         urllib3.disable_warnings()
         transactions = self.get_transaction_payload()
         r = requests.post("https://localhost:8200/v1/transactions",
