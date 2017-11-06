@@ -1221,6 +1221,12 @@
 			"revisionTime": "2017-06-28T12:00:33Z"
 		},
 		{
+			"checksumSHA1": "6JP37UqrI0H80Gpk0Y2P+KXgn5M=",
+			"path": "github.com/ryanuber/go-glob",
+			"revision": "256dc444b735e061061cf46c809487313d5b0065",
+			"revisionTime": "2017-01-28T01:21:29Z"
+		},
+		{
 			"checksumSHA1": "DO1gvD4W/Yzr1vI6xNvmlsj5ESE=",
 			"path": "github.com/santhosh-tekuri/jsonschema",
 			"revision": "3968f5a2fa9b81399766f843162c5c06ee1e6aba",
