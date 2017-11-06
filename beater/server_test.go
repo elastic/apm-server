@@ -92,21 +92,63 @@ func TestServerCORS(t *testing.T) {
 	apm, teardown := setupServer(t, noSSL)
 	defer teardown()
 
-	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
-
 	true := true
-	apm.Handler = newMuxer(
-		Config{
-			Frontend: &FrontendConfig{
-				Enabled:      &true,
-				RateLimit:    10,
-				AllowOrigins: []string{"http://notmydomain.com", "http://neitherthisone.com"}}},
-		nil)
 
-	rec := httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rec, req)
+	tests := []struct {
+		expectedStatus int
+		origin         string
+		allowedOrigins []string
+	}{
+		{
+			expectedStatus: http.StatusForbidden,
+			origin:         "http://www.example.com",
+			allowedOrigins: []string{"http://notmydomain.com", "http://neitherthisone.com"},
+		},
+		{
+			expectedStatus: http.StatusForbidden,
+			origin:         "http://www.example.com",
+			allowedOrigins: []string{""},
+		},
+		{
+			expectedStatus: http.StatusForbidden,
+			origin:         "http://www.example.com",
+			allowedOrigins: []string{"example.com"},
+		},
+		{
+			expectedStatus: http.StatusAccepted,
+			origin:         "whatever",
+			allowedOrigins: []string{"http://notmydomain.com", "*"},
+		},
+		{
+			expectedStatus: http.StatusAccepted,
+			origin:         "http://www.example.co.uk",
+			allowedOrigins: []string{"http://*.example.co*"},
+		},
+		{
+			expectedStatus: http.StatusAccepted,
+			origin:         "https://www.example.com",
+			allowedOrigins: []string{"http://*example.com", "https://*example.com"},
+		},
+	}
 
-	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
+	for idx, test := range tests {
+		apm.Handler = newMuxer(
+			Config{
+				MaxUnzippedSize: 1024 * 1024,
+				Frontend: &FrontendConfig{
+					Enabled:      &true,
+					RateLimit:    10,
+					AllowOrigins: test.allowedOrigins},
+			},
+			nopReporter)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
+		req.Header.Set("Origin", test.origin)
+		req.Header.Set("Content-Type", "application/json")
+		apm.Handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, test.expectedStatus, rec.Code, fmt.Sprintf("Failed at idx %v; %s", idx, rec.Body.String()))
+	}
 }
 
 func TestServerNoContentType(t *testing.T) {
