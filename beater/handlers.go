@@ -90,7 +90,7 @@ func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Ha
 
 func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
-		frontendSwitchHandler(config.Frontend.isEnabled(),
+		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
 					processRequestHandler(pf, config, report)))))
@@ -111,9 +111,9 @@ func logHandler(h http.Handler) http.Handler {
 	})
 }
 
-func frontendSwitchHandler(feSwitch bool, h http.Handler) http.Handler {
+func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if feSwitch {
+		if killSwitch {
 			h.ServeHTTP(w, r)
 		} else {
 			sendStatus(w, r, http.StatusForbidden, errForbidden)
