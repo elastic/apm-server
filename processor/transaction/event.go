@@ -3,7 +3,7 @@ package transaction
 import (
 	"time"
 
-	m "github.com/elastic/apm-server/processor/model"
+	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )

@@ -3,18 +3,12 @@ package processor
 import (
 	"time"
 
-	m "github.com/elastic/apm-server/processor/model"
+	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
 type NewProcessor func() Processor
-
-const (
-	Backend = iota
-	Frontend
-	HealthCheck
-)
 
 type Processor interface {
 	Validate([]byte) error

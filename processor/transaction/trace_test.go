@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	m "github.com/elastic/apm-server/processor/model"
+	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/libbeat/common"
 )
 
