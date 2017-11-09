@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "doc/spec/app_core.json",
+    "title": "App core properties",
+    "type": "object",
+    "properties": {
+        "name": {
+            "description": "Immutable name of the app emitting this event",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9 _-]+$",
+            "maxLength": 1024
+        },
+        "version": {
+            "description": "Version of the app emitting this event",
+            "type": [
+                "string",
+                "null"
+            ],
+            "maxLength": 1024
+        }
+    },
+    "required": ["name"]
+}
