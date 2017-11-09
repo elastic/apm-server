@@ -5,7 +5,6 @@ import (
 
 	"github.com/fatih/set"
 
-	er "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -28,23 +27,5 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"errors.context.request.cookies.c2",
 		"errors.context.tags.organization_uuid",
 	)
-	tests.TestPayloadAttributesInSchema(t, "error", undocumented, er.Schema())
-}
-
-func TestJsonSchemaKeywordLimitation(t *testing.T) {
-	fieldsPaths := []string{
-		"./../../../_meta/fields.common.yml",
-		"./../_meta/fields.yml",
-	}
-	exceptions := set.New(
-		"processor.event",
-		"processor.name",
-		"error.id",
-		"error.log.level",
-		"error.grouping_key",
-		"listening",
-		"error id icon",
-		"view errors",
-	)
-	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, er.Schema(), exceptions)
+	tests.TestPayloadAttributesInSchema(t, "error/payload.json", undocumented, "errors/payload.json")
 }
