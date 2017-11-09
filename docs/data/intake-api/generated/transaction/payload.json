@@ -36,7 +36,6 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 32.592981,
-            "result": "success",
             "timestamp": "2017-05-30T18:53:27.154Z",
             "result": "200",
             "context": {
@@ -184,7 +183,6 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 13.980558,
-            "result": "failure",
             "timestamp": "2017-05-30T18:53:42.281Z",
             "traces": []
         },
@@ -193,7 +191,6 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 13.980558,
-            "result": "200",
             "timestamp": "2017-05-30T18:53:42Z"
         },
         {
@@ -201,7 +198,6 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 13.980558,
-            "result": "200",
             "timestamp": "2017-05-30T18:53:42.281999Z",
             "traces": [
                 {

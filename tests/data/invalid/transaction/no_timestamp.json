@@ -3,6 +3,5 @@
     "name": "GET /api/types",
     "type": "request",
     "duration": 1.0,
-    "result": "200",
     "traces": []
 }

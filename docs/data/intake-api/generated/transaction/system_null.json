@@ -13,7 +13,6 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 32.592981,
-            "result": "200",
             "timestamp": "2017-05-09T15:04:05.999999Z",
             "context": null,
             "traces": null

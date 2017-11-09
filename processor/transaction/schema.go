@@ -460,7 +460,7 @@ var transactionSchema = `{
             "maxLength": 1024
         }
     },
-    "required": ["id", "name", "duration", "type", "timestamp", "result"]
+    "required": ["id", "name", "duration", "type", "timestamp"]
             },
             "minItems": 1
         }

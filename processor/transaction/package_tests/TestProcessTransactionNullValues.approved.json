@@ -59,7 +59,6 @@
                 },
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
                 "name": "GET /api/types",
-                "result": "200",
                 "type": "request"
             }
         },
@@ -118,7 +117,6 @@
                 },
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9",
                 "name": "GET /api/types",
-                "result": "200",
                 "type": "request"
             }
         },
@@ -178,7 +176,6 @@
                 },
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a",
                 "name": "GET /api/types",
-                "result": "200",
                 "type": "request"
             }
         },
