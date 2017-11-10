@@ -117,9 +117,19 @@ class Test(ServerBaseTest):
 class SecureTest(SecureServerBaseTest):
 
     def test_https_ok(self):
-        import urllib3
 
-        urllib3.disable_warnings()
+        try:
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        except ImportError:
+            pass
+
+        try:
+            from requests.packages.urllib3.exceptions import InsecureRequestWarning
+            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        except ImportError:
+            pass
+
         transactions = self.get_transaction_payload()
         r = requests.post("https://localhost:8200/v1/transactions",
                           json=transactions, verify=False)
