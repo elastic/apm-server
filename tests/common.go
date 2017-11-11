@@ -29,10 +29,10 @@ func LoadInvalidData(dataType string) ([]byte, error) {
 	return ioutil.ReadFile(path)
 }
 
-func UnmarshalValidData(json string, data interface{}) error {
+func UnmarshalValidData(file string, data interface{}) error {
 	_, current, _, _ := runtime.Caller(0)
 	curDir := filepath.Dir(current)
-	path := filepath.Join(curDir, "data/valid", json)
+	path := filepath.Join(curDir, "data/valid", file)
 	return unmarshalData(path, data)
 }
 
@@ -77,16 +77,4 @@ func StrConcat(pre string, post string, delimiter string) string {
 		return post
 	}
 	return pre + delimiter + post
-}
-
-func Contains(seq []string, match string) bool {
-	if seq == nil {
-		return false
-	}
-	for _, item := range seq {
-		if match == item {
-			return true
-		}
-	}
-	return false
 }
