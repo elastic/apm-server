@@ -647,6 +647,12 @@
 			"versionExact": "master"
 		},
 		{
+			"checksumSHA1": "c2bBXAHhGH3lXLZ/O3V4zt7MbKI=",
+			"path": "github.com/elastic/beats/libbeat/outputs/transport/transptest",
+			"revision": "8ae5b4be36462d3c8dfd97c4f900ff2964b71352",
+			"revisionTime": "2017-11-10T16:05:01Z"
+		},
+		{
 			"checksumSHA1": "d5b9Ra0zcwznwemxEJmyW28FZJ0=",
 			"path": "github.com/elastic/beats/libbeat/paths",
 			"revision": "aea09e2cda3db5fcaeeeede23f0d1eb8862cb950",

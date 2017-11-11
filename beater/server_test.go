@@ -13,9 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/beats/libbeat/outputs/transport/transptest"
+
 	"github.com/elastic/beats/libbeat/outputs"
 
-	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests"
@@ -244,13 +245,11 @@ var testData = func() []byte {
 }()
 
 func withSSL(t *testing.T, domain string) *SSLConfig {
-	cert := path.Join(tmpCertPath, t.Name()+".crt")
-	key := path.Join(tmpCertPath, t.Name()+".key")
-	t.Log("generating certificate in ", cert)
-	httpscerts.Generate(cert, key, domain)
+	name := path.Join(tmpCertPath, t.Name())
+	t.Log("generating certificate in ", name)
+	transptest.GenCertForTestingPurpose(t, domain, name, "")
 
-	return &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: cert, Key: key}}
-	//return &SSLConfig{Cert: cert, PrivateKey: key}
+	return &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: name + ".pem", Key: name + ".key"}}
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
