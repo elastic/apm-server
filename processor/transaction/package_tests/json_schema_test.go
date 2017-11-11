@@ -5,6 +5,7 @@ import (
 
 	"github.com/fatih/set"
 
+	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -26,5 +27,14 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"transactions.context.custom.and_objects.foo",
 		"transactions.context.tags.organization_uuid",
 	)
-	tests.TestPayloadAttributesInSchema(t, "transaction/payload.json", undocumented, "transactions/payload.json")
+	tests.TestPayloadAttributesInSchema(t, "transaction/payload.json", undocumented, transaction.Schema())
+}
+
+func TestJsonSchemaKeywordLimitation(t *testing.T) {
+	fieldsPaths := []string{
+		"./../../../_meta/fields.common.yml",
+		"./../_meta/fields.yml",
+	}
+	exceptions := set.New("processor.event", "processor.name", "context.app.name", "transaction.id", "trace.transaction_id", "listening")
+	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, transaction.Schema(), exceptions)
 }
