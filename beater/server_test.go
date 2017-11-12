@@ -163,8 +163,21 @@ func TestServerNoContentType(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
 }
 
+func TestServerSecureOkWithPasswordKey(t *testing.T) {
+	passwordKey := "fooBar"
+	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", passwordKey))
+	defer teardown()
+
+	req := makeTestRequest(t)
+	req.Header.Add("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	apm.Handler.ServeHTTP(rr, req)
+	assert.Equal(t, 202, rr.Code, rr.Body.String())
+}
+
 func TestServerSecureUnknownCA(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1"))
+	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", ""))
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "https")
@@ -172,7 +185,7 @@ func TestServerSecureUnknownCA(t *testing.T) {
 }
 
 func TestServerSecureSkipVerify(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1"))
+	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", ""))
 	defer teardown()
 
 	res, err := postTestRequest(t, apm, insecureClient(), "https")
@@ -181,7 +194,7 @@ func TestServerSecureSkipVerify(t *testing.T) {
 }
 
 func TestServerSecureBadDomain(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "ELASTIC"))
+	apm, teardown := setupServer(t, withSSL(t, "ELASTIC", ""))
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "https")
@@ -195,7 +208,7 @@ func TestServerSecureBadDomain(t *testing.T) {
 }
 
 func TestServerSecureBadIP(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "192.168.10.11"))
+	apm, teardown := setupServer(t, withSSL(t, "192.168.10.11", ""))
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "https")
@@ -208,7 +221,7 @@ func TestServerSecureBadIP(t *testing.T) {
 }
 
 func TestServerBadProtocol(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "localhost"))
+	apm, teardown := setupServer(t, withSSL(t, "localhost", ""))
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "http")
@@ -244,12 +257,12 @@ var testData = func() []byte {
 	return d
 }()
 
-func withSSL(t *testing.T, domain string) *SSLConfig {
+func withSSL(t *testing.T, domain string, passwordKey string) *SSLConfig {
 	name := path.Join(tmpCertPath, t.Name())
 	t.Log("generating certificate in ", name)
-	transptest.GenCertForTestingPurpose(t, domain, name, "")
+	transptest.GenCertForTestingPurpose(t, domain, name, passwordKey)
 
-	return &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: name + ".pem", Key: name + ".key"}}
+	return &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: name + ".pem", Key: name + ".key", Passphrase: passwordKey}}
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
