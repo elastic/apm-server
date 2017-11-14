@@ -26,6 +26,7 @@ import (
 
 	err "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
+	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -36,6 +37,7 @@ const (
 	BackendErrorsURL        = "/v1/errors"
 	FrontendErrorsURL       = "/v1/client-side/errors"
 	HealthCheckURL          = "/healthcheck"
+	SourcemapsURL           = "/sourcemaps"
 
 	rateLimitCacheSize       = 1000
 	rateLimitBurstMultiplier = 2
@@ -70,6 +72,7 @@ var (
 		BackendErrorsURL:        {backendHandler, err.NewProcessor},
 		FrontendErrorsURL:       {frontendHandler, err.NewProcessor},
 		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
+		SourcemapsURL:           {sourcemapHandler, sourcemap.NewProcessor},
 	}
 )
 
@@ -87,7 +90,7 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			processRequestHandler(pf, config, report)))
+			processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))
 }
 
 func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
@@ -95,7 +98,14 @@ func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.H
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, config, report)))))
+					processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
+}
+
+func sourcemapHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+	return logHandler(
+		killSwitchHandler(config.Frontend.isEnabled(),
+			authHandler(config.SecretToken,
+				processRequestHandler(pf, config, report, sourcemap.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
@@ -247,14 +257,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+func processRequestHandler(pf ProcessorFactory, config Config, report reporter, decode decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, config.MaxUnzippedSize, report)
+		code, err := processRequest(r, pf, config.MaxUnzippedSize, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter) (int, error) {
+func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter, decode decoder) (int, error) {
 
 	processor := pf()
 
@@ -262,19 +272,9 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 		return http.StatusMethodNotAllowed, errPOSTRequestOnly
 	}
 
-	reader, err := decodeData(r)
+	buf, err := decode(r)
 	if err != nil {
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
-	}
-	defer reader.Close()
-
-	// Limit size of request to prevent for example zip bombs
-	limitedReader := io.LimitReader(reader, maxSize)
-	buf, err := ioutil.ReadAll(limitedReader)
-	if err != nil {
-		// If we run out of memory, for example
-		return http.StatusInternalServerError, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
-
 	}
 
 	if err = processor.Validate(buf); err != nil {
@@ -293,34 +293,47 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 	return http.StatusAccepted, nil
 }
 
-func decodeData(req *http.Request) (io.ReadCloser, error) {
+type decoder func(req *http.Request) ([]byte, error)
 
-	if req.Header.Get("Content-Type") != "application/json" {
-		return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-	}
+func decodeLimitJSONData(maxSize int64) decoder {
+	return func(req *http.Request) ([]byte, error) {
 
-	reader := req.Body
-	if reader == nil {
-		return nil, fmt.Errorf("No content supplied")
-	}
-
-	switch req.Header.Get("Content-Encoding") {
-	case "deflate":
-		var err error
-		reader, err = zlib.NewReader(reader)
-		if err != nil {
-			return nil, err
+		contentType := req.Header.Get("Content-Type")
+		if contentType != "application/json" {
+			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
 		}
 
-	case "gzip":
-		var err error
-		reader, err = gzip.NewReader(reader)
-		if err != nil {
-			return nil, err
+		reader := req.Body
+		if reader == nil {
+			return nil, fmt.Errorf("No content supplied")
 		}
-	}
 
-	return reader, nil
+		switch req.Header.Get("Content-Encoding") {
+		case "deflate":
+			var err error
+			reader, err = zlib.NewReader(reader)
+			if err != nil {
+				return nil, err
+			}
+
+		case "gzip":
+			var err error
+			reader, err = gzip.NewReader(reader)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// Limit size of request to prevent for example zip bombs
+		limitedReader := io.LimitReader(reader, maxSize)
+		buf, err := ioutil.ReadAll(limitedReader)
+		if err != nil {
+			// If we run out of memory, for example
+			return nil, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
+		}
+
+		return buf, nil
+	}
 }
 
 func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {

@@ -28,7 +28,7 @@ func generate() error {
 
 	for path, mapping := range beater.Routes {
 
-		if path == beater.HealthCheckURL {
+		if path == beater.HealthCheckURL || path == beater.SourcemapsURL {
 			continue
 		}
 
