@@ -14,6 +14,7 @@ grouped in the following categories:
 
 * <<exported-fields-apm>>
 * <<exported-fields-apm-error>>
+* <<exported-fields-apm-sourcemap>>
 * <<exported-fields-apm-trace>>
 * <<exported-fields-apm-transaction>>
 * <<exported-fields-beat>>
@@ -444,6 +445,44 @@ The additionally logged error message.
 type: keyword
 
 Equal to message, but with placeholders replaced.
+
+[[exported-fields-apm-sourcemap]]
+== APM Sourcemap fields
+
+Sourcemap files enriched with metadata
+
+
+
+[float]
+== app fields
+
+App fields.
+
+
+
+[float]
+=== `sourcemap.app.name`
+
+type: keyword
+
+The name of the app this sourcemap belongs to.
+
+
+[float]
+=== `sourcemap.app.version`
+
+type: keyword
+
+App version.
+
+
+[float]
+=== `sourcemap.bundle_filepath`
+
+type: keyword
+
+Location of the sourcemap relative to the file requesting it.
+
 
 [[exported-fields-apm-trace]]
 == APM Trace fields

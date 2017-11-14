@@ -41,12 +41,16 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"context.db.type",
 		"context.db.instance",
 		"context.db.user",
+		"sourcemap",
 	)
 	blacklistedFieldNames := set.Union(disabledFieldNames, undocumentedFieldNames).(*set.Set)
 
 	eventNames, err := fetchEventNames(fn, blacklistedFieldNames)
 	assert.NoError(err)
 
+	fmt.Println(blacklistedFieldNames.String())
+	fmt.Println(eventNames.String())
+	fmt.Println(fieldNames.String())
 	undocumentedNames := set.Difference(eventNames, fieldNames, blacklistedFieldNames)
 	assert.Equal(0, undocumentedNames.Size(), fmt.Sprintf("Event attributes not documented in fields.yml: %v", undocumentedNames))
 }

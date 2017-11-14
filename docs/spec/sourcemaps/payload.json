@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/sourcemaps/sourcemap-wrapper.json",
+    "title": "Sourcemap Wrapper",
+    "description": "Sourcemap + Metadata",
+    "type": "object",
+    "properties": {
+        "bundle_filepath": {
+            "description": "relative path of the minified bundle file",
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1
+        },
+        "app": {
+            "allOf": [
+                { "$ref": "../app_name.json" },
+                { "properties": {
+                    "version": {
+                        "description": "Version of the app emitting this event",
+                        "type": "string",
+                        "maxLength": 1024,
+                        "minLength": 1
+                    }
+                },
+                "required": ["version"]
+                }
+            ]
+        },
+        "sourcemap": {
+            "type": "object",
+            "$ref": "sourcemap.json"
+        }
+    },
+    "required": ["bundle_filepath", "sourcemap"]
+}

@@ -12,8 +12,9 @@ const basePath = "./docs/spec/"
 
 func main() {
 	schemaPaths := [][]string{
-		[]string{"errors/payload.json", "processor/error/schema.go", "errorSchema", "error"},
-		[]string{"transactions/payload.json", "processor/transaction/schema.go", "transactionSchema", "transaction"},
+		{"errors/payload.json", "processor/error/schema.go", "errorSchema", "error"},
+		{"transactions/payload.json", "processor/transaction/schema.go", "transactionSchema", "transaction"},
+		{"sourcemaps/payload.json", "processor/sourcemap/schema.go", "sourcemapSchema", "sourcemap"},
 	}
 	for _, schemaInfo := range schemaPaths {
 		file := filepath.Join(filepath.Dir(basePath), schemaInfo[0])

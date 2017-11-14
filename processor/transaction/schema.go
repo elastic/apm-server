@@ -18,8 +18,8 @@ var transactionSchema = `{
     "type": "object",
     "allOf": [
         {    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/app_core.json",
-    "title": "App core properties",
+    "$id": "doc/spec/app_name.json",
+    "title": "App name property",
     "type": "object",
     "properties": {
         "name": {
@@ -27,18 +27,18 @@ var transactionSchema = `{
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
-        },
-        "version": {
-            "description": "Version of the app emitting this event",
-            "type": [
-                "string",
-                "null"
-            ],
-            "maxLength": 1024
         }
     },
     "required": ["name"]},
         {"properties": {
+            "version": {
+                "description": "Version of the app emitting this event",
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "maxLength": 1024
+            },
             "agent": {
                 "type": "object",
                 "properties": {

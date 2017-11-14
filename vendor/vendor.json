@@ -1128,6 +1128,18 @@
 			"revisionTime": "2017-06-28T12:00:33Z"
 		},
 		{
+			"checksumSHA1": "zF83b/btagb1yQnrxoNwL2+mqpQ=",
+			"path": "github.com/go-sourcemap/sourcemap",
+			"revision": "4dcf5f6442018e298fdd505370345ef78552c31c",
+			"revisionTime": "2017-10-16T12:45:54Z"
+		},
+		{
+			"checksumSHA1": "DfsvjnJzhSLNcRlw4ZA9StFfGLA=",
+			"path": "github.com/go-sourcemap/sourcemap/base64vlq",
+			"revision": "4dcf5f6442018e298fdd505370345ef78552c31c",
+			"revisionTime": "2017-10-16T12:45:54Z"
+		},
+		{
 			"checksumSHA1": "kBeNcaKk56FguvPSUCEaH6AxpRc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/golang/protobuf/proto",
 			"path": "github.com/golang/protobuf/proto",

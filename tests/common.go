@@ -56,6 +56,12 @@ func buildPath(dataType string, validData bool) (string, error) {
 		} else {
 			file = "transaction_payload/no_app.json"
 		}
+	case "sourcemap":
+		if validData {
+			file = "sourcemap/payload.json"
+		} else {
+			file = "sourcemap/no_app_version.json"
+		}
 	default:
 		return "", errors.New("data type not specified.")
 	}
