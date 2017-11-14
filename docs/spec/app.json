@@ -4,8 +4,16 @@
     "title": "App",
     "type": "object",
     "allOf": [
-        {"$ref": "app_core.json"},
+        {"$ref": "app_name.json"},
         {"properties": {
+            "version": {
+                "description": "Version of the app emitting this event",
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "maxLength": 1024
+            },
             "agent": {
                 "type": "object",
                 "properties": {
