@@ -144,10 +144,8 @@ To install those run the following command:
 
 [source,bash]
 ----------------------------------
-./apm-server setup
+./apm-server setup -E setup.kibana.host=KibanaAddress:5601
 ----------------------------------
-
-NOTE: If you are using the Elastic stack 6.x please be aware that the dashboards currently only work in Kibana 6.0.0-rc1.
 
 NOTE: If you are using an X-Pack secured version of Elastic Stack,
 add `-E output.elasticsearch.username=user -E output.elasticsearch.password=pass` to the command.
