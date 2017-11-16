@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 	"github.com/yudai/gojsondiff"
 
@@ -19,7 +20,7 @@ import (
 const ApprovedSuffix = ".approved.json"
 const ReceivedSuffix = ".received.json"
 
-func ApproveJson(received map[string]interface{}, name string) error {
+func ApproveJson(received map[string]interface{}, name string, ignored set.Set) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
 	receivedPath := path + ReceivedSuffix
@@ -27,11 +28,13 @@ func ApproveJson(received map[string]interface{}, name string) error {
 	r, _ := json.MarshalIndent(received, "", "    ")
 	ioutil.WriteFile(receivedPath, r, 0644)
 
-	_, diff, err := Compare(path)
+	received, _, diff, err := Compare(path, ignored)
 	if err != nil {
 		return err
 	}
 	if len(diff.Deltas()) > 0 {
+		r, _ := json.MarshalIndent(received, "", "    ")
+		ioutil.WriteFile(receivedPath, r, 0644)
 		return errors.New(fmt.Sprintf("Received data differ from approved data. Run 'make update' and then 'approvals' to verify the Diff."))
 	}
 
@@ -39,12 +42,42 @@ func ApproveJson(received map[string]interface{}, name string) error {
 	return nil
 }
 
-func Compare(path string) ([]byte, gojsondiff.Diff, error) {
-	received, err := ioutil.ReadFile(path + ReceivedSuffix)
+func ignored_key(data *map[string]interface{}, ignored set.Set) {
+	for k, v := range *data {
+		if ignored.Has(k) {
+			(*data)[k] = "Ignored"
+		} else if vm, ok := v.(map[string]interface{}); ok {
+			ignored_key(&vm, ignored)
+		} else if vm, ok := v.([]interface{}); ok {
+			for _, e := range vm {
+				if em, ok := e.(map[string]interface{}); ok {
+					ignored_key(&em, ignored)
+
+				}
+			}
+		}
+	}
+}
+
+func Compare(path string, ignored set.Set) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
+	rec, err := ioutil.ReadFile(path + ReceivedSuffix)
 	if err != nil {
 		fmt.Println("Cannot read file ", path, err)
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
+	var data map[string]interface{}
+	err = json.Unmarshal(rec, &data)
+	if err != nil {
+		fmt.Println("Cannot unmarshal received file ", path, err)
+		return nil, nil, nil, err
+	}
+	ignored_key(&data, ignored)
+	received, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("Cannot marshal received data", err)
+		return nil, nil, nil, err
+	}
+
 	approved, err := ioutil.ReadFile(path + ApprovedSuffix)
 	if err != nil {
 		approved = []byte("{}")
@@ -52,7 +85,7 @@ func Compare(path string) ([]byte, gojsondiff.Diff, error) {
 
 	differ := gojsondiff.New()
 	d, err := differ.Compare(approved, received)
-	return approved, d, err
+	return data, approved, d, err
 }
 
 type RequestInfo struct {
@@ -60,7 +93,7 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo) {
+func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignoredKeys set.Set) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := LoadData(info.Path)
@@ -80,7 +113,7 @@ func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []Requ
 		}
 
 		receivedJson := map[string]interface{}{"events": eventFields}
-		verifyErr := ApproveJson(receivedJson, info.Name)
+		verifyErr := ApproveJson(receivedJson, info.Name, ignoredKeys)
 		if verifyErr != nil {
 			assert.Fail(fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
 
