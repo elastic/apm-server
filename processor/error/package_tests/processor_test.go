@@ -3,6 +3,7 @@ package package_tests
 import (
 	"testing"
 
+	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 
 	er "github.com/elastic/apm-server/processor/error"
@@ -18,7 +19,7 @@ func TestProcessorOK(t *testing.T) {
 		{Name: "TestProcessErrorFull", Path: "tests/data/valid/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "tests/data/valid/error/null_values.json"},
 	}
-	tests.TestProcessRequests(t, er.NewProcessor(), requestInfo)
+	tests.TestProcessRequests(t, er.NewProcessor(), requestInfo, *set.New())
 }
 
 // ensure invalid documents fail the json schema validation already
