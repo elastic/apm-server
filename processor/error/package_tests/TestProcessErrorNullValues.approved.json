@@ -1,0 +1,177 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-09T15:04:05.999999Z",
+            "context": {
+                "app": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_app-12a3"
+                },
+                "system": {}
+            },
+            "error": {
+                "exception": {
+                    "message": "The username root is unknown"
+                },
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "log": {
+                    "message": "My app could not talk to the database named foobar"
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        },
+        {
+            "@timestamp": "2017-05-09T15:04:05.1Z",
+            "context": {
+                "app": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_app-12a3"
+                },
+                "custom": {
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "some_other_value": "foo bar"
+                },
+                "request": {
+                    "headers": {
+                        "content-type": null,
+                        "cookie": null,
+                        "user-agent": null
+                    },
+                    "method": "POST",
+                    "socket": {
+                        "encrypted": null,
+                        "remote_address": null
+                    },
+                    "url": {}
+                },
+                "response": {
+                    "headers": {
+                        "content-type": null
+                    }
+                },
+                "system": {},
+                "tags": {
+                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                }
+            },
+            "error": {
+                "exception": {
+                    "message": "foo is not defined"
+                },
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        },
+        {
+            "@timestamp": "2017-05-09T15:04:05Z",
+            "context": {
+                "app": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_app-12a3"
+                },
+                "custom": null,
+                "request": {
+                    "body": null,
+                    "cookies": null,
+                    "env": null,
+                    "headers": null,
+                    "http_version": null,
+                    "method": "POST",
+                    "socket": null,
+                    "url": {
+                        "hash": null,
+                        "hostname": null,
+                        "pathname": null,
+                        "port": null,
+                        "protocol": null,
+                        "raw": null,
+                        "search": null
+                    }
+                },
+                "response": {
+                    "finished": null,
+                    "headers": null,
+                    "headers_sent": null,
+                    "status_code": null
+                },
+                "system": {},
+                "user": {
+                    "email": null,
+                    "id": null,
+                    "username": null
+                }
+            },
+            "error": {
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "log": {
+                    "message": "foo.bar is not a function"
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        },
+        {
+            "@timestamp": "2017-05-09T15:04:05.999Z",
+            "context": {
+                "app": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_app-12a3"
+                },
+                "custom": null,
+                "request": null,
+                "response": null,
+                "system": {},
+                "tags": null,
+                "user": null
+            },
+            "error": {
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "log": {
+                    "message": "Cannot read property 'baz' of undefined"
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        }
+    ]
+}

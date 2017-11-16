@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "doc/spec/system.json",
     "title": "System",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
         "architecture": {
             "description": "Architecture of the system the agent is running on.",
