@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 	"github.com/yudai/gojsondiff"
 
@@ -20,7 +19,7 @@ import (
 const ApprovedSuffix = ".approved.json"
 const ReceivedSuffix = ".received.json"
 
-func ApproveJson(received map[string]interface{}, name string, ignored set.Set) error {
+func ApproveJson(received map[string]interface{}, name string, ignored []string) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
 	receivedPath := path + ReceivedSuffix
@@ -42,16 +41,25 @@ func ApproveJson(received map[string]interface{}, name string, ignored set.Set) 
 	return nil
 }
 
-func ignored_key(data *map[string]interface{}, ignored set.Set) {
+func hasKey(coll []string, k string) bool {
+	for _, entry := range coll {
+		if entry == k {
+			return true
+		}
+	}
+	return false
+}
+
+func ignoredKey(data *map[string]interface{}, ignoredKeys []string) {
 	for k, v := range *data {
-		if ignored.Has(k) {
+		if hasKey(ignoredKeys, k) {
 			(*data)[k] = "Ignored"
 		} else if vm, ok := v.(map[string]interface{}); ok {
-			ignored_key(&vm, ignored)
+			ignoredKey(&vm, ignoredKeys)
 		} else if vm, ok := v.([]interface{}); ok {
 			for _, e := range vm {
 				if em, ok := e.(map[string]interface{}); ok {
-					ignored_key(&em, ignored)
+					ignoredKey(&em, ignoredKeys)
 
 				}
 			}
@@ -59,7 +67,7 @@ func ignored_key(data *map[string]interface{}, ignored set.Set) {
 	}
 }
 
-func Compare(path string, ignored set.Set) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
+func Compare(path string, ignored []string) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
 	rec, err := ioutil.ReadFile(path + ReceivedSuffix)
 	if err != nil {
 		fmt.Println("Cannot read file ", path, err)
@@ -71,7 +79,7 @@ func Compare(path string, ignored set.Set) (map[string]interface{}, []byte, gojs
 		fmt.Println("Cannot unmarshal received file ", path, err)
 		return nil, nil, nil, err
 	}
-	ignored_key(&data, ignored)
+	ignoredKey(&data, ignored)
 	received, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Cannot marshal received data", err)
@@ -93,7 +101,7 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignoredKeys set.Set) {
+func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignoredKeys []string) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := LoadData(info.Path)
