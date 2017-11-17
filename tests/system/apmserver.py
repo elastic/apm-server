@@ -25,6 +25,7 @@ class BaseTest(TestCase):
                                             'payload.json'))
         return json.loads(open(path).read())
 
+
 class ServerSetUpBaseTest(BaseTest):
 
     transactions_url = 'http://localhost:8200/v1/transactions'
@@ -76,7 +77,6 @@ class SecureServerBaseTest(ServerSetUpBaseTest):
             "ssl_key": "config/certs/key.pem",
         })
         return cfg
-
 
     def tearDown(self):
         super(SecureServerBaseTest, self).tearDown()
