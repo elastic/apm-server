@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fatih/set"
 	"github.com/yudai/gojsondiff/formatter"
 
 	"github.com/elastic/apm-server/tests"
@@ -24,7 +23,7 @@ func approval() int {
 
 	for _, rf := range receivedFiles {
 		path := strings.Replace(rf, tests.ReceivedSuffix, "", 1)
-		_, approved, d, err := tests.Compare(path, *set.New())
+		_, approved, d, err := tests.Compare(path, map[string]string{})
 
 		if err != nil {
 			fmt.Println("Could not create diff ", err)

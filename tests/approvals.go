@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 	"github.com/yudai/gojsondiff"
 
@@ -20,7 +19,7 @@ import (
 const ApprovedSuffix = ".approved.json"
 const ReceivedSuffix = ".received.json"
 
-func ApproveJson(received map[string]interface{}, name string, ignored set.Set) error {
+func ApproveJson(received map[string]interface{}, name string, ignored map[string]string) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
 	receivedPath := path + ReceivedSuffix
@@ -42,16 +41,16 @@ func ApproveJson(received map[string]interface{}, name string, ignored set.Set) 
 	return nil
 }
 
-func ignored_key(data *map[string]interface{}, ignored set.Set) {
+func ignoredKey(data *map[string]interface{}, ignored map[string]string) {
 	for k, v := range *data {
-		if ignored.Has(k) {
-			(*data)[k] = "Ignored"
+		if ignoreVal, ok := ignored[k]; ok {
+			(*data)[k] = ignoreVal
 		} else if vm, ok := v.(map[string]interface{}); ok {
-			ignored_key(&vm, ignored)
+			ignoredKey(&vm, ignored)
 		} else if vm, ok := v.([]interface{}); ok {
 			for _, e := range vm {
 				if em, ok := e.(map[string]interface{}); ok {
-					ignored_key(&em, ignored)
+					ignoredKey(&em, ignored)
 
 				}
 			}
@@ -59,7 +58,7 @@ func ignored_key(data *map[string]interface{}, ignored set.Set) {
 	}
 }
 
-func Compare(path string, ignored set.Set) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
+func Compare(path string, ignored map[string]string) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
 	rec, err := ioutil.ReadFile(path + ReceivedSuffix)
 	if err != nil {
 		fmt.Println("Cannot read file ", path, err)
@@ -71,7 +70,7 @@ func Compare(path string, ignored set.Set) (map[string]interface{}, []byte, gojs
 		fmt.Println("Cannot unmarshal received file ", path, err)
 		return nil, nil, nil, err
 	}
-	ignored_key(&data, ignored)
+	ignoredKey(&data, ignored)
 	received, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Cannot marshal received data", err)
@@ -93,7 +92,7 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignoredKeys set.Set) {
+func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignored map[string]string) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := LoadData(info.Path)
@@ -113,7 +112,7 @@ func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []Requ
 		}
 
 		receivedJson := map[string]interface{}{"events": eventFields}
-		verifyErr := ApproveJson(receivedJson, info.Name, ignoredKeys)
+		verifyErr := ApproveJson(receivedJson, info.Name, ignored)
 		if verifyErr != nil {
 			assert.Fail(fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
 
