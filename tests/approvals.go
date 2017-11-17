@@ -41,15 +41,6 @@ func ApproveJson(received map[string]interface{}, name string, ignored map[strin
 	return nil
 }
 
-func hasKey(coll []string, k string) bool {
-	for _, entry := range coll {
-		if entry == k {
-			return true
-		}
-	}
-	return false
-}
-
 func ignoredKey(data *map[string]interface{}, ignored map[string]string) {
 	for k, v := range *data {
 		if ignoreVal, ok := ignored[k]; ok {
