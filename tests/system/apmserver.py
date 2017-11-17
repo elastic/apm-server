@@ -51,6 +51,22 @@ class ServerBaseTest(BaseTest):
 
 class SecureServerBaseTest(ServerBaseTest):
 
+    @classmethod
+    def setUpClass(cls):
+        super(SecureServerBaseTest, cls).setUpClass()
+
+        try:
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        except ImportError:
+            pass
+
+        try:
+            from requests.packages import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        except ImportError:
+            pass
+
     def config(self):
         cfg = super(SecureServerBaseTest, self).config()
         cfg.update({
