@@ -49,7 +49,7 @@ func RegisterConnectCallback(callback connectCallback) {
 
 func makeES(
 	beat beat.Info,
-	stats *outputs.Stats,
+	observer outputs.Observer,
 	cfg *common.Config,
 ) (outputs.Group, error) {
 	if !cfg.HasField("bulk_max_size") {
@@ -57,7 +57,7 @@ func makeES(
 	}
 
 	if !cfg.HasField("index") {
-		pattern := fmt.Sprintf("%v-%v-%%{+yyyy.MM.dd}", beat.Beat, beat.Version)
+		pattern := fmt.Sprintf("%v-%v-%%{+yyyy.MM.dd}", beat.IndexPrefix, beat.Version)
 		cfg.SetString("index", -1, pattern)
 	}
 
@@ -135,7 +135,7 @@ func makeES(
 			Headers:          config.Headers,
 			Timeout:          config.Timeout,
 			CompressionLevel: config.CompressionLevel,
-			Stats:            stats,
+			Observer:         observer,
 		}, &connectCallbackRegistry)
 		if err != nil {
 			return outputs.Fail(err)

@@ -34,6 +34,9 @@ type ClientConfig struct {
 	// Fields provides additional 'global' fields to be added to every event
 	Fields common.MapStr
 
+	// DynamicFields provides additional fields to be added to every event, supporting live updates
+	DynamicFields *common.MapStrPointer
+
 	// Processors passes additional processor to the client, to be executed before
 	// the pipeline processors.
 	Processor ProcessorList
@@ -120,7 +123,7 @@ const (
 
 	// DropIfFull drops an event to be send if the pipeline is currently full.
 	// This ensures a beats internals can continue processing if the pipeline has
-	// filled up. Usefull if an event stream must be processed to keep internal
+	// filled up. Useful if an event stream must be processed to keep internal
 	// state up-to-date.
 	DropIfFull
 )

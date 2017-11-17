@@ -1,0 +1,21 @@
+{
+    "app": {
+        "name": "1234_app-12a3",
+        "agent": {
+          "name": "python",
+          "version": "1.0"
+        },
+        "language": {
+          "name": "python"
+        }
+    },
+    "system": null,
+    "errors": [
+        {
+            "timestamp": "2017-05-09T15:04:05.999999Z",
+            "log": {
+                "message": ""
+            }
+        }
+    ]
+}

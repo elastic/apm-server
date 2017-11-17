@@ -10,10 +10,6 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-func init() {
-	pr.Registry.AddProcessor(Endpoint, NewProcessor())
-}
-
 var (
 	errorMetrics    = monitoring.Default.NewRegistry("apm-server.processor.error")
 	validationCount = monitoring.NewInt(errorMetrics, "validation.count")
@@ -22,12 +18,12 @@ var (
 )
 
 const (
-	Endpoint      = "/v1/errors"
 	processorName = "error"
 )
 
+var schema = pr.CreateSchema(errorSchema, processorName)
+
 func NewProcessor() pr.Processor {
-	schema := pr.CreateSchema(errorSchema, processorName)
 	return &processor{schema}
 }
 

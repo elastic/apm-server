@@ -3,9 +3,14 @@
 apm-server:
   host: "localhost:8200"
   secret_token: {{ secret_token }}
+
   ssl.enabled: {{ ssl_enabled }}
   ssl.certificate:  {{ ssl_cert }}
   ssl.key: {{ ssl_key }}
+
+  frontend.enabled: {{ enable_frontend }}
+  frontend.rate_limit: 3
+  frontend.allow_origins: {{ allow_origins }}
 
 ############################# Setup ##########################################
 

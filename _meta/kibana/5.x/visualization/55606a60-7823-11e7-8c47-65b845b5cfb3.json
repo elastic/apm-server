@@ -1,0 +1,10 @@
+{
+  "title": "Request Per Minute [APM]",
+  "visState": "{\"title\":\"Request Per Minute [APM]\",\"type\":\"metrics\",\"params\":{\"id\":\"61ca57f0-469d-11e7-af02-69e470af7417\",\"type\":\"timeseries\",\"series\":[{\"id\":\"61ca57f1-469d-11e7-af02-69e470af7417\",\"color\":\"rgba(0,156,224,1)\",\"split_mode\":\"filters\",\"metrics\":[{\"id\":\"61ca57f2-469d-11e7-af02-69e470af7417\",\"type\":\"count\"},{\"id\":\"0f590450-7823-11e7-9f81-b71e0e910b34\",\"type\":\"cumulative_sum\",\"field\":\"61ca57f2-469d-11e7-af02-69e470af7417\"},{\"unit\":\"1m\",\"id\":\"15bdacb0-7823-11e7-9f81-b71e0e910b34\",\"type\":\"derivative\",\"field\":\"0f590450-7823-11e7-9f81-b71e0e910b34\"},{\"unit\":\"\",\"id\":\"1fba21d0-7823-11e7-9f81-b71e0e910b34\",\"type\":\"positive_only\",\"field\":\"15bdacb0-7823-11e7-9f81-b71e0e910b34\"}],\"seperate_axis\":0,\"axis_position\":\"right\",\"formatter\":\"number\",\"chart_type\":\"line\",\"line_width\":\"2\",\"point_size\":\"0\",\"fill\":\"0\",\"stacked\":\"none\",\"split_filters\":[{\"filter\":\"context.response.status_code:[200 TO 299]\",\"label\":\"2xx\",\"color\":\"rgba(0,156,224,1)\",\"id\":\"72e54a20-7822-11e7-9f81-b71e0e910b34\"},{\"filter\":\"context.response.status_code:[300 TO 399]\",\"label\":\"3xx\",\"color\":\"rgba(0,98,177,1)\",\"id\":\"afd4a7a0-7822-11e7-9f81-b71e0e910b34\"},{\"filter\":\"context.response.status_code:[400 TO 499]\",\"label\":\"4xx\",\"color\":\"rgba(251,158,0,1)\",\"id\":\"e3761f80-7822-11e7-9f81-b71e0e910b34\"},{\"filter\":\"context.response.status_code:[500 TO 599]\",\"label\":\"5xx\",\"color\":\"rgba(244,78,59,1)\",\"id\":\"fb035410-7822-11e7-9f81-b71e0e910b34\"}],\"label\":\"\",\"value_template\":\"{{value}} rpm\"}],\"time_field\":\"@timestamp\",\"index_pattern\":\"apm-*\",\"interval\":\"auto\",\"axis_position\":\"left\",\"axis_formatter\":\"number\",\"show_legend\":1,\"show_grid\":1},\"aggs\":[]}",
+  "uiStateJSON": "{}",
+  "description": "",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{}"
+  }
+}

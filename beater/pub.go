@@ -3,6 +3,7 @@ package beater
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
 )
@@ -73,7 +74,7 @@ func (p *publisher) Send(batch []beat.Event) error {
 	select {
 	case p.events <- batch:
 		return nil
-	default:
+	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
 		return errFull
 	}
 }

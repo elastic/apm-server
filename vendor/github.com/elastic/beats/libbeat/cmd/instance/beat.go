@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/beats/libbeat/common/file"
 	"github.com/elastic/beats/libbeat/dashboards"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/monitoring/report"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/libbeat/paths"
@@ -42,6 +43,9 @@ import (
 	_ "github.com/elastic/beats/libbeat/processors/add_docker_metadata"
 	_ "github.com/elastic/beats/libbeat/processors/add_kubernetes_metadata"
 	_ "github.com/elastic/beats/libbeat/processors/add_locale"
+
+	// Register autodiscover providers
+	_ "github.com/elastic/beats/libbeat/autodiscover/providers/docker"
 
 	// Register default monitoring reporting
 	_ "github.com/elastic/beats/libbeat/monitoring/report/elasticsearch"
@@ -82,11 +86,14 @@ type beatConfig struct {
 var (
 	printVersion bool
 	setup        bool
+	startTime    time.Time
 )
 
 var debugf = logp.MakeDebug("beat")
 
 func init() {
+	startTime = time.Now()
+
 	initRand()
 
 	flag.BoolVar(&printVersion, "version", false, "Print the version and exit")
@@ -114,9 +121,9 @@ func initRand() {
 // implementation. bt is the `Creator` callback for creating a new beater
 // instance.
 // XXX Move this as a *Beat method?
-func Run(name, version string, bt beat.Creator) error {
+func Run(name, idxPrefix, version string, bt beat.Creator) error {
 	return handleError(func() error {
-		b, err := NewBeat(name, version)
+		b, err := NewBeat(name, idxPrefix, version)
 		if err != nil {
 			return err
 		}
@@ -125,9 +132,12 @@ func Run(name, version string, bt beat.Creator) error {
 }
 
 // NewBeat creates a new beat instance
-func NewBeat(name, v string) (*Beat, error) {
+func NewBeat(name, indexPrefix, v string) (*Beat, error) {
 	if v == "" {
 		v = version.GetDefaultVersion()
+	}
+	if indexPrefix == "" {
+		indexPrefix = name
 	}
 
 	hostname, err := os.Hostname()
@@ -137,11 +147,12 @@ func NewBeat(name, v string) (*Beat, error) {
 
 	b := beat.Beat{
 		Info: beat.Info{
-			Beat:     name,
-			Version:  v,
-			Name:     hostname,
-			Hostname: hostname,
-			UUID:     uuid.NewV4(),
+			Beat:        name,
+			IndexPrefix: indexPrefix,
+			Version:     v,
+			Name:        hostname,
+			Hostname:    hostname,
+			UUID:        uuid.NewV4(),
 		},
 	}
 
@@ -196,8 +207,13 @@ func (b *Beat) createBeater(bt beat.Creator) (beat.Beater, error) {
 		return nil, err
 	}
 
+	reg := monitoring.Default.GetRegistry("libbeat")
+	if reg == nil {
+		reg = monitoring.Default.NewRegistry("libbeat")
+	}
+
 	debugf("Initializing output plugins")
-	pipeline, err := pipeline.Load(b.Info, b.Config.Pipeline, b.Config.Output)
+	pipeline, err := pipeline.Load(b.Info, reg, b.Config.Pipeline, b.Config.Output)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing publisher: %v", err)
 	}
@@ -357,16 +373,10 @@ func (b *Beat) Setup(bt beat.Creator, template, dashboards, machineLearning bool
 // handleFlags parses the command line flags. It handles the '-version' flag
 // and invokes the HandleFlags callback if implemented by the Beat.
 func (b *Beat) handleFlags() error {
-	// Due to a dependence upon the beat name, the default config file path
-	// must be updated prior to CLI flag handling.
-	err := cfgfile.ChangeDefaultCfgfileFlag(b.Info.Beat)
-	if err != nil {
-		return fmt.Errorf("failed to set default config file path: %v", err)
-	}
 	flag.Parse()
 
 	if printVersion {
-		cfgwarn.Deprecate("6.0", "-version flag has been deprectad, use version subcommand")
+		cfgwarn.Deprecate("6.0", "-version flag has been deprecated, use version subcommand")
 		fmt.Printf("%s version %s (%s), libbeat %s\n",
 			b.Info.Beat, b.Info.Version, runtime.GOARCH, version.GetDefaultVersion())
 		return beat.GracefulExit
@@ -417,7 +427,7 @@ func (b *Beat) configure() error {
 		return fmt.Errorf("error setting default paths: %v", err)
 	}
 
-	err = logp.Init(b.Info.Beat, &b.Config.Logging)
+	err = logp.Init(b.Info.Beat, startTime, &b.Config.Logging)
 	if err != nil {
 		return fmt.Errorf("error initializing logging: %v", err)
 	}
@@ -533,7 +543,7 @@ func (b *Beat) loadDashboards(force bool) error {
 		if b.Config.Output.Name() == "elasticsearch" {
 			esConfig = b.Config.Output.Config()
 		}
-		err := dashboards.ImportDashboards(b.Info.Beat, b.Info.Version, paths.Resolve(paths.Home, ""),
+		err := dashboards.ImportDashboards(b.Info.Beat, b.Info.Name, paths.Resolve(paths.Home, ""),
 			b.Config.Kibana, esConfig, b.Config.Dashboards, nil)
 		if err != nil {
 			return fmt.Errorf("Error importing Kibana dashboards: %v", err)
@@ -571,7 +581,7 @@ func (b *Beat) registerTemplateLoading() error {
 			return err
 		}
 
-		if esCfg.Index != "" && (cfg.Name == "" || cfg.Pattern == "") {
+		if esCfg.Index != "" && (cfg.Name == "" || cfg.Pattern == "") && (b.Config.Template == nil || b.Config.Template.Enabled()) {
 			return fmt.Errorf("setup.template.name and setup.template.pattern have to be set if index name is modified.")
 		}
 

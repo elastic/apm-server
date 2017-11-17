@@ -18,6 +18,7 @@ type Schema struct {
 	PatternProperties    map[string]interface{}
 	Items                *Schema
 	MaxLength            int
+	AllOf                []Schema
 }
 type Mapping struct {
 	from string
@@ -102,6 +103,10 @@ func flattenSchemaNames(s *Schema, prefix string, addFn addProperty, flattened *
 		}
 	} else if s.Items != nil {
 		flattenSchemaNames(s.Items, prefix, addFn, flattened)
+	} else if len(s.AllOf) > 0 {
+		for _, v := range s.AllOf {
+			flattenSchemaNames(&v, prefix, addFn, flattened)
+		}
 	}
 }
 

@@ -227,6 +227,8 @@ App fields.
 
 type: keyword
 
+format: url
+
 Unique App name.
 
 
@@ -236,14 +238,6 @@ Unique App name.
 type: keyword
 
 App version.
-
-
-[float]
-=== `context.app.git_ref`
-
-type: keyword
-
-App git reference.
 
 
 [float]
@@ -330,50 +324,25 @@ type: keyword
 Agent version.
 
 
-[float]
-== db fields
-
-An object containing contextual data for database traces
-
-
-
-[float]
-=== `context.db.instance`
-
-type: text
-
-Database instance name
-
-
-[float]
-=== `context.db.statement`
-
-type: text
-
-A database statement (e.g. query) for the given database type
-
-
-[float]
-=== `context.db.type`
-
-type: text
-
-Database type. For any SQL database, "sql". For others, the lower-case database category, e.g. "cassandra", "hbase", or "redis"
-
-
-[float]
-=== `context.db.user`
-
-type: text
-
-Username for accessing database
-
-
 [[exported-fields-apm-error]]
 == APM Error fields
 
 Error-specific data for APM
 
+
+[float]
+=== `view errors`
+
+type: keyword
+
+format: url
+
+[float]
+=== `error id icon`
+
+type: keyword
+
+format: url
 
 
 [float]
@@ -395,6 +364,8 @@ Function call which was the primary perpetrator of this event.
 === `error.grouping_key`
 
 type: keyword
+
+format: url
 
 GroupingKey of the logged error for use in grouping.
 
@@ -475,10 +446,15 @@ type: keyword
 Equal to message, but with placeholders replaced.
 
 [[exported-fields-apm-trace]]
-== APM Trance fields
+== APM Trace fields
 
 Trace-specific data for APM.
 
+
+[float]
+=== `view traces`
+
+format: url
 
 
 [float]
@@ -538,6 +514,8 @@ None
 
 type: long
 
+format: duration
+
 Duration of the trace, in microseconds.
 
 
@@ -560,6 +538,8 @@ Transaction-specific data for APM
 === `transaction.id`
 
 type: keyword
+
+format: url
 
 A UUID4 transaction ID.
 
@@ -591,6 +571,8 @@ None
 === `transaction.duration.us`
 
 type: long
+
+format: duration
 
 Total duration of this transaction, in microseconds.
 

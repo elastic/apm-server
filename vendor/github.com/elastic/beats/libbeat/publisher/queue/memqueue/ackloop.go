@@ -7,7 +7,7 @@ package memqueue
 // Producer ACKs are run in the ackLoop go-routine.
 type ackLoop struct {
 	broker *Broker
-	sig    chan batchAckRequest
+	sig    chan batchAckMsg
 	lst    chanList
 
 	totalACK   uint64
@@ -15,6 +15,14 @@ type ackLoop struct {
 
 	batchesSched uint64
 	batchesACKed uint64
+
+	processACK func(chanList, int)
+}
+
+func newACKLoop(b *Broker, processACK func(chanList, int)) *ackLoop {
+	l := &ackLoop{broker: b}
+	l.processACK = processACK
+	return l
 }
 
 func (l *ackLoop) run() {
@@ -45,13 +53,20 @@ func (l *ackLoop) run() {
 			count, events := lst.count()
 			l.lst.concat(&lst)
 
-			// log.Debugf("ackloop: scheduledACKs count=%v events=%v\n", count, events)
+			// log.Debug("ACK List:")
+			// for current := l.lst.head; current != nil; current = current.next {
+			// 	log.Debugf("  ack entry(seq=%v, start=%v, count=%v",
+			// 		current.seq, current.start, current.count)
+			// }
+
 			l.batchesSched += uint64(count)
 			l.totalSched += uint64(events)
 
 		case <-l.sig:
 			acked += l.handleBatchSig()
-			acks = l.broker.acks
+			if acked > 0 {
+				acks = l.broker.acks
+			}
 		}
 
 		// log.Debug("ackloop INFO")
@@ -72,33 +87,25 @@ func (l *ackLoop) run() {
 // handleBatchSig collects and handles a batch ACK/Cancel signal. handleBatchSig
 // is run by the ackLoop.
 func (l *ackLoop) handleBatchSig() int {
-	acks := l.lst.pop()
-	l.broker.logger.Debugf("ackloop: receive ack [%v: %v, %v]", acks.seq, acks.start, acks.count)
-	start := acks.start
-	count := acks.count
-	l.batchesACKed++
-	releaseACKChan(acks)
+	lst := l.collectAcked()
 
-	done := false
-	// collect pending ACKs
-	for !l.lst.empty() && !done {
-		acks := l.lst.front()
-		select {
-		case <-acks.ch:
-			l.broker.logger.Debugf("ackloop: receive ack [%v: %v, %v]", acks.seq, acks.start, acks.count)
-
-			count += acks.count
-			l.batchesACKed++
-			releaseACKChan(l.lst.pop())
-
-		default:
-			done = true
-		}
+	count := 0
+	for current := lst.front(); current != nil; current = current.next {
+		count += current.count
 	}
 
-	// report acks to waiting clients
-	states := l.broker.buf.buf.clients
-	l.broker.reportACK(states, start, count)
+	if count > 0 {
+		if e := l.broker.eventer; e != nil {
+			e.OnACK(count)
+		}
+
+		// report acks to waiting clients
+		l.processACK(lst, count)
+	}
+
+	for !lst.empty() {
+		releaseACKChan(lst.pop())
+	}
 
 	// return final ACK to EventLoop, in order to clean up internal buffer
 	l.broker.logger.Debug("ackloop: return ack to broker loop:", count)
@@ -106,4 +113,32 @@ func (l *ackLoop) handleBatchSig() int {
 	l.totalACK += uint64(count)
 	l.broker.logger.Debug("ackloop:  done send ack")
 	return count
+}
+
+func (l *ackLoop) collectAcked() chanList {
+	lst := chanList{}
+
+	acks := l.lst.pop()
+	l.onACK(acks)
+	lst.append(acks)
+
+	done := false
+	for !l.lst.empty() && !done {
+		acks := l.lst.front()
+		select {
+		case <-acks.ch:
+			l.onACK(acks)
+			lst.append(l.lst.pop())
+
+		default:
+			done = true
+		}
+	}
+
+	return lst
+}
+
+func (l *ackLoop) onACK(acks *ackChan) {
+	l.batchesACKed++
+	l.broker.logger.Debugf("ackloop: receive ack [%v: %v, %v]", acks.seq, acks.start, acks.count)
 }

@@ -19,18 +19,15 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"transactions.context.request.headers.array",
 		"transactions.context.request.env.SERVER_SOFTWARE",
 		"transactions.context.request.env.GATEWAY_INTERFACE",
-		"transactions.context.request.body",
 		"transactions.context.request.cookies.c1",
 		"transactions.context.request.cookies.c2",
-		"transactions.context.custom",
 		"transactions.context.custom.my_key",
 		"transactions.context.custom.some_other_value",
 		"transactions.context.custom.and_objects",
 		"transactions.context.custom.and_objects.foo",
-		"transactions.context.tags",
 		"transactions.context.tags.organization_uuid",
 	)
-	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, transaction.Schema())
+	tests.TestPayloadAttributesInSchema(t, "transaction/payload.json", undocumented, transaction.Schema())
 }
 
 func TestJsonSchemaKeywordLimitation(t *testing.T) {

@@ -2,9 +2,7 @@ package beater
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -18,7 +16,6 @@ import (
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
 )
@@ -41,24 +38,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestDecode(t *testing.T) {
-	transactionBytes, err := tests.LoadValidData("transaction")
-	assert.Nil(t, err)
-	buffer := bytes.NewReader(transactionBytes)
-
-	req, err := http.NewRequest("POST", "_", buffer)
-	req.Header.Add("Content-Type", "application/json")
-	assert.Nil(t, err)
-
-	res, err := decodeData(req)
-	assert.Nil(t, err)
-	assert.NotNil(t, res)
-
-	body, err := ioutil.ReadAll(res)
-	assert.Nil(t, err)
-	assert.Equal(t, transactionBytes, body)
-}
-
 func TestServerOk(t *testing.T) {
 	apm, teardown := setupServer(t, noSSL)
 	defer teardown()
@@ -68,7 +47,108 @@ func TestServerOk(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
-	assert.Equal(t, 202, rr.Code, rr.Body.String())
+	assert.Equal(t, http.StatusAccepted, rr.Code, rr.Body.String())
+}
+
+func TestServerHealth(t *testing.T) {
+	apm, teardown := setupServer(t, noSSL)
+	defer teardown()
+
+	req, err := http.NewRequest("GET", HealthCheckURL, nil)
+	if err != nil {
+		t.Fatalf("Failed to create test request object: %v", err)
+	}
+
+	rr := httptest.NewRecorder()
+	apm.Handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code, rr.Code)
+}
+
+func TestServerFrontendSwitch(t *testing.T) {
+	apm, teardown := setupServer(t, noSSL)
+	defer teardown()
+
+	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
+
+	rec := httptest.NewRecorder()
+	apm.Handler.ServeHTTP(rec, req)
+	apm.Handler = newMuxer(
+		Config{
+			Frontend: &FrontendConfig{Enabled: new(bool), AllowOrigins: []string{"*"}}},
+		nil)
+	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
+
+	true := true
+	apm.Handler = newMuxer(
+		Config{
+			Frontend: &FrontendConfig{Enabled: &true, AllowOrigins: []string{"*"}}},
+		nil)
+	rec = httptest.NewRecorder()
+	apm.Handler.ServeHTTP(rec, req)
+	assert.NotEqual(t, http.StatusForbidden, rec.Code, rec.Body.String())
+}
+
+func TestServerCORS(t *testing.T) {
+	apm, teardown := setupServer(t, noSSL)
+	defer teardown()
+
+	true := true
+
+	tests := []struct {
+		expectedStatus int
+		origin         string
+		allowedOrigins []string
+	}{
+		{
+			expectedStatus: http.StatusForbidden,
+			origin:         "http://www.example.com",
+			allowedOrigins: []string{"http://notmydomain.com", "http://neitherthisone.com"},
+		},
+		{
+			expectedStatus: http.StatusForbidden,
+			origin:         "http://www.example.com",
+			allowedOrigins: []string{""},
+		},
+		{
+			expectedStatus: http.StatusForbidden,
+			origin:         "http://www.example.com",
+			allowedOrigins: []string{"example.com"},
+		},
+		{
+			expectedStatus: http.StatusAccepted,
+			origin:         "whatever",
+			allowedOrigins: []string{"http://notmydomain.com", "*"},
+		},
+		{
+			expectedStatus: http.StatusAccepted,
+			origin:         "http://www.example.co.uk",
+			allowedOrigins: []string{"http://*.example.co*"},
+		},
+		{
+			expectedStatus: http.StatusAccepted,
+			origin:         "https://www.example.com",
+			allowedOrigins: []string{"http://*example.com", "https://*example.com"},
+		},
+	}
+
+	for idx, test := range tests {
+		apm.Handler = newMuxer(
+			Config{
+				MaxUnzippedSize: 1024 * 1024,
+				Frontend: &FrontendConfig{
+					Enabled:      &true,
+					RateLimit:    10,
+					AllowOrigins: test.allowedOrigins},
+			},
+			nopReporter)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
+		req.Header.Set("Origin", test.origin)
+		req.Header.Set("Content-Type", "application/json")
+		apm.Handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, test.expectedStatus, rec.Code, fmt.Sprintf("Failed at idx %v; %s", idx, rec.Body.String()))
+	}
 }
 
 func TestServerNoContentType(t *testing.T) {
@@ -77,7 +157,7 @@ func TestServerNoContentType(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, makeTestRequest(t))
-	assert.Equal(t, 400, rr.Code, rr.Body.String())
+	assert.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
 }
 
 func TestServerSecureUnknownCA(t *testing.T) {
@@ -94,7 +174,7 @@ func TestServerSecureSkipVerify(t *testing.T) {
 
 	res, err := postTestRequest(t, apm, insecureClient(), "https")
 	assert.Nil(t, err)
-	assert.Equal(t, res.StatusCode, 202)
+	assert.Equal(t, res.StatusCode, http.StatusAccepted)
 }
 
 func TestServerSecureBadDomain(t *testing.T) {
@@ -132,90 +212,6 @@ func TestServerBadProtocol(t *testing.T) {
 	assert.Contains(t, err.Error(), "malformed HTTP response")
 }
 
-func TestSSLEnabled(t *testing.T) {
-	truthy := true
-	falsy := false
-
-	cases := []struct {
-		config   *SSLConfig
-		expected bool
-	}{
-		{nil, false},
-		{&SSLConfig{Enabled: &truthy}, true},
-		{&SSLConfig{Enabled: &falsy}, false},
-		{&SSLConfig{Cert: "Cert"}, true},
-		{&SSLConfig{Cert: "Cert", PrivateKey: "key"}, true},
-		{&SSLConfig{Cert: "Cert", PrivateKey: "key", Enabled: &falsy}, false},
-	}
-
-	for i, test := range cases {
-		name := fmt.Sprintf("%v %v->%v", i, test.config, test.expected)
-		t.Run(name, func(t *testing.T) {
-			b := test.expected
-			isEnabled := test.config.isEnabled()
-			assert.Equal(t, b, isEnabled, "ssl config but should be %v", b)
-		})
-	}
-}
-
-func TestJSONFailureResponse(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
-	assert.Nil(t, err)
-
-	req.Header.Set("Accept", "application/json")
-	w := httptest.NewRecorder()
-
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
-
-	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`{"error":"Cannot compare apples to oranges"}`))
-}
-
-func TestJSONFailureResponseWhenAcceptingAnything(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
-	assert.Nil(t, err)
-	req.Header.Set("Accept", "*/*")
-	w := httptest.NewRecorder()
-
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
-
-	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`{"error":"Cannot compare apples to oranges"}`))
-}
-
-func TestHTMLFailureResponse(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
-	assert.Nil(t, err)
-	req.Header.Set("Accept", "text/html")
-	w := httptest.NewRecorder()
-
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
-
-	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
-}
-
-func TestFailureResponseNoAcceptHeader(t *testing.T) {
-	req, err := http.NewRequest("POST", "/transactions", nil)
-	assert.Nil(t, err)
-
-	req.Header.Del("Accept")
-
-	w := httptest.NewRecorder()
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
-
-	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
-}
-
 func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
@@ -227,7 +223,7 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	cfg.SSL = ssl
 
 	apm := newServer(cfg, nopReporter)
-	go run(apm, cfg.SSL)
+	go run(apm, cfg)
 
 	secure := cfg.SSL != nil
 	waitForServer(secure, host)
@@ -255,7 +251,7 @@ func withSSL(t *testing.T, domain string) *SSLConfig {
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
-	req, err := http.NewRequest("POST", transaction.Endpoint, bytes.NewReader(testData))
+	req, err := http.NewRequest("POST", BackendTransactionsURL, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
@@ -268,7 +264,7 @@ func postTestRequest(t *testing.T, apm *http.Server, client *http.Client, schema
 		client = http.DefaultClient
 	}
 
-	addr := fmt.Sprintf("%s://%s%s", schema, apm.Addr, transaction.Endpoint)
+	addr := fmt.Sprintf("%s://%s%s", schema, apm.Addr, BackendTransactionsURL)
 	return client.Post(addr, "application/json", bytes.NewReader(testData))
 }
 
@@ -289,14 +285,14 @@ func waitForServer(secure bool, host string) {
 		}
 
 		if err != nil {
-			return 500
+			return http.StatusInternalServerError
 		}
 		return res.StatusCode
 	}
 
 	for i := 0; i <= 1000; i++ {
 		time.Sleep(time.Second / 50)
-		if check() == 200 {
+		if check() == http.StatusOK {
 			return
 		}
 	}

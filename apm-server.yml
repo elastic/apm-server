@@ -7,6 +7,8 @@ apm-server:
   # Defines the host and port the server is listening on
   host: "localhost:8200"
 
+  frontend.enabled: false
+
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>
   #secret_token:
@@ -71,8 +73,7 @@ setup.kibana:
 
 #================================ Outputs =====================================
 
-# Configure what outputs to use when sending the data collected by the beat.
-# Multiple outputs may be used.
+# Configure what output to use when sending the data collected by the beat.
 
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:

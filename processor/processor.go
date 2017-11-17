@@ -3,7 +3,7 @@ package processor
 import (
 	"time"
 
-	m "github.com/elastic/apm-server/processor/model"
+	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )

@@ -15,8 +15,3 @@ func TestImplementProcessorInterface(t *testing.T) {
 	assert.True(t, ok)
 	assert.IsType(t, &processor{}, p)
 }
-
-func TestAddProcessorToRegistryOnInit(t *testing.T) {
-	p := pr.Registry.Processor(Endpoint)
-	assert.NotNil(t, p)
-}

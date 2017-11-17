@@ -11,9 +11,8 @@ import (
 // Event metadata constants. These keys are used within libbeat to identify
 // metadata stored in an event.
 const (
-	EventMetadataKey = "_event_metadata"
-	FieldsKey        = "fields"
-	TagsKey          = "tags"
+	FieldsKey = "fields"
+	TagsKey   = "tags"
 )
 
 var (
@@ -248,19 +247,23 @@ func AddTags(ms MapStr, tags []string) error {
 	if ms == nil || len(tags) == 0 {
 		return nil
 	}
-
-	tagsIfc, ok := ms[TagsKey]
-	if !ok {
+	eventTags, exists := ms[TagsKey]
+	if !exists {
 		ms[TagsKey] = tags
 		return nil
 	}
 
-	existingTags, ok := tagsIfc.([]string)
-	if !ok {
-		return errors.Errorf("expected string array by type is %T", tagsIfc)
+	switch arr := eventTags.(type) {
+	case []string:
+		ms[TagsKey] = append(arr, tags...)
+	case []interface{}:
+		for _, tag := range tags {
+			arr = append(arr, tag)
+		}
+		ms[TagsKey] = arr
+	default:
+		return errors.Errorf("expected string array by type is %T", eventTags)
 	}
-
-	ms[TagsKey] = append(existingTags, tags...)
 	return nil
 }
 

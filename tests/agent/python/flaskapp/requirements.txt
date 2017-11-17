@@ -1,0 +1,2 @@
+Flask==0.12.2
+git+https://github.com/elastic/apm-agent-python.git@master

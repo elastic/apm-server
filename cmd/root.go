@@ -10,6 +10,7 @@ import (
 
 // Name of the beat (apm-server).
 const Name = "apm-server"
+const IdxPattern = "apm"
 
 // RootCmd for running apm-server.
 // This is the command that is used if no other command is specified.
@@ -18,5 +19,5 @@ var RootCmd *cmd.BeatsRootCmd
 
 func init() {
 	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
-	RootCmd = cmd.GenRootCmdWithRunFlags(Name, "", beater.New, runFlags)
+	RootCmd = cmd.GenRootCmdWithIndexPrefixWithRunFlags(Name, IdxPattern, "", beater.New, runFlags)
 }

@@ -8,10 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	// make sure processors are loaded
-	_ "github.com/elastic/apm-server/include"
-
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/outputs"
 	pubs "github.com/elastic/beats/libbeat/publisher"
@@ -71,6 +69,7 @@ func SetupServer(b *testing.B) *http.ServeMux {
 	}
 	testCount++
 	pip, err := pipeline.New(
+		beat.Info{Name: "testBeat"},
 		monitoring.Default.NewRegistry("testing"+string(testCount)),
 		queueFactory, out, pipeline.Settings{
 			WaitClose:     0,

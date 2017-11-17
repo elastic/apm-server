@@ -123,11 +123,18 @@ def write_notice_file(f, beat, copyright, dependencies):
 
 
 def write_csv_file(csvwriter, dependencies):
-    csvwriter.writerow(["Dependency", "Version", "Revision", "License type (autodetected)", "License text"])
+    csvwriter.writerow(["name", "url", "version", "revision", "license"])
     for key in sorted(dependencies, key=str.lower):
         for lib in dependencies[key]:
-            csvwriter.writerow([key, lib.get("version", ""), lib.get("revision", ""),
-                                lib["license_summary"], lib["license_contents"]])
+            csvwriter.writerow([key, get_url(key), lib.get("version", ""), lib.get("revision", ""),
+                                lib["license_summary"]])
+
+
+def get_url(repo):
+    words = repo.split("/")
+    if words[0] != "github.com":
+        return repo
+    return "https://github.com/{}/{}".format(words[1], words[2])
 
 
 def create_notice(filename, beat, copyright, vendor_dirs, csvfile):
@@ -231,7 +238,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cwd = os.getcwd()
-    notice = os.path.join(cwd, "NOTICE")
+    notice = os.path.join(cwd, "NOTICE.txt")
     vendor_dirs = []
 
     excludes = args.excludes

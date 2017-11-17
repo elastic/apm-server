@@ -42,7 +42,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	bt.server = newServer(bt.config, pub.Send)
 
-	err = run(bt.server, bt.config.SSL)
+	err = run(bt.server, bt.config)
 	if err == http.ErrServerClosed {
 		logp.Info("Listener stopped: %s", err.Error())
 		return nil

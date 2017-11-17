@@ -1,33 +1,13 @@
-# APM Server (Experimental)
+# APM Server (Alpha)
 
 The APM Server receives data from the Elastic APM agents and stores the data into Elasticsearch. The APM Server and the
-APM agents are currently experimental and under heavy development which might result in breaking changes. If you are trying out APM and have feedback or problems, please post them on the [Discuss forum](https://discuss.elastic.co/c/apm). 
+APM agents are currently in alpha and under heavy development which might result in breaking changes. If you are trying out APM and have feedback or problems, please post them on the [Discuss forum](https://discuss.elastic.co/c/apm). 
 
-[Read our announcement blog post](https://www.elastic.co/blog/starting-down-the-path-for-elastic-apm).
+[Read the alpha blog post](https://www.elastic.co/blog/elastic-apm-enters-alpha).
 
-## APM Getting Started
+## Getting Started
 
-To run Elastic APM for your own applications you need the following setup:
-
-* Install & run [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/_installation.html) and [Kibana](https://www.elastic.co/guide/en/kibana/6.0/install.html)
-* Install, build and run the [APM Server](#apm-server-development)
-* Install the [Node.js](https://github.com/elastic/apm-agent-nodejs) or [Python](https://github.com/elastic/apm-agent-python) APM Agent. The agents are libraries in your application that run inside of your application process.
-* [Load UI dashboards](#load-dashboards) into Kibana. The dashboards will give you an overview of application response times, requests per minutes, error occurrences and more.
-
-By default the agents send data to localhost, the APM Server listens on localhost and sends data to Elasticsearch on localhost.
-If your setups involves multiple hosts, you need to adjust the configuration options accordingly.
-
-## Load Dashboards
-
-The current UI consists of pre-built, customizable Kibana dashboards. The dashboards are shipped with the APM Server. For now, the dashboards have to be loaded manually with the following command:
-
-```
-curl --user elastic:changeme -XPOST http://localhost:5601/api/kibana/dashboards/import -H 'Content-type:application/json' -H 'kbn-xsrf:true' -d @./_meta/kibana/default/dashboard/apm-dashboards.json
-```
-
-Here's a screenshot of one of the dashboards:
-
-![Kibana APM dashboard](https://cldup.com/fBs7ofUk3X.png)
+To get started with APM please see our [Getting Started Guide](https://www.elastic.co/guide/en/apm/get-started).
 
 ## APM Server Development
 
@@ -56,6 +36,13 @@ in the same directory with the name apm-server.
 ```
 make
 ```
+
+You also need to create all files needed by the APM Server by running the additional command below. 
+
+```
+make update
+```
+Note that this requires to have `virtualenv` installed.
 
 ### Run
 

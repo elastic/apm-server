@@ -113,7 +113,7 @@ func kafkaMetricsRegistry() gometrics.Registry {
 
 func makeKafka(
 	beat beat.Info,
-	stats *outputs.Stats,
+	observer outputs.Observer,
 	cfg *common.Config,
 ) (outputs.Group, error) {
 	debugf("initialize kafka output")
@@ -143,12 +143,12 @@ func makeKafka(
 		return outputs.Fail(err)
 	}
 
-	codec, err := codec.CreateEncoder(config.Codec)
+	codec, err := codec.CreateEncoder(beat, config.Codec)
 	if err != nil {
 		return outputs.Fail(err)
 	}
 
-	client, err := newKafkaClient(stats, hosts, beat.Beat, config.Key, topic, codec, libCfg)
+	client, err := newKafkaClient(observer, hosts, beat.Beat, config.Key, topic, codec, libCfg)
 	if err != nil {
 		return outputs.Fail(err)
 	}

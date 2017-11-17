@@ -16,98 +16,138 @@ var transactionSchema = `{
     "$id": "doc/spec/app.json",
     "title": "App",
     "type": "object",
+    "allOf": [
+        {    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "doc/spec/app_core.json",
+    "title": "App core properties",
+    "type": "object",
     "properties": {
-        "agent": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "version": {
-                    "type": "string",
-                    "maxLength": 1024
-                }
-            },
-            "required": ["name", "version"]
-        },
-        "argv": {
-            "type": ["array", "null"],
-            "minItems": 0
-        },
-        "framework": {
-            "type": ["object", "null"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "version": {
-                    "type": "string",
-                    "maxLength": 1024
-                }
-            },
-            "required": ["name", "version"]
-        },
-        "git_ref": {
-            "description": "Git Reference of the app emitting this event",
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
-        "language": {
-            "type": ["object", "null"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "version": {
-                    "type": "string",
-                    "maxLength": 1024
-                }
-            },
-            "required": ["name", "version"]
-        },
         "name": {
             "description": "Immutable name of the app emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
-        "pid": {
-            "type": ["number", "null"]
-        },
-        "process_title": {
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
-        "runtime": {
-            "type": ["object", "null"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "version": {
-                    "type": "string",
-                    "maxLength": 1024
-                }
-            },
-            "required": ["name", "version"]
-        },
         "version": {
             "description": "Version of the app emitting this event",
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "maxLength": 1024
         }
     },
-    "required": ["agent", "name"]
+    "required": ["name"]},
+        {"properties": {
+            "agent": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 1024
+                    },
+                    "version": {
+                        "type": "string",
+                        "maxLength": 1024
+                    }
+                },
+                "required": [
+                    "name",
+                    "version"
+                ]
+            },
+            "argv": {
+                "type": [
+                    "array",
+                    "null"
+                ],
+                "minItems": 0
+            },
+            "framework": {
+                "type": [
+                    "object",
+                    "null"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 1024
+                    },
+                    "version": {
+                        "type": "string",
+                        "maxLength": 1024
+                    }
+                },
+                "required": [
+                    "name",
+                    "version"
+                ]
+            },
+            "language": {
+                "type": [
+                    "object",
+                    "null"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 1024
+                    },
+                    "version": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 1024
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "pid": {
+                "type": [
+                    "number",
+                    "null"
+                ]
+            },
+            "process_title": {
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "maxLength": 1024
+            },
+            "runtime": {
+                "type": [
+                    "object",
+                    "null"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 1024
+                    },
+                    "version": {
+                        "type": "string",
+                        "maxLength": 1024
+                    }
+                },
+                "required": [
+                    "name",
+                    "version"
+                ]
+            }
+        },
+        "required": ["agent"]
+        }
+    ]
         },
         "system": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "doc/spec/system.json",
     "title": "System",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
         "architecture": {
             "description": "Architecture of the system the agent is running on.",
@@ -177,7 +217,7 @@ var transactionSchema = `{
     "$id": "docs/spec/http.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
         "body": {
             "description": "Data should only contain the request body (not the query string). It can either be a dictionary (for standard HTTP requests) or a raw request body.",
@@ -206,7 +246,7 @@ var transactionSchema = `{
         },
         "http_version": {
             "description": "HTTP version.",
-            "type": "string",
+            "type": ["string", "null"],
             "maxLength": 1024
         },
         "method": {
@@ -284,7 +324,7 @@ var transactionSchema = `{
     "$id": "docs/spec/user.json",
     "title": "User",
     "description": "Describes the authenticated User for a request.",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
         "id": {
             "type": ["string", "number", "null"],
@@ -323,6 +363,7 @@ var transactionSchema = `{
         },
         "timestamp": {
             "type": "string",
+            "pattern": "Z$",
             "format": "date-time",
             "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         },

@@ -23,6 +23,8 @@ func TestFields(t *testing.T) {
 		"context.db.type",
 		"context.db",
 		"listening",
+		"error id icon",
+		"view errors",
 	)
 	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, er.NewProcessor, notInEvent)
 }

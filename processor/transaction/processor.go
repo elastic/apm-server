@@ -10,10 +10,6 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 )
 
-func init() {
-	pr.Registry.AddProcessor(Endpoint, NewProcessor())
-}
-
 var (
 	transactionMetrics = monitoring.Default.NewRegistry("apm-server.processor.transaction")
 	transformations    = monitoring.NewInt(transactionMetrics, "transformations")
@@ -22,14 +18,13 @@ var (
 )
 
 const (
-	Endpoint      = "/v1/transactions"
 	processorName = "transaction"
 )
 
+var schema = pr.CreateSchema(transactionSchema, processorName)
+
 func NewProcessor() pr.Processor {
-	return &processor{
-		schema: pr.CreateSchema(transactionSchema, processorName),
-	}
+	return &processor{schema: schema}
 }
 
 type processor struct {

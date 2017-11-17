@@ -14,16 +14,16 @@ func init() {
 }
 
 type fileOutput struct {
-	beat    beat.Info
-	stats   *outputs.Stats
-	rotator logp.FileRotator
-	codec   codec.Codec
+	beat     beat.Info
+	observer outputs.Observer
+	rotator  logp.FileRotator
+	codec    codec.Codec
 }
 
 // New instantiates a new file output instance.
 func makeFileout(
 	beat beat.Info,
-	stats *outputs.Stats,
+	observer outputs.Observer,
 	cfg *common.Config,
 ) (outputs.Group, error) {
 	config := defaultConfig
@@ -34,15 +34,15 @@ func makeFileout(
 	// disable bulk support in publisher pipeline
 	cfg.SetInt("bulk_max_size", -1, -1)
 
-	fo := &fileOutput{beat: beat, stats: stats}
-	if err := fo.init(config); err != nil {
+	fo := &fileOutput{beat: beat, observer: observer}
+	if err := fo.init(beat, config); err != nil {
 		return outputs.Fail(err)
 	}
 
 	return outputs.Success(-1, 0, fo)
 }
 
-func (out *fileOutput) init(config config) error {
+func (out *fileOutput) init(beat beat.Info, config config) error {
 	var err error
 
 	out.rotator.Path = config.Path
@@ -51,7 +51,7 @@ func (out *fileOutput) init(config config) error {
 		out.rotator.Name = out.beat.Beat
 	}
 
-	enc, err := codec.CreateEncoder(config.Codec)
+	enc, err := codec.CreateEncoder(beat, config.Codec)
 	if err != nil {
 		return err
 	}
@@ -60,6 +60,9 @@ func (out *fileOutput) init(config config) error {
 
 	logp.Info("File output path set to: %v", out.rotator.Path)
 	logp.Info("File output base filename set to: %v", out.rotator.Name)
+
+	logp.Info("File output permissions set to: %#o", config.Permissions)
+	out.rotator.Permissions = &config.Permissions
 
 	rotateeverybytes := uint64(config.RotateEveryKb) * 1024
 	logp.Info("Rotate every bytes set to: %v", rotateeverybytes)
@@ -92,7 +95,7 @@ func (out *fileOutput) Publish(
 ) error {
 	defer batch.ACK()
 
-	st := out.stats
+	st := out.observer
 	events := batch.Events()
 	st.NewBatch(len(events))
 
@@ -114,7 +117,7 @@ func (out *fileOutput) Publish(
 
 		err = out.rotator.WriteLine(serializedEvent)
 		if err != nil {
-			st.WriteError()
+			st.WriteError(err)
 
 			if event.Guaranteed() {
 				logp.Critical("Writing event to file failed with: %v", err)

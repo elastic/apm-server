@@ -27,14 +27,13 @@ func TestAppSchema(t *testing.T) {
 		{File: "no_framework_name.json", Error: "missing properties: \"name\""},
 		{File: "no_framework_version.json", Error: "missing properties: \"version\""},
 		{File: "no_lang_name.json", Error: "missing properties: \"name\""},
-		{File: "no_lang_version.json", Error: "missing properties: \"version\""},
 		{File: "no_runtime_name.json", Error: "missing properties: \"name\""},
 		{File: "no_runtime_version.json", Error: "missing properties: \"version\""},
 		{File: "no_name.json", Error: "missing properties: \"name\""},
 		{File: "no_agent.json", Error: "missing properties: \"agent\""},
 	}
 	path := "app"
-	testDataAgainstSchema(t, testData, path, path, "")
+	testDataAgainstSchema(t, testData, path, path, `"$ref": "../docs/spec/`)
 }
 
 func TestUserSchema(t *testing.T) {
@@ -99,10 +98,10 @@ func TestTransactionSchema(t *testing.T) {
 		{File: "no_timestamp.json", Error: `missing properties: "timestamp"`},
 		{File: "invalid_id.json", Error: "[#/properties/id/pattern] does not match pattern"},
 		{File: "invalid_timestamp.json", Error: "is not valid \"date-time\""},
-		{File: "invalid_timestamp2.json", Error: "is not valid \"date-time\""},
+		{File: "invalid_timestamp2.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "invalid_timestamp3.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp4.json", Error: "is not valid \"date-time\""},
-		{File: "invalid_timestamp5.json", Error: "is not valid \"date-time\""},
+		{File: "invalid_timestamp5.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
 	}
 	testDataAgainstSchema(t, testData, "transactions/transaction", "transaction", `"$ref": "../docs/spec/transactions/`)
 }
@@ -119,10 +118,10 @@ func TestErrorSchema(t *testing.T) {
 	testData := []schemaTestData{
 		{File: "invalid_id.json", Error: "[#/properties/id/pattern] does not match pattern"},
 		{File: "invalid_timestamp.json", Error: "is not valid \"date-time\""},
-		{File: "invalid_timestamp2.json", Error: "is not valid \"date-time\""},
+		{File: "invalid_timestamp2.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "invalid_timestamp3.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp4.json", Error: "is not valid \"date-time\""},
-		{File: "invalid_timestamp5.json", Error: "is not valid \"date-time\""},
+		{File: "invalid_timestamp5.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
 		{File: "no_log_message.json", Error: "missing properties: \"message\""},
 		{File: "no_exception_message.json", Error: "missing properties: \"message\""},
 		{File: "no_log_or_exception.json", Error: "missing properties: \"exception\""},

@@ -1,6 +1,20 @@
 version: '3.0'
 services:
-  pythonagent:
+  django:
+    build: .
+    ports:
+      - 8000:8000
+    environment:
+      - ELASTIC_APM_APP_NAME=opbeans-django
+      - ELASTIC_APM_DEBUG=true
+      - ELASTIC_APM_SERVER=http://$IP:8200
+  flask:
     build: .
     ports:
       - 5000:5000
+    command: python flaskapp/app.py
+    environment:
+      - ELASTIC_APM_APP_NAME=flask-test
+      - ELASTIC_APM_DEBUG=true
+      - ELASTIC_APM_SERVERS=http://$IP:8200
+      - HOST=0.0.0.0
