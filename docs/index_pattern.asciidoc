@@ -12,5 +12,8 @@ output.elasticsearch:
   index: "apm-%{[app.name]}-%{[beat.version]}-%{+yyyy.MM.dd}"
 ----
 
-This will have the effect that all events end up in app-specific indices.
-It will enable you to set security restrictions based on your index pattern.
+This will have the effect that all events end up in app-specific indices, 
+and it will enable you to set security restrictions based on your index pattern.
+
+NOTE: Changing the default index pattern will break the Kibana UI and dashboards. 
+We intend to add support for custom index patterns in future versions of the Kibana UI.
