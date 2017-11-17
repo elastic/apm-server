@@ -21,7 +21,7 @@ func init() {
 
 func makeLogstash(
 	beat beat.Info,
-	observer outputs.Observer,
+	stats *outputs.Stats,
 	cfg *common.Config,
 ) (outputs.Group, error) {
 	if !cfg.HasField("index") {
@@ -47,7 +47,7 @@ func makeLogstash(
 		Timeout: config.Timeout,
 		Proxy:   &config.Proxy,
 		TLS:     tls,
-		Stats:   observer,
+		Stats:   stats,
 	}
 
 	clients := make([]outputs.NetworkClient, len(hosts))
@@ -60,9 +60,9 @@ func makeLogstash(
 		}
 
 		if config.Pipelining > 0 {
-			client, err = newAsyncClient(beat, conn, observer, config)
+			client, err = newAsyncClient(beat, conn, stats, config)
 		} else {
-			client, err = newSyncClient(beat, conn, observer, config)
+			client, err = newSyncClient(beat, conn, stats, config)
 		}
 		if err != nil {
 			return outputs.Fail(err)

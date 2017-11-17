@@ -29,7 +29,7 @@ type publishFn func(
 
 type client struct {
 	*transport.Client
-	observer outputs.Observer
+	stats    *outputs.Stats
 	index    string
 	dataType redisDataType
 	db       int
@@ -49,7 +49,7 @@ const (
 
 func newClient(
 	tc *transport.Client,
-	observer outputs.Observer,
+	stats *outputs.Stats,
 	timeout time.Duration,
 	pass string,
 	db int, key outil.Selector, dt redisDataType,
@@ -57,7 +57,7 @@ func newClient(
 ) *client {
 	return &client{
 		Client:   tc,
-		observer: observer,
+		stats:    stats,
 		timeout:  timeout,
 		password: pass,
 		index:    index,
@@ -123,15 +123,12 @@ func (c *client) Publish(batch publisher.Batch) error {
 	}
 
 	events := batch.Events()
-	c.observer.NewBatch(len(events))
+	c.stats.NewBatch(len(events))
 	rest, err := c.publish(c.key, events)
 	if rest != nil {
-		c.observer.Failed(len(rest))
+		c.stats.Failed(len(rest))
 		batch.RetryEvents(rest)
-		return err
 	}
-
-	batch.ACK()
 	return err
 }
 
@@ -203,7 +200,7 @@ func (c *client) publishEventsBulk(conn redis.Conn, command string) publishFn {
 		args[0] = dest
 
 		okEvents, args := serializeEvents(args, 1, data, c.index, c.codec)
-		c.observer.Dropped(len(data) - len(okEvents))
+		c.stats.Dropped(len(data) - len(okEvents))
 		if (len(args) - 1) == 0 {
 			return nil, nil
 		}
@@ -216,7 +213,7 @@ func (c *client) publishEventsBulk(conn redis.Conn, command string) publishFn {
 
 		}
 
-		c.observer.Acked(len(okEvents))
+		c.stats.Acked(len(okEvents))
 		return nil, nil
 	}
 }
@@ -226,7 +223,7 @@ func (c *client) publishEventsPipeline(conn redis.Conn, command string) publishF
 		var okEvents []publisher.Event
 		serialized := make([]interface{}, 0, len(data))
 		okEvents, serialized = serializeEvents(serialized, 0, data, c.index, c.codec)
-		c.observer.Dropped(len(data) - len(okEvents))
+		c.stats.Dropped(len(data) - len(okEvents))
 		if len(serialized) == 0 {
 			return nil, nil
 		}
@@ -247,7 +244,7 @@ func (c *client) publishEventsPipeline(conn redis.Conn, command string) publishF
 				return okEvents, err
 			}
 		}
-		c.observer.Dropped(dropped)
+		c.stats.Dropped(dropped)
 
 		if err := conn.Flush(); err != nil {
 			return data, err
@@ -273,7 +270,7 @@ func (c *client) publishEventsPipeline(conn redis.Conn, command string) publishF
 			}
 		}
 
-		c.observer.Acked(len(okEvents) - len(failed))
+		c.stats.Acked(len(okEvents) - len(failed))
 		return failed, lastErr
 	}
 }

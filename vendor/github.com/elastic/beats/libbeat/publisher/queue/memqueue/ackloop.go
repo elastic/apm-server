@@ -53,20 +53,13 @@ func (l *ackLoop) run() {
 			count, events := lst.count()
 			l.lst.concat(&lst)
 
-			// log.Debug("ACK List:")
-			// for current := l.lst.head; current != nil; current = current.next {
-			// 	log.Debugf("  ack entry(seq=%v, start=%v, count=%v",
-			// 		current.seq, current.start, current.count)
-			// }
-
+			// log.Debugf("ackloop: scheduledACKs count=%v events=%v\n", count, events)
 			l.batchesSched += uint64(count)
 			l.totalSched += uint64(events)
 
 		case <-l.sig:
 			acked += l.handleBatchSig()
-			if acked > 0 {
-				acks = l.broker.acks
-			}
+			acks = l.broker.acks
 		}
 
 		// log.Debug("ackloop INFO")
@@ -94,14 +87,12 @@ func (l *ackLoop) handleBatchSig() int {
 		count += current.count
 	}
 
-	if count > 0 {
-		if e := l.broker.eventer; e != nil {
-			e.OnACK(count)
-		}
-
-		// report acks to waiting clients
-		l.processACK(lst, count)
+	if e := l.broker.eventer; e != nil {
+		e.OnACK(count)
 	}
+
+	// report acks to waiting clients
+	l.processACK(lst, count)
 
 	for !lst.empty() {
 		releaseACKChan(lst.pop())
@@ -119,7 +110,6 @@ func (l *ackLoop) collectAcked() chanList {
 	lst := chanList{}
 
 	acks := l.lst.pop()
-	l.onACK(acks)
 	lst.append(acks)
 
 	done := false
@@ -127,7 +117,8 @@ func (l *ackLoop) collectAcked() chanList {
 		acks := l.lst.front()
 		select {
 		case <-acks.ch:
-			l.onACK(acks)
+			l.broker.logger.Debugf("ackloop: receive ack [%v: %v, %v]", acks.seq, acks.start, acks.count)
+			l.batchesACKed++
 			lst.append(l.lst.pop())
 
 		default:
@@ -136,9 +127,4 @@ func (l *ackLoop) collectAcked() chanList {
 	}
 
 	return lst
-}
-
-func (l *ackLoop) onACK(acks *ackChan) {
-	l.batchesACKed++
-	l.broker.logger.Debugf("ackloop: receive ack [%v: %v, %v]", acks.seq, acks.start, acks.count)
 }

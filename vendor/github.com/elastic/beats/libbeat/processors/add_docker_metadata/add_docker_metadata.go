@@ -7,7 +7,6 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/cfgwarn"
-	"github.com/elastic/beats/libbeat/common/docker"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/processors"
 	"github.com/elastic/beats/libbeat/processors/actions"
@@ -18,16 +17,16 @@ func init() {
 }
 
 type addDockerMetadata struct {
-	watcher         docker.Watcher
+	watcher         Watcher
 	fields          []string
 	sourceProcessor processors.Processor
 }
 
 func newDockerMetadataProcessor(cfg *common.Config) (processors.Processor, error) {
-	return buildDockerMetadataProcessor(cfg, docker.NewWatcher)
+	return buildDockerMetadataProcessor(cfg, NewWatcher)
 }
 
-func buildDockerMetadataProcessor(cfg *common.Config, watcherConstructor docker.WatcherConstructor) (processors.Processor, error) {
+func buildDockerMetadataProcessor(cfg *common.Config, watcherConstructor WatcherConstructor) (processors.Processor, error) {
 	cfgwarn.Beta("The add_docker_metadata processor is beta")
 
 	config := defaultConfig()

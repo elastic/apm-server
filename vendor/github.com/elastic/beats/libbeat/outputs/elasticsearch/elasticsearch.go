@@ -49,7 +49,7 @@ func RegisterConnectCallback(callback connectCallback) {
 
 func makeES(
 	beat beat.Info,
-	observer outputs.Observer,
+	stats *outputs.Stats,
 	cfg *common.Config,
 ) (outputs.Group, error) {
 	if !cfg.HasField("bulk_max_size") {
@@ -135,7 +135,7 @@ func makeES(
 			Headers:          config.Headers,
 			Timeout:          config.Timeout,
 			CompressionLevel: config.CompressionLevel,
-			Observer:         observer,
+			Stats:            stats,
 		}, &connectCallbackRegistry)
 		if err != nil {
 			return outputs.Fail(err)

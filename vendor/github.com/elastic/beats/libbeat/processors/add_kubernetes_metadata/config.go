@@ -30,11 +30,12 @@ type Enabled struct {
 
 type PluginConfig []map[string]common.Config
 
-func defaultKubernetesAnnotatorConfig() kubeAnnotatorConfig {
+func defaultKuberentesAnnotatorConfig() kubeAnnotatorConfig {
 	return kubeAnnotatorConfig{
 		InCluster:       true,
 		SyncPeriod:      1 * time.Second,
 		CleanupTimeout:  60 * time.Second,
+		Namespace:       "kube-system",
 		DefaultMatchers: Enabled{true},
 		DefaultIndexers: Enabled{true},
 	}

@@ -2,8 +2,9 @@ package outputs
 
 import "github.com/elastic/beats/libbeat/monitoring"
 
-// Stats implements the Observer interface, for collecting metrics on common
-// outputs events.
+// Stats provides a common type used by outputs to report common events.
+// The output events will update a set of unified output metrics in the
+// underlying monitoring.Registry.
 type Stats struct {
 	//
 	// Output event stats
@@ -25,11 +26,8 @@ type Stats struct {
 	readErrors *monitoring.Uint // total number of errors while waiting for response on output
 }
 
-// NewStats creates a new Stats instance using a backing monitoring registry.
-// This function will create and register a number of metrics with the registry passed.
-// The registry must not be null.
-func NewStats(reg *monitoring.Registry) *Stats {
-	return &Stats{
+func MakeStats(reg *monitoring.Registry) Stats {
+	return Stats{
 		batches: monitoring.NewUint(reg, "events.batches"),
 		events:  monitoring.NewUint(reg, "events.total"),
 		acked:   monitoring.NewUint(reg, "events.acked"),
@@ -44,7 +42,6 @@ func NewStats(reg *monitoring.Registry) *Stats {
 	}
 }
 
-// NewBatch updates active batch and event metrics.
 func (s *Stats) NewBatch(n int) {
 	if s != nil {
 		s.batches.Inc()
@@ -53,7 +50,6 @@ func (s *Stats) NewBatch(n int) {
 	}
 }
 
-// Acked updates active and acked event metrics.
 func (s *Stats) Acked(n int) {
 	if s != nil {
 		s.acked.Add(uint64(n))
@@ -61,7 +57,6 @@ func (s *Stats) Acked(n int) {
 	}
 }
 
-// Failed updates active and failed event metrics.
 func (s *Stats) Failed(n int) {
 	if s != nil {
 		s.failed.Add(uint64(n))
@@ -69,10 +64,6 @@ func (s *Stats) Failed(n int) {
 	}
 }
 
-// Dropped updates total number of event drops as reported by the output.
-// Outputs will only report dropped events on fatal errors which lead to the
-// event not being publishabel. For example encoding errors or total event size
-// being bigger then maximum supported event size.
 func (s *Stats) Dropped(n int) {
 	// number of dropped events (e.g. encoding failures)
 	if s != nil {
@@ -80,35 +71,30 @@ func (s *Stats) Dropped(n int) {
 	}
 }
 
-// Cancelled updates the active event metrics.
 func (s *Stats) Cancelled(n int) {
 	if s != nil {
 		s.active.Sub(uint64(n))
 	}
 }
 
-// WriteError increases the write I/O error metrics.
-func (s *Stats) WriteError(err error) {
+func (s *Stats) WriteError() {
 	if s != nil {
 		s.writeErrors.Inc()
 	}
 }
 
-// WriteBytes updates the total number of bytes written/send by an output.
 func (s *Stats) WriteBytes(n int) {
 	if s != nil {
 		s.writeBytes.Add(uint64(n))
 	}
 }
 
-// ReadError increases the read I/O error metrics.
-func (s *Stats) ReadError(err error) {
+func (s *Stats) ReadError() {
 	if s != nil {
 		s.readErrors.Inc()
 	}
 }
 
-// ReadBytes updates the total number of bytes read/received by an output.
 func (s *Stats) ReadBytes(n int) {
 	if s != nil {
 		s.readBytes.Add(uint64(n))

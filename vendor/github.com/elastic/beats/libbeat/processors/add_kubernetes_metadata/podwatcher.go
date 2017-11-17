@@ -2,6 +2,7 @@ package add_kubernetes_metadata
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -163,9 +164,26 @@ func (p *PodWatcher) onPodDelete(pod *Pod) {
 	}
 }
 
+func (p *PodWatcher) getPodMeta(pod *corev1.Pod) *Pod {
+	bytes, err := json.Marshal(pod)
+	if err != nil {
+		logp.Warn("Unable to marshal %v", pod.String())
+		return nil
+	}
+
+	po := &Pod{}
+	err = json.Unmarshal(bytes, po)
+	if err != nil {
+		logp.Warn("Unable to marshal %v", pod.String())
+		return nil
+	}
+
+	return po
+}
+
 func (p *PodWatcher) worker() {
 	for po := range p.podQueue {
-		pod := GetPodMeta(po)
+		pod := p.getPodMeta(po)
 		if pod.Metadata.DeletionTimestamp != "" {
 			p.onPodDelete(pod)
 		} else {

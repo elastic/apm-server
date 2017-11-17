@@ -40,7 +40,7 @@ type Client struct {
 	compressionLevel int
 	proxyURL         *url.URL
 
-	observer outputs.Observer
+	stats *outputs.Stats
 }
 
 // ClientSettings contains the settings for a client.
@@ -55,7 +55,7 @@ type ClientSettings struct {
 	Pipeline           *outil.Selector
 	Timeout            time.Duration
 	CompressionLevel   int
-	Observer           outputs.Observer
+	Stats              *outputs.Stats
 }
 
 type connectCallback func(client *Client) error
@@ -84,7 +84,7 @@ var (
 	errExpectedItemObject    = errors.New("expected item response object")
 	errExpectedStatusCode    = errors.New("expected item status code")
 	errUnexpectedEmptyObject = errors.New("empty object")
-	errExpectedObjectEnd     = errors.New("expected end of object")
+	errExcpectedObjectEnd    = errors.New("expected end of object")
 	errTempBulkFailure       = errors.New("temporary bulk send failure")
 )
 
@@ -131,7 +131,7 @@ func NewClient(
 		return nil, err
 	}
 
-	if st := s.Observer; st != nil {
+	if st := s.Stats; st != nil {
 		dialer = transport.StatsDialer(dialer, st)
 		tlsDialer = transport.StatsDialer(tlsDialer, st)
 	}
@@ -243,7 +243,7 @@ func (client *Client) publishEvents(
 	data []publisher.Event,
 ) ([]publisher.Event, error) {
 	begin := time.Now()
-	st := client.observer
+	st := client.stats
 
 	if st != nil {
 		st.NewBatch(len(data))
@@ -291,7 +291,7 @@ func (client *Client) publishEvents(
 	}
 
 	failed := len(failedEvents)
-	if st := client.observer; st != nil {
+	if st := client.stats; st != nil {
 		acked := len(data) - failed
 
 		st.Acked(acked)
@@ -505,7 +505,7 @@ func itemStatus(reader *jsonReader) (int, []byte, error) {
 		return 0, nil, err
 	}
 	if kind != dictEnd {
-		err = errExpectedObjectEnd
+		err = errExcpectedObjectEnd
 		logp.Err("Failed to parse bulk response item: %s", err)
 		return 0, nil, err
 	}

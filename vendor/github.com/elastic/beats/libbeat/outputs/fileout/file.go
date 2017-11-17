@@ -14,16 +14,16 @@ func init() {
 }
 
 type fileOutput struct {
-	beat     beat.Info
-	observer outputs.Observer
-	rotator  logp.FileRotator
-	codec    codec.Codec
+	beat    beat.Info
+	stats   *outputs.Stats
+	rotator logp.FileRotator
+	codec   codec.Codec
 }
 
 // New instantiates a new file output instance.
 func makeFileout(
 	beat beat.Info,
-	observer outputs.Observer,
+	stats *outputs.Stats,
 	cfg *common.Config,
 ) (outputs.Group, error) {
 	config := defaultConfig
@@ -34,7 +34,7 @@ func makeFileout(
 	// disable bulk support in publisher pipeline
 	cfg.SetInt("bulk_max_size", -1, -1)
 
-	fo := &fileOutput{beat: beat, observer: observer}
+	fo := &fileOutput{beat: beat, stats: stats}
 	if err := fo.init(beat, config); err != nil {
 		return outputs.Fail(err)
 	}
@@ -95,7 +95,7 @@ func (out *fileOutput) Publish(
 ) error {
 	defer batch.ACK()
 
-	st := out.observer
+	st := out.stats
 	events := batch.Events()
 	st.NewBatch(len(events))
 
@@ -117,7 +117,7 @@ func (out *fileOutput) Publish(
 
 		err = out.rotator.WriteLine(serializedEvent)
 		if err != nil {
-			st.WriteError(err)
+			st.WriteError()
 
 			if event.Guaranteed() {
 				logp.Critical("Writing event to file failed with: %v", err)

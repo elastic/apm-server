@@ -72,7 +72,7 @@ func (p *Pipeline) newProcessorPipeline(
 		processors.add(makeAddTagsProcessor("tags", tags))
 	}
 
-	// setup 3, 4, 5: client config fields + pipeline fields + client fields + dyn metadata
+	// setup 3, 4, 5: client config fields + pipeline fields + client fields
 	fields := config.Fields.Clone()
 	fields.DeepUpdate(global.fields)
 	if em := config.EventMetadata; len(em.Fields) > 0 {
@@ -80,10 +80,6 @@ func (p *Pipeline) newProcessorPipeline(
 	}
 	if len(fields) > 0 {
 		processors.add(makeAddFieldsProcessor("fields", fields, needsCopy))
-	}
-
-	if config.DynamicFields != nil {
-		processors.add(makeAddDynMetaProcessor("dynamicFields", config.DynamicFields, needsCopy))
 	}
 
 	// setup 5: client processor list
@@ -243,15 +239,6 @@ func makeAddFieldsProcessor(name string, fields common.MapStr, copy bool) *proce
 	fn := func(event *beat.Event) { event.Fields.DeepUpdate(fields) }
 	if copy {
 		fn = func(event *beat.Event) { event.Fields.DeepUpdate(fields.Clone()) }
-	}
-
-	return newAnnotateProcessor(name, fn)
-}
-
-func makeAddDynMetaProcessor(name string, meta *common.MapStrPointer, copy bool) *processorFn {
-	fn := func(event *beat.Event) { event.Fields.DeepUpdate(meta.Get()) }
-	if copy {
-		fn = func(event *beat.Event) { event.Fields.DeepUpdate(meta.Get().Clone()) }
 	}
 
 	return newAnnotateProcessor(name, fn)

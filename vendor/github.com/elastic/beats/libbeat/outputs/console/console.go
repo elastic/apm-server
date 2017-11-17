@@ -17,11 +17,11 @@ import (
 )
 
 type console struct {
-	out      *os.File
-	observer outputs.Observer
-	writer   *bufio.Writer
-	codec    codec.Codec
-	index    string
+	out    *os.File
+	stats  *outputs.Stats
+	writer *bufio.Writer
+	codec  codec.Codec
+	index  string
 }
 
 type consoleEvent struct {
@@ -37,7 +37,7 @@ func init() {
 
 func makeConsole(
 	beat beat.Info,
-	observer outputs.Observer,
+	stats *outputs.Stats,
 	cfg *common.Config,
 ) (outputs.Group, error) {
 	config := defaultConfig
@@ -57,7 +57,7 @@ func makeConsole(
 	}
 
 	index := beat.Beat
-	c, err := newConsole(index, observer, enc)
+	c, err := newConsole(index, stats, enc)
 	if err != nil {
 		return outputs.Fail(fmt.Errorf("console output initialization failed with: %v", err))
 	}
@@ -73,15 +73,15 @@ func makeConsole(
 	return outputs.Success(config.BatchSize, 0, c)
 }
 
-func newConsole(index string, observer outputs.Observer, codec codec.Codec) (*console, error) {
-	c := &console{out: os.Stdout, codec: codec, observer: observer, index: index}
+func newConsole(index string, stats *outputs.Stats, codec codec.Codec) (*console, error) {
+	c := &console{out: os.Stdout, codec: codec, stats: stats, index: index}
 	c.writer = bufio.NewWriterSize(c.out, 8*1024)
 	return c, nil
 }
 
 func (c *console) Close() error { return nil }
 func (c *console) Publish(batch publisher.Batch) error {
-	st := c.observer
+	st := c.stats
 	events := batch.Events()
 	st.NewBatch(len(events))
 
@@ -116,18 +116,18 @@ func (c *console) publishEvent(event *publisher.Event) bool {
 	}
 
 	if err := c.writeBuffer(serializedEvent); err != nil {
-		c.observer.WriteError(err)
+		c.stats.WriteError()
 		logp.Critical("Unable to publish events to console: %v", err)
 		return false
 	}
 
 	if err := c.writeBuffer(nl); err != nil {
-		c.observer.WriteError(err)
+		c.stats.WriteError()
 		logp.Critical("Error when appending newline to event: %v", err)
 		return false
 	}
 
-	c.observer.WriteBytes(len(serializedEvent) + 1)
+	c.stats.WriteBytes(len(serializedEvent) + 1)
 	return true
 }
 

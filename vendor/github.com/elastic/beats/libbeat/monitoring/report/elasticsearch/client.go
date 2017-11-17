@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring/report"
 	esout "github.com/elastic/beats/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/libbeat/publisher"
 	"github.com/elastic/beats/libbeat/testing"
@@ -85,10 +84,8 @@ func (c *publishClient) Publish(batch publisher.Batch) error {
 	bulk := make([]interface{}, 0, 2*len(events))
 	for _, event := range events {
 		bulk = append(bulk,
-			actMonitoringBeats, report.Event{
-				Timestamp: event.Content.Timestamp,
-				Fields:    event.Content.Fields,
-			})
+			actMonitoringBeats, event.Content,
+		)
 	}
 
 	_, err := c.es.BulkWith("_xpack", "monitoring", c.params, nil, bulk)

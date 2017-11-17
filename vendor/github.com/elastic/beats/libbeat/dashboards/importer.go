@@ -249,7 +249,7 @@ func (imp Importer) ImportKibanaDir(dir string) error {
 
 	versionPath := "default"
 	if imp.version.Major == 5 {
-		versionPath = "5.x"
+		versionPath = "5x"
 	}
 
 	dir = path.Join(dir, versionPath)

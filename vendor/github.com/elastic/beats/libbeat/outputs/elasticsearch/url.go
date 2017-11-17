@@ -7,9 +7,6 @@ import (
 )
 
 func addToURL(url, path, pipeline string, params map[string]string) string {
-	if strings.HasSuffix(url, "/") && strings.HasPrefix(path, "/") {
-		url = strings.TrimSuffix(url, "/")
-	}
 	if len(params) == 0 && pipeline == "" {
 		return url + path
 	}

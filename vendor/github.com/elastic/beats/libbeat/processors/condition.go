@@ -42,12 +42,6 @@ type WhenProcessor struct {
 	p         Processor
 }
 
-// ValuesMap provides a common interface to read fields for condition checking
-type ValuesMap interface {
-	// GetValue returns the given field from the map
-	GetValue(string) (interface{}, error)
-}
-
 func NewConditional(
 	ruleFactory Constructor,
 ) Constructor {
@@ -201,7 +195,7 @@ func (c *Condition) setRange(cfg *ConditionFields) error {
 	return nil
 }
 
-func (c *Condition) Check(event ValuesMap) bool {
+func (c *Condition) Check(event *beat.Event) bool {
 	if len(c.or) > 0 {
 		return c.checkOR(event)
 	}
@@ -219,7 +213,7 @@ func (c *Condition) Check(event ValuesMap) bool {
 		c.checkRange(event)
 }
 
-func (c *Condition) checkOR(event ValuesMap) bool {
+func (c *Condition) checkOR(event *beat.Event) bool {
 	for _, cond := range c.or {
 		if cond.Check(event) {
 			return true
@@ -228,7 +222,7 @@ func (c *Condition) checkOR(event ValuesMap) bool {
 	return false
 }
 
-func (c *Condition) checkAND(event ValuesMap) bool {
+func (c *Condition) checkAND(event *beat.Event) bool {
 	for _, cond := range c.and {
 		if !cond.Check(event) {
 			return false
@@ -237,14 +231,14 @@ func (c *Condition) checkAND(event ValuesMap) bool {
 	return true
 }
 
-func (c *Condition) checkNOT(event ValuesMap) bool {
+func (c *Condition) checkNOT(event *beat.Event) bool {
 	if c.not.Check(event) {
 		return false
 	}
 	return true
 }
 
-func (c *Condition) checkEquals(event ValuesMap) bool {
+func (c *Condition) checkEquals(event *beat.Event) bool {
 	for field, equalValue := range c.equals {
 
 		value, err := event.GetValue(field)
@@ -272,7 +266,7 @@ func (c *Condition) checkEquals(event ValuesMap) bool {
 	return true
 }
 
-func (c *Condition) checkMatches(event ValuesMap) bool {
+func (c *Condition) checkMatches(event *beat.Event) bool {
 	matchers := c.matches.filters
 	if matchers == nil {
 		return true
@@ -311,7 +305,7 @@ func (c *Condition) checkMatches(event ValuesMap) bool {
 	return true
 }
 
-func (c *Condition) checkRange(event ValuesMap) bool {
+func (c *Condition) checkRange(event *beat.Event) bool {
 	checkValue := func(value float64, rangeValue RangeValue) bool {
 
 		if rangeValue.gte != nil {

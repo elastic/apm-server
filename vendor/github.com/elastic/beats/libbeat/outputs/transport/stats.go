@@ -5,10 +5,10 @@ import (
 )
 
 type IOStatser interface {
-	WriteError(err error)
+	WriteError()
 	WriteBytes(int)
 
-	ReadError(err error)
+	ReadError()
 	ReadBytes(int)
 }
 
@@ -26,7 +26,7 @@ func StatsDialer(d Dialer, s IOStatser) Dialer {
 func (s *statsConn) Read(b []byte) (int, error) {
 	n, err := s.Conn.Read(b)
 	if err != nil {
-		s.stats.ReadError(err)
+		s.stats.ReadError()
 	}
 	s.stats.ReadBytes(n)
 	return n, err
@@ -35,7 +35,7 @@ func (s *statsConn) Read(b []byte) (int, error) {
 func (s *statsConn) Write(b []byte) (int, error) {
 	n, err := s.Conn.Write(b)
 	if err != nil {
-		s.stats.WriteError(err)
+		s.stats.WriteError()
 	}
 	s.stats.WriteBytes(n)
 	return n, err
