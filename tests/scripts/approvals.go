@@ -23,7 +23,7 @@ func approval() int {
 
 	for _, rf := range receivedFiles {
 		path := strings.Replace(rf, tests.ReceivedSuffix, "", 1)
-		_, approved, d, err := tests.Compare(path, []string{})
+		_, approved, d, err := tests.Compare(path, map[string]string{})
 
 		if err != nil {
 			fmt.Println("Could not create diff ", err)

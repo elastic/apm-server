@@ -19,7 +19,7 @@ import (
 const ApprovedSuffix = ".approved.json"
 const ReceivedSuffix = ".received.json"
 
-func ApproveJson(received map[string]interface{}, name string, ignored []string) error {
+func ApproveJson(received map[string]interface{}, name string, ignored map[string]string) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
 	receivedPath := path + ReceivedSuffix
@@ -50,16 +50,16 @@ func hasKey(coll []string, k string) bool {
 	return false
 }
 
-func ignoredKey(data *map[string]interface{}, ignoredKeys []string) {
+func ignoredKey(data *map[string]interface{}, ignored map[string]string) {
 	for k, v := range *data {
-		if hasKey(ignoredKeys, k) {
-			(*data)[k] = "Ignored"
+		if ignoreVal, ok := ignored[k]; ok {
+			(*data)[k] = ignoreVal
 		} else if vm, ok := v.(map[string]interface{}); ok {
-			ignoredKey(&vm, ignoredKeys)
+			ignoredKey(&vm, ignored)
 		} else if vm, ok := v.([]interface{}); ok {
 			for _, e := range vm {
 				if em, ok := e.(map[string]interface{}); ok {
-					ignoredKey(&em, ignoredKeys)
+					ignoredKey(&em, ignored)
 
 				}
 			}
@@ -67,7 +67,7 @@ func ignoredKey(data *map[string]interface{}, ignoredKeys []string) {
 	}
 }
 
-func Compare(path string, ignored []string) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
+func Compare(path string, ignored map[string]string) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
 	rec, err := ioutil.ReadFile(path + ReceivedSuffix)
 	if err != nil {
 		fmt.Println("Cannot read file ", path, err)
@@ -101,7 +101,7 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignoredKeys []string) {
+func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignored map[string]string) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := LoadData(info.Path)
@@ -121,7 +121,7 @@ func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []Requ
 		}
 
 		receivedJson := map[string]interface{}{"events": eventFields}
-		verifyErr := ApproveJson(receivedJson, info.Name, ignoredKeys)
+		verifyErr := ApproveJson(receivedJson, info.Name, ignored)
 		if verifyErr != nil {
 			assert.Fail(fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
 

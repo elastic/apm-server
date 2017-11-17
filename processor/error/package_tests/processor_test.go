@@ -18,7 +18,7 @@ func TestProcessorOK(t *testing.T) {
 		{Name: "TestProcessErrorFull", Path: "tests/data/valid/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "tests/data/valid/error/null_values.json"},
 	}
-	tests.TestProcessRequests(t, er.NewProcessor(), requestInfo, []string{})
+	tests.TestProcessRequests(t, er.NewProcessor(), requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already

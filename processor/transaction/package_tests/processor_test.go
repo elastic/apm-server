@@ -20,7 +20,7 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionMinimalApp", Path: "tests/data/valid/transaction/minimal_app.json"},
 		{Name: "TestProcessTransactionEmpty", Path: "tests/data/valid/transaction/transaction_empty_values.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), requestInfo, []string{})
+	tests.TestProcessRequests(t, transaction.NewProcessor(), requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
