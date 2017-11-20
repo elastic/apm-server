@@ -58,14 +58,7 @@
         "optionsJSON": "{\"darkTheme\":false}",
         "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
         "version": 1,
-        "timeRestore": true,
-        "timeTo": "now",
-        "timeFrom": "now-24h",
-        "refreshInterval": {
-          "display": "Off",
-          "pause": false,
-          "value": 0
-        },
+        "timeRestore": false,
         "kibanaSavedObjectMeta": {
           "searchSourceJSON": "{\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
         }
@@ -124,14 +117,7 @@
         "optionsJSON": "{\"darkTheme\":false}",
         "uiStateJSON": "{}",
         "version": 1,
-        "timeRestore": true,
-        "timeTo": "now",
-        "timeFrom": "now-24h",
-        "refreshInterval": {
-          "display": "Off",
-          "pause": false,
-          "value": 0
-        },
+        "timeRestore": false,
         "kibanaSavedObjectMeta": {
           "searchSourceJSON": "{\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
         }
@@ -164,14 +150,7 @@
         "optionsJSON": "{\"darkTheme\":false}",
         "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
         "version": 1,
-        "timeRestore": true,
-        "timeTo": "now",
-        "timeFrom": "now-24h",
-        "refreshInterval": {
-          "display": "Off",
-          "pause": false,
-          "value": 0
-        },
+        "timeRestore": false,
         "kibanaSavedObjectMeta": {
           "searchSourceJSON": "{\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
         }
@@ -234,14 +213,7 @@
         "optionsJSON": "{\"darkTheme\":false}",
         "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
         "version": 1,
-        "timeRestore": true,
-        "timeTo": "now",
-        "timeFrom": "now-24h",
-        "refreshInterval": {
-          "display": "Off",
-          "pause": false,
-          "value": 0
-        },
+        "timeRestore": false,
         "kibanaSavedObjectMeta": {
           "searchSourceJSON": "{\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
         }
@@ -283,14 +255,7 @@
         "optionsJSON": "{\"darkTheme\":false}",
         "uiStateJSON": "{}",
         "version": 1,
-        "timeRestore": true,
-        "timeTo": "now",
-        "timeFrom": "now-24h",
-        "refreshInterval": {
-          "display": "Off",
-          "pause": false,
-          "value": 0
-        },
+        "timeRestore": false,
         "kibanaSavedObjectMeta": {
           "searchSourceJSON": "{\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
         }
