@@ -199,19 +199,19 @@ and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 ==== Install the Node.js agent
 
 To install the Node.js agent,
-simply install the elastic-apm module from npm in your application:
+simply install the elastic-apm-node module from npm in your application:
 
 [source,bash]
 ----------------------------------
-npm install elastic-apm --save
+npm install elastic-apm-node --save
 ----------------------------------
 
-Then configure the elastic-apm module inside your application by adding the following lines to the very top of your application code:
+Then configure the elastic-apm-node module inside your application by adding the following lines to the very top of your application code:
 
 [source,javascript]
 ----------------------------------
 // Add this to the VERY top of the first file loaded in your app
-var apm = require('elastic-apm').start({
+var apm = require('elastic-apm-node').start({
   // Set required app name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
   appName: '',
 
