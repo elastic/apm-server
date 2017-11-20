@@ -1,7 +1,8 @@
 'use strict'
 
-var apm = require('elastic-apm').start({
-  appName: 'test-app', flushInterval: 1
+var apm = require('elastic-apm-node').start({
+  appName: 'test-app',
+  maxQueueSize: 1
 })
 
 
