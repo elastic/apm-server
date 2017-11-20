@@ -6,14 +6,7 @@
   "optionsJSON": "{\"darkTheme\":false}",
   "uiStateJSON": "{}",
   "version": 1,
-  "timeRestore": true,
-  "timeTo": "now",
-  "timeFrom": "now-24h",
-  "refreshInterval": {
-    "display": "Off",
-    "pause": false,
-    "value": 0
-  },
+  "timeRestore": false,
   "kibanaSavedObjectMeta": {
     "searchSourceJSON": "{\"query\":\"\",\"filter\":[],\"highlightAll\":true,\"version\":true}"
   }
