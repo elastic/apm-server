@@ -89,6 +89,8 @@ func TestSourcemapPayloadSchema(t *testing.T) {
 		{File: "no_sourcemap_mappings.json", Error: "missing properties: \"mappings\""},
 		{File: "no_sourcemap_sources.json", Error: "missing properties: \"sources\""},
 		{File: "no_sourcemap_version.json", Error: "missing properties: \"version\""},
+		{File: "not_allowed_empty_values.json", Error: "missing properties: \"version\""},
+		{File: "not_allowed_null_values.json", Error: "expected string, but got null"},
 	}
 	testDataAgainstProcessor(t, sourcemap.NewProcessor(), testData, "sourcemap")
 }
