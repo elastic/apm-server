@@ -26,7 +26,9 @@ class BaseTest(TestCase):
         return json.loads(open(path).read())
 
 
-class ServerBaseTest(BaseTest):
+class ServerSetUpBaseTest(BaseTest):
+
+    transactions_url = 'http://localhost:8200/v1/transactions'
 
     transactions_url = 'http://localhost:8200/v1/transactions'
 
@@ -37,19 +39,37 @@ class ServerBaseTest(BaseTest):
         }
 
     def setUp(self):
-        super(ServerBaseTest, self).setUp()
+        super(ServerSetUpBaseTest, self).setUp()
         shutil.copy(self.beat_path + "/fields.yml", self.working_dir)
 
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
         self.wait_until(lambda: self.log_contains("Starting apm-server"))
 
+
+class ServerBaseTest(ServerSetUpBaseTest):
     def tearDown(self):
         super(ServerBaseTest, self).tearDown()
         self.apmserver_proc.check_kill_and_wait()
 
 
-class SecureServerBaseTest(ServerBaseTest):
+class SecureServerBaseTest(ServerSetUpBaseTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super(SecureServerBaseTest, cls).setUpClass()
+
+        try:
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        except ImportError:
+            pass
+
+        try:
+            from requests.packages import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        except ImportError:
+            pass
 
     def config(self):
         cfg = super(SecureServerBaseTest, self).config()
@@ -59,6 +79,10 @@ class SecureServerBaseTest(ServerBaseTest):
             "ssl_key": "config/certs/key.pem",
         })
         return cfg
+
+    def tearDown(self):
+        super(SecureServerBaseTest, self).tearDown()
+        self.apmserver_proc.kill_and_wait()
 
 
 class AccessTest(ServerBaseTest):
