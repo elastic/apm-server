@@ -12,11 +12,11 @@
             A UUID4 transaction ID.
           format: url
           label_template: "View Traces"
-          url_template: 
+          url_template:
             - min_version: 5.0.0
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(query_string:(analyze_wildcard:!t,query:'trace.transaction_id:%22{{value}}%22')))"
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'trace.transaction_id:%22{{value}}%22')))"
             - min_version: 6.0.0-alpha1
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'trace.transaction_id:{{value}}'))"
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'trace.transaction_id:{{value}}'))"
 
         - name: name
           type: text

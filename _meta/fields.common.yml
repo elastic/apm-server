@@ -146,11 +146,11 @@
                 Unique App name.
               format: url
               label_template: "{{value}}"
-              url_template: 
+              url_template:
                 - min_version: "5.0.0"
-                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(query_string:(analyze_wildcard:!t,query:'context.app.name:%22{{value}}%22')))"
+                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(query_string:(analyze_wildcard:!t,query:'context.app.name:%22{{value}}%22')))"
                 - min_version: "6.0.0-alpha1"
-                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-24h,mode:quick,to:now))&_a=(query:(language:lucene,query:'context.app.name:\"{{value}}\"'))"
+                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(language:lucene,query:'context.app.name:\"{{value}}\"'))"
 
             - name: version
               type: keyword
