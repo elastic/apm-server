@@ -25,11 +25,7 @@
                 "required": ["version"]
                 }
             ]
-        },
-        "sourcemap": {
-            "type": "object",
-            "$ref": "sourcemap.json"
         }
     },
-    "required": ["bundle_filepath", "sourcemap"]
+    "required": ["bundle_filepath"]
 }

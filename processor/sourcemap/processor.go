@@ -5,6 +5,8 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	parser "github.com/go-sourcemap/sourcemap"
+
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -33,7 +35,24 @@ func NewProcessor() pr.Processor {
 
 func (p *processor) Validate(buf []byte) error {
 	validationCount.Inc()
-	err := pr.Validate(buf, p.schema)
+
+	var pa payload
+	err := json.Unmarshal(buf, &pa)
+	if err != nil {
+		return err
+	}
+
+	sourcemapBytes, err := json.Marshal(pa.Sourcemap)
+	if err != nil {
+		return err
+	}
+
+	_, err = parser.Parse("", sourcemapBytes)
+	if err != nil {
+		return err
+	}
+
+	err = pr.Validate(buf, p.schema)
 	if err != nil {
 		validationError.Inc()
 	}
