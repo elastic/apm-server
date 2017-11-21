@@ -11,7 +11,7 @@ go_file="_beats/.go-version"
 if [ -f "$go_file" ]; then
   eval "$(gvm $(cat $go_file))"
 else
-  eval "$(gvm 1.8.3)"
+  eval "$(gvm 1.9.2)"
 fi
 
 # Workaround for Python virtualenv path being too long.
@@ -25,4 +25,14 @@ cleanup() {
 trap cleanup EXIT
 
 go get -u github.com/kardianos/govendor
-RACE_DETECTOR=1 make update-beats clean check testsuite
+RACE_DETECTOR=1 make update-beats
+
+# In case the Go Version changed in beats.
+go_file="_beats/.go-version"
+if [ -f "$go_file" ]; then
+  eval "$(gvm $(cat $go_file))"
+else
+  eval "$(gvm 1.9.2)"
+fi
+
+RACE_DETECTOR=1 make clean check testsuite apm-server
