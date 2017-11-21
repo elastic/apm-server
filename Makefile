@@ -22,7 +22,7 @@ update-beats:
 	@govendor fetch github.com/elastic/beats/libbeat/kibana/@$(BEATS_VERSION)
 	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
 	@$(MAKE) update
-	echo --- Use this commit message: Update beats framework to `cd vendor/github.com/elastic/beats/ && git rev-parse --short HEAD`
+	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
 
 # This is called by the beats packer before building starts
 .PHONY: before-build
