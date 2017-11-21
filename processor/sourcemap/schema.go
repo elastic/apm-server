@@ -43,50 +43,8 @@ var sourcemapSchema = `{
                 "required": ["version"]
                 }
             ]
-        },
-        "sourcemap": {
-            "type": "object",
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/sourcemaps/sourcemap.json",
-    "title": "Sourcemap",
-    "description": "Sourcemap",
-    "type": "object",
-    "properties": {
-        "version": {
-            "type": "number"
-        },
-        "sources": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
-        },
-        "names": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
-        },
-        "mappings": {
-            "type": "string"
-        },
-        "file": {
-            "type": ["string", "null"]
-        },
-        "sourceRoot": {
-            "type": ["string", "null"]
-        },
-        "sourcesContent": {
-            "type": ["array", "null"],
-            "items": {
-                "type": ["string", "null"]
-            },
-            "minItems": 0
         }
     },
-    "required": ["version", "sources", "names", "mappings"]
-        }
-    },
-    "required": ["bundle_filepath", "sourcemap"]
+    "required": ["bundle_filepath"]
 }
 `
