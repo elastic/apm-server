@@ -1,9 +1,7 @@
 {
-    "app": {
-        "name": "app",
-        "version": null
-    },
-    "bundle_filepath": null,
+    "app_name": "app",
+    "app_version": null,
+    "bundle_filepath": "js/bundle.js",
     "sourcemap": {
         "version": 3,
         "sources": [

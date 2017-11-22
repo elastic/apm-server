@@ -18,7 +18,7 @@ func TestPayloadTransform(t *testing.T) {
 	platform := "x64"
 	timestamp := time.Now()
 
-	app := m.App{AppCore: m.AppCore{Name: "myapp"}}
+	app := m.App{Name: "myapp"}
 	system := &m.System{
 		Hostname:     &hostname,
 		Architecture: &architecture,

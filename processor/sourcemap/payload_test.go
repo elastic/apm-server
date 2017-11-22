@@ -19,14 +19,18 @@ func getStr(data common.MapStr, key string) string {
 	return rs.(string)
 }
 
-func getInt(data common.MapStr, key string) int {
+func getFloat(data common.MapStr, key string) float64 {
 	rs, _ := data.GetValue(key)
-	return rs.(int)
+	return rs.(float64)
 }
 
 func getStrSlice(data common.MapStr, key string) []string {
-	rs, _ := data.GetValue(key)
-	return rs.([]string)
+	l, _ := data.GetValue(key)
+	var rs []string
+	for _, i := range l.([]interface{}) {
+		rs = append(rs, i.(string))
+	}
+	return rs
 }
 
 func TestPayloadTransform(t *testing.T) {
@@ -47,7 +51,7 @@ func TestPayloadTransform(t *testing.T) {
 	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
 	assert.Equal(t, "app", getStr(output, "app.name"))
 	assert.Equal(t, "1", getStr(output, "app.version"))
-	assert.Equal(t, 3, getInt(output, "sourcemap.version"))
+	assert.Equal(t, float64(3), getFloat(output, "sourcemap.version"))
 	assert.Equal(t,
 		[]string{"webpack:///bundle.js", "webpack:///webpack/bootstrap 6002740481c9666b0d38", "webpack:///./scripts/index.js", "webpack:///./index.html", "webpack:///./scripts/app.js"},
 		getStrSlice(output, "sourcemap.sources"))

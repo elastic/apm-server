@@ -18,7 +18,6 @@ type Schema struct {
 	PatternProperties    map[string]interface{}
 	Items                *Schema
 	MaxLength            int
-	AllOf                []Schema
 }
 type Mapping struct {
 	from string
@@ -38,13 +37,13 @@ func TestPayloadAttributesInSchema(t *testing.T, name string, undocumentedAttrs 
 
 	missing := set.Difference(jsonNamesDoc, schemaNames).(*set.Set)
 	if missing.Size() > 0 {
-		msg := fmt.Sprintf("Json Transaction Payload fields missing in Schema %v", missing)
+		msg := fmt.Sprintf("Json payload fields missing in Schema %v", missing)
 		assert.Fail(t, msg)
 	}
 
 	missing = set.Difference(schemaNames, jsonNames).(*set.Set)
 	if missing.Size() > 0 {
-		msg := fmt.Sprintf("Json Transaction schema fields missing in Payload %v", missing)
+		msg := fmt.Sprintf("Json schema fields missing in Payload %v", missing)
 		assert.Fail(t, msg)
 	}
 }
@@ -103,10 +102,6 @@ func flattenSchemaNames(s *Schema, prefix string, addFn addProperty, flattened *
 		}
 	} else if s.Items != nil {
 		flattenSchemaNames(s.Items, prefix, addFn, flattened)
-	} else if len(s.AllOf) > 0 {
-		for _, v := range s.AllOf {
-			flattenSchemaNames(&v, prefix, addFn, flattened)
-		}
 	}
 }
 

@@ -8,6 +8,11 @@ import (
 	"runtime"
 )
 
+func UnmarshalData(file string, data interface{}) error {
+	_, current, _, _ := runtime.Caller(0)
+	return unmarshalData(filepath.Join(filepath.Dir(current), "..", file), data)
+}
+
 func LoadData(file string) ([]byte, error) {
 	_, current, _, _ := runtime.Caller(0)
 	return ioutil.ReadFile(filepath.Join(filepath.Dir(current), "..", file))
@@ -29,10 +34,19 @@ func LoadInvalidData(dataType string) ([]byte, error) {
 	return ioutil.ReadFile(path)
 }
 
-func UnmarshalValidData(file string, data interface{}) error {
-	_, current, _, _ := runtime.Caller(0)
-	curDir := filepath.Dir(current)
-	path := filepath.Join(curDir, "data/valid", file)
+func UnmarshalValidData(dataType string, data interface{}) error {
+	path, err := buildPath(dataType, true)
+	if err != nil {
+		return err
+	}
+	return unmarshalData(path, data)
+}
+
+func UnmarshalInvalidData(dataType string, data interface{}) error {
+	path, err := buildPath(dataType, false)
+	if err != nil {
+		return err
+	}
 	return unmarshalData(path, data)
 }
 
