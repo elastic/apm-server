@@ -421,10 +421,10 @@
 		{
 			"checksumSHA1": "CGDTSl2i0mxPNln+8qLD9aEgqzI=",
 			"path": "github.com/elastic/beats/libbeat/common/op",
-			"revision": "3aef591f9b470b32f24f1ed65430ecb74ace590e",
-			"revisionTime": "2017-11-20T17:40:55Z",
-			"version": "6.x",
-			"versionExact": "6.x"
+			"revision": "a2080b2fd8b768c5f850c5c73307b2f21817f5e5",
+			"revisionTime": "2017-11-22T04:00:03Z",
+			"version": "6.1",
+			"versionExact": "6.1"
 		},
 		{
 			"checksumSHA1": "8exGjSEBI+fSKXMHdWI2e2lX5D0=",
@@ -461,10 +461,10 @@
 		{
 			"checksumSHA1": "qr5L7wYi9UcKO0ZPX7P6vxE1Vs0=",
 			"path": "github.com/elastic/beats/libbeat/kibana",
-			"revision": "3aef591f9b470b32f24f1ed65430ecb74ace590e",
-			"revisionTime": "2017-11-20T17:40:55Z",
-			"version": "6.x",
-			"versionExact": "6.x"
+			"revision": "a2080b2fd8b768c5f850c5c73307b2f21817f5e5",
+			"revisionTime": "2017-11-22T04:00:03Z",
+			"version": "6.1",
+			"versionExact": "6.1"
 		},
 		{
 			"checksumSHA1": "qr5L7wYi9UcKO0ZPX7P6vxE1Vs0=",

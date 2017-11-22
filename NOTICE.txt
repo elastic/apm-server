@@ -2341,6 +2341,33 @@ Apache License 2.0
 
 
 --------------------------------------------------------------------
+Dependency: github.com/xeipuuv/gojsonpointer
+Revision: 6fe8760cad3569743d51ddbb243b26f8456742dc
+License type (autodetected): Apache License 2.0
+./vendor/github.com/xeipuuv/gojsonpointer/LICENSE-APACHE-2.0.txt:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
+Dependency: github.com/xeipuuv/gojsonreference
+Revision: e02fc20de94c78484cd5ffb007f8af96be030a45
+License type (autodetected): Apache License 2.0
+./vendor/github.com/xeipuuv/gojsonreference/LICENSE-APACHE-2.0.txt:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
+Dependency: github.com/xeipuuv/gojsonschema
+Revision: 0c8571ac0ce161a5feb57375a9cdf148c98c0f70
+License type (autodetected): Apache License 2.0
+./vendor/github.com/xeipuuv/gojsonschema/LICENSE-APACHE-2.0.txt:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
 Dependency: github.com/yudai/gojsondiff
 Revision: 081cda2ee95045a2c26da52c2ba80860838549de
 License type (autodetected): MIT license
