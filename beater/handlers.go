@@ -37,7 +37,7 @@ const (
 	BackendErrorsURL        = "/v1/errors"
 	FrontendErrorsURL       = "/v1/client-side/errors"
 	HealthCheckURL          = "/healthcheck"
-	SourcemapsURL           = "/sourcemaps"
+	SourcemapsURL           = "/v1/client-side/sourcemaps"
 
 	rateLimitCacheSize       = 1000
 	rateLimitBurstMultiplier = 2

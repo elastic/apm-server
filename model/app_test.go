@@ -43,7 +43,8 @@ func TestAppTransform(t *testing.T) {
 		},
 		{
 			App: App{
-				AppCore:      AppCore{Name: "myapp", Version: &version},
+				Name:         "myapp",
+				Version:      &version,
 				Pid:          &pid,
 				ProcessTitle: &processTitle,
 				Argv: []string{

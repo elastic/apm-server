@@ -5,13 +5,9 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type AppCore struct {
-	Name    string  `json:"name"`
-	Version *string `json:"version"`
-}
-
 type App struct {
-	AppCore
+	Name         string    `json:"name"`
+	Version      *string   `json:"version"`
 	Pid          *int      `json:"pid"`
 	ProcessTitle *string   `json:"process_title"`
 	Argv         []string  `json:"argv"`
@@ -51,25 +47,13 @@ func (a *App) MinimalTransform() common.MapStr {
 	return app
 }
 
-func (a *AppCore) Transform() common.MapStr {
-	enhancer := utility.NewMapStrEnhancer()
-	app := common.MapStr{"name": a.Name}
-	enhancer.Add(app, "version", a.Version)
-	return app
-}
-
 func (a *App) Transform() common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
-	app := a.AppCore.Transform()
-
+	app := a.MinimalTransform()
+	enhancer.Add(app, "version", a.Version)
 	enhancer.Add(app, "pid", a.Pid)
 	enhancer.Add(app, "process_title", a.ProcessTitle)
 	enhancer.Add(app, "argv", a.Argv)
-
-	agent := common.MapStr{}
-	enhancer.Add(agent, "name", a.Agent.Name)
-	enhancer.Add(agent, "version", a.Agent.Version)
-	enhancer.Add(app, "agent", agent)
 
 	lang := common.MapStr{}
 	enhancer.Add(lang, "name", a.Language.Name)
