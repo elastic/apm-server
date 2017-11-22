@@ -11,7 +11,7 @@ go_file="_beats/.go-version"
 if [ -f "$go_file" ]; then
   eval "$(gvm $(cat $go_file))"
 else
-  eval "$(gvm 1.8.3)"
+  eval "$(gvm 1.9.2)"
 fi
 
 # Workaround for Python virtualenv path being too long.
