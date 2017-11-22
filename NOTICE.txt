@@ -181,8 +181,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
-Version: 6.x
-Revision: 3aef591f9b470b32f24f1ed65430ecb74ace590e
+Version: 6.1
+Revision: a2080b2fd8b768c5f850c5c73307b2f21817f5e5
 License type (autodetected): Apache License 2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
