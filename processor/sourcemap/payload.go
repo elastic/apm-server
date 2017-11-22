@@ -5,7 +5,6 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -14,19 +13,10 @@ import (
 var sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
 
 type payload struct {
-	App            m.AppCore `json:"app"`
-	Sourcemap      sourcemap `json:"sourcemap"`
-	BundleFilepath string    `json:"bundle_filepath"`
-}
-
-type sourcemap struct {
-	Version        int      `json:"version"`
-	Sources        []string `json:"sources"`
-	Names          []string `json:"names"`
-	Mappings       string   `json:"mappings"`
-	File           *string  `json:"file"`
-	SourcesContent []string `json:"sourcesContent"`
-	SourceRoot     *string  `json:"sourceRoot"`
+	AppName        string        `json:"app_name"`
+	AppVersion     string        `json:"app_version"`
+	Sourcemap      common.MapStr `json:"sourcemap"`
+	BundleFilepath string        `json:"bundle_filepath"`
 }
 
 func (pa *payload) transform() []beat.Event {
@@ -44,22 +34,9 @@ func mappings(pa *payload) (time.Time, []m.DocMapping) {
 			{Key: processorName, Apply: func() common.MapStr {
 				return common.MapStr{
 					"bundle_filepath": pa.BundleFilepath,
-					"app":             pa.App.Transform(),
-					"sourcemap":       pa.Sourcemap.transform(),
+					"app":             common.MapStr{"name": pa.AppName, "version": pa.AppVersion},
+					"sourcemap":       pa.Sourcemap,
 				}
 			}},
 		}
-}
-
-func (sourcemap *sourcemap) transform() common.MapStr {
-	enh := utility.NewMapStrEnhancer()
-	m := common.MapStr{}
-	enh.Add(m, "version", sourcemap.Version)
-	enh.Add(m, "file", sourcemap.File)
-	enh.Add(m, "mappings", sourcemap.Mappings)
-	enh.Add(m, "names", sourcemap.Names)
-	enh.Add(m, "sources", sourcemap.Sources)
-	enh.Add(m, "sourceRoot", sourcemap.SourceRoot)
-	enh.Add(m, "sourcesContent", sourcemap.SourcesContent)
-	return m
 }

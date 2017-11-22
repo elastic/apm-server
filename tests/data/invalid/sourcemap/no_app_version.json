@@ -1,7 +1,5 @@
 {
-    "app": {
-        "name": "app"
-    },
+    "app_name": "app",
     "bundle_filepath": "js/bundle.js",
     "sourcemap": {
         "version": 3,

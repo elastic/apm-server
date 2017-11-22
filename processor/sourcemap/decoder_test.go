@@ -25,9 +25,9 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	_, err = io.Copy(part, bytes.NewReader(fileBytes))
 	assert.NoError(t, err)
 
-	writer.WriteField("bundle-filepath", "js/bundle.min.map")
-	writer.WriteField("app-name", "My app")
-	writer.WriteField("app-version", "0.1")
+	writer.WriteField("bundle_filepath", "js/bundle.min.map")
+	writer.WriteField("app_name", "My app")
+	writer.WriteField("app_version", "0.1")
 
 	err = writer.Close()
 	assert.NoError(t, err)
@@ -44,10 +44,10 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	err = json.Unmarshal(buf, &data)
 	assert.NoError(t, err)
 
-	assert.Len(t, data, 3)
+	assert.Len(t, data, 4)
 	assert.Equal(t, "js/bundle.min.map", data["bundle_filepath"])
-	assert.Equal(t, "My app", data["app"].(map[string]interface{})["name"])
-	assert.Equal(t, "0.1", data["app"].(map[string]interface{})["version"])
+	assert.Equal(t, "My app", data["app_name"])
+	assert.Equal(t, "0.1", data["app_version"])
 
 	for _, k := range []string{"version", "sources", "names", "mappings", "file", "sourcesContent", "sourceRoot"} {
 		assert.Contains(t, data["sourcemap"], k, data)

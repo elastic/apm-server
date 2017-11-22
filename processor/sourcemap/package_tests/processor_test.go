@@ -13,7 +13,6 @@ import (
 func TestSourcemapProcessorOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
 		{Name: "TestProcessSourcemapFull", Path: "tests/data/valid/sourcemap/payload.json"},
-		{Name: "TestProcessSourcemapNullValues", Path: "tests/data/valid/sourcemap/null_values.json"},
 		{Name: "TestProcessSourcemapMinimalPayload", Path: "tests/data/valid/sourcemap/minimal_payload.json"},
 	}
 	tests.TestProcessRequests(t, sourcemap.NewProcessor(), requestInfo, map[string]string{"@timestamp": "***IGNORED***"})

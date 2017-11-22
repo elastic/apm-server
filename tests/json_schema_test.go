@@ -36,7 +36,7 @@ func TestAppSchema(t *testing.T) {
 		{File: "no_agent.json", Error: "missing properties: \"agent\""},
 	}
 	path := "app"
-	testDataAgainstSchema(t, testData, path, path, `"$ref": "../docs/spec/`)
+	testDataAgainstSchema(t, testData, path, path, "")
 }
 
 func TestUserSchema(t *testing.T) {
@@ -83,9 +83,9 @@ func TestContextSchema(t *testing.T) {
 
 func TestSourcemapPayloadSchema(t *testing.T) {
 	testData := []schemaTestData{
-		{File: "no_app_version.json", Error: "missing properties: \"version\""},
+		{File: "no_app_version.json", Error: "missing properties: \"app_version\""},
 		{File: "no_bundle_filepath.json", Error: "missing properties: \"bundle_filepath\""},
-		{File: "not_allowed_empty_values.json", Error: "missing properties: \"version\""},
+		{File: "not_allowed_empty_values.json", Error: "length must be >= 1, but got 0"},
 		{File: "not_allowed_null_values.json", Error: "expected string, but got null"},
 	}
 	testDataAgainstProcessor(t, sourcemap.NewProcessor(), testData, "sourcemap")

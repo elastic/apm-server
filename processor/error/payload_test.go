@@ -13,7 +13,7 @@ import (
 )
 
 func TestPayloadTransform(t *testing.T) {
-	app := m.App{AppCore: m.AppCore{Name: "myapp"}}
+	app := m.App{Name: "myapp"}
 	timestamp := time.Now()
 
 	tests := []struct {

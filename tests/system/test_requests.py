@@ -145,11 +145,11 @@ class ClientSideTest(ClientSideBaseTest):
                                             'sourcemap',
                                             'bundle.min.map'))
         file = open(path)
-        r = requests.post("http://localhost:8200/sourcemaps",
+        r = requests.post("http://localhost:8200/v1/client-side/sourcemaps",
                           files={'sourcemap': file},
-                          data={'app-version': 'bar',
-                                'bundle-filepath': 'bundle.min.map',
-                                'app-name': 'foo'
+                          data={'app_version': 'bar',
+                                'bundle_filepath': 'bundle.min.map',
+                                'app_name': 'foo'
                                 })
         assert r.status_code == 202, r.status_code
 
@@ -162,7 +162,7 @@ class ClientSideTest(ClientSideBaseTest):
                                             'sourcemap',
                                             'bundle.min.map'))
         file = open(path)
-        r = requests.post("http://localhost:8200/sourcemaps",
+        r = requests.post("http://localhost:8200/v1/client-side/sourcemaps",
                           files={'sourcemap': file})
         assert r.status_code == 400, r.status_code
 
