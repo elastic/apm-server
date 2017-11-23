@@ -29,7 +29,7 @@ func (t *Trace) Transform(transactionId string) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	tr := common.MapStr{}
 	enhancer.Add(tr, "id", t.Id)
-	enhancer.Add(tr, "transaction_id", transactionId)
+	enhancer.Add(tr, "transaction", common.MapStr{"id": transactionId})
 	enhancer.Add(tr, "name", t.Name)
 	enhancer.Add(tr, "type", t.Type)
 	enhancer.Add(tr, "start", utility.MillisAsMicros(t.Start))

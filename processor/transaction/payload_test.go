@@ -107,11 +107,11 @@ func TestPayloadTransform(t *testing.T) {
 			"name":  "transaction",
 		},
 		"trace": common.MapStr{
-			"duration":       common.MapStr{"us": 0},
-			"name":           "",
-			"start":          common.MapStr{"us": 0},
-			"transaction_id": "",
-			"type":           "",
+			"duration":    common.MapStr{"us": 0},
+			"name":        "",
+			"start":       common.MapStr{"us": 0},
+			"transaction": common.MapStr{"id": ""},
+			"type":        "",
 		},
 	}
 
