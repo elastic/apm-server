@@ -15,9 +15,9 @@
           open_link_in_current_tab: true
           url_template:
             - min_version: 5.0.0
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'trace.transaction_id:%22{{value}}%22')))"
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'trace.transaction.id:%22{{value}}%22')))"
             - min_version: 6.0.0-alpha1
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'trace.transaction_id:{{value}}'))"
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'trace.transaction.id:{{value}}'))"
 
         - name: name
           type: text
