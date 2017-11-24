@@ -465,8 +465,9 @@ type: long
 A locally unique ID of the trace.
 
 
+
 [float]
-=== `trace.transaction_id`
+=== `trace.transaction.id`
 
 type: keyword
 

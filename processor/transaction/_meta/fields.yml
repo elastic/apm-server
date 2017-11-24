@@ -73,10 +73,14 @@
           description: >
             A locally unique ID of the trace.
 
-        - name: transaction_id
-          type: keyword
-          description: >
-            Reference to the transaction this trace is part of.
+        - name: transaction
+          type: group
+          fields:
+
+          - name: id
+            type: keyword
+            description: >
+              Reference to the transaction this trace is part of.
 
         - name: name
           type: keyword

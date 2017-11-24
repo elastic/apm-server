@@ -22,11 +22,11 @@ func TestTraceTransform(t *testing.T) {
 	}
 	transactionId := "123"
 	emptyOut := common.MapStr{
-		"duration":       common.MapStr{"us": 0},
-		"name":           "",
-		"start":          common.MapStr{"us": 0},
-		"transaction_id": "123",
-		"type":           "",
+		"duration":    common.MapStr{"us": 0},
+		"name":        "",
+		"start":       common.MapStr{"us": 0},
+		"transaction": common.MapStr{"id": "123"},
+		"type":        "",
 	}
 
 	path := "test/path"
@@ -42,12 +42,12 @@ func TestTraceTransform(t *testing.T) {
 		{
 			Trace: Trace{StacktraceFrames: frames},
 			Output: common.MapStr{
-				"type":           "",
-				"start":          common.MapStr{"us": 0},
-				"duration":       common.MapStr{"us": 0},
-				"stacktrace":     []common.MapStr{{"filename": "", "line": common.MapStr{"number": 0}}},
-				"transaction_id": "123",
-				"name":           "",
+				"type":        "",
+				"start":       common.MapStr{"us": 0},
+				"duration":    common.MapStr{"us": 0},
+				"stacktrace":  []common.MapStr{{"filename": "", "line": common.MapStr{"number": 0}}},
+				"transaction": common.MapStr{"id": "123"},
+				"name":        "",
 			},
 			Msg: "Trace with empty Stacktrace, default Stacktrace Transform",
 		},
@@ -78,14 +78,14 @@ func TestTraceTransform(t *testing.T) {
 				TransformStacktrace: transformFn,
 			},
 			Output: common.MapStr{
-				"duration":       common.MapStr{"us": 1200},
-				"id":             1,
-				"name":           "mytrace",
-				"start":          common.MapStr{"us": 650},
-				"transaction_id": "123",
-				"type":           "mytracetype",
-				"stacktrace":     []common.MapStr{{"foo": "bar"}},
-				"parent":         12,
+				"duration":    common.MapStr{"us": 1200},
+				"id":          1,
+				"name":        "mytrace",
+				"start":       common.MapStr{"us": 650},
+				"transaction": common.MapStr{"id": "123"},
+				"type":        "mytracetype",
+				"stacktrace":  []common.MapStr{{"foo": "bar"}},
+				"parent":      12,
 			},
 			Msg: "Full Trace, transformFn for Stacktrace Transform",
 		},
