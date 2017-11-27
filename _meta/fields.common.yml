@@ -125,6 +125,11 @@
               description: >
                 The host that records the event.
 
+            - name: ip
+              type: ip
+              description: >
+                IP of the host that records the event.
+
             - name: architecture
               type: keyword
               description: >

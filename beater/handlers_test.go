@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestDecode(t *testing.T) {
@@ -111,6 +112,18 @@ func TestIsAuthorized(t *testing.T) {
 	assert.False(t, isAuthorized(reqAuth("Bearer bar"), "foo"))
 	assert.False(t, isAuthorized(reqAuth("Bearer foo extra"), "foo"))
 	assert.False(t, isAuthorized(reqAuth("foo"), "foo"))
+}
+
+func TestExtractRequestData(t *testing.T) {
+	req, _ := http.NewRequest("POST", "_", nil)
+	req.RemoteAddr = "10.11.12.13:8080"
+	result, err := extractRequestData(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := common.MapStr{}
+	expected.Put("context.system.ip", "10.11.12.13")
+	assert.Equal(t, expected, result)
 }
 
 func TestExtractIP(t *testing.T) {
