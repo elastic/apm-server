@@ -8,10 +8,9 @@
 https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828e0761d\...master[View commits]
 
 ==== Breaking changes
-- Move `trace.transaction_id` to `trace.transaction.id` {pull}345[345].
+- Move `trace.transaction_id` to `trace.transaction.id` {pull}345[345], {pull}347[347]. 
 
 ==== Bug fixes
-- Make dashboards work with changed `trace.transaction.id` {pull}347[347]. 
 
 ==== Added
 
