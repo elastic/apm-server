@@ -1342,24 +1342,6 @@
 			"revisionTime": "2017-06-28T12:00:33Z"
 		},
 		{
-			"checksumSHA1": "B9K+5clCq0PU8n8/utbKT0QjQyU=",
-			"path": "github.com/xeipuuv/gojsonpointer",
-			"revision": "6fe8760cad3569743d51ddbb243b26f8456742dc",
-			"revisionTime": "2017-02-25T23:34:18Z"
-		},
-		{
-			"checksumSHA1": "pSoUW+qY6LwIJ5lFwGohPU5HUpg=",
-			"path": "github.com/xeipuuv/gojsonreference",
-			"revision": "e02fc20de94c78484cd5ffb007f8af96be030a45",
-			"revisionTime": "2015-08-08T06:50:54Z"
-		},
-		{
-			"checksumSHA1": "qMrJBzqtWyBCSpWSJcNA3nBoYfk=",
-			"path": "github.com/xeipuuv/gojsonschema",
-			"revision": "0c8571ac0ce161a5feb57375a9cdf148c98c0f70",
-			"revisionTime": "2017-05-28T11:38:21Z"
-		},
-		{
 			"checksumSHA1": "8Kj0VH496b0exuyv4wAF4CXa7Y4=",
 			"path": "github.com/yudai/gojsondiff",
 			"revision": "081cda2ee95045a2c26da52c2ba80860838549de",
