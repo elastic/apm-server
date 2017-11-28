@@ -3,6 +3,7 @@ BEAT_INDEX_PREFIX=apm
 BEAT_PATH=github.com/elastic/apm-server
 BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
 BEAT_URL=https://${BEAT_PATH}
+BEAT_DOC_URL=https://www.elastic.co/guide/en/apm/server/
 SYSTEM_TESTS=true
 TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
