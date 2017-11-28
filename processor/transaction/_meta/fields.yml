@@ -11,13 +11,13 @@
           description: >
             A UUID4 transaction ID.
           format: url
-          label_template: "View Traces"
+          label_template: "View Spans"
           open_link_in_current_tab: true
           url_template:
             - min_version: 5.0.0
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'trace.transaction.id:%22{{value}}%22')))"
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'span.transaction.id:%22{{value}}%22')))"
             - min_version: 6.0.0-alpha1
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'trace.transaction.id:{{value}}'))"
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'span.transaction.id:{{value}}'))"
 
         - name: name
           type: text
@@ -55,15 +55,15 @@
             The result of the transaction. HTTP status code for HTTP-related transactions.
 
 
-- key: apm-trace
-  title: APM Trace
-  description: Trace-specific data for APM.
+- key: apm-span
+  title: APM Span
+  description: Spam-specific data for APM.
   fields:
-    - name: view traces
+    - name: view spans
       format: url
-      label_template: "View Traces"
+      label_template: "View Spans"
 
-    - name: trace
+    - name: span
       type: group
       dynamic: false
       fields:
@@ -71,7 +71,7 @@
         - name: id
           type: long
           description: >
-            A locally unique ID of the trace.
+            A locally unique ID of the span.
 
         - name: transaction
           type: group
@@ -80,19 +80,19 @@
           - name: id
             type: keyword
             description: >
-              Reference to the transaction this trace is part of.
+              Reference to the transaction this span is part of.
 
         - name: name
           type: keyword
           count: 1
           description: >
-            Generic name of the trace.
+            Generic name of the span.
 
         - name: type
           type: keyword
           count: 1
           description: >
-            Type of the trace. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
+            Type of the span. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
 
         - name: start
           type: group
@@ -102,7 +102,7 @@
               type: long
               count: 1
               description: >
-                Start time of the trace in microseconds, relative to the start time of the transaction.
+                Start time of the span in microseconds, relative to the start time of the transaction.
 
         - name: duration
           type: group
@@ -113,7 +113,7 @@
               type: long
               count: 1
               description: >
-                Duration of the trace, in microseconds.
+                Duration of the span, in microseconds.
               format: duration
               input_format: microseconds
               output_format: asMilliseconds
@@ -122,5 +122,5 @@
         - name: parent
           type: long
           description: >
-             The parent trace id for recreating the full ancestor path.
+             The parent span id for recreating the full ancestor path.
 

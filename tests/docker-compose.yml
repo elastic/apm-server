@@ -30,4 +30,4 @@ services:
       - "8000:8000"
     environment:
       APM_SERVER: "http://apm-server:8200"
-      TRACES_SEND_FREQ_SECS: "1"
+      SPANS_SEND_FREQ_SECS: "1"

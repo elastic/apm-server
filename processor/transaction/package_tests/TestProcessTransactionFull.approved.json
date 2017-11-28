@@ -130,10 +130,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 3781
                 },
@@ -194,10 +194,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 32592
                 },
@@ -225,10 +225,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 3564
                 },
@@ -256,10 +256,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 13980
                 },
@@ -440,10 +440,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 3781
                 },

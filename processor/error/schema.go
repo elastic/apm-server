@@ -302,7 +302,7 @@ var errorSchema = `{
                     "type": ["array", "null"],
                     "items": {
                             "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace.json",
+    "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -403,7 +403,7 @@ var errorSchema = `{
                     "type": ["array", "null"],
                     "items": {
                             "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace.json",
+    "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",

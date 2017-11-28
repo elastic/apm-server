@@ -1,19 +1,19 @@
 {
-  "title": "Traces [APM]",
+  "title": "Spans [APM]",
   "description": "",
   "hits": 0,
   "columns": [
-    "trace.type",
-    "trace.name",
-    "trace.duration.us",
-    "trace.start.us"
+    "span.type",
+    "span.name",
+    "span.duration.us",
+    "span.start.us"
   ],
   "sort": [
-    "trace.start.us",
+    "span.start.us",
     "asc"
   ],
   "version": 1,
   "kibanaSavedObjectMeta": {
-    "searchSourceJSON": "{\"index\":\"apm-*\",\"highlightAll\":true,\"version\":true,\"query\":{\"match_all\":{}},\"filter\":[{\"meta\":{\"index\":\"apm-*\",\"negate\":false,\"disabled\":false,\"alias\":null,\"type\":\"phrase\",\"key\":\"processor.event\",\"value\":\"trace\",\"params\":{\"query\":\"trace\",\"type\":\"phrase\"}},\"query\":{\"match\":{\"processor.event\":{\"query\":\"trace\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
+    "searchSourceJSON": "{\"index\":\"apm-*\",\"highlightAll\":true,\"version\":true,\"query\":{\"match_all\":{}},\"filter\":[{\"meta\":{\"index\":\"apm-*\",\"negate\":false,\"disabled\":false,\"alias\":null,\"type\":\"phrase\",\"key\":\"processor.event\",\"value\":\"span\",\"params\":{\"query\":\"span\",\"type\":\"phrase\"}},\"query\":{\"match\":{\"processor.event\":{\"query\":\"span\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
   }
 }

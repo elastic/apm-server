@@ -60,7 +60,7 @@ func TestJsonSchemaKeywordLimitation(t *testing.T, fieldPaths []string, schema s
 		{"errors.context", "context"},
 		{"transactions.context", "context"},
 		{"errors", "error"},
-		{"transactions.traces", "trace"},
+		{"transactions.spans", "span"},
 		{"transactions", "transaction"},
 		{"app", "context.app"},
 		{"system", "context.system"},

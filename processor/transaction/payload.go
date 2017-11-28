@@ -10,7 +10,7 @@ import (
 
 var (
 	transactionCounter = monitoring.NewInt(transactionMetrics, "counter")
-	traceCounter       = monitoring.NewInt(transactionMetrics, "traces")
+	spanCounter        = monitoring.NewInt(transactionMetrics, "spans")
 )
 
 type payload struct {
@@ -29,8 +29,8 @@ func (pa *payload) transform() []beat.Event {
 
 		events = append(events, pr.CreateDoc(tx.Mappings(pa)))
 
-		traceCounter.Add(int64(len(tx.Traces)))
-		for _, tr := range tx.Traces {
+		spanCounter.Add(int64(len(tx.Spans)))
+		for _, tr := range tx.Spans {
 			events = append(events, pr.CreateDoc(tr.Mappings(pa, tx)))
 		}
 	}
