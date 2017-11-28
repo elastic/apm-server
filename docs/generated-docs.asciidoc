@@ -12,7 +12,7 @@ See the examples in this section for different document types.
 In the following you find example documents sent to Elasticsearch from APM Server:
 
 * <<transaction-example>>
-* <<trace-example>>
+* <<span-example>>
 * <<error-example>>
 
 [[transaction-example]]
@@ -24,13 +24,13 @@ In the following you find example documents sent to Elasticsearch from APM Serve
 include::./data/elasticsearch/transaction.json[]
 ----
 
-[[trace-example]]
+[[span-example]]
 [float]
-==== Trace document
+==== Span document
 
 [source,json]
 ----
-include::./data/elasticsearch/trace.json[]
+include::./data/elasticsearch/span.json[]
 ----
 
 [[error-example]]

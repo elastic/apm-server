@@ -91,7 +91,7 @@ func TestSourcemapPayloadSchema(t *testing.T) {
 	testDataAgainstProcessor(t, sourcemap.NewProcessor(), testData, "sourcemap")
 }
 
-func TestTraceSchema(t *testing.T) {
+func TestSpanSchema(t *testing.T) {
 	testData := []schemaTestData{
 		{File: "no_id.json", Error: `missing properties: "id"`},
 		{File: "no_name.json", Error: `missing properties: "name"`},
@@ -99,7 +99,7 @@ func TestTraceSchema(t *testing.T) {
 		{File: "no_start.json", Error: `missing properties: "start"`},
 		{File: "no_type.json", Error: `missing properties: "type"`},
 	}
-	testDataAgainstSchema(t, testData, "transactions/trace", "trace", `"$ref": "../docs/spec/transactions/`)
+	testDataAgainstSchema(t, testData, "transactions/span", "span", `"$ref": "../docs/spec/transactions/`)
 }
 
 func TestTransactionSchema(t *testing.T) {

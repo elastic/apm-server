@@ -103,7 +103,7 @@
                     }
                 }
             },
-            "traces": [
+            "spans": [
                 {
                     "id": 0,
                     "parent": null,
@@ -185,7 +185,7 @@
             "duration": 13.980558,
             "result": "failure",
             "timestamp": "2017-05-30T18:53:42.281Z",
-            "traces": []
+            "spans": []
         },
         {
             "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
@@ -202,7 +202,7 @@
             "duration": 13.980558,
             "result": "200",
             "timestamp": "2017-05-30T18:53:42.281999Z",
-            "traces": [
+            "spans": [
                 {
                     "name": "SELECT FROM product_types",
                     "type": "db.postgresql.query",

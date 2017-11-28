@@ -22,7 +22,7 @@ Find details on how the schema is defined:
 
 * <<transaction-payload-schema>>
 * <<transaction-transaction-schema>>
-* <<transaction-trace-schema>>
+* <<transaction-span-schema>>
 * <<transaction-app-schema>>
 * <<transaction-system-schema>>
 * <<transaction-context-schema>>
@@ -48,13 +48,13 @@ include::./spec/transactions/payload.json[]
 include::./spec/transactions/transaction.json[]
 ----
 
-[[transaction-trace-schema]]
+[[transaction-span-schema]]
 [float]
-==== Trace 
+==== Span 
 
 [source,json]
 ----
-include::./spec/transactions/trace.json[]
+include::./spec/transactions/span.json[]
 ----
 
 [[transaction-app-schema]]
@@ -128,7 +128,7 @@ See examples on how a transaction request to the APM Server can look like:
 
 * <<payload-with-transactions>>
 * <<payload-with-minimal-transaction>>
-* <<payload-with-minimal-trace>>
+* <<payload-with-minimal-span>>
 
 [[payload-with-transactions]]
 [float]
@@ -148,11 +148,11 @@ include::./data/intake-api/generated/transaction/payload.json[]
 include::./data/intake-api/generated/transaction/minimal_payload.json[]
 ----
 
-[[payload-with-minimal-trace]]
+[[payload-with-minimal-span]]
 [float]
-==== Payload with a Transaction with a minimal Trace
+==== Payload with a Transaction with a minimal Span
 
 [source,json]
 ----
-include::./data/intake-api/generated/transaction/minimal_trace.json[]
+include::./data/intake-api/generated/transaction/minimal_span.json[]
 ----

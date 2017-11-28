@@ -7,31 +7,31 @@ from collections import defaultdict
 
 NUM_ENDPOINTS = 10
 SAMPLE_RATE = 0.1
-TRACES_PER_TRANSACTION = 30
+SPANS_PER_TRANSACTION = 30
 NUM_TRANSACTIONS = 10000
 
 print "{:25} {}".format("NUM_ENDPOINTS:", NUM_ENDPOINTS)
 print "{:25} {}".format("SAMPLE_RATE:", SAMPLE_RATE)
-print "{:25} {}".format("TRACES_PER_TRANSACTION:", TRACES_PER_TRANSACTION)
+print "{:25} {}".format("SPANS_PER_TRANSACTION:", SPANS_PER_TRANSACTION)
 print "{:25} {}".format("NUM_TRANSACTIONS:", NUM_TRANSACTIONS)
 # print "SAMPLE_RATE:", SAMPLE_RATE
-# print "TRACES_PER_TRANSACTION:", TRACES_PER_TRANSACTION
+# print "SPANS_PER_TRANSACTION:", SPANS_PER_TRANSACTION
 # print "NUM_TRANSACTIONS:", NUM_TRANSACTIONS
 
 # SHOULD_GROUP = False
-# TRACE_UUIDS = False
+# SPAN_UUIDS = False
 # TRANSACTION_UUIDS = True
 
 
 MATRIX_RUNS = [
-    {"SHOULD_GROUP": False, "TRACE_UUIDS": False, "TRANSACTION_UUIDS": False},
-    {"SHOULD_GROUP": True, "TRACE_UUIDS": False, "TRANSACTION_UUIDS": False},
+    {"SHOULD_GROUP": False, "SPAN_UUIDS": False, "TRANSACTION_UUIDS": False},
+    {"SHOULD_GROUP": True, "SPAN_UUIDS": False, "TRANSACTION_UUIDS": False},
 
-    {"SHOULD_GROUP": False, "TRACE_UUIDS": True, "TRANSACTION_UUIDS": False},
-    {"SHOULD_GROUP": False, "TRACE_UUIDS": False, "TRANSACTION_UUIDS": False},
+    {"SHOULD_GROUP": False, "SPAN_UUIDS": True, "TRANSACTION_UUIDS": False},
+    {"SHOULD_GROUP": False, "SPAN_UUIDS": False, "TRANSACTION_UUIDS": False},
 
-    {"SHOULD_GROUP": False, "TRACE_UUIDS": False, "TRANSACTION_UUIDS": True},
-    {"SHOULD_GROUP": False, "TRACE_UUIDS": False, "TRANSACTION_UUIDS": False},
+    {"SHOULD_GROUP": False, "SPAN_UUIDS": False, "TRANSACTION_UUIDS": True},
+    {"SHOULD_GROUP": False, "SPAN_UUIDS": False, "TRANSACTION_UUIDS": False},
 ]
 
 
@@ -53,7 +53,7 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
-def gen_transaction(TRANSACTION_UUIDS, TRACE_UUIDS):
+def gen_transaction(TRANSACTION_UUIDS, SPAN_UUIDS):
     if random.random() < SAMPLE_RATE:
         transaction = {
             "name": random.choice(endpoints),
@@ -79,7 +79,7 @@ def gen_transaction(TRANSACTION_UUIDS, TRACE_UUIDS):
                     }
                 }
             },
-            "traces": [gen_trace(TRACE_UUIDS) for _ in range(TRACES_PER_TRANSACTION)]
+            "spans": [gen_span(SPAN_UUIDS) for _ in range(SPANS_PER_TRANSACTION)]
         }
         if TRANSACTION_UUIDS:
             transaction['id'] = str(uuid4())
@@ -93,13 +93,13 @@ def gen_transaction(TRANSACTION_UUIDS, TRACE_UUIDS):
     }
 
 
-def gen_trace(TRACE_UUIDS):
-    trace = {
+def gen_span(SPAN_UUIDS):
+    span = {
         "name": "{} /{}/{}".format(random.choice(methods), random.choice(shop), random.choice(foot)),
         "type": "http",
         "start": 25.2,
         "end": 40.1,
-        "parent": str(uuid4()) if TRACE_UUIDS else random.randint(0, TRACES_PER_TRANSACTION),
+        "parent": str(uuid4()) if SPAN_UUIDS else random.randint(0, SPANS_PER_TRANSACTION),
         "context": {
             "request": {
                 "path": "/{}/{}".format(random.choice(methods), random.choice(shop), random.choice(foot)),
@@ -123,14 +123,14 @@ def gen_trace(TRACE_UUIDS):
             ],
         }
     }
-    if TRACE_UUIDS:
-        trace['id'] = str(uuid4())
+    if SPAN_UUIDS:
+        span['id'] = str(uuid4())
 
-    return trace
+    return span
 
 
-def run(SHOULD_GROUP, TRACE_UUIDS, TRANSACTION_UUIDS):
-    transactions = [gen_transaction(TRANSACTION_UUIDS, TRACE_UUIDS) for _ in range(NUM_TRANSACTIONS)]
+def run(SHOULD_GROUP, SPAN_UUIDS, TRANSACTION_UUIDS):
+    transactions = [gen_transaction(TRANSACTION_UUIDS, SPAN_UUIDS) for _ in range(NUM_TRANSACTIONS)]
 
     if SHOULD_GROUP:
         groups = defaultdict(list)

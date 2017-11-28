@@ -15,10 +15,10 @@
         }
     },
     "processor": {
-        "event": "trace",
+        "event": "span",
         "name": "transaction"
     },
-    "trace": {
+    "span": {
         "duration": {
             "us": 3781
         },
