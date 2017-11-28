@@ -10,7 +10,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestTraceTransform(t *testing.T) {
+func TestSpanTransform(t *testing.T) {
 	nilFn := func(s *m.Stacktrace) []common.MapStr {
 		return nil
 	}
@@ -35,12 +35,12 @@ func TestTraceTransform(t *testing.T) {
 	frames := []m.StacktraceFrame{{}}
 
 	tests := []struct {
-		Trace  Trace
+		Span   Span
 		Output common.MapStr
 		Msg    string
 	}{
 		{
-			Trace: Trace{StacktraceFrames: frames},
+			Span: Span{StacktraceFrames: frames},
 			Output: common.MapStr{
 				"type":        "",
 				"start":       common.MapStr{"us": 0},
@@ -49,23 +49,23 @@ func TestTraceTransform(t *testing.T) {
 				"transaction": common.MapStr{"id": "123"},
 				"name":        "",
 			},
-			Msg: "Trace with empty Stacktrace, default Stacktrace Transform",
+			Msg: "Span with empty Stacktrace, default Stacktrace Transform",
 		},
 		{
-			Trace:  Trace{TransformStacktrace: emptyFn},
+			Span:   Span{TransformStacktrace: emptyFn},
 			Output: emptyOut,
-			Msg:    "Empty Trace, emptyFn for Stacktrace Transform",
+			Msg:    "Empty Span, emptyFn for Stacktrace Transform",
 		},
 		{
-			Trace:  Trace{TransformStacktrace: nilFn},
+			Span:   Span{TransformStacktrace: nilFn},
 			Output: emptyOut,
-			Msg:    "Empty Trace, nilFn for Stacktrace Transform",
+			Msg:    "Empty Span, nilFn for Stacktrace Transform",
 		},
 		{
-			Trace: Trace{
+			Span: Span{
 				Id:       &tid,
-				Name:     "mytrace",
-				Type:     "mytracetype",
+				Name:     "myspan",
+				Type:     "myspantype",
 				Start:    0.65,
 				Duration: 1.20,
 				StacktraceFrames: m.StacktraceFrames{
@@ -80,19 +80,19 @@ func TestTraceTransform(t *testing.T) {
 			Output: common.MapStr{
 				"duration":    common.MapStr{"us": 1200},
 				"id":          1,
-				"name":        "mytrace",
+				"name":        "myspan",
 				"start":       common.MapStr{"us": 650},
 				"transaction": common.MapStr{"id": "123"},
-				"type":        "mytracetype",
+				"type":        "myspantype",
 				"stacktrace":  []common.MapStr{{"foo": "bar"}},
 				"parent":      12,
 			},
-			Msg: "Full Trace, transformFn for Stacktrace Transform",
+			Msg: "Full Span, transformFn for Stacktrace Transform",
 		},
 	}
 
 	for idx, test := range tests {
-		output := test.Trace.Transform(transactionId)
+		output := test.Span.Transform(transactionId)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type Trace struct {
+type Span struct {
 	Id               *int               `json:"id"`
 	Name             string             `json:"name"`
 	Type             string             `json:"type"`
@@ -21,11 +21,11 @@ type Trace struct {
 	TransformStacktrace m.TransformStacktrace
 }
 
-func (t *Trace) DocType() string {
-	return "trace"
+func (t *Span) DocType() string {
+	return "span"
 }
 
-func (t *Trace) Transform(transactionId string) common.MapStr {
+func (t *Span) Transform(transactionId string) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	tr := common.MapStr{}
 	enhancer.Add(tr, "id", t.Id)
@@ -42,7 +42,7 @@ func (t *Trace) Transform(transactionId string) common.MapStr {
 	return tr
 }
 
-func (t *Trace) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
+func (t *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 	return tx.Timestamp,
 		[]m.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
@@ -54,7 +54,7 @@ func (t *Trace) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 		}
 }
 
-func (t *Trace) transformStacktrace() []common.MapStr {
+func (t *Span) transformStacktrace() []common.MapStr {
 	if t.TransformStacktrace == nil {
 		t.TransformStacktrace = (*m.Stacktrace).Transform
 	}

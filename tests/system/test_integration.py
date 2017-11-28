@@ -43,7 +43,7 @@ class Test(ElasticTest):
         assert rs['count'] == 4, "found {} documents".format(rs['count'])
 
         rs = self.es.count(index=self.index_name, body={
-                           "query": {"term": {"processor.event": "trace"}}})
+                           "query": {"term": {"processor.event": "span"}}})
         assert rs['count'] == 5, "found {} documents".format(rs['count'])
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")

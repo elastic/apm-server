@@ -30,7 +30,7 @@
             "timestamp": "2017-05-30T18:53:27.154Z",
             "result": "200",
             "context": null,
-            "traces": null
+            "spans": null
         },
         {
             "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
@@ -124,7 +124,7 @@
                     }
                 }
             },
-            "traces": [
+            "spans": [
                 {
                     "id": null,
                     "parent": null,
