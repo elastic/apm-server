@@ -13,7 +13,9 @@
                     },
                     "name": "1234_app-12a3"
                 },
-                "system": {}
+                "system": {
+                    "ip": "192.0.2.1"
+                }
             },
             "processor": {
                 "event": "transaction",
@@ -45,7 +47,9 @@
                 "custom": null,
                 "request": null,
                 "response": null,
-                "system": {},
+                "system": {
+                    "ip": "192.0.2.1"
+                },
                 "tags": null,
                 "user": null
             },
@@ -100,7 +104,9 @@
                     "headers_sent": null,
                     "status_code": null
                 },
-                "system": {},
+                "system": {
+                    "ip": "192.0.2.1"
+                },
                 "user": {
                     "email": null,
                     "id": null,
@@ -161,7 +167,9 @@
                         "content-type": null
                     }
                 },
-                "system": {},
+                "system": {
+                    "ip": "192.0.2.1"
+                },
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 }

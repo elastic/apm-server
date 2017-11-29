@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -68,7 +69,7 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 }
 
 func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
-	p := fn()
+	p := fn(httptest.NewRequest("GET", "/", nil))
 	data, _ := LoadValidData(p.Name())
 	err := p.Validate(data)
 	if err != nil {

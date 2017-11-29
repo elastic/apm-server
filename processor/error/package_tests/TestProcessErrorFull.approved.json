@@ -87,6 +87,7 @@
                 "system": {
                     "architecture": "x64",
                     "hostname": "prod1.example.com",
+                    "ip": "192.0.2.1",
                     "platform": "darwin"
                 },
                 "tags": {
@@ -276,6 +277,7 @@
                 "system": {
                     "architecture": "x64",
                     "hostname": "prod1.example.com",
+                    "ip": "192.0.2.1",
                     "platform": "darwin"
                 }
             },
@@ -324,6 +326,7 @@
                 "system": {
                     "architecture": "x64",
                     "hostname": "prod1.example.com",
+                    "ip": "192.0.2.1",
                     "platform": "darwin"
                 }
             },
@@ -371,6 +374,7 @@
                 "system": {
                     "architecture": "x64",
                     "hostname": "prod1.example.com",
+                    "ip": "192.0.2.1",
                     "platform": "darwin"
                 }
             },

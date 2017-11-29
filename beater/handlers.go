@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/elastic/apm-server/processor"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
 
 	"compress/gzip"
@@ -20,8 +20,6 @@ import (
 
 	"github.com/hashicorp/golang-lru"
 	"golang.org/x/time/rate"
-
-	"net"
 
 	"github.com/ryanuber/go-glob"
 
@@ -47,7 +45,7 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorFactory func() processor.Processor
+type ProcessorFactory func(*http.Request) processor.Processor
 
 type ProcessorHandler func(ProcessorFactory, Config, reporter) http.Handler
 
@@ -147,50 +145,12 @@ func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if deny(extractIP(r)) {
+		if deny(utility.ExtractIP(r)) {
 			sendStatus(w, r, http.StatusTooManyRequests, errTooManyRequests)
 			return
 		}
 		h.ServeHTTP(w, r)
 	})
-}
-
-func extractIP(r *http.Request) string {
-	var remoteAddr = func() string {
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			return r.RemoteAddr
-		}
-		return ip
-	}
-
-	var forwarded = func() string {
-		forwardedFor := r.Header.Get("X-Forwarded-For")
-		client := strings.Split(forwardedFor, ",")[0]
-		return strings.TrimSpace(client)
-	}
-
-	var real = func() string {
-		return r.Header.Get("X-Real-IP")
-	}
-
-	if ip := real(); ip != "" {
-		return ip
-	}
-	if ip := forwarded(); ip != "" {
-		return ip
-	}
-	return remoteAddr()
-}
-
-// extractRequestData returns context data extracted from HTTP request, to attach it to events
-func extractRequestData(r *http.Request) (common.MapStr, error) {
-	data := common.MapStr{}
-	_, err := data.Put("context.system.ip", extractIP(r))
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
 }
 
 func authHandler(secretToken string, h http.Handler) http.Handler {
@@ -277,7 +237,7 @@ func processRequestHandler(pf ProcessorFactory, config Config, report reporter, 
 
 func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter, decode decoder) (int, error) {
 
-	processor := pf()
+	processor := pf(r)
 
 	if r.Method != "POST" {
 		return http.StatusMethodNotAllowed, errPOSTRequestOnly
@@ -295,16 +255,6 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 	list, err := processor.Transform(buf)
 	if err != nil {
 		return http.StatusBadRequest, err
-	}
-
-	// Attach request context data:
-	requestData, err := extractRequestData(r)
-	if err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Request parse error: %s", err.Error()))
-	}
-
-	for _, event := range list {
-		event.Fields.DeepUpdate(requestData)
 	}
 
 	if err = report(list); err != nil {

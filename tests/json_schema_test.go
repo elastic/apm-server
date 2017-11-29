@@ -88,7 +88,7 @@ func TestSourcemapPayloadSchema(t *testing.T) {
 		{File: "not_allowed_empty_values.json", Error: "length must be >= 1, but got 0"},
 		{File: "not_allowed_null_values.json", Error: "expected string, but got null"},
 	}
-	testDataAgainstProcessor(t, sourcemap.NewProcessor(), testData, "sourcemap")
+	testDataAgainstProcessor(t, sourcemap.NewProcessor(nil), testData, "sourcemap")
 }
 
 func TestSpanSchema(t *testing.T) {
@@ -124,7 +124,7 @@ func TestTransactionPayloadSchema(t *testing.T) {
 		{File: "no_app.json", Error: "missing properties: \"app\""},
 		{File: "no_transactions.json", Error: "minimum 1 items allowed"},
 	}
-	testDataAgainstProcessor(t, transaction.NewProcessor(), testData, "transaction_payload")
+	testDataAgainstProcessor(t, transaction.NewProcessor(nil), testData, "transaction_payload")
 }
 
 func TestErrorSchema(t *testing.T) {
@@ -150,7 +150,7 @@ func TestErrorPayloadSchema(t *testing.T) {
 		{File: "no_app.json", Error: "missing properties: \"app\""},
 		{File: "no_errors.json", Error: "missing properties: \"errors\""},
 	}
-	testDataAgainstProcessor(t, err.NewProcessor(), testData, "error_payload")
+	testDataAgainstProcessor(t, err.NewProcessor(nil), testData, "error_payload")
 }
 
 func testDataAgainstSchema(t *testing.T, testData []schemaTestData, schemaPath string, filePath string, replace string) {

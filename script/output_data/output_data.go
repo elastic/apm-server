@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 
@@ -32,7 +33,7 @@ func generate() error {
 			continue
 		}
 
-		p := mapping.ProcessorFactory()
+		p := mapping.ProcessorFactory(httptest.NewRequest("GET", "/", nil))
 
 		// Remove version from name and and s at the end
 		name := p.Name()

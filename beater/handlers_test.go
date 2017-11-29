@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestDecode(t *testing.T) {
@@ -112,43 +111,4 @@ func TestIsAuthorized(t *testing.T) {
 	assert.False(t, isAuthorized(reqAuth("Bearer bar"), "foo"))
 	assert.False(t, isAuthorized(reqAuth("Bearer foo extra"), "foo"))
 	assert.False(t, isAuthorized(reqAuth("foo"), "foo"))
-}
-
-func TestExtractRequestData(t *testing.T) {
-	req, _ := http.NewRequest("POST", "_", nil)
-	req.RemoteAddr = "10.11.12.13:8080"
-	result, err := extractRequestData(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected := common.MapStr{}
-	expected.Put("context.system.ip", "10.11.12.13")
-	assert.Equal(t, expected, result)
-}
-
-func TestExtractIP(t *testing.T) {
-	var req = func(real *string, forward *string) *http.Request {
-		req, _ := http.NewRequest("POST", "_", nil)
-		req.RemoteAddr = "10.11.12.13:8080"
-		if real != nil {
-			req.Header.Add("X-Real-IP", *real)
-		}
-		if forward != nil {
-			req.Header.Add("X-Forwarded-For", *forward)
-		}
-		return req
-	}
-
-	real := "54.55.101.102"
-	assert.Equal(t, real, extractIP(req(&real, nil)))
-
-	forwardedFor := "54.56.103.104"
-	assert.Equal(t, real, extractIP(req(&real, &forwardedFor)))
-	assert.Equal(t, forwardedFor, extractIP(req(nil, &forwardedFor)))
-
-	forwardedForMultiple := "54.56.103.104 , 54.57.105.106 , 54.58.107.108"
-	assert.Equal(t, forwardedFor, extractIP(req(nil, &forwardedForMultiple)))
-
-	assert.Equal(t, "10.11.12.13", extractIP(req(nil, nil)))
-	assert.Equal(t, "10.11.12.13", extractIP(req(new(string), new(string))))
 }

@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"net/http"
 	"time"
 
 	m "github.com/elastic/apm-server/model"
@@ -8,7 +9,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type NewProcessor func() Processor
+type NewProcessor func(*http.Request) Processor
 
 type Processor interface {
 	Validate([]byte) error

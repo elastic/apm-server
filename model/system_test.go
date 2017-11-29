@@ -13,6 +13,7 @@ func TestSystemTransform(t *testing.T) {
 	architecture := "x64"
 	hostname := "a.b.com"
 	platform := "darwin"
+	ip := "127.0.0.1"
 
 	tests := []struct {
 		System System
@@ -42,6 +43,18 @@ func TestSystemTransform(t *testing.T) {
 			Output: common.MapStr{
 				"hostname":     hostname,
 				"architecture": architecture,
+			},
+		},
+		{
+			System: System{
+				Architecture: &architecture,
+				Hostname:     &hostname,
+				IP:           &ip,
+			},
+			Output: common.MapStr{
+				"hostname":     hostname,
+				"architecture": architecture,
+				"ip":           ip,
 			},
 		},
 	}

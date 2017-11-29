@@ -2,6 +2,7 @@ package sourcemap
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -29,7 +30,7 @@ type processor struct {
 	schema *jsonschema.Schema
 }
 
-func NewProcessor() pr.Processor {
+func NewProcessor(*http.Request) pr.Processor {
 	return &processor{schema}
 }
 

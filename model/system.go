@@ -9,6 +9,7 @@ type System struct {
 	Hostname     *string `json:"hostname"`
 	Architecture *string `json:"architecture"`
 	Platform     *string `json:"platform"`
+	IP           *string `json:"ip"`
 }
 
 func (s *System) Transform() common.MapStr {
@@ -20,6 +21,7 @@ func (s *System) Transform() common.MapStr {
 	enhancer.Add(system, "hostname", s.Hostname)
 	enhancer.Add(system, "architecture", s.Architecture)
 	enhancer.Add(system, "platform", s.Platform)
+	enhancer.Add(system, "ip", s.IP)
 
 	return system
 }
