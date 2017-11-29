@@ -11,15 +11,6 @@ import (
 )
 
 func TestSpanTransform(t *testing.T) {
-	nilFn := func(s *m.Stacktrace) []common.MapStr {
-		return nil
-	}
-	emptyFn := func(s *m.Stacktrace) []common.MapStr {
-		return []common.MapStr{}
-	}
-	transformFn := func(s *m.Stacktrace) []common.MapStr {
-		return []common.MapStr{{"foo": "bar"}}
-	}
 	transactionId := "123"
 	emptyOut := common.MapStr{
 		"duration":    common.MapStr{"us": 0},
@@ -52,14 +43,9 @@ func TestSpanTransform(t *testing.T) {
 			Msg: "Span with empty Stacktrace, default Stacktrace Transform",
 		},
 		{
-			Span:   Span{TransformStacktrace: emptyFn},
+			Span:   Span{},
 			Output: emptyOut,
-			Msg:    "Empty Span, emptyFn for Stacktrace Transform",
-		},
-		{
-			Span:   Span{TransformStacktrace: nilFn},
-			Output: emptyOut,
-			Msg:    "Empty Span, nilFn for Stacktrace Transform",
+			Msg:    "Empty Span",
 		},
 		{
 			Span: Span{
@@ -68,14 +54,13 @@ func TestSpanTransform(t *testing.T) {
 				Type:     "myspantype",
 				Start:    0.65,
 				Duration: 1.20,
-				StacktraceFrames: m.StacktraceFrames{
+				StacktraceFrames: []m.StacktraceFrame{
 					{
 						AbsPath: &path,
 					},
 				},
-				Context:             common.MapStr{"key": "val"},
-				Parent:              &parent,
-				TransformStacktrace: transformFn,
+				Context: common.MapStr{"key": "val"},
+				Parent:  &parent,
 			},
 			Output: common.MapStr{
 				"duration":    common.MapStr{"us": 1200},
@@ -84,7 +69,7 @@ func TestSpanTransform(t *testing.T) {
 				"start":       common.MapStr{"us": 650},
 				"transaction": common.MapStr{"id": "123"},
 				"type":        "myspantype",
-				"stacktrace":  []common.MapStr{{"foo": "bar"}},
+				"stacktrace":  []common.MapStr{{"abs_path": "test/path", "filename": "", "line": common.MapStr{"number": 0}}},
 				"parent":      12,
 			},
 			Msg: "Full Span, transformFn for Stacktrace Transform",
@@ -92,7 +77,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Span.Transform(transactionId)
+		output := test.Span.Transform(transactionId, m.App{})
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

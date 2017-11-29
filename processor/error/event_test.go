@@ -170,7 +170,7 @@ func TestEventTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Event.Transform()
+		output := test.Event.Transform(m.App{})
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
