@@ -182,7 +182,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: a8e69729a4310d66c9b6bd34a8b456a6e051632f
+Revision: e70be71a5fd7c3f5e5897fe7b689115caa6481a4
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
