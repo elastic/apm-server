@@ -9,7 +9,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 
 ==== Breaking changes
 - Move `trace.transaction_id` to `trace.transaction.id` {pull}345[345], {pull}347[347]. 
-- Renaming `trace` to `span` {pull}xx[xx].
+- Renaming `trace` to `span` {pull}352[352].
 
 ==== Bug fixes
 
