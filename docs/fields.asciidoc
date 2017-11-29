@@ -257,6 +257,14 @@ type: keyword
 App process_title.
 
 
+[float]
+=== `context.app.environment`
+
+type: keyword
+
+App environment.
+
+
 
 [float]
 === `context.app.language.name`
