@@ -128,17 +128,11 @@ class ElasticTest(ServerBaseTest):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
 
         # Cleanup index and template first
-        try:
-            self.es.indices.delete(index=self.index_name)
-        except:
-            pass
+        self.es.indices.delete(index=self.index_name, ignore=[400, 404])
         self.wait_until(lambda: not self.es.indices.exists(self.index_name))
 
-        try:
-            self.es.indices.delete_template(
-                name=self.index_name)
-        except:
-            pass
+        self.es.indices.delete_template(name=self.index_name, ignore=[400, 404])
+        self.wait_until(lambda: not self.es.indices.exists_template(self.index_name))
 
         super(ElasticTest, self).setUp()
 

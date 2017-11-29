@@ -73,9 +73,11 @@ class Test(ElasticTest):
 
         # make sure template is loaded
         self.wait_until(
-            lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests' loaded"))
+            lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests' loaded"),
+            max_timeout=20)
 
-        self.wait_until(lambda: self.es.indices.exists(self.index_name))
+        self.wait_until(lambda: self.es.indices.exists(self.index_name),
+                        max_timeout=20)
         # Quick wait to give documents some time to be sent to the index
         # This is not required but speeds up the tests
         time.sleep(0.1)
