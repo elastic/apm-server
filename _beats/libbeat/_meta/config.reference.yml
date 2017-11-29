@@ -628,6 +628,10 @@ output.elasticsearch:
 # dashboards and index pattern. Example: testbeat-*
 #setup.dashboards.index:
 
+# Always use the Kibana API for loading the dashboards instead of autodetecting
+# how to install the dashboards by first querying Elasticsearch.
+#setup.dashboards.always_kibana: false
+
 #============================== Template =====================================
 
 # A template is used to set the mapping in Elasticsearch
