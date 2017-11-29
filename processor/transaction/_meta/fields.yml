@@ -57,7 +57,7 @@
 
 - key: apm-span
   title: APM Span
-  description: Spam-specific data for APM.
+  description: Span-specific data for APM.
   fields:
     - name: view spans
       format: url
