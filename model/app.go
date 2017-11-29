@@ -10,6 +10,7 @@ type App struct {
 	Version      *string   `json:"version"`
 	Pid          *int      `json:"pid"`
 	ProcessTitle *string   `json:"process_title"`
+	Environment  *string   `json:"environment"`
 	Argv         []string  `json:"argv"`
 	Language     Language  `json:"language"`
 	Runtime      Runtime   `json:"runtime"`
@@ -53,6 +54,7 @@ func (a *App) Transform() common.MapStr {
 	enhancer.Add(app, "version", a.Version)
 	enhancer.Add(app, "pid", a.Pid)
 	enhancer.Add(app, "process_title", a.ProcessTitle)
+	enhancer.Add(app, "environment", a.Environment)
 	enhancer.Add(app, "argv", a.Argv)
 
 	lang := common.MapStr{}

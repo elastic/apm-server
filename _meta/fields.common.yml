@@ -168,6 +168,11 @@
               description: >
                 App process_title.
 
+            - name: environment
+              type: keyword
+              description: >
+                App environment.
+
             - name: language
               type: group
               fields:

@@ -4,6 +4,7 @@
         "version": "5.1.3",
         "pid": 1234,
         "process_title": "node",
+        "environment": "staging",
         "argv": [
             "node",
             "server.js"
