@@ -76,6 +76,10 @@ var errorSchema = `{
             "type": ["string", "null"],
             "maxLength": 1024
         },
+        "environment": {
+            "type": ["string", "null"],
+            "maxLength": 1024
+        },
         "runtime": {
             "type": ["object", "null"],
             "properties": {

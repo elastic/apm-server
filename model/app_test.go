@@ -19,6 +19,7 @@ func TestAppTransform(t *testing.T) {
 	version := "5.1.3"
 	pid := 1234
 	processTitle := "node"
+	environment := "staging"
 	langName := "ecmascript"
 	langVersion := "8"
 	rtName := "node"
@@ -47,6 +48,7 @@ func TestAppTransform(t *testing.T) {
 				Version:      &version,
 				Pid:          &pid,
 				ProcessTitle: &processTitle,
+				Environment:  &environment,
 				Argv: []string{
 					"node",
 					"server.js",
@@ -71,6 +73,7 @@ func TestAppTransform(t *testing.T) {
 			Output: common.MapStr{
 				"name":          "myapp",
 				"version":       "5.1.3",
+				"environment":   "staging",
 				"pid":           1234,
 				"process_title": "node",
 				"argv": []string{
