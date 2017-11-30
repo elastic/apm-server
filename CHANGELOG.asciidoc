@@ -19,6 +19,7 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 - Fix wrong content-type in response {pull}171[171].
 - Remove duplicate dashboard entries {pull}162[162].
 - Remove `context.db` from `fields.yml` for consistency, has not been indexed before {pull}159[159].
+- Updated systemd doc url {pull}354[354]
 
 ==== Added
 - Added wildcard matching for allowed origins for frontend {pull}287[287].
