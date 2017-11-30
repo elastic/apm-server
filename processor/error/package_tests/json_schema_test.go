@@ -55,5 +55,5 @@ func TestErrorPayloadSchema(t *testing.T) {
 		{File: "data/invalid/error_payload/no_service.json", Error: "missing properties: \"service\""},
 		{File: "data/invalid/error_payload/no_errors.json", Error: "missing properties: \"errors\""},
 	}
-	tests.TestDataAgainstProcessor(t, er.NewProcessor(), testData)
+	tests.TestDataAgainstProcessor(t, er.NewProcessor(nil), testData)
 }
