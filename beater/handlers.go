@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
-	"github.com/ryanuber/go-glob"
+	glob "github.com/ryanuber/go-glob"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/processor"
@@ -39,7 +39,7 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorFactory func() processor.Processor
+type ProcessorFactory func(*processor.Config) processor.Processor
 
 type ProcessorHandler func(ProcessorFactory, Config, reporter) http.Handler
 
@@ -72,7 +72,6 @@ var (
 
 func newMuxer(config Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
-
 	for path, mapping := range Routes {
 		logp.Info("Path %s added to request handler", path)
 		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, config, report))
@@ -84,7 +83,7 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			processRequestHandler(pf, report, decodeLimitJSONData(config.MaxUnzippedSize))))
+			processRequestHandler(pf, nil, report, decodeLimitJSONData(config.MaxUnzippedSize))))
 }
 
 func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
@@ -92,14 +91,14 @@ func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.H
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
+					processRequestHandler(pf, &processor.Config{SmapAccessor: config.Frontend.SmapAccessor()}, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, report, sourcemap.DecodeSourcemapFormData))))
+				processRequestHandler(pf, &processor.Config{SmapAccessor: config.Frontend.SmapAccessor()}, report, sourcemap.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
@@ -251,15 +250,15 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, report reporter, decode decoder) http.Handler {
+func processRequestHandler(pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, report, decode)
+		code, err := processRequest(r, pf, prConfig, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, report reporter, decode decoder) (int, error) {
-	processor := pf()
+func processRequest(r *http.Request, pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder) (int, error) {
+	processor := pf(prConfig)
 
 	if r.Method != "POST" {
 		return http.StatusMethodNotAllowed, errPOSTRequestOnly

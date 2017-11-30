@@ -33,7 +33,7 @@ func generate() error {
 			continue
 		}
 
-		p := mapping.ProcessorFactory()
+		p := mapping.ProcessorFactory(nil)
 
 		data, err := tests.LoadData(filepath.Join(basePath, p.Name(), filename), p.Name())
 		if err != nil {

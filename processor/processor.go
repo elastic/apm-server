@@ -8,12 +8,16 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type NewProcessor func() Processor
+type NewProcessor func(conf *Config) Processor
 
 type Processor interface {
 	Validate(map[string]interface{}) error
 	Transform(interface{}) ([]beat.Event, error)
 	Name() string
+}
+
+type Config struct {
+	SmapAccessor utility.SmapAccessor
 }
 
 func CreateDoc(timestamp time.Time, docMappings []utility.DocMapping) beat.Event {

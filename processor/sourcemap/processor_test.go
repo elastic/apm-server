@@ -13,7 +13,7 @@ import (
 )
 
 func TestImplementProcessorInterface(t *testing.T) {
-	p := NewProcessor()
+	p := NewProcessor(nil)
 	assert.NotNil(t, p)
 	_, ok := p.(pr.Processor)
 	assert.True(t, ok)
@@ -21,7 +21,7 @@ func TestImplementProcessorInterface(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	p := NewProcessor()
+	p := NewProcessor(nil)
 	data, err := tests.LoadValidData("sourcemap")
 
 	assert.NoError(t, err)
@@ -46,7 +46,7 @@ func TestTransform(t *testing.T) {
 	data, err := tests.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
-	rs, err := NewProcessor().Transform(data)
+	rs, err := NewProcessor(nil).Transform(data)
 	assert.NoError(t, err)
 
 	assert.Len(t, rs, 1)

@@ -72,7 +72,6 @@ class Test(ServerBaseTest):
 
     def test_gzip(self):
         transactions = json.dumps(self.get_transaction_payload())
-
         try:
             out = StringIO()
         except:
@@ -136,21 +135,13 @@ class ClientSideTest(ClientSideBaseTest):
         r = requests.post(self.transactions_url, json=transactions)
         assert r.status_code == 202, r.status_code
 
+    def test_error_ok(self):
+        errors = self.get_error_payload()
+        r = requests.post(self.errors_url, json=errors)
+        assert r.status_code == 202, r.status_code
+
     def test_sourcemap_upload(self):
-        import os
-        path = os.path.abspath(os.path.join(self.beat_path,
-                                            'tests',
-                                            'data',
-                                            'valid',
-                                            'sourcemap',
-                                            'bundle.min.map'))
-        file = open(path)
-        r = requests.post("http://localhost:8200/v1/client-side/sourcemaps",
-                          files={'sourcemap': file},
-                          data={'service_version': 'bar',
-                                'bundle_filepath': 'bundle.min.map',
-                                'service_name': 'foo'
-                                })
+        r = self.upload_sourcemap(file_name='bundle.js.map')
         assert r.status_code == 202, r.status_code
 
     def test_sourcemap_upload_fail(self):
@@ -160,9 +151,9 @@ class ClientSideTest(ClientSideBaseTest):
                                             'data',
                                             'valid',
                                             'sourcemap',
-                                            'bundle.min.map'))
+                                            'bundle.js.map'))
         file = open(path)
-        r = requests.post("http://localhost:8200/v1/client-side/sourcemaps",
+        r = requests.post(self.sourcemap_url,
                           files={'sourcemap': file})
         assert r.status_code == 400, r.status_code
 
@@ -172,7 +163,7 @@ class CorsTest(CorsBaseTest):
     def test_ok(self):
         transactions = self.get_transaction_payload()
         r = requests.post(self.transactions_url, json=transactions, headers={
-                          'Origin': 'http://www.elastic.co'})
+            'Origin': 'http://www.elastic.co'})
         assert r.headers['Access-Control-Allow-Origin'] == 'http://www.elastic.co', r.headers
         assert r.status_code == 202, r.status_code
 
