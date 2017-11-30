@@ -22,27 +22,26 @@ type Event struct {
 	Log       *Log          `json:"log"`
 	Timestamp time.Time     `json:"timestamp"`
 
-	enhancer            utility.MapStrEnhancer
-	data                common.MapStr
-	TransformStacktrace m.TransformStacktrace
+	enhancer utility.MapStrEnhancer
+	data     common.MapStr
 }
 
 type Exception struct {
-	Code             interface{}        `json:"code"`
-	Message          string             `json:"message"`
-	Module           *string            `json:"module"`
-	Attributes       interface{}        `json:"attributes"`
-	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
-	Type             *string            `json:"type"`
-	Uncaught         *bool              `json:"uncaught"`
+	Code             interface{}         `json:"code"`
+	Message          string              `json:"message"`
+	Module           *string             `json:"module"`
+	Attributes       interface{}         `json:"attributes"`
+	StacktraceFrames []m.StacktraceFrame `json:"stacktrace"`
+	Type             *string             `json:"type"`
+	Uncaught         *bool               `json:"uncaught"`
 }
 
 type Log struct {
-	Level            *string            `json:"level"`
-	Message          string             `json:"message"`
-	ParamMessage     *string            `json:"param_message"`
-	LoggerName       *string            `json:"logger_name"`
-	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
+	Level            *string             `json:"level"`
+	Message          string              `json:"message"`
+	ParamMessage     *string             `json:"param_message"`
+	LoggerName       *string             `json:"logger_name"`
+	StacktraceFrames []m.StacktraceFrame `json:"stacktrace"`
 }
 
 func (e *Event) DocType() string {
@@ -55,28 +54,28 @@ func (e *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
 			{Key: "processor", Apply: func() common.MapStr {
 				return common.MapStr{"name": processorName, "event": e.DocType()}
 			}},
-			{Key: e.DocType(), Apply: e.Transform},
+			{Key: e.DocType(), Apply: func() common.MapStr { return e.Transform(pa.App) }},
 			{Key: "context", Apply: func() common.MapStr { return e.Context }},
 			{Key: "context.app", Apply: pa.App.Transform},
 			{Key: "context.system", Apply: pa.System.Transform},
 		}
 }
 
-func (e *Event) Transform() common.MapStr {
+func (e *Event) Transform(app m.App) common.MapStr {
 	e.enhancer = utility.MapStrEnhancer{}
 	e.data = common.MapStr{}
 
 	e.add("id", e.Id)
 	e.add("culprit", e.Culprit)
 
-	e.addException()
-	e.addLog()
+	e.addException(app)
+	e.addLog(app)
 	e.addGroupingKey()
 
 	return e.data
 }
 
-func (e *Event) addException() {
+func (e *Event) addException(app m.App) {
 	if e.Exception == nil {
 		return
 	}
@@ -96,12 +95,12 @@ func (e *Event) addException() {
 		e.enhancer.Add(ex, "code", e.Exception.Code.(string))
 	}
 
-	e.addStacktrace(ex, e.Exception.StacktraceFrames)
+	e.addStacktrace(ex, e.Exception.StacktraceFrames, app)
 
 	e.add("exception", ex)
 }
 
-func (e *Event) addLog() {
+func (e *Event) addLog(app m.App) {
 	if e.Log == nil {
 		return
 	}
@@ -110,24 +109,16 @@ func (e *Event) addLog() {
 	e.enhancer.Add(log, "param_message", e.Log.ParamMessage)
 	e.enhancer.Add(log, "logger_name", e.Log.LoggerName)
 	e.enhancer.Add(log, "level", e.Log.Level)
-	e.addStacktrace(log, e.Log.StacktraceFrames)
+	e.addStacktrace(log, e.Log.StacktraceFrames, app)
 
 	e.add("log", log)
 }
 
-func (e *Event) addStacktrace(m common.MapStr, frames m.StacktraceFrames) {
-	stacktrace := e.transformStacktrace(frames)
+func (e *Event) addStacktrace(rs common.MapStr, frames []m.StacktraceFrame, app m.App) {
+	stacktrace := m.TransformStacktrace(frames, app)
 	if len(stacktrace) > 0 {
-		e.enhancer.Add(m, "stacktrace", stacktrace)
+		e.enhancer.Add(rs, "stacktrace", stacktrace)
 	}
-}
-
-func (e *Event) transformStacktrace(frames m.StacktraceFrames) []common.MapStr {
-	if e.TransformStacktrace == nil {
-		e.TransformStacktrace = (*m.Stacktrace).Transform
-	}
-	st := m.Stacktrace{Frames: frames}
-	return e.TransformStacktrace(&st)
 }
 
 func (e *Event) addGroupingKey() {
@@ -150,7 +141,7 @@ func (e *Event) calcGroupingKey() string {
 		}
 	}
 
-	var frames m.StacktraceFrames
+	var frames []m.StacktraceFrame
 	if e.Exception != nil {
 		add(e.Exception.Type)
 		frames = e.Exception.StacktraceFrames

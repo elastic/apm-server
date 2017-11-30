@@ -9,23 +9,21 @@ import (
 )
 
 type Span struct {
-	Id               *int               `json:"id"`
-	Name             string             `json:"name"`
-	Type             string             `json:"type"`
-	Start            float64            `json:"start"`
-	Duration         float64            `json:"duration"`
-	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
-	Context          common.MapStr      `json:"context"`
-	Parent           *int               `json:"parent"`
-
-	TransformStacktrace m.TransformStacktrace
+	Id               *int                `json:"id"`
+	Name             string              `json:"name"`
+	Type             string              `json:"type"`
+	Start            float64             `json:"start"`
+	Duration         float64             `json:"duration"`
+	StacktraceFrames []m.StacktraceFrame `json:"stacktrace"`
+	Context          common.MapStr       `json:"context"`
+	Parent           *int                `json:"parent"`
 }
 
 func (t *Span) DocType() string {
 	return "span"
 }
 
-func (t *Span) Transform(transactionId string) common.MapStr {
+func (t *Span) Transform(transactionId string, app m.App) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	tr := common.MapStr{}
 	enhancer.Add(tr, "id", t.Id)
@@ -35,7 +33,8 @@ func (t *Span) Transform(transactionId string) common.MapStr {
 	enhancer.Add(tr, "start", utility.MillisAsMicros(t.Start))
 	enhancer.Add(tr, "duration", utility.MillisAsMicros(t.Duration))
 	enhancer.Add(tr, "parent", t.Parent)
-	st := t.transformStacktrace()
+
+	st := m.TransformStacktrace(t.StacktraceFrames, app)
 	if len(st) > 0 {
 		enhancer.Add(tr, "stacktrace", st)
 	}
@@ -48,16 +47,8 @@ func (t *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 			{Key: "processor", Apply: func() common.MapStr {
 				return common.MapStr{"name": processorName, "event": t.DocType()}
 			}},
-			{Key: t.DocType(), Apply: func() common.MapStr { return t.Transform(tx.Id) }},
+			{Key: t.DocType(), Apply: func() common.MapStr { return t.Transform(tx.Id, pa.App) }},
 			{Key: "context", Apply: func() common.MapStr { return t.Context }},
 			{Key: "context.app", Apply: pa.App.MinimalTransform},
 		}
-}
-
-func (t *Span) transformStacktrace() []common.MapStr {
-	if t.TransformStacktrace == nil {
-		t.TransformStacktrace = (*m.Stacktrace).Transform
-	}
-	st := m.Stacktrace{Frames: t.StacktraceFrames}
-	return t.TransformStacktrace(&st)
 }

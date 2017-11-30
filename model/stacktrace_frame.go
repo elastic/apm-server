@@ -19,9 +19,7 @@ type StacktraceFrame struct {
 	PostContext []string      `json:"post_context"`
 }
 
-type TransformStacktraceFrame func(s *StacktraceFrame) common.MapStr
-
-func (s *StacktraceFrame) Transform() common.MapStr {
+func TransformFrame(s *StacktraceFrame, _ App) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	m := common.MapStr{}
 
