@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) {
@@ -28,7 +30,7 @@ func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) 
 		"sourcemap":       string(sourcemapBytes),
 		"service_name":    req.FormValue("service_name"),
 		"service_version": req.FormValue("service_version"),
-		"bundle_filepath": req.FormValue("bundle_filepath"),
+		"bundle_filepath": utility.CleanUrlPath(req.FormValue("bundle_filepath")),
 	}
 
 	return payload, nil

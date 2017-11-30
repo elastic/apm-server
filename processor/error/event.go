@@ -51,12 +51,12 @@ func (e *Event) DocType() string {
 	return "error"
 }
 
-func (e *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
+func (e *Event) Mappings(pa *payload, smapAccessor utility.SmapAccessor) (time.Time, []utility.DocMapping) {
 	mapping := []utility.DocMapping{
 		{Key: "processor", Apply: func() common.MapStr {
 			return common.MapStr{"name": processorName, "event": e.DocType()}
 		}},
-		{Key: e.DocType(), Apply: e.Transform},
+		{Key: e.DocType(), Apply: func() common.MapStr { return e.Transform(pa.Service, smapAccessor) }},
 		{Key: "context", Apply: func() common.MapStr { return e.Context }},
 		{Key: "context.service", Apply: pa.Service.Transform},
 		{Key: "context.system", Apply: pa.System.Transform},
@@ -73,21 +73,21 @@ func (e *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
 	return e.Timestamp, mapping
 }
 
-func (e *Event) Transform() common.MapStr {
+func (e *Event) Transform(service m.Service, smapAccessor utility.SmapAccessor) common.MapStr {
 	e.enhancer = utility.MapStrEnhancer{}
 	e.data = common.MapStr{}
 
 	e.add("id", e.Id)
 	e.add("culprit", e.Culprit)
 
-	e.addException()
-	e.addLog()
+	e.addException(service, smapAccessor)
+	e.addLog(service, smapAccessor)
 	e.addGroupingKey()
 
 	return e.data
 }
 
-func (e *Event) addException() {
+func (e *Event) addException(service m.Service, smapAccessor utility.SmapAccessor) {
 	if e.Exception == nil {
 		return
 	}
@@ -107,7 +107,7 @@ func (e *Event) addException() {
 		e.enhancer.Add(ex, "code", e.Exception.Code.(string))
 	}
 
-	st := e.Exception.Stacktrace.Transform()
+	st := e.Exception.Stacktrace.Transform(service, smapAccessor)
 	if len(st) > 0 {
 		e.enhancer.Add(ex, "stacktrace", st)
 	}
@@ -115,7 +115,7 @@ func (e *Event) addException() {
 	e.add("exception", ex)
 }
 
-func (e *Event) addLog() {
+func (e *Event) addLog(service m.Service, smapAccessor utility.SmapAccessor) {
 	if e.Log == nil {
 		return
 	}
@@ -124,7 +124,7 @@ func (e *Event) addLog() {
 	e.enhancer.Add(log, "param_message", e.Log.ParamMessage)
 	e.enhancer.Add(log, "logger_name", e.Log.LoggerName)
 	e.enhancer.Add(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform()
+	st := e.Log.Stacktrace.Transform(service, smapAccessor)
 	if len(st) > 0 {
 		e.enhancer.Add(log, "stacktrace", st)
 	}

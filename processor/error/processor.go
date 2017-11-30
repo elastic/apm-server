@@ -24,12 +24,17 @@ const (
 
 var schema = pr.CreateSchema(errorSchema, processorName)
 
-func NewProcessor() pr.Processor {
-	return &processor{schema}
+func NewProcessor(conf *pr.Config) pr.Processor {
+	var smapAccessor utility.SmapAccessor
+	if conf != nil {
+		smapAccessor = conf.SmapAccessor
+	}
+	return &processor{schema: schema, smapAccessor: smapAccessor}
 }
 
 type processor struct {
-	schema *jsonschema.Schema
+	schema       *jsonschema.Schema
+	smapAccessor utility.SmapAccessor
 }
 
 func (p *processor) Validate(raw map[string]interface{}) error {
@@ -56,7 +61,7 @@ func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
 		return nil, err
 	}
 
-	return pa.transform(), nil
+	return pa.transform(p.smapAccessor), nil
 }
 
 func (p *processor) Name() string {
