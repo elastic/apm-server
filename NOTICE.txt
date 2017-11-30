@@ -182,7 +182,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: fca031f8e1321832747e241ae3a839d2b6f64608
+Revision: 584a2d385004814b8c2a154e53ebe1680775c1de
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -2293,6 +2293,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/spf13/cobra
+Revision: 1be1d2841c773c01bee8289f55f7463b6e2c2539
 License type (autodetected): Apache-2.0
 ./vendor/github.com/spf13/cobra/LICENSE.txt:
 --------------------------------------------------------------------
@@ -2301,6 +2302,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/spf13/pflag
+Revision: 4c012f6dcd9546820e378d0bdda4d8fc772cdfea
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/spf13/pflag/LICENSE:
 --------------------------------------------------------------------
