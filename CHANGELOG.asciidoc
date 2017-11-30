@@ -12,6 +12,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Renaming `trace` to `span` {pull}352[352].
 
 ==== Bug fixes
+- Updated systemd doc url {pull}354[354]
 
 ==== Added
 - Support for uploading sourcemaps {pull}302[302].
