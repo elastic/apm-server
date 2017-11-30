@@ -9,6 +9,7 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -50,8 +51,10 @@ func TestPayloadTransform(t *testing.T) {
 				Events: []Event{{
 					Timestamp: timestamp,
 					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
-					Exception: baseException(),
-					Log:       baseLog(),
+					Exception: &Exception{
+						Message:    "exception message",
+						Stacktrace: m.Stacktrace{m.StacktraceFrame{Filename: "myFile"}},
+					},
 				}},
 			},
 			Output: []common.MapStr{
@@ -64,9 +67,18 @@ func TestPayloadTransform(t *testing.T) {
 						},
 					},
 					"error": common.MapStr{
-						"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
-						"exception":    common.MapStr{"message": "exception message"},
-						"log":          common.MapStr{"message": "error log message"},
+						"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
+						"exception": common.MapStr{
+							"message": "exception message",
+							"stacktrace": []common.MapStr{{
+								"filename": "myFile",
+								"line":     common.MapStr{"number": 0},
+								"sourcemap": common.MapStr{
+									"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
+									"updated": false,
+								},
+							}},
+						},
 					},
 					"processor": common.MapStr{"event": "error", "name": "error"},
 				},
@@ -76,7 +88,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform()
+		outputEvents := test.Payload.transform(&utility.SourcemapAccessor{})
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))

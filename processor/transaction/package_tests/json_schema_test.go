@@ -47,5 +47,5 @@ func TestTransactionPayloadSchema(t *testing.T) {
 		{File: "data/invalid/transaction_payload/no_service.json", Error: "missing properties: \"service\""},
 		{File: "data/invalid/transaction_payload/no_transactions.json", Error: "minimum 1 items allowed"},
 	}
-	tests.TestDataAgainstProcessor(t, transaction.NewProcessor(), testData)
+	tests.TestDataAgainstProcessor(t, transaction.NewProcessor(nil), testData)
 }

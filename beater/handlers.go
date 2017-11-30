@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
 
 	"compress/gzip"
@@ -45,9 +46,9 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorFactory func() processor.Processor
+type ProcessorFactory func(*processor.Config) processor.Processor
 
-type ProcessorHandler func(ProcessorFactory, Config, reporter) http.Handler
+type ProcessorHandler func(ProcessorFactory, Config, processor.Config, reporter) http.Handler
 
 type routeMapping struct {
 	ProcessorHandler
@@ -78,36 +79,52 @@ var (
 func newMuxer(config Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 
+	prConfig := processor.Config{}
+	if config.Frontend.isEnabled() && config.Frontend.Sourcemapping.isSetup() {
+		smapConfig := utility.SmapConfig{
+			CacheExpiration:      config.Frontend.Sourcemapping.Cache.Expiration,
+			CacheCleanupInterval: config.Frontend.Sourcemapping.Cache.CleanupInterval,
+			ElasticsearchConfig:  config.Frontend.Sourcemapping.Elasticsearch,
+			Index:                config.Frontend.Sourcemapping.Index,
+		}
+		smapAccessor, err := utility.NewSourcemapAccessor(smapConfig)
+		if err != nil {
+			logp.Err(err.Error())
+		} else {
+			prConfig.SmapAccessor = smapAccessor
+		}
+	}
+
 	for path, mapping := range Routes {
 		logp.Info("Path %s added to request handler", path)
-		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, config, report))
+		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, config, prConfig, report))
 	}
 
 	return mux
 }
 
-func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+func backendHandler(pf ProcessorFactory, config Config, prConfig processor.Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))
+			processRequestHandler(pf, config, prConfig, report, decodeLimitJSONData(config.MaxUnzippedSize))))
 }
 
-func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+func frontendHandler(pf ProcessorFactory, config Config, prConfig processor.Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
+					processRequestHandler(pf, config, prConfig, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
 }
 
-func sourcemapHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+func sourcemapHandler(pf ProcessorFactory, config Config, prConfig processor.Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, config, report, sourcemap.DecodeSourcemapFormData))))
+				processRequestHandler(pf, config, prConfig, report, sourcemap.DecodeSourcemapFormData))))
 }
 
-func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
+func healthCheckHandler(_ ProcessorFactory, _ Config, _ processor.Config, _ reporter) http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sendStatus(w, r, http.StatusOK, nil)
@@ -256,16 +273,16 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, config Config, report reporter, decode decoder) http.Handler {
+func processRequestHandler(pf ProcessorFactory, config Config, prConfig processor.Config, report reporter, decode decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, config.MaxUnzippedSize, report, decode)
+		code, err := processRequest(r, pf, config.MaxUnzippedSize, &prConfig, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter, decode decoder) (int, error) {
+func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, prConfig *processor.Config, report reporter, decode decoder) (int, error) {
 
-	processor := pf()
+	processor := pf(prConfig)
 
 	if r.Method != "POST" {
 		return http.StatusMethodNotAllowed, errPOSTRequestOnly

@@ -7,6 +7,7 @@ import (
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -19,9 +20,19 @@ type payload struct {
 	BundleFilepath string `mapstructure:"bundle_filepath"`
 }
 
-func (pa *payload) transform() []beat.Event {
+func (pa *payload) transform(smapAccessor utility.SmapAccessor) []beat.Event {
 	var events = []beat.Event{pr.CreateDoc(mappings(pa))}
 	sourcemapCounter.Add(1)
+
+	if smapAccessor == nil {
+		logp.Err("Sourcemap Accessor is nil, cache cannot be invalidated.")
+	} else {
+		smapAccessor.RemoveFromCache(utility.SmapID{
+			ServiceName:    pa.ServiceName,
+			ServiceVersion: pa.ServiceVersion,
+			Path:           pa.BundleFilepath,
+		})
+	}
 	return events
 }
 

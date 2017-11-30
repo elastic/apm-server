@@ -7,7 +7,8 @@ apm-server:
   # Defines the host and port the server is listening on
   host: "localhost:8200"
 
-  frontend.enabled: false
+  frontend:
+    enabled: false
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>

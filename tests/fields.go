@@ -68,7 +68,7 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 }
 
 func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
-	p := fn()
+	p := fn(nil)
 	data, _ := LoadValidData(p.Name())
 	err := p.Validate(data)
 	if err != nil {
