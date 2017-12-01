@@ -20,13 +20,11 @@ func TestSpanTransform(t *testing.T) {
 	transformFn := func(s *m.Stacktrace) []common.MapStr {
 		return []common.MapStr{{"foo": "bar"}}
 	}
-	transactionId := "123"
 	emptyOut := common.MapStr{
-		"duration":    common.MapStr{"us": 0},
-		"name":        "",
-		"start":       common.MapStr{"us": 0},
-		"transaction": common.MapStr{"id": "123"},
-		"type":        "",
+		"duration": common.MapStr{"us": 0},
+		"name":     "",
+		"start":    common.MapStr{"us": 0},
+		"type":     "",
 	}
 
 	path := "test/path"
@@ -42,12 +40,11 @@ func TestSpanTransform(t *testing.T) {
 		{
 			Span: Span{StacktraceFrames: frames},
 			Output: common.MapStr{
-				"type":        "",
-				"start":       common.MapStr{"us": 0},
-				"duration":    common.MapStr{"us": 0},
-				"stacktrace":  []common.MapStr{{"filename": "", "line": common.MapStr{"number": 0}}},
-				"transaction": common.MapStr{"id": "123"},
-				"name":        "",
+				"type":       "",
+				"start":      common.MapStr{"us": 0},
+				"duration":   common.MapStr{"us": 0},
+				"stacktrace": []common.MapStr{{"filename": "", "line": common.MapStr{"number": 0}}},
+				"name":       "",
 			},
 			Msg: "Span with empty Stacktrace, default Stacktrace Transform",
 		},
@@ -78,21 +75,20 @@ func TestSpanTransform(t *testing.T) {
 				TransformStacktrace: transformFn,
 			},
 			Output: common.MapStr{
-				"duration":    common.MapStr{"us": 1200},
-				"id":          1,
-				"name":        "myspan",
-				"start":       common.MapStr{"us": 650},
-				"transaction": common.MapStr{"id": "123"},
-				"type":        "myspantype",
-				"stacktrace":  []common.MapStr{{"foo": "bar"}},
-				"parent":      12,
+				"duration":   common.MapStr{"us": 1200},
+				"id":         1,
+				"name":       "myspan",
+				"start":      common.MapStr{"us": 650},
+				"type":       "myspantype",
+				"stacktrace": []common.MapStr{{"foo": "bar"}},
+				"parent":     12,
 			},
 			Msg: "Full Span, transformFn for Stacktrace Transform",
 		},
 	}
 
 	for idx, test := range tests {
-		output := test.Span.Transform(transactionId)
+		output := test.Span.Transform()
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
