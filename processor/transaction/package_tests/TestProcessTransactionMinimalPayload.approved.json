@@ -3,12 +3,12 @@
         {
             "@timestamp": "2017-05-09T15:04:05.999999Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "python",
                         "version": "1.0"
                     },
-                    "name": "app1"
+                    "name": "service1"
                 }
             },
             "processor": {

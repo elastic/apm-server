@@ -57,7 +57,7 @@ func (e *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
 			}},
 			{Key: e.DocType(), Apply: e.Transform},
 			{Key: "context", Apply: func() common.MapStr { return e.Context }},
-			{Key: "context.app", Apply: pa.App.Transform},
+			{Key: "context.service", Apply: pa.Service.Transform},
 			{Key: "context.system", Apply: pa.System.Transform},
 		}
 }

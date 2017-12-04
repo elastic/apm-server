@@ -6,19 +6,19 @@
       dynamic: false
       type: group
       fields:
-        - name: app
+        - name: service
           type: group
           description: >
-            App fields.
+            Service fields.
           fields:
             - name: name
               type: keyword
               description: >
-                The name of the app this sourcemap belongs to.
+                The name of the service this sourcemap belongs to.
             - name: version
               type: keyword
               description: >
-                App version.
+                Service version.
 
         - name: bundle_filepath
           type: keyword

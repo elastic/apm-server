@@ -13,8 +13,8 @@ import (
 var sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
 
 type payload struct {
-	AppName        string        `json:"app_name"`
-	AppVersion     string        `json:"app_version"`
+	ServiceName    string        `json:"service_name"`
+	ServiceVersion string        `json:"service_version"`
 	Sourcemap      common.MapStr `json:"sourcemap"`
 	BundleFilepath string        `json:"bundle_filepath"`
 }
@@ -34,7 +34,7 @@ func mappings(pa *payload) (time.Time, []m.DocMapping) {
 			{Key: processorName, Apply: func() common.MapStr {
 				return common.MapStr{
 					"bundle_filepath": pa.BundleFilepath,
-					"app":             common.MapStr{"name": pa.AppName, "version": pa.AppVersion},
+					"service":         common.MapStr{"name": pa.ServiceName, "version": pa.ServiceVersion},
 					"sourcemap":       pa.Sourcemap,
 				}
 			}},

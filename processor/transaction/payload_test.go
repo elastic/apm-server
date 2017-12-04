@@ -18,7 +18,7 @@ func TestPayloadTransform(t *testing.T) {
 	platform := "x64"
 	timestamp := time.Now()
 
-	app := m.App{Name: "myapp"}
+	service := m.Service{Name: "myservice"}
 	system := &m.System{
 		Hostname:     &hostname,
 		Architecture: &architecture,
@@ -28,8 +28,8 @@ func TestPayloadTransform(t *testing.T) {
 	txValid := Event{Timestamp: timestamp}
 	txValidEs := common.MapStr{
 		"context": common.MapStr{
-			"app": common.MapStr{
-				"name":  "myapp",
+			"service": common.MapStr{
+				"name":  "myservice",
 				"agent": common.MapStr{"name": "", "version": ""},
 			},
 		},
@@ -62,8 +62,8 @@ func TestPayloadTransform(t *testing.T) {
 				"architecture": architecture,
 				"platform":     platform,
 			},
-			"app": common.MapStr{
-				"name":  "myapp",
+			"service": common.MapStr{
+				"name":  "myservice",
 				"agent": common.MapStr{"name": "", "version": ""},
 			},
 		},
@@ -82,8 +82,8 @@ func TestPayloadTransform(t *testing.T) {
 		},
 		"context": common.MapStr{
 			"foo": "bar", "user": common.MapStr{"id": "55"},
-			"app": common.MapStr{
-				"name":  "myapp",
+			"service": common.MapStr{
+				"name":  "myservice",
 				"agent": common.MapStr{"name": "", "version": ""},
 			},
 			"system": common.MapStr{
@@ -97,8 +97,8 @@ func TestPayloadTransform(t *testing.T) {
 	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
 	spanEs := common.MapStr{
 		"context": common.MapStr{
-			"app": common.MapStr{
-				"name":  "myapp",
+			"service": common.MapStr{
+				"name":  "myservice",
 				"agent": common.MapStr{"name": "", "version": ""},
 			},
 		},
@@ -121,35 +121,35 @@ func TestPayloadTransform(t *testing.T) {
 		Msg     string
 	}{
 		{
-			Payload: payload{App: app, Events: []Event{}},
+			Payload: payload{Service: service, Events: []Event{}},
 			Output:  nil,
 			Msg:     "Payload with empty Event Array",
 		},
 		{
 			Payload: payload{
-				App:    app,
-				Events: []Event{txValid, txValidWithSpan},
+				Service: service,
+				Events:  []Event{txValid, txValidWithSpan},
 			},
 			Output: []common.MapStr{txValidEs, txValidEs, spanEs},
 			Msg:    "Payload with multiple Events",
 		},
 		{
 			Payload: payload{
-				App:    app,
-				System: system,
-				Events: []Event{txValid},
+				Service: service,
+				System:  system,
+				Events:  []Event{txValid},
 			},
 			Output: []common.MapStr{txValidWithSystem},
 			Msg:    "Payload with System and Event",
 		},
 		{
 			Payload: payload{
-				App:    app,
-				System: system,
-				Events: []Event{txWithContext},
+				Service: service,
+				System:  system,
+				Events:  []Event{txWithContext},
 			},
 			Output: []common.MapStr{txWithContextEs},
-			Msg:    "Payload with App, System and Event with context",
+			Msg:    "Payload with Service, System and Event with context",
 		},
 	}
 

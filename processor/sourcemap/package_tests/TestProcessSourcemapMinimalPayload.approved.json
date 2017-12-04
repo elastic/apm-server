@@ -7,8 +7,8 @@
                 "name": "sourcemap"
             },
             "sourcemap": {
-                "app": {
-                    "name": "app",
+                "service": {
+                    "name": "service",
                     "version": "1"
                 },
                 "bundle_filepath": "js/bundle.js",

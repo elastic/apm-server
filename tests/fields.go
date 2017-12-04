@@ -31,7 +31,7 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"context.request.env",
 		"context.request.body",
 		"context.response.headers",
-		"context.app.argv",
+		"context.service.argv",
 		"error.exception.attributes",
 		"error.exception.stacktrace",
 		"error.log.stacktrace",

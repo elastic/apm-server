@@ -1,6 +1,6 @@
 {
-    "app": {
-        "name": "1234_app-12a3",
+    "service": {
+        "name": "1234_service-12a3",
         "language": {
           "name": "ruby",
           "version": null
@@ -28,7 +28,7 @@
             "timestamp": "2017-05-09T15:04:05.999999Z",
             "culprit": null,
             "log": {
-                "message": "My app could not talk to the database named foobar",
+                "message": "My service could not talk to the database named foobar",
                 "param_message": null,
                 "logger_name": null,
                 "level": null,

@@ -53,7 +53,7 @@ include::./spec/errors/error.json[]
 
 [source,json]
 ----
-include::./spec/app.json[]
+include::./spec/service.json[]
 ----
 
 [[error-system-schema]]

@@ -3,12 +3,12 @@
         {
             "@timestamp": "2017-05-09T15:04:05.999999Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "name": "1234_app-12a3",
+                    "name": "1234_service-12a3",
                     "version": "3.4.1"
                 }
             },

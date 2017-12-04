@@ -8,7 +8,7 @@
     "error.exception.message",
     "error.log.message",
     "error.exception.uncaught",
-    "context.app.name"
+    "context.service.name"
   ],
   "sort": [
     "@timestamp",

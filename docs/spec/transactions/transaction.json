@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/transactions/transaction.json",
     "type": "object",
-    "description": "Data captured by an agent representing an event occurring in a monitored app",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
         "context": {
             "$ref": "../context.json"
@@ -18,7 +18,7 @@
         },
         "name": {
             "type": "string",
-            "description": "Generic designation of a transaction in the scope of a single app (eg: 'GET /users/:id')",
+            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
             "maxLength": 1024
         },
         "result": {
@@ -41,7 +41,7 @@
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the app's domain (eg: 'request', 'cache', etc)",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'cache', etc)",
             "maxLength": 1024
         }
     },

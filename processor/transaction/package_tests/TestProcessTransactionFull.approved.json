@@ -3,7 +3,7 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
@@ -21,7 +21,7 @@
                         "name": "ecmascript",
                         "version": "8"
                     },
-                    "name": "1234_app-12a3",
+                    "name": "1234_service-12a3",
                     "pid": 1234,
                     "process_title": "node",
                     "runtime": {
@@ -116,12 +116,12 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "db": {
                     "instance": "customers",
@@ -186,12 +186,12 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 }
             },
             "processor": {
@@ -217,12 +217,12 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 }
             },
             "processor": {
@@ -248,12 +248,12 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 }
             },
             "processor": {
@@ -279,7 +279,7 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
@@ -297,7 +297,7 @@
                         "name": "ecmascript",
                         "version": "8"
                     },
-                    "name": "1234_app-12a3",
+                    "name": "1234_service-12a3",
                     "pid": 1234,
                     "process_title": "node",
                     "runtime": {
@@ -329,7 +329,7 @@
         {
             "@timestamp": "2017-05-30T18:53:42Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
@@ -347,7 +347,7 @@
                         "name": "ecmascript",
                         "version": "8"
                     },
-                    "name": "1234_app-12a3",
+                    "name": "1234_service-12a3",
                     "pid": 1234,
                     "process_title": "node",
                     "runtime": {
@@ -379,7 +379,7 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281999Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
@@ -397,7 +397,7 @@
                         "name": "ecmascript",
                         "version": "8"
                     },
-                    "name": "1234_app-12a3",
+                    "name": "1234_service-12a3",
                     "pid": 1234,
                     "process_title": "node",
                     "runtime": {
@@ -429,12 +429,12 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281999Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "db": {
                     "instance": "customers",

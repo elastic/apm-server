@@ -63,7 +63,7 @@ include::./spec/transactions/span.json[]
 
 [source,json]
 ----
-include::./spec/app.json[]
+include::./spec/service.json[]
 ----
 
 [[transaction-system-schema]]

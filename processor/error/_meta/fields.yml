@@ -4,16 +4,16 @@
   fields:
     - name: view errors
       type: keyword
-      script: "doc['context.app.name'].value"
+      script: "doc['context.service.name'].value"
       language: painless
       format: url
       label_template: "View Errors"
       open_link_in_current_tab: true
       url_template:
         - min_version: 5.0.0
-          value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(query_string:(analyze_wildcard:!t,query:'context.app.name:%22{{value}}%22')))"
+          value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(query_string:(analyze_wildcard:!t,query:'context.service.name:%22{{value}}%22')))"
         - min_version: 6.0.0-alpha1
-          value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(language:lucene,query:'context.app.name:\"{{value}}\"'))"
+          value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(language:lucene,query:'context.service.name:\"{{value}}\"'))"
 
     - name: error id icon
       type: keyword

@@ -11,10 +11,10 @@ var transactionSchema = `{
     "description": "List of transactions wrapped in an object containing some other attributes normalized away form the transactions themselves",
     "type": "object",
     "properties": {
-        "app": {
+        "service": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/app.json",
-    "title": "App",
+    "$id": "doc/spec/service.json",
+    "title": "Service",
     "type": "object",
     "properties": {
         "agent": {
@@ -64,7 +64,7 @@ var transactionSchema = `{
             "required": ["name"]
         },
         "name": {
-            "description": "Immutable name of the app emitting this event",
+            "description": "Immutable name of the service emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
@@ -95,7 +95,7 @@ var transactionSchema = `{
             "required": ["name", "version"]
         },
         "version": {
-            "description": "Version of the app emitting this event",
+            "description": "Version of the service emitting this event",
             "type": ["string", "null"],
             "maxLength": 1024
         }
@@ -131,7 +131,7 @@ var transactionSchema = `{
                     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/transactions/transaction.json",
     "type": "object",
-    "description": "Data captured by an agent representing an event occurring in a monitored app",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
         "context": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
@@ -312,7 +312,7 @@ var transactionSchema = `{
         },
         "name": {
             "type": "string",
-            "description": "Generic designation of a transaction in the scope of a single app (eg: 'GET /users/:id')",
+            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
             "maxLength": 1024
         },
         "result": {
@@ -445,7 +445,7 @@ var transactionSchema = `{
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the app's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
             "maxLength": 1024
         }
     },
@@ -460,7 +460,7 @@ var transactionSchema = `{
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the app's domain (eg: 'request', 'cache', etc)",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'cache', etc)",
             "maxLength": 1024
         }
     },
@@ -469,6 +469,6 @@ var transactionSchema = `{
             "minItems": 1
         }
     },
-    "required": ["app", "transactions"]
+    "required": ["service", "transactions"]
 }
 `

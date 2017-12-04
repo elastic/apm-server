@@ -17,7 +17,7 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessSystemNull", Path: "tests/data/valid/transaction/system_null.json"},
 		{Name: "TestProcessTransactionMinimalPayload", Path: "tests/data/valid/transaction/minimal_payload.json"},
 		{Name: "TestProcessTransactionMinimalSpan", Path: "tests/data/valid/transaction/minimal_span.json"},
-		{Name: "TestProcessTransactionMinimalApp", Path: "tests/data/valid/transaction/minimal_app.json"},
+		{Name: "TestProcessTransactionMinimalService", Path: "tests/data/valid/transaction/minimal_service.json"},
 		{Name: "TestProcessTransactionEmpty", Path: "tests/data/valid/transaction/transaction_empty_values.json"},
 	}
 	tests.TestProcessRequests(t, transaction.NewProcessor(), requestInfo, map[string]string{})

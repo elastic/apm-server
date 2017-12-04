@@ -50,7 +50,7 @@ func (s *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 			{Key: s.DocType(), Apply: func() common.MapStr { return s.Transform() }},
 			{Key: "transaction", Apply: func() common.MapStr { return common.MapStr{"id": tx.Id} }},
 			{Key: "context", Apply: func() common.MapStr { return s.Context }},
-			{Key: "context.app", Apply: pa.App.MinimalTransform},
+			{Key: "context.service", Apply: pa.Service.MinimalTransform},
 		}
 }
 

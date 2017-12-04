@@ -5,7 +5,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type App struct {
+type Service struct {
 	Name         string    `json:"name"`
 	Version      *string   `json:"version"`
 	Pid          *int      `json:"pid"`
@@ -35,42 +35,42 @@ type Agent struct {
 	Version string `json:"version"`
 }
 
-type TransformApp func(a *App) common.MapStr
+type TransformService func(a *Service) common.MapStr
 
-func (a *App) MinimalTransform() common.MapStr {
-	app := common.MapStr{
-		"name": a.Name,
+func (s *Service) MinimalTransform() common.MapStr {
+	svc := common.MapStr{
+		"name": s.Name,
 		"agent": common.MapStr{
-			"name":    a.Agent.Name,
-			"version": a.Agent.Version,
+			"name":    s.Agent.Name,
+			"version": s.Agent.Version,
 		},
 	}
-	return app
+	return svc
 }
 
-func (a *App) Transform() common.MapStr {
+func (s *Service) Transform() common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
-	app := a.MinimalTransform()
-	enhancer.Add(app, "version", a.Version)
-	enhancer.Add(app, "pid", a.Pid)
-	enhancer.Add(app, "process_title", a.ProcessTitle)
-	enhancer.Add(app, "environment", a.Environment)
-	enhancer.Add(app, "argv", a.Argv)
+	svc := s.MinimalTransform()
+	enhancer.Add(svc, "version", s.Version)
+	enhancer.Add(svc, "pid", s.Pid)
+	enhancer.Add(svc, "process_title", s.ProcessTitle)
+	enhancer.Add(svc, "environment", s.Environment)
+	enhancer.Add(svc, "argv", s.Argv)
 
 	lang := common.MapStr{}
-	enhancer.Add(lang, "name", a.Language.Name)
-	enhancer.Add(lang, "version", a.Language.Version)
-	enhancer.Add(app, "language", lang)
+	enhancer.Add(lang, "name", s.Language.Name)
+	enhancer.Add(lang, "version", s.Language.Version)
+	enhancer.Add(svc, "language", lang)
 
 	runtime := common.MapStr{}
-	enhancer.Add(runtime, "name", a.Runtime.Name)
-	enhancer.Add(runtime, "version", a.Runtime.Version)
-	enhancer.Add(app, "runtime", runtime)
+	enhancer.Add(runtime, "name", s.Runtime.Name)
+	enhancer.Add(runtime, "version", s.Runtime.Version)
+	enhancer.Add(svc, "runtime", runtime)
 
 	framework := common.MapStr{}
-	enhancer.Add(framework, "name", a.Framework.Name)
-	enhancer.Add(framework, "version", a.Framework.Version)
-	enhancer.Add(app, "framework", framework)
+	enhancer.Add(framework, "name", s.Framework.Name)
+	enhancer.Add(framework, "version", s.Framework.Version)
+	enhancer.Add(svc, "framework", framework)
 
-	return app
+	return svc
 }

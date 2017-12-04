@@ -13,7 +13,7 @@ import (
 )
 
 func TestPayloadTransform(t *testing.T) {
-	app := m.App{Name: "myapp"}
+	svc := m.Service{Name: "myservice"}
 	timestamp := time.Now()
 
 	tests := []struct {
@@ -22,18 +22,18 @@ func TestPayloadTransform(t *testing.T) {
 		Msg     string
 	}{
 		{
-			Payload: payload{App: app, Events: []Event{}},
+			Payload: payload{Service: svc, Events: []Event{}},
 			Output:  nil,
 			Msg:     "Empty Event Array",
 		},
 		{
-			Payload: payload{App: app, Events: []Event{{Timestamp: timestamp}}},
+			Payload: payload{Service: svc, Events: []Event{{Timestamp: timestamp}}},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
-						"app": common.MapStr{
+						"service": common.MapStr{
 							"agent": common.MapStr{"name": "", "version": ""},
-							"name":  "myapp",
+							"name":  "myservice",
 						},
 					},
 					"error": common.MapStr{
@@ -46,7 +46,7 @@ func TestPayloadTransform(t *testing.T) {
 		},
 		{
 			Payload: payload{
-				App: app,
+				Service: svc,
 				Events: []Event{{
 					Timestamp: timestamp,
 					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
@@ -58,8 +58,8 @@ func TestPayloadTransform(t *testing.T) {
 				{
 					"context": common.MapStr{
 						"foo": "bar", "user": common.MapStr{"email": "m@m.com"},
-						"app": common.MapStr{
-							"name":  "myapp",
+						"service": common.MapStr{
+							"name":  "myservice",
 							"agent": common.MapStr{"name": "", "version": ""},
 						},
 					},

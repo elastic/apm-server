@@ -1,6 +1,6 @@
 {
-    "app_name": "app",
-    "app_version": "1",
+    "service_name": "service",
+    "service_version": "1",
     "sourcemap": {
         "version": 3,
         "sources": [
