@@ -21,43 +21,43 @@ type Span struct {
 	TransformStacktrace m.TransformStacktrace
 }
 
-func (t *Span) DocType() string {
+func (s *Span) DocType() string {
 	return "span"
 }
 
-func (t *Span) Transform(transactionId string) common.MapStr {
+func (s *Span) Transform(transactionId string) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	tr := common.MapStr{}
-	enhancer.Add(tr, "id", t.Id)
+	enhancer.Add(tr, "id", s.Id)
 	enhancer.Add(tr, "transaction", common.MapStr{"id": transactionId})
-	enhancer.Add(tr, "name", t.Name)
-	enhancer.Add(tr, "type", t.Type)
-	enhancer.Add(tr, "start", utility.MillisAsMicros(t.Start))
-	enhancer.Add(tr, "duration", utility.MillisAsMicros(t.Duration))
-	enhancer.Add(tr, "parent", t.Parent)
-	st := t.transformStacktrace()
+	enhancer.Add(tr, "name", s.Name)
+	enhancer.Add(tr, "type", s.Type)
+	enhancer.Add(tr, "start", utility.MillisAsMicros(s.Start))
+	enhancer.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
+	enhancer.Add(tr, "parent", s.Parent)
+	st := s.transformStacktrace()
 	if len(st) > 0 {
 		enhancer.Add(tr, "stacktrace", st)
 	}
 	return tr
 }
 
-func (t *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
+func (s *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 	return tx.Timestamp,
 		[]m.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
-				return common.MapStr{"name": processorName, "event": t.DocType()}
+				return common.MapStr{"name": processorName, "event": s.DocType()}
 			}},
-			{Key: t.DocType(), Apply: func() common.MapStr { return t.Transform(tx.Id) }},
-			{Key: "context", Apply: func() common.MapStr { return t.Context }},
+			{Key: s.DocType(), Apply: func() common.MapStr { return s.Transform(tx.Id) }},
+			{Key: "context", Apply: func() common.MapStr { return s.Context }},
 			{Key: "context.app", Apply: pa.App.MinimalTransform},
 		}
 }
 
-func (t *Span) transformStacktrace() []common.MapStr {
-	if t.TransformStacktrace == nil {
-		t.TransformStacktrace = (*m.Stacktrace).Transform
+func (s *Span) transformStacktrace() []common.MapStr {
+	if s.TransformStacktrace == nil {
+		s.TransformStacktrace = (*m.Stacktrace).Transform
 	}
-	st := m.Stacktrace{Frames: t.StacktraceFrames}
-	return t.TransformStacktrace(&st)
+	st := m.Stacktrace{Frames: s.StacktraceFrames}
+	return s.TransformStacktrace(&st)
 }
