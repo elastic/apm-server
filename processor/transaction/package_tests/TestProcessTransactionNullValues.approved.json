@@ -202,10 +202,10 @@
                 "start": {
                     "us": 0
                 },
-                "transaction": {
-                    "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
-                },
                 "type": "request"
+            },
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
             }
         },
         {
@@ -240,10 +240,10 @@
                 "start": {
                     "us": 2830
                 },
-                "transaction": {
-                    "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
-                },
                 "type": "db.postgresql.query"
+            },
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
             }
         },
         {
@@ -275,10 +275,10 @@
                 "start": {
                     "us": 0
                 },
-                "transaction": {
-                    "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
-                },
                 "type": "request"
+            },
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
             }
         }
     ]

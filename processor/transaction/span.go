@@ -25,11 +25,10 @@ func (s *Span) DocType() string {
 	return "span"
 }
 
-func (s *Span) Transform(transactionId string) common.MapStr {
+func (s *Span) Transform() common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	tr := common.MapStr{}
 	enhancer.Add(tr, "id", s.Id)
-	enhancer.Add(tr, "transaction", common.MapStr{"id": transactionId})
 	enhancer.Add(tr, "name", s.Name)
 	enhancer.Add(tr, "type", s.Type)
 	enhancer.Add(tr, "start", utility.MillisAsMicros(s.Start))
@@ -48,7 +47,8 @@ func (s *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 			{Key: "processor", Apply: func() common.MapStr {
 				return common.MapStr{"name": processorName, "event": s.DocType()}
 			}},
-			{Key: s.DocType(), Apply: func() common.MapStr { return s.Transform(tx.Id) }},
+			{Key: s.DocType(), Apply: func() common.MapStr { return s.Transform() }},
+			{Key: "transaction", Apply: func() common.MapStr { return common.MapStr{"id": tx.Id} }},
 			{Key: "context", Apply: func() common.MapStr { return s.Context }},
 			{Key: "context.app", Apply: pa.App.MinimalTransform},
 		}
