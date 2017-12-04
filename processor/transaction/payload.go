@@ -30,8 +30,8 @@ func (pa *payload) transform() []beat.Event {
 		events = append(events, pr.CreateDoc(tx.Mappings(pa)))
 
 		spanCounter.Add(int64(len(tx.Spans)))
-		for _, tr := range tx.Spans {
-			events = append(events, pr.CreateDoc(tr.Mappings(pa, tx)))
+		for _, sp := range tx.Spans {
+			events = append(events, pr.CreateDoc(sp.Mappings(pa, tx)))
 		}
 	}
 
