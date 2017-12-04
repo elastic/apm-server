@@ -4,7 +4,7 @@
         "language": {
           "name": "ruby",
           "version": null
-        }, 
+        },
         "agent": {
           "name": "ruby",
           "version": "1.0.0"
@@ -12,8 +12,9 @@
         "version": null,
         "pid": null,
         "process_title": null,
+        "environment": null,
         "argv": null,
-        "runtime": null, 
+        "runtime": null,
         "framework": null
     },
     "system": {
@@ -53,16 +54,16 @@
             "context": {
                 "request": {
                     "socket": {
-                        "remote_address": null, 
-                        "encrypted": null 
+                        "remote_address": null,
+                        "encrypted": null
                     },
                     "method": "POST",
                     "headers": {
                         "user-agent": null,
-                        "content-type": null, 
+                        "content-type": null,
                         "cookie": null
                     },
-                    "url": {} 
+                    "url": {}
                 },
                 "response": {
                     "headers": {
@@ -96,7 +97,7 @@
                     "method": "POST",
                     "http_version": null,
                     "url": {
-                        "protocol": null, 
+                        "protocol": null,
                         "hostname": null,
                         "port": null,
                         "pathname": null,
@@ -113,10 +114,10 @@
                     "status_code": null,
                     "headers": null,
                     "headers_sent": null,
-                    "finished": null 
+                    "finished": null
                 },
                 "user": {
-                    "id": null,  
+                    "id": null,
                     "username": null,
                     "email": null
                 },

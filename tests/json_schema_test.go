@@ -12,6 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/processor"
+	err "github.com/elastic/apm-server/processor/error"
+	"github.com/elastic/apm-server/processor/sourcemap"
+	"github.com/elastic/apm-server/processor/transaction"
 )
 
 type schemaTestData struct {
@@ -33,7 +36,7 @@ func TestAppSchema(t *testing.T) {
 		{File: "no_agent.json", Error: "missing properties: \"agent\""},
 	}
 	path := "app"
-	testDataAgainstSchema(t, testData, path, path, `"$ref": "../docs/spec/`)
+	testDataAgainstSchema(t, testData, path, path, "")
 }
 
 func TestUserSchema(t *testing.T) {
@@ -78,7 +81,17 @@ func TestContextSchema(t *testing.T) {
 	testDataAgainstSchema(t, testData, path, path, `"$ref": "../docs/spec/`)
 }
 
-func TestTraceSchema(t *testing.T) {
+func TestSourcemapPayloadSchema(t *testing.T) {
+	testData := []schemaTestData{
+		{File: "no_app_version.json", Error: "missing properties: \"app_version\""},
+		{File: "no_bundle_filepath.json", Error: "missing properties: \"bundle_filepath\""},
+		{File: "not_allowed_empty_values.json", Error: "length must be >= 1, but got 0"},
+		{File: "not_allowed_null_values.json", Error: "expected string, but got null"},
+	}
+	testDataAgainstProcessor(t, sourcemap.NewProcessor(), testData, "sourcemap")
+}
+
+func TestSpanSchema(t *testing.T) {
 	testData := []schemaTestData{
 		{File: "no_id.json", Error: `missing properties: "id"`},
 		{File: "no_name.json", Error: `missing properties: "name"`},
@@ -86,7 +99,7 @@ func TestTraceSchema(t *testing.T) {
 		{File: "no_start.json", Error: `missing properties: "start"`},
 		{File: "no_type.json", Error: `missing properties: "type"`},
 	}
-	testDataAgainstSchema(t, testData, "transactions/trace", "trace", `"$ref": "../docs/spec/transactions/`)
+	testDataAgainstSchema(t, testData, "transactions/span", "span", `"$ref": "../docs/spec/transactions/`)
 }
 
 func TestTransactionSchema(t *testing.T) {
@@ -111,7 +124,7 @@ func TestTransactionPayloadSchema(t *testing.T) {
 		{File: "no_app.json", Error: "missing properties: \"app\""},
 		{File: "no_transactions.json", Error: "minimum 1 items allowed"},
 	}
-	testDataAgainstSchema(t, testData, "transactions/payload", "transaction_payload", `"$ref": "../docs/spec/transactions/`)
+	testDataAgainstProcessor(t, transaction.NewProcessor(), testData, "transaction_payload")
 }
 
 func TestErrorSchema(t *testing.T) {
@@ -131,16 +144,17 @@ func TestErrorSchema(t *testing.T) {
 	}
 	testDataAgainstSchema(t, testData, "errors/error", "error", `"$ref": "../docs/spec/errors/`)
 }
+
 func TestErrorPayloadSchema(t *testing.T) {
 	testData := []schemaTestData{
 		{File: "no_app.json", Error: "missing properties: \"app\""},
 		{File: "no_errors.json", Error: "missing properties: \"errors\""},
 	}
-	testDataAgainstSchema(t, testData, "errors/payload", "error_payload", `"$ref": "../docs/spec/errors/`)
+	testDataAgainstProcessor(t, err.NewProcessor(), testData, "error_payload")
 }
 
 func testDataAgainstSchema(t *testing.T, testData []schemaTestData, schemaPath string, filePath string, replace string) {
-	schemaData, err := ioutil.ReadFile(filepath.Join("../docs/spec", (schemaPath + ".json")))
+	schemaData, err := ioutil.ReadFile(filepath.Join("../docs/spec", schemaPath+".json"))
 	assert.Nil(t, err)
 	schemaStr := string(schemaData[:])
 	if replace != "" {
@@ -162,6 +176,15 @@ func testDataAgainstSchema(t *testing.T, testData []schemaTestData, schemaPath s
 	assert.Nil(t, err)
 	for _, f := range filesInDir {
 		assert.True(t, filesToTest.Has(f.Name()), fmt.Sprintf("Did you miss to add the file %v to `json_schema_tests`?", filepath.Join(path, f.Name())))
+	}
+}
+
+func testDataAgainstProcessor(t *testing.T, p processor.Processor, testData []schemaTestData, filePath string) {
+	for _, d := range testData {
+		data, err := ioutil.ReadFile(filepath.Join("data/invalid", filePath, d.File))
+		assert.Nil(t, err)
+		err = p.Validate(data)
+		assert.Contains(t, err.Error(), d.Error)
 	}
 }
 

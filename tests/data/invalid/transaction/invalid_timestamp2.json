@@ -5,5 +5,5 @@
     "type": "request",
     "duration": 2.0,
     "timestamp": "2017-05-30T18:53:27.000+00:20",
-    "traces": []
+    "spans": []
 }

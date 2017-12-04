@@ -14,7 +14,8 @@ grouped in the following categories:
 
 * <<exported-fields-apm>>
 * <<exported-fields-apm-error>>
-* <<exported-fields-apm-trace>>
+* <<exported-fields-apm-sourcemap>>
+* <<exported-fields-apm-span>>
 * <<exported-fields-apm-transaction>>
 * <<exported-fields-beat>>
 * <<exported-fields-cloud>>
@@ -256,6 +257,14 @@ type: keyword
 App process_title.
 
 
+[float]
+=== `context.app.environment`
+
+type: keyword
+
+App environment.
+
+
 
 [float]
 === `context.app.language.name`
@@ -445,48 +454,87 @@ type: keyword
 
 Equal to message, but with placeholders replaced.
 
-[[exported-fields-apm-trace]]
-== APM Trace fields
+[[exported-fields-apm-sourcemap]]
+== APM Sourcemap fields
 
-Trace-specific data for APM.
+Sourcemap files enriched with metadata
+
 
 
 [float]
-=== `view traces`
+== app fields
+
+App fields.
+
+
+
+[float]
+=== `sourcemap.app.name`
+
+type: keyword
+
+The name of the app this sourcemap belongs to.
+
+
+[float]
+=== `sourcemap.app.version`
+
+type: keyword
+
+App version.
+
+
+[float]
+=== `sourcemap.bundle_filepath`
+
+type: keyword
+
+Location of the sourcemap relative to the file requesting it.
+
+
+[[exported-fields-apm-span]]
+== APM Span fields
+
+Span-specific data for APM.
+
+
+[float]
+=== `view spans`
 
 format: url
 
 
 [float]
-=== `trace.id`
+=== `span.id`
 
 type: long
 
-A locally unique ID of the trace.
+A locally unique ID of the span.
 
-
-[float]
-=== `trace.transaction_id`
-
-type: keyword
-
-Reference to the transaction this trace is part of.
 
 
 [float]
-=== `trace.name`
+=== `span.transaction.id`
 
 type: keyword
 
-Generic name of the trace.
+Reference to the transaction this span is part of.
 
 
 [float]
-=== `trace.type`
+=== `span.name`
 
 type: keyword
 
-Type of the trace. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
+Generic name of the span.
+
+
+[float]
+=== `span.type`
+
+type: keyword
+
+Type of the span. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
 
 
 [float]
@@ -496,11 +544,11 @@ None
 
 
 [float]
-=== `trace.start.us`
+=== `span.start.us`
 
 type: long
 
-Start time of the trace in microseconds, relative to the start time of the transaction.
+Start time of the span in microseconds, relative to the start time of the transaction.
 
 
 [float]
@@ -510,21 +558,21 @@ None
 
 
 [float]
-=== `trace.duration.us`
+=== `span.duration.us`
 
 type: long
 
 format: duration
 
-Duration of the trace, in microseconds.
+Duration of the span, in microseconds.
 
 
 [float]
-=== `trace.parent`
+=== `span.parent`
 
 type: long
 
-The parent trace id for recreating the full ancestor path.
+The parent span id for recreating the full ancestor path.
 
 
 [[exported-fields-apm-transaction]]

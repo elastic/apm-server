@@ -16,7 +16,7 @@ type Event struct {
 	Duration  float64       `json:"duration"`
 	Timestamp time.Time     `json:"timestamp"`
 	Context   common.MapStr `json:"context"`
-	Traces    []Trace       `json:"traces"`
+	Spans     []Span        `json:"spans"`
 }
 
 func (t *Event) DocType() string {

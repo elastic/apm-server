@@ -16,132 +16,91 @@ var transactionSchema = `{
     "$id": "doc/spec/app.json",
     "title": "App",
     "type": "object",
-    "allOf": [
-        {    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/app_core.json",
-    "title": "App core properties",
-    "type": "object",
     "properties": {
+        "agent": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "version": {
+                    "type": "string",
+                    "maxLength": 1024
+                }
+            },
+            "required": ["name", "version"]
+        },
+        "argv": {
+            "type": ["array", "null"],
+            "minItems": 0
+        },
+        "framework": {
+            "type": ["object", "null"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "version": {
+                    "type": "string",
+                    "maxLength": 1024
+                }
+            },
+            "required": ["name", "version"]
+        },
+        "language": {
+            "type": ["object", "null"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "version": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                }
+            },
+            "required": ["name"]
+        },
         "name": {
             "description": "Immutable name of the app emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
+        "pid": {
+            "type": ["number", "null"]
+        },
+        "process_title": {
+            "type": ["string", "null"],
+            "maxLength": 1024
+        },
+        "environment": {
+            "type": ["string", "null"],
+            "maxLength": 1024
+        },
+        "runtime": {
+            "type": ["object", "null"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "version": {
+                    "type": "string",
+                    "maxLength": 1024
+                }
+            },
+            "required": ["name", "version"]
+        },
         "version": {
             "description": "Version of the app emitting this event",
-            "type": [
-                "string",
-                "null"
-            ],
+            "type": ["string", "null"],
             "maxLength": 1024
         }
     },
-    "required": ["name"]},
-        {"properties": {
-            "agent": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 1024
-                    },
-                    "version": {
-                        "type": "string",
-                        "maxLength": 1024
-                    }
-                },
-                "required": [
-                    "name",
-                    "version"
-                ]
-            },
-            "argv": {
-                "type": [
-                    "array",
-                    "null"
-                ],
-                "minItems": 0
-            },
-            "framework": {
-                "type": [
-                    "object",
-                    "null"
-                ],
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 1024
-                    },
-                    "version": {
-                        "type": "string",
-                        "maxLength": 1024
-                    }
-                },
-                "required": [
-                    "name",
-                    "version"
-                ]
-            },
-            "language": {
-                "type": [
-                    "object",
-                    "null"
-                ],
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 1024
-                    },
-                    "version": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "maxLength": 1024
-                    }
-                },
-                "required": [
-                    "name"
-                ]
-            },
-            "pid": {
-                "type": [
-                    "number",
-                    "null"
-                ]
-            },
-            "process_title": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "maxLength": 1024
-            },
-            "runtime": {
-                "type": [
-                    "object",
-                    "null"
-                ],
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 1024
-                    },
-                    "version": {
-                        "type": "string",
-                        "maxLength": 1024
-                    }
-                },
-                "required": [
-                    "name",
-                    "version"
-                ]
-            }
-        },
-        "required": ["agent"]
-        }
-    ]
+    "required": ["agent", "name"]
         },
         "system": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
@@ -348,7 +307,7 @@ var transactionSchema = `{
         },
         "id": {
             "type": "string",
-            "description": "UUID for the transaction, referred by its traces",
+            "description": "UUID for the transaction, referred by its spans",
             "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         },
         "name": {
@@ -367,16 +326,16 @@ var transactionSchema = `{
             "format": "date-time",
             "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         },
-        "traces": {
+        "spans": {
             "type": ["array", "null"],
             "items": {
                     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/transactions/trace.json",
+    "$id": "docs/spec/transactions/span.json",
     "type": "object",
     "properties": {
         "id": {
             "type": ["number", "null"],
-            "description": "The locally unique ID of the trace."
+            "description": "The locally unique ID of the span."
         },
         "context": {
             "type": ["object", "null"],
@@ -384,7 +343,7 @@ var transactionSchema = `{
             "properties": {
                 "db": {
                     "type": ["object", "null"],
-                    "description": "An object containing contextual data for database traces",
+                    "description": "An object containing contextual data for database spans",
                     "properties": {
                         "instance": {
                            "type": ["string", "null"],
@@ -408,23 +367,23 @@ var transactionSchema = `{
         },
         "duration": {
             "type": "number",
-            "description": "Duration of the trace in milliseconds"
+            "description": "Duration of the span in milliseconds"
         },
         "name": {
             "type": "string",
-            "description": "Generic designation of a trace in the scope of a transaction",
+            "description": "Generic designation of a span in the scope of a transaction",
             "maxLength": 1024
         },
         "parent": {
             "type": ["number", "null"],
-            "description": "The locally unique ID of the parent of the trace."
+            "description": "The locally unique ID of the parent of the span."
         },
         "stacktrace": {
             "type": ["array", "null"],
             "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
             "items": {
                     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace.json",
+    "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -482,7 +441,7 @@ var transactionSchema = `{
         },
         "start": {
             "type": "number",
-            "description": "Offset relative to the transaction's timestamp identifying the start of the trace, in milliseconds"
+            "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
         },
         "type": {
             "type": "string",

@@ -1,0 +1,36 @@
+package sourcemap
+
+func Schema() string {
+	return sourcemapSchema
+}
+
+var sourcemapSchema = `{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/sourcemaps/sourcemap-metadata.json",
+    "title": "Sourcemap Metadata",
+    "description": "Sourcemap Metadata",
+    "type": "object",
+    "properties": {
+        "bundle_filepath": {
+            "description": "relative path of the minified bundle file",
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1
+        },
+        "app_version": {
+            "description": "Version of the app emitting this event",
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1
+        },
+        "app_name": {
+            "description": "Immutable name of the app emitting this event",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9 _-]+$",
+            "maxLength": 1024,
+            "minLength": 1
+        }
+    },
+    "required": ["bundle_filepath", "app_name", "app_version"]
+}
+`

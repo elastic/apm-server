@@ -12,6 +12,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"
@@ -256,6 +257,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"
@@ -304,6 +306,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"
@@ -351,6 +354,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"

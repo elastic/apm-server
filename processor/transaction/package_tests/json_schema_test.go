@@ -14,20 +14,23 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 
 	//only add attributes that should not be documented by the schema
 	undocumented := set.New(
-		"transactions.traces.stacktrace.vars.key",
+		"transactions.spans.stacktrace.vars.key",
 		"transactions.context.request.headers.some-other-header",
 		"transactions.context.request.headers.array",
 		"transactions.context.request.env.SERVER_SOFTWARE",
 		"transactions.context.request.env.GATEWAY_INTERFACE",
+		"transactions.context.request.body",
 		"transactions.context.request.cookies.c1",
 		"transactions.context.request.cookies.c2",
+		"transactions.context.custom",
 		"transactions.context.custom.my_key",
 		"transactions.context.custom.some_other_value",
 		"transactions.context.custom.and_objects",
 		"transactions.context.custom.and_objects.foo",
+		"transactions.context.tags",
 		"transactions.context.tags.organization_uuid",
 	)
-	tests.TestPayloadAttributesInSchema(t, "transaction/payload.json", undocumented, transaction.Schema())
+	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, transaction.Schema())
 }
 
 func TestJsonSchemaKeywordLimitation(t *testing.T) {
@@ -35,6 +38,6 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 		"./../../../_meta/fields.common.yml",
 		"./../_meta/fields.yml",
 	}
-	exceptions := set.New("processor.event", "processor.name", "context.app.name", "transaction.id", "trace.transaction_id", "listening")
+	exceptions := set.New("processor.event", "processor.name", "context.app.name", "transaction.id", "span.transaction.id", "listening")
 	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, transaction.Schema(), exceptions)
 }

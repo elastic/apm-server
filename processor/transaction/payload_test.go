@@ -93,9 +93,9 @@ func TestPayloadTransform(t *testing.T) {
 			},
 		},
 	}
-	traces := []Trace{{}}
-	txValidWithTrace := Event{Timestamp: timestamp, Traces: traces}
-	traceEs := common.MapStr{
+	spans := []Span{{}}
+	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
+	spanEs := common.MapStr{
 		"context": common.MapStr{
 			"app": common.MapStr{
 				"name":  "myapp",
@@ -103,15 +103,15 @@ func TestPayloadTransform(t *testing.T) {
 			},
 		},
 		"processor": common.MapStr{
-			"event": "trace",
+			"event": "span",
 			"name":  "transaction",
 		},
-		"trace": common.MapStr{
-			"duration":       common.MapStr{"us": 0},
-			"name":           "",
-			"start":          common.MapStr{"us": 0},
-			"transaction_id": "",
-			"type":           "",
+		"span": common.MapStr{
+			"duration":    common.MapStr{"us": 0},
+			"name":        "",
+			"start":       common.MapStr{"us": 0},
+			"transaction": common.MapStr{"id": ""},
+			"type":        "",
 		},
 	}
 
@@ -128,9 +128,9 @@ func TestPayloadTransform(t *testing.T) {
 		{
 			Payload: payload{
 				App:    app,
-				Events: []Event{txValid, txValidWithTrace},
+				Events: []Event{txValid, txValidWithSpan},
 			},
-			Output: []common.MapStr{txValidEs, txValidEs, traceEs},
+			Output: []common.MapStr{txValidEs, txValidEs, spanEs},
 			Msg:    "Payload with multiple Events",
 		},
 		{

@@ -12,6 +12,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"
@@ -130,10 +131,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 3781
                 },
@@ -176,7 +177,9 @@
                 "start": {
                     "us": 2830
                 },
-                "transaction_id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
+                "transaction": {
+                    "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+                },
                 "type": "db.postgresql.query"
             }
         },
@@ -192,10 +195,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 32592
                 },
@@ -205,7 +208,9 @@
                 "start": {
                     "us": 0
                 },
-                "transaction_id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
+                "transaction": {
+                    "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+                },
                 "type": "request"
             }
         },
@@ -221,10 +226,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 3564
                 },
@@ -234,7 +239,9 @@
                 "start": {
                     "us": 1845
                 },
-                "transaction_id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
+                "transaction": {
+                    "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+                },
                 "type": "request"
             }
         },
@@ -250,10 +257,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 13980
                 },
@@ -263,7 +270,9 @@
                 "start": {
                     "us": 0
                 },
-                "transaction_id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
+                "transaction": {
+                    "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+                },
                 "type": "request"
             }
         },
@@ -279,6 +288,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"
@@ -328,6 +338,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"
@@ -377,6 +388,7 @@
                         "node",
                         "server.js"
                     ],
+                    "environment": "staging",
                     "framework": {
                         "name": "Express",
                         "version": "1.2.3"
@@ -432,10 +444,10 @@
                 }
             },
             "processor": {
-                "event": "trace",
+                "event": "span",
                 "name": "transaction"
             },
-            "trace": {
+            "span": {
                 "duration": {
                     "us": 3781
                 },
@@ -443,7 +455,9 @@
                 "start": {
                     "us": 2830
                 },
-                "transaction_id": "85925e55-b43f-4340-a8e0-df1906ecbfa9",
+                "transaction": {
+                    "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9"
+                },
                 "type": "db.postgresql.query"
             }
         }

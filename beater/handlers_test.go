@@ -1,12 +1,13 @@
 package beater
 
 import (
-	"bytes"
 	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"bytes"
 
 	"github.com/stretchr/testify/assert"
 
@@ -22,11 +23,7 @@ func TestDecode(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	assert.Nil(t, err)
 
-	res, err := decodeData(req)
-	assert.Nil(t, err)
-	assert.NotNil(t, res)
-
-	body, err := ioutil.ReadAll(res)
+	body, err := decodeLimitJSONData(1024 * 1024)(req)
 	assert.Nil(t, err)
 	assert.Equal(t, transactionBytes, body)
 }

@@ -136,6 +136,36 @@ class ClientSideTest(ClientSideBaseTest):
         r = requests.post(self.transactions_url, json=transactions)
         assert r.status_code == 202, r.status_code
 
+    def test_sourcemap_upload(self):
+        import os
+        path = os.path.abspath(os.path.join(self.beat_path,
+                                            'tests',
+                                            'data',
+                                            'valid',
+                                            'sourcemap',
+                                            'bundle.min.map'))
+        file = open(path)
+        r = requests.post("http://localhost:8200/v1/client-side/sourcemaps",
+                          files={'sourcemap': file},
+                          data={'app_version': 'bar',
+                                'bundle_filepath': 'bundle.min.map',
+                                'app_name': 'foo'
+                                })
+        assert r.status_code == 202, r.status_code
+
+    def test_sourcemap_upload_fail(self):
+        import os
+        path = os.path.abspath(os.path.join(self.beat_path,
+                                            'tests',
+                                            'data',
+                                            'valid',
+                                            'sourcemap',
+                                            'bundle.min.map'))
+        file = open(path)
+        r = requests.post("http://localhost:8200/v1/client-side/sourcemaps",
+                          files={'sourcemap': file})
+        assert r.status_code == 400, r.status_code
+
 
 class CorsTest(CorsBaseTest):
 
