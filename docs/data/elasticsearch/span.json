@@ -61,9 +61,9 @@
         "start": {
             "us": 2830
         },
-        "transaction": {
-            "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
-        },
         "type": "db.postgresql.query"
+    },
+    "transaction": {
+        "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
     }
 }
