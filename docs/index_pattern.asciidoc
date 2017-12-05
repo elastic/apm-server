@@ -2,17 +2,17 @@
 [float]
 === Configuring Index Pattern
 
-The same APM Server process can handle data from multiple apps.
-If you want to send data from each app to separate indices,
-you can include the app name in the Elasticsearch index pattern in the following manner:
+The same APM Server process can handle data from multiple services.
+If you want to send data from each service to separate indices,
+you can include the service name in the Elasticsearch index pattern in the following manner:
 
 [source,yaml]
 ----
 output.elasticsearch:
-  index: "apm-%{[app.name]}-%{[beat.version]}-%{+yyyy.MM.dd}"
+  index: "apm-%{[context.service.name]}-%{[beat.version]}-%{+yyyy.MM.dd}"
 ----
 
-This will have the effect that all events end up in app-specific indices,
+This will have the effect that all events end up in service-specific indices,
 and it will enable you to set security restrictions based on your index pattern.
 
 NOTE: Changing the default index pattern will break the Kibana UI and dashboards.

@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/errors/error.json",
     "type": "object",
-    "description": "Data captured by an agent representing an event occurring in a monitored app",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
         "context": {
             "$ref": "./../context.json"

@@ -5,8 +5,8 @@
     "description": "List of errors wrapped in an object containing some other attributes normalized away form the errors themselves",
     "type": "object",
     "properties": {
-        "app": {
-            "$ref": "../app.json"
+        "service": {
+            "$ref": "../service.json"
         },
         "errors": {
             "type": "array",
@@ -19,5 +19,5 @@
             "$ref": "../system.json"
         }
     },
-    "required": ["app", "errors"]
+    "required": ["service", "errors"]
 }

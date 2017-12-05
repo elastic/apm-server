@@ -27,8 +27,8 @@ func DecodeSourcemapFormData(req *http.Request) ([]byte, error) {
 
 	payload := map[string]interface{}{
 		"sourcemap":       parsedSourcemap,
-		"app_name":        req.FormValue("app_name"),
-		"app_version":     req.FormValue("app_version"),
+		"service_name":    req.FormValue("service_name"),
+		"service_version": req.FormValue("service_version"),
 		"bundle_filepath": req.FormValue("bundle_filepath"),
 	}
 

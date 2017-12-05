@@ -3,19 +3,22 @@
         {
             "@timestamp": "2017-05-09T15:04:05.999999Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "python",
                         "version": "1.0"
                     },
-                    "name": "1234_app-12a3"
+                    "language": {
+                        "name": "python"
+                    },
+                    "name": "1234_service-12a3"
                 }
             },
             "error": {
-                "exception": {
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "log": {
                     "message": ""
-                },
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e"
+                }
             },
             "processor": {
                 "event": "error",

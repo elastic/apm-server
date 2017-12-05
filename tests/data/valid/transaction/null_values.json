@@ -1,6 +1,6 @@
 {
-    "app": {
-        "name": "1234_app-12a3",
+    "service": {
+        "name": "1234_service-12a3",
         "language": {
           "name": "ruby",
           "version": null

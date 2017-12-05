@@ -11,19 +11,19 @@
             "maxLength": 1024,
             "minLength": 1
         },
-        "app_version": {
-            "description": "Version of the app emitting this event",
+        "service_version": {
+            "description": "Version of the service emitting this event",
             "type": "string",
             "maxLength": 1024,
             "minLength": 1
         },
-        "app_name": {
-            "description": "Immutable name of the app emitting this event",
+        "service_name": {
+            "description": "Immutable name of the service emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024,
             "minLength": 1
         }
     },
-    "required": ["bundle_filepath", "app_name", "app_version"]
+    "required": ["bundle_filepath", "service_name", "service_version"]
 }

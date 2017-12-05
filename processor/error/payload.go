@@ -13,15 +13,15 @@ var (
 )
 
 type payload struct {
-	App    m.App     `json:"app"`
-	System *m.System `json:"system"`
-	Events []Event   `json:"errors"`
+	Service m.Service `json:"service"`
+	System  *m.System `json:"system"`
+	Events  []Event   `json:"errors"`
 }
 
 func (pa *payload) transform() []beat.Event {
 	var events []beat.Event
 
-	logp.Debug("error", "Transform error events: events=%d, app=%s, agent=%s:%s", len(pa.Events), pa.App.Name, pa.App.Agent.Name, pa.App.Agent.Version)
+	logp.Debug("error", "Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	errorCounter.Add(int64(len(pa.Events)))
 	for _, e := range pa.Events {
