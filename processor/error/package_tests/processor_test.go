@@ -1,6 +1,7 @@
 package package_tests
 
 import (
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,13 +19,16 @@ func TestProcessorOK(t *testing.T) {
 		{Name: "TestProcessErrorFull", Path: "tests/data/valid/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "tests/data/valid/error/null_values.json"},
 	}
-	tests.TestProcessRequests(t, er.NewProcessor(), requestInfo, map[string]string{})
+
+	req := httptest.NewRequest("GET", "/", nil)
+	tests.TestProcessRequests(t, er.NewProcessor(req), requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
 func TestProcessorFailedValidation(t *testing.T) {
 	data, err := tests.LoadInvalidData("error")
 	assert.Nil(t, err)
-	err = er.NewProcessor().Validate(data)
+	req := httptest.NewRequest("GET", "/", nil)
+	err = er.NewProcessor(req).Validate(data)
 	assert.NotNil(t, err)
 }

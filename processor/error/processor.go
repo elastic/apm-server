@@ -2,6 +2,7 @@ package error
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -23,12 +24,13 @@ const (
 
 var schema = pr.CreateSchema(errorSchema, processorName)
 
-func NewProcessor() pr.Processor {
-	return &processor{schema}
+func NewProcessor(r *http.Request) pr.Processor {
+	return &processor{schema: schema, req: r}
 }
 
 type processor struct {
 	schema *jsonschema.Schema
+	req    *http.Request
 }
 
 func (p *processor) Validate(buf []byte) error {
@@ -48,7 +50,7 @@ func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
 		return nil, err
 	}
 
-	return pa.transform(), nil
+	return pa.transform(p.req), nil
 }
 
 func (p *processor) Name() string {

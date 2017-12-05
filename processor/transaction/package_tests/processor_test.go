@@ -1,6 +1,7 @@
 package package_tests
 
 import (
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,14 +21,17 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionMinimalApp", Path: "tests/data/valid/transaction/minimal_app.json"},
 		{Name: "TestProcessTransactionEmpty", Path: "tests/data/valid/transaction/transaction_empty_values.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), requestInfo, map[string]string{})
+
+	req := httptest.NewRequest("GET", "/", nil)
+	tests.TestProcessRequests(t, transaction.NewProcessor(req), requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
 func TestTransactionProcessorValidationFailed(t *testing.T) {
 	data, err := tests.LoadInvalidData("transaction")
 	assert.Nil(t, err)
-	p := transaction.NewProcessor()
+	req := httptest.NewRequest("GET", "/", nil)
+	p := transaction.NewProcessor(req)
 	err = p.Validate(data)
 	assert.NotNil(t, err)
 }

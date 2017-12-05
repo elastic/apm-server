@@ -1,6 +1,8 @@
 package healthcheck
 
 import (
+	"net/http"
+
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 )
@@ -9,7 +11,7 @@ const (
 	processorName = "healthcheck"
 )
 
-func NewProcessor() pr.Processor {
+func NewProcessor(*http.Request) pr.Processor {
 	return &processor{}
 }
 

@@ -76,7 +76,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform()
+		outputEvents := test.Payload.transform(nil)
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))

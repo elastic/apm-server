@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,7 @@ func TestPayloadTransform(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
 	platform := "x64"
+	ip := "192.168.0.2"
 	timestamp := time.Now()
 
 	app := m.App{Name: "myapp"}
@@ -61,6 +63,7 @@ func TestPayloadTransform(t *testing.T) {
 				"hostname":     hostname,
 				"architecture": architecture,
 				"platform":     platform,
+				"ip":           ip,
 			},
 			"app": common.MapStr{
 				"name":  "myapp",
@@ -90,6 +93,7 @@ func TestPayloadTransform(t *testing.T) {
 				"hostname":     "a.b.c",
 				"architecture": "darwin",
 				"platform":     "x64",
+				"ip":           "192.168.0.2",
 			},
 		},
 	}
@@ -153,8 +157,13 @@ func TestPayloadTransform(t *testing.T) {
 		},
 	}
 
+	req, err := http.NewRequest("GET", "_", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.RemoteAddr = ip
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform()
+		outputEvents := test.Payload.transform(req)
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp)

@@ -201,6 +201,14 @@ The host that records the event.
 
 
 [float]
+=== `context.system.ip`
+
+type: ip
+
+IP of the host that records the event.
+
+
+[float]
 === `context.system.architecture`
 
 type: keyword
