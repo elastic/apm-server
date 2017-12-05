@@ -3,8 +3,6 @@ package sourcemap
 import (
 	"testing"
 
-	"encoding/json"
-
 	"time"
 
 	s "github.com/go-sourcemap/sourcemap"
@@ -34,12 +32,12 @@ func getStrSlice(data common.MapStr, key string) []string {
 }
 
 func TestPayloadTransform(t *testing.T) {
-	var payload payload
-	fileBytes, err := tests.LoadValidData("sourcemap")
-	assert.NoError(t, err)
-	json.Unmarshal(fileBytes, &payload)
 
-	rs := payload.transform()
+	data, err := tests.LoadValidDataAsInterface("sourcemap")
+	assert.NoError(t, err)
+
+	rs, err := NewProcessor().Transform(data)
+	assert.NoError(t, err)
 
 	assert.Len(t, rs, 1)
 	event := rs[0]

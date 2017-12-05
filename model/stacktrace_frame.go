@@ -6,17 +6,17 @@ import (
 )
 
 type StacktraceFrame struct {
-	AbsPath     *string       `json:"abs_path"`
-	Filename    string        `json:"filename"`
-	Lineno      int           `json:"lineno"`
-	Colno       *int          `json:"colno"`
-	ContextLine *string       `json:"context_line"`
-	Module      *string       `json:"module"`
-	Function    *string       `json:"function"`
-	InApp       *bool         `json:"in_app"`
-	Vars        common.MapStr `json:"vars"`
-	PreContext  []string      `json:"pre_context"`
-	PostContext []string      `json:"post_context"`
+	AbsPath     *string `mapstructure:"abs_path"`
+	Filename    string
+	Lineno      int
+	Colno       *int
+	ContextLine *string `mapstructure:"context_line"`
+	Module      *string
+	Function    *string
+	InApp       *bool `mapstructure:"in_app"`
+	Vars        common.MapStr
+	PreContext  []string `mapstructure:"pre_context"`
+	PostContext []string `mapstructure:"post_context"`
 }
 
 type TransformStacktraceFrame func(s *StacktraceFrame) common.MapStr

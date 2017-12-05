@@ -9,14 +9,14 @@ import (
 )
 
 type Span struct {
-	Id               *int               `json:"id"`
-	Name             string             `json:"name"`
-	Type             string             `json:"type"`
-	Start            float64            `json:"start"`
-	Duration         float64            `json:"duration"`
-	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
-	Context          common.MapStr      `json:"context"`
-	Parent           *int               `json:"parent"`
+	Id               *int
+	Name             string
+	Type             string
+	Start            float64
+	Duration         float64
+	StacktraceFrames m.StacktraceFrames `mapstructure:"stacktrace"`
+	Context          common.MapStr
+	Parent           *int
 
 	TransformStacktrace m.TransformStacktrace
 }

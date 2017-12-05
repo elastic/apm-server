@@ -2,7 +2,6 @@ package sourcemap
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -37,11 +36,7 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NoError(t, err)
-	buf, err := DecodeSourcemapFormData(req)
-	assert.NoError(t, err)
-
-	var data map[string]interface{}
-	err = json.Unmarshal(buf, &data)
+	data, err := DecodeSourcemapFormData(req)
 	assert.NoError(t, err)
 
 	assert.Len(t, data, 4)

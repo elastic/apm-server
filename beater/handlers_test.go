@@ -11,6 +11,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"encoding/json"
+
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -18,6 +20,8 @@ func TestDecode(t *testing.T) {
 	transactionBytes, err := tests.LoadValidData("transaction")
 	assert.Nil(t, err)
 	buffer := bytes.NewReader(transactionBytes)
+	var data map[string]interface{}
+	json.Unmarshal(transactionBytes, &data)
 
 	req, err := http.NewRequest("POST", "_", buffer)
 	req.Header.Add("Content-Type", "application/json")
@@ -25,7 +29,7 @@ func TestDecode(t *testing.T) {
 
 	body, err := decodeLimitJSONData(1024 * 1024)(req)
 	assert.Nil(t, err)
-	assert.Equal(t, transactionBytes, body)
+	assert.Equal(t, data, body)
 }
 
 func TestJSONFailureResponse(t *testing.T) {

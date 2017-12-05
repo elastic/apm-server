@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/elastic/apm-server/beater"
+	"github.com/elastic/apm-server/tests"
 )
 
 func main() {
@@ -34,18 +35,7 @@ func generate() error {
 
 		p := mapping.ProcessorFactory()
 
-		// Remove version from name and and s at the end
-		name := p.Name()
-
-		// Create path to test docs
-		path := filepath.Join(basepath, name, filename)
-
-		f, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-
-		data, err := ioutil.ReadAll(f)
+		data, err := tests.LoadDataAsInterface(filepath.Join(basepath, p.Name(), filename))
 		if err != nil {
 			return err
 		}

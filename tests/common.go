@@ -8,9 +8,11 @@ import (
 	"runtime"
 )
 
-func UnmarshalData(file string, data interface{}) error {
-	_, current, _, _ := runtime.Caller(0)
-	return unmarshalData(filepath.Join(filepath.Dir(current), "..", file), data)
+func LoadDataAsInterface(file string) (map[string]interface{}, error) {
+	bytes, _ := LoadData(file)
+	data := make(map[string]interface{})
+	err := json.Unmarshal(bytes, &data)
+	return data, err
 }
 
 func LoadData(file string) ([]byte, error) {
@@ -26,24 +28,28 @@ func LoadValidData(dataType string) ([]byte, error) {
 	return ioutil.ReadFile(path)
 }
 
-func LoadInvalidData(dataType string) ([]byte, error) {
+func LoadValidDataAsInterface(dataType string) (map[string]interface{}, error) {
+	path, err := buildPath(dataType, true)
+	if err != nil {
+		return nil, err
+	}
+	var data map[string]interface{}
+	unmarshalData(path, &data)
+	return data, nil
+}
+
+func LoadInvalidDataAsInterface(dataType string) (map[string]interface{}, error) {
 	path, err := buildPath(dataType, false)
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadFile(path)
+	var data map[string]interface{}
+	unmarshalData(path, &data)
+	return data, nil
 }
 
 func UnmarshalValidData(dataType string, data interface{}) error {
 	path, err := buildPath(dataType, true)
-	if err != nil {
-		return err
-	}
-	return unmarshalData(path, data)
-}
-
-func UnmarshalInvalidData(dataType string, data interface{}) error {
-	path, err := buildPath(dataType, false)
 	if err != nil {
 		return err
 	}
