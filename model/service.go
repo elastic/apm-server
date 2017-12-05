@@ -6,33 +6,33 @@ import (
 )
 
 type Service struct {
-	Name         string    `json:"name"`
-	Version      *string   `json:"version"`
-	Pid          *int      `json:"pid"`
-	ProcessTitle *string   `json:"process_title"`
-	Environment  *string   `json:"environment"`
-	Argv         []string  `json:"argv"`
-	Language     Language  `json:"language"`
-	Runtime      Runtime   `json:"runtime"`
-	Framework    Framework `json:"framework"`
-	Agent        Agent     `json:"agent"`
+	Name         string
+	Version      *string
+	Pid          *int
+	ProcessTitle *string `mapstructure:"process_title"`
+	Environment  *string
+	Argv         []string
+	Language     Language
+	Runtime      Runtime
+	Framework    Framework
+	Agent        Agent
 }
 
 type Language struct {
-	Name    *string `json:"name"`
-	Version *string `json:"version"`
+	Name    *string
+	Version *string
 }
 type Runtime struct {
-	Name    *string `json:"name"`
-	Version *string `json:"version"`
+	Name    *string
+	Version *string
 }
 type Framework struct {
-	Name    *string `json:"name"`
-	Version *string `json:"version"`
+	Name    *string
+	Version *string
 }
 type Agent struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+	Name    string
+	Version string
 }
 
 type TransformService func(a *Service) common.MapStr

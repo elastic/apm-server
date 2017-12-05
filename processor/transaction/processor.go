@@ -1,13 +1,15 @@
 package transaction
 
 import (
-	"encoding/json"
+	"github.com/mitchellh/mapstructure"
 
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/santhosh-tekuri/jsonschema"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -31,19 +33,26 @@ type processor struct {
 	schema *jsonschema.Schema
 }
 
-func (p *processor) Validate(buf []byte) error {
+func (p *processor) Validate(raw map[string]interface{}) error {
 	validationCount.Inc()
-	err := pr.Validate(buf, p.schema)
+	err := pr.Validate(raw, p.schema)
 	if err != nil {
 		validationError.Inc()
 	}
 	return err
 }
 
-func (p *processor) Transform(buf []byte) ([]beat.Event, error) {
+func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
 	var pa payload
 	transformations.Inc()
-	err := json.Unmarshal(buf, &pa)
+
+	decoder, _ := mapstructure.NewDecoder(
+		&mapstructure.DecoderConfig{
+			DecodeHook: utility.RFC3339DecoderHook,
+			Result:     &pa,
+		},
+	)
+	err := decoder.Decode(raw)
 	if err != nil {
 		return nil, err
 	}

@@ -19,8 +19,8 @@ func TestSourcemapProcessorOK(t *testing.T) {
 }
 
 // ensure invalid documents fail the json schema validation already
-func TestTransactionProcessorValidationFailed(t *testing.T) {
-	data, err := tests.LoadInvalidData("sourcemap")
+func TestSourcemapProcessorValidationFailed(t *testing.T) {
+	data, err := tests.LoadInvalidDataAsInterface("sourcemap")
 	assert.Nil(t, err)
 	p := sourcemap.NewProcessor()
 	err = p.Validate(data)

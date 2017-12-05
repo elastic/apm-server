@@ -23,7 +23,7 @@ func TestProcessorOK(t *testing.T) {
 
 // ensure invalid documents fail the json schema validation already
 func TestProcessorFailedValidation(t *testing.T) {
-	data, err := tests.LoadInvalidData("error")
+	data, err := tests.LoadInvalidDataAsInterface("error")
 	assert.Nil(t, err)
 	err = er.NewProcessor().Validate(data)
 	assert.NotNil(t, err)

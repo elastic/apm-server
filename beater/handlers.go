@@ -3,7 +3,6 @@ package beater
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/elastic/apm-server/processor"
@@ -272,16 +271,16 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 		return http.StatusMethodNotAllowed, errPOSTRequestOnly
 	}
 
-	buf, err := decode(r)
+	data, err := decode(r)
 	if err != nil {
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
 	}
 
-	if err = processor.Validate(buf); err != nil {
+	if err = processor.Validate(data); err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	list, err := processor.Transform(buf)
+	list, err := processor.Transform(data)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -293,10 +292,10 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 	return http.StatusAccepted, nil
 }
 
-type decoder func(req *http.Request) ([]byte, error)
+type decoder func(req *http.Request) (map[string]interface{}, error)
 
 func decodeLimitJSONData(maxSize int64) decoder {
-	return func(req *http.Request) ([]byte, error) {
+	return func(req *http.Request) (map[string]interface{}, error) {
 
 		contentType := req.Header.Get("Content-Type")
 		if contentType != "application/json" {
@@ -323,16 +322,13 @@ func decodeLimitJSONData(maxSize int64) decoder {
 				return nil, err
 			}
 		}
-
-		// Limit size of request to prevent for example zip bombs
-		limitedReader := io.LimitReader(reader, maxSize)
-		buf, err := ioutil.ReadAll(limitedReader)
+		v := make(map[string]interface{})
+		err := json.NewDecoder(io.LimitReader(reader, maxSize)).Decode(&v)
 		if err != nil {
 			// If we run out of memory, for example
 			return nil, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
 		}
-
-		return buf, nil
+		return v, nil
 	}
 }
 

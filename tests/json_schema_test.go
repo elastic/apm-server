@@ -181,7 +181,7 @@ func testDataAgainstSchema(t *testing.T, testData []schemaTestData, schemaPath s
 
 func testDataAgainstProcessor(t *testing.T, p processor.Processor, testData []schemaTestData, filePath string) {
 	for _, d := range testData {
-		data, err := ioutil.ReadFile(filepath.Join("data/invalid", filePath, d.File))
+		data, err := LoadDataAsInterface(filepath.Join("tests/data/invalid", filePath, d.File))
 		assert.Nil(t, err)
 		err = p.Validate(data)
 		assert.Contains(t, err.Error(), d.Error)

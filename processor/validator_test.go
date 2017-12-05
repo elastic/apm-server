@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestCreateSchemaInvalidResource(t *testing.T) {
@@ -25,7 +24,7 @@ func TestCreateSchemaOK(t *testing.T) {
 }
 
 func TestValidateFails(t *testing.T) {
-	data := []byte(common.MapStr{"age": 12}.String())
+	data := map[string]interface{}{"age": 12}
 	schema := CreateSchema(validSchema, "myschema")
 	err := Validate(data, schema)
 	assert.NotNil(t, err)
@@ -33,7 +32,7 @@ func TestValidateFails(t *testing.T) {
 }
 
 func TestValidateOK(t *testing.T) {
-	data := []byte(common.MapStr{"name": "john"}.String())
+	data := map[string]interface{}{"name": "john"}
 	schema := CreateSchema(validSchema, "myschema")
 	err := Validate(data, schema)
 	assert.Nil(t, err)
