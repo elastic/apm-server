@@ -1,13 +1,13 @@
 [[transaction-api]]
 == Transaction API
 
-The APM Server exposes an API Endpoint to send transaction records. 
+The APM Server exposes an API Endpoint to send transaction records.
 Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
 To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint.
 Information pertaining to the record must be sent as a JSON object to the endpoint.
 
-Find more information about: 
+Find more information about:
 
 * <<transaction-schema-definition>>
 * <<transaction-api-examples>>
@@ -17,13 +17,13 @@ Find more information about:
 [float]
 === Schema Definition
 
-The APM Server uses a JSON Schema for validating the transaction requests. 
+The APM Server uses a JSON Schema for validating the transaction requests.
 Find details on how the schema is defined:
 
 * <<transaction-payload-schema>>
 * <<transaction-transaction-schema>>
 * <<transaction-span-schema>>
-* <<transaction-app-schema>>
+* <<transaction-service-schema>>
 * <<transaction-system-schema>>
 * <<transaction-context-schema>>
 * <<transaction-stacktraceframe-schema>>
@@ -41,7 +41,7 @@ include::./spec/transactions/payload.json[]
 
 [[transaction-transaction-schema]]
 [float]
-==== Transaction 
+==== Transaction
 
 [source,json]
 ----
@@ -50,16 +50,16 @@ include::./spec/transactions/transaction.json[]
 
 [[transaction-span-schema]]
 [float]
-==== Span 
+==== Span
 
 [source,json]
 ----
 include::./spec/transactions/span.json[]
 ----
 
-[[transaction-app-schema]]
+[[transaction-service-schema]]
 [float]
-==== App
+==== Service
 
 [source,json]
 ----
@@ -77,7 +77,7 @@ include::./spec/system.json[]
 
 [[transaction-context-schema]]
 [float]
-==== Context 
+==== Context
 
 [source,json]
 ----
@@ -86,7 +86,7 @@ include::./spec/context.json[]
 
 [[transaction-stacktraceframe-schema]]
 [float]
-==== Stacktrace Frame 
+==== Stacktrace Frame
 
 [source,json]
 ----
@@ -95,7 +95,7 @@ include::./spec/stacktrace_frame.json[]
 
 [[transaction-request-schema]]
 [float]
-==== Request 
+==== Request
 
 [source,json]
 ----
