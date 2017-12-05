@@ -11,10 +11,10 @@ var errorSchema = `{
     "description": "List of errors wrapped in an object containing some other attributes normalized away form the errors themselves",
     "type": "object",
     "properties": {
-        "app": {
+        "service": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/app.json",
-    "title": "App",
+    "$id": "doc/spec/service.json",
+    "title": "Service",
     "type": "object",
     "properties": {
         "agent": {
@@ -64,7 +64,7 @@ var errorSchema = `{
             "required": ["name"]
         },
         "name": {
-            "description": "Immutable name of the app emitting this event",
+            "description": "Immutable name of the service emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
@@ -95,7 +95,7 @@ var errorSchema = `{
             "required": ["name", "version"]
         },
         "version": {
-            "description": "Version of the app emitting this event",
+            "description": "Version of the service emitting this event",
             "type": ["string", "null"],
             "maxLength": 1024
         }
@@ -108,7 +108,7 @@ var errorSchema = `{
                     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/errors/error.json",
     "type": "object",
-    "description": "Data captured by an agent representing an event occurring in a monitored app",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
         "context": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
@@ -509,6 +509,6 @@ var errorSchema = `{
     }
         }
     },
-    "required": ["app", "errors"]
+    "required": ["service", "errors"]
 }
 `

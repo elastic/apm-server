@@ -147,9 +147,9 @@ class ClientSideTest(ClientSideBaseTest):
         file = open(path)
         r = requests.post("http://localhost:8200/v1/client-side/sourcemaps",
                           files={'sourcemap': file},
-                          data={'app_version': 'bar',
+                          data={'service_version': 'bar',
                                 'bundle_filepath': 'bundle.min.map',
-                                'app_name': 'foo'
+                                'service_name': 'foo'
                                 })
         assert r.status_code == 202, r.status_code
 

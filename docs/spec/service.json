@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/app.json",
-    "title": "App",
+    "$id": "doc/spec/service.json",
+    "title": "Service",
     "type": "object",
     "properties": {
         "agent": {
@@ -51,7 +51,7 @@
             "required": ["name"]
         },
         "name": {
-            "description": "Immutable name of the app emitting this event",
+            "description": "Immutable name of the service emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
@@ -82,7 +82,7 @@
             "required": ["name", "version"]
         },
         "version": {
-            "description": "Version of the app emitting this event",
+            "description": "Version of the service emitting this event",
             "type": ["string", "null"],
             "maxLength": 1024
         }

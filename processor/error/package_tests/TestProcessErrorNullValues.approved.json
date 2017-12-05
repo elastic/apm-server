@@ -3,7 +3,7 @@
         {
             "@timestamp": "2017-05-09T15:04:05.999999Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -11,7 +11,7 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "system": {}
             },
@@ -21,7 +21,7 @@
                 },
                 "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
                 "log": {
-                    "message": "My app could not talk to the database named foobar"
+                    "message": "My service could not talk to the database named foobar"
                 }
             },
             "processor": {
@@ -32,16 +32,6 @@
         {
             "@timestamp": "2017-05-09T15:04:05.1Z",
             "context": {
-                "app": {
-                    "agent": {
-                        "name": "ruby",
-                        "version": "1.0.0"
-                    },
-                    "language": {
-                        "name": "ruby"
-                    },
-                    "name": "1234_app-12a3"
-                },
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -70,6 +60,16 @@
                         "content-type": null
                     }
                 },
+                "service": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_service-12a3"
+                },
                 "system": {},
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
@@ -89,16 +89,6 @@
         {
             "@timestamp": "2017-05-09T15:04:05Z",
             "context": {
-                "app": {
-                    "agent": {
-                        "name": "ruby",
-                        "version": "1.0.0"
-                    },
-                    "language": {
-                        "name": "ruby"
-                    },
-                    "name": "1234_app-12a3"
-                },
                 "custom": null,
                 "request": {
                     "body": null,
@@ -124,6 +114,16 @@
                     "headers_sent": null,
                     "status_code": null
                 },
+                "service": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_service-12a3"
+                },
                 "system": {},
                 "user": {
                     "email": null,
@@ -145,7 +145,10 @@
         {
             "@timestamp": "2017-05-09T15:04:05.999Z",
             "context": {
-                "app": {
+                "custom": null,
+                "request": null,
+                "response": null,
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -153,11 +156,8 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
-                "custom": null,
-                "request": null,
-                "response": null,
                 "system": {},
                 "tags": null,
                 "user": null

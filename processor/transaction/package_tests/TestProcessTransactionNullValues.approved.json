@@ -3,7 +3,7 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -11,7 +11,7 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "system": {}
             },
@@ -32,7 +32,7 @@
         {
             "@timestamp": "2017-05-30T18:53:42Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -40,7 +40,7 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "custom": null,
                 "request": null,
@@ -65,7 +65,7 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281999Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -73,7 +73,7 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "custom": null,
                 "request": {
@@ -123,7 +123,7 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -131,7 +131,7 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "custom": {
                     "and_objects": {
@@ -182,12 +182,12 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 }
             },
             "processor": {
@@ -211,12 +211,12 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "db": null
             },
@@ -249,12 +249,12 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "db": {
                     "instance": null,

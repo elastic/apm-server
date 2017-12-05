@@ -49,8 +49,8 @@ func TestPayloadTransform(t *testing.T) {
 	output := event.Fields["sourcemap"].(common.MapStr)
 
 	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
-	assert.Equal(t, "app", getStr(output, "app.name"))
-	assert.Equal(t, "1", getStr(output, "app.version"))
+	assert.Equal(t, "service", getStr(output, "service.name"))
+	assert.Equal(t, "1", getStr(output, "service.version"))
 	assert.Equal(t, float64(3), getFloat(output, "sourcemap.version"))
 	assert.Equal(t,
 		[]string{"webpack:///bundle.js", "webpack:///webpack/bootstrap 6002740481c9666b0d38", "webpack:///./scripts/index.js", "webpack:///./index.html", "webpack:///./scripts/app.js"},

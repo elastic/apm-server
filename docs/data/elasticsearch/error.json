@@ -1,32 +1,5 @@
 {
     "context": {
-        "app": {
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "argv": [
-                "node",
-                "server.js"
-            ],
-            "environment": "staging",
-            "framework": {
-                "name": "Express",
-                "version": "1.2.3"
-            },
-            "language": {
-                "name": "ecmascript",
-                "version": "8"
-            },
-            "name": "1234_app-12a3",
-            "pid": 1234,
-            "process_title": "node",
-            "runtime": {
-                "name": "node",
-                "version": "8.0.0"
-            },
-            "version": "5.1.3"
-        },
         "custom": {
             "and_objects": {
                 "foo": [
@@ -81,6 +54,33 @@
             },
             "headers_sent": true,
             "status_code": 200
+        },
+        "service": {
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "argv": [
+                "node",
+                "server.js"
+            ],
+            "environment": "staging",
+            "framework": {
+                "name": "Express",
+                "version": "1.2.3"
+            },
+            "language": {
+                "name": "ecmascript",
+                "version": "8"
+            },
+            "name": "1234_service-12a3",
+            "pid": 1234,
+            "process_title": "node",
+            "runtime": {
+                "name": "node",
+                "version": "8.0.0"
+            },
+            "version": "5.1.3"
         },
         "system": {
             "architecture": "x64",
@@ -168,13 +168,13 @@
             "type": "DbError",
             "uncaught": true
         },
-        "grouping_key": "4cfd552c0f4a291894c3558466f92151",
+        "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
         "id": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
         "log": {
             "level": "warning",
             "logger_name": "my.logger.name",
-            "message": "My app could not talk to the database named foobar",
-            "param_message": "My app could not talk to the database named %s",
+            "message": "My service could not talk to the database named foobar",
+            "param_message": "My service could not talk to the database named %s",
             "stacktrace": [
                 {
                     "abs_path": "/real/file/name.py",

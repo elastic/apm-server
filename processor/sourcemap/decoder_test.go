@@ -26,8 +26,8 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	assert.NoError(t, err)
 
 	writer.WriteField("bundle_filepath", "js/bundle.min.map")
-	writer.WriteField("app_name", "My app")
-	writer.WriteField("app_version", "0.1")
+	writer.WriteField("service_name", "My service")
+	writer.WriteField("service_version", "0.1")
 
 	err = writer.Close()
 	assert.NoError(t, err)
@@ -46,8 +46,8 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 
 	assert.Len(t, data, 4)
 	assert.Equal(t, "js/bundle.min.map", data["bundle_filepath"])
-	assert.Equal(t, "My app", data["app_name"])
-	assert.Equal(t, "0.1", data["app_version"])
+	assert.Equal(t, "My service", data["service_name"])
+	assert.Equal(t, "0.1", data["service_version"])
 
 	for _, k := range []string{"version", "sources", "names", "mappings", "file", "sourcesContent", "sourceRoot"} {
 		assert.Contains(t, data["sourcemap"], k, data)

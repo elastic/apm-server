@@ -1,17 +1,17 @@
 {
     "context": {
-        "app": {
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "name": "1234_app-12a3"
-        },
         "db": {
             "instance": "customers",
             "statement": "SELECT * FROM product_types WHERE user_id=?",
             "type": "sql",
             "user": "readonly_user"
+        },
+        "service": {
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "name": "1234_service-12a3"
         }
     },
     "processor": {
