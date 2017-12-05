@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 
@@ -20,9 +19,8 @@ func CreateSchema(schemaData string, url string) *jsonschema.Schema {
 	return schema
 }
 
-func Validate(buf []byte, schema *jsonschema.Schema) error {
-	reader := bytes.NewReader(buf)
-	if err := schema.Validate(reader); err != nil {
+func Validate(raw interface{}, schema *jsonschema.Schema) error {
+	if err := schema.ValidateInterface(raw); err != nil {
 		return fmt.Errorf("Problem validating JSON document against schema: %v", err)
 	}
 	return nil

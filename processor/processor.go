@@ -11,8 +11,8 @@ import (
 type NewProcessor func() Processor
 
 type Processor interface {
-	Validate([]byte) error
-	Transform([]byte) ([]beat.Event, error)
+	Validate(map[string]interface{}) error
+	Transform(interface{}) ([]beat.Event, error)
 	Name() string
 }
 

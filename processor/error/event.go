@@ -15,12 +15,12 @@ import (
 )
 
 type Event struct {
-	Id        *string       `json:"id"`
-	Culprit   *string       `json:"culprit"`
-	Context   common.MapStr `json:"context"`
-	Exception *Exception    `json:"exception"`
-	Log       *Log          `json:"log"`
-	Timestamp time.Time     `json:"timestamp"`
+	Id        *string
+	Culprit   *string
+	Context   common.MapStr
+	Exception *Exception
+	Log       *Log
+	Timestamp time.Time
 
 	enhancer            utility.MapStrEnhancer
 	data                common.MapStr
@@ -28,21 +28,21 @@ type Event struct {
 }
 
 type Exception struct {
-	Code             interface{}        `json:"code"`
-	Message          string             `json:"message"`
-	Module           *string            `json:"module"`
-	Attributes       interface{}        `json:"attributes"`
-	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
-	Type             *string            `json:"type"`
-	Uncaught         *bool              `json:"uncaught"`
+	Code             interface{}
+	Message          string
+	Module           *string
+	Attributes       interface{}
+	StacktraceFrames m.StacktraceFrames `mapstructure:"stacktrace"`
+	Type             *string
+	Uncaught         *bool
 }
 
 type Log struct {
-	Level            *string            `json:"level"`
-	Message          string             `json:"message"`
-	ParamMessage     *string            `json:"param_message"`
-	LoggerName       *string            `json:"logger_name"`
-	StacktraceFrames m.StacktraceFrames `json:"stacktrace"`
+	Level            *string
+	Message          string
+	ParamMessage     *string            `mapstructure:"param_message"`
+	LoggerName       *string            `mapstructure:"logger_name"`
+	StacktraceFrames m.StacktraceFrames `mapstructure:"stacktrace"`
 }
 
 func (e *Event) DocType() string {

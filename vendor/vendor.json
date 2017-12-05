@@ -1218,6 +1218,12 @@
 			"revisionTime": "2017-06-28T12:00:33Z"
 		},
 		{
+			"checksumSHA1": "gILp4IL+xwXLH6tJtRLrnZ56F24=",
+			"path": "github.com/mitchellh/mapstructure",
+			"revision": "06020f85339e21b2478f756a78e295255ffa4d6a",
+			"revisionTime": "2017-10-17T17:18:08Z"
+		},
+		{
 			"checksumSHA1": "2AyUkWjutec6p+470tgio8mYOxI=",
 			"origin": "github.com/elastic/beats/vendor/github.com/opencontainers/go-digest",
 			"path": "github.com/opencontainers/go-digest",
@@ -1279,22 +1285,22 @@
 			"revisionTime": "2017-01-28T01:21:29Z"
 		},
 		{
-			"checksumSHA1": "DO1gvD4W/Yzr1vI6xNvmlsj5ESE=",
+			"checksumSHA1": "7IhJTQp7vzGrgo24rRkG6VkgvvA=",
 			"path": "github.com/santhosh-tekuri/jsonschema",
-			"revision": "3968f5a2fa9b81399766f843162c5c06ee1e6aba",
-			"revisionTime": "2017-06-28T13:19:22Z"
+			"revision": "63accc9deedeee33b7caf4e241f8a9ebdf031069",
+			"revisionTime": "2017-11-30T20:27:46Z"
 		},
 		{
 			"checksumSHA1": "wu+Masd8AYe2EzCsiq370Sl0wqw=",
 			"path": "github.com/santhosh-tekuri/jsonschema/formats",
-			"revision": "3968f5a2fa9b81399766f843162c5c06ee1e6aba",
-			"revisionTime": "2017-06-28T13:19:22Z"
+			"revision": "63accc9deedeee33b7caf4e241f8a9ebdf031069",
+			"revisionTime": "2017-11-30T20:27:46Z"
 		},
 		{
 			"checksumSHA1": "zFQ2S0Rrw59P/cy1rONHf/grceM=",
 			"path": "github.com/santhosh-tekuri/jsonschema/loader",
-			"revision": "3968f5a2fa9b81399766f843162c5c06ee1e6aba",
-			"revisionTime": "2017-06-28T13:19:22Z"
+			"revision": "63accc9deedeee33b7caf4e241f8a9ebdf031069",
+			"revisionTime": "2017-11-30T20:27:46Z"
 		},
 		{
 			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",

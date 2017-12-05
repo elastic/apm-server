@@ -13,14 +13,14 @@ import (
 var sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
 
 type payload struct {
-	ServiceName    string        `json:"service_name"`
-	ServiceVersion string        `json:"service_version"`
-	Sourcemap      common.MapStr `json:"sourcemap"`
-	BundleFilepath string        `json:"bundle_filepath"`
+	ServiceName        string `mapstructure:"service_name"`
+	ServiceVersion     string `mapstructure:"service_version"`
+	Sourcemap      common.MapStr
+	BundleFilepath string `mapstructure:"bundle_filepath"`
 }
 
 func (pa *payload) transform() []beat.Event {
-	var events []beat.Event = []beat.Event{pr.CreateDoc(mappings(pa))}
+	var events = []beat.Event{pr.CreateDoc(mappings(pa))}
 	sourcemapCounter.Add(1)
 	return events
 }
