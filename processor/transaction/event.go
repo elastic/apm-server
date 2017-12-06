@@ -3,7 +3,6 @@ package transaction
 import (
 	"time"
 
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -35,8 +34,8 @@ func (t *Event) Transform() common.MapStr {
 	return tx
 }
 
-func (t *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
-	mapping := []m.DocMapping{
+func (t *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
+	mapping := []utility.DocMapping{
 		{Key: "processor", Apply: func() common.MapStr {
 			return common.MapStr{"name": processorName, "event": t.DocType()}
 		}},

@@ -3,7 +3,7 @@ package processor
 import (
 	"time"
 
-	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -16,7 +16,7 @@ type Processor interface {
 	Name() string
 }
 
-func CreateDoc(timestamp time.Time, docMappings []m.DocMapping) beat.Event {
+func CreateDoc(timestamp time.Time, docMappings []utility.DocMapping) beat.Event {
 	doc := common.MapStr{}
 	for _, mapping := range docMappings {
 		if out := mapping.Apply(); out != nil {
