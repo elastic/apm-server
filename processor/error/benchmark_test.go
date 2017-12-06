@@ -9,7 +9,7 @@ import (
 func BenchmarkEventWithFileLoading(b *testing.B) {
 	processor := NewProcessor()
 	for i := 0; i < b.N; i++ {
-		data, _ := tests.LoadValidDataAsInterface("error")
+		data, _ := tests.LoadValidData("error")
 		err := processor.Validate(data)
 		if err != nil {
 			panic(err)
@@ -21,7 +21,7 @@ func BenchmarkEventWithFileLoading(b *testing.B) {
 
 func BenchmarkEventFileLoadingOnce(b *testing.B) {
 	processor := NewProcessor()
-	data, _ := tests.LoadValidDataAsInterface("error")
+	data, _ := tests.LoadValidData("error")
 	for i := 0; i < b.N; i++ {
 		err := processor.Validate(data)
 		if err != nil {

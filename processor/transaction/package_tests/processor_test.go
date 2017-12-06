@@ -12,20 +12,20 @@ import (
 // ensure all valid documents pass through the whole validation and transformation process
 func TestTransactionProcessorOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
-		{Name: "TestProcessTransactionFull", Path: "tests/data/valid/transaction/payload.json"},
-		{Name: "TestProcessTransactionNullValues", Path: "tests/data/valid/transaction/null_values.json"},
-		{Name: "TestProcessSystemNull", Path: "tests/data/valid/transaction/system_null.json"},
-		{Name: "TestProcessTransactionMinimalPayload", Path: "tests/data/valid/transaction/minimal_payload.json"},
-		{Name: "TestProcessTransactionMinimalSpan", Path: "tests/data/valid/transaction/minimal_span.json"},
-		{Name: "TestProcessTransactionMinimalService", Path: "tests/data/valid/transaction/minimal_service.json"},
-		{Name: "TestProcessTransactionEmpty", Path: "tests/data/valid/transaction/transaction_empty_values.json"},
+		{Name: "TestProcessTransactionFull", Path: "data/valid/transaction/payload.json"},
+		{Name: "TestProcessTransactionNullValues", Path: "data/valid/transaction/null_values.json"},
+		{Name: "TestProcessSystemNull", Path: "data/valid/transaction/system_null.json"},
+		{Name: "TestProcessTransactionMinimalPayload", Path: "data/valid/transaction/minimal_payload.json"},
+		{Name: "TestProcessTransactionMinimalSpan", Path: "data/valid/transaction/minimal_span.json"},
+		{Name: "TestProcessTransactionMinimalService", Path: "data/valid/transaction/minimal_service.json"},
+		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
 	}
 	tests.TestProcessRequests(t, transaction.NewProcessor(), requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
 func TestTransactionProcessorValidationFailed(t *testing.T) {
-	data, err := tests.LoadInvalidDataAsInterface("transaction")
+	data, err := tests.LoadInvalidData("transaction")
 	assert.Nil(t, err)
 	p := transaction.NewProcessor()
 	err = p.Validate(data)

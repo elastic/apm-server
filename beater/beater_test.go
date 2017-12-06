@@ -92,7 +92,7 @@ func pluralize(entity string) string {
 	return entity + "s"
 }
 func createPayload(entitytype string, numEntities int) []byte {
-	data, err := tests.LoadValidDataAsInterface(entitytype)
+	data, err := tests.LoadValidData(entitytype)
 	if err != nil {
 		panic(err)
 	}

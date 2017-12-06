@@ -33,7 +33,7 @@ func getStrSlice(data common.MapStr, key string) []string {
 
 func TestPayloadTransform(t *testing.T) {
 
-	data, err := tests.LoadValidDataAsInterface("sourcemap")
+	data, err := tests.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
 	rs, err := NewProcessor().Transform(data)
@@ -71,7 +71,7 @@ func TestPayloadTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := tests.LoadData("tests/data/valid/sourcemap/bundle.min.map")
+	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.min.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)

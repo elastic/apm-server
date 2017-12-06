@@ -48,3 +48,11 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 	)
 	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, er.Schema(), exceptions)
 }
+
+func TestErrorPayloadSchema(t *testing.T) {
+	testData := []tests.SchemaTestData{
+		{File: "data/invalid/error_payload/no_service.json", Error: "missing properties: \"service\""},
+		{File: "data/invalid/error_payload/no_errors.json", Error: "missing properties: \"errors\""},
+	}
+	tests.TestDataAgainstProcessor(t, er.NewProcessor(), testData)
+}

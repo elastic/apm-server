@@ -41,3 +41,11 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 	exceptions := set.New("processor.event", "processor.name", "context.service.name", "transaction.id", "listening")
 	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, transaction.Schema(), exceptions)
 }
+
+func TestTransactionPayloadSchema(t *testing.T) {
+	testData := []tests.SchemaTestData{
+		{File: "data/invalid/transaction_payload/no_service.json", Error: "missing properties: \"service\""},
+		{File: "data/invalid/transaction_payload/no_transactions.json", Error: "minimum 1 items allowed"},
+	}
+	tests.TestDataAgainstProcessor(t, transaction.NewProcessor(), testData)
+}

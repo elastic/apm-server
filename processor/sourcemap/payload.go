@@ -13,8 +13,8 @@ import (
 var sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
 
 type payload struct {
-	ServiceName        string `mapstructure:"service_name"`
-	ServiceVersion     string `mapstructure:"service_version"`
+	ServiceName    string `mapstructure:"service_name"`
+	ServiceVersion string `mapstructure:"service_version"`
 	Sourcemap      common.MapStr
 	BundleFilepath string `mapstructure:"bundle_filepath"`
 }
