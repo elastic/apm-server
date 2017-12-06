@@ -3,8 +3,8 @@ package sourcemap
 import (
 	"time"
 
-	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -25,9 +25,9 @@ func (pa *payload) transform() []beat.Event {
 	return events
 }
 
-func mappings(pa *payload) (time.Time, []m.DocMapping) {
+func mappings(pa *payload) (time.Time, []utility.DocMapping) {
 	return time.Now(),
-		[]m.DocMapping{
+		[]utility.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
 				return common.MapStr{"name": processorName, "event": processorName}
 			}},

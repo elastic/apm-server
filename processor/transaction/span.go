@@ -39,9 +39,9 @@ func (s *Span) Transform() common.MapStr {
 	return tr
 }
 
-func (s *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
+func (s *Span) Mappings(pa *payload, tx Event) (time.Time, []utility.DocMapping) {
 	return tx.Timestamp,
-		[]m.DocMapping{
+		[]utility.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
 				return common.MapStr{"name": processorName, "event": s.DocType()}
 			}},
