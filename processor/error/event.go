@@ -47,9 +47,9 @@ func (e *Event) DocType() string {
 	return "error"
 }
 
-func (e *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
+func (e *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
 	return e.Timestamp,
-		[]m.DocMapping{
+		[]utility.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
 				return common.MapStr{"name": processorName, "event": e.DocType()}
 			}},
