@@ -8,62 +8,46 @@ import (
 	"runtime"
 )
 
-func LoadDataAsInterface(file string) (map[string]interface{}, error) {
-	bytes, _ := LoadData(file)
-	data := make(map[string]interface{})
-	err := json.Unmarshal(bytes, &data)
-	return data, err
-}
-
-func LoadData(file string) ([]byte, error) {
+func findFile(fileName string) (string, error) {
 	_, current, _, _ := runtime.Caller(0)
-	return ioutil.ReadFile(filepath.Join(filepath.Dir(current), "..", file))
+	return filepath.Join(filepath.Dir(current), fileName), nil
 }
 
-func LoadValidData(dataType string) ([]byte, error) {
-	path, err := buildPath(dataType, true)
+func readFile(filePath string, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadFile(path)
+	return ioutil.ReadFile(filePath)
 }
 
-func LoadValidDataAsInterface(dataType string) (map[string]interface{}, error) {
-	path, err := buildPath(dataType, true)
-	if err != nil {
-		return nil, err
-	}
-	var data map[string]interface{}
-	unmarshalData(path, &data)
-	return data, nil
+func LoadData(fileName string) (map[string]interface{}, error) {
+	return unmarshalData(findFile(fileName))
 }
 
-func LoadInvalidDataAsInterface(dataType string) (map[string]interface{}, error) {
-	path, err := buildPath(dataType, false)
-	if err != nil {
-		return nil, err
-	}
-	var data map[string]interface{}
-	unmarshalData(path, &data)
-	return data, nil
+func LoadDataAsBytes(fileName string) ([]byte, error) {
+	return readFile(findFile(fileName))
 }
 
-func UnmarshalValidData(dataType string, data interface{}) error {
-	path, err := buildPath(dataType, true)
-	if err != nil {
-		return err
-	}
-	return unmarshalData(path, data)
+func LoadValidDataAsBytes(processorName string) ([]byte, error) {
+	return readFile(buildPath(processorName, true))
 }
 
-func buildPath(dataType string, validData bool) (string, error) {
+func LoadValidData(processorName string) (map[string]interface{}, error) {
+	return unmarshalData(buildPath(processorName, true))
+}
+
+func LoadInvalidData(processorName string) (map[string]interface{}, error) {
+	return unmarshalData(buildPath(processorName, false))
+}
+
+func buildPath(processorName string, validData bool) (string, error) {
 	valid := "valid"
 	if !validData {
 		valid = "invalid"
 	}
 
 	var file string
-	switch dataType {
+	switch processorName {
 	case "error":
 		if validData {
 			file = "error/payload.json"
@@ -83,19 +67,18 @@ func buildPath(dataType string, validData bool) (string, error) {
 			file = "sourcemap/no_service_version.json"
 		}
 	default:
-		return "", errors.New("data type not specified.")
+		return "", errors.New("data type not specified")
 	}
-	_, current, _, _ := runtime.Caller(0)
-	curDir := filepath.Dir(current)
-	return filepath.Join(curDir, "data", valid, file), nil
+	return findFile(filepath.Join("data", valid, file))
 }
 
-func unmarshalData(file string, data interface{}) error {
-	input, err := ioutil.ReadFile(file)
-	if err != nil {
-		return err
+func unmarshalData(filePath string, err error) (map[string]interface{}, error) {
+	var data map[string]interface{}
+	input, err := readFile(filePath, err)
+	if err == nil {
+		err = json.Unmarshal(input, &data)
 	}
-	return json.Unmarshal(input, &data)
+	return data, err
 }
 
 func StrConcat(pre string, post string, delimiter string) string {

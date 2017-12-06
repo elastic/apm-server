@@ -17,7 +17,7 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	fileBytes, err := tests.LoadData("tests/data/valid/sourcemap/bundle.min.map")
+	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.min.map")
 	assert.NoError(t, err)
 	part, err := writer.CreateFormFile("sourcemap", "bundle.min.map")
 	assert.NoError(t, err)

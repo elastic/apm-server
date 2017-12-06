@@ -233,8 +233,8 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 
 var noSSL *SSLConfig
 
-var testData []byte = func() []byte {
-	d, err := tests.LoadValidData("transaction")
+var testData = func() []byte {
+	d, err := tests.LoadValidDataAsBytes("transaction")
 	if err != nil {
 		panic(err)
 	}
