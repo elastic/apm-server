@@ -22,7 +22,7 @@ func main() {
 
 func generate() error {
 	filename := "payload.json"
-	basepath := "tests/data/valid"
+	basePath := "data/valid"
 	outputPath := "docs/data/elasticsearch/"
 
 	var checked = map[string]struct{}{}
@@ -35,7 +35,7 @@ func generate() error {
 
 		p := mapping.ProcessorFactory()
 
-		data, err := tests.LoadDataAsInterface(filepath.Join(basepath, p.Name(), filename))
+		data, err := tests.LoadData(filepath.Join(basePath, p.Name(), filename))
 		if err != nil {
 			return err
 		}

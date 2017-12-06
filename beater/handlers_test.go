@@ -17,7 +17,7 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	transactionBytes, err := tests.LoadValidData("transaction")
+	transactionBytes, err := tests.LoadValidDataAsBytes("transaction")
 	assert.Nil(t, err)
 	buffer := bytes.NewReader(transactionBytes)
 	var data map[string]interface{}

@@ -14,8 +14,8 @@ var (
 
 type payload struct {
 	Service m.Service
-	System *m.System
-	Events []Event `mapstructure:"errors"`
+	System  *m.System
+	Events  []Event `mapstructure:"errors"`
 }
 
 func (pa *payload) transform() []beat.Event {
