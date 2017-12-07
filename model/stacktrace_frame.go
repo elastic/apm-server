@@ -13,7 +13,7 @@ type StacktraceFrame struct {
 	ContextLine *string `mapstructure:"context_line"`
 	Module      *string
 	Function    *string
-	InApp       *bool `mapstructure:"in_app"`
+	InLibrary   *bool `mapstructure:"library_frame"`
 	Vars        common.MapStr
 	PreContext  []string `mapstructure:"pre_context"`
 	PostContext []string `mapstructure:"post_context"`
@@ -30,7 +30,7 @@ func (s *StacktraceFrame) Transform() common.MapStr {
 	enhancer.Add(m, "module", s.Module)
 	enhancer.Add(m, "function", s.Function)
 	enhancer.Add(m, "vars", s.Vars)
-	enhancer.Add(m, "in_app", s.InApp)
+	enhancer.Add(m, "library_frame", s.InLibrary)
 
 	context := common.MapStr{}
 	enhancer.Add(context, "pre", s.PreContext)
