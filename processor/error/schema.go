@@ -473,6 +473,7 @@ var errorSchema = `{
             "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
+    "additionalProperties": false,
     "required": ["timestamp"],
     "anyOf": [
         {
@@ -509,6 +510,7 @@ var errorSchema = `{
     }
         }
     },
+    "additionalProperties": false,
     "required": ["service", "errors"]
 }
 `

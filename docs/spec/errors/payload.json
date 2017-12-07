@@ -19,5 +19,6 @@
             "$ref": "../system.json"
         }
     },
+    "additionalProperties": false,
     "required": ["service", "errors"]
 }

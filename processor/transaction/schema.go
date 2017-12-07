@@ -449,6 +449,7 @@ var transactionSchema = `{
             "maxLength": 1024
         }
     },
+    "additionalProperties": false,
     "dependencies": {
         "parent": {
             "required": ["id"]
@@ -464,11 +465,13 @@ var transactionSchema = `{
             "maxLength": 1024
         }
     },
+    "additionalProperties": false,
     "required": ["id", "name", "duration", "type", "timestamp"]
             },
             "minItems": 1
         }
     },
+    "additionalProperties": false,
     "required": ["service", "transactions"]
 }
 `

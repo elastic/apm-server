@@ -45,5 +45,6 @@
             "maxLength": 1024
         }
     },
+    "additionalProperties": false,
     "required": ["id", "name", "duration", "type", "timestamp"]
 }

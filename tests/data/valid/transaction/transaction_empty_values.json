@@ -14,7 +14,6 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 32.592981,
-            "start": 24.01,
             "timestamp": "2017-05-09T15:04:05.999999Z",
             "spans": []
         }
