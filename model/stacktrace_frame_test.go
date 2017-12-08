@@ -22,7 +22,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	context := "context"
 	fct := "st function"
 	module := "some_module"
-	inApp := true
+	libraryFrame := true
 	tests := []struct {
 		StFrame StacktraceFrame
 		Output  common.MapStr
@@ -33,25 +33,25 @@ func TestStacktraceFrameTransform(t *testing.T) {
 		},
 		{
 			StFrame: StacktraceFrame{
-				AbsPath:     &path,
-				Filename:    filename,
-				Lineno:      lineno,
-				Colno:       &colno,
-				ContextLine: &context,
-				Module:      &module,
-				Function:    &fct,
-				InApp:       &inApp,
-				Vars:        map[string]interface{}{"k1": "v1", "k2": "v2"},
-				PreContext:  []string{"prec1", "prec2"},
-				PostContext: []string{"postc1", "postc2"},
+				AbsPath:      &path,
+				Filename:     filename,
+				Lineno:       lineno,
+				Colno:        &colno,
+				ContextLine:  &context,
+				Module:       &module,
+				Function:     &fct,
+				LibraryFrame: &libraryFrame,
+				Vars:         map[string]interface{}{"k1": "v1", "k2": "v2"},
+				PreContext:   []string{"prec1", "prec2"},
+				PostContext:  []string{"postc1", "postc2"},
 			},
 			Output: common.MapStr{
-				"abs_path": "~/some/abs_path",
-				"filename": "some file",
-				"function": "st function",
-				"module":   "some_module",
-				"in_app":   true,
-				"vars":     common.MapStr{"k1": "v1", "k2": "v2"},
+				"abs_path":      "~/some/abs_path",
+				"filename":      "some file",
+				"function":      "st function",
+				"module":        "some_module",
+				"library_frame": true,
+				"vars":          common.MapStr{"k1": "v1", "k2": "v2"},
 				"context": common.MapStr{
 					"pre":  []string{"prec1", "prec2"},
 					"post": []string{"postc1", "postc2"},
