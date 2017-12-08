@@ -32,9 +32,10 @@ func (s *Span) Transform() common.MapStr {
 	enhancer.Add(tr, "start", utility.MillisAsMicros(s.Start))
 	enhancer.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
 	enhancer.Add(tr, "parent", s.Parent)
-	st := s.Stacktrace.Transform()
+	st, onlyLib := s.Stacktrace.Transform()
 	if len(st) > 0 {
 		enhancer.Add(tr, "stacktrace", st)
+		enhancer.Add(tr, "only_library_frames", onlyLib)
 	}
 	return tr
 }

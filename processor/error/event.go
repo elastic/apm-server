@@ -94,7 +94,7 @@ func (e *Event) addException() {
 		e.enhancer.Add(ex, "code", e.Exception.Code.(string))
 	}
 
-	st := e.Exception.Stacktrace.Transform()
+	st, _ := e.Exception.Stacktrace.Transform()
 	if len(st) > 0 {
 		e.enhancer.Add(ex, "stacktrace", st)
 	}
@@ -111,7 +111,7 @@ func (e *Event) addLog() {
 	e.enhancer.Add(log, "param_message", e.Log.ParamMessage)
 	e.enhancer.Add(log, "logger_name", e.Log.LoggerName)
 	e.enhancer.Add(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform()
+	st, _ := e.Log.Stacktrace.Transform()
 	if len(st) > 0 {
 		e.enhancer.Add(log, "stacktrace", st)
 	}

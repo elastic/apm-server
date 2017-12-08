@@ -43,3 +43,10 @@ func (s *StacktraceFrame) Transform() common.MapStr {
 
 	return m
 }
+
+func (s *StacktraceFrame) Library() bool {
+	if s == nil || s.LibraryFrame == nil {
+		return false
+	}
+	return *s.LibraryFrame
+}

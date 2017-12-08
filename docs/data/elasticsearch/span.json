@@ -24,6 +24,7 @@
         },
         "id": 0,
         "name": "SELECT FROM product_types",
+        "only_library_frames": false,
         "stacktrace": [
             {
                 "abs_path": "net.js",

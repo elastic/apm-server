@@ -229,6 +229,7 @@
                     "us": 3781
                 },
                 "name": "SELECT FROM product_types",
+                "only_library_frames": false,
                 "stacktrace": [
                     {
                         "filename": "myfile",

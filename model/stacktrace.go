@@ -6,12 +6,14 @@ import (
 
 type Stacktrace []StacktraceFrame
 
-func (st *Stacktrace) Transform() []common.MapStr {
+func (st *Stacktrace) Transform() ([]common.MapStr, bool) {
 	var frames []common.MapStr
+	onlyLib := true
 
 	for _, fr := range *st {
 		frame := fr.Transform()
 		frames = append(frames, frame)
+		onlyLib = onlyLib && fr.Library()
 	}
-	return frames
+	return frames, onlyLib
 }

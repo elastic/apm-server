@@ -17,6 +17,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Updated systemd doc url {pull}354[354]
 
 ==== Added
+- span.only_library_frames {pull}392[392]
 - Support for uploading sourcemaps {pull}302[302].
 - app.environment {pull}366[366]
 

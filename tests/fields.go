@@ -35,6 +35,7 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"error.exception.attributes",
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
+		"span.only_library_frames",
 		"span.stacktrace",
 		"context.db",
 		"context.db.statement",

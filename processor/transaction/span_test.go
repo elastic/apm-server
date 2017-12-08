@@ -11,6 +11,7 @@ import (
 )
 
 func TestSpanTransform(t *testing.T) {
+	tr := true
 	path := "test/path"
 	parent := 12
 	tid := 1
@@ -38,19 +39,20 @@ func TestSpanTransform(t *testing.T) {
 				Start:    0.65,
 				Duration: 1.20,
 				Stacktrace: []m.StacktraceFrame{
-					{AbsPath: &path},
+					{AbsPath: &path, LibraryFrame: &tr},
 				},
 				Context: common.MapStr{"key": "val"},
 				Parent:  &parent,
 			},
 			Output: common.MapStr{
-				"duration":   common.MapStr{"us": 1200},
-				"id":         1,
-				"name":       "myspan",
-				"start":      common.MapStr{"us": 650},
-				"type":       "myspantype",
-				"stacktrace": []common.MapStr{{"abs_path": path, "filename": "", "line": common.MapStr{"number": 0}}},
-				"parent":     12,
+				"duration":            common.MapStr{"us": 1200},
+				"id":                  1,
+				"name":                "myspan",
+				"only_library_frames": true,
+				"start":               common.MapStr{"us": 650},
+				"type":                "myspantype",
+				"stacktrace":          []common.MapStr{{"abs_path": path, "filename": "", "library_frame": true, "line": common.MapStr{"number": 0}}},
+				"parent":              12,
 			},
 			Msg: "Full Span",
 		},
