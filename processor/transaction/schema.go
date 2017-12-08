@@ -408,7 +408,7 @@ var transactionSchema = `{
             "description": "The function involved in the stack frame",
             "type": ["string", "null"]
         },
-        "in_app": {
+        "library_frame": {
             "type": ["boolean", "null"]
         },
         "lineno": {

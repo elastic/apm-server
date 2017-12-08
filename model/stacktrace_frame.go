@@ -6,17 +6,17 @@ import (
 )
 
 type StacktraceFrame struct {
-	AbsPath     *string `mapstructure:"abs_path"`
-	Filename    string
-	Lineno      int
-	Colno       *int
-	ContextLine *string `mapstructure:"context_line"`
-	Module      *string
-	Function    *string
-	InApp       *bool `mapstructure:"in_app"`
-	Vars        common.MapStr
-	PreContext  []string `mapstructure:"pre_context"`
-	PostContext []string `mapstructure:"post_context"`
+	AbsPath      *string `mapstructure:"abs_path"`
+	Filename     string
+	Lineno       int
+	Colno        *int
+	ContextLine  *string `mapstructure:"context_line"`
+	Module       *string
+	Function     *string
+	LibraryFrame *bool `mapstructure:"library_frame"`
+	Vars         common.MapStr
+	PreContext   []string `mapstructure:"pre_context"`
+	PostContext  []string `mapstructure:"post_context"`
 }
 
 type TransformStacktraceFrame func(s *StacktraceFrame) common.MapStr
@@ -30,7 +30,7 @@ func (s *StacktraceFrame) Transform() common.MapStr {
 	enhancer.Add(m, "module", s.Module)
 	enhancer.Add(m, "function", s.Function)
 	enhancer.Add(m, "vars", s.Vars)
-	enhancer.Add(m, "in_app", s.InApp)
+	enhancer.Add(m, "library_frame", s.LibraryFrame)
 
 	context := common.MapStr{}
 	enhancer.Add(context, "pre", s.PreContext)

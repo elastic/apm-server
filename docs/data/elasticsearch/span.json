@@ -40,7 +40,7 @@
                 },
                 "filename": "net.js",
                 "function": "onread",
-                "in_app": false,
+                "library_frame": true,
                 "line": {
                     "column": 4,
                     "context": "line3",

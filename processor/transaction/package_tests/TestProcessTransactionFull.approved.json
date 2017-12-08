@@ -3,33 +3,6 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "pid": 1234,
-                    "process_title": "node",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -85,6 +58,33 @@
                     "headers_sent": true,
                     "status_code": 200
                 },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "environment": "staging",
+                    "framework": {
+                        "name": "Express",
+                        "version": "1.2.3"
+                    },
+                    "language": {
+                        "name": "ecmascript",
+                        "version": "8"
+                    },
+                    "name": "1234_service-12a3",
+                    "pid": 1234,
+                    "process_title": "node",
+                    "runtime": {
+                        "name": "node",
+                        "version": "8.0.0"
+                    },
+                    "version": "5.1.3"
+                },
                 "system": {
                     "architecture": "x64",
                     "hostname": "prod1.example.com",
@@ -116,18 +116,18 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
+                "db": {
+                    "instance": "customers",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": "readonly_user"
+                },
                 "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "name": "1234_service-12a3"
-                },
-                "db": {
-                    "instance": "customers",
-                    "statement": "SELECT * FROM product_types WHERE user_id=?",
-                    "type": "sql",
-                    "user": "readonly_user"
                 }
             },
             "processor": {
@@ -156,7 +156,7 @@
                         },
                         "filename": "net.js",
                         "function": "onread",
-                        "in_app": false,
+                        "library_frame": true,
                         "line": {
                             "column": 4,
                             "context": "line3",
@@ -429,18 +429,18 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281999Z",
             "context": {
+                "db": {
+                    "instance": "customers",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": "readonly_user"
+                },
                 "service": {
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
                     "name": "1234_service-12a3"
-                },
-                "db": {
-                    "instance": "customers",
-                    "statement": "SELECT * FROM product_types WHERE user_id=?",
-                    "type": "sql",
-                    "user": "readonly_user"
                 }
             },
             "processor": {

@@ -118,7 +118,7 @@
                             "abs_path": "net.js",
                             "filename": "net.js",
                             "lineno": 547,
-                            "in_app": false,
+                            "library_frame": true,
                             "vars": {
                               "key": "value"
                             },

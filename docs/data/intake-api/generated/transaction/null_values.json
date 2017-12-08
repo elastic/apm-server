@@ -150,7 +150,7 @@
                       "context_line": null,
                       "filename": "myfile",
                       "function": null,
-                      "in_app": null,
+                      "library_frame": null,
                       "lineno": 1,
                       "module": null,
                       "post_context": null,

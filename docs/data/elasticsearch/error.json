@@ -120,7 +120,7 @@
                     },
                     "filename": "file/name.py",
                     "function": "foo",
-                    "in_app": false,
+                    "library_frame": true,
                     "line": {
                         "column": 4,
                         "context": "line3",
@@ -155,7 +155,7 @@
                     },
                     "filename": "lib/instrumentation/index.js",
                     "function": "instrumented",
-                    "in_app": false,
+                    "library_frame": true,
                     "line": {
                         "context": "    var result = original.apply(this, arguments)",
                         "number": 102
@@ -190,7 +190,7 @@
                     },
                     "filename": "file/name.py",
                     "function": "foo",
-                    "in_app": false,
+                    "library_frame": true,
                     "line": {
                         "column": 4,
                         "context": "line3",
@@ -225,7 +225,7 @@
                     },
                     "filename": "lib/instrumentation/index.js",
                     "function": "instrumented",
-                    "in_app": false,
+                    "library_frame": true,
                     "line": {
                         "context": "    var result = original.apply(this, arguments)",
                         "number": 102
