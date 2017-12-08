@@ -22,7 +22,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	context := "context"
 	fct := "st function"
 	module := "some_module"
-	inLibrary := true
+	libraryFrame := true
 	tests := []struct {
 		StFrame StacktraceFrame
 		Output  common.MapStr
@@ -33,17 +33,17 @@ func TestStacktraceFrameTransform(t *testing.T) {
 		},
 		{
 			StFrame: StacktraceFrame{
-				AbsPath:     &path,
-				Filename:    filename,
-				Lineno:      lineno,
-				Colno:       &colno,
-				ContextLine: &context,
-				Module:      &module,
-				Function:    &fct,
-				InLibrary:   &inLibrary,
-				Vars:        map[string]interface{}{"k1": "v1", "k2": "v2"},
-				PreContext:  []string{"prec1", "prec2"},
-				PostContext: []string{"postc1", "postc2"},
+				AbsPath:      &path,
+				Filename:     filename,
+				Lineno:       lineno,
+				Colno:        &colno,
+				ContextLine:  &context,
+				Module:       &module,
+				Function:     &fct,
+				LibraryFrame: &libraryFrame,
+				Vars:         map[string]interface{}{"k1": "v1", "k2": "v2"},
+				PreContext:   []string{"prec1", "prec2"},
+				PostContext:  []string{"postc1", "postc2"},
 			},
 			Output: common.MapStr{
 				"abs_path":      "~/some/abs_path",
