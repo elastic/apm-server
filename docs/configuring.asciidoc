@@ -1,5 +1,5 @@
 [[configuring]]
-== Configuring and running APM Server 
+== Configuring and running APM Server
 
 In a production environment,
 you would put APM Server on its own machines,
@@ -54,5 +54,3 @@ See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.reference
 include::./security.asciidoc[]
 
 include::./high-availability.asciidoc[]
-
-include::./index_pattern.asciidoc[]
