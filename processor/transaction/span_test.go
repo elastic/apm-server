@@ -11,26 +11,9 @@ import (
 )
 
 func TestSpanTransform(t *testing.T) {
-	nilFn := func(s *m.Stacktrace) []common.MapStr {
-		return nil
-	}
-	emptyFn := func(s *m.Stacktrace) []common.MapStr {
-		return []common.MapStr{}
-	}
-	transformFn := func(s *m.Stacktrace) []common.MapStr {
-		return []common.MapStr{{"foo": "bar"}}
-	}
-	emptyOut := common.MapStr{
-		"duration": common.MapStr{"us": 0},
-		"name":     "",
-		"start":    common.MapStr{"us": 0},
-		"type":     "",
-	}
-
 	path := "test/path"
 	parent := 12
 	tid := 1
-	frames := []m.StacktraceFrame{{}}
 
 	tests := []struct {
 		Span   Span
@@ -38,25 +21,14 @@ func TestSpanTransform(t *testing.T) {
 		Msg    string
 	}{
 		{
-			Span: Span{StacktraceFrames: frames},
+			Span: Span{},
 			Output: common.MapStr{
-				"type":       "",
-				"start":      common.MapStr{"us": 0},
-				"duration":   common.MapStr{"us": 0},
-				"stacktrace": []common.MapStr{{"filename": "", "line": common.MapStr{"number": 0}}},
-				"name":       "",
+				"type":     "",
+				"start":    common.MapStr{"us": 0},
+				"duration": common.MapStr{"us": 0},
+				"name":     "",
 			},
-			Msg: "Span with empty Stacktrace, default Stacktrace Transform",
-		},
-		{
-			Span:   Span{TransformStacktrace: emptyFn},
-			Output: emptyOut,
-			Msg:    "Empty Span, emptyFn for Stacktrace Transform",
-		},
-		{
-			Span:   Span{TransformStacktrace: nilFn},
-			Output: emptyOut,
-			Msg:    "Empty Span, nilFn for Stacktrace Transform",
+			Msg: "Span without a Stacktrace",
 		},
 		{
 			Span: Span{
@@ -65,14 +37,11 @@ func TestSpanTransform(t *testing.T) {
 				Type:     "myspantype",
 				Start:    0.65,
 				Duration: 1.20,
-				StacktraceFrames: m.StacktraceFrames{
-					{
-						AbsPath: &path,
-					},
+				Stacktrace: []m.StacktraceFrame{
+					{AbsPath: &path},
 				},
-				Context:             common.MapStr{"key": "val"},
-				Parent:              &parent,
-				TransformStacktrace: transformFn,
+				Context: common.MapStr{"key": "val"},
+				Parent:  &parent,
 			},
 			Output: common.MapStr{
 				"duration":   common.MapStr{"us": 1200},
@@ -80,10 +49,10 @@ func TestSpanTransform(t *testing.T) {
 				"name":       "myspan",
 				"start":      common.MapStr{"us": 650},
 				"type":       "myspantype",
-				"stacktrace": []common.MapStr{{"foo": "bar"}},
+				"stacktrace": []common.MapStr{{"abs_path": path, "filename": "", "line": common.MapStr{"number": 0}}},
 				"parent":     12,
 			},
-			Msg: "Full Span, transformFn for Stacktrace Transform",
+			Msg: "Full Span",
 		},
 	}
 

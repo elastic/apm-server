@@ -32,6 +32,9 @@
         {
             "@timestamp": "2017-05-30T18:53:42Z",
             "context": {
+                "custom": null,
+                "request": null,
+                "response": null,
                 "service": {
                     "agent": {
                         "name": "ruby",
@@ -42,9 +45,6 @@
                     },
                     "name": "1234_service-12a3"
                 },
-                "custom": null,
-                "request": null,
-                "response": null,
                 "system": {},
                 "tags": null,
                 "user": null
@@ -65,16 +65,6 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281999Z",
             "context": {
-                "service": {
-                    "agent": {
-                        "name": "ruby",
-                        "version": "1.0.0"
-                    },
-                    "language": {
-                        "name": "ruby"
-                    },
-                    "name": "1234_service-12a3"
-                },
                 "custom": null,
                 "request": {
                     "body": null,
@@ -100,6 +90,16 @@
                     "headers_sent": null,
                     "status_code": null
                 },
+                "service": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_service-12a3"
+                },
                 "system": {},
                 "user": {
                     "email": null,
@@ -123,16 +123,6 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "service": {
-                    "agent": {
-                        "name": "ruby",
-                        "version": "1.0.0"
-                    },
-                    "language": {
-                        "name": "ruby"
-                    },
-                    "name": "1234_service-12a3"
-                },
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -160,6 +150,16 @@
                     "headers": {
                         "content-type": null
                     }
+                },
+                "service": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_service-12a3"
                 },
                 "system": {},
                 "tags": {
@@ -211,14 +211,14 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
+                "db": null,
                 "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
                     },
                     "name": "1234_service-12a3"
-                },
-                "db": null
+                }
             },
             "processor": {
                 "event": "span",
@@ -249,18 +249,18 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
+                "db": {
+                    "instance": null,
+                    "statement": null,
+                    "type": null,
+                    "user": null
+                },
                 "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
                     },
                     "name": "1234_service-12a3"
-                },
-                "db": {
-                    "instance": null,
-                    "statement": null,
-                    "type": null,
-                    "user": null
                 }
             },
             "processor": {

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-
 	"time"
 
 	m "github.com/elastic/apm-server/model"
@@ -22,27 +21,26 @@ type Event struct {
 	Log       *Log
 	Timestamp time.Time
 
-	enhancer            utility.MapStrEnhancer
-	data                common.MapStr
-	TransformStacktrace m.TransformStacktrace
+	enhancer utility.MapStrEnhancer
+	data     common.MapStr
 }
 
 type Exception struct {
-	Code             interface{}
-	Message          string
-	Module           *string
-	Attributes       interface{}
-	StacktraceFrames m.StacktraceFrames `mapstructure:"stacktrace"`
-	Type             *string
-	Uncaught         *bool
+	Code       interface{}
+	Message    string
+	Module     *string
+	Attributes interface{}
+	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
+	Type       *string
+	Uncaught   *bool
 }
 
 type Log struct {
-	Level            *string
-	Message          string
-	ParamMessage     *string            `mapstructure:"param_message"`
-	LoggerName       *string            `mapstructure:"logger_name"`
-	StacktraceFrames m.StacktraceFrames `mapstructure:"stacktrace"`
+	Level        *string
+	Message      string
+	ParamMessage *string      `mapstructure:"param_message"`
+	LoggerName   *string      `mapstructure:"logger_name"`
+	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
 }
 
 func (e *Event) DocType() string {
@@ -96,7 +94,10 @@ func (e *Event) addException() {
 		e.enhancer.Add(ex, "code", e.Exception.Code.(string))
 	}
 
-	e.addStacktrace(ex, e.Exception.StacktraceFrames)
+	st := e.Exception.Stacktrace.Transform()
+	if len(st) > 0 {
+		e.enhancer.Add(ex, "stacktrace", st)
+	}
 
 	e.add("exception", ex)
 }
@@ -110,24 +111,12 @@ func (e *Event) addLog() {
 	e.enhancer.Add(log, "param_message", e.Log.ParamMessage)
 	e.enhancer.Add(log, "logger_name", e.Log.LoggerName)
 	e.enhancer.Add(log, "level", e.Log.Level)
-	e.addStacktrace(log, e.Log.StacktraceFrames)
+	st := e.Log.Stacktrace.Transform()
+	if len(st) > 0 {
+		e.enhancer.Add(log, "stacktrace", st)
+	}
 
 	e.add("log", log)
-}
-
-func (e *Event) addStacktrace(m common.MapStr, frames m.StacktraceFrames) {
-	stacktrace := e.transformStacktrace(frames)
-	if len(stacktrace) > 0 {
-		e.enhancer.Add(m, "stacktrace", stacktrace)
-	}
-}
-
-func (e *Event) transformStacktrace(frames m.StacktraceFrames) []common.MapStr {
-	if e.TransformStacktrace == nil {
-		e.TransformStacktrace = (*m.Stacktrace).Transform
-	}
-	st := m.Stacktrace{Frames: frames}
-	return e.TransformStacktrace(&st)
 }
 
 func (e *Event) addGroupingKey() {
@@ -150,21 +139,21 @@ func (e *Event) calcGroupingKey() string {
 		}
 	}
 
-	var frames m.StacktraceFrames
+	var st m.Stacktrace
 	if e.Exception != nil {
 		add(e.Exception.Type)
-		frames = e.Exception.StacktraceFrames
+		st = e.Exception.Stacktrace
 	}
 	if e.Log != nil {
 		add(e.Log.ParamMessage)
-		if frames == nil || len(frames) == 0 {
-			frames = e.Log.StacktraceFrames
+		if st == nil || len(st) == 0 {
+			st = e.Log.Stacktrace
 		}
 	}
 
-	for _, st := range frames {
-		addEither(st.Module, st.Filename)
-		addEither(st.Function, string(st.Lineno))
+	for _, fr := range st {
+		addEither(fr.Module, fr.Filename)
+		addEither(fr.Function, string(fr.Lineno))
 	}
 
 	return hex.EncodeToString(hash.Sum(nil))

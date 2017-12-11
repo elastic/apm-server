@@ -9,16 +9,14 @@ import (
 )
 
 type Span struct {
-	Id               *int
-	Name             string
-	Type             string
-	Start            float64
-	Duration         float64
-	StacktraceFrames m.StacktraceFrames `mapstructure:"stacktrace"`
-	Context          common.MapStr
-	Parent           *int
-
-	TransformStacktrace m.TransformStacktrace
+	Id         *int
+	Name       string
+	Type       string
+	Start      float64
+	Duration   float64
+	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
+	Context    common.MapStr
+	Parent     *int
 }
 
 func (s *Span) DocType() string {
@@ -34,7 +32,7 @@ func (s *Span) Transform() common.MapStr {
 	enhancer.Add(tr, "start", utility.MillisAsMicros(s.Start))
 	enhancer.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
 	enhancer.Add(tr, "parent", s.Parent)
-	st := s.transformStacktrace()
+	st := s.Stacktrace.Transform()
 	if len(st) > 0 {
 		enhancer.Add(tr, "stacktrace", st)
 	}
@@ -52,12 +50,4 @@ func (s *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
 			{Key: "context", Apply: func() common.MapStr { return s.Context }},
 			{Key: "context.service", Apply: pa.Service.MinimalTransform},
 		}
-}
-
-func (s *Span) transformStacktrace() []common.MapStr {
-	if s.TransformStacktrace == nil {
-		s.TransformStacktrace = (*m.Stacktrace).Transform
-	}
-	st := m.Stacktrace{Frames: s.StacktraceFrames}
-	return s.TransformStacktrace(&st)
 }
