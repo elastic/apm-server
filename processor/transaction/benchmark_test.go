@@ -3,13 +3,13 @@ package transaction
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 )
 
 func BenchmarkWithFileLoading(b *testing.B) {
 	processor := NewProcessor(nil)
 	for i := 0; i < b.N; i++ {
-		data, _ := tests.LoadValidData("transaction")
+		data, _ := loader.LoadValidData("transaction")
 		err := processor.Validate(data)
 		if err != nil {
 			b.Fatalf("Error: %v", err)
@@ -20,7 +20,7 @@ func BenchmarkWithFileLoading(b *testing.B) {
 
 func BenchmarkTransactionFileLoadingOnce(b *testing.B) {
 	processor := NewProcessor(nil)
-	data, _ := tests.LoadValidData("transaction")
+	data, _ := loader.LoadValidData("transaction")
 	for i := 0; i < b.N; i++ {
 		err := processor.Validate(data)
 		if err != nil {

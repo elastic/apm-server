@@ -1,0 +1,31 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-09T15:04:05.999999Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "python",
+                        "version": "1.0"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "user": {
+                    "ip": "127.0.0.1",
+                    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)",
+                    "username": "just me"
+                }
+            },
+            "error": {
+                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "log": {
+                    "message": ""
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        }
+    ]
+}

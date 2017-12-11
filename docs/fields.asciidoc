@@ -91,6 +91,22 @@ type: keyword
 Email of the logged in user.
 
 
+[float]
+=== `context.user.ip`
+
+type: ip
+
+IP of the user where the event is recorded, typically a web browser.
+
+
+[float]
+=== `context.user.user_agent`
+
+type: text
+
+Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
+
 
 [float]
 == url fields
@@ -225,6 +241,14 @@ The architecture of the system the event was recorded on.
 type: keyword
 
 The platform of the system the event was recorded on.
+
+
+[float]
+=== `context.system.ip`
+
+type: ip
+
+IP of the host that records the event.
 
 
 [float]

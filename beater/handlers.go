@@ -1,14 +1,10 @@
 package beater
 
 import (
-	"compress/gzip"
-	"compress/zlib"
 	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"expvar"
-	"fmt"
-	"net"
 	"net/http"
 	"regexp"
 	"strings"
@@ -19,6 +15,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
@@ -63,7 +60,6 @@ var (
 	errForbidden       = errors.New("forbidden request")
 	errPOSTRequestOnly = errors.New("only POST requests are supported")
 	errTooManyRequests = errors.New("too many requests")
-	errNoContent       = errors.New("no content")
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
@@ -94,7 +90,8 @@ func newMuxer(config *Config, report reporter) *http.ServeMux {
 func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			processRequestHandler(pf, nil, report, decodeLimitJSONData(config.MaxUnzippedSize))))
+			processRequestHandler(pf, nil, report,
+				processor.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize)))))
 }
 
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
@@ -111,7 +108,8 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, &prConfig, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
+					processRequestHandler(pf, &prConfig, report,
+						processor.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize)))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
@@ -156,7 +154,7 @@ func logHandler(h http.Handler) http.Handler {
 
 		reqLogger.Infow("handled request", "response_code", lw.Code,
 			"method", r.Method, "URL", r.URL, "content_length", r.ContentLength,
-			"remote_address", extractIP(r), "user_agent", r.Header.Get("User-Agent"))
+			"remote_address", utility.ExtractIP(r), "user_agent", r.Header.Get("User-Agent"))
 
 		if lw.Code > 399 {
 			responseErrors.Inc()
@@ -190,40 +188,12 @@ func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if deny(extractIP(r)) {
+		if deny(utility.ExtractIP(r)) {
 			sendStatus(w, r, http.StatusTooManyRequests, errTooManyRequests)
 			return
 		}
 		h.ServeHTTP(w, r)
 	})
-}
-
-func extractIP(r *http.Request) string {
-	var remoteAddr = func() string {
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			return r.RemoteAddr
-		}
-		return ip
-	}
-
-	var forwarded = func() string {
-		forwardedFor := r.Header.Get("X-Forwarded-For")
-		client := strings.Split(forwardedFor, ",")[0]
-		return strings.TrimSpace(client)
-	}
-
-	var real = func() string {
-		return r.Header.Get("X-Real-IP")
-	}
-
-	if ip := real(); ip != "" {
-		return ip
-	}
-	if ip := forwarded(); ip != "" {
-		return ip
-	}
-	return remoteAddr()
 }
 
 func authHandler(secretToken string, h http.Handler) http.Handler {
@@ -301,14 +271,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder) http.Handler {
+func processRequestHandler(pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder.Decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := processRequest(r, pf, prConfig, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder) (int, error) {
+func processRequest(r *http.Request, pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder.Decoder) (int, error) {
 	processor := pf(prConfig)
 
 	if r.Method != "POST" {
@@ -336,50 +306,12 @@ func processRequest(r *http.Request, pf ProcessorFactory, prConfig *processor.Co
 	return http.StatusAccepted, nil
 }
 
-type decoder func(req *http.Request) (map[string]interface{}, error)
-
-func decodeLimitJSONData(maxSize int64) decoder {
-	return func(req *http.Request) (map[string]interface{}, error) {
-		contentType := req.Header.Get("Content-Type")
-		if contentType != "application/json" {
-			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-		}
-
-		reader := req.Body
-		if reader == nil {
-			return nil, errNoContent
-		}
-
-		switch req.Header.Get("Content-Encoding") {
-		case "deflate":
-			var err error
-			reader, err = zlib.NewReader(reader)
-			if err != nil {
-				return nil, err
-			}
-
-		case "gzip":
-			var err error
-			reader, err = gzip.NewReader(reader)
-			if err != nil {
-				return nil, err
-			}
-		}
-		v := make(map[string]interface{})
-		if err := json.NewDecoder(http.MaxBytesReader(nil, reader, maxSize)).Decode(&v); err != nil {
-			// If we run out of memory, for example
-			return nil, errors.Wrap(err, "data read error")
-		}
-		return v, nil
-	}
-}
-
 func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
-	content_type := "text/plain; charset=utf-8"
+	contentType := "text/plain; charset=utf-8"
 	if acceptsJSON(r) {
-		content_type = "application/json"
+		contentType = "application/json"
 	}
-	w.Header().Set("Content-Type", content_type)
+	w.Header().Set("Content-Type", contentType)
 	w.WriteHeader(code)
 
 	if err == nil {

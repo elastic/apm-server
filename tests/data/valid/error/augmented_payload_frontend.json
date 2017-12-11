@@ -4,18 +4,23 @@
         "agent": {
           "name": "python",
           "version": "1.0"
-        },
-        "language": {
-          "name": "python"
         }
     },
-    "system": null,
     "errors": [
         {
             "timestamp": "2017-05-09T15:04:05.999999Z",
             "log": {
                 "message": ""
+            },
+            "context": {
+                "user": {
+                    "username": "just me"
+                }
             }
         }
-    ]
+    ],
+    "user": {
+        "ip": "127.0.0.1",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)"
+    }
 }

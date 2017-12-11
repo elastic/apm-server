@@ -58,7 +58,7 @@ func (e *Event) Mappings(config *pr.Config, pa *payload) (time.Time, []utility.D
 			return common.MapStr{"name": processorName, "event": e.DocType()}
 		}},
 		{Key: e.DocType(), Apply: func() common.MapStr { return e.Transform(config, pa.Service) }},
-		{Key: "context", Apply: func() common.MapStr { return e.Context }},
+		{Key: "context", Apply: func() common.MapStr { return e.contextTransform(pa) }},
 		{Key: "context.service", Apply: pa.Service.Transform},
 		{Key: "context.system", Apply: pa.System.Transform},
 		{Key: "context.process", Apply: pa.Process.Transform},
@@ -88,6 +88,15 @@ func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
 	e.addGroupingKey()
 
 	return e.data
+}
+
+// This updates the event in place
+func (e *Event) contextTransform(pa *payload) common.MapStr {
+	if e.Context == nil {
+		e.Context = make(map[string]interface{})
+	}
+	utility.InsertInMap(e.Context, "user", pa.User)
+	return e.Context
 }
 
 func (e *Event) updateCulprit(config *pr.Config) {

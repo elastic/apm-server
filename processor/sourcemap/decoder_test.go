@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 )
 
 func TestDecodeSourcemapFormData(t *testing.T) {
@@ -17,7 +17,7 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
+	fileBytes, err := loader.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	part, err := writer.CreateFormFile("sourcemap", "bundle_no_mapping.js.map")
 	assert.NoError(t, err)

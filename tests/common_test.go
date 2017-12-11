@@ -13,13 +13,13 @@ const expectedIdx = 3
 
 func TestStrConcat(t *testing.T) {
 	testData := [][]string{
-		[]string{"", "", "", ""},
-		[]string{"pre", "", "", "pre"},
-		[]string{"pre", "post", "", "prepost"},
-		[]string{"foo", "bar", ".", "foo.bar"},
-		[]string{"foo", "bar", ":", "foo:bar"},
-		[]string{"", "post", "", "post"},
-		[]string{"", "post", ",", "post"},
+		{"", "", "", ""},
+		{"pre", "", "", "pre"},
+		{"pre", "post", "", "prepost"},
+		{"foo", "bar", ".", "foo.bar"},
+		{"foo", "bar", ":", "foo:bar"},
+		{"", "post", "", "post"},
+		{"", "post", ",", "post"},
 	}
 	for _, dataRow := range testData {
 		newStr := StrConcat(dataRow[preIdx], dataRow[postIdx], dataRow[delimiterIdx])

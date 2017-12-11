@@ -7,6 +7,7 @@ import (
 
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 )
 
 // ensure all valid documents pass through the whole validation and transformation process
@@ -20,7 +21,7 @@ func TestSourcemapProcessorOK(t *testing.T) {
 
 // ensure invalid documents fail the json schema validation already
 func TestSourcemapProcessorValidationFailed(t *testing.T) {
-	data, err := tests.LoadInvalidData("sourcemap")
+	data, err := loader.LoadInvalidData("sourcemap")
 	assert.Nil(t, err)
 	p := sourcemap.NewProcessor(nil)
 	err = p.Validate(data)
