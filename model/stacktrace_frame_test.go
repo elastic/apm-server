@@ -8,12 +8,6 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestStacktraceFrameTransformDefinition(t *testing.T) {
-	myfn := func(fn TransformStacktraceFrame) string { return "ok" }
-	res := myfn((*StacktraceFrame).Transform)
-	assert.Equal(t, "ok", res)
-}
-
 func TestStacktraceFrameTransform(t *testing.T) {
 	filename := "some file"
 	lineno := 12

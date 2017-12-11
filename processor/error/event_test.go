@@ -29,7 +29,7 @@ func (e *Exception) withType(etype string) *Exception {
 }
 
 func (e *Exception) withFrames(frames []m.StacktraceFrame) *Exception {
-	e.StacktraceFrames = frames
+	e.Stacktrace = m.Stacktrace(frames)
 	return e
 }
 
@@ -43,7 +43,7 @@ func (l *Log) withParamMsg(msg string) *Log {
 }
 
 func (l *Log) withFrames(frames []m.StacktraceFrame) *Log {
-	l.StacktraceFrames = frames
+	l.Stacktrace = m.Stacktrace(frames)
 	return l
 }
 
@@ -58,13 +58,15 @@ func TestEventTransform(t *testing.T) {
 	uncaught := true
 	attributes := common.MapStr{"k1": "val1"}
 	exception := Exception{
-		Type:             &errorType,
-		Code:             codeFloat,
-		Message:          exMsg,
-		Module:           &module,
-		Uncaught:         &uncaught,
-		Attributes:       attributes,
-		StacktraceFrames: []m.StacktraceFrame{{Filename: "st file"}},
+		Type:       &errorType,
+		Code:       codeFloat,
+		Message:    exMsg,
+		Module:     &module,
+		Uncaught:   &uncaught,
+		Attributes: attributes,
+		Stacktrace: []m.StacktraceFrame{
+			{Filename: "st file"},
+		},
 	}
 
 	level := "level"
