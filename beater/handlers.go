@@ -344,9 +344,9 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	w.Header().Set("Content-Type", content_type)
 	w.WriteHeader(code)
 
+	logp.Info("%s	%s %s	%d	%s", extractIP(r), r.Method, r.URL, code, r.Header.Get("User-Agent"))
 	if err == nil {
 		responseValid.Inc()
-		logp.Debug("request", "request successful, code=%d", code)
 		return
 	}
 
