@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/tests"
 )
@@ -35,20 +37,20 @@ func generate() error {
 
 		p := mapping.ProcessorFactory()
 
-		data, err := tests.LoadData(filepath.Join(basePath, p.Name(), filename))
+		path := filepath.Join(basePath, p.Name(), filename)
+		data, err := tests.LoadData(path)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "while loading "+path)
 		}
 
 		err = p.Validate(data)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "while validating "+path)
 		}
 
 		events, err := p.Transform(data)
-
 		if err != nil {
-			return err
+			return errors.Wrap(err, "while transforming "+path)
 		}
 
 		for _, d := range events {
