@@ -66,6 +66,7 @@
             "maxLength": 1024
         }
     },
+    "additionalProperties": false,
     "dependencies": {
         "parent": {
             "required": ["id"]

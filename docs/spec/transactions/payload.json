@@ -19,5 +19,6 @@
             "minItems": 1
         }
     },
+    "additionalProperties": false,
     "required": ["service", "transactions"]
 }
