@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/stacktrace_frame.json",
-    "title": "Stacktrace",
+    "title": "Stacktrace Frame",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
     "properties": {

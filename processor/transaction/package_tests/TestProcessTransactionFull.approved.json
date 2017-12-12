@@ -140,41 +140,43 @@
                 },
                 "id": 0,
                 "name": "SELECT FROM product_types",
-                "only_library_frames": false,
-                "stacktrace": [
-                    {
-                        "abs_path": "net.js",
-                        "context": {
-                            "post": [
-                                "    ins.currentTransaction = prev",
-                                "    return result",
-                                "}"
-                            ],
-                            "pre": [
-                                "  var trans = this.currentTransaction",
-                                ""
-                            ]
+                "stacktrace": {
+                    "frames": [
+                        {
+                            "abs_path": "net.js",
+                            "context": {
+                                "post": [
+                                    "    ins.currentTransaction = prev",
+                                    "    return result",
+                                    "}"
+                                ],
+                                "pre": [
+                                    "  var trans = this.currentTransaction",
+                                    ""
+                                ]
+                            },
+                            "filename": "net.js",
+                            "function": "onread",
+                            "library_frame": true,
+                            "line": {
+                                "column": 4,
+                                "context": "line3",
+                                "number": 547
+                            },
+                            "module": "some module",
+                            "vars": {
+                                "key": "value"
+                            }
                         },
-                        "filename": "net.js",
-                        "function": "onread",
-                        "library_frame": true,
-                        "line": {
-                            "column": 4,
-                            "context": "line3",
-                            "number": 547
-                        },
-                        "module": "some module",
-                        "vars": {
-                            "key": "value"
+                        {
+                            "filename": "my2file.js",
+                            "line": {
+                                "number": 10
+                            }
                         }
-                    },
-                    {
-                        "filename": "my2file.js",
-                        "line": {
-                            "number": 10
-                        }
-                    }
-                ],
+                    ],
+                    "only_library_frames": false
+                },
                 "start": {
                     "us": 2830
                 },

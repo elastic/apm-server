@@ -14,7 +14,7 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 
 	//only add attributes that should not be documented by the schema
 	undocumented := set.New(
-		"transactions.spans.stacktrace.vars.key",
+		"transactions.spans.stacktrace.frames.vars.key",
 		"transactions.context.request.headers.some-other-header",
 		"transactions.context.request.headers.array",
 		"transactions.context.request.env.SERVER_SOFTWARE",

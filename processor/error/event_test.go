@@ -5,10 +5,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"time"
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/libbeat/common"
@@ -29,7 +28,7 @@ func (e *Exception) withType(etype string) *Exception {
 }
 
 func (e *Exception) withFrames(frames []m.StacktraceFrame) *Exception {
-	e.Stacktrace = m.Stacktrace(frames)
+	e.Stacktrace = m.Stacktrace{Frames: frames}
 	return e
 }
 
@@ -43,7 +42,7 @@ func (l *Log) withParamMsg(msg string) *Log {
 }
 
 func (l *Log) withFrames(frames []m.StacktraceFrame) *Log {
-	l.Stacktrace = m.Stacktrace(frames)
+	l.Stacktrace = m.Stacktrace{Frames: frames}
 	return l
 }
 
@@ -64,9 +63,9 @@ func TestEventTransform(t *testing.T) {
 		Module:     &module,
 		Uncaught:   &uncaught,
 		Attributes: attributes,
-		Stacktrace: []m.StacktraceFrame{
+		Stacktrace: m.Stacktrace{Frames: []m.StacktraceFrame{
 			{Filename: "st file"},
-		},
+		}},
 	}
 
 	level := "level"
@@ -149,8 +148,11 @@ func TestEventTransform(t *testing.T) {
 				"id":      "45678",
 				"culprit": "some trigger",
 				"exception": common.MapStr{
-					"stacktrace": []common.MapStr{
-						{"filename": "st file", "line": common.MapStr{"number": 0}},
+					"stacktrace": common.MapStr{
+						"frames": []common.MapStr{
+							{"filename": "st file", "line": common.MapStr{"number": 0}},
+						},
+						"only_library_frames": false,
 					},
 					"code":       "13",
 					"message":    "exception message",

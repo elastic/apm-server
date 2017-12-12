@@ -105,66 +105,69 @@
             "code": "42",
             "message": "The username root is unknown",
             "module": "__builtins__",
-            "stacktrace": [
-                {
-                    "abs_path": "/real/file/name.py",
-                    "context": {
-                        "post": [
-                            "line4",
-                            "line5"
-                        ],
-                        "pre": [
-                            "line1",
-                            "line2"
-                        ]
+            "stacktrace": {
+                "frames": [
+                    {
+                        "abs_path": "/real/file/name.py",
+                        "context": {
+                            "post": [
+                                "line4",
+                                "line5"
+                            ],
+                            "pre": [
+                                "line1",
+                                "line2"
+                            ]
+                        },
+                        "filename": "file/name.py",
+                        "function": "foo",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 3
+                        },
+                        "module": "App::MyModule",
+                        "vars": {
+                            "key": "value"
+                        }
                     },
-                    "filename": "file/name.py",
-                    "function": "foo",
-                    "library_frame": true,
-                    "line": {
-                        "column": 4,
-                        "context": "line3",
-                        "number": 3
-                    },
-                    "module": "App::MyModule",
-                    "vars": {
-                        "key": "value"
+                    {
+                        "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result",
+                                "}",
+                                "}",
+                                "",
+                                "Instrumentation.prototype._recoverTransaction = function (trans) {",
+                                "  if (this.currentTransaction === trans) return"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                "",
+                                "  return instrumented",
+                                "",
+                                "  function instrumented () {",
+                                "    var prev = ins.currentTransaction",
+                                "    ins.currentTransaction = trans"
+                            ]
+                        },
+                        "filename": "lib/instrumentation/index.js",
+                        "function": "instrumented",
+                        "library_frame": true,
+                        "line": {
+                            "context": "    var result = original.apply(this, arguments)",
+                            "number": 102
+                        },
+                        "vars": {
+                            "key": "value"
+                        }
                     }
-                },
-                {
-                    "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
-                    "context": {
-                        "post": [
-                            "    ins.currentTransaction = prev",
-                            "    return result",
-                            "}",
-                            "}",
-                            "",
-                            "Instrumentation.prototype._recoverTransaction = function (trans) {",
-                            "  if (this.currentTransaction === trans) return"
-                        ],
-                        "pre": [
-                            "  var trans = this.currentTransaction",
-                            "",
-                            "  return instrumented",
-                            "",
-                            "  function instrumented () {",
-                            "    var prev = ins.currentTransaction",
-                            "    ins.currentTransaction = trans"
-                        ]
-                    },
-                    "filename": "lib/instrumentation/index.js",
-                    "function": "instrumented",
-                    "library_frame": true,
-                    "line": {
-                        "context": "    var result = original.apply(this, arguments)",
-                        "number": 102
-                    },
-                    "vars": {
-                        "key": "value"
-                    }
-                }
-            ],
+                ],
+                "only_library_frames": true
+            },
             "type": "DbError",
             "uncaught": true
         },
@@ -175,66 +178,69 @@
             "logger_name": "my.logger.name",
             "message": "My service could not talk to the database named foobar",
             "param_message": "My service could not talk to the database named %s",
-            "stacktrace": [
-                {
-                    "abs_path": "/real/file/name.py",
-                    "context": {
-                        "post": [
-                            "line4",
-                            "line5"
-                        ],
-                        "pre": [
-                            "line1",
-                            "line2"
-                        ]
+            "stacktrace": {
+                "frames": [
+                    {
+                        "abs_path": "/real/file/name.py",
+                        "context": {
+                            "post": [
+                                "line4",
+                                "line5"
+                            ],
+                            "pre": [
+                                "line1",
+                                "line2"
+                            ]
+                        },
+                        "filename": "file/name.py",
+                        "function": "foo",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 3
+                        },
+                        "module": "App::MyModule",
+                        "vars": {
+                            "key": "value"
+                        }
                     },
-                    "filename": "file/name.py",
-                    "function": "foo",
-                    "library_frame": true,
-                    "line": {
-                        "column": 4,
-                        "context": "line3",
-                        "number": 3
-                    },
-                    "module": "App::MyModule",
-                    "vars": {
-                        "key": "value"
+                    {
+                        "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result",
+                                "}",
+                                "}",
+                                "",
+                                "Instrumentation.prototype._recoverTransaction = function (trans) {",
+                                "  if (this.currentTransaction === trans) return"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                "",
+                                "  return instrumented",
+                                "",
+                                "  function instrumented () {",
+                                "    var prev = ins.currentTransaction",
+                                "    ins.currentTransaction = trans"
+                            ]
+                        },
+                        "filename": "lib/instrumentation/index.js",
+                        "function": "instrumented",
+                        "library_frame": true,
+                        "line": {
+                            "context": "    var result = original.apply(this, arguments)",
+                            "number": 102
+                        },
+                        "vars": {
+                            "key": "value"
+                        }
                     }
-                },
-                {
-                    "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
-                    "context": {
-                        "post": [
-                            "    ins.currentTransaction = prev",
-                            "    return result",
-                            "}",
-                            "}",
-                            "",
-                            "Instrumentation.prototype._recoverTransaction = function (trans) {",
-                            "  if (this.currentTransaction === trans) return"
-                        ],
-                        "pre": [
-                            "  var trans = this.currentTransaction",
-                            "",
-                            "  return instrumented",
-                            "",
-                            "  function instrumented () {",
-                            "    var prev = ins.currentTransaction",
-                            "    ins.currentTransaction = trans"
-                        ]
-                    },
-                    "filename": "lib/instrumentation/index.js",
-                    "function": "instrumented",
-                    "library_frame": true,
-                    "line": {
-                        "context": "    var result = original.apply(this, arguments)",
-                        "number": 102
-                    },
-                    "vars": {
-                        "key": "value"
-                    }
-                }
-            ]
+                ],
+                "only_library_frames": true
+            }
         }
     },
     "processor": {

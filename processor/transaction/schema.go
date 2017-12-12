@@ -379,12 +379,18 @@ var transactionSchema = `{
             "description": "The locally unique ID of the parent of the span."
         },
         "stacktrace": {
+                "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/stacktrace.json",
+    "title": "Stacktrace",
+    "type": ["object", "null"],
+    "description": "List of stack frames with variable attributes (eg: lineno, filename, etc), and metadata",
+    "properties": {
+        "frames": {
             "type": ["array", "null"],
-            "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
             "items": {
                     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/stacktrace_frame.json",
-    "title": "Stacktrace",
+    "title": "Stacktrace Frame",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
     "properties": {
@@ -438,6 +444,8 @@ var transactionSchema = `{
     "required": ["filename", "lineno"]
             },
             "minItems": 0
+        }
+    }
         },
         "start": {
             "type": "number",
