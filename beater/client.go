@@ -19,7 +19,7 @@ func insecureClient() *http.Client {
 func isServerUp(secure bool, host string, numRetries int, retryInterval time.Duration) bool {
 	client := insecureClient()
 	var check = func() bool {
-		url := url.URL{Scheme: "http", Host: host, Path: "healthcheck"}
+		url := url.URL{Scheme: "http", Host: host, Path: "/"}
 		if secure {
 			url.Scheme = "https"
 		}

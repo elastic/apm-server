@@ -66,8 +66,8 @@ class Test(ServerBaseTest):
         assert r.status_code == 403, r.status_code
 
     def test_healthcheck(self):
-        healtcheck_url = 'http://localhost:8200/healthcheck'
-        r = requests.get(healtcheck_url)
+        healthcheck_url = 'http://localhost:8200'
+        r = requests.get(healthcheck_url)
         assert r.status_code == 200, r.status_code
 
     def test_gzip(self):

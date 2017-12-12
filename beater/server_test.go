@@ -16,6 +16,10 @@ import (
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
+	"encoding/json"
+	"io/ioutil"
+
+	"github.com/elastic/apm-server/beater/about"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
 )
@@ -39,7 +43,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerOk(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, defaultConfig)
 	defer teardown()
 
 	req := makeTestRequest(t)
@@ -51,21 +55,66 @@ func TestServerOk(t *testing.T) {
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
-	defer teardown()
 
-	req, err := http.NewRequest("GET", HealthCheckURL, nil)
-	if err != nil {
-		t.Fatalf("Failed to create test request object: %v", err)
+	withAuth := defaultConfig
+	withAuth.SecretToken = "abc"
+
+	tests := []struct {
+		config Config
+		auth   bool
+		about  bool
+	}{
+		{
+			defaultConfig,
+			false,
+			true,
+		},
+		{
+			withAuth,
+			false,
+			false,
+		},
+		{
+			withAuth,
+			true,
+			true,
+		},
 	}
 
-	rr := httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusOK, rr.Code, rr.Code)
+	for _, test := range tests {
+
+		apm, teardown := setupServer(t, test.config)
+
+		req, err := http.NewRequest("GET", HealthCheckURL, nil)
+		if err != nil {
+			t.Fatalf("Failed to create test request object: %v", err)
+		}
+		req.Header.Add("Accept", "application/json")
+		if test.auth {
+			req.Header.Add("Authorization", "Bearer abc")
+		}
+
+		rr := httptest.NewRecorder()
+		apm.Handler.ServeHTTP(rr, req)
+		assert.Equal(t, http.StatusOK, rr.Code, rr.Code)
+
+		body, err := ioutil.ReadAll(rr.Body)
+		var rs map[string]interface{}
+		json.Unmarshal(body, &rs)
+
+		_, hasVersion := rs["version"]
+		assert.Equal(t, test.about, hasVersion)
+		_, hasGitRef := rs["git_ref"]
+		assert.Equal(t, test.about, hasGitRef)
+		_, hasUpdated := rs["updated"]
+		assert.Equal(t, test.about, hasUpdated)
+
+		teardown()
+	}
 }
 
 func TestServerFrontendSwitch(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, defaultConfig)
 	defer teardown()
 
 	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
@@ -89,7 +138,7 @@ func TestServerFrontendSwitch(t *testing.T) {
 }
 
 func TestServerCORS(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, defaultConfig)
 	defer teardown()
 
 	true := true
@@ -152,7 +201,7 @@ func TestServerCORS(t *testing.T) {
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, defaultConfig)
 	defer teardown()
 
 	rr := httptest.NewRecorder()
@@ -212,16 +261,15 @@ func TestServerBadProtocol(t *testing.T) {
 	assert.Contains(t, err.Error(), "malformed HTTP response")
 }
 
-func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
+func setupServer(t *testing.T, cfg Config) (*http.Server, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
 
 	host := randomAddr()
-	cfg := defaultConfig
 	cfg.Host = host
-	cfg.SSL = ssl
 
+	about.SetAbout("apm-server-version")
 	apm := newServer(cfg, nopReporter)
 	go run(apm, cfg)
 
@@ -231,8 +279,6 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	return apm, func() { stop(apm, time.Second) }
 }
 
-var noSSL *SSLConfig
-
 var testData = func() []byte {
 	d, err := tests.LoadValidDataAsBytes("transaction")
 	if err != nil {
@@ -241,13 +287,14 @@ var testData = func() []byte {
 	return d
 }()
 
-func withSSL(t *testing.T, domain string) *SSLConfig {
+func withSSL(t *testing.T, domain string) Config {
 	cert := path.Join(tmpCertPath, t.Name()+".crt")
 	key := path.Join(tmpCertPath, t.Name()+".key")
 	t.Log("generating certificate in ", cert)
 	httpscerts.Generate(cert, key, domain)
-
-	return &SSLConfig{Cert: cert, PrivateKey: key}
+	cfg := defaultConfig
+	cfg.SSL = &SSLConfig{Cert: cert, PrivateKey: key}
+	return cfg
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
@@ -279,9 +326,9 @@ func waitForServer(secure bool, host string) {
 		var res *http.Response
 		var err error
 		if secure {
-			res, err = insecureClient().Get("https://" + host + "/healthcheck")
+			res, err = insecureClient().Get("https://" + host + "/")
 		} else {
-			res, err = http.Get("http://" + host + "/healthcheck")
+			res, err = http.Get("http://" + host + "/")
 		}
 
 		if err != nil {
