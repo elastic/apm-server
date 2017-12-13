@@ -5,13 +5,16 @@
     "type": "object",
     "properties": {
         "agent": {
+            "description": "Name and version of the Elastic APM agent",
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "Name of the Elastic APM agent, e.g. \"Python\"",
                     "type": "string",
                     "maxLength": 1024
                 },
                 "version": {
+                    "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
                     "type": "string",
                     "maxLength": 1024
                 }
@@ -19,10 +22,12 @@
             "required": ["name", "version"]
         },
         "argv": {
+            "description": "Command line arguments used to start this service",
             "type": ["array", "null"],
             "minItems": 0
         },
         "framework": {
+            "description": "Name and version of the used web framework",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -37,6 +42,7 @@
             "required": ["name", "version"]
         },
         "language": {
+            "description": "Name and version of the used programming language",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -57,6 +63,7 @@
             "maxLength": 1024
         },
         "pid": {
+            "description": "Process ID of the service",
             "type": ["number", "null"]
         },
         "process_title": {
@@ -64,10 +71,12 @@
             "maxLength": 1024
         },
         "environment": {
+            "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
             "type": ["string", "null"],
             "maxLength": 1024
         },
         "runtime": {
+            "description": "Name and version of the language runtime running this service",
             "type": ["object", "null"],
             "properties": {
                 "name": {

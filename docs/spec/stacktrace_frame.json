@@ -26,6 +26,7 @@
             "type": ["string", "null"]
         },
         "library_frame": {
+            "description": "A boolean, indicating if this frame is from a library or user code",
             "type": ["boolean", "null"]
         },
         "lineno": {
