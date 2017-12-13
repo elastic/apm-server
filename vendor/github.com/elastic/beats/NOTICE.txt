@@ -370,8 +370,8 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Version: v0.5.0
-Revision: 306d51981789ccc65e5f1431d5c0d78d8c368f1b
+Version: v0.6.0
+Revision: 5cb8fed1ceb7f0fd69e4ad61c715a80601dddfd2
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------
@@ -443,7 +443,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/fsnotify/fsevents
-Revision: 3ceee05210c3babaa38cdc9181dabdcc83076a44
+Revision: 690cb784149d5facd7fe613c52757445c43afcde
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/fsnotify/fsevents/LICENSE:
 --------------------------------------------------------------------
@@ -3491,8 +3491,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/urso/go-structform
-Version: v0.0.1
-Revision: a59a4e97c96431f4ad25ed3bd027981f2e0ff5c2
+Version: v0.0.2
+Revision: 844d7d44009e9e8c0f08016fc4dab64e136ca040
 License type (autodetected): Apache-2.0
 ./vendor/github.com/urso/go-structform/LICENSE:
 --------------------------------------------------------------------
