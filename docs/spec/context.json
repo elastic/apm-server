@@ -18,9 +18,11 @@
             "type": ["object", "null"],
             "properties": {
                 "finished": {
+                    "description": "A boolean indicating the the response was finished",
                     "type": ["boolean", "null"]
                 },
                 "headers": {
+                    "description": "A mapping of HTTP headers of the response object",
                     "type": ["object", "null"],
                     "properties": {
                         "content-type": {
@@ -32,6 +34,7 @@
                     "type": ["boolean", "null"]
                 },
                 "status_code": {
+                    "description": "The HTTP status code of the response.",
                     "type": ["number", "null"]
                 }
             }
@@ -41,6 +44,7 @@
         },
         "tags": {
             "type": ["object", "null"],
+            "description": "A flat mapping of tags with values.",
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
