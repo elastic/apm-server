@@ -182,7 +182,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.x
-Revision: 3e2622dfaca8c4a3c28b0ec35622ea1d838d204d
+Revision: 082e338573fec851ce66ac8ce8b7e5679ba9a8d7
 License type (autodetected): Apache License 2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -1081,7 +1081,7 @@ THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/mitchellh/mapstructure
 Revision: 06020f85339e21b2478f756a78e295255ffa4d6a
-License type (autodetected): MIT
+License type (autodetected): MIT license
 ./vendor/github.com/mitchellh/mapstructure/LICENSE:
 --------------------------------------------------------------------
 The MIT License (MIT)
@@ -2180,7 +2180,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/santhosh-tekuri/jsonschema
 Revision: 63accc9deedeee33b7caf4e241f8a9ebdf031069
-License type (autodetected): BSD-3-Clause
+License type (autodetected): BSD 3-clause license
 ./vendor/github.com/santhosh-tekuri/jsonschema/LICENSE:
 --------------------------------------------------------------------
 Copyright (c) 2017 Santhosh Kumar Tekuri. All rights reserved.
