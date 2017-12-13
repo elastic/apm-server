@@ -30,9 +30,9 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21af0e74\...421db9d1e10935e7b9aec00b64cf66ad2d50d797[View commits]
 
 ==== Breaking changes
-- Make `transaction.result` a mandatory field {pull}250[250].
 - Allow ES template index prefix to be `apm` {pull}152[152].
 - Remove `git_ref` from Intake API and Elasticsearch output {pull}158[158].
+- Switch to Go 1.9.2
 
 ==== Bug fixes
 - Fix dashboard loading for Kibana 5x {pull}221[221].
@@ -41,6 +41,9 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 - Fix wrong content-type in response {pull}171[171].
 - Remove duplicate dashboard entries {pull}162[162].
 - Remove `context.db` from `fields.yml` for consistency, has not been indexed before {pull}159[159].
+- Updated systemd doc url {pull}354[354]
+- Update dashboard with fix for rpm graphs {pull}315[315].
+- Dashboards: Remove time from url_templates {pull}321[321].
 
 ==== Added
 - Added wildcard matching for allowed origins for frontend {pull}287[287].
@@ -52,6 +55,7 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 - Show transaction.result in Requests per Minute {pull}226[226].
 - Added Kibana 5.6 compatible dashboards {pull}208[208].
 - Send document to output on start of server {pull}117[117].
+- Log frontend status at startup  {pull}284[284].
 
 ==== Deprecated
 
