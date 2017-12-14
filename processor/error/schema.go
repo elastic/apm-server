@@ -139,7 +139,7 @@ var errorSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "finished": {
-                    "description": "A boolean indicating the the response was finished",
+                    "description": "A boolean indicating whether the response was finished or not",
                     "type": ["boolean", "null"]
                 },
                 "headers": {
@@ -220,22 +220,27 @@ var errorSchema = `{
             "properties": {
                 "raw": {
                     "type": ["string", "null"],
+                    "description": "The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.",
                     "maxLength": 1024
                 },
                 "protocol": {
                     "type": ["string", "null"],
+                    "description": "The protocol of the request, e.g. 'https:'.",
                     "maxLength": 1024
                 },
                 "hostname": {
                     "type": ["string", "null"],
+                    "description": "The hostname of the request, e.g. 'example.com'.",
                     "maxLength": 1024
                 },
                 "port": {
                     "type": ["string", "null"],
+                    "description": "The port of the request, e.g. '443'",
                     "maxLength": 1024
                 },
                 "pathname": {
                     "type": ["string", "null"],
+                    "description": "The path of the request, e.g. '/search'",
                     "maxLength": 1024
                 },
                 "search": {
@@ -245,6 +250,7 @@ var errorSchema = `{
                 },
                 "hash": {
                     "type": ["string", "null"],
+                    "description": "The hash of the request URL, e.g. 'top'",
                     "maxLength": 1024
                 }
             }
@@ -258,7 +264,7 @@ var errorSchema = `{
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of tags with values.",
+            "description": "A flat mapping of user-defined tags with values.",
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
@@ -276,12 +282,12 @@ var errorSchema = `{
     "type": ["object", "null"],
     "properties": {
         "id": {
-            "description": "An id, identifying the logged in user, e.g. the primary key of the user",
+            "description": "Identifier of the logged in user, e.g. the primary key of the user",
             "type": ["string", "number", "null"],
             "maxLength": 1024
         },    
         "email": {
-            "description": "The email address of the logged in user",
+            "description": "Email of the logged in user",
             "type": ["string", "null"],
             "maxLength": 1024
         },
@@ -299,15 +305,16 @@ var errorSchema = `{
             "type": ["string", "null"]
         },
         "exception": {
-            "description": "A standard exception.",
+            "description": "Information about the originally thrown error.",
             "type": ["object", "null"],
             "properties": {
                 "code": {
                     "type": ["string", "number", "null"],
-                    "maxLength": 1024
+                    "maxLength": 1024,
+                    "description": "The error code set when the error happened, e.g. database error code."
                 },
                 "message": {
-                   "description": "The exception's error message.",
+                   "description": "The original error message.",
                    "type": "string"
                 },
                 "module": {
@@ -384,7 +391,8 @@ var errorSchema = `{
                     "maxLength": 1024
                 },
                 "uncaught": {
-                    "type": ["boolean", "null"]
+                    "type": ["boolean", "null"],
+                    "description": "Indicator whether the error was caught somewhere in the code or not."
                 }
             },
             "required": ["message"]
@@ -396,26 +404,27 @@ var errorSchema = `{
         },
         "log": {
             "type": ["object", "null"],
+            "description": "Additional information added when logging the error.",
             "properties": {
                 "level": {
-                    "description": "The record severity.",
+                    "description": "The severity of the record.",
                     "type": ["string", "null"],
                     "default": "error",
                     "enum": ["debug", "info", "warning", "error", "fatal", null],
                     "maxLength": 1024
                 },
                 "logger_name": {
-                    "description": "The name of the logger which created the record.",
+                    "description": "The name of the used logger instance.",
                     "type": ["string", "null"],
                     "default": "default",
                     "maxLength": 1024
                 },
                 "message": {
-                    "description": "The exception's error message.",
+                    "description": "The additionally logged error message.",
                     "type": "string"
                 },
                 "param_message": {
-                    "description": "A parametrized message. E.g. Could not connect to %s. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
+                    "description": "Equal to message, but with placeholders replaced.",
                     "type": ["string", "null"],
                     "maxLength": 1024
 

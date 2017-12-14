@@ -24,6 +24,8 @@
 
     - name: error
       type: group
+      description: >
+        Data captured by an agent representing an event occurring in a monitored service."
       dynamic: false
       fields:
 
@@ -31,7 +33,7 @@
           type: keyword
           count: 4
           description: >
-            A UUID4 error ID.
+            A UUID for the error.
 
         - name: culprit
           type: text

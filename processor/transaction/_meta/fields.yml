@@ -25,15 +25,12 @@
             - name: keyword
               type: keyword
           description: >
-            Name of the transaction. This is usually a generic path to the controller/endpoint that handled the
-            transaction.
-
-            TODO: investigate use of "path_hierarchy" tokenizer
+            Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
         - name: type
           type: keyword
           description: >
-            The transaction type, e.g. "request", or "job".
+            Keyword of specific relevance in the service's domain (eg. 'request', 'cache', etc)
 
         - name: duration
           type: group
@@ -77,13 +74,13 @@
           type: keyword
           count: 1
           description: >
-            Generic name of the span.
+            Generic designation of a span in the scope of a transaction.
 
         - name: type
           type: keyword
           count: 1
           description: >
-            Type of the span. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
+            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc).
 
         - name: start
           type: group
@@ -93,7 +90,7 @@
               type: long
               count: 1
               description: >
-                Start time of the span in microseconds, relative to the start time of the transaction.
+                Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
 
         - name: duration
           type: group
@@ -113,4 +110,4 @@
         - name: parent
           type: long
           description: >
-             The parent span id for recreating the full ancestor path.
+             The locally unique ID of the parent of the span.
