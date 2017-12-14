@@ -3,7 +3,7 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "python",
                         "version": "1.0"
@@ -11,7 +11,7 @@
                     "language": {
                         "name": "javascript"
                     },
-                    "name": "app1"
+                    "name": "service1"
                 }
             },
             "processor": {

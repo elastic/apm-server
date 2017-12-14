@@ -3,12 +3,12 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "python",
                         "version": "1.0"
                     },
-                    "name": "app1"
+                    "name": "service1"
                 }
             },
             "processor": {
@@ -27,12 +27,12 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "python",
                         "version": "1.0"
                     },
-                    "name": "app1"
+                    "name": "service1"
                 }
             },
             "processor": {
@@ -47,10 +47,10 @@
                 "start": {
                     "us": 0
                 },
-                "transaction": {
-                    "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
-                },
                 "type": "request"
+            },
+            "transaction": {
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             }
         }
     ]

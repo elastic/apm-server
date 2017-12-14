@@ -11,20 +11,23 @@ var errorSchema = `{
     "description": "List of errors wrapped in an object containing some other attributes normalized away form the errors themselves",
     "type": "object",
     "properties": {
-        "app": {
+        "service": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/app.json",
-    "title": "App",
+    "$id": "doc/spec/service.json",
+    "title": "Service",
     "type": "object",
     "properties": {
         "agent": {
+            "description": "Name and version of the Elastic APM agent",
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "Name of the Elastic APM agent, e.g. \"Python\"",
                     "type": "string",
                     "maxLength": 1024
                 },
                 "version": {
+                    "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
                     "type": "string",
                     "maxLength": 1024
                 }
@@ -32,10 +35,12 @@ var errorSchema = `{
             "required": ["name", "version"]
         },
         "argv": {
+            "description": "Command line arguments used to start this service",
             "type": ["array", "null"],
             "minItems": 0
         },
         "framework": {
+            "description": "Name and version of the used web framework",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -50,6 +55,7 @@ var errorSchema = `{
             "required": ["name", "version"]
         },
         "language": {
+            "description": "Name and version of the used programming language",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -64,12 +70,13 @@ var errorSchema = `{
             "required": ["name"]
         },
         "name": {
-            "description": "Immutable name of the app emitting this event",
+            "description": "Immutable name of the service emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
         "pid": {
+            "description": "Process ID of the service",
             "type": ["number", "null"]
         },
         "process_title": {
@@ -77,10 +84,12 @@ var errorSchema = `{
             "maxLength": 1024
         },
         "environment": {
+            "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
             "type": ["string", "null"],
             "maxLength": 1024
         },
         "runtime": {
+            "description": "Name and version of the language runtime running this service",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -95,7 +104,7 @@ var errorSchema = `{
             "required": ["name", "version"]
         },
         "version": {
-            "description": "Version of the app emitting this event",
+            "description": "Version of the service emitting this event",
             "type": ["string", "null"],
             "maxLength": 1024
         }
@@ -108,7 +117,7 @@ var errorSchema = `{
                     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/errors/error.json",
     "type": "object",
-    "description": "Data captured by an agent representing an event occurring in a monitored app",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
         "context": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
@@ -130,9 +139,11 @@ var errorSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "finished": {
+                    "description": "A boolean indicating the the response was finished",
                     "type": ["boolean", "null"]
                 },
                 "headers": {
+                    "description": "A mapping of HTTP headers of the response object",
                     "type": ["object", "null"],
                     "properties": {
                         "content-type": {
@@ -144,6 +155,7 @@ var errorSchema = `{
                     "type": ["boolean", "null"]
                 },
                 "status_code": {
+                    "description": "The HTTP status code of the response.",
                     "type": ["number", "null"]
                 }
             }
@@ -246,6 +258,7 @@ var errorSchema = `{
         },
         "tags": {
             "type": ["object", "null"],
+            "description": "A flat mapping of tags with values.",
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
@@ -263,14 +276,17 @@ var errorSchema = `{
     "type": ["object", "null"],
     "properties": {
         "id": {
+            "description": "An id, identifying the logged in user, e.g. the primary key of the user",
             "type": ["string", "number", "null"],
             "maxLength": 1024
         },    
         "email": {
+            "description": "The email address of the logged in user",
             "type": ["string", "null"],
             "maxLength": 1024
         },
         "username": {
+            "description": "The username of the logged in user",
             "type": ["string", "null"],
             "maxLength": 1024
         }
@@ -331,7 +347,8 @@ var errorSchema = `{
             "description": "The function involved in the stack frame",
             "type": ["string", "null"]
         },
-        "in_app": {
+        "library_frame": {
+            "description": "A boolean, indicating if this frame is from a library or user code",
             "type": ["boolean", "null"]
         },
         "lineno": {
@@ -432,7 +449,8 @@ var errorSchema = `{
             "description": "The function involved in the stack frame",
             "type": ["string", "null"]
         },
-        "in_app": {
+        "library_frame": {
+            "description": "A boolean, indicating if this frame is from a library or user code",
             "type": ["boolean", "null"]
         },
         "lineno": {
@@ -509,6 +527,6 @@ var errorSchema = `{
     }
         }
     },
-    "required": ["app", "errors"]
+    "required": ["service", "errors"]
 }
 `

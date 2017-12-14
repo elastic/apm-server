@@ -3,7 +3,7 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -11,7 +11,7 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
                 "system": {}
             },
@@ -32,7 +32,10 @@
         {
             "@timestamp": "2017-05-30T18:53:42Z",
             "context": {
-                "app": {
+                "custom": null,
+                "request": null,
+                "response": null,
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
@@ -40,11 +43,8 @@
                     "language": {
                         "name": "ruby"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 },
-                "custom": null,
-                "request": null,
-                "response": null,
                 "system": {},
                 "tags": null,
                 "user": null
@@ -65,16 +65,6 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281999Z",
             "context": {
-                "app": {
-                    "agent": {
-                        "name": "ruby",
-                        "version": "1.0.0"
-                    },
-                    "language": {
-                        "name": "ruby"
-                    },
-                    "name": "1234_app-12a3"
-                },
                 "custom": null,
                 "request": {
                     "body": null,
@@ -100,6 +90,16 @@
                     "headers_sent": null,
                     "status_code": null
                 },
+                "service": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_service-12a3"
+                },
                 "system": {},
                 "user": {
                     "email": null,
@@ -123,16 +123,6 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
-                    "agent": {
-                        "name": "ruby",
-                        "version": "1.0.0"
-                    },
-                    "language": {
-                        "name": "ruby"
-                    },
-                    "name": "1234_app-12a3"
-                },
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -161,6 +151,16 @@
                         "content-type": null
                     }
                 },
+                "service": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "language": {
+                        "name": "ruby"
+                    },
+                    "name": "1234_service-12a3"
+                },
                 "system": {},
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
@@ -182,12 +182,12 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
                     },
-                    "name": "1234_app-12a3"
+                    "name": "1234_service-12a3"
                 }
             },
             "processor": {
@@ -202,23 +202,23 @@
                 "start": {
                     "us": 0
                 },
-                "transaction": {
-                    "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
-                },
                 "type": "request"
+            },
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
             }
         },
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
+                "db": null,
+                "service": {
                     "agent": {
                         "name": "ruby",
                         "version": "1.0.0"
                     },
-                    "name": "1234_app-12a3"
-                },
-                "db": null
+                    "name": "1234_service-12a3"
+                }
             },
             "processor": {
                 "event": "span",
@@ -240,27 +240,27 @@
                 "start": {
                     "us": 2830
                 },
-                "transaction": {
-                    "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
-                },
                 "type": "db.postgresql.query"
+            },
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
             }
         },
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "app": {
-                    "agent": {
-                        "name": "ruby",
-                        "version": "1.0.0"
-                    },
-                    "name": "1234_app-12a3"
-                },
                 "db": {
                     "instance": null,
                     "statement": null,
                     "type": null,
                     "user": null
+                },
+                "service": {
+                    "agent": {
+                        "name": "ruby",
+                        "version": "1.0.0"
+                    },
+                    "name": "1234_service-12a3"
                 }
             },
             "processor": {
@@ -275,10 +275,10 @@
                 "start": {
                     "us": 0
                 },
-                "transaction": {
-                    "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
-                },
                 "type": "request"
+            },
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
             }
         }
     ]

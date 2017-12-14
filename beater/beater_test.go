@@ -96,16 +96,14 @@ func createPayload(entitytype string, numEntities int) []byte {
 	if err != nil {
 		panic(err)
 	}
-	var payload map[string]interface{}
-	err = json.Unmarshal(data, &payload)
 	var entityList []interface{}
-	testEntities := payload[pluralize(entitytype)].([]interface{})
+	testEntities := data[pluralize(entitytype)].([]interface{})
 
 	for i := 0; i < numEntities; i++ {
 		entityList = append(entityList, testEntities[i%len(testEntities)])
 	}
-	payload[pluralize(entitytype)] = entityList
-	out, err := json.Marshal(payload)
+	data[pluralize(entitytype)] = entityList
+	out, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}

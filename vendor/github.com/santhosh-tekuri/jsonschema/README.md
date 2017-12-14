@@ -38,6 +38,10 @@ compiler := jsonschema.NewCompiler()
 compler.Draft = jsonschema.Draft4
 ```
 
+you can also validate go value using `schema.ValidateInterface(interface{})` method.  
+but the argument should not be user-defined struct.
+
+
 This package supports loading json-schema from filePath and fileURL.
 
 To load json-schema from HTTPURL, add following import:
@@ -58,7 +62,7 @@ compiler := jsonschema.NewCompiler()
 if err := compiler.AddResource(url, strings.NewReader(data)); err != nil {
     return err
 }
-schema, err := jsonschema.Compile(url)
+schema, err := compiler.Compile(url)
 if err != nil {
     return err
 }

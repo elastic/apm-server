@@ -11,10 +11,6 @@ import (
 const addKey = "added"
 
 func TestAdd(t *testing.T) {
-	/*TODO: check if/how to test the error cases,
-	  it looks like the common.MapStr.Put() cannot really send back an error
-	*/
-
 	base := common.MapStr{"existing": "foo"}
 	addTrue, updateTrue, expectedTrue := true, false, common.MapStr{"existing": "foo", addKey: true}
 	addFalse, updateFalse, expectedFalse := false, true, common.MapStr{"existing": "foo", addKey: false}
@@ -28,16 +24,16 @@ func TestAdd(t *testing.T) {
 	var addStrNil *string
 	var addStrArrNil []string
 	testData := [][]interface{}{
-		[]interface{}{&addTrue, &updateTrue, expectedTrue},
-		[]interface{}{&addFalse, &updateFalse, expectedFalse},
-		[]interface{}{&addInt, &updateInt, expectedInt},
-		[]interface{}{&addStr, &updateStr, expectedStr},
-		[]interface{}{addCommonMapStr, updateCommonMapStr, expectedCommonMapStr},
-		[]interface{}{addCommonMapStrEmpty, updateCommonMapStrEmpty, expectedCommonMapStrEmpty},
-		[]interface{}{addBoolNil, addBoolNil, base},
-		[]interface{}{addIntNil, addIntNil, base},
-		[]interface{}{addStrNil, addStrNil, base},
-		[]interface{}{addStrArrNil, []string{"something"}, base},
+		{&addTrue, &updateTrue, expectedTrue},
+		{&addFalse, &updateFalse, expectedFalse},
+		{&addInt, &updateInt, expectedInt},
+		{&addStr, &updateStr, expectedStr},
+		{addCommonMapStr, updateCommonMapStr, expectedCommonMapStr},
+		{addCommonMapStrEmpty, updateCommonMapStrEmpty, expectedCommonMapStrEmpty},
+		{addBoolNil, addBoolNil, base},
+		{addIntNil, addIntNil, base},
+		{addStrNil, addStrNil, base},
+		{addStrArrNil, []string{"something"}, base},
 	}
 	for _, testDataRow := range testData {
 		assert, enhancer, base := setup(t)

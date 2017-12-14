@@ -1,5 +1,5 @@
 {
-    "app": {
+    "service": {
         "name": "app1",
         "agent": {
           "name": "python",

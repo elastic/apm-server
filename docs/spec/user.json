@@ -6,14 +6,17 @@
     "type": ["object", "null"],
     "properties": {
         "id": {
+            "description": "An id, identifying the logged in user, e.g. the primary key of the user",
             "type": ["string", "number", "null"],
             "maxLength": 1024
         },    
         "email": {
+            "description": "The email address of the logged in user",
             "type": ["string", "null"],
             "maxLength": 1024
         },
         "username": {
+            "description": "The username of the logged in user",
             "type": ["string", "null"],
             "maxLength": 1024
         }

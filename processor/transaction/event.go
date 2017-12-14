@@ -9,14 +9,14 @@ import (
 )
 
 type Event struct {
-	Id        string        `json:"id"`
-	Name      string        `json:"name"`
-	Type      string        `json:"type"`
-	Result    *string       `json:"result"`
-	Duration  float64       `json:"duration"`
-	Timestamp time.Time     `json:"timestamp"`
-	Context   common.MapStr `json:"context"`
-	Spans     []Span        `json:"spans"`
+	Id        string
+	Name      string
+	Type      string
+	Result    *string
+	Duration  float64
+	Timestamp time.Time
+	Context   common.MapStr
+	Spans     []Span
 }
 
 func (t *Event) DocType() string {
@@ -41,7 +41,7 @@ func (t *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
 			}},
 			{Key: t.DocType(), Apply: t.Transform},
 			{Key: "context", Apply: func() common.MapStr { return t.Context }},
-			{Key: "context.app", Apply: pa.App.Transform},
+			{Key: "context.service", Apply: pa.Service.Transform},
 			{Key: "context.system", Apply: pa.System.Transform},
 		}
 }

@@ -217,57 +217,57 @@ The platform of the host that records the event.
 
 
 [float]
-== app fields
+== service fields
 
-App fields.
+Service fields.
 
 
 
 [float]
-=== `context.app.name`
+=== `context.service.name`
 
 type: keyword
 
 format: url
 
-Unique App name.
+Unique Service name.
 
 
 [float]
-=== `context.app.version`
+=== `context.service.version`
 
 type: keyword
 
-App version.
+Service version.
 
 
 [float]
-=== `context.app.pid`
+=== `context.service.pid`
 
 type: long
 
-Numeric process ID of the app process.
+Numeric process ID of the service process.
 
 
 [float]
-=== `context.app.process_title`
+=== `context.service.process_title`
 
 type: keyword
 
-App process_title.
+Service process_title.
 
 
 [float]
-=== `context.app.environment`
+=== `context.service.environment`
 
 type: keyword
 
-App environment.
+Service environment.
 
 
 
 [float]
-=== `context.app.language.name`
+=== `context.service.language.name`
 
 type: keyword
 
@@ -275,7 +275,7 @@ Language name.
 
 
 [float]
-=== `context.app.language.version`
+=== `context.service.language.version`
 
 type: keyword
 
@@ -284,7 +284,7 @@ Language version.
 
 
 [float]
-=== `context.app.runtime.name`
+=== `context.service.runtime.name`
 
 type: keyword
 
@@ -292,7 +292,7 @@ Runtime name.
 
 
 [float]
-=== `context.app.runtime.version`
+=== `context.service.runtime.version`
 
 type: keyword
 
@@ -301,7 +301,7 @@ Runtime version.
 
 
 [float]
-=== `context.app.framework.name`
+=== `context.service.framework.name`
 
 type: keyword
 
@@ -309,7 +309,7 @@ Framework name.
 
 
 [float]
-=== `context.app.framework.version`
+=== `context.service.framework.version`
 
 type: keyword
 
@@ -318,7 +318,7 @@ Framework version.
 
 
 [float]
-=== `context.app.agent.name`
+=== `context.service.agent.name`
 
 type: keyword
 
@@ -326,7 +326,7 @@ Agent name.
 
 
 [float]
-=== `context.app.agent.version`
+=== `context.service.agent.version`
 
 type: keyword
 
@@ -462,26 +462,26 @@ Sourcemap files enriched with metadata
 
 
 [float]
-== app fields
+== service fields
 
-App fields.
+Service fields.
 
-
-
-[float]
-=== `sourcemap.app.name`
-
-type: keyword
-
-The name of the app this sourcemap belongs to.
 
 
 [float]
-=== `sourcemap.app.version`
+=== `sourcemap.service.name`
 
 type: keyword
 
-App version.
+The name of the service this sourcemap belongs to.
+
+
+[float]
+=== `sourcemap.service.version`
+
+type: keyword
+
+Service version.
 
 
 [float]
@@ -510,15 +510,6 @@ format: url
 type: long
 
 A locally unique ID of the span.
-
-
-
-[float]
-=== `span.transaction.id`
-
-type: keyword
-
-Reference to the transaction this span is part of.
 
 
 [float]

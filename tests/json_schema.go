@@ -9,6 +9,8 @@ import (
 
 	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/processor"
 )
 
 type Schema struct {
@@ -25,8 +27,7 @@ type Mapping struct {
 }
 
 func TestPayloadAttributesInSchema(t *testing.T, name string, undocumentedAttrs *set.Set, schema string) {
-	var payload interface{}
-	UnmarshalValidData(name, &payload)
+	payload, _ := LoadValidData(name)
 	jsonNames := set.New()
 	flattenJsonKeys(payload, "", jsonNames)
 	jsonNamesDoc := set.Difference(jsonNames, undocumentedAttrs).(*set.Set)
@@ -62,7 +63,7 @@ func TestJsonSchemaKeywordLimitation(t *testing.T, fieldPaths []string, schema s
 		{"errors", "error"},
 		{"transactions.spans", "span"},
 		{"transactions", "transaction"},
-		{"app", "context.app"},
+		{"service", "context.service"},
 		{"system", "context.system"},
 	}
 
@@ -142,4 +143,18 @@ func addLengthRestrictedPropNames(s *Schema) bool {
 		return true
 	}
 	return false
+}
+
+type SchemaTestData struct {
+	File  string
+	Error string
+}
+
+func TestDataAgainstProcessor(t *testing.T, p processor.Processor, testData []SchemaTestData) {
+	for _, d := range testData {
+		data, err := LoadData(d.File)
+		assert.Nil(t, err)
+		err = p.Validate(data)
+		assert.Contains(t, err.Error(), d.Error)
+	}
 }

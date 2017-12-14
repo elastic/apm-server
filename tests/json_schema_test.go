@@ -12,18 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/processor"
-	err "github.com/elastic/apm-server/processor/error"
-	"github.com/elastic/apm-server/processor/sourcemap"
-	"github.com/elastic/apm-server/processor/transaction"
 )
 
-type schemaTestData struct {
-	File  string
-	Error string
-}
-
-func TestAppSchema(t *testing.T) {
-	testData := []schemaTestData{
+func TestServiceSchema(t *testing.T) {
+	testData := []SchemaTestData{
 		{File: "invalid_name.json", Error: "[#/properties/name/pattern] does not match pattern"},
 		{File: "no_agent_name.json", Error: "missing properties: \"name\""},
 		{File: "no_agent_version.json", Error: "missing properties: \"version\""},
@@ -35,12 +27,12 @@ func TestAppSchema(t *testing.T) {
 		{File: "no_name.json", Error: "missing properties: \"name\""},
 		{File: "no_agent.json", Error: "missing properties: \"agent\""},
 	}
-	path := "app"
+	path := "service"
 	testDataAgainstSchema(t, testData, path, path, "")
 }
 
 func TestUserSchema(t *testing.T) {
-	testData := []schemaTestData{
+	testData := []SchemaTestData{
 		{File: "invalid_type_id.json", Error: "expected string or number or null"},
 		{File: "invalid_type_email.json", Error: "expected string or null"},
 		{File: "invalid_type_username.json", Error: "expected string or null"},
@@ -50,7 +42,7 @@ func TestUserSchema(t *testing.T) {
 }
 
 func TestStacktraceFrameSchema(t *testing.T) {
-	testData := []schemaTestData{
+	testData := []SchemaTestData{
 		{File: "no_lineno.json", Error: "missing properties: \"lineno\""},
 		{File: "no_filename.json", Error: "missing properties: \"filename\""},
 	}
@@ -59,7 +51,7 @@ func TestStacktraceFrameSchema(t *testing.T) {
 }
 
 func TestRequestSchema(t *testing.T) {
-	testData := []schemaTestData{
+	testData := []SchemaTestData{
 		{File: "no_url.json", Error: "missing properties: \"url\""},
 		{File: "no_method.json", Error: "missing properties: \"method\""},
 	}
@@ -68,7 +60,7 @@ func TestRequestSchema(t *testing.T) {
 }
 
 func TestContextSchema(t *testing.T) {
-	testData := []schemaTestData{
+	testData := []SchemaTestData{
 		{File: "invalid_custom_asterisk.json", Error: `additionalProperties "or*g" not allowed`},
 		{File: "invalid_custom_dot.json", Error: `additionalProperties "or.g" not allowed`},
 		{File: "invalid_custom_quote.json", Error: `additionalProperties "or\"g" not allowed`},
@@ -81,18 +73,8 @@ func TestContextSchema(t *testing.T) {
 	testDataAgainstSchema(t, testData, path, path, `"$ref": "../docs/spec/`)
 }
 
-func TestSourcemapPayloadSchema(t *testing.T) {
-	testData := []schemaTestData{
-		{File: "no_app_version.json", Error: "missing properties: \"app_version\""},
-		{File: "no_bundle_filepath.json", Error: "missing properties: \"bundle_filepath\""},
-		{File: "not_allowed_empty_values.json", Error: "length must be >= 1, but got 0"},
-		{File: "not_allowed_null_values.json", Error: "expected string, but got null"},
-	}
-	testDataAgainstProcessor(t, sourcemap.NewProcessor(), testData, "sourcemap")
-}
-
 func TestSpanSchema(t *testing.T) {
-	testData := []schemaTestData{
+	testData := []SchemaTestData{
 		{File: "no_id.json", Error: `missing properties: "id"`},
 		{File: "no_name.json", Error: `missing properties: "name"`},
 		{File: "no_duration.json", Error: `missing properties: "duration"`},
@@ -103,7 +85,7 @@ func TestSpanSchema(t *testing.T) {
 }
 
 func TestTransactionSchema(t *testing.T) {
-	testData := []schemaTestData{
+	testData := []SchemaTestData{
 		{File: "no_id.json", Error: `missing properties: "id"`},
 		{File: "no_name.json", Error: `missing properties: "name"`},
 		{File: "no_duration.json", Error: `missing properties: "duration"`},
@@ -119,16 +101,8 @@ func TestTransactionSchema(t *testing.T) {
 	testDataAgainstSchema(t, testData, "transactions/transaction", "transaction", `"$ref": "../docs/spec/transactions/`)
 }
 
-func TestTransactionPayloadSchema(t *testing.T) {
-	testData := []schemaTestData{
-		{File: "no_app.json", Error: "missing properties: \"app\""},
-		{File: "no_transactions.json", Error: "minimum 1 items allowed"},
-	}
-	testDataAgainstProcessor(t, transaction.NewProcessor(), testData, "transaction_payload")
-}
-
 func TestErrorSchema(t *testing.T) {
-	testData := []schemaTestData{
+	testData := []SchemaTestData{
 		{File: "invalid_id.json", Error: "[#/properties/id/pattern] does not match pattern"},
 		{File: "invalid_timestamp.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp2.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
@@ -145,15 +119,7 @@ func TestErrorSchema(t *testing.T) {
 	testDataAgainstSchema(t, testData, "errors/error", "error", `"$ref": "../docs/spec/errors/`)
 }
 
-func TestErrorPayloadSchema(t *testing.T) {
-	testData := []schemaTestData{
-		{File: "no_app.json", Error: "missing properties: \"app\""},
-		{File: "no_errors.json", Error: "missing properties: \"errors\""},
-	}
-	testDataAgainstProcessor(t, err.NewProcessor(), testData, "error_payload")
-}
-
-func testDataAgainstSchema(t *testing.T, testData []schemaTestData, schemaPath string, filePath string, replace string) {
+func testDataAgainstSchema(t *testing.T, testData []SchemaTestData, schemaPath string, filePath string, replace string) {
 	schemaData, err := ioutil.ReadFile(filepath.Join("../docs/spec", schemaPath+".json"))
 	assert.Nil(t, err)
 	schemaStr := string(schemaData[:])
@@ -179,15 +145,6 @@ func testDataAgainstSchema(t *testing.T, testData []schemaTestData, schemaPath s
 	}
 }
 
-func testDataAgainstProcessor(t *testing.T, p processor.Processor, testData []schemaTestData, filePath string) {
-	for _, d := range testData {
-		data, err := ioutil.ReadFile(filepath.Join("data/invalid", filePath, d.File))
-		assert.Nil(t, err)
-		err = p.Validate(data)
-		assert.Contains(t, err.Error(), d.Error)
-	}
-}
-
 func TestGetSchemaProperties(t *testing.T) {
 	schema, err := schemaStruct(strings.NewReader(test_schema))
 	assert.Nil(t, err)
@@ -198,7 +155,7 @@ func TestGetSchemaProperties(t *testing.T) {
 
 	addFn = func(s *Schema) bool { return true }
 	flattenSchemaNames(schema, "", addFn, flattened)
-	expected := set.New("app", "app.name", "app.version", "app.argv", "app.language", "app.language.name", "app.language.version", "errors", "errors.timestamp", "errors.message", "errors.stacktrace", "errors.stacktrace.abs_path", "errors.stacktrace.filename", "errors.id")
+	expected := set.New("service", "service.name", "service.version", "service.argv", "service.language", "service.language.name", "service.language.version", "errors", "errors.timestamp", "errors.message", "errors.stacktrace", "errors.stacktrace.abs_path", "errors.stacktrace.filename", "errors.id")
 
 	assert.Equal(t, 0, set.Difference(expected, flattened).(*set.Set).Size())
 
@@ -211,18 +168,18 @@ var test_schema = `{
     "description": "List of errors wrapped in an object containing some other attributes normalized away form the errors themselves",
     "type": "object",
     "properties": {
-        "app": {
+        "service": {
             "$schema": "http://json-schema.org/draft-04/schema#",
-            "$id": "doc/spec/application.json",
-            "title": "App",
+            "$id": "doc/spec/service.json",
+            "title": "Service",
             "type": "object",
             "properties": {
                 "name": {
-                    "description": "Immutable name of the app emitting this transaction",
+                    "description": "Immutable name of the service emitting this transaction",
                     "type": "string"
                 },
                 "version": {
-                    "description": "Version of the app emitting this transaction",
+                    "description": "Version of the service emitting this transaction",
                     "type": "string"
                 },
                 "argv": {
@@ -250,7 +207,7 @@ var test_schema = `{
                 "$schema": "http://json-schema.org/draft-04/schema#",
                 "$id": "docs/spec/errors/error.json",
                 "type": "object",
-                "description": "Data captured by an agent representing an event occurring in a monitored app",
+                "description": "Data captured by an agent representing an event occurring in a monitored service",
                 "properties": {
                     "id": {
                       "type": "string",

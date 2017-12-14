@@ -6,9 +6,9 @@ import (
 )
 
 type System struct {
-	Hostname     *string `json:"hostname"`
-	Architecture *string `json:"architecture"`
-	Platform     *string `json:"platform"`
+	Hostname     *string
+	Architecture *string
+	Platform     *string
 }
 
 func (s *System) Transform() common.MapStr {

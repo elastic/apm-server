@@ -25,7 +25,8 @@
             "description": "The function involved in the stack frame",
             "type": ["string", "null"]
         },
-        "in_app": {
+        "library_frame": {
+            "description": "A boolean, indicating if this frame is from a library or user code",
             "type": ["boolean", "null"]
         },
         "lineno": {

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func DecodeSourcemapFormData(req *http.Request) ([]byte, error) {
+func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) {
 	contentType := req.Header.Get("Content-Type")
 	if !strings.Contains(contentType, "multipart/form-data") {
 		return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
@@ -27,15 +27,10 @@ func DecodeSourcemapFormData(req *http.Request) ([]byte, error) {
 
 	payload := map[string]interface{}{
 		"sourcemap":       parsedSourcemap,
-		"app_name":        req.FormValue("app_name"),
-		"app_version":     req.FormValue("app_version"),
+		"service_name":    req.FormValue("service_name"),
+		"service_version": req.FormValue("service_version"),
 		"bundle_filepath": req.FormValue("bundle_filepath"),
 	}
 
-	buf, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf, nil
+	return payload, nil
 }

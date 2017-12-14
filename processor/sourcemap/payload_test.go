@@ -3,8 +3,6 @@ package sourcemap
 import (
 	"testing"
 
-	"encoding/json"
-
 	"time"
 
 	s "github.com/go-sourcemap/sourcemap"
@@ -34,12 +32,12 @@ func getStrSlice(data common.MapStr, key string) []string {
 }
 
 func TestPayloadTransform(t *testing.T) {
-	var payload payload
-	fileBytes, err := tests.LoadValidData("sourcemap")
-	assert.NoError(t, err)
-	json.Unmarshal(fileBytes, &payload)
 
-	rs := payload.transform()
+	data, err := tests.LoadValidData("sourcemap")
+	assert.NoError(t, err)
+
+	rs, err := NewProcessor().Transform(data)
+	assert.NoError(t, err)
 
 	assert.Len(t, rs, 1)
 	event := rs[0]
@@ -49,8 +47,8 @@ func TestPayloadTransform(t *testing.T) {
 	output := event.Fields["sourcemap"].(common.MapStr)
 
 	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
-	assert.Equal(t, "app", getStr(output, "app.name"))
-	assert.Equal(t, "1", getStr(output, "app.version"))
+	assert.Equal(t, "service", getStr(output, "service.name"))
+	assert.Equal(t, "1", getStr(output, "service.version"))
 	assert.Equal(t, float64(3), getFloat(output, "sourcemap.version"))
 	assert.Equal(t,
 		[]string{"webpack:///bundle.js", "webpack:///webpack/bootstrap 6002740481c9666b0d38", "webpack:///./scripts/index.js", "webpack:///./index.html", "webpack:///./scripts/app.js"},
@@ -73,7 +71,7 @@ func TestPayloadTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := tests.LoadData("tests/data/valid/sourcemap/bundle.min.map")
+	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.min.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)

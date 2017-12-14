@@ -8,13 +8,13 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestAppTransformDefinition(t *testing.T) {
-	myfn := func(fn TransformApp) string { return "ok" }
-	res := myfn((*App).Transform)
+func TestServiceTransformDefinition(t *testing.T) {
+	myfn := func(fn TransformService) string { return "ok" }
+	res := myfn((*Service).Transform)
 	assert.Equal(t, "ok", res)
 }
 
-func TestAppTransform(t *testing.T) {
+func TestServiceTransform(t *testing.T) {
 
 	version := "5.1.3"
 	pid := 1234
@@ -29,11 +29,11 @@ func TestAppTransform(t *testing.T) {
 	agentName := "elastic-node"
 	agentVersion := "1.0.0"
 	tests := []struct {
-		App    App
-		Output common.MapStr
+		Service Service
+		Output  common.MapStr
 	}{
 		{
-			App: App{},
+			Service: Service{},
 			Output: common.MapStr{
 				"agent": common.MapStr{
 					"name":    "",
@@ -43,8 +43,8 @@ func TestAppTransform(t *testing.T) {
 			},
 		},
 		{
-			App: App{
-				Name:         "myapp",
+			Service: Service{
+				Name:         "myService",
 				Version:      &version,
 				Pid:          &pid,
 				ProcessTitle: &processTitle,
@@ -71,7 +71,7 @@ func TestAppTransform(t *testing.T) {
 				},
 			},
 			Output: common.MapStr{
-				"name":          "myapp",
+				"name":          "myService",
 				"version":       "5.1.3",
 				"environment":   "staging",
 				"pid":           1234,
@@ -101,7 +101,7 @@ func TestAppTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.App.Transform()
+		output := test.Service.Transform()
 		assert.Equal(t, test.Output, output)
 	}
 
