@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/stacktrace.json",
+    "title": "Stacktrace",
+    "type": ["object", "null"],
+    "description": "List of stack frames with variable attributes (eg: lineno, filename, etc), and metadata",
+    "properties": {
+        "frames": {
+            "type": ["array", "null"],
+            "items": {
+                "$ref": "stacktrace_frame.json"
+            },
+            "minItems": 0
+        }
+    }
+}

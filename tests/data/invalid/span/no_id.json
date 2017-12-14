@@ -4,7 +4,7 @@
     "type": "db.postgresql.query",
     "start": 2.83092,
     "duration": 3.781912,
-    "stacktrace": [],
+    "stacktrace": {},
     "context": {
         "user": "john"
     }

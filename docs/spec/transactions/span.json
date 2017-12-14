@@ -49,12 +49,7 @@
             "description": "The locally unique ID of the parent of the span."
         },
         "stacktrace": {
-            "type": ["array", "null"],
-            "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
-            "items": {
-                "$ref": "../stacktrace_frame.json"
-            },
-            "minItems": 0
+            "$ref": "../stacktrace.json"
         },
         "start": {
             "type": "number",

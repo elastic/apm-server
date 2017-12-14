@@ -112,34 +112,36 @@
                     "type": "db.postgresql.query",
                     "start": 2.83092,
                     "duration": 3.781912,
-                    "stacktrace": [
-                        {
-                            "function": "onread",
-                            "abs_path": "net.js",
-                            "filename": "net.js",
-                            "lineno": 547,
-                            "library_frame": true,
-                            "vars": {
-                              "key": "value"
+                    "stacktrace": {
+                        "frames": [
+                            {
+                                "function": "onread",
+                                "abs_path": "net.js",
+                                "filename": "net.js",
+                                "lineno": 547,
+                                "library_frame": true,
+                                "vars": {
+                                    "key": "value"
+                                },
+                                "module": "some module",
+                                "colno": 4,
+                                "context_line": "line3",
+                                "pre_context": [
+                                    "  var trans = this.currentTransaction",
+                                    ""
+                                ],
+                                "post_context": [
+                                    "    ins.currentTransaction = prev",
+                                    "    return result",
+                                    "}"
+                                ]
                             },
-                            "module": "some module",
-                            "colno": 4,
-                            "context_line": "line3",
-                            "pre_context": [
-                                "  var trans = this.currentTransaction",
-                                ""
-                            ],
-                            "post_context": [
-                                "    ins.currentTransaction = prev",
-                                "    return result",
-                                "}"
-                            ]
-                        },
-                        {
-                            "filename": "my2file.js",
-                            "lineno": 10
-                        }
-                    ],
+                            {
+                                "filename": "my2file.js",
+                                "lineno": 10
+                            }
+                        ]
+                    },
                     "context": {
                         "db": {
                             "instance": "customers",
@@ -164,7 +166,7 @@
                     "type": "request",
                     "start": 1.845,
                     "duration": 3.5642981,
-                    "stacktrace": [],
+                    "stacktrace": {},
                     "context": {}
                 },
                 {
@@ -209,7 +211,7 @@
                     "type": "db.postgresql.query",
                     "start": 2.83092,
                     "duration": 3.781912,
-                    "stacktrace": [],
+                    "stacktrace": {},
                     "context": {
                         "db": {
                             "instance": "customers",

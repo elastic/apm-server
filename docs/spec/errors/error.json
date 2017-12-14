@@ -32,11 +32,7 @@
                     "type": ["object", "null"]
                 },
                 "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                        "$ref": "./../stacktrace_frame.json"
-                    },
-                    "minItems": 0
+                    "$ref": "../stacktrace.json"
                 },
                 "type": {
                     "type": ["string", "null"],
@@ -80,11 +76,7 @@
 
                 },
                 "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                        "$ref": "./../stacktrace_frame.json"
-                    },
-                    "minItems": 0
+                    "$ref": "../stacktrace.json"
                 }
             },
             "required": ["message"]

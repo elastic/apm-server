@@ -229,14 +229,17 @@
                     "us": 3781
                 },
                 "name": "SELECT FROM product_types",
-                "stacktrace": [
-                    {
-                        "filename": "myfile",
-                        "line": {
-                            "number": 1
+                "stacktrace": {
+                    "frames": [
+                        {
+                            "filename": "myfile",
+                            "line": {
+                                "number": 1
+                            }
                         }
-                    }
-                ],
+                    ],
+                    "only_library_frames": false
+                },
                 "start": {
                     "us": 2830
                 },

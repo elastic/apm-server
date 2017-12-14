@@ -319,11 +319,18 @@ var errorSchema = `{
                     "type": ["object", "null"]
                 },
                 "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                            "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace_frame.json",
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/stacktrace.json",
     "title": "Stacktrace",
+    "type": ["object", "null"],
+    "description": "List of stack frames with variable attributes (eg: lineno, filename, etc), and metadata",
+    "properties": {
+        "frames": {
+            "type": ["array", "null"],
+            "items": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/stacktrace_frame.json",
+    "title": "Stacktrace Frame",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
     "properties": {
@@ -376,8 +383,10 @@ var errorSchema = `{
         }
     },
     "required": ["filename", "lineno"]
-                    },
-                    "minItems": 0
+            },
+            "minItems": 0
+        }
+    }
                 },
                 "type": {
                     "type": ["string", "null"],
@@ -421,11 +430,18 @@ var errorSchema = `{
 
                 },
                 "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                            "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace_frame.json",
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/stacktrace.json",
     "title": "Stacktrace",
+    "type": ["object", "null"],
+    "description": "List of stack frames with variable attributes (eg: lineno, filename, etc), and metadata",
+    "properties": {
+        "frames": {
+            "type": ["array", "null"],
+            "items": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/stacktrace_frame.json",
+    "title": "Stacktrace Frame",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
     "properties": {
@@ -478,8 +494,10 @@ var errorSchema = `{
         }
     },
     "required": ["filename", "lineno"]
-                    },
-                    "minItems": 0
+            },
+            "minItems": 0
+        }
+    }
                 }
             },
             "required": ["message"]

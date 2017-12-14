@@ -13,8 +13,8 @@ import (
 func TestPayloadAttributesInSchema(t *testing.T) {
 	//only add attributes that should not be documented by the schema
 	undocumented := set.New(
-		"errors.log.stacktrace.vars.key",
-		"errors.exception.stacktrace.vars.key",
+		"errors.log.stacktrace.frames.vars.key",
+		"errors.exception.stacktrace.frames.vars.key",
 		"errors.exception.attributes.foo",
 		"errors.context.custom.my_key",
 		"errors.context.custom.some_other_value",

@@ -144,19 +144,23 @@
                     "context": {
                         "db": null
                     },
-                    "stacktrace": [{
-                      "abs_path": null,
-                      "colno": null,
-                      "context_line": null,
-                      "filename": "myfile",
-                      "function": null,
-                      "library_frame": null,
-                      "lineno": 1,
-                      "module": null,
-                      "post_context": null,
-                      "pre_context": null,
-                      "vars": null
-                    }]
+                    "stacktrace": {
+                        "frames": [
+                            {
+                                "abs_path": null,
+                                "colno": null,
+                                "context_line": null,
+                                "filename": "myfile",
+                                "function": null,
+                                "library_frame": null,
+                                "lineno": 1,
+                                "module": null,
+                                "post_context": null,
+                                "pre_context": null,
+                                "vars": null
+                            }
+                        ]
+                    }
                 },
                 {
                     "name": "GET /api/types",

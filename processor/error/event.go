@@ -139,21 +139,23 @@ func (e *Event) calcGroupingKey() string {
 		}
 	}
 
-	var st m.Stacktrace
+	var st *m.Stacktrace
 	if e.Exception != nil {
 		add(e.Exception.Type)
-		st = e.Exception.Stacktrace
+		st = &e.Exception.Stacktrace
 	}
 	if e.Log != nil {
 		add(e.Log.ParamMessage)
-		if st == nil || len(st) == 0 {
-			st = e.Log.Stacktrace
+		if st == nil || len(st.Frames) == 0 {
+			st = &e.Log.Stacktrace
 		}
 	}
 
-	for _, fr := range st {
-		addEither(fr.Module, fr.Filename)
-		addEither(fr.Function, string(fr.Lineno))
+	if st != nil {
+		for _, fr := range st.Frames {
+			addEither(fr.Module, fr.Filename)
+			addEither(fr.Function, string(fr.Lineno))
+		}
 	}
 
 	return hex.EncodeToString(hash.Sum(nil))
