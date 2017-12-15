@@ -27,7 +27,7 @@
             "minItems": 0
         },
         "framework": {
-            "description": "Name and version of the used web framework",
+            "description": "Name and version of the web framework used",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -42,7 +42,7 @@
             "required": ["name", "version"]
         },
         "language": {
-            "description": "Name and version of the used programming language",
+            "description": "Name and version of the programming language used",
             "type": ["object", "null"],
             "properties": {
                 "name": {

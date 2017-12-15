@@ -40,7 +40,7 @@ var transactionSchema = `{
             "minItems": 0
         },
         "framework": {
-            "description": "Name and version of the used web framework",
+            "description": "Name and version of the web framework used",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -55,7 +55,7 @@ var transactionSchema = `{
             "required": ["name", "version"]
         },
         "language": {
-            "description": "Name and version of the used programming language",
+            "description": "Name and version of the programming language used",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -483,7 +483,7 @@ var transactionSchema = `{
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'cache', etc)",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
             "maxLength": 1024
         }
     },

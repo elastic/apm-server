@@ -40,7 +40,7 @@ var errorSchema = `{
             "minItems": 0
         },
         "framework": {
-            "description": "Name and version of the used web framework",
+            "description": "Name and version of the web framework used",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -55,7 +55,7 @@ var errorSchema = `{
             "required": ["name", "version"]
         },
         "language": {
-            "description": "Name and version of the used programming language",
+            "description": "Name and version of the programming language used",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -424,7 +424,7 @@ var errorSchema = `{
                     "type": "string"
                 },
                 "param_message": {
-                    "description": "Equal to message, but with placeholders replaced.",
+                    "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
                     "type": ["string", "null"],
                     "maxLength": 1024
 

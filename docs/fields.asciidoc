@@ -274,7 +274,7 @@ Service environment.
 
 type: keyword
 
-Name of the used programming language.
+Name of the programming language used.
 
 
 [float]
@@ -282,7 +282,7 @@ Name of the used programming language.
 
 type: keyword
 
-Version of the used programming language.
+Version of the programming language used.
 
 
 
@@ -291,7 +291,7 @@ Version of the used programming language.
 
 type: keyword
 
-Name of the used runtime.
+Name of the runtime used.
 
 
 [float]
@@ -299,7 +299,7 @@ Name of the used runtime.
 
 type: keyword
 
-Version of the used runtime.
+Version of the runtime used.
 
 
 
@@ -308,7 +308,7 @@ Version of the used runtime.
 
 type: keyword
 
-Name of the used framework.
+Name of the framework used.
 
 
 [float]
@@ -316,7 +316,7 @@ Name of the used framework.
 
 type: keyword
 
-Version of the used framework.
+Version of the framework used.
 
 
 
@@ -325,7 +325,7 @@ Version of the used framework.
 
 type: keyword
 
-Name of the used agent.
+Name of the agent used.
 
 
 [float]
@@ -333,7 +333,7 @@ Name of the used agent.
 
 type: keyword
 
-Version of the used agent.
+Version of the agent used.
 
 
 [[exported-fields-apm-error]]
@@ -359,7 +359,7 @@ format: url
 [float]
 == error fields
 
-Data captured by an agent representing an event occurring in a monitored service."
+Data captured by an agent representing an event occurring in a monitored service.
 
 
 
@@ -447,7 +447,7 @@ The severity of the record.
 
 type: keyword
 
-The name of the used logger instance.
+The name of the logger instance used.
 
 [float]
 === `error.log.message`
@@ -461,7 +461,8 @@ The additionally logged error message.
 
 type: keyword
 
-Equal to message, but with placeholders replaced.
+A parametrized message. E.g. 'Could not connect to %s'.  The property message is still required, and should be equal to the param_message, but with placeholders replaced.  In some situations the param_message is used to group errors together. 
+
 
 [[exported-fields-apm-sourcemap]]
 == APM Sourcemap fields
@@ -534,7 +535,7 @@ Generic designation of a span in the scope of a transaction.
 
 type: keyword
 
-Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc).
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 
 
 [float]
@@ -610,7 +611,7 @@ type: keyword
 
 type: keyword
 
-Keyword of specific relevance in the service's domain (eg. 'request', 'cache', etc)
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 
 
 [float]

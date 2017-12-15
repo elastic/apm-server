@@ -182,12 +182,12 @@
               - name: name
                 type: keyword
                 description: >
-                  Name of the used programming language.
+                  Name of the programming language used.
 
               - name: version
                 type: keyword
                 description: >
-                  Version of the used programming language.
+                  Version of the programming language used.
 
             - name: runtime
               type: group
@@ -196,12 +196,12 @@
               - name: name
                 type: keyword
                 description: >
-                  Name of the used runtime.
+                  Name of the runtime used.
 
               - name: version
                 type: keyword
                 description: >
-                  Version of the used runtime.
+                  Version of the runtime used.
 
             - name: framework
               type: group
@@ -210,12 +210,12 @@
               - name: name
                 type: keyword
                 description: >
-                  Name of the used framework.
+                  Name of the framework used.
 
               - name: version
                 type: keyword
                 description: >
-                  Version of the used framework.
+                  Version of the framework used.
 
             - name: agent
               type: group
@@ -224,9 +224,9 @@
               - name: name
                 type: keyword
                 description: >
-                  Name of the used agent.
+                  Name of the agent used.
 
               - name: version
                 type: keyword
                 description: >
-                  Version of the used agent.
+                  Version of the agent used.

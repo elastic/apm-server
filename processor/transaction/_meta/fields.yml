@@ -30,7 +30,7 @@
         - name: type
           type: keyword
           description: >
-            Keyword of specific relevance in the service's domain (eg. 'request', 'cache', etc)
+            Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 
         - name: duration
           type: group
@@ -80,7 +80,7 @@
           type: keyword
           count: 1
           description: >
-            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc).
+            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 
         - name: start
           type: group
