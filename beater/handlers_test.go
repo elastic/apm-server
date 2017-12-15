@@ -39,12 +39,12 @@ func TestJSONFailureResponse(t *testing.T) {
 	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
 
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
+	sendStatus(w, req, 400, responseError(errors.New("Cannot compare apples to oranges")))
 
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`{"error":"Cannot compare apples to oranges"}`))
+	assert.Equal(t, []byte(`{"error":"Cannot compare apples to oranges"}`), body)
 	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 }
 
@@ -54,12 +54,12 @@ func TestJSONFailureResponseWhenAcceptingAnything(t *testing.T) {
 	req.Header.Set("Accept", "*/*")
 	w := httptest.NewRecorder()
 
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
+	sendStatus(w, req, 400, responseError("Cannot compare apples to oranges"))
 
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`{"error":"Cannot compare apples to oranges"}`))
+	assert.Equal(t, []byte(`{"error":"Cannot compare apples to oranges"}`), body)
 	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 }
 
@@ -69,12 +69,12 @@ func TestHTMLFailureResponse(t *testing.T) {
 	req.Header.Set("Accept", "text/html")
 	w := httptest.NewRecorder()
 
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
+	sendStatus(w, req, 400, responseError("Cannot compare apples to oranges"))
 
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
+	assert.Equal(t, []byte(`map[error:Cannot compare apples to oranges]`), body)
 	assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
 }
 
@@ -85,12 +85,12 @@ func TestFailureResponseNoAcceptHeader(t *testing.T) {
 	req.Header.Del("Accept")
 
 	w := httptest.NewRecorder()
-	sendStatus(w, req, 400, errors.New("Cannot compare apples to oranges"))
+	sendStatus(w, req, 400, responseError("Cannot compare apples to oranges"))
 
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, body, []byte(`Cannot compare apples to oranges`))
+	assert.Equal(t, []byte(`map[error:Cannot compare apples to oranges]`), body)
 	assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
 }
 

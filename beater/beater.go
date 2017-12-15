@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/elastic/apm-server/beater/about"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -36,10 +37,11 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	defer pub.Stop()
 
+	about.SetAbout(b.Info.Version)
+
 	go notifyListening(bt.config, pub.Send)
 
 	bt.server = newServer(bt.config, pub.Send)
-
 	err = run(bt.server, bt.config)
 	if err == http.ErrServerClosed {
 		logp.Info("Listener stopped: %s", err.Error())

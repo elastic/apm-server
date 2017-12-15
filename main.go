@@ -2,6 +2,7 @@ package main
 
 //go:generate go run script/inline_schemas/inline_schemas.go
 //go:generate go run script/output_data/output_data.go
+//go:generate go run script/about/write_about.go
 
 import (
 	"os"

@@ -11,7 +11,6 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"crypto/subtle"
@@ -23,6 +22,7 @@ import (
 
 	"github.com/ryanuber/go-glob"
 
+	"github.com/elastic/apm-server/beater/about"
 	err "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/sourcemap"
@@ -35,7 +35,7 @@ const (
 	FrontendTransactionsURL = "/v1/client-side/transactions"
 	BackendErrorsURL        = "/v1/errors"
 	FrontendErrorsURL       = "/v1/client-side/errors"
-	HealthCheckURL          = "/healthcheck"
+	HealthCheckURL          = "/"
 	SourcemapsURL           = "/v1/client-side/sourcemaps"
 
 	rateLimitCacheSize       = 1000
@@ -60,10 +60,10 @@ var (
 	responseValid  = monitoring.NewInt(serverMetrics, "response.valid")
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 
-	errInvalidToken    = errors.New("invalid token")
-	errForbidden       = errors.New("forbidden request")
-	errPOSTRequestOnly = errors.New("only POST requests are supported")
-	errTooManyRequests = errors.New("too many requests")
+	errInvalidToken    = responseError("invalid token")
+	errForbidden       = responseError("forbidden request")
+	errPOSTRequestOnly = responseError("only POST requests are supported")
+	errTooManyRequests = responseError("too many requests")
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
@@ -107,10 +107,16 @@ func sourcemapHandler(pf ProcessorFactory, config Config, report reporter) http.
 				processRequestHandler(pf, config, report, sourcemap.DecodeSourcemapFormData))))
 }
 
-func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
+func healthCheckHandler(_ ProcessorFactory, config Config, _ reporter) http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sendStatus(w, r, http.StatusOK, nil)
+			if r.URL.Path != "/" {
+				sendStatus(w, r, http.StatusNotFound, nil)
+			} else if isAuthorized(r, config.SecretToken) {
+				sendStatus(w, r, http.StatusOK, about.About())
+			} else {
+				sendStatus(w, r, http.StatusOK, nil)
+			}
 		}))
 }
 
@@ -258,12 +264,12 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 
 func processRequestHandler(pf ProcessorFactory, config Config, report reporter, decode decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, config.MaxUnzippedSize, report, decode)
-		sendStatus(w, r, code, err)
+		code, content := processRequest(r, pf, config.MaxUnzippedSize, report, decode)
+		sendStatus(w, r, code, content)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter, decode decoder) (int, error) {
+func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter, decode decoder) (int, map[string]interface{}) {
 
 	processor := pf()
 
@@ -273,20 +279,20 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 
 	data, err := decode(r)
 	if err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
+		return http.StatusBadRequest, responseError(err)
 	}
 
 	if err = processor.Validate(data); err != nil {
-		return http.StatusBadRequest, err
+		return http.StatusBadRequest, responseError(err)
 	}
 
 	list, err := processor.Transform(data)
 	if err != nil {
-		return http.StatusBadRequest, err
+		return http.StatusBadRequest, responseError(err)
 	}
 
 	if err = report(list); err != nil {
-		return http.StatusServiceUnavailable, err
+		return http.StatusServiceUnavailable, responseError(err)
 	}
 
 	return http.StatusAccepted, nil
@@ -304,7 +310,7 @@ func decodeLimitJSONData(maxSize int64) decoder {
 
 		reader := req.Body
 		if reader == nil {
-			return nil, fmt.Errorf("No content supplied")
+			return nil, fmt.Errorf("no content supplied")
 		}
 
 		switch req.Header.Get("Content-Encoding") {
@@ -326,33 +332,26 @@ func decodeLimitJSONData(maxSize int64) decoder {
 		err := json.NewDecoder(io.LimitReader(reader, maxSize)).Decode(&v)
 		if err != nil {
 			// If we run out of memory, for example
-			return nil, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
+			return nil, err
 		}
 		return v, nil
 	}
 }
 
-func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
-	content_type := "text/plain; charset=utf-8"
-	if acceptsJSON(r) {
-		content_type = "application/json"
-	}
-	w.Header().Set("Content-Type", content_type)
-	w.WriteHeader(code)
+func sendStatus(w http.ResponseWriter, r *http.Request, code int, content map[string]interface{}) {
 
 	logp.Info("%s	%s %s	%d	%s", extractIP(r), r.Method, r.URL, code, r.Header.Get("User-Agent"))
-	if err == nil {
+	if code < 400 {
 		responseValid.Inc()
-		return
+	} else {
+		responseErrors.Inc()
+		logp.Err("%s, code=%d", content, code)
 	}
 
-	logp.Err("%s, code=%d", err.Error(), code)
-
-	responseErrors.Inc()
 	if acceptsJSON(r) {
-		sendJSON(w, map[string]interface{}{"error": err.Error()})
+		sendJSON(w, code, content)
 	} else {
-		sendPlain(w, err.Error())
+		sendPlain(w, code, fmt.Sprintf("%v", content))
 	}
 }
 
@@ -361,16 +360,30 @@ func acceptsJSON(r *http.Request) bool {
 	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
 }
 
-func sendJSON(w http.ResponseWriter, msg map[string]interface{}) {
+func sendJSON(w http.ResponseWriter, code int, msg map[string]interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 	buf, err := json.Marshal(msg)
 	if err != nil {
 		logp.Err("Error while generating a JSON error response: %v", err)
 		return
 	}
-
 	w.Write(buf)
 }
 
-func sendPlain(w http.ResponseWriter, msg string) {
+func sendPlain(w http.ResponseWriter, code int, msg string) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(code)
 	w.Write([]byte(msg))
+}
+
+func responseError(i interface{}) map[string]interface{} {
+	switch v := i.(type) {
+	case error:
+		return map[string]interface{}{"error": v.Error()}
+	case string:
+		return map[string]interface{}{"error": v}
+	default:
+		return nil
+	}
 }
