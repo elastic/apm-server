@@ -2,7 +2,7 @@
 [float]
 === Security
 
-APM Server exposes a HTTP endpoint and as with anything that opens ports on your servers, 
+APM Server exposes a HTTP endpoint and as with anything that opens ports on your servers,
 you should be careful about who can connect to it.
 We recommend using firewall rules to ensure only authorized systems can connect.
 
@@ -13,21 +13,21 @@ There is also the option of setting up SSL to ensure data sent to the APM Server
 ==== SSL/TLS setup
 
 To enable SSL/TLS you need a private key and a certificate issued by a certification authority (CA).
-Then you can specify the path to those files in the configuration properties 
-`apm-server.ssl.key` and 
-`apm-server.ssl.certificate` 
+Then you can specify the path to those files in the configuration properties
+`apm-server.ssl.key` and
+`apm-server.ssl.certificate`
 respectively.
-This will make the APM Server to serve HTTPS requests instead of HTTP. 
-Hence, you also need to enable SSL in the agent. 
-For agent specific details, 
-please check the {apm-agent-ref}/index.html[agent documentation] for how to do it.
+This will make the APM Server to serve HTTPS requests instead of HTTP.
+Hence, you also need to enable SSL in the agent.
+For agent specific details,
+please check the {apm-agents-ref}/index.html[agent documentation] for how to do it.
 
 [[secret-token]]
 [float]
 ==== Secret token
 
 You can configure a secret token which is sent with every request from the APM agents to the server.
-This string is used to ensure that only your agents can send data to your APM servers. 
+This string is used to ensure that only your agents can send data to your APM servers.
 Both the agents and the APM servers have to be configured with the same secret token.
 
-NOTE: The usage of a secret token only provides any security when used in combination with having SSL/TLS configured. 
+NOTE: The usage of a secret token only provides any security when used in combination with having SSL/TLS configured.
