@@ -12,15 +12,16 @@
             "type": ["string", "null"]
         },
         "exception": {
-            "description": "A standard exception.",
+            "description": "Information about the originally thrown error.",
             "type": ["object", "null"],
             "properties": {
                 "code": {
                     "type": ["string", "number", "null"],
-                    "maxLength": 1024
+                    "maxLength": 1024,
+                    "description": "The error code set when the error happened, e.g. database error code."
                 },
                 "message": {
-                   "description": "The exception's error message.",
+                   "description": "The original error message.",
                    "type": "string"
                 },
                 "module": {
@@ -43,7 +44,8 @@
                     "maxLength": 1024
                 },
                 "uncaught": {
-                    "type": ["boolean", "null"]
+                    "type": ["boolean", "null"],
+                    "description": "Indicator whether the error was caught somewhere in the code or not."
                 }
             },
             "required": ["message"]
@@ -55,26 +57,27 @@
         },
         "log": {
             "type": ["object", "null"],
+            "description": "Additional information added when logging the error.",
             "properties": {
                 "level": {
-                    "description": "The record severity.",
+                    "description": "The severity of the record.",
                     "type": ["string", "null"],
                     "default": "error",
                     "enum": ["debug", "info", "warning", "error", "fatal", null],
                     "maxLength": 1024
                 },
                 "logger_name": {
-                    "description": "The name of the logger which created the record.",
+                    "description": "The name of the logger instance used.",
                     "type": ["string", "null"],
                     "default": "default",
                     "maxLength": 1024
                 },
                 "message": {
-                    "description": "The exception's error message.",
+                    "description": "The additionally logged error message.",
                     "type": "string"
                 },
                 "param_message": {
-                    "description": "A parametrized message. E.g. Could not connect to %s. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
+                    "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
                     "type": ["string", "null"],
                     "maxLength": 1024
 

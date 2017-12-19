@@ -18,7 +18,7 @@
             "type": ["object", "null"],
             "properties": {
                 "finished": {
-                    "description": "A boolean indicating the the response was finished",
+                    "description": "A boolean indicating whether the response was finished or not",
                     "type": ["boolean", "null"]
                 },
                 "headers": {
@@ -44,7 +44,7 @@
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of tags with values.",
+            "description": "A flat mapping of user-defined tags with values.",
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {

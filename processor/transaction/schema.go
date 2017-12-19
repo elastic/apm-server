@@ -40,7 +40,7 @@ var transactionSchema = `{
             "minItems": 0
         },
         "framework": {
-            "description": "Name and version of the used web framework",
+            "description": "Name and version of the web framework used",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -55,7 +55,7 @@ var transactionSchema = `{
             "required": ["name", "version"]
         },
         "language": {
-            "description": "Name and version of the used programming language",
+            "description": "Name and version of the programming language used",
             "type": ["object", "null"],
             "properties": {
                 "name": {
@@ -162,7 +162,7 @@ var transactionSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "finished": {
-                    "description": "A boolean indicating the the response was finished",
+                    "description": "A boolean indicating whether the response was finished or not",
                     "type": ["boolean", "null"]
                 },
                 "headers": {
@@ -243,22 +243,27 @@ var transactionSchema = `{
             "properties": {
                 "raw": {
                     "type": ["string", "null"],
+                    "description": "The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.",
                     "maxLength": 1024
                 },
                 "protocol": {
                     "type": ["string", "null"],
+                    "description": "The protocol of the request, e.g. 'https:'.",
                     "maxLength": 1024
                 },
                 "hostname": {
                     "type": ["string", "null"],
+                    "description": "The hostname of the request, e.g. 'example.com'.",
                     "maxLength": 1024
                 },
                 "port": {
                     "type": ["string", "null"],
+                    "description": "The port of the request, e.g. '443'",
                     "maxLength": 1024
                 },
                 "pathname": {
                     "type": ["string", "null"],
+                    "description": "The path of the request, e.g. '/search'",
                     "maxLength": 1024
                 },
                 "search": {
@@ -268,6 +273,7 @@ var transactionSchema = `{
                 },
                 "hash": {
                     "type": ["string", "null"],
+                    "description": "The hash of the request URL, e.g. 'top'",
                     "maxLength": 1024
                 }
             }
@@ -281,7 +287,7 @@ var transactionSchema = `{
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of tags with values.",
+            "description": "A flat mapping of user-defined tags with values.",
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
@@ -299,12 +305,12 @@ var transactionSchema = `{
     "type": ["object", "null"],
     "properties": {
         "id": {
-            "description": "An id, identifying the logged in user, e.g. the primary key of the user",
+            "description": "Identifier of the logged in user, e.g. the primary key of the user",
             "type": ["string", "number", "null"],
             "maxLength": 1024
         },    
         "email": {
-            "description": "The email address of the logged in user",
+            "description": "Email of the logged in user",
             "type": ["string", "null"],
             "maxLength": 1024
         },
@@ -477,7 +483,7 @@ var transactionSchema = `{
         },
         "type": {
             "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'cache', etc)",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
             "maxLength": 1024
         }
     },
