@@ -414,7 +414,7 @@ var errorSchema = `{
                     "maxLength": 1024
                 },
                 "logger_name": {
-                    "description": "The name of the used logger instance.",
+                    "description": "The name of the logger instance used.",
                     "type": ["string", "null"],
                     "default": "default",
                     "maxLength": 1024
