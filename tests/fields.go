@@ -42,6 +42,10 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"context.db.instance",
 		"context.db.user",
 		"sourcemap",
+		"transaction.marks.performance",
+		"transaction.marks.navigationTiming",
+		"transaction.marks.navigationTiming.navigationStart",
+		"transaction.marks.navigationTiming.appBeforeBootstrap",
 	)
 	blacklistedFieldNames := set.Union(disabledFieldNames, undocumentedFieldNames).(*set.Set)
 

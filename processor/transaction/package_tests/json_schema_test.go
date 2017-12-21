@@ -29,6 +29,10 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"transactions.context.custom.and_objects.foo",
 		"transactions.context.tags",
 		"transactions.context.tags.organization_uuid",
+		"transactions.marks.navigationTiming",
+		"transactions.marks.navigationTiming.appBeforeBootstrap",
+		"transactions.marks.navigationTiming.navigationStart",
+		"transactions.marks.performance",
 	)
 	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, transaction.Schema())
 }
