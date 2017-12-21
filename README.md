@@ -3,7 +3,7 @@
 The APM Server receives data from the Elastic APM agents and stores the data into Elasticsearch. The APM Server and the
 APM agents are currently in beta and under heavy development which might result in breaking changes. If you are trying out APM and have feedback or problems, please post them on the [Discuss forum](https://discuss.elastic.co/c/apm). 
 
-[Read the alpha blog post](https://www.elastic.co/blog/elastic-apm-enters-alpha).
+[Read more about Elastic APM](https://www.elastic.co/solutions/apm).
 
 ## Getting Started
 
