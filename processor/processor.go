@@ -3,12 +3,12 @@ package processor
 import (
 	"time"
 
-	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type NewProcessor func() Processor
+type NewProcessor func(conf *Config) Processor
 
 type Processor interface {
 	Validate(map[string]interface{}) error
@@ -16,7 +16,11 @@ type Processor interface {
 	Name() string
 }
 
-func CreateDoc(timestamp time.Time, docMappings []m.DocMapping) beat.Event {
+type Config struct {
+	SmapAccessor utility.SmapAccessor
+}
+
+func CreateDoc(timestamp time.Time, docMappings []utility.DocMapping) beat.Event {
 	doc := common.MapStr{}
 	for _, mapping := range docMappings {
 		if out := mapping.Apply(); out != nil {

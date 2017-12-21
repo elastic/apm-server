@@ -1,4 +1,4 @@
-package model
+package utility
 
 import "github.com/elastic/beats/libbeat/common"
 

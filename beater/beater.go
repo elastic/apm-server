@@ -15,10 +15,14 @@ type beater struct {
 }
 
 // Creates beater
-func New(_ *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
+func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	beaterConfig := defaultConfig
 	if err := ucfg.Unpack(&beaterConfig); err != nil {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
+	}
+
+	if b.Config.Output.Name() == "elasticsearch" {
+		beaterConfig.Frontend.Sourcemapping.Elasticsearch = b.Config.Output.Config()
 	}
 
 	bt := &beater{

@@ -8,7 +8,9 @@ import (
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -31,12 +33,44 @@ func getStrSlice(data common.MapStr, key string) []string {
 	return rs
 }
 
+func TestInvalidateCache(t *testing.T) {
+	data, err := tests.LoadValidData("sourcemap")
+	assert.NoError(t, err)
+
+	esConf, err := common.NewConfigFrom(map[string]interface{}{
+		"hosts": []string{"http://localhost:9200"},
+	})
+	assert.NoError(t, err)
+	smapAcc, err := utility.NewSourcemapAccessor(
+		utility.SmapConfig{
+			ElasticsearchConfig:  esConf,
+			CacheExpiration:      1 * time.Second,
+			CacheCleanupInterval: 100 * time.Second,
+		},
+	)
+
+	smapId := utility.SmapID{
+		ServiceName:    "service",
+		ServiceVersion: "1",
+		Path:           "js/bundle.js",
+	}
+	smapAcc.AddToCache(smapId, &s.Consumer{})
+	smapConsumer, err := smapAcc.Fetch(smapId)
+	assert.NotNil(t, smapConsumer)
+
+	_, err = NewProcessor(&pr.Config{SmapAccessor: smapAcc}).Transform(data)
+	assert.NoError(t, err)
+
+	smapConsumer, err = smapAcc.Fetch(smapId)
+	assert.Nil(t, smapConsumer)
+}
+
 func TestPayloadTransform(t *testing.T) {
 
 	data, err := tests.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
-	rs, err := NewProcessor().Transform(data)
+	rs, err := NewProcessor(&pr.Config{}).Transform(data)
 	assert.NoError(t, err)
 
 	assert.Len(t, rs, 1)
@@ -71,7 +105,7 @@ func TestPayloadTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.min.map")
+	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)

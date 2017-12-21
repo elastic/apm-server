@@ -1,0 +1,92 @@
+{
+  "service": {
+    "name": "apm-agent-js",
+    "version": "1.0.1",
+    "agent": {
+      "name": "apm-js",
+      "version": "0.0.0"
+    }
+  },
+  "errors": [
+    {
+      "id": "aba2688e-0338-48ce-9c4e-4005f1caa534",
+      "timestamp": "2017-12-08T12:18:50.291Z",
+      "culprit": "test/e2e/general-usecase/bundle.js.map",
+      "log": {
+        "message": "Uncaught Error: log timeout test error",
+        "stacktrace": [
+          {
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+            "filename": "test/e2e/general-usecase/bundle.js.map",
+            "function": "<anonymous>",
+            "lineno": 1,
+            "colno": 18,
+            "library_frame": true
+          }
+        ]
+      },
+      "exception": {
+        "message": "Uncaught Error: timeout test error",
+        "stacktrace": [
+          {
+            "abs_path": "http://localhost:8000/test/../test/e2e/general-usecase/bundle.js.map",
+            "filename": "test/e2e/general-usecase/bundle.js.map",
+            "function": "<anonymous>",
+            "lineno": 1,
+            "colno": 18,
+            "library_frame": true
+          },
+          {
+            "abs_path": "http://localhost:8000/test/./e2e/general-usecase/bundle.js.map",
+            "filename": "test/e2e/general-usecase/bundle.js.map",
+            "function": "invokeTask",
+            "lineno": 1,
+            "colno": 181,
+            "library_frame": true
+          },
+          {
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+            "filename": "test/e2e/general-usecase/bundle.js.map",
+            "function": "runTask",
+            "lineno": 1,
+            "colno": 15,
+            "library_frame": true
+          },
+          {
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+            "filename": "test/e2e/general-usecase/bundle.js.map",
+            "function": "invoke",
+            "lineno": 1,
+            "colno": 199,
+            "library_frame": true
+          },
+          {
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+            "filename": "test/e2e/general-usecase/bundle.js.map",
+            "function": "timer",
+            "lineno": 1,
+            "colno": 33,
+            "library_frame": true
+          }
+        ],
+        "type": "Error"
+      },
+      "context": {
+        "environment": {
+          "browserWidth": 150,
+          "browserHeight": 726,
+          "screenWidth": 1280,
+          "screenHeight": 800,
+          "language": "en-US",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
+          "platform": "MacIntel"
+        },
+        "page": {
+          "referer": "http://localhost:8000/test/e2e/",
+          "host": "localhost",
+          "location": "http://localhost:8000/test/e2e/general-usecase/"
+        }
+      }
+    }
+  ]
+}

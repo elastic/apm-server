@@ -1,4 +1,4 @@
-from apmserver import ElasticTest
+from apmserver import ElasticTest, ClientSideBaseTest, SmapCacheBaseTest
 from beat.beat import INTEGRATION_TESTS
 import os
 import json
@@ -36,15 +36,18 @@ class Test(ElasticTest):
                                          'valid',
                                          'transaction',
                                          'payload.json'))
-        self.load_docs_with_template(f, 'transactions', 9)
+        self.load_docs_with_template(f, self.transactions_url, 'transaction', 9)
+        self.assert_no_logged_warnings()
 
         rs = self.es.count(index=self.index_name, body={
                            "query": {"term": {"processor.event": "transaction"}}})
         assert rs['count'] == 4, "found {} documents".format(rs['count'])
 
-        rs = self.es.count(index=self.index_name, body={
-                           "query": {"term": {"processor.event": "span"}}})
-        assert rs['count'] == 5, "found {} documents".format(rs['count'])
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "span"}}})
+        assert rs['hits']['total'] == 5, "found {} documents".format(rs['count'])
+        for doc in rs['hits']['hits']:
+            self.check_for_no_smap(doc["_source"]["span"])
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_error(self):
@@ -58,50 +61,163 @@ class Test(ElasticTest):
                                          'valid',
                                          'error',
                                          'payload.json'))
-        self.load_docs_with_template(f, 'errors', 4)
-
-        rs = self.es.count(index=self.index_name, body={
-                           "query": {"term": {"processor.event": "error"}}})
-        assert rs['count'] == 4, "found {} documents".format(rs['count'])
-
-    def load_docs_with_template(self, data_path, endpoint, expected_events_count):
-
-        payload = json.loads(open(data_path).read())
-        url = 'http://localhost:8200/v1/' + endpoint
-        r = requests.post(url, json=payload)
-        assert r.status_code == 202
-
-        # make sure template is loaded
-        self.wait_until(
-            lambda: self.log_contains("Elasticsearch template with name 'apm-server-tests' loaded"))
-
-        self.wait_until(lambda: self.es.indices.exists(self.index_name))
-        # Quick wait to give documents some time to be sent to the index
-        # This is not required but speeds up the tests
-        time.sleep(0.1)
-        self.es.indices.refresh(index=self.index_name)
-
-        # Waits for the docs + 1. The additional document is the onboarding document
-        self.wait_until(
-            lambda: (self.es.count(index=self.index_name)['count'] ==
-                     expected_events_count + 1)
-        )
-
-        # Makes sure no error or warnings were logged
+        self.load_docs_with_template(f, self.errors_url, 'error', 4)
         self.assert_no_logged_warnings()
 
-    def assert_no_logged_warnings(self, replace=None):
-        """
-        Assert that the log file contains no ERR or WARN lines.
-        """
-        log = self.get_log()
-        log = log.replace("WARN EXPERIMENTAL", "")
-        log = log.replace("WARN BETA", "")
-        # Jenkins runs as a Windows service and when Jenkins executes theses
-        # tests the Beat is confused since it thinks it is running as a service.
-        log = log.replace(
-            "ERR Error: The service process could not connect to the service controller.", "")
-        if replace:
-            for r in replace:
-                log = log.replace(r, "")
-        self.assertNotRegexpMatches(log, "ERR|WARN")
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "error"}}})
+        assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
+
+        for error_doc in rs['hits']['hits']:
+            err = error_doc["_source"]["error"]
+            if "exception" in err:
+                self.check_for_no_smap(err["exception"])
+            if "log" in error_doc["_source"]["error"]:
+                self.check_for_no_smap(err["log"])
+
+    def check_for_no_smap(self, doc):
+        if "stacktrace" not in doc:
+            return
+        for frame in doc["stacktrace"]:
+            assert "sourcemap" not in frame
+
+
+class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_sourcemap_mappingES_for_error(self):
+        # use an uncleaned path to test that path is cleaned in upload
+        path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.assert_no_logged_warnings()
+        self.check_error_smap(True, count=1)
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_sourcemap_mappingES_for_transaction(self):
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map',
+                                  bundle_filepath=path,
+                                  service_version='1.0.0')
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        self.load_docs_with_template(self.get_transaction_payload_path(),
+                                     self.transactions_url,
+                                     'transaction',
+                                     2)
+        self.assert_no_logged_warnings()
+        self.check_transaction_smap(True)
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_no_sourcemap(self):
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.check_error_smap(False, expected_err="No Sourcemap available for")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_no_matching_sourcemap(self):
+        r = self.upload_sourcemap('bundle_no_mapping.js.map')
+        self.assert_no_logged_warnings()
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+        self.test_no_sourcemap()
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_fetch_latest_of_multiple_sourcemaps(self):
+        # upload sourcemap file that finds no matchings
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle_no_mapping.js.map', bundle_filepath=path)
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.check_error_smap(False, expected_err="No mapping for")
+
+        # remove existing document
+        self.es.delete_by_query(index=self.index_name,
+                                body={"query": {"term": {"processor.name": 'error'}}})
+        self.wait_until(
+            lambda: (self.es.count(index=self.index_name, body={
+                "query": {"term": {"processor.name": 'error'}}}
+            )['count'] == 0)
+        )
+
+        # upload second sourcemap file with same key,
+        # that actually leads to proper matchings
+        # this also tests that the cache gets invalidated,
+        # as otherwise the former sourcemap would be taken from the cache.
+        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps(expected_ct=2)
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.check_error_smap(True, count=1)
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_sourcemap_mapping_cache_usage(self):
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        # insert document, which also leads to caching the sourcemap
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.assert_no_logged_warnings()
+
+        # delete sourcemap from ES
+        # fetching from ES would lead to an error afterwards
+        self.es.indices.delete(index=self.index_name, ignore=[400, 404])
+        self.wait_until(lambda: not self.es.indices.exists(self.index_name))
+
+        # insert document,
+        # fetching sourcemap without errors, so it must be fetched from cache
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.assert_no_logged_warnings()
+        self.check_error_smap(True)
+
+
+class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_sourcemap_cache_expiration(self):
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        # insert document, which also leads to caching the sourcemap
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.assert_no_logged_warnings()
+
+        # delete sourcemap from ES
+        # fetching from ES would lead to an error afterwards
+        self.es.indices.delete(index=self.index_name, ignore=[400, 404])
+        self.wait_until(lambda: not self.es.indices.exists(self.index_name))
+
+        # after cache expiration no sourcemap should be found any more
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.check_error_smap(False, expected_err="No Sourcemap available for")

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -85,6 +86,7 @@ func TestEventTransform(t *testing.T) {
 	emptyOut := common.MapStr{
 		"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 	}
+	service := m.Service{Name: "myService"}
 
 	tests := []struct {
 		Event  Event
@@ -149,9 +151,14 @@ func TestEventTransform(t *testing.T) {
 				"id":      "45678",
 				"culprit": "some trigger",
 				"exception": common.MapStr{
-					"stacktrace": []common.MapStr{
-						{"filename": "st file", "line": common.MapStr{"number": 0}},
-					},
+					"stacktrace": []common.MapStr{{
+						"filename": "st file",
+						"line":     common.MapStr{"number": 0},
+						"sourcemap": common.MapStr{
+							"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
+							"updated": false,
+						},
+					}},
 					"code":       "13",
 					"message":    "exception message",
 					"module":     "error module",
@@ -172,7 +179,7 @@ func TestEventTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Event.Transform()
+		output := test.Event.Transform(service, &utility.SourcemapAccessor{})
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

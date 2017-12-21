@@ -21,17 +21,28 @@ apm-server:
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
 
-  #frontend.enabled: false
+  # In case frontend is enabled
+  # and the index pattern at 'outputs.elasticsearch.index' is customized,
+  # a matching 'frontend.sourcemapping.index' pattern needs to be specified
+  # to allow for sourcemapping to work properly. 
+  #frontend:
+    #enabled: false
 
-  # Rate Limit per second and IP address
-  #frontend.rate_limit: 10
+    # Rate Limit per second and IP address
+    #rate_limit: 10
 
-  # Comma separated list of permitted origins for frontend. User-agents will send
-  # a origin header that will be validated against this list.
-  # An origin is made of a protocol scheme, host and port, without the url path.
-  # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)
-  # If an item in the list is a single *, everything will be allowed
-  #frontend.allow_origins : *
+    # Comma separated list of permitted origins for frontend. User-agents will send
+    # a origin header that will be validated against this list.
+    # An origin is made of a protocol scheme, host and port, without the url path.
+    # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)
+    # If an item in the list is a single *, everything will be allowed
+    #allow_origins : *
+
+    #sourcemapping:
+      #cache:
+        #expiration: 300 #seconds
+        #cleanup_interval: 600 #seconds
+      #index: "apm-"
 
 #================================ General ======================================
 
