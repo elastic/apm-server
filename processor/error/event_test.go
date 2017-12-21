@@ -137,7 +137,7 @@ func TestEventTransform(t *testing.T) {
 				"exception":    common.MapStr{"message": "exception message", "code": "13"},
 				"grouping_key": baseExceptionGroupingKey,
 			},
-			Msg: "Minimal Event wth exception, string code",
+			Msg: "Minimal Event with exception and string code",
 		},
 		{
 			Event: Event{Exception: baseException().withCode(13)},
@@ -145,7 +145,7 @@ func TestEventTransform(t *testing.T) {
 				"exception":    common.MapStr{"message": "exception message", "code": "13"},
 				"grouping_key": baseExceptionGroupingKey,
 			},
-			Msg: "Minimal Event wth exception, int code",
+			Msg: "Minimal Event wth exception and int code",
 		},
 		{
 			Event: Event{Exception: baseException().withCode(13.0)},
@@ -153,7 +153,7 @@ func TestEventTransform(t *testing.T) {
 				"exception":    common.MapStr{"message": "exception message", "code": "13"},
 				"grouping_key": baseExceptionGroupingKey,
 			},
-			Msg: "Minimal Event wth exception, float code",
+			Msg: "Minimal Event wth exception and float code",
 		},
 		{
 			Event: Event{
