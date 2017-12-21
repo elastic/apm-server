@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elastic/apm-server/version"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
 )
@@ -24,7 +25,7 @@ func newServer(config Config, report reporter) *http.Server {
 }
 
 func run(server *http.Server, config Config) error {
-	logp.Info("Starting apm-server! Hit CTRL-C to stop it.")
+	logp.Info("Starting apm-server [%s]. Hit CTRL-C to stop it.", version.String())
 	logp.Info("Listening on: %s", server.Addr)
 	switch config.Frontend.isEnabled() {
 	case true:

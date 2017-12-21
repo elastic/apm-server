@@ -11,6 +11,8 @@ PREFIX?=.
 BEATS_VERSION?=6.x
 NOTICE_FILE=NOTICE.txt
 LICENSE_FILE=LICENSE.txt
+NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
+GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/version.buildTime=$(NOW) -X $(BEAT_PATH)/version.commit=$(COMMIT_ID)"
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
