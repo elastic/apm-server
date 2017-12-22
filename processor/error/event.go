@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"hash"
 	"io"
 	"strconv"
 	"time"
@@ -123,40 +124,68 @@ func (e *Event) addGroupingKey() {
 	e.add("grouping_key", e.calcGroupingKey())
 }
 
+type groupingKey struct {
+	hash  hash.Hash
+	empty bool
+}
+
+func newGroupingKey() *groupingKey {
+	return &groupingKey{
+		hash:  md5.New(),
+		empty: true,
+	}
+}
+
+func (k *groupingKey) add(s *string) bool {
+	if s == nil {
+		return false
+	}
+	io.WriteString(k.hash, *s)
+	k.empty = false
+	return true
+}
+
+func (k *groupingKey) addEither(s1 *string, s2 string) {
+	if ok := k.add(s1); !ok {
+		k.add(&s2)
+	}
+}
+
+func (k *groupingKey) String() string {
+	return hex.EncodeToString(k.hash.Sum(nil))
+}
+
+// calcGroupingKey computes a value for deduplicating errors - events with
+// same grouping key can be collapsed together.
 func (e *Event) calcGroupingKey() string {
-	hash := md5.New()
-
-	add := func(s *string) bool {
-		if s != nil {
-			io.WriteString(hash, *s)
-		}
-		return s != nil
-	}
-
-	addEither := func(s *string, s2 string) {
-		if ok := add(s); ok == false {
-			add(&s2)
-		}
-	}
+	k := newGroupingKey()
 
 	var st m.Stacktrace
 	if e.Exception != nil {
-		add(e.Exception.Type)
+		k.add(e.Exception.Type)
 		st = e.Exception.Stacktrace
 	}
 	if e.Log != nil {
-		add(e.Log.ParamMessage)
+		k.add(e.Log.ParamMessage)
 		if st == nil || len(st) == 0 {
 			st = e.Log.Stacktrace
 		}
 	}
 
 	for _, fr := range st {
-		addEither(fr.Module, fr.Filename)
-		addEither(fr.Function, string(fr.Lineno))
+		k.addEither(fr.Module, fr.Filename)
+		k.addEither(fr.Function, string(fr.Lineno))
 	}
 
-	return hex.EncodeToString(hash.Sum(nil))
+	if k.empty {
+		if e.Exception != nil {
+			k.add(&e.Exception.Message)
+		} else if e.Log != nil {
+			k.add(&e.Log.Message)
+		}
+	}
+
+	return k.String()
 }
 
 func (e *Event) add(key string, val interface{}) {

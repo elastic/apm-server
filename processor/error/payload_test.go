@@ -64,7 +64,7 @@ func TestPayloadTransform(t *testing.T) {
 						},
 					},
 					"error": common.MapStr{
-						"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+						"grouping_key": "706a38d554b47b8f82c6b542725c05dc",
 						"exception":    common.MapStr{"message": "exception message"},
 						"log":          common.MapStr{"message": "error log message"},
 					},

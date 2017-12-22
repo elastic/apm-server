@@ -286,7 +286,7 @@
                     "code": "35",
                     "message": "foo is not defined"
                 },
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
                 "id": "9f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             },
             "processor": {
@@ -334,7 +334,7 @@
                 "exception": {
                     "message": "foo.bar is not a function"
                 },
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "grouping_key": "5be374e988ceb5382d62c7ab53764663",
                 "id": "9f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             },
             "processor": {
@@ -379,7 +379,7 @@
                 }
             },
             "error": {
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "9f0e9d67-c185-4d21-a6f4-4673ed561ec8",
                 "log": {
                     "message": "Cannot read property 'baz' of undefined"
