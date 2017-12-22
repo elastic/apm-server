@@ -123,7 +123,8 @@
                     "email": null
                 },
                 "custom": null
-            }
+            },
+            "transaction": null
         },
         {
             "timestamp": "2017-05-09T15:04:05.999Z",

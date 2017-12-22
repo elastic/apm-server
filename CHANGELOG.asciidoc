@@ -22,6 +22,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - app.environment {pull}366[366]
 - Add context.request.url.full {pull}436[436]
 - report more detail on max data size error {pull}442[442]
+- Add error.transaction.id {pull}437[437]
 
 ==== Deprecated
 

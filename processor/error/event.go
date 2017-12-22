@@ -14,12 +14,15 @@ import (
 )
 
 type Event struct {
-	Id        *string
-	Culprit   *string
-	Context   common.MapStr
-	Exception *Exception
-	Log       *Log
-	Timestamp time.Time
+	Id          *string
+	Culprit     *string
+	Context     common.MapStr
+	Exception   *Exception
+	Log         *Log
+	Timestamp   time.Time
+	Transaction *struct {
+		Id string
+	}
 
 	enhancer utility.MapStrEnhancer
 	data     common.MapStr
@@ -70,6 +73,10 @@ func (e *Event) Transform() common.MapStr {
 	e.addException()
 	e.addLog()
 	e.addGroupingKey()
+
+	if e.Transaction != nil {
+		e.add("transaction", common.MapStr{"id": e.Transaction.Id})
+	}
 
 	return e.data
 }

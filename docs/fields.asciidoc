@@ -469,7 +469,16 @@ The additionally logged error message.
 
 type: keyword
 
-A parametrized message. E.g. 'Could not connect to %s'.  The property message is still required, and should be equal to the param_message, but with placeholders replaced.  In some situations the param_message is used to group errors together. 
+A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
+
+
+
+[float]
+=== `error.transaction.id`
+
+type: keyword
+
+A UUID4 transaction ID.
 
 
 [[exported-fields-apm-sourcemap]]
