@@ -75,6 +75,7 @@
                     "method": "POST",
                     "socket": null,
                     "url": {
+                        "full": null,
                         "hash": null,
                         "hostname": null,
                         "pathname": null,

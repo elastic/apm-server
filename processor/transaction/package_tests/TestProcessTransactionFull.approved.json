@@ -41,6 +41,7 @@
                         "remote_address": "12.53.12.1"
                     },
                     "url": {
+                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
                         "hash": "#hash",
                         "hostname": "www.example.com",
                         "pathname": "/p/a/t/h",

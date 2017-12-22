@@ -60,6 +60,7 @@
                     "http_version": null,
                     "url": {
                         "protocol": null,
+                        "full": null,
                         "hostname": null,
                         "port": null,
                         "pathname": null,

@@ -228,6 +228,11 @@ var errorSchema = `{
                     "description": "The protocol of the request, e.g. 'https:'.",
                     "maxLength": 1024
                 },
+                "full": {
+                    "type": ["string", "null"],
+                    "description": "The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.",
+                    "maxLength": 1024
+                },
                 "hostname": {
                     "type": ["string", "null"],
                     "description": "The hostname of the request, e.g. 'example.com'.",

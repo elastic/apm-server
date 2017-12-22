@@ -42,6 +42,7 @@
                     },
                     "url": {
                         "hash": "#hash",
+                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
                         "hostname": "www.example.com",
                         "pathname": "/p/a/t/h",
                         "port": "8080",
