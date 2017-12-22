@@ -39,7 +39,7 @@
                 "type": null,
                 "module": null,
                 "code": null,
-                "uncaught": null,
+                "handled": null,
                 "attributes": null,
                 "stacktrace": null
             },

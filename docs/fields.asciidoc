@@ -422,7 +422,7 @@ The module namespace of the original error.
 type: keyword
 
 [float]
-=== `error.exception.uncaught`
+=== `error.exception.handled`
 
 type: boolean
 

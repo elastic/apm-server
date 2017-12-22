@@ -390,7 +390,7 @@ var errorSchema = `{
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
-                "uncaught": {
+                "handled": {
                     "type": ["boolean", "null"],
                     "description": "Indicator whether the error was caught somewhere in the code or not."
                 }
