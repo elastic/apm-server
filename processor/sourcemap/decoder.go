@@ -1,8 +1,9 @@
 package sourcemap
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -19,14 +20,14 @@ func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) 
 	}
 	defer file.Close()
 
-	var parsedSourcemap map[string]interface{}
-	err = json.NewDecoder(file).Decode(&parsedSourcemap)
+	var sourcemap bytes.Buffer
+	_, err = io.Copy(&sourcemap, file)
 	if err != nil {
 		return nil, err
 	}
 
 	payload := map[string]interface{}{
-		"sourcemap":       parsedSourcemap,
+		"sourcemap":       sourcemap.Bytes(),
 		"service_name":    req.FormValue("service_name"),
 		"service_version": req.FormValue("service_version"),
 		"bundle_filepath": req.FormValue("bundle_filepath"),

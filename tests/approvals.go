@@ -95,7 +95,7 @@ type RequestInfo struct {
 func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignored map[string]string) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
-		data, err := LoadData(info.Path)
+		data, err := LoadData(info.Path, p.Name())
 		assert.Nil(err)
 
 		err = p.Validate(data)

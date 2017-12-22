@@ -43,9 +43,6 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	assert.Equal(t, "js/bundle.min.map", data["bundle_filepath"])
 	assert.Equal(t, "My service", data["service_name"])
 	assert.Equal(t, "0.1", data["service_version"])
+	assert.NotNil(t, data["sourcemap"].([]byte))
 
-	for _, k := range []string{"version", "sources", "names", "mappings", "file", "sourcesContent", "sourceRoot"} {
-		assert.Contains(t, data["sourcemap"], k, data)
-		assert.NotNil(t, data["sourcemap"].(map[string]interface{})[k])
-	}
 }
