@@ -46,7 +46,7 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 
 	_, err := parser.Parse("", smap)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error validating sourcemap: ", err))
+		return errors.New(fmt.Sprintf("Error validating sourcemap: %v", err))
 	}
 
 	err = pr.Validate(raw, p.schema)

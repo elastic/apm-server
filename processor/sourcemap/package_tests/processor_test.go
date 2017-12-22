@@ -3,9 +3,10 @@ package package_tests
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/tests"
-	"github.com/stretchr/testify/assert"
 )
 
 // ensure all valid documents pass through the whole validation and transformation process
