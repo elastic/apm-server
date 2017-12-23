@@ -64,7 +64,7 @@ func loadSmapData(file string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	m["sourcemap"] = smap
+	m["sourcemap"] = string(smap)
 	return m, err
 }
 

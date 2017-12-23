@@ -15,7 +15,7 @@ var sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
 type payload struct {
 	ServiceName    string `mapstructure:"service_name"`
 	ServiceVersion string `mapstructure:"service_version"`
-	Sourcemap      []byte
+	Sourcemap      string
 	BundleFilepath string `mapstructure:"bundle_filepath"`
 }
 

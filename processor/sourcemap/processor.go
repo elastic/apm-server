@@ -39,12 +39,12 @@ func NewProcessor() pr.Processor {
 func (p *processor) Validate(raw map[string]interface{}) error {
 	validationCount.Inc()
 
-	smap, ok := raw["sourcemap"].([]byte)
+	smap, ok := raw["sourcemap"].(string)
 	if !ok {
 		return errors.New("Sourcemap not in expected format.")
 	}
 
-	_, err := parser.Parse("", smap)
+	_, err := parser.Parse("", []byte(smap))
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error validating sourcemap: %v", err))
 	}

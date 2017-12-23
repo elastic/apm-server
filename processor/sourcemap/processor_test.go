@@ -32,7 +32,7 @@ func TestValidate(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "not in expected format"))
 
-	err = p.Validate(map[string]interface{}{"sourcemap": []byte{}})
+	err = p.Validate(map[string]interface{}{"sourcemap": ""})
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Error validating sourcemap"))
 
@@ -59,5 +59,5 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
 	assert.Equal(t, "service", getStr(output, "service.name"))
 	assert.Equal(t, "1", getStr(output, "service.version"))
-	assert.Equal(t, data["sourcemap"], getBinary(output, "sourcemap"))
+	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
 }
