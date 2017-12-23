@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerOk(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, noSSL, 5)
 	defer teardown()
 
 	req := makeTestRequest(t)
@@ -54,7 +54,7 @@ func TestServerOk(t *testing.T) {
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, noSSL, 5)
 	defer teardown()
 
 	req, err := http.NewRequest("GET", HealthCheckURL, nil)
@@ -68,7 +68,7 @@ func TestServerHealth(t *testing.T) {
 }
 
 func TestServerFrontendSwitch(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, noSSL, 5)
 	defer teardown()
 
 	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
@@ -92,7 +92,7 @@ func TestServerFrontendSwitch(t *testing.T) {
 }
 
 func TestServerCORS(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, noSSL, 5)
 	defer teardown()
 
 	true := true
@@ -155,7 +155,7 @@ func TestServerCORS(t *testing.T) {
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, noSSL, 5)
 	defer teardown()
 
 	rr := httptest.NewRecorder()
@@ -165,7 +165,8 @@ func TestServerNoContentType(t *testing.T) {
 
 func TestServerSecureOkWithPasswordKey(t *testing.T) {
 	passwordKey := "fooBar"
-	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", passwordKey))
+	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", passwordKey), 5)
+	//panic("")
 	defer teardown()
 
 	req := makeTestRequest(t)
@@ -176,8 +177,18 @@ func TestServerSecureOkWithPasswordKey(t *testing.T) {
 	assert.Equal(t, 202, rr.Code, rr.Body.String())
 }
 
+func TestServerSecureCrashWithWrongCertificatePassword(t *testing.T) {
+	passphrase := "fooBar"
+	sslConf := withSSL(t, "127.0.0.1", passphrase)
+	//Modifying passphrase
+	sslConf.Certificate.Passphrase = "wrong_key"
+	assert.Panics(t, func() {
+		setupServer(t, sslConf, 5)
+	})
+}
+
 func TestServerSecureUnknownCA(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", ""))
+	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", ""), 5)
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "https")
@@ -185,7 +196,7 @@ func TestServerSecureUnknownCA(t *testing.T) {
 }
 
 func TestServerSecureSkipVerify(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", ""))
+	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1", ""), 5)
 	defer teardown()
 
 	res, err := postTestRequest(t, apm, insecureClient(), "https")
@@ -194,7 +205,7 @@ func TestServerSecureSkipVerify(t *testing.T) {
 }
 
 func TestServerSecureBadDomain(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "ELASTIC", ""))
+	apm, teardown := setupServer(t, withSSL(t, "ELASTIC", ""), 5)
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "https")
@@ -208,7 +219,7 @@ func TestServerSecureBadDomain(t *testing.T) {
 }
 
 func TestServerSecureBadIP(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "192.168.10.11", ""))
+	apm, teardown := setupServer(t, withSSL(t, "192.168.10.11", ""), 5)
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "https")
@@ -221,14 +232,14 @@ func TestServerSecureBadIP(t *testing.T) {
 }
 
 func TestServerBadProtocol(t *testing.T) {
-	apm, teardown := setupServer(t, withSSL(t, "localhost", ""))
+	apm, teardown := setupServer(t, withSSL(t, "localhost", ""), 5)
 	defer teardown()
 
 	_, err := postTestRequest(t, apm, nil, "http")
 	assert.Contains(t, err.Error(), "malformed HTTP response")
 }
 
-func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
+func setupServer(t *testing.T, ssl *SSLConfig, timeout int) (*http.Server, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -239,10 +250,11 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	cfg.SSL = ssl
 
 	apm := newServer(cfg, nopReporter)
+
 	go run(apm, cfg)
 
 	secure := cfg.SSL != nil
-	waitForServer(secure, host)
+	waitForServer(secure, host, timeout)
 
 	return apm, func() { stop(apm, time.Second) }
 }
@@ -262,7 +274,7 @@ func withSSL(t *testing.T, domain string, passwordKey string) *SSLConfig {
 	t.Log("generating certificate in ", name)
 	transptest.GenCertForTestingPurpose(t, domain, name, passwordKey)
 
-	return &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: name + ".pem", Key: name + ".key", Passphrase: passwordKey}}
+	return &SSLConfig{Enabled: newTrue(), Certificate: outputs.CertificateConfig{Certificate: name + ".pem", Key: name + ".key", Passphrase: passwordKey}}
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
@@ -289,7 +301,7 @@ func randomAddr() string {
 	return l.Addr().String()
 }
 
-func waitForServer(secure bool, host string) {
+func waitForServer(secure bool, host string, timeout int) {
 	var check = func() int {
 		var res *http.Response
 		var err error
@@ -305,13 +317,24 @@ func waitForServer(secure bool, host string) {
 		return res.StatusCode
 	}
 
-	for i := 0; i <= 1000; i++ {
-		time.Sleep(time.Second / 50)
+	for i := 0; i < timeout; i++ {
 		if check() == http.StatusOK {
 			return
 		}
+		time.Sleep(time.Second * 1)
 	}
-	panic("server run timeout (10 seconds)")
+	// for i := 0; i <= timeout*100; i++ {
+	// 	time.Sleep(time.Second / 50)
+	// 	if check() == http.StatusOK {
+	// 		return
+	// 	}
+	// }
+	panic("server run timeout")
 }
 
 func nopReporter(_ []beat.Event) error { return nil }
+
+func newTrue() *bool {
+	b := true
+	return &b
+}
