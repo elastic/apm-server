@@ -39,7 +39,7 @@ func (c *FrontendConfig) isEnabled() bool {
 
 var defaultConfig = Config{
 	Host:               "localhost:8200",
-	MaxUnzippedSize:    10 * 1024 * 1024, // 10mb
+	MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
 	MaxHeaderBytes:     1048576,          // 1mb
 	ConcurrentRequests: 20,
 	ReadTimeout:        2 * time.Second,
