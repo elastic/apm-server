@@ -115,6 +115,7 @@
         },
         "name": "GET /api/types",
         "result": "success",
+        "sampled": true,
         "type": "request"
     }
 }

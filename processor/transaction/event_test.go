@@ -29,6 +29,7 @@ func TestEventTransform(t *testing.T) {
 				"name":     "",
 				"type":     "",
 				"duration": common.MapStr{"us": 0},
+				"sampled":  false,
 			},
 			Msg: "Empty Event",
 		},
@@ -42,6 +43,7 @@ func TestEventTransform(t *testing.T) {
 				Duration:  65.98,
 				Context:   common.MapStr{"foo": "bar"},
 				Spans:     []Span{},
+				Sampled:   true,
 			},
 			Output: common.MapStr{
 				"id":       id,
@@ -49,6 +51,7 @@ func TestEventTransform(t *testing.T) {
 				"type":     "tx",
 				"result":   "tx result",
 				"duration": common.MapStr{"us": 65980},
+				"sampled":  true,
 			},
 			Msg: "Full Event",
 		},

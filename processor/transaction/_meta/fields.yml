@@ -45,6 +45,10 @@
           description: >
             A user-defined mapping of groups of marks. 
 
+        - name: sampled
+          type: boolean
+          description: >
+            Unsampled transactions have no spans.
 
 - key: apm-span
   title: APM Span

@@ -31,7 +31,8 @@
             "timestamp": "2017-05-30T18:53:27.154Z",
             "result": "200",
             "context": null,
-            "spans": null
+            "spans": null,
+            "sampled": false
         },
         {
             "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
@@ -39,6 +40,7 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42Z",
+            "sampled": false,
             "context": {
                 "request": null,
                 "response": null,
@@ -53,6 +55,7 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42.281999Z",
+            "sampled": true,
             "context": {
                 "request": {
                     "socket": null,
@@ -93,6 +96,7 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42.281Z",
+            "sampled": true,
             "context": {
                 "request": {
                     "socket": {

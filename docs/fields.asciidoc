@@ -655,6 +655,14 @@ type: object
 A user-defined mapping of groups of marks. 
 
 
+[float]
+=== `transaction.sampled`
+
+type: boolean
+
+Unsampled transactions have no spans.
+
+
 [[exported-fields-beat]]
 == Beat fields
 

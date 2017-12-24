@@ -3,5 +3,6 @@
     "name": "GET /api/types",
     "type": "request",
     "duration": 1.0,
-    "spans": []
+    "spans": [],
+    "sampled": true
 }

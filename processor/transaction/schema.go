@@ -510,9 +510,13 @@ var transactionSchema = `{
                 }
             },
             "additionalProperties": false
+        },
+        "sampled": {
+            "type": "boolean",
+            "description": "Sampled transactions have spans."
         }
     },
-    "required": ["id", "name", "duration", "type", "timestamp"]
+    "required": ["id", "name", "duration", "type", "timestamp", "sampled"]
             },
             "minItems": 1
         }
