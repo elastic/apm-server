@@ -84,7 +84,7 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))
+			processRequestHandler(pf, report, decodeLimitJSONData(config.MaxUnzippedSize))))
 }
 
 func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
@@ -92,14 +92,14 @@ func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.H
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
+					processRequestHandler(pf, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, config, report, sourcemap.DecodeSourcemapFormData))))
+				processRequestHandler(pf, report, sourcemap.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
@@ -251,15 +251,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, config Config, report reporter, decode decoder) http.Handler {
+func processRequestHandler(pf ProcessorFactory, report reporter, decode decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, config.MaxUnzippedSize, report, decode)
+		code, err := processRequest(r, pf, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter, decode decoder) (int, error) {
-
+func processRequest(r *http.Request, pf ProcessorFactory, report reporter, decode decoder) (int, error) {
 	processor := pf()
 
 	if r.Method != "POST" {
