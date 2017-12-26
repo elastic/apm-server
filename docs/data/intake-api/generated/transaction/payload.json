@@ -49,6 +49,7 @@
                     "method": "POST",
                     "url": {
                         "protocol": "https:",
+                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
                         "hostname": "www.example.com",
                         "port": "8080",
                         "pathname": "/p/a/t/h",
