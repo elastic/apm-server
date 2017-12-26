@@ -116,6 +116,14 @@ The protocol of the request, e.g. "https:".
 
 
 [float]
+=== `context.request.url.full`
+
+type: keyword
+
+The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+
+
+[float]
 === `context.request.url.hostname`
 
 type: keyword

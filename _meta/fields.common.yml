@@ -67,6 +67,11 @@
                 description: >
                   The protocol of the request, e.g. "https:".
 
+              - name: full
+                type: keyword
+                description: >
+                  The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+
               - name: hostname
                 type: keyword
                 description: >
