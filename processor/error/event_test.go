@@ -55,14 +55,14 @@ func TestEventTransform(t *testing.T) {
 	codeFloat := 13.0
 	module := "error module"
 	exMsg := "exception message"
-	uncaught := true
+	handled := false
 	attributes := common.MapStr{"k1": "val1"}
 	exception := Exception{
 		Type:       &errorType,
 		Code:       codeFloat,
 		Message:    exMsg,
 		Module:     &module,
-		Uncaught:   &uncaught,
+		Handled:    &handled,
 		Attributes: attributes,
 		Stacktrace: []m.StacktraceFrame{
 			{Filename: "st file"},
@@ -157,7 +157,7 @@ func TestEventTransform(t *testing.T) {
 					"module":     "error module",
 					"attributes": common.MapStr{"k1": "val1"},
 					"type":       "error type",
-					"uncaught":   true,
+					"handled":    false,
 				},
 				"log": common.MapStr{
 					"message":       "error log message",

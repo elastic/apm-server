@@ -7,7 +7,7 @@
     "error.exception.type",
     "error.exception.message",
     "error.log.message",
-    "error.exception.uncaught",
+    "error.exception.handled",
     "context.service.name"
   ],
   "sort": [

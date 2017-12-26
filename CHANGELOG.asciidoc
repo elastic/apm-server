@@ -12,6 +12,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Renaming `app` to `service` {pull}377[377]
 - Move `trace.transaction_id` to `transaction.id` {pull}345[345], {pull}347[347], {pull}371[371]
 - Renaming `trace` to `span` {pull}352[352].
+- Renaming and reverse boolean `exception.uncaught` to `exception.handled` {pull}434[434].
 
 ==== Bug fixes
 - Updated systemd doc url {pull}354[354]
