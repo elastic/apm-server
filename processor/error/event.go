@@ -32,7 +32,7 @@ type Exception struct {
 	Attributes interface{}
 	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
 	Type       *string
-	Uncaught   *bool
+	Handled    *bool
 }
 
 type Log struct {
@@ -83,7 +83,7 @@ func (e *Event) addException() {
 	e.enhancer.Add(ex, "module", e.Exception.Module)
 	e.enhancer.Add(ex, "attributes", e.Exception.Attributes)
 	e.enhancer.Add(ex, "type", e.Exception.Type)
-	e.enhancer.Add(ex, "uncaught", e.Exception.Uncaught)
+	e.enhancer.Add(ex, "handled", e.Exception.Handled)
 
 	switch e.Exception.Code.(type) {
 	case int:

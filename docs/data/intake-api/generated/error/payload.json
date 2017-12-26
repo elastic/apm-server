@@ -99,7 +99,7 @@
                 "type": "DbError",
                 "module": "__builtins__",
                 "code": 42,
-                "uncaught": true,
+                "handled": false,
                 "attributes": {
                     "foo": "bar"
                 },

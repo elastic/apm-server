@@ -103,6 +103,7 @@
                 "foo": "bar"
             },
             "code": "42",
+            "handled": false,
             "message": "The username root is unknown",
             "module": "__builtins__",
             "stacktrace": [
@@ -165,8 +166,7 @@
                     }
                 }
             ],
-            "type": "DbError",
-            "uncaught": true
+            "type": "DbError"
         },
         "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
         "id": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
