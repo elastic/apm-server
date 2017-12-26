@@ -53,6 +53,7 @@ func TestPayloadTransform(t *testing.T) {
 					Exception: baseException(),
 					Log:       baseLog(),
 				}},
+				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: []common.MapStr{
 				{
@@ -68,7 +69,8 @@ func TestPayloadTransform(t *testing.T) {
 						"exception":    common.MapStr{"message": "exception message"},
 						"log":          common.MapStr{"message": "error log message"},
 					},
-					"processor": common.MapStr{"event": "error", "name": "error"},
+					"processor":   common.MapStr{"event": "error", "name": "error"},
+					"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 				},
 			},
 			Msg: "Payload with Event with Context.",

@@ -138,13 +138,12 @@ func TestEventTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:          &id,
-				Timestamp:   time.Now(),
-				Culprit:     &culprit,
-				Context:     context,
-				Exception:   &exception,
-				Log:         &log,
-				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				Id:        &id,
+				Timestamp: time.Now(),
+				Culprit:   &culprit,
+				Context:   context,
+				Exception: &exception,
+				Log:       &log,
 			},
 			Output: common.MapStr{
 				"id":      "45678",
@@ -165,9 +164,6 @@ func TestEventTransform(t *testing.T) {
 					"param_message": "param message",
 					"logger_name":   "logger",
 					"level":         "level",
-				},
-				"transaction": common.MapStr{
-					"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
 				},
 				"grouping_key": "d47ca09e1cfd512804f5d55cecd34262",
 			},

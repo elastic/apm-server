@@ -503,18 +503,6 @@ var errorSchema = `{
             "format": "date-time",
             "pattern": "Z$",
             "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        },
-        "transaction": {
-            "type": ["object", "null"],
-            "description": "Data for correlating errors with transactions",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "description": "UUID for the transaction",
-                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
-                    "maxLength": 1024
-                }
-            }
         }
     },
     "required": ["timestamp"],
@@ -551,6 +539,18 @@ var errorSchema = `{
             "maxLength": 1024
         }
     }
+        },
+        "transaction": {
+            "type": ["object", "null"],
+            "description": "Data for correlating errors with transactions",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "UUID for the transaction",
+                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+                    "maxLength": 1024
+                }
+            }
         }
     },
     "required": ["service", "errors"]

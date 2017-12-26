@@ -14,15 +14,12 @@ import (
 )
 
 type Event struct {
-	Id          *string
-	Culprit     *string
-	Context     common.MapStr
-	Exception   *Exception
-	Log         *Log
-	Timestamp   time.Time
-	Transaction *struct {
-		Id string
-	}
+	Id        *string
+	Culprit   *string
+	Context   common.MapStr
+	Exception *Exception
+	Log       *Log
+	Timestamp time.Time
 
 	enhancer utility.MapStrEnhancer
 	data     common.MapStr
@@ -51,16 +48,22 @@ func (e *Event) DocType() string {
 }
 
 func (e *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
-	return e.Timestamp,
-		[]m.DocMapping{
-			{Key: "processor", Apply: func() common.MapStr {
-				return common.MapStr{"name": processorName, "event": e.DocType()}
-			}},
-			{Key: e.DocType(), Apply: e.Transform},
-			{Key: "context", Apply: func() common.MapStr { return e.Context }},
-			{Key: "context.service", Apply: pa.Service.Transform},
-			{Key: "context.system", Apply: pa.System.Transform},
-		}
+	mapping := []m.DocMapping{
+		{Key: "processor", Apply: func() common.MapStr {
+			return common.MapStr{"name": processorName, "event": e.DocType()}
+		}},
+		{Key: e.DocType(), Apply: e.Transform},
+		{Key: "context", Apply: func() common.MapStr { return e.Context }},
+		{Key: "context.service", Apply: pa.Service.Transform},
+		{Key: "context.system", Apply: pa.System.Transform},
+	}
+	if pa.Transaction != nil {
+		mapping = append(mapping, m.DocMapping{
+			Key:   "transaction",
+			Apply: func() common.MapStr { return common.MapStr{"id": pa.Transaction.Id} },
+		})
+	}
+	return e.Timestamp, mapping
 }
 
 func (e *Event) Transform() common.MapStr {
@@ -73,10 +76,6 @@ func (e *Event) Transform() common.MapStr {
 	e.addException()
 	e.addLog()
 	e.addGroupingKey()
-
-	if e.Transaction != nil {
-		e.add("transaction", common.MapStr{"id": e.Transaction.Id})
-	}
 
 	return e.data
 }

@@ -344,6 +344,17 @@ type: keyword
 Version of the agent used.
 
 
+
+[float]
+=== `transaction.id`
+
+type: keyword
+
+format: url
+
+A UUID4 transaction ID.
+
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
@@ -472,15 +483,6 @@ type: keyword
 A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
 
 
-
-[float]
-=== `error.transaction.id`
-
-type: keyword
-
-A UUID4 transaction ID.
-
-
 [[exported-fields-apm-sourcemap]]
 == APM Sourcemap fields
 
@@ -598,16 +600,6 @@ The locally unique ID of the parent of the span.
 
 Transaction-specific data for APM
 
-
-
-[float]
-=== `transaction.id`
-
-type: keyword
-
-format: url
-
-A UUID4 transaction ID.
 
 
 [float]
