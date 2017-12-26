@@ -59,6 +59,7 @@ var (
 	errForbidden       = errors.New("forbidden request")
 	errPOSTRequestOnly = errors.New("only POST requests are supported")
 	errTooManyRequests = errors.New("too many requests")
+	errNoContent       = errors.New("no content")
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
@@ -298,7 +299,7 @@ func decodeLimitJSONData(maxSize int64) decoder {
 
 		reader := req.Body
 		if reader == nil {
-			return nil, fmt.Errorf("No content supplied")
+			return nil, errNoContent
 		}
 
 		switch req.Header.Get("Content-Encoding") {
