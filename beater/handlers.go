@@ -1,32 +1,27 @@
 package beater
 
 import (
-	"fmt"
-	"io"
-	"strings"
-
-	"github.com/elastic/apm-server/processor"
-	"github.com/elastic/beats/libbeat/logp"
-
 	"compress/gzip"
 	"compress/zlib"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"net"
 	"net/http"
-
-	"crypto/subtle"
+	"strings"
 
 	"github.com/hashicorp/golang-lru"
+	"github.com/ryanuber/go-glob"
 	"golang.org/x/time/rate"
 
-	"net"
-
-	"github.com/ryanuber/go-glob"
-
-	err "github.com/elastic/apm-server/processor/error"
+	"github.com/elastic/apm-server/processor"
+	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
+	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -68,8 +63,8 @@ var (
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
 		FrontendTransactionsURL: {frontendHandler, transaction.NewProcessor},
-		BackendErrorsURL:        {backendHandler, err.NewProcessor},
-		FrontendErrorsURL:       {frontendHandler, err.NewProcessor},
+		BackendErrorsURL:        {backendHandler, perr.NewProcessor},
+		FrontendErrorsURL:       {frontendHandler, perr.NewProcessor},
 		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
 		SourcemapsURL:           {sourcemapHandler, sourcemap.NewProcessor},
 	}
