@@ -5,14 +5,13 @@ import (
 	"compress/zlib"
 	"crypto/subtle"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"strings"
 
 	"github.com/hashicorp/golang-lru"
+	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 	"golang.org/x/time/rate"
 
@@ -268,7 +267,7 @@ func processRequest(r *http.Request, pf ProcessorFactory, report reporter, decod
 
 	data, err := decode(r)
 	if err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
+		return http.StatusBadRequest, errors.Wrap(err, "while decoding")
 	}
 
 	if err = processor.Validate(data); err != nil {
@@ -291,7 +290,6 @@ type decoder func(req *http.Request) (map[string]interface{}, error)
 
 func decodeLimitJSONData(maxSize int64) decoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
-
 		contentType := req.Header.Get("Content-Type")
 		if contentType != "application/json" {
 			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
@@ -318,10 +316,9 @@ func decodeLimitJSONData(maxSize int64) decoder {
 			}
 		}
 		v := make(map[string]interface{})
-		err := json.NewDecoder(io.LimitReader(reader, maxSize)).Decode(&v)
-		if err != nil {
+		if err := json.NewDecoder(http.MaxBytesReader(nil, reader, maxSize)).Decode(&v); err != nil {
 			// If we run out of memory, for example
-			return nil, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
+			return nil, errors.Wrap(err, "data read error")
 		}
 		return v, nil
 	}
