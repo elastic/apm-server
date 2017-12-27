@@ -1,32 +1,26 @@
 package beater
 
 import (
-	"fmt"
-	"io"
-	"strings"
-
-	"github.com/elastic/apm-server/processor"
-	"github.com/elastic/beats/libbeat/logp"
-
 	"compress/gzip"
 	"compress/zlib"
-	"encoding/json"
-	"errors"
-	"net/http"
-
 	"crypto/subtle"
+	"encoding/json"
+	"fmt"
+	"net"
+	"net/http"
+	"strings"
 
 	"github.com/hashicorp/golang-lru"
+	"github.com/pkg/errors"
+	"github.com/ryanuber/go-glob"
 	"golang.org/x/time/rate"
 
-	"net"
-
-	"github.com/ryanuber/go-glob"
-
-	err "github.com/elastic/apm-server/processor/error"
+	"github.com/elastic/apm-server/processor"
+	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
+	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -64,12 +58,13 @@ var (
 	errForbidden       = errors.New("forbidden request")
 	errPOSTRequestOnly = errors.New("only POST requests are supported")
 	errTooManyRequests = errors.New("too many requests")
+	errNoContent       = errors.New("no content")
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
 		FrontendTransactionsURL: {frontendHandler, transaction.NewProcessor},
-		BackendErrorsURL:        {backendHandler, err.NewProcessor},
-		FrontendErrorsURL:       {frontendHandler, err.NewProcessor},
+		BackendErrorsURL:        {backendHandler, perr.NewProcessor},
+		FrontendErrorsURL:       {frontendHandler, perr.NewProcessor},
 		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
 		SourcemapsURL:           {sourcemapHandler, sourcemap.NewProcessor},
 	}
@@ -89,7 +84,7 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
-			processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))
+			processRequestHandler(pf, report, decodeLimitJSONData(config.MaxUnzippedSize))))
 }
 
 func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
@@ -97,14 +92,14 @@ func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.H
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, config, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
+					processRequestHandler(pf, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, config, report, sourcemap.DecodeSourcemapFormData))))
+				processRequestHandler(pf, report, sourcemap.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
@@ -256,15 +251,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, config Config, report reporter, decode decoder) http.Handler {
+func processRequestHandler(pf ProcessorFactory, report reporter, decode decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, config.MaxUnzippedSize, report, decode)
+		code, err := processRequest(r, pf, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report reporter, decode decoder) (int, error) {
-
+func processRequest(r *http.Request, pf ProcessorFactory, report reporter, decode decoder) (int, error) {
 	processor := pf()
 
 	if r.Method != "POST" {
@@ -273,7 +267,7 @@ func processRequest(r *http.Request, pf ProcessorFactory, maxSize int64, report 
 
 	data, err := decode(r)
 	if err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Decoding error: %s", err.Error()))
+		return http.StatusBadRequest, errors.Wrap(err, "while decoding")
 	}
 
 	if err = processor.Validate(data); err != nil {
@@ -296,7 +290,6 @@ type decoder func(req *http.Request) (map[string]interface{}, error)
 
 func decodeLimitJSONData(maxSize int64) decoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
-
 		contentType := req.Header.Get("Content-Type")
 		if contentType != "application/json" {
 			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
@@ -304,7 +297,7 @@ func decodeLimitJSONData(maxSize int64) decoder {
 
 		reader := req.Body
 		if reader == nil {
-			return nil, fmt.Errorf("No content supplied")
+			return nil, errNoContent
 		}
 
 		switch req.Header.Get("Content-Encoding") {
@@ -323,10 +316,9 @@ func decodeLimitJSONData(maxSize int64) decoder {
 			}
 		}
 		v := make(map[string]interface{})
-		err := json.NewDecoder(io.LimitReader(reader, maxSize)).Decode(&v)
-		if err != nil {
+		if err := json.NewDecoder(http.MaxBytesReader(nil, reader, maxSize)).Decode(&v); err != nil {
 			// If we run out of memory, for example
-			return nil, errors.New(fmt.Sprintf("Data read error: %s", err.Error()))
+			return nil, errors.Wrap(err, "data read error")
 		}
 		return v, nil
 	}
