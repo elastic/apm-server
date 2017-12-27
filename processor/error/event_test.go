@@ -138,12 +138,13 @@ func TestEventTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:        &id,
-				Timestamp: time.Now(),
-				Culprit:   &culprit,
-				Context:   context,
-				Exception: &exception,
-				Log:       &log,
+				Id:          &id,
+				Timestamp:   time.Now(),
+				Culprit:     &culprit,
+				Context:     context,
+				Exception:   &exception,
+				Log:         &log,
+				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: common.MapStr{
 				"id":      "45678",

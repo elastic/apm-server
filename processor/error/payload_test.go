@@ -48,12 +48,12 @@ func TestPayloadTransform(t *testing.T) {
 			Payload: payload{
 				Service: svc,
 				Events: []Event{{
-					Timestamp: timestamp,
-					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
-					Exception: baseException(),
-					Log:       baseLog(),
+					Timestamp:   timestamp,
+					Context:     common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
+					Exception:   baseException(),
+					Log:         baseLog(),
+					Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 				}},
-				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: []common.MapStr{
 				{

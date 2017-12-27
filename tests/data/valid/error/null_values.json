@@ -43,7 +43,8 @@
                 "attributes": null,
                 "stacktrace": null
             },
-            "context": null
+            "context": null,
+            "transaction": null
         },
         {
             "timestamp": "2017-05-09T15:04:05.1Z",
@@ -83,7 +84,8 @@
                         ]
                     }
                 }
-            }
+            },
+            "transaction": null
         },
         {
             "timestamp": "2017-05-09T15:04:05Z",
@@ -137,7 +139,8 @@
                 "user": null,
                 "tags": null,
                 "custom": null
-            }
+            },
+            "transaction": null
         }
     ]
 }

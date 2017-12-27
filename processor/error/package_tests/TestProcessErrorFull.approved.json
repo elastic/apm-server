@@ -41,8 +41,8 @@
                         "remote_address": "12.53.12.1"
                     },
                     "url": {
-                        "hash": "#hash",
                         "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                        "hash": "#hash",
                         "hostname": "www.example.com",
                         "pathname": "/p/a/t/h",
                         "port": "8080",
@@ -296,9 +296,6 @@
             "processor": {
                 "event": "error",
                 "name": "error"
-            },
-            "transaction": {
-                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             }
         },
         {
@@ -347,9 +344,6 @@
             "processor": {
                 "event": "error",
                 "name": "error"
-            },
-            "transaction": {
-                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             }
         },
         {
@@ -398,9 +392,6 @@
             "processor": {
                 "event": "error",
                 "name": "error"
-            },
-            "transaction": {
-                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             }
         }
     ]

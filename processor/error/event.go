@@ -14,12 +14,15 @@ import (
 )
 
 type Event struct {
-	Id        *string
-	Culprit   *string
-	Context   common.MapStr
-	Exception *Exception
-	Log       *Log
-	Timestamp time.Time
+	Id          *string
+	Culprit     *string
+	Context     common.MapStr
+	Exception   *Exception
+	Log         *Log
+	Timestamp   time.Time
+	Transaction *struct {
+		Id string
+	}
 
 	enhancer utility.MapStrEnhancer
 	data     common.MapStr
@@ -57,10 +60,10 @@ func (e *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
 		{Key: "context.service", Apply: pa.Service.Transform},
 		{Key: "context.system", Apply: pa.System.Transform},
 	}
-	if pa.Transaction != nil {
+	if e.Transaction != nil {
 		mapping = append(mapping, m.DocMapping{
 			Key:   "transaction",
-			Apply: func() common.MapStr { return common.MapStr{"id": pa.Transaction.Id} },
+			Apply: func() common.MapStr { return common.MapStr{"id": e.Transaction.Id} },
 		})
 	}
 	return e.Timestamp, mapping
