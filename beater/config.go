@@ -5,16 +5,16 @@ import (
 )
 
 type Config struct {
-	Host               string          `config:"host"`
-	MaxUnzippedSize    int64           `config:"max_unzipped_size"`
-	MaxHeaderBytes     int             `config:"max_header_bytes"`
-	ReadTimeout        time.Duration   `config:"read_timeout"`
-	WriteTimeout       time.Duration   `config:"write_timeout"`
-	ShutdownTimeout    time.Duration   `config:"shutdown_timeout"`
-	SecretToken        string          `config:"secret_token"`
-	SSL                *SSLConfig      `config:"ssl"`
-	ConcurrentRequests int             `config:"concurrent_requests" validate:"min=1"`
-	Frontend           *FrontendConfig `config:"frontend"`
+	Host            string          `config:"host"`
+	MaxUnzippedSize int64           `config:"max_unzipped_size"`
+	MaxHeaderBytes  int             `config:"max_header_bytes"`
+	ReadTimeout     time.Duration   `config:"read_timeout"`
+	WriteTimeout    time.Duration   `config:"write_timeout"`
+	ShutdownTimeout time.Duration   `config:"shutdown_timeout"`
+	SecretToken     string          `config:"secret_token"`
+	SSL             *SSLConfig      `config:"ssl"`
+	QueueSize       int             `config:"queue_size" validate:"min=1"`
+	Frontend        *FrontendConfig `config:"frontend"`
 }
 
 type FrontendConfig struct {
@@ -38,13 +38,13 @@ func (c *FrontendConfig) isEnabled() bool {
 }
 
 var defaultConfig = Config{
-	Host:               "localhost:8200",
-	MaxUnzippedSize:    10 * 1024 * 1024, // 10mb
-	MaxHeaderBytes:     1048576,          // 1mb
-	ConcurrentRequests: 20,
-	ReadTimeout:        2 * time.Second,
-	WriteTimeout:       2 * time.Second,
-	ShutdownTimeout:    5 * time.Second,
-	SecretToken:        "",
-	Frontend:           &FrontendConfig{Enabled: new(bool), RateLimit: 10, AllowOrigins: []string{"*"}},
+	Host:            "localhost:8200",
+	MaxUnzippedSize: 10 * 1024 * 1024, // 10mb
+	MaxHeaderBytes:  1048576,          // 1mb
+	QueueSize:       100,
+	ReadTimeout:     2 * time.Second,
+	WriteTimeout:    2 * time.Second,
+	ShutdownTimeout: 5 * time.Second,
+	SecretToken:     "",
+	Frontend:        &FrontendConfig{Enabled: new(bool), RateLimit: 10, AllowOrigins: []string{"*"}},
 }
