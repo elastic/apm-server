@@ -1,0 +1,8 @@
+- key: apm-stat
+  title: APM Statistic
+  description: Stats that relate the the application
+  fields:
+    - name: stat
+      type: object
+      object_type: keyword
+      dynamic: true

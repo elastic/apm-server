@@ -1,0 +1,54 @@
+{
+	"service": {
+		"name": "1234_service-12a3",
+		"version": "5.1.3",
+		"environment": "staging",
+		"language": {
+			"name": "ecmascript",
+			"version": "8"
+		},
+		"runtime": {
+			"name": "node",
+			"version": "8.0.0"
+		},
+		"framework": {
+			"name": "Express",
+			"version": "1.2.3"
+		},
+		"agent": {
+			"name": "elastic-node",
+			"version": "3.14.0"
+		}
+	},
+	"process": {
+		"pid": 1234,
+		"title": "node",
+		"argv": [
+			"node",
+			"server.js"
+		]
+	},
+	"system": {
+		"hostname": "prod1.example.com",
+		"architecture": "x64",
+		"platform": "darwin"
+	},
+	"stats": [
+		{
+			"values": {
+				"express.requests.success": 23023,
+				"express.requests.fail": 101,
+				"express.requests.endpoint": "GET /myapi"
+			},
+			"timestamp": "2017-05-30T18:53:27.154Z"
+		},
+		{
+			"values": {
+				"express.requests.success": 12132,
+				"express.requests.fail": 51,
+				"express.requests.endpoint": "POST /myapi"
+			},
+			"timestamp": "2017-05-30T18:54:27.154Z"
+		}
+	]
+}

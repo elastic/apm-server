@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "docs/spec/stats/stat.json",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
+    },
+    "values": {
+      "type": ["object", "null"],
+      "description": "Statistical values",
+      "regexProperties": true,
+      "patternProperties": {
+        "^[^*\"]*$": {
+          "type": ["string", "number"],
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "timestamp",
+    "values"
+  ]
+}

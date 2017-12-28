@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "docs/spec/stats/payload.json",
+  "title": "Stats payload",
+  "description": "List of stats and top level metadata",
+  "type": "object",
+  "properties": {
+      "service": {
+          "$ref": "../service.json"
+      },
+      "system": {
+          "$ref": "../system.json"
+      },
+      "stats": {
+        "type": "array",
+        "items": {
+            "$ref": "stat.json"
+        },
+        "minItems": 1,
+        "description": "List of stats."
+      }
+  },
+  "required": ["service", "stats"]
+}

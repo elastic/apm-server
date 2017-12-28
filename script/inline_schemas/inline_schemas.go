@@ -17,6 +17,7 @@ func main() {
 		{"errors/payload.json", "processor/error/schema.go", "errorSchema", "error"},
 		{"transactions/payload.json", "processor/transaction/schema.go", "transactionSchema", "transaction"},
 		{"sourcemaps/payload.json", "processor/sourcemap/schema.go", "sourcemapSchema", "sourcemap"},
+		{"stats/payload.json", "processor/stat/schema.go", "statSchema", "stat"},
 	}
 	for _, schemaInfo := range schemaPaths {
 		file := filepath.Join(filepath.Dir(basePath), schemaInfo.path)

@@ -66,6 +66,12 @@ func buildPath(processorName string, validData bool) (string, error) {
 		} else {
 			file = "sourcemap/no_bundle_filepath.json"
 		}
+	case "stat":
+		if validData {
+			file = "stat/payload.json"
+		} else {
+			file = "stat/no_value.json"
+		}
 	default:
 		return "", errors.New("data type not specified")
 	}

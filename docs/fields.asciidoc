@@ -16,6 +16,7 @@ grouped in the following categories:
 * <<exported-fields-apm-error>>
 * <<exported-fields-apm-sourcemap>>
 * <<exported-fields-apm-span>>
+* <<exported-fields-apm-stat>>
 * <<exported-fields-apm-transaction>>
 * <<exported-fields-beat>>
 * <<exported-fields-cloud>>
@@ -609,6 +610,17 @@ type: long
 
 The locally unique ID of the parent of the span.
 
+
+[[exported-fields-apm-stat]]
+== APM Statistic fields
+
+Stats that relate the the application
+
+
+[float]
+=== `stat`
+
+type: object
 
 [[exported-fields-apm-transaction]]
 == APM Transaction fields

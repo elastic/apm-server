@@ -60,7 +60,10 @@ class ServerSetUpBaseTest(BaseTest):
 
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
-        self.wait_until(lambda: self.log_contains("Starting apm-server"))
+        try:
+            self.wait_until(lambda: self.log_contains("Starting apm-server"))
+        except Exception:
+            print(self.get_log())
 
     def assert_no_logged_warnings(self, replace=None):
         """

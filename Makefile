@@ -55,9 +55,12 @@ create-docs:
 	@mkdir -p docs/data/intake-api/generated/error
 	@mkdir -p docs/data/intake-api/generated/transaction
 	@mkdir -p docs/data/intake-api/generated/sourcemap
+	@mkdir -p docs/data/intake-api/generated/stat
 	@cp tests/data/valid/error/* docs/data/intake-api/generated/error/
 	@cp tests/data/valid/transaction/* docs/data/intake-api/generated/transaction/
 	@cp tests/data/valid/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
+	@cp tests/data/valid/stat/* docs/data/intake-api/generated/stat/
+
 
 # Start manual testing environment with agents
 start-env:

@@ -23,6 +23,7 @@ import (
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/sourcemap"
+	"github.com/elastic/apm-server/processor/stat"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
@@ -34,8 +35,9 @@ const (
 	FrontendTransactionsURL = "/v1/client-side/transactions"
 	BackendErrorsURL        = "/v1/errors"
 	FrontendErrorsURL       = "/v1/client-side/errors"
-	HealthCheckURL          = "/healthcheck"
+	StatsURL                = "/v1/stats"
 	SourcemapsURL           = "/v1/client-side/sourcemaps"
+	HealthCheckURL          = "/healthcheck"
 
 	rateLimitCacheSize       = 1000
 	rateLimitBurstMultiplier = 2
@@ -72,6 +74,7 @@ var (
 		FrontendErrorsURL:       {frontendHandler, perr.NewProcessor},
 		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
 		SourcemapsURL:           {sourcemapHandler, sourcemap.NewProcessor},
+		StatsURL:                {backendHandler, stat.NewProcessor},
 	}
 )
 
