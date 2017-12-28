@@ -42,6 +42,7 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 		"error.id",
 		"error.log.level",
 		"error.grouping_key",
+		"transaction.id",
 		"listening",
 		"error id icon",
 		"view errors",
