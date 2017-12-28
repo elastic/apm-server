@@ -6,16 +6,13 @@ import (
 )
 
 type Service struct {
-	Name         string
-	Version      *string
-	Pid          *int
-	ProcessTitle *string `mapstructure:"process_title"`
-	Environment  *string
-	Argv         []string
-	Language     Language
-	Runtime      Runtime
-	Framework    Framework
-	Agent        Agent
+	Name        string
+	Version     *string
+	Environment *string
+	Language    Language
+	Runtime     Runtime
+	Framework   Framework
+	Agent       Agent
 }
 
 type Language struct {
@@ -52,10 +49,7 @@ func (s *Service) Transform() common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	svc := s.MinimalTransform()
 	enhancer.Add(svc, "version", s.Version)
-	enhancer.Add(svc, "pid", s.Pid)
-	enhancer.Add(svc, "process_title", s.ProcessTitle)
 	enhancer.Add(svc, "environment", s.Environment)
-	enhancer.Add(svc, "argv", s.Argv)
 
 	lang := common.MapStr{}
 	enhancer.Add(lang, "name", s.Language.Name)

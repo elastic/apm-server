@@ -36,14 +36,20 @@ func (t *Event) Transform() common.MapStr {
 }
 
 func (t *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
-	return t.Timestamp,
-		[]m.DocMapping{
-			{Key: "processor", Apply: func() common.MapStr {
-				return common.MapStr{"name": processorName, "event": t.DocType()}
-			}},
-			{Key: t.DocType(), Apply: t.Transform},
-			{Key: "context", Apply: func() common.MapStr { return t.Context }},
-			{Key: "context.service", Apply: pa.Service.Transform},
-			{Key: "context.system", Apply: pa.System.Transform},
-		}
+	mapping := []m.DocMapping{
+		{Key: "processor", Apply: func() common.MapStr {
+			return common.MapStr{"name": processorName, "event": t.DocType()}
+		}},
+		{Key: t.DocType(), Apply: t.Transform},
+		{Key: "context", Apply: func() common.MapStr { return t.Context }},
+		{Key: "context.service", Apply: pa.Service.Transform},
+		{Key: "context.system", Apply: pa.System.Transform},
+	}
+
+	if pa.Process != nil {
+		mapping = append(mapping, m.DocMapping{
+			Key: "context.process", Apply: pa.Process.Transform,
+		})
+	}
+	return t.Timestamp, mapping
 }

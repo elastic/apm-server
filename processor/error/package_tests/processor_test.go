@@ -15,6 +15,7 @@ func TestProcessorOK(t *testing.T) {
 		{Name: "TestProcessErrorMinimalPayloadException", Path: "data/valid/error/minimal_payload_exception.json"},
 		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/valid/error/minimal_payload_log.json"},
 		{Name: "TestProcessErrorMinimalService", Path: "data/valid/error/minimal_service.json"},
+		{Name: "TestProcessErrorMinimalProcess", Path: "data/valid/error/minimal_process.json"},
 		{Name: "TestProcessErrorFull", Path: "data/valid/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "data/valid/error/null_values.json"},
 	}

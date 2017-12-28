@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "doc/spec/process.json",
+  "title": "Process",
+  "type": ["object", "null"],
+  "properties": {
+      "pid": {
+          "description": "Process ID of the service",
+          "type": ["number", "null"]
+      },
+      "title": {
+          "type": ["string", "null"],
+          "maxLength": 1024
+      },
+      "argv": {
+        "description": "Command line arguments used to start this process",
+        "type": ["array", "null"],
+        "minItems": 0
+    }
+  },
+  "required": ["pid"]
+}

@@ -10,12 +10,14 @@
           "version": "1.0.0"
         },
         "version": null,
-        "pid": null,
-        "process_title": null,
         "environment": null,
-        "argv": null,
         "runtime": null,
         "framework": null
+    },
+    "process": {
+        "pid": null,
+        "title": null,
+        "argv": null
     },
     "system": {
         "hostname": null,

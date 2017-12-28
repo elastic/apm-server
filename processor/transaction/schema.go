@@ -6,9 +6,9 @@ func Schema() string {
 
 var transactionSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/transactions/wrapper.json",
-    "title": "Transactions Wrapper",
-    "description": "List of transactions wrapped in an object containing some other attributes normalized away form the transactions themselves",
+    "$id": "docs/spec/transactions/payload.json",
+    "title": "Transactions payload",
+    "description": "List of transactions wrapped in an object containing some other attributes normalized away from the transactions themselves",
     "type": "object",
     "properties": {
         "service": {
@@ -33,11 +33,6 @@ var transactionSchema = `{
                 }
             },
             "required": ["name", "version"]
-        },
-        "argv": {
-            "description": "Command line arguments used to start this service",
-            "type": ["array", "null"],
-            "minItems": 0
         },
         "framework": {
             "description": "Name and version of the web framework used",
@@ -75,14 +70,6 @@ var transactionSchema = `{
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
-        "pid": {
-            "description": "Process ID of the service",
-            "type": ["number", "null"]
-        },
-        "process_title": {
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
         "environment": {
             "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
             "type": ["string", "null"],
@@ -110,6 +97,28 @@ var transactionSchema = `{
         }
     },
     "required": ["agent", "name"]
+        },
+        "process": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "doc/spec/process.json",
+  "title": "Process",
+  "type": ["object", "null"],
+  "properties": {
+      "pid": {
+          "description": "Process ID of the service",
+          "type": ["number", "null"]
+      },
+      "title": {
+          "type": ["string", "null"],
+          "maxLength": 1024
+      },
+      "argv": {
+        "description": "Command line arguments used to start this process",
+        "type": ["array", "null"],
+        "minItems": 0
+    }
+  },
+  "required": ["pid"]
         },
         "system": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
