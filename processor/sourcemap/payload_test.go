@@ -21,13 +21,9 @@ func getFloat(data common.MapStr, key string) float64 {
 	return rs.(float64)
 }
 
-func getBinary(data common.MapStr, key string) []byte {
-	rs, _ := data.GetValue(key)
-	return rs.([]byte)
-}
-
 func TestPayloadTransform(t *testing.T) {
 	smap := []byte("mysmap")
+	smapBase64 := "bXlzbWFw"
 	p := payload{
 		ServiceName:    "myService",
 		ServiceVersion: "1.0",
@@ -45,7 +41,7 @@ func TestPayloadTransform(t *testing.T) {
 	assert.Equal(t, "/my/path", getStr(output, "bundle_filepath"))
 	assert.Equal(t, "myService", getStr(output, "service.name"))
 	assert.Equal(t, "1.0", getStr(output, "service.version"))
-	assert.Equal(t, smap, getBinary(output, "sourcemap"))
+	assert.Equal(t, smapBase64, getStr(output, "sourcemap"))
 }
 
 func TestParseSourcemaps(t *testing.T) {

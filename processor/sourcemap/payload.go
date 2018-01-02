@@ -1,6 +1,7 @@
 package sourcemap
 
 import (
+	"encoding/base64"
 	"time"
 
 	m "github.com/elastic/apm-server/model"
@@ -35,7 +36,7 @@ func mappings(pa *payload) (time.Time, []m.DocMapping) {
 				return common.MapStr{
 					"bundle_filepath": pa.BundleFilepath,
 					"service":         common.MapStr{"name": pa.ServiceName, "version": pa.ServiceVersion},
-					"sourcemap":       pa.Sourcemap,
+					"sourcemap":       base64.StdEncoding.EncodeToString(pa.Sourcemap),
 				}
 			}},
 		}
