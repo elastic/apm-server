@@ -106,7 +106,7 @@ var errorSchema = `{
   "properties": {
       "pid": {
           "description": "Process ID of the service",
-          "type": ["number", "null"]
+          "type": ["number"]
       },
       "title": {
           "type": ["string", "null"],

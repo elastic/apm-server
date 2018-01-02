@@ -6,7 +6,7 @@ import (
 )
 
 type Process struct {
-	Pid   *int
+	Pid   int
 	Title *string
 	Argv  []string
 }

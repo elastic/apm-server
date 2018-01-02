@@ -32,7 +32,7 @@ func TestProcessTransform(t *testing.T) {
 		},
 		{
 			Process: Process{
-				Pid:   &pid,
+				Pid:   pid,
 				Title: &processTitle,
 				Argv:  argv,
 			},

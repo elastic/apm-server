@@ -3,7 +3,6 @@
         {
             "@timestamp": "2017-05-09T15:04:05.999999Z",
             "context": {
-                "process": {},
                 "service": {
                     "agent": {
                         "name": "ruby",
@@ -43,7 +42,6 @@
                     "my_key": 1,
                     "some_other_value": "foo bar"
                 },
-                "process": {},
                 "request": {
                     "headers": {
                         "content-type": null,
@@ -92,7 +90,6 @@
             "@timestamp": "2017-05-09T15:04:05Z",
             "context": {
                 "custom": null,
-                "process": {},
                 "request": {
                     "body": null,
                     "cookies": null,
@@ -150,7 +147,6 @@
             "@timestamp": "2017-05-09T15:04:05.999Z",
             "context": {
                 "custom": null,
-                "process": {},
                 "request": null,
                 "response": null,
                 "service": {

@@ -14,11 +14,7 @@
         "runtime": null,
         "framework": null
     },
-    "process": {
-        "pid": null,
-        "title": null,
-        "argv": null
-    },
+    "process": null,
     "system": {
         "hostname": null,
         "architecture": null,
