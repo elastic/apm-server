@@ -21,12 +21,7 @@ func readFile(filePath string, err error) ([]byte, error) {
 }
 
 func LoadData(file string, processorName string) (map[string]interface{}, error) {
-	switch processorName {
-	case "sourcemap":
-		return loadSmapData(file)
-	default:
-		return unmarshalData(findFile(file))
-	}
+	return unmarshalData(findFile(file))
 }
 
 func LoadDataAsBytes(fileName string) ([]byte, error) {
@@ -38,34 +33,11 @@ func LoadValidDataAsBytes(processorName string) ([]byte, error) {
 }
 
 func LoadValidData(processorName string) (map[string]interface{}, error) {
-	switch processorName {
-	case "sourcemap":
-		return loadSmapData("data/valid/sourcemap/payload.json")
-	default:
-		return unmarshalData(buildPath(processorName, true))
-	}
+	return unmarshalData(buildPath(processorName, true))
 }
 
 func LoadInvalidData(processorName string) (map[string]interface{}, error) {
-	switch processorName {
-	case "sourcemap":
-		return map[string]interface{}{"sourcemap": []byte{}}, nil
-	default:
-		return unmarshalData(buildPath(processorName, false))
-	}
-}
-
-func loadSmapData(file string) (map[string]interface{}, error) {
-	m, err := unmarshalData(findFile(file))
-	if err != nil {
-		return nil, err
-	}
-	smap, err := json.Marshal(m["sourcemap"])
-	if err != nil {
-		return nil, err
-	}
-	m["sourcemap"] = string(smap)
-	return m, err
+	return unmarshalData(buildPath(processorName, false))
 }
 
 func buildPath(processorName string, validData bool) (string, error) {
@@ -87,6 +59,12 @@ func buildPath(processorName string, validData bool) (string, error) {
 			file = "transaction/payload.json"
 		} else {
 			file = "transaction_payload/no_service.json"
+		}
+	case "sourcemap":
+		if validData {
+			file = "sourcemap/payload.json"
+		} else {
+			file = "sourcemap/no_bundle_filepath.json"
 		}
 	default:
 		return "", errors.New("data type not specified")
