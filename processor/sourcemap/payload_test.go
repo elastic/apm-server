@@ -21,11 +21,6 @@ func getFloat(data common.MapStr, key string) float64 {
 	return rs.(float64)
 }
 
-func getBinary(data common.MapStr, key string) []byte {
-	rs, _ := data.GetValue(key)
-	return rs.([]byte)
-}
-
 func TestPayloadTransform(t *testing.T) {
 	p := payload{
 		ServiceName:    "myService",
