@@ -521,6 +521,11 @@ type: keyword
 Location of the sourcemap relative to the file requesting it.
 
 
+[float]
+=== `sourcemap.sourcemap`
+
+type: binary
+
 [[exported-fields-apm-span]]
 == APM Span fields
 
