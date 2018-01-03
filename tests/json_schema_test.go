@@ -97,6 +97,14 @@ func TestTransactionSchema(t *testing.T) {
 		{File: "invalid_timestamp3.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp4.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp5.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
+		{File: "invalid_mark_asterisk.json", Error: `additionalProperties "m*e" not allowed`},
+		{File: "invalid_mark_dot.json", Error: `additionalProperties "m.e" not allowed`},
+		{File: "invalid_mark_quote.json", Error: `additionalProperties "m\"e" not allowed`},
+		{File: "invalid_mark_group_asterisk.json", Error: `additionalProperties "m*e" not allowed`},
+		{File: "invalid_mark_group_dot.json", Error: `additionalProperties "m.e" not allowed`},
+		{File: "invalid_mark_group_quote.json", Error: `additionalProperties "m\"e" not allowed`},
+		{File: "invalid_mark_group_type.json", Error: `expected object or null`},
+		{File: "invalid_mark_type.json", Error: `expected number`},
 	}
 	testDataAgainstSchema(t, testData, "transactions/transaction", "transaction", `"$ref": "../docs/spec/transactions/`)
 }

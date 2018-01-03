@@ -178,7 +178,15 @@
                     "stacktrace": null,
                     "context": null
                 }
-            ]
+            ],
+            "marks": {
+                "navigationTiming": {
+                    "appBeforeBootstrap": 608.9300000000001,
+                    "navigationStart": -21
+
+                },
+                "performance": {}
+            }
         },
         {
             "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a",
