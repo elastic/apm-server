@@ -1,6 +1,8 @@
 - key: apm-sourcemap
   title: APM Sourcemap
   description: Sourcemap files enriched with metadata
+  source_filters:
+    - sourcemap.sourcemap
   fields:
     - name: sourcemap
       dynamic: false
@@ -24,3 +26,11 @@
           type: keyword
           description: >
             Location of the sourcemap relative to the file requesting it.
+
+        - name: sourcemap
+          type: binary
+          doc_values: false
+          analyzed: false
+          searchable: false
+          aggregatable: false
+          indexed: false
