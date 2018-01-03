@@ -1,7 +1,8 @@
 package sourcemap
 
 import (
-	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -38,14 +39,14 @@ func NewProcessor() pr.Processor {
 func (p *processor) Validate(raw map[string]interface{}) error {
 	validationCount.Inc()
 
-	bytes, err := json.Marshal(raw["sourcemap"])
-	if err != nil {
-		return err
+	smap, ok := raw["sourcemap"].(string)
+	if !ok {
+		return errors.New("Sourcemap not in expected format.")
 	}
 
-	_, err = parser.Parse("", bytes)
+	_, err := parser.Parse("", []byte(smap))
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Error validating sourcemap: %v", err))
 	}
 
 	err = pr.Validate(raw, p.schema)
