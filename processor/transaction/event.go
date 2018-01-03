@@ -17,6 +17,7 @@ type Event struct {
 	Timestamp time.Time
 	Context   common.MapStr
 	Spans     []Span
+	Marks     common.MapStr
 }
 
 func (t *Event) DocType() string {
@@ -30,6 +31,7 @@ func (t *Event) Transform() common.MapStr {
 	enh.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
 	enh.Add(tx, "type", t.Type)
 	enh.Add(tx, "result", t.Result)
+	enh.Add(tx, "marks", t.Marks)
 	return tx
 }
 

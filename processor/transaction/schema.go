@@ -490,6 +490,26 @@ var transactionSchema = `{
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
             "maxLength": 1024
+        },
+        "marks": {
+            "type": ["object", "null"],
+            "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
+            "regexProperties": true,
+            "patternProperties": {
+                "^[^.*\"]*$": { 
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/transactions/mark.json",
+    "type": ["object", "null"],
+    "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Every mark is a simple key value pair and can be set by the user or the agent.",
+    "regexProperties": true,
+    "patternProperties": {
+        "^[^.*\"]*$": { "type": "number" }
+    },
+    "additionalProperties": false,
+                    "maxLength": 1024
+                }
+            },
+            "additionalProperties": false
         }
     },
     "required": ["id", "name", "duration", "type", "timestamp"]

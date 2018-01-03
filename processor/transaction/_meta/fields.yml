@@ -38,6 +38,13 @@
           description: >
             The result of the transaction. HTTP status code for HTTP-related transactions.
 
+        - name: marks 
+          type: object
+          object_type: keyword
+          dynamic: true
+          description: >
+            A user-defined mapping of groups of marks. 
+
 
 - key: apm-span
   title: APM Span
