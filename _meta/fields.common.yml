@@ -141,6 +141,21 @@
               type: keyword
               description: >
                 The platform of the system the event was recorded on.
+        - name: process
+          type: group
+          description: >
+            Information pertaining to the running process where the data was collected
+          fields:
+
+            - name: pid
+              type: long
+              description: >
+                Numeric process ID of the service process.
+
+            - name: title
+              type: keyword
+              description: >
+                Service process title.
 
         - name: service
           type: group
@@ -164,16 +179,6 @@
               type: keyword
               description: >
                 Version of the service emitting this event.
-
-            - name: pid
-              type: long
-              description: >
-                Numeric process ID of the service process.
-
-            - name: process_title
-              type: keyword
-              description: >
-                Service process title.
 
             - name: environment
               type: keyword

@@ -60,13 +60,16 @@ func (e *Event) Mappings(pa *payload) (time.Time, []m.DocMapping) {
 		{Key: "context", Apply: func() common.MapStr { return e.Context }},
 		{Key: "context.service", Apply: pa.Service.Transform},
 		{Key: "context.system", Apply: pa.System.Transform},
+		{Key: "context.process", Apply: pa.Process.Transform},
 	}
+
 	if e.Transaction != nil {
 		mapping = append(mapping, m.DocMapping{
 			Key:   "transaction",
 			Apply: func() common.MapStr { return common.MapStr{"id": e.Transaction.Id} },
 		})
 	}
+
 	return e.Timestamp, mapping
 }
 

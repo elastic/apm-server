@@ -228,6 +228,29 @@ The platform of the system the event was recorded on.
 
 
 [float]
+== process fields
+
+Information pertaining to the running process where the data was collected
+
+
+
+[float]
+=== `context.process.pid`
+
+type: long
+
+Numeric process ID of the service process.
+
+
+[float]
+=== `context.process.title`
+
+type: keyword
+
+Service process title.
+
+
+[float]
 == service fields
 
 Service fields.
@@ -250,22 +273,6 @@ Immutable unique name of the service emitting this event.
 type: keyword
 
 Version of the service emitting this event.
-
-
-[float]
-=== `context.service.pid`
-
-type: long
-
-Numeric process ID of the service process.
-
-
-[float]
-=== `context.service.process_title`
-
-type: keyword
-
-Service process title.
 
 
 [float]

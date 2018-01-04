@@ -2,13 +2,7 @@
     "service": {
         "name": "1234_service-12a3",
         "version": "5.1.3",
-        "pid": 1234,
-        "process_title": "node",
         "environment": "staging",
-        "argv": [
-            "node",
-            "server.js"
-        ],
         "language": {
             "name": "ecmascript",
             "version": "8"
@@ -25,6 +19,14 @@
             "name": "elastic-node",
             "version": "3.14.0"
         }
+    },
+    "process": {
+        "pid": 1234,
+        "title": "node",
+        "argv": [
+            "node",
+            "server.js"
+        ]
     },
     "system": {
         "hostname": "prod1.example.com",

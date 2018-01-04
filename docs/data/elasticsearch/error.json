@@ -10,6 +10,14 @@
             "my_key": 1,
             "some_other_value": "foo bar"
         },
+        "process": {
+            "argv": [
+                "node",
+                "server.js"
+            ],
+            "pid": 1234,
+            "title": "node"
+        },
         "request": {
             "body": "Hello World",
             "cookies": {
@@ -61,10 +69,6 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "argv": [
-                "node",
-                "server.js"
-            ],
             "environment": "staging",
             "framework": {
                 "name": "Express",
@@ -75,8 +79,6 @@
                 "version": "8"
             },
             "name": "1234_service-12a3",
-            "pid": 1234,
-            "process_title": "node",
             "runtime": {
                 "name": "node",
                 "version": "8.0.0"
