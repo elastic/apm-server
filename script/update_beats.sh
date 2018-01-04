@@ -14,6 +14,7 @@ git clone --depth 1 --branch ${BEATS_VERSION} https://github.com/elastic/beats.g
 # sync
 rsync -crpv --delete \
     --exclude=.gitignore \
+    --exclude=dev-tools/packer/readme.md.j2 \
     --include="script/***" \
     --include="dev-tools/***" \
     --include="libbeat/scripts/***" \
