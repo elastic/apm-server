@@ -48,7 +48,7 @@
         - name: sampled
           type: boolean
           description: >
-            Sampled transactions have spans. Defaults to true
+            Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
 
 - key: apm-span
   title: APM Span

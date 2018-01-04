@@ -4,6 +4,5 @@
     "type": "request",
     "duration": 2.0,
     "timestamp": "2017-05-30T18:53:27.Z",
-    "spans": [],
-    "sampled": true
+    "spans": []
 }

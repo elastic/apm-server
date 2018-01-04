@@ -3,6 +3,5 @@
     "name": "GET /api/types",
     "type": "request",
     "timestamp": "2017-05-30T18:53:27.154Z",
-    "spans": [],
-    "sampled": true
+    "spans": []
 }
