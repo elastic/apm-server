@@ -99,8 +99,8 @@
                     "method": "POST",
                     "socket": null,
                     "url": {
-                        "hash": null,
                         "full": null,
+                        "hash": null,
                         "hostname": null,
                         "pathname": null,
                         "port": null,

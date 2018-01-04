@@ -21,11 +21,6 @@
             },
             "required": ["name", "version"]
         },
-        "argv": {
-            "description": "Command line arguments used to start this service",
-            "type": ["array", "null"],
-            "minItems": 0
-        },
         "framework": {
             "description": "Name and version of the web framework used",
             "type": ["object", "null"],
@@ -60,14 +55,6 @@
             "description": "Immutable name of the service emitting this event",
             "type": "string",
             "pattern": "^[a-zA-Z0-9 _-]+$",
-            "maxLength": 1024
-        },
-        "pid": {
-            "description": "Process ID of the service",
-            "type": ["number", "null"]
-        },
-        "process_title": {
-            "type": ["string", "null"],
             "maxLength": 1024
         },
         "environment": {

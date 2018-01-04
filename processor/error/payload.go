@@ -15,6 +15,7 @@ var (
 type payload struct {
 	Service m.Service
 	System  *m.System
+	Process *m.Process
 	Events  []Event `mapstructure:"errors"`
 }
 
