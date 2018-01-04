@@ -2,8 +2,8 @@
     "service": {
         "name": "service1",
         "agent": {
-          "name": "python",
-          "version": "1.0"
+            "name": "python",
+            "version": "1.0"
         }
     },
     "transactions": [
@@ -12,8 +12,7 @@
             "name": "GET /api/types",
             "type": "request",
             "duration": 32.592981,
-            "timestamp": "2017-05-09T15:04:05.999999Z",
-            "sampled": false
+            "timestamp": "2017-05-09T15:04:05.999999Z"
         }
     ]
 }

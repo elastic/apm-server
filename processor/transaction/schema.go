@@ -512,8 +512,8 @@ var transactionSchema = `{
             "additionalProperties": false
         },
         "sampled": {
-            "type": "boolean",
-            "description": "Sampled transactions have spans. Defaults to true."
+            "type": ["boolean", "null"],
+            "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
         }
     },
     "required": ["id", "name", "duration", "type", "timestamp"]

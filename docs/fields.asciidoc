@@ -660,7 +660,7 @@ A user-defined mapping of groups of marks.
 
 type: boolean
 
-Sampled transactions have spans. Defaults to true
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
 
 
 [[exported-fields-beat]]
