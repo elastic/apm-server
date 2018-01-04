@@ -1531,11 +1531,11 @@
 			"revisionTime": "2017-06-28T12:00:33Z"
 		},
 		{
-			"checksumSHA1": "rPV8+049OOLKJLcGhi5dNQ1yvBA=",
+			"checksumSHA1": "l/AvVB/e1LjZ28XXItkdOW9tKMQ=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/sys/unix",
 			"path": "golang.org/x/sys/unix",
-			"revision": "2463fd833024b2782962b18060ce642af2bdf1f4",
-			"revisionTime": "2017-06-28T12:00:33Z"
+			"revision": "1dc9113cd45cc08b462452aa6178eafdaec0cd47",
+			"revisionTime": "2018-01-04T07:36:32Z"
 		},
 		{
 			"checksumSHA1": "42L+GOKH+OoRYqVyIohUcj8bLzI=",
