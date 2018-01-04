@@ -48,7 +48,7 @@
         - name: sampled
           type: boolean
           description: >
-            Unsampled transactions have no spans.
+            Sampled transactions have spans. Defaults to true
 
 - key: apm-span
   title: APM Span

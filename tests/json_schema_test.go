@@ -91,7 +91,6 @@ func TestTransactionSchema(t *testing.T) {
 		{File: "no_duration.json", Error: `missing properties: "duration"`},
 		{File: "no_type.json", Error: `missing properties: "type"`},
 		{File: "no_timestamp.json", Error: `missing properties: "timestamp"`},
-		{File: "no_sampled.json", Error: `missing properties: "sampled"`},
 		{File: "invalid_id.json", Error: "[#/properties/id/pattern] does not match pattern"},
 		{File: "invalid_timestamp.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp2.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},

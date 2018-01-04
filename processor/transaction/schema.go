@@ -513,10 +513,10 @@ var transactionSchema = `{
         },
         "sampled": {
             "type": "boolean",
-            "description": "Sampled transactions have spans."
+            "description": "Sampled transactions have spans. Defaults to true."
         }
     },
-    "required": ["id", "name", "duration", "type", "timestamp", "sampled"]
+    "required": ["id", "name", "duration", "type", "timestamp"]
             },
             "minItems": 1
         }

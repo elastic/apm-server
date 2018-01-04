@@ -660,7 +660,7 @@ A user-defined mapping of groups of marks.
 
 type: boolean
 
-Unsampled transactions have no spans.
+Sampled transactions have spans. Defaults to true
 
 
 [[exported-fields-beat]]

@@ -18,7 +18,7 @@ type Event struct {
 	Context   common.MapStr
 	Spans     []Span
 	Marks     common.MapStr
-	Sampled   bool
+	Sampled   *bool
 }
 
 func (t *Event) DocType() string {
@@ -33,7 +33,12 @@ func (t *Event) Transform() common.MapStr {
 	enh.Add(tx, "type", t.Type)
 	enh.Add(tx, "result", t.Result)
 	enh.Add(tx, "marks", t.Marks)
-	enh.Add(tx, "sampled", t.Sampled)
+
+	if t.Sampled == nil {
+		enh.Add(tx, "sampled", true)
+	} else {
+		enh.Add(tx, "sampled", t.Sampled)
+	}
 
 	return tx
 }
