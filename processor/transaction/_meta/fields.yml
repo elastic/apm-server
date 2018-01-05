@@ -45,6 +45,10 @@
           description: >
             A user-defined mapping of groups of marks. 
 
+        - name: sampled
+          type: boolean
+          description: >
+            Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
 
 - key: apm-span
   title: APM Span

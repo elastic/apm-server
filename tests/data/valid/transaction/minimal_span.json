@@ -2,8 +2,8 @@
     "service": {
         "name": "service1",
         "agent": {
-          "name": "python",
-          "version": "1.0"
+            "name": "python",
+            "version": "1.0"
         }
     },
     "transactions": [
