@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/version"
-	"github.com/elastic/beats/libbeat/outputs"
-
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/outputs"
 )
 
 type reporter func([]beat.Event) error

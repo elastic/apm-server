@@ -13,14 +13,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/outputs/transport/transptest"
 
-	"github.com/elastic/beats/libbeat/outputs"
+	"github.com/elastic/apm-server/tests"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/beats/libbeat/beat"
 )
 
 var tmpCertPath string
@@ -273,8 +272,8 @@ func withSSL(t *testing.T, domain string, passwordKey string) *SSLConfig {
 	name := path.Join(tmpCertPath, t.Name())
 	t.Log("generating certificate in ", name)
 	transptest.GenCertForTestingPurpose(t, domain, name, passwordKey)
-
-	return &SSLConfig{Enabled: newTrue(), Certificate: outputs.CertificateConfig{Certificate: name + ".pem", Key: name + ".key", Passphrase: passwordKey}}
+	b := true
+	return &SSLConfig{Enabled: &b, Certificate: outputs.CertificateConfig{Certificate: name + ".pem", Key: name + ".key", Passphrase: passwordKey}}
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
@@ -323,18 +322,7 @@ func waitForServer(secure bool, host string, timeout int) {
 		}
 		time.Sleep(time.Second * 1)
 	}
-	// for i := 0; i <= timeout*100; i++ {
-	// 	time.Sleep(time.Second / 50)
-	// 	if check() == http.StatusOK {
-	// 		return
-	// 	}
-	// }
 	panic("server run timeout")
 }
 
 func nopReporter(_ []beat.Event) error { return nil }
-
-func newTrue() *bool {
-	b := true
-	return &b
-}
