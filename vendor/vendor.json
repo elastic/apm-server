@@ -1590,11 +1590,11 @@
 			"revisionTime": "2017-12-28T17:37:35Z"
 		},
 		{
-			"checksumSHA1": "42L+GOKH+OoRYqVyIohUcj8bLzI=",
+			"checksumSHA1": "cQoW6a5F9mbu10APPXM39YJtv48=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/sys/windows",
 			"path": "golang.org/x/sys/windows",
-			"revision": "2463fd833024b2782962b18060ce642af2bdf1f4",
-			"revisionTime": "2017-06-28T12:00:33Z"
+			"revision": "e19f2a6f639496d94eaee8cb06ec2c600766563f",
+			"revisionTime": "2018-01-04T21:38:54Z"
 		},
 		{
 			"checksumSHA1": "ZdFZFaXmCgEEaEhVPkyXrnhKhsg=",
