@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Renaming `trace` to `span` {pull}352[352].
 - Renaming and reverse boolean `exception.uncaught` to `exception.handled` {pull}434[434].
 - Move process related fields to their own namespace {pull}445[445].
+- Rename Kibana directories according to changed structure in beats framework. {pull}454[454]
 
 ==== Bug fixes
 - Updated systemd doc url {pull}354[354]
