@@ -9,6 +9,8 @@ cd $BASEDIR
 
 # Check out beats repo for updating
 GIT_CLONE=repo
+trap "{ rm -rf ${GIT_CLONE}; }" EXIT
+
 git clone --depth 1 --branch ${BEATS_VERSION} https://github.com/elastic/beats.git ${GIT_CLONE}
 
 # sync
@@ -28,5 +30,3 @@ rsync -crpv --delete \
     --include="testing/***" \
     --exclude="*" \
     ${GIT_CLONE}/ .
-
-rm -rf ${GIT_CLONE}
