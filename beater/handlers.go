@@ -3,6 +3,7 @@ package beater
 import (
 	"compress/gzip"
 	"compress/zlib"
+	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	glob "github.com/ryanuber/go-glob"
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/processor"
@@ -20,6 +22,7 @@ import (
 	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -108,12 +111,40 @@ func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
 		}))
 }
 
+type logContextKey string
+
+var loggerContextKey = logContextKey("logger")
+
 func logHandler(h http.Handler) http.Handler {
+	logger := logp.NewLogger("request")
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logp.Debug("handler", "Request: URI=%s, method=%s, content-length=%d", r.RequestURI, r.Method, r.ContentLength)
+		reqID := uuid.NewV4()
+
 		requestCounter.Inc()
-		h.ServeHTTP(w, r)
+
+		reqLogger := logger.With("request_id", reqID)
+
+		lr := r.WithContext(
+			context.WithValue(r.Context(), loggerContextKey, reqLogger),
+		)
+		lr.Context().Value(loggerContextKey)
+
+		lw := utility.NewRecordingResponseWriter(w)
+
+		h.ServeHTTP(lw, lr)
+
+		reqLogger.Infow("handled request", "response_code", lw.Code,
+			"method", r.Method, "URL", r.URL, "content_length", r.ContentLength,
+			"remote_address", extractIP(r), "user_agent", r.Header.Get("User-Agent"))
+
+		if lw.Code > 399 {
+			responseValid.Inc()
+		} else {
+			responseErrors.Inc()
+		}
 	})
+
 }
 
 func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
@@ -331,15 +362,17 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	w.Header().Set("Content-Type", content_type)
 	w.WriteHeader(code)
 
-	logp.Info("%s	%s %s	%d	%s", extractIP(r), r.Method, r.URL, code, r.Header.Get("User-Agent"))
 	if err == nil {
-		responseValid.Inc()
 		return
 	}
 
-	logp.Err("%s, code=%d", err.Error(), code)
+	logger, ok := r.Context().Value(loggerContextKey).(*logp.Logger)
+	if ok {
+		logger.Errorw("error handling request", "error", err.Error())
+	} else {
+		logp.Err("error handling request:", err.Error())
+	}
 
-	responseErrors.Inc()
 	if acceptsJSON(r) {
 		sendJSON(w, map[string]interface{}{"error": err.Error()})
 	} else {
