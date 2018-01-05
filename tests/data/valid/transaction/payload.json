@@ -41,6 +41,7 @@
             "duration": 32.592981,
             "result": "success",
             "timestamp": "2017-05-30T18:53:27.154Z",
+            "sampled": true,
             "context": {
                 "request": {
                     "socket": {
@@ -197,7 +198,8 @@
             "duration": 13.980558,
             "result": "failure",
             "timestamp": "2017-05-30T18:53:42.281Z",
-            "spans": []
+            "spans": [],
+            "sampled": true
         },
         {
             "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
@@ -205,7 +207,8 @@
             "type": "request",
             "duration": 13.980558,
             "result": "200",
-            "timestamp": "2017-05-30T18:53:42Z"
+            "timestamp": "2017-05-30T18:53:42Z",
+            "sampled": false
         },
         {
             "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9",
@@ -214,6 +217,7 @@
             "duration": 13.980558,
             "result": "200",
             "timestamp": "2017-05-30T18:53:42.281999Z",
+            "sampled": true,
             "spans": [
                 {
                     "name": "SELECT FROM product_types",

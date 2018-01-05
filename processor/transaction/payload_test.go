@@ -43,6 +43,7 @@ func TestPayloadTransform(t *testing.T) {
 			"id":       "",
 			"name":     "",
 			"type":     "",
+			"sampled":  true,
 		},
 	}
 
@@ -56,6 +57,7 @@ func TestPayloadTransform(t *testing.T) {
 			"id":       "",
 			"name":     "",
 			"type":     "",
+			"sampled":  true,
 		},
 		"context": common.MapStr{
 			"system": common.MapStr{
@@ -80,6 +82,7 @@ func TestPayloadTransform(t *testing.T) {
 			"id":       "",
 			"name":     "",
 			"type":     "",
+			"sampled":  true,
 		},
 		"context": common.MapStr{
 			"foo": "bar", "user": common.MapStr{"id": "55"},
