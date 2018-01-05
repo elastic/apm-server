@@ -22,8 +22,7 @@ update-beats:
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
 	@govendor fetch github.com/elastic/beats/libbeat/kibana/@$(BEATS_VERSION)
-	rm -rf _beats
-	@BEATS_VERSION=$(BEATS_VERSION) sh script/update_beats.sh
+	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
 
