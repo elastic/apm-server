@@ -49,6 +49,16 @@
           type: boolean
           description: >
             Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
+        - name: span_count
+          type: group
+          fields:
+            - name: dropped
+              type: group
+              fields:
+                - name: total
+                  type: long
+                  description: The total amount of dropped spans for this transaction.
+
 
 - key: apm-span
   title: APM Span

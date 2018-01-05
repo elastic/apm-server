@@ -670,6 +670,15 @@ type: boolean
 Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
 
 
+
+
+[float]
+=== `transaction.span_count.dropped.total`
+
+type: long
+
+The total amount of dropped spans for this transaction.
+
 [[exported-fields-beat]]
 == Beat fields
 
