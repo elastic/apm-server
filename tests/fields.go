@@ -31,7 +31,7 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"context.request.env",
 		"context.request.body",
 		"context.response.headers",
-		"context.service.argv",
+		"context.process.argv",
 		"error.exception.attributes",
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
@@ -42,6 +42,10 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"context.db.instance",
 		"context.db.user",
 		"sourcemap",
+		"transaction.marks.performance",
+		"transaction.marks.navigationTiming",
+		"transaction.marks.navigationTiming.navigationStart",
+		"transaction.marks.navigationTiming.appBeforeBootstrap",
 	)
 	blacklistedFieldNames := set.Union(disabledFieldNames, undocumentedFieldNames).(*set.Set)
 
@@ -68,9 +72,12 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 }
 
 func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
-	p := fn()
-	data, _ := LoadValidData(p.Name())
-	err := p.Validate(data)
+	p := fn(nil)
+	data, err := LoadValidData(p.Name())
+	if err != nil {
+		return nil, err
+	}
+	err = p.Validate(data)
 	if err != nil {
 		return nil, err
 	}

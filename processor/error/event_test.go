@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -55,14 +57,14 @@ func TestEventTransform(t *testing.T) {
 	codeFloat := 13.0
 	module := "error module"
 	exMsg := "exception message"
-	uncaught := true
+	handled := false
 	attributes := common.MapStr{"k1": "val1"}
 	exception := Exception{
 		Type:       &errorType,
 		Code:       codeFloat,
 		Message:    exMsg,
 		Module:     &module,
-		Uncaught:   &uncaught,
+		Handled:    &handled,
 		Attributes: attributes,
 		Stacktrace: []m.StacktraceFrame{
 			{Filename: "st file"},
@@ -82,9 +84,15 @@ func TestEventTransform(t *testing.T) {
 
 	context := common.MapStr{"user": common.MapStr{"id": "888"}, "c1": "val"}
 
-	emptyOut := common.MapStr{
-		"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
-	}
+	baseExceptionHash := md5.New()
+	io.WriteString(baseExceptionHash, baseException().Message)
+	// 706a38d554b47b8f82c6b542725c05dc
+	baseExceptionGroupingKey := hex.EncodeToString(baseExceptionHash.Sum(nil))
+
+	baseLogHash := md5.New()
+	io.WriteString(baseLogHash, baseLog().Message)
+	baseLogGroupingKey := hex.EncodeToString(baseLogHash.Sum(nil))
+	service := m.Service{Name: "myService"}
 
 	tests := []struct {
 		Event  Event
@@ -92,72 +100,89 @@ func TestEventTransform(t *testing.T) {
 		Msg    string
 	}{
 		{
-			Event:  Event{},
-			Output: emptyOut,
-			Msg:    "Minimal Event, default stacktrace transformation fn",
-		},
-		{
-			Event: Event{Exception: baseException().withCode("13")},
+			Event: Event{},
 			Output: common.MapStr{
-				"exception":    common.MapStr{"code": "13", "message": "exception message"},
 				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
 			},
-			Msg: "Minimal Event, default stacktrace transformation fn",
+			Msg: "Minimal Event",
 		},
 		{
 			Event: Event{Log: baseLog()},
 			Output: common.MapStr{
 				"log":          common.MapStr{"message": "error log message"},
-				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
+				"grouping_key": baseLogGroupingKey,
 			},
-			Msg: "Minimal Event wth log, default stacktrace transformation fn",
+			Msg: "Minimal Event wth log",
+		},
+		{
+			Event: Event{Exception: baseException(), Log: baseLog()},
+			Output: common.MapStr{
+				"exception":    common.MapStr{"message": "exception message"},
+				"log":          common.MapStr{"message": "error log message"},
+				"grouping_key": baseExceptionGroupingKey,
+			},
+			Msg: "Minimal Event wth log and exception",
+		},
+		{
+			Event: Event{Exception: baseException()},
+			Output: common.MapStr{
+				"exception":    common.MapStr{"message": "exception message"},
+				"grouping_key": baseExceptionGroupingKey,
+			},
+			Msg: "Minimal Event with exception",
 		},
 		{
 			Event: Event{Exception: baseException().withCode("13")},
 			Output: common.MapStr{
 				"exception":    common.MapStr{"message": "exception message", "code": "13"},
-				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
+				"grouping_key": baseExceptionGroupingKey,
 			},
-			Msg: "Minimal Event wth exception, string code, default stacktrace transformation fn",
+			Msg: "Minimal Event with exception and string code",
 		},
 		{
 			Event: Event{Exception: baseException().withCode(13)},
 			Output: common.MapStr{
 				"exception":    common.MapStr{"message": "exception message", "code": "13"},
-				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
+				"grouping_key": baseExceptionGroupingKey,
 			},
-			Msg: "Minimal Event wth exception, int code, default stacktrace transformation fn",
+			Msg: "Minimal Event wth exception and int code",
 		},
 		{
 			Event: Event{Exception: baseException().withCode(13.0)},
 			Output: common.MapStr{
 				"exception":    common.MapStr{"message": "exception message", "code": "13"},
-				"grouping_key": hex.EncodeToString(md5.New().Sum(nil)),
+				"grouping_key": baseExceptionGroupingKey,
 			},
-			Msg: "Minimal Event wth exception, float code, default stacktrace transformation fn",
+			Msg: "Minimal Event wth exception and float code",
 		},
 		{
 			Event: Event{
-				Id:        &id,
-				Timestamp: time.Now(),
-				Culprit:   &culprit,
-				Context:   context,
-				Exception: &exception,
-				Log:       &log,
+				Id:          &id,
+				Timestamp:   time.Now(),
+				Culprit:     &culprit,
+				Context:     context,
+				Exception:   &exception,
+				Log:         &log,
+				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: common.MapStr{
 				"id":      "45678",
 				"culprit": "some trigger",
 				"exception": common.MapStr{
-					"stacktrace": []common.MapStr{
-						{"filename": "st file", "line": common.MapStr{"number": 0}},
-					},
+					"stacktrace": []common.MapStr{{
+						"filename": "st file",
+						"line":     common.MapStr{"number": 0},
+						"sourcemap": common.MapStr{
+							"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
+							"updated": false,
+						},
+					}},
 					"code":       "13",
 					"message":    "exception message",
 					"module":     "error module",
 					"attributes": common.MapStr{"k1": "val1"},
 					"type":       "error type",
-					"uncaught":   true,
+					"handled":    false,
 				},
 				"log": common.MapStr{
 					"message":       "error log message",
@@ -172,7 +197,7 @@ func TestEventTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Event.Transform()
+		output := test.Event.Transform(service, &utility.SourcemapAccessor{})
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

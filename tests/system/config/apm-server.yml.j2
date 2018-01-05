@@ -11,7 +11,10 @@ apm-server:
   frontend.enabled: {{ enable_frontend }}
   frontend.rate_limit: 3
   frontend.allow_origins: {{ allow_origins }}
-
+  {% if smap_index_name %}
+  frontend.sourcemapping.index: {{ smap_index_name }}
+  frontend.sourcemapping.cache.expiration: {{ smap_cache_expiration}}
+  {% endif %}
 ############################# Setup ##########################################
 
 {% if index_name %}

@@ -22,6 +22,7 @@
         "architecture": null,
         "platform": null
     },
+    "process": null,
     "transactions": [
         {
             "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
@@ -31,7 +32,9 @@
             "timestamp": "2017-05-30T18:53:27.154Z",
             "result": "200",
             "context": null,
-            "spans": null
+            "spans": null,
+            "sampled": null,
+            "span_count": null
         },
         {
             "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
@@ -39,6 +42,8 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42Z",
+            "sampled": null,
+            "span_count": {},
             "context": {
                 "request": null,
                 "response": null,
@@ -53,6 +58,10 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42.281999Z",
+            "sampled": null,
+            "span_count": {
+                "dropped": null
+            },
             "context": {
                 "request": {
                     "socket": null,
@@ -60,6 +69,7 @@
                     "http_version": null,
                     "url": {
                         "protocol": null,
+                        "full": null,
                         "hostname": null,
                         "port": null,
                         "pathname": null,
@@ -92,6 +102,12 @@
             "type": "request",
             "duration": 13.980558,
             "timestamp": "2017-05-30T18:53:42.281Z",
+            "sampled": null,
+            "span_count": {
+              "dropped": {
+                  "total": null
+              }
+            },
             "context": {
                 "request": {
                     "socket": {

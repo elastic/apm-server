@@ -97,6 +97,14 @@ func TestTransactionSchema(t *testing.T) {
 		{File: "invalid_timestamp3.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp4.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp5.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
+		{File: "invalid_mark_asterisk.json", Error: `additionalProperties "m*e" not allowed`},
+		{File: "invalid_mark_dot.json", Error: `additionalProperties "m.e" not allowed`},
+		{File: "invalid_mark_quote.json", Error: `additionalProperties "m\"e" not allowed`},
+		{File: "invalid_mark_group_asterisk.json", Error: `additionalProperties "m*e" not allowed`},
+		{File: "invalid_mark_group_dot.json", Error: `additionalProperties "m.e" not allowed`},
+		{File: "invalid_mark_group_quote.json", Error: `additionalProperties "m\"e" not allowed`},
+		{File: "invalid_mark_group_type.json", Error: `expected object or null`},
+		{File: "invalid_mark_type.json", Error: `expected number`},
 	}
 	testDataAgainstSchema(t, testData, "transactions/transaction", "transaction", `"$ref": "../docs/spec/transactions/`)
 }
@@ -133,7 +141,7 @@ func testDataAgainstSchema(t *testing.T, testData []SchemaTestData, schemaPath s
 		assert.Nil(t, err)
 		err = schema.Validate(bytes.NewReader(data))
 		assert.NotNil(t, err)
-		msg := fmt.Sprintf("Test %v: '%v' not found in '%v'", idx, d.Error, err.Error())
+		msg := fmt.Sprintf("Test %v (%v): '%v' not found in '%v'", idx, d.File, d.Error, err.Error())
 		assert.True(t, strings.Contains(err.Error(), d.Error), msg)
 		filesToTest.Add(d.File)
 	}

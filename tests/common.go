@@ -20,8 +20,8 @@ func readFile(filePath string, err error) ([]byte, error) {
 	return ioutil.ReadFile(filePath)
 }
 
-func LoadData(fileName string) (map[string]interface{}, error) {
-	return unmarshalData(findFile(fileName))
+func LoadData(file string, processorName string) (map[string]interface{}, error) {
+	return unmarshalData(findFile(file))
 }
 
 func LoadDataAsBytes(fileName string) ([]byte, error) {
@@ -64,7 +64,7 @@ func buildPath(processorName string, validData bool) (string, error) {
 		if validData {
 			file = "sourcemap/payload.json"
 		} else {
-			file = "sourcemap/no_service_version.json"
+			file = "sourcemap/no_bundle_filepath.json"
 		}
 	default:
 		return "", errors.New("data type not specified")

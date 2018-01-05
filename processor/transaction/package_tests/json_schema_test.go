@@ -29,6 +29,10 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"transactions.context.custom.and_objects.foo",
 		"transactions.context.tags",
 		"transactions.context.tags.organization_uuid",
+		"transactions.marks.navigationTiming",
+		"transactions.marks.navigationTiming.appBeforeBootstrap",
+		"transactions.marks.navigationTiming.navigationStart",
+		"transactions.marks.performance",
 	)
 	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, transaction.Schema())
 }
@@ -47,5 +51,5 @@ func TestTransactionPayloadSchema(t *testing.T) {
 		{File: "data/invalid/transaction_payload/no_service.json", Error: "missing properties: \"service\""},
 		{File: "data/invalid/transaction_payload/no_transactions.json", Error: "minimum 1 items allowed"},
 	}
-	tests.TestDataAgainstProcessor(t, transaction.NewProcessor(), testData)
+	tests.TestDataAgainstProcessor(t, transaction.NewProcessor(nil), testData)
 }

@@ -67,6 +67,11 @@
                 description: >
                   The protocol of the request, e.g. "https:".
 
+              - name: full
+                type: keyword
+                description: >
+                  The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+
               - name: hostname
                 type: keyword
                 description: >
@@ -136,6 +141,21 @@
               type: keyword
               description: >
                 The platform of the system the event was recorded on.
+        - name: process
+          type: group
+          description: >
+            Information pertaining to the running process where the data was collected
+          fields:
+
+            - name: pid
+              type: long
+              description: >
+                Numeric process ID of the service process.
+
+            - name: title
+              type: keyword
+              description: >
+                Service process title.
 
         - name: service
           type: group
@@ -159,16 +179,6 @@
               type: keyword
               description: >
                 Version of the service emitting this event.
-
-            - name: pid
-              type: long
-              description: >
-                Numeric process ID of the service process.
-
-            - name: process_title
-              type: keyword
-              description: >
-                Service process title.
 
             - name: environment
               type: keyword
@@ -230,3 +240,21 @@
                 type: keyword
                 description: >
                   Version of the agent used.
+
+    - name: transaction
+      type: group
+      dynamic: false
+      fields:
+
+        - name: id
+          type: keyword
+          description: >
+            A UUID4 transaction ID.
+          format: url
+          label_template: "View Spans"
+          open_link_in_current_tab: true
+          url_template:
+            - min_version: 5.0.0
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'transaction.id:%22{{value}}%22')))"
+            - min_version: 6.0.0-alpha1
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'transaction.id:{{value}}'))"

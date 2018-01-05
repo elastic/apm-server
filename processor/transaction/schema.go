@@ -6,9 +6,9 @@ func Schema() string {
 
 var transactionSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/transactions/wrapper.json",
-    "title": "Transactions Wrapper",
-    "description": "List of transactions wrapped in an object containing some other attributes normalized away form the transactions themselves",
+    "$id": "docs/spec/transactions/payload.json",
+    "title": "Transactions payload",
+    "description": "List of transactions wrapped in an object containing some other attributes normalized away from the transactions themselves",
     "type": "object",
     "properties": {
         "service": {
@@ -33,11 +33,6 @@ var transactionSchema = `{
                 }
             },
             "required": ["name", "version"]
-        },
-        "argv": {
-            "description": "Command line arguments used to start this service",
-            "type": ["array", "null"],
-            "minItems": 0
         },
         "framework": {
             "description": "Name and version of the web framework used",
@@ -75,14 +70,6 @@ var transactionSchema = `{
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
-        "pid": {
-            "description": "Process ID of the service",
-            "type": ["number", "null"]
-        },
-        "process_title": {
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
         "environment": {
             "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
             "type": ["string", "null"],
@@ -110,6 +97,28 @@ var transactionSchema = `{
         }
     },
     "required": ["agent", "name"]
+        },
+        "process": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "doc/spec/process.json",
+  "title": "Process",
+  "type": ["object", "null"],
+  "properties": {
+      "pid": {
+          "description": "Process ID of the service",
+          "type": ["number"]
+      },
+      "title": {
+          "type": ["string", "null"],
+          "maxLength": 1024
+      },
+      "argv": {
+        "description": "Command line arguments used to start this process",
+        "type": ["array", "null"],
+        "minItems": 0
+    }
+  },
+  "required": ["pid"]
         },
         "system": {
                 "$schema": "http://json-schema.org/draft-04/schema#",
@@ -249,6 +258,11 @@ var transactionSchema = `{
                 "protocol": {
                     "type": ["string", "null"],
                     "description": "The protocol of the request, e.g. 'https:'.",
+                    "maxLength": 1024
+                },
+                "full": {
+                    "type": ["string", "null"],
+                    "description": "The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.",
                     "maxLength": 1024
                 },
                 "hostname": {
@@ -485,6 +499,44 @@ var transactionSchema = `{
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
             "maxLength": 1024
+        },
+        "marks": {
+            "type": ["object", "null"],
+            "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
+            "regexProperties": true,
+            "patternProperties": {
+                "^[^.*\"]*$": { 
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/transactions/mark.json",
+    "type": ["object", "null"],
+    "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Every mark is a simple key value pair and can be set by the user or the agent.",
+    "regexProperties": true,
+    "patternProperties": {
+        "^[^.*\"]*$": { "type": "number" }
+    },
+    "additionalProperties": false,
+                    "maxLength": 1024
+                }
+            },
+            "additionalProperties": false
+        },
+        "sampled": {
+            "type": ["boolean", "null"],
+            "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+        },
+        "span_count": {
+            "type": ["object", "null"],
+            "properties": {
+                "dropped": {
+                    "type": ["object", "null"],
+                    "properties": {
+                        "total": {
+                            "type": ["number","null"],
+                            "description": "Number of spans that have been dropped by the agent recording the transaction."
+                        }
+                    }
+                }
+            }
         }
     },
     "required": ["id", "name", "duration", "type", "timestamp"]

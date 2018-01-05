@@ -6,9 +6,9 @@ func Schema() string {
 
 var errorSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/errors/wrapper.json",
-    "title": "Errors Wrapper",
-    "description": "List of errors wrapped in an object containing some other attributes normalized away form the errors themselves",
+    "$id": "docs/spec/errors/payload.json",
+    "title": "Errors payload",
+    "description": "List of errors wrapped in an object containing some other attributes normalized away from the errors themselves",
     "type": "object",
     "properties": {
         "service": {
@@ -33,11 +33,6 @@ var errorSchema = `{
                 }
             },
             "required": ["name", "version"]
-        },
-        "argv": {
-            "description": "Command line arguments used to start this service",
-            "type": ["array", "null"],
-            "minItems": 0
         },
         "framework": {
             "description": "Name and version of the web framework used",
@@ -75,14 +70,6 @@ var errorSchema = `{
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
-        "pid": {
-            "description": "Process ID of the service",
-            "type": ["number", "null"]
-        },
-        "process_title": {
-            "type": ["string", "null"],
-            "maxLength": 1024
-        },
         "environment": {
             "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
             "type": ["string", "null"],
@@ -110,6 +97,28 @@ var errorSchema = `{
         }
     },
     "required": ["agent", "name"]
+        },
+        "process": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "doc/spec/process.json",
+  "title": "Process",
+  "type": ["object", "null"],
+  "properties": {
+      "pid": {
+          "description": "Process ID of the service",
+          "type": ["number"]
+      },
+      "title": {
+          "type": ["string", "null"],
+          "maxLength": 1024
+      },
+      "argv": {
+        "description": "Command line arguments used to start this process",
+        "type": ["array", "null"],
+        "minItems": 0
+    }
+  },
+  "required": ["pid"]
         },
         "errors": {
             "type": "array",
@@ -226,6 +235,11 @@ var errorSchema = `{
                 "protocol": {
                     "type": ["string", "null"],
                     "description": "The protocol of the request, e.g. 'https:'.",
+                    "maxLength": 1024
+                },
+                "full": {
+                    "type": ["string", "null"],
+                    "description": "The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.",
                     "maxLength": 1024
                 },
                 "hostname": {
@@ -390,7 +404,7 @@ var errorSchema = `{
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
-                "uncaught": {
+                "handled": {
                     "type": ["boolean", "null"],
                     "description": "Indicator whether the error was caught somewhere in the code or not."
                 }
@@ -498,6 +512,18 @@ var errorSchema = `{
             "format": "date-time",
             "pattern": "Z$",
             "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
+        },
+        "transaction": {
+            "type": ["object", "null"],
+            "description": "Data for correlating errors with transactions",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "UUID for the transaction",
+                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+                    "maxLength": 1024
+                }
+            }
         }
     },
     "required": ["timestamp"],

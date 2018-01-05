@@ -60,10 +60,12 @@ func TestJsonSchemaKeywordLimitation(t *testing.T, fieldPaths []string, schema s
 	mapping := []Mapping{
 		{"errors.context", "context"},
 		{"transactions.context", "context"},
+		{"errors.transaction.id", "transaction.id"},
 		{"errors", "error"},
 		{"transactions.spans", "span"},
 		{"transactions", "transaction"},
 		{"service", "context.service"},
+		{"process", "context.process"},
 		{"system", "context.system"},
 	}
 
@@ -152,7 +154,7 @@ type SchemaTestData struct {
 
 func TestDataAgainstProcessor(t *testing.T, p processor.Processor, testData []SchemaTestData) {
 	for _, d := range testData {
-		data, err := LoadData(d.File)
+		data, err := LoadData(d.File, p.Name())
 		assert.Nil(t, err)
 		err = p.Validate(data)
 		assert.Contains(t, err.Error(), d.Error)

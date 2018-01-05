@@ -77,7 +77,7 @@
               type: keyword
               count: 4
 
-            - name: uncaught
+            - name: handled
               type: boolean
               count: 2
               description: Indicator whether the error was caught somewhere in the code or not.
@@ -104,7 +104,7 @@
 
             - name: param_message
               type: keyword
-              description: > 
-                A parametrized message. E.g. 'Could not connect to %s'. 
-                The property message is still required, and should be equal to the param_message, but with placeholders replaced. 
-                In some situations the param_message is used to group errors together. 
+              description: >
+                A parametrized message. E.g. 'Could not connect to %s'.
+                The property message is still required, and should be equal to the param_message, but with placeholders replaced.
+                In some situations the param_message is used to group errors together.

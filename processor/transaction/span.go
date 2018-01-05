@@ -23,7 +23,7 @@ func (s *Span) DocType() string {
 	return "span"
 }
 
-func (s *Span) Transform() common.MapStr {
+func (s *Span) Transform(service m.Service, smapAccessor utility.SmapAccessor) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	tr := common.MapStr{}
 	enhancer.Add(tr, "id", s.Id)
@@ -32,20 +32,20 @@ func (s *Span) Transform() common.MapStr {
 	enhancer.Add(tr, "start", utility.MillisAsMicros(s.Start))
 	enhancer.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
 	enhancer.Add(tr, "parent", s.Parent)
-	st := s.Stacktrace.Transform()
+	st := s.Stacktrace.Transform(service, smapAccessor)
 	if len(st) > 0 {
 		enhancer.Add(tr, "stacktrace", st)
 	}
 	return tr
 }
 
-func (s *Span) Mappings(pa *payload, tx Event) (time.Time, []m.DocMapping) {
+func (s *Span) Mappings(pa *payload, tx Event, smapAccessor utility.SmapAccessor) (time.Time, []utility.DocMapping) {
 	return tx.Timestamp,
-		[]m.DocMapping{
+		[]utility.DocMapping{
 			{Key: "processor", Apply: func() common.MapStr {
 				return common.MapStr{"name": processorName, "event": s.DocType()}
 			}},
-			{Key: s.DocType(), Apply: func() common.MapStr { return s.Transform() }},
+			{Key: s.DocType(), Apply: func() common.MapStr { return s.Transform(pa.Service, smapAccessor) }},
 			{Key: "transaction", Apply: func() common.MapStr { return common.MapStr{"id": tx.Id} }},
 			{Key: "context", Apply: func() common.MapStr { return s.Context }},
 			{Key: "context.service", Apply: pa.Service.MinimalTransform},

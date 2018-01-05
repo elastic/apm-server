@@ -7,7 +7,8 @@ apm-server:
   # Defines the host and port the server is listening on
   host: "localhost:8200"
 
-  frontend.enabled: false
+  frontend:
+    enabled: false
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>
@@ -103,7 +104,7 @@ output.elasticsearch:
 #================================ Logging =====================================
 
 # Sets log level. The default log level is info.
-# Available log levels are: critical, error, warning, info, debug
+# Available log levels are: error, warning, info, debug
 #logging.level: debug
 
 # At debug level, you can selectively enable logging only for some components.

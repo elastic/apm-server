@@ -116,6 +116,14 @@ The protocol of the request, e.g. "https:".
 
 
 [float]
+=== `context.request.url.full`
+
+type: keyword
+
+The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+
+
+[float]
 === `context.request.url.hostname`
 
 type: keyword
@@ -220,6 +228,29 @@ The platform of the system the event was recorded on.
 
 
 [float]
+== process fields
+
+Information pertaining to the running process where the data was collected
+
+
+
+[float]
+=== `context.process.pid`
+
+type: long
+
+Numeric process ID of the service process.
+
+
+[float]
+=== `context.process.title`
+
+type: keyword
+
+Service process title.
+
+
+[float]
 == service fields
 
 Service fields.
@@ -242,22 +273,6 @@ Immutable unique name of the service emitting this event.
 type: keyword
 
 Version of the service emitting this event.
-
-
-[float]
-=== `context.service.pid`
-
-type: long
-
-Numeric process ID of the service process.
-
-
-[float]
-=== `context.service.process_title`
-
-type: keyword
-
-Service process title.
 
 
 [float]
@@ -334,6 +349,17 @@ Name of the agent used.
 type: keyword
 
 Version of the agent used.
+
+
+
+[float]
+=== `transaction.id`
+
+type: keyword
+
+format: url
+
+A UUID4 transaction ID.
 
 
 [[exported-fields-apm-error]]
@@ -422,7 +448,7 @@ The module namespace of the original error.
 type: keyword
 
 [float]
-=== `error.exception.uncaught`
+=== `error.exception.handled`
 
 type: boolean
 
@@ -461,7 +487,7 @@ The additionally logged error message.
 
 type: keyword
 
-A parametrized message. E.g. 'Could not connect to %s'.  The property message is still required, and should be equal to the param_message, but with placeholders replaced.  In some situations the param_message is used to group errors together. 
+A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
 
 
 [[exported-fields-apm-sourcemap]]
@@ -584,16 +610,6 @@ Transaction-specific data for APM
 
 
 [float]
-=== `transaction.id`
-
-type: keyword
-
-format: url
-
-A UUID4 transaction ID.
-
-
-[float]
 === `transaction.name`
 
 type: text
@@ -637,6 +653,31 @@ type: keyword
 
 The result of the transaction. HTTP status code for HTTP-related transactions.
 
+
+[float]
+=== `transaction.marks`
+
+type: object
+
+A user-defined mapping of groups of marks. 
+
+
+[float]
+=== `transaction.sampled`
+
+type: boolean
+
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
+
+
+
+
+[float]
+=== `transaction.span_count.dropped.total`
+
+type: long
+
+The total amount of dropped spans for this transaction.
 
 [[exported-fields-beat]]
 == Beat fields
