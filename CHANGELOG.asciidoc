@@ -27,6 +27,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Support for `transaction.marks` {pull}430[430]
 - Support for sourcemap mapping on incoming frontend requests {pull}381[381]
 - Support for `transaction.marks` {pull}430[430].
+- Support for `transaction.span_count.dropped.total` {pull}448[448].
 
 ==== Deprecated
 

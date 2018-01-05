@@ -121,6 +121,11 @@
                 "name": "GET /api/types",
                 "result": "success",
                 "sampled": true,
+                "span_count": {
+                    "dropped": {
+                        "total": 2
+                    }
+                },
                 "type": "request"
             }
         },
@@ -443,6 +448,11 @@
                 "name": "GET /api/types",
                 "result": "200",
                 "sampled": true,
+                "span_count": {
+                    "dropped": {
+                        "total": 258
+                    }
+                },
                 "type": "request"
             }
         },

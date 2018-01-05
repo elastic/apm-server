@@ -18,27 +18,42 @@ type Event struct {
 	Spans     []Span
 	Marks     common.MapStr
 	Sampled   *bool
+	SpanCount SpanCount `mapstructure:"span_count"`
+}
+type SpanCount struct {
+	Dropped Dropped
+}
+type Dropped struct {
+	Total *int
 }
 
-func (t *Event) DocType() string {
+func (ev *Event) DocType() string {
 	return "transaction"
 }
 
-func (t *Event) Transform() common.MapStr {
+func (ev *Event) Transform() common.MapStr {
 	enh := utility.NewMapStrEnhancer()
-	tx := common.MapStr{"id": t.Id}
-	enh.Add(tx, "name", t.Name)
-	enh.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
-	enh.Add(tx, "type", t.Type)
-	enh.Add(tx, "result", t.Result)
-	enh.Add(tx, "marks", t.Marks)
+	tx := common.MapStr{"id": ev.Id}
+	enh.Add(tx, "name", ev.Name)
+	enh.Add(tx, "duration", utility.MillisAsMicros(ev.Duration))
+	enh.Add(tx, "type", ev.Type)
+	enh.Add(tx, "result", ev.Result)
+	enh.Add(tx, "marks", ev.Marks)
 
-	if t.Sampled == nil {
+	if ev.Sampled == nil {
 		enh.Add(tx, "sampled", true)
 	} else {
-		enh.Add(tx, "sampled", t.Sampled)
+		enh.Add(tx, "sampled", ev.Sampled)
 	}
 
+	if ev.SpanCount.Dropped.Total != nil {
+		s := common.MapStr{
+			"dropped": common.MapStr{
+				"total": *ev.SpanCount.Dropped.Total,
+			},
+		}
+		enh.Add(tx, "span_count", s)
+	}
 	return tx
 }
 

@@ -118,6 +118,11 @@
         "name": "GET /api/types",
         "result": "success",
         "sampled": true,
+        "span_count": {
+            "dropped": {
+                "total": 2
+            }
+        },
         "type": "request"
     }
 }
