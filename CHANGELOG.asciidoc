@@ -13,21 +13,26 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Move `trace.transaction_id` to `transaction.id` {pull}345[345], {pull}347[347], {pull}371[371]
 - Renaming `trace` to `span` {pull}352[352].
 - Renaming and reverse boolean `exception.uncaught` to `exception.handled` {pull}434[434].
+- Move process related fields to their own namespace {pull}445[445].
 
 ==== Bug fixes
 - Updated systemd doc url {pull}354[354]
 - Updated readme doc urls {pull}356[356]
 
 ==== Added
-- Support for uploading sourcemaps {pull}302[302].
-- app.environment {pull}366[366]
+- Include build time and revision in version information {pull}396[396]
+- service.environment {pull}366[366]
+- Consider exception or log message for grouping key when nothing else is available {pull}435[435]
 - Add context.request.url.full {pull}436[436]
-- report more detail on max data size error {pull}442[442]
+- Report more detail on max data size error {pull}442[442]
+- Increase default 'MaxUnzippedSize' from 10mb to 50mb {pull}439[439]
 - Add transaction.id to errors {pull}437[437]
 - Support for `transaction.marks` {pull}430[430]
+- Support for uploading sourcemaps {pull}302[302].
 - Support for sourcemap mapping on incoming frontend requests {pull}381[381]
 - Support for `transaction.marks` {pull}430[430].
 - Support for `transaction.span_count.dropped.total` {pull}448[448].
+- Optional field `transaction.sampled` {pull}441[441]
 
 ==== Deprecated
 
