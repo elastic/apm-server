@@ -17,6 +17,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 
 ==== Bug fixes
 - Updated systemd doc url {pull}354[354]
+- Updated readme doc urls {pull}356[356]
 
 ==== Added
 - Include build time and revision in version information {pull}396[396]
