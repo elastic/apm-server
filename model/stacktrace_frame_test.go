@@ -44,7 +44,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	colno := 55
 	path := "~/./some/abs_path"
 	context := "context"
-	fct := "st function"
+	fct := "some function"
 	module := "some_module"
 	libraryFrame := true
 	serviceVersion := "1.0"
@@ -222,7 +222,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 			Output: common.MapStr{
 				"abs_path":      "~/some/abs_path",
 				"filename":      "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-				"function":      "",
+				"function":      "some function",
 				"module":        "some_module",
 				"library_frame": true,
 				"vars":          common.MapStr{"k1": "v1", "k2": "v2"},
@@ -231,7 +231,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 					"post": []string{"postc1", "postc2"},
 				},
 				"line": common.MapStr{
-					"number":  13,
+					"number":  12,
 					"column":  0,
 					"context": "context",
 				},

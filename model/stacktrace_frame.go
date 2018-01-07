@@ -91,12 +91,16 @@ func (s *StacktraceFrame) applySourcemap(service Service, smapAccessor utility.S
 
 func (s *StacktraceFrame) updateMappings(smapCons sourcemap.Consumer, cleanedPath string) {
 	fileName, funcName, line, col, ok := smapCons.Source(s.Lineno, *s.Colno)
+	so := "something"
 	if ok == true {
-		ln := line + 1 // account for 0 based line numbering
-		s.Filename = fileName
-		s.Function = &funcName
-		s.Lineno = ln
+		if fileName != "" {
+			s.Filename = fileName
+		}
+		if funcName != "" {
+			s.Function = &so
+		}
 		s.Colno = &col
+		s.Lineno = line
 		s.AbsPath = &cleanedPath
 		s.SourcemapUpdated = true
 	} else {
