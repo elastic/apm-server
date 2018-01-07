@@ -32,71 +32,83 @@
                     "message": "Uncaught Error: timeout test error",
                     "stacktrace": [
                         {
-                            "abs_path": "http://localhost:8000/test/../test/e2e/general-usecase/bundle.js.map",
-                            "filename": "test/e2e/general-usecase/bundle.js.map",
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
-                            "library_frame": true,
                             "line": {
-                                "column": 18,
-                                "number": 1
-                            }
-                        },
-                        {
-                            "abs_path": "http://localhost:8000/test/./e2e/general-usecase/bundle.js.map",
-                            "filename": "test/e2e/general-usecase/bundle.js.map",
-                            "function": "invokeTask",
-                            "library_frame": true,
-                            "line": {
-                                "column": 181,
-                                "number": 1
+                                "column": 0,
+                                "number": 5
+                            },
+                            "sourcemap": {
+                                "updated": true
                             }
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                            "filename": "test/e2e/general-usecase/bundle.js.map",
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "__webpack_require__",
+                            "line": {
+                                "column": 0,
+                                "number": 33
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "runTask",
-                            "library_frame": true,
                             "line": {
-                                "column": 15,
-                                "number": 1
+                                "column": 0,
+                                "number": 5
+                            },
+                            "sourcemap": {
+                                "updated": true
                             }
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                            "filename": "test/e2e/general-usecase/bundle.js.map",
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "invoke",
-                            "library_frame": true,
                             "line": {
-                                "column": 199,
-                                "number": 1
+                                "column": 0,
+                                "number": 39
+                            },
+                            "sourcemap": {
+                                "updated": true
                             }
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                            "filename": "test/e2e/general-usecase/bundle.js.map",
-                            "function": "timer",
-                            "library_frame": true,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "moduleId",
                             "line": {
-                                "column": 33,
-                                "number": 1
+                                "column": 0,
+                                "number": 8
+                            },
+                            "sourcemap": {
+                                "updated": true
                             }
                         }
                     ],
                     "type": "Error"
                 },
-                "grouping_key": "3a60b1d3b4876f81bdb39b157c9b7cc3",
+                "grouping_key": "52fbc9c2d1a61bf905b4a11c708006fd",
                 "id": "aba2688e-0338-48ce-9c4e-4005f1caa534",
                 "log": {
                     "message": "Uncaught Error: log timeout test error",
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                            "filename": "test/e2e/general-usecase/bundle.js.map",
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
-                            "library_frame": true,
                             "line": {
-                                "column": 18,
-                                "number": 1
+                                "column": 0,
+                                "number": 5
+                            },
+                            "sourcemap": {
+                                "updated": true
                             }
                         }
                     ]

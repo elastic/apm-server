@@ -3,8 +3,8 @@ package model
 import (
 	"fmt"
 
-	"github.com/go-sourcemap/sourcemap"
-
+	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -27,13 +27,13 @@ type StacktraceFrame struct {
 	SourcemapError   *string
 }
 
-func (s *StacktraceFrame) Transform(service Service, smapAccessor utility.SmapAccessor) common.MapStr {
+func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	m := common.MapStr{}
 
-	if smapAccessor != nil {
+	if config != nil && config.SmapMapper != nil {
 		sm := common.MapStr{}
-		s.applySourcemap(service, smapAccessor)
+		s.applySourcemap(service, config.SmapMapper)
 		enhancer.Add(sm, "updated", s.SourcemapUpdated)
 		enhancer.Add(sm, "error", s.SourcemapError)
 		enhancer.Add(m, "sourcemap", sm)
@@ -59,53 +59,43 @@ func (s *StacktraceFrame) Transform(service Service, smapAccessor utility.SmapAc
 	return m
 }
 
-func (s *StacktraceFrame) applySourcemap(service Service, smapAccessor utility.SmapAccessor) {
-	if service.Name == "" ||
-		service.Version == nil ||
-		s.AbsPath == nil ||
-		s.Colno == nil {
-		s.updateError("AbsPath, Colno, Service Name and Version mandatory for sourcemapping.")
+func (s *StacktraceFrame) applySourcemap(service Service, mapper sourcemap.Mapper) {
+	if s.Colno == nil {
+		s.updateError("Colno mandatory for sourcemapping.")
 		return
 	}
-
-	cleanedPath := utility.CleanUrlPath(*s.AbsPath)
-	smapConsumer, err := smapAccessor.Fetch(utility.SmapID{
-		ServiceName:    service.Name,
-		ServiceVersion: *service.Version,
-		Path:           cleanedPath,
-	})
+	sourcemapId := s.buildSourcemapId(service)
+	mapping, err := mapper.Apply(sourcemapId, s.Lineno, *s.Colno)
 	if err != nil {
 		logp.Err(fmt.Sprintf("Sourcemap fetching Error %s", err.Error()))
-		e, isSmapError := err.(utility.SmapError)
-		if !isSmapError || e.Kind == utility.MapError {
+		e, issourcemapError := err.(sourcemap.Error)
+		if !issourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
 			s.updateError(err.Error())
 		}
 		return
 	}
-	if smapConsumer == nil {
-		s.updateError("No Sourcemap found for this StacktraceFrame.")
-		return
+
+	if mapping.Filename != "" {
+		s.Filename = mapping.Filename
 	}
-	s.updateMappings(*smapConsumer, cleanedPath)
+	if mapping.Function != "" {
+		s.Function = &mapping.Function
+	}
+	s.Colno = &mapping.Colno
+	s.Lineno = mapping.Lineno
+	s.AbsPath = &mapping.Path
+	s.SourcemapUpdated = true
 }
 
-func (s *StacktraceFrame) updateMappings(smapCons sourcemap.Consumer, cleanedPath string) {
-	fileName, funcName, line, col, ok := smapCons.Source(s.Lineno, *s.Colno)
-	so := "something"
-	if ok == true {
-		if fileName != "" {
-			s.Filename = fileName
-		}
-		if funcName != "" {
-			s.Function = &so
-		}
-		s.Colno = &col
-		s.Lineno = line
-		s.AbsPath = &cleanedPath
-		s.SourcemapUpdated = true
-	} else {
-		s.updateError(fmt.Sprintf("No mapping for Lineno %v and Colno %v.", s.Lineno, *s.Colno))
+func (s *StacktraceFrame) buildSourcemapId(service Service) sourcemap.Id {
+	id := sourcemap.Id{ServiceName: service.Name}
+	if service.Version != nil {
+		id.ServiceVersion = *service.Version
 	}
+	if s.AbsPath != nil {
+		id.Path = utility.CleanUrlPath(*s.AbsPath)
+	}
+	return id
 }
 
 func (s *StacktraceFrame) updateError(errMsg string) {

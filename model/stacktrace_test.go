@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -27,7 +28,7 @@ func TestStacktraceTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Stacktrace.Transform(service, nil)
+		output := test.Stacktrace.Transform(&pr.Config{}, service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
