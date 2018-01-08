@@ -1,17 +1,24 @@
-#!/usr/bin/env bash -ex
+#!/usr/bin/env bash
+
+set -ex
 
 BEATS_VERSION="${BEATS_VERSION:-master}"
 
 # Find basedir and change to it
-BASEDIR=$(dirname "$0")/../_beats
+DIRNAME=$(dirname "$0")
+BASEDIR=${DIRNAME}/../_beats
 mkdir -p $BASEDIR
-cd $BASEDIR
+pushd $BASEDIR
 
 # Check out beats repo for updating
 GIT_CLONE=repo
-trap "{ rm -rf ${GIT_CLONE}; }" EXIT
+trap "{ set +e;popd >/dev/null;set -e;rm -rf ${BASEDIR}/${GIT_CLONE}; }" EXIT
 
-git clone --depth 1 --branch ${BEATS_VERSION} https://github.com/elastic/beats.git ${GIT_CLONE}
+git clone https://github.com/elastic/beats.git ${GIT_CLONE}
+(
+    cd ${GIT_CLONE}
+    git checkout ${BEATS_VERSION}
+)
 
 # sync
 rsync -crpv --delete \
@@ -30,3 +37,9 @@ rsync -crpv --delete \
     --include="testing/***" \
     --exclude="*" \
     ${GIT_CLONE}/ .
+
+popd
+
+# use exactly the same beats revision rather than $BEATS_VERSION
+BEATS_REVISION=$(GIT_DIR=${BASEDIR}/${GIT_CLONE}/.git git rev-parse HEAD)
+${DIRNAME}/update_govendor_deps.py ${BEATS_REVISION}
