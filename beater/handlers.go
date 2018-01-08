@@ -113,7 +113,7 @@ func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
 
 type logContextKey string
 
-var loggerContextKey = logContextKey("logger")
+var reqLoggerContextKey = logContextKey("requestLogger")
 
 func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
@@ -126,9 +126,9 @@ func logHandler(h http.Handler) http.Handler {
 		reqLogger := logger.With("request_id", reqID)
 
 		lr := r.WithContext(
-			context.WithValue(r.Context(), loggerContextKey, reqLogger),
+			context.WithValue(r.Context(), reqLoggerContextKey, reqLogger),
 		)
-		lr.Context().Value(loggerContextKey)
+		lr.Context().Value(reqLoggerContextKey)
 
 		lw := utility.NewRecordingResponseWriter(w)
 
@@ -366,7 +366,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 		return
 	}
 
-	logger, ok := r.Context().Value(loggerContextKey).(*logp.Logger)
+	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
 	if ok {
 		logger.Errorw("error handling request", "error", err.Error())
 	} else {
