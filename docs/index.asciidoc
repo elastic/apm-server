@@ -27,6 +27,8 @@ include::./transaction-api.asciidoc[]
 
 include::./error-api.asciidoc[]
 
+include::./sourcemap-api.asciidoc[]
+
 include::./generated-docs.asciidoc[]
 
 include::./fields.asciidoc[]
