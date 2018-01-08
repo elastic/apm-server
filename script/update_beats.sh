@@ -12,7 +12,7 @@ pushd $BASEDIR
 
 # Check out beats repo for updating
 GIT_CLONE=repo
-trap "{ rm -rf ${BASEDIR}/${GIT_CLONE}; }" EXIT
+trap "{ set +e;popd >/dev/null;set -e;rm -rf ${BASEDIR}/${GIT_CLONE}; }" EXIT
 
 git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 (
