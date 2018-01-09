@@ -1,58 +1,45 @@
 #!/usr/bin/env bash
 
+set -ex
+
 BEATS_VERSION="${BEATS_VERSION:-master}"
 
 # Find basedir and change to it
-BASEDIR=$(dirname "$0")/../_beats
+DIRNAME=$(dirname "$0")
+BASEDIR=${DIRNAME}/../_beats
 mkdir -p $BASEDIR
-cd $BASEDIR
+pushd $BASEDIR
 
-# Cleanup all files to fetch a fresh copy
-rm -rf dev-tools script libbeat testing repo
+# Check out beats repo for updating
+GIT_CLONE=repo
+trap "{ rm -rf ${BASEDIR}/${GIT_CLONE}; }" EXIT
 
-# Check out master repo for updating
-GIT_CLONE=./repo
-git clone https://github.com/elastic/beats.git $GIT_CLONE
+git clone https://github.com/elastic/beats.git ${GIT_CLONE}
+(
+    cd ${GIT_CLONE}
+    git checkout ${BEATS_VERSION}
+)
 
-cd $GIT_CLONE
-git checkout $BEATS_VERSION
-cd ..
+# sync
+rsync -crpv --delete \
+    --exclude=.gitignore \
+    --exclude=dev-tools/packer/readme.md.j2 \
+    --include="script/***" \
+    --include="dev-tools/***" \
+    --include="libbeat/scripts/***" \
+    --include="libbeat/_meta/***" \
+    --include=libbeat/Makefile \
+    --include="libbeat/processors/*/_meta/***" \
+    --include=libbeat/tests/system/requirements.txt \
+    --include="libbeat/tests/system/beat/***" \
+    --include=libbeat/docs/version.asciidoc \
+    --include=.go-version \
+    --include="testing/***" \
+    --exclude="*" \
+    ${GIT_CLONE}/ .
 
-# TODO: allow to check out specific branch / tag
+popd
 
-# Copy top level files
-cp -r $GIT_CLONE/script script
-cp -r $GIT_CLONE/dev-tools dev-tools
-
-# Fetch libbeat dependencies
-mkdir libbeat
-cp -r $GIT_CLONE/libbeat/scripts libbeat/scripts
-cp -r $GIT_CLONE/libbeat/_meta libbeat/_meta
-cp $GIT_CLONE/libbeat/Makefile libbeat/Makefile
-
-# Only get _meta directories here
-cp -r $GIT_CLONE/libbeat/processors/ libbeat/processors/
-rm -r libbeat/processors/*.go
-rm -r libbeat/processors/*/*.go
-
-# Get system test dependencies
-mkdir -p libbeat/tests/system
-cp $GIT_CLONE/libbeat/tests/system/requirements.txt libbeat/tests/system/requirements.txt
-cp -r $GIT_CLONE/libbeat/tests/system/beat libbeat/tests/system/beat
-
-# Add version.asciidoc for packaging
-mkdir -p libbeat/docs
-cp $GIT_CLONE/libbeat/docs/version.asciidoc libbeat/docs/version.asciidoc
-
-# Add go version file for CI
-cp $GIT_CLONE/.go-version .go-version
-
-# Get system test dependencies
-cp -r $GIT_CLONE/testing testing
-
-# Generate .gitignore file
-echo "libbeat/_meta/fields.generated.yml" > .gitignore
-echo "libbeat/fields.yml" >> .gitignore
-
-# Remove temp repo
-rm -rf repo
+# use exactly the same beats revision rather than $BEATS_VERSION
+BEATS_REVISION=$(GIT_DIR=${BASEDIR}/${GIT_CLONE}/.git git rev-parse HEAD)
+${DIRNAME}/update_govendor_deps.py ${BEATS_REVISION}
