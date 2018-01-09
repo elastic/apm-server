@@ -3,6 +3,7 @@ package beater
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -30,16 +31,37 @@ func TestConfig(t *testing.T) {
 					"certificate": "1234cert",
 				},
         "concurrent_requests": 15,
+				"frontend": {
+					"enabled": true,
+					"rate_limit": 1000,
+					"allow_origins": ["example*"],
+					"sourcemapping": {
+						"cache": {
+							"expiration": 10,
+							"cleanup_interval": 20
+						},
+						"index": "apm-test*"
+					}
+				}
       }`),
 			expectedConfig: Config{
-				Host:               "localhost:3000",
-				MaxUnzippedSize:    64,
-				MaxHeaderBytes:     8,
-				ReadTimeout:        3000000000,
-				WriteTimeout:       4000000000,
-				ShutdownTimeout:    9000000000,
-				SecretToken:        "1234random",
-				SSL:                &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				Host:            "localhost:3000",
+				MaxUnzippedSize: 64,
+				MaxHeaderBytes:  8,
+				ReadTimeout:     3000000000,
+				WriteTimeout:    4000000000,
+				ShutdownTimeout: 9000000000,
+				SecretToken:     "1234random",
+				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				Frontend: &FrontendConfig{
+					Enabled:      &truthy,
+					RateLimit:    1000,
+					AllowOrigins: []string{"example*"},
+					Sourcemapping: &Sourcemapping{
+						Cache: &Cache{Expiration: 10 * time.Second, CleanupInterval: 20 * time.Second},
+						Index: "apm-test*",
+					},
+				},
 				ConcurrentRequests: 15,
 			},
 		},
@@ -53,6 +75,12 @@ func TestConfig(t *testing.T) {
         "shutdown_timeout": 5s,
 				"secret_token": "1234random",
         "concurrent_requests": 20,
+				"ssl": {},
+				"frontend": {
+					"sourcemapping": {
+						"cache": {},
+					}
+				}
       }`),
 			expectedConfig: Config{
 				Host:               "localhost:8200",
@@ -62,8 +90,17 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:       2000000000,
 				ShutdownTimeout:    5000000000,
 				SecretToken:        "1234random",
-				SSL:                nil,
+				SSL:                &SSLConfig{Enabled: nil, PrivateKey: "", Cert: ""},
 				ConcurrentRequests: 20,
+				Frontend: &FrontendConfig{
+					Enabled:      nil,
+					RateLimit:    0,
+					AllowOrigins: nil,
+					Sourcemapping: &Sourcemapping{
+						Cache: &Cache{Expiration: 0 * time.Second, CleanupInterval: 0 * time.Second},
+						Index: "",
+					},
+				},
 			},
 		},
 		{
@@ -78,6 +115,7 @@ func TestConfig(t *testing.T) {
 				SecretToken:        "",
 				SSL:                nil,
 				ConcurrentRequests: 0,
+				Frontend:           nil,
 			},
 		},
 	}

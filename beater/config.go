@@ -81,25 +81,27 @@ func (c *FrontendConfig) SmapAccessor() utility.SmapAccessor {
 	return nil
 }
 
-var defaultConfig = Config{
-	Host:               "localhost:8200",
-	MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
-	MaxHeaderBytes:     1048576,          // 1mb
-	ConcurrentRequests: 20,
-	ReadTimeout:        2 * time.Second,
-	WriteTimeout:       2 * time.Second,
-	ShutdownTimeout:    5 * time.Second,
-	SecretToken:        "",
-	Frontend: &FrontendConfig{
-		Enabled:      new(bool),
-		RateLimit:    10,
-		AllowOrigins: []string{"*"},
-		Sourcemapping: &Sourcemapping{
-			Cache: &Cache{
-				Expiration:      300,
-				CleanupInterval: 600,
+func defaultConfig() Config {
+	return Config{
+		Host:               "localhost:8200",
+		MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
+		MaxHeaderBytes:     1048576,          // 1mb
+		ConcurrentRequests: 20,
+		ReadTimeout:        2 * time.Second,
+		WriteTimeout:       2 * time.Second,
+		ShutdownTimeout:    5 * time.Second,
+		SecretToken:        "",
+		Frontend: &FrontendConfig{
+			Enabled:      new(bool),
+			RateLimit:    10,
+			AllowOrigins: []string{"*"},
+			Sourcemapping: &Sourcemapping{
+				Cache: &Cache{
+					Expiration:      300 * time.Second,
+					CleanupInterval: 600 * time.Second,
+				},
+				Index: "apm",
 			},
-			Index: "apm",
 		},
-	},
+	}
 }

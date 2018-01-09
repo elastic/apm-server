@@ -218,7 +218,7 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	}
 
 	host := randomAddr()
-	cfg := defaultConfig
+	cfg := defaultConfig()
 	cfg.Host = host
 	cfg.SSL = ssl
 

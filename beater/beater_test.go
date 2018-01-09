@@ -7,9 +7,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/outputs"
 	pubs "github.com/elastic/beats/libbeat/publisher"
@@ -17,6 +21,132 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
 )
+
+func TestEmptyBeatConfig(t *testing.T) {
+	b := beat.Beat{}
+	ucfgConfig := common.NewConfig()
+	beatBeater, err := New(&b, ucfgConfig)
+	assert.NoError(t, err)
+	assert.NotNil(t, beatBeater)
+}
+
+func TestBeatConfig(t *testing.T) {
+	truthy := true
+	tests := []struct {
+		conf       map[string]interface{}
+		beaterConf Config
+		msg        string
+	}{
+		{
+			conf:       map[string]interface{}{},
+			beaterConf: defaultConfig(),
+			msg:        "Default config created for empty config.",
+		},
+		{
+			conf: map[string]interface{}{
+				"host":              "localhost:3000",
+				"max_unzipped_size": 64,
+				"max_header_bytes":  8,
+				"read_timeout":      3 * time.Second,
+				"write_timeout":     4 * time.Second,
+				"shutdown_timeout":  9 * time.Second,
+				"secret_token":      "1234random",
+				"ssl": map[string]interface{}{
+					"enabled":     true,
+					"key":         "1234key",
+					"certificate": "1234cert",
+				},
+				"concurrent_requests": 15,
+				"frontend": map[string]interface{}{
+					"enabled":       true,
+					"rate_limit":    1000,
+					"allow_origins": []string{"example*"},
+					"sourcemapping": map[string]interface{}{
+						"cache": map[string]interface{}{
+							"expiration":       10,
+							"cleanup_interval": 20,
+						},
+						"index": "apm-test*",
+					},
+				},
+			},
+			beaterConf: Config{
+				Host:            "localhost:3000",
+				MaxUnzippedSize: 64,
+				MaxHeaderBytes:  8,
+				ReadTimeout:     3000000000,
+				WriteTimeout:    4000000000,
+				ShutdownTimeout: 9000000000,
+				SecretToken:     "1234random",
+				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				Frontend: &FrontendConfig{
+					Enabled:      &truthy,
+					RateLimit:    1000,
+					AllowOrigins: []string{"example*"},
+					Sourcemapping: &Sourcemapping{
+						Cache: &Cache{Expiration: 10 * time.Second, CleanupInterval: 20 * time.Second},
+						Index: "apm-test*",
+					},
+				},
+				ConcurrentRequests: 15,
+			},
+			msg: "Given config overwrites default",
+		},
+		{
+			conf: map[string]interface{}{
+				"host":              "localhost:3000",
+				"max_unzipped_size": 64,
+				"secret_token":      "1234random",
+				"ssl": map[string]interface{}{
+					"enabled": false,
+				},
+				"concurrent_requests": 15,
+				"frontend": map[string]interface{}{
+					"enabled": true,
+					"sourcemapping": map[string]interface{}{
+						"cache": map[string]interface{}{
+							"expiration": 10,
+						},
+					},
+				},
+			},
+			beaterConf: Config{
+				Host:            "localhost:3000",
+				MaxUnzippedSize: 64,
+				MaxHeaderBytes:  1048576,
+				ReadTimeout:     2000000000,
+				WriteTimeout:    2000000000,
+				ShutdownTimeout: 5000000000,
+				SecretToken:     "1234random",
+				SSL:             &SSLConfig{Enabled: new(bool)},
+				Frontend: &FrontendConfig{
+					Enabled:      &truthy,
+					RateLimit:    10,
+					AllowOrigins: []string{"*"},
+					Sourcemapping: &Sourcemapping{
+						Cache: &Cache{
+							Expiration:      10 * time.Second,
+							CleanupInterval: 600 * time.Second,
+						},
+						Index: "apm",
+					},
+				},
+				ConcurrentRequests: 15,
+			},
+			msg: "Given config merged with default",
+		},
+	}
+
+	for _, test := range tests {
+		ucfgConfig, err := common.NewConfigFrom(test.conf)
+		assert.NoError(t, err)
+		btr, err := New(&beat.Beat{}, ucfgConfig)
+		assert.NoError(t, err)
+		assert.NotNil(t, btr)
+		bt := btr.(*beater)
+		assert.Equal(t, test.beaterConf, bt.config, test.msg)
+	}
+}
 
 /*
 Run the benchmarks as follows:
@@ -85,7 +215,7 @@ func SetupServer(b *testing.B) *http.ServeMux {
 	if err != nil {
 		b.Fatal(err)
 	}
-	return newMuxer(defaultConfig, pub.Send)
+	return newMuxer(defaultConfig(), pub.Send)
 }
 
 func pluralize(entity string) string {
