@@ -141,20 +141,18 @@ func NewClient(addrs []string, conf *Config) (Client, error) {
 		client.seedBrokers = append(client.seedBrokers, NewBroker(addrs[index]))
 	}
 
-	if conf.Metadata.Full {
-		// do an initial fetch of all cluster metadata by specifying an empty list of topics
-		err := client.RefreshMetadata()
-		switch err {
-		case nil:
-			break
-		case ErrLeaderNotAvailable, ErrReplicaNotAvailable, ErrTopicAuthorizationFailed, ErrClusterAuthorizationFailed:
-			// indicates that maybe part of the cluster is down, but is not fatal to creating the client
-			Logger.Println(err)
-		default:
-			close(client.closed) // we haven't started the background updater yet, so we have to do this manually
-			_ = client.Close()
-			return nil, err
-		}
+	// do an initial fetch of all cluster metadata by specifying an empty list of topics
+	err := client.RefreshMetadata()
+	switch err {
+	case nil:
+		break
+	case ErrLeaderNotAvailable, ErrReplicaNotAvailable, ErrTopicAuthorizationFailed, ErrClusterAuthorizationFailed:
+		// indicates that maybe part of the cluster is down, but is not fatal to creating the client
+		Logger.Println(err)
+	default:
+		close(client.closed) // we haven't started the background updater yet, so we have to do this manually
+		_ = client.Close()
+		return nil, err
 	}
 	go withRecover(client.backgroundMetadataUpdater)
 
@@ -299,7 +297,7 @@ func (client *client) Replicas(topic string, partitionID int32) ([]int32, error)
 	if metadata.Err == ErrReplicaNotAvailable {
 		return nil, metadata.Err
 	}
-	return dupInt32Slice(metadata.Replicas), nil
+	return dupeAndSort(metadata.Replicas), nil
 }
 
 func (client *client) InSyncReplicas(topic string, partitionID int32) ([]int32, error) {
@@ -324,7 +322,7 @@ func (client *client) InSyncReplicas(topic string, partitionID int32) ([]int32, 
 	if metadata.Err == ErrReplicaNotAvailable {
 		return nil, metadata.Err
 	}
-	return dupInt32Slice(metadata.Isr), nil
+	return dupeAndSort(metadata.Isr), nil
 }
 
 func (client *client) Leader(topic string, partitionID int32) (*Broker, error) {
@@ -607,17 +605,7 @@ func (client *client) backgroundMetadataUpdater() {
 	for {
 		select {
 		case <-ticker.C:
-			topics := []string{}
-			if !client.conf.Metadata.Full {
-				if specificTopics, err := client.Topics(); err != nil {
-					Logger.Println("Client background metadata topic load:", err)
-					break
-				} else {
-					topics = specificTopics
-				}
-			}
-
-			if err := client.RefreshMetadata(topics...); err != nil {
+			if err := client.RefreshMetadata(); err != nil {
 				Logger.Println("Client background metadata update:", err)
 			}
 		case <-client.closer:
