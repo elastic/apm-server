@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"regexp"
 
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/sourcemap"
@@ -43,6 +44,9 @@ func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.M
 	enhancer.Add(m, "module", s.Module)
 	enhancer.Add(m, "function", s.Function)
 	enhancer.Add(m, "vars", s.Vars)
+	if config != nil && config.LibraryPattern != nil && s.LibraryFrame == nil {
+		s.LibraryFrame = s.isLibraryFrame(config.LibraryPattern)
+	}
 	enhancer.Add(m, "library_frame", s.LibraryFrame)
 
 	context := common.MapStr{}
@@ -57,6 +61,12 @@ func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.M
 	enhancer.Add(m, "line", line)
 
 	return m
+}
+
+func (s *StacktraceFrame) isLibraryFrame(pattern *regexp.Regexp) *bool {
+	matching := pattern.MatchString(s.Filename) ||
+		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
+	return &matching
 }
 
 func (s *StacktraceFrame) applySourcemap(service Service, mapper sourcemap.Mapper) {

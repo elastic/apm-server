@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	s "github.com/go-sourcemap/sourcemap"
@@ -34,7 +35,9 @@ func TestProcessorFrontendMinifiedSmapOK(t *testing.T) {
 		{Name: "TestProcessErrorFrontendNoSmap", Path: "data/valid/error/frontend_app.e2e-bundle.json"},
 	}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
-	conf := processor.Config{SmapMapper: &mapper}
+	conf := processor.Config{
+		SmapMapper:     &mapper,
+		LibraryPattern: regexp.MustCompile("/test/e2e|~")}
 	tests.TestProcessRequests(t, er.NewProcessor(&conf), requestInfo, map[string]string{})
 }
 

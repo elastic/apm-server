@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -94,7 +95,10 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 	if err != nil {
 		logp.Err(err.Error())
 	}
-	prConfig := processor.Config{SmapMapper: smapper}
+	prConfig := processor.Config{
+		SmapMapper:     smapper,
+		LibraryPattern: regexp.MustCompile(config.Frontend.LibraryPattern),
+	}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
