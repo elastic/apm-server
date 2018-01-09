@@ -33,8 +33,8 @@ type Sourcemapping struct {
 	Cache *Cache `config:"cache"`
 	Index string `config:"index"`
 
-	elasticsearch *common.Config
-	accessor      utility.SmapAccessor
+	esConfig *common.Config
+	accessor utility.SmapAccessor
 }
 
 type Cache struct {
@@ -48,6 +48,12 @@ type SSLConfig struct {
 	Cert       string `config:"certificate"`
 }
 
+func (c *Config) setElasticsearch(esConfig *common.Config) {
+	if c != nil && c.Frontend.isEnabled() && c.Frontend.Sourcemapping != nil {
+		c.Frontend.Sourcemapping.esConfig = esConfig
+	}
+}
+
 func (c *SSLConfig) isEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
@@ -57,7 +63,7 @@ func (c *FrontendConfig) isEnabled() bool {
 }
 
 func (s *Sourcemapping) isSetup() bool {
-	return s != nil && (s.elasticsearch != nil)
+	return s != nil && (s.esConfig != nil)
 }
 
 func (c *FrontendConfig) SmapAccessor() utility.SmapAccessor {
@@ -67,7 +73,7 @@ func (c *FrontendConfig) SmapAccessor() utility.SmapAccessor {
 			smapConfig := utility.SmapConfig{
 				CacheExpiration:      smap.Cache.Expiration,
 				CacheCleanupInterval: smap.Cache.CleanupInterval,
-				ElasticsearchConfig:  smap.elasticsearch,
+				ElasticsearchConfig:  smap.esConfig,
 				Index:                smap.Index,
 			}
 			smapAccessor, err := utility.NewSourcemapAccessor(smapConfig)

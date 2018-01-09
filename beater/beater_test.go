@@ -22,14 +22,6 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
 )
 
-func TestEmptyBeatConfig(t *testing.T) {
-	b := beat.Beat{}
-	ucfgConfig := common.NewConfig()
-	beatBeater, err := New(&b, ucfgConfig)
-	assert.NoError(t, err)
-	assert.NotNil(t, beatBeater)
-}
-
 func TestBeatConfig(t *testing.T) {
 	truthy := true
 	tests := []struct {

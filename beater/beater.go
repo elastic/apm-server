@@ -21,8 +21,8 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
 	}
 
-	if b.Config != nil && b.Config.Output.Name() != "elasticsearch" {
-		beaterConfig.Frontend.Sourcemapping.elasticsearch = b.Config.Output.Config()
+	if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
+		beaterConfig.setElasticsearch(b.Config.Output.Config())
 	}
 
 	bt := &beater{
