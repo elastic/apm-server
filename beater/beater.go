@@ -10,19 +10,19 @@ import (
 )
 
 type beater struct {
-	config Config
+	config *Config
 	server *http.Server
 }
 
 // Creates beater
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
-	beaterConfig := defaultConfig
-	if err := ucfg.Unpack(&beaterConfig); err != nil {
+	beaterConfig := defaultConfig()
+	if err := ucfg.Unpack(beaterConfig); err != nil {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
 	}
 
-	if b.Config.Output.Name() == "elasticsearch" {
-		beaterConfig.Frontend.Sourcemapping.elasticsearch = b.Config.Output.Config()
+	if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
+		beaterConfig.setElasticsearch(b.Config.Output.Config())
 	}
 
 	bt := &beater{

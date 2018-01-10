@@ -73,14 +73,14 @@ func TestServerFrontendSwitch(t *testing.T) {
 	rec := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rec, req)
 	apm.Handler = newMuxer(
-		Config{
+		&Config{
 			Frontend: &FrontendConfig{Enabled: new(bool), AllowOrigins: []string{"*"}}},
 		nil)
 	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
 
 	true := true
 	apm.Handler = newMuxer(
-		Config{
+		&Config{
 			Frontend: &FrontendConfig{Enabled: &true, AllowOrigins: []string{"*"}}},
 		nil)
 	rec = httptest.NewRecorder()
@@ -133,7 +133,7 @@ func TestServerCORS(t *testing.T) {
 
 	for idx, test := range tests {
 		apm.Handler = newMuxer(
-			Config{
+			&Config{
 				MaxUnzippedSize: 1024 * 1024,
 				Frontend: &FrontendConfig{
 					Enabled:      &true,
@@ -218,7 +218,7 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	}
 
 	host := randomAddr()
-	cfg := defaultConfig
+	cfg := defaultConfig()
 	cfg.Host = host
 	cfg.SSL = ssl
 
