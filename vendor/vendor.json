@@ -701,6 +701,12 @@
 			"versionExact": "master"
 		},
 		{
+			"checksumSHA1": "c2bBXAHhGH3lXLZ/O3V4zt7MbKI=",
+			"path": "github.com/elastic/beats/libbeat/outputs/transport/transptest",
+			"revision": "8ae5b4be36462d3c8dfd97c4f900ff2964b71352",
+			"revisionTime": "2017-11-10T16:05:01Z"
+		},
+		{
 			"checksumSHA1": "d5b9Ra0zcwznwemxEJmyW28FZJ0=",
 			"path": "github.com/elastic/beats/libbeat/paths",
 			"revision": "2924e6ecab1ef842eb6f10e37b7f74980523c5b2",
@@ -1249,12 +1255,6 @@
 			"path": "github.com/joeshaw/multierror",
 			"revision": "2463fd833024b2782962b18060ce642af2bdf1f4",
 			"revisionTime": "2017-06-28T12:00:33Z"
-		},
-		{
-			"checksumSHA1": "pa+ZwMzIv+u+BlL8Q2xgL9cQtJg=",
-			"path": "github.com/kabukky/httpscerts",
-			"revision": "617593d7dcb39c9ed617bb62c5e2056244d02184",
-			"revisionTime": "2015-03-20T12:54:33Z"
 		},
 		{
 			"checksumSHA1": "+CqJGh7NIDMnHgScq9sl9tPrnVM=",

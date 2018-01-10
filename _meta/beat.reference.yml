@@ -20,7 +20,7 @@ apm-server:
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
-
+  #ssl.key_passphrase: ""
   #frontend:
     # Please be aware that frontend support is an experimental feature at the moment!
     #enabled: false
