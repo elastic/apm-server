@@ -12,7 +12,7 @@ import (
 
 type reporter func([]beat.Event) error
 
-func newServer(config Config, report reporter) *http.Server {
+func newServer(config *Config, report reporter) *http.Server {
 	mux := newMuxer(config, report)
 
 	return &http.Server{
@@ -24,7 +24,7 @@ func newServer(config Config, report reporter) *http.Server {
 	}
 }
 
-func run(server *http.Server, config Config) error {
+func run(server *http.Server, config *Config) error {
 	logp.Info("Starting apm-server [%s]. Hit CTRL-C to stop it.", version.String())
 	logp.Info("Listening on: %s", server.Addr)
 	switch config.Frontend.isEnabled() {
