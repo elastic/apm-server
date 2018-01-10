@@ -41,7 +41,7 @@ const (
 
 type ProcessorFactory func(*processor.Config) processor.Processor
 
-type ProcessorHandler func(ProcessorFactory, Config, reporter) http.Handler
+type ProcessorHandler func(ProcessorFactory, *Config, reporter) http.Handler
 
 type routeMapping struct {
 	ProcessorHandler
@@ -70,7 +70,7 @@ var (
 	}
 )
 
-func newMuxer(config Config, report reporter) *http.ServeMux {
+func newMuxer(config *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	for path, mapping := range Routes {
 		logp.Info("Path %s added to request handler", path)
@@ -80,13 +80,13 @@ func newMuxer(config Config, report reporter) *http.ServeMux {
 	return mux
 }
 
-func backendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	return logHandler(
 		authHandler(config.SecretToken,
 			processRequestHandler(pf, nil, report, decodeLimitJSONData(config.MaxUnzippedSize))))
 }
 
-func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
@@ -94,14 +94,14 @@ func frontendHandler(pf ProcessorFactory, config Config, report reporter) http.H
 					processRequestHandler(pf, &processor.Config{SmapAccessor: config.Frontend.SmapAccessor()}, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
 }
 
-func sourcemapHandler(pf ProcessorFactory, config Config, report reporter) http.Handler {
+func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
 				processRequestHandler(pf, &processor.Config{SmapAccessor: config.Frontend.SmapAccessor()}, report, sourcemap.DecodeSourcemapFormData))))
 }
 
-func healthCheckHandler(_ ProcessorFactory, _ Config, _ reporter) http.Handler {
+func healthCheckHandler(_ ProcessorFactory, _ *Config, _ reporter) http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sendStatus(w, r, http.StatusOK, nil)

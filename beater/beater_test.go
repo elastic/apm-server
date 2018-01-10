@@ -26,7 +26,7 @@ func TestBeatConfig(t *testing.T) {
 	truthy := true
 	tests := []struct {
 		conf       map[string]interface{}
-		beaterConf Config
+		beaterConf *Config
 		msg        string
 	}{
 		{
@@ -62,7 +62,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 			},
-			beaterConf: Config{
+			beaterConf: &Config{
 				Host:            "localhost:3000",
 				MaxUnzippedSize: 64,
 				MaxHeaderBytes:  8,
@@ -102,7 +102,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 			},
-			beaterConf: Config{
+			beaterConf: &Config{
 				Host:            "localhost:3000",
 				MaxUnzippedSize: 64,
 				MaxHeaderBytes:  1048576,

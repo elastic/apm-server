@@ -87,8 +87,8 @@ func (c *FrontendConfig) SmapAccessor() utility.SmapAccessor {
 	return nil
 }
 
-func defaultConfig() Config {
-	return Config{
+func defaultConfig() *Config {
+	return &Config{
 		Host:               "localhost:8200",
 		MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
 		MaxHeaderBytes:     1048576,          // 1mb
