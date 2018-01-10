@@ -98,6 +98,7 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 	prConfig := processor.Config{
 		SmapMapper:     smapper,
 		LibraryPattern: regexp.MustCompile(config.Frontend.LibraryPattern),
+		Frontend:       true,
 	}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),

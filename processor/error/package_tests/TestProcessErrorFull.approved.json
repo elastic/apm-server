@@ -193,7 +193,7 @@
                                     "line2"
                                 ]
                             },
-                            "filename": "file/name.py",
+                            "filename": "/webpack/file/name.py",
                             "function": "foo",
                             "library_frame": false,
                             "line": {
