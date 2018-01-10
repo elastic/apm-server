@@ -128,7 +128,6 @@ func logHandler(h http.Handler) http.Handler {
 		lr := r.WithContext(
 			context.WithValue(r.Context(), reqLoggerContextKey, reqLogger),
 		)
-		lr.Context().Value(reqLoggerContextKey)
 
 		lw := utility.NewRecordingResponseWriter(w)
 
@@ -139,9 +138,9 @@ func logHandler(h http.Handler) http.Handler {
 			"remote_address", extractIP(r), "user_agent", r.Header.Get("User-Agent"))
 
 		if lw.Code > 399 {
-			responseValid.Inc()
-		} else {
 			responseErrors.Inc()
+		} else {
+			responseValid.Inc()
 		}
 	})
 
