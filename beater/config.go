@@ -33,8 +33,8 @@ type Sourcemapping struct {
 	Cache *Cache `config:"cache"`
 	Index string `config:"index"`
 
-	elasticsearch *common.Config
-	accessor      utility.SmapAccessor
+	esConfig *common.Config
+	accessor utility.SmapAccessor
 }
 
 type Cache struct {
@@ -48,6 +48,12 @@ type SSLConfig struct {
 	Cert       string `config:"certificate"`
 }
 
+func (c *Config) setElasticsearch(esConfig *common.Config) {
+	if c != nil && c.Frontend.isEnabled() && c.Frontend.Sourcemapping != nil {
+		c.Frontend.Sourcemapping.esConfig = esConfig
+	}
+}
+
 func (c *SSLConfig) isEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
@@ -57,7 +63,7 @@ func (c *FrontendConfig) isEnabled() bool {
 }
 
 func (s *Sourcemapping) isSetup() bool {
-	return s != nil && (s.elasticsearch != nil)
+	return s != nil && (s.esConfig != nil)
 }
 
 func (c *FrontendConfig) SmapAccessor() utility.SmapAccessor {
@@ -67,7 +73,7 @@ func (c *FrontendConfig) SmapAccessor() utility.SmapAccessor {
 			smapConfig := utility.SmapConfig{
 				CacheExpiration:      smap.Cache.Expiration,
 				CacheCleanupInterval: smap.Cache.CleanupInterval,
-				ElasticsearchConfig:  smap.elasticsearch,
+				ElasticsearchConfig:  smap.esConfig,
 				Index:                smap.Index,
 			}
 			smapAccessor, err := utility.NewSourcemapAccessor(smapConfig)
@@ -81,25 +87,27 @@ func (c *FrontendConfig) SmapAccessor() utility.SmapAccessor {
 	return nil
 }
 
-var defaultConfig = Config{
-	Host:               "localhost:8200",
-	MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
-	MaxHeaderBytes:     1048576,          // 1mb
-	ConcurrentRequests: 20,
-	ReadTimeout:        2 * time.Second,
-	WriteTimeout:       2 * time.Second,
-	ShutdownTimeout:    5 * time.Second,
-	SecretToken:        "",
-	Frontend: &FrontendConfig{
-		Enabled:      new(bool),
-		RateLimit:    10,
-		AllowOrigins: []string{"*"},
-		Sourcemapping: &Sourcemapping{
-			Cache: &Cache{
-				Expiration:      300,
-				CleanupInterval: 600,
+func defaultConfig() *Config {
+	return &Config{
+		Host:               "localhost:8200",
+		MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
+		MaxHeaderBytes:     1048576,          // 1mb
+		ConcurrentRequests: 20,
+		ReadTimeout:        2 * time.Second,
+		WriteTimeout:       2 * time.Second,
+		ShutdownTimeout:    5 * time.Second,
+		SecretToken:        "",
+		Frontend: &FrontendConfig{
+			Enabled:      new(bool),
+			RateLimit:    10,
+			AllowOrigins: []string{"*"},
+			Sourcemapping: &Sourcemapping{
+				Cache: &Cache{
+					Expiration:      300 * time.Second,
+					CleanupInterval: 600 * time.Second,
+				},
+				Index: "apm",
 			},
-			Index: "apm",
 		},
-	},
+	}
 }

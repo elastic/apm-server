@@ -8,7 +8,7 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-func notifyListening(config Config, reporter reporter) {
+func notifyListening(config *Config, reporter reporter) {
 
 	var isServerUp = func() bool {
 		secure := config.SSL.isEnabled()

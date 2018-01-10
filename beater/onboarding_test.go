@@ -9,7 +9,7 @@ import (
 )
 
 func TestNotifyUpServerDown(t *testing.T) {
-	config := defaultConfig
+	config := defaultConfig()
 	var saved []beat.Event
 	var reporter = func(events []beat.Event) error {
 		saved = append(saved, events...)
