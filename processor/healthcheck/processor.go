@@ -9,7 +9,7 @@ const (
 	processorName = "healthcheck"
 )
 
-func NewProcessor() pr.Processor {
+func NewProcessor(_ *pr.Config) pr.Processor {
 	return &processor{}
 }
 

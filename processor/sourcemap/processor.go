@@ -1,7 +1,8 @@
 package sourcemap
 
 import (
-	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -27,25 +29,30 @@ var (
 
 var schema = pr.CreateSchema(sourcemapSchema, processorName)
 
-type processor struct {
-	schema *jsonschema.Schema
+func NewProcessor(conf *pr.Config) pr.Processor {
+	var smapAccessor utility.SmapAccessor
+	if conf != nil {
+		smapAccessor = conf.SmapAccessor
+	}
+	return &processor{schema: schema, smapAccessor: smapAccessor}
 }
 
-func NewProcessor() pr.Processor {
-	return &processor{schema}
+type processor struct {
+	schema       *jsonschema.Schema
+	smapAccessor utility.SmapAccessor
 }
 
 func (p *processor) Validate(raw map[string]interface{}) error {
 	validationCount.Inc()
 
-	bytes, err := json.Marshal(raw["sourcemap"])
-	if err != nil {
-		return err
+	smap, ok := raw["sourcemap"].(string)
+	if !ok {
+		return errors.New("Sourcemap not in expected format.")
 	}
 
-	_, err = parser.Parse("", bytes)
+	_, err := parser.Parse("", []byte(smap))
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Error validating sourcemap: %v", err))
 	}
 
 	err = pr.Validate(raw, p.schema)
@@ -64,7 +71,7 @@ func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
 		return nil, err
 	}
 
-	return pa.transform(), nil
+	return pa.transform(p.smapAccessor), nil
 }
 
 func (p *processor) Name() string {

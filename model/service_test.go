@@ -17,8 +17,6 @@ func TestServiceTransformDefinition(t *testing.T) {
 func TestServiceTransform(t *testing.T) {
 
 	version := "5.1.3"
-	pid := 1234
-	processTitle := "node"
 	environment := "staging"
 	langName := "ecmascript"
 	langVersion := "8"
@@ -44,15 +42,9 @@ func TestServiceTransform(t *testing.T) {
 		},
 		{
 			Service: Service{
-				Name:         "myService",
-				Version:      &version,
-				Pid:          &pid,
-				ProcessTitle: &processTitle,
-				Environment:  &environment,
-				Argv: []string{
-					"node",
-					"server.js",
-				},
+				Name:        "myService",
+				Version:     &version,
+				Environment: &environment,
 				Language: Language{
 					Name:    &langName,
 					Version: &langVersion,
@@ -71,15 +63,9 @@ func TestServiceTransform(t *testing.T) {
 				},
 			},
 			Output: common.MapStr{
-				"name":          "myService",
-				"version":       "5.1.3",
-				"environment":   "staging",
-				"pid":           1234,
-				"process_title": "node",
-				"argv": []string{
-					"node",
-					"server.js",
-				},
+				"name":        "myService",
+				"version":     "5.1.3",
+				"environment": "staging",
 				"language": common.MapStr{
 					"name":    "ecmascript",
 					"version": "8",

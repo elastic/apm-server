@@ -17,7 +17,7 @@
     - name: context
       type: group
       description: >
-        General context fields.
+        Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user.
       dynamic: false
       fields:
 
@@ -26,7 +26,7 @@
           object_type: keyword
           dynamic: true
           description: >
-            Flat mapping of user-defined tags.
+            A flat mapping of user-defined tags with values.
 
         - name: user
           type: group
@@ -35,17 +35,17 @@
           - name: username
             type: keyword
             description: >
-              The username of the user who experienced this event.
+              The username of the logged in user.
 
           - name: id
             type: keyword
             description: >
-              Identifier of the user who experienced this event.
+              Identifier of the logged in user.
 
           - name: email
             type: keyword
             description: >
-              Email of the user who experienced this event.
+              Email of the logged in user.
 
         - name: request
           type: group
@@ -54,7 +54,7 @@
           - name: url
             type: group
             description: >
-              The http URL of the request leading to this event.
+              A complete Url, with scheme, host and path.
             fields:
 
               - name: raw
@@ -66,6 +66,11 @@
                 type: keyword
                 description: >
                   The protocol of the request, e.g. "https:".
+
+              - name: full
+                type: keyword
+                description: >
+                  The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
               - name: hostname
                 type: keyword
@@ -109,10 +114,12 @@
           - name: status_code
             type: long
             description: >
-              Http response status code.
+              The http status code of the response, eg. '200'.
 
           - name: finished
             type: boolean
+            description: >
+              A boolean indicating whether the response was finished or not.
 
         - name: system
           type: group
@@ -123,17 +130,32 @@
             - name: hostname
               type: keyword
               description: >
-                The host that records the event.
+                The hostname of the system the event was recorded on.
 
             - name: architecture
               type: keyword
               description: >
-                The architecture of the host that records the event.
+                The architecture of the system the event was recorded on.
 
             - name: platform
               type: keyword
               description: >
-                The platform of the host that records the event.
+                The platform of the system the event was recorded on.
+        - name: process
+          type: group
+          description: >
+            Information pertaining to the running process where the data was collected
+          fields:
+
+            - name: pid
+              type: long
+              description: >
+                Numeric process ID of the service process.
+
+            - name: title
+              type: keyword
+              description: >
+                Service process title.
 
         - name: service
           type: group
@@ -143,7 +165,7 @@
             - name: name
               type: keyword
               description: >
-                Unique Service name.
+                Immutable unique name of the service emitting this event.
               format: url
               label_template: "{{value}}"
               open_link_in_current_tab: true
@@ -156,17 +178,7 @@
             - name: version
               type: keyword
               description: >
-                Service version.
-
-            - name: pid
-              type: long
-              description: >
-                Numeric process ID of the service process.
-
-            - name: process_title
-              type: keyword
-              description: >
-                Service process_title.
+                Version of the service emitting this event.
 
             - name: environment
               type: keyword
@@ -180,12 +192,12 @@
               - name: name
                 type: keyword
                 description: >
-                  Language name.
+                  Name of the programming language used.
 
               - name: version
                 type: keyword
                 description: >
-                  Language version.
+                  Version of the programming language used.
 
             - name: runtime
               type: group
@@ -194,12 +206,12 @@
               - name: name
                 type: keyword
                 description: >
-                  Runtime name.
+                  Name of the runtime used.
 
               - name: version
                 type: keyword
                 description: >
-                  Runtime version.
+                  Version of the runtime used.
 
             - name: framework
               type: group
@@ -208,12 +220,12 @@
               - name: name
                 type: keyword
                 description: >
-                  Framework name.
+                  Name of the framework used.
 
               - name: version
                 type: keyword
                 description: >
-                  Framework version.
+                  Version of the framework used.
 
             - name: agent
               type: group
@@ -222,9 +234,27 @@
               - name: name
                 type: keyword
                 description: >
-                  Agent name.
+                  Name of the agent used.
 
               - name: version
                 type: keyword
                 description: >
-                  Agent version.
+                  Version of the agent used.
+
+    - name: transaction
+      type: group
+      dynamic: false
+      fields:
+
+        - name: id
+          type: keyword
+          description: >
+            A UUID4 transaction ID.
+          format: url
+          label_template: "View Spans"
+          open_link_in_current_tab: true
+          url_template:
+            - min_version: 5.0.0
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'transaction.id:%22{{value}}%22')))"
+            - min_version: 6.0.0-alpha1
+              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'transaction.id:{{value}}'))"

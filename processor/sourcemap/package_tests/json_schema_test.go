@@ -26,5 +26,5 @@ func TestSourcemapPayloadSchema(t *testing.T) {
 		{File: "data/invalid/sourcemap/not_allowed_empty_values.json", Error: "length must be >= 1, but got 0"},
 		{File: "data/invalid/sourcemap/not_allowed_null_values.json", Error: "expected string, but got null"},
 	}
-	tests.TestDataAgainstProcessor(t, sourcemap.NewProcessor(), testData)
+	tests.TestDataAgainstProcessor(t, sourcemap.NewProcessor(nil), testData)
 }

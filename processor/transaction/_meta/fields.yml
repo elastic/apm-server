@@ -6,34 +6,18 @@
       type: group
       dynamic: false
       fields:
-        - name: id
-          type: keyword
-          description: >
-            A UUID4 transaction ID.
-          format: url
-          label_template: "View Spans"
-          open_link_in_current_tab: true
-          url_template:
-            - min_version: 5.0.0
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'transaction.id:%22{{value}}%22')))"
-            - min_version: 6.0.0-alpha1
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'transaction.id:{{value}}'))"
-
         - name: name
           type: text
           multi_fields:
             - name: keyword
               type: keyword
           description: >
-            Name of the transaction. This is usually a generic path to the controller/endpoint that handled the
-            transaction.
-
-            TODO: investigate use of "path_hierarchy" tokenizer
+            Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
         - name: type
           type: keyword
           description: >
-            The transaction type, e.g. "request", or "job".
+            Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 
         - name: duration
           type: group
@@ -53,6 +37,27 @@
           type: keyword
           description: >
             The result of the transaction. HTTP status code for HTTP-related transactions.
+
+        - name: marks 
+          type: object
+          object_type: keyword
+          dynamic: true
+          description: >
+            A user-defined mapping of groups of marks. 
+
+        - name: sampled
+          type: boolean
+          description: >
+            Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
+        - name: span_count
+          type: group
+          fields:
+            - name: dropped
+              type: group
+              fields:
+                - name: total
+                  type: long
+                  description: The total amount of dropped spans for this transaction.
 
 
 - key: apm-span
@@ -77,13 +82,13 @@
           type: keyword
           count: 1
           description: >
-            Generic name of the span.
+            Generic designation of a span in the scope of a transaction.
 
         - name: type
           type: keyword
           count: 1
           description: >
-            Type of the span. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
+            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 
         - name: start
           type: group
@@ -93,7 +98,7 @@
               type: long
               count: 1
               description: >
-                Start time of the span in microseconds, relative to the start time of the transaction.
+                Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
 
         - name: duration
           type: group
@@ -113,4 +118,4 @@
         - name: parent
           type: long
           description: >
-             The parent span id for recreating the full ancestor path.
+             The locally unique ID of the parent of the span.

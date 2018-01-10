@@ -10,6 +10,14 @@
             "my_key": 1,
             "some_other_value": "foo bar"
         },
+        "process": {
+            "argv": [
+                "node",
+                "server.js"
+            ],
+            "pid": 1234,
+            "title": "node"
+        },
         "request": {
             "body": "Hello World",
             "cookies": {
@@ -38,6 +46,7 @@
                 "remote_address": "12.53.12.1"
             },
             "url": {
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
                 "hash": "#hash",
                 "hostname": "www.example.com",
                 "pathname": "/p/a/t/h",
@@ -60,10 +69,6 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "argv": [
-                "node",
-                "server.js"
-            ],
             "environment": "staging",
             "framework": {
                 "name": "Express",
@@ -74,8 +79,6 @@
                 "version": "8"
             },
             "name": "1234_service-12a3",
-            "pid": 1234,
-            "process_title": "node",
             "runtime": {
                 "name": "node",
                 "version": "8.0.0"
@@ -103,6 +106,7 @@
                 "foo": "bar"
             },
             "code": "42",
+            "handled": false,
             "message": "The username root is unknown",
             "module": "__builtins__",
             "stacktrace": [
@@ -165,8 +169,7 @@
                     }
                 }
             ],
-            "type": "DbError",
-            "uncaught": true
+            "type": "DbError"
         },
         "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
         "id": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
@@ -240,5 +243,8 @@
     "processor": {
         "event": "error",
         "name": "error"
+    },
+    "transaction": {
+        "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
     }
 }

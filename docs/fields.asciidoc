@@ -54,7 +54,7 @@ Processor event.
 [float]
 == context fields
 
-General context fields.
+Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user.
 
 
 
@@ -63,7 +63,7 @@ General context fields.
 
 type: object
 
-Flat mapping of user-defined tags.
+A flat mapping of user-defined tags with values.
 
 
 
@@ -72,7 +72,7 @@ Flat mapping of user-defined tags.
 
 type: keyword
 
-The username of the user who experienced this event.
+The username of the logged in user.
 
 
 [float]
@@ -80,7 +80,7 @@ The username of the user who experienced this event.
 
 type: keyword
 
-Identifier of the user who experienced this event.
+Identifier of the logged in user.
 
 
 [float]
@@ -88,14 +88,14 @@ Identifier of the user who experienced this event.
 
 type: keyword
 
-Email of the user who experienced this event.
+Email of the logged in user.
 
 
 
 [float]
 == url fields
 
-The http URL of the request leading to this event.
+A complete Url, with scheme, host and path.
 
 
 
@@ -113,6 +113,14 @@ The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elast
 type: keyword
 
 The protocol of the request, e.g. "https:".
+
+
+[float]
+=== `context.request.url.full`
+
+type: keyword
+
+The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
 [float]
@@ -177,13 +185,16 @@ The http method of the request leading to this event.
 
 type: long
 
-Http response status code.
+The http status code of the response, eg. '200'.
 
 
 [float]
 === `context.response.finished`
 
 type: boolean
+
+A boolean indicating whether the response was finished or not.
+
 
 [float]
 == system fields
@@ -197,7 +208,7 @@ Optional system fields.
 
 type: keyword
 
-The host that records the event.
+The hostname of the system the event was recorded on.
 
 
 [float]
@@ -205,7 +216,7 @@ The host that records the event.
 
 type: keyword
 
-The architecture of the host that records the event.
+The architecture of the system the event was recorded on.
 
 
 [float]
@@ -213,7 +224,30 @@ The architecture of the host that records the event.
 
 type: keyword
 
-The platform of the host that records the event.
+The platform of the system the event was recorded on.
+
+
+[float]
+== process fields
+
+Information pertaining to the running process where the data was collected
+
+
+
+[float]
+=== `context.process.pid`
+
+type: long
+
+Numeric process ID of the service process.
+
+
+[float]
+=== `context.process.title`
+
+type: keyword
+
+Service process title.
 
 
 [float]
@@ -230,7 +264,7 @@ type: keyword
 
 format: url
 
-Unique Service name.
+Immutable unique name of the service emitting this event.
 
 
 [float]
@@ -238,23 +272,7 @@ Unique Service name.
 
 type: keyword
 
-Service version.
-
-
-[float]
-=== `context.service.pid`
-
-type: long
-
-Numeric process ID of the service process.
-
-
-[float]
-=== `context.service.process_title`
-
-type: keyword
-
-Service process_title.
+Version of the service emitting this event.
 
 
 [float]
@@ -271,7 +289,7 @@ Service environment.
 
 type: keyword
 
-Language name.
+Name of the programming language used.
 
 
 [float]
@@ -279,7 +297,7 @@ Language name.
 
 type: keyword
 
-Language version.
+Version of the programming language used.
 
 
 
@@ -288,7 +306,7 @@ Language version.
 
 type: keyword
 
-Runtime name.
+Name of the runtime used.
 
 
 [float]
@@ -296,7 +314,7 @@ Runtime name.
 
 type: keyword
 
-Runtime version.
+Version of the runtime used.
 
 
 
@@ -305,7 +323,7 @@ Runtime version.
 
 type: keyword
 
-Framework name.
+Name of the framework used.
 
 
 [float]
@@ -313,7 +331,7 @@ Framework name.
 
 type: keyword
 
-Framework version.
+Version of the framework used.
 
 
 
@@ -322,7 +340,7 @@ Framework version.
 
 type: keyword
 
-Agent name.
+Name of the agent used.
 
 
 [float]
@@ -330,7 +348,18 @@ Agent name.
 
 type: keyword
 
-Agent version.
+Version of the agent used.
+
+
+
+[float]
+=== `transaction.id`
+
+type: keyword
+
+format: url
+
+A UUID4 transaction ID.
 
 
 [[exported-fields-apm-error]]
@@ -353,13 +382,19 @@ type: keyword
 
 format: url
 
+[float]
+== error fields
+
+Data captured by an agent representing an event occurring in a monitored service.
+
+
 
 [float]
 === `error.id`
 
 type: keyword
 
-A UUID4 error ID.
+A UUID for the error.
 
 
 [float]
@@ -413,7 +448,7 @@ The module namespace of the original error.
 type: keyword
 
 [float]
-=== `error.exception.uncaught`
+=== `error.exception.handled`
 
 type: boolean
 
@@ -438,7 +473,7 @@ The severity of the record.
 
 type: keyword
 
-The name of the used logger instance.
+The name of the logger instance used.
 
 [float]
 === `error.log.message`
@@ -452,7 +487,8 @@ The additionally logged error message.
 
 type: keyword
 
-Equal to message, but with placeholders replaced.
+A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
+
 
 [[exported-fields-apm-sourcemap]]
 == APM Sourcemap fields
@@ -517,7 +553,7 @@ A locally unique ID of the span.
 
 type: keyword
 
-Generic name of the span.
+Generic designation of a span in the scope of a transaction.
 
 
 [float]
@@ -525,7 +561,7 @@ Generic name of the span.
 
 type: keyword
 
-Type of the span. This should be a dotted format, e.g. db.postgresql.query, cache.redis, or ext.http.get.
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 
 
 [float]
@@ -539,7 +575,7 @@ None
 
 type: long
 
-Start time of the span in microseconds, relative to the start time of the transaction.
+Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
 
 
 [float]
@@ -563,7 +599,7 @@ Duration of the span, in microseconds.
 
 type: long
 
-The parent span id for recreating the full ancestor path.
+The locally unique ID of the parent of the span.
 
 
 [[exported-fields-apm-transaction]]
@@ -574,22 +610,11 @@ Transaction-specific data for APM
 
 
 [float]
-=== `transaction.id`
-
-type: keyword
-
-format: url
-
-A UUID4 transaction ID.
-
-
-[float]
 === `transaction.name`
 
 type: text
 
-Name of the transaction. This is usually a generic path to the controller/endpoint that handled the transaction.
-TODO: investigate use of "path_hierarchy" tokenizer
+Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
 
 [float]
@@ -602,7 +627,7 @@ type: keyword
 
 type: keyword
 
-The transaction type, e.g. "request", or "job".
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 
 
 [float]
@@ -628,6 +653,31 @@ type: keyword
 
 The result of the transaction. HTTP status code for HTTP-related transactions.
 
+
+[float]
+=== `transaction.marks`
+
+type: object
+
+A user-defined mapping of groups of marks. 
+
+
+[float]
+=== `transaction.sampled`
+
+type: boolean
+
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
+
+
+
+
+[float]
+=== `transaction.span_count.dropped.total`
+
+type: long
+
+The total amount of dropped spans for this transaction.
 
 [[exported-fields-beat]]
 == Beat fields

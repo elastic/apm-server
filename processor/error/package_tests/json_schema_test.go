@@ -42,6 +42,7 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 		"error.id",
 		"error.log.level",
 		"error.grouping_key",
+		"transaction.id",
 		"listening",
 		"error id icon",
 		"view errors",
@@ -54,5 +55,5 @@ func TestErrorPayloadSchema(t *testing.T) {
 		{File: "data/invalid/error_payload/no_service.json", Error: "missing properties: \"service\""},
 		{File: "data/invalid/error_payload/no_errors.json", Error: "missing properties: \"errors\""},
 	}
-	tests.TestDataAgainstProcessor(t, er.NewProcessor(), testData)
+	tests.TestDataAgainstProcessor(t, er.NewProcessor(nil), testData)
 }

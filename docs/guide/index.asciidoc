@@ -127,6 +127,20 @@ output:
     hosts: ElasticsearchAddress:9200
 ----------------------------------
 
+NOTE: If you are using an X-Pack secured version of Elastic Stack,
+you need to specify credentials in the config file before you run the commands that set up and start APM Server.
+For example:
+
+[source,yaml]
+----
+output.elasticsearch:
+  hosts: ["ElasticsearchAddress:9200"]
+  username: "elastic"
+  password: "elastic"
+----
+
+
+
 [[secure-api-access]]
 [float]
 ==== Secure access to the API
@@ -149,8 +163,6 @@ To install those run the following command:
 
 NOTE: Due to a bug in Kibana 6.0.0.-rc2 the dashboards don't work in Kibana 6.0.0-rc2.
 
-NOTE: If you are using an X-Pack secured version of Elastic Stack,
-add `-E output.elasticsearch.username=user -E output.elasticsearch.password=pass` to the command.
 
 See an example screenshot of a Kibana dashboard:
 
@@ -210,6 +222,9 @@ Then configure the elastic-apm-node module inside your service by adding the fol
 var apm = require('elastic-apm-node').start({
   // Set required app name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
   appName: '',
+
+  // Use if APM Server requires a token
+  secretToken: '',
 
   // Set custom APM Server URL (default: http://localhost:8200)
   serverUrl: ''

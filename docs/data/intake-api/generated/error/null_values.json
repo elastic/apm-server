@@ -10,13 +10,11 @@
           "version": "1.0.0"
         },
         "version": null,
-        "pid": null,
-        "process_title": null,
         "environment": null,
-        "argv": null,
         "runtime": null,
         "framework": null
     },
+    "process": null,
     "system": {
         "hostname": null,
         "architecture": null,
@@ -39,11 +37,12 @@
                 "type": null,
                 "module": null,
                 "code": null,
-                "uncaught": null,
+                "handled": null,
                 "attributes": null,
                 "stacktrace": null
             },
-            "context": null
+            "context": null,
+            "transaction": null
         },
         {
             "timestamp": "2017-05-09T15:04:05.1Z",
@@ -83,7 +82,8 @@
                         ]
                     }
                 }
-            }
+            },
+            "transaction": null
         },
         {
             "timestamp": "2017-05-09T15:04:05Z",
@@ -98,6 +98,7 @@
                     "http_version": null,
                     "url": {
                         "protocol": null,
+                        "full": null,
                         "hostname": null,
                         "port": null,
                         "pathname": null,
@@ -122,7 +123,8 @@
                     "email": null
                 },
                 "custom": null
-            }
+            },
+            "transaction": null
         },
         {
             "timestamp": "2017-05-09T15:04:05.999Z",
@@ -135,7 +137,8 @@
                 "user": null,
                 "tags": null,
                 "custom": null
-            }
+            },
+            "transaction": null
         }
     ]
 }

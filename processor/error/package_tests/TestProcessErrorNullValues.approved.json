@@ -19,7 +19,7 @@
                 "exception": {
                     "message": "The username root is unknown"
                 },
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "grouping_key": "b221d3265304e99841ca9be334c00851",
                 "log": {
                     "message": "My service could not talk to the database named foobar"
                 }
@@ -79,7 +79,7 @@
                 "exception": {
                     "message": "foo is not defined"
                 },
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e"
+                "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11"
             },
             "processor": {
                 "event": "error",
@@ -99,6 +99,7 @@
                     "method": "POST",
                     "socket": null,
                     "url": {
+                        "full": null,
                         "hash": null,
                         "hostname": null,
                         "pathname": null,
@@ -132,7 +133,7 @@
                 }
             },
             "error": {
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "grouping_key": "5be374e988ceb5382d62c7ab53764663",
                 "log": {
                     "message": "foo.bar is not a function"
                 }
@@ -163,7 +164,7 @@
                 "user": null
             },
             "error": {
-                "grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "log": {
                     "message": "Cannot read property 'baz' of undefined"
                 }
