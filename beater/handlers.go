@@ -90,9 +90,11 @@ func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.H
 }
 
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
-	prConfig := processor.Config{
-		SmapMapper: config.Frontend.SmapMapper(),
+	smapper, err := config.Frontend.SmapMapper()
+	if err != nil {
+		logp.Err(err.Error())
 	}
+	prConfig := processor.Config{SmapMapper: smapper}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
@@ -101,10 +103,14 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 }
 
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
+	smapper, err := config.Frontend.SmapMapper()
+	if err != nil {
+		logp.Err(err.Error())
+	}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, &processor.Config{SmapMapper: config.Frontend.SmapMapper()}, report, sourcemap.DecodeSourcemapFormData))))
+				processRequestHandler(pf, &processor.Config{SmapMapper: smapper}, report, sourcemap.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ *Config, _ reporter) http.Handler {

@@ -5,7 +5,6 @@ import (
 
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 type Config struct {
@@ -65,25 +64,26 @@ func (s *Sourcemapping) isSetup() bool {
 	return s != nil && (s.esConfig != nil)
 }
 
-func (c *FrontendConfig) SmapMapper() sourcemap.Mapper {
+func (c *FrontendConfig) SmapMapper() (sourcemap.Mapper, error) {
 	smap := c.Sourcemapping
-	if c.isEnabled() && smap.isSetup() {
-		if smap.mapper == nil {
-			smapConfig := sourcemap.Config{
-				CacheExpiration:      smap.Cache.Expiration,
-				CacheCleanupInterval: smap.Cache.CleanupInterval,
-				ElasticsearchConfig:  smap.esConfig,
-				Index:                smap.Index + "*",
-			}
-			smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
-			if err != nil {
-				logp.Err(err.Error())
-			}
-			c.Sourcemapping.mapper = smapMapper
-		}
-		return c.Sourcemapping.mapper
+	if !c.isEnabled() || !smap.isSetup() {
+		return nil, nil
 	}
-	return nil
+	if smap.mapper != nil {
+		return c.Sourcemapping.mapper, nil
+	}
+	smapConfig := sourcemap.Config{
+		CacheExpiration:      smap.Cache.Expiration,
+		CacheCleanupInterval: smap.Cache.CleanupInterval,
+		ElasticsearchConfig:  smap.esConfig,
+		Index:                smap.Index + "*",
+	}
+	smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
+	if err != nil {
+		return nil, err
+	}
+	c.Sourcemapping.mapper = smapMapper
+	return c.Sourcemapping.mapper, nil
 }
 
 func defaultConfig() *Config {
