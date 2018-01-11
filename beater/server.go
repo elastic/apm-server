@@ -2,6 +2,7 @@ package beater
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 
@@ -24,7 +25,7 @@ func newServer(config *Config, report reporter) *http.Server {
 	}
 }
 
-func run(server *http.Server, config *Config) error {
+func run(server *http.Server, lis net.Listener, config *Config) error {
 	logp.Info("Starting apm-server [%s]. Hit CTRL-C to stop it.", version.String())
 	logp.Info("Listening on: %s", server.Addr)
 	switch config.Frontend.isEnabled() {
@@ -36,12 +37,12 @@ func run(server *http.Server, config *Config) error {
 
 	ssl := config.SSL
 	if ssl.isEnabled() {
-		return server.ListenAndServeTLS(ssl.Cert, ssl.PrivateKey)
+		return server.ServeTLS(lis, ssl.Cert, ssl.PrivateKey)
 	}
 	if config.SecretToken != "" {
 		logp.Warn("Secret token is set, but SSL is not enabled.")
 	}
-	return server.ListenAndServe()
+	return server.Serve(lis)
 }
 
 func stop(server *http.Server, timeout time.Duration) {
