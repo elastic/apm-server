@@ -1,6 +1,7 @@
 package sourcemap
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -8,22 +9,17 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	_, err := newCache(1*time.Second, -1*time.Second)
+	_, err := newCache(-1 * time.Second)
 	assert.Error(t, err)
 	assert.Equal(t, (err.(Error)).Kind, InitError)
 	assert.Contains(t, err.Error(), "Cache cannot be initialized")
 
-	_, err = newCache(-1*time.Second, 1*time.Second)
-	assert.Error(t, err)
-	assert.Equal(t, (err.(Error)).Kind, InitError)
-	assert.Contains(t, err.Error(), "Cache cannot be initialized")
-
-	_, err = newCache(1*time.Second, 1*time.Second)
+	_, err = newCache(1 * time.Second)
 	assert.NoError(t, err)
 }
 
 func TestAddAndFetch(t *testing.T) {
-	c, err := newCache(60*time.Second, 60*time.Second)
+	c, err := newCache(60 * time.Second)
 	assert.NoError(t, err)
 	testSmap := getFakeSmap()
 	id := fakeSmapId()
@@ -47,7 +43,7 @@ func TestAddAndFetch(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	c, err := newCache(60*time.Second, 60*time.Second)
+	c, err := newCache(60 * time.Second)
 	assert.NoError(t, err)
 	id := fakeSmapId()
 	testSmap := getFakeSmap()
@@ -64,7 +60,7 @@ func TestRemove(t *testing.T) {
 
 func TestExpiration(t *testing.T) {
 	expiration := 25 * time.Millisecond
-	c, err := newCache(expiration, 60*time.Second)
+	c, err := newCache(expiration)
 	assert.NoError(t, err)
 	id := fakeSmapId()
 	testSmap := getFakeSmap()
@@ -79,6 +75,25 @@ func TestExpiration(t *testing.T) {
 	smap, found = c.fetch(id)
 	assert.Nil(t, smap)
 	assert.False(t, found)
+}
+
+func TestCleanupInterval(t *testing.T) {
+	tests := []struct {
+		ttl      time.Duration
+		expected float64
+	}{
+		{expected: 1},
+		{ttl: 30 * time.Second, expected: 1},
+		{ttl: 30 * time.Second, expected: 1},
+		{ttl: 60 * time.Second, expected: 1},
+		{ttl: 61 * time.Second, expected: 61.0 / 60},
+		{ttl: 5 * time.Minute, expected: 5},
+	}
+	for idx, test := range tests {
+		out := cleanupInterval(test.ttl)
+		assert.Equal(t, test.expected, out.Minutes(),
+			fmt.Sprintf("(%v) expected %v minutes, received %v minutes", idx, test.expected, out.Minutes()))
+	}
 }
 
 func fakeSmapId() Id {

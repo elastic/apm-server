@@ -1,6 +1,7 @@
 package sourcemap
 
 import (
+	"math"
 	"time"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -9,18 +10,20 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
+const MIN_CLEANUP_INTERVAL_SECONDS float64 = 60
+
 type cache struct {
 	goca *gocache.Cache
 }
 
-func newCache(expiration, cleanupInterval time.Duration) (*cache, error) {
-	if expiration < 0 || cleanupInterval < 0 {
+func newCache(expiration time.Duration) (*cache, error) {
+	if expiration < 0 {
 		return nil, Error{
-			Msg:  "Cache cannot be initialized. Expiration and CleanupInterval need to be > 0",
+			Msg:  "Cache cannot be initialized. Expiration and CleanupInterval need to be >= 0",
 			Kind: InitError,
 		}
 	}
-	return &cache{goca: gocache.New(expiration, cleanupInterval)}, nil
+	return &cache{goca: gocache.New(expiration, cleanupInterval(expiration))}, nil
 }
 
 func (c *cache) add(id Id, consumer *sourcemap.Consumer) {
@@ -43,4 +46,8 @@ func (c *cache) fetch(id Id) (*sourcemap.Consumer, bool) {
 		return cached.(*sourcemap.Consumer), true
 	}
 	return nil, false
+}
+
+func cleanupInterval(ttl time.Duration) time.Duration {
+	return time.Duration(math.Max(ttl.Seconds(), MIN_CLEANUP_INTERVAL_SECONDS)) * time.Second
 }

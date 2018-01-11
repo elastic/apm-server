@@ -36,8 +36,7 @@ type Sourcemapping struct {
 }
 
 type Cache struct {
-	Expiration      time.Duration `config:"expiration"`
-	CleanupInterval time.Duration `config:"cleanup_interval"`
+	Expiration time.Duration `config:"expiration"`
 }
 
 type SSLConfig struct {
@@ -73,10 +72,9 @@ func (c *FrontendConfig) SmapMapper() (sourcemap.Mapper, error) {
 		return c.Sourcemapping.mapper, nil
 	}
 	smapConfig := sourcemap.Config{
-		CacheExpiration:      smap.Cache.Expiration,
-		CacheCleanupInterval: smap.Cache.CleanupInterval,
-		ElasticsearchConfig:  smap.esConfig,
-		Index:                smap.Index + "*",
+		CacheExpiration:     smap.Cache.Expiration,
+		ElasticsearchConfig: smap.esConfig,
+		Index:               smap.Index + "*",
 	}
 	smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
 	if err != nil {
@@ -102,8 +100,7 @@ func defaultConfig() *Config {
 			AllowOrigins: []string{"*"},
 			Sourcemapping: &Sourcemapping{
 				Cache: &Cache{
-					Expiration:      300 * time.Second,
-					CleanupInterval: 600 * time.Second,
+					Expiration: 5 * time.Minute,
 				},
 				Index: "apm",
 			},
