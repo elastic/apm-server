@@ -1,6 +1,7 @@
 package beater
 
 import (
+	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,11 +17,16 @@ func TestNotifyUpServerDown(t *testing.T) {
 		return nil
 	}
 
+	lis, err := net.Listen("tcp", "localhost:0")
+	assert.NoError(t, err)
+	defer lis.Close()
+	config.Host = lis.Addr().String()
+
 	server := newServer(config, reporter)
-	go run(server, config)
+	go run(server, lis, config)
 
 	notifyListening(config, reporter)
 
 	listening := saved[0].Fields["listening"].(string)
-	assert.Equal(t, "localhost:8200", listening)
+	assert.Equal(t, config.Host, listening)
 }
