@@ -55,8 +55,7 @@ func TestBeatConfig(t *testing.T) {
 					"allow_origins": []string{"example*"},
 					"sourcemapping": map[string]interface{}{
 						"cache": map[string]interface{}{
-							"expiration":       10,
-							"cleanup_interval": 20,
+							"expiration": 5 * time.Minute,
 						},
 						"index": "apm-test*",
 					},
@@ -76,7 +75,7 @@ func TestBeatConfig(t *testing.T) {
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
 					Sourcemapping: &Sourcemapping{
-						Cache: &Cache{Expiration: 10 * time.Second, CleanupInterval: 20 * time.Second},
+						Cache: &Cache{Expiration: 5 * time.Minute},
 						Index: "apm-test*",
 					},
 				},
@@ -97,7 +96,7 @@ func TestBeatConfig(t *testing.T) {
 					"enabled": true,
 					"sourcemapping": map[string]interface{}{
 						"cache": map[string]interface{}{
-							"expiration": 10,
+							"expiration": 7,
 						},
 					},
 				},
@@ -117,8 +116,7 @@ func TestBeatConfig(t *testing.T) {
 					AllowOrigins: []string{"*"},
 					Sourcemapping: &Sourcemapping{
 						Cache: &Cache{
-							Expiration:      10 * time.Second,
-							CleanupInterval: 600 * time.Second,
+							Expiration: 7 * time.Second,
 						},
 						Index: "apm",
 					},

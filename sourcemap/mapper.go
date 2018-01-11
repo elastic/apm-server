@@ -17,10 +17,9 @@ type SmapMapper struct {
 }
 
 type Config struct {
-	CacheExpiration      time.Duration //seconds
-	CacheCleanupInterval time.Duration //seconds
-	ElasticsearchConfig  *common.Config
-	Index                string
+	CacheExpiration     time.Duration
+	ElasticsearchConfig *common.Config
+	Index               string
 }
 
 type Mapping struct {
