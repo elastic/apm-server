@@ -1,0 +1,96 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-12-08T12:18:50.291Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-apm-js-base",
+                        "version": "0.2.0"
+                    },
+                    "name": "apm-agent-js-base-test-e2e-general-usecase",
+                    "version": "0.0.1"
+                }
+            },
+            "error": {
+                "culprit": "test/e2e/general-usecase/app.e2e-bundle.js",
+                "exception": {
+                    "message": "Uncaught Error: timeout test error",
+                    "stacktrace": [
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+                            "function": "\u003canonymous\u003e",
+                            "line": {
+                                "column": 9,
+                                "number": 5463
+                            },
+                            "sourcemap": {
+                                "error": "No Sourcemap found for Id Service Name: apm-agent-js-base-test-e2e-general-usecase, Service Version: 0.0.1 and Path: http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map., lineno 5463, colno 9",
+                                "updated": false
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+                            "function": "invokeTask",
+                            "line": {
+                                "column": 181,
+                                "number": 3630
+                            },
+                            "sourcemap": {
+                                "error": "No Sourcemap found for Id Service Name: apm-agent-js-base-test-e2e-general-usecase, Service Version: 0.0.1 and Path: http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map., lineno 3630, colno 181",
+                                "updated": false
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+                            "function": "runTask",
+                            "line": {
+                                "column": 51,
+                                "number": 3433
+                            },
+                            "sourcemap": {
+                                "error": "No Sourcemap found for Id Service Name: apm-agent-js-base-test-e2e-general-usecase, Service Version: 0.0.1 and Path: http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map., lineno 3433, colno 51",
+                                "updated": false
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+                            "function": "invoke",
+                            "line": {
+                                "column": 42,
+                                "number": 3689
+                            },
+                            "sourcemap": {
+                                "error": "No Sourcemap found for Id Service Name: apm-agent-js-base-test-e2e-general-usecase, Service Version: 0.0.1 and Path: http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map., lineno 3689, colno 42",
+                                "updated": false
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+                            "function": "timer",
+                            "line": {
+                                "column": 33,
+                                "number": 4737
+                            },
+                            "sourcemap": {
+                                "error": "No Sourcemap found for Id Service Name: apm-agent-js-base-test-e2e-general-usecase, Service Version: 0.0.1 and Path: http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map., lineno 4737, colno 33",
+                                "updated": false
+                            }
+                        }
+                    ]
+                },
+                "grouping_key": "56b5de617771456703b21f8abd2357df",
+                "id": "2ab037b5-d321-4af9-923c-ffc317411119"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        }
+    ]
+}

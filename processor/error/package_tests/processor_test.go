@@ -1,11 +1,17 @@
 package package_tests
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
+	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/processor"
 	er "github.com/elastic/apm-server/processor/error"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -22,11 +28,14 @@ func TestProcessorBackendOK(t *testing.T) {
 	tests.TestProcessRequests(t, er.NewProcessor(nil), requestInfo, map[string]string{})
 }
 
-func TestProcessorFrontendOK(t *testing.T) {
+func TestProcessorFrontendMinifiedSmapOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
-		{Name: "TestProcessErrorFrontend", Path: "data/valid/error/frontend.json"},
+		{Name: "TestProcessErrorFrontendMinified", Path: "data/valid/error/frontend.json"},
+		{Name: "TestProcessErrorFrontendNoSmap", Path: "data/valid/error/frontend_app.e2e-bundle.json"},
 	}
-	tests.TestProcessRequests(t, er.NewProcessor(nil), requestInfo, map[string]string{})
+	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
+	conf := processor.Config{SmapMapper: &mapper}
+	tests.TestProcessRequests(t, er.NewProcessor(&conf), requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
@@ -36,3 +45,17 @@ func TestProcessorFailedValidation(t *testing.T) {
 	err = er.NewProcessor(nil).Validate(data)
 	assert.NotNil(t, err)
 }
+
+type fakeAcc struct{}
+
+func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
+	file := "bundle.js.map"
+	current, _ := os.Getwd()
+	path := filepath.Join(current, "../../../tests/data/valid/sourcemap/", file)
+	fileBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return s.Parse("", fileBytes)
+}
+func (a *fakeAcc) Remove(smapId sourcemap.Id) {}

@@ -5,38 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/utility"
+	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
-
-type NilSmap struct{}
-
-func (s *NilSmap) Fetch(smapId utility.SmapID) (*sourcemap.Consumer, error) {
-	return nil, nil
-}
-func (s *NilSmap) RemoveFromCache(smapId utility.SmapID) {}
-
-type ErrorSmap struct{}
-
-func (s *ErrorSmap) Fetch(smapId utility.SmapID) (*sourcemap.Consumer, error) {
-	return nil, errors.New("Error when fetching sourcemap.")
-}
-func (s *ErrorSmap) RemoveFromCache(smapId utility.SmapID) {}
-
-type ValidSmap struct{}
-
-func (s *ValidSmap) Fetch(smapId utility.SmapID) (*sourcemap.Consumer, error) {
-	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
-	if err != nil {
-		panic(err)
-	}
-	return sourcemap.Parse("", fileBytes)
-}
-func (s *ValidSmap) RemoveFromCache(smapId utility.SmapID) {}
 
 func TestStacktraceFrameTransform(t *testing.T) {
 	filename := "some file"
@@ -44,166 +18,21 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	colno := 55
 	path := "~/./some/abs_path"
 	context := "context"
-	fct := "st function"
+	fct := "some function"
 	module := "some_module"
 	libraryFrame := true
 	serviceVersion := "1.0"
-	nilSmap := &NilSmap{}
-	errorSmap := &ErrorSmap{}
-	validSmap := &ValidSmap{}
 	tests := []struct {
-		StFrame      StacktraceFrame
-		Output       common.MapStr
-		Service      Service
-		SmapAccessor utility.SmapAccessor
-		Msg          string
+		StFrame StacktraceFrame
+		Output  common.MapStr
+		Service Service
+		Msg     string
 	}{
 		{
-			StFrame:      StacktraceFrame{Filename: filename, Lineno: lineno},
-			Output:       common.MapStr{"filename": filename, "line": common.MapStr{"number": lineno}},
-			SmapAccessor: nil,
-			Service:      Service{Name: "myService"},
-			Msg:          "Minimal StacktraceFrame, no sourcemap mapping",
-		},
-		{
-			StFrame: StacktraceFrame{
-				Filename: filename,
-				Lineno:   lineno,
-				Colno:    &colno,
-				AbsPath:  &path,
-			},
-			Output: common.MapStr{
-				"filename": filename,
-				"line":     common.MapStr{"number": lineno, "column": colno},
-				"sourcemap": common.MapStr{
-					"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
-					"updated": false,
-				},
-				"abs_path": path,
-			},
-			SmapAccessor: validSmap,
-			Service:      Service{Name: "myService"},
-			Msg:          "Minimal StacktraceFrame, no service version",
-		},
-		{
-			StFrame: StacktraceFrame{
-				Filename: filename,
-				Lineno:   lineno,
-				Colno:    &colno,
-				AbsPath:  &path,
-			},
-			Output: common.MapStr{
-				"filename": filename,
-				"line":     common.MapStr{"number": lineno, "column": colno},
-				"sourcemap": common.MapStr{
-					"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
-					"updated": false,
-				},
-				"abs_path": path,
-			},
-			SmapAccessor: validSmap,
-			Service:      Service{Version: &serviceVersion},
-			Msg:          "Minimal StacktraceFrame, no service name",
-		},
-		{
-			StFrame: StacktraceFrame{
-				Filename: filename,
-				Lineno:   lineno,
-				Colno:    &colno,
-			},
-			Output: common.MapStr{
-				"filename": filename,
-				"line":     common.MapStr{"number": lineno, "column": colno},
-				"sourcemap": common.MapStr{
-					"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
-					"updated": false,
-				},
-			},
-			SmapAccessor: validSmap,
-			Service:      Service{Name: "myService", Version: &serviceVersion},
-			Msg:          "Minimal StacktraceFrame, no abs path",
-		},
-		{
-			StFrame: StacktraceFrame{
-				Filename: filename,
-				Lineno:   lineno,
-				AbsPath:  &path,
-			},
-			Output: common.MapStr{
-				"filename": filename,
-				"line":     common.MapStr{"number": lineno},
-				"sourcemap": common.MapStr{
-					"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
-					"updated": false,
-				},
-				"abs_path": path,
-			},
-			SmapAccessor: validSmap,
-			Service:      Service{Name: "myService", Version: &serviceVersion},
-			Msg:          "Minimal StacktraceFrame, no colno",
-		},
-		{
-			StFrame: StacktraceFrame{
-				Filename: filename,
-				Lineno:   lineno,
-				Colno:    &colno,
-				AbsPath:  &path,
-			},
-			Output: common.MapStr{
-				"filename": filename,
-				"line":     common.MapStr{"number": lineno, "column": colno},
-				"abs_path": path,
-				"sourcemap": common.MapStr{
-					"error":   "No Sourcemap found for this StacktraceFrame.",
-					"updated": false,
-				},
-			},
-			SmapAccessor: nilSmap,
-			Service:      Service{Name: "myService", Version: &serviceVersion},
-			Msg:          "Minimal StacktraceFrame, no sourcemap.",
-		},
-		{
-			StFrame: StacktraceFrame{
-				Filename: filename,
-				Lineno:   10000,
-				Colno:    &colno,
-				AbsPath:  &path,
-			},
-			Output: common.MapStr{
-				"filename": filename,
-				"line":     common.MapStr{"number": 10000, "column": colno},
-				"abs_path": path,
-				"sourcemap": common.MapStr{
-					"error":   "No mapping for Lineno 10000 and Colno 55.",
-					"updated": false,
-				},
-			},
-			SmapAccessor: validSmap,
-			Service:      Service{Name: "myService", Version: &serviceVersion},
-			Msg:          "Minimal StacktraceFrame, no sourcemap mapping for lineno and colno.",
-		},
-		{
-			StFrame: StacktraceFrame{
-				AbsPath:  &path,
-				Filename: filename,
-				Lineno:   lineno,
-				Colno:    &colno,
-			},
-			Output: common.MapStr{
-				"abs_path": path,
-				"filename": filename,
-				"line": common.MapStr{
-					"number": 1,
-					"column": 55,
-				},
-				"sourcemap": common.MapStr{
-					"error":   "Error when fetching sourcemap.",
-					"updated": false,
-				},
-			},
-			SmapAccessor: errorSmap,
-			Service:      Service{Name: "myService", Version: &serviceVersion},
-			Msg:          "Error in Sourcemap mapping",
+			StFrame: StacktraceFrame{Filename: filename, Lineno: lineno},
+			Output:  common.MapStr{"filename": filename, "line": common.MapStr{"number": lineno}},
+			Service: Service{Name: "myService"},
+			Msg:     "Minimal StacktraceFrame",
 		},
 		{
 			StFrame: StacktraceFrame{
@@ -220,9 +49,9 @@ func TestStacktraceFrameTransform(t *testing.T) {
 				PostContext:  []string{"postc1", "postc2"},
 			},
 			Output: common.MapStr{
-				"abs_path":      "~/some/abs_path",
-				"filename":      "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-				"function":      "",
+				"abs_path":      "~/./some/abs_path",
+				"filename":      "some file",
+				"function":      "some function",
 				"module":        "some_module",
 				"library_frame": true,
 				"vars":          common.MapStr{"k1": "v1", "k2": "v2"},
@@ -231,22 +60,187 @@ func TestStacktraceFrameTransform(t *testing.T) {
 					"post": []string{"postc1", "postc2"},
 				},
 				"line": common.MapStr{
-					"number":  13,
-					"column":  0,
+					"number":  1,
+					"column":  55,
 					"context": "context",
 				},
-				"sourcemap": common.MapStr{
-					"updated": true,
-				},
 			},
-			SmapAccessor: validSmap,
-			Service:      Service{Name: "myService", Version: &serviceVersion},
-			Msg:          "Full StacktraceFrame",
+			Service: Service{Name: "myService", Version: &serviceVersion},
+			Msg:     "Full StacktraceFrame",
 		},
 	}
 
 	for idx, test := range tests {
-		output := (&test.StFrame).Transform(test.Service, test.SmapAccessor)
+		output := (&test.StFrame).Transform(&pr.Config{}, test.Service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
+
+func TestApplySourcemap(t *testing.T) {
+	colno := 1
+	fct := "original function"
+	absPath := "original absPath"
+	tests := []struct {
+		fr  StacktraceFrame
+		out common.MapStr
+		msg string
+	}{
+		{
+			fr: StacktraceFrame{},
+			out: common.MapStr{
+				"filename": "", "line": common.MapStr{"number": 0},
+				"sourcemap": common.MapStr{
+					"error":   "Colno mandatory for sourcemapping.",
+					"updated": false,
+				},
+			},
+			msg: "No colno",
+		},
+		{
+			fr: StacktraceFrame{Colno: &colno, Lineno: 9},
+			out: common.MapStr{
+				"filename": "", "line": common.MapStr{"column": 1, "number": 9},
+				"sourcemap": common.MapStr{
+					"error":   "Some untyped error",
+					"updated": false,
+				},
+			},
+			msg: "Some error occured in mapper.",
+		},
+		{
+			fr: StacktraceFrame{Colno: &colno, Lineno: 8},
+			out: common.MapStr{
+				"filename": "", "line": common.MapStr{"column": 1, "number": 8},
+				"sourcemap": common.MapStr{
+					"updated": false,
+				},
+			},
+			msg: "Some access error occured in mapper.",
+		},
+		{
+			fr: StacktraceFrame{Colno: &colno, Lineno: 7},
+			out: common.MapStr{
+				"filename": "", "line": common.MapStr{"column": 1, "number": 7},
+				"sourcemap": common.MapStr{
+					"updated": false,
+					"error":   "Some mapping error",
+				},
+			},
+			msg: "Some mapping error occured in mapper.",
+		},
+		{
+			fr: StacktraceFrame{Colno: &colno, Lineno: 6},
+			out: common.MapStr{
+				"filename": "", "line": common.MapStr{"column": 1, "number": 6},
+				"sourcemap": common.MapStr{
+					"updated": false,
+					"error":   "Some key error",
+				},
+			},
+			msg: "Some key error occured in mapper.",
+		},
+		{
+			fr: StacktraceFrame{
+				Colno:    &colno,
+				Lineno:   5,
+				Filename: "original filename",
+				Function: &fct,
+				AbsPath:  &absPath,
+			},
+			out: common.MapStr{
+				"filename": "original filename",
+				"function": "original function",
+				"line":     common.MapStr{"column": 100, "number": 500},
+				"abs_path": "changed path",
+				"sourcemap": common.MapStr{
+					"updated": true,
+				},
+			},
+			msg: "Sourcemap with empty filename and function mapping applied.",
+		},
+		{
+			fr: StacktraceFrame{
+				Colno:    &colno,
+				Lineno:   4,
+				Filename: "original filename",
+				Function: &fct,
+				AbsPath:  &absPath,
+			},
+			out: common.MapStr{
+				"filename": "changed filename",
+				"function": "changed function",
+				"line":     common.MapStr{"column": 100, "number": 400},
+				"abs_path": "changed path",
+				"sourcemap": common.MapStr{
+					"updated": true,
+				},
+			},
+			msg: "Full sourcemap mapping applied.",
+		},
+	}
+
+	ver := "1"
+	service := Service{Name: "foo", Version: &ver}
+	for idx, test := range tests {
+		output := (&test.fr).Transform(&pr.Config{SmapMapper: &FakeMapper{}}, service)
+		assert.Equal(t, test.out, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+	}
+}
+
+func TestBuildSourcemap(t *testing.T) {
+	version := "1.0"
+	path := "././a/b/../c"
+	tests := []struct {
+		service Service
+		fr      StacktraceFrame
+		out     string
+	}{
+		{service: Service{}, fr: StacktraceFrame{}, out: ""},
+		{service: Service{Version: &version}, fr: StacktraceFrame{}, out: "1.0"},
+		{service: Service{Name: "foo"}, fr: StacktraceFrame{}, out: "foo"},
+		{service: Service{}, fr: StacktraceFrame{AbsPath: &path}, out: "a/c"},
+		{
+			service: Service{Name: "foo", Version: &version},
+			fr:      StacktraceFrame{AbsPath: &path},
+			out:     "foo_1.0_a/c",
+		},
+	}
+	for _, test := range tests {
+		id := test.fr.buildSourcemapId(test.service)
+		assert.Equal(t, test.out, (&id).Key())
+	}
+}
+
+// Fake implemenations for Mapper
+
+type FakeMapper struct{}
+
+func (m *FakeMapper) Apply(smapId sourcemap.Id, lineno, colno int) (*sourcemap.Mapping, error) {
+	switch lineno {
+	case 9:
+		return nil, errors.New("Some untyped error")
+	case 8:
+		return nil, sourcemap.Error{Kind: sourcemap.AccessError}
+	case 7:
+		return nil, sourcemap.Error{Kind: sourcemap.MapError, Msg: "Some mapping error"}
+	case 6:
+		return nil, sourcemap.Error{Kind: sourcemap.KeyError, Msg: "Some key error"}
+	case 5:
+		return &sourcemap.Mapping{
+			Filename: "",
+			Function: "",
+			Colno:    100,
+			Lineno:   500,
+			Path:     "changed path",
+		}, nil
+	default:
+		return &sourcemap.Mapping{
+			Filename: "changed filename",
+			Function: "changed function",
+			Colno:    100,
+			Lineno:   400,
+			Path:     "changed path",
+		}, nil
+	}
+}
+func (m *FakeMapper) NewSourcemapAdded(smapId sourcemap.Id) {}

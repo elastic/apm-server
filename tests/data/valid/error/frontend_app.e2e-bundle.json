@@ -1,0 +1,57 @@
+{
+  "service": {
+    "name": "apm-agent-js-base-test-e2e-general-usecase",
+    "agent": {
+      "name": "elastic-apm-js-base",
+      "version": "0.2.0"
+    },
+    "version": "0.0.1"
+  },
+  "errors": [
+    {
+      "id": "2ab037b5-d321-4af9-923c-ffc317411119",
+      "culprit": "test/e2e/general-usecase/app.e2e-bundle.js",
+      "timestamp": "2017-12-08T12:18:50.291Z",
+      "exception": {
+        "stacktrace": [
+          {
+            "function": "<anonymous>",
+            "lineno": 5463,
+            "colno": 9,
+            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map"
+          },
+          {
+            "function": "invokeTask",
+            "lineno": 3630,
+            "colno": 181,
+            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map"
+          },
+          {
+            "function": "runTask",
+            "lineno": 3433,
+            "colno": 51,
+            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map"
+          },
+          {
+            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+            "function": "invoke",
+            "lineno": 3689,
+            "colno": 42
+          },
+          {
+            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+            "function": "timer",
+            "lineno": 4737,
+            "colno": 33
+          }
+        ],
+        "message": "Uncaught Error: timeout test error"
+      }
+    }
+  ]
+}

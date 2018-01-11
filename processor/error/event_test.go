@@ -12,7 +12,8 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
+	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -173,7 +174,7 @@ func TestEventTransform(t *testing.T) {
 						"filename": "st file",
 						"line":     common.MapStr{"number": 0},
 						"sourcemap": common.MapStr{
-							"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
+							"error":   "Colno mandatory for sourcemapping.",
 							"updated": false,
 						},
 					}},
@@ -197,7 +198,7 @@ func TestEventTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Event.Transform(service, &utility.SourcemapAccessor{})
+		output := test.Event.Transform(&pr.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

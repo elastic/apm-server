@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -30,38 +30,6 @@ func getStrSlice(data common.MapStr, key string) []string {
 		rs = append(rs, i.(string))
 	}
 	return rs
-}
-
-func TestInvalidateCache(t *testing.T) {
-	data, err := tests.LoadValidData("sourcemap")
-	assert.NoError(t, err)
-
-	esConf, err := common.NewConfigFrom(map[string]interface{}{
-		"hosts": []string{"http://localhost:9200"},
-	})
-	assert.NoError(t, err)
-	smapAcc, err := utility.NewSourcemapAccessor(
-		utility.SmapConfig{
-			ElasticsearchConfig:  esConf,
-			CacheExpiration:      1 * time.Second,
-			CacheCleanupInterval: 100 * time.Second,
-		},
-	)
-
-	smapId := utility.SmapID{
-		ServiceName:    "service",
-		ServiceVersion: "1",
-		Path:           "js/bundle.js",
-	}
-	smapAcc.AddToCache(smapId, &s.Consumer{})
-	smapConsumer, err := smapAcc.Fetch(smapId)
-	assert.NotNil(t, smapConsumer)
-
-	_, err = NewProcessor(&pr.Config{SmapAccessor: smapAcc}).Transform(data)
-	assert.NoError(t, err)
-
-	smapConsumer, err = smapAcc.Fetch(smapId)
-	assert.Nil(t, smapConsumer)
 }
 
 func TestPayloadTransform(t *testing.T) {
@@ -94,4 +62,36 @@ func TestParseSourcemaps(t *testing.T) {
 	source, _, _, _, ok := parser.Source(1, 9)
 	assert.True(t, ok)
 	assert.Equal(t, "webpack:///bundle.js", source)
+}
+
+func TestInvalidateCache(t *testing.T) {
+	data, err := tests.LoadValidData("sourcemap")
+	assert.NoError(t, err)
+
+	smapId := sourcemap.Id{Path: "/tmp"}
+	smapMapper := smapMapperFake{
+		c: map[string]*sourcemap.Mapping{
+			"/tmp": &(sourcemap.Mapping{}),
+		},
+	}
+	mapping, err := smapMapper.Apply(smapId, 0, 0)
+	assert.NotNil(t, mapping)
+
+	_, err = NewProcessor(&pr.Config{SmapMapper: &smapMapper}).Transform(data)
+	assert.NoError(t, err)
+
+	mapping, err = smapMapper.Apply(smapId, 0, 0)
+	assert.Nil(t, mapping)
+}
+
+type smapMapperFake struct {
+	c map[string]*sourcemap.Mapping
+}
+
+func (a *smapMapperFake) Apply(id sourcemap.Id, lineno, colno int) (*sourcemap.Mapping, error) {
+	return a.c[id.Path], nil
+}
+
+func (sm *smapMapperFake) NewSourcemapAdded(id sourcemap.Id) {
+	sm.c = map[string]*sourcemap.Mapping{}
 }

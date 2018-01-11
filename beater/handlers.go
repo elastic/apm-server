@@ -90,18 +90,27 @@ func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.H
 }
 
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
+	smapper, err := config.Frontend.SmapMapper()
+	if err != nil {
+		logp.Err(err.Error())
+	}
+	prConfig := processor.Config{SmapMapper: smapper}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, &processor.Config{SmapAccessor: config.Frontend.SmapAccessor()}, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
+					processRequestHandler(pf, &prConfig, report, decodeLimitJSONData(config.MaxUnzippedSize))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
+	smapper, err := config.Frontend.SmapMapper()
+	if err != nil {
+		logp.Err(err.Error())
+	}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, &processor.Config{SmapAccessor: config.Frontend.SmapAccessor()}, report, sourcemap.DecodeSourcemapFormData))))
+				processRequestHandler(pf, &processor.Config{SmapMapper: smapper}, report, sourcemap.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ *Config, _ reporter) http.Handler {
