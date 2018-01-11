@@ -39,6 +39,7 @@ apm-server:
       #cache:
         #expiration: 300 #seconds
         #cleanup_interval: 600 #seconds
+
       # Sourcemaps are stored in the same index as transaction and error documents.
       # If the default index pattern at 'outputs.elasticsearch.index' is changed,
       # a matching index pattern needs to be specified here.

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -51,12 +52,12 @@ func (e *Event) DocType() string {
 	return "error"
 }
 
-func (e *Event) Mappings(pa *payload, smapAccessor utility.SmapAccessor) (time.Time, []utility.DocMapping) {
+func (e *Event) Mappings(config *pr.Config, pa *payload) (time.Time, []utility.DocMapping) {
 	mapping := []utility.DocMapping{
 		{Key: "processor", Apply: func() common.MapStr {
 			return common.MapStr{"name": processorName, "event": e.DocType()}
 		}},
-		{Key: e.DocType(), Apply: func() common.MapStr { return e.Transform(pa.Service, smapAccessor) }},
+		{Key: e.DocType(), Apply: func() common.MapStr { return e.Transform(config, pa.Service) }},
 		{Key: "context", Apply: func() common.MapStr { return e.Context }},
 		{Key: "context.service", Apply: pa.Service.Transform},
 		{Key: "context.system", Apply: pa.System.Transform},
@@ -73,21 +74,21 @@ func (e *Event) Mappings(pa *payload, smapAccessor utility.SmapAccessor) (time.T
 	return e.Timestamp, mapping
 }
 
-func (e *Event) Transform(service m.Service, smapAccessor utility.SmapAccessor) common.MapStr {
+func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
 	e.enhancer = utility.MapStrEnhancer{}
 	e.data = common.MapStr{}
 
 	e.add("id", e.Id)
 	e.add("culprit", e.Culprit)
 
-	e.addException(service, smapAccessor)
-	e.addLog(service, smapAccessor)
+	e.addException(config, service)
+	e.addLog(config, service)
 	e.addGroupingKey()
 
 	return e.data
 }
 
-func (e *Event) addException(service m.Service, smapAccessor utility.SmapAccessor) {
+func (e *Event) addException(config *pr.Config, service m.Service) {
 	if e.Exception == nil {
 		return
 	}
@@ -107,7 +108,7 @@ func (e *Event) addException(service m.Service, smapAccessor utility.SmapAccesso
 		e.enhancer.Add(ex, "code", e.Exception.Code.(string))
 	}
 
-	st := e.Exception.Stacktrace.Transform(service, smapAccessor)
+	st := e.Exception.Stacktrace.Transform(config, service)
 	if len(st) > 0 {
 		e.enhancer.Add(ex, "stacktrace", st)
 	}
@@ -115,7 +116,7 @@ func (e *Event) addException(service m.Service, smapAccessor utility.SmapAccesso
 	e.add("exception", ex)
 }
 
-func (e *Event) addLog(service m.Service, smapAccessor utility.SmapAccessor) {
+func (e *Event) addLog(config *pr.Config, service m.Service) {
 	if e.Log == nil {
 		return
 	}
@@ -124,7 +125,7 @@ func (e *Event) addLog(service m.Service, smapAccessor utility.SmapAccessor) {
 	e.enhancer.Add(log, "param_message", e.Log.ParamMessage)
 	e.enhancer.Add(log, "logger_name", e.Log.LoggerName)
 	e.enhancer.Add(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(service, smapAccessor)
+	st := e.Log.Stacktrace.Transform(config, service)
 	if len(st) > 0 {
 		e.enhancer.Add(log, "stacktrace", st)
 	}

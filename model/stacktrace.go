@@ -1,17 +1,17 @@
 package model
 
 import (
-	"github.com/elastic/apm-server/utility"
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
 
 type Stacktrace []StacktraceFrame
 
-func (st *Stacktrace) Transform(service Service, smapAccessor utility.SmapAccessor) []common.MapStr {
+func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.MapStr {
 	var frames []common.MapStr
 
 	for _, fr := range *st {
-		frame := fr.Transform(service, smapAccessor)
+		frame := fr.Transform(config, service)
 		frames = append(frames, frame)
 	}
 	return frames

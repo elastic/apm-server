@@ -3,6 +3,7 @@ package processor
 import (
 	"time"
 
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -17,7 +18,7 @@ type Processor interface {
 }
 
 type Config struct {
-	SmapAccessor utility.SmapAccessor
+	SmapMapper sourcemap.Mapper
 }
 
 func CreateDoc(timestamp time.Time, docMappings []utility.DocMapping) beat.Event {
