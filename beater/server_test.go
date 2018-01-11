@@ -217,16 +217,18 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 		t.Skip("skipping server test")
 	}
 
-	host := randomAddr()
+	lis, err := net.Listen("tcp", "localhost:0")
+	assert.NoError(t, err)
+
 	cfg := defaultConfig()
-	cfg.Host = host
+	cfg.Host = lis.Addr().String()
 	cfg.SSL = ssl
 
 	apm := newServer(cfg, nopReporter)
-	go run(apm, cfg)
+	go run(apm, lis, cfg)
 
 	secure := cfg.SSL != nil
-	waitForServer(secure, host)
+	waitForServer(secure, cfg.Host)
 
 	return apm, func() { stop(apm, time.Second) }
 }
@@ -266,12 +268,6 @@ func postTestRequest(t *testing.T, apm *http.Server, client *http.Client, schema
 
 	addr := fmt.Sprintf("%s://%s%s", schema, apm.Addr, BackendTransactionsURL)
 	return client.Post(addr, "application/json", bytes.NewReader(testData))
-}
-
-func randomAddr() string {
-	l, _ := net.Listen("tcp", "localhost:0")
-	l.Close()
-	return l.Addr().String()
 }
 
 func waitForServer(secure bool, host string) {
