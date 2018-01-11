@@ -1,9 +1,15 @@
+// +build darwin linux windows
+// +build cgo
+
 package instance
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"time"
+
+	"github.com/satori/go.uuid"
 
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/metric/system/cpu"
@@ -15,6 +21,7 @@ import (
 var (
 	cpuMonitor       *cpu.Monitor
 	beatProcessStats *process.Stats
+	ephemeralID      uuid.UUID
 )
 
 func init() {
@@ -26,6 +33,8 @@ func init() {
 	systemMetrics := monitoring.Default.NewRegistry("system")
 	monitoring.NewFunc(systemMetrics, "load", reportSystemLoadAverage, monitoring.Report)
 	monitoring.NewFunc(systemMetrics, "cpu", reportSystemCPUUsage, monitoring.Report)
+
+	ephemeralID = uuid.NewV4()
 }
 
 func setupMetrics(name string) error {
@@ -64,6 +73,7 @@ func reportInfo(_ monitoring.Mode, V monitoring.Visitor) {
 	delta := time.Since(log.StartTime)
 	uptime := int64(delta / time.Millisecond)
 	monitoring.ReportInt(V, "uptime.ms", uptime)
+	monitoring.ReportString(V, "ephemeral_id", ephemeralID.String())
 }
 
 func reportBeatCPU(_ monitoring.Mode, V monitoring.Visitor) {
@@ -82,26 +92,22 @@ func reportBeatCPU(_ monitoring.Mode, V monitoring.Visitor) {
 }
 
 func getCPUPercentages() (float64, float64, float64, error) {
-	state, err := beatProcessStats.Get()
+	beatPID := os.Getpid()
+	state, err := beatProcessStats.GetOne(beatPID)
 	if err != nil {
 		return 0.0, 0.0, 0.0, fmt.Errorf("error retrieving process stats")
 	}
 
-	if len(state) != 1 {
-		return 0.0, 0.0, 0.0, fmt.Errorf("more or less than one processes: %v", len(state))
-	}
-
-	beatState := state[0]
-	iCPUUsage, err := beatState.GetValue("cpu.total.pct")
+	iCPUUsage, err := state.GetValue("cpu.total.pct")
 	if err != nil {
 		return 0.0, 0.0, 0.0, fmt.Errorf("error getting total CPU usage: %v", err)
 	}
-	iCPUUsageNorm, err := beatState.GetValue("cpu.total.norm.pct")
+	iCPUUsageNorm, err := state.GetValue("cpu.total.norm.pct")
 	if err != nil {
 		return 0.0, 0.0, 0.0, fmt.Errorf("error getting normalized CPU percentage: %v", err)
 	}
 
-	iTotalCPUUsage, err := beatState.GetValue("cpu.total.value")
+	iTotalCPUUsage, err := state.GetValue("cpu.total.value")
 	if err != nil {
 		return 0.0, 0.0, 0.0, fmt.Errorf("error getting total CPU since start: %v", err)
 	}
