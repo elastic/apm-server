@@ -35,6 +35,10 @@ apm-server:
     # If an item in the list is a single *, everything will be allowed
     #allow_origins : *
 
+    # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes,
+    # If the regexp matches, the stacktrace frame is considered to be a library frame.
+    #library_pattern: "node_modules|bower_components|~"
+
     #sourcemapping:
 
       # Source Maps are are fetched from Elasticsearch and then kept in an in-memory cache for a certain time.

@@ -83,6 +83,32 @@ class ServerBaseTest(ServerSetUpBaseTest):
         super(ServerBaseTest, self).tearDown()
         self.apmserver_proc.check_kill_and_wait()
 
+    def check_library_frames(self, library_frames, event):
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": event}}})
+        l_frames = {"true": 0, "false": 0, "empty": 0}
+        for doc in rs['hits']['hits']:
+            if "error" in doc["_source"]:
+                err = doc["_source"]["error"]
+                if "exception" in err:
+                    self.count_library_frames(err["exception"], l_frames)
+                if "log" in err:
+                    self.count_library_frames(err["log"], l_frames)
+            elif "span" in doc["_source"]:
+                span = doc["_source"]["span"]
+                self.count_library_frames(span, l_frames)
+        assert l_frames == library_frames, "found {}, expected {}".format(l_frames, library_frames)
+
+    def count_library_frames(self, doc, lf):
+        if "stacktrace" not in doc:
+            return
+        for frame in doc["stacktrace"]:
+            if frame.has_key("library_frame"):
+                k = "true" if frame["library_frame"] == True else "false"
+                lf[k] += 1
+            else:
+                lf["empty"] += 1
+
 
 class SecureServerBaseTest(ServerSetUpBaseTest):
 

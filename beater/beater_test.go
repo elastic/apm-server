@@ -59,6 +59,7 @@ func TestBeatConfig(t *testing.T) {
 						},
 						"index": "apm-test*",
 					},
+					"library_pattern": "^custom",
 				},
 			},
 			beaterConf: &Config{
@@ -78,6 +79,7 @@ func TestBeatConfig(t *testing.T) {
 						Cache: &Cache{Expiration: 5 * time.Minute},
 						Index: "apm-test*",
 					},
+					LibraryPattern: "^custom",
 				},
 				ConcurrentRequests: 15,
 			},
@@ -89,7 +91,7 @@ func TestBeatConfig(t *testing.T) {
 				"max_unzipped_size": 64,
 				"secret_token":      "1234random",
 				"ssl": map[string]interface{}{
-					"enabled": false,
+					"enabled": true,
 				},
 				"concurrent_requests": 15,
 				"frontend": map[string]interface{}{
@@ -109,7 +111,7 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:    2000000000,
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
-				SSL:             &SSLConfig{Enabled: new(bool)},
+				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "", Cert: ""},
 				Frontend: &FrontendConfig{
 					Enabled:      &truthy,
 					RateLimit:    10,
@@ -120,6 +122,7 @@ func TestBeatConfig(t *testing.T) {
 						},
 						Index: "apm",
 					},
+					LibraryPattern: "node_modules|bower_components|~",
 				},
 				ConcurrentRequests: 15,
 			},

@@ -40,7 +40,8 @@ func TestConfig(t *testing.T) {
 							"expiration": 10m,
 						},
 						"index": "apm-test*"
-					}
+					},
+					"library_pattern": "pattern",
 				}
       }`),
 			expectedConfig: Config{
@@ -60,6 +61,7 @@ func TestConfig(t *testing.T) {
 						Cache: &Cache{Expiration: 10 * time.Minute},
 						Index: "apm-test*",
 					},
+					LibraryPattern: "pattern",
 				},
 				ConcurrentRequests: 15,
 			},
@@ -77,7 +79,6 @@ func TestConfig(t *testing.T) {
 				"ssl": {},
 				"frontend": {
 					"sourcemapping": {
-						"cache": {},
 					}
 				}
       }`),
@@ -96,7 +97,6 @@ func TestConfig(t *testing.T) {
 					RateLimit:    0,
 					AllowOrigins: nil,
 					Sourcemapping: &Sourcemapping{
-						Cache: &Cache{Expiration: 0 * time.Second},
 						Index: "",
 					},
 				},
