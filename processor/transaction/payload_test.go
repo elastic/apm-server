@@ -9,7 +9,7 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -158,7 +158,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform(&utility.SourcemapAccessor{})
+		outputEvents := test.Payload.transform(&pr.Config{})
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp)

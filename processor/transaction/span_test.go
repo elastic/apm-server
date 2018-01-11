@@ -7,7 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
+	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -57,7 +58,7 @@ func TestSpanTransform(t *testing.T) {
 					"filename": "",
 					"line":     common.MapStr{"number": 0},
 					"sourcemap": common.MapStr{
-						"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
+						"error":   "Colno mandatory for sourcemapping.",
 						"updated": false,
 					},
 				}},
@@ -67,7 +68,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Span.Transform(service, &utility.SourcemapAccessor{})
+		output := test.Span.Transform(&pr.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

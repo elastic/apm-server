@@ -9,7 +9,8 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
+	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -77,7 +78,7 @@ func TestPayloadTransform(t *testing.T) {
 								"filename": "myFile",
 								"line":     common.MapStr{"number": 0},
 								"sourcemap": common.MapStr{
-									"error":   "AbsPath, Colno, Service Name and Version mandatory for sourcemapping.",
+									"error":   "Colno mandatory for sourcemapping.",
 									"updated": false,
 								},
 							}},
@@ -92,7 +93,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform(&utility.SourcemapAccessor{})
+		outputEvents := test.Payload.transform(&pr.Config{SmapMapper: &sourcemap.SmapMapper{}})
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))

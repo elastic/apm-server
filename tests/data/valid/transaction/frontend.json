@@ -26,8 +26,14 @@
                             "filename": "test/e2e/general-usecase/bundle.js.map",
                             "function": "<anonymous>",
                             "lineno": 1,
-                            "colno": 18,
-                            "library_frame": true
+                            "colno": 18
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                            "function": "<anonymous>",
+                            "lineno": 1,
+                           "colno": 18
                         }
                     ]
                 }

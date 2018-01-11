@@ -4,6 +4,7 @@ import (
 	"time"
 
 	pr "github.com/elastic/apm-server/processor"
+	smap "github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -20,14 +21,14 @@ type payload struct {
 	BundleFilepath string `mapstructure:"bundle_filepath"`
 }
 
-func (pa *payload) transform(smapAccessor utility.SmapAccessor) []beat.Event {
+func (pa *payload) transform(config *pr.Config) []beat.Event {
 	var events = []beat.Event{pr.CreateDoc(mappings(pa))}
 	sourcemapCounter.Add(1)
 
-	if smapAccessor == nil {
+	if config == nil || config.SmapMapper == nil {
 		logp.Err("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		smapAccessor.RemoveFromCache(utility.SmapID{
+		config.SmapMapper.NewSourcemapAdded(smap.Id{
 			ServiceName:    pa.ServiceName,
 			ServiceVersion: pa.ServiceVersion,
 			Path:           pa.BundleFilepath,
