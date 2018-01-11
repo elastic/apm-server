@@ -63,6 +63,40 @@ class Test(ElasticTest):
         self.check_backend_error_sourcemap(count=4)
 
 
+class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_backend_error(self):
+        self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/errors',
+                                     'error',
+                                     4)
+        self.check_library_frames({"true": 1, "false": 1, "empty": 2}, "error")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_frontend_error(self):
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.check_library_frames({"true": 5, "false": 1, "empty": 0}, "error")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_backend_transaction(self):
+        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/transactions',
+                                     'transaction',
+                                     9)
+        self.check_library_frames({"true": 1, "false": 0, "empty": 1}, "span")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_frontend_transaction(self):
+        self.load_docs_with_template(self.get_transaction_payload_path(),
+                                     self.transactions_url,
+                                     'transaction',
+                                     2)
+        self.check_library_frames({"true": 1, "false": 1, "empty": 0}, "span")
+
+
 class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
