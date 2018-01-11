@@ -45,7 +45,8 @@ func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.M
 	enhancer.Add(m, "function", s.Function)
 	enhancer.Add(m, "vars", s.Vars)
 	if config != nil && config.LibraryPattern != nil && s.LibraryFrame == nil {
-		s.LibraryFrame = s.isLibraryFrame(config.LibraryPattern)
+		libraryFrame := s.isLibraryFrame(config.LibraryPattern)
+		s.LibraryFrame = &libraryFrame
 	}
 	enhancer.Add(m, "library_frame", s.LibraryFrame)
 
@@ -63,10 +64,9 @@ func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.M
 	return m
 }
 
-func (s *StacktraceFrame) isLibraryFrame(pattern *regexp.Regexp) *bool {
-	matching := pattern.MatchString(s.Filename) ||
+func (s *StacktraceFrame) isLibraryFrame(pattern *regexp.Regexp) bool {
+	return pattern.MatchString(s.Filename) ||
 		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
-	return &matching
 }
 
 func (s *StacktraceFrame) applySourcemap(service Service, mapper sourcemap.Mapper) {
