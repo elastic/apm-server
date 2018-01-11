@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/elastic/apm-server/sourcemap"
@@ -18,7 +19,8 @@ type Processor interface {
 }
 
 type Config struct {
-	SmapMapper sourcemap.Mapper
+	SmapMapper     sourcemap.Mapper
+	LibraryPattern *regexp.Regexp
 }
 
 func CreateDoc(timestamp time.Time, docMappings []utility.DocMapping) beat.Event {

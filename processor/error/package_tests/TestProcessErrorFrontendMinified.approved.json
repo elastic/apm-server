@@ -35,6 +35,7 @@
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
+                            "library_frame": true,
                             "line": {
                                 "column": 0,
                                 "number": 5
@@ -47,6 +48,7 @@
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "__webpack_require__",
+                            "library_frame": true,
                             "line": {
                                 "column": 0,
                                 "number": 33
@@ -59,6 +61,7 @@
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "runTask",
+                            "library_frame": true,
                             "line": {
                                 "column": 0,
                                 "number": 5
@@ -71,6 +74,7 @@
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "invoke",
+                            "library_frame": true,
                             "line": {
                                 "column": 0,
                                 "number": 39
@@ -83,6 +87,7 @@
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "moduleId",
+                            "library_frame": true,
                             "line": {
                                 "column": 0,
                                 "number": 8
@@ -103,6 +108,7 @@
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
+                            "library_frame": true,
                             "line": {
                                 "column": 0,
                                 "number": 5

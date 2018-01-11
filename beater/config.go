@@ -21,10 +21,11 @@ type Config struct {
 }
 
 type FrontendConfig struct {
-	Enabled       *bool          `config:"enabled"`
-	RateLimit     int            `config:"rate_limit"`
-	AllowOrigins  []string       `config:"allow_origins"`
-	Sourcemapping *Sourcemapping `config:"sourcemapping"`
+	Enabled        *bool          `config:"enabled"`
+	RateLimit      int            `config:"rate_limit"`
+	AllowOrigins   []string       `config:"allow_origins"`
+	LibraryPattern string         `config:"library_pattern"`
+	Sourcemapping  *Sourcemapping `config:"sourcemapping"`
 }
 
 type Sourcemapping struct {
@@ -104,6 +105,7 @@ func defaultConfig() *Config {
 				},
 				Index: "apm",
 			},
+			LibraryPattern: "node_modules|bower_components|~",
 		},
 	}
 }
