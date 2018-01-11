@@ -158,9 +158,8 @@ func getFakeSmap() *sourcemap.Consumer {
 
 func getFakeConfig() Config {
 	return Config{
-		ElasticsearchConfig:  getFakeESConfig(nil),
-		CacheExpiration:      1 * time.Second,
-		CacheCleanupInterval: 100 * time.Second,
-		Index:                "test-index",
+		ElasticsearchConfig: getFakeESConfig(nil),
+		CacheExpiration:     1 * time.Second,
+		Index:               "test-index",
 	}
 }

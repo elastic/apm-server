@@ -26,8 +26,7 @@ func NewSmapAccessor(config Config) (*SmapAccessor, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	cache, err := newCache(config.CacheExpiration, config.CacheCleanupInterval)
+	cache, err := newCache(config.CacheExpiration)
 	if err != nil {
 		return nil, err
 	}

@@ -36,9 +36,12 @@ apm-server:
     #allow_origins : *
 
     #sourcemapping:
+
+      # Source Maps are are fetched from Elasticsearch and then kept in an in-memory cache for a certain time.
+      # The `cache.expiration` determines how long a Source Map should be cached before fetching it again from Elasticsearch.
+      # Note that values configured without a time unit will be interpreted as seconds.
       #cache:
-        #expiration: 300 #seconds
-        #cleanup_interval: 600 #seconds
+        #expiration: 5m
 
       # Sourcemaps are stored in the same index as transaction and error documents.
       # If the default index pattern at 'outputs.elasticsearch.index' is changed,

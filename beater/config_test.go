@@ -37,8 +37,7 @@ func TestConfig(t *testing.T) {
 					"allow_origins": ["example*"],
 					"sourcemapping": {
 						"cache": {
-							"expiration": 10,
-							"cleanup_interval": 20
+							"expiration": 10m,
 						},
 						"index": "apm-test*"
 					}
@@ -58,7 +57,7 @@ func TestConfig(t *testing.T) {
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
 					Sourcemapping: &Sourcemapping{
-						Cache: &Cache{Expiration: 10 * time.Second, CleanupInterval: 20 * time.Second},
+						Cache: &Cache{Expiration: 10 * time.Minute},
 						Index: "apm-test*",
 					},
 				},
@@ -97,7 +96,7 @@ func TestConfig(t *testing.T) {
 					RateLimit:    0,
 					AllowOrigins: nil,
 					Sourcemapping: &Sourcemapping{
-						Cache: &Cache{Expiration: 0 * time.Second, CleanupInterval: 0 * time.Second},
+						Cache: &Cache{Expiration: 0 * time.Second},
 						Index: "",
 					},
 				},
