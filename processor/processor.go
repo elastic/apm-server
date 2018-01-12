@@ -19,9 +19,9 @@ type Processor interface {
 }
 
 type Config struct {
-	SmapMapper     sourcemap.Mapper
-	LibraryPattern *regexp.Regexp
-	Frontend       bool
+	SmapMapper          sourcemap.Mapper
+	LibraryPattern      *regexp.Regexp
+	ExcludeFromGrouping *regexp.Regexp
 }
 
 func CreateDoc(timestamp time.Time, docMappings []utility.DocMapping) beat.Event {

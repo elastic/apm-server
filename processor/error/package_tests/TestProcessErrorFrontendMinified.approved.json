@@ -33,6 +33,7 @@
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
                             "library_frame": true,
@@ -46,6 +47,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "__webpack_require__",
                             "library_frame": true,
@@ -59,6 +61,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "runTask",
                             "library_frame": true,
@@ -72,6 +75,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "invoke",
                             "library_frame": true,
@@ -85,6 +89,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "moduleId",
                             "library_frame": true,
@@ -106,6 +111,7 @@
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
                             "library_frame": true,

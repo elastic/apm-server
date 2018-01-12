@@ -54,9 +54,10 @@ func TestSpanTransform(t *testing.T) {
 				"type":     "myspantype",
 				"parent":   12,
 				"stacktrace": []common.MapStr{{
-					"abs_path": path,
-					"filename": "",
-					"line":     common.MapStr{"number": 0},
+					"exclude_from_grouping": false,
+					"abs_path":              path,
+					"filename":              "",
+					"line":                  common.MapStr{"number": 0},
 					"sourcemap": common.MapStr{
 						"error":   "Colno mandatory for sourcemapping.",
 						"updated": false,

@@ -26,6 +26,8 @@ type StacktraceFrame struct {
 
 	SourcemapUpdated bool
 	SourcemapError   *string
+
+	ExcludeFromGrouping bool
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.MapStr {
@@ -50,6 +52,11 @@ func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.M
 	}
 	enhancer.Add(m, "library_frame", s.LibraryFrame)
 
+	if config != nil && config.ExcludeFromGrouping != nil {
+		s.ExcludeFromGrouping = s.isExcludedFromGrouping(config.ExcludeFromGrouping)
+	}
+	enhancer.Add(m, "exclude_from_grouping", s.ExcludeFromGrouping)
+
 	context := common.MapStr{}
 	enhancer.Add(context, "pre", s.PreContext)
 	enhancer.Add(context, "post", s.PostContext)
@@ -62,6 +69,10 @@ func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.M
 	enhancer.Add(m, "line", line)
 
 	return m
+}
+
+func (s *StacktraceFrame) isExcludedFromGrouping(pattern *regexp.Regexp) bool {
+	return pattern.MatchString(s.Filename)
 }
 
 func (s *StacktraceFrame) isLibraryFrame(pattern *regexp.Regexp) bool {

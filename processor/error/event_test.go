@@ -174,8 +174,9 @@ func TestEventTransform(t *testing.T) {
 				"culprit": "some trigger",
 				"exception": common.MapStr{
 					"stacktrace": []common.MapStr{{
-						"filename": "st file",
-						"line":     common.MapStr{"number": 0},
+						"filename":              "st file",
+						"line":                  common.MapStr{"number": 0},
+						"exclude_from_grouping": false,
 						"sourcemap": common.MapStr{
 							"error":   "Colno mandatory for sourcemapping.",
 							"updated": false,
@@ -209,7 +210,7 @@ func TestEventTransform(t *testing.T) {
 func TestEmptyGroupingKey(t *testing.T) {
 	emptyGroupingKey := hex.EncodeToString(md5.New().Sum(nil))
 	e := Event{}
-	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey(nil))
+	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey())
 }
 
 func TestExplicitGroupingKey(t *testing.T) {
@@ -228,35 +229,26 @@ func TestExplicitGroupingKey(t *testing.T) {
 	}
 
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
-		assert.Equal(t, groupingKey, e.calcGroupingKey(nil), "grouping_key mismatch", idx)
+		assert.Equal(t, groupingKey, e.calcGroupingKey(), "grouping_key mismatch", idx)
 	}
 }
 
 func TestFramesUsableForGroupingKey(t *testing.T) {
-	frontendConfig := pr.Config{Frontend: true}
 	st1 := m.Stacktrace{
-		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123},
-		&m.StacktraceFrame{Filename: "webpack", Lineno: 77},
-		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45},
-		&m.StacktraceFrame{Filename: "tmp", Lineno: 89},
-		&m.StacktraceFrame{Filename: "", Lineno: 13},
-		&m.StacktraceFrame{Filename: "/webpack", Lineno: 7},
-		&m.StacktraceFrame{Filename: "/tmp", Lineno: 45},
+		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: true},
+	}
+	st2 := m.Stacktrace{
+		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: false},
 	}
 	e1 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st1}}
-	key1 := e1.calcGroupingKey(&frontendConfig)
-	key1NoConfig := e1.calcGroupingKey(nil)
-	assert.NotEqual(t, key1, key1NoConfig)
-
-	stAllValid := m.Stacktrace{
-		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123},
-		&m.StacktraceFrame{Filename: "webpack", Lineno: 77},
-		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45},
-		&m.StacktraceFrame{Filename: "tmp", Lineno: 89},
-	}
-	e2 := Event{Exception: &Exception{Message: "base exception", Stacktrace: stAllValid}}
-	key2 := e2.calcGroupingKey(&frontendConfig)
-	assert.Equal(t, key1, key2)
+	e2 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st2}}
+	key1 := e1.calcGroupingKey()
+	key2 := e2.calcGroupingKey()
+	assert.NotEqual(t, key1, key2)
 }
 
 func TestFallbackGroupingKey(t *testing.T) {
@@ -266,10 +258,10 @@ func TestFallbackGroupingKey(t *testing.T) {
 	groupingKey := hex.EncodeToString(md5With(filename, string(lineno)))
 
 	e := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey(nil))
+	assert.Equal(t, groupingKey, e.calcGroupingKey())
 
 	e = Event{Exception: baseException(), Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey(nil))
+	assert.Equal(t, groupingKey, e.calcGroupingKey())
 }
 
 func TestNoFallbackGroupingKey(t *testing.T) {
@@ -285,7 +277,7 @@ func TestNoFallbackGroupingKey(t *testing.T) {
 			{Lineno: lineno, Module: &module, Filename: filename, Function: &function},
 		}),
 	}
-	assert.Equal(t, groupingKey, e.calcGroupingKey(nil))
+	assert.Equal(t, groupingKey, e.calcGroupingKey())
 }
 
 func TestGroupableEvents(t *testing.T) {
@@ -413,7 +405,7 @@ func TestGroupableEvents(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		sameGroup := test.e1.calcGroupingKey(nil) == test.e2.calcGroupingKey(nil)
+		sameGroup := test.e1.calcGroupingKey() == test.e2.calcGroupingKey()
 		assert.Equal(t, test.result, sameGroup,
 			"grouping_key mismatch", idx)
 	}

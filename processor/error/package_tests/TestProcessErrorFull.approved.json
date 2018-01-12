@@ -125,6 +125,7 @@
                                     "line2"
                                 ]
                             },
+                            "exclude_from_grouping": false,
                             "filename": "file/name.py",
                             "function": "foo",
                             "library_frame": true,
@@ -160,6 +161,7 @@
                                     "    ins.currentTransaction = trans"
                                 ]
                             },
+                            "exclude_from_grouping": false,
                             "filename": "lib/instrumentation/index.js",
                             "function": "instrumented",
                             "line": {
@@ -193,6 +195,7 @@
                                     "line2"
                                 ]
                             },
+                            "exclude_from_grouping": false,
                             "filename": "/webpack/file/name.py",
                             "function": "foo",
                             "library_frame": false,
@@ -228,6 +231,7 @@
                                     "    ins.currentTransaction = trans"
                                 ]
                             },
+                            "exclude_from_grouping": false,
                             "filename": "lib/instrumentation/index.js",
                             "function": "instrumented",
                             "line": {

@@ -26,7 +26,7 @@ func TestProcessorBackendOK(t *testing.T) {
 		{Name: "TestProcessErrorFull", Path: "data/valid/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "data/valid/error/null_values.json"},
 	}
-	conf := processor.Config{Frontend: false}
+	conf := processor.Config{ExcludeFromGrouping: nil}
 	tests.TestProcessRequests(t, er.NewProcessor(&conf), requestInfo, map[string]string{})
 }
 
@@ -37,9 +37,9 @@ func TestProcessorFrontendMinifiedSmapOK(t *testing.T) {
 	}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	conf := processor.Config{
-		SmapMapper:     &mapper,
-		LibraryPattern: regexp.MustCompile("/test/e2e|~"),
-		Frontend:       true,
+		SmapMapper:          &mapper,
+		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
+		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
 	tests.TestProcessRequests(t, er.NewProcessor(&conf), requestInfo, map[string]string{})
 }

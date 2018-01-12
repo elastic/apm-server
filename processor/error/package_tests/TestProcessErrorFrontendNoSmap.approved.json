@@ -19,6 +19,7 @@
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
                             "function": "\u003canonymous\u003e",
                             "library_frame": true,
@@ -33,6 +34,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
                             "function": "invokeTask",
                             "library_frame": true,
@@ -47,6 +49,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
                             "function": "runTask",
                             "library_frame": true,
@@ -61,6 +64,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "exclude_from_grouping": false,
                             "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
                             "function": "invoke",
                             "library_frame": true,
@@ -75,6 +79,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
+                            "exclude_from_grouping": true,
                             "filename": "/webpack/test/e2e/general-usecase/app.e2e-bundle.js",
                             "function": "timer",
                             "library_frame": true,

@@ -31,7 +31,11 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	}{
 		{
 			StFrame: StacktraceFrame{Filename: filename, Lineno: lineno},
-			Output:  common.MapStr{"filename": filename, "line": common.MapStr{"number": lineno}},
+			Output: common.MapStr{
+				"filename":              filename,
+				"line":                  common.MapStr{"number": lineno},
+				"exclude_from_grouping": false,
+			},
 			Service: Service{Name: "myService"},
 			Msg:     "Minimal StacktraceFrame",
 		},
@@ -65,6 +69,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 					"column":  55,
 					"context": "context",
 				},
+				"exclude_from_grouping": false,
 			},
 			Service: Service{Name: "myService", Version: &serviceVersion},
 			Msg:     "Full StacktraceFrame",
@@ -89,7 +94,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{},
 			out: common.MapStr{
-				"filename": "", "line": common.MapStr{"number": 0},
+				"exclude_from_grouping": false,
+				"filename":              "", "line": common.MapStr{"number": 0},
 				"sourcemap": common.MapStr{
 					"error":   "Colno mandatory for sourcemapping.",
 					"updated": false,
@@ -100,7 +106,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{Colno: &colno, Lineno: 9},
 			out: common.MapStr{
-				"filename": "", "line": common.MapStr{"column": 1, "number": 9},
+				"exclude_from_grouping": false,
+				"filename":              "", "line": common.MapStr{"column": 1, "number": 9},
 				"sourcemap": common.MapStr{
 					"error":   "Some untyped error",
 					"updated": false,
@@ -111,7 +118,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{Colno: &colno, Lineno: 8},
 			out: common.MapStr{
-				"filename": "", "line": common.MapStr{"column": 1, "number": 8},
+				"exclude_from_grouping": false,
+				"filename":              "", "line": common.MapStr{"column": 1, "number": 8},
 				"sourcemap": common.MapStr{
 					"updated": false,
 				},
@@ -121,7 +129,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{Colno: &colno, Lineno: 7},
 			out: common.MapStr{
-				"filename": "", "line": common.MapStr{"column": 1, "number": 7},
+				"exclude_from_grouping": false,
+				"filename":              "", "line": common.MapStr{"column": 1, "number": 7},
 				"sourcemap": common.MapStr{
 					"updated": false,
 					"error":   "Some mapping error",
@@ -132,7 +141,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{Colno: &colno, Lineno: 6},
 			out: common.MapStr{
-				"filename": "", "line": common.MapStr{"column": 1, "number": 6},
+				"exclude_from_grouping": false,
+				"filename":              "", "line": common.MapStr{"column": 1, "number": 6},
 				"sourcemap": common.MapStr{
 					"updated": false,
 					"error":   "Some key error",
@@ -149,10 +159,11 @@ func TestApplySourcemap(t *testing.T) {
 				AbsPath:  &absPath,
 			},
 			out: common.MapStr{
-				"filename": "original filename",
-				"function": "original function",
-				"line":     common.MapStr{"column": 100, "number": 500},
-				"abs_path": "changed path",
+				"exclude_from_grouping": false,
+				"filename":              "original filename",
+				"function":              "original function",
+				"line":                  common.MapStr{"column": 100, "number": 500},
+				"abs_path":              "changed path",
 				"sourcemap": common.MapStr{
 					"updated": true,
 				},
@@ -168,10 +179,11 @@ func TestApplySourcemap(t *testing.T) {
 				AbsPath:  &absPath,
 			},
 			out: common.MapStr{
-				"filename": "changed filename",
-				"function": "changed function",
-				"line":     common.MapStr{"column": 100, "number": 400},
-				"abs_path": "changed path",
+				"exclude_from_grouping": false,
+				"filename":              "changed filename",
+				"function":              "changed function",
+				"line":                  common.MapStr{"column": 100, "number": 400},
+				"abs_path":              "changed path",
 				"sourcemap": common.MapStr{
 					"updated": true,
 				},
@@ -185,6 +197,76 @@ func TestApplySourcemap(t *testing.T) {
 	for idx, test := range tests {
 		output := (&test.fr).Transform(&pr.Config{SmapMapper: &FakeMapper{}}, service)
 		assert.Equal(t, test.out, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+	}
+}
+
+func TestExcludeFromGroupingKey(t *testing.T) {
+	tests := []struct {
+		fr      StacktraceFrame
+		pattern string
+		exclude bool
+	}{
+		{
+			fr:      StacktraceFrame{},
+			pattern: "",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/webpack"},
+			pattern: "",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/webpack"},
+			pattern: "/webpack/tmp",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: ""},
+			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			exclude: true,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/webpack/test/e2e/general-usecase/app.e2e-bundle.js"},
+			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			exclude: true,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/filename"},
+			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			exclude: true,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "filename"},
+			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/filename/a"},
+			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/path/filename"},
+			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "webpack"},
+			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			exclude: false,
+		},
+	}
+
+	for idx, test := range tests {
+		var excludePattern *regexp.Regexp
+		if test.pattern != "" {
+			excludePattern = regexp.MustCompile(test.pattern)
+		}
+		out := test.fr.Transform(&pr.Config{ExcludeFromGrouping: excludePattern}, Service{})
+		exclude := out["exclude_from_grouping"]
+		assert.Equal(t, test.exclude, exclude,
+			fmt.Sprintf("(%v): Pattern: %v, Filename: %v, expected to be excluded: %v", idx, test.pattern, test.fr.Filename, test.exclude))
 	}
 }
 

@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	m "github.com/elastic/apm-server/model"
@@ -85,7 +83,7 @@ func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
 
 	e.addException(config, service)
 	e.addLog(config, service)
-	e.addGroupingKey(config)
+	e.addGroupingKey()
 
 	return e.data
 }
@@ -135,8 +133,8 @@ func (e *Event) addLog(config *pr.Config, service m.Service) {
 	e.add("log", log)
 }
 
-func (e *Event) addGroupingKey(config *pr.Config) {
-	e.add("grouping_key", e.calcGroupingKey(config))
+func (e *Event) addGroupingKey() {
+	e.add("grouping_key", e.calcGroupingKey())
 }
 
 type groupingKey struct {
@@ -172,12 +170,7 @@ func (k *groupingKey) String() string {
 
 // calcGroupingKey computes a value for deduplicating errors - events with
 // same grouping key can be collapsed together.
-func (e *Event) calcGroupingKey(config *pr.Config) string {
-	var isFrontendEvent bool
-	if config != nil {
-		isFrontendEvent = config.Frontend
-	}
-
+func (e *Event) calcGroupingKey() string {
 	k := newGroupingKey()
 
 	var st m.Stacktrace
@@ -193,7 +186,7 @@ func (e *Event) calcGroupingKey(config *pr.Config) string {
 	}
 
 	for _, fr := range st {
-		if isFrontendEvent && !use_for_grouping(fr) {
+		if fr.ExcludeFromGrouping {
 			continue
 		}
 		k.addEither(fr.Module, fr.Filename)
@@ -213,15 +206,4 @@ func (e *Event) calcGroupingKey(config *pr.Config) string {
 
 func (e *Event) add(key string, val interface{}) {
 	e.enhancer.Add(e.data, key, val)
-}
-
-func use_for_grouping(fr *m.StacktraceFrame) bool {
-	if fr.Filename == "" || strings.HasPrefix(fr.Filename, "/webpack") {
-		return false
-	}
-	file := filepath.Base(fr.Filename)
-	if strings.HasPrefix(fr.Filename, ("/" + file)) {
-		return false
-	}
-	return true
 }
