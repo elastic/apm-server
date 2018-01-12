@@ -5,11 +5,16 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"time"
+
+	s "github.com/go-sourcemap/sourcemap"
 
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
@@ -31,7 +36,7 @@ func (e *Exception) withType(etype string) *Exception {
 	return e
 }
 
-func (e *Exception) withFrames(frames []m.StacktraceFrame) *Exception {
+func (e *Exception) withFrames(frames []*m.StacktraceFrame) *Exception {
 	e.Stacktrace = m.Stacktrace(frames)
 	return e
 }
@@ -45,7 +50,7 @@ func (l *Log) withParamMsg(msg string) *Log {
 	return l
 }
 
-func (l *Log) withFrames(frames []m.StacktraceFrame) *Log {
+func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 	l.Stacktrace = m.Stacktrace(frames)
 	return l
 }
@@ -67,9 +72,7 @@ func TestEventTransform(t *testing.T) {
 		Module:     &module,
 		Handled:    &handled,
 		Attributes: attributes,
-		Stacktrace: []m.StacktraceFrame{
-			{Filename: "st file"},
-		},
+		Stacktrace: []*m.StacktraceFrame{{Filename: "st file"}},
 	}
 
 	level := "level"
@@ -217,11 +220,11 @@ func TestExplicitGroupingKey(t *testing.T) {
 
 	e1 := Event{Log: baseLog().withParamMsg(attr)}
 	e2 := Event{Exception: baseException().withType(attr)}
-	e3 := Event{Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &attr}})}
-	e4 := Event{Exception: baseException().withFrames([]m.StacktraceFrame{{Function: &attr}})}
+	e3 := Event{Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &attr}})}
+	e4 := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Function: &attr}})}
 	e5 := Event{
-		Log:       baseLog().withFrames([]m.StacktraceFrame{{Function: &diffAttr}}),
-		Exception: baseException().withFrames([]m.StacktraceFrame{{Function: &attr}}),
+		Log:       baseLog().withFrames([]*m.StacktraceFrame{{Function: &diffAttr}}),
+		Exception: baseException().withFrames([]*m.StacktraceFrame{{Function: &attr}}),
 	}
 
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
@@ -235,10 +238,10 @@ func TestFallbackGroupingKey(t *testing.T) {
 
 	groupingKey := hex.EncodeToString(md5With(filename, string(lineno)))
 
-	e := Event{Exception: baseException().withFrames([]m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
+	e := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
 	assert.Equal(t, groupingKey, e.calcGroupingKey())
 
-	e = Event{Exception: baseException(), Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
+	e = Event{Exception: baseException(), Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
 	assert.Equal(t, groupingKey, e.calcGroupingKey())
 }
 
@@ -251,7 +254,7 @@ func TestNoFallbackGroupingKey(t *testing.T) {
 	groupingKey := hex.EncodeToString(md5With(module, function))
 
 	e := Event{
-		Exception: baseException().withFrames([]m.StacktraceFrame{
+		Exception: baseException().withFrames([]*m.StacktraceFrame{
 			{Lineno: lineno, Module: &module, Filename: filename, Function: &function},
 		}),
 	}
@@ -303,80 +306,80 @@ func TestGroupableEvents(t *testing.T) {
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 10}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 10}}),
 			},
 			e2: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 57}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 57}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 10}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 10}}),
 			},
 			e2: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 57}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 57}}),
 			},
 			result: false,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 0}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 0}}),
 			},
 			e2:     Event{},
 			result: false,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Module: &value}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Module: &value}}),
 			},
 			e2: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Filename: value}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Filename: value}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Filename: "name"}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Filename: "name"}}),
 			},
 			e2: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Module: &value, Filename: "name"}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Module: &value, Filename: "name"}}),
 			},
 			result: false,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Module: &value, Filename: "name"}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Module: &value, Filename: "name"}}),
 			},
 			e2: Event{
-				Exception: baseException().withFrames([]m.StacktraceFrame{{Module: &value, Filename: "nameEx"}}),
+				Exception: baseException().withFrames([]*m.StacktraceFrame{{Module: &value, Filename: "nameEx"}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Filename: "name"}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Filename: "name"}}),
 			},
 			e2: Event{
-				Exception: baseException().withFrames([]m.StacktraceFrame{{Filename: "name"}}),
+				Exception: baseException().withFrames([]*m.StacktraceFrame{{Filename: "name"}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Lineno: 10}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 10}}),
 			},
 			e2: Event{
-				Exception: baseException().withFrames([]m.StacktraceFrame{{Lineno: 10}}),
+				Exception: baseException().withFrames([]*m.StacktraceFrame{{Lineno: 10}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 10}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 10}}),
 			},
 			e2: Event{
-				Exception: baseException().withFrames([]m.StacktraceFrame{{Function: &value, Lineno: 57}}),
+				Exception: baseException().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 57}}),
 			},
 			result: true,
 		},
@@ -396,3 +399,43 @@ func md5With(args ...string) []byte {
 	}
 	return md5.Sum(nil)
 }
+
+func TestSourcemapping(t *testing.T) {
+	c1 := 18
+	event := Event{Exception: &Exception{
+		Message: "exception message",
+		Stacktrace: m.Stacktrace{
+			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+		},
+	}}
+	trNoSmap := event.Transform(&pr.Config{SmapMapper: nil}, m.Service{})
+
+	event2 := Event{Exception: &Exception{
+		Message: "exception message",
+		Stacktrace: m.Stacktrace{
+			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+		},
+	}}
+	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
+	trWithSmap := event2.Transform(&pr.Config{SmapMapper: &mapper}, m.Service{})
+
+	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
+	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
+
+	assert.NotEqual(t, trNoSmap["grouping_key"], trWithSmap["grouping_key"])
+	fmt.Println(trNoSmap)
+}
+
+type fakeAcc struct{}
+
+func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
+	file := "bundle.js.map"
+	current, _ := os.Getwd()
+	path := filepath.Join(current, "../../tests/data/valid/sourcemap/", file)
+	fileBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return s.Parse("", fileBytes)
+}
+func (a *fakeAcc) Remove(smapId sourcemap.Id) {}
