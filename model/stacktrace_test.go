@@ -19,7 +19,7 @@ func TestStacktraceTransform(t *testing.T) {
 		Msg        string
 	}{
 		{
-			Stacktrace: Stacktrace{StacktraceFrame{}},
+			Stacktrace: Stacktrace{&StacktraceFrame{}},
 			Output: []common.MapStr{
 				{"filename": "", "line": common.MapStr{"number": 0}},
 			},
