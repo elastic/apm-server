@@ -5,7 +5,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type Stacktrace []StacktraceFrame
+type Stacktrace []*StacktraceFrame
 
 func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.MapStr {
 	var frames []common.MapStr
