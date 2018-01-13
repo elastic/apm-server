@@ -33,7 +33,7 @@ apm-server:
     # An origin is made of a protocol scheme, host and port, without the url path.
     # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)
     # If an item in the list is a single *, everything will be allowed
-    #allow_origins : *
+    #allow_origins : ["*"]
 
     # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes,
     # If the regexp matches, the stacktrace frame is considered to be a library frame.
