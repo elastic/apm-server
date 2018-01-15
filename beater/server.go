@@ -21,7 +21,7 @@ func newServer(config *Config, report reporter) *http.Server {
 		Handler:        mux,
 		ReadTimeout:    config.ReadTimeout,
 		WriteTimeout:   config.WriteTimeout,
-		MaxHeaderBytes: config.MaxHeaderBytes,
+		MaxHeaderBytes: config.MaxHeaderSize,
 	}
 }
 

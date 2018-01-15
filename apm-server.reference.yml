@@ -4,42 +4,54 @@
 
 apm-server:
   # Defines the host and port the server is listening on
-
   #host: "localhost:8200"
-  #max_unzipped_size:
-  #max_header_bytes:
+
+  # Maximum permitted size in bytes of an unzipped request accepted by the server to be processed.
+  #max_unzipped_size: 52428800
+  # Maximum permitted size in bytes of a request's header accepted by the server to be processed.
+  #max_header_size: 1048576
+
+  # Maximum permitted duration in seconds for reading an entire request.
   #read_timeout: 2s
+  # Maximum permitted duration in seconds for writing a response.
   #write_timeout: 2s
+
+  # Maximum duration in seconds before releasing resources when shutting down the server.
   #shutdown_timeout: 5s
+
+  # Maximum number of requests permitted to be sent to the server concurrently.
   #concurrent_requests: 20
 
   # Authorization token to be checked. If a token is set here the agents must
-  # send their token in the following format: Authorization: Bearer <secret-token>
+  # send their token in the following format: Authorization: Bearer <secret-token>.
+  # It is recommended to use an authorization token in combination with SSL enabled.
   #secret_token:
-
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
 
+  # Please be aware that frontend support is an experimental feature at the moment!
   #frontend:
-    # Please be aware that frontend support is an experimental feature at the moment!
+    # Set enabled to true for becoming an early tester of frontend support.
     #enabled: false
 
-    # Rate Limit per second and IP address
+    # Rate Limit per second and IP address for requests sent to the frontend endpoint.
     #rate_limit: 10
 
     # Comma separated list of permitted origins for frontend. User-agents will send
     # a origin header that will be validated against this list.
     # An origin is made of a protocol scheme, host and port, without the url path.
     # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)
-    # If an item in the list is a single *, everything will be allowed
-    #allow_origins : *
+    # If an item in the list is a single '*', everything will be allowed
+    #allow_origins : ['*']
 
-    # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes,
+    # Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
     # If the regexp matches, the stacktrace frame is considered to be a library frame.
     #library_pattern: "node_modules|bower_components|~"
 
-    #sourcemapping:
+    # If a mapping Source Map is found in Elasticsearch, Source Mapping is automatically applied
+    # to all error and transaction documents sent to the frontend endpoint.
+    #source_mapping:
 
       # Source Maps are are fetched from Elasticsearch and then kept in an in-memory cache for a certain time.
       # The `cache.expiration` determines how long a Source Map should be cached before fetching it again from Elasticsearch.
@@ -47,11 +59,10 @@ apm-server:
       #cache:
         #expiration: 5m
 
-      # Sourcemaps are stored in the same index as transaction and error documents.
+      # Source Maps are stored in the same index as transaction and error documents.
       # If the default index pattern at 'outputs.elasticsearch.index' is changed,
       # a matching index pattern needs to be specified here.
-      # Note that an '*' is added automatically to this index pattern when querying for sourcemaps.
-      #index: "apm"
+      #index_pattern: "apm*"
 
 #================================ General ======================================
 

@@ -38,7 +38,7 @@ func TestBeatConfig(t *testing.T) {
 			conf: map[string]interface{}{
 				"host":              "localhost:3000",
 				"max_unzipped_size": 64,
-				"max_header_bytes":  8,
+				"max_header_size":   8,
 				"read_timeout":      3 * time.Second,
 				"write_timeout":     4 * time.Second,
 				"shutdown_timeout":  9 * time.Second,
@@ -53,11 +53,11 @@ func TestBeatConfig(t *testing.T) {
 					"enabled":       true,
 					"rate_limit":    1000,
 					"allow_origins": []string{"example*"},
-					"sourcemapping": map[string]interface{}{
+					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 5 * time.Minute,
 						},
-						"index": "apm-test*",
+						"index_pattern": "apm-test*",
 					},
 					"library_pattern": "^custom",
 				},
@@ -65,7 +65,7 @@ func TestBeatConfig(t *testing.T) {
 			beaterConf: &Config{
 				Host:            "localhost:3000",
 				MaxUnzippedSize: 64,
-				MaxHeaderBytes:  8,
+				MaxHeaderSize:   8,
 				ReadTimeout:     3000000000,
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
@@ -75,7 +75,7 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:      &truthy,
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
-					Sourcemapping: &Sourcemapping{
+					SourceMapping: &SourceMapping{
 						Cache: &Cache{Expiration: 5 * time.Minute},
 						Index: "apm-test*",
 					},
@@ -96,7 +96,7 @@ func TestBeatConfig(t *testing.T) {
 				"concurrent_requests": 15,
 				"frontend": map[string]interface{}{
 					"enabled": true,
-					"sourcemapping": map[string]interface{}{
+					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 7,
 						},
@@ -106,7 +106,7 @@ func TestBeatConfig(t *testing.T) {
 			beaterConf: &Config{
 				Host:            "localhost:3000",
 				MaxUnzippedSize: 64,
-				MaxHeaderBytes:  1048576,
+				MaxHeaderSize:   1048576,
 				ReadTimeout:     2000000000,
 				WriteTimeout:    2000000000,
 				ShutdownTimeout: 5000000000,
@@ -116,7 +116,7 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:      &truthy,
 					RateLimit:    10,
 					AllowOrigins: []string{"*"},
-					Sourcemapping: &Sourcemapping{
+					SourceMapping: &SourceMapping{
 						Cache: &Cache{
 							Expiration: 7 * time.Second,
 						},
