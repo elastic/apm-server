@@ -87,9 +87,11 @@ func TestApplySourcemap(t *testing.T) {
 	fct := "original function"
 	absPath := "original absPath"
 	tests := []struct {
-		fr  StacktraceFrame
-		out common.MapStr
-		msg string
+		fr           StacktraceFrame
+		fct          string
+		out          common.MapStr
+		out_function string
+		msg          string
 	}{
 		{
 			fr: StacktraceFrame{},
@@ -101,10 +103,11 @@ func TestApplySourcemap(t *testing.T) {
 					"updated": false,
 				},
 			},
-			msg: "No colno",
+			out_function: "",
+			msg:          "No colno",
 		},
 		{
-			fr: StacktraceFrame{Colno: &colno, Lineno: 9},
+			fr: StacktraceFrame{Colno: &colno, Lineno: 9, SourcemapFunction: "<anonymous>"},
 			out: common.MapStr{
 				"exclude_from_grouping": false,
 				"filename":              "", "line": common.MapStr{"column": 1, "number": 9},
@@ -113,10 +116,11 @@ func TestApplySourcemap(t *testing.T) {
 					"updated": false,
 				},
 			},
-			msg: "Some error occured in mapper.",
+			out_function: "<anonymous>",
+			msg:          "Some error occured in mapper.",
 		},
 		{
-			fr: StacktraceFrame{Colno: &colno, Lineno: 8},
+			fr: StacktraceFrame{Colno: &colno, Lineno: 8, SourcemapFunction: "none"},
 			out: common.MapStr{
 				"exclude_from_grouping": false,
 				"filename":              "", "line": common.MapStr{"column": 1, "number": 8},
@@ -124,10 +128,12 @@ func TestApplySourcemap(t *testing.T) {
 					"updated": false,
 				},
 			},
-			msg: "Some access error occured in mapper.",
+			out_function: "none",
+			msg:          "Some access error occured in mapper.",
 		},
 		{
-			fr: StacktraceFrame{Colno: &colno, Lineno: 7},
+			fr:  StacktraceFrame{Colno: &colno, Lineno: 7, SourcemapFunction: "<anonymous>"},
+			fct: "<anonymous>",
 			out: common.MapStr{
 				"exclude_from_grouping": false,
 				"filename":              "", "line": common.MapStr{"column": 1, "number": 7},
@@ -136,10 +142,11 @@ func TestApplySourcemap(t *testing.T) {
 					"error":   "Some mapping error",
 				},
 			},
-			msg: "Some mapping error occured in mapper.",
+			out_function: "<anonymous>",
+			msg:          "Some mapping error occured in mapper.",
 		},
 		{
-			fr: StacktraceFrame{Colno: &colno, Lineno: 6},
+			fr: StacktraceFrame{Colno: &colno, Lineno: 6, SourcemapFunction: "<anonymous>"},
 			out: common.MapStr{
 				"exclude_from_grouping": false,
 				"filename":              "", "line": common.MapStr{"column": 1, "number": 6},
@@ -148,15 +155,17 @@ func TestApplySourcemap(t *testing.T) {
 					"error":   "Some key error",
 				},
 			},
-			msg: "Some key error occured in mapper.",
+			out_function: "<anonymous>",
+			msg:          "Some key error occured in mapper.",
 		},
 		{
 			fr: StacktraceFrame{
-				Colno:    &colno,
-				Lineno:   5,
-				Filename: "original filename",
-				Function: &fct,
-				AbsPath:  &absPath,
+				Colno:             &colno,
+				Lineno:            5,
+				Filename:          "original filename",
+				Function:          &fct,
+				AbsPath:           &absPath,
+				SourcemapFunction: "other function",
 			},
 			out: common.MapStr{
 				"exclude_from_grouping": false,
@@ -168,15 +177,17 @@ func TestApplySourcemap(t *testing.T) {
 					"updated": true,
 				},
 			},
-			msg: "Sourcemap with empty filename and function mapping applied.",
+			out_function: "<unknown>",
+			msg:          "Sourcemap with empty filename and function mapping applied.",
 		},
 		{
 			fr: StacktraceFrame{
-				Colno:    &colno,
-				Lineno:   4,
-				Filename: "original filename",
-				Function: &fct,
-				AbsPath:  &absPath,
+				Colno:             &colno,
+				Lineno:            4,
+				Filename:          "original filename",
+				Function:          &fct,
+				AbsPath:           &absPath,
+				SourcemapFunction: "<prev function>",
 			},
 			out: common.MapStr{
 				"exclude_from_grouping": false,
@@ -188,15 +199,18 @@ func TestApplySourcemap(t *testing.T) {
 					"updated": true,
 				},
 			},
-			msg: "Full sourcemap mapping applied.",
+			out_function: "changed function",
+			msg:          "Full sourcemap mapping applied.",
 		},
 	}
 
 	ver := "1"
 	service := Service{Name: "foo", Version: &ver}
 	for idx, test := range tests {
-		output := (&test.fr).Transform(&pr.Config{SmapMapper: &FakeMapper{}}, service)
+		conf := &pr.Config{SmapMapper: &FakeMapper{}}
+		output := (&test.fr).Transform(conf, service)
 		assert.Equal(t, test.out, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		assert.Equal(t, test.out_function, test.fr.SourcemapFunction)
 	}
 }
 

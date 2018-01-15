@@ -24,10 +24,10 @@ type StacktraceFrame struct {
 	PreContext   []string `mapstructure:"pre_context"`
 	PostContext  []string `mapstructure:"post_context"`
 
-	SourcemapUpdated bool
-	SourcemapError   *string
-
 	ExcludeFromGrouping bool
+	SourcemapUpdated    bool
+	SourcemapError      *string
+	SourcemapFunction   string
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.MapStr {
@@ -81,6 +81,7 @@ func (s *StacktraceFrame) isLibraryFrame(pattern *regexp.Regexp) bool {
 }
 
 func (s *StacktraceFrame) applySourcemap(service Service, mapper sourcemap.Mapper) {
+	smapFunction := s.SourcemapFunction
 	if s.Colno == nil {
 		s.updateError("Colno mandatory for sourcemapping.")
 		return
@@ -99,9 +100,14 @@ func (s *StacktraceFrame) applySourcemap(service Service, mapper sourcemap.Mappe
 	if mapping.Filename != "" {
 		s.Filename = mapping.Filename
 	}
+
+	s.Function = &smapFunction
 	if mapping.Function != "" {
-		s.Function = &mapping.Function
+		s.SourcemapFunction = mapping.Function
+	} else {
+		s.SourcemapFunction = "<unknown>"
 	}
+
 	s.Colno = &mapping.Colno
 	s.Lineno = mapping.Lineno
 	s.AbsPath = &mapping.Path
