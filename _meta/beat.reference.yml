@@ -20,7 +20,7 @@ apm-server:
   #shutdown_timeout: 5s
 
   # Maximum number of requests permitted to be sent to the server concurrently.
-  #concurrent_requests: 20
+  #concurrent_requests: 40
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.

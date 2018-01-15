@@ -89,8 +89,8 @@ func defaultConfig() *Config {
 	return &Config{
 		Host:               "localhost:8200",
 		MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
-		MaxHeaderSize:      1048576,          // 1mb
-		ConcurrentRequests: 20,
+		MaxHeaderSize:      1 * 1024 * 1024,  // 1mb
+		ConcurrentRequests: 40,
 		ReadTimeout:        2 * time.Second,
 		WriteTimeout:       2 * time.Second,
 		ShutdownTimeout:    5 * time.Second,

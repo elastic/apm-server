@@ -93,7 +93,6 @@ func TestBeatConfig(t *testing.T) {
 				"ssl": map[string]interface{}{
 					"enabled": true,
 				},
-				"concurrent_requests": 15,
 				"frontend": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
@@ -124,7 +123,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 					LibraryPattern: "node_modules|bower_components|~",
 				},
-				ConcurrentRequests: 15,
+				ConcurrentRequests: 40,
 			},
 			msg: "Given config merged with default",
 		},
