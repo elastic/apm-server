@@ -22,7 +22,6 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Use updated stack trace frame values for calculating error `grouping_keys` {pull}485[485] 
 
 ==== Added
-- Include build time and revision in version information {pull}396[396]
 - service.environment {pull}366[366]
 - Consider exception or log message for grouping key when nothing else is available {pull}435[435]
 - Add context.request.url.full {pull}436[436]
