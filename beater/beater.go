@@ -24,12 +24,10 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
 	}
 	if beaterConfig.Frontend.isEnabled() {
-		_, err := regexp.Compile(beaterConfig.Frontend.LibraryPattern)
-		if err != nil {
+		if _, err := regexp.Compile(beaterConfig.Frontend.LibraryPattern); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
 		}
-		_, err = regexp.Compile(beaterConfig.Frontend.ExcludeFromGrouping)
-		if err != nil {
+		if _, err := regexp.Compile(beaterConfig.Frontend.ExcludeFromGrouping); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
 		}
 		if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
