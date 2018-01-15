@@ -43,7 +43,7 @@
           object_type: keyword
           dynamic: true
           description: >
-            A user-defined mapping of groups of marks. 
+            A user-defined mapping of groups of marks in milliseconds.
 
         - name: sampled
           type: boolean
