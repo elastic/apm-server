@@ -278,7 +278,7 @@ var errorSchema = `{
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of user-defined tags with values.",
+            "description": "A flat mapping of user-defined tags with string values.",
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {

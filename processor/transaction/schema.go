@@ -301,7 +301,7 @@ var transactionSchema = `{
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of user-defined tags with values.",
+            "description": "A flat mapping of user-defined tags with string values.",
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
@@ -509,7 +509,7 @@ var transactionSchema = `{
                         "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/transactions/mark.json",
     "type": ["object", "null"],
-    "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Every mark is a simple key value pair and can be set by the user or the agent.",
+    "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Every mark is a simple key value pair, where the value has to be a number, and can be set by the user or the agent.",
     "regexProperties": true,
     "patternProperties": {
         "^[^.*\"]*$": { "type": "number" }

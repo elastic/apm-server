@@ -63,7 +63,7 @@ Any arbitrary contextual information regarding the event, captured by the agent,
 
 type: object
 
-A flat mapping of user-defined tags with values.
+A flat mapping of user-defined tags with string values.
 
 
 
