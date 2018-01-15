@@ -47,7 +47,7 @@ func (m *SmapMapper) Apply(id Id, lineno, colno int) (*Mapping, error) {
 	file, funct, line, col, ok := smapCons.Source(lineno, colno)
 	if !ok {
 		return nil, Error{
-			Msg: fmt.Sprintf("No Sourcemap found for Id %v, lineno %v, colno %v",
+			Msg: fmt.Sprintf("No Sourcemap found for Id %v, Lineno %v, Colno %v",
 				id.String(), lineno, colno),
 			Kind: KeyError,
 		}

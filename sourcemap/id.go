@@ -20,7 +20,7 @@ func (i *Id) Key() string {
 }
 
 func (i *Id) String() string {
-	return fmt.Sprintf("Service Name: %s, Service Version: %s and Path: %s.",
+	return fmt.Sprintf("Service Name: '%s', Service Version: '%s' and Path: '%s'",
 		i.ServiceName,
 		i.ServiceVersion,
 		i.Path)
