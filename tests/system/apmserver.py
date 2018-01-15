@@ -239,12 +239,12 @@ class ClientSideBaseTest(ServerBaseTest):
     @classmethod
     def setUpClass(cls):
         super(ClientSideBaseTest, cls).setUpClass()
-        cls.smap_index_name = "test-apm"
+        cls.smap_index_pattern = "test-apm*"
 
     def config(self):
         cfg = super(ClientSideBaseTest, self).config()
         cfg.update({"enable_frontend": "true",
-                    "smap_index_name": self.smap_index_name,
+                    "smap_index_pattern": self.smap_index_pattern,
                     "smap_cache_expiration": "200"})
         return cfg
 
@@ -275,7 +275,7 @@ class ClientSideBaseTest(ServerBaseTest):
         return r
 
     def wait_for_sourcemaps(self, expected_ct=1):
-        idx = self.smap_index_name + "*"
+        idx = self.smap_index_pattern
         self.wait_until(
             lambda: (self.es.count(index=idx, body={
                 "query": {"term": {"processor.name": 'sourcemap'}}}
