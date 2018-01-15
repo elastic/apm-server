@@ -63,7 +63,7 @@ Any arbitrary contextual information regarding the event, captured by the agent,
 
 type: object
 
-A flat mapping of user-defined tags with values.
+A flat mapping of user-defined tags with string values.
 
 
 
@@ -659,7 +659,7 @@ The result of the transaction. HTTP status code for HTTP-related transactions.
 
 type: object
 
-A user-defined mapping of groups of marks. 
+A user-defined mapping of groups of marks in milliseconds.
 
 
 [float]
