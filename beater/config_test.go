@@ -20,7 +20,7 @@ func TestConfig(t *testing.T) {
 			config: []byte(`{
         "host": "localhost:3000",
         "max_unzipped_size": 64,
-        "max_header_bytes": 8,
+        "max_header_size": 8,
         "read_timeout": 3s,
         "write_timeout": 4s,
         "shutdown_timeout": 9s,
@@ -35,11 +35,11 @@ func TestConfig(t *testing.T) {
 					"enabled": true,
 					"rate_limit": 1000,
 					"allow_origins": ["example*"],
-					"sourcemapping": {
+					"source_mapping": {
 						"cache": {
 							"expiration": 10m,
 						},
-						"index": "apm-test*"
+						"index_pattern": "apm-test*"
 					},
 					"library_pattern": "pattern",
 				}
@@ -47,7 +47,7 @@ func TestConfig(t *testing.T) {
 			expectedConfig: Config{
 				Host:            "localhost:3000",
 				MaxUnzippedSize: 64,
-				MaxHeaderBytes:  8,
+				MaxHeaderSize:   8,
 				ReadTimeout:     3000000000,
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
@@ -57,7 +57,7 @@ func TestConfig(t *testing.T) {
 					Enabled:      &truthy,
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
-					Sourcemapping: &Sourcemapping{
+					SourceMapping: &SourceMapping{
 						Cache: &Cache{Expiration: 10 * time.Minute},
 						Index: "apm-test*",
 					},
@@ -70,7 +70,7 @@ func TestConfig(t *testing.T) {
 			config: []byte(`{
         "host": "localhost:8200",
         "max_unzipped_size": 64,
-        "max_header_bytes": 8,
+        "max_header_size": 8,
         "read_timeout": 3s,
         "write_timeout": 2s,
         "shutdown_timeout": 5s,
@@ -78,14 +78,14 @@ func TestConfig(t *testing.T) {
         "concurrent_requests": 20,
 				"ssl": {},
 				"frontend": {
-					"sourcemapping": {
+					"source_mapping": {
 					}
 				}
       }`),
 			expectedConfig: Config{
 				Host:               "localhost:8200",
 				MaxUnzippedSize:    64,
-				MaxHeaderBytes:     8,
+				MaxHeaderSize:      8,
 				ReadTimeout:        3000000000,
 				WriteTimeout:       2000000000,
 				ShutdownTimeout:    5000000000,
@@ -96,7 +96,7 @@ func TestConfig(t *testing.T) {
 					Enabled:      nil,
 					RateLimit:    0,
 					AllowOrigins: nil,
-					Sourcemapping: &Sourcemapping{
+					SourceMapping: &SourceMapping{
 						Index: "",
 					},
 				},
@@ -107,7 +107,7 @@ func TestConfig(t *testing.T) {
 			expectedConfig: Config{
 				Host:               "",
 				MaxUnzippedSize:    0,
-				MaxHeaderBytes:     0,
+				MaxHeaderSize:      0,
 				ReadTimeout:        0,
 				WriteTimeout:       0,
 				ShutdownTimeout:    0,

@@ -12,9 +12,9 @@ apm-server:
   frontend.rate_limit: 3
   frontend.allow_origins: {{ allow_origins }}
   frontend.library_pattern: "~/test|library"
-  {% if smap_index_name %}
-  frontend.sourcemapping.index: {{ smap_index_name }}
-  frontend.sourcemapping.cache.expiration: {{ smap_cache_expiration}}
+  {% if smap_index_pattern%}
+  frontend.source_mapping.index_pattern: {{ smap_index_pattern}}
+  frontend.source_mapping.cache.expiration: {{ smap_cache_expiration}}
   {% endif %}
 ############################# Setup ##########################################
 
