@@ -7,7 +7,9 @@ apm-server:
   # Defines the host and port the server is listening on
   host: "localhost:8200"
 
+  # Please be aware that frontend support is an experimental feature at the moment!
   frontend:
+    # To enable experimental frontend support set this to true.
     enabled: false
 
   # Authorization token to be checked. If a token is set here the agents must
