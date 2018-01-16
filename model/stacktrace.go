@@ -32,8 +32,8 @@ func (st Stacktrace) transform(config *pr.Config) []common.MapStr {
 //   * should be moved down one stack trace frame,
 //   * the function name of the first frame is set to <anonymous>
 //   * if one frame is not found in the source map, this frame is left out and
-//   the function name from the previous frame is set for the one but next frame
-//   * if a mapping could be applied but nor function name is found, the
+//   the function name from the previous frame is used
+//   * if a mapping could be applied but no function name is found, the
 //   function name for the next frame is set to <unknown>
 // - colno
 // - lineno
