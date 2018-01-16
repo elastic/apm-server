@@ -22,11 +22,9 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	fct := "some function"
 	module := "some_module"
 	libraryFrame := true
-	serviceVersion := "1.0"
 	tests := []struct {
 		StFrame StacktraceFrame
 		Output  common.MapStr
-		Service Service
 		Msg     string
 	}{
 		{
@@ -36,8 +34,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 				"line":                  common.MapStr{"number": lineno},
 				"exclude_from_grouping": false,
 			},
-			Service: Service{Name: "myService"},
-			Msg:     "Minimal StacktraceFrame",
+			Msg: "Minimal StacktraceFrame",
 		},
 		{
 			StFrame: StacktraceFrame{
@@ -71,13 +68,12 @@ func TestStacktraceFrameTransform(t *testing.T) {
 				},
 				"exclude_from_grouping": false,
 			},
-			Service: Service{Name: "myService", Version: &serviceVersion},
-			Msg:     "Full StacktraceFrame",
+			Msg: "Full StacktraceFrame",
 		},
 	}
 
 	for idx, test := range tests {
-		output := (&test.StFrame).Transform(&pr.Config{}, test.Service)
+		output := (&test.StFrame).Transform(&pr.Config{})
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -85,132 +81,143 @@ func TestStacktraceFrameTransform(t *testing.T) {
 func TestApplySourcemap(t *testing.T) {
 	colno := 1
 	fct := "original function"
-	absPath := "original absPath"
+	absPath := "original path"
 	tests := []struct {
-		fr           StacktraceFrame
-		fct          string
-		out          common.MapStr
-		out_function string
-		msg          string
+		fr                          StacktraceFrame
+		lineno, colno               int
+		filename, function, absPath string
+		smapUpdated                 bool
+		smapError                   string
+		fct                         string
+		outFct                      string
+		msg                         string
 	}{
 		{
-			fr: StacktraceFrame{},
-			out: common.MapStr{
-				"exclude_from_grouping": false,
-				"filename":              "", "line": common.MapStr{"number": 0},
-				"sourcemap": common.MapStr{
-					"error":   "Colno mandatory for sourcemapping.",
-					"updated": false,
-				},
-			},
-			out_function: "",
-			msg:          "No colno",
-		},
-		{
-			fr: StacktraceFrame{Colno: &colno, Lineno: 9, SourcemapFunction: "<anonymous>"},
-			out: common.MapStr{
-				"exclude_from_grouping": false,
-				"filename":              "", "line": common.MapStr{"column": 1, "number": 9},
-				"sourcemap": common.MapStr{
-					"error":   "Some untyped error",
-					"updated": false,
-				},
-			},
-			out_function: "<anonymous>",
-			msg:          "Some error occured in mapper.",
-		},
-		{
-			fr: StacktraceFrame{Colno: &colno, Lineno: 8, SourcemapFunction: "none"},
-			out: common.MapStr{
-				"exclude_from_grouping": false,
-				"filename":              "", "line": common.MapStr{"column": 1, "number": 8},
-				"sourcemap": common.MapStr{
-					"updated": false,
-				},
-			},
-			out_function: "none",
-			msg:          "Some access error occured in mapper.",
-		},
-		{
-			fr:  StacktraceFrame{Colno: &colno, Lineno: 7, SourcemapFunction: "<anonymous>"},
-			fct: "<anonymous>",
-			out: common.MapStr{
-				"exclude_from_grouping": false,
-				"filename":              "", "line": common.MapStr{"column": 1, "number": 7},
-				"sourcemap": common.MapStr{
-					"updated": false,
-					"error":   "Some mapping error",
-				},
-			},
-			out_function: "<anonymous>",
-			msg:          "Some mapping error occured in mapper.",
-		},
-		{
-			fr: StacktraceFrame{Colno: &colno, Lineno: 6, SourcemapFunction: "<anonymous>"},
-			out: common.MapStr{
-				"exclude_from_grouping": false,
-				"filename":              "", "line": common.MapStr{"column": 1, "number": 6},
-				"sourcemap": common.MapStr{
-					"updated": false,
-					"error":   "Some key error",
-				},
-			},
-			out_function: "<anonymous>",
-			msg:          "Some key error occured in mapper.",
+			fr:          StacktraceFrame{Lineno: 0, Function: &fct, AbsPath: &absPath},
+			lineno:      0,
+			filename:    "",
+			function:    "original function",
+			absPath:     "original path",
+			smapUpdated: false,
+			smapError:   "Colno mandatory for sourcemapping.",
+			fct:         "<anonymous>",
+			outFct:      "<anonymous>",
+			msg:         "No colno",
 		},
 		{
 			fr: StacktraceFrame{
-				Colno:             &colno,
-				Lineno:            5,
-				Filename:          "original filename",
-				Function:          &fct,
-				AbsPath:           &absPath,
-				SourcemapFunction: "other function",
+				Colno:    &colno,
+				Lineno:   9,
+				Filename: "filename",
+				Function: &fct,
+				AbsPath:  &absPath,
 			},
-			out: common.MapStr{
-				"exclude_from_grouping": false,
-				"filename":              "original filename",
-				"function":              "original function",
-				"line":                  common.MapStr{"column": 100, "number": 500},
-				"abs_path":              "changed path",
-				"sourcemap": common.MapStr{
-					"updated": true,
-				},
-			},
-			out_function: "<unknown>",
-			msg:          "Sourcemap with empty filename and function mapping applied.",
+			colno:       1,
+			lineno:      9,
+			filename:    "filename",
+			function:    "original function",
+			absPath:     "original path",
+			smapUpdated: false,
+			smapError:   "Some untyped error",
+			fct:         "<anonymous>",
+			outFct:      "<anonymous>",
+			msg:         "Some error occured in mapper.",
+		},
+		{
+			fr:       StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
+			colno:    1,
+			lineno:   8,
+			filename: "",
+			function: "original function",
+			absPath:  "original path",
+			fct:      "<anonymous>",
+			outFct:   "<anonymous>",
+			msg:      "Some access error occured in mapper.",
+		},
+		{
+			fr:          StacktraceFrame{Colno: &colno, Lineno: 7, Function: &fct, AbsPath: &absPath},
+			colno:       1,
+			lineno:      7,
+			filename:    "",
+			function:    "original function",
+			absPath:     "original path",
+			smapUpdated: false,
+			smapError:   "Some mapping error",
+			fct:         "<anonymous>",
+			outFct:      "<anonymous>",
+			msg:         "Some mapping error occured in mapper.",
+		},
+		{
+			fr:          StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
+			colno:       1,
+			lineno:      6,
+			filename:    "",
+			function:    "original function",
+			absPath:     "original path",
+			smapUpdated: false,
+			smapError:   "Some key error",
+			fct:         "<anonymous>",
+			outFct:      "<anonymous>",
+			msg:         "Some key error occured in mapper.",
 		},
 		{
 			fr: StacktraceFrame{
-				Colno:             &colno,
-				Lineno:            4,
-				Filename:          "original filename",
-				Function:          &fct,
-				AbsPath:           &absPath,
-				SourcemapFunction: "<prev function>",
+				Colno:    &colno,
+				Lineno:   5,
+				Filename: "original filename",
+				Function: &fct,
+				AbsPath:  &absPath,
 			},
-			out: common.MapStr{
-				"exclude_from_grouping": false,
-				"filename":              "changed filename",
-				"function":              "changed function",
-				"line":                  common.MapStr{"column": 100, "number": 400},
-				"abs_path":              "changed path",
-				"sourcemap": common.MapStr{
-					"updated": true,
-				},
+			colno:       100,
+			lineno:      500,
+			filename:    "original filename",
+			function:    "other function",
+			absPath:     "changed path",
+			smapUpdated: true,
+
+			fct:    "other function",
+			outFct: "<unknown>",
+			msg:    "Sourcemap with empty filename and function mapping applied.",
+		},
+		{
+			fr: StacktraceFrame{
+				Colno:    &colno,
+				Lineno:   4,
+				Filename: "original filename",
+				Function: &fct,
+				AbsPath:  &absPath,
 			},
-			out_function: "changed function",
-			msg:          "Full sourcemap mapping applied.",
+			colno:       100,
+			lineno:      400,
+			filename:    "changed filename",
+			function:    "prev function",
+			absPath:     "changed path",
+			smapUpdated: true,
+
+			fct:    "prev function",
+			outFct: "changed function",
+			msg:    "Full sourcemap mapping applied.",
 		},
 	}
 
 	ver := "1"
 	service := Service{Name: "foo", Version: &ver}
 	for idx, test := range tests {
-		conf := &pr.Config{SmapMapper: &FakeMapper{}}
-		output := (&test.fr).Transform(conf, service)
-		assert.Equal(t, test.out, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
-		assert.Equal(t, test.out_function, test.fr.SourcemapFunction)
+		output := (&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
+		assert.Equal(t, test.outFct, output)
+		assert.Equal(t, test.lineno, test.fr.Lineno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		assert.Equal(t, test.filename, test.fr.Filename, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		assert.Equal(t, test.function, *test.fr.Function, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		assert.Equal(t, test.absPath, *test.fr.AbsPath, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		if test.colno != 0 {
+			assert.Equal(t, test.colno, *test.fr.Colno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		}
+		if test.smapError != "" || test.smapUpdated {
+			assert.Equal(t, test.smapUpdated, *test.fr.Sourcemap.Updated, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		}
+		if test.smapError != "" {
+			assert.Equal(t, test.smapError, *test.fr.Sourcemap.Error, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		}
 	}
 }
 
@@ -272,7 +279,7 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 		if test.pattern != "" {
 			excludePattern = regexp.MustCompile(test.pattern)
 		}
-		out := test.fr.Transform(&pr.Config{ExcludeFromGrouping: excludePattern}, Service{})
+		out := test.fr.Transform(&pr.Config{ExcludeFromGrouping: excludePattern})
 		exclude := out["exclude_from_grouping"]
 		assert.Equal(t, test.exclude, exclude,
 			fmt.Sprintf("(%v): Pattern: %v, Filename: %v, expected to be excluded: %v", idx, test.pattern, test.fr.Filename, test.exclude))
@@ -340,7 +347,7 @@ func TestLibraryFrame(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		out := test.fr.Transform(test.conf, Service{})["library_frame"]
+		out := test.fr.Transform(test.conf)["library_frame"]
 		if test.libraryFrame == nil {
 			assert.Nil(t, out, test.msg)
 		} else {

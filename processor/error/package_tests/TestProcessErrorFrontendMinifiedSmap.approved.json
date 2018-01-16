@@ -41,6 +41,7 @@
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///./test/e2e/general-usecase/app.js",
                             "function": "generateError",
                             "library_frame": true,
@@ -54,6 +55,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///./test/e2e/general-usecase/app.js",
                             "function": "apply",
                             "library_frame": true,
@@ -67,6 +69,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "invokeTask",
                             "library_frame": true,
@@ -80,6 +83,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "runTask",
                             "library_frame": true,
@@ -93,6 +97,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "apply",
                             "library_frame": true,
@@ -106,6 +111,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "apply",
                             "library_frame": true,
@@ -119,6 +125,7 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "\u003canonymous\u003e",
                             "library_frame": true,
