@@ -96,8 +96,9 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 		logp.Err(err.Error())
 	}
 	prConfig := processor.Config{
-		SmapMapper:     smapper,
-		LibraryPattern: regexp.MustCompile(config.Frontend.LibraryPattern),
+		SmapMapper:          smapper,
+		LibraryPattern:      regexp.MustCompile(config.Frontend.LibraryPattern),
+		ExcludeFromGrouping: regexp.MustCompile(config.Frontend.ExcludeFromGrouping),
 	}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),

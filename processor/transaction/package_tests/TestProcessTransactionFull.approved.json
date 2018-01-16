@@ -170,6 +170,7 @@
                                 ""
                             ]
                         },
+                        "exclude_from_grouping": false,
                         "filename": "net.js",
                         "function": "onread",
                         "library_frame": true,
@@ -184,6 +185,7 @@
                         }
                     },
                     {
+                        "exclude_from_grouping": false,
                         "filename": "my2file.js",
                         "line": {
                             "number": 10

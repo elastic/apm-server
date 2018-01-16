@@ -174,8 +174,9 @@ func TestEventTransform(t *testing.T) {
 				"culprit": "some trigger",
 				"exception": common.MapStr{
 					"stacktrace": []common.MapStr{{
-						"filename": "st file",
-						"line":     common.MapStr{"number": 0},
+						"filename":              "st file",
+						"line":                  common.MapStr{"number": 0},
+						"exclude_from_grouping": false,
 						"sourcemap": common.MapStr{
 							"error":   "Colno mandatory for sourcemapping.",
 							"updated": false,
@@ -230,6 +231,24 @@ func TestExplicitGroupingKey(t *testing.T) {
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
 		assert.Equal(t, groupingKey, e.calcGroupingKey(), "grouping_key mismatch", idx)
 	}
+}
+
+func TestFramesUsableForGroupingKey(t *testing.T) {
+	st1 := m.Stacktrace{
+		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: true},
+	}
+	st2 := m.Stacktrace{
+		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: false},
+	}
+	e1 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st1}}
+	e2 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st2}}
+	key1 := e1.calcGroupingKey()
+	key2 := e2.calcGroupingKey()
+	assert.NotEqual(t, key1, key2)
 }
 
 func TestFallbackGroupingKey(t *testing.T) {

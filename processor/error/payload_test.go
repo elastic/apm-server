@@ -75,8 +75,9 @@ func TestPayloadTransform(t *testing.T) {
 						"exception": common.MapStr{
 							"message": "exception message",
 							"stacktrace": []common.MapStr{{
-								"filename": "myFile",
-								"line":     common.MapStr{"number": 0},
+								"exclude_from_grouping": false,
+								"filename":              "myFile",
+								"line":                  common.MapStr{"number": 0},
 								"sourcemap": common.MapStr{
 									"error":   "Colno mandatory for sourcemapping.",
 									"updated": false,

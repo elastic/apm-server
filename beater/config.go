@@ -21,11 +21,12 @@ type Config struct {
 }
 
 type FrontendConfig struct {
-	Enabled        *bool          `config:"enabled"`
-	RateLimit      int            `config:"rate_limit"`
-	AllowOrigins   []string       `config:"allow_origins"`
-	LibraryPattern string         `config:"library_pattern"`
-	SourceMapping  *SourceMapping `config:"source_mapping"`
+	Enabled             *bool          `config:"enabled"`
+	RateLimit           int            `config:"rate_limit"`
+	AllowOrigins        []string       `config:"allow_origins"`
+	LibraryPattern      string         `config:"library_pattern"`
+	ExcludeFromGrouping string         `config:"exclude_from_grouping"`
+	SourceMapping       *SourceMapping `config:"source_mapping"`
 }
 
 type SourceMapping struct {
@@ -105,7 +106,8 @@ func defaultConfig() *Config {
 				},
 				Index: "apm",
 			},
-			LibraryPattern: "node_modules|bower_components|~",
+			LibraryPattern:      "node_modules|bower_components|~",
+			ExcludeFromGrouping: "^/webpack",
 		},
 	}
 }

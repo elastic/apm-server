@@ -96,6 +96,52 @@ class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      2)
         self.check_library_frames({"true": 1, "false": 1, "empty": 0}, "span")
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_grouping_key_for_error(self):
+        # upload the same error, once via frontend, once via backend endpoint
+        # check they don't have the same grouping key, as the
+        # `frontend.exclude_from_grouping` should only be applied to the frontend error.
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     'http://localhost:8200/v1/errors',
+                                     'error',
+                                     1)
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     2)
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "error"}}})
+        docs = rs['hits']['hits']
+        grouping_key1 = docs[0]["_source"]["error"]["grouping_key"]
+        grouping_key2 = docs[1]["_source"]["error"]["grouping_key"]
+        assert grouping_key1 != grouping_key2
+
+    def check_library_frames(self, library_frames, event):
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": event}}})
+        l_frames = {"true": 0, "false": 0, "empty": 0}
+        for doc in rs['hits']['hits']:
+            if "error" in doc["_source"]:
+                err = doc["_source"]["error"]
+                if "exception" in err:
+                    self.count_library_frames(err["exception"], l_frames)
+                if "log" in err:
+                    self.count_library_frames(err["log"], l_frames)
+            elif "span" in doc["_source"]:
+                span = doc["_source"]["span"]
+                self.count_library_frames(span, l_frames)
+        assert l_frames == library_frames, "found {}, expected {}".format(l_frames, library_frames)
+
+    def count_library_frames(self, doc, lf):
+        if "stacktrace" not in doc:
+            return
+        for frame in doc["stacktrace"]:
+            if frame.has_key("library_frame"):
+                k = "true" if frame["library_frame"] == True else "false"
+                lf[k] += 1
+            else:
+                lf["empty"] += 1
+
 
 class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")

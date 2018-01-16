@@ -42,6 +42,7 @@ func TestConfig(t *testing.T) {
 						"index_pattern": "apm-test*"
 					},
 					"library_pattern": "pattern",
+					"exclude_from_grouping": "group_pattern",
 				}
       }`),
 			expectedConfig: Config{
@@ -61,7 +62,8 @@ func TestConfig(t *testing.T) {
 						Cache: &Cache{Expiration: 10 * time.Minute},
 						Index: "apm-test*",
 					},
-					LibraryPattern: "pattern",
+					LibraryPattern:      "pattern",
+					ExcludeFromGrouping: "group_pattern",
 				},
 				ConcurrentRequests: 15,
 			},
