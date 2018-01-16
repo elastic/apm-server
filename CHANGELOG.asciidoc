@@ -33,7 +33,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Add transaction.id to errors {pull}437[437]
 - Support for `transaction.marks` {pull}430[430]
 - Support for uploading sourcemaps {pull}302[302].
-- Support for sourcemap mapping on incoming frontend requests {pull}381[381]
+- Support for sourcemap mapping on incoming frontend requests {pull}381[381], {pull}502[502]
 - Support for `transaction.marks` {pull}430[430].
 - Support for `transaction.span_count.dropped.total` {pull}448[448].
 - Optional field `transaction.sampled` {pull}441[441]

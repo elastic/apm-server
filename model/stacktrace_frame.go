@@ -24,23 +24,19 @@ type StacktraceFrame struct {
 	PreContext   []string `mapstructure:"pre_context"`
 	PostContext  []string `mapstructure:"post_context"`
 
-	SourcemapUpdated bool
-	SourcemapError   *string
-
 	ExcludeFromGrouping bool
+
+	Sourcemap Sourcemap
 }
 
-func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.MapStr {
+type Sourcemap struct {
+	Updated *bool
+	Error   *string
+}
+
+func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	m := common.MapStr{}
-
-	if config != nil && config.SmapMapper != nil {
-		sm := common.MapStr{}
-		s.applySourcemap(service, config.SmapMapper)
-		enhancer.Add(sm, "updated", s.SourcemapUpdated)
-		enhancer.Add(sm, "error", s.SourcemapError)
-		enhancer.Add(m, "sourcemap", sm)
-	}
 	enhancer.Add(m, "filename", s.Filename)
 	enhancer.Add(m, "abs_path", s.AbsPath)
 	enhancer.Add(m, "module", s.Module)
@@ -68,6 +64,11 @@ func (s *StacktraceFrame) Transform(config *pr.Config, service Service) common.M
 	enhancer.Add(line, "context", s.ContextLine)
 	enhancer.Add(m, "line", line)
 
+	sm := common.MapStr{}
+	enhancer.Add(sm, "updated", s.Sourcemap.Updated)
+	enhancer.Add(sm, "error", s.Sourcemap.Error)
+	enhancer.Add(m, "sourcemap", sm)
+
 	return m
 }
 
@@ -80,32 +81,36 @@ func (s *StacktraceFrame) isLibraryFrame(pattern *regexp.Regexp) bool {
 		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
 }
 
-func (s *StacktraceFrame) applySourcemap(service Service, mapper sourcemap.Mapper) {
+func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Service, prevFunction string) string {
 	if s.Colno == nil {
 		s.updateError("Colno mandatory for sourcemapping.")
-		return
+		return prevFunction
 	}
 	sourcemapId := s.buildSourcemapId(service)
 	mapping, err := mapper.Apply(sourcemapId, s.Lineno, *s.Colno)
 	if err != nil {
-		logp.Err(fmt.Sprintf("Sourcemap fetching Error %s", err.Error()))
+		logp.Err(fmt.Sprintf("failed to apply sourcemap %s", err.Error()))
 		e, issourcemapError := err.(sourcemap.Error)
 		if !issourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
 			s.updateError(err.Error())
 		}
-		return
+		return prevFunction
 	}
 
 	if mapping.Filename != "" {
 		s.Filename = mapping.Filename
 	}
-	if mapping.Function != "" {
-		s.Function = &mapping.Function
-	}
+
 	s.Colno = &mapping.Colno
 	s.Lineno = mapping.Lineno
 	s.AbsPath = &mapping.Path
-	s.SourcemapUpdated = true
+	s.updateSmap(true)
+	s.Function = &prevFunction
+
+	if mapping.Function != "" {
+		return mapping.Function
+	}
+	return "<unknown>"
 }
 
 func (s *StacktraceFrame) buildSourcemapId(service Service) sourcemap.Id {
@@ -121,6 +126,10 @@ func (s *StacktraceFrame) buildSourcemapId(service Service) sourcemap.Id {
 
 func (s *StacktraceFrame) updateError(errMsg string) {
 	logp.Err(errMsg)
-	s.SourcemapError = &errMsg
-	s.SourcemapUpdated = false
+	s.Sourcemap.Error = &errMsg
+	s.updateSmap(false)
+}
+
+func (s *StacktraceFrame) updateSmap(updated bool) {
+	s.Sourcemap.Updated = &updated
 }

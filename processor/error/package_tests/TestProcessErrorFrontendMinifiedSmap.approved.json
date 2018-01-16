@@ -1,8 +1,11 @@
 {
     "events": [
         {
-            "@timestamp": "2017-12-08T12:18:50.291Z",
+            "@timestamp": "2018-01-15T09:20:37.594Z",
             "context": {
+                "custom": {
+                    "testContext": "testContext"
+                },
                 "environment": {
                     "browserHeight": 726,
                     "browserWidth": 150,
@@ -19,112 +22,125 @@
                 },
                 "service": {
                     "agent": {
-                        "name": "apm-js",
-                        "version": "0.0.0"
+                        "name": "js-base",
+                        "version": "0.3.0"
                     },
-                    "name": "apm-agent-js",
-                    "version": "1.0.1"
+                    "name": "apm-agent-js-base-test-e2e-general-usecase",
+                    "version": "0.0.1"
+                },
+                "user": {
+                    "email": "email",
+                    "id": "userId",
+                    "username": "username"
                 }
             },
             "error": {
-                "culprit": "test/e2e/general-usecase/bundle.js.map",
+                "culprit": "test/e2e/general-usecase/app.e2e-bundle.min.js",
                 "exception": {
                     "message": "Uncaught Error: timeout test error",
                     "stacktrace": [
                         {
-                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                             "exclude_from_grouping": false,
-                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-                            "function": "\u003canonymous\u003e",
+                            "filename": "webpack:///./test/e2e/general-usecase/app.js",
+                            "function": "generateError",
                             "library_frame": true,
                             "line": {
                                 "column": 0,
-                                "number": 5
+                                "number": 17
                             },
                             "sourcemap": {
                                 "updated": true
                             }
                         },
                         {
-                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                             "exclude_from_grouping": false,
-                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-                            "function": "__webpack_require__",
+                            "filename": "webpack:///./test/e2e/general-usecase/app.js",
+                            "function": "apply",
                             "library_frame": true,
                             "line": {
                                 "column": 0,
-                                "number": 33
+                                "number": 21
                             },
                             "sourcemap": {
                                 "updated": true
                             }
                         },
                         {
-                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                             "exclude_from_grouping": false,
-                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
+                            "function": "invokeTask",
+                            "library_frame": true,
+                            "line": {
+                                "column": 0,
+                                "number": 3609
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "runTask",
                             "library_frame": true,
                             "line": {
                                 "column": 0,
-                                "number": 5
+                                "number": 3412
                             },
                             "sourcemap": {
                                 "updated": true
                             }
                         },
                         {
-                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                             "exclude_from_grouping": false,
-                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-                            "function": "invoke",
+                            "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
+                            "function": "apply",
                             "library_frame": true,
                             "line": {
                                 "column": 0,
-                                "number": 39
+                                "number": 3679
                             },
                             "sourcemap": {
                                 "updated": true
                             }
                         },
                         {
-                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                             "exclude_from_grouping": false,
-                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-                            "function": "moduleId",
+                            "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
+                            "function": "apply",
                             "library_frame": true,
                             "line": {
                                 "column": 0,
-                                "number": 8
+                                "number": 3668
                             },
                             "sourcemap": {
                                 "updated": true
                             }
-                        }
-                    ],
-                    "type": "Error"
-                },
-                "grouping_key": "6fc01af659d163aac0cf5348dd2daae5",
-                "id": "aba2688e-0338-48ce-9c4e-4005f1caa534",
-                "log": {
-                    "message": "Uncaught Error: log timeout test error",
-                    "stacktrace": [
+                        },
                         {
-                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
                             "exclude_from_grouping": false,
-                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "\u003canonymous\u003e",
                             "library_frame": true,
                             "line": {
                                 "column": 0,
-                                "number": 5
+                                "number": 5180
                             },
                             "sourcemap": {
                                 "updated": true
                             }
                         }
                     ]
-                }
+                },
+                "grouping_key": "25e23395075f4ea4a019d9ef017e0a25",
+                "id": "167396eb-7b71-4091-9c6f-b8078d2167c7"
             },
             "processor": {
                 "event": "error",

@@ -1,0 +1,135 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-12-08T12:18:50.291Z",
+            "context": {
+                "environment": {
+                    "browserHeight": 726,
+                    "browserWidth": 150,
+                    "language": "en-US",
+                    "platform": "MacIntel",
+                    "screenHeight": 800,
+                    "screenWidth": 1280,
+                    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
+                },
+                "page": {
+                    "host": "localhost",
+                    "location": "http://localhost:8000/test/e2e/general-usecase/",
+                    "referer": "http://localhost:8000/test/e2e/"
+                },
+                "service": {
+                    "agent": {
+                        "name": "apm-js",
+                        "version": "0.0.0"
+                    },
+                    "name": "apm-agent-js",
+                    "version": "1.0.1"
+                }
+            },
+            "error": {
+                "culprit": "test/e2e/general-usecase/bundle.js.map",
+                "exception": {
+                    "message": "Uncaught Error: timeout test error",
+                    "stacktrace": [
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "__webpack_require__",
+                            "library_frame": true,
+                            "line": {
+                                "column": 0,
+                                "number": 5
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "\u003cunknown\u003e",
+                            "library_frame": true,
+                            "line": {
+                                "column": 0,
+                                "number": 33
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "\u003cunknown\u003e",
+                            "library_frame": true,
+                            "line": {
+                                "column": 0,
+                                "number": 5
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "moduleId",
+                            "library_frame": true,
+                            "line": {
+                                "column": 0,
+                                "number": 39
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        },
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "\u003canonymous\u003e",
+                            "library_frame": true,
+                            "line": {
+                                "column": 0,
+                                "number": 8
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        }
+                    ],
+                    "type": "Error"
+                },
+                "grouping_key": "89e23da755c2dd759d2d529e37c92b8f",
+                "id": "aba2688e-0338-48ce-9c4e-4005f1caa534",
+                "log": {
+                    "message": "Uncaught Error: log timeout test error",
+                    "stacktrace": [
+                        {
+                            "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "exclude_from_grouping": false,
+                            "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                            "function": "\u003canonymous\u003e",
+                            "library_frame": true,
+                            "line": {
+                                "column": 0,
+                                "number": 5
+                            },
+                            "sourcemap": {
+                                "updated": true
+                            }
+                        }
+                    ]
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        }
+    ]
+}
