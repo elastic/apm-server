@@ -89,7 +89,7 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Servic
 	sourcemapId := s.buildSourcemapId(service)
 	mapping, err := mapper.Apply(sourcemapId, s.Lineno, *s.Colno)
 	if err != nil {
-		logp.Err(fmt.Sprintf("Sourcemap fetching Error %s", err.Error()))
+		logp.Err(fmt.Sprintf("failed to apply sourcemap %s", err.Error()))
 		e, issourcemapError := err.(sourcemap.Error)
 		if !issourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
 			s.updateError(err.Error())
