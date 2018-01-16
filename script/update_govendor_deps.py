@@ -42,6 +42,9 @@ def main():
 
     # much faster to call govendor once and minimize the git reset & status calls it makes
     update = ['{pkg}@{revision}'.format(pkg=pkg, revision=args.revision) for pkg in packages]
+    if not update:
+        print("No packages found, everything up-to-date.")
+        return
     cmd = ['govendor', 'fetch'] + update
     if args.verbose:
         print(' '.join(cmd))
