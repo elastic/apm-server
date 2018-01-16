@@ -124,7 +124,7 @@ func TestBeatConfig(t *testing.T) {
 						Index: "apm",
 					},
 					LibraryPattern:      "node_modules|bower_components|~",
-					ExcludeFromGrouping: "^\\s*$|^/webpack|^[/][^/]*$",
+					ExcludeFromGrouping: "^/webpack",
 				},
 				ConcurrentRequests: 40,
 			},

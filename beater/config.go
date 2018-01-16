@@ -107,7 +107,7 @@ func defaultConfig() *Config {
 				Index: "apm",
 			},
 			LibraryPattern:      "node_modules|bower_components|~",
-			ExcludeFromGrouping: "^\\s*$|^/webpack|^[/][^/]*$",
+			ExcludeFromGrouping: "^/webpack",
 		},
 	}
 }

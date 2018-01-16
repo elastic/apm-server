@@ -223,37 +223,32 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 		},
 		{
 			fr:      StacktraceFrame{Filename: ""},
-			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			pattern: "^/webpack",
+			exclude: false,
+		},
+		{
+			fr:      StacktraceFrame{Filename: "/webpack"},
+			pattern: "^/webpack",
 			exclude: true,
 		},
 		{
 			fr:      StacktraceFrame{Filename: "/webpack/test/e2e/general-usecase/app.e2e-bundle.js"},
-			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			pattern: "^/webpack",
 			exclude: true,
 		},
 		{
 			fr:      StacktraceFrame{Filename: "/filename"},
-			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
-			exclude: true,
-		},
-		{
-			fr:      StacktraceFrame{Filename: "filename"},
-			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			pattern: "^/webpack",
 			exclude: false,
 		},
 		{
 			fr:      StacktraceFrame{Filename: "/filename/a"},
-			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
-			exclude: false,
-		},
-		{
-			fr:      StacktraceFrame{Filename: "/path/filename"},
-			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			pattern: "^/webpack",
 			exclude: false,
 		},
 		{
 			fr:      StacktraceFrame{Filename: "webpack"},
-			pattern: "^\\s*$|^/webpack|^[/][^/]*$",
+			pattern: "^/webpack",
 			exclude: false,
 		},
 	}
