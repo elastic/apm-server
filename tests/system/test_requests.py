@@ -112,6 +112,11 @@ class Test(ServerBaseTest):
                           headers={'Content-Encoding': 'deflate', 'Content-Type': 'application/json'})
         assert r.status_code == 400, r.status_code
 
+    def test_expvar_default(self):
+        """expvar should not be exposed by default"""
+        r = requests.get(self.expvar_url)
+        assert r.status_code == 404, r.status_code
+
 
 class SecureTest(SecureServerBaseTest):
 
