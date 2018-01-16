@@ -2437,7 +2437,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/StackExchange/wmi
-Revision: ea383cf3ba6ec950874b8486cd72356d007c768f
+Revision: 347f321265706627d5ecafcd7cf8f638e6e8ace6
 License type (autodetected): MIT
 ./vendor/github.com/StackExchange/wmi/LICENSE:
 --------------------------------------------------------------------
