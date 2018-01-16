@@ -40,6 +40,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Add Kibana sourcefilter for `sourcemap.sourcemap` {pull}454[454]
 - Increase default 'ConcurrentRequests' from 20 to 40{pull}492[492]
 - Add Config option for excluding stack trace frames from `grouping_key` calculation {pull}482[482]
+- Use index.auto_expand_replicas '0-1' by default {pull}503[503]
 
 ==== Deprecated
 

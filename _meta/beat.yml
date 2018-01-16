@@ -20,3 +20,4 @@ apm-server:
 setup.template.settings:
   index.number_of_shards: 1
   index.codec: best_compression
+  index.auto_expand_replicas: "0-1"
