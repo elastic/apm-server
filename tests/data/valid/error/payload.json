@@ -46,7 +46,7 @@
                 "stacktrace": [
                     {
                         "abs_path": "/real/file/name.py",
-                        "filename": "file/name.py",
+                        "filename": "/webpack/file/name.py",
                         "function": "foo",
                         "vars": {
                             "key": "value"

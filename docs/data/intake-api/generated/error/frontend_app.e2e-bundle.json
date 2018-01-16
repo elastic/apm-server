@@ -43,7 +43,7 @@
             "colno": 42
           },
           {
-            "filename": "test/e2e/general-usecase/app.e2e-bundle.js",
+            "filename": "/webpack/test/e2e/general-usecase/app.e2e-bundle.js",
             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.js.map",
             "function": "timer",
             "lineno": 4737,

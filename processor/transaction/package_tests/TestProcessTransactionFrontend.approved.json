@@ -74,8 +74,10 @@
                 "stacktrace": [
                     {
                         "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                        "exclude_from_grouping": false,
                         "filename": "test/e2e/general-usecase/bundle.js.map",
                         "function": "\u003canonymous\u003e",
+                        "library_frame": true,
                         "line": {
                             "column": 18,
                             "number": 1
@@ -83,8 +85,10 @@
                     },
                     {
                         "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                        "exclude_from_grouping": true,
                         "filename": "~/test/e2e/general-usecase/bundle.js.map",
                         "function": "\u003canonymous\u003e",
+                        "library_frame": true,
                         "line": {
                             "column": 18,
                             "number": 1

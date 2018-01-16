@@ -186,6 +186,9 @@ func (e *Event) calcGroupingKey() string {
 	}
 
 	for _, fr := range st {
+		if fr.ExcludeFromGrouping {
+			continue
+		}
 		k.addEither(fr.Module, fr.Filename)
 		k.addEither(fr.Function, string(fr.Lineno))
 	}

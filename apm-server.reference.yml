@@ -49,6 +49,12 @@ apm-server:
     # If the regexp matches, the stacktrace frame is considered to be a library frame.
     #library_pattern: "node_modules|bower_components|~"
 
+    # Regexp to be matched against a stacktrace frame's `file_name`.
+    # If the regexp matches, the stacktrace frame is not used for calculating error groups.
+    # The default pattern excludes stacktrace frames that have
+    # - a filename starting with '/webpack'
+    #exclude_from_grouping: "^/webpack"
+
     # If a source map has previously been uploaded, source mapping is automatically applied
     # to all error and transaction documents sent to the frontend endpoint.
     #source_mapping:

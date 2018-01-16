@@ -236,6 +236,7 @@
                 "name": "SELECT FROM product_types",
                 "stacktrace": [
                     {
+                        "exclude_from_grouping": false,
                         "filename": "myfile",
                         "line": {
                             "number": 1
