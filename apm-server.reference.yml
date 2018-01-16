@@ -32,10 +32,10 @@ apm-server:
 
   # Please be aware that frontend support is an experimental feature at the moment!
   #frontend:
-    # Set enabled to true for becoming an early tester of frontend support.
+    # To enable experimental frontend support set this to true.
     #enabled: false
 
-    # Rate Limit per second and IP address for requests sent to the frontend endpoint.
+    # Rate limit per second and IP address for requests sent to the frontend endpoint.
     #rate_limit: 10
 
     # Comma separated list of permitted origins for frontend. User-agents will send
@@ -49,17 +49,17 @@ apm-server:
     # If the regexp matches, the stacktrace frame is considered to be a library frame.
     #library_pattern: "node_modules|bower_components|~"
 
-    # If a mapping Source Map is found in Elasticsearch, Source Mapping is automatically applied
+    # If a source map has previously been uploaded, source mapping is automatically applied
     # to all error and transaction documents sent to the frontend endpoint.
     #source_mapping:
 
-      # Source Maps are are fetched from Elasticsearch and then kept in an in-memory cache for a certain time.
-      # The `cache.expiration` determines how long a Source Map should be cached before fetching it again from Elasticsearch.
+      # Source maps are are fetched from Elasticsearch and then kept in an in-memory cache for a certain time.
+      # The `cache.expiration` determines how long a source map should be cached before fetching it again from Elasticsearch.
       # Note that values configured without a time unit will be interpreted as seconds.
       #cache:
         #expiration: 5m
 
-      # Source Maps are stored in the same index as transaction and error documents.
+      # Source maps are stored in the same index as transaction and error documents.
       # If the default index pattern at 'outputs.elasticsearch.index' is changed,
       # a matching index pattern needs to be specified here.
       #index_pattern: "apm*"
