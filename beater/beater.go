@@ -1,9 +1,11 @@
 package beater
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"regexp"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -21,9 +23,16 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	if err := ucfg.Unpack(beaterConfig); err != nil {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
 	}
-
-	if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
-		beaterConfig.setElasticsearch(b.Config.Output.Config())
+	if beaterConfig.Frontend.isEnabled() {
+		if _, err := regexp.Compile(beaterConfig.Frontend.LibraryPattern); err != nil {
+			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
+		}
+		if _, err := regexp.Compile(beaterConfig.Frontend.ExcludeFromGrouping); err != nil {
+			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
+		}
+		if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
+			beaterConfig.setElasticsearch(b.Config.Output.Config())
+		}
 	}
 
 	bt := &beater{

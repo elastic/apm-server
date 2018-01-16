@@ -21,7 +21,11 @@ func TestStacktraceTransform(t *testing.T) {
 		{
 			Stacktrace: Stacktrace{&StacktraceFrame{}},
 			Output: []common.MapStr{
-				{"filename": "", "line": common.MapStr{"number": 0}},
+				{
+					"filename":              "",
+					"line":                  common.MapStr{"number": 0},
+					"exclude_from_grouping": false,
+				},
 			},
 			Msg: "Stacktrace with empty Frame",
 		},

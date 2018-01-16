@@ -12,6 +12,7 @@ apm-server:
   frontend.rate_limit: 3
   frontend.allow_origins: {{ allow_origins }}
   frontend.library_pattern: "~/test|library"
+  frontend.exclude_from_grouping: "~/test"
   {% if smap_index_pattern%}
   frontend.source_mapping.index_pattern: {{ smap_index_pattern}}
   frontend.source_mapping.cache.expiration: {{ smap_cache_expiration}}

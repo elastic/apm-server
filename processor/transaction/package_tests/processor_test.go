@@ -1,10 +1,12 @@
 package package_tests
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 )
@@ -29,7 +31,11 @@ func TestProcessorFrontendOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
 		{Name: "TestProcessTransactionFrontend", Path: "data/valid/transaction/frontend.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(nil), requestInfo, map[string]string{})
+	conf := processor.Config{
+		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
+		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
+	}
+	tests.TestProcessRequests(t, transaction.NewProcessor(&conf), requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
