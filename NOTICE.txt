@@ -855,6 +855,15 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
       the Mozilla Public License, v. 2.0.
 
 --------------------------------------------------------------------
+Dependency: github.com/inconshreveable/mousetrap
+Revision: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+License type (autodetected): Apache-2.0
+./vendor/github.com/inconshreveable/mousetrap/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
 Dependency: github.com/joeshaw/multierror
 Revision: 347f321265706627d5ecafcd7cf8f638e6e8ace6
 License type (autodetected): MIT
