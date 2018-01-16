@@ -33,21 +33,23 @@ func (st Stacktrace) transform(config *pr.Config) []common.MapStr {
 //   * the function name of the first frame is set to <anonymous>
 //   * if one frame is not found in the source map, this frame is left out and
 //   the function name from the previous frame is set for the one but next frame
+//   * if a mapping could be applied but nor function name is found, the
+//   function name for the next frame is set to <unknown>
 // - colno
 // - lineno
 // - abs_path is set to the cleaned abs_path
 // - sourcmeap.updated is set to true
 func (st Stacktrace) sourcemapAndTransform(config *pr.Config, service Service) []common.MapStr {
-	noFrames := len(st)
-	if noFrames == 0 {
+	frameCount := len(st)
+	if frameCount == 0 {
 		return nil
 	}
 	var fr *StacktraceFrame
 	var frames []common.MapStr
-	frames = make([]common.MapStr, noFrames)
+	frames = make([]common.MapStr, frameCount)
 
 	fct := "<anonymous>"
-	for idx := noFrames - 1; idx >= 0; idx-- {
+	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = st[idx]
 		fct = fr.applySourcemap(config.SmapMapper, service, fct)
 		frames[idx] = fr.Transform(config)
