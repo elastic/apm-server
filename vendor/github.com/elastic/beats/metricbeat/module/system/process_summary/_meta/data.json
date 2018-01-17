@@ -1,0 +1,26 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "metricset": {
+        "module": "system",
+        "name": "process_summary",
+        "namespace": "system.process.summary",
+        "rtt": 115
+    },
+    "system": {
+        "process": {
+            "summary": {
+                "idle": 0,
+                "running": 2,
+                "sleeping": 2,
+                "stopped": 0,
+                "total": 4,
+                "unknown": 0,
+                "zombie": 0
+            }
+        }
+    }
+}

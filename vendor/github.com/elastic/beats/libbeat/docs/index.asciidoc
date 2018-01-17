@@ -1,0 +1,30 @@
+[[beats-reference]]
+= Beats Platform Reference
+
+include::./version.asciidoc[]
+
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
+:beatname_lc: beatname
+:beatname_uc: a Beat
+:beatname_pkg: {beatname_lc}
+
+include::../../libbeat/docs/shared-beats-attributes.asciidoc[]
+
+include::./overview.asciidoc[]
+
+include::./communitybeats.asciidoc[]
+
+include::../../libbeat/docs/contributing-to-beats.asciidoc[]
+
+include::./gettingstarted.asciidoc[]
+
+include::./installing-beats.asciidoc[]
+
+include::./breaking.asciidoc[]
+
+include::./upgrading.asciidoc[]
+
+include::./config-file-format.asciidoc[]
+
+include::./release.asciidoc[]

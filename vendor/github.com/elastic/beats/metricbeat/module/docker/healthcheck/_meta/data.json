@@ -1,0 +1,37 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "docker": {
+        "container": {
+            "id": "228848ff8ea238430c4e9cc21deb3175ea5c77483a7f9f4b7c42f7cd6d18c0fb",
+            "labels": {
+                "com_docker_compose_config-hash": "13347b7d96bf1b3f1ddc089bdef099e42dde235e",
+                "com_docker_compose_container-number": "1",
+                "com_docker_compose_oneoff": "False",
+                "com_docker_compose_project": "metricbeat",
+                "com_docker_compose_service": "aerospike",
+                "com_docker_compose_version": "1.5.0"
+            },
+            "name": "metricbeat_aerospike_1"
+        },
+        "healthcheck": {
+            "event": {
+                "end_date": "2017-12-07T07:27:18.738Z",
+                "exit_code": 1,
+                "output": "",
+                "start_date": "2017-12-07T07:27:17.416Z"
+            },
+            "failingstreak": 1,
+            "status": "starting"
+        }
+    },
+    "metricset": {
+        "host": "/var/run/docker.sock",
+        "module": "docker",
+        "name": "healthcheck",
+        "rtt": 115
+    }
+}

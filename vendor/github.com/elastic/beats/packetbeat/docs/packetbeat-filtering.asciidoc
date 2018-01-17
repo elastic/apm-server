@@ -1,0 +1,68 @@
+[[filtering-and-enhancing-data]]
+== Filter and enhance the exported data
+
+include::../../libbeat/docs/processors.asciidoc[]
+
+For example, the following configuration includes a subset of the Packetbeat DNS fields so that only the
+requests and their response codes are reported:
+
+[source, yaml]
+-----------------------------------------------------
+processors:
+  - include_fields:
+      fields:
+        - bytes_in
+        - bytes_out
+        - ip
+        - client_ip
+        - dns.question.name
+        - dns.question.etld_plus_one
+        - dns.response_code
+-----------------------------------------------------
+
+The filtered event would look something like this:
+
+[source,shell]
+-----------------------------------------------------
+{
+  "@timestamp": "2016-03-28T14:48:21.732Z",
+  "bytes_in": 32,
+  "bytes_out": 48,
+  "client_ip": "192.168.10.111",
+  "dns": {
+    "question": {
+      "etld_plus_one": "google.com.",
+      "name": "www.google.com."
+    },
+    "response_code": "NOERROR"
+  },
+  "ip": "8.8.8.8",
+  "type": "dns"
+}
+-----------------------------------------------------
+
+If you would like to drop all the successful transactions, you can use the following configuration:
+
+[source,yaml]
+------------
+processors:
+ - drop_event:
+     when:
+        equals:
+           http.response.code: 200
+-----------
+
+
+If you don't want to export raw data for the successful transactions:
+
+[source,yaml]
+------------
+processors:
+ - drop_fields:
+     when:
+        equals:
+           http.response.code: 200
+     fields: ["request", "response"]
+------------
+
+include::../../libbeat/docs/processors-using.asciidoc[]

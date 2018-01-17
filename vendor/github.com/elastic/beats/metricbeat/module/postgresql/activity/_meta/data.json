@@ -1,0 +1,39 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "metricset": {
+        "host": "postgresql:5432",
+        "module": "postgresql",
+        "name": "activity",
+        "rtt": 115
+    },
+    "postgresql": {
+        "activity": {
+            "application_name": "",
+            "backend_start": "2017-12-07T07:31:48.923Z",
+            "client": {
+                "address": "172.18.0.27",
+                "hostname": "",
+                "port": 53398
+            },
+            "database": {
+                "name": "postgres",
+                "oid": 12379
+            },
+            "pid": 348,
+            "query": "SELECT * FROM pg_stat_activity",
+            "query_start": "2017-12-07T07:31:48.925Z",
+            "state": "active",
+            "state_change": "2017-12-07T07:31:48.925Z",
+            "transaction_start": "2017-12-07T07:31:48.925Z",
+            "user": {
+                "id": 10,
+                "name": "postgres"
+            },
+            "waiting": false
+        }
+    }
+}

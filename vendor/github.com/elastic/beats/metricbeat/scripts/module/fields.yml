@@ -1,0 +1,11 @@
+- key: {module}
+  title: "{module}"
+  description: >
+    experimental[]
+
+    {module} module
+  fields:
+    - name: {module}
+      type: group
+      description: >
+      fields:

@@ -1,0 +1,26 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "ceph": {
+        "cluster_disk": {
+            "available": {
+                "bytes": 50847313920
+            },
+            "total": {
+                "bytes": 67371577344
+            },
+            "used": {
+                "bytes": 13071564800
+            }
+        }
+    },
+    "metricset": {
+        "host": "ceph:5000",
+        "module": "ceph",
+        "name": "cluster_disk",
+        "rtt": 115
+    }
+}

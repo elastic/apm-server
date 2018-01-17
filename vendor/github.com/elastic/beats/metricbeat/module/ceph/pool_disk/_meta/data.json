@@ -1,0 +1,29 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "ceph": {
+        "pool_disk": {
+            "id": 0,
+            "name": "rbd",
+            "stats": {
+                "available": {
+                    "bytes": 47478734249
+                },
+                "objects": 0,
+                "used": {
+                    "bytes": 0,
+                    "kb": 0
+                }
+            }
+        }
+    },
+    "metricset": {
+        "host": "ceph:5000",
+        "module": "ceph",
+        "name": "pool_disk",
+        "rtt": 115
+    }
+}

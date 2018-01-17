@@ -1,0 +1,126 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "metricset": {
+        "host": "mongodb:27017",
+        "module": "mongodb",
+        "name": "status",
+        "rtt": 115
+    },
+    "mongodb": {
+        "status": {
+            "asserts": {
+                "msg": 0,
+                "regular": 0,
+                "rollovers": 0,
+                "user": 0,
+                "warning": 0
+            },
+            "connections": {
+                "available": 838859,
+                "current": 1,
+                "total_created": 86
+            },
+            "extra_info": {
+                "heap_usage": {},
+                "page_faults": 31707
+            },
+            "local_time": "2017-12-07T07:31:22.865Z",
+            "memory": {
+                "bits": 64,
+                "mapped": {
+                    "mb": 0
+                },
+                "mapped_with_journal": {
+                    "mb": 0
+                },
+                "resident": {
+                    "mb": 11
+                },
+                "virtual": {
+                    "mb": 931
+                }
+            },
+            "network": {
+                "in": {
+                    "bytes": 811
+                },
+                "out": {
+                    "bytes": 24792
+                },
+                "requests": 27
+            },
+            "opcounters": {
+                "command": 14,
+                "delete": 0,
+                "getmore": 0,
+                "insert": 0,
+                "query": 1,
+                "update": 0
+            },
+            "opcounters_replicated": {
+                "command": 0,
+                "delete": 0,
+                "getmore": 0,
+                "insert": 0,
+                "query": 0,
+                "update": 0
+            },
+            "storage_engine": {
+                "name": "wiredTiger"
+            },
+            "uptime": {
+                "ms": 652234
+            },
+            "version": "3.4.10",
+            "wired_tiger": {
+                "cache": {
+                    "dirty": {
+                        "bytes": 0
+                    },
+                    "maximum": {
+                        "bytes": 1531969536
+                    },
+                    "pages": {
+                        "evicted": 0,
+                        "read": 0,
+                        "write": 16
+                    },
+                    "used": {
+                        "bytes": 29567
+                    }
+                },
+                "concurrent_transactions": {
+                    "read": {
+                        "available": 128,
+                        "out": 0,
+                        "total_tickets": 128
+                    },
+                    "write": {
+                        "available": 128,
+                        "out": 0,
+                        "total_tickets": 128
+                    }
+                },
+                "log": {
+                    "flushes": 3514,
+                    "max_file_size": {
+                        "bytes": 104857600
+                    },
+                    "scans": 0,
+                    "size": {
+                        "bytes": 33554432
+                    },
+                    "syncs": 18,
+                    "write": {
+                        "bytes": 16640
+                    },
+                    "writes": 42
+                }
+            }
+        }
+    }
+}

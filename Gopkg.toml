@@ -1,0 +1,93 @@
+
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
+
+[[override]]
+  name = "github.com/rcrowley/go-metrics"
+  revision = "1f30fe9094a513ce4c700b9a54458bbb0c96996c"
+
+[[override]]
+  name = "github.com/ericchiang/k8s"
+  revision = "5803ed75e31fc1998b5f781ac08e22ff985c3f8f"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/elastic/beats"
+
+[[constraint]]
+  name = "github.com/elastic/go-ucfg"
+  version = "~0.4.6"
+
+[[constraint]]
+  name = "github.com/fatih/set"
+  version = "~0.1.0"
+
+[[constraint]]
+  name = "github.com/go-sourcemap/sourcemap"
+  version = "2.1.1"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/golang-lru"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kabukky/httpscerts"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mitchellh/mapstructure"
+
+[[constraint]]
+  name = "github.com/patrickmn/go-cache"
+  version = "2.1.0"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  version = "~0.8.0"
+
+[[constraint]]
+  name = "github.com/ryanuber/go-glob"
+  version = "~0.1.0"
+
+[[constraint]]
+  name = "github.com/santhosh-tekuri/jsonschema"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/satori/go.uuid"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/spf13/pflag"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/yudai/gojsondiff"
+  version = "1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/time"

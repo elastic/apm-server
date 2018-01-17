@@ -1,0 +1,13 @@
+- key: ceph
+  title: "Ceph"
+  description: >
+    Ceph module
+  short_config: false
+  release: beta
+  settings: ["ssl"]
+  fields:
+    - name: ceph
+      type: group
+      description: >
+        `ceph` contains the metrics that were scraped from CEPH.
+      fields:

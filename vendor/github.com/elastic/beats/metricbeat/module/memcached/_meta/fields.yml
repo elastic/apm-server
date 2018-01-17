@@ -1,0 +1,11 @@
+- key: memcached
+  title: "Memcached"
+  description: >
+    Memcached module
+  short_config: false
+  release: beta
+  fields:
+    - name: memcached
+      type: group
+      description: >
+      fields:
