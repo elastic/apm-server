@@ -121,7 +121,7 @@ func TestBeatConfig(t *testing.T) {
 						Cache: &Cache{
 							Expiration: 7 * time.Second,
 						},
-						Index: "apm",
+						Index: "apm-*",
 					},
 					LibraryPattern:      "node_modules|bower_components|~",
 					ExcludeFromGrouping: "^/webpack",
