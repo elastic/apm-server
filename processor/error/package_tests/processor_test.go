@@ -32,8 +32,9 @@ func TestProcessorBackendOK(t *testing.T) {
 
 func TestProcessorFrontendMinifiedSmapOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
-		{Name: "TestProcessErrorFrontendMinified", Path: "data/valid/error/frontend.json"},
+		{Name: "TestProcessErrorFrontend", Path: "data/valid/error/frontend.json"},
 		{Name: "TestProcessErrorFrontendNoSmap", Path: "data/valid/error/frontend_app.e2e-bundle.json"},
+		{Name: "TestProcessErrorFrontendMinifiedSmap", Path: "data/valid/error/frontend_app.e2e-bundle.min.json"},
 	}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	conf := processor.Config{
@@ -56,6 +57,10 @@ type fakeAcc struct{}
 
 func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
 	file := "bundle.js.map"
+	if smapId.Path == "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js" {
+		file = "app.e2e-bundle.min.js.map"
+	}
+
 	current, _ := os.Getwd()
 	path := filepath.Join(current, "../../../tests/data/valid/sourcemap/", file)
 	fileBytes, err := ioutil.ReadFile(path)
