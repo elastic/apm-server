@@ -1,0 +1,157 @@
+[[kibana-queries-filters]]
+== Kibana queries and filters
+
+In Kibana, you can filter transactions either by entering a search query or by clicking on elements within a visualization.
+
+[float]
+=== Create queries
+
+The search field on the *Discover* page provides a way to query
+a specific subset of transactions from the selected time frame.
+The query syntax is based on the
+http://lucene.apache.org/core/3_5_0/queryparsersyntax.html[Lucene query syntax].
+It allows boolean operators, wildcards, and field filtering. For example, if
+you want to find the HTTP redirects, you can search for
+`type: http AND http.response.code: 302`.
+
+image:./images/kibana-query-filtering.png[Kibana query]
+
+[float]
+==== String queries
+
+A query may consist of one or more words or a phrase. A phrase is a
+group of words surrounded by double quotation marks, such as `"test search"`.
+
+To search for all HTTP requests initiated by Mozilla Web browser version 5.0:
+
+[source,yaml]
+---------------
+"Mozilla/5.0"
+--------------
+
+To search for all the transactions that contain the following message:
+
+[source,yaml]
+------------------------------------
+"Cannot change the info of a user"
+------------------------------------
+
+NOTE: To search for an exact string, you need to wrap the string in double quotation
+marks. Without quotation marks, the search in the example would match any documents containing one of the following words: "Cannot" OR "change" OR "the" OR "info" OR "a" OR "user".
+
+To search for all transactions with the "chunked" encoding:
+
+[source,yaml]
+-----------------------------
+"Transfer-Encoding: chunked"
+-----------------------------
+
+[float]
+==== Field-based queries
+
+Kibana allows you to search specific fields.
+
+To view HTTP transactions only:
+
+[source,yaml]
+--------------------
+type: http
+-------------------
+
+To view failed transactions only:
+
+[source,yaml]
+-------------------
+status: Error
+-------------------
+
+
+To view MySQL INSERT queries only:
+
+[source,yaml]
+---------------------
+mysql.method: INSERT
+---------------------
+
+[float]
+==== Regexp queries
+
+Kibana supports regular expression for filters and expressions. For example,
+to search for all HTTP responses with JSON as the returned value type:
+
+[source,yaml]
+-------------------------
+http.response.headers["content-type"]: *json
+-------------------------
+
+See
+http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-regexp-query.html[Elasticsearch regexp query]
+for more details about the syntax.
+
+[float]
+==== Range queries
+
+Range queries allow a field to have values between the lower and upper bounds.
+The interval can include or exclude the bounds depending on the type of
+brackets that you use.
+
+To search for slow transactions with a response time greater than or equal to 10ms:
+
+[source,yaml]
+------------------------
+responsetime: [10 TO *]
+------------------------
+
+To search for slow transactions with a response time greater than 10ms:
+
+[source,yaml]
+-------------------------
+responsetime: {10 TO *}
+-------------------------
+
+[float]
+==== Boolean queries
+
+Boolean operators (AND, OR, NOT) allow combining multiple sub-queries through logic operators.
+
+NOTE: Operators such as AND, OR, and NOT must be capitalized. See http://lucene.apache.org/core/3_5_0/queryparsersyntax.html[Lucene query syntax] for more details about the boolean operators.
+
+To search for all transactions except MySQL transactions:
+
+[source,yaml]
+----------------
+NOT type: mysql
+---------------
+
+
+To search for all MySQL SELECT queries with large attachments:
+
+[source,yaml]
+-------------------------------------------------
+mysql.method: SELECT AND mysql.size: [10000 TO *]
+-------------------------------------------------
+
+
+Lucene also supports parentheses to group sub-queries.
+
+To search for either INSERT or UPDATE MySQL queries with a response time greater than or equal to 30ms:
+
+[source,yaml]
+---------------------------------------------------------------------------
+(mysql.method: INSERT OR mysql.method: UPDATE) AND responsetime: [30 TO *]
+---------------------------------------------------------------------------
+
+[float]
+=== Create filters
+
+In Kibana, you can also filter transactions by clicking on
+elements within a visualization. For example, to filter for all the HTTP redirects that are coming from a specific
+IP and port, click the "Filter for value" icons (highlighted in green below) for the `client_ip` and `client_port` fields in the transaction detail widget. To
+exclude the HTTP redirects coming from the IP and port, click the icons highlighted in red.
+
+image:./images/filter_from_context.png[Filter from context]
+
+The selected filters appear under the search box.
+
+image:./images/kibana-filters.png[Kibana filters]
+

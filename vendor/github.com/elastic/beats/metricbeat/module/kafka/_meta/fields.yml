@@ -1,0 +1,11 @@
+- key: kafka
+  title: "Kafka"
+  description: >
+    Kafka module
+  short_config: false
+  release: beta
+  fields:
+    - name: kafka
+      type: group
+      description: >
+      fields:

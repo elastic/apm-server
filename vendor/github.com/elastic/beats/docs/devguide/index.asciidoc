@@ -1,0 +1,29 @@
+[[beats-reference]]
+= Beats Developer Guide
+
+include::../../libbeat/docs/version.asciidoc[]
+
+:beatname_lc: beatname
+:beatname_uc: a Beat
+
+include::../../libbeat/docs/shared-beats-attributes.asciidoc[]
+
+include::./contributing.asciidoc[]
+
+include::../../libbeat/docs/communitybeats.asciidoc[]
+
+include::./newbeat.asciidoc[]
+
+include::./event-conventions.asciidoc[]
+
+include::./newdashboards.asciidoc[]
+
+include::./new_protocol.asciidoc[]
+
+include::./metricbeat-devguide.asciidoc[]
+
+include::./modules-dev-guide.asciidoc[]
+
+include::./migrate-dashboards.asciidoc[]
+
+

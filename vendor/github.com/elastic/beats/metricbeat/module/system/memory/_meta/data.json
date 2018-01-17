@@ -1,0 +1,37 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "metricset": {
+        "module": "system",
+        "name": "memory",
+        "rtt": 115
+    },
+    "system": {
+        "memory": {
+            "actual": {
+                "free": 1311326208,
+                "used": {
+                    "bytes": 2827796480,
+                    "pct": 0.6832
+                }
+            },
+            "free": 588627968,
+            "swap": {
+                "free": 23846912,
+                "total": 1073737728,
+                "used": {
+                    "bytes": 1049890816,
+                    "pct": 0.9778
+                }
+            },
+            "total": 4139122688,
+            "used": {
+                "bytes": 3550494720,
+                "pct": 0.8578
+            }
+        }
+    }
+}

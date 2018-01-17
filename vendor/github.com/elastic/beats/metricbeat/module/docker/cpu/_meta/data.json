@@ -1,0 +1,45 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "docker": {
+        "container": {
+            "id": "0b8f7cd09c17df586a8e56f5b2d45dd00735d44fcc2665776d07d33b027b4f09",
+            "labels": {
+                "com_docker_compose_config-hash": "1c0f606c0e592b110060ad4e159cf25d361fb8fa",
+                "com_docker_compose_container-number": "1",
+                "com_docker_compose_oneoff": "False",
+                "com_docker_compose_project": "metricbeat",
+                "com_docker_compose_service": "phpfpm",
+                "com_docker_compose_version": "1.5.0"
+            },
+            "name": "metricbeat_phpfpm_1"
+        },
+        "cpu": {
+            "core": {},
+            "kernel": {
+                "pct": 0,
+                "ticks": 0
+            },
+            "system": {
+                "pct": 0,
+                "ticks": 0
+            },
+            "total": {
+                "pct": 0
+            },
+            "user": {
+                "pct": 0,
+                "ticks": 0
+            }
+        }
+    },
+    "metricset": {
+        "host": "/var/run/docker.sock",
+        "module": "docker",
+        "name": "cpu",
+        "rtt": 115
+    }
+}

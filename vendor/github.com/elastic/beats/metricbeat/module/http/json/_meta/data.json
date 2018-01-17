@@ -1,0 +1,19 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "http": {
+        "testnamespace": {
+            "hello": "world"
+        }
+    },
+    "metricset": {
+        "host": "http:8080",
+        "module": "http",
+        "name": "json",
+        "namespace": "testnamespace",
+        "rtt": 115
+    }
+}

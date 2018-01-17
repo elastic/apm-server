@@ -1,0 +1,32 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "metricset": {
+        "module": "system",
+        "name": "socket",
+        "rtt": 115
+    },
+    "system": {
+        "socket": {
+            "direction": "listening",
+            "family": "ipv4",
+            "local": {
+                "ip": "127.0.0.11",
+                "port": 45723
+            },
+            "process": {
+                "cmdline": "/tmp/go-build519327234/github.com/elastic/beats/metricbeat/module/system/socket/_test/socket.test -test.v=true -data",
+                "command": "socket.test",
+                "exe": "/tmp/go-build519327234/github.com/elastic/beats/metricbeat/module/system/socket/_test/socket.test",
+                "pid": 2025
+            },
+            "user": {
+                "id": 0,
+                "name": "root"
+            }
+        }
+    }
+}

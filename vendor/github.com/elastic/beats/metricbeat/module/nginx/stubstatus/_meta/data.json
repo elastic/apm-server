@@ -1,0 +1,27 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "metricset": {
+        "host": "nginx",
+        "module": "nginx",
+        "name": "stubstatus",
+        "rtt": 115
+    },
+    "nginx": {
+        "stubstatus": {
+            "accepts": 83,
+            "active": 2,
+            "current": 83,
+            "dropped": 0,
+            "handled": 83,
+            "hostname": "nginx",
+            "reading": 0,
+            "requests": 83,
+            "waiting": 1,
+            "writing": 1
+        }
+    }
+}

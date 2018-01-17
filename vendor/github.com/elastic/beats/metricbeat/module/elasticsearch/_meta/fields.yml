@@ -1,0 +1,16 @@
+- key: elasticsearch
+  title: "Elasticsearch"
+  description: >
+    Elasticsearch module
+  release: beta
+  settings: ["ssl"]
+  short_config: false
+  fields:
+    - name: elasticsearch
+      type: group
+      description: >
+      fields:
+        - name: cluster.name
+          type: keyword
+          description: >
+            Elasticsearch cluster name.

@@ -1,0 +1,64 @@
+{
+    "@timestamp": "2017-10-12T08:05:34.853Z",
+    "beat": {
+        "hostname": "host.example.com",
+        "name": "host.example.com"
+    },
+    "metricset": {
+        "host": "mysql:3306",
+        "module": "mysql",
+        "name": "status",
+        "rtt": 115
+    },
+    "mysql": {
+        "status": {
+            "aborted": {
+                "clients": 1,
+                "connects": 82
+            },
+            "binlog": {
+                "cache": {
+                    "disk_use": 0,
+                    "use": 0
+                }
+            },
+            "bytes": {
+                "received": 572,
+                "sent": 26728
+            },
+            "command": {
+                "delete": 0,
+                "insert": 0,
+                "select": 4,
+                "update": 0
+            },
+            "connections": 88,
+            "created": {
+                "tmp": {
+                    "disk_tables": 0,
+                    "files": 6,
+                    "tables": 0
+                }
+            },
+            "delayed": {
+                "errors": 0,
+                "insert_threads": 0,
+                "writes": 0
+            },
+            "flush_commands": 1,
+            "max_used_connections": 3,
+            "open": {
+                "files": 14,
+                "streams": 0,
+                "tables": 101
+            },
+            "opened_tables": 108,
+            "threads": {
+                "cached": 0,
+                "connected": 3,
+                "created": 3,
+                "running": 1
+            }
+        }
+    }
+}

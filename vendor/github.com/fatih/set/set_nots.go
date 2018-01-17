@@ -110,16 +110,13 @@ func (s *set) IsEqual(t Interface) bool {
 		defer conv.l.RUnlock()
 	}
 
-	// return false if they are no the same size
-	if sameSize := len(s.m) == t.Size(); !sameSize {
-		return false
-	}
-
 	equal := true
-	t.Each(func(item interface{}) bool {
-		_, equal = s.m[item]
-		return equal // if false, Each() will end
-	})
+	if equal = len(s.m) == t.Size(); equal {
+		t.Each(func(item interface{}) (equal bool) {
+			_, equal = s.m[item]
+			return
+		})
+	}
 
 	return equal
 }

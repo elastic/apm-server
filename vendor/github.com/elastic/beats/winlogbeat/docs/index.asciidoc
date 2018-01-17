@@ -1,0 +1,34 @@
+= Winlogbeat Reference
+
+include::../../libbeat/docs/version.asciidoc[]
+
+include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+
+:version: {stack-version}
+:beatname_lc: winlogbeat
+:beatname_uc: Winlogbeat
+:beatname_pkg: {beatname_lc}
+
+include::../../libbeat/docs/shared-beats-attributes.asciidoc[]
+
+include::./overview.asciidoc[]
+
+include::../../libbeat/docs/contributing-to-beats.asciidoc[]
+
+include::./getting-started.asciidoc[]
+
+include::./setting-up-running.asciidoc[]
+
+include::./upgrading.asciidoc[]
+
+include::./configuring-howto.asciidoc[]
+
+include::./fields.asciidoc[]
+
+include::./securing-winlogbeat.asciidoc[]
+
+include::../../libbeat/docs/security/securing-beats.asciidoc[]
+
+include::./troubleshooting.asciidoc[]
+
+include::./faq.asciidoc[]
