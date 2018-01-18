@@ -17,6 +17,12 @@ apm-server:
   frontend.source_mapping.index_pattern: {{ smap_index_pattern}}
   frontend.source_mapping.cache.expiration: {{ smap_cache_expiration}}
   {% endif %}
+  {% if expvar_enabled %}
+  expvar.enabled: {{ expvar_enabled }}
+  {% endif %}
+  {% if expvar_url %}
+  expvar.url: {{ expvar_url }}
+  {% endif %}
 ############################# Setup ##########################################
 
 {% if index_name %}

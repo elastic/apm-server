@@ -1,7 +1,8 @@
-import sys
-import os
 import json
+import os
 import shutil
+import sys
+
 sys.path.append('../../_beats/libbeat/tests/system')
 from beat.beat import TestCase
 from elasticsearch import Elasticsearch
@@ -45,9 +46,9 @@ class BaseTest(TestCase):
 
 
 class ServerSetUpBaseTest(BaseTest):
-
     transactions_url = 'http://localhost:8200/v1/transactions'
     errors_url = 'http://localhost:8200/v1/errors'
+    expvar_url = 'http://localhost:8200/debug/vars'
 
     def config(self):
         return {"ssl_enabled": "false",
@@ -300,3 +301,15 @@ class SmapCacheBaseTest(ClientSideBaseTest):
         cfg = super(SmapCacheBaseTest, self).config()
         cfg.update({"smap_cache_expiration": "1"})
         return cfg
+
+
+class ExpvarBaseTest(ServerBaseTest):
+    config_overrides = {}
+
+    def config(self):
+        cfg = super(ServerBaseTest, self).config()
+        cfg.update(self.config_overrides)
+        return cfg
+
+    def get_debug_vars(self):
+        return requests.get(self.expvar_url)

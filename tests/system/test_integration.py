@@ -1,10 +1,8 @@
-from apmserver import ElasticTest, ClientSideBaseTest, SmapCacheBaseTest
-from beat.beat import INTEGRATION_TESTS
 import os
-import json
-import requests
 import unittest
-import time
+
+from apmserver import ElasticTest, ExpvarBaseTest, ClientSideBaseTest, SmapCacheBaseTest
+from beat.beat import INTEGRATION_TESTS
 
 
 class Test(ElasticTest):
@@ -312,3 +310,34 @@ class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
                                      'error',
                                      1)
         self.check_frontend_error_sourcemap(False, expected_err="No Sourcemap available for")
+
+
+class ExpvarDisabledIntegrationTest(ExpvarBaseTest):
+    config_overrides = {"expvar_enabled": "false"}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_expvar_exists(self):
+        """expvar disabled, should 404"""
+        r = self.get_debug_vars()
+        assert r.status_code == 404, r.status_code
+
+
+class ExpvarEnabledIntegrationTest(ExpvarBaseTest):
+    config_overrides = {"expvar_enabled": "true"}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_expvar_exists(self):
+        """expvar enabled, should 200"""
+        r = self.get_debug_vars()
+        assert r.status_code == 200, r.status_code
+
+
+class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
+    config_overrides = {"expvar_enabled": "true", "expvar_url": "/foo"}
+    expvar_url = ExpvarBaseTest.expvar_url.replace("/debug/vars", "/foo")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_expvar_exists(self):
+        """expvar enabled, should 200"""
+        r = self.get_debug_vars()
+        assert r.status_code == 200, r.status_code

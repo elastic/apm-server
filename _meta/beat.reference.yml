@@ -69,3 +69,11 @@ apm-server:
       # If the default index pattern at 'outputs.elasticsearch.index' is changed,
       # a matching index pattern needs to be specified here.
       #index_pattern: "apm-*"
+
+  # golang expvar support - https://golang.org/pkg/expvar/
+  #expvar:
+  # Set to true to Expose expvar
+  #enabled: false
+
+  # Url to expose expvar
+  #url: "/debug/vars"
