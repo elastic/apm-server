@@ -68,7 +68,7 @@ apm-server:
       # Source maps are stored in the same index as transaction and error documents.
       # If the default index pattern at 'outputs.elasticsearch.index' is changed,
       # a matching index pattern needs to be specified here.
-      #index_pattern: "apm*"
+      #index_pattern: "apm-*"
 
 #================================ General ======================================
 
@@ -390,4 +390,3 @@ logging.files:
 
 # Set to true to log messages in json format.
 #logging.json: false
->>>>>>> 716df43... Remove untested options from config inherited from beats.

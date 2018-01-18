@@ -104,7 +104,7 @@ func defaultConfig() *Config {
 				Cache: &Cache{
 					Expiration: 5 * time.Minute,
 				},
-				Index: "apm",
+				Index: "apm-*",
 			},
 			LibraryPattern:      "node_modules|bower_components|~",
 			ExcludeFromGrouping: "^/webpack",
