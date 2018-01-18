@@ -207,6 +207,105 @@ func TestEventTransform(t *testing.T) {
 	}
 }
 
+func TestCulprit(t *testing.T) {
+	c := "foo"
+	fct := "fct"
+	truthy := true
+	st := m.Stacktrace{
+		&m.StacktraceFrame{Filename: "a", Function: &fct, Sourcemap: m.Sourcemap{}},
+	}
+	stUpdate := m.Stacktrace{
+		&m.StacktraceFrame{Filename: "a", Function: &fct, Sourcemap: m.Sourcemap{}},
+		&m.StacktraceFrame{Filename: "a", LibraryFrame: &truthy, Sourcemap: m.Sourcemap{Updated: &truthy}},
+		&m.StacktraceFrame{Filename: "f", Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
+		&m.StacktraceFrame{Filename: "bar", Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
+	}
+	mapper := sourcemap.SmapMapper{}
+	tests := []struct {
+		event   Event
+		config  pr.Config
+		culprit string
+		msg     string
+	}{
+		{
+			event:   Event{Culprit: &c},
+			config:  pr.Config{},
+			culprit: "foo",
+			msg:     "No Sourcemap in config",
+		},
+		{
+			event:   Event{Culprit: &c},
+			config:  pr.Config{SmapMapper: &mapper},
+			culprit: "foo",
+			msg:     "No Stacktrace Frame given.",
+		},
+		{
+			event:   Event{Culprit: &c, Log: &Log{Stacktrace: st}},
+			config:  pr.Config{SmapMapper: &mapper},
+			culprit: "foo",
+			msg:     "Log.StacktraceFrame has no updated frame",
+		},
+		{
+			event: Event{
+				Culprit: &c,
+				Log: &Log{
+					Stacktrace: m.Stacktrace{
+						&m.StacktraceFrame{
+							Filename:  "f",
+							Sourcemap: m.Sourcemap{Updated: &truthy},
+						},
+					},
+				},
+			},
+			config:  pr.Config{SmapMapper: &mapper},
+			culprit: "f",
+			msg:     "Adapt culprit to first valid Log.StacktraceFrame information.",
+		},
+		{
+			event: Event{
+				Culprit:   &c,
+				Exception: &Exception{Stacktrace: stUpdate},
+			},
+			config:  pr.Config{SmapMapper: &mapper},
+			culprit: "f in fct",
+			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
+		},
+		{
+			event: Event{
+				Culprit:   &c,
+				Log:       &Log{Stacktrace: st},
+				Exception: &Exception{Stacktrace: stUpdate},
+			},
+			config:  pr.Config{SmapMapper: &mapper},
+			culprit: "f in fct",
+			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
+		},
+		{
+			event: Event{
+				Culprit: &c,
+				Log: &Log{
+					Stacktrace: m.Stacktrace{
+						&m.StacktraceFrame{
+							Filename:  "a",
+							Function:  &fct,
+							Sourcemap: m.Sourcemap{Updated: &truthy},
+						},
+					},
+				},
+				Exception: &Exception{Stacktrace: stUpdate},
+			},
+			config:  pr.Config{SmapMapper: &mapper},
+			culprit: "a in fct",
+			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
+		},
+	}
+	for idx, test := range tests {
+		test.event.updateCulprit(&test.config)
+		assert.Equal(t, test.culprit, *test.event.Culprit,
+			fmt.Sprintf("(%v) expected <%v>, received <%v>", idx, test.culprit, *test.event.Culprit))
+	}
+}
+
 func TestEmptyGroupingKey(t *testing.T) {
 	emptyGroupingKey := hex.EncodeToString(md5.New().Sum(nil))
 	e := Event{}

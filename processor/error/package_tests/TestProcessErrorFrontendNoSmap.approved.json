@@ -82,7 +82,7 @@
                             "exclude_from_grouping": true,
                             "filename": "/webpack/test/e2e/general-usecase/app.e2e-bundle.js",
                             "function": "timer",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 33,
                                 "number": 4737
