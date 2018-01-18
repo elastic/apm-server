@@ -49,6 +49,10 @@ func TestBeatConfig(t *testing.T) {
 					"certificate": "1234cert",
 				},
 				"concurrent_requests": 15,
+				"expvar": map[string]interface{}{
+					"enabled": true,
+					"url":     "/debug/vars",
+				},
 				"frontend": map[string]interface{}{
 					"enabled":       true,
 					"rate_limit":    1000,
@@ -72,6 +76,10 @@ func TestBeatConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				Expvar: &ExpvarConfig{
+					Enabled: &truthy,
+					Url:     "/debug/vars",
+				},
 				Frontend: &FrontendConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,
@@ -95,6 +103,10 @@ func TestBeatConfig(t *testing.T) {
 				"ssl": map[string]interface{}{
 					"enabled": true,
 				},
+				"expvar": map[string]interface{}{
+					"enabled": true,
+					"url":     "/debug/vars",
+				},
 				"frontend": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
@@ -113,6 +125,10 @@ func TestBeatConfig(t *testing.T) {
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "", Cert: ""},
+				Expvar: &ExpvarConfig{
+					Enabled: &truthy,
+					Url:     "/debug/vars",
+				},
 				Frontend: &FrontendConfig{
 					Enabled:      &truthy,
 					RateLimit:    10,

@@ -17,7 +17,13 @@ type Config struct {
 	SecretToken        string          `config:"secret_token"`
 	SSL                *SSLConfig      `config:"ssl"`
 	ConcurrentRequests int             `config:"concurrent_requests" validate:"min=1"`
+	Expvar             *ExpvarConfig   `config:"expvar"`
 	Frontend           *FrontendConfig `config:"frontend"`
+}
+
+type ExpvarConfig struct {
+	Enabled *bool  `config:"enabled"`
+	Url     string `config:"url"`
 }
 
 type FrontendConfig struct {
@@ -54,6 +60,10 @@ func (c *Config) setElasticsearch(esConfig *common.Config) {
 }
 
 func (c *SSLConfig) isEnabled() bool {
+	return c != nil && (c.Enabled == nil || *c.Enabled)
+}
+
+func (c *ExpvarConfig) isEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
@@ -108,6 +118,10 @@ func defaultConfig() *Config {
 			},
 			LibraryPattern:      "node_modules|bower_components|~",
 			ExcludeFromGrouping: "^/webpack",
+		},
+		Expvar: &ExpvarConfig{
+			Enabled: new(bool),
+			Url:     "/debug/vars",
 		},
 	}
 }
