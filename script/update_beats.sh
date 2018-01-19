@@ -22,7 +22,6 @@ git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 
 # sync
 rsync -crpv --delete \
-    --exclude=.gitignore \
     --exclude=dev-tools/packer/readme.md.j2 \
     --include="dev-tools/***" \
     --include="script/***" \
@@ -30,6 +29,7 @@ rsync -crpv --delete \
     --include="libbeat/" \
     --include=libbeat/Makefile \
     --include="libbeat/_meta/***" \
+    --exclude="libbeat/_meta/fields.generated.yml" \
     --include="libbeat/docs/" \
     --include=libbeat/docs/version.asciidoc \
     --include="libbeat/processors/" \
