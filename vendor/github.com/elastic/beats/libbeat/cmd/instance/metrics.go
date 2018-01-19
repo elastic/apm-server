@@ -19,7 +19,6 @@ import (
 )
 
 var (
-	cpuMonitor       *cpu.Monitor
 	beatProcessStats *process.Stats
 	ephemeralID      uuid.UUID
 )
@@ -38,8 +37,6 @@ func init() {
 }
 
 func setupMetrics(name string) error {
-	cpuMonitor = new(cpu.Monitor)
-
 	beatProcessStats = &process.Stats{
 		Procs:        []string{name},
 		EnvWhitelist: nil,
@@ -64,6 +61,32 @@ func reportMemStats(m monitoring.Mode, V monitoring.Visitor) {
 		monitoring.ReportInt(V, "memory_alloc", int64(stats.Alloc))
 		monitoring.ReportInt(V, "gc_next", int64(stats.NextGC))
 	}
+
+	rss, err := getRSSSize()
+	if err != nil {
+		logp.Err("Error while getting memory usage: %v", err)
+		return
+	}
+	monitoring.ReportInt(V, "rss", int64(rss))
+}
+
+func getRSSSize() (uint64, error) {
+	beatPID := os.Getpid()
+	state, err := beatProcessStats.GetOne(beatPID)
+	if err != nil {
+		return 0, fmt.Errorf("error retrieving process stats")
+	}
+
+	iRss, err := state.GetValue("memory.rss.bytes")
+	if err != nil {
+		return 0, fmt.Errorf("error getting Resident Set Size: %v", err)
+	}
+
+	rss, ok := iRss.(uint64)
+	if !ok {
+		return 0, fmt.Errorf("error converting Resident Set Size: %v", err)
+	}
+	return rss, nil
 }
 
 func reportInfo(_ monitoring.Mode, V monitoring.Visitor) {
@@ -72,7 +95,10 @@ func reportInfo(_ monitoring.Mode, V monitoring.Visitor) {
 
 	delta := time.Since(log.StartTime)
 	uptime := int64(delta / time.Millisecond)
-	monitoring.ReportInt(V, "uptime.ms", uptime)
+	monitoring.ReportNamespace(V, "uptime", func() {
+		monitoring.ReportInt(V, "ms", uptime)
+	})
+
 	monitoring.ReportString(V, "ephemeral_id", ephemeralID.String())
 }
 
@@ -80,54 +106,36 @@ func reportBeatCPU(_ monitoring.Mode, V monitoring.Visitor) {
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()
 
-	cpuUsage, cpuUsageNorm, totalCPUUsage, err := getCPUPercentages()
+	totalCPUUsage, err := getCPUUsage()
 	if err != nil {
 		logp.Err("Error retrieving CPU percentages: %v", err)
 		return
 	}
-	monitoring.ReportFloat(V, "total.pct", cpuUsage)
-	monitoring.ReportFloat(V, "total.norm.pct", cpuUsageNorm)
-	monitoring.ReportFloat(V, "total.value", totalCPUUsage)
+
+	monitoring.ReportNamespace(V, "total", func() {
+		monitoring.ReportFloat(V, "value", totalCPUUsage)
+	})
 
 }
 
-func getCPUPercentages() (float64, float64, float64, error) {
+func getCPUUsage() (float64, error) {
 	beatPID := os.Getpid()
 	state, err := beatProcessStats.GetOne(beatPID)
 	if err != nil {
-		return 0.0, 0.0, 0.0, fmt.Errorf("error retrieving process stats")
-	}
-
-	iCPUUsage, err := state.GetValue("cpu.total.pct")
-	if err != nil {
-		return 0.0, 0.0, 0.0, fmt.Errorf("error getting total CPU usage: %v", err)
-	}
-	iCPUUsageNorm, err := state.GetValue("cpu.total.norm.pct")
-	if err != nil {
-		return 0.0, 0.0, 0.0, fmt.Errorf("error getting normalized CPU percentage: %v", err)
+		return 0.0, fmt.Errorf("error retrieving process stats")
 	}
 
 	iTotalCPUUsage, err := state.GetValue("cpu.total.value")
 	if err != nil {
-		return 0.0, 0.0, 0.0, fmt.Errorf("error getting total CPU since start: %v", err)
-	}
-
-	cpuUsage, ok := iCPUUsage.(float64)
-	if !ok {
-		return 0.0, 0.0, 0.0, fmt.Errorf("error converting value of CPU usage")
-	}
-
-	cpuUsageNorm, ok := iCPUUsageNorm.(float64)
-	if !ok {
-		return 0.0, 0.0, 0.0, fmt.Errorf("error converting value of normalized CPU usage")
+		return 0.0, fmt.Errorf("error getting total CPU since start: %v", err)
 	}
 
 	totalCPUUsage, ok := iTotalCPUUsage.(float64)
 	if !ok {
-		return 0.0, 0.0, 0.0, fmt.Errorf("error converting value of CPU usage since start")
+		return 0.0, fmt.Errorf("error converting value of CPU usage since start")
 	}
 
-	return cpuUsage, cpuUsageNorm, totalCPUUsage, nil
+	return totalCPUUsage, nil
 }
 
 func reportSystemLoadAverage(_ monitoring.Mode, V monitoring.Visitor) {
@@ -145,26 +153,16 @@ func reportSystemLoadAverage(_ monitoring.Mode, V monitoring.Visitor) {
 	monitoring.ReportFloat(V, "15", avgs.FifteenMinute)
 
 	normAvgs := load.NormalizedAverages()
-	monitoring.ReportFloat(V, "norm.1", normAvgs.OneMinute)
-	monitoring.ReportFloat(V, "norm.5", normAvgs.FiveMinute)
-	monitoring.ReportFloat(V, "norm.15", normAvgs.FifteenMinute)
+	monitoring.ReportNamespace(V, "norm", func() {
+		monitoring.ReportFloat(V, "1", normAvgs.OneMinute)
+		monitoring.ReportFloat(V, "5", normAvgs.FiveMinute)
+		monitoring.ReportFloat(V, "15", normAvgs.FifteenMinute)
+	})
 }
 
 func reportSystemCPUUsage(_ monitoring.Mode, V monitoring.Visitor) {
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()
-
-	sample, err := cpuMonitor.Sample()
-	if err != nil {
-		logp.Err("Error retrieving CPU usage of the host: %v", err)
-		return
-	}
-
-	pct := sample.Percentages()
-	monitoring.ReportFloat(V, "total.pct", pct.Total)
-
-	normalizedPct := sample.NormalizedPercentages()
-	monitoring.ReportFloat(V, "total.norm.pct", normalizedPct.Total)
 
 	monitoring.ReportInt(V, "cores", int64(process.NumCPU))
 }
