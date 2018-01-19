@@ -3,6 +3,7 @@ package sourcemap
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/go-sourcemap/sourcemap"
 
@@ -15,8 +16,10 @@ type elasticsearch interface {
 }
 
 type smapElasticsearch struct {
+	mu      sync.Mutex // guards clients
 	clients []es.Client
-	index   string
+
+	index string
 }
 
 func NewElasticsearch(config *common.Config, index string) (*smapElasticsearch, error) {
@@ -41,6 +44,8 @@ func (e *smapElasticsearch) fetch(id Id) (*sourcemap.Consumer, error) {
 func (e *smapElasticsearch) runESQuery(body map[string]interface{}) (*es.SearchResults, error) {
 	var err error
 	var result *es.SearchResults
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	for _, client := range e.clients {
 		_, result, err = client.Connection.SearchURIWithBody(e.index, "", nil, body)
 		if err == nil {
