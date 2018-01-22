@@ -19,8 +19,8 @@ This can make debugging very difficult, as it is hard to read the minified files
 Source mapping can help for debugging minfied javascript files, 
 by mapping code from the minified files to the original source code. 
 
-APM Server frontend support has a source map <<sourcemap-endpoint,upload endpoint>> 
-form uploading source maps complying to the 
+APM Server has a source map <<sourcemap-endpoint,upload endpoint>> 
+which accepts source maps complying to the 
 https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k[Source map revision 3 proposal].
 
 Uploaded source maps are used to map `stack trace` information from recorded `transaction` and `error` documents 
@@ -100,7 +100,7 @@ curl -X POST http://127.0.0.1:8200/v1/client-side/sourcemaps \
 [[sourcemap-json-example]]
 [float]
 ===== Source map json file
-Example file for how a source map that should be uploaded could look like:
+Example of an acceptable source map file:
 
 [source,json]
 ----
