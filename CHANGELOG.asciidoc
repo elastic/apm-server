@@ -31,14 +31,13 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Report more detail on max data size error {pull}442[442]
 - Increase default 'MaxUnzippedSize' from 10mb to 50mb {pull}439[439]
 - Add transaction.id to errors {pull}437[437]
-- Support for `transaction.marks` {pull}430[430]
 - Support for uploading sourcemaps {pull}302[302].
 - Support for sourcemap mapping on incoming frontend requests {pull}381[381], {pull}502[502]
-- Support for `transaction.marks` {pull}430[430].
+- Support for `transaction.marks` {pull}430[430]
 - Support for `transaction.span_count.dropped.total` {pull}448[448].
 - Optional field `transaction.sampled` {pull}441[441]
 - Add Kibana sourcefilter for `sourcemap.sourcemap` {pull}454[454]
-- Increase default 'ConcurrentRequests' from 20 to 40{pull}492[492]
+- Increase default 'ConcurrentRequests' from 20 to 40 {pull}492[492]
 - Add Config option for excluding stack trace frames from `grouping_key` calculation {pull}482[482]
 - Expose expvar {pull}509[509]
 
