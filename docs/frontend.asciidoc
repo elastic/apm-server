@@ -14,9 +14,9 @@ See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.reference
 
 [[sourcemap]]
 === Source Maps
-It is common practice to compress and minify client side javascript code for several reasons, e.g. performance gain. 
+It is common practice to minify client-side JavaScript code for several reasons, e.g. performance gain. 
 This can make debugging very difficult, as it is hard to read the minified files.
-Source mapping can help for debugging minfied javascript files, 
+Source mapping can help for debugging minfied JavaScript files, 
 by mapping code from the minified files to the original source code. 
 
 APM Server has a source map <<sourcemap-endpoint,upload endpoint>> 
@@ -32,7 +32,7 @@ to the original source code files for easier debugging.
 
 When source maps have been <<sourcemap-endpoint,uploaded>> and <<frontend-enable,frontend support is enabled>>, 
 source mapping is automatically applied to the `stack trace frames` of all `errors` and `transactions` 
-recorded with the https://github.com/elastic/apm-agent-js-base[javascript frontend agent].
+recorded with the https://github.com/elastic/apm-agent-js-base[JavaScript frontend agent].
 
 The server tries to find an uploaded source map for every `stack trace frame` of the record.
 The following information is used to find the previously uploaded source map entry:
@@ -52,7 +52,7 @@ The following information is changed to reflect the original source code file, w
 * `function`
 * `line number`
 * `column number`
-* `abs path` is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name. 
+* `abs path`: is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name 
 
 [[sourcemap-endpoint]]
 [float]
@@ -73,7 +73,7 @@ The meta information must contain the following fields:
 
 * `service_name`
 * `service_version`
-* `bundle_filepath`
+* `bundle_filepath`: needs to be the absolute path of the final bundle as it is used in the web application
 
 The meta information is used to identify a `source map` when source mapping is applied.
 
