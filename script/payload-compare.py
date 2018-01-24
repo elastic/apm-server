@@ -1,8 +1,8 @@
-import random
-import json
-import zlib
 from uuid import uuid4
 from collections import defaultdict
+import json
+import random
+import zlib
 
 
 NUM_ENDPOINTS = 10
@@ -165,4 +165,5 @@ for args in MATRIX_RUNS:
     size = len(payload)
     compressed = len(zlib.compress(payload))
 
-    print " ".join(["{:<25}".format("{}: {}".format(k, v)) for k, v in args.items()]) + ":", sizeof_fmt(compressed), "(uncompressed: {})".format(sizeof_fmt(size))
+    print " ".join(["{:<25}".format("{}: {}".format(k, v)) for k, v in args.items()]) + \
+        ":", sizeof_fmt(compressed), "(uncompressed: {})".format(sizeof_fmt(size))
