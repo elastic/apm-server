@@ -208,7 +208,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Revision: 86d923f6c4af0fdf619a54467c0cee30b6b73cbb
+Revision: deec4eac0f57b8687dd9d7f81dfaf9978129c961
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------

@@ -961,28 +961,32 @@
 			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
-			"checksumSHA1": "/t1bSeE5UPUJws0sKGSXtqXaYuI=",
+			"checksumSHA1": "2F9EiHAqPu6y4I/uNQWTS27VeGw=",
+			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar",
 			"path": "github.com/elastic/gosigar",
-			"revision": "86d923f6c4af0fdf619a54467c0cee30b6b73cbb",
-			"revisionTime": "2018-01-05T03:32:12Z"
+			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
+			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
 			"checksumSHA1": "TX9y4oPL5YmT4Gb/OU4GIPTdQB4=",
+			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar/cgroup",
 			"path": "github.com/elastic/gosigar/cgroup",
-			"revision": "daa20fc8a963edcc736ed4383ac307bd6b96f839",
-			"revisionTime": "2018-01-17T18:55:45Z"
+			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
+			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
 			"checksumSHA1": "2VhOsaR4sv3S79HO6X+6dEphNKU=",
+			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar/sys/linux",
 			"path": "github.com/elastic/gosigar/sys/linux",
-			"revision": "daa20fc8a963edcc736ed4383ac307bd6b96f839",
-			"revisionTime": "2018-01-17T18:55:45Z"
+			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
+			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
 			"checksumSHA1": "qDsgp2kAeI9nhj565HUScaUyjU4=",
+			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar/sys/windows",
 			"path": "github.com/elastic/gosigar/sys/windows",
-			"revision": "86d923f6c4af0fdf619a54467c0cee30b6b73cbb",
-			"revisionTime": "2018-01-05T03:32:12Z"
+			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
+			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
 			"checksumSHA1": "xS5tIena63lzjTziIsbJbdTeue0=",
