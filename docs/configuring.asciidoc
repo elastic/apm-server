@@ -1,9 +1,10 @@
-[[configure]]
+[[apm-server-configuration]]
 = Configure APM Server
-
 
 [partintro]
 --
+include::./copied-from-beats/shared-configuring.asciidoc[]
+
 The following explains how to configure APM Server:
 
 * <<configuration-logging>>
@@ -11,11 +12,25 @@ The following explains how to configure APM Server:
 * <<configuration-path>>
 --
 
+:only-elasticsearch:
+:no-pipeline:
+include::./copied-from-beats/outputconfig.asciidoc[]
 
+include::./copied-from-beats/shared-ssl-config.asciidoc[]
+
+include::./template-config.asciidoc[]
 
 include::./copied-from-beats/loggingconfig.asciidoc[]
+
+include::./copied-from-beats/dashboardsconfig.asciidoc[]
+
+include::./copied-from-beats/shared-kibana-config.asciidoc[]
 
 :standalone:
 include::./copied-from-beats/shared-env-vars.asciidoc[]
 
 include::./copied-from-beats/shared-path-config.asciidoc[]
+
+
+
+

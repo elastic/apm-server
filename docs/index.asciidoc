@@ -5,6 +5,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :version: {stack-version}
 :beatname_lc: apm-server
 :beatname_uc: APM Server
+:beat_default_index_prefix: apm
 :beatname_pkg: {beatname_lc}
 :dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
 :dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
