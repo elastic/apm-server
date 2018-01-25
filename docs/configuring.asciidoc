@@ -1,5 +1,5 @@
 [[apm-server-configuration]]
-= Configure APM Server
+= Configuring APM Server
 
 [partintro]
 --

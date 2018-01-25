@@ -1,6 +1,6 @@
 
 [[setting-up-and-running]]
-== Set up and run APM Server
+== Setting up and running APM Server
 
 In a production environment,
 you would put APM Server on its own machines,
