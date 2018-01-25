@@ -7,7 +7,12 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 
 The following explains how to configure APM Server:
 
+* <<configuring-output>>
+* <<configuration-ssl>>
+* <<configuration-template>>
 * <<configuration-logging>>
+* <<configuration-dashboards>>
+* <<setup-kibana-endpoint>>
 * <<using-environ-vars>>
 * <<configuration-path>>
 --
