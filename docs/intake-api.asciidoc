@@ -1,0 +1,10 @@
+[[api]]
+== Intake API
+
+The APM Server exposes API Endpoints for 
+
+* <<transaction-api,Transaction API>>
+* <<error-api,Error API>>
+
+include::./transaction-api.asciidoc[]
+include::./error-api.asciidoc[]

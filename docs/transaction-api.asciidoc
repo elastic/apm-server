@@ -1,5 +1,5 @@
 [[transaction-api]]
-== Transaction API
+=== Transaction API
 
 The APM Server exposes an API Endpoint to send transaction records.
 Unless you are implementing an agent, you don't need to know about the specifics of this API.
@@ -15,7 +15,7 @@ Find more information about:
 
 [[transaction-schema-definition]]
 [float]
-=== Schema Definition
+==== Schema Definition
 
 The APM Server uses a JSON Schema for validating the transaction requests.
 Find details on how the schema is defined:
@@ -32,7 +32,7 @@ Find details on how the schema is defined:
 
 [[transaction-payload-schema]]
 [float]
-==== Payload
+===== Payload
 
 [source,json]
 ----
@@ -41,7 +41,7 @@ include::./spec/transactions/payload.json[]
 
 [[transaction-transaction-schema]]
 [float]
-==== Transaction
+===== Transaction
 
 [source,json]
 ----
@@ -50,7 +50,7 @@ include::./spec/transactions/transaction.json[]
 
 [[transaction-span-schema]]
 [float]
-==== Span
+===== Span
 
 [source,json]
 ----
@@ -59,7 +59,7 @@ include::./spec/transactions/span.json[]
 
 [[transaction-service-schema]]
 [float]
-==== Service
+===== Service
 
 [source,json]
 ----
@@ -68,7 +68,7 @@ include::./spec/service.json[]
 
 [[transaction-system-schema]]
 [float]
-==== System
+===== System
 
 [source,json]
 ----
@@ -77,7 +77,7 @@ include::./spec/system.json[]
 
 [[transaction-context-schema]]
 [float]
-==== Context
+===== Context
 
 [source,json]
 ----
@@ -86,7 +86,7 @@ include::./spec/context.json[]
 
 [[transaction-stacktraceframe-schema]]
 [float]
-==== Stacktrace Frame
+===== Stacktrace Frame
 
 [source,json]
 ----
@@ -95,7 +95,7 @@ include::./spec/stacktrace_frame.json[]
 
 [[transaction-request-schema]]
 [float]
-==== Request
+===== Request
 
 [source,json]
 ----
@@ -104,7 +104,7 @@ include::./spec/request.json[]
 
 [[transaction-user-schema]]
 [float]
-==== User
+===== User
 
 [source,json]
 ----
@@ -113,7 +113,7 @@ include::./spec/user.json[]
 
 [[transaction-api-examples]]
 [float]
-=== Examples
+==== Examples
 
 Send an example request to the APM Server:
 
@@ -132,7 +132,7 @@ See examples on how a transaction request to the APM Server can look like:
 
 [[payload-with-transactions]]
 [float]
-==== Payload with several Transactions
+===== Payload with several Transactions
 
 [source,json]
 ----
@@ -141,7 +141,7 @@ include::./data/intake-api/generated/transaction/payload.json[]
 
 [[payload-with-minimal-transaction]]
 [float]
-==== Payload with a minimal Transaction
+===== Payload with a minimal Transaction
 
 [source,json]
 ----
@@ -150,7 +150,7 @@ include::./data/intake-api/generated/transaction/minimal_payload.json[]
 
 [[payload-with-minimal-span]]
 [float]
-==== Payload with a Transaction with a minimal Span
+===== Payload with a Transaction with a minimal Span
 
 [source,json]
 ----
