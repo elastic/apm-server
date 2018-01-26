@@ -1,17 +1,34 @@
 [[transaction-api]]
 === Transaction API
 
-The APM Server exposes an API Endpoint to send transaction records.
+The APM Server exposes an API Endpoint to send <<transactions,transaction records>>.
 Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
-To send transaction records you need to send a HTTP POST request to APM Server `transactions` endpoint.
-Information pertaining to the record must be sent as a JSON object to the endpoint.
+The following section contains information about:
 
-Find more information about:
-
+* <<transaction-endpoint>>
 * <<transaction-schema-definition>>
 * <<transaction-api-examples>>
 
+[[transaction-endpoint]]
+[float]
+==== Endpoint
+To send a transaction record you need to send a `HTTP POST` request to the APM Server `transactions` endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/v1/transactions
+------------------------------------------------------------
+
+To send a record for a frontend transaction (see <<frontend,experimental frontend support>>), 
+you need to send a `HTTP POST` request to the APM Server `frontend transactions` endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/v1/client-side/transactions
+------------------------------------------------------------
+
+Information pertaining to the record must be sent as a JSON object.
 
 [[transaction-schema-definition]]
 [float]

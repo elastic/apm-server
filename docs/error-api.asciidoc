@@ -4,13 +4,31 @@
 The APM Server exposes an API Endpoint to send error records.
 Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
-To send error records you need to send a HTTP POST request to APM Server `errors` endpoint.
-Information pertaining to the error record must be sent as a JSON object to the endpoint.
+The following section contains information about:
 
-Find more information about:
-
+* <<error-endpoint>>
 * <<error-schema-definition>>
 * <<error-api-examples>>
+
+[[error-endpoint]]
+[float]
+==== Endpoint
+
+To send an error record you need to send a `HTTP POST` request to the APM Server `errors` endpoint:
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/v1/errors
+------------------------------------------------------------
+
+To send a record for a frontend error (see <<frontend,experimental frontend support>>), 
+you need to send a `HTTP POST` request to the APM Server `frontend errors` endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/v1/client-side/errors
+------------------------------------------------------------
+
+Information pertaining to the error record must be sent as a JSON object to the endpoint.
 
 [[error-schema-definition]]
 [float]

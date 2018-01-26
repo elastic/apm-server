@@ -1,4 +1,4 @@
-[[api]]
+[[intake-api]]
 == Intake API
 
 The APM Server exposes API Endpoints for 
