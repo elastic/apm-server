@@ -19,6 +19,7 @@ type publisher struct {
 	events  chan []beat.Event
 	client  beat.Client
 	wg      sync.WaitGroup
+	m       sync.RWMutex
 	stopped bool
 }
 
@@ -73,7 +74,9 @@ func (p *publisher) Stop() {
 // drain signals the publisher to stop accepting event batches, blocking
 // execution until all the queued events have been published.
 func (p *publisher) drain() {
+	p.m.Lock()
 	p.stopped = true
+	p.m.Unlock()
 	for {
 		if len(p.events) == 0 {
 			return
@@ -85,9 +88,12 @@ func (p *publisher) drain() {
 // an error is returned.
 // Calling send after Stop will return an error.
 func (p *publisher) Send(batch []beat.Event) error {
+	p.m.RLock()
+	defer p.m.RUnlock()
 	if p.stopped {
 		return errChanneClosed
 	}
+
 	select {
 	case p.events <- batch:
 		return nil
