@@ -7,6 +7,7 @@ import (
 
 type Process struct {
 	Pid   int
+	Ppid  *int
 	Title *string
 	Argv  []string
 }
@@ -20,6 +21,7 @@ func (p *Process) Transform() common.MapStr {
 	enhancer := utility.NewMapStrEnhancer()
 	svc := common.MapStr{}
 	enhancer.Add(svc, "pid", p.Pid)
+	enhancer.Add(svc, "ppid", p.Ppid)
 	enhancer.Add(svc, "title", p.Title)
 	enhancer.Add(svc, "argv", p.Argv)
 

@@ -22,6 +22,7 @@
     },
     "process": {
         "pid": 1234,
+        "ppid": 6789,
         "title": "node",
         "argv": [
             "node",
