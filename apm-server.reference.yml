@@ -64,10 +64,10 @@ apm-server:
       #cache:
         #expiration: 5m
 
-      # Source maps are stored in the same index as transaction and error documents.
-      # If the default index pattern at 'outputs.elasticsearch.index' is changed,
-      # a matching index pattern needs to be specified here.
-      #index_pattern: "apm-*"
+      # Source maps are stored in a seperate index.
+      # If the default index pattern for source maps at 'outputs.elasticsearch.indices'
+      # is changed, a matching index pattern needs to be specified here.
+      #index_pattern: "apm-*-sourcemap*"
 
   # golang expvar support - https://golang.org/pkg/expvar/
   #expvar:
@@ -134,9 +134,29 @@ output.elasticsearch:
   #worker: 1
 
   # Optional index name. The default is "apm" plus version plus date
-  # and generates apm-version-YYYY.MM.DD keys.
-  # In case you modify this pattern you must update setup.template.name and setup.template.pattern accordingly.
+  # and generates apm-%{[beat.version]}-YYYY.MM.DD keys.
+  # In case you modify this pattern you must update following configuration accordingly:
+  # * `setup.template.name`
+  # * `setup.template.pattern`
+  # * `setup.dashboards.index`
+  #
   #index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
+
+  # By specifying additional indices documents matching the criteria are indexed in a seperate index.
+  # In case you are uploading source map documents (which is currently an experimental feature),
+  # source map documents are going to their own index with the configuration below.
+  #
+  # Be aware that there is only one Elasticsearch template and one Kibana Index Pattern,
+  # which needs to match against indices for ingested documents as well as for source maps.
+  # In case you modify the index patterns you must ensure to use the same prefix for all indices,
+  # and to accordingly set:
+  # * `setup.template.name`
+  # * `setup.template.pattern`
+  # * `setup.dashboards.index`
+  #indices:
+    #- index: "apm-%{[beat.version]}-sourcemap"
+      #when.contains:
+        #processor.event: "sourcemap"
 
   # Optional ingest node pipeline. By default no pipeline will be used.
   #pipeline: ""
@@ -256,6 +276,7 @@ output.elasticsearch:
 
 # The Elasticsearch index name. This overwrites the index name defined in the
 # dashboards and index pattern. Example: testbeat-*
+# The dashboards.index needs to be changed in case the elasticsearch index pattern is modified.
 #setup.dashboards.index:
 
 # Always use the Kibana API for loading the dashboards instead of autodetecting

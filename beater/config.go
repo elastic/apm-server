@@ -1,6 +1,7 @@
 package beater
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/elastic/apm-server/sourcemap"
@@ -33,14 +34,17 @@ type FrontendConfig struct {
 	LibraryPattern      string         `config:"library_pattern"`
 	ExcludeFromGrouping string         `config:"exclude_from_grouping"`
 	SourceMapping       *SourceMapping `config:"source_mapping"`
+
+	beatVersion string
 }
 
 type SourceMapping struct {
-	Cache *Cache `config:"cache"`
-	Index string `config:"index_pattern"`
+	Cache        *Cache `config:"cache"`
+	IndexPattern string `config:"index_pattern"`
 
 	esConfig *common.Config
 	mapper   sourcemap.Mapper
+	index    string
 }
 
 type Cache struct {
@@ -83,10 +87,12 @@ func (c *FrontendConfig) SmapMapper() (sourcemap.Mapper, error) {
 	if smap.mapper != nil {
 		return c.SourceMapping.mapper, nil
 	}
+	re := regexp.MustCompile("%.*{.*beat.version.?}")
+	c.SourceMapping.index = re.ReplaceAllLiteralString(smap.IndexPattern, c.beatVersion)
 	smapConfig := sourcemap.Config{
 		CacheExpiration:     smap.Cache.Expiration,
 		ElasticsearchConfig: smap.esConfig,
-		Index:               smap.Index,
+		Index:               c.SourceMapping.index,
 	}
 	smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
 	if err != nil {
@@ -96,7 +102,7 @@ func (c *FrontendConfig) SmapMapper() (sourcemap.Mapper, error) {
 	return c.SourceMapping.mapper, nil
 }
 
-func defaultConfig() *Config {
+func defaultConfig(beatVersion string) *Config {
 	return &Config{
 		Host:               "localhost:8200",
 		MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
@@ -107,6 +113,7 @@ func defaultConfig() *Config {
 		ShutdownTimeout:    5 * time.Second,
 		SecretToken:        "",
 		Frontend: &FrontendConfig{
+			beatVersion:  beatVersion,
 			Enabled:      new(bool),
 			RateLimit:    10,
 			AllowOrigins: []string{"*"},
@@ -114,7 +121,7 @@ func defaultConfig() *Config {
 				Cache: &Cache{
 					Expiration: 5 * time.Minute,
 				},
-				Index: "apm-*",
+				IndexPattern: "apm-*-sourcemap*",
 			},
 			LibraryPattern:      "node_modules|bower_components|~",
 			ExcludeFromGrouping: "^/webpack",
