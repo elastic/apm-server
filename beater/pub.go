@@ -16,14 +16,16 @@ import (
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type publisher struct {
-	events chan []beat.Event
-	client beat.Client
-	wg     sync.WaitGroup
+	events  chan []beat.Event
+	client  beat.Client
+	wg      sync.WaitGroup
+	stopped bool
 }
 
 var (
 	errFull              = errors.New("Queue is full")
 	errInvalidBufferSize = errors.New("Request buffer must be > 0")
+	errChanneClosed      = errors.New("Can't send batch, publisher is being stopped")
 )
 
 // newPublisher creates a new publisher instance. A new go-routine is started
@@ -62,15 +64,30 @@ func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
 // The worker will drain the queue on shutdown, but no more events
 // will be published.
 func (p *publisher) Stop() {
+	p.drain()
 	close(p.events)
 	p.client.Close()
 	p.wg.Wait()
 }
 
+// drain signals the publisher to stop accepting event batches, blocking
+// execution until all the queued events have been published.
+func (p *publisher) drain() {
+	p.stopped = true
+	for {
+		if len(p.events) == 0 {
+			return
+		}
+	}
+}
+
 // Send tries to forward events to the publishers worker. If the queue is full,
 // an error is returned.
-// Calling send after Stop will cause a panic.
+// Calling send after Stop will return an error.
 func (p *publisher) Send(batch []beat.Event) error {
+	if p.stopped {
+		return errChanneClosed
+	}
 	select {
 	case p.events <- batch:
 		return nil
