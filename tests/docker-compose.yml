@@ -1,33 +1,58 @@
-version: '2.1'
+version: "2.1"
 services:
-  apm-server:
-    depends_on:
-      - elasticsearch
-      - kibana
-      - agent-python
-    build: .
-    ports:
-      - "8200:8200"
-    command: ./apm-server -E output.elasticsearch.hosts=[http://elastic:changeme@elasticsearch:9200] -E apm-server.host=0.0.0.0:8200 -e
-
   elasticsearch:
-    extends:
-      file: ../_beats/testing/environments/snapshot.yml
-      service: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch-platinum:${STACK_VERSION:-6.1.2}
+    container_name: localtesting_${STACK_VERSION:-6.1.2}_elasticsearch
+    environment:
+      - cluster.name=docker-cluster
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
     ports:
-      - "9200:9200"
+      - "127.0.0.1:${ELASTICSEARCH_PORT:-9200}:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health | grep -v '\"status\":\"red\"'"]
+    labels:
+      - "co.elatic.apm.stack-version=${STACK_VERSION:-6.1.2}"
 
   kibana:
-    extends:
-      file: ../_beats/testing/environments/snapshot.yml
-      service: kibana
-    ports:
-      - "5601:5601"
-
-  agent-python:
-    build: ./agent/python
-    ports:
-      - "8000:8000"
+    image: docker.elastic.co/kibana/kibana-x-pack:${STACK_VERSION:-6.1.2}
+    container_name: localtesting_${STACK_VERSION:-6.1.2}_kibana
     environment:
-      APM_SERVER: "http://apm-server:8200"
-      SPANS_SEND_FREQ_SECS: "1"
+      SERVER_NAME: kibana.example.org
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+      - "127.0.0.1:${KIBANA_PORT:-5601}:5601"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://kibana:5601/"]
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    labels:
+      - "co.elatic.apm.stack-version=${STACK_VERSION:-6.1.2}"
+
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:${STACK_VERSION:-6.1.2}
+    container_name: localtesting_${STACK_VERSION:-6.1.2}_apm-server
+    ports:
+      - "127.0.0.1:${APM_SERVER_PORT:-8200}:8200"
+    environment:
+      - output.elasticsearch.hosts=['http://elasticsearch:9200']
+      - apm-server.host="0.0.0.0:8200"
+      - setup.kibana.host="kibana:5601"
+    command: apm-server -e -d "*" -E apm-server.host="0.0.0.0:8200" -E apm-server.expvar.enabled=true
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f" ,"http://apm-server:8200/healthcheck"]
+    labels:
+      - "co.elatic.apm.stack-version=${STACK_VERSION:-6.1.2}"
+
