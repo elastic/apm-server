@@ -31,7 +31,8 @@ Following workflow is intended:
 For manual testing with the elastic stack there is a test environment based on docker. 
 To get this running execute the following commands.
 
-* Run `make start-env` to start docker containers for the elastic stack
+* Run `STACK_VERSION=6.1.2 make start-env` to start docker containers for the elastic stack. 
+Set the version you want to test with via the environment variable `STACK_VERSION`.
 * Run `make import-dashboards` to import the Elasticsearch template and the Kibana dashboards
 * Check instructions at the 
 [Elastic APM agents docs](https://www.elastic.co/guide/en/apm/agent/index.html) 
