@@ -87,7 +87,6 @@ func TestSpanSchema(t *testing.T) {
 func TestTransactionSchema(t *testing.T) {
 	testData := []SchemaTestData{
 		{File: "no_id.json", Error: `missing properties: "id"`},
-		{File: "no_name.json", Error: `missing properties: "name"`},
 		{File: "no_duration.json", Error: `missing properties: "duration"`},
 		{File: "no_type.json", Error: `missing properties: "type"`},
 		{File: "no_timestamp.json", Error: `missing properties: "timestamp"`},
