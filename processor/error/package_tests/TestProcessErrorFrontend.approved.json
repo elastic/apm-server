@@ -27,7 +27,7 @@
                 }
             },
             "error": {
-                "culprit": "test/e2e/general-usecase/bundle.js.map",
+                "culprit": "webpack:///webpack/bootstrap 6002740481c9666b0d38 in \u003canonymous\u003e",
                 "exception": {
                     "message": "Uncaught Error: timeout test error",
                     "stacktrace": [
@@ -36,7 +36,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "__webpack_require__",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 5
@@ -50,7 +50,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003cunknown\u003e",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 33
@@ -64,7 +64,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003cunknown\u003e",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 5
@@ -78,7 +78,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "moduleId",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 39
@@ -92,7 +92,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 8
@@ -114,7 +114,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 5

@@ -39,7 +39,7 @@ func TestProcessorFrontendMinifiedSmapOK(t *testing.T) {
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	conf := processor.Config{
 		SmapMapper:          &mapper,
-		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
+		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
 	tests.TestProcessRequests(t, er.NewProcessor(&conf), requestInfo, map[string]string{})

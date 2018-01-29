@@ -77,15 +77,47 @@ func (e *Event) Mappings(config *pr.Config, pa *payload) (time.Time, []utility.D
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
 	e.enhancer = utility.MapStrEnhancer{}
 	e.data = common.MapStr{}
-
 	e.add("id", e.Id)
-	e.add("culprit", e.Culprit)
 
 	e.addException(config, service)
 	e.addLog(config, service)
+
+	e.updateCulprit(config)
+	e.add("culprit", e.Culprit)
+
 	e.addGroupingKey()
 
 	return e.data
+}
+
+func (e *Event) updateCulprit(config *pr.Config) {
+	if config == nil || config.SmapMapper == nil {
+		return
+	}
+	var fr *m.StacktraceFrame
+	if e.Log != nil {
+		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace)
+	}
+	if fr == nil && e.Exception != nil {
+		fr = findSmappedNonLibraryFrame(e.Exception.Stacktrace)
+	}
+	if fr == nil {
+		return
+	}
+	culprit := fmt.Sprintf("%v", fr.Filename)
+	if fr.Function != nil {
+		culprit += fmt.Sprintf(" in %v", *fr.Function)
+	}
+	e.Culprit = &culprit
+}
+
+func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame {
+	for _, fr := range frames {
+		if fr.IsSourcemapApplied() && !fr.IsLibraryFrame() {
+			return fr
+		}
+	}
+	return nil
 }
 
 func (e *Event) addException(config *pr.Config, service m.Service) {
