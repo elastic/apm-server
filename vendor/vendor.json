@@ -6,22 +6,22 @@
 			"checksumSHA1": "AzjRkOQtVBTwIw4RJLTygFhJs3s=",
 			"origin": "github.com/elastic/beats/vendor/github.com/Microsoft/go-winio",
 			"path": "github.com/Microsoft/go-winio",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "jVDEyP/iraz6r173/GzkXF24ijQ=",
 			"origin": "github.com/elastic/beats/vendor/github.com/Shopify/sarama",
 			"path": "github.com/Shopify/sarama",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "DYv6Q1+VfnUVxMwvk5IshAClLvw=",
 			"origin": "github.com/elastic/beats/vendor/github.com/Sirupsen/logrus",
 			"path": "github.com/Sirupsen/logrus",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "qtjd74+bErubh+qyv3s+lWmn9wc=",
@@ -30,467 +30,467 @@
 			"revisionTime": "2017-04-10T19:29:09Z"
 		},
 		{
-			"checksumSHA1": "5rPfda8jFccr3A6heL+JAmi9K9g=",
+			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"origin": "github.com/elastic/beats/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "Gj+xR1VgFKKmFXYOJMnAczC3Znk=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/distribution/digestset",
 			"path": "github.com/docker/distribution/digestset",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "2Fe4D6PGaVE2he4fUeenLmhC1lE=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/distribution/reference",
 			"path": "github.com/docker/distribution/reference",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "UL2NF1EGiSsQoEfvycnuZIcUbZY=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api",
 			"path": "github.com/docker/docker/api",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "KMFpbV3mlrbc41d2DYnq05QYpSc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types",
 			"path": "github.com/docker/docker/api/types",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "jVJDbe0IcyjoKc2xbohwzQr+FF0=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/blkiodev",
 			"path": "github.com/docker/docker/api/types/blkiodev",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "AeSC0BOu1uapkGqfSXtfVSpwJzs=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/container",
 			"path": "github.com/docker/docker/api/types/container",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "4XuWn5+wgYwUsw604jvYMklq4Hc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/events",
 			"path": "github.com/docker/docker/api/types/events",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "J2OKngfI3vgswudr9PZVUFcRRu0=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/filters",
 			"path": "github.com/docker/docker/api/types/filters",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "yeB781yxPhnN6OXQ9/qSsyih3ek=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/image",
 			"path": "github.com/docker/docker/api/types/image",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "UK+VdM648oWzyqE4OqttgmPqjoA=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/mount",
 			"path": "github.com/docker/docker/api/types/mount",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "Gskp+nvbVe8Gk1xPLHylZvNmqTg=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/network",
 			"path": "github.com/docker/docker/api/types/network",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "r2vWq7Uc3ExKzMqYgH0b4AKjLKY=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/registry",
 			"path": "github.com/docker/docker/api/types/registry",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "VTxWyFud/RedrpllGdQonVtGM/A=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/strslice",
 			"path": "github.com/docker/docker/api/types/strslice",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "ZaizCpJ3eBcfR9ywpLaJd4AhM9k=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/swarm",
 			"path": "github.com/docker/docker/api/types/swarm",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "B7ZwKzrv3t3Vlox6/bYMHhMjsM8=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/time",
 			"path": "github.com/docker/docker/api/types/time",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "uDPQ3nHsrvGQc9tg/J9OSC4N5dQ=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/versions",
 			"path": "github.com/docker/docker/api/types/versions",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "IBJy2zPEnYmcFJ3lM1eiRWnCxTA=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/api/types/volume",
 			"path": "github.com/docker/docker/api/types/volume",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "c6OyeEvpQDvVLhrJSxgjEZv1tF8=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/client",
 			"path": "github.com/docker/docker/client",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "jmo/t2zXAxirEPoFucNPXA/1SEc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/pkg/ioutils",
 			"path": "github.com/docker/docker/pkg/ioutils",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "ndnAFCfsGC3upNQ6jAEwzxcurww=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/pkg/longpath",
 			"path": "github.com/docker/docker/pkg/longpath",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "kr46EAa+FsUcWxOq6edyX6BUzE4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/pkg/system",
 			"path": "github.com/docker/docker/pkg/system",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "8I0Ez+aUYGpsDEVZ8wN/Ztf6Zqs=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/pkg/tlsconfig",
 			"path": "github.com/docker/docker/pkg/tlsconfig",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "JbiWTzH699Sqz25XmDlsARpMN9w=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/go-connections/nat",
 			"path": "github.com/docker/go-connections/nat",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "jUfDG3VQsA2UZHvvIXncgiddpYA=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/go-connections/sockets",
 			"path": "github.com/docker/go-connections/sockets",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "tuSzlS1UQ03+5Fvtqr5hI5sLLhA=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/go-connections/tlsconfig",
 			"path": "github.com/docker/go-connections/tlsconfig",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "ambe8F4AofPxChCJssXXwWphQQ8=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/go-units",
 			"path": "github.com/docker/go-units",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "sNAU9ojYVUhO6dVXey6T3JhRQpw=",
 			"origin": "github.com/elastic/beats/vendor/github.com/docker/libtrust",
 			"path": "github.com/docker/libtrust",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "y2Kh4iPlgCPXSGTCcFpzePYdzzg=",
 			"origin": "github.com/elastic/beats/vendor/github.com/eapache/go-resiliency/breaker",
 			"path": "github.com/eapache/go-resiliency/breaker",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "WHl96RVZlOOdF4Lb1OOadMpw8ls=",
 			"origin": "github.com/elastic/beats/vendor/github.com/eapache/go-xerial-snappy",
 			"path": "github.com/eapache/go-xerial-snappy",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "oCCs6kDanizatplM5e/hX76busE=",
 			"origin": "github.com/elastic/beats/vendor/github.com/eapache/queue",
 			"path": "github.com/eapache/queue",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "jO3LUqx5sKP8SMh052PUpAKAnS0=",
 			"path": "github.com/elastic/beats/libbeat/api",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "HCHU63csurwOSysZfsTf5RgpSGE=",
 			"path": "github.com/elastic/beats/libbeat/autodiscover",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "mvMbWi8jMCS5ZDCiWv+GkUzsmEw=",
 			"path": "github.com/elastic/beats/libbeat/autodiscover/meta",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "Gp/+KwhRYSZxVYYNObuLFHJSn9s=",
 			"path": "github.com/elastic/beats/libbeat/autodiscover/providers/docker",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "cCBRmNsLuw89/2FnJDywi7OsMbY=",
+			"checksumSHA1": "cMrjnDFLZbwD5GXwzhetr5Dv10w=",
 			"path": "github.com/elastic/beats/libbeat/autodiscover/providers/kubernetes",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "2sZQ2RjQpeYI5l615G+W3ODSVRk=",
 			"path": "github.com/elastic/beats/libbeat/autodiscover/template",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "0lO6JkylG++k5f4AWzEgQ67UHgo=",
 			"path": "github.com/elastic/beats/libbeat/beat",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "xk8rkIPmXFqMpKdow17KuNHsZbM=",
 			"path": "github.com/elastic/beats/libbeat/cfgfile",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "kcJBPeHVyLhstApfy7Smi6fcxrg=",
 			"path": "github.com/elastic/beats/libbeat/cloudid",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "h2jlbe9085HvX/W/o/eOCxSAOY8=",
 			"path": "github.com/elastic/beats/libbeat/cmd",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "b1jzseq9b5NzIaMYk6D1W1xA5MU=",
 			"path": "github.com/elastic/beats/libbeat/cmd/export",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "CY+1Kty6Fnn2VbSg/E7BaoICGv0=",
 			"path": "github.com/elastic/beats/libbeat/cmd/instance",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "hnrALZ/owH5lcue6u3G9p0/K4ag=",
 			"path": "github.com/elastic/beats/libbeat/cmd/test",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "51HbtBntAEiNQM53CxoWz1uZxCA=",
 			"path": "github.com/elastic/beats/libbeat/common",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "SS/yBENBeoNVCAu+TQcDylo4CPg=",
 			"path": "github.com/elastic/beats/libbeat/common/atomic",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "I5ABLC2bPeiBbL2fKqLsQNe4DSQ=",
 			"path": "github.com/elastic/beats/libbeat/common/bus",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "5Y5WqKnrBD4VBRXCRn2JgFDvMV8=",
 			"path": "github.com/elastic/beats/libbeat/common/cfgwarn",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "pcyIn2gzdvx6y3Icc8N9ij2FRAU=",
 			"path": "github.com/elastic/beats/libbeat/common/cli",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "gGB9FaK8K+1w4kD0HsF1OpnN9eM=",
 			"path": "github.com/elastic/beats/libbeat/common/docker",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "7bGcM14M5R8BuQLqKdWfbbQaKEM=",
 			"path": "github.com/elastic/beats/libbeat/common/dtfmt",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "jnjiRowimBwicqurgxbUIBEtaIU=",
 			"path": "github.com/elastic/beats/libbeat/common/file",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "7WSOY58klc0crUF/5UZx/pLFIR0=",
 			"path": "github.com/elastic/beats/libbeat/common/fmtstr",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "pdFJ+DF0STunSGRopAMwn9n9ZlY=",
 			"path": "github.com/elastic/beats/libbeat/common/jsontransform",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "ZJ7S42PMWut03P/cMiGVyajw66Y=",
+			"checksumSHA1": "Tj8rtsyjk1ZJmYiNX8bYMBU/mf0=",
 			"path": "github.com/elastic/beats/libbeat/common/kubernetes",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "43jcD3PFE0qBsP40iA4kb/g94MU=",
 			"path": "github.com/elastic/beats/libbeat/common/match",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "8exGjSEBI+fSKXMHdWI2e2lX5D0=",
 			"path": "github.com/elastic/beats/libbeat/common/schema",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "WmqoD6kF9VraYUmjXacgWSHd2v4=",
 			"path": "github.com/elastic/beats/libbeat/common/schema/mapstriface",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "zi4xMJ43/IzPCPNXs8iBc0WI2sE=",
 			"path": "github.com/elastic/beats/libbeat/common/streambuf",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "1k581NuOkCx0xoGSrGV0vD6i+PA=",
 			"path": "github.com/elastic/beats/libbeat/common/terminal",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "hS/BvyAfk6/DTuu7+XWrx/gCvak=",
 			"path": "github.com/elastic/beats/libbeat/dashboards",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "Ie2zbuch+Jx2IrpjstO1jJeiV8o=",
 			"path": "github.com/elastic/beats/libbeat/keystore",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
@@ -505,120 +505,120 @@
 		{
 			"checksumSHA1": "z8VztKgyYSA7eyVuhNocdpav6zA=",
 			"path": "github.com/elastic/beats/libbeat/kibana/",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "tgGCRG/c1hqkUgfaB1kVCdb4KCQ=",
 			"path": "github.com/elastic/beats/libbeat/logp",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "GC/Nm6GBLoqpPG/E6sfUxlVDq/Y=",
 			"path": "github.com/elastic/beats/libbeat/logp/configure",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "3rCxbiMynIdSdQe7h95cuTKEXbY=",
 			"path": "github.com/elastic/beats/libbeat/metric/system/cpu",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "2zYwb3Ycma7Ep8yGNRfnm4hvODA=",
 			"path": "github.com/elastic/beats/libbeat/metric/system/memory",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "r7Cyj6XP4JE23i47GpOKPeDi2Wk=",
 			"path": "github.com/elastic/beats/libbeat/metric/system/process",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "kZBPfX0Pv2dLMP5Iho9Mx/hXz9o=",
 			"path": "github.com/elastic/beats/libbeat/monitoring",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "tRfILb+3nS9S5xf1GTqyGVbvGnU=",
 			"path": "github.com/elastic/beats/libbeat/monitoring/adapter",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "9OgsegLCw7fQSbzm92h5SSLJSqo=",
 			"path": "github.com/elastic/beats/libbeat/monitoring/report",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "4AmFzDuUi9F3AUSCJdVoTb0cLtQ=",
 			"path": "github.com/elastic/beats/libbeat/monitoring/report/elasticsearch",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "O0mqYi92UChneQIZItpvDf+egYM=",
 			"path": "github.com/elastic/beats/libbeat/monitoring/report/log",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "P72p6i7s+3eRkfSxD/oYFbATnxY=",
 			"path": "github.com/elastic/beats/libbeat/outputs",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "/g/IAXGizefK4Zw3Zw11f1Gw5Gw=",
 			"path": "github.com/elastic/beats/libbeat/outputs/codec",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "vjVLDyWbKmCR6e2OayNshujneSI=",
 			"path": "github.com/elastic/beats/libbeat/outputs/codec/format",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "j57gNFrdsjPGmF7AHx3dHdvB7qE=",
 			"path": "github.com/elastic/beats/libbeat/outputs/codec/json",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
@@ -637,40 +637,40 @@
 		{
 			"checksumSHA1": "JGP5bMcL1KyJRJCR1kW11gZhPhk=",
 			"path": "github.com/elastic/beats/libbeat/outputs/console",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "FXyBV4GWd0zPalEN4AunM86+zss=",
 			"path": "github.com/elastic/beats/libbeat/outputs/elasticsearch",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "S1nJaQZExaATn2Xpin4eY7Oyr34=",
 			"path": "github.com/elastic/beats/libbeat/outputs/fileout",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "B0Ebp5Xz4bgKMYtdgoQdG5cN0c0=",
 			"path": "github.com/elastic/beats/libbeat/outputs/kafka",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "RPhhTdxmvJ0U1CRvd5J5qizJ5B4=",
 			"path": "github.com/elastic/beats/libbeat/outputs/logstash",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
@@ -701,88 +701,88 @@
 		{
 			"checksumSHA1": "UEGH5mAXdKBysIjODuTxHKlzqsY=",
 			"path": "github.com/elastic/beats/libbeat/outputs/outil",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "j11eTg831Fs7uxEz2dRA/DJmKoU=",
 			"path": "github.com/elastic/beats/libbeat/outputs/redis",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "N8FWsJ68uJ5Haxc5vp8eS2Cp8jw=",
 			"path": "github.com/elastic/beats/libbeat/outputs/transport",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "d5b9Ra0zcwznwemxEJmyW28FZJ0=",
 			"path": "github.com/elastic/beats/libbeat/paths",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "2ef0H1yIcmjczaj6LsUc17/ss6I=",
 			"path": "github.com/elastic/beats/libbeat/plugin",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "6LundbNYDoyhr6F/QoEAsV7IqWk=",
 			"path": "github.com/elastic/beats/libbeat/processors",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "JBWiLNZylmEHFiAbNXJAYa9D8fw=",
 			"path": "github.com/elastic/beats/libbeat/processors/actions",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "rI+RcxALfhqftyApiHM1AgSjQ8U=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_cloud_metadata",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "Z0GJcCgthM2W9FligSojRZNJ+fQ=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_docker_metadata",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "yiZkyrmgHIDUMwVN6FAje+2KX1w=",
+			"checksumSHA1": "tFpY7dKia1F21qlStU3HSXD3Dsg=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_kubernetes_metadata",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "UCfWJFoOVRzY1nQ+mAHT+mpGYv4=",
 			"path": "github.com/elastic/beats/libbeat/processors/add_locale",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
@@ -795,8 +795,8 @@
 		{
 			"checksumSHA1": "3kyV9PwlSwcLnK9SWKX97Gh7c00=",
 			"path": "github.com/elastic/beats/libbeat/publisher",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
@@ -835,72 +835,72 @@
 		{
 			"checksumSHA1": "btf3XhwPROVy4JtECpH0eL3nGwg=",
 			"path": "github.com/elastic/beats/libbeat/publisher/includes",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "vSCFcYhsiCm0U4o1XyboWf9IL7M=",
+			"checksumSHA1": "HwKbsG/D/h1FY+q4u8L686THiEs=",
 			"path": "github.com/elastic/beats/libbeat/publisher/pipeline",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "k/1pxNUislJBfsjb/yZVG7+YP28=",
 			"path": "github.com/elastic/beats/libbeat/publisher/queue",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "dRlFNTjIKtVHBmkyTOiOhWxCWws=",
 			"path": "github.com/elastic/beats/libbeat/publisher/queue/memqueue",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "kT9MLdbYAKYJ0lWfjqX8fbrZTiY=",
 			"path": "github.com/elastic/beats/libbeat/service",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "8SHuE3SF4NT/WwwOoZ814n5ttIA=",
 			"path": "github.com/elastic/beats/libbeat/setup/kibana",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "BVrLP+2Vd0A3dhTfKTMIEvdVg4Q=",
 			"path": "github.com/elastic/beats/libbeat/template",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "p+um0Jv/tT4q7+rCQS7dxq50Ws0=",
 			"path": "github.com/elastic/beats/libbeat/testing",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "70PCkIykADgatq8ExOSFudQ2U90=",
 			"path": "github.com/elastic/beats/libbeat/version",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z",
 			"version": "master",
 			"versionExact": "master"
 		},
@@ -908,92 +908,92 @@
 			"checksumSHA1": "3jizmlZPCyo6FAZY8Trk9jA8NH4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-lumber/client/v2",
 			"path": "github.com/elastic/go-lumber/client/v2",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "m6HLKpDAZlkTTQMqabf3aT6TQ/s=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-lumber/protocol/v2",
 			"path": "github.com/elastic/go-lumber/protocol/v2",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "FPMs2e/K5HRqZyFvU/VTioGBnwk=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-ucfg",
 			"path": "github.com/elastic/go-ucfg",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "8cr5YhslUMgpvF2JebYvKC+Ezr4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-ucfg/cfgutil",
 			"path": "github.com/elastic/go-ucfg/cfgutil",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "Q2qrc/nI9d1tNzWTmfrkWvBNqsc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-ucfg/flag",
 			"path": "github.com/elastic/go-ucfg/flag",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "uOrhvj7stlb0foxGZ5vbC1XJeto=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-ucfg/internal/parse",
 			"path": "github.com/elastic/go-ucfg/internal/parse",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "sMBM95+VYBPhwtNVHqqN1yrvk1o=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-ucfg/json",
 			"path": "github.com/elastic/go-ucfg/json",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "qvzj0KzxrWvYhHIbo+FwBxUNDFw=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-ucfg/yaml",
 			"path": "github.com/elastic/go-ucfg/yaml",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "2F9EiHAqPu6y4I/uNQWTS27VeGw=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar",
 			"path": "github.com/elastic/gosigar",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "TX9y4oPL5YmT4Gb/OU4GIPTdQB4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar/cgroup",
 			"path": "github.com/elastic/gosigar/cgroup",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "2VhOsaR4sv3S79HO6X+6dEphNKU=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar/sys/linux",
 			"path": "github.com/elastic/gosigar/sys/linux",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "qDsgp2kAeI9nhj565HUScaUyjU4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/gosigar/sys/windows",
 			"path": "github.com/elastic/gosigar/sys/windows",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "xS5tIena63lzjTziIsbJbdTeue0=",
+			"checksumSHA1": "hTxFrbA619JCHysWjXHa9U6bfto=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s",
 			"path": "github.com/ericchiang/k8s",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "uQuMoUlS7hAWsB+Mwr/1B7+35BU=",
@@ -1017,6 +1017,13 @@
 			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
+			"checksumSHA1": "y8fNiBLSoGojnUsGDsdLlsJYyqQ=",
+			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/apiextensions/v1beta1",
+			"path": "github.com/ericchiang/k8s/apis/apiextensions/v1beta1",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
+		},
+		{
 			"checksumSHA1": "uw/3eB6WiVCSrQZS9ZZs/1kyu1I=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/apps/v1alpha1",
 			"path": "github.com/ericchiang/k8s/apis/apps/v1alpha1",
@@ -1024,46 +1031,46 @@
 			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
-			"checksumSHA1": "GPnvYx9Uxhpwmv01iygWR6+naTI=",
+			"checksumSHA1": "JxQ/zEWQSrncYNKifCuMctq+Tsw=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/apps/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/apps/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "Jjw5tBYv4k+Es+qPp03rnzyzRWA=",
+			"checksumSHA1": "bjklGt/pc6kWOZewAw87Hchw5oY=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/authentication/v1",
 			"path": "github.com/ericchiang/k8s/apis/authentication/v1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "uR4S43Wc80fhS0vMDE3Z3hFg7J8=",
+			"checksumSHA1": "LExhnM9Vn0LQoLQWszQ7aIxDxb4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/authentication/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/authentication/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "aM2KSDZbHn8jJomPPeG6LKpMwhs=",
+			"checksumSHA1": "GM+PzOiBoq3cxx4h5RKVUb3UH60=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/authorization/v1",
 			"path": "github.com/ericchiang/k8s/apis/authorization/v1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "4yWZvduAw2JNdHd1cXjTJBUy0lw=",
+			"checksumSHA1": "zfr5oUVjbWRfvXi2LJiGMfFeDQY=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/authorization/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/authorization/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "1nMeCVQImIo1CpRRyOYMIqLoPBc=",
+			"checksumSHA1": "izkXNDp5a5WP45jU0hSfTrwyfvM=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/autoscaling/v1",
 			"path": "github.com/ericchiang/k8s/apis/autoscaling/v1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "kUXiQQA99K7zquvG9es3yauVjYw=",
@@ -1073,18 +1080,18 @@
 			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
-			"checksumSHA1": "vMWsdmHlmaAQZIT0c26dwxe9pDw=",
+			"checksumSHA1": "FryZuAxWn4Ig8zc913w9BdfYzvs=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/batch/v1",
 			"path": "github.com/ericchiang/k8s/apis/batch/v1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "bqaX0T9jycmp9ao1Ov41dfPn0Ng=",
+			"checksumSHA1": "ylo7Z8wyJD+tmICB7wsOVIBpO+U=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/batch/v2alpha1",
 			"path": "github.com/ericchiang/k8s/apis/batch/v2alpha1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "9GRVPI+Tf4RrlX2aveUGEUHKIrM=",
@@ -1094,32 +1101,39 @@
 			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
-			"checksumSHA1": "k1dF56GRoEg6rooFKO7UvEJvBcE=",
+			"checksumSHA1": "+d8+mSdkdcPWQIpczXDZZW0lrjg=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/certificates/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/certificates/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "4pDHINIk6BdPBYWGF20IwHNCg2Q=",
+			"checksumSHA1": "S7AvxmCe/+WoFP/v9lZr0Mv66qg=",
+			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/core/v1",
+			"path": "github.com/ericchiang/k8s/apis/core/v1",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
+		},
+		{
+			"checksumSHA1": "cWPoP6XZN7WMnEVMPcgPgg3Aw9Q=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/extensions/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/extensions/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "NAL7OeKSEzTOoXHBFnC1B1VmBVs=",
+			"checksumSHA1": "vaNrBPcGWeDd1rXl8+uN08uxWhE=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/imagepolicy/v1alpha1",
 			"path": "github.com/ericchiang/k8s/apis/imagepolicy/v1alpha1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "Vg1/xjzLJHZlvuheWC4abghACwQ=",
+			"checksumSHA1": "UNTTH+Ppu4vImnF+bPkG3/NR3gg=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/meta/v1",
 			"path": "github.com/ericchiang/k8s/apis/meta/v1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "wYSNb+W2L5gJlGO8n6mGOGft8R8=",
@@ -1129,74 +1143,81 @@
 			"revisionTime": "2018-01-25T21:54:18Z"
 		},
 		{
-			"checksumSHA1": "ioJ28pdUN6fDkOp8dT+Tg3HSqmk=",
+			"checksumSHA1": "Mmyg9Wh+FCVR6fV8MGEKRxvqZ2k=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/policy/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/policy/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "UErnBsjjtmg3oYjLYU1S80oi3sk=",
+			"checksumSHA1": "bvwYS/wrBkyAfvCjzMbi/vKamrQ=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/rbac/v1alpha1",
 			"path": "github.com/ericchiang/k8s/apis/rbac/v1alpha1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "Xl+Tm8ZOz0cMOrfLaQvu/lsWObU=",
+			"checksumSHA1": "m1Tde18NwewnvJoOYL3uykNcBuM=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/rbac/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/rbac/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "YyZyaF0k2NAQAZvsCOVdhAkfVU0=",
+			"checksumSHA1": "JirJkoeIkWJRNrbprsQvqwisxds=",
+			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/resource",
+			"path": "github.com/ericchiang/k8s/apis/resource",
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
+		},
+		{
+			"checksumSHA1": "rQZ69PjEClQQ+PGEHRKzkGVVQyw=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/settings/v1alpha1",
 			"path": "github.com/ericchiang/k8s/apis/settings/v1alpha1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "vUc3mf0rE7CQ3B52wfrMDyspLgA=",
+			"checksumSHA1": "pp0AetmPoKy7Rz0zNhBwUpExkbc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/storage/v1",
 			"path": "github.com/ericchiang/k8s/apis/storage/v1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "7/oj1z0vG1pvRza+UuKQ6txdleI=",
+			"checksumSHA1": "WeACcIrS4EkeBm8TTftwuVniaWk=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/apis/storage/v1beta1",
 			"path": "github.com/ericchiang/k8s/apis/storage/v1beta1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "mm5iTFmLQ6h98DKgiUuTCpHP9H4=",
+			"checksumSHA1": "Su6wSR8V8HL2QZsF8icJ0R9AFq8=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/runtime",
 			"path": "github.com/ericchiang/k8s/runtime",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "Kk1UDqUx2Pr1LyvIIgcJBApTlCk=",
+			"checksumSHA1": "8ETrRvIaXPfD21N7fa8kdbumL00=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/runtime/schema",
 			"path": "github.com/ericchiang/k8s/runtime/schema",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
-			"checksumSHA1": "LoxBND74egHIasOX6z98FeeW0zI=",
+			"checksumSHA1": "cMk3HE8/81ExHuEs0F5sZCclOFs=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/util/intstr",
 			"path": "github.com/ericchiang/k8s/util/intstr",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "fobEKiMk5D7IGvCSwh4HdG1o98c=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ericchiang/k8s/watch/versioned",
 			"path": "github.com/ericchiang/k8s/watch/versioned",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "AANTVr9CVVyzsgviODY6Wi2thuM=",
@@ -1214,22 +1235,22 @@
 			"checksumSHA1": "2UmMbNHc8FBr98mJFN1k8ISOIHk=",
 			"origin": "github.com/elastic/beats/vendor/github.com/garyburd/redigo/internal",
 			"path": "github.com/garyburd/redigo/internal",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "507OiSqTxfGCje7xDT5eq9CCaNQ=",
 			"origin": "github.com/elastic/beats/vendor/github.com/garyburd/redigo/redis",
 			"path": "github.com/garyburd/redigo/redis",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "ImX1uv6O09ggFeBPUJJ2nu7MPSA=",
 			"origin": "github.com/elastic/beats/vendor/github.com/ghodss/yaml",
 			"path": "github.com/ghodss/yaml",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "gxV/cPPLkByTdY8y172t7v4qcZA=",
@@ -1259,15 +1280,15 @@
 			"checksumSHA1": "kBeNcaKk56FguvPSUCEaH6AxpRc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/golang/protobuf/proto",
 			"path": "github.com/golang/protobuf/proto",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "p/8vSviYF91gFflhrt5vkyksroo=",
 			"origin": "github.com/elastic/beats/vendor/github.com/golang/snappy",
 			"path": "github.com/golang/snappy",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "d9PxF1XQGLMJZRct2R8qVM/eYlE=",
@@ -1285,8 +1306,8 @@
 			"checksumSHA1": "l9wW52CYGbmO/NGwYZ/Op2QTmaA=",
 			"origin": "github.com/elastic/beats/vendor/github.com/joeshaw/multierror",
 			"path": "github.com/joeshaw/multierror",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "pa+ZwMzIv+u+BlL8Q2xgL9cQtJg=",
@@ -1298,29 +1319,29 @@
 			"checksumSHA1": "KKxbAKrKrfd33YPpkNsDmTN3S+M=",
 			"origin": "github.com/elastic/beats/vendor/github.com/klauspost/compress/flate",
 			"path": "github.com/klauspost/compress/flate",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "+azPXaZpPF14YHRghNAer13ThQU=",
 			"origin": "github.com/elastic/beats/vendor/github.com/klauspost/compress/zlib",
 			"path": "github.com/klauspost/compress/zlib",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "R6zKqn31GjJH1G8W/api7fAW0RU=",
 			"origin": "github.com/elastic/beats/vendor/github.com/klauspost/cpuid",
 			"path": "github.com/klauspost/cpuid",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "BM6ZlNJmtKy3GBoWwg2X55gnZ4A=",
 			"origin": "github.com/elastic/beats/vendor/github.com/klauspost/crc32",
 			"path": "github.com/klauspost/crc32",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "bfGiF5iraNvFHCCK3KVvITsPCok=",
@@ -1338,8 +1359,8 @@
 			"checksumSHA1": "sWdAYPKyaT4SW8hNQNpRS0sU4lU=",
 			"origin": "github.com/elastic/beats/vendor/github.com/mitchellh/hashstructure",
 			"path": "github.com/mitchellh/hashstructure",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "gILp4IL+xwXLH6tJtRLrnZ56F24=",
@@ -1351,22 +1372,22 @@
 			"checksumSHA1": "2AyUkWjutec6p+470tgio8mYOxI=",
 			"origin": "github.com/elastic/beats/vendor/github.com/opencontainers/go-digest",
 			"path": "github.com/opencontainers/go-digest",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "eOMCORUm8KxiGSy0hBuQsMsxauo=",
 			"origin": "github.com/elastic/beats/vendor/github.com/opencontainers/image-spec/specs-go",
 			"path": "github.com/opencontainers/image-spec/specs-go",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "9YujSsJjiLGkQMzwWycsjqR340k=",
 			"origin": "github.com/elastic/beats/vendor/github.com/opencontainers/image-spec/specs-go/v1",
 			"path": "github.com/opencontainers/image-spec/specs-go/v1",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "JVGDxPn66bpe6xEiexs1r+y6jF0=",
@@ -1378,35 +1399,37 @@
 			"checksumSHA1": "WmrPO1ovmQ7t7hs9yZGbr2SAoM4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/pierrec/lz4",
 			"path": "github.com/pierrec/lz4",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "IT4sX58d+e8osXHV5U6YCSdB/uE=",
 			"origin": "github.com/elastic/beats/vendor/github.com/pierrec/xxHash/xxHash32",
 			"path": "github.com/pierrec/xxHash/xxHash32",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "PdQm3s8DoVJ17Vk8n7o5iPa7PK0=",
 			"origin": "github.com/elastic/beats/vendor/github.com/pkg/errors",
 			"path": "github.com/pkg/errors",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
-			"revisionTime": "2016-01-10T10:55:54Z"
+			"revisionTime": "2016-01-10T10:55:54Z",
+			"version": "v1.0.0",
+			"versionExact": "v1.0.0"
 		},
 		{
 			"checksumSHA1": "KAzbLjI9MzW2tjfcAsK75lVRp6I=",
 			"origin": "github.com/elastic/beats/vendor/github.com/rcrowley/go-metrics",
 			"path": "github.com/rcrowley/go-metrics",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "6JP37UqrI0H80Gpk0Y2P+KXgn5M=",
@@ -1436,8 +1459,8 @@
 			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",
 			"origin": "github.com/elastic/beats/vendor/github.com/satori/go.uuid",
 			"path": "github.com/satori/go.uuid",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "v7C+aJ1D/z3MEeCte6bxvpoGjM4=",
@@ -1458,47 +1481,47 @@
 			"revisionTime": "2017-11-06T14:28:49Z"
 		},
 		{
-			"checksumSHA1": "q1qqfgDOGwfEuMlbHWNjYf09ACM=",
+			"checksumSHA1": "Le1psgZO0t6mRg6oY5dmnjH13hk=",
 			"path": "github.com/stretchr/testify/assert",
-			"revision": "69483b4bd14f5845b5a1e55bca19e954e827f1d0",
-			"revisionTime": "2016-09-25T01:54:16Z",
-			"version": "v1.1.4",
-			"versionExact": "v1.1.4"
+			"revision": "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c",
+			"revisionTime": "2017-12-30T17:54:59Z",
+			"version": "v1.2.0",
+			"versionExact": "v1.2.0"
 		},
 		{
 			"checksumSHA1": "ci7skUhpD1VwkoR0tKVdggTkYrE=",
 			"origin": "github.com/elastic/beats/vendor/github.com/urso/go-structform",
 			"path": "github.com/urso/go-structform",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "AkYoBxV+Imq2EBwNcb53hEGh7sQ=",
 			"origin": "github.com/elastic/beats/vendor/github.com/urso/go-structform/gotype",
 			"path": "github.com/urso/go-structform/gotype",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "m9H8/w6okS+8ixvkq+eYLd/Kk3g=",
 			"origin": "github.com/elastic/beats/vendor/github.com/urso/go-structform/internal/unsafe",
 			"path": "github.com/urso/go-structform/internal/unsafe",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "UXf4TzYK1UB8xAa6Phy9CvkvWL0=",
 			"origin": "github.com/elastic/beats/vendor/github.com/urso/go-structform/json",
 			"path": "github.com/urso/go-structform/json",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "MytQct/960akBAZm7xmbpi2BKGs=",
 			"origin": "github.com/elastic/beats/vendor/github.com/urso/go-structform/visitors",
 			"path": "github.com/urso/go-structform/visitors",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "8Kj0VH496b0exuyv4wAF4CXa7Y4=",
@@ -1589,57 +1612,57 @@
 			"checksumSHA1": "Y+HGqEkYM15ir+J93MEaHdyFy0c=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/net/context",
 			"path": "golang.org/x/net/context",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/net/context/ctxhttp",
 			"path": "golang.org/x/net/context/ctxhttp",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "SPYGC6DQrH9jICccUsOfbvvhB4g=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/net/http2",
 			"path": "golang.org/x/net/http2",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "EYNaHp7XdLWRydUCE0amEkKAtgk=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/net/http2/hpack",
 			"path": "golang.org/x/net/http2/hpack",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "yhndhWXMs/VSEDLks4dNyFMQStA=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/net/lex/httplex",
 			"path": "golang.org/x/net/lex/httplex",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "LvdVRE0FqdR68SvVpRkHs1rxhcA=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/net/proxy",
 			"path": "golang.org/x/net/proxy",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "l/AvVB/e1LjZ28XXItkdOW9tKMQ=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/sys/unix",
 			"path": "golang.org/x/sys/unix",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "cQoW6a5F9mbu10APPXM39YJtv48=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/sys/windows",
 			"path": "golang.org/x/sys/windows",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "ZdFZFaXmCgEEaEhVPkyXrnhKhsg=",
@@ -1651,15 +1674,15 @@
 			"checksumSHA1": "IRqLaXM/VQRzkbXPuiqOxTb2W0Y=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/sys/windows/svc",
 			"path": "golang.org/x/sys/windows/svc",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "1ouiyoHRaaMDNeq/nap9B0UuQw4=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/sys/windows/svc/debug",
 			"path": "golang.org/x/sys/windows/svc/debug",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "uVlUSSKplihZG7N+QJ6fzDZ4Kh8=",
@@ -1677,8 +1700,8 @@
 			"checksumSHA1": "fALlQNY1fM99NesfLJ50KguWsio=",
 			"origin": "github.com/elastic/beats/vendor/gopkg.in/yaml.v2",
 			"path": "gopkg.in/yaml.v2",
-			"revision": "deec4eac0f57b8687dd9d7f81dfaf9978129c961",
-			"revisionTime": "2018-01-25T21:54:18Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		}
 	],
 	"rootPath": "github.com/elastic/apm-server"
