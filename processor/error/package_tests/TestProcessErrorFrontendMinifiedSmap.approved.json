@@ -35,7 +35,7 @@
                 }
             },
             "error": {
-                "culprit": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                "culprit": "webpack:///./test/e2e/general-usecase/app.js in generateError",
                 "exception": {
                     "message": "Uncaught Error: timeout test error",
                     "stacktrace": [
@@ -44,7 +44,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./test/e2e/general-usecase/app.js",
                             "function": "generateError",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 17
@@ -58,7 +58,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./test/e2e/general-usecase/app.js",
                             "function": "apply",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 21
@@ -72,7 +72,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "invokeTask",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 3609
@@ -86,7 +86,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "runTask",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 3412
@@ -100,7 +100,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "apply",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 3679
@@ -114,7 +114,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "apply",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 3668
@@ -128,7 +128,7 @@
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "\u003canonymous\u003e",
-                            "library_frame": true,
+                            "library_frame": false,
                             "line": {
                                 "column": 0,
                                 "number": 5180
