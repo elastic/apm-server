@@ -31,11 +31,11 @@
 			"revisionTime": "2018-01-23T19:28:48Z"
 		},
 		{
-			"checksumSHA1": "5rPfda8jFccr3A6heL+JAmi9K9g=",
+			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"origin": "github.com/elastic/beats/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
-			"revision": "ba6acee47e922f51b402db895b5b875cd282abe1",
-			"revisionTime": "2018-01-23T19:28:48Z"
+			"revision": "2ac8ac08cb4ec0c9f87a4e62cacea4cc4d700499",
+			"revisionTime": "2018-01-28T04:39:37Z"
 		},
 		{
 			"checksumSHA1": "Gj+xR1VgFKKmFXYOJMnAczC3Znk=",
@@ -1411,7 +1411,9 @@
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
-			"revisionTime": "2016-01-10T10:55:54Z"
+			"revisionTime": "2016-01-10T10:55:54Z",
+			"version": "v1.0.0",
+			"versionExact": "v1.0.0"
 		},
 		{
 			"checksumSHA1": "KAzbLjI9MzW2tjfcAsK75lVRp6I=",
@@ -1472,12 +1474,13 @@
 			"revisionTime": "2018-01-23T19:28:48Z"
 		},
 		{
-			"checksumSHA1": "q1qqfgDOGwfEuMlbHWNjYf09ACM=",
+			"checksumSHA1": "Le1psgZO0t6mRg6oY5dmnjH13hk=",
 			"path": "github.com/stretchr/testify/assert",
-			"revision": "69483b4bd14f5845b5a1e55bca19e954e827f1d0",
-			"revisionTime": "2016-09-25T01:54:16Z",
-			"version": "v1.1.4",
-			"versionExact": "v1.1.4"
+			"revision": "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c",
+			"revisionTime": "2017-12-30T17:54:59Z",
+			"tree": true,
+			"version": "v1.2.0",
+			"versionExact": "v1.2.0"
 		},
 		{
 			"checksumSHA1": "ci7skUhpD1VwkoR0tKVdggTkYrE=",
