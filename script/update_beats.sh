@@ -12,7 +12,7 @@ pushd $BASEDIR
 
 # Check out beats repo for updating
 GIT_CLONE=repo
-trap "{ rm -rf ${BASEDIR}/${GIT_CLONE}; }" EXIT
+trap "{ set +e;popd 2>/dev/null;set -e;rm -rf ${BASEDIR}/${GIT_CLONE}; }" EXIT
 
 git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 (
@@ -22,19 +22,27 @@ git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 
 # sync
 rsync -crpv --delete \
-    --exclude=.gitignore \
     --exclude=dev-tools/packer/readme.md.j2 \
-    --include="script/***" \
     --include="dev-tools/***" \
-    --include="libbeat/scripts/***" \
-    --include="libbeat/_meta/***" \
+    --include="script/***" \
+    --include="testing/***" \
+    --include="libbeat/" \
     --include=libbeat/Makefile \
+    --include="libbeat/_meta/***" \
+    --exclude="libbeat/_meta/fields.generated.yml" \
+    --include="libbeat/docs/" \
+    --include=libbeat/docs/version.asciidoc \
+    --include="libbeat/processors/" \
+    --include="libbeat/processors/*/" \
     --include="libbeat/processors/*/_meta/***" \
+    --include="libbeat/scripts/***" \
+    --include="libbeat/testing/***" \
+    --include="libbeat/tests/" \
+    --include="libbeat/tests/system" \
     --include=libbeat/tests/system/requirements.txt \
     --include="libbeat/tests/system/beat/***" \
-    --include=libbeat/docs/version.asciidoc \
+    --exclude="libbeat/*" \
     --include=.go-version \
-    --include="testing/***" \
     --exclude="*" \
     ${GIT_CLONE}/ .
 
