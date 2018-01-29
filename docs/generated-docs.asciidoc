@@ -14,6 +14,7 @@ In the following you find example documents sent to Elasticsearch from APM Serve
 * <<transaction-example>>
 * <<span-example>>
 * <<error-example>>
+* <<sourcemap-example>>
 
 [[transaction-example]]
 [float]
@@ -40,4 +41,13 @@ include::./data/elasticsearch/span.json[]
 [source,json]
 ----
 include::./data/elasticsearch/error.json[]
+----
+
+[[sourcemap-example]]
+[float]
+==== Sourcemap document
+
+[source,json]
+----
+include::./data/elasticsearch/sourcemap.json[]
 ----
