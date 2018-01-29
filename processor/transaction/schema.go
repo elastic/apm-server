@@ -351,7 +351,7 @@ var transactionSchema = `{
             "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         },
         "name": {
-            "type": "string",
+            "type": ["string","null"],
             "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
             "maxLength": 1024
         },
@@ -543,7 +543,7 @@ var transactionSchema = `{
             }
         }
     },
-    "required": ["id", "name", "duration", "type", "timestamp"]
+    "required": ["id", "duration", "type", "timestamp"]
             },
             "minItems": 1
         }

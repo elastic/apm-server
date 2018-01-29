@@ -41,7 +41,6 @@ func TestPayloadTransform(t *testing.T) {
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"id":       "",
-			"name":     "",
 			"type":     "",
 			"sampled":  true,
 		},
@@ -55,7 +54,6 @@ func TestPayloadTransform(t *testing.T) {
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"id":       "",
-			"name":     "",
 			"type":     "",
 			"sampled":  true,
 		},
@@ -80,7 +78,6 @@ func TestPayloadTransform(t *testing.T) {
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"id":       "",
-			"name":     "",
 			"type":     "",
 			"sampled":  true,
 		},

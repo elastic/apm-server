@@ -18,6 +18,7 @@ func TestEventTransform(t *testing.T) {
 	result := "tx result"
 	sampled := false
 	dropped := 5
+	name := "mytransaction"
 
 	tests := []struct {
 		Event  Event
@@ -28,7 +29,6 @@ func TestEventTransform(t *testing.T) {
 			Event: Event{},
 			Output: common.MapStr{
 				"id":       "",
-				"name":     "",
 				"type":     "",
 				"duration": common.MapStr{"us": 0},
 				"sampled":  true,
@@ -38,7 +38,7 @@ func TestEventTransform(t *testing.T) {
 		{
 			Event: Event{
 				Id:        id,
-				Name:      "mytransaction",
+				Name:      &name,
 				Type:      "tx",
 				Result:    &result,
 				Timestamp: time.Now(),

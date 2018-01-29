@@ -9,7 +9,7 @@ import (
 
 type Event struct {
 	Id        string
-	Name      string
+	Name      *string
 	Type      string
 	Result    *string
 	Duration  float64
