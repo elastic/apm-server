@@ -58,11 +58,11 @@ For Testing check out the [testing guide](TESTING.md)
 ### Update
 
 Each beat has a template for the mapping in elasticsearch and a documentation for the fields
-which is automatically generated based on `etc/fields.yml`.
-To generate etc/apm-server.template.json and etc/apm-server.asciidoc
+which is automatically generated based on `fields.yml`.
+To generate required configuration files and templates run:
 
 ```
-make update
+make index-template update
 ```
 
 ### Cleanup
@@ -81,6 +81,37 @@ make clean
 
 For further development, check out the [beat developer guide](https://www.elastic.co/guide/en/beats/libbeat/current/new-beat.html).
 
+## Update Dependencies
+
+The `apm-server` has two types of dependencies, 
+the Golang packages managed with *Govendor* and a dependency to the *Beats Framework*.
+
+### Govendor
+
+Checkout the [govendor tool](https://github.com/kardianos/govendor).
+
+To update beats to the most recent version from your go path for example use: `govendor fetch github.com/elastic/beats/...`.
+Govendor will automatically pick the files needed.
+
+### Beats Framework Update
+
+To update the beats framework run `make update-beats`. This will fetch the most recent version of beats from master and copy
+the files which are needed for the framework part to the `_beats` directory. These are files like libbeat config files and
+scripts which are used for testing or packaging.
+
+It is recommended to keep the version of the beats framework and libbeat in sync.
+To make an update of both, run:
+
+```
+make update-beats
+```
+
+To update the dependency to a specific commit or branch run command as following:
+
+```
+BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
+```
+
 ## Packaging
 
 The beat frameworks provides tools to crosscompile and package your beat for different platforms. This requires [docker](https://www.docker.com/) and vendoring as described above. To build packages of your beat, run the following command:
@@ -91,36 +122,8 @@ make package
 
 This will fetch and create all images required for the build process. The whole process can take several minutes.
 
-## Update Dependencies
-
-The `apm-server` has two types of dependencies:
-
-* Golang packages managed with `govendor`
-* Beats framework managed with `cd _beats && sh update.sh`
-
-It is recommended to keep the version of the beats framework and libbeat in sync. To make an update of both, run `make update-beats`.
-
-### Govendor
-
-For details on [govendor](https://github.com/kardianos/govendor) check the docs [here](https://github.com/kardianos/govendor).
-
-To update beats to the most recent version from your go path for example use: `govendor fetch github.com/elastic/beats/...`.
-Govendor will automatically pick the files needed.
-
-### Framework Update
-
-To update the beats framework run `make update-beats`. This will fetch the most recent version of beats from master and copy
-the files which are needed for the framework part to the `_beats` directory. These are files like libbeat config files and
-scripts which are used for testing or packaging.
-
-To update the dependency to a specific commit or branch run command as following:
-
-```
-BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
-```
-
 ## Documentation
-The [Documentation](docs/index.asciidoc) for the Intake-API and Elasticsearch can be found in `docs/data`. 
+The [Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.
 
 ## Help
 
