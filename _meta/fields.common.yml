@@ -146,11 +146,15 @@
           description: >
             Information pertaining to the running process where the data was collected
           fields:
-
             - name: pid
               type: long
               description: >
                 Numeric process ID of the service process.
+
+            - name: ppid
+              type: long
+              description: >
+                Numeric ID of the service's parent process.
 
             - name: title
               type: keyword

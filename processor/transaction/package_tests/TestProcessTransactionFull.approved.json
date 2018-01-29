@@ -19,6 +19,7 @@
                         "server.js"
                     ],
                     "pid": 1234,
+                    "ppid": 6789,
                     "title": "node"
                 },
                 "request": {
@@ -303,6 +304,7 @@
                         "server.js"
                     ],
                     "pid": 1234,
+                    "ppid": 6789,
                     "title": "node"
                 },
                 "service": {
@@ -356,6 +358,7 @@
                         "server.js"
                     ],
                     "pid": 1234,
+                    "ppid": 6789,
                     "title": "node"
                 },
                 "service": {
@@ -409,6 +412,7 @@
                         "server.js"
                     ],
                     "pid": 1234,
+                    "ppid": 6789,
                     "title": "node"
                 },
                 "service": {
