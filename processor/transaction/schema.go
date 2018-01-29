@@ -108,6 +108,10 @@ var transactionSchema = `{
           "description": "Process ID of the service",
           "type": ["number"]
       },
+      "ppid": {
+          "description": "Parent process ID of the service",
+          "type": ["number", "null"]
+      },
       "title": {
           "type": ["string", "null"],
           "maxLength": 1024
