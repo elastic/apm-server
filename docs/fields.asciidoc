@@ -243,6 +243,14 @@ Numeric process ID of the service process.
 
 
 [float]
+=== `context.process.ppid`
+
+type: long
+
+Numeric ID of the service's parent process.
+
+
+[float]
 === `context.process.title`
 
 type: keyword

@@ -16,6 +16,7 @@
                 "server.js"
             ],
             "pid": 1234,
+            "ppid": 7788,
             "title": "node"
         },
         "request": {
