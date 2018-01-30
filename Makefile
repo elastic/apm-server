@@ -11,6 +11,7 @@ PREFIX?=.
 BEATS_VERSION?=6.1
 NOTICE_FILE=NOTICE.txt
 LICENSE_FILE=LICENSE.txt
+TESTIFY_TOOL_REPO?=github.com/elastic/beats/vendor/github.com/stretchr/testify/assert
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
