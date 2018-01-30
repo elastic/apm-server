@@ -32,3 +32,5 @@ include::./frontend.asciidoc[]
 include::./generated-docs.asciidoc[]
 
 include::./fields.asciidoc[]
+
+include::./troubleshooting.asciidoc[]
