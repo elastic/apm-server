@@ -26,7 +26,15 @@ You can change the defaults by supplying a different address on the command line
 
 [[apm-server-configuration]]
 === Configuration file
-Or you can update the `apm-server.yml` configuration file to change the defaults.
+To configure APM Server, you can also update the `apm-server.yml` configuration file.
+
+For rpm and deb,
+you’ll find the configuration file at +/etc/{beatname_lc}/{beatname_lc}.yml+.
+There's also a full example configuration file at
++/etc/{beatname_lc}/{beatname_lc}.reference.yml+ that shows all non-deprecated
+options. For mac and win, look in the archive that you extracted.
+
+See the _Beats Platform Reference_ for more about the structure of the config file.
 
 [source,yaml]
 ----------------------------------
@@ -69,7 +77,7 @@ the scheme and port: `http://localhost:5601/path`.
 
 --
 
-See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.reference.yml[`apm-server.reference.yml`] for more configuration options.
+See <<configuring-howto-apm-server>> for more configuration options.
 
 
 include::./high-availability.asciidoc[]
