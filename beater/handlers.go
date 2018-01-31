@@ -77,14 +77,15 @@ var (
 
 func newMuxer(config *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
+	logger := logp.NewLogger("handler")
 	for path, mapping := range Routes {
-		logp.Info("Path %s added to request handler", path)
+		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, config, report))
 	}
 
 	if config.Expvar.isEnabled() {
 		path := config.Expvar.Url
-		logp.Info("Path %s added to request handler", path)
+		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, expvar.Handler())
 	}
 	return mux
@@ -99,7 +100,7 @@ func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.H
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	smapper, err := config.Frontend.SmapMapper()
 	if err != nil {
-		logp.Err(err.Error())
+		logp.NewLogger("handler").Error(err.Error())
 	}
 	prConfig := processor.Config{
 		SmapMapper:          smapper,
@@ -116,7 +117,7 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	smapper, err := config.Frontend.SmapMapper()
 	if err != nil {
-		logp.Err(err.Error())
+		logp.NewLogger("handler").Error(err.Error())
 	}
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
@@ -407,7 +408,7 @@ func acceptsJSON(r *http.Request) bool {
 func sendJSON(w http.ResponseWriter, msg map[string]interface{}) {
 	buf, err := json.Marshal(msg)
 	if err != nil {
-		logp.Err("Error while generating a JSON error response: %v", err)
+		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
 		return
 	}
 

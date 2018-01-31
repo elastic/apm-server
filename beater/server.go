@@ -26,13 +26,14 @@ func newServer(config *Config, report reporter) *http.Server {
 }
 
 func run(server *http.Server, lis net.Listener, config *Config) error {
-	logp.Info("Starting apm-server [%s]. Hit CTRL-C to stop it.", version.String())
-	logp.Info("Listening on: %s", server.Addr)
+	logger := logp.NewLogger("server")
+	logger.Infof("Starting apm-server [%s]. Hit CTRL-C to stop it.", version.String())
+	logger.Infof("Listening on: %s", server.Addr)
 	switch config.Frontend.isEnabled() {
 	case true:
-		logp.Info("Frontend endpoints enabled!")
+		logger.Info("Frontend endpoints enabled!")
 	case false:
-		logp.Info("Frontend endpoints disabled")
+		logger.Info("Frontend endpoints disabled")
 	}
 
 	ssl := config.SSL
@@ -40,7 +41,7 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 		return server.ServeTLS(lis, ssl.Cert, ssl.PrivateKey)
 	}
 	if config.SecretToken != "" {
-		logp.Warn("Secret token is set, but SSL is not enabled.")
+		logger.Warn("Secret token is set, but SSL is not enabled.")
 	}
 	return server.Serve(lis)
 }
@@ -49,12 +50,13 @@ func stop(server *http.Server, timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
+	logger := logp.NewLogger("server")
 	err := server.Shutdown(ctx)
 	if err != nil {
-		logp.Err(err.Error())
+		logger.Error(err.Error())
 		err = server.Close()
 		if err != nil {
-			logp.Err(err.Error())
+			logger.Error(err.Error())
 		}
 	}
 }

@@ -29,7 +29,7 @@ func isServerUp(secure bool, host string, numRetries int, retryInterval time.Dur
 
 	for i := 0; i <= numRetries; i++ {
 		if check() {
-			logp.Info("HTTP Server ready")
+			logp.NewLogger("HTTP Client").Info("HTTP Server ready")
 			return true
 		}
 		time.Sleep(retryInterval)

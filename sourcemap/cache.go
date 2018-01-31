@@ -28,12 +28,12 @@ func newCache(expiration time.Duration) (*cache, error) {
 
 func (c *cache) add(id Id, consumer *sourcemap.Consumer) {
 	c.goca.Set(id.Key(), consumer, gocache.DefaultExpiration)
-	logp.Debug("sourcemap", "Added id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
+	logp.NewLogger("sourcemap").Debugf("Added id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
 }
 
 func (c *cache) remove(id Id) {
 	c.goca.Delete(id.Key())
-	logp.Debug("sourcemap", "Removed id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
+	logp.NewLogger("sourcemap").Debugf("Removed id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
 }
 
 func (c *cache) fetch(id Id) (*sourcemap.Consumer, bool) {

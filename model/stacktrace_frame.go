@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"regexp"
 
 	pr "github.com/elastic/apm-server/processor"
@@ -97,9 +96,9 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Servic
 	sourcemapId := s.buildSourcemapId(service)
 	mapping, err := mapper.Apply(sourcemapId, s.Lineno, *s.Colno)
 	if err != nil {
-		logp.Err(fmt.Sprintf("failed to apply sourcemap %s", err.Error()))
-		e, issourcemapError := err.(sourcemap.Error)
-		if !issourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
+		logp.NewLogger("stacktrace").Errorf("failed to apply sourcemap %s", err.Error())
+		e, isSourcemapError := err.(sourcemap.Error)
+		if !isSourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
 			s.updateError(err.Error())
 		}
 		return prevFunction
@@ -133,7 +132,7 @@ func (s *StacktraceFrame) buildSourcemapId(service Service) sourcemap.Id {
 }
 
 func (s *StacktraceFrame) updateError(errMsg string) {
-	logp.Err(errMsg)
+	logp.NewLogger("stacktrace").Error(errMsg)
 	s.Sourcemap.Error = &errMsg
 	s.updateSmap(false)
 }
