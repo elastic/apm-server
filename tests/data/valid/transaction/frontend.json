@@ -11,7 +11,6 @@
         {
             "id": "611f4fa9-50f0-4631-9306-43399c0dc3db",
             "timestamp": "2017-12-08T12:52:53.681Z",
-            "name": "Unknown",
             "type": "page-load",
             "duration": 643,
             "spans": [

@@ -1,6 +1,5 @@
 {
     "id": "85915e55-b43f-4340-a8e0-df1906ecbfa9",
-    "name": "GET /api/types",
     "type": "request",
     "duration": 2.0,
     "timestamp": "2017-05-30T18:53:27a123Z",
