@@ -1,4 +1,4 @@
-[[apm-server-configuration]]
+[[configuring-howto-apm-server]]
 = Configuring APM Server
 
 [partintro]

@@ -30,4 +30,4 @@ In the following you can read more about
 
 * <<installing>>
 * <<setting-up-and-running>>
-* <<apm-server-configuration>>
+* <<configuring-howto-apm-server>>
