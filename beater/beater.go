@@ -15,7 +15,7 @@ import (
 
 type beater struct {
 	config  *Config
-	mutex   sync.RWMutex // guards server and stopped
+	mutex   sync.Mutex // guards server and stopped
 	server  *http.Server
 	stopped bool
 }
