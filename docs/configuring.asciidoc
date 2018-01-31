@@ -11,8 +11,8 @@ The following explains how to configure APM Server:
 * <<configuration-ssl>>
 * <<configuration-template>>
 * <<configuration-logging>>
-* <<configuration-dashboards>>
 * <<setup-kibana-endpoint>>
+* <<configuration-dashboards>>
 * <<using-environ-vars>>
 * <<configuration-path>>
 --
@@ -27,9 +27,9 @@ include::./template-config.asciidoc[]
 
 include::./copied-from-beats/loggingconfig.asciidoc[]
 
-include::./copied-from-beats/dashboardsconfig.asciidoc[]
-
 include::./copied-from-beats/shared-kibana-config.asciidoc[]
+
+include::./copied-from-beats/dashboardsconfig.asciidoc[]
 
 :standalone:
 include::./copied-from-beats/shared-env-vars.asciidoc[]
