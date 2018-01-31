@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"regexp"
-
 	"sync"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -16,8 +15,8 @@ import (
 
 type beater struct {
 	config  *Config
+	mutex   sync.RWMutex // guards server and stopped
 	server  *http.Server
-	mutex   sync.RWMutex
 	stopped bool
 }
 
