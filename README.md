@@ -53,6 +53,7 @@ To run APM Server with debugging output enabled, run:
 ```
 
 ### Testing
+
 For Testing check out the [testing guide](TESTING.md)
 
 ### Update
@@ -80,6 +81,10 @@ make clean
 ```
 
 For further development, check out the [beat developer guide](https://www.elastic.co/guide/en/beats/libbeat/current/new-beat.html).
+
+### Contributing
+
+See [contributing](CONTRIBUTING.md) for details about reporting bugs or requesting features in APM server.
 
 ## Update Dependencies
 
