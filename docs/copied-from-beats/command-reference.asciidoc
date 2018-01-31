@@ -18,7 +18,13 @@
 :help-command-short-desc: Shows help for any command
 :modules-command-short-desc: Manages configured modules
 :run-command-short-desc: Runs {beatname_uc}. This command is used by default if you start {beatname_uc} without specifying a command
+
+ifeval::["{has_ml_jobs}"=="yes"]
 :setup-command-short-desc: Sets up the initial environment, including the index template, Kibana dashboards (when available), and machine learning jobs (when available)
+else::[]
+:setup-command-short-desc: Sets up the initial environment, including the index template, Kibana dashboards (when available)
+endif::[]
+
 :test-command-short-desc: Tests the configuration
 :version-command-short-desc: Shows information about the current version
 
@@ -26,7 +32,7 @@
 [[command-line-options]]
 === {beatname_uc} commands
 
-{beatname_uc} provides a command-line interface for running the Beat and
+{beatname_uc} provides a command-line interface for starting {beatname_uc} and
 performing common tasks, like testing configuration files and loading
 dashboards. The command-line also supports <<global-flags,global flags>>
 for controlling global behaviors.
@@ -378,8 +384,10 @@ Or:
 * The index template ensures that fields are mapped correctly in Elasticsearch.
 * The Kibana dashboards make it easier for you to visualize {beatname_uc} data
 in Kibana.
+ifeval::["{has_ml_jobs}"=="yes"]
 * The machine learning jobs contain the configuration information and metadata
 necessary to analyze data for anomalies.
+endif::[]
 
 Use this command instead of `run --setup` when you want to set up the
 environment without actually running {beatname_uc} and ingesting data.
@@ -400,8 +408,10 @@ Sets up the Kibana dashboards only.
 *`-h, --help`*::
 Shows help for the `setup` command.
 
+ifeval::["{has_ml_jobs}"=="yes"]
 *`--machine-learning`*::
 Sets up machine learning job configurations only.
+endif::[]
 
 ifeval::["{beatname_lc}"=="filebeat"]
 
@@ -524,7 +534,7 @@ For example:
 +
 ["source","sh",subs="attributes"]
 ----------------------------------------------------------------------
-{beatname_lc} -E "name=mybeat" -E "output.elasticsearch.hosts=['http://myhost:9200']"
+{beatname_lc} -E "name=mybeat" -E "output.elasticsearch.hosts=["http://myhost:9200"]"
 ----------------------------------------------------------------------
 +
 This setting is applied to the currently running {beatname_uc} process.
@@ -537,7 +547,7 @@ ifeval::["{beatname_lc}"=="filebeat"]
 +
 ["source","sh",subs="attributes"]
 ----------------------------------------------------------------------
-{beatname_lc} -modules=nginx -M "nginx.access.var.paths=['/var/log/nginx/access.log*']" -M "nginx.access.var.pipeline=no_plugins"
+{beatname_lc} -modules=nginx -M "nginx.access.var.paths=[/var/log/nginx/access.log*]" -M "nginx.access.var.pipeline=no_plugins"
 ----------------------------------------------------------------------
 
 endif::[]
