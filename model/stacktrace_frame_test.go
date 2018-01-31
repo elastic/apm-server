@@ -221,6 +221,24 @@ func TestApplySourcemap(t *testing.T) {
 	}
 }
 
+func TestIsLibraryFrame(t *testing.T) {
+	assert.False(t, (&StacktraceFrame{}).IsLibraryFrame())
+	assert.False(t, (&StacktraceFrame{LibraryFrame: new(bool)}).IsLibraryFrame())
+	libFrame := true
+	assert.True(t, (&StacktraceFrame{LibraryFrame: &libFrame}).IsLibraryFrame())
+}
+
+func TestIsSourcemapApplied(t *testing.T) {
+	assert.False(t, (&StacktraceFrame{}).IsSourcemapApplied())
+
+	fr := StacktraceFrame{Sourcemap: Sourcemap{Updated: new(bool)}}
+	assert.False(t, fr.IsSourcemapApplied())
+
+	libFrame := true
+	fr = StacktraceFrame{Sourcemap: Sourcemap{Updated: &libFrame}}
+	assert.True(t, fr.IsSourcemapApplied())
+}
+
 func TestExcludeFromGroupingKey(t *testing.T) {
 	tests := []struct {
 		fr      StacktraceFrame

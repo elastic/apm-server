@@ -42,14 +42,13 @@ func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {
 	enhancer.Add(m, "module", s.Module)
 	enhancer.Add(m, "function", s.Function)
 	enhancer.Add(m, "vars", s.Vars)
-	if config != nil && config.LibraryPattern != nil && s.LibraryFrame == nil {
-		libraryFrame := s.isLibraryFrame(config.LibraryPattern)
-		s.LibraryFrame = &libraryFrame
+	if config != nil && config.LibraryPattern != nil {
+		s.setLibraryFrame(config.LibraryPattern)
 	}
 	enhancer.Add(m, "library_frame", s.LibraryFrame)
 
 	if config != nil && config.ExcludeFromGrouping != nil {
-		s.ExcludeFromGrouping = s.isExcludedFromGrouping(config.ExcludeFromGrouping)
+		s.setExcludeFromGrouping(config.ExcludeFromGrouping)
 	}
 	enhancer.Add(m, "exclude_from_grouping", s.ExcludeFromGrouping)
 
@@ -72,13 +71,22 @@ func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {
 	return m
 }
 
-func (s *StacktraceFrame) isExcludedFromGrouping(pattern *regexp.Regexp) bool {
-	return pattern.MatchString(s.Filename)
+func (s *StacktraceFrame) IsLibraryFrame() bool {
+	return s.LibraryFrame != nil && *s.LibraryFrame
 }
 
-func (s *StacktraceFrame) isLibraryFrame(pattern *regexp.Regexp) bool {
-	return pattern.MatchString(s.Filename) ||
+func (s *StacktraceFrame) IsSourcemapApplied() bool {
+	return s.Sourcemap.Updated != nil && *s.Sourcemap.Updated
+}
+
+func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
+	s.ExcludeFromGrouping = pattern.MatchString(s.Filename)
+}
+
+func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
+	libraryFrame := pattern.MatchString(s.Filename) ||
 		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
+	s.LibraryFrame = &libraryFrame
 }
 
 func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Service, prevFunction string) string {
