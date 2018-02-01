@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"regexp"
+	"sync"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -13,8 +14,10 @@ import (
 )
 
 type beater struct {
-	config *Config
-	server *http.Server
+	config  *Config
+	mutex   sync.Mutex // guards server and stopped
+	server  *http.Server
+	stopped bool
 }
 
 // Creates beater
@@ -36,7 +39,8 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	}
 
 	bt := &beater{
-		config: beaterConfig,
+		config:  beaterConfig,
+		stopped: false,
 	}
 	return bt, nil
 }
@@ -57,7 +61,14 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	go notifyListening(bt.config, pub.Send)
 
+	bt.mutex.Lock()
+	if bt.stopped {
+		defer bt.mutex.Unlock()
+		return nil
+	}
+
 	bt.server = newServer(bt.config, pub.Send)
+	bt.mutex.Unlock()
 
 	err = run(bt.server, lis, bt.config)
 	if err == http.ErrServerClosed {
@@ -70,5 +81,10 @@ func (bt *beater) Run(b *beat.Beat) error {
 // Graceful shutdown
 func (bt *beater) Stop() {
 	logp.Info("stopping apm-server...")
-	stop(bt.server, bt.config.ShutdownTimeout)
+	bt.mutex.Lock()
+	if bt.server != nil {
+		stop(bt.server, bt.config.ShutdownTimeout)
+	}
+	bt.stopped = true
+	bt.mutex.Unlock()
 }
