@@ -1,0 +1,38 @@
+[[transactions]]
+=== Transactions
+
+A transaction represents one event, captured by an Elastic APM agent within one service. 
+It is identified by a unique ID.
+
+Within one transaction several <<spans,spans>> can be captured, which have a `transaction.id` as a referrer to the transaction they belong to.
+
+A transaction at least holds information about when the event started and the duration until it completed,
+as well as information about the kind of the event.
+A transaction can for example be a single HTTP request or an asynchrounous background job within one service.
+
+Some of the key attributes of a transaction are described in more detail:
+
+[[transactions-context]]
+include::./context.asciidoc[]
+
+[[transaction-transaction]]
+[float]
+==== Transaction
+The information available within the transaction group includes the duration of the transaction, 
+a unique id, the type and an automatically retrieved name,
+as well as an indication whether or not the transaction was handled successfully. 
+The transaction can also contain:
+
+* sampled: if a transaction was sampled, the <<spans,spans>> of the transaction were captured and are available as seperate documents
+* span_count.dropped: how many spans have not been captured, according to configuration on the agent side
+* marks: captures the timing in milliseconds of a significant event during the lifetime of a transaction, set by the user or the agent
+
+[[transaction-example]]
+[float]
+==== Example document
+
+[source,json]
+----
+include::./data/elasticsearch/transaction.json[]
+----
+

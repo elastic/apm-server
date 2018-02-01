@@ -1,0 +1,37 @@
+[[errors]]
+=== Errors
+
+An error record represents one error event, captured by Elastic APM agents within one service. 
+It is identified by a unique ID.
+
+Some of the key attributes of an error are described in more detail:
+
+[[errors-context]]
+include::./context.asciidoc[]
+
+[[errors-error]]
+[float]
+==== Error
+An error event contains at least
+information about the original `exception` that occured 
+or information about a `log` that was created when the exception occured. 
+
+Both the captured `exception` and the captured `log` of an error can contain `stack trace` information,
+helpful for debugging an error. 
+
+The `culprit` of an error gives some information about the origin of the error. 
+
+Errors also contain a `grouping_key` which can be used to group together identical or similar errors. 
+
+An error can be mapped to the <<transactions,transaction>> during which it happened, 
+via the `transaction.id`, indexed together with the error event.  
+
+
+[[error-example]]
+[float]
+==== Example document
+
+[source,json]
+----
+include::./data/elasticsearch/error.json[]
+----
