@@ -1,4 +1,4 @@
-:branch: master
+:branch: 6.1
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 [[gettting-started]]
