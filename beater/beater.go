@@ -29,7 +29,7 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		return nil, err
 	}
 
-	if beaterConfig.Frontend.isEnabled() {
+	if beaterConfig.Frontend.isEnabled() && b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
 		beaterConfig.setElasticsearch(b.Config.Output.Config())
 	}
 
@@ -71,8 +71,8 @@ func (bt *beater) Stop() {
 	stop(bt.server, bt.config.ShutdownTimeout)
 }
 
-
 func validateConfig(beaterConfig *Config, beatConfig *beat.BeatConfig) error {
+	var connectionError error
 	if beaterConfig.Frontend.isEnabled() {
 		if _, err := regexp.Compile(beaterConfig.Frontend.LibraryPattern); err != nil {
 			return fmt.Errorf("invalid regex for `library_pattern`: %v", err)
@@ -87,10 +87,10 @@ func validateConfig(beaterConfig *Config, beatConfig *beat.BeatConfig) error {
 			return fmt.Errorf("elasticsearch not available: %v", err)
 		}
 		for _, client := range clients {
-			if err := client.Connect(); err != nil {
-				return fmt.Errorf("elasticsearch not available: %v", err)
+			if connectionError = client.Connect(); connectionError == nil {
+				return nil
 			}
 		}
 	}
-	return nil
+	return connectionError
 }
