@@ -131,7 +131,7 @@ func (p *podWatcher) Start() error {
 func (p *podWatcher) watch() {
 	for {
 		logp.Info("kubernetes: %s", "Watching API for pod events")
-		watcher, err := p.client.WatchPods(p.ctx, "", p.nodeFilter)
+		watcher, err := p.client.WatchPods(p.ctx, "", p.nodeFilter, k8s.ResourceVersion(p.lastResourceVersion))
 		if err != nil {
 			//watch pod failures should be logged and gracefully failed over as metadata retrieval
 			//should never stop.
@@ -147,6 +147,9 @@ func (p *podWatcher) watch() {
 				watcher.Close()
 				break
 			}
+
+			// Update last resource version
+			p.lastResourceVersion = apiPod.Metadata.GetResourceVersion()
 
 			pod := GetPod(apiPod)
 			if pod.Metadata.DeletionTimestamp != "" {
@@ -204,19 +207,22 @@ func (p *podWatcher) cleanupWorker() {
 			p.RLock()
 			for key, lastSeen := range p.deleted {
 				if lastSeen.Before(timeout) {
+					logp.Debug("kubernetes", "Removing container %s after cool down timeout", key)
 					toDelete = append(toDelete, key)
 				}
 			}
 			p.RUnlock()
 
 			// Delete timed out entries:
-			p.Lock()
 			for _, key := range toDelete {
 				p.bus.Publish(bus.Event{
 					"stop": true,
 					"pod":  p.Pod(key),
 				})
+			}
 
+			p.Lock()
+			for _, key := range toDelete {
 				delete(p.deleted, key)
 				delete(p.pods, key)
 			}
