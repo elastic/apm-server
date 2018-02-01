@@ -12,7 +12,7 @@ import (
 
 const (
 	MIN_CLEANUP_INTERVAL_SECONDS float64 = 60
-	LOGGER_SELECTOR = "sourcemap"
+	LOGGER_SELECTOR                      = "sourcemap"
 )
 
 type cache struct {
