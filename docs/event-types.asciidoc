@@ -10,7 +10,6 @@ The actual available information might be optimized per agent.
 * <<spans,Spans>>
 * <<errors,Errors>>
 
-
 --
 
 include::./transactions.asciidoc[]
