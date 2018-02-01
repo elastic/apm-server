@@ -64,10 +64,10 @@ func (m *SmapMapper) Apply(id Id, lineno, colno int) (*Mapping, error) {
 }
 
 func (m *SmapMapper) NewSourcemapAdded(id Id) {
+	m.Accessor.Remove(id)
 	_, err := m.Accessor.Fetch(id)
 	if err == nil {
 		logp.NewLogger("sourcemap").Warnf("Overriding sourcemap for service %s version %s and file %s",
 			id.ServiceName, id.ServiceVersion, id.Path)
 	}
-	m.Accessor.Remove(id)
 }
