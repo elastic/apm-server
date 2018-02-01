@@ -3,7 +3,7 @@
 
 A span contains information about a specific code path, 
 executed as part of a <<transactions,transaction>>. 
-Every span is identified by an ID unique per transaction.
+Every span is identified by an unique ID per transaction.
 
 Elastic APM agents automatically instrument a variety of libraries, 
 but also support custom instrumentation for code paths.
@@ -29,7 +29,7 @@ The context also contains information about the service the agent is monitoring.
 [float]
 ==== Span
 The information available within the span group includes the duration of the recorded span, 
-an id unique within a transaction and an automatically retrieved name.
+a unique ID within a transaction and an automatically retrieved name.
 Additionally a span can contain `stack trace` information.
 
 [[span-example]]

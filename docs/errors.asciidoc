@@ -16,7 +16,7 @@ An error event contains at least
 information about the original `exception` that occured 
 or information about a `log` that was created when the exception occured. 
 
-Both, the captured `exception` and the captured `log` of an error can contain `stack trace` information,
+Both the captured `exception` and the captured `log` of an error can contain `stack trace` information,
 helpful for debugging an error. 
 
 The `culprit` of an error gives some information about the origin of the error. 

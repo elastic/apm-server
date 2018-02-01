@@ -11,6 +11,6 @@ In case a http request is captured, it contains information about the `url`, `co
 
 The agents provide some configuration options with which the users can also capture customized information.
 The non-indexed information is captured within a `custom` object,
-while the indexed information is stored within `tags`.
+while the searchable information is stored within `tags`.
 
 The context information is defined for <<transactions,transaction>> and <<errors,error>> events. 
