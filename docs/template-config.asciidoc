@@ -1,0 +1,5 @@
+include::./copied-from-beats/template-config.asciidoc[]
+
+=== Manually loading template configuration
+
+include::./copied-from-beats/shared-template-load.asciidoc[]

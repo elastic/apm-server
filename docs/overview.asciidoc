@@ -29,5 +29,5 @@ and as such it shares many of the same configuration options as beats.
 In the following you can read more about
 
 * <<installing>>
-* <<configuring>>
-
+* <<setting-up-and-running>>
+* <<configuring-howto-apm-server>>

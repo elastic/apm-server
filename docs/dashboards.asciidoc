@@ -1,0 +1,5 @@
+[[load-kibana-dashboards]]
+=== Dashboards
+
+
+include::./copied-from-beats/dashboards.asciidoc[]
