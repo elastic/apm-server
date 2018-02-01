@@ -1,4 +1,4 @@
-include::../version.asciidoc[]
+include::{docdir}/../version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 [[gettting-started]]
