@@ -1,5 +1,5 @@
 [[intake-api]]
-== Intake API
+= Intake API
 
 The APM Server exposes API Endpoints for 
 

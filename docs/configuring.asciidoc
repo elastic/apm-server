@@ -13,6 +13,7 @@ The following topics describe how to configure APM Server:
 * <<configuration-logging>>
 * <<setup-kibana-endpoint>>
 * <<configuration-dashboards>>
+* <<frontend>>
 * <<using-environ-vars>>
 * <<configuration-path>>
 --
@@ -30,6 +31,8 @@ include::./copied-from-beats/loggingconfig.asciidoc[]
 include::./copied-from-beats/shared-kibana-config.asciidoc[]
 
 include::./copied-from-beats/dashboardsconfig.asciidoc[]
+
+include::./frontend.asciidoc[]
 
 :standalone:
 include::./copied-from-beats/shared-env-vars.asciidoc[]
