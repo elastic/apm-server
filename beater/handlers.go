@@ -390,7 +390,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	if ok {
 		logger.Errorw("error handling request", "error", err.Error())
 	} else {
-		logp.Err("error handling request:", err.Error())
+		logp.NewLogger("request").Errorf("error handling request: %v", err)
 	}
 
 	if acceptsJSON(r) {

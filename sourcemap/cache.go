@@ -10,7 +10,10 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-const MIN_CLEANUP_INTERVAL_SECONDS float64 = 60
+const (
+	MIN_CLEANUP_INTERVAL_SECONDS float64 = 60
+	LOGGER_SELECTOR = "sourcemap"
+)
 
 type cache struct {
 	goca *gocache.Cache
@@ -28,12 +31,12 @@ func newCache(expiration time.Duration) (*cache, error) {
 
 func (c *cache) add(id Id, consumer *sourcemap.Consumer) {
 	c.goca.Set(id.Key(), consumer, gocache.DefaultExpiration)
-	logp.NewLogger("sourcemap").Debugf("Added id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
+	logp.NewLogger(LOGGER_SELECTOR).Debugf("Added id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
 }
 
 func (c *cache) remove(id Id) {
 	c.goca.Delete(id.Key())
-	logp.NewLogger("sourcemap").Debugf("Removed id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
+	logp.NewLogger(LOGGER_SELECTOR).Debugf("Removed id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
 }
 
 func (c *cache) fetch(id Id) (*sourcemap.Consumer, bool) {
