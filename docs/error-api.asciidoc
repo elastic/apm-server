@@ -1,20 +1,38 @@
 [[error-api]]
-== Error API
+=== Error API
 
 The APM Server exposes an API Endpoint to send error records.
 Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
-To send error records you need to send a HTTP POST request to APM Server `errors` endpoint.
-Information pertaining to the error record must be sent as a JSON object to the endpoint.
+The following section contains information about:
 
-Find more information about:
-
+* <<error-endpoint>>
 * <<error-schema-definition>>
 * <<error-api-examples>>
 
+[[error-endpoint]]
+[float]
+==== Endpoint
+
+To send an error record you need to send a `HTTP POST` request to the APM Server `errors` endpoint:
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/v1/errors
+------------------------------------------------------------
+
+To send a record for a frontend error (see <<frontend,experimental frontend support>>), 
+you need to send a `HTTP POST` request to the APM Server `frontend errors` endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/v1/client-side/errors
+------------------------------------------------------------
+
+Information pertaining to the error record must be sent as a JSON object to the endpoint.
+
 [[error-schema-definition]]
 [float]
-=== Schema Definition
+==== Schema Definition
 
 The APM Server uses a JSON Schema for validating the transaction requests.
 Find details on how the schema is defined:
@@ -31,7 +49,7 @@ Find details on how the schema is defined:
 
 [[error-payload-schema]]
 [float]
-==== Payload
+===== Payload
 
 [source,json]
 ----
@@ -40,7 +58,7 @@ include::./spec/errors/payload.json[]
 
 [[error-error-schema]]
 [float]
-==== Error
+===== Error
 
 [source,json]
 ----
@@ -49,7 +67,7 @@ include::./spec/errors/error.json[]
 
 [[error-service-schema]]
 [float]
-==== Service
+===== Service
 
 [source,json]
 ----
@@ -58,7 +76,7 @@ include::./spec/service.json[]
 
 [[error-system-schema]]
 [float]
-==== System
+===== System
 
 [source,json]
 ----
@@ -67,7 +85,7 @@ include::./spec/system.json[]
 
 [[error-context-schema]]
 [float]
-==== Context
+===== Context
 
 [source,json]
 ----
@@ -76,7 +94,7 @@ include::./spec/context.json[]
 
 [[error-stacktraceframe-schema]]
 [float]
-==== Stacktrace Frame
+===== Stacktrace Frame
 
 [source,json]
 ----
@@ -85,7 +103,7 @@ include::./spec/stacktrace_frame.json[]
 
 [[error-request-schema]]
 [float]
-==== Request
+===== Request
 
 [source,json]
 ----
@@ -94,7 +112,7 @@ include::./spec/request.json[]
 
 [[error-user-schema]]
 [float]
-==== User
+===== User
 
 [source,json]
 ----
@@ -103,7 +121,7 @@ include::./spec/user.json[]
 
 [[error-api-examples]]
 [float]
-=== Examples
+==== Examples
 
 Send an example request to the APM Server:
 
@@ -122,7 +140,7 @@ See examples on how an error request to the APM Server can look like:
 
 [[payload-with-error]]
 [float]
-==== Payload with an Error
+===== Payload with an Error
 
 [source,json]
 ----
@@ -131,7 +149,7 @@ include::./data/intake-api/generated/error/payload.json[]
 
 [[payload-with-minimal-exception]]
 [float]
-==== Payload with an Error with minimal Exception Information
+===== Payload with an Error with minimal Exception Information
 
 [source,json]
 ----
@@ -140,7 +158,7 @@ include::./data/intake-api/generated/error/minimal_payload_exception.json[]
 
 [[payload-with-minimal-log]]
 [float]
-==== Payload with an Error with minimal Log Information
+===== Payload with an Error with minimal Log Information
 
 [source,json]
 ----

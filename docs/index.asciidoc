@@ -23,13 +23,11 @@ include::./installing.asciidoc[]
 
 include::./configuring.asciidoc[]
 
-include::./transaction-api.asciidoc[]
-
-include::./error-api.asciidoc[]
+include::./event-types.asciidoc[]
 
 include::./frontend.asciidoc[]
 
-include::./generated-docs.asciidoc[]
+include::./intake-api.asciidoc[]
 
 include::./fields.asciidoc[]
 
