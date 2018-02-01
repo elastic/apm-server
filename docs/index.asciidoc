@@ -1,4 +1,3 @@
-:branch: 6.x
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
