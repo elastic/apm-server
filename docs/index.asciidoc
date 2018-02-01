@@ -1,4 +1,4 @@
-:branch: master
+:branch: 6.1
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
