@@ -1,56 +1,44 @@
-[[configuring]]
-== Configuring and running APM Server
+[[configuring-howto-apm-server]]
+= Configuring APM Server
 
-In a production environment,
-you would put APM Server on its own machines,
-similar to how you run Elasticsearch.
-You _can_ run it on the same machines as Elasticsearch,
-but this is not recommended,
-as the processes will be competing for resources.
+[partintro]
+--
+include::./copied-from-beats/shared-configuring.asciidoc[]
 
-To start APM Server, run:
+The following topics describe how to configure APM Server:
 
-[source,bash]
-----------------------------------
-./apm-server -e
-----------------------------------
+* <<configuring-output>>
+* <<configuration-ssl>>
+* <<configuration-template>>
+* <<configuration-logging>>
+* <<setup-kibana-endpoint>>
+* <<configuration-dashboards>>
+* <<frontend>>
+* <<using-environ-vars>>
+* <<configuration-path>>
+--
 
-You should see APM Server start up.
-It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
-You can change the defaults by supplying a different address on the command line:
+:only-elasticsearch:
+:no-pipeline:
+include::./copied-from-beats/outputconfig.asciidoc[]
 
-[source,bash]
-----------------------------------
-./apm-server -e -E output.elasticsearch.hosts=ElasticsearchAddress:9200 -E apm-server.host=localhost:8200
-----------------------------------
+include::./copied-from-beats/shared-ssl-config.asciidoc[]
 
-Or you can update the `apm-server.yml` configuration file to change the defaults.
+include::./template-config.asciidoc[]
 
-[source,yaml]
-----------------------------------
-apm-server:
-  host: localhost:8200
+include::./copied-from-beats/loggingconfig.asciidoc[]
 
-output:
-  elasticsearch:
-    hosts: ElasticsearchAddress:9200
-----------------------------------
+include::./copied-from-beats/shared-kibana-config.asciidoc[]
+
+include::./copied-from-beats/dashboardsconfig.asciidoc[]
+
+include::./frontend.asciidoc[]
+
+:standalone:
+include::./copied-from-beats/shared-env-vars.asciidoc[]
+
+include::./copied-from-beats/shared-path-config.asciidoc[]
 
 
-NOTE: If you are using an X-Pack secured version of Elastic Stack,
-you need to specify credentials in the config file before you run the commands that set up and start APM Server.
-For example:
 
-[source,yaml]
-----
-output.elasticsearch:
-  hosts: ["ElasticsearchAddress:9200"]
-  username: "elastic"
-  password: "elastic"
-----
 
-See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.reference.yml[`apm-server.reference.yml`] for more configuration options.
-
-include::./security.asciidoc[]
-
-include::./high-availability.asciidoc[]
