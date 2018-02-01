@@ -1,5 +1,7 @@
 [[event-types]]
-== Event Types
+= Event Types
+[partintro]
+--
 
 Elastic APM agents capture information about `transaction`, `span` and `error` events and send the information to the APM Server.
 The actual available information might be optimized per agent. 
@@ -7,6 +9,8 @@ The actual available information might be optimized per agent.
 * <<transactions,Transactions>>
 * <<spans,Spans>>
 * <<errors,Errors>>
+
+--
 
 include::./transactions.asciidoc[]
 include::./spans.asciidoc[]

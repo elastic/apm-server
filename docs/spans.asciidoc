@@ -1,5 +1,5 @@
 [[spans]]
-=== Spans
+== Spans
 
 A span contains information about a specific code path, 
 executed as part of a <<transactions,transaction>>. 
@@ -21,20 +21,20 @@ Some of the key attributes of a span are described in more detail:
 
 [[span-context]]
 [float]
-==== Context
+=== Context
 In case a database query was captured, the span's context contains information about this database access.
 The context also contains information about the service the agent is monitoring.
 
 [[span-span]]
 [float]
-==== Span
+=== Span
 The information available within the span group includes the duration of the recorded span, 
 a unique ID within a transaction and an automatically retrieved name.
 Additionally a span can contain `stack trace` information.
 
 [[span-example]]
 [float]
-==== Example document
+=== Example document
 
 [source,json]
 ----
