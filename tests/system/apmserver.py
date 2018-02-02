@@ -145,8 +145,10 @@ class ElasticTest(ServerBaseTest):
         self.es.indices.delete(index=self.index_name, ignore=[400, 404])
         self.wait_until(lambda: not self.es.indices.exists(self.index_name))
 
-        self.es.indices.delete_template(name=self.index_name, ignore=[400, 404])
-        self.wait_until(lambda: not self.es.indices.exists_template(self.index_name))
+        self.es.indices.delete_template(
+            name=self.index_name, ignore=[400, 404])
+        self.wait_until(
+            lambda: not self.es.indices.exists_template(self.index_name))
 
         super(ElasticTest, self).setUp()
 
@@ -168,7 +170,8 @@ class ElasticTest(ServerBaseTest):
 
         # make sure template is loaded
         self.wait_until(
-            lambda: self.log_contains("Elasticsearch template with name \'{}\' loaded".format(self.index_name)),
+            lambda: self.log_contains(
+                "Elasticsearch template with name \'{}\' loaded".format(self.index_name)),
             max_timeout=20)
         self.wait_until(lambda: self.es.indices.exists(self.index_name))
         # Quick wait to give documents some time to be sent to the index
@@ -185,7 +188,8 @@ class ElasticTest(ServerBaseTest):
     def check_backend_error_sourcemap(self, count=1):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "error"}}})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(rs['hits']['total'], count)
+        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
+            rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
             err = doc["_source"]["error"]
             if "exception" in err:
@@ -196,7 +200,8 @@ class ElasticTest(ServerBaseTest):
     def check_backend_transaction_sourcemap(self, count=1):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "span"}}})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(rs['hits']['total'], count)
+        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
+            rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
             self.check_for_no_smap(doc["_source"]["span"])
 
@@ -262,7 +267,8 @@ class ClientSideBaseTest(ServerBaseTest):
     def check_frontend_error_sourcemap(self, updated, expected_err=None, count=1):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "error"}}})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(rs['hits']['total'], count)
+        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
+            rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
             err = doc["_source"]["error"]
             if "exception" in err:
@@ -273,7 +279,8 @@ class ClientSideBaseTest(ServerBaseTest):
     def check_frontend_transaction_sourcemap(self, updated, expected_err=None, count=1):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "span"}}})
-        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(rs['hits']['total'], count)
+        assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
+            rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
             span = doc["_source"]["span"]
             self.check_smap(span, updated, expected_err)
