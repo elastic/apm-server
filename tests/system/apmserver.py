@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -62,20 +63,21 @@ class ServerSetUpBaseTest(BaseTest):
         self.apmserver_proc = self.start_beat()
         self.wait_until(lambda: self.log_contains("Starting apm-server"))
 
-    def assert_no_logged_warnings(self, replace=None):
+    def assert_no_logged_warnings(self, suppress=None):
         """
         Assert that the log file contains no ERR or WARN lines.
         """
-        log = self.get_log()
-        log = log.replace("WARN EXPERIMENTAL", "")
-        log = log.replace("WARN BETA", "")
+        if suppress == None:
+            suppress = []
+
         # Jenkins runs as a Windows service and when Jenkins executes theses
         # tests the Beat is confused since it thinks it is running as a service.
-        log = log.replace(
-            "ERR Error: The service process could not connect to the service controller.", "")
-        if replace:
-            for r in replace:
-                log = log.replace(r, "")
+        winErr = "ERR Error: The service process could not connect to the service controller."
+
+        suppress = suppress + ["WARN EXPERIMENTAL", "WARN BETA", winErr]
+        log = self.get_log()
+        for s in suppress:
+            log = re.sub(s, "", log)
         self.assertNotRegexpMatches(log, "ERR|WARN")
 
 

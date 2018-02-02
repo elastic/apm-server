@@ -143,6 +143,8 @@ class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
 
 class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
 
+    ignore_override_warnings=["WARN.*Overriding sourcemap"]
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
@@ -154,7 +156,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      'http://localhost:8200/v1/errors',
                                      'error',
                                      1)
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
         self.check_backend_error_sourcemap()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -169,7 +171,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
         self.check_frontend_error_sourcemap(True)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -185,7 +187,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      'http://localhost:8200/v1/transactions',
                                      'transaction',
                                      2)
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
         self.check_backend_transaction_sourcemap()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -201,7 +203,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      self.transactions_url,
                                      'transaction',
                                      2)
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
         self.check_frontend_transaction_sourcemap(True)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -215,7 +217,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_matching_sourcemap(self):
         r = self.upload_sourcemap('bundle_no_mapping.js.map')
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
         self.test_no_sourcemap()
@@ -267,7 +269,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
 
         # delete sourcemap from ES
         # fetching from ES would lead to an error afterwards
@@ -280,11 +282,14 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
         self.check_frontend_error_sourcemap(True)
 
 
 class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
+
+    ignore_override_warnings=["WARN.*Overriding sourcemap"]
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
@@ -297,7 +302,7 @@ class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.assert_no_logged_warnings()
+        self.assert_no_logged_warnings(self.ignore_override_warnings)
 
         # delete sourcemap from ES
         # fetching from ES would lead to an error afterwards
