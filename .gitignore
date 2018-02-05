@@ -7,7 +7,7 @@
 .DS_Store
 *.pyc
 /apm-server.iml
-
+/apm-server.keystore
 /approvals
 /apm-server
 /apm-server.test
