@@ -86,6 +86,8 @@ include::./security.asciidoc[]
 
 include::./dashboards.asciidoc[]
 
+include::./copied-from-beats/keystore.asciidoc[]
+
 include::./copied-from-beats/command-reference.asciidoc[]
 
 include::./copied-from-beats/shared-directory-layout.asciidoc[]
