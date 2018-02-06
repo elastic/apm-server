@@ -80,3 +80,6 @@ check-full: check
 notice: python-env
 	@echo "Generating NOTICE"
 	@$(PYTHON_ENV)/bin/python ${ES_BEATS}/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server"
+
+.PHONY: force-update-docs
+force-update-docs: clean docs
