@@ -8,6 +8,7 @@ import (
 	"github.com/go-sourcemap/sourcemap"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
 	es "github.com/elastic/beats/libbeat/outputs/elasticsearch"
 )
 
@@ -61,6 +62,10 @@ func (e *smapElasticsearch) runESQuery(body map[string]interface{}) (*es.SearchR
 func parseResult(result *es.SearchResults, id Id) (*sourcemap.Consumer, error) {
 	if result.Hits.Total == 0 {
 		return nil, nil
+	}
+	if result.Hits.Total > 1 {
+		logp.NewLogger("sourcemap").Warnf("Multiple sourcemaps found for service %s version %s and file %s , fetching the last uploaded one",
+			id.ServiceName, id.ServiceVersion, id.Path)
 	}
 	smap, err := parseSmap(result.Hits.Hits[0])
 	if err != nil {
