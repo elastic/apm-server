@@ -1,4 +1,4 @@
-################### APM Server Configuration Example #########################
+################### APM Server Configuration #########################
 
 ############################# APM Server ######################################
 
@@ -13,8 +13,12 @@ apm-server:
     enabled: false
 
   # Authorization token to be checked. If a token is set here the agents must
-  # send their token in the following format: Authorization: Bearer <secret-token>
+  # send their token in the following format: Authorization: Bearer <secret-token>.
+  # It is recommended to use an authorization token in combination with SSL enabled.
   #secret_token:
+  #ssl.enabled: false
+  #ssl.certificate : "path/to/cert"
+  #ssl.key : "path/to/private_key"
 
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
@@ -60,7 +64,7 @@ output.elasticsearch:
 #================================ Logging =====================================
 
 # Sets log level. The default log level is info.
-# Available log levels are: critical, error, warn, info, debug
+# Available log levels are: error, warning, info, debug
 #logging.level: debug
 
 # At debug level, you can selectively enable logging only for some components.

@@ -30,8 +30,8 @@ rsync -crpv --delete \
     --include="testing/***" \
     --include="libbeat/" \
     --include=libbeat/Makefile \
-    --include="libbeat/_meta/***" \
-    --exclude="libbeat/_meta/fields.generated.yml" \
+    --include="libbeat/_meta/" \
+    --include="libbeat/_meta/fields.common.yml" \
     --include="libbeat/docs/" \
     --include=libbeat/docs/version.asciidoc \
     --include="libbeat/processors/" \
