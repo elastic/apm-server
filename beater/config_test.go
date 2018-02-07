@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/go-ucfg/yaml"
 )
 
@@ -159,27 +158,18 @@ func TestIsEnabled(t *testing.T) {
 	}
 }
 
-func TestSmapIndex(t *testing.T) {
+func TestReplaceBeatVersion(t *testing.T) {
 	cases := []struct {
 		version      string
 		indexPattern string
-		smapIndex    string
+		replaced     string
 	}{
-		{version: "", indexPattern: "", smapIndex: ""},
-		{version: "6.2.0", indexPattern: "apm-%{[beat.version]}", smapIndex: "apm-6.2.0"},
-		{version: "6.2.0", indexPattern: "apm-smap", smapIndex: "apm-smap"},
+		{version: "", indexPattern: "", replaced: ""},
+		{version: "6.2.0", indexPattern: "apm-%{[beat.version]}", replaced: "apm-6.2.0"},
+		{version: "6.2.0", indexPattern: "apm-smap", replaced: "apm-smap"},
 	}
-
-	esConfig, _ := common.NewConfigFrom(map[string]interface{}{
-		"hosts": []string{"http://localhost:9898"},
-	})
-	enabled := true
 	for _, test := range cases {
-		c := defaultConfig(test.version)
-		c.Frontend.Enabled = &enabled
-		c.Frontend.SourceMapping.esConfig = esConfig
-		c.Frontend.SourceMapping.IndexPattern = test.indexPattern
-		c.Frontend.SmapMapper()
-		assert.Equal(t, test.smapIndex, c.Frontend.SourceMapping.index)
+		out := replaceVersion(test.indexPattern, test.version)
+		assert.Equal(t, test.replaced, out)
 	}
 }

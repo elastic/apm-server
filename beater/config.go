@@ -44,7 +44,6 @@ type SourceMapping struct {
 
 	esConfig *common.Config
 	mapper   sourcemap.Mapper
-	index    string
 }
 
 type Cache struct {
@@ -79,7 +78,7 @@ func (s *SourceMapping) isSetup() bool {
 	return s != nil && (s.esConfig != nil)
 }
 
-func (c *FrontendConfig) SmapMapper() (sourcemap.Mapper, error) {
+func (c *FrontendConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
 	smap := c.SourceMapping
 	if !c.isEnabled() || !smap.isSetup() {
 		return nil, nil
@@ -87,12 +86,10 @@ func (c *FrontendConfig) SmapMapper() (sourcemap.Mapper, error) {
 	if smap.mapper != nil {
 		return c.SourceMapping.mapper, nil
 	}
-	re := regexp.MustCompile("%.*{.*beat.version.?}")
-	c.SourceMapping.index = re.ReplaceAllLiteralString(smap.IndexPattern, c.beatVersion)
 	smapConfig := sourcemap.Config{
 		CacheExpiration:     smap.Cache.Expiration,
 		ElasticsearchConfig: smap.esConfig,
-		Index:               c.SourceMapping.index,
+		Index:               replaceVersion(c.SourceMapping.IndexPattern, c.beatVersion),
 	}
 	smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
 	if err != nil {
@@ -100,6 +97,11 @@ func (c *FrontendConfig) SmapMapper() (sourcemap.Mapper, error) {
 	}
 	c.SourceMapping.mapper = smapMapper
 	return c.SourceMapping.mapper, nil
+}
+
+func replaceVersion(pattern, version string) string {
+	re := regexp.MustCompile("%.*{.*beat.version.?}")
+	return re.ReplaceAllLiteralString(pattern, version)
 }
 
 func defaultConfig(beatVersion string) *Config {
