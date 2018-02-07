@@ -53,6 +53,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Add `process.ppid` as optional field {pull}564[564]
 - Change `error.culprit` after successfully applying sourcemapping {pull}520[520]
 - Make `transaction.name` optional {pull}554[554]
+- Remove config files from beats. Manually add relevant config options {pull}578[578]
 
 ==== Deprecated
 

@@ -1,4 +1,4 @@
-######################## APM Server Configuration #############################
+######################## APM Server Configuration Example #############################
 
 ############################# APM Server ######################################
 
@@ -51,8 +51,7 @@ apm-server:
 
     # Regexp to be matched against a stacktrace frame's `file_name`.
     # If the regexp matches, the stacktrace frame is not used for calculating error groups.
-    # The default pattern excludes stacktrace frames that have
-    # - a filename starting with '/webpack'
+    # The default pattern excludes stacktrace frames that have a filename starting with '/webpack'
     #exclude_from_grouping: "^/webpack"
 
     # If a source map has previously been uploaded, source mapping is automatically applied
@@ -72,12 +71,11 @@ apm-server:
 
   # golang expvar support - https://golang.org/pkg/expvar/
   #expvar:
-  # Set to true to Expose expvar
-  #enabled: false
+    # Set to true to Expose expvar
+    #enabled: false
 
-  # Url to expose expvar
-  #url: "/debug/vars"
-
+    # Url to expose expvar
+    #url: "/debug/vars"
 #================================ General ======================================
 
 # Internal queue configuration for buffering events to be published.
@@ -135,8 +133,8 @@ output.elasticsearch:
   # Number of workers per Elasticsearch host.
   #worker: 1
 
-  # Optional index name. The default is "apm" plus date
-  # and generates [apm-]YYYY.MM.DD keys.
+  # Optional index name. The default is "apm" plus version plus date
+  # and generates apm-version-YYYY.MM.DD keys.
   # In case you modify this pattern you must update setup.template.name and setup.template.pattern accordingly.
   #index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
 
@@ -200,6 +198,14 @@ output.elasticsearch:
   # Configure what types of renegotiation are supported. Valid options are
   # never, once, and freely. Default is never.
   #ssl.renegotiation: never
+
+#----------------------------- Console output ---------------------------------
+#output.console:
+  # Boolean flag to enable or disable the output module.
+  #enabled: true
+
+  # Pretty print json event
+  #pretty: false
 
 #================================= Paths ======================================
 
@@ -269,7 +275,7 @@ output.elasticsearch:
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
 #setup.template.name: "apm-%{[beat.version]}"
 
-# Template pattern. By default the template pattern is "-%{[beat.version]}-*" to apply to the default index settings.
+# Template pattern. By default the template pattern is "apm-%{[beat.version]}-*" to apply to the default index settings.
 # The first part is the version of the beat and then -* is used to match all daily indices.
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
 #setup.template.pattern: "apm-%{[beat.version]}-*"
@@ -281,7 +287,7 @@ output.elasticsearch:
 #setup.template.overwrite: false
 
 # Elasticsearch template settings
-setup.template.settings:
+#setup.template.settings:
 
   # A dictionary of settings to place into the settings.index dictionary
   # of the Elasticsearch template. For more details, please check
@@ -300,7 +306,7 @@ setup.template.settings:
 
 # Starting with Beats version 6.0.0, the dashboards are loaded via the Kibana API.
 # This requires a Kibana endpoint configuration.
-setup.kibana:
+#setup.kibana:
 
   # Kibana Host
   # Scheme and port can be left out and will be set to the default (http and 5601)
@@ -354,7 +360,7 @@ setup.kibana:
 # under all other system per default to syslog.
 
 # Sets log level. The default log level is info.
-# Available log levels are: critical, error, warning, info, debug
+# Available log levels are: error, warning, info, debug
 #logging.level: info
 
 # Enable debug output for selected components. To enable all selectors use ["*"]
@@ -376,8 +382,8 @@ setup.kibana:
 
 # Logging to rotating files. Set logging.to_files to false to disable logging to
 # files.
-logging.to_files: true
-logging.files:
+#logging.to_files: true
+#logging.files:
   # Configure the path where the logs are written. The default is the logs directory
   # under the home path (the binary location).
   #path: /var/log/apm-server
@@ -398,3 +404,18 @@ logging.files:
 
 # Set to true to log messages in json format.
 #logging.json: false
+
+#================================ HTTP Endpoint ======================================
+# Each beat can expose internal metrics through a HTTP endpoint. For security
+# reasons the endpoint is disabled by default. This feature is currently experimental.
+# Stats can be access through http://localhost:5066/stats . For pretty JSON output
+# append ?pretty to the URL.
+
+# Defines if the HTTP endpoint is enabled.
+#http.enabled: false
+
+# The HTTP endpoint will bind to this hostname or IP address. It is recommended to use only localhost.
+#http.host: localhost
+
+# Port on which the HTTP endpoint will bind. Default is 5066.
+#http.port: 5066
