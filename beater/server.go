@@ -26,7 +26,7 @@ func newServer(config *Config, report reporter) *http.Server {
 
 func run(server *http.Server, lis net.Listener, config *Config) error {
 	logger := logp.NewLogger("server")
-	logger.Infof("Starting apm-server. Hit CTRL-C to stop it.")
+	logger.Infof("Starting apm-server [%s]. Hit CTRL-C to stop it.", version.String())
 	logger.Infof("Listening on: %s", server.Addr)
 	switch config.Frontend.isEnabled() {
 	case true:
