@@ -303,11 +303,27 @@ class SmapCacheBaseTest(ClientSideBaseTest):
         return cfg
 
 
+class SmapIndexBaseTest(ClientSideBaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super(SmapIndexBaseTest, cls).setUpClass()
+        cls.index_name = "apm-test"
+        cls.smap_index_pattern = "apm-*-sourcemap*"
+        cls.smap_index = "apm-test-sourcemap"
+
+    def config(self):
+        cfg = super(SmapIndexBaseTest, self).config()
+        cfg.update({"index_name": "apm-test",
+                    "smap_index_pattern": "apm-*-sourcemap*",
+                    "smap_index": "apm-test-sourcemap"})
+        return cfg
+
+
 class ExpvarBaseTest(ServerBaseTest):
     config_overrides = {}
 
     def config(self):
-        cfg = super(ServerBaseTest, self).config()
+        cfg = super(ExpvarBaseTest, self).config()
         cfg.update(self.config_overrides)
         return cfg
 
