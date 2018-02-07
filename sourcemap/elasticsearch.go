@@ -24,7 +24,7 @@ type smapElasticsearch struct {
 
 func NewElasticsearch(config *common.Config, index string) (*smapElasticsearch, error) {
 	esClients, err := es.NewElasticsearchClients(config)
-	if err != nil || esClients == nil || len(esClients) == 0 {
+	if err != nil {
 		return nil, Error{Msg: fmt.Sprintf("Sourcemap ES Client cannot be initialized. %v", err.Error()), Kind: InitError}
 	}
 	if index == "" {
@@ -52,10 +52,7 @@ func (e *smapElasticsearch) runESQuery(body map[string]interface{}) (*es.SearchR
 			return result, nil
 		}
 	}
-	if err != nil {
-		return nil, Error{Msg: err.Error(), Kind: AccessError}
-	}
-	return result, nil
+	return nil, Error{Msg: err.Error(), Kind: AccessError}
 }
 
 func parseResult(result *es.SearchResults, id Id) (*sourcemap.Consumer, error) {
