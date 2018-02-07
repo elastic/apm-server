@@ -26,7 +26,7 @@ func (pa *payload) transform(config *pr.Config) []beat.Event {
 	sourcemapCounter.Add(1)
 
 	if config == nil || config.SmapMapper == nil {
-		logp.Err("Sourcemap Accessor is nil, cache cannot be invalidated.")
+		logp.NewLogger("sourcemap").Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
 		config.SmapMapper.NewSourcemapAdded(smap.Id{
 			ServiceName:    pa.ServiceName,

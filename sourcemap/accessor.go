@@ -20,7 +20,7 @@ type SmapAccessor struct {
 }
 
 func NewSmapAccessor(config Config) (*SmapAccessor, error) {
-	logp.Debug("sourcemap", "NewSmapAccessor created at Time.now %v for index", time.Now().Unix(), config.Index)
+	logp.NewLogger("sourcemap").Debugf("NewSmapAccessor created at Time.now %v for index", time.Now().Unix(), config.Index)
 
 	es, err := NewElasticsearch(config.ElasticsearchConfig, config.Index)
 	if err != nil {
