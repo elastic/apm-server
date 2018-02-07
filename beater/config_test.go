@@ -59,8 +59,8 @@ func TestConfig(t *testing.T) {
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
-						Cache: &Cache{Expiration: 10 * time.Minute},
-						Index: "apm-test*",
+						Cache:        &Cache{Expiration: 10 * time.Minute},
+						IndexPattern: "apm-test*",
 					},
 					LibraryPattern:      "pattern",
 					ExcludeFromGrouping: "group_pattern",
@@ -99,7 +99,7 @@ func TestConfig(t *testing.T) {
 					RateLimit:    0,
 					AllowOrigins: nil,
 					SourceMapping: &SourceMapping{
-						Index: "",
+						IndexPattern: "",
 					},
 				},
 			},
@@ -155,5 +155,21 @@ func TestIsEnabled(t *testing.T) {
 			isEnabled := test.config.isEnabled()
 			assert.Equal(t, b, isEnabled, "ssl config but should be %v", b)
 		})
+	}
+}
+
+func TestReplaceBeatVersion(t *testing.T) {
+	cases := []struct {
+		version      string
+		indexPattern string
+		replaced     string
+	}{
+		{version: "", indexPattern: "", replaced: ""},
+		{version: "6.2.0", indexPattern: "apm-%{[beat.version]}", replaced: "apm-6.2.0"},
+		{version: "6.2.0", indexPattern: "apm-smap", replaced: "apm-smap"},
+	}
+	for _, test := range cases {
+		out := replaceVersion(test.indexPattern, test.version)
+		assert.Equal(t, test.replaced, out)
 	}
 }

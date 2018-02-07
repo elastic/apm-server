@@ -98,7 +98,7 @@ func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.H
 }
 
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
-	smapper, err := config.Frontend.SmapMapper()
+	smapper, err := config.Frontend.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
@@ -115,7 +115,7 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 }
 
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
-	smapper, err := config.Frontend.SmapMapper()
+	smapper, err := config.Frontend.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}

@@ -27,11 +27,12 @@ func TestBeatConfig(t *testing.T) {
 	tests := []struct {
 		conf       map[string]interface{}
 		beaterConf *Config
+		SmapIndex  string
 		msg        string
 	}{
 		{
 			conf:       map[string]interface{}{},
-			beaterConf: defaultConfig(),
+			beaterConf: defaultConfig("6.2.0"),
 			msg:        "Default config created for empty config.",
 		},
 		{
@@ -85,11 +86,12 @@ func TestBeatConfig(t *testing.T) {
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
-						Cache: &Cache{Expiration: 5 * time.Minute},
-						Index: "apm-test*",
+						Cache:        &Cache{Expiration: 5 * time.Minute},
+						IndexPattern: "apm-test*",
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
+					beatVersion:         "6.2.0",
 				},
 				ConcurrentRequests: 15,
 			},
@@ -137,10 +139,11 @@ func TestBeatConfig(t *testing.T) {
 						Cache: &Cache{
 							Expiration: 7 * time.Second,
 						},
-						Index: "apm-*",
+						IndexPattern: "apm-*-sourcemap*",
 					},
 					LibraryPattern:      "node_modules|bower_components|~",
 					ExcludeFromGrouping: "^/webpack",
+					beatVersion:         "6.2.0",
 				},
 				ConcurrentRequests: 40,
 			},
@@ -151,7 +154,7 @@ func TestBeatConfig(t *testing.T) {
 	for _, test := range tests {
 		ucfgConfig, err := common.NewConfigFrom(test.conf)
 		assert.NoError(t, err)
-		btr, err := New(&beat.Beat{}, ucfgConfig)
+		btr, err := New(&beat.Beat{Info: beat.Info{Version: "6.2.0"}}, ucfgConfig)
 		assert.NoError(t, err)
 		assert.NotNil(t, btr)
 		bt := btr.(*beater)
@@ -226,7 +229,7 @@ func SetupServer(b *testing.B) *http.ServeMux {
 	if err != nil {
 		b.Fatal(err)
 	}
-	return newMuxer(defaultConfig(), pub.Send)
+	return newMuxer(defaultConfig("7.0.0"), pub.Send)
 }
 
 func pluralize(entity string) string {
