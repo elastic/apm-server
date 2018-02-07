@@ -22,7 +22,7 @@ type payload struct {
 func (pa *payload) transform(config *pr.Config) []beat.Event {
 	var events []beat.Event
 
-	logp.Debug("error", "Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
+	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	errorCounter.Add(int64(len(pa.Events)))
 	for _, e := range pa.Events {
