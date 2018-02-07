@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/json"
+	"expvar"
 	"fmt"
 	"net"
 	"net/http"
@@ -81,6 +82,11 @@ func newMuxer(config *Config, report reporter) *http.ServeMux {
 		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, config, report))
 	}
 
+	if config.Expvar.isEnabled() {
+		path := config.Expvar.Url
+		logp.Info("Path %s added to request handler", path)
+		mux.Handle(path, expvar.Handler())
+	}
 	return mux
 }
 
