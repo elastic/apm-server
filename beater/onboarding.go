@@ -16,7 +16,7 @@ func notifyListening(config *Config, reporter reporter) {
 	}
 
 	if isServerUp() {
-		logp.Info("Publishing onboarding document")
+		logp.NewLogger("onboarding").Info("Publishing onboarding document")
 
 		event := beat.Event{
 			Timestamp: time.Now(),
