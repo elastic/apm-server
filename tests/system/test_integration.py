@@ -35,7 +35,8 @@ class Test(ElasticTest):
                                          'valid',
                                          'transaction',
                                          'payload.json'))
-        self.load_docs_with_template(f, self.transactions_url, 'transaction', 9)
+        self.load_docs_with_template(
+            f, self.transactions_url, 'transaction', 9)
         self.assert_no_logged_warnings()
 
         rs = self.es.count(index=self.index_name, body={
@@ -129,7 +130,8 @@ class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
             elif "span" in doc["_source"]:
                 span = doc["_source"]["span"]
                 self.count_library_frames(span, l_frames)
-        assert l_frames == library_frames, "found {}, expected {}".format(l_frames, library_frames)
+        assert l_frames == library_frames, "found {}, expected {}".format(
+            l_frames, library_frames)
 
     def count_library_frames(self, doc, lf):
         if "stacktrace" not in doc:
@@ -147,7 +149,8 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
-        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        r = self.upload_sourcemap(
+            file_name='bundle.js.map', bundle_filepath=path)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
 
@@ -159,10 +162,31 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
         self.check_backend_error_sourcemap()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_duplicated_sourcemap_warning(self):
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+
+        self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        self.wait_for_sourcemaps()
+
+        self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        self.wait_for_sourcemaps(2)
+        assert self.log_contains(
+            "Overriding sourcemap"), "A log should be written when a sourcemap is overwritten"
+
+        self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        self.wait_for_sourcemaps(3)
+        assert self.log_contains(
+            "Multiple sourcemaps found"), "the 3rd fetch should query ES and find that there are 2 sourcemaps with the same caching key"
+
+        self.assert_no_logged_warnings(
+            ["WARN.*Overriding sourcemap", "WARN.*Multiple sourcemaps"])
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_frontend_error(self):
         # use an uncleaned path to test that path is cleaned in upload
         path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
-        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        r = self.upload_sourcemap(
+            file_name='bundle.js.map', bundle_filepath=path)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
 
@@ -211,7 +235,8 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.check_frontend_error_sourcemap(False, expected_err="No Sourcemap available for")
+        self.check_frontend_error_sourcemap(
+            False, expected_err="No Sourcemap available for")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_matching_sourcemap(self):
@@ -225,14 +250,16 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
     def test_fetch_latest_of_multiple_sourcemaps(self):
         # upload sourcemap file that finds no matchings
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
-        r = self.upload_sourcemap(file_name='bundle_no_mapping.js.map', bundle_filepath=path)
+        r = self.upload_sourcemap(
+            file_name='bundle_no_mapping.js.map', bundle_filepath=path)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.errors_url,
                                      'error',
                                      1)
-        self.check_frontend_error_sourcemap(False, expected_err="No Sourcemap found for")
+        self.check_frontend_error_sourcemap(
+            False, expected_err="No Sourcemap found for")
 
         # remove existing document
         self.es.delete_by_query(index=self.index_name,
@@ -247,7 +274,8 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
         # that actually leads to proper matchings
         # this also tests that the cache gets invalidated,
         # as otherwise the former sourcemap would be taken from the cache.
-        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        r = self.upload_sourcemap(
+            file_name='bundle.js.map', bundle_filepath=path)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps(expected_ct=2)
         self.load_docs_with_template(self.get_error_payload_path(),
@@ -259,7 +287,8 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_mapping_cache_usage(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
-        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        r = self.upload_sourcemap(
+            file_name='bundle.js.map', bundle_filepath=path)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
 
@@ -304,10 +333,12 @@ class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
 
 
 class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
-        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        r = self.upload_sourcemap(
+            file_name='bundle.js.map', bundle_filepath=path)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
 
@@ -328,7 +359,8 @@ class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.check_frontend_error_sourcemap(False, expected_err="No Sourcemap available for")
+        self.check_frontend_error_sourcemap(
+            False, expected_err="No Sourcemap available for")
 
 
 class ExpvarDisabledIntegrationTest(ExpvarBaseTest):
