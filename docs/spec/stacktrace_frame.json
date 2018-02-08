@@ -40,12 +40,18 @@
         "post_context": {
             "description": "The lines of code after the stack frame",
             "type": ["array", "null"],
-            "minItems": 0
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
         },
         "pre_context": {
             "description": "The lines of code before the stack frame",
-             "type": ["array", "null"],
-            "minItems": 0
+            "type": ["array", "null"],
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
         },
         "vars": {
             "description": "Local variables for this stack frame",

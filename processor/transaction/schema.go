@@ -119,7 +119,10 @@ var transactionSchema = `{
       "argv": {
         "description": "Command line arguments used to start this process",
         "type": ["array", "null"],
-        "minItems": 0
+        "minItems": 0,
+         "items": {
+            "type": "string"
+         }
     }
   },
   "required": ["pid"]
@@ -463,12 +466,18 @@ var transactionSchema = `{
         "post_context": {
             "description": "The lines of code after the stack frame",
             "type": ["array", "null"],
-            "minItems": 0
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
         },
         "pre_context": {
             "description": "The lines of code before the stack frame",
              "type": ["array", "null"],
-            "minItems": 0
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
         },
         "vars": {
             "description": "Local variables for this stack frame",
