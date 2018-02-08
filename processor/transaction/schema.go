@@ -120,9 +120,9 @@ var transactionSchema = `{
         "description": "Command line arguments used to start this process",
         "type": ["array", "null"],
         "minItems": 0,
-         "items": {
-            "type": "string"
-         }
+        "items": {
+           "type": "string"
+        }
     }
   },
   "required": ["pid"]
@@ -473,7 +473,7 @@ var transactionSchema = `{
         },
         "pre_context": {
             "description": "The lines of code before the stack frame",
-             "type": ["array", "null"],
+            "type": ["array", "null"],
             "minItems": 0,
             "items": {
                 "type": "string"
