@@ -160,6 +160,13 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 					"line":                  common.MapStr{"column": 100, "number": 400},
 					"exclude_from_grouping": false,
 					"sourcemap":             common.MapStr{"updated": true},
+					"original": common.MapStr{
+						"abs_path": "original path",
+						"colno":    1,
+						"filename": "original filename",
+						"function": "original function",
+						"lineno":   4,
+					},
 				},
 				{
 					"abs_path": "original path", "filename": "", "function": "original function",
@@ -177,12 +184,25 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 					"line":                  common.MapStr{"column": 100, "number": 500},
 					"exclude_from_grouping": false,
 					"sourcemap":             common.MapStr{"updated": true},
+					"original": common.MapStr{
+						"abs_path": "original path",
+						"colno":    1,
+						"filename": "original filename",
+						"function": "original function",
+						"lineno":   5,
+					},
 				},
 				{
 					"abs_path": "changed path", "filename": "changed filename", "function": "<anonymous>",
 					"line":                  common.MapStr{"column": 100, "number": 400},
 					"exclude_from_grouping": false,
 					"sourcemap":             common.MapStr{"updated": true},
+					"original": common.MapStr{
+						"abs_path": "original path",
+						"colno":    1,
+						"filename": "/webpack",
+						"lineno":   4,
+					},
 				},
 			},
 			Msg: "Stacktrace with sourcemapping",
@@ -190,6 +210,8 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 	}
 
 	for idx, test := range tests {
+		// run `Stacktrace.Transform` twice to ensure method is idempotent
+		test.Stacktrace.Transform(&pr.Config{SmapMapper: &FakeMapper{}}, service)
 		output := test.Stacktrace.Transform(&pr.Config{SmapMapper: &FakeMapper{}}, service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}

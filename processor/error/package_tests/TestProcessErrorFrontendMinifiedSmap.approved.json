@@ -49,6 +49,13 @@
                                 "column": 0,
                                 "number": 17
                             },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "colno": 5778,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "function": "r",
+                                "lineno": 71
+                            },
                             "sourcemap": {
                                 "updated": true
                             }
@@ -62,6 +69,13 @@
                             "line": {
                                 "column": 0,
                                 "number": 21
+                            },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "colno": 6175,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "function": "\u003canonymous\u003e",
+                                "lineno": 71
                             },
                             "sourcemap": {
                                 "updated": true
@@ -77,6 +91,13 @@
                                 "column": 0,
                                 "number": 3609
                             },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "colno": 8087,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "function": "invokeTask",
+                                "lineno": 36
+                            },
                             "sourcemap": {
                                 "updated": true
                             }
@@ -90,6 +111,13 @@
                             "line": {
                                 "column": 0,
                                 "number": 3412
+                            },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "colno": 3261,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "function": "runTask",
+                                "lineno": 36
                             },
                             "sourcemap": {
                                 "updated": true
@@ -105,6 +133,13 @@
                                 "column": 0,
                                 "number": 3679
                             },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "colno": 9162,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "function": "invokeTask",
+                                "lineno": 36
+                            },
                             "sourcemap": {
                                 "updated": true
                             }
@@ -119,6 +154,13 @@
                                 "column": 0,
                                 "number": 3668
                             },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "colno": 9050,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "function": "invoke",
+                                "lineno": 36
+                            },
                             "sourcemap": {
                                 "updated": true
                             }
@@ -132,6 +174,13 @@
                             "line": {
                                 "column": 0,
                                 "number": 5180
+                            },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "colno": 7848,
+                                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js",
+                                "function": "(anonymous function)",
+                                "lineno": 8
                             },
                             "sourcemap": {
                                 "updated": true

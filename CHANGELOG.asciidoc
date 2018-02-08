@@ -46,6 +46,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Make `transaction.name` optional {pull}554[554]
 - Remove config files from beats. Manually add relevant config options {pull}578[578]
 - Use seperate index for uploaded `source maps` {pull}582[582].
+- Store original values when applying source mapping or changing `library_frame` value {pull}647[647]
 
 ==== Deprecated
 
