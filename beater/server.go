@@ -7,6 +7,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/version"
 )
 
 type reporter func([]beat.Event) error
@@ -25,7 +26,7 @@ func newServer(config *Config, report reporter) *http.Server {
 
 func run(server *http.Server, lis net.Listener, config *Config) error {
 	logger := logp.NewLogger("server")
-	logger.Infof("Starting apm-server. Hit CTRL-C to stop it.")
+	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	logger.Infof("Listening on: %s", server.Addr)
 	switch config.Frontend.isEnabled() {
 	case true:
