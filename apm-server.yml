@@ -25,11 +25,13 @@ apm-server:
   #ssl.key : "path/to/private_key"
 
 #==================== Elasticsearch template setting ==========================
+
 setup.template.settings:
   index.number_of_shards: 1
   index.codec: best_compression
 
 #============================== Dashboards =====================================
+#
 # These settings control loading the sample dashboards to the Kibana index. Loading
 # the dashboards is disabled by default and can be enabled either by setting the
 # options here, or by using the `-setup` CLI flag or the `setup` command.
@@ -55,6 +57,31 @@ setup.kibana:
 output.elasticsearch:
   # Array of hosts to connect to.
   hosts: ["localhost:9200"]
+
+  # Optional index name. The default is "apm" plus version plus date
+  # and generates apm-%{[beat.version]}-YYYY.MM.DD keys.
+  # In case you modify this pattern you must update following configuration accordingly:
+  # * `setup.template.name`
+  # * `setup.template.pattern`
+  # * `setup.dashboards.index`
+  #
+  #index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
+
+  # By specifying additional indices documents matching the criteria are indexed in a seperate index.
+  # In case you are uploading source map documents (which is currently an experimental feature),
+  # source map documents are going to their own index with the configuration below.
+  #
+  # Be aware that there is only one Elasticsearch template and one Kibana Index Pattern,
+  # which needs to match against indices for ingested documents as well as for source maps.
+  # In case you modify the index patterns you must ensure to use the same prefix for all indices,
+  # and to accordingly set:
+  # * `setup.template.name`
+  # * `setup.template.pattern`
+  # * `setup.dashboards.index`
+  indices:
+    - index: "apm-%{[beat.version]}-sourcemap"
+      when.contains:
+        processor.event: "sourcemap"
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"

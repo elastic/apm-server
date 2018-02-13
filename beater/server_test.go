@@ -220,7 +220,7 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	assert.NoError(t, err)
 
-	cfg := defaultConfig()
+	cfg := defaultConfig("7.0.0")
 	cfg.Host = lis.Addr().String()
 	cfg.SSL = ssl
 

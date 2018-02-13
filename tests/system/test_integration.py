@@ -1,7 +1,8 @@
 import os
 import unittest
 
-from apmserver import ElasticTest, ExpvarBaseTest, ClientSideBaseTest, SmapCacheBaseTest
+from apmserver import ElasticTest, ExpvarBaseTest
+from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest
 from beat.beat import INTEGRATION_TESTS
 
 
@@ -304,6 +305,24 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
 
         # insert document,
         # fetching sourcemap without errors, so it must be fetched from cache
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+        self.assert_no_logged_warnings()
+        self.check_frontend_error_sourcemap(True)
+
+
+class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_frontend_error_changed_index(self):
+        # use an uncleaned path to test that path is cleaned in upload
+        path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.errors_url,
                                      'error',

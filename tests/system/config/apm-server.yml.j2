@@ -13,10 +13,14 @@ apm-server:
   frontend.allow_origins: {{ allow_origins }}
   frontend.library_pattern: "~/test|library"
   frontend.exclude_from_grouping: "~/test"
-  {% if smap_index_pattern%}
-  frontend.source_mapping.index_pattern: {{ smap_index_pattern}}
+
+  {% if smap_cache_expiration%}
   frontend.source_mapping.cache.expiration: {{ smap_cache_expiration}}
   {% endif %}
+  {% if smap_index_pattern%}
+  frontend.source_mapping.index_pattern: {{ smap_index_pattern}}
+  {% endif %}
+
   {% if expvar_enabled %}
   expvar.enabled: {{ expvar_enabled }}
   {% endif %}
@@ -53,8 +57,16 @@ output.file:
   #number_of_files: 7
 
 {% if elasticsearch_host %}
-output.elasticsearch.hosts: ["{{ elasticsearch_host }}"]
-output.elasticsearch.index: {{ index_name }}
+output.elasticsearch:
+  hosts: ["{{ elasticsearch_host }}"]
+
+  index: {{ index_name }}
+  {% if smap_index %}
+  indices:
+    - index: {{ smap_index }}
+      when.contains:
+        processor.event: "sourcemap"
+  {% endif %}
 {% endif %}
 
 ############################# Beat #########################################
