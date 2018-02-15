@@ -44,7 +44,7 @@ func TestEventTransform(t *testing.T) {
 				Timestamp: time.Now(),
 				Duration:  65.98,
 				Context:   common.MapStr{"foo": "bar"},
-				Spans:     []Span{},
+				Spans:     []*Span{},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 			},
