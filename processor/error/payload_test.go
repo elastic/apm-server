@@ -3,10 +3,9 @@ package error
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"time"
 
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
@@ -15,8 +14,14 @@ import (
 )
 
 func TestPayloadTransform(t *testing.T) {
-	svc := m.Service{Name: "myservice"}
+	sName := "myservice"
+	svc := m.Service{Name: &sName}
 	timestamp := time.Now()
+	groupingKey := "21b2c27fbe338d800826e5ad67db7d0e"
+	groupingKeyIdx1 := "d41d8cd98f00b204e9800998ecf8427e"
+	msg := "message"
+	filename := "my file"
+	smapErr := "Colno and Lineno mandatory for sourcemapping."
 
 	tests := []struct {
 		Payload payload
@@ -24,22 +29,19 @@ func TestPayloadTransform(t *testing.T) {
 		Msg     string
 	}{
 		{
-			Payload: payload{Service: svc, Events: []Event{}},
+			Payload: payload{Service: svc, Events: []*Event{}},
 			Output:  nil,
 			Msg:     "Empty Event Array",
 		},
 		{
-			Payload: payload{Service: svc, Events: []Event{{Timestamp: timestamp}}},
+			Payload: payload{Service: svc, Events: []*Event{&Event{Timestamp: timestamp}}},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
-						"service": common.MapStr{
-							"agent": common.MapStr{"name": "", "version": ""},
-							"name":  "myservice",
-						},
+						"service": common.MapStr{"name": &sName},
 					},
 					"error": common.MapStr{
-						"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+						"grouping_key": &groupingKeyIdx1,
 					},
 					"processor": common.MapStr{"event": "error", "name": "error"},
 				},
@@ -49,13 +51,13 @@ func TestPayloadTransform(t *testing.T) {
 		{
 			Payload: payload{
 				Service: svc,
-				Events: []Event{{
+				Events: []*Event{&Event{
 					Timestamp: timestamp,
 					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
-					Log:       baseLog(),
+					Log:       &Log{Message: &msg},
 					Exception: &Exception{
-						Message:    "exception message",
-						Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
+						Message:    &msg,
+						Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: &filename}},
 					},
 					Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 				}},
@@ -64,23 +66,19 @@ func TestPayloadTransform(t *testing.T) {
 				{
 					"context": common.MapStr{
 						"foo": "bar", "user": common.MapStr{"email": "m@m.com"},
-						"service": common.MapStr{
-							"name":  "myservice",
-							"agent": common.MapStr{"name": "", "version": ""},
-						},
+						"service": common.MapStr{"name": &sName},
 					},
 					"error": common.MapStr{
-						"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
-						"log":          common.MapStr{"message": "error log message"},
+						"grouping_key": &groupingKey,
+						"log":          common.MapStr{"message": &msg},
 						"exception": common.MapStr{
-							"message": "exception message",
+							"message": &msg,
 							"stacktrace": []common.MapStr{{
-								"exclude_from_grouping": false,
-								"filename":              "myFile",
-								"line":                  common.MapStr{"number": 0},
+								"exclude_from_grouping": new(bool),
+								"filename":              &filename,
 								"sourcemap": common.MapStr{
-									"error":   "Colno mandatory for sourcemapping.",
-									"updated": false,
+									"error":   &smapErr,
+									"updated": new(bool),
 								},
 							}},
 						},

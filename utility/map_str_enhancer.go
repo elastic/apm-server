@@ -4,52 +4,60 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type MapStrEnhancer struct{}
-
-func NewMapStrEnhancer() MapStrEnhancer {
-	return MapStrEnhancer{}
+func AddStrPtr(m common.MapStr, key string, val *string) {
+	if val != nil {
+		m[key] = val
+	}
 }
 
-func (enh MapStrEnhancer) AddStrWithDefault(m common.MapStr, key string, val *string, defaultVal string) {
+func AddStrPtrWithDefault(m common.MapStr, key string, val *string, defaultVal *string) {
 	if val != nil {
-		m[key] = *val
-	} else if defaultVal != "" {
+		m[key] = val
+	} else if defaultVal != nil {
 		m[key] = defaultVal
 	}
 }
 
-func (enh MapStrEnhancer) Add(m common.MapStr, key string, val interface{}) {
-
-	switch val.(type) {
-	case *bool:
-		if newVal := val.(*bool); newVal != nil {
-			m[key] = *newVal
-		}
-	case *int:
-		if newVal := val.(*int); newVal != nil {
-			m[key] = *newVal
-		}
-	case *string:
-		if newVal := val.(*string); newVal != nil {
-			m[key] = *newVal
-		}
-	case common.MapStr:
-		if valMap := val.(common.MapStr); len(valMap) > 0 {
-			m[key] = valMap
-		}
-	case []string:
-		if valArr := val.([]string); len(valArr) > 0 {
-			m[key] = valArr
-		}
-	default:
-		if val != nil {
-			m[key] = val
-		}
+func AddStrArray(m common.MapStr, key string, val []string) {
+	if len(val) > 0 {
+		m[key] = val
 	}
 }
 
-func MillisAsMicros(ms float64) common.MapStr {
-	m := common.MapStr{}
-	m["us"] = int(ms * 1000)
-	return m
+func AddIntPtr(m common.MapStr, key string, val *int) {
+	if val != nil {
+		m[key] = val
+	}
+}
+
+func AddBoolPtr(m common.MapStr, key string, val *bool) {
+	if val != nil {
+		m[key] = val
+	}
+}
+
+func AddInterface(m common.MapStr, key string, val interface{}) {
+	if val != nil {
+		m[key] = val
+	}
+}
+
+func AddCommonMapStr(m common.MapStr, key string, val common.MapStr) {
+	if len(val) > 0 {
+		m[key] = val
+	}
+}
+
+func AddCommonMapStrArray(m common.MapStr, key string, val []common.MapStr) {
+	if len(val) > 0 {
+		m[key] = val
+	}
+}
+
+func AddMillis(m common.MapStr, key string, val *float64) {
+	if val == nil {
+		return
+	}
+	ms := int(*val * 1000)
+	m[key] = common.MapStr{"us": &ms}
 }

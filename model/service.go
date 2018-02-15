@@ -6,65 +6,67 @@ import (
 )
 
 type Service struct {
-	Name        string
+	Name        *string
 	Version     *string
 	Environment *string
-	Language    Language
-	Runtime     Runtime
-	Framework   Framework
-	Agent       Agent
+	Agent       struct {
+		Name    *string
+		Version *string
+	}
+	Language struct {
+		Name    *string
+		Version *string
+	}
+	Runtime struct {
+		Name    *string
+		Version *string
+	}
+	Framework struct {
+		Name    *string
+		Version *string
+	}
 }
-
-type Language struct {
-	Name    *string
-	Version *string
-}
-type Runtime struct {
-	Name    *string
-	Version *string
-}
-type Framework struct {
-	Name    *string
-	Version *string
-}
-type Agent struct {
-	Name    string
-	Version string
-}
-
-type TransformService func(a *Service) common.MapStr
 
 func (s *Service) MinimalTransform() common.MapStr {
-	svc := common.MapStr{
-		"name": s.Name,
-		"agent": common.MapStr{
-			"name":    s.Agent.Name,
-			"version": s.Agent.Version,
-		},
+	if s == nil {
+		return nil
+	}
+	svc := common.MapStr{}
+	utility.AddStrPtr(svc, "name", s.Name)
+	ag := common.MapStr{}
+	utility.AddStrPtr(ag, "name", s.Agent.Name)
+	utility.AddStrPtr(ag, "version", s.Agent.Version)
+	utility.AddCommonMapStr(svc, "agent", ag)
+	if len(svc) == 0 {
+		return nil
 	}
 	return svc
 }
 
 func (s *Service) Transform() common.MapStr {
-	enhancer := utility.NewMapStrEnhancer()
+	if s == nil {
+		return nil
+	}
 	svc := s.MinimalTransform()
-	enhancer.Add(svc, "version", s.Version)
-	enhancer.Add(svc, "environment", s.Environment)
+	utility.AddStrPtr(svc, "version", s.Version)
+	utility.AddStrPtr(svc, "environment", s.Environment)
 
-	lang := common.MapStr{}
-	enhancer.Add(lang, "name", s.Language.Name)
-	enhancer.Add(lang, "version", s.Language.Version)
-	enhancer.Add(svc, "language", lang)
+	m := common.MapStr{}
+	utility.AddStrPtr(m, "name", s.Language.Name)
+	utility.AddStrPtr(m, "version", s.Language.Version)
+	utility.AddCommonMapStr(svc, "language", m)
 
-	runtime := common.MapStr{}
-	enhancer.Add(runtime, "name", s.Runtime.Name)
-	enhancer.Add(runtime, "version", s.Runtime.Version)
-	enhancer.Add(svc, "runtime", runtime)
+	m = common.MapStr{}
+	utility.AddStrPtr(m, "name", s.Runtime.Name)
+	utility.AddStrPtr(m, "version", s.Runtime.Version)
+	utility.AddCommonMapStr(svc, "runtime", m)
 
-	framework := common.MapStr{}
-	enhancer.Add(framework, "name", s.Framework.Name)
-	enhancer.Add(framework, "version", s.Framework.Version)
-	enhancer.Add(svc, "framework", framework)
-
+	m = common.MapStr{}
+	utility.AddStrPtr(m, "name", s.Framework.Name)
+	utility.AddStrPtr(m, "version", s.Framework.Version)
+	utility.AddCommonMapStr(svc, "framework", m)
+	if len(svc) == 0 {
+		return nil
+	}
 	return svc
 }

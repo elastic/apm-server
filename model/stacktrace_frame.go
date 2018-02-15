@@ -11,19 +11,19 @@ import (
 )
 
 type StacktraceFrame struct {
+	Filename     *string
+	Lineno       *int
 	AbsPath      *string `mapstructure:"abs_path"`
-	Filename     string
-	Lineno       int
-	Colno        *int
-	ContextLine  *string `mapstructure:"context_line"`
 	Module       *string
 	Function     *string
 	LibraryFrame *bool `mapstructure:"library_frame"`
+	Colno        *int
+	ContextLine  *string `mapstructure:"context_line"`
 	Vars         common.MapStr
 	PreContext   []string `mapstructure:"pre_context"`
 	PostContext  []string `mapstructure:"post_context"`
 
-	ExcludeFromGrouping bool
+	ExcludeFromGrouping *bool
 
 	Sourcemap Sourcemap
 	Original  Original
@@ -35,9 +35,9 @@ type Sourcemap struct {
 }
 
 type Original struct {
+	Filename     *string
+	Lineno       *int
 	AbsPath      *string
-	Filename     string
-	Lineno       int
 	Colno        *int
 	Function     *string
 	LibraryFrame *bool
@@ -46,49 +46,50 @@ type Original struct {
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {
-	enhancer := utility.NewMapStrEnhancer()
 	m := common.MapStr{}
-	enhancer.Add(m, "filename", s.Filename)
-	enhancer.Add(m, "abs_path", s.AbsPath)
-	enhancer.Add(m, "module", s.Module)
-	enhancer.Add(m, "function", s.Function)
-	enhancer.Add(m, "vars", s.Vars)
+	utility.AddStrPtr(m, "filename", s.Filename)
+	utility.AddStrPtr(m, "abs_path", s.AbsPath)
+	utility.AddStrPtr(m, "module", s.Module)
+	utility.AddStrPtr(m, "function", s.Function)
+	utility.AddCommonMapStr(m, "vars", s.Vars)
+
+	ma := common.MapStr{}
+	utility.AddIntPtr(ma, "number", s.Lineno)
+	utility.AddIntPtr(ma, "column", s.Colno)
+	utility.AddStrPtr(ma, "context", s.ContextLine)
+	utility.AddCommonMapStr(m, "line", ma)
+
 	if config != nil && config.LibraryPattern != nil {
 		s.setLibraryFrame(config.LibraryPattern)
 	}
-	enhancer.Add(m, "library_frame", s.LibraryFrame)
+	utility.AddBoolPtr(m, "library_frame", s.LibraryFrame)
 
+	s.ExcludeFromGrouping = new(bool)
 	if config != nil && config.ExcludeFromGrouping != nil {
 		s.setExcludeFromGrouping(config.ExcludeFromGrouping)
 	}
-	enhancer.Add(m, "exclude_from_grouping", s.ExcludeFromGrouping)
+	utility.AddBoolPtr(m, "exclude_from_grouping", s.ExcludeFromGrouping)
 
-	context := common.MapStr{}
-	enhancer.Add(context, "pre", s.PreContext)
-	enhancer.Add(context, "post", s.PostContext)
-	enhancer.Add(m, "context", context)
+	ma = common.MapStr{}
+	utility.AddStrArray(ma, "pre", s.PreContext)
+	utility.AddStrArray(ma, "post", s.PostContext)
+	utility.AddCommonMapStr(m, "context", ma)
 
-	line := common.MapStr{}
-	enhancer.Add(line, "number", s.Lineno)
-	enhancer.Add(line, "column", s.Colno)
-	enhancer.Add(line, "context", s.ContextLine)
-	enhancer.Add(m, "line", line)
+	ma = common.MapStr{}
+	utility.AddBoolPtr(ma, "updated", s.Sourcemap.Updated)
+	utility.AddStrPtr(ma, "error", s.Sourcemap.Error)
+	utility.AddCommonMapStr(m, "sourcemap", ma)
 
-	sm := common.MapStr{}
-	enhancer.Add(sm, "updated", s.Sourcemap.Updated)
-	enhancer.Add(sm, "error", s.Sourcemap.Error)
-	enhancer.Add(m, "sourcemap", sm)
-
-	orig := common.MapStr{}
-	enhancer.Add(orig, "library_frame", s.Original.LibraryFrame)
+	ma = common.MapStr{}
+	utility.AddBoolPtr(ma, "library_frame", s.Original.LibraryFrame)
 	if s.Sourcemap.Updated != nil && *(s.Sourcemap.Updated) {
-		enhancer.Add(orig, "filename", s.Original.Filename)
-		enhancer.Add(orig, "abs_path", s.Original.AbsPath)
-		enhancer.Add(orig, "function", s.Original.Function)
-		enhancer.Add(orig, "colno", s.Original.Colno)
-		enhancer.Add(orig, "lineno", s.Original.Lineno)
+		utility.AddStrPtr(ma, "filename", s.Original.Filename)
+		utility.AddIntPtr(ma, "lineno", s.Original.Lineno)
+		utility.AddStrPtr(ma, "abs_path", s.Original.AbsPath)
+		utility.AddStrPtr(ma, "function", s.Original.Function)
+		utility.AddIntPtr(ma, "colno", s.Original.Colno)
 	}
-	enhancer.Add(m, "original", orig)
+	utility.AddCommonMapStr(m, "original", ma)
 
 	return m
 }
@@ -101,13 +102,20 @@ func (s *StacktraceFrame) IsSourcemapApplied() bool {
 	return s.Sourcemap.Updated != nil && *s.Sourcemap.Updated
 }
 
+func (s *StacktraceFrame) IsExcludedFromGrouping() bool {
+	return s.ExcludeFromGrouping != nil && *s.ExcludeFromGrouping
+}
+
 func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
-	s.ExcludeFromGrouping = pattern.MatchString(s.Filename)
+	if s.Filename != nil {
+		exclude := pattern.MatchString(*s.Filename)
+		s.ExcludeFromGrouping = &exclude
+	}
 }
 
 func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.Original.LibraryFrame = s.LibraryFrame
-	libraryFrame := pattern.MatchString(s.Filename) ||
+	libraryFrame := (s.Filename != nil && pattern.MatchString(*s.Filename)) ||
 		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
 	s.LibraryFrame = &libraryFrame
 }
@@ -115,12 +123,12 @@ func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Service, prevFunction string) string {
 	s.setOriginalSourcemapData()
 
-	if s.Original.Colno == nil {
-		s.updateError("Colno mandatory for sourcemapping.")
+	if s.Original.Colno == nil || s.Original.Lineno == nil {
+		s.updateError("Colno and Lineno mandatory for sourcemapping.")
 		return prevFunction
 	}
 	sourcemapId := s.buildSourcemapId(service)
-	mapping, err := mapper.Apply(sourcemapId, s.Original.Lineno, *s.Original.Colno)
+	mapping, err := mapper.Apply(sourcemapId, *s.Original.Lineno, *s.Original.Colno)
 	if err != nil {
 		logp.NewLogger("stacktrace").Errorf("failed to apply sourcemap %s", err.Error())
 		e, isSourcemapError := err.(sourcemap.Error)
@@ -131,11 +139,11 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Servic
 	}
 
 	if mapping.Filename != "" {
-		s.Filename = mapping.Filename
+		s.Filename = &mapping.Filename
 	}
 
 	s.Colno = &mapping.Colno
-	s.Lineno = mapping.Lineno
+	s.Lineno = &mapping.Lineno
 	s.AbsPath = &mapping.Path
 	s.updateSmap(true)
 	s.Function = &prevFunction
@@ -160,7 +168,10 @@ func (s *StacktraceFrame) setOriginalSourcemapData() {
 }
 
 func (s *StacktraceFrame) buildSourcemapId(service Service) sourcemap.Id {
-	id := sourcemap.Id{ServiceName: service.Name}
+	id := sourcemap.Id{}
+	if service.Name != nil {
+		id.ServiceName = *service.Name
+	}
 	if service.Version != nil {
 		id.ServiceVersion = *service.Version
 	}

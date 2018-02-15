@@ -116,7 +116,7 @@
             },
             "performance": {}
         },
-        "name": "GET /api/types",
+        "name": "GET /api/types/first",
         "result": "success",
         "sampled": true,
         "span_count": {
@@ -124,6 +124,6 @@
                 "total": 2
             }
         },
-        "type": "request"
+        "type": "GET request"
     }
 }

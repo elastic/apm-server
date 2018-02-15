@@ -15,24 +15,25 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
+const errorDocType = "error"
+
 type Event struct {
+	Timestamp   time.Time
 	Id          *string
 	Culprit     *string
 	Context     common.MapStr
 	Exception   *Exception
 	Log         *Log
-	Timestamp   time.Time
 	Transaction *struct {
 		Id string
 	}
 
-	enhancer utility.MapStrEnhancer
-	data     common.MapStr
+	data common.MapStr
 }
 
 type Exception struct {
+	Message    *string
 	Code       interface{}
-	Message    string
 	Module     *string
 	Attributes interface{}
 	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
@@ -41,23 +42,19 @@ type Exception struct {
 }
 
 type Log struct {
+	Message      *string
 	Level        *string
-	Message      string
 	ParamMessage *string      `mapstructure:"param_message"`
 	LoggerName   *string      `mapstructure:"logger_name"`
 	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
 }
 
-func (e *Event) DocType() string {
-	return "error"
-}
-
 func (e *Event) Mappings(config *pr.Config, pa *payload) (time.Time, []utility.DocMapping) {
 	mapping := []utility.DocMapping{
 		{Key: "processor", Apply: func() common.MapStr {
-			return common.MapStr{"name": processorName, "event": e.DocType()}
+			return common.MapStr{"name": processorName, "event": errorDocType}
 		}},
-		{Key: e.DocType(), Apply: func() common.MapStr { return e.Transform(config, pa.Service) }},
+		{Key: errorDocType, Apply: func() common.MapStr { return e.Transform(config, pa.Service) }},
 		{Key: "context", Apply: func() common.MapStr { return e.Context }},
 		{Key: "context.service", Apply: pa.Service.Transform},
 		{Key: "context.system", Apply: pa.System.Transform},
@@ -75,15 +72,17 @@ func (e *Event) Mappings(config *pr.Config, pa *payload) (time.Time, []utility.D
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
-	e.enhancer = utility.MapStrEnhancer{}
+	if e == nil {
+		return nil
+	}
 	e.data = common.MapStr{}
-	e.add("id", e.Id)
+	utility.AddStrPtr(e.data, "id", e.Id)
 
 	e.addException(config, service)
 	e.addLog(config, service)
 
 	e.updateCulprit(config)
-	e.add("culprit", e.Culprit)
+	utility.AddStrPtr(e.data, "culprit", e.Culprit)
 
 	e.addGroupingKey()
 
@@ -104,7 +103,7 @@ func (e *Event) updateCulprit(config *pr.Config) {
 	if fr == nil {
 		return
 	}
-	culprit := fmt.Sprintf("%v", fr.Filename)
+	culprit := fmt.Sprintf("%v", *fr.Filename)
 	if fr.Function != nil {
 		culprit += fmt.Sprintf(" in %v", *fr.Function)
 	}
@@ -125,27 +124,29 @@ func (e *Event) addException(config *pr.Config, service m.Service) {
 		return
 	}
 	ex := common.MapStr{}
-	e.enhancer.Add(ex, "message", e.Exception.Message)
-	e.enhancer.Add(ex, "module", e.Exception.Module)
-	e.enhancer.Add(ex, "attributes", e.Exception.Attributes)
-	e.enhancer.Add(ex, "type", e.Exception.Type)
-	e.enhancer.Add(ex, "handled", e.Exception.Handled)
+	utility.AddStrPtr(ex, "message", e.Exception.Message)
+	utility.AddStrPtr(ex, "module", e.Exception.Module)
+	utility.AddStrPtr(ex, "type", e.Exception.Type)
+	utility.AddBoolPtr(ex, "handled", e.Exception.Handled)
+	utility.AddInterface(ex, "attributes", e.Exception.Attributes)
 
 	switch e.Exception.Code.(type) {
 	case int:
-		e.enhancer.Add(ex, "code", strconv.Itoa(e.Exception.Code.(int)))
+		code := strconv.Itoa(e.Exception.Code.(int))
+		utility.AddStrPtr(ex, "code", &code)
 	case float64:
-		e.enhancer.Add(ex, "code", fmt.Sprintf("%.0f", e.Exception.Code))
+		code := fmt.Sprintf("%.0f", e.Exception.Code)
+		utility.AddStrPtr(ex, "code", &code)
 	case string:
-		e.enhancer.Add(ex, "code", e.Exception.Code.(string))
+		code := e.Exception.Code.(string)
+		utility.AddStrPtr(ex, "code", &code)
 	}
 
 	st := e.Exception.Stacktrace.Transform(config, service)
 	if len(st) > 0 {
-		e.enhancer.Add(ex, "stacktrace", st)
+		utility.AddCommonMapStrArray(ex, "stacktrace", st)
 	}
-
-	e.add("exception", ex)
+	utility.AddCommonMapStr(e.data, "exception", ex)
 }
 
 func (e *Event) addLog(config *pr.Config, service m.Service) {
@@ -153,20 +154,20 @@ func (e *Event) addLog(config *pr.Config, service m.Service) {
 		return
 	}
 	log := common.MapStr{}
-	e.enhancer.Add(log, "message", e.Log.Message)
-	e.enhancer.Add(log, "param_message", e.Log.ParamMessage)
-	e.enhancer.Add(log, "logger_name", e.Log.LoggerName)
-	e.enhancer.Add(log, "level", e.Log.Level)
+	utility.AddStrPtr(log, "message", e.Log.Message)
+	utility.AddStrPtr(log, "param_message", e.Log.ParamMessage)
+	utility.AddStrPtr(log, "logger_name", e.Log.LoggerName)
+	utility.AddStrPtr(log, "level", e.Log.Level)
 	st := e.Log.Stacktrace.Transform(config, service)
 	if len(st) > 0 {
-		e.enhancer.Add(log, "stacktrace", st)
+		utility.AddCommonMapStrArray(log, "stacktrace", st)
 	}
-
-	e.add("log", log)
+	utility.AddCommonMapStr(e.data, "log", log)
 }
 
 func (e *Event) addGroupingKey() {
-	e.add("grouping_key", e.calcGroupingKey())
+	groupingKey := e.calcGroupingKey()
+	utility.AddStrPtr(e.data, "grouping_key", &groupingKey)
 }
 
 type groupingKey struct {
@@ -190,9 +191,9 @@ func (k *groupingKey) add(s *string) bool {
 	return true
 }
 
-func (k *groupingKey) addEither(s1 *string, s2 string) {
+func (k *groupingKey) addEither(s1 *string, s2 *string) {
 	if ok := k.add(s1); !ok {
-		k.add(&s2)
+		k.add(s2)
 	}
 }
 
@@ -218,24 +219,23 @@ func (e *Event) calcGroupingKey() string {
 	}
 
 	for _, fr := range st {
-		if fr.ExcludeFromGrouping {
+		if fr.IsExcludedFromGrouping() {
 			continue
 		}
 		k.addEither(fr.Module, fr.Filename)
-		k.addEither(fr.Function, string(fr.Lineno))
+		if !k.add(fr.Function) && fr.Lineno != nil {
+			linenoStr := string(*fr.Lineno)
+			k.add(&linenoStr)
+		}
 	}
 
 	if k.empty {
 		if e.Exception != nil {
-			k.add(&e.Exception.Message)
+			k.add(e.Exception.Message)
 		} else if e.Log != nil {
-			k.add(&e.Log.Message)
+			k.add(e.Log.Message)
 		}
 	}
 
 	return k.String()
-}
-
-func (e *Event) add(key string, val interface{}) {
-	e.enhancer.Add(e.data, key, val)
 }
