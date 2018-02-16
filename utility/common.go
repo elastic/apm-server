@@ -15,17 +15,10 @@ func CleanUrlPath(p string) string {
 }
 
 // InsertInMap modifies `data` *in place*, inserting `values` at the given `key` or at the top level if the `key`is "".
-// If `key` doesn't exist, it gets created.
-// If `key` exists and its value is not a map, InsertInMap does nothing.
+// If `key` doesn't exist in data, it gets created.
+// If `key` exists in data and its value is not a map, InsertInMap does nothing.
 func InsertInMap(data map[string]interface{}, key string, values map[string]interface{}) {
-	if data == nil || values == nil {
-		return
-	}
-
-	if key == "" {
-		for newKey, newValue := range values {
-			data[newKey] = newValue
-		}
+	if data == nil || values == nil || key == "" {
 		return
 	}
 
@@ -34,6 +27,9 @@ func InsertInMap(data map[string]interface{}, key string, values map[string]inte
 	}
 
 	if nested, ok := data[key].(map[string]interface{}); ok {
-		InsertInMap(nested, "", values)
+		for newKey, newValue := range values {
+			nested[newKey] = newValue
+		}
 	}
+
 }

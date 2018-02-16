@@ -37,7 +37,7 @@ func TestInsertInMap(t *testing.T) {
 	}{
 		{
 			nil,
-			"",
+			"a",
 			M{"a": 1},
 			nil,
 		},
@@ -57,7 +57,7 @@ func TestInsertInMap(t *testing.T) {
 			M{},
 			"",
 			M{"a": 1},
-			M{"a": 1},
+			M{},
 		},
 		{
 			M{"a": 1},
