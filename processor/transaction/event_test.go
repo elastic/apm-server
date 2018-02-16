@@ -46,7 +46,7 @@ func TestEventTransform(t *testing.T) {
 				Context:   common.MapStr{"foo": "bar"},
 				Spans:     []*Span{},
 				Sampled:   &sampled,
-				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
+				SpanCount: SpanCount{Dropped: Dropped{DroppedTotal: &dropped}},
 			},
 			Output: common.MapStr{
 				"id":         id,

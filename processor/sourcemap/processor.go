@@ -8,8 +8,6 @@ import (
 
 	parser "github.com/go-sourcemap/sourcemap"
 
-	"github.com/mitchellh/mapstructure"
-
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -59,17 +57,20 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 }
 
 func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
-	var pa payload
 	transformations.Inc()
+	return decode(raw.(map[string]interface{})).transform(p.config), nil
 
-	err := mapstructure.Decode(raw, &pa)
-	if err != nil {
-		return nil, err
-	}
-
-	return pa.transform(p.config), nil
 }
 
 func (p *processor) Name() string {
 	return processorName
+}
+
+func decode(raw map[string]interface{}) *payload {
+	pa := payload{}
+	pa.ServiceName, _ = raw["service_name"].(string)
+	pa.ServiceVersion, _ = raw["service_version"].(string)
+	pa.BundleFilepath, _ = raw["bundle_filepath"].(string)
+	pa.Sourcemap, _ = raw["sourcemap"].(string)
+	return &pa
 }

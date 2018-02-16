@@ -19,32 +19,34 @@ type Event struct {
 	Id          *string
 	Culprit     *string
 	Context     common.MapStr
-	Exception   *Exception
-	Log         *Log
+	*Exception
+	*Log
+	*Transaction
 	Timestamp   time.Time
-	Transaction *struct {
-		Id string
-	}
 
 	data common.MapStr
 }
 
+type Transaction struct {
+	TransactionId string
+}
+
 type Exception struct {
-	Code       interface{}
-	Message    string
-	Module     *string
-	Attributes interface{}
-	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
-	Type       *string
-	Handled    *bool
+	ExCode       interface{}
+	ExMessage    string
+	ExModule     *string
+	ExAttributes interface{}
+	ExStacktrace m.Stacktrace
+	ExType       *string
+	ExHandled    *bool
 }
 
 type Log struct {
-	Level        *string
-	Message      string
-	ParamMessage *string      `mapstructure:"param_message"`
-	LoggerName   *string      `mapstructure:"logger_name"`
-	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
+	LogLevel        *string
+	LogMessage      string
+	LogParamMessage *string
+	LoggerName      *string
+	LogStacktrace   m.Stacktrace
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
@@ -77,10 +79,10 @@ func (e *Event) updateCulprit(config *pr.Config) {
 	}
 	var fr *m.StacktraceFrame
 	if e.Log != nil {
-		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace)
+		fr = findSmappedNonLibraryFrame(e.Log.LogStacktrace)
 	}
 	if fr == nil && e.Exception != nil {
-		fr = findSmappedNonLibraryFrame(e.Exception.Stacktrace)
+		fr = findSmappedNonLibraryFrame(e.Exception.ExStacktrace)
 	}
 	if fr == nil {
 		return
@@ -106,22 +108,22 @@ func (e *Event) addException(config *pr.Config, service m.Service) {
 		return
 	}
 	ex := common.MapStr{}
-	utility.Add(ex, "message", e.Exception.Message)
-	utility.Add(ex, "module", e.Exception.Module)
-	utility.Add(ex, "attributes", e.Exception.Attributes)
-	utility.Add(ex, "type", e.Exception.Type)
-	utility.Add(ex, "handled", e.Exception.Handled)
+	utility.Add(ex, "message", e.Exception.ExMessage)
+	utility.Add(ex, "module", e.Exception.ExModule)
+	utility.Add(ex, "attributes", e.Exception.ExAttributes)
+	utility.Add(ex, "type", e.Exception.ExType)
+	utility.Add(ex, "handled", e.Exception.ExHandled)
 
-	switch e.Exception.Code.(type) {
+	switch e.Exception.ExCode.(type) {
 	case int:
-		utility.Add(ex, "code", strconv.Itoa(e.Exception.Code.(int)))
+		utility.Add(ex, "code", strconv.Itoa(e.Exception.ExCode.(int)))
 	case float64:
-		utility.Add(ex, "code", fmt.Sprintf("%.0f", e.Exception.Code))
+		utility.Add(ex, "code", fmt.Sprintf("%.0f", e.Exception.ExCode))
 	case string:
-		utility.Add(ex, "code", e.Exception.Code.(string))
+		utility.Add(ex, "code", e.Exception.ExCode.(string))
 	}
 
-	st := e.Exception.Stacktrace.Transform(config, service)
+	st := e.Exception.ExStacktrace.Transform(config, service)
 	utility.Add(ex, "stacktrace", st)
 
 	e.add("exception", ex)
@@ -132,11 +134,11 @@ func (e *Event) addLog(config *pr.Config, service m.Service) {
 		return
 	}
 	log := common.MapStr{}
-	utility.Add(log, "message", e.Log.Message)
-	utility.Add(log, "param_message", e.Log.ParamMessage)
+	utility.Add(log, "message", e.Log.LogMessage)
+	utility.Add(log, "param_message", e.Log.LogParamMessage)
 	utility.Add(log, "logger_name", e.Log.LoggerName)
-	utility.Add(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(config, service)
+	utility.Add(log, "level", e.Log.LogLevel)
+	st := e.Log.LogStacktrace.Transform(config, service)
 	utility.Add(log, "stacktrace", st)
 
 	e.add("log", log)
@@ -184,13 +186,13 @@ func (e *Event) calcGroupingKey() string {
 
 	var st m.Stacktrace
 	if e.Exception != nil {
-		k.add(e.Exception.Type)
-		st = e.Exception.Stacktrace
+		k.add(e.Exception.ExType)
+		st = e.Exception.ExStacktrace
 	}
 	if e.Log != nil {
-		k.add(e.Log.ParamMessage)
+		k.add(e.Log.LogParamMessage)
 		if st == nil || len(st) == 0 {
-			st = e.Log.Stacktrace
+			st = e.Log.LogStacktrace
 		}
 	}
 
@@ -204,9 +206,9 @@ func (e *Event) calcGroupingKey() string {
 
 	if k.empty {
 		if e.Exception != nil {
-			k.add(&e.Exception.Message)
+			k.add(&e.Exception.ExMessage)
 		} else if e.Log != nil {
-			k.add(&e.Log.Message)
+			k.add(&e.Log.LogMessage)
 		}
 	}
 

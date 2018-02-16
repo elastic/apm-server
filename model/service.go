@@ -9,27 +9,27 @@ type Service struct {
 	Name        string
 	Version     *string
 	Environment *string
-	Language    Language
-	Runtime     Runtime
-	Framework   Framework
-	Agent       Agent
+	Language
+	Runtime
+	Framework
+	Agent
 }
 
 type Language struct {
-	Name    *string
-	Version *string
+	LanguageName    *string
+	LanguageVersion *string
 }
 type Runtime struct {
-	Name    *string
-	Version *string
+	RuntimeName    *string
+	RuntimeVersion *string
 }
 type Framework struct {
-	Name    *string
-	Version *string
+	FrameworkName    *string
+	FrameworkVersion *string
 }
 type Agent struct {
-	Name    string
-	Version string
+	AgentName    string
+	AgentVersion string
 }
 
 type TransformService func(a *Service) common.MapStr
@@ -38,8 +38,8 @@ func (s *Service) MinimalTransform() common.MapStr {
 	svc := common.MapStr{
 		"name": s.Name,
 		"agent": common.MapStr{
-			"name":    s.Agent.Name,
-			"version": s.Agent.Version,
+			"name":    s.Agent.AgentName,
+			"version": s.Agent.AgentVersion,
 		},
 	}
 	return svc
@@ -51,18 +51,18 @@ func (s *Service) Transform() common.MapStr {
 	utility.Add(svc, "environment", s.Environment)
 
 	lang := common.MapStr{}
-	utility.Add(lang, "name", s.Language.Name)
-	utility.Add(lang, "version", s.Language.Version)
+	utility.Add(lang, "name", s.Language.LanguageName)
+	utility.Add(lang, "version", s.Language.LanguageVersion)
 	utility.Add(svc, "language", lang)
 
 	runtime := common.MapStr{}
-	utility.Add(runtime, "name", s.Runtime.Name)
-	utility.Add(runtime, "version", s.Runtime.Version)
+	utility.Add(runtime, "name", s.Runtime.RuntimeName)
+	utility.Add(runtime, "version", s.Runtime.RuntimeVersion)
 	utility.Add(svc, "runtime", runtime)
 
 	framework := common.MapStr{}
-	utility.Add(framework, "name", s.Framework.Name)
-	utility.Add(framework, "version", s.Framework.Version)
+	utility.Add(framework, "name", s.Framework.FrameworkName)
+	utility.Add(framework, "version", s.Framework.FrameworkVersion)
 	utility.Add(svc, "framework", framework)
 
 	return svc

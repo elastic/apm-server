@@ -18,13 +18,13 @@ type Event struct {
 	Spans     []*Span
 	Marks     common.MapStr
 	Sampled   *bool
-	SpanCount SpanCount `mapstructure:"span_count"`
+	SpanCount
 }
 type SpanCount struct {
-	Dropped Dropped
+	Dropped
 }
 type Dropped struct {
-	Total *int
+	DroppedTotal *int
 }
 
 func (t *Event) Transform() common.MapStr {
@@ -41,10 +41,10 @@ func (t *Event) Transform() common.MapStr {
 		utility.Add(tx, "sampled", t.Sampled)
 	}
 
-	if t.SpanCount.Dropped.Total != nil {
+	if t.SpanCount.Dropped.DroppedTotal != nil {
 		s := common.MapStr{
 			"dropped": common.MapStr{
-				"total": *t.SpanCount.Dropped.Total,
+				"total": *t.SpanCount.Dropped.DroppedTotal,
 			},
 		}
 		utility.Add(tx, "span_count", s)

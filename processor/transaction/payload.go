@@ -18,10 +18,10 @@ var (
 )
 
 type payload struct {
-	Service m.Service
-	System  *m.System
-	Process *m.Process
-	Events  []Event `mapstructure:"transactions"`
+	m.Service
+	*m.System
+	*m.Process
+	Events  []Event
 	User    map[string]interface{}
 }
 
@@ -32,7 +32,7 @@ func (pa *payload) transform(config *pr.Config) []beat.Event {
 	system := pa.System.Transform()
 	process := pa.Process.Transform()
 
-	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
+	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.AgentName, pa.Service.Agent.AgentVersion)
 
 	transactionCounter.Add(int64(len(pa.Events)))
 	for _, event := range pa.Events {
