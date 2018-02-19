@@ -9,6 +9,7 @@ import (
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 )
 
 // ensure all valid documents pass through the whole validation and transformation process
@@ -23,6 +24,7 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionMinimalService", Path: "data/valid/transaction/minimal_service.json"},
 		{Name: "TestProcessTransactionMinimalProcess", Path: "data/valid/transaction/minimal_process.json"},
 		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
+		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
 	}
 	tests.TestProcessRequests(t, transaction.NewProcessor(nil), requestInfo, map[string]string{})
 }
@@ -30,6 +32,8 @@ func TestTransactionProcessorOK(t *testing.T) {
 func TestProcessorFrontendOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
 		{Name: "TestProcessTransactionFrontend", Path: "data/valid/transaction/frontend.json"},
+		{Name: "TestProcessTransactionAugmentedMerge", Path: "data/valid/transaction/augmented_payload_frontend.json"},
+		{Name: "TestProcessTransactionAugmented", Path: "data/valid/transaction/augmented_payload_frontend_no_context.json"},
 	}
 	conf := processor.Config{
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
@@ -40,7 +44,7 @@ func TestProcessorFrontendOK(t *testing.T) {
 
 // ensure invalid documents fail the json schema validation already
 func TestTransactionProcessorValidationFailed(t *testing.T) {
-	data, err := tests.LoadInvalidData("transaction")
+	data, err := loader.LoadInvalidData("transaction")
 	assert.Nil(t, err)
 	p := transaction.NewProcessor(nil)
 	err = p.Validate(data)

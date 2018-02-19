@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -22,7 +22,7 @@ func TestImplementProcessorInterface(t *testing.T) {
 
 func TestValidate(t *testing.T) {
 	p := NewProcessor(nil)
-	data, err := tests.LoadValidData("sourcemap")
+	data, err := loader.LoadValidData("sourcemap")
 
 	assert.NoError(t, err)
 	err = p.Validate(data)
@@ -43,7 +43,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestTransform(t *testing.T) {
-	data, err := tests.LoadValidData("sourcemap")
+	data, err := loader.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
 	rs, err := NewProcessor(nil).Transform(data)

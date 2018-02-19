@@ -1,0 +1,31 @@
+{
+    "service": {
+        "name": "service1",
+        "agent": {
+            "name": "python",
+            "version": "1.0"
+        },
+        "language": {
+            "name": "javascript"
+        }
+    },
+    "system": {
+        "hostname": "prod1.example.com",
+        "architecture": "x64",
+        "platform": "darwin",
+        "ip": "127.0.0.1"
+    },
+    "errors": [
+        {
+            "timestamp": "2017-05-09T15:04:05.999999Z",
+            "log": {
+                "message": ""
+            },
+            "context": {
+                "user": {
+                    "username": "just me"
+                }
+            }
+        }
+    ]
+}

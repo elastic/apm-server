@@ -47,6 +47,16 @@
             description: >
               Email of the logged in user.
 
+          - name: ip
+            type: ip
+            description: >
+              IP of the user where the event is recorded, typically a web browser.
+
+          - name: user_agent
+            type: text
+            description: >
+              Software agent acting in behalf of a user, eg. a web browser / OS combination.
+
         - name: request
           type: group
           fields:
@@ -141,6 +151,12 @@
               type: keyword
               description: >
                 The platform of the system the event was recorded on.
+
+            - name: ip
+              type: ip
+              description: >
+                IP of the host that records the event.
+
         - name: process
           type: group
           description: >

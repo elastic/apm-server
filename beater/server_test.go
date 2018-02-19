@@ -16,7 +16,7 @@ import (
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
@@ -236,7 +236,7 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 var noSSL *SSLConfig
 
 var testData = func() []byte {
-	d, err := tests.LoadValidDataAsBytes("transaction")
+	d, err := loader.LoadValidDataAsBytes("transaction")
 	if err != nil {
 		panic(err)
 	}

@@ -18,6 +18,7 @@ type payload struct {
 	System  *m.System
 	Process *m.Process
 	Events  []Event `mapstructure:"transactions"`
+	User    map[string]interface{}
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {
