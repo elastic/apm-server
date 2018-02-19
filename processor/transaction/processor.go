@@ -118,7 +118,7 @@ func decode(raw map[string]interface{}) *payload {
 			event.DroppedTotal = &droppedTotal
 			event.Marks = utility.DeepGet(tx, "marks")
 			if spans, ok := tx["spans"].([]interface{}); ok {
-				event.Spans = make([]Span, len(spans))
+				event.Spans = make([]*Span, len(spans))
 				span := Span{}
 				for spIdx, sp := range spans {
 					sp, ok := sp.(map[string]interface{})
@@ -164,10 +164,10 @@ func decode(raw map[string]interface{}) *payload {
 					} else {
 						span.Stacktrace = make(model.Stacktrace, 0)
 					}
-					event.Spans[spIdx] = span
+					event.Spans[spIdx] = &span
 				}
 			} else {
-				event.Spans = make([]Span, 0)
+				event.Spans = make([]*Span, 0)
 			}
 			pa.Events[txIdx] = event
 		}
