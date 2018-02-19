@@ -9,27 +9,13 @@ import (
 
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 )
 
 func getStr(data common.MapStr, key string) string {
 	rs, _ := data.GetValue(key)
 	return rs.(string)
-}
-
-func getFloat(data common.MapStr, key string) float64 {
-	rs, _ := data.GetValue(key)
-	return rs.(float64)
-}
-
-func getStrSlice(data common.MapStr, key string) []string {
-	l, _ := data.GetValue(key)
-	var rs []string
-	for _, i := range l.([]interface{}) {
-		rs = append(rs, i.(string))
-	}
-	return rs
 }
 
 func TestPayloadTransform(t *testing.T) {
@@ -54,7 +40,7 @@ func TestPayloadTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := tests.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
+	fileBytes, err := loader.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)
@@ -65,7 +51,7 @@ func TestParseSourcemaps(t *testing.T) {
 }
 
 func TestInvalidateCache(t *testing.T) {
-	data, err := tests.LoadValidData("sourcemap")
+	data, err := loader.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
 	smapId := sourcemap.Id{Path: "/tmp"}

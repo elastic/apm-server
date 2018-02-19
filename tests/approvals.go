@@ -13,6 +13,7 @@ import (
 	"github.com/yudai/gojsondiff"
 
 	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -95,7 +96,7 @@ type RequestInfo struct {
 func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignored map[string]string) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
-		data, err := LoadData(info.Path, p.Name())
+		data, err := loader.LoadData(info.Path)
 		assert.Nil(err)
 
 		err = p.Validate(data)

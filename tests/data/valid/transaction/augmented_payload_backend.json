@@ -4,10 +4,10 @@
         "agent": {
             "name": "python",
             "version": "1.0"
-        },
-        "language": {
-            "name": "javascript"
         }
+    },
+    "system": {
+        "ip": "127.0.0.1"
     },
     "transactions": [
         {
