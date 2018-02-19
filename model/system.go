@@ -16,12 +16,11 @@ func (s *System) Transform() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	enhancer := utility.NewMapStrEnhancer()
 	system := common.MapStr{}
-	enhancer.Add(system, "hostname", s.Hostname)
-	enhancer.Add(system, "architecture", s.Architecture)
-	enhancer.Add(system, "platform", s.Platform)
-	enhancer.Add(system, "ip", s.IP)
+	utility.Add(system, "hostname", s.Hostname)
+	utility.Add(system, "architecture", s.Architecture)
+	utility.Add(system, "platform", s.Platform)
+	utility.Add(system, "ip", s.IP)
 
 	return system
 }

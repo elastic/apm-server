@@ -4,13 +4,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type MapStrEnhancer struct{}
-
-func NewMapStrEnhancer() MapStrEnhancer {
-	return MapStrEnhancer{}
-}
-
-func (enh MapStrEnhancer) AddStrWithDefault(m common.MapStr, key string, val *string, defaultVal string) {
+func AddStrWithDefault(m common.MapStr, key string, val *string, defaultVal string) {
 	if val != nil {
 		m[key] = *val
 	} else if defaultVal != "" {
@@ -18,7 +12,7 @@ func (enh MapStrEnhancer) AddStrWithDefault(m common.MapStr, key string, val *st
 	}
 }
 
-func (enh MapStrEnhancer) Add(m common.MapStr, key string, val interface{}) {
+func Add(m common.MapStr, key string, val interface{}) {
 
 	switch val.(type) {
 	case *bool:
@@ -39,6 +33,10 @@ func (enh MapStrEnhancer) Add(m common.MapStr, key string, val interface{}) {
 		}
 	case []string:
 		if valArr := val.([]string); len(valArr) > 0 {
+			m[key] = valArr
+		}
+	case []common.MapStr:
+		if valArr := val.([]common.MapStr); len(valArr) > 0 {
 			m[key] = valArr
 		}
 	default:

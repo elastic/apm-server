@@ -20,6 +20,7 @@ var (
 
 const (
 	processorName = "error"
+	errorDocType  = "error"
 )
 
 var schema = pr.CreateSchema(errorSchema, processorName)
