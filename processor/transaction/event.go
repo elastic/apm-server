@@ -15,7 +15,7 @@ type Event struct {
 	Duration  float64
 	Timestamp time.Time
 	Context   common.MapStr
-	Spans     []Span
+	Spans     []*Span
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount `mapstructure:"span_count"`
@@ -27,23 +27,18 @@ type Dropped struct {
 	Total *int
 }
 
-func (t *Event) DocType() string {
-	return "transaction"
-}
-
 func (t *Event) Transform() common.MapStr {
-	enh := utility.NewMapStrEnhancer()
 	tx := common.MapStr{"id": t.Id}
-	enh.Add(tx, "name", t.Name)
-	enh.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
-	enh.Add(tx, "type", t.Type)
-	enh.Add(tx, "result", t.Result)
-	enh.Add(tx, "marks", t.Marks)
+	utility.Add(tx, "name", t.Name)
+	utility.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
+	utility.Add(tx, "type", t.Type)
+	utility.Add(tx, "result", t.Result)
+	utility.Add(tx, "marks", t.Marks)
 
 	if t.Sampled == nil {
-		enh.Add(tx, "sampled", true)
+		utility.Add(tx, "sampled", true)
 	} else {
-		enh.Add(tx, "sampled", t.Sampled)
+		utility.Add(tx, "sampled", t.Sampled)
 	}
 
 	if t.SpanCount.Dropped.Total != nil {
@@ -52,7 +47,7 @@ func (t *Event) Transform() common.MapStr {
 				"total": *t.SpanCount.Dropped.Total,
 			},
 		}
-		enh.Add(tx, "span_count", s)
+		utility.Add(tx, "span_count", s)
 	}
 	return tx
 }
@@ -64,19 +59,4 @@ func (t *Event) contextTransform(pa *payload) common.MapStr {
 	}
 	utility.InsertInMap(t.Context, "user", pa.User)
 	return t.Context
-}
-
-func (t *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
-	mapping := []utility.DocMapping{
-		{Key: "processor", Apply: func() common.MapStr {
-			return common.MapStr{"name": processorName, "event": t.DocType()}
-		}},
-		{Key: t.DocType(), Apply: t.Transform},
-		{Key: "context", Apply: func() common.MapStr { return t.contextTransform(pa) }},
-		{Key: "context.service", Apply: pa.Service.Transform},
-		{Key: "context.system", Apply: pa.System.Transform},
-		{Key: "context.process", Apply: pa.Process.Transform},
-	}
-
-	return t.Timestamp, mapping
 }

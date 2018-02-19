@@ -17,6 +17,7 @@ import (
 
 const (
 	processorName = "sourcemap"
+	smapDocType   = "sourcemap"
 )
 
 var (

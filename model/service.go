@@ -46,25 +46,24 @@ func (s *Service) MinimalTransform() common.MapStr {
 }
 
 func (s *Service) Transform() common.MapStr {
-	enhancer := utility.NewMapStrEnhancer()
 	svc := s.MinimalTransform()
-	enhancer.Add(svc, "version", s.Version)
-	enhancer.Add(svc, "environment", s.Environment)
+	utility.Add(svc, "version", s.Version)
+	utility.Add(svc, "environment", s.Environment)
 
 	lang := common.MapStr{}
-	enhancer.Add(lang, "name", s.Language.Name)
-	enhancer.Add(lang, "version", s.Language.Version)
-	enhancer.Add(svc, "language", lang)
+	utility.Add(lang, "name", s.Language.Name)
+	utility.Add(lang, "version", s.Language.Version)
+	utility.Add(svc, "language", lang)
 
 	runtime := common.MapStr{}
-	enhancer.Add(runtime, "name", s.Runtime.Name)
-	enhancer.Add(runtime, "version", s.Runtime.Version)
-	enhancer.Add(svc, "runtime", runtime)
+	utility.Add(runtime, "name", s.Runtime.Name)
+	utility.Add(runtime, "version", s.Runtime.Version)
+	utility.Add(svc, "runtime", runtime)
 
 	framework := common.MapStr{}
-	enhancer.Add(framework, "name", s.Framework.Name)
-	enhancer.Add(framework, "version", s.Framework.Version)
-	enhancer.Add(svc, "framework", framework)
+	utility.Add(framework, "name", s.Framework.Name)
+	utility.Add(framework, "version", s.Framework.Version)
+	utility.Add(svc, "framework", framework)
 
 	return svc
 }

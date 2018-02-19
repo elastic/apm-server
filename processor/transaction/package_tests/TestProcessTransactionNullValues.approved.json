@@ -12,8 +12,7 @@
                         "name": "ruby"
                     },
                     "name": "1234_service-12a3"
-                },
-                "system": {}
+                }
             },
             "processor": {
                 "event": "transaction",
@@ -45,7 +44,6 @@
                     },
                     "name": "1234_service-12a3"
                 },
-                "system": {},
                 "tags": null,
                 "user": null
             },
@@ -101,7 +99,6 @@
                     },
                     "name": "1234_service-12a3"
                 },
-                "system": {},
                 "user": {
                     "email": null,
                     "id": null,
@@ -162,7 +159,6 @@
                     },
                     "name": "1234_service-12a3"
                 },
-                "system": {},
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 }

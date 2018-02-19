@@ -26,8 +26,7 @@ type Event struct {
 		Id string
 	}
 
-	enhancer utility.MapStrEnhancer
-	data     common.MapStr
+	data common.MapStr
 }
 
 type Exception struct {
@@ -48,34 +47,7 @@ type Log struct {
 	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
 }
 
-func (e *Event) DocType() string {
-	return "error"
-}
-
-func (e *Event) Mappings(config *pr.Config, pa *payload) (time.Time, []utility.DocMapping) {
-	mapping := []utility.DocMapping{
-		{Key: "processor", Apply: func() common.MapStr {
-			return common.MapStr{"name": processorName, "event": e.DocType()}
-		}},
-		{Key: e.DocType(), Apply: func() common.MapStr { return e.Transform(config, pa.Service) }},
-		{Key: "context", Apply: func() common.MapStr { return e.contextTransform(pa) }},
-		{Key: "context.service", Apply: pa.Service.Transform},
-		{Key: "context.system", Apply: pa.System.Transform},
-		{Key: "context.process", Apply: pa.Process.Transform},
-	}
-
-	if e.Transaction != nil {
-		mapping = append(mapping, utility.DocMapping{
-			Key:   "transaction",
-			Apply: func() common.MapStr { return common.MapStr{"id": e.Transaction.Id} },
-		})
-	}
-
-	return e.Timestamp, mapping
-}
-
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
-	e.enhancer = utility.MapStrEnhancer{}
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 
@@ -134,25 +106,23 @@ func (e *Event) addException(config *pr.Config, service m.Service) {
 		return
 	}
 	ex := common.MapStr{}
-	e.enhancer.Add(ex, "message", e.Exception.Message)
-	e.enhancer.Add(ex, "module", e.Exception.Module)
-	e.enhancer.Add(ex, "attributes", e.Exception.Attributes)
-	e.enhancer.Add(ex, "type", e.Exception.Type)
-	e.enhancer.Add(ex, "handled", e.Exception.Handled)
+	utility.Add(ex, "message", e.Exception.Message)
+	utility.Add(ex, "module", e.Exception.Module)
+	utility.Add(ex, "attributes", e.Exception.Attributes)
+	utility.Add(ex, "type", e.Exception.Type)
+	utility.Add(ex, "handled", e.Exception.Handled)
 
 	switch e.Exception.Code.(type) {
 	case int:
-		e.enhancer.Add(ex, "code", strconv.Itoa(e.Exception.Code.(int)))
+		utility.Add(ex, "code", strconv.Itoa(e.Exception.Code.(int)))
 	case float64:
-		e.enhancer.Add(ex, "code", fmt.Sprintf("%.0f", e.Exception.Code))
+		utility.Add(ex, "code", fmt.Sprintf("%.0f", e.Exception.Code))
 	case string:
-		e.enhancer.Add(ex, "code", e.Exception.Code.(string))
+		utility.Add(ex, "code", e.Exception.Code.(string))
 	}
 
 	st := e.Exception.Stacktrace.Transform(config, service)
-	if len(st) > 0 {
-		e.enhancer.Add(ex, "stacktrace", st)
-	}
+	utility.Add(ex, "stacktrace", st)
 
 	e.add("exception", ex)
 }
@@ -162,14 +132,12 @@ func (e *Event) addLog(config *pr.Config, service m.Service) {
 		return
 	}
 	log := common.MapStr{}
-	e.enhancer.Add(log, "message", e.Log.Message)
-	e.enhancer.Add(log, "param_message", e.Log.ParamMessage)
-	e.enhancer.Add(log, "logger_name", e.Log.LoggerName)
-	e.enhancer.Add(log, "level", e.Log.Level)
+	utility.Add(log, "message", e.Log.Message)
+	utility.Add(log, "param_message", e.Log.ParamMessage)
+	utility.Add(log, "logger_name", e.Log.LoggerName)
+	utility.Add(log, "level", e.Log.Level)
 	st := e.Log.Stacktrace.Transform(config, service)
-	if len(st) > 0 {
-		e.enhancer.Add(log, "stacktrace", st)
-	}
+	utility.Add(log, "stacktrace", st)
 
 	e.add("log", log)
 }
@@ -246,5 +214,5 @@ func (e *Event) calcGroupingKey() string {
 }
 
 func (e *Event) add(key string, val interface{}) {
-	e.enhancer.Add(e.data, key, val)
+	utility.Add(e.data, key, val)
 }

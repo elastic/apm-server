@@ -5,14 +5,16 @@ import (
 
 	pr "github.com/elastic/apm-server/processor"
 	smap "github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-var sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
+var (
+	sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
+	processorEntry   = common.MapStr{"name": processorName, "event": smapDocType}
+)
 
 type payload struct {
 	ServiceName    string `mapstructure:"service_name"`
@@ -22,7 +24,6 @@ type payload struct {
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {
-	var events = []beat.Event{pr.CreateDoc(mappings(pa))}
 	sourcemapCounter.Add(1)
 
 	if config == nil || config.SmapMapper == nil {
@@ -34,21 +35,17 @@ func (pa *payload) transform(config *pr.Config) []beat.Event {
 			Path:           pa.BundleFilepath,
 		})
 	}
-	return events
-}
 
-func mappings(pa *payload) (time.Time, []utility.DocMapping) {
-	return time.Now(),
-		[]utility.DocMapping{
-			{Key: "processor", Apply: func() common.MapStr {
-				return common.MapStr{"name": processorName, "event": processorName}
-			}},
-			{Key: processorName, Apply: func() common.MapStr {
-				return common.MapStr{
-					"bundle_filepath": pa.BundleFilepath,
-					"service":         common.MapStr{"name": pa.ServiceName, "version": pa.ServiceVersion},
-					"sourcemap":       pa.Sourcemap,
-				}
-			}},
-		}
+	ev := beat.Event{
+		Fields: common.MapStr{
+			"processor": processorEntry,
+			smapDocType: common.MapStr{
+				"bundle_filepath": pa.BundleFilepath,
+				"service":         common.MapStr{"name": pa.ServiceName, "version": pa.ServiceVersion},
+				"sourcemap":       pa.Sourcemap,
+			},
+		},
+		Timestamp: time.Now(),
+	}
+	return []beat.Event{ev}
 }
