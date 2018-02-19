@@ -119,7 +119,7 @@
                     },
                     "performance": {}
                 },
-                "name": "GET /api/types",
+                "name": "GET /api/types/first",
                 "result": "success",
                 "sampled": true,
                 "span_count": {
@@ -127,7 +127,7 @@
                         "total": 2
                     }
                 },
-                "type": "request"
+                "type": "GET request"
             }
         },
         {
@@ -222,7 +222,7 @@
                     "us": 32592
                 },
                 "id": 1,
-                "name": "GET /api/types",
+                "name": "GET /api/types/span",
                 "parent": 0,
                 "start": {
                     "us": 0
@@ -253,12 +253,12 @@
                     "us": 3564
                 },
                 "id": 2,
-                "name": "GET /api/types",
+                "name": "db query",
                 "parent": 1,
                 "start": {
                     "us": 1845
                 },
-                "type": "request"
+                "type": "db query"
             },
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
@@ -397,10 +397,10 @@
                     "us": 13980
                 },
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
-                "name": "GET /api/types",
+                "name": "GET /api/types/123",
                 "result": "200",
                 "sampled": false,
-                "type": "request"
+                "type": "get request"
             }
         },
         {
@@ -451,7 +451,7 @@
                     "us": 13980
                 },
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9",
-                "name": "GET /api/types",
+                "name": "POST /api/types/1",
                 "result": "200",
                 "sampled": true,
                 "span_count": {
@@ -459,7 +459,7 @@
                         "total": 258
                     }
                 },
-                "type": "request"
+                "type": "post request"
             }
         },
         {
@@ -487,6 +487,7 @@
                 "duration": {
                     "us": 3781
                 },
+                "id": 1,
                 "name": "SELECT FROM product_types",
                 "start": {
                     "us": 2830

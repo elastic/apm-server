@@ -3,59 +3,63 @@ package transaction
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"time"
 
 	"github.com/elastic/beats/libbeat/common"
 )
 
-//TODO: use test enhancer as argument and test error case
 func TestEventTransform(t *testing.T) {
+	var ev *Event
 
 	id := "123"
 	result := "tx result"
 	sampled := false
 	dropped := 5
 	name := "mytransaction"
+	eventType := "request"
+	duration := 65.98
+	durationMicros := 65980
+	truthy := true
+	sid1, name1 := 111, "io"
 
 	tests := []struct {
-		Event  Event
+		Event  *Event
 		Output common.MapStr
 		Msg    string
 	}{
 		{
-			Event: Event{},
-			Output: common.MapStr{
-				"id":       "",
-				"type":     "",
-				"duration": common.MapStr{"us": 0},
-				"sampled":  true,
-			},
-			Msg: "Empty Event",
+			Event:  ev,
+			Output: nil,
+			Msg:    "Nil Event",
 		},
 		{
-			Event: Event{
-				Id:        id,
+			Event:  &Event{},
+			Output: common.MapStr{"sampled": &truthy},
+			Msg:    "Empty Event",
+		},
+		{
+			Event: &Event{
+				Id:        &id,
 				Name:      &name,
-				Type:      "tx",
+				Type:      &eventType,
 				Result:    &result,
 				Timestamp: time.Now(),
-				Duration:  65.98,
+				Duration:  &duration,
 				Context:   common.MapStr{"foo": "bar"},
-				Spans:     []Span{},
+				Spans:     []*Span{&Span{Id: &sid1, Name: &name1}},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 			},
 			Output: common.MapStr{
-				"id":         id,
-				"name":       "mytransaction",
-				"type":       "tx",
-				"result":     "tx result",
-				"duration":   common.MapStr{"us": 65980},
-				"span_count": common.MapStr{"dropped": common.MapStr{"total": 5}},
-				"sampled":    false,
+				"id":         &id,
+				"name":       &name,
+				"type":       &eventType,
+				"result":     &result,
+				"duration":   common.MapStr{"us": &durationMicros},
+				"span_count": common.MapStr{"dropped": common.MapStr{"total": &dropped}},
+				"sampled":    new(bool),
 			},
 			Msg: "Full Event",
 		},

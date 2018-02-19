@@ -9,39 +9,33 @@ import (
 )
 
 func TestSystemTransform(t *testing.T) {
-
+	var system *System
 	architecture := "x64"
 	hostname := "a.b.com"
 	platform := "darwin"
 
 	tests := []struct {
-		System System
+		System *System
 		Output common.MapStr
 	}{
 		{
-			System: System{},
-			Output: common.MapStr{},
+			System: system,
+			Output: nil,
 		},
 		{
-			System: System{
+			System: &System{},
+			Output: nil,
+		},
+		{
+			System: &System{
 				Architecture: &architecture,
 				Hostname:     &hostname,
 				Platform:     &platform,
 			},
 			Output: common.MapStr{
-				"hostname":     hostname,
-				"architecture": architecture,
-				"platform":     platform,
-			},
-		},
-		{
-			System: System{
-				Architecture: &architecture,
-				Hostname:     &hostname,
-			},
-			Output: common.MapStr{
-				"hostname":     hostname,
-				"architecture": architecture,
+				"hostname":     &hostname,
+				"architecture": &architecture,
+				"platform":     &platform,
 			},
 		},
 	}

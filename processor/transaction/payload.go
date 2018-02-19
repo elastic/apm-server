@@ -17,7 +17,7 @@ type payload struct {
 	Service m.Service
 	System  *m.System
 	Process *m.Process
-	Events  []Event `mapstructure:"transactions"`
+	Events  []*Event `mapstructure:"transactions"`
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {
@@ -34,6 +34,7 @@ func (pa *payload) transform(config *pr.Config) []beat.Event {
 		for _, sp := range event.Spans {
 			events = append(events, pr.CreateDoc(sp.Mappings(config, pa, event)))
 		}
+		event = nil
 	}
 
 	return events

@@ -16,7 +16,7 @@ type payload struct {
 	Service m.Service
 	System  *m.System
 	Process *m.Process
-	Events  []Event `mapstructure:"errors"`
+	Events  []*Event `mapstructure:"errors"`
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {
@@ -27,6 +27,7 @@ func (pa *payload) transform(config *pr.Config) []beat.Event {
 	errorCounter.Add(int64(len(pa.Events)))
 	for _, e := range pa.Events {
 		events = append(events, pr.CreateDoc(e.Mappings(config, pa)))
+		e = nil
 	}
 	return events
 }

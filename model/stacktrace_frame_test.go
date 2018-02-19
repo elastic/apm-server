@@ -28,19 +28,19 @@ func TestStacktraceFrameTransform(t *testing.T) {
 		Msg     string
 	}{
 		{
-			StFrame: StacktraceFrame{Filename: filename, Lineno: lineno},
+			StFrame: StacktraceFrame{Filename: &filename, Lineno: &lineno},
 			Output: common.MapStr{
-				"filename":              filename,
-				"line":                  common.MapStr{"number": lineno},
-				"exclude_from_grouping": false,
+				"filename":              &filename,
+				"line":                  common.MapStr{"number": &lineno},
+				"exclude_from_grouping": new(bool),
 			},
 			Msg: "Minimal StacktraceFrame",
 		},
 		{
 			StFrame: StacktraceFrame{
 				AbsPath:      &path,
-				Filename:     filename,
-				Lineno:       lineno,
+				Filename:     &filename,
+				Lineno:       &lineno,
 				Colno:        &colno,
 				ContextLine:  &context,
 				Module:       &module,
@@ -51,22 +51,22 @@ func TestStacktraceFrameTransform(t *testing.T) {
 				PostContext:  []string{"postc1", "postc2"},
 			},
 			Output: common.MapStr{
-				"abs_path":      "~/./some/abs_path",
-				"filename":      "some file",
-				"function":      "some function",
-				"module":        "some_module",
-				"library_frame": true,
+				"abs_path":      &path,
+				"filename":      &filename,
+				"function":      &fct,
+				"module":        &module,
+				"library_frame": &libraryFrame,
 				"vars":          common.MapStr{"k1": "v1", "k2": "v2"},
 				"context": common.MapStr{
 					"pre":  []string{"prec1", "prec2"},
 					"post": []string{"postc1", "postc2"},
 				},
 				"line": common.MapStr{
-					"number":  1,
-					"column":  55,
-					"context": "context",
+					"number":  &lineno,
+					"column":  &colno,
+					"context": &context,
 				},
-				"exclude_from_grouping": false,
+				"exclude_from_grouping": new(bool),
 			},
 			Msg: "Full StacktraceFrame",
 		},
@@ -80,8 +80,10 @@ func TestStacktraceFrameTransform(t *testing.T) {
 
 func TestApplySourcemap(t *testing.T) {
 	colno := 1
+	l9, l8, l7, l6, l5, l4, l0 := 9, 8, 7, 6, 5, 4, 0
 	fct := "original function"
 	absPath := "original path"
+	fName, origFName := "filename", "original filename"
 	tests := []struct {
 		fr                          StacktraceFrame
 		lineno, colno               int
@@ -93,13 +95,12 @@ func TestApplySourcemap(t *testing.T) {
 		msg                         string
 	}{
 		{
-			fr:          StacktraceFrame{Lineno: 0, Function: &fct, AbsPath: &absPath},
+			fr:          StacktraceFrame{Lineno: &l0, Function: &fct, AbsPath: &absPath},
 			lineno:      0,
-			filename:    "",
 			function:    "original function",
 			absPath:     "original path",
 			smapUpdated: false,
-			smapError:   "Colno mandatory for sourcemapping.",
+			smapError:   "Colno and Lineno mandatory for sourcemapping.",
 			fct:         "<anonymous>",
 			outFct:      "<anonymous>",
 			msg:         "No colno",
@@ -107,8 +108,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{
 				Colno:    &colno,
-				Lineno:   9,
-				Filename: "filename",
+				Lineno:   &l9,
+				Filename: &fName,
 				Function: &fct,
 				AbsPath:  &absPath,
 			},
@@ -124,7 +125,7 @@ func TestApplySourcemap(t *testing.T) {
 			msg:         "Some error occured in mapper.",
 		},
 		{
-			fr:       StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
+			fr:       StacktraceFrame{Colno: &colno, Lineno: &l8, Function: &fct, AbsPath: &absPath},
 			colno:    1,
 			lineno:   8,
 			filename: "",
@@ -135,7 +136,7 @@ func TestApplySourcemap(t *testing.T) {
 			msg:      "Some access error occured in mapper.",
 		},
 		{
-			fr:          StacktraceFrame{Colno: &colno, Lineno: 7, Function: &fct, AbsPath: &absPath},
+			fr:          StacktraceFrame{Colno: &colno, Lineno: &l7, Function: &fct, AbsPath: &absPath},
 			colno:       1,
 			lineno:      7,
 			filename:    "",
@@ -148,7 +149,7 @@ func TestApplySourcemap(t *testing.T) {
 			msg:         "Some mapping error occured in mapper.",
 		},
 		{
-			fr:          StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
+			fr:          StacktraceFrame{Colno: &colno, Lineno: &l6, Function: &fct, AbsPath: &absPath},
 			colno:       1,
 			lineno:      6,
 			filename:    "",
@@ -163,8 +164,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{
 				Colno:    &colno,
-				Lineno:   5,
-				Filename: "original filename",
+				Lineno:   &l5,
+				Filename: &origFName,
 				Function: &fct,
 				AbsPath:  &absPath,
 			},
@@ -182,8 +183,8 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{
 				Colno:    &colno,
-				Lineno:   4,
-				Filename: "original filename",
+				Lineno:   &l4,
+				Filename: &origFName,
 				Function: &fct,
 				AbsPath:  &absPath,
 			},
@@ -200,8 +201,8 @@ func TestApplySourcemap(t *testing.T) {
 		},
 	}
 
-	ver := "1"
-	service := Service{Name: "foo", Version: &ver}
+	ver, serviceName := "1", "foo"
+	service := Service{Name: &serviceName, Version: &ver}
 	for idx, test := range tests {
 		// check that original data are preserved,
 		// even when Transform function is applied twice.
@@ -233,8 +234,10 @@ func TestApplySourcemap(t *testing.T) {
 		// check that source mapping is applied as excpected
 		output := (&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
 		assert.Equal(t, test.outFct, output)
-		assert.Equal(t, test.lineno, test.fr.Lineno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
-		assert.Equal(t, test.filename, test.fr.Filename, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		assert.Equal(t, test.lineno, *test.fr.Lineno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		if test.filename != "" {
+			assert.Equal(t, test.filename, *test.fr.Filename, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		}
 		assert.Equal(t, test.function, *test.fr.Function, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
 		assert.Equal(t, test.absPath, *test.fr.AbsPath, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
 		if test.colno != 0 {
@@ -268,6 +271,8 @@ func TestIsSourcemapApplied(t *testing.T) {
 }
 
 func TestExcludeFromGroupingKey(t *testing.T) {
+	fnAbs, fnWebpack, fnAbsWebpack := "/filename", "webpack", "/webpack"
+	fnAbsWebpackExt := "/webpack/test/e2e/s.js"
 	tests := []struct {
 		fr      StacktraceFrame
 		pattern string
@@ -279,42 +284,37 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 			exclude: false,
 		},
 		{
-			fr:      StacktraceFrame{Filename: "/webpack"},
+			fr:      StacktraceFrame{Filename: &fnAbsWebpack},
 			pattern: "",
 			exclude: false,
 		},
 		{
-			fr:      StacktraceFrame{Filename: "/webpack"},
+			fr:      StacktraceFrame{Filename: &fnAbsWebpack},
 			pattern: "/webpack/tmp",
 			exclude: false,
 		},
 		{
-			fr:      StacktraceFrame{Filename: ""},
+			fr:      StacktraceFrame{},
 			pattern: "^/webpack",
 			exclude: false,
 		},
 		{
-			fr:      StacktraceFrame{Filename: "/webpack"},
+			fr:      StacktraceFrame{Filename: &fnAbsWebpack},
 			pattern: "^/webpack",
 			exclude: true,
 		},
 		{
-			fr:      StacktraceFrame{Filename: "/webpack/test/e2e/general-usecase/app.e2e-bundle.js"},
+			fr:      StacktraceFrame{Filename: &fnAbsWebpackExt},
 			pattern: "^/webpack",
 			exclude: true,
 		},
 		{
-			fr:      StacktraceFrame{Filename: "/filename"},
+			fr:      StacktraceFrame{Filename: &fnAbs},
 			pattern: "^/webpack",
 			exclude: false,
 		},
 		{
-			fr:      StacktraceFrame{Filename: "/filename/a"},
-			pattern: "^/webpack",
-			exclude: false,
-		},
-		{
-			fr:      StacktraceFrame{Filename: "webpack"},
+			fr:      StacktraceFrame{Filename: &fnWebpack},
 			pattern: "^/webpack",
 			exclude: false,
 		},
@@ -327,7 +327,7 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 		}
 		out := test.fr.Transform(&pr.Config{ExcludeFromGrouping: excludePattern})
 		exclude := out["exclude_from_grouping"]
-		assert.Equal(t, test.exclude, exclude,
+		assert.Equal(t, &test.exclude, exclude,
 			fmt.Sprintf("(%v): Pattern: %v, Filename: %v, expected to be excluded: %v", idx, test.pattern, test.fr.Filename, test.exclude))
 	}
 }
@@ -336,6 +336,7 @@ func TestLibraryFrame(t *testing.T) {
 	truthy := true
 	falsy := false
 	path := "/~/a/b"
+	fnJs, fnAbc, fnAbcTmp, fnTmp := "myFile.js", "/a/b/c", "~/a/b/c", "~/tmp"
 	tests := []struct {
 		fr               StacktraceFrame
 		conf             *pr.Config
@@ -368,17 +369,17 @@ func TestLibraryFrame(t *testing.T) {
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "AbsPath given, no Match"},
-		{fr: StacktraceFrame{Filename: "myFile.js", LibraryFrame: &truthy},
+		{fr: StacktraceFrame{Filename: &fnJs, LibraryFrame: &truthy},
 			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "Filename given, no Match"},
-		{fr: StacktraceFrame{AbsPath: &path, Filename: "myFile.js"},
+		{fr: StacktraceFrame{AbsPath: &path, Filename: &fnJs},
 			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath and Filename given, no Match"},
-		{fr: StacktraceFrame{Filename: "/tmp"},
+		{fr: StacktraceFrame{Filename: &fnTmp},
 			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("/tmp")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
@@ -388,17 +389,17 @@ func TestLibraryFrame(t *testing.T) {
 			libraryFrame:     &truthy,
 			origLibraryFrame: &falsy,
 			msg:              "AbsPath matching"},
-		{fr: StacktraceFrame{AbsPath: &path, Filename: "/a/b/c"},
+		{fr: StacktraceFrame{AbsPath: &path, Filename: &fnAbc},
 			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath matching, Filename not matching"},
-		{fr: StacktraceFrame{AbsPath: &path, Filename: "/a/b/c"},
+		{fr: StacktraceFrame{AbsPath: &path, Filename: &fnAbc},
 			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("/a/b/c")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath not matching, Filename matching"},
-		{fr: StacktraceFrame{AbsPath: &path, Filename: "~/a/b/c"},
+		{fr: StacktraceFrame{AbsPath: &path, Filename: &fnAbcTmp},
 			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
@@ -413,7 +414,7 @@ func TestLibraryFrame(t *testing.T) {
 			assert.Nil(t, out, test.msg)
 			assert.Nil(t, libFrame, test.msg)
 		} else {
-			assert.Equal(t, *test.libraryFrame, out, test.msg)
+			assert.Equal(t, test.libraryFrame, out, test.msg)
 			assert.Equal(t, *test.libraryFrame, *libFrame, test.msg)
 		}
 		if test.origLibraryFrame == nil {
@@ -425,7 +426,7 @@ func TestLibraryFrame(t *testing.T) {
 }
 
 func TestBuildSourcemap(t *testing.T) {
-	version := "1.0"
+	version, name := "1.0", "foo"
 	path := "././a/b/../c"
 	tests := []struct {
 		service Service
@@ -434,10 +435,10 @@ func TestBuildSourcemap(t *testing.T) {
 	}{
 		{service: Service{}, fr: StacktraceFrame{}, out: ""},
 		{service: Service{Version: &version}, fr: StacktraceFrame{}, out: "1.0"},
-		{service: Service{Name: "foo"}, fr: StacktraceFrame{}, out: "foo"},
+		{service: Service{Name: &name}, fr: StacktraceFrame{}, out: "foo"},
 		{service: Service{}, fr: StacktraceFrame{AbsPath: &path}, out: "a/c"},
 		{
-			service: Service{Name: "foo", Version: &version},
+			service: Service{Name: &name, Version: &version},
 			fr:      StacktraceFrame{AbsPath: &path},
 			out:     "foo_1.0_a/c",
 		},

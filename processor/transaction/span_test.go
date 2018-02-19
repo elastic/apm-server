@@ -13,56 +13,77 @@ import (
 )
 
 func TestSpanTransform(t *testing.T) {
-	path := "test/path"
+	var span *Span
+	serviceName := "myService"
+	service := m.Service{Name: &serviceName}
+
+	path, path2 := "test/path", "second path"
+	lineno := 56
 	parent := 12
 	tid := 1
-	service := m.Service{Name: "myService"}
+	name := "myspan"
+	spanType := "db query"
+	start, startMicros := 9.8, 9800
+	duration, durationMicros := 1.2, 1200
+	err := "Colno and Lineno mandatory for sourcemapping."
 
 	tests := []struct {
-		Span   Span
+		Span   *Span
 		Output common.MapStr
 		Msg    string
 	}{
 		{
-			Span: Span{},
-			Output: common.MapStr{
-				"type":     "",
-				"start":    common.MapStr{"us": 0},
-				"duration": common.MapStr{"us": 0},
-				"name":     "",
-			},
-			Msg: "Span without a Stacktrace",
+			Span:   span,
+			Output: nil,
+			Msg:    "Nil Span",
 		},
 		{
-			Span: Span{
+			Span:   &Span{},
+			Output: nil,
+			Msg:    "Empty Span",
+		},
+		{
+			Span: &Span{
 				Id:       &tid,
-				Name:     "myspan",
-				Type:     "myspantype",
-				Start:    0.65,
-				Duration: 1.20,
+				Name:     &name,
+				Type:     &spanType,
+				Start:    &start,
+				Duration: &duration,
 				Stacktrace: []*m.StacktraceFrame{
 					{AbsPath: &path},
+					{AbsPath: &path2, Lineno: &lineno},
 				},
 				Context: common.MapStr{"key": "val"},
 				Parent:  &parent,
 			},
 			Output: common.MapStr{
-				"duration": common.MapStr{"us": 1200},
-				"id":       1,
-				"name":     "myspan",
-				"start":    common.MapStr{"us": 650},
-				"type":     "myspantype",
-				"parent":   12,
-				"stacktrace": []common.MapStr{{
-					"exclude_from_grouping": false,
-					"abs_path":              path,
-					"filename":              "",
-					"line":                  common.MapStr{"number": 0},
-					"sourcemap": common.MapStr{
-						"error":   "Colno mandatory for sourcemapping.",
-						"updated": false,
+				"duration": common.MapStr{"us": &durationMicros},
+				"id":       &tid,
+				"name":     &name,
+				"start":    common.MapStr{"us": &startMicros},
+				"type":     &spanType,
+				"parent":   &parent,
+				"stacktrace": []common.MapStr{
+					{
+						"exclude_from_grouping": new(bool),
+						"abs_path":              &path,
+						"sourcemap": common.MapStr{
+							"error":   &err,
+							"updated": new(bool),
+						},
 					},
-				}},
+					{
+						"exclude_from_grouping": new(bool),
+						"abs_path":              &path2,
+						"line": common.MapStr{
+							"number": &lineno,
+						},
+						"sourcemap": common.MapStr{
+							"error":   &err,
+							"updated": new(bool),
+						},
+					},
+				},
 			},
 			Msg: "Full Span",
 		},

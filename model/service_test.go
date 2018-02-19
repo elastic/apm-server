@@ -8,14 +8,10 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestServiceTransformDefinition(t *testing.T) {
-	myfn := func(fn TransformService) string { return "ok" }
-	res := myfn((*Service).Transform)
-	assert.Equal(t, "ok", res)
-}
-
 func TestServiceTransform(t *testing.T) {
+	var service *Service
 
+	name := "myService"
 	version := "5.1.3"
 	environment := "staging"
 	langName := "ecmascript"
@@ -27,60 +23,70 @@ func TestServiceTransform(t *testing.T) {
 	agentName := "elastic-node"
 	agentVersion := "1.0.0"
 	tests := []struct {
-		Service Service
+		Service *Service
 		Output  common.MapStr
 	}{
 		{
-			Service: Service{},
-			Output: common.MapStr{
-				"agent": common.MapStr{
-					"name":    "",
-					"version": "",
-				},
-				"name": "",
-			},
+			Service: service,
+			Output:  nil,
 		},
 		{
-			Service: Service{
-				Name:        "myService",
+			Service: &Service{},
+			Output:  nil,
+		},
+		{
+			Service: &Service{
+				Name:        &name,
 				Version:     &version,
 				Environment: &environment,
-				Language: Language{
+				Language: struct {
+					Name    *string
+					Version *string
+				}{
 					Name:    &langName,
 					Version: &langVersion,
 				},
-				Runtime: Runtime{
+				Runtime: struct {
+					Name    *string
+					Version *string
+				}{
 					Name:    &rtName,
 					Version: &rtVersion,
 				},
-				Framework: Framework{
+				Framework: struct {
+					Name    *string
+					Version *string
+				}{
 					Name:    &fwName,
 					Version: &fwVersion,
 				},
-				Agent: Agent{
-					Name:    agentName,
-					Version: agentVersion,
+				Agent: struct {
+					Name    *string
+					Version *string
+				}{
+					Name:    &agentName,
+					Version: &agentVersion,
 				},
 			},
 			Output: common.MapStr{
-				"name":        "myService",
-				"version":     "5.1.3",
-				"environment": "staging",
+				"name":        &name,
+				"version":     &version,
+				"environment": &environment,
 				"language": common.MapStr{
-					"name":    "ecmascript",
-					"version": "8",
+					"name":    &langName,
+					"version": &langVersion,
 				},
 				"runtime": common.MapStr{
-					"name":    "node",
-					"version": "8.0.0",
+					"name":    &rtName,
+					"version": &rtVersion,
 				},
 				"framework": common.MapStr{
-					"name":    "Express",
-					"version": "1.2.3",
+					"name":    &fwName,
+					"version": &fwVersion,
 				},
 				"agent": common.MapStr{
-					"name":    "elastic-node",
-					"version": "1.0.0",
+					"name":    &agentName,
+					"version": &agentVersion,
 				},
 			},
 		},

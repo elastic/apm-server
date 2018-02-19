@@ -12,14 +12,13 @@ type System struct {
 }
 
 func (s *System) Transform() common.MapStr {
-	if s == nil {
+	if s == nil || (s.Hostname == nil && s.Architecture == nil && s.Platform == nil) {
 		return nil
 	}
-	enhancer := utility.NewMapStrEnhancer()
 	system := common.MapStr{}
-	enhancer.Add(system, "hostname", s.Hostname)
-	enhancer.Add(system, "architecture", s.Architecture)
-	enhancer.Add(system, "platform", s.Platform)
+	utility.AddStrPtr(system, "hostname", s.Hostname)
+	utility.AddStrPtr(system, "architecture", s.Architecture)
+	utility.AddStrPtr(system, "platform", s.Platform)
 
 	return system
 }
