@@ -32,6 +32,22 @@ func TestDecode(t *testing.T) {
 	assert.Equal(t, data, body)
 }
 
+func TestDecodeContentType(t *testing.T) {
+	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
+	assert.Nil(t, err)
+	buffer := bytes.NewReader(transactionBytes)
+	var data map[string]interface{}
+	json.Unmarshal(transactionBytes, &data)
+
+	req, err := http.NewRequest("POST", "_", buffer)
+	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
+	assert.Nil(t, err)
+
+	body, err := DecodeLimitJSONData(1024 * 1024)(req)
+	assert.Nil(t, err)
+	assert.Equal(t, data, body)
+}
+
 func TestDecodeSizeLimit(t *testing.T) {
 	minimalValid := func() *http.Request {
 		req, err := http.NewRequest("POST", "_", strings.NewReader("{}"))
