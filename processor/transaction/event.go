@@ -27,34 +27,43 @@ type Dropped struct {
 	Total *int
 }
 
-func (ev *Event) DocType() string {
+func (t *Event) DocType() string {
 	return "transaction"
 }
 
-func (ev *Event) Transform() common.MapStr {
+func (t *Event) Transform() common.MapStr {
 	enh := utility.NewMapStrEnhancer()
-	tx := common.MapStr{"id": ev.Id}
-	enh.Add(tx, "name", ev.Name)
-	enh.Add(tx, "duration", utility.MillisAsMicros(ev.Duration))
-	enh.Add(tx, "type", ev.Type)
-	enh.Add(tx, "result", ev.Result)
-	enh.Add(tx, "marks", ev.Marks)
+	tx := common.MapStr{"id": t.Id}
+	enh.Add(tx, "name", t.Name)
+	enh.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
+	enh.Add(tx, "type", t.Type)
+	enh.Add(tx, "result", t.Result)
+	enh.Add(tx, "marks", t.Marks)
 
-	if ev.Sampled == nil {
+	if t.Sampled == nil {
 		enh.Add(tx, "sampled", true)
 	} else {
-		enh.Add(tx, "sampled", ev.Sampled)
+		enh.Add(tx, "sampled", t.Sampled)
 	}
 
-	if ev.SpanCount.Dropped.Total != nil {
+	if t.SpanCount.Dropped.Total != nil {
 		s := common.MapStr{
 			"dropped": common.MapStr{
-				"total": *ev.SpanCount.Dropped.Total,
+				"total": *t.SpanCount.Dropped.Total,
 			},
 		}
 		enh.Add(tx, "span_count", s)
 	}
 	return tx
+}
+
+// This updates the event in place
+func (t *Event) contextTransform(pa *payload) common.MapStr {
+	if t.Context == nil {
+		t.Context = make(map[string]interface{})
+	}
+	utility.InsertInMap(t.Context, "user", pa.User)
+	return t.Context
 }
 
 func (t *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
@@ -63,7 +72,7 @@ func (t *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
 			return common.MapStr{"name": processorName, "event": t.DocType()}
 		}},
 		{Key: t.DocType(), Apply: t.Transform},
-		{Key: "context", Apply: func() common.MapStr { return t.Context }},
+		{Key: "context", Apply: func() common.MapStr { return t.contextTransform(pa) }},
 		{Key: "context.service", Apply: pa.Service.Transform},
 		{Key: "context.system", Apply: pa.System.Transform},
 		{Key: "context.process", Apply: pa.Process.Transform},

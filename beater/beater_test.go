@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -235,18 +235,18 @@ func SetupServer(b *testing.B) *http.ServeMux {
 func pluralize(entity string) string {
 	return entity + "s"
 }
-func createPayload(entitytype string, numEntities int) []byte {
-	data, err := tests.LoadValidData(entitytype)
+func createPayload(entityType string, numEntities int) []byte {
+	data, err := loader.LoadValidData(entityType)
 	if err != nil {
 		panic(err)
 	}
 	var entityList []interface{}
-	testEntities := data[pluralize(entitytype)].([]interface{})
+	testEntities := data[pluralize(entityType)].([]interface{})
 
 	for i := 0; i < numEntities; i++ {
 		entityList = append(entityList, testEntities[i%len(testEntities)])
 	}
-	data[pluralize(entitytype)] = entityList
+	data[pluralize(entityType)] = entityList
 	out, err := json.Marshal(data)
 	if err != nil {
 		panic(err)

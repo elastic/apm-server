@@ -97,6 +97,31 @@ class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
         self.check_library_frames({"true": 1, "false": 1, "empty": 0}, "span")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_enrich_backend_event(self):
+        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/transactions', 'transaction', 9)
+
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "transaction"}}})
+
+        assert "ip" in rs['hits']['hits'][0]["_source"]["context"]["system"], rs['hits']
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_enrich_frontend_event(self):
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
+                                     'error',
+                                     1)
+
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "error"}}})
+
+        hits = rs['hits']['hits']
+        for hit in hits:
+            assert "ip" in hit["_source"]["context"]["user"], rs['hits']
+            assert "user_agent" in hit["_source"]["context"]["user"], rs['hits']
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_grouping_key_for_error(self):
         # upload the same error, once via frontend, once via backend endpoint
         # check they don't have the same grouping key, as the
@@ -319,7 +344,8 @@ class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
     def test_frontend_error_changed_index(self):
         # use an uncleaned path to test that path is cleaned in upload
         path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
-        r = self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
+        r = self.upload_sourcemap(
+            file_name='bundle.js.map', bundle_filepath=path)
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
 
@@ -332,7 +358,6 @@ class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
 
 
 class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
-
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
