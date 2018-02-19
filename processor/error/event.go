@@ -122,9 +122,7 @@ func (e *Event) addException(config *pr.Config, service m.Service) {
 	}
 
 	st := e.Exception.Stacktrace.Transform(config, service)
-	if len(st) > 0 {
-		utility.Add(ex, "stacktrace", st)
-	}
+	utility.Add(ex, "stacktrace", st)
 
 	e.add("exception", ex)
 }
@@ -139,9 +137,7 @@ func (e *Event) addLog(config *pr.Config, service m.Service) {
 	utility.Add(log, "logger_name", e.Log.LoggerName)
 	utility.Add(log, "level", e.Log.Level)
 	st := e.Log.Stacktrace.Transform(config, service)
-	if len(st) > 0 {
-		utility.Add(log, "stacktrace", st)
-	}
+	utility.Add(log, "stacktrace", st)
 
 	e.add("log", log)
 }
