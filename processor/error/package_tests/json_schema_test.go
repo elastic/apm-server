@@ -27,7 +27,6 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"errors.context.request.cookies.c1",
 		"errors.context.request.cookies.c2",
 		"errors.context.tags.organization_uuid",
-		"errors.context.system.ip",
 	)
 	tests.TestPayloadAttributesInSchema(t, "error", undocumented, er.Schema())
 }
