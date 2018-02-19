@@ -4,8 +4,27 @@
 :pull: https://github.com/elastic/apm-server/pull/
 
 
+
 === APM Server version HEAD
-https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828e0761d\...master[View commits]
+https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af663756c6\...master[View commits]
+
+==== Breaking changes
+
+==== Bug fixes
+
+- Accept charset in request's content type {pull}677[677].
+
+==== Added
+
+==== Deprecated
+
+==== Known Issues
+
+
+
+
+=== APM Server version 6.2
+https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828e0761d\...4daa36bd5c144cf9182afc62dc8042af663756c6[View commits]
 
 ==== Breaking changes
 - Renaming and reverse boolean `in_app` to `library_frame` {pull}385[385].
