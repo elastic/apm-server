@@ -20,7 +20,7 @@ type Decoder func(req *http.Request) (map[string]interface{}, error)
 func DecodeLimitJSONData(maxSize int64) Decoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
 		contentType := req.Header.Get("Content-Type")
-		if contentType != "application/json" {
+		if !strings.Contains(contentType, "application/json") {
 			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
 		}
 
