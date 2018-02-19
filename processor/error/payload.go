@@ -50,7 +50,7 @@ func (pa *payload) transform(config *pr.Config) []beat.Event {
 			Timestamp: event.Timestamp,
 		}
 		if event.Transaction != nil {
-			ev.Fields["transaction"] = common.MapStr{"id": event.Transaction.Id}
+			ev.Fields["transaction"] = common.MapStr{"id": event.Transaction.TransactionId}
 		}
 
 		events = append(events, ev)
