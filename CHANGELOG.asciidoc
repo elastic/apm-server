@@ -16,6 +16,8 @@ https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af66
 
 ==== Added
 
+- Enriched data with IP and UserAgent {pull}393[393].
+
 ==== Deprecated
 
 ==== Known Issues
