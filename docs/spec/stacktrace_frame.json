@@ -11,7 +11,7 @@
         },
         "colno": {
             "description": "Column number",
-            "type": ["number", "null"]
+            "type": ["integer", "null"]
         },
         "context_line": {
             "description": "The line of code part of the stack frame",
@@ -31,7 +31,7 @@
         },
         "lineno": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "number"
+            "type": "integer"
         },
         "module": {
             "description": "The module to which frame belongs to",
