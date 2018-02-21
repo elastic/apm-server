@@ -185,7 +185,7 @@ Currently,
 Elastic APM has agents for Node.js and for Python.
 
 Setting up a new service to be monitored requires installing the agent in the service,
-coming up with a good app name for the service,
+coming up with a good name for the service,
 and then configuring the agents so they know the address of your APM Server and the service name.
 
 [[choose-service-name]]
@@ -220,8 +220,8 @@ Then configure the elastic-apm-node module inside your service by adding the fol
 ----------------------------------
 // Add this to the VERY top of the first file loaded in your app
 var apm = require('elastic-apm-node').start({
-  // Set required app name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
-  appName: '',
+  // Set required service name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
+  serviceName: '',
 
   // Use if APM Server requires a token
   secretToken: '',

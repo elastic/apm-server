@@ -106,11 +106,11 @@ var transactionSchema = `{
   "properties": {
       "pid": {
           "description": "Process ID of the service",
-          "type": ["number"]
+          "type": ["integer"]
       },
       "ppid": {
           "description": "Parent process ID of the service",
-          "type": ["number", "null"]
+          "type": ["integer", "null"]
       },
       "title": {
           "type": ["string", "null"],
@@ -195,7 +195,7 @@ var transactionSchema = `{
                 },
                 "status_code": {
                     "description": "The HTTP status code of the response.",
-                    "type": ["number", "null"]
+                    "type": ["integer", "null"]
                 }
             }
         },
@@ -327,9 +327,9 @@ var transactionSchema = `{
     "properties": {
         "id": {
             "description": "Identifier of the logged in user, e.g. the primary key of the user",
-            "type": ["string", "number", "null"],
+            "type": ["string", "integer", "null"],
             "maxLength": 1024
-        },    
+        },
         "email": {
             "description": "Email of the logged in user",
             "type": ["string", "null"],
@@ -377,7 +377,7 @@ var transactionSchema = `{
     "type": "object",
     "properties": {
         "id": {
-            "type": ["number", "null"],
+            "type": ["integer", "null"],
             "description": "The locally unique ID of the span."
         },
         "context": {
@@ -418,7 +418,7 @@ var transactionSchema = `{
             "maxLength": 1024
         },
         "parent": {
-            "type": ["number", "null"],
+            "type": ["integer", "null"],
             "description": "The locally unique ID of the parent of the span."
         },
         "stacktrace": {
@@ -437,7 +437,7 @@ var transactionSchema = `{
         },
         "colno": {
             "description": "Column number",
-            "type": ["number", "null"]
+            "type": ["integer", "null"]
         },
         "context_line": {
             "description": "The line of code part of the stack frame",
@@ -457,7 +457,7 @@ var transactionSchema = `{
         },
         "lineno": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "number"
+            "type": "integer"
         },
         "module": {
             "description": "The module to which frame belongs to",
@@ -518,7 +518,7 @@ var transactionSchema = `{
             "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
             "regexProperties": true,
             "patternProperties": {
-                "^[^.*\"]*$": { 
+                "^[^.*\"]*$": {
                         "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/transactions/mark.json",
     "type": ["object", "null"],
@@ -544,7 +544,7 @@ var transactionSchema = `{
                     "type": ["object", "null"],
                     "properties": {
                         "total": {
-                            "type": ["number","null"],
+                            "type": ["integer","null"],
                             "description": "Number of spans that have been dropped by the agent recording the transaction."
                         }
                     }

@@ -36,30 +36,26 @@ func TestAdd(t *testing.T) {
 		{addStrArrNil, []string{"something"}, base},
 	}
 	for _, testDataRow := range testData {
-		assert, enhancer, base := setup(t)
+		base := baseMapStr()
 
-		enhancer.Add(base, addKey, testDataRow[0])
-		assert.Equal(testDataRow[2], base)
+		Add(base, addKey, testDataRow[0])
+		assert.Equal(t, testDataRow[2], base)
 	}
 }
 
 func TestStringWithDefault(t *testing.T) {
-	assert, enhancer, base := setup(t)
-
+	base := baseMapStr()
 	add := "foo"
 	newMap := common.MapStr{"existing": "foo", "added": "foo"}
-	enhancer.AddStrWithDefault(base, addKey, &add, "bar")
-	assert.Equal(newMap, base)
+	AddStrWithDefault(base, addKey, &add, "bar")
+	assert.Equal(t, newMap, base)
 
-	assert, enhancer, base = setup(t)
-	enhancer.AddStrWithDefault(base, addKey, nil, "bar")
+	base = baseMapStr()
+	AddStrWithDefault(base, addKey, nil, "bar")
 	newMap = common.MapStr{"existing": "foo", "added": "bar"}
-	assert.Equal(newMap, base)
+	assert.Equal(t, newMap, base)
 }
 
-func setup(t *testing.T) (*assert.Assertions, MapStrEnhancer, common.MapStr) {
-	a := assert.New(t)
-	enhancer := NewMapStrEnhancer()
-	base := common.MapStr{"existing": "foo"}
-	return a, enhancer, base
+func baseMapStr() common.MapStr {
+	return common.MapStr{"existing": "foo"}
 }

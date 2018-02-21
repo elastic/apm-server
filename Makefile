@@ -12,7 +12,7 @@ BEATS_VERSION?=master
 NOTICE_FILE=NOTICE.txt
 LICENSE_FILE=LICENSE.txt
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
-GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/version.buildTime=$(NOW) -X $(BEAT_PATH)/version.commit=$(COMMIT_ID)"
+GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
@@ -55,8 +55,13 @@ create-docs:
 	@mkdir -p docs/data/intake-api/generated/error
 	@mkdir -p docs/data/intake-api/generated/transaction
 	@mkdir -p docs/data/intake-api/generated/sourcemap
-	@cp tests/data/valid/error/* docs/data/intake-api/generated/error/
-	@cp tests/data/valid/transaction/* docs/data/intake-api/generated/transaction/
+	@cp tests/data/valid/error/payload.json docs/data/intake-api/generated/error/
+	@cp tests/data/valid/error/frontend.json docs/data/intake-api/generated/error/
+	@cp tests/data/valid/error/minimal_payload_exception.json docs/data/intake-api/generated/error/
+	@cp tests/data/valid/error/minimal_payload_log.json docs/data/intake-api/generated/error/
+	@cp tests/data/valid/transaction/payload.json docs/data/intake-api/generated/transaction/
+	@cp tests/data/valid/transaction/minimal_payload.json docs/data/intake-api/generated/transaction/
+	@cp tests/data/valid/transaction/minimal_span.json docs/data/intake-api/generated/transaction/
 	@cp tests/data/valid/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
 
 # Start manual testing environment with agents

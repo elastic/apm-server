@@ -15,7 +15,7 @@ type Event struct {
 	Duration  float64
 	Timestamp time.Time
 	Context   common.MapStr
-	Spans     []Span
+	Spans     []*Span
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount `mapstructure:"span_count"`
@@ -27,47 +27,36 @@ type Dropped struct {
 	Total *int
 }
 
-func (ev *Event) DocType() string {
-	return "transaction"
-}
+func (t *Event) Transform() common.MapStr {
+	tx := common.MapStr{"id": t.Id}
+	utility.Add(tx, "name", t.Name)
+	utility.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
+	utility.Add(tx, "type", t.Type)
+	utility.Add(tx, "result", t.Result)
+	utility.Add(tx, "marks", t.Marks)
 
-func (ev *Event) Transform() common.MapStr {
-	enh := utility.NewMapStrEnhancer()
-	tx := common.MapStr{"id": ev.Id}
-	enh.Add(tx, "name", ev.Name)
-	enh.Add(tx, "duration", utility.MillisAsMicros(ev.Duration))
-	enh.Add(tx, "type", ev.Type)
-	enh.Add(tx, "result", ev.Result)
-	enh.Add(tx, "marks", ev.Marks)
-
-	if ev.Sampled == nil {
-		enh.Add(tx, "sampled", true)
+	if t.Sampled == nil {
+		utility.Add(tx, "sampled", true)
 	} else {
-		enh.Add(tx, "sampled", ev.Sampled)
+		utility.Add(tx, "sampled", t.Sampled)
 	}
 
-	if ev.SpanCount.Dropped.Total != nil {
+	if t.SpanCount.Dropped.Total != nil {
 		s := common.MapStr{
 			"dropped": common.MapStr{
-				"total": *ev.SpanCount.Dropped.Total,
+				"total": *t.SpanCount.Dropped.Total,
 			},
 		}
-		enh.Add(tx, "span_count", s)
+		utility.Add(tx, "span_count", s)
 	}
 	return tx
 }
 
-func (t *Event) Mappings(pa *payload) (time.Time, []utility.DocMapping) {
-	mapping := []utility.DocMapping{
-		{Key: "processor", Apply: func() common.MapStr {
-			return common.MapStr{"name": processorName, "event": t.DocType()}
-		}},
-		{Key: t.DocType(), Apply: t.Transform},
-		{Key: "context", Apply: func() common.MapStr { return t.Context }},
-		{Key: "context.service", Apply: pa.Service.Transform},
-		{Key: "context.system", Apply: pa.System.Transform},
-		{Key: "context.process", Apply: pa.Process.Transform},
+// This updates the event in place
+func (t *Event) contextTransform(pa *payload) common.MapStr {
+	if t.Context == nil {
+		t.Context = make(map[string]interface{})
 	}
-
-	return t.Timestamp, mapping
+	utility.InsertInMap(t.Context, "user", pa.User)
+	return t.Context
 }

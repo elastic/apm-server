@@ -16,5 +16,7 @@ func TestEsDocumentation(t *testing.T) {
 	}
 	processorFn := transaction.NewProcessor
 	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, processorFn)
-	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, processorFn, set.New("listening", "view spans"))
+	// IP and user agent are generated in the server, so they do not come from a payload
+	tests.TestDocumentedFieldsInEvent(t, fieldsPaths, processorFn,
+		set.New("listening", "view spans", "context.user.user_agent", "context.user.ip", "context.system.ip"))
 }

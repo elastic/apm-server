@@ -106,11 +106,11 @@ var errorSchema = `{
   "properties": {
       "pid": {
           "description": "Process ID of the service",
-          "type": ["number"]
+          "type": ["integer"]
       },
       "ppid": {
           "description": "Parent process ID of the service",
-          "type": ["number", "null"]
+          "type": ["integer", "null"]
       },
       "title": {
           "type": ["string", "null"],
@@ -172,7 +172,7 @@ var errorSchema = `{
                 },
                 "status_code": {
                     "description": "The HTTP status code of the response.",
-                    "type": ["number", "null"]
+                    "type": ["integer", "null"]
                 }
             }
         },
@@ -304,9 +304,9 @@ var errorSchema = `{
     "properties": {
         "id": {
             "description": "Identifier of the logged in user, e.g. the primary key of the user",
-            "type": ["string", "number", "null"],
+            "type": ["string", "integer", "null"],
             "maxLength": 1024
-        },    
+        },
         "email": {
             "description": "Email of the logged in user",
             "type": ["string", "null"],
@@ -330,7 +330,7 @@ var errorSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "code": {
-                    "type": ["string", "number", "null"],
+                    "type": ["string", "integer", "null"],
                     "maxLength": 1024,
                     "description": "The error code set when the error happened, e.g. database error code."
                 },
@@ -361,7 +361,7 @@ var errorSchema = `{
         },
         "colno": {
             "description": "Column number",
-            "type": ["number", "null"]
+            "type": ["integer", "null"]
         },
         "context_line": {
             "description": "The line of code part of the stack frame",
@@ -381,7 +381,7 @@ var errorSchema = `{
         },
         "lineno": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "number"
+            "type": "integer"
         },
         "module": {
             "description": "The module to which frame belongs to",
@@ -471,7 +471,7 @@ var errorSchema = `{
         },
         "colno": {
             "description": "Column number",
-            "type": ["number", "null"]
+            "type": ["integer", "null"]
         },
         "context_line": {
             "description": "The line of code part of the stack frame",
@@ -491,7 +491,7 @@ var errorSchema = `{
         },
         "lineno": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "number"
+            "type": "integer"
         },
         "module": {
             "description": "The module to which frame belongs to",

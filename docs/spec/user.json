@@ -7,9 +7,9 @@
     "properties": {
         "id": {
             "description": "Identifier of the logged in user, e.g. the primary key of the user",
-            "type": ["string", "number", "null"],
+            "type": ["string", "integer", "null"],
             "maxLength": 1024
-        },    
+        },
         "email": {
             "description": "Email of the logged in user",
             "type": ["string", "null"],

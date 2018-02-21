@@ -6,11 +6,11 @@
   "properties": {
       "pid": {
           "description": "Process ID of the service",
-          "type": ["number"]
+          "type": ["integer"]
       },
       "ppid": {
           "description": "Parent process ID of the service",
-          "type": ["number", "null"]
+          "type": ["integer", "null"]
       },
       "title": {
           "type": ["string", "null"],
