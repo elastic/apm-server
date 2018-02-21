@@ -26,11 +26,23 @@ type StacktraceFrame struct {
 	ExcludeFromGrouping bool
 
 	Sourcemap Sourcemap
+	Original  Original
 }
 
 type Sourcemap struct {
 	Updated *bool
 	Error   *string
+}
+
+type Original struct {
+	AbsPath      *string
+	Filename     string
+	Lineno       int
+	Colno        *int
+	Function     *string
+	LibraryFrame *bool
+
+	sourcemapCopied bool
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {
@@ -67,6 +79,17 @@ func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {
 	enhancer.Add(sm, "error", s.Sourcemap.Error)
 	enhancer.Add(m, "sourcemap", sm)
 
+	orig := common.MapStr{}
+	enhancer.Add(orig, "library_frame", s.Original.LibraryFrame)
+	if s.Sourcemap.Updated != nil && *(s.Sourcemap.Updated) {
+		enhancer.Add(orig, "filename", s.Original.Filename)
+		enhancer.Add(orig, "abs_path", s.Original.AbsPath)
+		enhancer.Add(orig, "function", s.Original.Function)
+		enhancer.Add(orig, "colno", s.Original.Colno)
+		enhancer.Add(orig, "lineno", s.Original.Lineno)
+	}
+	enhancer.Add(m, "original", orig)
+
 	return m
 }
 
@@ -83,18 +106,21 @@ func (s *StacktraceFrame) setExcludeFromGrouping(pattern *regexp.Regexp) {
 }
 
 func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
+	s.Original.LibraryFrame = s.LibraryFrame
 	libraryFrame := pattern.MatchString(s.Filename) ||
 		(s.AbsPath != nil && pattern.MatchString(*s.AbsPath))
 	s.LibraryFrame = &libraryFrame
 }
 
 func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Service, prevFunction string) string {
-	if s.Colno == nil {
+	s.setOriginalSourcemapData()
+
+	if s.Original.Colno == nil {
 		s.updateError("Colno mandatory for sourcemapping.")
 		return prevFunction
 	}
 	sourcemapId := s.buildSourcemapId(service)
-	mapping, err := mapper.Apply(sourcemapId, s.Lineno, *s.Colno)
+	mapping, err := mapper.Apply(sourcemapId, s.Original.Lineno, *s.Original.Colno)
 	if err != nil {
 		logp.NewLogger("stacktrace").Errorf("failed to apply sourcemap %s", err.Error())
 		e, isSourcemapError := err.(sourcemap.Error)
@@ -118,6 +144,19 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Servic
 		return mapping.Function
 	}
 	return "<unknown>"
+}
+
+func (s *StacktraceFrame) setOriginalSourcemapData() {
+	if s.Original.sourcemapCopied {
+		return
+	}
+	s.Original.Colno = s.Colno
+	s.Original.AbsPath = s.AbsPath
+	s.Original.Function = s.Function
+	s.Original.Lineno = s.Lineno
+	s.Original.Filename = s.Filename
+
+	s.Original.sourcemapCopied = true
 }
 
 func (s *StacktraceFrame) buildSourcemapId(service Service) sourcemap.Id {

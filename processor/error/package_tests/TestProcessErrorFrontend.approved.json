@@ -41,6 +41,14 @@
                                 "column": 0,
                                 "number": 5
                             },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/../test/e2e/general-usecase/bundle.js.map",
+                                "colno": 18,
+                                "filename": "test/e2e/general-usecase/bundle.js.map",
+                                "function": "\u003canonymous\u003e",
+                                "library_frame": true,
+                                "lineno": 1
+                            },
                             "sourcemap": {
                                 "updated": true
                             }
@@ -54,6 +62,14 @@
                             "line": {
                                 "column": 0,
                                 "number": 33
+                            },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/./e2e/general-usecase/bundle.js.map",
+                                "colno": 181,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "invokeTask",
+                                "library_frame": false,
+                                "lineno": 1
                             },
                             "sourcemap": {
                                 "updated": true
@@ -69,6 +85,13 @@
                                 "column": 0,
                                 "number": 5
                             },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "colno": 15,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "runTask",
+                                "lineno": 1
+                            },
                             "sourcemap": {
                                 "updated": true
                             }
@@ -83,6 +106,13 @@
                                 "column": 0,
                                 "number": 39
                             },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "colno": 199,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "invoke",
+                                "lineno": 1
+                            },
                             "sourcemap": {
                                 "updated": true
                             }
@@ -96,6 +126,13 @@
                             "line": {
                                 "column": 0,
                                 "number": 8
+                            },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "colno": 33,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "timer",
+                                "lineno": 1
                             },
                             "sourcemap": {
                                 "updated": true
@@ -118,6 +155,13 @@
                             "line": {
                                 "column": 0,
                                 "number": 5
+                            },
+                            "original": {
+                                "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                                "colno": 18,
+                                "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                                "function": "\u003canonymous\u003e",
+                                "lineno": 1
                             },
                             "sourcemap": {
                                 "updated": true
