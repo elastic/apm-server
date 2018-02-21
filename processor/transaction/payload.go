@@ -3,7 +3,6 @@ package transaction
 import (
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -22,33 +21,25 @@ type payload struct {
 	System  *m.System
 	Process *m.Process
 	Events  []Event `mapstructure:"transactions"`
-	User    map[string]interface{}
+	Context common.MapStr
+	User    common.MapStr
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {
 	var events []beat.Event
-	spanService := pa.Service.MinimalTransform()
-	service := pa.Service.Transform()
-	system := pa.System.Transform()
-	process := pa.Process.Transform()
+	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
+	spanContext := NewSpanContext(&pa.Service)
 
 	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	transactionCounter.Add(int64(len(pa.Events)))
 	for _, event := range pa.Events {
-		context := event.contextTransform(pa)
-		if context == nil {
-			context = common.MapStr{}
-		}
-		utility.Add(context, "service", service)
-		utility.Add(context, "system", system)
-		utility.Add(context, "process", process)
 
 		ev := beat.Event{
 			Fields: common.MapStr{
 				"processor":        processorTransEntry,
 				transactionDocType: event.Transform(),
-				"context":          context,
+				"context":          context.Transform(event.Context),
 			},
 			Timestamp: event.Timestamp,
 		}
@@ -57,18 +48,12 @@ func (pa *payload) transform(config *pr.Config) []beat.Event {
 		trId := common.MapStr{"id": event.Id}
 		spanCounter.Add(int64(len(event.Spans)))
 		for _, sp := range event.Spans {
-			c := sp.Context
-			if c == nil && spanService != nil {
-				c = common.MapStr{}
-			}
-			utility.Add(c, "service", spanService)
-
 			ev := beat.Event{
 				Fields: common.MapStr{
 					"processor":   processorSpanEntry,
 					spanDocType:   sp.Transform(config, pa.Service),
 					"transaction": trId,
-					"context":     c,
+					"context":     spanContext.Transform(sp.Context),
 				},
 				Timestamp: event.Timestamp,
 			}

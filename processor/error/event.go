@@ -62,15 +62,6 @@ func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
 	return e.data
 }
 
-// This updates the event in place
-func (e *Event) contextTransform(pa *payload) common.MapStr {
-	if e.Context == nil {
-		e.Context = make(map[string]interface{})
-	}
-	utility.InsertInMap(e.Context, "user", pa.User)
-	return e.Context
-}
-
 func (e *Event) updateCulprit(config *pr.Config) {
 	if config == nil || config.SmapMapper == nil {
 		return
