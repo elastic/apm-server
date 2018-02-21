@@ -21,7 +21,7 @@ func TestSystemTransform(t *testing.T) {
 	}{
 		{
 			System: System{},
-			Output: common.MapStr{},
+			Output: nil,
 		},
 		{
 			System: System{
