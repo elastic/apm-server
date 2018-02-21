@@ -12,8 +12,6 @@ type Process struct {
 	Argv  []string
 }
 
-type TransformProcess func(a *Process) common.MapStr
-
 func (p *Process) Transform() common.MapStr {
 	if p == nil {
 		return nil

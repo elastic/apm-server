@@ -8,12 +8,6 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestProcessTransformDefinition(t *testing.T) {
-	myfn := func(fn TransformProcess) string { return "ok" }
-	res := myfn((*Process).Transform)
-	assert.Equal(t, "ok", res)
-}
-
 func TestProcessTransform(t *testing.T) {
 	pid := 1234
 	processTitle := "node"
