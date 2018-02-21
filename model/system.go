@@ -21,9 +21,5 @@ func (s *System) Transform() common.MapStr {
 	utility.Add(system, "architecture", s.Architecture)
 	utility.Add(system, "platform", s.Platform)
 	utility.Add(system, "ip", s.IP)
-
-	if len(system) == 0 {
-		return nil
-	}
 	return system
 }

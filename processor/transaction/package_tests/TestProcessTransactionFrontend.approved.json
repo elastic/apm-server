@@ -3,7 +3,6 @@
         {
             "@timestamp": "2017-12-08T12:52:53.681Z",
             "context": {
-                "_debug": {},
                 "_metrics": {
                     "connectEnd": 14,
                     "connectStart": 14,
