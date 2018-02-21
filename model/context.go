@@ -26,6 +26,7 @@ func (c *Context) Transform(m common.MapStr) common.MapStr {
 		m = common.MapStr{}
 	} else {
 		for k, v := range m {
+			// normalize map entries by calling utility.Add
 			utility.Add(m, k, v)
 		}
 	}
@@ -33,8 +34,5 @@ func (c *Context) Transform(m common.MapStr) common.MapStr {
 	utility.Add(m, "process", c.process)
 	utility.Add(m, "system", c.system)
 	utility.MergeAdd(m, "user", c.user)
-	if len(m) == 0 {
-		return nil
-	}
 	return m
 }

@@ -31,9 +31,6 @@
         {
             "@timestamp": "2017-05-30T18:53:42Z",
             "context": {
-                "custom": null,
-                "request": null,
-                "response": null,
                 "service": {
                     "agent": {
                         "name": "ruby",
@@ -43,9 +40,7 @@
                         "name": "ruby"
                     },
                     "name": "1234_service-12a3"
-                },
-                "tags": null,
-                "user": null
+                }
             },
             "processor": {
                 "event": "transaction",
@@ -63,31 +58,8 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281999Z",
             "context": {
-                "custom": null,
                 "request": {
-                    "body": null,
-                    "cookies": null,
-                    "env": null,
-                    "headers": null,
-                    "http_version": null,
-                    "method": "POST",
-                    "socket": null,
-                    "url": {
-                        "full": null,
-                        "hash": null,
-                        "hostname": null,
-                        "pathname": null,
-                        "port": null,
-                        "protocol": null,
-                        "raw": null,
-                        "search": null
-                    }
-                },
-                "response": {
-                    "finished": null,
-                    "headers": null,
-                    "headers_sent": null,
-                    "status_code": null
+                    "method": "POST"
                 },
                 "service": {
                     "agent": {
@@ -98,11 +70,6 @@
                         "name": "ruby"
                     },
                     "name": "1234_service-12a3"
-                },
-                "user": {
-                    "email": null,
-                    "id": null,
-                    "username": null
                 }
             },
             "processor": {
@@ -132,22 +99,7 @@
                     "some_other_value": "foo bar"
                 },
                 "request": {
-                    "headers": {
-                        "content-type": null,
-                        "cookie": null,
-                        "user-agent": null
-                    },
-                    "method": "POST",
-                    "socket": {
-                        "encrypted": null,
-                        "remote_address": null
-                    },
-                    "url": {}
-                },
-                "response": {
-                    "headers": {
-                        "content-type": null
-                    }
+                    "method": "POST"
                 },
                 "service": {
                     "agent": {
@@ -208,7 +160,6 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "db": null,
                 "service": {
                     "agent": {
                         "name": "ruby",
@@ -247,12 +198,6 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "context": {
-                "db": {
-                    "instance": null,
-                    "statement": null,
-                    "type": null,
-                    "user": null
-                },
                 "service": {
                     "agent": {
                         "name": "ruby",

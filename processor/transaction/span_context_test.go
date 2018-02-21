@@ -50,7 +50,7 @@ func TestSpanContextTransform(t *testing.T) {
 		{
 			context: &SpanContext{},
 			m:       common.MapStr{},
-			out:     nil,
+			out:     common.MapStr{},
 		},
 		{
 			context: &SpanContext{},
