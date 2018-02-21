@@ -33,7 +33,7 @@ func TestServiceSchema(t *testing.T) {
 
 func TestUserSchema(t *testing.T) {
 	testData := []SchemaTestData{
-		{File: "invalid_type_id.json", Error: "expected string or number or null"},
+		{File: "invalid_type_id.json", Error: "expected string or integer or null"},
 		{File: "invalid_type_email.json", Error: "expected string or null"},
 		{File: "invalid_type_username.json", Error: "expected string or null"},
 	}
@@ -121,7 +121,7 @@ func TestErrorSchema(t *testing.T) {
 		{File: "no_log_or_exception.json", Error: "missing properties: \"exception\""},
 		{File: "no_log_or_exception.json", Error: "missing properties: \"log\""},
 		{File: "no_timestamp.json", Error: "missing properties: \"timestamp\""},
-		{File: "invalid_code.json", Error: "expected string or number or null"},
+		{File: "invalid_code.json", Error: "expected string or integer or null"},
 	}
 	testDataAgainstSchema(t, testData, "errors/error", "error", `"$ref": "../docs/spec/errors/`)
 }

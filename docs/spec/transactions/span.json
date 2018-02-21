@@ -4,7 +4,7 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": ["number", "null"],
+            "type": ["integer", "null"],
             "description": "The locally unique ID of the span."
         },
         "context": {
@@ -45,7 +45,7 @@
             "maxLength": 1024
         },
         "parent": {
-            "type": ["number", "null"],
+            "type": ["integer", "null"],
             "description": "The locally unique ID of the parent of the span."
         },
         "stacktrace": {

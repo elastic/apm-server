@@ -46,6 +46,7 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Updated readme doc urls {pull}356[356]
 - Use updated stack trace frame values for calculating error `grouping_keys` {pull}485[485]
 - Fix panic when a signal is delivered before the server is instantiated {pull}580[580]
+- Use type integer instead of number in JSON schemas where applicable {pull}641[641]
 
 ==== Added
 - service.environment {pull}366[366]

@@ -35,7 +35,7 @@
                 },
                 "status_code": {
                     "description": "The HTTP status code of the response.",
-                    "type": ["number", "null"]
+                    "type": ["integer", "null"]
                 }
             }
         },

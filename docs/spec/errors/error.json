@@ -16,7 +16,7 @@
             "type": ["object", "null"],
             "properties": {
                 "code": {
-                    "type": ["string", "number", "null"],
+                    "type": ["string", "integer", "null"],
                     "maxLength": 1024,
                     "description": "The error code set when the error happened, e.g. database error code."
                 },
