@@ -1,6 +1,8 @@
 package utility
 
 import (
+	"reflect"
+
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -8,57 +10,96 @@ func Add(m common.MapStr, key string, val interface{}) {
 	if m == nil || key == "" {
 		return
 	}
+	if val == nil {
+		delete(m, key)
+		return
+	}
+
 	switch val.(type) {
 	case *bool:
 		if newVal := val.(*bool); newVal != nil {
 			m[key] = *newVal
+		} else {
+			delete(m, key)
 		}
 	case *int:
 		if newVal := val.(*int); newVal != nil {
 			m[key] = *newVal
+		} else {
+			delete(m, key)
 		}
 	case *string:
 		if newVal := val.(*string); newVal != nil {
 			m[key] = *newVal
+		} else {
+			delete(m, key)
 		}
 	case common.MapStr:
 		if valMap := val.(common.MapStr); len(valMap) > 0 {
 			for k, v := range valMap {
 				Add(valMap, k, v)
 			}
-			m[key] = valMap
 			if len(valMap) > 0 {
 				m[key] = valMap
+			} else {
+				delete(m, key)
 			}
+		} else {
+			delete(m, key)
 		}
 	case map[string]interface{}:
-		valMap := val.(map[string]interface{})
-		if len(valMap) > 0 {
+		if valMap := val.(map[string]interface{}); len(valMap) > 0 {
 			for k, v := range valMap {
 				Add(valMap, k, v)
 			}
 			if len(valMap) > 0 {
 				m[key] = valMap
+			} else {
+				delete(m, key)
 			}
+		} else {
+			delete(m, key)
 		}
-	case []string:
-		if valArr := val.([]string); len(valArr) > 0 {
-			m[key] = valArr
+	case float64:
+		floatVal := val.(float64)
+		if floatVal == float64(int64(floatVal)) {
+			m[key] = int64(floatVal)
+		} else {
+			m[key] = common.Float(floatVal)
 		}
-	case []common.MapStr:
-		if valArr := val.([]common.MapStr); len(valArr) > 0 {
-			m[key] = valArr
+	case float32:
+		floatVal := val.(float32)
+		if floatVal == float32(int32(floatVal)) {
+			m[key] = int32(floatVal)
+		} else {
+			m[key] = common.Float(floatVal)
 		}
+	case string, bool, complex64, complex128:
+		m[key] = val
+	case int, int8, int16, int32, int64, uint, uint8, uint32, uint64:
+		m[key] = val
 	default:
-		if val != nil {
-			m[key] = val
+		v := reflect.ValueOf(val)
+		switch v.Type().Kind() {
+		case reflect.Slice, reflect.Array:
+			if v.Len() == 0 {
+				delete(m, key)
+			} else {
+				m[key] = val
+			}
 
+		// do not store values of following type
+		// has been rejected so far by the libbeat normalization
+		case reflect.Interface, reflect.Chan, reflect.Func, reflect.UnsafePointer, reflect.Uintptr:
+
+		default:
+			m[key] = val
 		}
 	}
 }
 
-// MergeAdd modifies `data` *in place*, inserting `values` at the given `key`.
-// If `key` doesn't exist in data (at the top level), it gets created.
+// MergeAdd modifies `m` *in place*, inserting `valu` at the given `key`.
+// If `key` doesn't exist in m(at the top level), it gets created.
 // If the value under `key` is not a map, MergeAdd does nothing.
 func MergeAdd(m common.MapStr, key string, val common.MapStr) {
 	if m == nil || key == "" || val == nil || len(val) == 0 {
@@ -84,15 +125,4 @@ func MillisAsMicros(ms float64) common.MapStr {
 	m := common.MapStr{}
 	m["us"] = int(ms * 1000)
 	return m
-}
-
-func AddStrWithDefault(m common.MapStr, key string, val *string, defaultVal string) {
-	if m == nil || key == "" {
-		return
-	}
-	if val != nil {
-		m[key] = *val
-	} else if defaultVal != "" {
-		m[key] = defaultVal
-	}
 }

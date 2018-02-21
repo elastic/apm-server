@@ -19,12 +19,10 @@ func (c *SpanContext) Transform(m common.MapStr) common.MapStr {
 		m = common.MapStr{}
 	} else {
 		for k, v := range m {
+			// normalize map entries by calling utility.Add
 			utility.Add(m, k, v)
 		}
 	}
 	utility.Add(m, "service", c.service)
-	if len(m) == 0 {
-		return nil
-	}
 	return m
 }

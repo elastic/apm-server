@@ -42,22 +42,7 @@
                     "some_other_value": "foo bar"
                 },
                 "request": {
-                    "headers": {
-                        "content-type": null,
-                        "cookie": null,
-                        "user-agent": null
-                    },
-                    "method": "POST",
-                    "socket": {
-                        "encrypted": null,
-                        "remote_address": null
-                    },
-                    "url": {}
-                },
-                "response": {
-                    "headers": {
-                        "content-type": null
-                    }
+                    "method": "POST"
                 },
                 "service": {
                     "agent": {
@@ -87,31 +72,8 @@
         {
             "@timestamp": "2017-05-09T15:04:05Z",
             "context": {
-                "custom": null,
                 "request": {
-                    "body": null,
-                    "cookies": null,
-                    "env": null,
-                    "headers": null,
-                    "http_version": null,
-                    "method": "POST",
-                    "socket": null,
-                    "url": {
-                        "full": null,
-                        "hash": null,
-                        "hostname": null,
-                        "pathname": null,
-                        "port": null,
-                        "protocol": null,
-                        "raw": null,
-                        "search": null
-                    }
-                },
-                "response": {
-                    "finished": null,
-                    "headers": null,
-                    "headers_sent": null,
-                    "status_code": null
+                    "method": "POST"
                 },
                 "service": {
                     "agent": {
@@ -122,11 +84,6 @@
                         "name": "ruby"
                     },
                     "name": "1234_service-12a3"
-                },
-                "user": {
-                    "email": null,
-                    "id": null,
-                    "username": null
                 }
             },
             "error": {
@@ -143,9 +100,6 @@
         {
             "@timestamp": "2017-05-09T15:04:05.999Z",
             "context": {
-                "custom": null,
-                "request": null,
-                "response": null,
                 "service": {
                     "agent": {
                         "name": "ruby",
@@ -155,9 +109,7 @@
                         "name": "ruby"
                     },
                     "name": "1234_service-12a3"
-                },
-                "tags": null,
-                "user": null
+                }
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

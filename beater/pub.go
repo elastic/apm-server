@@ -43,6 +43,8 @@ func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
 		// TODO: We want to wait for events in pipeline on shutdown?
 		//       If set >0 `Close` will block for the duration or until pipeline is empty
 		WaitClose: 0,
+
+		SkipNormalization: true,
 	})
 	if err != nil {
 		return nil, err

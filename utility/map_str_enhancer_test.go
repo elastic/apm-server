@@ -3,6 +3,7 @@ package utility
 import (
 	"fmt"
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 
@@ -22,15 +23,43 @@ func TestAddGeneral(t *testing.T) {
 }
 
 func TestEmptyCollections(t *testing.T) {
-	m := common.MapStr{"foo": "bar"}
+	m := common.MapStr{"foo": "bar", "user": common.MapStr{"id": "1", "name": "bar"}}
 	add := common.MapStr{}
 	Add(m, "user", add)
 	assert.Equal(t, common.MapStr{"foo": "bar"}, m)
 
-	m = common.MapStr{"foo": "bar"}
+	m = common.MapStr{"foo": "bar", "user": common.MapStr{"id": "1", "name": "bar"}}
+	add = common.MapStr{"id": nil, "email": nil, "info": common.MapStr{"a": nil}}
+	Add(m, "user", add)
+	assert.Equal(t, common.MapStr{"foo": "bar"}, m)
+
+	m = common.MapStr{"foo": "bar", "user": common.MapStr{"id": "1", "name": "bar"}}
+	add = map[string]interface{}{"id": nil, "email": nil, "info": map[string]interface{}{"a": nil}}
+	Add(m, "user", add)
+	assert.Equal(t, common.MapStr{"foo": "bar"}, m)
+
+	m = common.MapStr{"foo": "bar", "user": common.MapStr{"id": "1", "name": "bar"}}
 	add = map[string]interface{}{}
 	Add(m, "user", add)
 	assert.Equal(t, common.MapStr{"foo": "bar"}, m)
+}
+
+func TestIgnoredTypes(t *testing.T) {
+	m := common.MapStr{}
+
+	Add(m, "foo", make(chan int))
+	assert.Equal(t, common.MapStr{}, m)
+
+	Add(m, "foo", func() {})
+	assert.Equal(t, common.MapStr{}, m)
+
+	uintPtr := uintptr(8)
+	Add(m, "foo", uintPtr)
+	assert.Equal(t, common.MapStr{}, m)
+
+	a := []int{}
+	Add(m, "foo", unsafe.Pointer(&a))
+	assert.Equal(t, common.MapStr{}, m)
 }
 
 func TestAdd(t *testing.T) {
@@ -101,6 +130,26 @@ func TestAdd(t *testing.T) {
 			expV: newArrMapStr,
 			nilV: nilArrMapStr,
 		},
+		{
+			v:    float64(5.98),
+			expV: common.Float(5.980000),
+			nilV: nil,
+		},
+		{
+			v:    float32(5.987654321),
+			expV: common.Float(float32(5.987654321)),
+			nilV: nil,
+		},
+		{
+			v:    float64(5),
+			expV: int64(5),
+			nilV: nil,
+		},
+		{
+			v:    float32(5),
+			expV: int32(5),
+			nilV: nil,
+		},
 	}
 
 	for idx, te := range tests {
@@ -118,6 +167,12 @@ func TestAdd(t *testing.T) {
 		assert.Equal(t, expected, m,
 			fmt.Sprintf("<%v>: Replace existing value - Expected: %v, Actual: %v", idx, expected, m))
 
+		// remove empty value
+		m = common.MapStr{addKey: existing}
+		Add(m, addKey, te.nilV)
+		expected = common.MapStr{}
+		assert.Equal(t, expected, m,
+			fmt.Sprintf("<%v>: Remove empty value - Expected: %v, Actual: %v", idx, expected, m))
 	}
 }
 
@@ -250,38 +305,5 @@ func TestMillisAsMicros(t *testing.T) {
 	ms := 4.5
 	m := MillisAsMicros(ms)
 	expectedMap := common.MapStr{"us": 4500}
-	assert.Equal(t, expectedMap, m)
-}
-
-func TestStringPtrWithDefault(t *testing.T) {
-	old := "foo"
-	new := "bar"
-	def := "def"
-
-	// map is nil
-	var m common.MapStr
-	AddStrWithDefault(m, addKey, nil, def)
-	assert.Nil(t, m)
-
-	// key is empty
-	m = common.MapStr{"existing": old}
-	AddStrWithDefault(m, "", &new, def)
-	assert.Equal(t, common.MapStr{"existing": old}, m)
-
-	//sets the new value
-	m = common.MapStr{"existing": old}
-	AddStrWithDefault(m, addKey, &new, def)
-	expectedMap := common.MapStr{"existing": old, addKey: new}
-	assert.Equal(t, expectedMap, m)
-
-	//overrides existing value
-	m = common.MapStr{"existing": old, addKey: old}
-	AddStrWithDefault(m, addKey, &new, def)
-	expectedMap = common.MapStr{"existing": old, addKey: new}
-	assert.Equal(t, expectedMap, m)
-
-	//sets default value if no value given
-	AddStrWithDefault(m, addKey, nil, def)
-	expectedMap = common.MapStr{"existing": old, addKey: def}
 	assert.Equal(t, expectedMap, m)
 }

@@ -34,6 +34,7 @@ func TestContext(t *testing.T) {
 			context: &Context{
 				process: common.MapStr{"pid": 0},
 				service: common.MapStr{"name": "", "agent": common.MapStr{"version": "", "name": ""}},
+				system:  common.MapStr{},
 				user:    common.MapStr{},
 			},
 		},
@@ -69,7 +70,7 @@ func TestContextTransform(t *testing.T) {
 		{
 			context: &Context{},
 			m:       common.MapStr{},
-			out:     nil,
+			out:     common.MapStr{},
 		},
 		{
 			context: &Context{},
