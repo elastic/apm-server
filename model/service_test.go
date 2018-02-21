@@ -8,12 +8,6 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestServiceTransformDefinition(t *testing.T) {
-	myfn := func(fn TransformService) string { return "ok" }
-	res := myfn((*Service).Transform)
-	assert.Equal(t, "ok", res)
-}
-
 func TestServiceTransform(t *testing.T) {
 
 	version := "5.1.3"
