@@ -23,35 +23,35 @@ import (
 )
 
 func baseException() *Exception {
-	return &Exception{Message: "exception message"}
+	return &Exception{ExMessage: "exception message"}
 }
 
 func (e *Exception) withCode(code interface{}) *Exception {
-	e.Code = code
+	e.ExCode = code
 	return e
 }
 
 func (e *Exception) withType(etype string) *Exception {
-	e.Type = &etype
+	e.ExType = &etype
 	return e
 }
 
 func (e *Exception) withFrames(frames []*m.StacktraceFrame) *Exception {
-	e.Stacktrace = m.Stacktrace(frames)
+	e.ExStacktrace = m.Stacktrace(frames)
 	return e
 }
 
 func baseLog() *Log {
-	return &Log{Message: "error log message"}
+	return &Log{LogMessage: "error log message"}
 }
 
 func (l *Log) withParamMsg(msg string) *Log {
-	l.ParamMessage = &msg
+	l.LogParamMessage = &msg
 	return l
 }
 
 func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
-	l.Stacktrace = m.Stacktrace(frames)
+	l.LogStacktrace = m.Stacktrace(frames)
 	return l
 }
 
@@ -66,13 +66,13 @@ func TestEventTransform(t *testing.T) {
 	handled := false
 	attributes := common.MapStr{"k1": "val1"}
 	exception := Exception{
-		Type:       &errorType,
-		Code:       codeFloat,
-		Message:    exMsg,
-		Module:     &module,
-		Handled:    &handled,
-		Attributes: attributes,
-		Stacktrace: []*m.StacktraceFrame{{Filename: "st file"}},
+		ExType:       &errorType,
+		ExCode:       codeFloat,
+		ExMessage:    exMsg,
+		ExModule:     &module,
+		ExHandled:    &handled,
+		ExAttributes: attributes,
+		ExStacktrace: []*m.StacktraceFrame{{Filename: "st file"}},
 	}
 
 	level := "level"
@@ -80,21 +80,21 @@ func TestEventTransform(t *testing.T) {
 	logMsg := "error log message"
 	paramMsg := "param message"
 	log := Log{
-		Level:        &level,
-		Message:      logMsg,
-		ParamMessage: &paramMsg,
-		LoggerName:   &loggerName,
+		LogLevel:        &level,
+		LogMessage:      logMsg,
+		LogParamMessage: &paramMsg,
+		LoggerName:      &loggerName,
 	}
 
 	context := common.MapStr{"user": common.MapStr{"id": "888"}, "c1": "val"}
 
 	baseExceptionHash := md5.New()
-	io.WriteString(baseExceptionHash, baseException().Message)
+	io.WriteString(baseExceptionHash, baseException().ExMessage)
 	// 706a38d554b47b8f82c6b542725c05dc
 	baseExceptionGroupingKey := hex.EncodeToString(baseExceptionHash.Sum(nil))
 
 	baseLogHash := md5.New()
-	io.WriteString(baseLogHash, baseLog().Message)
+	io.WriteString(baseLogHash, baseLog().LogMessage)
 	baseLogGroupingKey := hex.EncodeToString(baseLogHash.Sum(nil))
 	service := m.Service{Name: "myService"}
 
@@ -167,7 +167,7 @@ func TestEventTransform(t *testing.T) {
 				Context:     context,
 				Exception:   &exception,
 				Log:         &log,
-				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				Transaction: &Transaction{"945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: common.MapStr{
 				"id":      "45678",
@@ -240,7 +240,7 @@ func TestCulprit(t *testing.T) {
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
-			event:   Event{Culprit: &c, Log: &Log{Stacktrace: st}},
+			event:   Event{Culprit: &c, Log: &Log{LogStacktrace: st}},
 			config:  pr.Config{SmapMapper: &mapper},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
@@ -249,7 +249,7 @@ func TestCulprit(t *testing.T) {
 			event: Event{
 				Culprit: &c,
 				Log: &Log{
-					Stacktrace: m.Stacktrace{
+					LogStacktrace: m.Stacktrace{
 						&m.StacktraceFrame{
 							Filename:  "f",
 							Sourcemap: m.Sourcemap{Updated: &truthy},
@@ -264,7 +264,7 @@ func TestCulprit(t *testing.T) {
 		{
 			event: Event{
 				Culprit:   &c,
-				Exception: &Exception{Stacktrace: stUpdate},
+				Exception: &Exception{ExStacktrace: stUpdate},
 			},
 			config:  pr.Config{SmapMapper: &mapper},
 			culprit: "f in fct",
@@ -273,8 +273,8 @@ func TestCulprit(t *testing.T) {
 		{
 			event: Event{
 				Culprit:   &c,
-				Log:       &Log{Stacktrace: st},
-				Exception: &Exception{Stacktrace: stUpdate},
+				Log:       &Log{LogStacktrace: st},
+				Exception: &Exception{ExStacktrace: stUpdate},
 			},
 			config:  pr.Config{SmapMapper: &mapper},
 			culprit: "f in fct",
@@ -284,7 +284,7 @@ func TestCulprit(t *testing.T) {
 			event: Event{
 				Culprit: &c,
 				Log: &Log{
-					Stacktrace: m.Stacktrace{
+					LogStacktrace: m.Stacktrace{
 						&m.StacktraceFrame{
 							Filename:  "a",
 							Function:  &fct,
@@ -292,7 +292,7 @@ func TestCulprit(t *testing.T) {
 						},
 					},
 				},
-				Exception: &Exception{Stacktrace: stUpdate},
+				Exception: &Exception{ExStacktrace: stUpdate},
 			},
 			config:  pr.Config{SmapMapper: &mapper},
 			culprit: "a in fct",
@@ -343,8 +343,8 @@ func TestFramesUsableForGroupingKey(t *testing.T) {
 		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
 		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: false},
 	}
-	e1 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st1}}
-	e2 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st2}}
+	e1 := Event{Exception: &Exception{ExMessage: "base exception", ExStacktrace: st1}}
+	e2 := Event{Exception: &Exception{ExMessage: "base exception", ExStacktrace: st2}}
 	key1 := e1.calcGroupingKey()
 	key2 := e2.calcGroupingKey()
 	assert.NotEqual(t, key1, key2)
@@ -521,24 +521,24 @@ func md5With(args ...string) []byte {
 func TestSourcemapping(t *testing.T) {
 	c1 := 18
 	event := Event{Exception: &Exception{
-		Message: "exception message",
-		Stacktrace: m.Stacktrace{
+		ExMessage: "exception message",
+		ExStacktrace: m.Stacktrace{
 			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
 		},
 	}}
 	trNoSmap := event.Transform(&pr.Config{SmapMapper: nil}, m.Service{})
 
 	event2 := Event{Exception: &Exception{
-		Message: "exception message",
-		Stacktrace: m.Stacktrace{
+		ExMessage: "exception message",
+		ExStacktrace: m.Stacktrace{
 			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
 		},
 	}}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	trWithSmap := event2.Transform(&pr.Config{SmapMapper: &mapper}, m.Service{})
 
-	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
-	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
+	assert.Equal(t, 1, event.Exception.ExStacktrace[0].Lineno)
+	assert.Equal(t, 5, event2.Exception.ExStacktrace[0].Lineno)
 
 	assert.NotEqual(t, trNoSmap["grouping_key"], trWithSmap["grouping_key"])
 	fmt.Println(trNoSmap)

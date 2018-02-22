@@ -13,7 +13,7 @@ type Span struct {
 	Type       string
 	Start      float64
 	Duration   float64
-	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
+	Stacktrace m.Stacktrace
 	Context    common.MapStr
 	Parent     *int
 }

@@ -11,17 +11,17 @@ import (
 )
 
 type StacktraceFrame struct {
-	AbsPath      *string `mapstructure:"abs_path"`
+	AbsPath      *string
 	Filename     string
 	Lineno       int
 	Colno        *int
-	ContextLine  *string `mapstructure:"context_line"`
+	ContextLine  *string
 	Module       *string
 	Function     *string
-	LibraryFrame *bool `mapstructure:"library_frame"`
+	LibraryFrame *bool
 	Vars         common.MapStr
-	PreContext   []string `mapstructure:"pre_context"`
-	PostContext  []string `mapstructure:"post_context"`
+	PreContext   []string
+	PostContext  []string
 
 	ExcludeFromGrouping bool
 

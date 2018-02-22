@@ -46,20 +46,20 @@ func TestServiceTransform(t *testing.T) {
 				Version:     &version,
 				Environment: &environment,
 				Language: Language{
-					Name:    &langName,
-					Version: &langVersion,
+					LanguageName:    &langName,
+					LanguageVersion: &langVersion,
 				},
 				Runtime: Runtime{
-					Name:    &rtName,
-					Version: &rtVersion,
+					RuntimeName:    &rtName,
+					RuntimeVersion: &rtVersion,
 				},
 				Framework: Framework{
-					Name:    &fwName,
-					Version: &fwVersion,
+					FrameworkName:    &fwName,
+					FrameworkVersion: &fwVersion,
 				},
 				Agent: Agent{
-					Name:    agentName,
-					Version: agentVersion,
+					AgentName:    agentName,
+					AgentVersion: agentVersion,
 				},
 			},
 			Output: common.MapStr{
