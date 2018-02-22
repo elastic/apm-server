@@ -19,7 +19,10 @@
       "argv": {
         "description": "Command line arguments used to start this process",
         "type": ["array", "null"],
-        "minItems": 0
+        "minItems": 0,
+        "items": {
+           "type": "string"
+        }
     }
   },
   "required": ["pid"]
