@@ -37,13 +37,14 @@ func TestBeatConfig(t *testing.T) {
 		},
 		{
 			conf: map[string]interface{}{
-				"host":              "localhost:3000",
-				"max_unzipped_size": 64,
-				"max_header_size":   8,
-				"read_timeout":      3 * time.Second,
-				"write_timeout":     4 * time.Second,
-				"shutdown_timeout":  9 * time.Second,
-				"secret_token":      "1234random",
+				"host":                  "localhost:3000",
+				"max_unzipped_size":     64,
+				"max_header_size":       8,
+				"read_timeout":          3 * time.Second,
+				"write_timeout":         4 * time.Second,
+				"shutdown_timeout":      9 * time.Second,
+				"capture_personal_data": true,
+				"secret_token":          "1234random",
 				"ssl": map[string]interface{}{
 					"enabled":     true,
 					"key":         "1234key",
@@ -77,6 +78,7 @@ func TestBeatConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				AugmentEnabled:  true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
@@ -127,6 +129,7 @@ func TestBeatConfig(t *testing.T) {
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "", Cert: ""},
+				AugmentEnabled:  true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",

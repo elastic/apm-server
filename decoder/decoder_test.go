@@ -149,40 +149,47 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 }
 
 func TestDecodeSystemData(t *testing.T) {
-	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-	assert.Nil(t, err)
-	buffer := bytes.NewReader(transactionBytes)
 
-	req, err := http.NewRequest("POST", "_", buffer)
-	req.Header.Add("Content-Type", "application/json")
-	assert.Nil(t, err)
+	for _, enabled := range []bool{true, false} {
 
-	body, err := DecodeSystemData(DecodeLimitJSONData(1024 * 1024))(req)
-	assert.Nil(t, err)
-	system, hasSystem := body["system"].(map[string]interface{})
-	assert.True(t, hasSystem)
-	_, hasIp := system["ip"]
-	assert.True(t, hasIp)
+		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
+		assert.Nil(t, err)
+		buffer := bytes.NewReader(transactionBytes)
 
+		req, err := http.NewRequest("POST", "_", buffer)
+		req.Header.Add("Content-Type", "application/json")
+		assert.Nil(t, err)
+
+		body, err := DecodeSystemData(DecodeLimitJSONData(1024*1024), enabled)(req)
+		assert.Nil(t, err)
+
+		system, hasSystem := body["system"].(map[string]interface{})
+		assert.True(t, hasSystem)
+		_, hasIp := system["ip"]
+		assert.Equal(t, enabled, hasIp)
+	}
 }
 
 func TestDecodeUserData(t *testing.T) {
-	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-	assert.Nil(t, err)
-	buffer := bytes.NewReader(transactionBytes)
 
-	req, err := http.NewRequest("POST", "_", buffer)
-	req.Header.Add("Content-Type", "application/json")
-	assert.Nil(t, err)
+	for _, enabled := range []bool{true, false} {
 
-	body, err := DecodeUserData(DecodeLimitJSONData(1024 * 1024))(req)
-	assert.Nil(t, err)
-	user, hasUser := body["user"].(map[string]interface{})
-	assert.True(t, hasUser)
-	_, hasIp := user["ip"]
-	assert.True(t, hasIp)
+		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
+		assert.Nil(t, err)
+		buffer := bytes.NewReader(transactionBytes)
 
-	_, hasUserAgent := user["user_agent"]
-	assert.True(t, hasUserAgent)
+		req, err := http.NewRequest("POST", "_", buffer)
+		req.Header.Add("Content-Type", "application/json")
+		assert.Nil(t, err)
 
+		body, err := DecodeUserData(DecodeLimitJSONData(1024*1024), enabled)(req)
+		assert.Nil(t, err)
+		user, hasUser := body["user"].(map[string]interface{})
+		assert.Equal(t, enabled, hasUser)
+		_, hasIp := user["ip"]
+		assert.Equal(t, enabled, hasIp)
+
+		_, hasUserAgent := user["user_agent"]
+		assert.Equal(t, enabled, hasUserAgent)
+	}
 }

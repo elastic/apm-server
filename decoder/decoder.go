@@ -80,7 +80,11 @@ func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) 
 	return payload, nil
 }
 
-func DecodeUserData(decoder Decoder) Decoder {
+func DecodeUserData(decoder Decoder, enabled bool) Decoder {
+	if !enabled {
+		return decoder
+	}
+
 	augment := func(req *http.Request) map[string]interface{} {
 		return map[string]interface{}{
 			"ip":         utility.ExtractIP(req),
@@ -90,7 +94,11 @@ func DecodeUserData(decoder Decoder) Decoder {
 	return augmentData(decoder, "user", augment)
 }
 
-func DecodeSystemData(decoder Decoder) Decoder {
+func DecodeSystemData(decoder Decoder, enabled bool) Decoder {
+	if !enabled {
+		return decoder
+	}
+
 	augment := func(req *http.Request) map[string]interface{} {
 		return map[string]interface{}{"ip": utility.ExtractIP(req)}
 	}
