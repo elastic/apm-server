@@ -20,6 +20,7 @@ type Config struct {
 	ConcurrentRequests int             `config:"concurrent_requests" validate:"min=1"`
 	Expvar             *ExpvarConfig   `config:"expvar"`
 	Frontend           *FrontendConfig `config:"frontend"`
+	AugmentEnabled     bool            `config:"capture_personal_data"`
 }
 
 type ExpvarConfig struct {
@@ -114,6 +115,7 @@ func defaultConfig(beatVersion string) *Config {
 		WriteTimeout:       2 * time.Second,
 		ShutdownTimeout:    5 * time.Second,
 		SecretToken:        "",
+		AugmentEnabled:     true,
 		Frontend: &FrontendConfig{
 			beatVersion:  beatVersion,
 			Enabled:      new(bool),

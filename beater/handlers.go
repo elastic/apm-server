@@ -91,7 +91,7 @@ func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.H
 	return logHandler(
 		authHandler(config.SecretToken,
 			processRequestHandler(pf, nil, report,
-				decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize)))))
+				decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled))))
 }
 
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
@@ -109,7 +109,7 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 			ipRateLimitHandler(config.Frontend.RateLimit,
 				corsHandler(config.Frontend.AllowOrigins,
 					processRequestHandler(pf, &prConfig, report,
-						decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize)))))))
+						decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
