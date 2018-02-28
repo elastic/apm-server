@@ -2,7 +2,7 @@ import os
 import unittest
 
 from apmserver import ElasticTest, ExpvarBaseTest
-from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest
+from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest, SplitIndicesTest
 from beat.beat import INTEGRATION_TESTS
 import json
 
@@ -102,7 +102,7 @@ class Test(ElasticTest):
         return json.dumps(data, indent=4, separators=(',', ': '))
 
 
-class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
+class FrontendEnabledIntegrationTest(ClientSideBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
@@ -208,7 +208,26 @@ class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
                 lf["empty"] += 1
 
 
-class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
+class SplitIndicesIntegrationTest(SplitIndicesTest):
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_error_index(self):
+        self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/errors',
+                                     'error',
+                                     4,
+                                     query_index="test-apm-error-12-12-2017")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_transaction_index(self):
+        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/transactions',
+                                     'transaction',
+                                     9,
+                                     query_index="test-apm-transaction-12-12-2017")
+
+
+class SourcemappingIntegrationTest(ClientSideBaseTest):
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
@@ -377,7 +396,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
         self.check_frontend_error_sourcemap(True)
 
 
-class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
+class SourcemappingIntegrationChangedConfigTest(SmapIndexBaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_frontend_error_changed_index(self):
@@ -396,7 +415,7 @@ class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
         self.check_frontend_error_sourcemap(True)
 
 
-class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
+class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'

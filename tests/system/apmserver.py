@@ -134,7 +134,7 @@ class ElasticTest(ServerBaseTest):
         cfg.update({
             "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
-            "index_name": self.index_name
+            "index_name": self.index_name,
         })
         return cfg
 
@@ -162,7 +162,10 @@ class ElasticTest(ServerBaseTest):
             port=os.getenv("ES_PORT", "9200"),
         )
 
-    def load_docs_with_template(self, data_path, url, endpoint, expected_events_count):
+    def load_docs_with_template(self, data_path, url, endpoint, expected_events_count, query_index=None):
+
+        if query_index is None:
+            query_index = self.index_name
 
         payload = json.loads(open(data_path).read())
         r = requests.post(url, json=payload)
@@ -173,14 +176,14 @@ class ElasticTest(ServerBaseTest):
             lambda: self.log_contains(
                 "Elasticsearch template with name \'{}\' loaded".format(self.index_name)),
             max_timeout=20)
-        self.wait_until(lambda: self.es.indices.exists(self.index_name))
+        self.wait_until(lambda: self.es.indices.exists(query_index))
         # Quick wait to give documents some time to be sent to the index
         # This is not required but speeds up the tests
         time.sleep(0.1)
-        self.es.indices.refresh(index=self.index_name)
+        self.es.indices.refresh(index=query_index)
 
         self.wait_until(
-            lambda: (self.es.count(index=self.index_name, body={
+            lambda: (self.es.count(index=query_index, body={
                 "query": {"term": {"processor.name": endpoint}}}
             )['count'] == expected_events_count)
         )
@@ -212,7 +215,7 @@ class ElasticTest(ServerBaseTest):
             assert "sourcemap" not in frame
 
 
-class ClientSideBaseTest(ServerBaseTest):
+class ClientSideBaseTest(ElasticTest):
 
     transactions_url = 'http://localhost:8200/v1/client-side/transactions'
     errors_url = 'http://localhost:8200/v1/client-side/errors'
@@ -295,6 +298,22 @@ class ClientSideBaseTest(ServerBaseTest):
             else:
                 assert err in smap["error"]
             assert smap["updated"] == updated
+
+
+class SplitIndicesTest(ElasticTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super(SplitIndicesTest, cls).setUpClass()
+
+        cls.index_name_transaction = "test-apm-transaction-12-12-2017"
+        cls.index_name_error = "test-apm-error-12-12-2017"
+
+    def config(self):
+        cfg = super(SplitIndicesTest, self).config()
+        cfg.update({"index_name_transaction": self.index_name_transaction,
+                    "index_name_error": self.index_name_error})
+        return cfg
 
 
 class CorsBaseTest(ClientSideBaseTest):
