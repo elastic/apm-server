@@ -67,6 +67,17 @@ output.elasticsearch:
       when.contains:
         processor.event: "sourcemap"
   {% endif %}
+
+  {% if index_name_transaction %}
+  indices:
+    - index: {{ index_name_transaction }}
+      when.contains:
+        processor.name: "transaction"
+    - index: {{ index_name_error }}
+      when.contains:
+        processor.name: "error"
+  {% endif %}
+
 {% endif %}
 
 ############################# Beat #########################################
