@@ -79,6 +79,14 @@ output.elasticsearch:
       when.contains:
         processor.event: "sourcemap"
 
+    - index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}-error"
+      when.contains:
+        processor.name: "error"
+
+    - index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}-transaction"
+      when.contains:
+        processor.name: "transaction"
+
   # Optional protocol and basic auth credentials.
   #protocol: "https"
   #username: "elastic"

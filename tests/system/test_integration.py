@@ -2,26 +2,11 @@ import os
 import unittest
 
 from apmserver import ElasticTest, ExpvarBaseTest
-from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest
+from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest, SplitIndicesTest
 from beat.beat import INTEGRATION_TESTS
 
 
 class Test(ElasticTest):
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_onboarding_doc(self):
-        """
-        This test starts the beat and checks that the onboarding doc has been published to ES
-        """
-        self.wait_until(lambda: self.es.indices.exists(self.index_name))
-        self.es.indices.refresh(index=self.index_name)
-
-        self.wait_until(
-            lambda: (self.es.count(index=self.index_name)['count'] == 1)
-        )
-
-        # Makes sure no error or warnings were logged
-        self.assert_no_logged_warnings()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_transaction(self):
@@ -45,6 +30,9 @@ class Test(ElasticTest):
 
         self.check_backend_transaction_sourcemap(count=5)
 
+        total_count = self.es.count(index=self.index_name)['count']
+        assert total_count == 10, total_count  # 9 events + onboarding doc
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_error(self):
         """
@@ -63,7 +51,7 @@ class Test(ElasticTest):
         self.check_backend_error_sourcemap(count=4)
 
 
-class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
+class FrontendEnabledIntegrationTest(ClientSideBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
@@ -169,7 +157,25 @@ class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
                 lf["empty"] += 1
 
 
-class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
+class SplitIndicesIntegrationTest(SplitIndicesTest):
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_error_index(self):
+        self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/errors',
+                                     'error',
+                                     4,
+                                     query_index="test-apm-12-12-2017-error")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_transaction_index(self):
+        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/transactions',
+                                     'transaction',
+                                     9,
+                                     query_index="test-apm-12-12-2017-transaction")
+
+
+class SourcemappingIntegrationTest(ClientSideBaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
@@ -339,7 +345,7 @@ class SourcemappingIntegrationTest(ElasticTest, ClientSideBaseTest):
         self.check_frontend_error_sourcemap(True)
 
 
-class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
+class SourcemappingIntegrationChangedConfigTest(SmapIndexBaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_frontend_error_changed_index(self):
@@ -358,7 +364,7 @@ class SourcemappingIntegrationChangedConfigTest(ElasticTest, SmapIndexBaseTest):
         self.check_frontend_error_sourcemap(True)
 
 
-class SourcemappingCacheIntegrationTest(ElasticTest, SmapCacheBaseTest):
+class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
