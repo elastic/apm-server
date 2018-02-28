@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
@@ -46,12 +45,9 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 	return server.Serve(lis)
 }
 
-func stop(server *http.Server, timeout time.Duration) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
+func stop(server *http.Server) {
 	logger := logp.NewLogger("server")
-	err := server.Shutdown(ctx)
+	err := server.Shutdown(context.Background())
 	if err != nil {
 		logger.Error(err.Error())
 		err = server.Close()

@@ -2,7 +2,6 @@ package beater
 
 import (
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -16,11 +15,9 @@ import (
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type publisher struct {
-	events  chan []beat.Event
-	client  beat.Client
-	wg      sync.WaitGroup
-	m       sync.RWMutex
-	stopped bool
+	events chan []beat.Event
+	client beat.Client
+	done   chan struct{}
 }
 
 var (
@@ -52,13 +49,12 @@ func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
 
 	p := &publisher{
 		client: client,
-
+		done:   make(chan struct{}),
 		// Set channel size to N - 1. One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
 		events: make(chan []beat.Event, N-1),
 	}
 
-	p.wg.Add(1)
 	go p.run()
 	return p, nil
 }
@@ -66,20 +62,18 @@ func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
 // Stop closes all channels and waits for the the worker to stop.
 // The worker will drain the queue on shutdown, but no more events
 // will be published.
-func (p *publisher) Stop() {
-	p.drain()
+func (p *publisher) Stop(d time.Duration) {
+	close(p.done)
+	p.drain(d)
 	close(p.events)
 	p.client.Close()
-	p.wg.Wait()
 }
 
-// drain signals the publisher to stop accepting event batches, blocking
-// execution until all the queued events have been published.
-func (p *publisher) drain() {
-	p.m.Lock()
-	p.stopped = true
-	p.m.Unlock()
-	for {
+// drain waits until the events queue is empty or apm-server.shutdown_timeout seconds have elapsed
+func (p *publisher) drain(d time.Duration) {
+	delta := time.Second / 2
+	for t := time.Duration(0); t < d; t = t + delta {
+		time.Sleep(delta)
 		if len(p.events) == 0 {
 			return
 		}
@@ -90,13 +84,10 @@ func (p *publisher) drain() {
 // an error is returned.
 // Calling send after Stop will return an error.
 func (p *publisher) Send(batch []beat.Event) error {
-	p.m.RLock()
-	defer p.m.RUnlock()
-	if p.stopped {
-		return errChanneClosed
-	}
 
 	select {
+	case <-p.done:
+		return errChanneClosed
 	case p.events <- batch:
 		return nil
 	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
@@ -105,7 +96,6 @@ func (p *publisher) Send(batch []beat.Event) error {
 }
 
 func (p *publisher) run() {
-	defer p.wg.Done()
 	for batch := range p.events {
 		p.client.PublishAll(batch)
 	}

@@ -47,16 +47,17 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 
 func (bt *beater) Run(b *beat.Beat) error {
 	var err error
+	logger := logp.NewLogger("beater")
 
 	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests)
 	if err != nil {
 		return err
 	}
-	defer pub.Stop()
+	defer pub.Stop(bt.config.ShutdownTimeout)
 
 	lis, err := net.Listen("tcp", bt.config.Host)
 	if err != nil {
-		logp.Err("failed to listen: %s", err)
+		logger.Errorf("failed to listen: %s", err)
 		return err
 	}
 	go notifyListening(bt.config, pub.Send)
@@ -72,7 +73,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	err = run(bt.server, lis, bt.config)
 	if err == http.ErrServerClosed {
-		logp.Info("Listener stopped: %s", err.Error())
+		logger.Infof("Listener stopped: %s", err.Error())
 		return nil
 	}
 	return err
@@ -80,10 +81,10 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 // Graceful shutdown
 func (bt *beater) Stop() {
-	logp.Info("stopping apm-server...")
+	logp.NewLogger("beater").Info("stopping apm-server...")
 	bt.mutex.Lock()
 	if bt.server != nil {
-		stop(bt.server, bt.config.ShutdownTimeout)
+		stop(bt.server)
 	}
 	bt.stopped = true
 	bt.mutex.Unlock()
