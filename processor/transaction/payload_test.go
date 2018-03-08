@@ -94,7 +94,7 @@ func TestPayloadTransform(t *testing.T) {
 			},
 		},
 	}
-	spans := []Span{{}}
+	spans := []*Span{{}}
 	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
 	spanEs := common.MapStr{
 		"context": common.MapStr{

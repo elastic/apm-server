@@ -18,12 +18,11 @@ func (p *Process) Transform() common.MapStr {
 	if p == nil {
 		return nil
 	}
-	enhancer := utility.NewMapStrEnhancer()
 	svc := common.MapStr{}
-	enhancer.Add(svc, "pid", p.Pid)
-	enhancer.Add(svc, "ppid", p.Ppid)
-	enhancer.Add(svc, "title", p.Title)
-	enhancer.Add(svc, "argv", p.Argv)
+	utility.Add(svc, "pid", p.Pid)
+	utility.Add(svc, "ppid", p.Ppid)
+	utility.Add(svc, "title", p.Title)
+	utility.Add(svc, "argv", p.Argv)
 
 	return svc
 }

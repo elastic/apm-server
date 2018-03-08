@@ -20,7 +20,10 @@ var (
 )
 
 const (
-	processorName = "transaction"
+	eventName          = "processor"
+	processorName      = "transaction"
+	transactionDocType = "transaction"
+	spanDocType        = "span"
 )
 
 var schema = pr.CreateSchema(transactionSchema, processorName)
