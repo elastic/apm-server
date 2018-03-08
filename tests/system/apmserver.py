@@ -306,8 +306,8 @@ class SplitIndicesTest(ElasticTest):
     def setUpClass(cls):
         super(SplitIndicesTest, cls).setUpClass()
 
-        cls.index_name_transaction = "test-apm-12-12-2017-transaction"
-        cls.index_name_error = "test-apm-12-12-2017-error"
+        cls.index_name_transaction = "test-apm-transaction-12-12-2017"
+        cls.index_name_error = "test-apm-error-12-12-2017"
 
     def config(self):
         cfg = super(SplitIndicesTest, self).config()
