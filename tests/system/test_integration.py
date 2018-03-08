@@ -203,7 +203,7 @@ class SplitIndicesIntegrationTest(SplitIndicesTest):
                                      'http://localhost:8200/v1/errors',
                                      'error',
                                      4,
-                                     query_index="test-apm-12-12-2017-error")
+                                     query_index="test-apm-error-12-12-2017")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_transaction_index(self):
@@ -211,7 +211,7 @@ class SplitIndicesIntegrationTest(SplitIndicesTest):
                                      'http://localhost:8200/v1/transactions',
                                      'transaction',
                                      9,
-                                     query_index="test-apm-12-12-2017-transaction")
+                                     query_index="test-apm-transaction-12-12-2017")
 
 
 class SourcemappingIntegrationTest(ClientSideBaseTest):
