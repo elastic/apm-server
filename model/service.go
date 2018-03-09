@@ -9,10 +9,10 @@ type Service struct {
 	Name        string
 	Version     *string
 	Environment *string
-	Language
-	Runtime
-	Framework
-	Agent
+	Language    Language
+	Runtime     Runtime
+	Framework   Framework
+	Agent       Agent
 }
 
 type Language struct {

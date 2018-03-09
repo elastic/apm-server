@@ -167,7 +167,7 @@ func TestEventTransform(t *testing.T) {
 				Context:     context,
 				Exception:   &exception,
 				Log:         &log,
-				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: common.MapStr{
 				"id":      "45678",

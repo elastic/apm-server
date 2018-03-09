@@ -16,13 +16,15 @@ import (
 )
 
 type Event struct {
-	Id      *string
-	Culprit *string
-	Context common.MapStr
-	*Exception
-	*Log
-	*Transaction
-	Timestamp time.Time
+	Id          *string
+	Culprit     *string
+	Context     common.MapStr
+	Exception   *Exception
+	Log         *Log
+	Timestamp   time.Time
+	Transaction *struct {
+		Id string
+	}
 
 	data common.MapStr
 }
@@ -43,10 +45,6 @@ type Log struct {
 	ParamMessage *string      `mapstructure:"param_message"`
 	LoggerName   *string      `mapstructure:"logger_name"`
 	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
-}
-
-type Transaction struct {
-	Id string
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {

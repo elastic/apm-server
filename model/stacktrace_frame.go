@@ -25,8 +25,8 @@ type StacktraceFrame struct {
 
 	ExcludeFromGrouping bool
 
-	Sourcemap
-	Original
+	Sourcemap Sourcemap
+	Original  Original
 }
 
 type Sourcemap struct {

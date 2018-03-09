@@ -57,7 +57,7 @@ func TestPayloadTransform(t *testing.T) {
 						Message:    "exception message",
 						Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
 					},
-					Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+					Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 				}},
 			},
 			Output: []common.MapStr{
