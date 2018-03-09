@@ -1,0 +1,258 @@
+[
+    {
+        "_score": 0.9808292,
+        "_type": "doc",
+        "_id": "IkU4C2IBWUGW2FxIExjw",
+        "_source": {
+            "transaction": {
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+            },
+            "span": {
+                "name": "GET /api/types",
+                "parent": 1,
+                "start": {
+                    "us": 1845
+                },
+                "duration": {
+                    "us": 3564
+                },
+                "type": "request",
+                "id": 2
+            },
+            "beat": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "context": {
+                "service": {
+                    "name": "1234_service-12a3",
+                    "agent": {
+                        "version": "3.14.0",
+                        "name": "elastic-node"
+                    }
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_score": 0.6931472,
+        "_type": "doc",
+        "_id": "J0U4C2IBWUGW2FxIExjw",
+        "_source": {
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9"
+            },
+            "span": {
+                "duration": {
+                    "us": 3781
+                },
+                "start": {
+                    "us": 2830
+                },
+                "type": "db.postgresql.query",
+                "id": 15,
+                "name": "SELECT FROM product_types"
+            },
+            "beat": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "db": {
+                    "instance": "customers",
+                    "type": "sql",
+                    "user": "readonly_user",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?"
+                },
+                "service": {
+                    "name": "1234_service-12a3",
+                    "agent": {
+                        "version": "3.14.0",
+                        "name": "elastic-node"
+                    }
+                }
+            },
+            "processor": {
+                "name": "transaction",
+                "event": "span"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_score": 0.2876821,
+        "_type": "doc",
+        "_id": "I0U4C2IBWUGW2FxIExjw",
+        "_source": {
+            "transaction": {
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+            },
+            "span": {
+                "name": "GET /api/types",
+                "parent": 2,
+                "start": {
+                    "us": 0
+                },
+                "duration": {
+                    "us": 13980
+                },
+                "type": "request",
+                "id": 3
+            },
+            "beat": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "context": {
+                "service": {
+                    "name": "1234_service-12a3",
+                    "agent": {
+                        "version": "3.14.0",
+                        "name": "elastic-node"
+                    }
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_score": 0.18232156,
+        "_type": "doc",
+        "_id": "IEU4C2IBWUGW2FxIExjw",
+        "_source": {
+            "transaction": {
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+            },
+            "span": {
+                "stacktrace": [
+                    {
+                        "function": "onread",
+                        "library_frame": true,
+                        "vars": {
+                            "key": "value"
+                        },
+                        "abs_path": "net.js",
+                        "module": "some module",
+                        "filename": "net.js",
+                        "exclude_from_grouping": false,
+                        "context": {
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ],
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result",
+                                "}"
+                            ]
+                        },
+                        "line": {
+                            "column": 4,
+                            "number": 547,
+                            "context": "line3"
+                        }
+                    },
+                    {
+                        "line": {
+                            "number": 10
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "my2file.js"
+                    }
+                ],
+                "name": "SELECT FROM product_types",
+                "start": {
+                    "us": 2830
+                },
+                "duration": {
+                    "us": 3781
+                },
+                "type": "db.postgresql.query",
+                "id": 0
+            },
+            "beat": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "context": {
+                "db": {
+                    "instance": "customers",
+                    "type": "sql",
+                    "user": "readonly_user",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?"
+                },
+                "service": {
+                    "name": "1234_service-12a3",
+                    "agent": {
+                        "version": "3.14.0",
+                        "name": "elastic-node"
+                    }
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_score": 0.18232156,
+        "_type": "doc",
+        "_id": "IUU4C2IBWUGW2FxIExjw",
+        "_source": {
+            "transaction": {
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+            },
+            "span": {
+                "name": "GET /api/types",
+                "parent": 0,
+                "start": {
+                    "us": 0
+                },
+                "duration": {
+                    "us": 32592
+                },
+                "type": "request",
+                "id": 1
+            },
+            "beat": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "context": {
+                "service": {
+                    "name": "1234_service-12a3",
+                    "agent": {
+                        "version": "3.14.0",
+                        "name": "elastic-node"
+                    }
+                }
+            },
+            "processor": {
+                "name": "transaction",
+                "event": "span"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    }
+]

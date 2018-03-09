@@ -1,0 +1,347 @@
+[
+    {
+        "_id": "XkTYCmIBWUGW2FxI4_kt",
+        "_score": 0.6931472,
+        "_type": "doc",
+        "_source": {
+            "beat": {
+                "name": "ed7e2cf02cd9",
+                "version": "7.0.0-alpha1",
+                "hostname": "ed7e2cf02cd9"
+            },
+            "processor": {
+                "name": "transaction",
+                "event": "transaction"
+            },
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "context": {
+                "service": {
+                    "runtime": {
+                        "name": "node",
+                        "version": "8.0.0"
+                    },
+                    "framework": {
+                        "name": "Express",
+                        "version": "1.2.3"
+                    },
+                    "version": "5.1.3",
+                    "language": {
+                        "name": "ecmascript",
+                        "version": "8"
+                    },
+                    "environment": "staging",
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "custom": {
+                    "some_other_value": "foo bar",
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1
+                },
+                "user": {
+                    "id": "99",
+                    "username": "foo",
+                    "email": "foo@example.com"
+                },
+                "process": {
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "pid": 1234,
+                    "title": "node",
+                    "ppid": 6789
+                },
+                "request": {
+                    "cookies": {
+                        "c2": "v2",
+                        "c1": "v1"
+                    },
+                    "url": {
+                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                        "protocol": "https:",
+                        "pathname": "/p/a/t/h",
+                        "raw": "/p/a/t/h?query=string#hash",
+                        "search": "?query=string",
+                        "port": "8080",
+                        "hash": "#hash",
+                        "hostname": "www.example.com"
+                    },
+                    "http_version": "1.1",
+                    "headers": {
+                        "content-type": "text/html",
+                        "array": [
+                            "foo",
+                            "bar",
+                            "baz"
+                        ],
+                        "cookie": "c1=v1; c2=v2",
+                        "user-agent": "Mozilla Chrome Edge",
+                        "some-other-header": "foo"
+                    },
+                    "method": "POST",
+                    "socket": {
+                        "remote_address": "12.53.12.1",
+                        "encrypted": true
+                    },
+                    "body": "Hello World",
+                    "env": {
+                        "GATEWAY_INTERFACE": "CGI/1.1",
+                        "SERVER_SOFTWARE": "nginx"
+                    }
+                },
+                "tags": {
+                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                },
+                "response": {
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "headers_sent": true,
+                    "finished": true,
+                    "status_code": 200
+                },
+                "system": {
+                    "architecture": "x64",
+                    "hostname": "prod1.example.com",
+                    "platform": "darwin",
+                    "ip": "127.0.0.1"
+                }
+            },
+            "transaction": {
+                "type": "request",
+                "span_count": {
+                    "dropped": {
+                        "total": 2
+                    }
+                },
+                "marks": {
+                    "navigationTiming": {
+                        "navigationStart": -21,
+                        "appBeforeBootstrap": 608.9300000000001
+                    },
+                    "performance": {}
+                },
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
+                "name": "GET /api/types",
+                "sampled": true,
+                "duration": {
+                    "us": 32592
+                },
+                "result": "success"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_id": "ZUTYCmIBWUGW2FxI4_kt",
+        "_score": 0.6931472,
+        "_type": "doc",
+        "_source": {
+            "beat": {
+                "name": "ed7e2cf02cd9",
+                "version": "7.0.0-alpha1",
+                "hostname": "ed7e2cf02cd9"
+            },
+            "processor": {
+                "name": "transaction",
+                "event": "transaction"
+            },
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "service": {
+                    "runtime": {
+                        "name": "node",
+                        "version": "8.0.0"
+                    },
+                    "framework": {
+                        "name": "Express",
+                        "version": "1.2.3"
+                    },
+                    "version": "5.1.3",
+                    "language": {
+                        "name": "ecmascript",
+                        "version": "8"
+                    },
+                    "name": "1234_service-12a3",
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "environment": "staging"
+                },
+                "process": {
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "pid": 1234,
+                    "title": "node",
+                    "ppid": 6789
+                },
+                "system": {
+                    "architecture": "x64",
+                    "hostname": "prod1.example.com",
+                    "platform": "darwin",
+                    "ip": "127.0.0.1"
+                }
+            },
+            "transaction": {
+                "type": "request",
+                "span_count": {
+                    "dropped": {
+                        "total": 258
+                    }
+                },
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9",
+                "name": "GET /api/types",
+                "sampled": true,
+                "duration": {
+                    "us": 13980
+                },
+                "result": "200"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_id": "ZETYCmIBWUGW2FxI4_kt",
+        "_score": 0.6931472,
+        "_type": "doc",
+        "_source": {
+            "processor": {
+                "name": "transaction",
+                "event": "transaction"
+            },
+            "beat": {
+                "name": "ed7e2cf02cd9",
+                "version": "7.0.0-alpha1",
+                "hostname": "ed7e2cf02cd9"
+            },
+            "@timestamp": "2017-05-30T18:53:42.000Z",
+            "context": {
+                "service": {
+                    "runtime": {
+                        "name": "node",
+                        "version": "8.0.0"
+                    },
+                    "framework": {
+                        "name": "Express",
+                        "version": "1.2.3"
+                    },
+                    "version": "5.1.3",
+                    "language": {
+                        "name": "ecmascript",
+                        "version": "8"
+                    },
+                    "name": "1234_service-12a3",
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "environment": "staging"
+                },
+                "system": {
+                    "architecture": "x64",
+                    "ip": "127.0.0.1",
+                    "hostname": "prod1.example.com",
+                    "platform": "darwin"
+                },
+                "process": {
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "pid": 1234,
+                    "title": "node",
+                    "ppid": 6789
+                }
+            },
+            "transaction": {
+                "type": "request",
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf78",
+                "name": "GET /api/types",
+                "sampled": false,
+                "duration": {
+                    "us": 13980
+                },
+                "result": "200"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_id": "Y0TYCmIBWUGW2FxI4_kt",
+        "_score": 0.2876821,
+        "_type": "doc",
+        "_source": {
+            "beat": {
+                "name": "ed7e2cf02cd9",
+                "version": "7.0.0-alpha1",
+                "hostname": "ed7e2cf02cd9"
+            },
+            "processor": {
+                "name": "transaction",
+                "event": "transaction"
+            },
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "service": {
+                    "runtime": {
+                        "name": "node",
+                        "version": "8.0.0"
+                    },
+                    "framework": {
+                        "name": "Express",
+                        "version": "1.2.3"
+                    },
+                    "version": "5.1.3",
+                    "language": {
+                        "name": "ecmascript",
+                        "version": "8"
+                    },
+                    "environment": "staging",
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "system": {
+                    "architecture": "x64",
+                    "hostname": "prod1.example.com",
+                    "platform": "darwin",
+                    "ip": "127.0.0.1"
+                },
+                "process": {
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "pid": 1234,
+                    "title": "node",
+                    "ppid": 6789
+                }
+            },
+            "transaction": {
+                "type": "request",
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a",
+                "duration": {
+                    "us": 13980
+                },
+                "sampled": true,
+                "name": "GET /api/types",
+                "result": "failure"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    }
+]
