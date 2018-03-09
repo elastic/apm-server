@@ -4,6 +4,7 @@ import unittest
 from apmserver import ElasticTest, ExpvarBaseTest
 from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest
 from beat.beat import INTEGRATION_TESTS
+import json
 
 
 class Test(ElasticTest):
@@ -39,9 +40,19 @@ class Test(ElasticTest):
             f, self.transactions_url, 'transaction', 9)
         self.assert_no_logged_warnings()
 
-        rs = self.es.count(index=self.index_name, body={
-                           "query": {"term": {"processor.event": "transaction"}}})
-        assert rs['count'] == 4, "found {} documents".format(rs['count'])
+        # compare existing ES documents for transactions with new ones
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "transaction"}}})
+        assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
+        approved = json.load(open('transaction.approved.json'))
+        self.check_docs(approved, rs['hits']['hits'], 'transaction')
+
+        # compare existing ES documents for spans with new ones
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "span"}}})
+        assert rs['hits']['total'] == 5, "found {} documents".format(rs['count'])
+        approved = json.load(open('spans.approved.json'))
+        self.check_docs(approved, rs['hits']['hits'], 'span')
 
         self.check_backend_transaction_sourcemap(count=5)
 
@@ -60,7 +71,35 @@ class Test(ElasticTest):
         self.load_docs_with_template(f, self.errors_url, 'error', 4)
         self.assert_no_logged_warnings()
 
+        # compare existing ES documents for errors with new ones
+        rs = self.es.search(index=self.index_name, body={
+            "query": {"term": {"processor.event": "error"}}})
+        assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
+        approved = json.load(open('error.approved.json'))
+        self.check_docs(approved, rs['hits']['hits'], 'error')
+
         self.check_backend_error_sourcemap(count=4)
+
+    def check_docs(self, approved, received, doc_type):
+        for rec_entry in received:
+            checked = False
+            rec = rec_entry['_source']
+            rec_id = rec[doc_type]['id']
+            for appr_entry in approved:
+                appr = appr_entry['_source']
+                if rec_id == appr[doc_type]['id']:
+                    checked = True
+                    self.assert_docs(rec[doc_type], appr[doc_type])
+                    self.assert_docs(rec['context'], appr['context'])
+                    self.assert_docs(rec['@timestamp'], appr['@timestamp'])
+                    self.assert_docs(rec['processor'], appr['processor'])
+            assert checked == True, "New entry with id {}".format(rec_id)
+
+    def assert_docs(self, approved, received):
+        assert approved == received, "expected:\n{}\nreceived:\n{}".format(self.dump(approved), self.dump(received))
+
+    def dump(self, data):
+        return json.dumps(data, indent=4, separators=(',', ': '))
 
 
 class FrontendEnabledIntegrationTest(ElasticTest, ClientSideBaseTest):
