@@ -95,7 +95,7 @@ class Test(ElasticTest):
                     self.assert_docs(rec['processor'], appr['processor'])
             assert checked == True, "New entry with id {}".format(rec_id)
 
-    def assert_docs(self, approved, received):
+    def assert_docs(self, received, approved):
         assert approved == received, "expected:\n{}\nreceived:\n{}".format(self.dump(approved), self.dump(received))
 
     def dump(self, data):
