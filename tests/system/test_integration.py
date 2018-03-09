@@ -10,6 +10,21 @@ import json
 class Test(ElasticTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_onboarding_doc(self):
+        """
+        This test starts the beat and checks that the onboarding doc has been published to ES
+        """
+        self.wait_until(lambda: self.es.indices.exists(self.index_name))
+        self.es.indices.refresh(index=self.index_name)
+
+        self.wait_until(
+            lambda: (self.es.count(index=self.index_name)['count'] == 1)
+        )
+
+        # Makes sure no error or warnings were logged
+        self.assert_no_logged_warnings()
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_transaction(self):
         """
         This test starts the beat with a loaded template and sends transaction data to elasticsearch.
@@ -40,9 +55,6 @@ class Test(ElasticTest):
         self.check_docs(approved, rs['hits']['hits'], 'span')
 
         self.check_backend_transaction_sourcemap(count=5)
-
-        total_count = self.es.count(index=self.index_name)['count']
-        assert total_count == 10, total_count  # 9 events + onboarding doc
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_error(self):
