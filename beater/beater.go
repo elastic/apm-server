@@ -18,6 +18,7 @@ type beater struct {
 	mutex   sync.Mutex // guards server and stopped
 	server  *http.Server
 	stopped bool
+	logger  *logp.Logger
 }
 
 // Creates beater
@@ -41,23 +42,23 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	bt := &beater{
 		config:  beaterConfig,
 		stopped: false,
+		logger:  logp.NewLogger("beater"),
 	}
 	return bt, nil
 }
 
 func (bt *beater) Run(b *beat.Beat) error {
 	var err error
-	logger := logp.NewLogger("beater")
 
-	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests)
+	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout)
 	if err != nil {
 		return err
 	}
-	defer pub.Stop(bt.config.ShutdownTimeout)
+	defer pub.Stop()
 
 	lis, err := net.Listen("tcp", bt.config.Host)
 	if err != nil {
-		logger.Errorf("failed to listen: %s", err)
+		bt.logger.Errorf("failed to listen: %s", err)
 		return err
 	}
 	go notifyListening(bt.config, pub.Send)
@@ -73,7 +74,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	err = run(bt.server, lis, bt.config)
 	if err == http.ErrServerClosed {
-		logger.Infof("Listener stopped: %s", err.Error())
+		bt.logger.Infof("Listener stopped: %s", err.Error())
 		return nil
 	}
 	return err
@@ -81,7 +82,8 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 // Graceful shutdown
 func (bt *beater) Stop() {
-	logp.NewLogger("beater").Info("stopping apm-server...")
+	bt.logger.Infof("stopping apm-server... waiting maximum of %v seconds for queues to drain",
+		bt.config.ShutdownTimeout.Seconds())
 	bt.mutex.Lock()
 	if bt.server != nil {
 		stop(bt.server)
