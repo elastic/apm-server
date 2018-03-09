@@ -436,8 +436,6 @@ var errorSchema = `{
                 "level": {
                     "description": "The severity of the record.",
                     "type": ["string", "null"],
-                    "default": "error",
-                    "enum": ["debug", "info", "warning", "error", "fatal", null],
                     "maxLength": 1024
                 },
                 "logger_name": {
