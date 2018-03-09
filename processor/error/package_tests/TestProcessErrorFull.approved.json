@@ -177,7 +177,7 @@
                     "type": "DbError"
                 },
                 "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
-                "id": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "id": "5f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "log": {
                     "level": "warning",
                     "logger_name": "my.logger.name",
@@ -299,7 +299,7 @@
                     "message": "foo is not defined"
                 },
                 "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
-                "id": "9f0e9d68-c185-4d21-a6f4-4673ed561ec8"
+                "id": "8f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             },
             "processor": {
                 "event": "error",
@@ -350,7 +350,7 @@
                     "message": "foo.bar is not a function"
                 },
                 "grouping_key": "5be374e988ceb5382d62c7ab53764663",
-                "id": "9f0e9d68-c185-4d21-a6f4-4673ed561ec8"
+                "id": "7f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             },
             "processor": {
                 "event": "error",
@@ -398,7 +398,7 @@
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
-                "id": "9f0e9d67-c185-4d21-a6f4-4673ed561ec8",
+                "id": "0f0e9d67-c185-4d21-a6f4-4673ed561ec8",
                 "log": {
                     "message": "Cannot read property 'baz' of undefined"
                 }
