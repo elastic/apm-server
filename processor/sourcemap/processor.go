@@ -8,8 +8,6 @@ import (
 
 	parser "github.com/go-sourcemap/sourcemap"
 
-	"github.com/mitchellh/mapstructure"
-
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -38,35 +36,35 @@ type processor struct {
 	config *pr.Config
 }
 
-func (p *processor) Validate(raw map[string]interface{}) error {
+func (p *processor) Validate(input pr.Intake) error {
 	validationCount.Inc()
 
-	smap, ok := raw["sourcemap"].(string)
-	if !ok {
-		return errors.New("Sourcemap not in expected format.")
-	}
-
-	_, err := parser.Parse("", []byte(smap))
+	_, err := parser.Parse("", input.Data)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error validating sourcemap: %v", err))
 	}
 
-	err = pr.Validate(raw, p.schema)
-	if err != nil {
-		validationError.Inc()
+	data := map[string]interface{}{
+		"service_name":    input.ServiceName,
+		"service_version": input.ServiceVersion,
+		"bundle_filepath": input.BundleFilepath,
 	}
-	return err
+	if err = p.schema.ValidateInterface(data); err != nil {
+		validationError.Inc()
+		return fmt.Errorf("Problem validating JSON document against schema: %v", err)
+	}
+	return nil
 }
 
-func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
-	var pa payload
+func (p *processor) Transform(input pr.Intake) ([]beat.Event, error) {
 	transformations.Inc()
 
-	err := mapstructure.Decode(raw, &pa)
-	if err != nil {
-		return nil, err
+	pa := payload{
+		Sourcemap:      string(input.Data),
+		ServiceName:    input.ServiceName,
+		ServiceVersion: input.ServiceVersion,
+		BundleFilepath: input.BundleFilepath,
 	}
-
 	return pa.transform(p.config), nil
 }
 

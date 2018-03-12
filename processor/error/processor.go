@@ -1,12 +1,11 @@
 package error
 
 import (
+	"encoding/json"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/mitchellh/mapstructure"
-
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -34,29 +33,26 @@ type processor struct {
 	config *pr.Config
 }
 
-func (p *processor) Validate(raw map[string]interface{}) error {
+func (p *processor) Validate(input pr.Intake) error {
 	validationCount.Inc()
-	err := pr.Validate(raw, p.schema)
+	err := pr.Validate(input.Data, p.schema)
 	if err != nil {
 		validationError.Inc()
 	}
 	return err
 }
 
-func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
+func (p *processor) Transform(input pr.Intake) ([]beat.Event, error) {
 	transformations.Inc()
-	var pa payload
 
-	decoder, _ := mapstructure.NewDecoder(
-		&mapstructure.DecoderConfig{
-			DecodeHook: utility.RFC3339DecoderHook,
-			Result:     &pa,
-		},
-	)
-	err := decoder.Decode(raw)
+	var pa payload
+	err := json.Unmarshal(input.Data, &pa)
 	if err != nil {
 		return nil, err
 	}
+
+	pa.User = pa.User.Enrich(input)
+	pa.System = pa.System.Enrich(input)
 
 	return pa.transform(p.config), nil
 }

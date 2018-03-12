@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -52,5 +53,38 @@ func TestSystemTransform(t *testing.T) {
 	for _, test := range tests {
 		output := test.System.Transform()
 		assert.Equal(t, test.Output, output)
+	}
+}
+
+func TestSystemEnrich(t *testing.T) {
+	ip := "127.0.0.1"
+	hostname := "host1"
+	for _, test := range []struct {
+		sys   *System
+		input pr.Intake
+		out   *System
+	}{
+		{
+			sys:   nil,
+			input: pr.Intake{},
+			out:   nil,
+		},
+		{
+			sys:   nil,
+			input: pr.Intake{SystemIP: ip},
+			out:   &System{IP: &ip},
+		},
+		{
+			sys:   &System{Hostname: &hostname},
+			input: pr.Intake{UserIP: ip},
+			out:   &System{Hostname: &hostname},
+		},
+		{
+			sys:   &System{Hostname: &hostname},
+			input: pr.Intake{SystemIP: ip},
+			out:   &System{Hostname: &hostname, IP: &ip},
+		},
+	} {
+		assert.Equal(t, test.out, test.sys.Enrich(test.input))
 	}
 }

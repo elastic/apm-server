@@ -11,7 +11,7 @@
                     "name": "service1"
                 },
                 "system": {
-                    "ip": "127.0.0.1"
+                    "ip": "188.16.14.1"
                 }
             },
             "processor": {

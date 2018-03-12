@@ -15,11 +15,11 @@ func NewProcessor(_ *pr.Config) pr.Processor {
 
 type processor struct{}
 
-func (p *processor) Validate(_ map[string]interface{}) error {
+func (p *processor) Validate(_ pr.Intake) error {
 	return nil
 }
 
-func (p *processor) Transform(_ interface{}) ([]beat.Event, error) {
+func (p *processor) Transform(_ pr.Intake) ([]beat.Event, error) {
 	return nil, nil
 }
 

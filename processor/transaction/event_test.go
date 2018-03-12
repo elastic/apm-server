@@ -11,7 +11,6 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-//TODO: use test enhancer as argument and test error case
 func TestEventTransform(t *testing.T) {
 
 	id := "123"

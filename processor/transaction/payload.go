@@ -17,12 +17,12 @@ var (
 )
 
 type payload struct {
-	Service m.Service
-	System  *m.System
-	Process *m.Process
-	Events  []Event `mapstructure:"transactions"`
-	Context common.MapStr
-	User    common.MapStr
+	Service m.Service  `json:"service"`
+	System  *m.System  `json:"system"`
+	Process *m.Process `json:"process"`
+	User    *m.User    `json:"user"`
+
+	Events []Event `json:"transactions"`
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {

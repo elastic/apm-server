@@ -23,23 +23,17 @@ func TestImplementProcessorInterface(t *testing.T) {
 func TestValidate(t *testing.T) {
 	p := NewProcessor(nil)
 	data, err := loader.LoadValidData("sourcemap")
-
 	assert.NoError(t, err)
 	err = p.Validate(data)
 	assert.NoError(t, err)
 
-	err = p.Validate(map[string]interface{}{})
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "not in expected format"))
-
-	err = p.Validate(map[string]interface{}{"sourcemap": ""})
+	err = p.Validate(pr.Intake{Data: []byte{}})
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "Error validating sourcemap"))
 
-	delete(data, "bundle_filepath")
-	err = p.Validate(data)
+	err = p.Validate(pr.Intake{Data: data.Data})
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "missing properties"))
+	assert.True(t, strings.Contains(err.Error(), "Problem validating"))
 }
 
 func TestTransform(t *testing.T) {
@@ -59,5 +53,5 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
 	assert.Equal(t, "service", getStr(output, "service.name"))
 	assert.Equal(t, "1", getStr(output, "service.version"))
-	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
+	assert.Equal(t, string(data.Data), getStr(output, "sourcemap"))
 }

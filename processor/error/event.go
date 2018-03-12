@@ -16,35 +16,38 @@ import (
 )
 
 type Event struct {
-	Id          *string
-	Culprit     *string
-	Context     common.MapStr
-	Exception   *Exception
-	Log         *Log
-	Timestamp   time.Time
-	Transaction *struct {
-		Id string
-	}
+	Id        *string       `json:"id"`
+	Culprit   *string       `json:"culprit"`
+	Context   common.MapStr `json:"context"`
+	Exception *Exception    `json:"exception"`
+	Log       *Log          `json:"log"`
+	Timestamp time.Time     `json:"timestamp"`
+	//TODO: handle time.Time properly
+	Transaction *Transaction `json:"transaction"`
 
 	data common.MapStr
 }
 
+type Transaction struct {
+	Id string `json:"id"`
+}
+
 type Exception struct {
-	Code       interface{}
-	Message    string
-	Module     *string
-	Attributes interface{}
-	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
-	Type       *string
-	Handled    *bool
+	Code       interface{}  `json:"code"`
+	Message    string       `json:"message"`
+	Module     *string      `json:"module"`
+	Attributes interface{}  `json:"attributes"`
+	Stacktrace m.Stacktrace `json:"stacktrace"`
+	Type       *string      `json:"type"`
+	Handled    *bool        `json:"handled"`
 }
 
 type Log struct {
-	Level        *string
-	Message      string
-	ParamMessage *string      `mapstructure:"param_message"`
-	LoggerName   *string      `mapstructure:"logger_name"`
-	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
+	Level        *string      `json:"level"`
+	Message      string       `json:"message"`
+	ParamMessage *string      `json:"param_message"`
+	LoggerName   *string      `json:"logger_name"`
+	Stacktrace   m.Stacktrace `json:"stacktrace"`
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {

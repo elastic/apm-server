@@ -9,14 +9,17 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-var ip = "127.0.0.1"
+var (
+	ip = "127.0.0.1"
+	id = "123"
+)
 
 func TestContext(t *testing.T) {
 	tests := []struct {
 		process *Process
 		system  *System
 		service *Service
-		user    common.MapStr
+		user    *User
 		context *Context
 	}{
 		{
@@ -30,7 +33,7 @@ func TestContext(t *testing.T) {
 			process: &Process{},
 			system:  &System{},
 			service: &Service{},
-			user:    common.MapStr{},
+			user:    &User{},
 			context: &Context{
 				process: common.MapStr{"pid": 0},
 				service: common.MapStr{"name": "", "agent": common.MapStr{"version": "", "name": ""}},
@@ -42,12 +45,12 @@ func TestContext(t *testing.T) {
 			process: &Process{Pid: 123},
 			system:  &System{IP: &ip},
 			service: &Service{Name: "service"},
-			user:    common.MapStr{"id": 456},
+			user:    &User{Id: &id},
 			context: &Context{
 				process: common.MapStr{"pid": 123},
 				system:  common.MapStr{"ip": ip},
 				service: common.MapStr{"name": "service", "agent": common.MapStr{"version": "", "name": ""}},
-				user:    common.MapStr{"id": 456},
+				user:    common.MapStr{"id": "123"},
 			},
 		},
 	}

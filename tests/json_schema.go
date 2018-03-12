@@ -28,7 +28,8 @@ type Mapping struct {
 }
 
 func TestPayloadAttributesInSchema(t *testing.T, name string, undocumentedAttrs *set.Set, schema string) {
-	payload, _ := loader.LoadValidData(name)
+	payload, _ := loader.UnmarshalValidData(name)
+
 	jsonNames := set.New()
 	flattenJsonKeys(payload, "", jsonNames)
 	jsonNamesDoc := set.Difference(jsonNames, undocumentedAttrs).(*set.Set)
@@ -154,10 +155,10 @@ type SchemaTestData struct {
 }
 
 func TestDataAgainstProcessor(t *testing.T, p processor.Processor, testData []SchemaTestData) {
-	for _, d := range testData {
-		data, err := loader.LoadData(d.File)
-		assert.Nil(t, err)
+	for _, td := range testData {
+		data, err := loader.LoadData(p.Name(), td.File)
+		assert.NoError(t, err)
 		err = p.Validate(data)
-		assert.Contains(t, err.Error(), d.Error)
+		assert.Contains(t, err.Error(), td.Error)
 	}
 }

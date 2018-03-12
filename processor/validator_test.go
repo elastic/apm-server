@@ -24,16 +24,22 @@ func TestCreateSchemaOK(t *testing.T) {
 }
 
 func TestValidateFails(t *testing.T) {
-	data := map[string]interface{}{"age": 12}
 	schema := CreateSchema(validSchema, "myschema")
+
+	data := []byte{}
 	err := Validate(data, schema)
+	assert.NotNil(t, err)
+	assert.True(t, strings.Contains(err.Error(), "Problem validating"))
+
+	data = []byte(`{"age": 12}`)
+	err = Validate(data, schema)
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), "missing properties: \"name\""))
 }
 
 func TestValidateOK(t *testing.T) {
-	data := map[string]interface{}{"name": "john"}
 	schema := CreateSchema(validSchema, "myschema")
+	data := []byte(`{"name": "john"}`)
 	err := Validate(data, schema)
 	assert.Nil(t, err)
 }

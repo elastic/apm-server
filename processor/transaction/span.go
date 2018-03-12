@@ -8,14 +8,14 @@ import (
 )
 
 type Span struct {
-	Id         *int
-	Name       string
-	Type       string
-	Start      float64
-	Duration   float64
-	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
-	Context    common.MapStr
-	Parent     *int
+	Id         *int          `json:"id"`
+	Name       string        `json:"name"`
+	Type       string        `json:"type"`
+	Start      float64       `json:"start"`
+	Duration   float64       `json:"duration"`
+	Stacktrace m.Stacktrace  `json:"stacktrace"`
+	Context    common.MapStr `json:"context"`
+	Parent     *int          `json:"parent"`
 }
 
 func (s *Span) Transform(config *pr.Config, service m.Service) common.MapStr {
