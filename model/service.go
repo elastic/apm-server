@@ -32,20 +32,22 @@ type Agent struct {
 	Version string
 }
 
-type TransformService func(a *Service) common.MapStr
-
 func (s *Service) MinimalTransform() common.MapStr {
-	svc := common.MapStr{
-		"name": s.Name,
-		"agent": common.MapStr{
-			"name":    s.Agent.Name,
-			"version": s.Agent.Version,
-		},
+	if s == nil {
+		return nil
 	}
+	svc := common.MapStr{"name": s.Name}
+	agent := common.MapStr{}
+	utility.Add(agent, "name", s.Agent.Name)
+	utility.Add(agent, "version", s.Agent.Version)
+	utility.Add(svc, "agent", agent)
 	return svc
 }
 
 func (s *Service) Transform() common.MapStr {
+	if s == nil {
+		return nil
+	}
 	svc := s.MinimalTransform()
 	utility.Add(svc, "version", s.Version)
 	utility.Add(svc, "environment", s.Environment)

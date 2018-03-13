@@ -51,12 +51,3 @@ func (t *Event) Transform() common.MapStr {
 	}
 	return tx
 }
-
-// This updates the event in place
-func (t *Event) contextTransform(pa *payload) common.MapStr {
-	if t.Context == nil {
-		t.Context = make(map[string]interface{})
-	}
-	utility.InsertInMap(t.Context, "user", pa.User)
-	return t.Context
-}

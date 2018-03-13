@@ -3,7 +3,6 @@ package error
 import (
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -19,28 +18,20 @@ type payload struct {
 	Service m.Service
 	System  *m.System
 	Process *m.Process
-	Events  []Event `mapstructure:"errors"`
-	User    map[string]interface{}
+	User    common.MapStr
+
+	Events []Event `mapstructure:"errors"`
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {
 	var events []beat.Event
-	service := pa.Service.Transform()
-	system := pa.System.Transform()
-	process := pa.Process.Transform()
+	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
 
 	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	errorCounter.Add(int64(len(pa.Events)))
 	for _, event := range pa.Events {
-		context := event.contextTransform(pa)
-		if context == nil {
-			context = common.MapStr{}
-		}
-		utility.Add(context, "service", service)
-		utility.Add(context, "system", system)
-		utility.Add(context, "process", process)
-
+		context := context.Transform(event.Context)
 		ev := beat.Event{
 			Fields: common.MapStr{
 				"processor":  processorEntry,

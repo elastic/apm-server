@@ -92,7 +92,13 @@
                         "remote_address": "12.53.12.1",
                         "encrypted": true
                     },
-                    "body": "Hello World",
+                    "body": {
+                        "additional": {
+                            "req": "additional information",
+                            "bar": 123
+                        },
+                        "str": "hello world"
+                    },
                     "env": {
                         "GATEWAY_INTERFACE": "CGI/1.1",
                         "SERVER_SOFTWARE": "nginx"
@@ -127,8 +133,7 @@
                     "navigationTiming": {
                         "navigationStart": -21,
                         "appBeforeBootstrap": 608.9300000000001
-                    },
-                    "performance": {}
+                    }
                 },
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
                 "name": "GET /api/types",
