@@ -19,6 +19,8 @@ https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af66
 ==== Added
 
 - Enriched data with IP and UserAgent {pull}393[393], {pull}701[701].
+- Push errors and transactions to different ES indices {pull}706[706].
+- Allow custom `error.log.level` {pull}712[712].
 
 ==== Deprecated
 
