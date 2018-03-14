@@ -6,30 +6,30 @@ import (
 )
 
 type Service struct {
-	Name        string
-	Version     *string
-	Environment *string
-	Language    Language
-	Runtime     Runtime
-	Framework   Framework
-	Agent       Agent
+	Name        string    `json:"name"`
+	Version     *string   `json:"version"`
+	Environment *string   `json:"environment"`
+	Language    Language  `json:"language"`
+	Runtime     Runtime   `json:"runtime"`
+	Framework   Framework `json:"framework"`
+	Agent       Agent     `json:"agent"`
 }
 
 type Language struct {
-	Name    *string
-	Version *string
+	Name    *string `json:"name"`
+	Version *string `json:"version"`
 }
 type Runtime struct {
-	Name    *string
-	Version *string
+	Name    *string `json:"name"`
+	Version *string `json:"version"`
 }
 type Framework struct {
-	Name    *string
-	Version *string
+	Name    *string `json:"name"`
+	Version *string `json:"version"`
 }
 type Agent struct {
-	Name    string
-	Version string
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 func (s *Service) MinimalTransform() common.MapStr {

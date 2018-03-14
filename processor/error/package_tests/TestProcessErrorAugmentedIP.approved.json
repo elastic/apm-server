@@ -16,7 +16,7 @@
                 "system": {
                     "architecture": "x64",
                     "hostname": "prod1.example.com",
-                    "ip": "127.0.0.1",
+                    "ip": "188.16.14.1",
                     "platform": "darwin"
                 },
                 "user": {

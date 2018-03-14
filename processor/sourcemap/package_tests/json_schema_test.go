@@ -21,10 +21,10 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 
 func TestSourcemapPayloadSchema(t *testing.T) {
 	testData := []tests.SchemaTestData{
-		{File: "data/invalid/sourcemap/no_service_version.json", Error: "missing properties: \"service_version\""},
-		{File: "data/invalid/sourcemap/no_bundle_filepath.json", Error: "missing properties: \"bundle_filepath\""},
-		{File: "data/invalid/sourcemap/not_allowed_empty_values.json", Error: "length must be >= 1, but got 0"},
-		{File: "data/invalid/sourcemap/not_allowed_null_values.json", Error: "expected string, but got null"},
+		{File: "data/invalid/sourcemap/no_service_version.json", Error: `properties/service_version/minLength`},
+		{File: "data/invalid/sourcemap/no_bundle_filepath.json", Error: `properties/bundle_filepath/minLength`},
+		{File: "data/invalid/sourcemap/not_allowed_empty_values.json", Error: `properties/service_name/minLength`},
+		{File: "data/invalid/sourcemap/not_allowed_null_values.json", Error: `properties/service_version/minLength`},
 	}
 	tests.TestDataAgainstProcessor(t, sourcemap.NewProcessor(nil), testData)
 }

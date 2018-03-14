@@ -89,15 +89,19 @@ func Compare(path string, ignored map[string]string) (map[string]interface{}, []
 }
 
 type RequestInfo struct {
-	Name string
-	Path string
+	Name   string
+	Path   string
+	Enrich func(processor.Intake) processor.Intake
 }
 
 func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignored map[string]string) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
-		data, err := loader.LoadData(info.Path)
-		assert.Nil(err)
+		data, err := loader.LoadData(p.Name(), info.Path)
+		assert.NoError(err)
+		if info.Enrich != nil {
+			data = info.Enrich(data)
+		}
 
 		err = p.Validate(data)
 		assert.NoError(err)

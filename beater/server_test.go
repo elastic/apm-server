@@ -236,11 +236,11 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 var noSSL *SSLConfig
 
 var testData = func() []byte {
-	d, err := loader.LoadValidDataAsBytes("transaction")
+	d, err := loader.LoadValidData("transaction")
 	if err != nil {
 		panic(err)
 	}
-	return d
+	return d.Data
 }()
 
 func withSSL(t *testing.T, domain string) *SSLConfig {

@@ -24,7 +24,14 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionMinimalService", Path: "data/valid/transaction/minimal_service.json"},
 		{Name: "TestProcessTransactionMinimalProcess", Path: "data/valid/transaction/minimal_process.json"},
 		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
-		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
+		{
+			Name: "TestProcessTransactionAugmentedIP",
+			Path: "data/valid/transaction/augmented_payload_backend.json",
+			Enrich: func(input processor.Intake) processor.Intake {
+				input.SystemIP = "188.16.14.1"
+				return input
+			},
+		},
 	}
 	tests.TestProcessRequests(t, transaction.NewProcessor(nil), requestInfo, map[string]string{})
 }
@@ -32,8 +39,23 @@ func TestTransactionProcessorOK(t *testing.T) {
 func TestProcessorFrontendOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
 		{Name: "TestProcessTransactionFrontend", Path: "data/valid/transaction/frontend.json"},
-		{Name: "TestProcessTransactionAugmentedMerge", Path: "data/valid/transaction/augmented_payload_frontend.json"},
-		{Name: "TestProcessTransactionAugmented", Path: "data/valid/transaction/augmented_payload_frontend_no_context.json"},
+		{
+			Name: "TestProcessTransactionAugmentedMerge",
+			Path: "data/valid/transaction/augmented_payload_frontend.json",
+			Enrich: func(input processor.Intake) processor.Intake {
+				input.UserIP = "10.1.1.20"
+				return input
+			},
+		},
+		{
+			Name: "TestProcessTransactionAugmented",
+			Path: "data/valid/transaction/augmented_payload_frontend_no_context.json",
+			Enrich: func(input processor.Intake) processor.Intake {
+				input.UserIP = "10.1.1.22"
+				input.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)"
+				return input
+			},
+		},
 	}
 	conf := processor.Config{
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),

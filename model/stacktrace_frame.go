@@ -11,17 +11,17 @@ import (
 )
 
 type StacktraceFrame struct {
-	AbsPath      *string `mapstructure:"abs_path"`
-	Filename     string
-	Lineno       int
-	Colno        *int
-	ContextLine  *string `mapstructure:"context_line"`
-	Module       *string
-	Function     *string
-	LibraryFrame *bool `mapstructure:"library_frame"`
-	Vars         common.MapStr
-	PreContext   []string `mapstructure:"pre_context"`
-	PostContext  []string `mapstructure:"post_context"`
+	AbsPath      *string       `json:"abs_path"`
+	Filename     string        `json:"filename"`
+	Lineno       int           `json:"lineno"`
+	Colno        *int          `json:"colno"`
+	ContextLine  *string       `json:"context_line"`
+	Module       *string       `json:"module"`
+	Function     *string       `json:"function"`
+	LibraryFrame *bool         `json:"library_frame"`
+	Vars         common.MapStr `json:"vars"`
+	PreContext   []string      `json:"pre_context"`
+	PostContext  []string      `json:"post_context"`
 
 	ExcludeFromGrouping bool
 

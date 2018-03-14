@@ -6,10 +6,10 @@ import (
 )
 
 type Process struct {
-	Pid   int
-	Ppid  *int
-	Title *string
-	Argv  []string
+	Pid   int      `json:"pid"`
+	Ppid  *int     `json:"ppid"`
+	Title *string  `json:"title"`
+	Argv  []string `json:"argv"`
 }
 
 func (p *Process) Transform() common.MapStr {

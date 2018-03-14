@@ -6,38 +6,44 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
+
+	"github.com/elastic/apm-server/processor"
 )
 
-func findFile(fileName string) (string, error) {
-	_, current, _, _ := runtime.Caller(0)
-	return filepath.Join(filepath.Dir(current), "..", fileName), nil
+func LoadData(processorName string, file string) (processor.Intake, error) {
+	return inputData(processorName, findFile(file))
 }
 
-func readFile(filePath string, err error) ([]byte, error) {
+func LoadValidData(processorName string) (processor.Intake, error) {
+	return loadData(processorName, true)
+}
+
+func LoadInvalidData(processorName string) (processor.Intake, error) {
+	return loadData(processorName, false)
+}
+
+func UnmarshalValidData(processorName string) (map[string]interface{}, error) {
+	p, _ := buildPath(processorName, true)
+	f, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadFile(filePath)
+	var data map[string]interface{}
+	err = json.Unmarshal(f, &data)
+	return data, err
 }
 
-func LoadData(file string) (map[string]interface{}, error) {
-	return unmarshalData(findFile(file))
+func findFile(fileName string) string {
+	_, current, _, _ := runtime.Caller(0)
+	return filepath.Join(filepath.Dir(current), "..", fileName)
 }
 
-func LoadDataAsBytes(fileName string) ([]byte, error) {
-	return readFile(findFile(fileName))
-}
-
-func LoadValidDataAsBytes(processorName string) ([]byte, error) {
-	return readFile(buildPath(processorName, true))
-}
-
-func LoadValidData(processorName string) (map[string]interface{}, error) {
-	return unmarshalData(buildPath(processorName, true))
-}
-
-func LoadInvalidData(processorName string) (map[string]interface{}, error) {
-	return unmarshalData(buildPath(processorName, false))
+func loadData(processorName string, valid bool) (processor.Intake, error) {
+	p, err := buildPath(processorName, valid)
+	if err != nil {
+		return processor.Intake{}, err
+	}
+	return inputData(processorName, p)
 }
 
 func buildPath(processorName string, validData bool) (string, error) {
@@ -69,14 +75,29 @@ func buildPath(processorName string, validData bool) (string, error) {
 	default:
 		return "", errors.New("data type not specified")
 	}
-	return findFile(filepath.Join("data", valid, file))
+	return findFile(filepath.Join("data", valid, file)), nil
 }
 
-func unmarshalData(filePath string, err error) (map[string]interface{}, error) {
-	var data map[string]interface{}
-	input, err := readFile(filePath, err)
-	if err == nil {
-		err = json.Unmarshal(input, &data)
+func inputData(processorName string, filePath string) (processor.Intake, error) {
+	input := processor.Intake{}
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return input, err
 	}
-	return data, err
+	input.Data = data
+	if processorName != "sourcemap" {
+		return input, nil
+	}
+
+	var smapData map[string]string
+	err = json.Unmarshal(data, &smapData)
+	if err != nil {
+		return input, err
+	}
+	return processor.Intake{
+		Data:           []byte(smapData["sourcemap"]),
+		ServiceName:    smapData["service_name"],
+		ServiceVersion: smapData["service_version"],
+		BundleFilepath: smapData["bundle_filepath"],
+	}, nil
 }

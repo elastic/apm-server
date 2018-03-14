@@ -3,49 +3,34 @@ package decoder
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"mime/multipart"
-
 	"github.com/elastic/apm-server/tests/loader"
 )
 
 func TestDecode(t *testing.T) {
-	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-	assert.Nil(t, err)
-	buffer := bytes.NewReader(transactionBytes)
-	var data map[string]interface{}
-	json.Unmarshal(transactionBytes, &data)
+	for _, ct := range []string{
+		"application/json",
+		"application/json; charset=UTF-8",
+	} {
+		input, err := loader.LoadValidData("transaction")
+		assert.Nil(t, err)
+		buffer := bytes.NewReader(input.Data)
 
-	req, err := http.NewRequest("POST", "_", buffer)
-	req.Header.Add("Content-Type", "application/json")
-	assert.Nil(t, err)
+		req, err := http.NewRequest("POST", "_", buffer)
+		assert.Nil(t, err)
 
-	body, err := DecodeLimitJSONData(1024 * 1024)(req)
-	assert.Nil(t, err)
-	assert.Equal(t, data, body)
-}
-
-func TestDecodeContentType(t *testing.T) {
-	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-	assert.Nil(t, err)
-	buffer := bytes.NewReader(transactionBytes)
-	var data map[string]interface{}
-	json.Unmarshal(transactionBytes, &data)
-
-	req, err := http.NewRequest("POST", "_", buffer)
-	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
-	assert.Nil(t, err)
-
-	body, err := DecodeLimitJSONData(1024 * 1024)(req)
-	assert.Nil(t, err)
-	assert.Equal(t, data, body)
+		req.Header.Add("Content-Type", ct)
+		decoded, err := DecodeLimitJSONData(1024 * 1024)(req)
+		assert.Nil(t, err)
+		assert.Equal(t, input.Data, decoded.Data)
+	}
 }
 
 func TestDecodeSizeLimit(t *testing.T) {
@@ -114,12 +99,12 @@ func TestDecodeSizeLimitGzip(t *testing.T) {
 }
 
 func TestDecodeSourcemapFormData(t *testing.T) {
-
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	fileBytes, err := loader.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
+	smapData, err := loader.LoadData("", "data/valid/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
+	fileBytes := smapData.Data
 	part, err := writer.CreateFormFile("sourcemap", "bundle_no_mapping.js.map")
 	assert.NoError(t, err)
 	_, err = io.Copy(part, bytes.NewReader(fileBytes))
@@ -140,32 +125,21 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	data, err := DecodeSourcemapFormData(req)
 	assert.NoError(t, err)
 
-	assert.Len(t, data, 4)
-	assert.Equal(t, "js/bundle_no_mapping.js.map", data["bundle_filepath"])
-	assert.Equal(t, "My service", data["service_name"])
-	assert.Equal(t, "0.1", data["service_version"])
-	assert.NotNil(t, data["sourcemap"].(string))
-	assert.Equal(t, len(fileBytes), len(data["sourcemap"].(string)))
+	assert.Equal(t, "js/bundle_no_mapping.js.map", data.BundleFilepath)
+	assert.Equal(t, "My service", data.ServiceName)
+	assert.Equal(t, "0.1", data.ServiceVersion)
+	assert.NotNil(t, data.Data)
+	assert.Equal(t, fileBytes, data.Data)
 }
 
 func TestDecodeSystemData(t *testing.T) {
 
 	for _, enabled := range []bool{true, false} {
-
-		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-		assert.Nil(t, err)
-		buffer := bytes.NewReader(transactionBytes)
-
-		req, err := http.NewRequest("POST", "_", buffer)
-		req.Header.Add("Content-Type", "application/json")
-		assert.Nil(t, err)
-
+		req := transactionReq(t)
 		body, err := DecodeSystemData(DecodeLimitJSONData(1024*1024), enabled)(req)
 		assert.Nil(t, err)
 
-		system, hasSystem := body["system"].(map[string]interface{})
-		assert.True(t, hasSystem)
-		_, hasIp := system["ip"]
+		hasIp := body.SystemIP != ""
 		assert.Equal(t, enabled, hasIp)
 	}
 }
@@ -173,23 +147,27 @@ func TestDecodeSystemData(t *testing.T) {
 func TestDecodeUserData(t *testing.T) {
 
 	for _, enabled := range []bool{true, false} {
-
-		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-		assert.Nil(t, err)
-		buffer := bytes.NewReader(transactionBytes)
-
-		req, err := http.NewRequest("POST", "_", buffer)
-		req.Header.Add("Content-Type", "application/json")
-		assert.Nil(t, err)
-
+		req := transactionReq(t)
 		body, err := DecodeUserData(DecodeLimitJSONData(1024*1024), enabled)(req)
 		assert.Nil(t, err)
-		user, hasUser := body["user"].(map[string]interface{})
-		assert.Equal(t, enabled, hasUser)
-		_, hasIp := user["ip"]
+
+		hasIp := body.UserIP != ""
 		assert.Equal(t, enabled, hasIp)
 
-		_, hasUserAgent := user["user_agent"]
+		hasUserAgent := body.UserAgent != ""
 		assert.Equal(t, enabled, hasUserAgent)
 	}
+}
+
+func transactionReq(t *testing.T) *http.Request {
+	transaction, err := loader.LoadValidData("transaction")
+	assert.Nil(t, err)
+	buffer := bytes.NewReader(transaction.Data)
+
+	req, err := http.NewRequest("POST", "_", buffer)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("User-Agent", "ruby-1.0")
+	req.RemoteAddr = "10.11.12.13:8080"
+	assert.Nil(t, err)
+	return req
 }

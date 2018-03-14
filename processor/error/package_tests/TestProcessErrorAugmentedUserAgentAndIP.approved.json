@@ -11,8 +11,8 @@
                     "name": "1234_service-12a3"
                 },
                 "user": {
-                    "ip": "127.0.0.1",
-                    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)",
+                    "ip": "10.1.1.22",
+                    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)",
                     "username": "just me"
                 }
             },

@@ -26,7 +26,14 @@ func TestProcessorBackendOK(t *testing.T) {
 		{Name: "TestProcessErrorMinimalProcess", Path: "data/valid/error/minimal_process.json"},
 		{Name: "TestProcessErrorFull", Path: "data/valid/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "data/valid/error/null_values.json"},
-		{Name: "TestProcessErrorAugmentedIP", Path: "data/valid/error/augmented_payload_backend.json"},
+		{
+			Name: "TestProcessErrorAugmentedIP",
+			Path: "data/valid/error/augmented_payload_backend.json",
+			Enrich: func(input processor.Intake) processor.Intake {
+				input.SystemIP = "188.16.14.1"
+				return input
+			},
+		},
 	}
 	conf := processor.Config{ExcludeFromGrouping: nil}
 	tests.TestProcessRequests(t, er.NewProcessor(&conf), requestInfo, map[string]string{})
@@ -37,7 +44,15 @@ func TestProcessorFrontendOK(t *testing.T) {
 		{Name: "TestProcessErrorFrontend", Path: "data/valid/error/frontend.json"},
 		{Name: "TestProcessErrorFrontendNoSmap", Path: "data/valid/error/frontend_app.e2e-bundle.json"},
 		{Name: "TestProcessErrorFrontendMinifiedSmap", Path: "data/valid/error/frontend_app.e2e-bundle.min.json"},
-		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "data/valid/error/augmented_payload_frontend.json"},
+		{
+			Name: "TestProcessErrorAugmentedUserAgentAndIP",
+			Path: "data/valid/error/augmented_payload_frontend.json",
+			Enrich: func(input processor.Intake) processor.Intake {
+				input.UserIP = "10.1.1.22"
+				input.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)"
+				return input
+			},
+		},
 	}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	conf := processor.Config{

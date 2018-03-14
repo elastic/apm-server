@@ -239,7 +239,7 @@ func pluralize(entity string) string {
 	return entity + "s"
 }
 func createPayload(entityType string, numEntities int) []byte {
-	data, err := loader.LoadValidData(entityType)
+	data, err := loader.UnmarshalValidData(entityType)
 	if err != nil {
 		panic(err)
 	}

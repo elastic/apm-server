@@ -286,15 +286,15 @@ func processRequest(r *http.Request, pf ProcessorFactory, prConfig *processor.Co
 	}
 
 	data, err := decode(r)
-	if err != nil {
+	if err != nil || data == nil {
 		return http.StatusBadRequest, errors.Wrap(err, "while decoding")
 	}
 
-	if err = processor.Validate(data); err != nil {
+	if err = processor.Validate(*data); err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	list, err := processor.Transform(data)
+	list, err := processor.Transform(*data)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}

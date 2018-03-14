@@ -8,23 +8,23 @@ import (
 )
 
 type Event struct {
-	Id        string
-	Name      *string
-	Type      string
-	Result    *string
-	Duration  float64
-	Timestamp time.Time
-	Context   common.MapStr
-	Spans     []*Span
-	Marks     common.MapStr
-	Sampled   *bool
-	SpanCount SpanCount `mapstructure:"span_count"`
+	Id        string        `json:"id"`
+	Name      *string       `json:"name"`
+	Type      string        `json:"type"`
+	Result    *string       `json:"result"`
+	Duration  float64       `json:"duration"`
+	Timestamp time.Time     `json:"timestamp"`
+	Context   common.MapStr `json:"context"`
+	Spans     []*Span       `json:"spans"`
+	Marks     common.MapStr `json:"marks"`
+	Sampled   *bool         `json:"sampled"`
+	SpanCount SpanCount     `json:"span_count"`
 }
 type SpanCount struct {
-	Dropped Dropped
+	Dropped Dropped `json:"dropped"`
 }
 type Dropped struct {
-	Total *int
+	Total *int `json:"total"`
 }
 
 func (t *Event) Transform() common.MapStr {
