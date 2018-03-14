@@ -227,7 +227,7 @@ func SetupServer(b *testing.B) *http.ServeMux {
 		b.Fatalf("error initializing publisher: %v", err)
 	}
 
-	pub, err := newPublisher(pip, 1)
+	pub, err := newPublisher(pip, 1, time.Duration(0))
 
 	if err != nil {
 		b.Fatal(err)
