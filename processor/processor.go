@@ -11,7 +11,7 @@ type NewProcessor func(conf *Config) Processor
 
 type Processor interface {
 	Validate(map[string]interface{}) error
-	Transform(interface{}) ([]beat.Event, error)
+	Transform(map[string]interface{}) ([]beat.Event, error)
 	Name() string
 }
 

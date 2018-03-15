@@ -1,15 +1,12 @@
 package transaction
 
 import (
-	"github.com/mitchellh/mapstructure"
-
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/santhosh-tekuri/jsonschema"
-
-	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -37,6 +34,10 @@ type processor struct {
 	config *pr.Config
 }
 
+func (p *processor) Name() string {
+	return processorName
+}
+
 func (p *processor) Validate(raw map[string]interface{}) error {
 	validationCount.Inc()
 	err := pr.Validate(raw, p.schema)
@@ -46,24 +47,12 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
-	var pa payload
+func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
 	transformations.Inc()
-
-	decoder, _ := mapstructure.NewDecoder(
-		&mapstructure.DecoderConfig{
-			DecodeHook: utility.RFC3339DecoderHook,
-			Result:     &pa,
-		},
-	)
-	err := decoder.Decode(raw)
-	if err != nil {
+	df := utility.DataFetcher{}
+	pa := payload{}
+	if err := pa.decode(raw); err != nil {
 		return nil, err
 	}
-
-	return pa.transform(p.config), nil
-}
-
-func (p *processor) Name() string {
-	return processorName
+	return pa.transform(p.config), df.Err
 }

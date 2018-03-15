@@ -37,7 +37,7 @@ func (e *Exception) withType(etype string) *Exception {
 }
 
 func (e *Exception) withFrames(frames []*m.StacktraceFrame) *Exception {
-	e.Stacktrace = m.Stacktrace(frames)
+	e.Stacktrace = m.Stacktrace{Frames: frames}
 	return e
 }
 
@@ -51,7 +51,7 @@ func (l *Log) withParamMsg(msg string) *Log {
 }
 
 func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
-	l.Stacktrace = m.Stacktrace(frames)
+	l.Stacktrace = m.Stacktrace{Frames: frames}
 	return l
 }
 
@@ -72,7 +72,7 @@ func TestEventTransform(t *testing.T) {
 		Module:     &module,
 		Handled:    &handled,
 		Attributes: attributes,
-		Stacktrace: []*m.StacktraceFrame{{Filename: "st file"}},
+		Stacktrace: m.Stacktrace{Frames: []*m.StacktraceFrame{{Filename: "st file"}}},
 	}
 
 	level := "level"
@@ -167,7 +167,7 @@ func TestEventTransform(t *testing.T) {
 				Context:     context,
 				Exception:   &exception,
 				Log:         &log,
-				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: common.MapStr{
 				"id":      "45678",
@@ -212,13 +212,17 @@ func TestCulprit(t *testing.T) {
 	fct := "fct"
 	truthy := true
 	st := m.Stacktrace{
-		&m.StacktraceFrame{Filename: "a", Function: &fct, Sourcemap: m.Sourcemap{}},
+		Frames: []*m.StacktraceFrame{
+			&m.StacktraceFrame{Filename: "a", Function: &fct, Sourcemap: m.Sourcemap{}},
+		},
 	}
 	stUpdate := m.Stacktrace{
-		&m.StacktraceFrame{Filename: "a", Function: &fct, Sourcemap: m.Sourcemap{}},
-		&m.StacktraceFrame{Filename: "a", LibraryFrame: &truthy, Sourcemap: m.Sourcemap{Updated: &truthy}},
-		&m.StacktraceFrame{Filename: "f", Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
-		&m.StacktraceFrame{Filename: "bar", Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
+		Frames: []*m.StacktraceFrame{
+			&m.StacktraceFrame{Filename: "a", Function: &fct, Sourcemap: m.Sourcemap{}},
+			&m.StacktraceFrame{Filename: "a", LibraryFrame: &truthy, Sourcemap: m.Sourcemap{Updated: &truthy}},
+			&m.StacktraceFrame{Filename: "f", Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
+			&m.StacktraceFrame{Filename: "bar", Function: &fct, Sourcemap: m.Sourcemap{Updated: &truthy}},
+		},
 	}
 	mapper := sourcemap.SmapMapper{}
 	tests := []struct {
@@ -250,9 +254,11 @@ func TestCulprit(t *testing.T) {
 				Culprit: &c,
 				Log: &Log{
 					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{
-							Filename:  "f",
-							Sourcemap: m.Sourcemap{Updated: &truthy},
+						Frames: []*m.StacktraceFrame{
+							&m.StacktraceFrame{
+								Filename:  "f",
+								Sourcemap: m.Sourcemap{Updated: &truthy},
+							},
 						},
 					},
 				},
@@ -285,10 +291,12 @@ func TestCulprit(t *testing.T) {
 				Culprit: &c,
 				Log: &Log{
 					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{
-							Filename:  "a",
-							Function:  &fct,
-							Sourcemap: m.Sourcemap{Updated: &truthy},
+						Frames: []*m.StacktraceFrame{
+							&m.StacktraceFrame{
+								Filename:  "a",
+								Function:  &fct,
+								Sourcemap: m.Sourcemap{Updated: &truthy},
+							},
 						},
 					},
 				},
@@ -333,15 +341,17 @@ func TestExplicitGroupingKey(t *testing.T) {
 }
 
 func TestFramesUsableForGroupingKey(t *testing.T) {
-	st1 := m.Stacktrace{
+	st1 := m.Stacktrace{Frames: []*m.StacktraceFrame{
 		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
 		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
 		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: true},
+	},
 	}
-	st2 := m.Stacktrace{
+	st2 := m.Stacktrace{Frames: []*m.StacktraceFrame{
 		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
 		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
 		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: false},
+	},
 	}
 	e1 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st1}}
 	e2 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st2}}
@@ -523,7 +533,9 @@ func TestSourcemapping(t *testing.T) {
 	event := Event{Exception: &Exception{
 		Message: "exception message",
 		Stacktrace: m.Stacktrace{
-			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+			Frames: []*m.StacktraceFrame{
+				&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+			},
 		},
 	}}
 	trNoSmap := event.Transform(&pr.Config{SmapMapper: nil}, m.Service{})
@@ -531,14 +543,16 @@ func TestSourcemapping(t *testing.T) {
 	event2 := Event{Exception: &Exception{
 		Message: "exception message",
 		Stacktrace: m.Stacktrace{
-			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+			Frames: []*m.StacktraceFrame{
+				&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+			},
 		},
 	}}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	trWithSmap := event2.Transform(&pr.Config{SmapMapper: &mapper}, m.Service{})
 
-	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
-	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
+	assert.Equal(t, 1, event.Exception.Stacktrace.Frames[0].Lineno)
+	assert.Equal(t, 5, event2.Exception.Stacktrace.Frames[0].Lineno)
 
 	assert.NotEqual(t, trNoSmap["grouping_key"], trWithSmap["grouping_key"])
 	fmt.Println(trNoSmap)

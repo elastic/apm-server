@@ -11,17 +11,17 @@ import (
 )
 
 type StacktraceFrame struct {
-	AbsPath      *string `mapstructure:"abs_path"`
+	AbsPath      *string
 	Filename     string
 	Lineno       int
 	Colno        *int
-	ContextLine  *string `mapstructure:"context_line"`
+	ContextLine  *string
 	Module       *string
 	Function     *string
-	LibraryFrame *bool `mapstructure:"library_frame"`
+	LibraryFrame *bool
 	Vars         common.MapStr
-	PreContext   []string `mapstructure:"pre_context"`
-	PostContext  []string `mapstructure:"post_context"`
+	PreContext   []string
+	PostContext  []string
 
 	ExcludeFromGrouping bool
 
@@ -43,6 +43,22 @@ type Original struct {
 	LibraryFrame *bool
 
 	sourcemapCopied bool
+}
+
+func (s *StacktraceFrame) Decode(fr map[string]interface{}) error {
+	df := utility.DataFetcher{}
+	s.AbsPath = df.StringPtr(fr, "abs_path")
+	s.Filename = df.String(fr, "filename")
+	s.Lineno = df.Int(fr, "lineno")
+	s.Colno = df.IntPtr(fr, "colno")
+	s.ContextLine = df.StringPtr(fr, "context_line")
+	s.Module = df.StringPtr(fr, "module")
+	s.Function = df.StringPtr(fr, "function")
+	s.LibraryFrame = df.BoolPtr(fr, "library_frame")
+	s.Vars = df.MapStr(fr, "vars")
+	s.PreContext = df.StringArr(fr, "pre_context")
+	s.PostContext = df.StringArr(fr, "post_context")
+	return df.Err
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {

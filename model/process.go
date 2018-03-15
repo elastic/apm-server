@@ -1,15 +1,33 @@
 package model
 
 import (
+	"errors"
+
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
 type Process struct {
-	Pid   int
+	Pid   *int
 	Ppid  *int
 	Title *string
 	Argv  []string
+}
+
+func (p *Process) Decode(input interface{}) error {
+	raw, ok := input.(map[string]interface{})
+	if raw == nil {
+		return nil
+	}
+	if !ok {
+		return errors.New("Invalid type for process")
+	}
+	df := utility.DataFetcher{}
+	p.Pid = df.IntPtr(raw, "pid")
+	p.Ppid = df.IntPtr(raw, "ppid")
+	p.Title = df.StringPtr(raw, "title")
+	p.Argv = df.StringArr(raw, "argv")
+	return df.Err
 }
 
 func (p *Process) Transform() common.MapStr {

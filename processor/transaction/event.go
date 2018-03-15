@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"errors"
 	"time"
 
 	"github.com/elastic/apm-server/utility"
@@ -9,22 +10,58 @@ import (
 
 type Event struct {
 	Id        string
-	Name      *string
 	Type      string
+	Name      *string
 	Result    *string
 	Duration  float64
 	Timestamp time.Time
 	Context   common.MapStr
-	Spans     []*Span
 	Marks     common.MapStr
 	Sampled   *bool
-	SpanCount SpanCount `mapstructure:"span_count"`
+	SpanCount SpanCount
+	Spans     []*Span
 }
 type SpanCount struct {
 	Dropped Dropped
 }
 type Dropped struct {
 	Total *int
+}
+
+func (e *Event) decode(raw map[string]interface{}) error {
+	df := utility.DataFetcher{}
+	e.Id = df.String(raw, "id")
+	e.Type = df.String(raw, "type")
+	e.Name = df.StringPtr(raw, "name")
+	e.Result = df.StringPtr(raw, "result")
+	e.Duration = df.Float64(raw, "duration")
+	e.Timestamp = df.TimeRFC3339(raw, "timestamp")
+	e.Context = df.MapStr(raw, "context")
+	e.Marks = df.MapStr(raw, "marks")
+	e.Sampled = df.BoolPtr(raw, "sampled")
+	e.SpanCount = SpanCount{Dropped: Dropped{Total: df.IntPtr(raw, "total", "span_count", "dropped")}}
+	if df.Err != nil {
+		return df.Err
+	}
+	spans := df.InterfaceArr(raw, "spans")
+	if spans == nil {
+		e.Spans = make([]*Span, 0)
+		return nil
+	}
+	e.Spans = make([]*Span, len(spans))
+	for idx, sp := range spans {
+		sp, ok := sp.(map[string]interface{})
+		if !ok {
+			return errors.New("Invalid type for spans")
+		}
+
+		span := Span{}
+		if err := span.decode(sp); err != nil {
+			return err
+		}
+		e.Spans[idx] = &span
+	}
+	return df.Err
 }
 
 func (t *Event) Transform() common.MapStr {

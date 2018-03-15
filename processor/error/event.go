@@ -16,35 +16,89 @@ import (
 )
 
 type Event struct {
-	Id          *string
-	Culprit     *string
-	Context     common.MapStr
+	Id        *string
+	Culprit   *string
+	Context   common.MapStr
+	Timestamp time.Time
+
 	Exception   *Exception
 	Log         *Log
-	Timestamp   time.Time
-	Transaction *struct {
-		Id string
-	}
+	Transaction *Transaction
 
 	data common.MapStr
 }
 
+type Transaction struct {
+	Id string
+}
+
 type Exception struct {
-	Code       interface{}
 	Message    string
 	Module     *string
+	Code       interface{}
 	Attributes interface{}
-	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
+	Stacktrace m.Stacktrace
 	Type       *string
 	Handled    *bool
 }
 
 type Log struct {
-	Level        *string
 	Message      string
-	ParamMessage *string      `mapstructure:"param_message"`
-	LoggerName   *string      `mapstructure:"logger_name"`
-	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
+	Level        *string
+	ParamMessage *string
+	LoggerName   *string
+	Stacktrace   m.Stacktrace
+}
+
+func (e *Event) decode(raw map[string]interface{}) error {
+	df := utility.DataFetcher{}
+	e.Id = df.StringPtr(raw, "id")
+	e.Culprit = df.StringPtr(raw, "culprit")
+	e.Context = df.MapStr(raw, "context")
+	e.Timestamp = df.TimeRFC3339(raw, "timestamp")
+	transactionId := df.StringPtr(raw, "id", "transaction")
+	if transactionId != nil {
+		e.Transaction = &Transaction{Id: *transactionId}
+	}
+	if df.Err != nil {
+		return df.Err
+	}
+
+	ex := df.MapStr(raw, "exception")
+	exMsg := df.StringPtr(ex, "message")
+	if exMsg != nil {
+		e.Exception = &Exception{
+			Message:    *exMsg,
+			Code:       df.Interface(ex, "code"),
+			Module:     df.StringPtr(ex, "module"),
+			Attributes: df.Interface(ex, "attributes"),
+			Type:       df.StringPtr(ex, "type"),
+			Handled:    df.BoolPtr(ex, "handled"),
+			Stacktrace: m.Stacktrace{},
+		}
+		if err := e.Exception.Stacktrace.Decode(ex["stacktrace"]); err != nil {
+			return err
+		}
+	}
+	if df.Err != nil {
+		return df.Err
+	}
+
+	log := df.MapStr(raw, "log")
+	logMsg := df.StringPtr(log, "message")
+	if logMsg != nil {
+		e.Log = &Log{
+			Message:      *logMsg,
+			ParamMessage: df.StringPtr(log, "param_message"),
+			Level:        df.StringPtr(log, "level"),
+			LoggerName:   df.StringPtr(log, "logger_name"),
+			Stacktrace:   m.Stacktrace{},
+		}
+		if err := e.Log.Stacktrace.Decode(log["stacktrace"]); err != nil {
+			return err
+		}
+	}
+	return df.Err
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
@@ -68,10 +122,10 @@ func (e *Event) updateCulprit(config *pr.Config) {
 	}
 	var fr *m.StacktraceFrame
 	if e.Log != nil {
-		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace)
+		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace.Frames)
 	}
 	if fr == nil && e.Exception != nil {
-		fr = findSmappedNonLibraryFrame(e.Exception.Stacktrace)
+		fr = findSmappedNonLibraryFrame(e.Exception.Stacktrace.Frames)
 	}
 	if fr == nil {
 		return
@@ -180,17 +234,19 @@ func (e *Event) calcGroupingKey() string {
 	}
 	if e.Log != nil {
 		k.add(e.Log.ParamMessage)
-		if st == nil || len(st) == 0 {
+		if st.Frames == nil || len(st.Frames) == 0 {
 			st = e.Log.Stacktrace
 		}
 	}
 
-	for _, fr := range st {
-		if fr.ExcludeFromGrouping {
-			continue
+	if st.Frames != nil {
+		for _, fr := range st.Frames {
+			if fr.ExcludeFromGrouping {
+				continue
+			}
+			k.addEither(fr.Module, fr.Filename)
+			k.addEither(fr.Function, string(fr.Lineno))
 		}
-		k.addEither(fr.Module, fr.Filename)
-		k.addEither(fr.Function, string(fr.Lineno))
 	}
 
 	if k.empty {

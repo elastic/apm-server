@@ -33,3 +33,14 @@ func InsertInMap(data map[string]interface{}, key string, values map[string]inte
 	}
 
 }
+
+func GetDeep(raw map[string]interface{}, keys ...string) map[string]interface{} {
+	if raw == nil {
+		return nil
+	}
+	if len(keys) == 0 {
+		return raw
+	}
+	raw, _ = raw[keys[0]].(map[string]interface{})
+	return GetDeep(raw, keys[1:]...)
+}

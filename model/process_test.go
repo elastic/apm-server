@@ -22,11 +22,11 @@ func TestProcessTransform(t *testing.T) {
 	}{
 		{
 			Process: Process{},
-			Output:  common.MapStr{"pid": 0},
+			Output:  common.MapStr{},
 		},
 		{
 			Process: Process{
-				Pid:   pid,
+				Pid:   &pid,
 				Title: &processTitle,
 				Argv:  argv,
 			},

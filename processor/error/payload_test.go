@@ -54,10 +54,12 @@ func TestPayloadTransform(t *testing.T) {
 					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
 					Log:       baseLog(),
 					Exception: &Exception{
-						Message:    "exception message",
-						Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
+						Message: "exception message",
+						Stacktrace: m.Stacktrace{Frames: []*m.StacktraceFrame{
+							&m.StacktraceFrame{Filename: "myFile"}},
+						},
 					},
-					Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+					Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 				}},
 			},
 			Output: []common.MapStr{

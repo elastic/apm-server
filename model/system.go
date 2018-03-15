@@ -1,6 +1,8 @@
 package model
 
 import (
+	"errors"
+
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -10,6 +12,22 @@ type System struct {
 	Architecture *string
 	Platform     *string
 	IP           *string
+}
+
+func (s *System) Decode(input interface{}) error {
+	raw, ok := input.(map[string]interface{})
+	if raw == nil {
+		return nil
+	}
+	if !ok {
+		return errors.New("Invalid type for system")
+	}
+	df := utility.DataFetcher{}
+	s.Hostname = df.StringPtr(raw, "hostname")
+	s.Platform = df.StringPtr(raw, "platform")
+	s.Architecture = df.StringPtr(raw, "architecture")
+	s.IP = df.StringPtr(raw, "ip")
+	return df.Err
 }
 
 func (s *System) Transform() common.MapStr {

@@ -40,8 +40,10 @@ func TestSpanTransform(t *testing.T) {
 				Type:     "myspantype",
 				Start:    0.65,
 				Duration: 1.20,
-				Stacktrace: []*m.StacktraceFrame{
-					{AbsPath: &path},
+				Stacktrace: m.Stacktrace{
+					Frames: []*m.StacktraceFrame{
+						{AbsPath: &path},
+					},
 				},
 				Context: common.MapStr{"key": "val"},
 				Parent:  &parent,
