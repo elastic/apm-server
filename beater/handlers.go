@@ -87,11 +87,35 @@ func newMuxer(config *Config, report reporter) *http.ServeMux {
 	return mux
 }
 
+func concurrencyLimitHandler(config *Config, h http.Handler) http.Handler {
+	semaphore := make(chan struct{}, config.ConcurrentRequests)
+
+	release := func() {
+		<-semaphore
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case semaphore <- struct{}{}:
+			defer release()
+			h.ServeHTTP(w, r)
+		default:
+			logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+			if ok {
+				logger.Error("Timeout due to too many concurrent requests")
+			}
+			w.WriteHeader(503)
+		}
+
+	})
+}
+
 func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	return logHandler(
-		authHandler(config.SecretToken,
-			processRequestHandler(pf, nil, report,
-				decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled))))
+		concurrencyLimitHandler(config,
+			authHandler(config.SecretToken,
+				processRequestHandler(pf, nil, report,
+					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))
 }
 
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
@@ -105,11 +129,12 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 		ExcludeFromGrouping: regexp.MustCompile(config.Frontend.ExcludeFromGrouping),
 	}
 	return logHandler(
-		killSwitchHandler(config.Frontend.isEnabled(),
-			ipRateLimitHandler(config.Frontend.RateLimit,
-				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, &prConfig, report,
-						decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled))))))
+		concurrencyLimitHandler(config,
+			killSwitchHandler(config.Frontend.isEnabled(),
+				ipRateLimitHandler(config.Frontend.RateLimit,
+					corsHandler(config.Frontend.AllowOrigins,
+						processRequestHandler(pf, &prConfig, report,
+							decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
@@ -176,7 +201,6 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 }
 
 func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
-
 	cache, _ := lru.New(rateLimitCacheSize)
 
 	var deny = func(ip string) bool {
