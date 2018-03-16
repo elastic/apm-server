@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
@@ -99,7 +100,7 @@ func concurrencyLimitHandler(config *Config, h http.Handler) http.Handler {
 		case semaphore <- struct{}{}:
 			defer release()
 			h.ServeHTTP(w, r)
-		default:
+		case <-time.After(config.MaxRequestQueueTime):
 			logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
 			if ok {
 				logger.Error("request rejected due to too many concurrent requests")
