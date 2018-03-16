@@ -102,7 +102,9 @@ func concurrencyLimitHandler(config *Config, h http.Handler) http.Handler {
 		default:
 			logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
 			if ok {
-				logger.Error("Request rejected due to too many concurrent requests")
+				logger.Error("request rejected due to too many concurrent requests")
+			} else {
+				logp.NewLogger("request").Errorf("request rejected due to too many concurrent requests")
 			}
 			w.WriteHeader(503)
 		}
