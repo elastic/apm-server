@@ -28,7 +28,14 @@ type Dropped struct {
 	Total *int
 }
 
-func (e *Event) decode(raw map[string]interface{}) error {
+func (e *Event) decode(input interface{}) error {
+	raw, ok := input.(map[string]interface{})
+	if raw == nil {
+		return nil
+	}
+	if !ok {
+		return errors.New("Invalid type for transaction event")
+	}
 	df := utility.DataFetcher{}
 	e.Id = df.String(raw, "id")
 	e.Type = df.String(raw, "type")
@@ -43,23 +50,15 @@ func (e *Event) decode(raw map[string]interface{}) error {
 	if df.Err != nil {
 		return df.Err
 	}
-	spans := df.InterfaceArr(raw, "spans")
-	if spans == nil {
-		e.Spans = make([]*Span, 0)
-		return nil
-	}
-	e.Spans = make([]*Span, len(spans))
-	for idx, sp := range spans {
-		sp, ok := sp.(map[string]interface{})
-		if !ok {
-			return errors.New("Invalid type for spans")
+	if spans := df.InterfaceArr(raw, "spans"); spans != nil {
+		e.Spans = make([]*Span, len(spans))
+		for idx, sp := range spans {
+			span := Span{}
+			if err := span.decode(sp); err != nil {
+				return err
+			}
+			e.Spans[idx] = &span
 		}
-
-		span := Span{}
-		if err := span.decode(sp); err != nil {
-			return err
-		}
-		e.Spans[idx] = &span
 	}
 	return df.Err
 }

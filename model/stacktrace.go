@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -18,16 +17,11 @@ func (st *Stacktrace) Decode(input interface{}) error {
 		return nil
 	}
 	if !ok {
-		return errors.New("Invalid format for user")
+		return errors.New("Invalid format for stacktrace")
 	}
 
-	df := utility.DataFetcher{}
 	st.Frames = make([]*StacktraceFrame, len(raw))
 	for idx, fr := range raw {
-		fr, ok := fr.(map[string]interface{})
-		if !ok {
-			return errors.New("Invalid type for stacktrace frame.")
-		}
 		frame := StacktraceFrame{}
 		err := frame.Decode(fr)
 		if err != nil {
@@ -35,7 +29,7 @@ func (st *Stacktrace) Decode(input interface{}) error {
 		}
 		st.Frames[idx] = &frame
 	}
-	return df.Err
+	return nil
 }
 
 func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.MapStr {

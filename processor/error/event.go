@@ -3,6 +3,7 @@ package error
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"hash"
 	"io"
@@ -50,7 +51,14 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func (e *Event) decode(raw map[string]interface{}) error {
+func (e *Event) decode(input interface{}) error {
+	raw, ok := input.(map[string]interface{})
+	if raw == nil {
+		return nil
+	}
+	if !ok {
+		return errors.New("Invalid type for error event")
+	}
 	df := utility.DataFetcher{}
 	e.Id = df.StringPtr(raw, "id")
 	e.Culprit = df.StringPtr(raw, "culprit")

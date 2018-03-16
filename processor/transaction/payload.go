@@ -1,8 +1,6 @@
 package transaction
 
 import (
-	"errors"
-
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
@@ -53,19 +51,13 @@ func (pa *payload) decode(raw map[string]interface{}) error {
 	df := utility.DataFetcher{}
 	if txs := df.InterfaceArr(raw, "transactions"); txs != nil {
 		pa.Events = make([]Event, len(txs))
-		for txIdx, tx := range txs {
-			tx, ok := tx.(map[string]interface{})
-			if !ok {
-				return errors.New("Invalid type for transaction")
-			}
+		for idx, tx := range txs {
 			event := Event{}
 			if err := event.decode(tx); err != nil {
 				return err
 			}
-			pa.Events[txIdx] = event
+			pa.Events[idx] = event
 		}
-	} else {
-		pa.Events = make([]Event, 0)
 	}
 	return df.Err
 }

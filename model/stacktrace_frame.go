@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"regexp"
 
 	pr "github.com/elastic/apm-server/processor"
@@ -45,19 +46,26 @@ type Original struct {
 	sourcemapCopied bool
 }
 
-func (s *StacktraceFrame) Decode(fr map[string]interface{}) error {
+func (s *StacktraceFrame) Decode(input interface{}) error {
+	raw, ok := input.(map[string]interface{})
+	if raw == nil {
+		return nil
+	}
+	if !ok {
+		return errors.New("Invalid type for stacktrace frame")
+	}
 	df := utility.DataFetcher{}
-	s.AbsPath = df.StringPtr(fr, "abs_path")
-	s.Filename = df.String(fr, "filename")
-	s.Lineno = df.Int(fr, "lineno")
-	s.Colno = df.IntPtr(fr, "colno")
-	s.ContextLine = df.StringPtr(fr, "context_line")
-	s.Module = df.StringPtr(fr, "module")
-	s.Function = df.StringPtr(fr, "function")
-	s.LibraryFrame = df.BoolPtr(fr, "library_frame")
-	s.Vars = df.MapStr(fr, "vars")
-	s.PreContext = df.StringArr(fr, "pre_context")
-	s.PostContext = df.StringArr(fr, "post_context")
+	s.AbsPath = df.StringPtr(raw, "abs_path")
+	s.Filename = df.String(raw, "filename")
+	s.Lineno = df.Int(raw, "lineno")
+	s.Colno = df.IntPtr(raw, "colno")
+	s.ContextLine = df.StringPtr(raw, "context_line")
+	s.Module = df.StringPtr(raw, "module")
+	s.Function = df.StringPtr(raw, "function")
+	s.LibraryFrame = df.BoolPtr(raw, "library_frame")
+	s.Vars = df.MapStr(raw, "vars")
+	s.PreContext = df.StringArr(raw, "pre_context")
+	s.PostContext = df.StringArr(raw, "post_context")
 	return df.Err
 }
 

@@ -1,8 +1,6 @@
 package error
 
 import (
-	"errors"
-
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
@@ -51,17 +49,8 @@ func (pa *payload) decode(raw map[string]interface{}) error {
 
 	df := utility.DataFetcher{}
 	errs := df.InterfaceArr(raw, "errors")
-	if errs == nil {
-		pa.Events = make([]Event, 0)
-		return df.Err
-	}
 	pa.Events = make([]Event, len(errs))
-
-	for idx, err := range errs {
-		errData, ok := err.(map[string]interface{})
-		if !ok {
-			return errors.New("Invalid type for error")
-		}
+	for idx, errData := range errs {
 		event := Event{}
 		if err := event.decode(errData); err != nil {
 			return err
