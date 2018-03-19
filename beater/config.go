@@ -9,18 +9,19 @@ import (
 )
 
 type Config struct {
-	Host               string          `config:"host"`
-	MaxUnzippedSize    int64           `config:"max_unzipped_size"`
-	MaxHeaderSize      int             `config:"max_header_size"`
-	ReadTimeout        time.Duration   `config:"read_timeout"`
-	WriteTimeout       time.Duration   `config:"write_timeout"`
-	ShutdownTimeout    time.Duration   `config:"shutdown_timeout"`
-	SecretToken        string          `config:"secret_token"`
-	SSL                *SSLConfig      `config:"ssl"`
-	ConcurrentRequests int             `config:"concurrent_requests" validate:"min=1"`
-	Expvar             *ExpvarConfig   `config:"expvar"`
-	Frontend           *FrontendConfig `config:"frontend"`
-	AugmentEnabled     bool            `config:"capture_personal_data"`
+	Host                string          `config:"host"`
+	MaxUnzippedSize     int64           `config:"max_unzipped_size"`
+	MaxHeaderSize       int             `config:"max_header_size"`
+	ReadTimeout         time.Duration   `config:"read_timeout"`
+	WriteTimeout        time.Duration   `config:"write_timeout"`
+	ShutdownTimeout     time.Duration   `config:"shutdown_timeout"`
+	SecretToken         string          `config:"secret_token"`
+	SSL                 *SSLConfig      `config:"ssl"`
+	ConcurrentRequests  int             `config:"concurrent_requests" validate:"min=1"`
+	MaxRequestQueueTime time.Duration   `config:"max_request_queue_time"`
+	Expvar              *ExpvarConfig   `config:"expvar"`
+	Frontend            *FrontendConfig `config:"frontend"`
+	AugmentEnabled      bool            `config:"capture_personal_data"`
 }
 
 type ExpvarConfig struct {
@@ -107,15 +108,16 @@ func replaceVersion(pattern, version string) string {
 
 func defaultConfig(beatVersion string) *Config {
 	return &Config{
-		Host:               "localhost:8200",
-		MaxUnzippedSize:    50 * 1024 * 1024, // 50mb
-		MaxHeaderSize:      1 * 1024 * 1024,  // 1mb
-		ConcurrentRequests: 40,
-		ReadTimeout:        2 * time.Second,
-		WriteTimeout:       2 * time.Second,
-		ShutdownTimeout:    5 * time.Second,
-		SecretToken:        "",
-		AugmentEnabled:     true,
+		Host:                "localhost:8200",
+		MaxUnzippedSize:     30 * 1024 * 1024, // 50mb
+		MaxHeaderSize:       1 * 1024 * 1024,  // 1mb
+		ConcurrentRequests:  5,
+		MaxRequestQueueTime: 2 * time.Second,
+		ReadTimeout:         2 * time.Second,
+		WriteTimeout:        2 * time.Second,
+		ShutdownTimeout:     5 * time.Second,
+		SecretToken:         "",
+		AugmentEnabled:      true,
 		Frontend: &FrontendConfig{
 			beatVersion:  beatVersion,
 			Enabled:      new(bool),
