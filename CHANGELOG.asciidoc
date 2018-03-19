@@ -15,10 +15,13 @@ https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af66
 - Accept charset in request's content type {pull}677[677].
 - Use type integer instead of number in JSON schemas where applicable {pull}641[641].
 - Set array item types to string in JSON schemas {pull}651[651].
+- Limit the amount of concurrent requests being processed{pull}731[731].
+
 
 ==== Added
 
 - Enriched data with IP and UserAgent {pull}393[393], {pull}701[701].
+- Change `concurrent_request` default from 40 to 5{pull}731[731].
 
 ==== Deprecated
 
