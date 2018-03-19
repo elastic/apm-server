@@ -134,7 +134,8 @@ func TestServerCORS(t *testing.T) {
 	for idx, test := range tests {
 		apm.Handler = newMuxer(
 			&Config{
-				MaxUnzippedSize: 1024 * 1024,
+				MaxUnzippedSize:    1024 * 1024,
+				ConcurrentRequests: 40,
 				Frontend: &FrontendConfig{
 					Enabled:      &true,
 					RateLimit:    10,
