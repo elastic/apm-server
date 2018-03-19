@@ -72,6 +72,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	}
 
 	var str *m.Stacktrace
+	err = df.Err
 	ex := df.MapStr(raw, "exception")
 	exMsg := df.StringPtr(ex, "message")
 	if exMsg != nil {
@@ -84,7 +85,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 			Handled:    df.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
-		str, df.Err = m.DecodeStacktrace(ex["stacktrace"], df.Err)
+		str, err = m.DecodeStacktrace(ex["stacktrace"], err)
 		if str != nil {
 			e.Exception.Stacktrace = *str
 		}
@@ -100,12 +101,12 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 			LoggerName:   df.StringPtr(log, "logger_name"),
 			Stacktrace:   m.Stacktrace{},
 		}
-		str, df.Err = m.DecodeStacktrace(log["stacktrace"], err)
+		str, err = m.DecodeStacktrace(log["stacktrace"], err)
 		if str != nil {
 			e.Log.Stacktrace = *str
 		}
 	}
-	return &e, df.Err
+	return &e, err
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
@@ -129,10 +130,10 @@ func (e *Event) updateCulprit(config *pr.Config) {
 	}
 	var fr *m.StacktraceFrame
 	if e.Log != nil {
-		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace.Frames)
+		fr = findSmappedNonLibraryFrame(e.Log.Stacktrace)
 	}
 	if fr == nil && e.Exception != nil {
-		fr = findSmappedNonLibraryFrame(e.Exception.Stacktrace.Frames)
+		fr = findSmappedNonLibraryFrame(e.Exception.Stacktrace)
 	}
 	if fr == nil {
 		return
@@ -241,12 +242,12 @@ func (e *Event) calcGroupingKey() string {
 	}
 	if e.Log != nil {
 		k.add(e.Log.ParamMessage)
-		if st.Frames == nil || len(st.Frames) == 0 {
+		if st == nil || len(st) == 0 {
 			st = e.Log.Stacktrace
 		}
 	}
 
-	for _, fr := range st.Frames {
+	for _, fr := range st {
 		if fr.ExcludeFromGrouping {
 			continue
 		}

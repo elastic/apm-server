@@ -28,34 +28,18 @@ func TestPayloadDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{"service": 123},
 			err:   errors.New("Invalid type for service"),
-			p: &payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
-			},
 		},
 		{
 			input: map[string]interface{}{"system": 123},
 			err:   errors.New("Invalid type for system"),
-			p: &payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
-			},
 		},
 		{
 			input: map[string]interface{}{"process": 123},
 			err:   errors.New("Invalid type for process"),
-			p: &payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
-			},
 		},
 		{
 			input: map[string]interface{}{"user": 123},
 			err:   errors.New("Invalid type for user"),
-			p: &payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
-			},
 		},
 		{
 			input: map[string]interface{}{},
@@ -89,11 +73,11 @@ func TestPayloadDecode(t *testing.T) {
 				Service: m.Service{
 					Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
 				System:  &m.System{IP: &ip},
-				Process: &m.Process{Pid: &pid},
+				Process: &m.Process{Pid: pid},
 				User:    &m.User{IP: &ip},
 				Events: []Event{
 					{Timestamp: timestampParsed,
-						Exception: &Exception{Message: "Exception Msg"}},
+						Exception: &Exception{Message: "Exception Msg", Stacktrace: m.Stacktrace{}}},
 				},
 			},
 		},
@@ -144,10 +128,8 @@ func TestPayloadTransform(t *testing.T) {
 					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
 					Log:       baseLog(),
 					Exception: &Exception{
-						Message: "exception message",
-						Stacktrace: m.Stacktrace{Frames: []*m.StacktraceFrame{
-							&m.StacktraceFrame{Filename: "myFile"}},
-						},
+						Message:    "exception message",
+						Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
 					},
 					Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 				}},

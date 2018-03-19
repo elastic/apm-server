@@ -35,7 +35,6 @@ func TestSpanDecode(t *testing.T) {
 			s: &Span{
 				Id: nil, Name: "", Type: "", Start: 0.0,
 				Duration: 0.0, Context: nil, Parent: nil,
-				Stacktrace: m.Stacktrace{Frames: nil},
 			},
 		},
 		{
@@ -55,9 +54,7 @@ func TestSpanDecode(t *testing.T) {
 				Context:  context,
 				Parent:   &parent,
 				Stacktrace: m.Stacktrace{
-					Frames: []*m.StacktraceFrame{
-						&m.StacktraceFrame{Filename: "file", Lineno: 1},
-					},
+					&m.StacktraceFrame{Filename: "file", Lineno: 1},
 				},
 			},
 		},
@@ -91,18 +88,14 @@ func TestSpanTransform(t *testing.T) {
 		},
 		{
 			Span: Span{
-				Id:       &tid,
-				Name:     "myspan",
-				Type:     "myspantype",
-				Start:    0.65,
-				Duration: 1.20,
-				Stacktrace: m.Stacktrace{
-					Frames: []*m.StacktraceFrame{
-						{AbsPath: &path},
-					},
-				},
-				Context: common.MapStr{"key": "val"},
-				Parent:  &parent,
+				Id:         &tid,
+				Name:       "myspan",
+				Type:       "myspantype",
+				Start:      0.65,
+				Duration:   1.20,
+				Stacktrace: m.Stacktrace{{AbsPath: &path}},
+				Context:    common.MapStr{"key": "val"},
+				Parent:     &parent,
 			},
 			Output: common.MapStr{
 				"duration": common.MapStr{"us": 1200},

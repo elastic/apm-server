@@ -36,14 +36,14 @@ func TestContext(t *testing.T) {
 			service: &Service{},
 			user:    &User{},
 			context: &Context{
-				process: common.MapStr{},
+				process: common.MapStr{"pid": 0},
 				service: common.MapStr{"name": "", "agent": common.MapStr{"version": "", "name": ""}},
 				system:  common.MapStr{},
 				user:    common.MapStr{},
 			},
 		},
 		{
-			process: &Process{Pid: &pid},
+			process: &Process{Pid: pid},
 			system:  &System{IP: &ip},
 			service: &Service{Name: "service"},
 			user:    &User{Id: &id},

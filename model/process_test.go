@@ -23,11 +23,11 @@ func TestProcessTransform(t *testing.T) {
 	}{
 		{
 			Process: Process{},
-			Output:  common.MapStr{},
+			Output:  common.MapStr{"pid": 0},
 		},
 		{
 			Process: Process{
-				Pid:   &pid,
+				Pid:   pid,
 				Title: &processTitle,
 				Argv:  argv,
 			},
@@ -58,14 +58,14 @@ func TestProcessDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{"pid": "123"},
 			err:   errors.New("Error fetching field"),
-			p:     &Process{Pid: nil, Ppid: nil, Title: nil, Argv: nil},
+			p:     &Process{Ppid: nil, Title: nil, Argv: nil},
 		},
 		{
 			input: map[string]interface{}{
 				"pid": 123.0, "ppid": 456.0, "title": title, "argv": []interface{}{"a", "b"},
 			},
 			err: nil,
-			p:   &Process{Pid: &pid, Ppid: &ppid, Title: &title, Argv: argv},
+			p:   &Process{Pid: pid, Ppid: &ppid, Title: &title, Argv: argv},
 		},
 	} {
 		proc, out := DecodeProcess(test.input, test.inpErr)

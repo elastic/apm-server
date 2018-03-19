@@ -23,7 +23,7 @@ func TestStacktraceDecode(t *testing.T) {
 		{
 			input: []interface{}{"foo"},
 			err:   errors.New("Invalid type for stacktrace frame"),
-			s:     &Stacktrace{Frames: []*StacktraceFrame{nil}},
+			s:     &Stacktrace{nil},
 		},
 		{
 			input: []interface{}{map[string]interface{}{
@@ -31,9 +31,7 @@ func TestStacktraceDecode(t *testing.T) {
 			},
 			err: nil,
 			s: &Stacktrace{
-				Frames: []*StacktraceFrame{
-					&StacktraceFrame{Filename: "file", Lineno: 1},
-				},
+				&StacktraceFrame{Filename: "file", Lineno: 1},
 			},
 		},
 	} {
@@ -60,7 +58,7 @@ func TestStacktraceTransform(t *testing.T) {
 			Msg:        "Empty Stacktrace",
 		},
 		{
-			Stacktrace: Stacktrace{Frames: []*StacktraceFrame{&StacktraceFrame{}}},
+			Stacktrace: Stacktrace{&StacktraceFrame{}},
 			Output: []common.MapStr{
 				{
 					"filename":              "",
@@ -72,29 +70,27 @@ func TestStacktraceTransform(t *testing.T) {
 		},
 		{
 			Stacktrace: Stacktrace{
-				Frames: []*StacktraceFrame{
-					&StacktraceFrame{
-						Colno:    &colno,
-						Lineno:   4,
-						Filename: "original filename",
-						Function: &fct,
-						AbsPath:  &absPath,
-					},
-					&StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
-					&StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
-					&StacktraceFrame{
-						Colno:    &colno,
-						Lineno:   5,
-						Filename: "original filename",
-						Function: &fct,
-						AbsPath:  &absPath,
-					},
-					&StacktraceFrame{
-						Colno:    &colno,
-						Lineno:   4,
-						Filename: "/webpack",
-						AbsPath:  &absPath,
-					},
+				&StacktraceFrame{
+					Colno:    &colno,
+					Lineno:   4,
+					Filename: "original filename",
+					Function: &fct,
+					AbsPath:  &absPath,
+				},
+				&StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{
+					Colno:    &colno,
+					Lineno:   5,
+					Filename: "original filename",
+					Function: &fct,
+					AbsPath:  &absPath,
+				},
+				&StacktraceFrame{
+					Colno:    &colno,
+					Lineno:   4,
+					Filename: "/webpack",
+					AbsPath:  &absPath,
 				},
 			},
 			Output: []common.MapStr{
@@ -151,7 +147,7 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 			Msg:        "Empty Stacktrace",
 		},
 		{
-			Stacktrace: Stacktrace{Frames: []*StacktraceFrame{&StacktraceFrame{}}},
+			Stacktrace: Stacktrace{&StacktraceFrame{}},
 			Output: []common.MapStr{
 				{"filename": "",
 					"line":                  common.MapStr{"number": 0},
@@ -166,29 +162,27 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 		},
 		{
 			Stacktrace: Stacktrace{
-				Frames: []*StacktraceFrame{
-					&StacktraceFrame{
-						Colno:    &colno,
-						Lineno:   4,
-						Filename: "original filename",
-						Function: &fct,
-						AbsPath:  &absPath,
-					},
-					&StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
-					&StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
-					&StacktraceFrame{
-						Colno:    &colno,
-						Lineno:   5,
-						Filename: "original filename",
-						Function: &fct,
-						AbsPath:  &absPath,
-					},
-					&StacktraceFrame{
-						Colno:    &colno,
-						Lineno:   4,
-						Filename: "/webpack",
-						AbsPath:  &absPath,
-					},
+				&StacktraceFrame{
+					Colno:    &colno,
+					Lineno:   4,
+					Filename: "original filename",
+					Function: &fct,
+					AbsPath:  &absPath,
+				},
+				&StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{
+					Colno:    &colno,
+					Lineno:   5,
+					Filename: "original filename",
+					Function: &fct,
+					AbsPath:  &absPath,
+				},
+				&StacktraceFrame{
+					Colno:    &colno,
+					Lineno:   4,
+					Filename: "/webpack",
+					AbsPath:  &absPath,
 				},
 			},
 			Output: []common.MapStr{

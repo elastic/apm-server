@@ -27,31 +27,18 @@ func TestPayloadDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{"service": 123},
 			err:   errors.New("Invalid type for service"),
-			p:     &payload{Events: []Event{}},
 		},
 		{
 			input: map[string]interface{}{"system": 123},
 			err:   errors.New("Invalid type for system"),
-			p: &payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
-			},
 		},
 		{
 			input: map[string]interface{}{"process": 123},
 			err:   errors.New("Invalid type for process"),
-			p: &payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
-			},
 		},
 		{
 			input: map[string]interface{}{"user": 123},
 			err:   errors.New("Invalid type for user"),
-			p: &payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
-			},
 		},
 		{
 			input: map[string]interface{}{},
@@ -83,7 +70,7 @@ func TestPayloadDecode(t *testing.T) {
 				Service: m.Service{
 					Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
 				System:  &m.System{IP: &ip},
-				Process: &m.Process{Pid: &pid},
+				Process: &m.Process{Pid: pid},
 				User:    &m.User{IP: &ip},
 				Events: []Event{
 					Event{
@@ -98,8 +85,8 @@ func TestPayloadDecode(t *testing.T) {
 		},
 	} {
 		payload, err := decodeTransaction(test.input)
-		assert.Equal(t, payload, test.p)
-		assert.Equal(t, err, test.err)
+		assert.Equal(t, test.p, payload)
+		assert.Equal(t, test.err, err)
 	}
 }
 
@@ -207,45 +194,45 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	tests := []struct {
-		payload payload
+		Payload payload
 		Output  []common.MapStr
 		Msg     string
 	}{
 		{
-			payload: payload{Service: service, Events: []Event{}},
+			Payload: payload{Service: service, Events: []Event{}},
 			Output:  nil,
-			Msg:     "payload with empty Event Array",
+			Msg:     "Payload with empty Event Array",
 		},
 		{
-			payload: payload{
+			Payload: payload{
 				Service: service,
 				Events:  []Event{txValid, txValidWithSpan},
 			},
 			Output: []common.MapStr{txValidEs, txValidEs, spanEs},
-			Msg:    "payload with multiple Events",
+			Msg:    "Payload with multiple Events",
 		},
 		{
-			payload: payload{
+			Payload: payload{
 				Service: service,
 				System:  system,
 				Events:  []Event{txValid},
 			},
 			Output: []common.MapStr{txValidWithSystem},
-			Msg:    "payload with System and Event",
+			Msg:    "Payload with System and Event",
 		},
 		{
-			payload: payload{
+			Payload: payload{
 				Service: service,
 				System:  system,
 				Events:  []Event{txWithContext},
 			},
 			Output: []common.MapStr{txWithContextEs},
-			Msg:    "payload with Service, System and Event with context",
+			Msg:    "Payload with Service, System and Event with context",
 		},
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.payload.transform(&pr.Config{})
+		outputEvents := test.Payload.transform(&pr.Config{})
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp)

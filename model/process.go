@@ -8,7 +8,7 @@ import (
 )
 
 type Process struct {
-	Pid   *int
+	Pid   int
 	Ppid  *int
 	Title *string
 	Argv  []string
@@ -24,10 +24,12 @@ func DecodeProcess(input interface{}, err error) (*Process, error) {
 	}
 	df := utility.DataFetcher{}
 	process := Process{
-		Pid:   df.IntPtr(raw, "pid"),
 		Ppid:  df.IntPtr(raw, "ppid"),
 		Title: df.StringPtr(raw, "title"),
 		Argv:  df.StringArr(raw, "argv"),
+	}
+	if pid := df.IntPtr(raw, "pid"); pid != nil {
+		process.Pid = *pid
 	}
 	return &process, df.Err
 }

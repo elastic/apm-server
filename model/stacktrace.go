@@ -7,9 +7,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type Stacktrace struct {
-	Frames []*StacktraceFrame
-}
+type Stacktrace []*StacktraceFrame
 
 func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	if input == nil || err != nil {
@@ -19,13 +17,11 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for stacktrace")
 	}
-
-	st := &Stacktrace{}
-	st.Frames = make([]*StacktraceFrame, len(raw))
+	st := make(Stacktrace, len(raw))
 	for idx, fr := range raw {
-		st.Frames[idx], err = DecodeStacktraceFrame(fr, err)
+		st[idx], err = DecodeStacktraceFrame(fr, err)
 	}
-	return st, err
+	return &st, err
 }
 
 func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.MapStr {
@@ -48,7 +44,7 @@ func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.Map
 	// - lineno
 	// - abs_path is set to the cleaned abs_path
 	// - sourcmeap.updated is set to true
-	frameCount := len(st.Frames)
+	frameCount := len(*st)
 	if frameCount == 0 {
 		return nil
 	}
@@ -58,7 +54,7 @@ func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.Map
 
 	fct := "<anonymous>"
 	for idx := frameCount - 1; idx >= 0; idx-- {
-		fr = st.Frames[idx]
+		fr = (*st)[idx]
 		if config != nil && config.SmapMapper != nil {
 			fct = fr.applySourcemap(config.SmapMapper, service, fct)
 		}

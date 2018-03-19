@@ -38,19 +38,22 @@ func decodeTransaction(raw map[string]interface{}) (*payload, error) {
 	pa.System, err = m.DecodeSystem(raw["system"], err)
 	pa.Process, err = m.DecodeProcess(raw["process"], err)
 	pa.User, err = m.DecodeUser(raw["user"], err)
+	if err != nil {
+		return nil, err
+	}
 
-	df := utility.DataFetcher{Err: err}
+	df := utility.DataFetcher{}
 	txs := df.InterfaceArr(raw, "transactions")
 	err = df.Err
 	pa.Events = make([]Event, len(txs))
 	var event *Event
 	for idx, tx := range txs {
-		event, df.Err = DecodeEvent(tx, df.Err)
+		event, err = DecodeEvent(tx, err)
 		if event != nil {
 			pa.Events[idx] = *event
 		}
 	}
-	return pa, df.Err
+	return pa, err
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {
