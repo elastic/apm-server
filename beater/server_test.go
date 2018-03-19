@@ -231,7 +231,7 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	secure := cfg.SSL != nil
 	waitForServer(secure, cfg.Host)
 
-	return apm, func() { stop(apm, time.Second) }
+	return apm, func() { stop(apm) }
 }
 
 var noSSL *SSLConfig

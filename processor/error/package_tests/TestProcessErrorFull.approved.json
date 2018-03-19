@@ -400,6 +400,7 @@
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "0f0e9d67-c185-4d21-a6f4-4673ed561ec8",
                 "log": {
+                    "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"
                 }
             },

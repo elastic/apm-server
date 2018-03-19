@@ -18,7 +18,6 @@ import (
 type publisher struct {
 	events  chan []beat.Event
 	client  beat.Client
-	wg      sync.WaitGroup
 	m       sync.RWMutex
 	stopped bool
 }
@@ -32,7 +31,7 @@ var (
 // newPublisher creates a new publisher instance. A new go-routine is started
 // for forwarding events to libbeat. Stop must be called to close the
 // beat.Client and free resources.
-func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
+func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration) (*publisher, error) {
 	if N <= 0 {
 		return nil, errInvalidBufferSize
 	}
@@ -40,10 +39,8 @@ func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
 	client, err := pipeline.ConnectWith(beat.ClientConfig{
 		PublishMode: beat.GuaranteedSend,
 
-		// TODO: We want to wait for events in pipeline on shutdown?
 		//       If set >0 `Close` will block for the duration or until pipeline is empty
-		WaitClose: 0,
-
+		WaitClose:         shutdownTimeout,
 		SkipNormalization: true,
 	})
 	if err != nil {
@@ -58,7 +55,6 @@ func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
 		events: make(chan []beat.Event, N-1),
 	}
 
-	p.wg.Add(1)
 	go p.run()
 	return p, nil
 }
@@ -67,23 +63,11 @@ func newPublisher(pipeline beat.Pipeline, N int) (*publisher, error) {
 // The worker will drain the queue on shutdown, but no more events
 // will be published.
 func (p *publisher) Stop() {
-	p.drain()
-	close(p.events)
-	p.client.Close()
-	p.wg.Wait()
-}
-
-// drain signals the publisher to stop accepting event batches, blocking
-// execution until all the queued events have been published.
-func (p *publisher) drain() {
 	p.m.Lock()
 	p.stopped = true
 	p.m.Unlock()
-	for {
-		if len(p.events) == 0 {
-			return
-		}
-	}
+	close(p.events)
+	p.client.Close()
 }
 
 // Send tries to forward events to the publishers worker. If the queue is full,
@@ -105,7 +89,6 @@ func (p *publisher) Send(batch []beat.Event) error {
 }
 
 func (p *publisher) run() {
-	defer p.wg.Done()
 	for batch := range p.events {
 		p.client.PublishAll(batch)
 	}
