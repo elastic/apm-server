@@ -57,10 +57,11 @@ var (
 	responseValid  = monitoring.NewInt(serverMetrics, "response.valid")
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 
-	errInvalidToken    = errors.New("invalid token")
-	errForbidden       = errors.New("forbidden request")
-	errPOSTRequestOnly = errors.New("only POST requests are supported")
-	errTooManyRequests = errors.New("too many requests")
+	errInvalidToken            = errors.New("invalid token")
+	errForbidden               = errors.New("forbidden request")
+	errPOSTRequestOnly         = errors.New("only POST requests are supported")
+	errTooManyRequests         = errors.New("too many requests")
+	errConcurrencyLimitReached = errors.New("request timed out waiting to be processed. Increase `concurrent_requests` or `max_request_queue_time` or reduce payload size")
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
@@ -101,13 +102,7 @@ func concurrencyLimitHandler(config *Config, h http.Handler) http.Handler {
 			defer release()
 			h.ServeHTTP(w, r)
 		case <-time.After(config.MaxRequestQueueTime):
-			logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-			if ok {
-				logger.Error("request rejected due to too many concurrent requests")
-			} else {
-				logp.NewLogger("request").Errorf("request rejected due to too many concurrent requests")
-			}
-			w.WriteHeader(503)
+			sendStatus(w, r, http.StatusServiceUnavailable, errConcurrencyLimitReached)
 		}
 
 	})
