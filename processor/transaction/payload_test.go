@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -12,6 +13,92 @@ import (
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
+
+func TestPayloadDecode(t *testing.T) {
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	for _, test := range []struct {
+		input map[string]interface{}
+		err   error
+		p     *payload
+	}{
+		{input: nil, err: nil, p: &payload{}},
+		{
+			input: map[string]interface{}{"service": 123},
+			err:   errors.New("Invalid type for service"),
+			p:     &payload{},
+		},
+		{
+			input: map[string]interface{}{"system": 123},
+			err:   errors.New("Invalid type for system"),
+			p:     &payload{Service: m.Service{}, System: &m.System{}},
+		},
+		{
+			input: map[string]interface{}{"process": 123},
+			err:   errors.New("Invalid type for process"),
+			p: &payload{
+				Service: m.Service{},
+				System:  &m.System{},
+				Process: &m.Process{},
+			},
+		},
+		{
+			input: map[string]interface{}{"user": 123},
+			err:   errors.New("Invalid type for user"),
+			p: &payload{
+				Service: m.Service{},
+				System:  &m.System{},
+				Process: &m.Process{},
+				User:    &m.User{},
+			},
+		},
+		{
+			input: map[string]interface{}{},
+			err:   nil,
+			p: &payload{
+				Service: m.Service{},
+				System:  &m.System{},
+				Process: &m.Process{},
+				User:    &m.User{},
+				Events:  []Event{},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"transactions": []interface{}{
+					map[string]interface{}{
+						"id": "45", "type": "transaction",
+						"timestamp": timestamp, "duration": 34.9,
+					},
+				},
+			},
+			err: nil,
+			p: &payload{
+				Service: m.Service{},
+				System:  &m.System{},
+				Process: &m.Process{},
+				User:    &m.User{},
+				Events: []Event{
+					Event{
+						Id:        "45",
+						Type:      "transaction",
+						Timestamp: timestampParsed,
+						Duration:  34.9,
+					},
+				},
+			},
+		},
+	} {
+		payload := &payload{}
+		out := payload.decode(test.input)
+		assert.Equal(t, test.p, payload)
+		assert.Equal(t, test.err, out)
+	}
+
+	var p *payload
+	assert.Nil(t, p.decode(map[string]interface{}{}), nil)
+	assert.Nil(t, p)
+}
 
 func TestPayloadTransform(t *testing.T) {
 	hostname := "a.b.c"

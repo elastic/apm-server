@@ -26,6 +26,9 @@ type payload struct {
 }
 
 func (pa *payload) decode(raw map[string]interface{}) error {
+	if raw == nil || pa == nil {
+		return nil
+	}
 	if err := pa.Service.Decode(raw["service"]); err != nil {
 		return err
 	}
@@ -49,15 +52,14 @@ func (pa *payload) decode(raw map[string]interface{}) error {
 	}
 
 	df := utility.DataFetcher{}
-	if txs := df.InterfaceArr(raw, "transactions"); txs != nil {
-		pa.Events = make([]Event, len(txs))
-		for idx, tx := range txs {
-			event := Event{}
-			if err := event.decode(tx); err != nil {
-				return err
-			}
-			pa.Events[idx] = event
+	txs := df.InterfaceArr(raw, "transactions")
+	pa.Events = make([]Event, len(txs))
+	for idx, tx := range txs {
+		event := Event{}
+		if err := event.decode(tx); err != nil {
+			return err
 		}
+		pa.Events[idx] = event
 	}
 	return df.Err
 }

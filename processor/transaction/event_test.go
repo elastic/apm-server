@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -11,7 +12,68 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-//TODO: use test enhancer as argument and test error case
+func TestTransactionEventDecode(t *testing.T) {
+	id, trType, name, result := "123", "type", "foo()", "555"
+	duration := 1.67
+	context := map[string]interface{}{"a": "b"}
+	marks := map[string]interface{}{"k": "b"}
+	dropped := 12
+	spanCount := map[string]interface{}{
+		"dropped": map[string]interface{}{
+			"total": dropped,
+		},
+	}
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	sampled := true
+
+	for _, test := range []struct {
+		input interface{}
+		err   error
+		e     *Event
+	}{
+		{input: nil, err: nil, e: &Event{}},
+		{input: "", err: errors.New("Invalid type for transaction event"), e: &Event{}},
+		{
+			input: map[string]interface{}{"timestamp": 123},
+			err:   errors.New("Invalid type for field"),
+			e:     &Event{},
+		},
+		{
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": &name, "result": &result,
+				"duration": duration, "timestamp": timestamp,
+				"context": context, "marks": marks, "sampled": &sampled,
+				"span_count": spanCount,
+				"spans": []interface{}{
+					map[string]interface{}{
+						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+					},
+				},
+			},
+			err: nil,
+			e: &Event{
+				Id: id, Type: trType, Name: &name, Result: &result,
+				Duration: duration, Timestamp: timestampParsed,
+				Context: context, Marks: marks, Sampled: &sampled,
+				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
+				Spans: []*Span{
+					&Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3},
+				},
+			},
+		},
+	} {
+		event := &Event{}
+		out := event.decode(test.input)
+		assert.Equal(t, test.e, event)
+		assert.Equal(t, test.err, out)
+	}
+
+	var e *Event
+	assert.Nil(t, e.decode("a"), nil)
+	assert.Nil(t, e)
+}
+
 func TestEventTransform(t *testing.T) {
 
 	id := "123"

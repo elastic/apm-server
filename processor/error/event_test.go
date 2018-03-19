@@ -3,6 +3,7 @@ package error
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -53,6 +54,143 @@ func (l *Log) withParamMsg(msg string) *Log {
 func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 	l.Stacktrace = m.Stacktrace{Frames: frames}
 	return l
+}
+
+func TestEventEventDecode(t *testing.T) {
+	id, culprit, transactionId := "123", "foo()", "555"
+	context := map[string]interface{}{"a": "b"}
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
+	paramMsg, level, logger := "log pm", "error", "mylogger"
+	for _, test := range []struct {
+		input interface{}
+		err   error
+		e     *Event
+	}{
+		{input: nil, err: nil, e: &Event{}},
+		{input: "", err: errors.New("Invalid type for error event"), e: &Event{}},
+		{
+			input: map[string]interface{}{"timestamp": 123},
+			err:   errors.New("Invalid type for field"),
+			e:     &Event{},
+		},
+		{
+			input: map[string]interface{}{
+				"id": &id, "culprit": &culprit, "context": context, "timestamp": timestamp,
+				"transaction": map[string]interface{}{"id": &transactionId},
+			},
+			err: nil,
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Context:   context,
+				Timestamp: timestampParsed,
+				Transaction: &Transaction{
+					Id: transactionId,
+				},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{},
+				"log":       map[string]interface{}{},
+			},
+			err: nil,
+			e:   &Event{Timestamp: timestampParsed},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message":    "Exception Msg",
+					"stacktrace": "123",
+				},
+			},
+			err: errors.New("Invalid type for stacktrace"),
+			e: &Event{
+				Timestamp: timestampParsed,
+				Exception: &Exception{Message: "Exception Msg"},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"log": map[string]interface{}{
+					"message":    "Log Msg",
+					"stacktrace": "123",
+				},
+			},
+			err: errors.New("Invalid type for stacktrace"),
+			e: &Event{
+				Timestamp: timestampParsed,
+				Log:       &Log{Message: "Log Msg"},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+					"code":    &code, "module": &module, "attributes": &attrs,
+					"type": &exType, "handled": &handled,
+					"stacktrace": []interface{}{
+						map[string]interface{}{
+							"filename": "file", "lineno": 1,
+						},
+					},
+				},
+				"log": map[string]interface{}{
+					"message":       "Log Msg",
+					"param_message": &paramMsg,
+					"level":         &level, "logger_name": &logger,
+					"stacktrace": []interface{}{
+						map[string]interface{}{
+							"filename": "log file", "lineno": 2,
+						},
+					},
+				},
+			},
+			err: nil,
+			e: &Event{
+				Timestamp: timestampParsed,
+				Exception: &Exception{
+					Message:    "Exception Msg",
+					Code:       &code,
+					Type:       &exType,
+					Module:     &module,
+					Attributes: &attrs,
+					Handled:    &handled,
+					Stacktrace: m.Stacktrace{
+						Frames: []*m.StacktraceFrame{
+							&m.StacktraceFrame{Filename: "file", Lineno: 1},
+						},
+					},
+				},
+				Log: &Log{
+					Message:      "Log Msg",
+					ParamMessage: &paramMsg,
+					Level:        &level,
+					LoggerName:   &logger,
+					Stacktrace: m.Stacktrace{
+						Frames: []*m.StacktraceFrame{
+							&m.StacktraceFrame{Filename: "log file", Lineno: 2},
+						},
+					},
+				},
+			},
+		},
+	} {
+		event := &Event{}
+		out := event.decode(test.input)
+		assert.Equal(t, test.e, event)
+		assert.Equal(t, test.err, out)
+	}
+
+	var e *Event
+	assert.Nil(t, e.decode("a"), nil)
+	assert.Nil(t, e)
 }
 
 func TestEventTransform(t *testing.T) {

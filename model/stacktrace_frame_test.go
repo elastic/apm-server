@@ -13,6 +13,63 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
+func TestStacktraceFrameDecode(t *testing.T) {
+	filename, path, context, fct, module := "some file", "path", "contet", "fct", "module"
+	lineno, colno := 1, 55
+	libraryFrame := true
+	vars := map[string]interface{}{"a": 1}
+	pre_context, post_context := []string{"a"}, []string{"b", "c"}
+	for _, test := range []struct {
+		input interface{}
+		err   error
+		s     *StacktraceFrame
+	}{
+		{input: nil, err: nil, s: &StacktraceFrame{}},
+		{input: "", err: errors.New("Invalid type for stacktrace frame"), s: &StacktraceFrame{}},
+		{
+			input: map[string]interface{}{},
+			err:   errors.New("Mandatory field missing"),
+			s:     &StacktraceFrame{},
+		},
+		{
+			input: map[string]interface{}{
+				"abs_path":      path,
+				"filename":      filename,
+				"lineno":        lineno,
+				"colno":         colno,
+				"context_line":  context,
+				"function":      fct,
+				"module":        module,
+				"library_frame": libraryFrame,
+				"vars":          vars,
+				"pre_context":   pre_context,
+				"post_context":  post_context,
+			},
+			err: nil,
+			s: &StacktraceFrame{
+				AbsPath:      &path,
+				Filename:     filename,
+				Lineno:       lineno,
+				Colno:        &colno,
+				ContextLine:  &context,
+				Module:       &module,
+				Function:     &fct,
+				LibraryFrame: &libraryFrame,
+				Vars:         vars,
+				PreContext:   pre_context,
+				PostContext:  post_context,
+			},
+		},
+	} {
+		frame := &StacktraceFrame{}
+		out := frame.Decode(test.input)
+		assert.Equal(t, test.s, frame)
+		assert.Equal(t, test.err, out)
+	}
+
+	var s *StacktraceFrame
+	assert.Nil(t, s.Decode("a"), nil)
+}
 func TestStacktraceFrameTransform(t *testing.T) {
 	filename := "some file"
 	lineno := 1

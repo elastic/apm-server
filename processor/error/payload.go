@@ -25,6 +25,9 @@ type payload struct {
 }
 
 func (pa *payload) decode(raw map[string]interface{}) error {
+	if raw == nil || pa == nil {
+		return nil
+	}
 	if err := pa.Service.Decode(raw["service"]); err != nil {
 		return err
 	}

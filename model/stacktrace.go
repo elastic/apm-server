@@ -12,12 +12,12 @@ type Stacktrace struct {
 }
 
 func (st *Stacktrace) Decode(input interface{}) error {
-	raw, ok := input.([]interface{})
-	if raw == nil {
+	if input == nil || st == nil {
 		return nil
 	}
+	raw, ok := input.([]interface{})
 	if !ok {
-		return errors.New("Invalid format for stacktrace")
+		return errors.New("Invalid type for stacktrace")
 	}
 
 	st.Frames = make([]*StacktraceFrame, len(raw))

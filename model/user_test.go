@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,4 +46,39 @@ func TestUserTransform(t *testing.T) {
 		output := test.User.Transform()
 		assert.Equal(t, test.Output, output)
 	}
+}
+
+func TestUserDecode(t *testing.T) {
+	id, mail, name, ip, agent := "12", "m@g.dk", "foo", "127.0.0.1", "ruby"
+	for _, test := range []struct {
+		input interface{}
+		err   error
+		u     *User
+	}{
+		{input: nil, err: nil, u: &User{}},
+		{input: "", err: errors.New("Invalid type for user"), u: &User{}},
+		{
+			input: map[string]interface{}{"id": 1},
+			err:   errors.New("Invalid type for field"),
+			u:     &User{},
+		},
+		{
+			input: map[string]interface{}{
+				"id": id, "email": &mail, "username": &name,
+				"ip": &ip, "user_agent": &agent,
+			},
+			err: nil,
+			u: &User{
+				Id: &id, Email: &mail, Username: &name, IP: &ip, UserAgent: &agent,
+			},
+		},
+	} {
+		user := &User{}
+		out := user.Decode(test.input)
+		assert.Equal(t, test.u, user)
+		assert.Equal(t, test.err, out)
+	}
+
+	var u *User
+	assert.Nil(t, u.Decode("a"), nil)
 }

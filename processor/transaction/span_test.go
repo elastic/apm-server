@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -12,6 +13,59 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
+func TestSpanDecode(t *testing.T) {
+	id, parent := 1, 12
+	name, spType := "foo", "db"
+	start, duration := 1.2, 3.4
+	context := common.MapStr{"a": "b"}
+	stacktrace := []interface{}{map[string]interface{}{
+		"filename": "file", "lineno": 1,
+	}}
+	for _, test := range []struct {
+		input interface{}
+		err   error
+		s     *Span
+	}{
+		{input: nil, err: nil, s: &Span{}},
+		{input: "", err: errors.New("Invalid type for span"), s: &Span{}},
+		{
+			input: map[string]interface{}{},
+			err:   errors.New("Mandatory field missing"),
+			s:     &Span{},
+		},
+		{
+			input: map[string]interface{}{
+				"name": name, "id": &id, "type": spType,
+				"start": start, "duration": duration,
+				"context": context, "parent": &parent,
+				"stacktrace": stacktrace,
+			},
+			err: nil,
+			s: &Span{
+				Id:       &id,
+				Name:     name,
+				Type:     spType,
+				Start:    start,
+				Duration: duration,
+				Context:  context,
+				Parent:   &parent,
+				Stacktrace: m.Stacktrace{
+					Frames: []*m.StacktraceFrame{
+						&m.StacktraceFrame{Filename: "file", Lineno: 1},
+					},
+				},
+			},
+		},
+	} {
+		span := &Span{}
+		out := span.decode(test.input)
+		assert.Equal(t, test.s, span)
+		assert.Equal(t, test.err, out)
+	}
+
+	var s *Span
+	assert.Nil(t, s.decode("a"), nil)
+}
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	parent := 12

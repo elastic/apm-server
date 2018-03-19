@@ -35,14 +35,15 @@ type Agent struct {
 }
 
 func (s *Service) Decode(input interface{}) error {
-	raw, ok := input.(map[string]interface{})
-	if raw == nil {
+	if input == nil || s == nil {
 		return nil
 	}
+	raw, ok := input.(map[string]interface{})
 	if !ok {
 		return errors.New("Invalid type for service")
 	}
 	df := utility.DataFetcher{}
+
 	s.Name = df.String(raw, "name")
 	s.Version = df.StringPtr(raw, "version")
 	s.Environment = df.StringPtr(raw, "environment")

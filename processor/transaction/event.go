@@ -29,10 +29,10 @@ type Dropped struct {
 }
 
 func (e *Event) decode(input interface{}) error {
-	raw, ok := input.(map[string]interface{})
-	if raw == nil {
+	if input == nil || e == nil {
 		return nil
 	}
+	raw, ok := input.(map[string]interface{})
 	if !ok {
 		return errors.New("Invalid type for transaction event")
 	}
