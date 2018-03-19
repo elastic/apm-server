@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
@@ -56,10 +57,11 @@ var (
 	responseValid  = monitoring.NewInt(serverMetrics, "response.valid")
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
 
-	errInvalidToken    = errors.New("invalid token")
-	errForbidden       = errors.New("forbidden request")
-	errPOSTRequestOnly = errors.New("only POST requests are supported")
-	errTooManyRequests = errors.New("too many requests")
+	errInvalidToken            = errors.New("invalid token")
+	errForbidden               = errors.New("forbidden request")
+	errPOSTRequestOnly         = errors.New("only POST requests are supported")
+	errTooManyRequests         = errors.New("too many requests")
+	errConcurrencyLimitReached = errors.New("request timed out waiting to be processed. Increase `concurrent_requests` or `max_request_queue_time` or reduce payload size")
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
@@ -87,11 +89,31 @@ func newMuxer(config *Config, report reporter) *http.ServeMux {
 	return mux
 }
 
+func concurrencyLimitHandler(config *Config, h http.Handler) http.Handler {
+	semaphore := make(chan struct{}, config.ConcurrentRequests)
+
+	release := func() {
+		<-semaphore
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case semaphore <- struct{}{}:
+			defer release()
+			h.ServeHTTP(w, r)
+		case <-time.After(config.MaxRequestQueueTime):
+			sendStatus(w, r, http.StatusServiceUnavailable, errConcurrencyLimitReached)
+		}
+
+	})
+}
+
 func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
 	return logHandler(
-		authHandler(config.SecretToken,
-			processRequestHandler(pf, nil, report,
-				decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled))))
+		concurrencyLimitHandler(config,
+			authHandler(config.SecretToken,
+				processRequestHandler(pf, nil, report,
+					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))
 }
 
 func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
@@ -105,11 +127,12 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 		ExcludeFromGrouping: regexp.MustCompile(config.Frontend.ExcludeFromGrouping),
 	}
 	return logHandler(
-		killSwitchHandler(config.Frontend.isEnabled(),
-			ipRateLimitHandler(config.Frontend.RateLimit,
-				corsHandler(config.Frontend.AllowOrigins,
-					processRequestHandler(pf, &prConfig, report,
-						decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled))))))
+		concurrencyLimitHandler(config,
+			killSwitchHandler(config.Frontend.isEnabled(),
+				ipRateLimitHandler(config.Frontend.RateLimit,
+					corsHandler(config.Frontend.AllowOrigins,
+						processRequestHandler(pf, &prConfig, report,
+							decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
@@ -176,7 +199,6 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 }
 
 func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
-
 	cache, _ := lru.New(rateLimitCacheSize)
 
 	var deny = func(ip string) bool {
