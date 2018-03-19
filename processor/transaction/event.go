@@ -28,41 +28,37 @@ type Dropped struct {
 	Total *int
 }
 
-func (e *Event) decode(input interface{}) error {
-	if input == nil || e == nil {
-		return nil
+func DecodeEvent(input interface{}, err error) (*Event, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for transaction event")
+		return nil, errors.New("Invalid type for transaction event")
 	}
 	df := utility.DataFetcher{}
-	e.Id = df.String(raw, "id")
-	e.Type = df.String(raw, "type")
-	e.Name = df.StringPtr(raw, "name")
-	e.Result = df.StringPtr(raw, "result")
-	e.Duration = df.Float64(raw, "duration")
-	e.Timestamp = df.TimeRFC3339(raw, "timestamp")
-	e.Context = df.MapStr(raw, "context")
-	e.Marks = df.MapStr(raw, "marks")
-	e.Sampled = df.BoolPtr(raw, "sampled")
-	e.SpanCount = SpanCount{Dropped: Dropped{Total: df.IntPtr(raw, "total", "span_count", "dropped")}}
-	if df.Err != nil {
-		return df.Err
+	e := Event{
+		Id:        df.String(raw, "id"),
+		Type:      df.String(raw, "type"),
+		Name:      df.StringPtr(raw, "name"),
+		Result:    df.StringPtr(raw, "result"),
+		Duration:  df.Float64(raw, "duration"),
+		Timestamp: df.TimeRFC3339(raw, "timestamp"),
+		Context:   df.MapStr(raw, "context"),
+		Marks:     df.MapStr(raw, "marks"),
+		Sampled:   df.BoolPtr(raw, "sampled"),
+		SpanCount: SpanCount{Dropped: Dropped{Total: df.IntPtr(raw, "total", "span_count", "dropped")}},
 	}
-	if spans := df.InterfaceArr(raw, "spans"); spans != nil {
-		e.Spans = make([]*Span, len(spans))
-		for idx, sp := range spans {
-			span := Span{}
-			if err := span.decode(sp); err != nil {
-				return err
-			}
-			e.Spans[idx] = &span
-		}
+	err = df.Err
+	var span *Span
+	spans := df.InterfaceArr(raw, "spans")
+	e.Spans = make([]*Span, len(spans))
+	for idx, sp := range spans {
+		span, err = DecodeSpan(sp, err)
+		e.Spans[idx] = span
 	}
-	return df.Err
+	return &e, err
 }
-
 func (t *Event) Transform() common.MapStr {
 	tx := common.MapStr{"id": t.Id}
 	utility.Add(tx, "name", t.Name)

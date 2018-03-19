@@ -20,30 +20,36 @@ type Span struct {
 	Stacktrace m.Stacktrace
 }
 
-func (sp *Span) decode(input interface{}) error {
-	if input == nil || sp == nil {
-		return nil
+func DecodeSpan(input interface{}, err error) (*Span, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for span")
+		return nil, errors.New("Invalid type for span")
 	}
 	df := utility.DataFetcher{}
-	sp.Id = df.IntPtr(raw, "id")
-	sp.Name = df.String(raw, "name")
-	sp.Type = df.String(raw, "type")
-	sp.Start = df.Float64(raw, "start")
-	sp.Duration = df.Float64(raw, "duration")
-	sp.Context = df.MapStr(raw, "context")
-	sp.Parent = df.IntPtr(raw, "parent")
-	sp.Stacktrace = m.Stacktrace{}
-	if err := sp.Stacktrace.Decode(raw["stacktrace"]); err != nil {
-		return err
+	sp := Span{
+		Id:       df.IntPtr(raw, "id"),
+		Name:     df.String(raw, "name"),
+		Type:     df.String(raw, "type"),
+		Start:    df.Float64(raw, "start"),
+		Duration: df.Float64(raw, "duration"),
+		Context:  df.MapStr(raw, "context"),
+		Parent:   df.IntPtr(raw, "parent"),
 	}
-	return df.Err
+	var str *m.Stacktrace
+	str, err = m.DecodeStacktrace(raw["stacktrace"], df.Err)
+	if str != nil {
+		sp.Stacktrace = *str
+	}
+	return &sp, err
 }
 
 func (s *Span) Transform(config *pr.Config, service m.Service) common.MapStr {
+	if s == nil {
+		return nil
+	}
 	tr := common.MapStr{}
 	utility.Add(tr, "id", s.Id)
 	utility.Add(tr, "name", s.Name)

@@ -51,27 +51,27 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func (e *Event) decode(input interface{}) error {
-	if input == nil || e == nil {
-		return nil
+func DecodeEvent(input interface{}, err error) (*Event, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for error event")
+		return nil, errors.New("Invalid type for error event")
 	}
 	df := utility.DataFetcher{}
-	e.Id = df.StringPtr(raw, "id")
-	e.Culprit = df.StringPtr(raw, "culprit")
-	e.Context = df.MapStr(raw, "context")
-	e.Timestamp = df.TimeRFC3339(raw, "timestamp")
+	e := Event{
+		Id:        df.StringPtr(raw, "id"),
+		Culprit:   df.StringPtr(raw, "culprit"),
+		Context:   df.MapStr(raw, "context"),
+		Timestamp: df.TimeRFC3339(raw, "timestamp"),
+	}
 	transactionId := df.StringPtr(raw, "id", "transaction")
 	if transactionId != nil {
 		e.Transaction = &Transaction{Id: *transactionId}
 	}
-	if df.Err != nil {
-		return df.Err
-	}
 
+	var str *m.Stacktrace
 	ex := df.MapStr(raw, "exception")
 	exMsg := df.StringPtr(ex, "message")
 	if exMsg != nil {
@@ -84,12 +84,10 @@ func (e *Event) decode(input interface{}) error {
 			Handled:    df.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
-		if err := e.Exception.Stacktrace.Decode(ex["stacktrace"]); err != nil {
-			return err
+		str, df.Err = m.DecodeStacktrace(ex["stacktrace"], df.Err)
+		if str != nil {
+			e.Exception.Stacktrace = *str
 		}
-	}
-	if df.Err != nil {
-		return df.Err
 	}
 
 	log := df.MapStr(raw, "log")
@@ -102,11 +100,12 @@ func (e *Event) decode(input interface{}) error {
 			LoggerName:   df.StringPtr(log, "logger_name"),
 			Stacktrace:   m.Stacktrace{},
 		}
-		if err := e.Log.Stacktrace.Decode(log["stacktrace"]); err != nil {
-			return err
+		str, df.Err = m.DecodeStacktrace(log["stacktrace"], err)
+		if str != nil {
+			e.Log.Stacktrace = *str
 		}
 	}
-	return df.Err
+	return &e, df.Err
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {

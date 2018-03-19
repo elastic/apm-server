@@ -20,30 +20,34 @@ func TestStacktraceFrameDecode(t *testing.T) {
 	vars := map[string]interface{}{"a": 1}
 	pre_context, post_context := []string{"a"}, []string{"b", "c"}
 	for _, test := range []struct {
-		input interface{}
-		err   error
-		s     *StacktraceFrame
+		input       interface{}
+		err, inpErr error
+		s           *StacktraceFrame
 	}{
-		{input: nil, err: nil, s: &StacktraceFrame{}},
-		{input: "", err: errors.New("Invalid type for stacktrace frame"), s: &StacktraceFrame{}},
+		{input: nil, err: nil, s: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
+		{input: "", err: errors.New("Invalid type for stacktrace frame"), s: nil},
 		{
 			input: map[string]interface{}{},
-			err:   errors.New("Mandatory field missing"),
-			s:     &StacktraceFrame{},
+			err:   errors.New("Error fetching field"),
+			s: &StacktraceFrame{
+				AbsPath: nil, Filename: "", Lineno: 0.0, Colno: nil,
+				ContextLine: nil, Module: nil, Function: nil, LibraryFrame: nil,
+				Vars: nil, PreContext: nil, PostContext: nil},
 		},
 		{
 			input: map[string]interface{}{
 				"abs_path":      path,
 				"filename":      filename,
-				"lineno":        lineno,
-				"colno":         colno,
+				"lineno":        1.0,
+				"colno":         55.0,
 				"context_line":  context,
 				"function":      fct,
 				"module":        module,
 				"library_frame": libraryFrame,
 				"vars":          vars,
-				"pre_context":   pre_context,
-				"post_context":  post_context,
+				"pre_context":   []interface{}{"a"},
+				"post_context":  []interface{}{"b", "c"},
 			},
 			err: nil,
 			s: &StacktraceFrame{
@@ -61,15 +65,12 @@ func TestStacktraceFrameDecode(t *testing.T) {
 			},
 		},
 	} {
-		frame := &StacktraceFrame{}
-		out := frame.Decode(test.input)
+		frame, err := DecodeStacktraceFrame(test.input, test.inpErr)
 		assert.Equal(t, test.s, frame)
-		assert.Equal(t, test.err, out)
+		assert.Equal(t, test.err, err)
 	}
-
-	var s *StacktraceFrame
-	assert.Nil(t, s.Decode("a"), nil)
 }
+
 func TestStacktraceFrameTransform(t *testing.T) {
 	filename := "some file"
 	lineno := 1

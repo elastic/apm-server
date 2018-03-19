@@ -34,28 +34,37 @@ type Agent struct {
 	Version string
 }
 
-func (s *Service) Decode(input interface{}) error {
-	if input == nil || s == nil {
-		return nil
+func DecodeService(input interface{}, err error) (*Service, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for service")
+		return nil, errors.New("Invalid type for service")
 	}
 	df := utility.DataFetcher{}
-
-	s.Name = df.String(raw, "name")
-	s.Version = df.StringPtr(raw, "version")
-	s.Environment = df.StringPtr(raw, "environment")
-	s.Agent.Name = df.String(raw, "name", "agent")
-	s.Agent.Version = df.String(raw, "version", "agent")
-	s.Framework.Name = df.StringPtr(raw, "name", "framework")
-	s.Framework.Version = df.StringPtr(raw, "version", "framework")
-	s.Language.Name = df.StringPtr(raw, "name", "language")
-	s.Language.Version = df.StringPtr(raw, "version", "language")
-	s.Runtime.Name = df.StringPtr(raw, "name", "runtime")
-	s.Runtime.Version = df.StringPtr(raw, "version", "runtime")
-	return df.Err
+	service := Service{
+		Name:        df.String(raw, "name"),
+		Version:     df.StringPtr(raw, "version"),
+		Environment: df.StringPtr(raw, "environment"),
+		Agent: Agent{
+			Name:    df.String(raw, "name", "agent"),
+			Version: df.String(raw, "version", "agent"),
+		},
+		Framework: Framework{
+			Name:    df.StringPtr(raw, "name", "framework"),
+			Version: df.StringPtr(raw, "version", "framework"),
+		},
+		Language: Language{
+			Name:    df.StringPtr(raw, "name", "language"),
+			Version: df.StringPtr(raw, "version", "language"),
+		},
+		Runtime: Runtime{
+			Name:    df.StringPtr(raw, "name", "runtime"),
+			Version: df.StringPtr(raw, "version", "runtime"),
+		},
+	}
+	return &service, df.Err
 }
 
 func (s *Service) MinimalTransform() common.MapStr {

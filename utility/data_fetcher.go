@@ -12,19 +12,15 @@ type DataFetcher struct {
 }
 
 var (
-	typeErr = errors.New("Invalid type for field")
-	nilErr  = errors.New("Mandatory field missing")
+	fetchErr = errors.New("Error fetching field")
 )
 
 func (d *DataFetcher) Float64(base map[string]interface{}, key string, keys ...string) float64 {
 	val := getDeep(base, keys...)[key]
 	if valFloat, ok := val.(float64); ok {
 		return valFloat
-	} else if val == nil {
-		d.Err = nilErr
-	} else {
-		d.Err = typeErr
 	}
+	d.Err = fetchErr
 	return 0.0
 }
 
@@ -42,12 +38,8 @@ func (d *DataFetcher) IntPtr(base map[string]interface{}, key string, keys ...st
 		if valFloat == float32(valInt) {
 			return &valInt
 		}
-	} else if valInt, ok := val.(int); ok {
-		return &valInt
-	} else if valIntPtr, ok := val.(*int); ok {
-		return valIntPtr
 	}
-	d.Err = typeErr
+	d.Err = fetchErr
 	return nil
 }
 
@@ -55,9 +47,7 @@ func (d *DataFetcher) Int(base map[string]interface{}, key string, keys ...strin
 	if val := d.IntPtr(base, key, keys...); val != nil {
 		return *val
 	}
-	if d.Err == nil {
-		d.Err = nilErr
-	}
+	d.Err = fetchErr
 	return 0
 }
 
@@ -67,10 +57,8 @@ func (d *DataFetcher) StringPtr(base map[string]interface{}, key string, keys ..
 		return nil
 	} else if valStr, ok := val.(string); ok {
 		return &valStr
-	} else if valStrPtr, ok := val.(*string); ok {
-		return valStrPtr
 	}
-	d.Err = typeErr
+	d.Err = fetchErr
 	return nil
 }
 
@@ -78,10 +66,7 @@ func (d *DataFetcher) String(base map[string]interface{}, key string, keys ...st
 	if val := d.StringPtr(base, key, keys...); val != nil {
 		return *val
 	}
-	val := getDeep(base, keys...)[key]
-	if val == nil {
-		d.Err = nilErr
-	}
+	d.Err = fetchErr
 	return ""
 }
 
@@ -89,8 +74,6 @@ func (d *DataFetcher) StringArr(base map[string]interface{}, key string, keys ..
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
-	} else if valArr, ok := val.([]string); ok {
-		return valArr
 	}
 	if valArr, ok := getDeep(base, keys...)[key].([]interface{}); ok {
 		strArr := make([]string, len(valArr))
@@ -98,13 +81,13 @@ func (d *DataFetcher) StringArr(base map[string]interface{}, key string, keys ..
 			if valStr, ok := v.(string); ok {
 				strArr[idx] = valStr
 			} else {
-				d.Err = typeErr
+				d.Err = fetchErr
 				return nil
 			}
 		}
 		return strArr
 	}
-	d.Err = typeErr
+	d.Err = fetchErr
 	return nil
 }
 
@@ -119,7 +102,7 @@ func (d *DataFetcher) InterfaceArr(base map[string]interface{}, key string, keys
 	} else if valArr, ok := val.([]interface{}); ok {
 		return valArr
 	}
-	d.Err = typeErr
+	d.Err = fetchErr
 	return nil
 }
 
@@ -127,12 +110,10 @@ func (d *DataFetcher) BoolPtr(base map[string]interface{}, key string, keys ...s
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
-	} else if valPtr, ok := val.(*bool); ok {
-		return valPtr
 	} else if valBool, ok := val.(bool); ok {
 		return &valBool
 	}
-	d.Err = typeErr
+	d.Err = fetchErr
 	return nil
 }
 
@@ -142,10 +123,8 @@ func (d *DataFetcher) MapStr(base map[string]interface{}, key string, keys ...st
 		return nil
 	} else if valMapStr, ok := val.(map[string]interface{}); ok {
 		return valMapStr
-	} else if valMapStr, ok := val.(common.MapStr); ok {
-		return valMapStr
 	}
-	d.Err = typeErr
+	d.Err = fetchErr
 	return nil
 }
 
@@ -155,13 +134,8 @@ func (d *DataFetcher) TimeRFC3339(base map[string]interface{}, key string, keys 
 		if valTime, err := time.Parse(time.RFC3339, valStr); err == nil {
 			return valTime
 		}
-	} else if valTime, ok := val.(time.Time); ok {
-		return valTime
-	} else if val == nil {
-		d.Err = nilErr
-		return time.Time{}
 	}
-	d.Err = typeErr
+	d.Err = fetchErr
 	return time.Time{}
 }
 

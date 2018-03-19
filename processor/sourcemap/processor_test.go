@@ -64,5 +64,5 @@ func TestTransform(t *testing.T) {
 
 	rs, err = NewProcessor(nil).Transform(nil)
 	assert.Nil(t, rs)
-	assert.Equal(t, errors.New("Mandatory field missing"), err)
+	assert.Equal(t, errors.New("Error fetching field"), err)
 }

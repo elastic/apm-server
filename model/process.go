@@ -14,20 +14,22 @@ type Process struct {
 	Argv  []string
 }
 
-func (p *Process) Decode(input interface{}) error {
-	if input == nil || p == nil {
-		return nil
+func DecodeProcess(input interface{}, err error) (*Process, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for process")
+		return nil, errors.New("Invalid type for process")
 	}
 	df := utility.DataFetcher{}
-	p.Pid = df.IntPtr(raw, "pid")
-	p.Ppid = df.IntPtr(raw, "ppid")
-	p.Title = df.StringPtr(raw, "title")
-	p.Argv = df.StringArr(raw, "argv")
-	return df.Err
+	process := Process{
+		Pid:   df.IntPtr(raw, "pid"),
+		Ppid:  df.IntPtr(raw, "ppid"),
+		Title: df.StringPtr(raw, "title"),
+		Argv:  df.StringArr(raw, "argv"),
+	}
+	return &process, df.Err
 }
 
 func (p *Process) Transform() common.MapStr {

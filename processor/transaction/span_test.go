@@ -17,27 +17,32 @@ func TestSpanDecode(t *testing.T) {
 	id, parent := 1, 12
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
-	context := common.MapStr{"a": "b"}
+	context := map[string]interface{}{"a": "b"}
 	stacktrace := []interface{}{map[string]interface{}{
-		"filename": "file", "lineno": 1,
+		"filename": "file", "lineno": 1.0,
 	}}
 	for _, test := range []struct {
-		input interface{}
-		err   error
-		s     *Span
+		input       interface{}
+		err, inpErr error
+		s           *Span
 	}{
-		{input: nil, err: nil, s: &Span{}},
-		{input: "", err: errors.New("Invalid type for span"), s: &Span{}},
+		{input: nil, err: nil, s: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
+		{input: "", err: errors.New("Invalid type for span"), s: nil},
 		{
 			input: map[string]interface{}{},
-			err:   errors.New("Mandatory field missing"),
-			s:     &Span{},
+			err:   errors.New("Error fetching field"),
+			s: &Span{
+				Id: nil, Name: "", Type: "", Start: 0.0,
+				Duration: 0.0, Context: nil, Parent: nil,
+				Stacktrace: m.Stacktrace{Frames: nil},
+			},
 		},
 		{
 			input: map[string]interface{}{
-				"name": name, "id": &id, "type": spType,
+				"name": name, "id": 1.0, "type": spType,
 				"start": start, "duration": duration,
-				"context": context, "parent": &parent,
+				"context": context, "parent": 12.0,
 				"stacktrace": stacktrace,
 			},
 			err: nil,
@@ -57,15 +62,12 @@ func TestSpanDecode(t *testing.T) {
 			},
 		},
 	} {
-		span := &Span{}
-		out := span.decode(test.input)
+		span, err := DecodeSpan(test.input, test.inpErr)
 		assert.Equal(t, test.s, span)
-		assert.Equal(t, test.err, out)
+		assert.Equal(t, test.err, err)
 	}
-
-	var s *Span
-	assert.Nil(t, s.decode("a"), nil)
 }
+
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	parent := 12

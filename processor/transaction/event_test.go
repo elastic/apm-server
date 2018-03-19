@@ -20,7 +20,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	dropped := 12
 	spanCount := map[string]interface{}{
 		"dropped": map[string]interface{}{
-			"total": dropped,
+			"total": 12.0,
 		},
 	}
 	timestamp := "2017-05-30T18:53:27.154Z"
@@ -28,22 +28,29 @@ func TestTransactionEventDecode(t *testing.T) {
 	sampled := true
 
 	for _, test := range []struct {
-		input interface{}
-		err   error
-		e     *Event
+		input       interface{}
+		err, inpErr error
+		e           *Event
 	}{
-		{input: nil, err: nil, e: &Event{}},
-		{input: "", err: errors.New("Invalid type for transaction event"), e: &Event{}},
+		{input: nil, err: nil, e: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		{input: "", err: errors.New("Invalid type for transaction event"), e: nil},
 		{
 			input: map[string]interface{}{"timestamp": 123},
-			err:   errors.New("Invalid type for field"),
-			e:     &Event{},
+			err:   errors.New("Error fetching field"),
+			e: &Event{
+				Id: "", Type: "", Name: nil, Result: nil,
+				Duration: 0.0, Timestamp: time.Time{},
+				Context: nil, Marks: nil, Sampled: nil,
+				SpanCount: SpanCount{Dropped: Dropped{Total: nil}},
+				Spans:     []*Span{},
+			},
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "type": trType, "name": &name, "result": &result,
+				"id": id, "type": trType, "name": name, "result": result,
 				"duration": duration, "timestamp": timestamp,
-				"context": context, "marks": marks, "sampled": &sampled,
+				"context": context, "marks": marks, "sampled": sampled,
 				"span_count": spanCount,
 				"spans": []interface{}{
 					map[string]interface{}{
@@ -63,15 +70,10 @@ func TestTransactionEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		event := &Event{}
-		out := event.decode(test.input)
+		event, err := DecodeEvent(test.input, test.inpErr)
 		assert.Equal(t, test.e, event)
-		assert.Equal(t, test.err, out)
+		assert.Equal(t, test.err, err)
 	}
-
-	var e *Event
-	assert.Nil(t, e.decode("a"), nil)
-	assert.Nil(t, e)
 }
 
 func TestEventTransform(t *testing.T) {

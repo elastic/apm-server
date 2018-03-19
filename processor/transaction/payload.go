@@ -25,43 +25,32 @@ type payload struct {
 	Events  []Event
 }
 
-func (pa *payload) decode(raw map[string]interface{}) error {
-	if raw == nil || pa == nil {
-		return nil
+func decodeTransaction(raw map[string]interface{}) (*payload, error) {
+	if raw == nil {
+		return nil, nil
 	}
-	if err := pa.Service.Decode(raw["service"]); err != nil {
-		return err
+	pa := &payload{}
+	var err error
+	service, err := m.DecodeService(raw["service"], err)
+	if service != nil {
+		pa.Service = *service
 	}
-	if pa.System == nil {
-		pa.System = &m.System{}
-	}
-	if err := pa.System.Decode(raw["system"]); err != nil {
-		return err
-	}
-	if pa.Process == nil {
-		pa.Process = &m.Process{}
-	}
-	if err := pa.Process.Decode(raw["process"]); err != nil {
-		return err
-	}
-	if pa.User == nil {
-		pa.User = &m.User{}
-	}
-	if err := pa.User.Decode(raw["user"]); err != nil {
-		return err
-	}
+	pa.System, err = m.DecodeSystem(raw["system"], err)
+	pa.Process, err = m.DecodeProcess(raw["process"], err)
+	pa.User, err = m.DecodeUser(raw["user"], err)
 
-	df := utility.DataFetcher{}
+	df := utility.DataFetcher{Err: err}
 	txs := df.InterfaceArr(raw, "transactions")
+	err = df.Err
 	pa.Events = make([]Event, len(txs))
+	var event *Event
 	for idx, tx := range txs {
-		event := Event{}
-		if err := event.decode(tx); err != nil {
-			return err
+		event, df.Err = DecodeEvent(tx, df.Err)
+		if event != nil {
+			pa.Events[idx] = *event
 		}
-		pa.Events[idx] = event
 	}
-	return df.Err
+	return pa, df.Err
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {

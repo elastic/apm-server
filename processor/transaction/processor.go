@@ -2,7 +2,6 @@ package transaction
 
 import (
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 
@@ -49,10 +48,9 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 
 func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
 	transformations.Inc()
-	df := utility.DataFetcher{}
-	pa := payload{}
-	if err := pa.decode(raw); err != nil {
+	pa, err := decodeTransaction(raw)
+	if err != nil {
 		return nil, err
 	}
-	return pa.transform(p.config), df.Err
+	return pa.transform(p.config), nil
 }

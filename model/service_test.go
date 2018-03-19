@@ -87,16 +87,23 @@ func TestServiceTransform(t *testing.T) {
 
 func TestServiceDecode(t *testing.T) {
 	for _, test := range []struct {
-		input interface{}
-		err   error
-		s     *Service
+		input       interface{}
+		err, inpErr error
+		s           *Service
 	}{
-		{input: nil, err: nil, s: &Service{}},
-		{input: "", err: errors.New("Invalid type for service"), s: &Service{}},
+		{input: nil, err: nil, s: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
+		{input: "", err: errors.New("Invalid type for service"), s: nil},
 		{
 			input: map[string]interface{}{"name": 1234},
-			err:   errors.New("Mandatory field missing"),
-			s:     &Service{},
+			err:   errors.New("Error fetching field"),
+			s: &Service{
+				Name: "", Version: nil, Environment: nil,
+				Language:  Language{Name: nil, Version: nil},
+				Runtime:   Runtime{Name: nil, Version: nil},
+				Framework: Framework{Name: nil, Version: nil},
+				Agent:     Agent{Name: "", Version: ""},
+			},
 		},
 		{
 			input: map[string]interface{}{
@@ -144,11 +151,8 @@ func TestServiceDecode(t *testing.T) {
 			},
 		},
 	} {
-		service := &Service{}
-		out := service.Decode(test.input)
+		service, out := DecodeService(test.input, test.inpErr)
 		assert.Equal(t, test.s, service)
 		assert.Equal(t, test.err, out)
 	}
-	var s *Service
-	assert.Nil(t, s.Decode("a"), nil)
 }

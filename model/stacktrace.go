@@ -11,25 +11,21 @@ type Stacktrace struct {
 	Frames []*StacktraceFrame
 }
 
-func (st *Stacktrace) Decode(input interface{}) error {
-	if input == nil || st == nil {
-		return nil
+func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.([]interface{})
 	if !ok {
-		return errors.New("Invalid type for stacktrace")
+		return nil, errors.New("Invalid type for stacktrace")
 	}
 
+	st := &Stacktrace{}
 	st.Frames = make([]*StacktraceFrame, len(raw))
 	for idx, fr := range raw {
-		frame := StacktraceFrame{}
-		err := frame.Decode(fr)
-		if err != nil {
-			return err
-		}
-		st.Frames[idx] = &frame
+		st.Frames[idx], err = DecodeStacktraceFrame(fr, err)
 	}
-	return nil
+	return st, err
 }
 
 func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.MapStr {

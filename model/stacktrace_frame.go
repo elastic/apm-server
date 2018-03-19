@@ -46,27 +46,29 @@ type Original struct {
 	sourcemapCopied bool
 }
 
-func (s *StacktraceFrame) Decode(input interface{}) error {
-	if input == nil || s == nil {
-		return nil
+func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for stacktrace frame")
+		return nil, errors.New("Invalid type for stacktrace frame")
 	}
 	df := utility.DataFetcher{}
-	s.AbsPath = df.StringPtr(raw, "abs_path")
-	s.Filename = df.String(raw, "filename")
-	s.Lineno = df.Int(raw, "lineno")
-	s.Colno = df.IntPtr(raw, "colno")
-	s.ContextLine = df.StringPtr(raw, "context_line")
-	s.Module = df.StringPtr(raw, "module")
-	s.Function = df.StringPtr(raw, "function")
-	s.LibraryFrame = df.BoolPtr(raw, "library_frame")
-	s.Vars = df.MapStr(raw, "vars")
-	s.PreContext = df.StringArr(raw, "pre_context")
-	s.PostContext = df.StringArr(raw, "post_context")
-	return df.Err
+	frame := StacktraceFrame{
+		AbsPath:      df.StringPtr(raw, "abs_path"),
+		Filename:     df.String(raw, "filename"),
+		Lineno:       df.Int(raw, "lineno"),
+		Colno:        df.IntPtr(raw, "colno"),
+		ContextLine:  df.StringPtr(raw, "context_line"),
+		Module:       df.StringPtr(raw, "module"),
+		Function:     df.StringPtr(raw, "function"),
+		LibraryFrame: df.BoolPtr(raw, "library_frame"),
+		Vars:         df.MapStr(raw, "vars"),
+		PreContext:   df.StringArr(raw, "pre_context"),
+		PostContext:  df.StringArr(raw, "post_context"),
+	}
+	return &frame, df.Err
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {

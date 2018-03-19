@@ -56,7 +56,7 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 	return l
 }
 
-func TestEventEventDecode(t *testing.T) {
+func TestErrorEventDecode(t *testing.T) {
 	id, culprit, transactionId := "123", "foo()", "555"
 	context := map[string]interface{}{"a": "b"}
 	timestamp := "2017-05-30T18:53:27.154Z"
@@ -64,21 +64,22 @@ func TestEventEventDecode(t *testing.T) {
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
 	paramMsg, level, logger := "log pm", "error", "mylogger"
 	for _, test := range []struct {
-		input interface{}
-		err   error
-		e     *Event
+		input       interface{}
+		err, inpErr error
+		e           *Event
 	}{
-		{input: nil, err: nil, e: &Event{}},
-		{input: "", err: errors.New("Invalid type for error event"), e: &Event{}},
+		{input: nil, err: nil, e: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		{input: "", err: errors.New("Invalid type for error event"), e: nil},
 		{
 			input: map[string]interface{}{"timestamp": 123},
-			err:   errors.New("Invalid type for field"),
+			err:   errors.New("Error fetching field"),
 			e:     &Event{},
 		},
 		{
 			input: map[string]interface{}{
-				"id": &id, "culprit": &culprit, "context": context, "timestamp": timestamp,
-				"transaction": map[string]interface{}{"id": &transactionId},
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
+				"transaction": map[string]interface{}{"id": transactionId},
 			},
 			err: nil,
 			e: &Event{
@@ -133,21 +134,21 @@ func TestEventEventDecode(t *testing.T) {
 				"timestamp": timestamp,
 				"exception": map[string]interface{}{
 					"message": "Exception Msg",
-					"code":    &code, "module": &module, "attributes": &attrs,
-					"type": &exType, "handled": &handled,
+					"code":    code, "module": module, "attributes": attrs,
+					"type": exType, "handled": handled,
 					"stacktrace": []interface{}{
 						map[string]interface{}{
-							"filename": "file", "lineno": 1,
+							"filename": "file", "lineno": 1.0,
 						},
 					},
 				},
 				"log": map[string]interface{}{
 					"message":       "Log Msg",
-					"param_message": &paramMsg,
-					"level":         &level, "logger_name": &logger,
+					"param_message": paramMsg,
+					"level":         level, "logger_name": logger,
 					"stacktrace": []interface{}{
 						map[string]interface{}{
-							"filename": "log file", "lineno": 2,
+							"filename": "log file", "lineno": 2.0,
 						},
 					},
 				},
@@ -157,10 +158,10 @@ func TestEventEventDecode(t *testing.T) {
 				Timestamp: timestampParsed,
 				Exception: &Exception{
 					Message:    "Exception Msg",
-					Code:       &code,
+					Code:       code,
 					Type:       &exType,
 					Module:     &module,
-					Attributes: &attrs,
+					Attributes: attrs,
 					Handled:    &handled,
 					Stacktrace: m.Stacktrace{
 						Frames: []*m.StacktraceFrame{
@@ -182,15 +183,10 @@ func TestEventEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		event := &Event{}
-		out := event.decode(test.input)
+		event, err := DecodeEvent(test.input, test.inpErr)
 		assert.Equal(t, test.e, event)
-		assert.Equal(t, test.err, out)
+		assert.Equal(t, test.err, err)
 	}
-
-	var e *Event
-	assert.Nil(t, e.decode("a"), nil)
-	assert.Nil(t, e)
 }
 
 func TestEventTransform(t *testing.T) {

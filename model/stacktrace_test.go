@@ -13,12 +13,13 @@ import (
 
 func TestStacktraceDecode(t *testing.T) {
 	for _, test := range []struct {
-		input interface{}
-		err   error
-		s     *Stacktrace
+		input       interface{}
+		err, inpErr error
+		s           *Stacktrace
 	}{
-		{input: nil, err: nil, s: &Stacktrace{}},
-		{input: "", err: errors.New("Invalid type for stacktrace"), s: &Stacktrace{}},
+		{input: nil, err: nil, s: nil},
+		{input: nil, inpErr: errors.New("msg"), err: errors.New("msg"), s: nil},
+		{input: "", err: errors.New("Invalid type for stacktrace"), s: nil},
 		{
 			input: []interface{}{"foo"},
 			err:   errors.New("Invalid type for stacktrace frame"),
@@ -26,7 +27,7 @@ func TestStacktraceDecode(t *testing.T) {
 		},
 		{
 			input: []interface{}{map[string]interface{}{
-				"filename": "file", "lineno": 1},
+				"filename": "file", "lineno": 1.0},
 			},
 			err: nil,
 			s: &Stacktrace{
@@ -36,14 +37,10 @@ func TestStacktraceDecode(t *testing.T) {
 			},
 		},
 	} {
-		s := &Stacktrace{}
-		out := s.Decode(test.input)
+		s, err := DecodeStacktrace(test.input, test.inpErr)
 		assert.Equal(t, test.s, s)
-		assert.Equal(t, test.err, out)
+		assert.Equal(t, test.err, err)
 	}
-
-	var s *Stacktrace
-	assert.Nil(t, s.Decode("a"), nil)
 }
 
 func TestStacktraceTransform(t *testing.T) {

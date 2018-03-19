@@ -15,22 +15,25 @@ type User struct {
 	UserAgent *string
 }
 
-func (u *User) Decode(input interface{}) error {
-	if input == nil || u == nil {
-		return nil
+func DecodeUser(input interface{}, err error) (*User, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for user")
+		return nil, errors.New("Invalid type for user")
 	}
 	df := utility.DataFetcher{}
-	u.Id = df.StringPtr(raw, "id")
-	u.Email = df.StringPtr(raw, "email")
-	u.Username = df.StringPtr(raw, "username")
-	u.IP = df.StringPtr(raw, "ip")
-	u.UserAgent = df.StringPtr(raw, "user_agent")
-	return df.Err
+	user := User{
+		Id:        df.StringPtr(raw, "id"),
+		Email:     df.StringPtr(raw, "email"),
+		Username:  df.StringPtr(raw, "username"),
+		IP:        df.StringPtr(raw, "ip"),
+		UserAgent: df.StringPtr(raw, "user_agent"),
+	}
+	return &user, df.Err
 }
+
 func (u *User) Transform() common.MapStr {
 	if u == nil {
 		return nil

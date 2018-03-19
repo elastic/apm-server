@@ -14,20 +14,22 @@ type System struct {
 	IP           *string
 }
 
-func (s *System) Decode(input interface{}) error {
-	if input == nil || s == nil {
-		return nil
+func DecodeSystem(input interface{}, err error) (*System, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid type for system")
+		return nil, errors.New("Invalid type for system")
 	}
 	df := utility.DataFetcher{}
-	s.Hostname = df.StringPtr(raw, "hostname")
-	s.Platform = df.StringPtr(raw, "platform")
-	s.Architecture = df.StringPtr(raw, "architecture")
-	s.IP = df.StringPtr(raw, "ip")
-	return df.Err
+	system := System{
+		Hostname:     df.StringPtr(raw, "hostname"),
+		Platform:     df.StringPtr(raw, "platform"),
+		Architecture: df.StringPtr(raw, "architecture"),
+		IP:           df.StringPtr(raw, "ip"),
+	}
+	return &system, df.Err
 }
 
 func (s *System) Transform() common.MapStr {

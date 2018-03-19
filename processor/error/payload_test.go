@@ -18,54 +18,63 @@ import (
 func TestPayloadDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	pid, ip := 1, "127.0.0.1"
 	for _, test := range []struct {
 		input map[string]interface{}
 		err   error
 		p     *payload
 	}{
-		{input: nil, err: nil, p: &payload{}},
+		{input: nil, err: nil, p: nil},
 		{
 			input: map[string]interface{}{"service": 123},
 			err:   errors.New("Invalid type for service"),
-			p:     &payload{},
+			p: &payload{
+				Service: m.Service{}, System: nil,
+				Process: nil, User: nil, Events: []Event{},
+			},
 		},
 		{
 			input: map[string]interface{}{"system": 123},
 			err:   errors.New("Invalid type for system"),
-			p:     &payload{Service: m.Service{}, System: &m.System{}},
+			p: &payload{
+				Service: m.Service{}, System: nil,
+				Process: nil, User: nil, Events: []Event{},
+			},
 		},
 		{
 			input: map[string]interface{}{"process": 123},
 			err:   errors.New("Invalid type for process"),
 			p: &payload{
-				Service: m.Service{},
-				System:  &m.System{},
-				Process: &m.Process{},
+				Service: m.Service{}, System: nil,
+				Process: nil, User: nil, Events: []Event{},
 			},
 		},
 		{
 			input: map[string]interface{}{"user": 123},
 			err:   errors.New("Invalid type for user"),
 			p: &payload{
-				Service: m.Service{},
-				System:  &m.System{},
-				Process: &m.Process{},
-				User:    &m.User{},
+				Service: m.Service{}, System: nil,
+				Process: nil, User: nil, Events: []Event{},
 			},
 		},
 		{
 			input: map[string]interface{}{},
 			err:   nil,
 			p: &payload{
-				Service: m.Service{},
-				System:  &m.System{},
-				Process: &m.Process{},
-				User:    &m.User{},
-				Events:  []Event{},
+				Service: m.Service{}, System: nil,
+				Process: nil, User: nil, Events: []Event{},
 			},
 		},
 		{
 			input: map[string]interface{}{
+				"system": map[string]interface{}{"ip": ip},
+				"service": map[string]interface{}{
+					"name": "a",
+					"agent": map[string]interface{}{
+						"name": "ag", "version": "1.0",
+					}},
+				"process": map[string]interface{}{"pid": 1.0},
+				"user":    map[string]interface{}{"ip": ip},
 				"errors": []interface{}{
 					map[string]interface{}{
 						"timestamp": timestamp,
@@ -77,10 +86,11 @@ func TestPayloadDecode(t *testing.T) {
 			},
 			err: nil,
 			p: &payload{
-				Service: m.Service{},
-				System:  &m.System{},
-				Process: &m.Process{},
-				User:    &m.User{},
+				Service: m.Service{
+					Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
+				System:  &m.System{IP: &ip},
+				Process: &m.Process{Pid: &pid},
+				User:    &m.User{IP: &ip},
 				Events: []Event{
 					{Timestamp: timestampParsed,
 						Exception: &Exception{Message: "Exception Msg"}},
@@ -88,15 +98,10 @@ func TestPayloadDecode(t *testing.T) {
 			},
 		},
 	} {
-		payload := &payload{}
-		out := payload.decode(test.input)
+		payload, err := decodeError(test.input)
 		assert.Equal(t, test.p, payload)
-		assert.Equal(t, test.err, out)
+		assert.Equal(t, test.err, err)
 	}
-
-	var p *payload
-	assert.Nil(t, p.decode(map[string]interface{}{}), nil)
-	assert.Nil(t, p)
 }
 
 func TestPayloadTransform(t *testing.T) {

@@ -50,22 +50,25 @@ func TestUserTransform(t *testing.T) {
 
 func TestUserDecode(t *testing.T) {
 	id, mail, name, ip, agent := "12", "m@g.dk", "foo", "127.0.0.1", "ruby"
+	inpErr := errors.New("some error happened")
 	for _, test := range []struct {
-		input interface{}
-		err   error
-		u     *User
+		input    interface{}
+		inputErr error
+		err      error
+		u        *User
 	}{
-		{input: nil, err: nil, u: &User{}},
-		{input: "", err: errors.New("Invalid type for user"), u: &User{}},
+		{input: nil, inputErr: nil, err: nil, u: nil},
+		{input: nil, inputErr: inpErr, err: inpErr, u: nil},
+		{input: "", err: errors.New("Invalid type for user"), u: nil},
 		{
 			input: map[string]interface{}{"id": 1},
-			err:   errors.New("Invalid type for field"),
-			u:     &User{},
+			err:   errors.New("Error fetching field"),
+			u:     &User{Id: nil, Email: nil, Username: nil, IP: nil, UserAgent: nil},
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "email": &mail, "username": &name,
-				"ip": &ip, "user_agent": &agent,
+				"id": id, "email": mail, "username": name,
+				"ip": ip, "user_agent": agent,
 			},
 			err: nil,
 			u: &User{
@@ -73,12 +76,8 @@ func TestUserDecode(t *testing.T) {
 			},
 		},
 	} {
-		user := &User{}
-		out := user.Decode(test.input)
+		user, err := DecodeUser(test.input, test.inputErr)
 		assert.Equal(t, test.u, user)
-		assert.Equal(t, test.err, out)
+		assert.Equal(t, test.err, err)
 	}
-
-	var u *User
-	assert.Nil(t, u.Decode("a"), nil)
 }
