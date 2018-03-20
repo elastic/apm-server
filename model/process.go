@@ -22,16 +22,16 @@ func DecodeProcess(input interface{}, err error) (*Process, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for process")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	process := Process{
-		Ppid:  df.IntPtr(raw, "ppid"),
-		Title: df.StringPtr(raw, "title"),
-		Argv:  df.StringArr(raw, "argv"),
+		Ppid:  decoder.IntPtr(raw, "ppid"),
+		Title: decoder.StringPtr(raw, "title"),
+		Argv:  decoder.StringArr(raw, "argv"),
 	}
-	if pid := df.IntPtr(raw, "pid"); pid != nil {
+	if pid := decoder.IntPtr(raw, "pid"); pid != nil {
 		process.Pid = *pid
 	}
-	return &process, df.Err
+	return &process, decoder.Err
 }
 
 func (p *Process) Transform() common.MapStr {

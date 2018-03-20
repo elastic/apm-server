@@ -42,9 +42,9 @@ func decodeTransaction(raw map[string]interface{}) (*payload, error) {
 		return nil, err
 	}
 
-	df := utility.DataFetcher{}
-	txs := df.InterfaceArr(raw, "transactions")
-	err = df.Err
+	decoder := utility.ManualDecoder{}
+	txs := decoder.InterfaceArr(raw, "transactions")
+	err = decoder.Err
 	pa.Events = make([]Event, len(txs))
 	var event *Event
 	for idx, tx := range txs {

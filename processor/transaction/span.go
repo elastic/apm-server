@@ -28,18 +28,18 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for span")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	sp := Span{
-		Id:       df.IntPtr(raw, "id"),
-		Name:     df.String(raw, "name"),
-		Type:     df.String(raw, "type"),
-		Start:    df.Float64(raw, "start"),
-		Duration: df.Float64(raw, "duration"),
-		Context:  df.MapStr(raw, "context"),
-		Parent:   df.IntPtr(raw, "parent"),
+		Id:       decoder.IntPtr(raw, "id"),
+		Name:     decoder.String(raw, "name"),
+		Type:     decoder.String(raw, "type"),
+		Start:    decoder.Float64(raw, "start"),
+		Duration: decoder.Float64(raw, "duration"),
+		Context:  decoder.MapStr(raw, "context"),
+		Parent:   decoder.IntPtr(raw, "parent"),
 	}
 	var stacktr *m.Stacktrace
-	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], df.Err)
+	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
 	if stacktr != nil {
 		sp.Stacktrace = *stacktr
 	}

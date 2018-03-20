@@ -22,14 +22,14 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for system")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	system := System{
-		Hostname:     df.StringPtr(raw, "hostname"),
-		Platform:     df.StringPtr(raw, "platform"),
-		Architecture: df.StringPtr(raw, "architecture"),
-		IP:           df.StringPtr(raw, "ip"),
+		Hostname:     decoder.StringPtr(raw, "hostname"),
+		Platform:     decoder.StringPtr(raw, "platform"),
+		Architecture: decoder.StringPtr(raw, "architecture"),
+		IP:           decoder.StringPtr(raw, "ip"),
 	}
-	return &system, df.Err
+	return &system, decoder.Err
 }
 
 func (s *System) Transform() common.MapStr {

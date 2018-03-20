@@ -36,22 +36,22 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for transaction event")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	e := Event{
-		Id:        df.String(raw, "id"),
-		Type:      df.String(raw, "type"),
-		Name:      df.StringPtr(raw, "name"),
-		Result:    df.StringPtr(raw, "result"),
-		Duration:  df.Float64(raw, "duration"),
-		Timestamp: df.TimeRFC3339(raw, "timestamp"),
-		Context:   df.MapStr(raw, "context"),
-		Marks:     df.MapStr(raw, "marks"),
-		Sampled:   df.BoolPtr(raw, "sampled"),
-		SpanCount: SpanCount{Dropped: Dropped{Total: df.IntPtr(raw, "total", "span_count", "dropped")}},
+		Id:        decoder.String(raw, "id"),
+		Type:      decoder.String(raw, "type"),
+		Name:      decoder.StringPtr(raw, "name"),
+		Result:    decoder.StringPtr(raw, "result"),
+		Duration:  decoder.Float64(raw, "duration"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
+		Context:   decoder.MapStr(raw, "context"),
+		Marks:     decoder.MapStr(raw, "marks"),
+		Sampled:   decoder.BoolPtr(raw, "sampled"),
+		SpanCount: SpanCount{Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")}},
 	}
-	err = df.Err
+	err = decoder.Err
 	var span *Span
-	spans := df.InterfaceArr(raw, "spans")
+	spans := decoder.InterfaceArr(raw, "spans")
 	e.Spans = make([]*Span, len(spans))
 	for idx, sp := range spans {
 		span, err = DecodeSpan(sp, err)

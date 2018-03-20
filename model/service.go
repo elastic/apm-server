@@ -42,29 +42,29 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for service")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	service := Service{
-		Name:        df.String(raw, "name"),
-		Version:     df.StringPtr(raw, "version"),
-		Environment: df.StringPtr(raw, "environment"),
+		Name:        decoder.String(raw, "name"),
+		Version:     decoder.StringPtr(raw, "version"),
+		Environment: decoder.StringPtr(raw, "environment"),
 		Agent: Agent{
-			Name:    df.String(raw, "name", "agent"),
-			Version: df.String(raw, "version", "agent"),
+			Name:    decoder.String(raw, "name", "agent"),
+			Version: decoder.String(raw, "version", "agent"),
 		},
 		Framework: Framework{
-			Name:    df.StringPtr(raw, "name", "framework"),
-			Version: df.StringPtr(raw, "version", "framework"),
+			Name:    decoder.StringPtr(raw, "name", "framework"),
+			Version: decoder.StringPtr(raw, "version", "framework"),
 		},
 		Language: Language{
-			Name:    df.StringPtr(raw, "name", "language"),
-			Version: df.StringPtr(raw, "version", "language"),
+			Name:    decoder.StringPtr(raw, "name", "language"),
+			Version: decoder.StringPtr(raw, "version", "language"),
 		},
 		Runtime: Runtime{
-			Name:    df.StringPtr(raw, "name", "runtime"),
-			Version: df.StringPtr(raw, "version", "runtime"),
+			Name:    decoder.StringPtr(raw, "name", "runtime"),
+			Version: decoder.StringPtr(raw, "version", "runtime"),
 		},
 	}
-	return &service, df.Err
+	return &service, decoder.Err
 }
 
 func (s *Service) MinimalTransform() common.MapStr {

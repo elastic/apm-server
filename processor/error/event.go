@@ -59,30 +59,30 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for error event")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	e := Event{
-		Id:        df.StringPtr(raw, "id"),
-		Culprit:   df.StringPtr(raw, "culprit"),
-		Context:   df.MapStr(raw, "context"),
-		Timestamp: df.TimeRFC3339(raw, "timestamp"),
+		Id:        decoder.StringPtr(raw, "id"),
+		Culprit:   decoder.StringPtr(raw, "culprit"),
+		Context:   decoder.MapStr(raw, "context"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
 	}
-	transactionId := df.StringPtr(raw, "id", "transaction")
+	transactionId := decoder.StringPtr(raw, "id", "transaction")
 	if transactionId != nil {
 		e.Transaction = &Transaction{Id: *transactionId}
 	}
 
 	var stacktr *m.Stacktrace
-	err = df.Err
-	ex := df.MapStr(raw, "exception")
-	exMsg := df.StringPtr(ex, "message")
+	err = decoder.Err
+	ex := decoder.MapStr(raw, "exception")
+	exMsg := decoder.StringPtr(ex, "message")
 	if exMsg != nil {
 		e.Exception = &Exception{
 			Message:    *exMsg,
-			Code:       df.Interface(ex, "code"),
-			Module:     df.StringPtr(ex, "module"),
-			Attributes: df.Interface(ex, "attributes"),
-			Type:       df.StringPtr(ex, "type"),
-			Handled:    df.BoolPtr(ex, "handled"),
+			Code:       decoder.Interface(ex, "code"),
+			Module:     decoder.StringPtr(ex, "module"),
+			Attributes: decoder.Interface(ex, "attributes"),
+			Type:       decoder.StringPtr(ex, "type"),
+			Handled:    decoder.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
 		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], err)
@@ -91,14 +91,14 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		}
 	}
 
-	log := df.MapStr(raw, "log")
-	logMsg := df.StringPtr(log, "message")
+	log := decoder.MapStr(raw, "log")
+	logMsg := decoder.StringPtr(log, "message")
 	if logMsg != nil {
 		e.Log = &Log{
 			Message:      *logMsg,
-			ParamMessage: df.StringPtr(log, "param_message"),
-			Level:        df.StringPtr(log, "level"),
-			LoggerName:   df.StringPtr(log, "logger_name"),
+			ParamMessage: decoder.StringPtr(log, "param_message"),
+			Level:        decoder.StringPtr(log, "level"),
+			LoggerName:   decoder.StringPtr(log, "logger_name"),
 			Stacktrace:   m.Stacktrace{},
 		}
 		stacktr, err = m.DecodeStacktrace(log["stacktrace"], err)

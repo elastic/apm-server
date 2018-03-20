@@ -7,7 +7,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type DataFetcher struct {
+type ManualDecoder struct {
 	Err error
 }
 
@@ -15,7 +15,7 @@ var (
 	fetchErr = errors.New("Error fetching field")
 )
 
-func (d *DataFetcher) Float64(base map[string]interface{}, key string, keys ...string) float64 {
+func (d *ManualDecoder) Float64(base map[string]interface{}, key string, keys ...string) float64 {
 	val := getDeep(base, keys...)[key]
 	if valFloat, ok := val.(float64); ok {
 		return valFloat
@@ -24,7 +24,7 @@ func (d *DataFetcher) Float64(base map[string]interface{}, key string, keys ...s
 	return 0.0
 }
 
-func (d *DataFetcher) IntPtr(base map[string]interface{}, key string, keys ...string) *int {
+func (d *ManualDecoder) IntPtr(base map[string]interface{}, key string, keys ...string) *int {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
@@ -43,7 +43,7 @@ func (d *DataFetcher) IntPtr(base map[string]interface{}, key string, keys ...st
 	return nil
 }
 
-func (d *DataFetcher) Int(base map[string]interface{}, key string, keys ...string) int {
+func (d *ManualDecoder) Int(base map[string]interface{}, key string, keys ...string) int {
 	if val := d.IntPtr(base, key, keys...); val != nil {
 		return *val
 	}
@@ -51,7 +51,7 @@ func (d *DataFetcher) Int(base map[string]interface{}, key string, keys ...strin
 	return 0
 }
 
-func (d *DataFetcher) StringPtr(base map[string]interface{}, key string, keys ...string) *string {
+func (d *ManualDecoder) StringPtr(base map[string]interface{}, key string, keys ...string) *string {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
@@ -62,7 +62,7 @@ func (d *DataFetcher) StringPtr(base map[string]interface{}, key string, keys ..
 	return nil
 }
 
-func (d *DataFetcher) String(base map[string]interface{}, key string, keys ...string) string {
+func (d *ManualDecoder) String(base map[string]interface{}, key string, keys ...string) string {
 	if val := d.StringPtr(base, key, keys...); val != nil {
 		return *val
 	}
@@ -70,7 +70,7 @@ func (d *DataFetcher) String(base map[string]interface{}, key string, keys ...st
 	return ""
 }
 
-func (d *DataFetcher) StringArr(base map[string]interface{}, key string, keys ...string) []string {
+func (d *ManualDecoder) StringArr(base map[string]interface{}, key string, keys ...string) []string {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
@@ -91,11 +91,11 @@ func (d *DataFetcher) StringArr(base map[string]interface{}, key string, keys ..
 	return nil
 }
 
-func (d *DataFetcher) Interface(base map[string]interface{}, key string, keys ...string) interface{} {
+func (d *ManualDecoder) Interface(base map[string]interface{}, key string, keys ...string) interface{} {
 	return getDeep(base, keys...)[key]
 }
 
-func (d *DataFetcher) InterfaceArr(base map[string]interface{}, key string, keys ...string) []interface{} {
+func (d *ManualDecoder) InterfaceArr(base map[string]interface{}, key string, keys ...string) []interface{} {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
@@ -106,7 +106,7 @@ func (d *DataFetcher) InterfaceArr(base map[string]interface{}, key string, keys
 	return nil
 }
 
-func (d *DataFetcher) BoolPtr(base map[string]interface{}, key string, keys ...string) *bool {
+func (d *ManualDecoder) BoolPtr(base map[string]interface{}, key string, keys ...string) *bool {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
@@ -117,7 +117,7 @@ func (d *DataFetcher) BoolPtr(base map[string]interface{}, key string, keys ...s
 	return nil
 }
 
-func (d *DataFetcher) MapStr(base map[string]interface{}, key string, keys ...string) map[string]interface{} {
+func (d *ManualDecoder) MapStr(base map[string]interface{}, key string, keys ...string) map[string]interface{} {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
@@ -128,7 +128,7 @@ func (d *DataFetcher) MapStr(base map[string]interface{}, key string, keys ...st
 	return nil
 }
 
-func (d *DataFetcher) TimeRFC3339(base map[string]interface{}, key string, keys ...string) time.Time {
+func (d *ManualDecoder) TimeRFC3339(base map[string]interface{}, key string, keys ...string) time.Time {
 	val := getDeep(base, keys...)[key]
 	if valStr, ok := val.(string); ok {
 		if valTime, err := time.Parse(time.RFC3339, valStr); err == nil {

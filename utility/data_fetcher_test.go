@@ -14,7 +14,7 @@ var (
 	integer, integer2, intFl32, intFl64 = 12.0, 24.0, 32, 64
 	boolTrue, boolFalse                 = true, false
 	timeRFC3339                         = "2017-05-30T18:53:27.154Z"
-	dfBase                              = map[string]interface{}{
+	decoderBase                         = map[string]interface{}{
 		"true":    boolTrue,
 		"str":     str,
 		"fl32":    float32(5.4),
@@ -52,10 +52,10 @@ func TestFloat64(t *testing.T) {
 		{key: "missing", keys: []string{"a", "b"}, out: 0.0, err: fetchErr},
 		{key: "str", keys: []string{"a", "b"}, out: 0.0, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.Float64(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.Float64(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -67,10 +67,10 @@ func TestIntPtr(t *testing.T) {
 		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
 		{key: "str", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.IntPtr(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.IntPtr(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -81,10 +81,10 @@ func TestInt(t *testing.T) {
 		{key: "missing", keys: []string{"a", "b"}, out: 0, err: fetchErr},
 		{key: "str", keys: []string{"a", "b"}, out: 0, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.Int(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.Int(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -96,10 +96,10 @@ func TestStrPtr(t *testing.T) {
 		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
 		{key: "int", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.StringPtr(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.StringPtr(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -110,10 +110,10 @@ func TestStr(t *testing.T) {
 		{key: "missing", keys: []string{"a", "b"}, out: "", err: fetchErr},
 		{key: "int", keys: []string{"a", "b"}, out: "", err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.String(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.String(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -126,12 +126,12 @@ func TestStrArray(t *testing.T) {
 		{key: "str", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 		{key: "intArr", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.StringArr(dfBase, test.key, test.keys...)
-		assert.Equal(t, test.err, df.Err)
+		decoder := ManualDecoder{}
+		out := decoder.StringArr(decoderBase, test.key, test.keys...)
+		assert.Equal(t, test.err, decoder.Err)
 		assert.Equal(t, test.out, out)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -141,12 +141,12 @@ func TestInterface(t *testing.T) {
 		{key: "str", keys: []string{"a", "b"}, out: str2, err: nil},
 		{key: "missing", keys: []string{"a", "b"}, out: nil, err: nil},
 	} {
-		df := DataFetcher{}
-		out := df.Interface(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.Interface(decoderBase, test.key, test.keys...)
 		assert.Equal(t, test.out, out)
-		assert.Equal(t, test.err, df.Err)
+		assert.Equal(t, test.err, decoder.Err)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -157,10 +157,10 @@ func TestInterfaceArray(t *testing.T) {
 		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
 		{key: "int", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.InterfaceArr(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.InterfaceArr(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 func TestBoolPtr(t *testing.T) {
@@ -171,24 +171,24 @@ func TestBoolPtr(t *testing.T) {
 		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
 		{key: "int", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.BoolPtr(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.BoolPtr(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 func TestMapStr(t *testing.T) {
 	var outnil map[string]interface{}
 	for _, test := range []testStr{
-		{key: "a", keys: []string{}, out: dfBase["a"], err: nil},
-		{key: "b", keys: []string{"a"}, out: dfBase["a"].(map[string]interface{})["b"], err: nil},
+		{key: "a", keys: []string{}, out: decoderBase["a"], err: nil},
+		{key: "b", keys: []string{"a"}, out: decoderBase["a"].(map[string]interface{})["b"], err: nil},
 		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
 		{key: "str", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.MapStr(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.MapStr(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }
 
@@ -201,9 +201,9 @@ func TestTimeRFC3339(t *testing.T) {
 		{key: "str", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 		{key: "b", keys: []string{"a"}, out: outnil, err: fetchErr},
 	} {
-		df := DataFetcher{}
-		out := df.TimeRFC3339(dfBase, test.key, test.keys...)
+		decoder := ManualDecoder{}
+		out := decoder.TimeRFC3339(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
-		assert.Equal(t, df.Err, test.err)
+		assert.Equal(t, decoder.Err, test.err)
 	}
 }

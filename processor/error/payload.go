@@ -41,11 +41,11 @@ func decodeError(raw map[string]interface{}) (*payload, error) {
 		return nil, err
 	}
 
-	df := utility.DataFetcher{}
-	errs := df.InterfaceArr(raw, "errors")
+	decoder := utility.ManualDecoder{}
+	errs := decoder.InterfaceArr(raw, "errors")
 	pa.Events = make([]Event, len(errs))
 	var event *Event
-	err = df.Err
+	err = decoder.Err
 	for idx, errData := range errs {
 		event, err = DecodeEvent(errData, err)
 		if event != nil {

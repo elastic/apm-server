@@ -23,15 +23,15 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for user")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	user := User{
-		Id:        df.StringPtr(raw, "id"),
-		Email:     df.StringPtr(raw, "email"),
-		Username:  df.StringPtr(raw, "username"),
-		IP:        df.StringPtr(raw, "ip"),
-		UserAgent: df.StringPtr(raw, "user_agent"),
+		Id:        decoder.StringPtr(raw, "id"),
+		Email:     decoder.StringPtr(raw, "email"),
+		Username:  decoder.StringPtr(raw, "username"),
+		IP:        decoder.StringPtr(raw, "ip"),
+		UserAgent: decoder.StringPtr(raw, "user_agent"),
 	}
-	return &user, df.Err
+	return &user, decoder.Err
 }
 
 func (u *User) Transform() common.MapStr {

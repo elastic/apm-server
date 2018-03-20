@@ -54,21 +54,21 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 	if !ok {
 		return nil, errors.New("Invalid type for stacktrace frame")
 	}
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	frame := StacktraceFrame{
-		AbsPath:      df.StringPtr(raw, "abs_path"),
-		Filename:     df.String(raw, "filename"),
-		Lineno:       df.Int(raw, "lineno"),
-		Colno:        df.IntPtr(raw, "colno"),
-		ContextLine:  df.StringPtr(raw, "context_line"),
-		Module:       df.StringPtr(raw, "module"),
-		Function:     df.StringPtr(raw, "function"),
-		LibraryFrame: df.BoolPtr(raw, "library_frame"),
-		Vars:         df.MapStr(raw, "vars"),
-		PreContext:   df.StringArr(raw, "pre_context"),
-		PostContext:  df.StringArr(raw, "post_context"),
+		AbsPath:      decoder.StringPtr(raw, "abs_path"),
+		Filename:     decoder.String(raw, "filename"),
+		Lineno:       decoder.Int(raw, "lineno"),
+		Colno:        decoder.IntPtr(raw, "colno"),
+		ContextLine:  decoder.StringPtr(raw, "context_line"),
+		Module:       decoder.StringPtr(raw, "module"),
+		Function:     decoder.StringPtr(raw, "function"),
+		LibraryFrame: decoder.BoolPtr(raw, "library_frame"),
+		Vars:         decoder.MapStr(raw, "vars"),
+		PreContext:   decoder.StringArr(raw, "pre_context"),
+		PostContext:  decoder.StringArr(raw, "post_context"),
 	}
-	return &frame, df.Err
+	return &frame, decoder.Err
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {

@@ -64,16 +64,16 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
 	transformations.Inc()
 
-	df := utility.DataFetcher{}
+	decoder := utility.ManualDecoder{}
 	pa := payload{
-		ServiceName:    df.String(raw, "service_name"),
-		ServiceVersion: df.String(raw, "service_version"),
-		Sourcemap:      df.String(raw, "sourcemap"),
-		BundleFilepath: df.String(raw, "bundle_filepath"),
+		ServiceName:    decoder.String(raw, "service_name"),
+		ServiceVersion: decoder.String(raw, "service_version"),
+		Sourcemap:      decoder.String(raw, "sourcemap"),
+		BundleFilepath: decoder.String(raw, "bundle_filepath"),
 	}
 
-	if df.Err != nil {
-		return nil, df.Err
+	if decoder.Err != nil {
+		return nil, decoder.Err
 	}
 
 	return pa.transform(p.config), nil
