@@ -189,7 +189,7 @@ func TestDecodeUserData(t *testing.T) {
 		_, hasIp := user["ip"]
 		assert.Equal(t, enabled, hasIp)
 
-		_, hasUserAgent := user["user_agent"]
+		_, hasUserAgent := user["user-agent"]
 		assert.Equal(t, enabled, hasUserAgent)
 	}
 }

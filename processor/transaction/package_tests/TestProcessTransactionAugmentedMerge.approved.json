@@ -16,7 +16,7 @@
                 "user": {
                     "email": "you@you.you",
                     "ip": "127.0.0.1",
-                    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)"
+                    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5)"
                 }
             },
             "processor": {

@@ -37,7 +37,7 @@ func TestUserTransform(t *testing.T) {
 				"id":         "1234",
 				"email":      "test@mail.co",
 				"username":   "user123",
-				"user_agent": "rum-1.0",
+				"user-agent": "rum-1.0",
 			},
 		},
 	}
@@ -68,7 +68,7 @@ func TestUserDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{
 				"id": id, "email": mail, "username": name,
-				"ip": ip, "user_agent": agent,
+				"ip": ip, "user-agent": agent,
 			},
 			err: nil,
 			u: &User{

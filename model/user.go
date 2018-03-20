@@ -29,7 +29,7 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 		Email:     decoder.StringPtr(raw, "email"),
 		Username:  decoder.StringPtr(raw, "username"),
 		IP:        decoder.StringPtr(raw, "ip"),
-		UserAgent: decoder.StringPtr(raw, "user_agent"),
+		UserAgent: decoder.StringPtr(raw, "user-agent"),
 	}
 	return &user, decoder.Err
 }
@@ -43,6 +43,6 @@ func (u *User) Transform() common.MapStr {
 	utility.Add(user, "email", u.Email)
 	utility.Add(user, "username", u.Username)
 	utility.Add(user, "ip", u.IP)
-	utility.Add(user, "user_agent", u.UserAgent)
+	utility.Add(user, "user-agent", u.UserAgent)
 	return user
 }

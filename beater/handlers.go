@@ -177,7 +177,7 @@ func logHandler(h http.Handler) http.Handler {
 
 		reqLogger.Infow("handled request", "response_code", lw.Code,
 			"method", r.Method, "URL", r.URL, "content_length", r.ContentLength,
-			"remote_address", utility.ExtractIP(r), "user_agent", r.Header.Get("User-Agent"))
+			"remote_address", utility.ExtractIP(r), "user-agent", r.Header.Get("User-Agent"))
 
 		if lw.Code > 399 {
 			responseErrors.Inc()

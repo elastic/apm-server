@@ -158,7 +158,7 @@ class FrontendEnabledIntegrationTest(ClientSideBaseTest):
         hits = rs['hits']['hits']
         for hit in hits:
             assert "ip" in hit["_source"]["context"]["user"], rs['hits']
-            assert "user_agent" in hit["_source"]["context"]["user"], rs['hits']
+            assert "user-agent" in hit["_source"]["context"]["user"], rs['hits']
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_grouping_key_for_error(self):
