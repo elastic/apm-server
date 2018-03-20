@@ -109,7 +109,7 @@ func replaceVersion(pattern, version string) string {
 func defaultConfig(beatVersion string) *Config {
 	return &Config{
 		Host:                "localhost:8200",
-		MaxUnzippedSize:     30 * 1024 * 1024, // 50mb
+		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
 		MaxHeaderSize:       1 * 1024 * 1024,  // 1mb
 		ConcurrentRequests:  5,
 		MaxRequestQueueTime: 2 * time.Second,
