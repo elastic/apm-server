@@ -71,7 +71,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		e.Transaction = &Transaction{Id: *transactionId}
 	}
 
-	var str *m.Stacktrace
+	var stacktr *m.Stacktrace
 	err = df.Err
 	ex := df.MapStr(raw, "exception")
 	exMsg := df.StringPtr(ex, "message")
@@ -85,9 +85,9 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 			Handled:    df.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
-		str, err = m.DecodeStacktrace(ex["stacktrace"], err)
-		if str != nil {
-			e.Exception.Stacktrace = *str
+		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], err)
+		if stacktr != nil {
+			e.Exception.Stacktrace = *stacktr
 		}
 	}
 
@@ -101,9 +101,9 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 			LoggerName:   df.StringPtr(log, "logger_name"),
 			Stacktrace:   m.Stacktrace{},
 		}
-		str, err = m.DecodeStacktrace(log["stacktrace"], err)
-		if str != nil {
-			e.Log.Stacktrace = *str
+		stacktr, err = m.DecodeStacktrace(log["stacktrace"], err)
+		if stacktr != nil {
+			e.Log.Stacktrace = *stacktr
 		}
 	}
 	return &e, err

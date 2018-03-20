@@ -38,10 +38,10 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 		Context:  df.MapStr(raw, "context"),
 		Parent:   df.IntPtr(raw, "parent"),
 	}
-	var str *m.Stacktrace
-	str, err = m.DecodeStacktrace(raw["stacktrace"], df.Err)
-	if str != nil {
-		sp.Stacktrace = *str
+	var stacktr *m.Stacktrace
+	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], df.Err)
+	if stacktr != nil {
+		sp.Stacktrace = *stacktr
 	}
 	return &sp, err
 }
