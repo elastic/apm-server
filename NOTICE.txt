@@ -11,7 +11,7 @@ Third party libraries used by the Apm Server project:
 
 --------------------------------------------------------------------
 Dependency: github.com/davecgh/go-spew
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/davecgh/go-spew/LICENSE:
 --------------------------------------------------------------------
@@ -33,7 +33,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/distribution
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/distribution/LICENSE:
 --------------------------------------------------------------------
@@ -42,7 +42,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/docker
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/docker/LICENSE:
 --------------------------------------------------------------------
@@ -71,7 +71,7 @@ See also https://www.apache.org/dev/crypto.html and/or seek legal counsel.
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/go-connections
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/go-connections/LICENSE:
 --------------------------------------------------------------------
@@ -80,7 +80,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/go-units
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/go-units/LICENSE:
 --------------------------------------------------------------------
@@ -89,7 +89,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/libtrust
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/libtrust/LICENSE:
 --------------------------------------------------------------------
@@ -98,7 +98,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/eapache/go-resiliency
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/eapache/go-resiliency/LICENSE:
 --------------------------------------------------------------------
@@ -127,7 +127,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/eapache/go-xerial-snappy
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/eapache/go-xerial-snappy/LICENSE:
 --------------------------------------------------------------------
@@ -155,7 +155,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/eapache/queue
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/eapache/queue/LICENSE:
 --------------------------------------------------------------------
@@ -183,7 +183,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -192,7 +192,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-lumber
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-lumber/LICENSE:
 --------------------------------------------------------------------
@@ -200,8 +200,17 @@ Apache License 2.0
 
 
 --------------------------------------------------------------------
+Dependency: github.com/elastic/go-structform
+Revision: 0a66add879601f69f55663f4c913c72988218982
+License type (autodetected): Apache-2.0
+./vendor/github.com/elastic/go-structform/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
 Dependency: github.com/elastic/go-ucfg
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-ucfg/LICENSE:
 --------------------------------------------------------------------
@@ -210,7 +219,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------
@@ -228,7 +237,7 @@ subcomponents is subject to the terms and conditions of the
 subcomponent's license, as noted in the LICENSE file.
 --------------------------------------------------------------------
 Dependency: github.com/ericchiang/k8s
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/ericchiang/k8s/LICENSE:
 --------------------------------------------------------------------
@@ -291,7 +300,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/garyburd/redigo
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/garyburd/redigo/LICENSE:
 --------------------------------------------------------------------
@@ -300,7 +309,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/ghodss/yaml
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/ghodss/yaml/LICENSE:
 --------------------------------------------------------------------
@@ -417,7 +426,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/golang/protobuf
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/golang/protobuf/LICENSE:
 --------------------------------------------------------------------
@@ -455,7 +464,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/golang/snappy
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/golang/snappy/LICENSE:
 --------------------------------------------------------------------
@@ -899,7 +908,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/joeshaw/multierror
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/joeshaw/multierror/LICENSE:
 --------------------------------------------------------------------
@@ -961,7 +970,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/klauspost/compress
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/klauspost/compress/LICENSE:
 --------------------------------------------------------------------
@@ -995,7 +1004,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/klauspost/cpuid
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/klauspost/cpuid/LICENSE:
 --------------------------------------------------------------------
@@ -1024,7 +1033,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/klauspost/crc32
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/klauspost/crc32/LICENSE:
 --------------------------------------------------------------------
@@ -1103,7 +1112,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------
 Dependency: github.com/Microsoft/go-winio
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/Microsoft/go-winio/LICENSE:
 --------------------------------------------------------------------
@@ -1132,7 +1141,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/mitchellh/hashstructure
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/mitchellh/hashstructure/LICENSE:
 --------------------------------------------------------------------
@@ -1188,7 +1197,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/go-digest
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): CC-BY-SA-4.0
 ./vendor/github.com/opencontainers/go-digest/LICENSE.docs:
 --------------------------------------------------------------------
@@ -1620,7 +1629,7 @@ Creative Commons may be contacted at creativecommons.org.
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/go-digest
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): CC-BY-SA-4.0
 ./vendor/github.com/opencontainers/go-digest/LICENSE.docs:
 --------------------------------------------------------------------
@@ -2052,7 +2061,7 @@ Creative Commons may be contacted at creativecommons.org.
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/image-spec
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): Apache-2.0
 ./vendor/github.com/opencontainers/image-spec/LICENSE:
 --------------------------------------------------------------------
@@ -2087,7 +2096,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/pierrec/lz4
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/pierrec/lz4/LICENSE:
 --------------------------------------------------------------------
@@ -2122,7 +2131,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/pierrec/xxHash
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/pierrec/xxHash/LICENSE:
 --------------------------------------------------------------------
@@ -2157,7 +2166,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/pkg/errors
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-2-Clause
 ./vendor/github.com/pkg/errors/LICENSE:
 --------------------------------------------------------------------
@@ -2221,8 +2230,25 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
+Dependency: github.com/prometheus/procfs
+Revision: 54d17b57dd7d4a3aa092476596b3f8a933bde349
+License type (autodetected): Apache-2.0
+./vendor/github.com/prometheus/procfs/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+-------NOTICE-----
+procfs provides functions to retrieve system, kernel and process
+metrics from the pseudo-filesystem proc.
+
+Copyright 2014-2015 The Prometheus Authors
+
+This product includes software developed at
+SoundCloud Ltd. (http://soundcloud.com/).
+
+--------------------------------------------------------------------
 Dependency: github.com/rcrowley/go-metrics
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-2-Clause
 ./vendor/github.com/rcrowley/go-metrics/LICENSE:
 --------------------------------------------------------------------
@@ -2319,7 +2345,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------
 Dependency: github.com/satori/go.uuid
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/satori/go.uuid/LICENSE:
 --------------------------------------------------------------------
@@ -2373,7 +2399,7 @@ DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Shopify/sarama
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/Shopify/sarama/LICENSE:
 --------------------------------------------------------------------
@@ -2400,7 +2426,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Sirupsen/logrus
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/github.com/Sirupsen/logrus/LICENSE:
 --------------------------------------------------------------------
@@ -2526,15 +2552,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
 OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
---------------------------------------------------------------------
-Dependency: github.com/urso/go-structform
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
-License type (autodetected): Apache-2.0
-./vendor/github.com/urso/go-structform/LICENSE:
---------------------------------------------------------------------
-Apache License 2.0
-
 
 --------------------------------------------------------------------
 Dependency: github.com/yudai/gojsondiff
@@ -2881,7 +2898,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/net/LICENSE:
 --------------------------------------------------------------------
@@ -2915,9 +2932,43 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/sys/LICENSE:
+--------------------------------------------------------------------
+Copyright (c) 2009 The Go Authors. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+   * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+--------------------------------------------------------------------
+Dependency: golang.org/x/text
+Revision: 8c34f848e18c4bd34d02db7f19a0ed1a0a8f5852
+License type (autodetected): BSD-3-Clause
+./vendor/golang.org/x/text/LICENSE:
 --------------------------------------------------------------------
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -2983,7 +3034,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: gopkg.in/yaml.v2
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/gopkg.in/yaml.v2/LICENSE.libyaml:
 --------------------------------------------------------------------
@@ -3021,7 +3072,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: gopkg.in/yaml.v2
-Revision: cefe024e4f0198e8d6c656937f3282d7fb7631b6
+Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
 License type (autodetected): MIT
 ./vendor/gopkg.in/yaml.v2/LICENSE.libyaml:
 --------------------------------------------------------------------
@@ -3056,3 +3107,68 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+--------------------------------------------------------------------
+Dependency: howett.net/plist
+Revision: 84d08b7bddb35583bb3153b811c6cc52bb306f52
+License type (autodetected): BSD-2-Clause
+./vendor/howett.net/plist/LICENSE:
+--------------------------------------------------------------------
+Copyright (c) 2013, Dustin L. Howett. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met: 
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer. 
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The views and conclusions contained in the software and documentation are those
+of the authors and should not be interpreted as representing official policies, 
+either expressed or implied, of the FreeBSD Project.
+
+--------------------------------------------------------------------------------
+Parts of this package were made available under the license covering
+the Go language and all attended core libraries. That license follows.
+--------------------------------------------------------------------------------
+
+Copyright (c) 2012 The Go Authors. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+   * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
