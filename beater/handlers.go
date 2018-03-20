@@ -127,8 +127,8 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 		ExcludeFromGrouping: regexp.MustCompile(config.Frontend.ExcludeFromGrouping),
 	}
 	return logHandler(
-		concurrencyLimitHandler(config,
-			killSwitchHandler(config.Frontend.isEnabled(),
+		killSwitchHandler(config.Frontend.isEnabled(),
+			concurrencyLimitHandler(config,
 				ipRateLimitHandler(config.Frontend.RateLimit,
 					corsHandler(config.Frontend.AllowOrigins,
 						processRequestHandler(pf, &prConfig, report,
