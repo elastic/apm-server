@@ -3,6 +3,7 @@ package error
 import (
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -18,9 +19,40 @@ type payload struct {
 	Service m.Service
 	System  *m.System
 	Process *m.Process
-	User    common.MapStr
+	User    *m.User
 
-	Events []Event `mapstructure:"errors"`
+	Events []Event
+}
+
+func decodeError(raw map[string]interface{}) (*payload, error) {
+	if raw == nil {
+		return nil, nil
+	}
+	pa := &payload{}
+	var err error
+	service, err := m.DecodeService(raw["service"], err)
+	if service != nil {
+		pa.Service = *service
+	}
+	pa.System, err = m.DecodeSystem(raw["system"], err)
+	pa.Process, err = m.DecodeProcess(raw["process"], err)
+	pa.User, err = m.DecodeUser(raw["user"], err)
+	if err != nil {
+		return nil, err
+	}
+
+	decoder := utility.ManualDecoder{}
+	errs := decoder.InterfaceArr(raw, "errors")
+	pa.Events = make([]Event, len(errs))
+	var event *Event
+	err = decoder.Err
+	for idx, errData := range errs {
+		event, err = DecodeEvent(errData, err)
+		if event != nil {
+			pa.Events[idx] = *event
+		}
+	}
+	return pa, err
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {

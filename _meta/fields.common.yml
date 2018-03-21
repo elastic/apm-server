@@ -52,7 +52,7 @@
             description: >
               IP of the user where the event is recorded, typically a web browser.
 
-          - name: user_agent
+          - name: user-agent
             type: text
             description: >
               Software agent acting in behalf of a user, eg. a web browser / OS combination.

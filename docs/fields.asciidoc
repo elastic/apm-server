@@ -101,7 +101,7 @@ IP of the user where the event is recorded, typically a web browser.
 
 
 [float]
-=== `context.user.user_agent`
+=== `context.user.user-agent`
 
 type: text
 

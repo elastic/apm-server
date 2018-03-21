@@ -19,7 +19,7 @@ func (p *processor) Validate(_ map[string]interface{}) error {
 	return nil
 }
 
-func (p *processor) Transform(_ interface{}) ([]beat.Event, error) {
+func (p *processor) Transform(_ map[string]interface{}) ([]beat.Event, error) {
 	return nil, nil
 }
 

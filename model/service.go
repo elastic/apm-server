@@ -1,6 +1,8 @@
 package model
 
 import (
+	"errors"
+
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -30,6 +32,39 @@ type Framework struct {
 type Agent struct {
 	Name    string
 	Version string
+}
+
+func DecodeService(input interface{}, err error) (*Service, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Invalid type for service")
+	}
+	decoder := utility.ManualDecoder{}
+	service := Service{
+		Name:        decoder.String(raw, "name"),
+		Version:     decoder.StringPtr(raw, "version"),
+		Environment: decoder.StringPtr(raw, "environment"),
+		Agent: Agent{
+			Name:    decoder.String(raw, "name", "agent"),
+			Version: decoder.String(raw, "version", "agent"),
+		},
+		Framework: Framework{
+			Name:    decoder.StringPtr(raw, "name", "framework"),
+			Version: decoder.StringPtr(raw, "version", "framework"),
+		},
+		Language: Language{
+			Name:    decoder.StringPtr(raw, "name", "language"),
+			Version: decoder.StringPtr(raw, "version", "language"),
+		},
+		Runtime: Runtime{
+			Name:    decoder.StringPtr(raw, "name", "runtime"),
+			Version: decoder.StringPtr(raw, "version", "runtime"),
+		},
+	}
+	return &service, decoder.Err
 }
 
 func (s *Service) MinimalTransform() common.MapStr {

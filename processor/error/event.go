@@ -3,6 +3,7 @@ package error
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"hash"
 	"io"
@@ -16,35 +17,96 @@ import (
 )
 
 type Event struct {
-	Id          *string
-	Culprit     *string
-	Context     common.MapStr
+	Id        *string
+	Culprit   *string
+	Context   common.MapStr
+	Timestamp time.Time
+
 	Exception   *Exception
 	Log         *Log
-	Timestamp   time.Time
-	Transaction *struct {
-		Id string
-	}
+	Transaction *Transaction
 
 	data common.MapStr
 }
 
+type Transaction struct {
+	Id string
+}
+
 type Exception struct {
-	Code       interface{}
 	Message    string
 	Module     *string
+	Code       interface{}
 	Attributes interface{}
-	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
+	Stacktrace m.Stacktrace
 	Type       *string
 	Handled    *bool
 }
 
 type Log struct {
-	Level        *string
 	Message      string
-	ParamMessage *string      `mapstructure:"param_message"`
-	LoggerName   *string      `mapstructure:"logger_name"`
-	Stacktrace   m.Stacktrace `mapstructure:"stacktrace"`
+	Level        *string
+	ParamMessage *string
+	LoggerName   *string
+	Stacktrace   m.Stacktrace
+}
+
+func DecodeEvent(input interface{}, err error) (*Event, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Invalid type for error event")
+	}
+	decoder := utility.ManualDecoder{}
+	e := Event{
+		Id:        decoder.StringPtr(raw, "id"),
+		Culprit:   decoder.StringPtr(raw, "culprit"),
+		Context:   decoder.MapStr(raw, "context"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
+	}
+	transactionId := decoder.StringPtr(raw, "id", "transaction")
+	if transactionId != nil {
+		e.Transaction = &Transaction{Id: *transactionId}
+	}
+
+	var stacktr *m.Stacktrace
+	err = decoder.Err
+	ex := decoder.MapStr(raw, "exception")
+	exMsg := decoder.StringPtr(ex, "message")
+	if exMsg != nil {
+		e.Exception = &Exception{
+			Message:    *exMsg,
+			Code:       decoder.Interface(ex, "code"),
+			Module:     decoder.StringPtr(ex, "module"),
+			Attributes: decoder.Interface(ex, "attributes"),
+			Type:       decoder.StringPtr(ex, "type"),
+			Handled:    decoder.BoolPtr(ex, "handled"),
+			Stacktrace: m.Stacktrace{},
+		}
+		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], err)
+		if stacktr != nil {
+			e.Exception.Stacktrace = *stacktr
+		}
+	}
+
+	log := decoder.MapStr(raw, "log")
+	logMsg := decoder.StringPtr(log, "message")
+	if logMsg != nil {
+		e.Log = &Log{
+			Message:      *logMsg,
+			ParamMessage: decoder.StringPtr(log, "param_message"),
+			Level:        decoder.StringPtr(log, "level"),
+			LoggerName:   decoder.StringPtr(log, "logger_name"),
+			Stacktrace:   m.Stacktrace{},
+		}
+		stacktr, err = m.DecodeStacktrace(log["stacktrace"], err)
+		if stacktr != nil {
+			e.Log.Stacktrace = *stacktr
+		}
+	}
+	return &e, err
 }
 
 func (e *Event) Transform(config *pr.Config, service m.Service) common.MapStr {
@@ -192,7 +254,6 @@ func (e *Event) calcGroupingKey() string {
 		k.addEither(fr.Module, fr.Filename)
 		k.addEither(fr.Function, string(fr.Lineno))
 	}
-
 	if k.empty {
 		if e.Exception != nil {
 			k.add(&e.Exception.Message)

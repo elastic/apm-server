@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -11,7 +12,70 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-//TODO: use test enhancer as argument and test error case
+func TestTransactionEventDecode(t *testing.T) {
+	id, trType, name, result := "123", "type", "foo()", "555"
+	duration := 1.67
+	context := map[string]interface{}{"a": "b"}
+	marks := map[string]interface{}{"k": "b"}
+	dropped := 12
+	spanCount := map[string]interface{}{
+		"dropped": map[string]interface{}{
+			"total": 12.0,
+		},
+	}
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	sampled := true
+
+	for _, test := range []struct {
+		input       interface{}
+		err, inpErr error
+		e           *Event
+	}{
+		{input: nil, err: nil, e: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		{input: "", err: errors.New("Invalid type for transaction event"), e: nil},
+		{
+			input: map[string]interface{}{"timestamp": 123},
+			err:   errors.New("Error fetching field"),
+			e: &Event{
+				Id: "", Type: "", Name: nil, Result: nil,
+				Duration: 0.0, Timestamp: time.Time{},
+				Context: nil, Marks: nil, Sampled: nil,
+				SpanCount: SpanCount{Dropped: Dropped{Total: nil}},
+				Spans:     []*Span{},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": name, "result": result,
+				"duration": duration, "timestamp": timestamp,
+				"context": context, "marks": marks, "sampled": sampled,
+				"span_count": spanCount,
+				"spans": []interface{}{
+					map[string]interface{}{
+						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+					},
+				},
+			},
+			err: nil,
+			e: &Event{
+				Id: id, Type: trType, Name: &name, Result: &result,
+				Duration: duration, Timestamp: timestampParsed,
+				Context: context, Marks: marks, Sampled: &sampled,
+				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
+				Spans: []*Span{
+					&Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3},
+				},
+			},
+		},
+	} {
+		event, err := DecodeEvent(test.input, test.inpErr)
+		assert.Equal(t, test.e, event)
+		assert.Equal(t, test.err, err)
+	}
+}
+
 func TestEventTransform(t *testing.T) {
 
 	id := "123"

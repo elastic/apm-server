@@ -22,7 +22,7 @@ func TestFields(t *testing.T) {
 		"context.db.user",
 		"context.db.type",
 		"context.db",
-		"context.user.user_agent",
+		"context.user.user-agent",
 		"context.user.ip",
 		"context.system.ip",
 		"listening",
