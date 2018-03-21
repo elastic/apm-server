@@ -7,20 +7,22 @@ apm-server:
   #host: "localhost:8200"
 
   # Maximum permitted size in bytes of an unzipped request accepted by the server to be processed.
-  #max_unzipped_size: 52428800
+  #max_unzipped_size: 31457280
   # Maximum permitted size in bytes of a request's header accepted by the server to be processed.
   #max_header_size: 1048576
 
-  # Maximum permitted duration in seconds for reading an entire request.
-  #read_timeout: 2s
-  # Maximum permitted duration in seconds for writing a response.
-  #write_timeout: 2s
+  # Maximum duration request will be queued before being read.
+  #max_request_queue_time: 2s
+  # Maximum permitted duration for reading an entire request.
+  #read_timeout: 30s
+  # Maximum permitted duration for writing a response.
+  #write_timeout: 30s
 
   # Maximum duration in seconds before releasing resources when shutting down the server.
   #shutdown_timeout: 5s
 
   # Maximum number of requests permitted to be sent to the server concurrently.
-  #concurrent_requests: 40
+  #concurrent_requests: 5
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.
