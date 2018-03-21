@@ -17,19 +17,22 @@ var (
 	processorSpanEntry  = common.MapStr{"name": processorName, "event": spanDocType}
 )
 
-type payload struct {
+type Payload struct {
 	Service m.Service
 	System  *m.System
 	Process *m.Process
 	User    *m.User
-	Events  []Event
+	Events  []*Event
+
+	config config.Config
 }
 
-func decodeTransaction(raw map[string]interface{}) (*payload, error) {
+func DecodePayload(config config.Config, raw map[string]interface{}) (*Payload, error) {
 	if raw == nil {
 		return nil, nil
 	}
-	pa := &payload{}
+	pa := &Payload{config: config}
+
 	var err error
 	service, err := m.DecodeService(raw["service"], err)
 	if service != nil {
@@ -45,18 +48,14 @@ func decodeTransaction(raw map[string]interface{}) (*payload, error) {
 	decoder := utility.ManualDecoder{}
 	txs := decoder.InterfaceArr(raw, "transactions")
 	err = decoder.Err
-	pa.Events = make([]Event, len(txs))
-	var event *Event
+	pa.Events = make([]*Event, len(txs))
 	for idx, tx := range txs {
-		event, err = DecodeEvent(tx, err)
-		if event != nil {
-			pa.Events[idx] = *event
-		}
+		pa.Events[idx], err = DecodeEvent(tx, err)
 	}
 	return pa, err
 }
 
-func (pa *payload) transform(config config.Config) []beat.Event {
+func (pa *Payload) Transform() []beat.Event {
 	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 	transactionCounter.Add(int64(len(pa.Events)))
 
@@ -64,7 +63,8 @@ func (pa *payload) transform(config config.Config) []beat.Event {
 	spanContext := NewSpanContext(&pa.Service)
 
 	var events []beat.Event
-	for _, event := range pa.Events {
+	for idx := 0; idx < len(pa.Events); idx++ {
+		event := pa.Events[idx]
 		ev := beat.Event{
 			Fields: common.MapStr{
 				"processor":        processorTransEntry,
@@ -77,18 +77,21 @@ func (pa *payload) transform(config config.Config) []beat.Event {
 
 		trId := common.MapStr{"id": event.Id}
 		spanCounter.Add(int64(len(event.Spans)))
-		for _, sp := range event.Spans {
+		for spIdx := 0; spIdx < len(event.Spans); spIdx++ {
+			sp := event.Spans[spIdx]
 			ev := beat.Event{
 				Fields: common.MapStr{
 					"processor":   processorSpanEntry,
-					spanDocType:   sp.Transform(config, pa.Service),
+					spanDocType:   sp.Transform(pa.config, pa.Service),
 					"transaction": trId,
 					"context":     spanContext.Transform(sp.Context),
 				},
 				Timestamp: event.Timestamp,
 			}
 			events = append(events, ev)
+			event.Spans[spIdx] = nil
 		}
+		pa.Events[idx] = nil
 	}
 
 	return events

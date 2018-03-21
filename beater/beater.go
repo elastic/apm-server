@@ -91,7 +91,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	go notifyListening(bt.config, pub.Send)
+	go notifyListening(bt.config, pub.client.Publish)
 
 	bt.mutex.Lock()
 	if bt.stopped {

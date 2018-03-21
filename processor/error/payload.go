@@ -15,19 +15,22 @@ var (
 	processorEntry = common.MapStr{"name": processorName, "event": errorDocType}
 )
 
-type payload struct {
+type Payload struct {
 	Service m.Service
 	System  *m.System
 	Process *m.Process
 	User    *m.User
-	Events  []Event
+	Events  []*Event
+
+	config config.Config
 }
 
-func decodeError(raw map[string]interface{}) (*payload, error) {
+func DecodePayload(config config.Config, raw map[string]interface{}) (*Payload, error) {
 	if raw == nil {
 		return nil, nil
 	}
-	pa := &payload{}
+	pa := Payload{config: config}
+
 	var err error
 	service, err := m.DecodeService(raw["service"], err)
 	if service != nil {
@@ -42,31 +45,28 @@ func decodeError(raw map[string]interface{}) (*payload, error) {
 
 	decoder := utility.ManualDecoder{}
 	errs := decoder.InterfaceArr(raw, "errors")
-	pa.Events = make([]Event, len(errs))
-	var event *Event
+	pa.Events = make([]*Event, len(errs))
 	err = decoder.Err
 	for idx, errData := range errs {
-		event, err = DecodeEvent(errData, err)
-		if event != nil {
-			pa.Events[idx] = *event
-		}
+		pa.Events[idx], err = DecodeEvent(errData, err)
 	}
-	return pa, err
+	return &pa, err
 }
 
-func (pa *payload) transform(config config.Config) []beat.Event {
+func (pa *Payload) Transform() []beat.Event {
 	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 	errorCounter.Add(int64(len(pa.Events)))
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
 
 	var events []beat.Event
-	for _, event := range pa.Events {
+	for idx := 0; idx < len(pa.Events); idx++ {
+		event := pa.Events[idx]
 		context := context.Transform(event.Context)
 		ev := beat.Event{
 			Fields: common.MapStr{
 				"processor":  processorEntry,
-				errorDocType: event.Transform(config, pa.Service),
+				errorDocType: event.Transform(pa.config, pa.Service),
 				"context":    context,
 			},
 			Timestamp: event.Timestamp,
@@ -74,8 +74,8 @@ func (pa *payload) transform(config config.Config) []beat.Event {
 		if event.Transaction != nil {
 			ev.Fields["transaction"] = common.MapStr{"id": event.Transaction.Id}
 		}
-
 		events = append(events, ev)
+		pa.Events[idx] = nil
 	}
 	return events
 }

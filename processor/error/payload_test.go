@@ -22,7 +22,7 @@ func TestPayloadDecode(t *testing.T) {
 	for _, test := range []struct {
 		input map[string]interface{}
 		err   error
-		p     *payload
+		p     *Payload
 	}{
 		{input: nil, err: nil, p: nil},
 		{
@@ -44,9 +44,9 @@ func TestPayloadDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{},
 			err:   nil,
-			p: &payload{
+			p: &Payload{
 				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
+				Process: nil, User: nil, Events: []*Event{},
 			},
 		},
 		{
@@ -69,20 +69,20 @@ func TestPayloadDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			p: &payload{
+			p: &Payload{
 				Service: m.Service{
 					Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
 				System:  &m.System{IP: &ip},
 				Process: &m.Process{Pid: pid},
 				User:    &m.User{IP: &ip},
-				Events: []Event{
-					Event{Timestamp: timestampParsed,
+				Events: []*Event{
+					&Event{Timestamp: timestampParsed,
 						Exception: &Exception{Message: "Exception Msg", Stacktrace: m.Stacktrace{}}},
 				},
 			},
 		},
 	} {
-		payload, err := decodeError(test.input)
+		payload, err := DecodePayload(config.Config{}, test.input)
 		assert.Equal(t, test.p, payload)
 		assert.Equal(t, test.err, err)
 	}
@@ -93,17 +93,17 @@ func TestPayloadTransform(t *testing.T) {
 	timestamp := time.Now()
 
 	tests := []struct {
-		Payload payload
+		Payload Payload
 		Output  []common.MapStr
 		Msg     string
 	}{
 		{
-			Payload: payload{Service: svc, Events: []Event{}},
+			Payload: Payload{Service: svc, Events: []*Event{}},
 			Output:  nil,
 			Msg:     "Empty Event Array",
 		},
 		{
-			Payload: payload{Service: svc, Events: []Event{{Timestamp: timestamp}}},
+			Payload: Payload{Service: svc, Events: []*Event{{Timestamp: timestamp}}},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
@@ -121,18 +121,20 @@ func TestPayloadTransform(t *testing.T) {
 			Msg: "Payload with valid Event.",
 		},
 		{
-			Payload: payload{
+			Payload: Payload{
 				Service: svc,
-				Events: []Event{{
-					Timestamp: timestamp,
-					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
-					Log:       baseLog(),
-					Exception: &Exception{
-						Message:    "exception message",
-						Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
+				Events: []*Event{
+					&Event{
+						Timestamp: timestamp,
+						Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
+						Log:       baseLog(),
+						Exception: &Exception{
+							Message:    "exception message",
+							Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
+						},
+						Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 					},
-					Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
-				}},
+				},
 			},
 			Output: []common.MapStr{
 				{
@@ -168,7 +170,8 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}})
+		test.Payload.config = config.Config{SmapMapper: &sourcemap.SmapMapper{}}
+		outputEvents := test.Payload.Transform()
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))

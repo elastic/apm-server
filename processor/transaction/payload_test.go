@@ -21,7 +21,7 @@ func TestPayloadDecode(t *testing.T) {
 	for _, test := range []struct {
 		input map[string]interface{}
 		err   error
-		p     *payload
+		p     *Payload
 	}{
 		{input: nil, err: nil, p: nil},
 		{
@@ -43,9 +43,9 @@ func TestPayloadDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{},
 			err:   nil,
-			p: &payload{
+			p: &Payload{
 				Service: m.Service{}, System: nil,
-				Process: nil, User: nil, Events: []Event{},
+				Process: nil, User: nil, Events: []*Event{},
 			},
 		},
 		{
@@ -66,14 +66,14 @@ func TestPayloadDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			p: &payload{
+			p: &Payload{
 				Service: m.Service{
 					Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
 				System:  &m.System{IP: &ip},
 				Process: &m.Process{Pid: pid},
 				User:    &m.User{IP: &ip},
-				Events: []Event{
-					Event{
+				Events: []*Event{
+					&Event{
 						Id:        "45",
 						Type:      "transaction",
 						Timestamp: timestampParsed,
@@ -84,8 +84,8 @@ func TestPayloadDecode(t *testing.T) {
 			},
 		},
 	} {
-		payload, err := decodeTransaction(test.input)
-		assert.Equal(t, test.p, payload)
+		Payload, err := DecodePayload(config.Config{}, test.input)
+		assert.Equal(t, test.p, Payload)
 		assert.Equal(t, test.err, err)
 	}
 }
@@ -194,37 +194,37 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	tests := []struct {
-		Payload payload
+		Payload Payload
 		Output  []common.MapStr
 		Msg     string
 	}{
 		{
-			Payload: payload{Service: service, Events: []Event{}},
+			Payload: Payload{Service: service, Events: []*Event{}},
 			Output:  nil,
 			Msg:     "Payload with empty Event Array",
 		},
 		{
-			Payload: payload{
+			Payload: Payload{
 				Service: service,
-				Events:  []Event{txValid, txValidWithSpan},
+				Events:  []*Event{&txValid, &txValidWithSpan},
 			},
 			Output: []common.MapStr{txValidEs, txValidEs, spanEs},
 			Msg:    "Payload with multiple Events",
 		},
 		{
-			Payload: payload{
+			Payload: Payload{
 				Service: service,
 				System:  system,
-				Events:  []Event{txValid},
+				Events:  []*Event{&txValid},
 			},
 			Output: []common.MapStr{txValidWithSystem},
 			Msg:    "Payload with System and Event",
 		},
 		{
-			Payload: payload{
+			Payload: Payload{
 				Service: service,
 				System:  system,
-				Events:  []Event{txWithContext},
+				Events:  []*Event{&txWithContext},
 			},
 			Output: []common.MapStr{txWithContextEs},
 			Msg:    "Payload with Service, System and Event with context",
@@ -232,7 +232,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform(config.Config{})
+		outputEvents := test.Payload.Transform()
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp)

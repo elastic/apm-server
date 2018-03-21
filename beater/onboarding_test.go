@@ -11,22 +11,20 @@ import (
 
 func TestNotifyUpServerDown(t *testing.T) {
 	config := defaultConfig("7.0.0")
-	var saved []beat.Event
-	var reporter = func(events []beat.Event) error {
-		saved = append(saved, events...)
-		return nil
-	}
+	var saved beat.Event
+	var publisher = func(e beat.Event) { saved = e }
 
 	lis, err := net.Listen("tcp", "localhost:0")
 	assert.NoError(t, err)
 	defer lis.Close()
 	config.Host = lis.Addr().String()
 
-	server := newServer(config, reporter)
+	server := newServer(config, nopReporter)
 	go run(server, lis, config)
 
-	notifyListening(config, reporter)
+	notifyListening(config, publisher)
 
-	listening := saved[0].Fields["listening"].(string)
+	listening := saved.Fields["listening"].(string)
 	assert.Equal(t, config.Host, listening)
+
 }

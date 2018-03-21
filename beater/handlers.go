@@ -43,7 +43,7 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorFactory func(conf.Config) processor.Processor
+type ProcessorFactory func() processor.Processor
 
 type ProcessorHandler func(ProcessorFactory, *Config, reporter) http.Handler
 
@@ -302,7 +302,7 @@ func processRequestHandler(pf ProcessorFactory, config conf.Config, report repor
 }
 
 func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) (int, error) {
-	processor := pf(config)
+	processor := pf()
 
 	if r.Method != "POST" {
 		return http.StatusMethodNotAllowed, errPOSTRequestOnly
@@ -317,12 +317,12 @@ func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, re
 		return http.StatusBadRequest, err
 	}
 
-	list, err := processor.Transform(data)
+	payload, err := processor.Decode(config, data)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	if err = report(list); err != nil {
+	if err = report(payload); err != nil {
 		return http.StatusServiceUnavailable, err
 	}
 

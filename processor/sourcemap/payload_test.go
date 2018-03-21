@@ -19,14 +19,14 @@ func getStr(data common.MapStr, key string) string {
 }
 
 func TestPayloadTransform(t *testing.T) {
-	p := payload{
+	p := Payload{
 		ServiceName:    "myService",
 		ServiceVersion: "1.0",
 		BundleFilepath: "/my/path",
 		Sourcemap:      "mysmap",
 	}
 
-	events := p.transform(config.Config{})
+	events := p.Transform()
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -63,8 +63,16 @@ func TestInvalidateCache(t *testing.T) {
 	mapping, err := smapMapper.Apply(smapId, 0, 0)
 	assert.NotNil(t, mapping)
 
-	_, err = NewProcessor(config.Config{SmapMapper: &smapMapper}).Transform(data)
+	conf := config.Config{SmapMapper: &smapMapper}
+	p := NewProcessor()
+	payload, err := p.Decode(conf, data)
 	assert.NoError(t, err)
+	payload.Transform()
+
+	p = NewProcessor()
+	payload, err = p.Decode(conf, data)
+	assert.NoError(t, err)
+	payload.Transform()
 
 	mapping, err = smapMapper.Apply(smapId, 0, 0)
 	assert.Nil(t, mapping)

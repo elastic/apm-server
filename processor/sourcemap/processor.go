@@ -11,7 +11,6 @@ import (
 	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -29,8 +28,8 @@ var (
 
 var schema = pr.CreateSchema(sourcemapSchema, processorName)
 
-func NewProcessor(config config.Config) pr.Processor {
-	return &processor{schema: schema, config: config}
+func NewProcessor() pr.Processor {
+	return &processor{schema: schema}
 }
 
 func (p *processor) Name() string {
@@ -39,7 +38,6 @@ func (p *processor) Name() string {
 
 type processor struct {
 	schema *jsonschema.Schema
-	config config.Config
 }
 
 func (p *processor) Validate(raw map[string]interface{}) error {
@@ -62,20 +60,20 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
-
+func (p *processor) Decode(config config.Config, raw map[string]interface{}) (pr.Payload, error) {
 	transformations.Inc()
 
 	decoder := utility.ManualDecoder{}
-	pa := payload{
+	pa := Payload{
 		ServiceName:    decoder.String(raw, "service_name"),
 		ServiceVersion: decoder.String(raw, "service_version"),
 		Sourcemap:      decoder.String(raw, "sourcemap"),
 		BundleFilepath: decoder.String(raw, "bundle_filepath"),
-	}
 
+		config: config,
+	}
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
-	return pa.transform(p.config), nil
+	return &pa, nil
 }

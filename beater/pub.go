@@ -1,10 +1,12 @@
 package beater
 
 import (
-	"errors"
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
@@ -16,16 +18,16 @@ import (
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type publisher struct {
-	events  chan []beat.Event
-	client  beat.Client
-	m       sync.RWMutex
-	stopped bool
+	payloads chan pr.Payload
+	client   beat.Client
+	m        sync.RWMutex
+	stopped  bool
 }
 
 var (
 	errFull              = errors.New("Queue is full")
 	errInvalidBufferSize = errors.New("Request buffer must be > 0")
-	errChanneClosed      = errors.New("Can't send batch, publisher is being stopped")
+	errChannelClosed     = errors.New("Can't send batch, publisher is being stopped")
 )
 
 // newPublisher creates a new publisher instance. A new go-routine is started
@@ -52,7 +54,7 @@ func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration) 
 
 		// Set channel size to N - 1. One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
-		events: make(chan []beat.Event, N-1),
+		payloads: make(chan pr.Payload, N-1),
 	}
 
 	go p.run()
@@ -66,22 +68,22 @@ func (p *publisher) Stop() {
 	p.m.Lock()
 	p.stopped = true
 	p.m.Unlock()
-	close(p.events)
+	close(p.payloads)
 	p.client.Close()
 }
 
 // Send tries to forward events to the publishers worker. If the queue is full,
 // an error is returned.
 // Calling send after Stop will return an error.
-func (p *publisher) Send(batch []beat.Event) error {
+func (p *publisher) Send(payload pr.Payload) error {
 	p.m.RLock()
 	defer p.m.RUnlock()
 	if p.stopped {
-		return errChanneClosed
+		return errChannelClosed
 	}
 
 	select {
-	case p.events <- batch:
+	case p.payloads <- payload:
 		return nil
 	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
 		return errFull
@@ -89,7 +91,7 @@ func (p *publisher) Send(batch []beat.Event) error {
 }
 
 func (p *publisher) run() {
-	for batch := range p.events {
-		p.client.PublishAll(batch)
+	for payload := range p.payloads {
+		p.client.PublishAll(payload.Transform())
 	}
 }

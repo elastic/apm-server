@@ -34,7 +34,7 @@ func generate() error {
 			continue
 		}
 
-		p := mapping.ProcessorFactory(config.Config{})
+		p := mapping.ProcessorFactory()
 
 		data, err := loader.LoadData(filepath.Join(basePath, p.Name(), filename))
 		if err != nil {
@@ -46,11 +46,12 @@ func generate() error {
 			return err
 		}
 
-		events, err := p.Transform(data)
-
+		payload, err := p.Decode(config.Config{}, data)
 		if err != nil {
 			return err
 		}
+
+		events := payload.Transform()
 
 		for _, d := range events {
 			n, err := d.GetValue("processor.name")
