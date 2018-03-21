@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -11,6 +12,58 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
+
+func TestSpanDecode(t *testing.T) {
+	id, parent := 1, 12
+	name, spType := "foo", "db"
+	start, duration := 1.2, 3.4
+	context := map[string]interface{}{"a": "b"}
+	stacktrace := []interface{}{map[string]interface{}{
+		"filename": "file", "lineno": 1.0,
+	}}
+	for _, test := range []struct {
+		input       interface{}
+		err, inpErr error
+		s           *Span
+	}{
+		{input: nil, err: nil, s: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
+		{input: "", err: errors.New("Invalid type for span"), s: nil},
+		{
+			input: map[string]interface{}{},
+			err:   errors.New("Error fetching field"),
+			s: &Span{
+				Id: nil, Name: "", Type: "", Start: 0.0,
+				Duration: 0.0, Context: nil, Parent: nil,
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"name": name, "id": 1.0, "type": spType,
+				"start": start, "duration": duration,
+				"context": context, "parent": 12.0,
+				"stacktrace": stacktrace,
+			},
+			err: nil,
+			s: &Span{
+				Id:       &id,
+				Name:     name,
+				Type:     spType,
+				Start:    start,
+				Duration: duration,
+				Context:  context,
+				Parent:   &parent,
+				Stacktrace: m.Stacktrace{
+					&m.StacktraceFrame{Filename: "file", Lineno: 1},
+				},
+			},
+		},
+	} {
+		span, err := DecodeSpan(test.input, test.inpErr)
+		assert.Equal(t, test.s, span)
+		assert.Equal(t, test.err, err)
+	}
+}
 
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
@@ -35,16 +88,14 @@ func TestSpanTransform(t *testing.T) {
 		},
 		{
 			Span: Span{
-				Id:       &tid,
-				Name:     "myspan",
-				Type:     "myspantype",
-				Start:    0.65,
-				Duration: 1.20,
-				Stacktrace: []*m.StacktraceFrame{
-					{AbsPath: &path},
-				},
-				Context: common.MapStr{"key": "val"},
-				Parent:  &parent,
+				Id:         &tid,
+				Name:       "myspan",
+				Type:       "myspantype",
+				Start:      0.65,
+				Duration:   1.20,
+				Stacktrace: m.Stacktrace{{AbsPath: &path}},
+				Context:    common.MapStr{"key": "val"},
+				Parent:     &parent,
 			},
 			Output: common.MapStr{
 				"duration": common.MapStr{"us": 1200},

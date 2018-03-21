@@ -88,7 +88,7 @@ func DecodeUserData(decoder Decoder, enabled bool) Decoder {
 	augment := func(req *http.Request) map[string]interface{} {
 		return map[string]interface{}{
 			"ip":         utility.ExtractIP(req),
-			"user_agent": req.Header.Get("User-Agent"),
+			"user-agent": req.Header.Get("User-Agent"),
 		}
 	}
 	return augmentData(decoder, "user", augment)

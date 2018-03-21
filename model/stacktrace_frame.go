@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"regexp"
 
 	pr "github.com/elastic/apm-server/processor"
@@ -11,17 +12,17 @@ import (
 )
 
 type StacktraceFrame struct {
-	AbsPath      *string `mapstructure:"abs_path"`
+	AbsPath      *string
 	Filename     string
 	Lineno       int
 	Colno        *int
-	ContextLine  *string `mapstructure:"context_line"`
+	ContextLine  *string
 	Module       *string
 	Function     *string
-	LibraryFrame *bool `mapstructure:"library_frame"`
+	LibraryFrame *bool
 	Vars         common.MapStr
-	PreContext   []string `mapstructure:"pre_context"`
-	PostContext  []string `mapstructure:"post_context"`
+	PreContext   []string
+	PostContext  []string
 
 	ExcludeFromGrouping bool
 
@@ -43,6 +44,31 @@ type Original struct {
 	LibraryFrame *bool
 
 	sourcemapCopied bool
+}
+
+func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Invalid type for stacktrace frame")
+	}
+	decoder := utility.ManualDecoder{}
+	frame := StacktraceFrame{
+		AbsPath:      decoder.StringPtr(raw, "abs_path"),
+		Filename:     decoder.String(raw, "filename"),
+		Lineno:       decoder.Int(raw, "lineno"),
+		Colno:        decoder.IntPtr(raw, "colno"),
+		ContextLine:  decoder.StringPtr(raw, "context_line"),
+		Module:       decoder.StringPtr(raw, "module"),
+		Function:     decoder.StringPtr(raw, "function"),
+		LibraryFrame: decoder.BoolPtr(raw, "library_frame"),
+		Vars:         decoder.MapStr(raw, "vars"),
+		PreContext:   decoder.StringArr(raw, "pre_context"),
+		PostContext:  decoder.StringArr(raw, "post_context"),
+	}
+	return &frame, decoder.Err
 }
 
 func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {

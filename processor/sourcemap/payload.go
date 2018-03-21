@@ -17,10 +17,10 @@ var (
 )
 
 type payload struct {
-	ServiceName    string `mapstructure:"service_name"`
-	ServiceVersion string `mapstructure:"service_version"`
+	ServiceName    string
+	ServiceVersion string
 	Sourcemap      string
-	BundleFilepath string `mapstructure:"bundle_filepath"`
+	BundleFilepath string
 }
 
 func (pa *payload) transform(config *pr.Config) []beat.Event {

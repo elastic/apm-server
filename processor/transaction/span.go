@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"errors"
+
 	m "github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
@@ -13,12 +15,41 @@ type Span struct {
 	Type       string
 	Start      float64
 	Duration   float64
-	Stacktrace m.Stacktrace `mapstructure:"stacktrace"`
 	Context    common.MapStr
 	Parent     *int
+	Stacktrace m.Stacktrace
+}
+
+func DecodeSpan(input interface{}, err error) (*Span, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Invalid type for span")
+	}
+	decoder := utility.ManualDecoder{}
+	sp := Span{
+		Id:       decoder.IntPtr(raw, "id"),
+		Name:     decoder.String(raw, "name"),
+		Type:     decoder.String(raw, "type"),
+		Start:    decoder.Float64(raw, "start"),
+		Duration: decoder.Float64(raw, "duration"),
+		Context:  decoder.MapStr(raw, "context"),
+		Parent:   decoder.IntPtr(raw, "parent"),
+	}
+	var stacktr *m.Stacktrace
+	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
+	if stacktr != nil {
+		sp.Stacktrace = *stacktr
+	}
+	return &sp, err
 }
 
 func (s *Span) Transform(config *pr.Config, service m.Service) common.MapStr {
+	if s == nil {
+		return nil
+	}
 	tr := common.MapStr{}
 	utility.Add(tr, "id", s.Id)
 	utility.Add(tr, "name", s.Name)
