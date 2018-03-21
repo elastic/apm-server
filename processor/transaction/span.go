@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	m "github.com/elastic/apm-server/model"
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -46,7 +45,7 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 	return &sp, err
 }
 
-func (s *Span) Transform(config *pr.Config, service m.Service) common.MapStr {
+func (s *Span) Transform(config m.Config, service m.Service) common.MapStr {
 	if s == nil {
 		return nil
 	}

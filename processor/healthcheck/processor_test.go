@@ -9,7 +9,7 @@ import (
 )
 
 func TestImplementProcessorInterface(t *testing.T) {
-	p := NewProcessor(nil)
+	p := NewProcessor(pr.Config{})
 	assert.NotNil(t, p)
 	_, ok := p.(pr.Processor)
 	assert.True(t, ok)

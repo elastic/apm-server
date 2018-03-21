@@ -26,7 +26,7 @@ func TestPayloadTransform(t *testing.T) {
 		Sourcemap:      "mysmap",
 	}
 
-	events := p.transform(nil)
+	events := p.transform(pr.Config{})
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -63,7 +63,7 @@ func TestInvalidateCache(t *testing.T) {
 	mapping, err := smapMapper.Apply(smapId, 0, 0)
 	assert.NotNil(t, mapping)
 
-	_, err = NewProcessor(&pr.Config{SmapMapper: &smapMapper}).Transform(data)
+	_, err = NewProcessor(pr.Config{SmapMapper: &smapMapper}).Transform(data)
 	assert.NoError(t, err)
 
 	mapping, err = smapMapper.Apply(smapId, 0, 0)

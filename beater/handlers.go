@@ -42,7 +42,7 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorFactory func(*processor.Config) processor.Processor
+type ProcessorFactory func(processor.Config) processor.Processor
 
 type ProcessorHandler func(ProcessorFactory, *Config, reporter) http.Handler
 
@@ -112,7 +112,7 @@ func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.H
 	return logHandler(
 		concurrencyLimitHandler(config,
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, nil, report,
+				processRequestHandler(pf, processor.Config{}, report,
 					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))
 }
 
@@ -131,7 +131,7 @@ func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.
 			concurrencyLimitHandler(config,
 				ipRateLimitHandler(config.Frontend.RateLimit,
 					corsHandler(config.Frontend.AllowOrigins,
-						processRequestHandler(pf, &prConfig, report,
+						processRequestHandler(pf, prConfig, report,
 							decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))))
 }
 
@@ -143,7 +143,7 @@ func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http
 	return logHandler(
 		killSwitchHandler(config.Frontend.isEnabled(),
 			authHandler(config.SecretToken,
-				processRequestHandler(pf, &processor.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
+				processRequestHandler(pf, processor.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ *Config, _ reporter) http.Handler {
@@ -293,14 +293,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder.Decoder) http.Handler {
+func processRequestHandler(pf ProcessorFactory, prConfig processor.Config, report reporter, decode decoder.Decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := processRequest(r, pf, prConfig, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder.Decoder) (int, error) {
+func processRequest(r *http.Request, pf ProcessorFactory, prConfig processor.Config, report reporter, decode decoder.Decoder) (int, error) {
 	processor := pf(prConfig)
 
 	if r.Method != "POST" {

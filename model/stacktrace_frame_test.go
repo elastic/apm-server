@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -131,7 +130,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := (&test.StFrame).Transform(&pr.Config{})
+		output := (&test.StFrame).Transform(Config{})
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -383,7 +382,7 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 		if test.pattern != "" {
 			excludePattern = regexp.MustCompile(test.pattern)
 		}
-		out := test.fr.Transform(&pr.Config{ExcludeFromGrouping: excludePattern})
+		out := test.fr.Transform(Config{ExcludeFromGrouping: excludePattern})
 		exclude := out["exclude_from_grouping"]
 		assert.Equal(t, test.exclude, exclude,
 			fmt.Sprintf("(%v): Pattern: %v, Filename: %v, expected to be excluded: %v", idx, test.pattern, test.fr.Filename, test.exclude))
@@ -396,68 +395,68 @@ func TestLibraryFrame(t *testing.T) {
 	path := "/~/a/b"
 	tests := []struct {
 		fr               StacktraceFrame
-		conf             *pr.Config
+		conf             Config
 		libraryFrame     *bool
 		origLibraryFrame *bool
 		msg              string
 	}{
 		{fr: StacktraceFrame{},
-			conf:             &pr.Config{},
+			conf:             Config{},
 			libraryFrame:     nil,
 			origLibraryFrame: nil,
 			msg:              "Empty StacktraceFrame, empty config"},
 		{fr: StacktraceFrame{AbsPath: &path},
-			conf:             &pr.Config{LibraryPattern: nil},
+			conf:             Config{LibraryPattern: nil},
 			libraryFrame:     nil,
 			origLibraryFrame: nil,
 			msg:              "No pattern"},
 		{fr: StacktraceFrame{AbsPath: &path},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "Empty pattern"},
 		{fr: StacktraceFrame{LibraryFrame: &falsy},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("~")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("~")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: &falsy,
 			msg:              "Empty StacktraceFrame"},
 		{fr: StacktraceFrame{AbsPath: &path, LibraryFrame: &truthy},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "AbsPath given, no Match"},
 		{fr: StacktraceFrame{Filename: "myFile.js", LibraryFrame: &truthy},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "Filename given, no Match"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "myFile.js"},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath and Filename given, no Match"},
 		{fr: StacktraceFrame{Filename: "/tmp"},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("/tmp")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("/tmp")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "Filename matching"},
 		{fr: StacktraceFrame{AbsPath: &path, LibraryFrame: &falsy},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("~/")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: &falsy,
 			msg:              "AbsPath matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "/a/b/c"},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("~/")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath matching, Filename not matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "/a/b/c"},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("/a/b/c")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("/a/b/c")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath not matching, Filename matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "~/a/b/c"},
-			conf:             &pr.Config{LibraryPattern: regexp.MustCompile("~/")},
+			conf:             Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath and Filename matching"},

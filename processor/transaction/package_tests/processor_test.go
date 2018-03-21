@@ -26,7 +26,7 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
 		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(nil), requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.NewProcessor, processor.Config{}, requestInfo, map[string]string{})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
@@ -39,14 +39,14 @@ func TestProcessorFrontendOK(t *testing.T) {
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(&conf), requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.NewProcessor, conf, requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
 func TestTransactionProcessorValidationFailed(t *testing.T) {
 	data, err := loader.LoadInvalidData("transaction")
 	assert.Nil(t, err)
-	p := transaction.NewProcessor(nil)
+	p := transaction.NewProcessor(processor.Config{})
 	err = p.Validate(data)
 	assert.NotNil(t, err)
 }

@@ -24,13 +24,13 @@ const (
 
 var schema = pr.CreateSchema(transactionSchema, processorName)
 
-func NewProcessor(config *pr.Config) pr.Processor {
+func NewProcessor(config pr.Config) pr.Processor {
 	return &processor{schema: schema, config: config}
 }
 
 type processor struct {
 	schema *jsonschema.Schema
-	config *pr.Config
+	config pr.Config
 }
 
 func (p *processor) Name() string {

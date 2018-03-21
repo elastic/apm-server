@@ -7,7 +7,7 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 )
 
-type NewProcessor func(conf *Config) Processor
+type NewProcessor func(conf Config) Processor
 
 type Processor interface {
 	Validate(map[string]interface{}) error

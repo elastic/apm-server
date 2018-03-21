@@ -28,7 +28,7 @@ var (
 
 var schema = pr.CreateSchema(sourcemapSchema, processorName)
 
-func NewProcessor(config *pr.Config) pr.Processor {
+func NewProcessor(config pr.Config) pr.Processor {
 	return &processor{schema: schema, config: config}
 }
 
@@ -38,7 +38,7 @@ func (p *processor) Name() string {
 
 type processor struct {
 	schema *jsonschema.Schema
-	config *pr.Config
+	config pr.Config
 }
 
 func (p *processor) Validate(raw map[string]interface{}) error {
@@ -62,6 +62,7 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 }
 
 func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
+
 	transformations.Inc()
 
 	decoder := utility.ManualDecoder{}
@@ -75,6 +76,5 @@ func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) 
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
-
 	return pa.transform(p.config), nil
 }

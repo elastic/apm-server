@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -24,7 +23,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	return &st, err
 }
 
-func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.MapStr {
+func (st *Stacktrace) Transform(config Config, service Service) []common.MapStr {
 	if st == nil {
 		return nil
 	}
@@ -55,7 +54,7 @@ func (st *Stacktrace) Transform(config *pr.Config, service Service) []common.Map
 	fct := "<anonymous>"
 	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = (*st)[idx]
-		if config != nil && config.SmapMapper != nil {
+		if config.SmapMapper != nil {
 			fct = fr.applySourcemap(config.SmapMapper, service, fct)
 		}
 		frames[idx] = fr.Transform(config)

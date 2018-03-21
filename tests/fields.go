@@ -70,7 +70,7 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 }
 
 func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
-	p := fn(nil)
+	p := fn(processor.Config{})
 	data, err := loader.LoadValidData(p.Name())
 	if err != nil {
 		return nil, err

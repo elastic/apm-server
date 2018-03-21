@@ -22,7 +22,7 @@ const (
 
 var schema = pr.CreateSchema(errorSchema, processorName)
 
-func NewProcessor(config *pr.Config) pr.Processor {
+func NewProcessor(config pr.Config) pr.Processor {
 	return &processor{schema: schema, config: config}
 }
 
@@ -32,7 +32,7 @@ func (p *processor) Name() string {
 
 type processor struct {
 	schema *jsonschema.Schema
-	config *pr.Config
+	config pr.Config
 }
 
 func (p *processor) Validate(raw map[string]interface{}) error {
@@ -46,7 +46,6 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 
 func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
 	transformations.Inc()
-
 	pa, err := decodeError(raw)
 	if err != nil {
 		return nil, err
