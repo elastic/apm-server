@@ -113,8 +113,8 @@ func defaultConfig(beatVersion string) *Config {
 		MaxHeaderSize:       1 * 1024 * 1024,  // 1mb
 		ConcurrentRequests:  5,
 		MaxRequestQueueTime: 2 * time.Second,
-		ReadTimeout:         2 * time.Second,
-		WriteTimeout:        2 * time.Second,
+		ReadTimeout:         30 * time.Second,
+		WriteTimeout:        30 * time.Second,
 		ShutdownTimeout:     5 * time.Second,
 		SecretToken:         "",
 		AugmentEnabled:      true,
