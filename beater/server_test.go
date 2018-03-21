@@ -214,7 +214,44 @@ func TestServerBadProtocol(t *testing.T) {
 	assert.Contains(t, err.Error(), "malformed HTTP response")
 }
 
-func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
+func TestServerTcpConnLimit(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping tcp conn limit test")
+	}
+
+	// this might make this test flaky, we'll see
+	backlog := 128 // default net.core.somaxconn / kern.ipc.somaxconn
+	maxConns := 1
+	apm, teardown := setupServer(t, nil, func(c *Config) { c.MaxConnections = maxConns })
+	defer teardown()
+
+	conns := make([]net.Conn, backlog+maxConns)
+	defer func() {
+		for _, conn := range conns {
+			if conn != nil {
+				conn.Close()
+			}
+		}
+	}()
+
+	connect := func() (net.Conn, error) { return net.DialTimeout("tcp", apm.Addr, time.Second) }
+	var err error
+	for i := 0; i < backlog+maxConns-1; i++ {
+		conns[i], err = connect()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	_, err = connect()
+	if err == nil {
+		t.Error("expected to reach tcp connection limit")
+	}
+}
+
+type configMutator func(*Config)
+
+func setupServer(t *testing.T, ssl *SSLConfig, mutators ...configMutator) (*http.Server, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -225,6 +262,9 @@ func setupServer(t *testing.T, ssl *SSLConfig) (*http.Server, func()) {
 	cfg := defaultConfig("7.0.0")
 	cfg.Host = lis.Addr().String()
 	cfg.SSL = ssl
+	for _, m := range mutators {
+		m(cfg)
+	}
 
 	apm := newServer(cfg, nopReporter)
 	go run(apm, lis, cfg)

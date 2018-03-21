@@ -24,6 +24,9 @@ apm-server:
   # Maximum number of requests permitted to be sent to the server concurrently.
   #concurrent_requests: 5
 
+  # Maximum number of new connections to accept simultaneously
+  # max_connections: 0
+
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.
   # It is recommended to use an authorization token in combination with SSL enabled.
