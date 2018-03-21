@@ -8,9 +8,8 @@ import (
 
 	parser "github.com/go-sourcemap/sourcemap"
 
-	"github.com/mitchellh/mapstructure"
-
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -31,6 +30,10 @@ var schema = pr.CreateSchema(sourcemapSchema, processorName)
 
 func NewProcessor(config *pr.Config) pr.Processor {
 	return &processor{schema: schema, config: config}
+}
+
+func (p *processor) Name() string {
+	return processorName
 }
 
 type processor struct {
@@ -58,18 +61,20 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Transform(raw interface{}) ([]beat.Event, error) {
-	var pa payload
+func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
 	transformations.Inc()
 
-	err := mapstructure.Decode(raw, &pa)
-	if err != nil {
-		return nil, err
+	decoder := utility.ManualDecoder{}
+	pa := payload{
+		ServiceName:    decoder.String(raw, "service_name"),
+		ServiceVersion: decoder.String(raw, "service_version"),
+		Sourcemap:      decoder.String(raw, "sourcemap"),
+		BundleFilepath: decoder.String(raw, "bundle_filepath"),
+	}
+
+	if decoder.Err != nil {
+		return nil, decoder.Err
 	}
 
 	return pa.transform(p.config), nil
-}
-
-func (p *processor) Name() string {
-	return processorName
 }

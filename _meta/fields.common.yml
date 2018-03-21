@@ -54,7 +54,7 @@
               This is obtained from the X-Forwarded-For header, of which the first entry is the IP of the original client.
               This value however might not be necessarily trusted, as it can be forged by a malicious user.
 
-          - name: user_agent
+          - name: user-agent
             type: text
             description: >
               Software agent acting in behalf of a user, eg. a web browser / OS combination.

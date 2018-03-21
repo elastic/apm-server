@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -9,6 +10,36 @@ import (
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
+
+func TestStacktraceDecode(t *testing.T) {
+	for _, test := range []struct {
+		input       interface{}
+		err, inpErr error
+		s           *Stacktrace
+	}{
+		{input: nil, err: nil, s: nil},
+		{input: nil, inpErr: errors.New("msg"), err: errors.New("msg"), s: nil},
+		{input: "", err: errors.New("Invalid type for stacktrace"), s: nil},
+		{
+			input: []interface{}{"foo"},
+			err:   errors.New("Invalid type for stacktrace frame"),
+			s:     &Stacktrace{nil},
+		},
+		{
+			input: []interface{}{map[string]interface{}{
+				"filename": "file", "lineno": 1.0},
+			},
+			err: nil,
+			s: &Stacktrace{
+				&StacktraceFrame{Filename: "file", Lineno: 1},
+			},
+		},
+	} {
+		s, err := DecodeStacktrace(test.input, test.inpErr)
+		assert.Equal(t, test.s, s)
+		assert.Equal(t, test.err, err)
+	}
+}
 
 func TestStacktraceTransform(t *testing.T) {
 	service := Service{Name: "myService"}

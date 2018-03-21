@@ -12,12 +12,12 @@ type Context struct {
 	user    common.MapStr
 }
 
-func NewContext(service *Service, process *Process, system *System, user common.MapStr) *Context {
+func NewContext(service *Service, process *Process, system *System, user *User) *Context {
 	return &Context{
 		service: service.Transform(),
 		process: process.Transform(),
 		system:  system.Transform(),
-		user:    user,
+		user:    user.Transform(),
 	}
 }
 

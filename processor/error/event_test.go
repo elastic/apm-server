@@ -3,6 +3,7 @@ package error
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -53,6 +54,135 @@ func (l *Log) withParamMsg(msg string) *Log {
 func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 	l.Stacktrace = m.Stacktrace(frames)
 	return l
+}
+
+func TestErrorEventDecode(t *testing.T) {
+	id, culprit, transactionId := "123", "foo()", "555"
+	context := map[string]interface{}{"a": "b"}
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
+	paramMsg, level, logger := "log pm", "error", "mylogger"
+	for _, test := range []struct {
+		input       interface{}
+		err, inpErr error
+		e           *Event
+	}{
+		{input: nil, err: nil, e: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		{input: "", err: errors.New("Invalid type for error event"), e: nil},
+		{
+			input: map[string]interface{}{"timestamp": 123},
+			err:   errors.New("Error fetching field"),
+			e:     &Event{},
+		},
+		{
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
+				"transaction": map[string]interface{}{"id": transactionId},
+			},
+			err: nil,
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Context:   context,
+				Timestamp: timestampParsed,
+				Transaction: &Transaction{
+					Id: transactionId,
+				},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{},
+				"log":       map[string]interface{}{},
+			},
+			err: nil,
+			e:   &Event{Timestamp: timestampParsed},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message":    "Exception Msg",
+					"stacktrace": "123",
+				},
+			},
+			err: errors.New("Invalid type for stacktrace"),
+			e: &Event{
+				Timestamp: timestampParsed,
+				Exception: &Exception{Message: "Exception Msg", Stacktrace: m.Stacktrace{}},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"log": map[string]interface{}{
+					"message":    "Log Msg",
+					"stacktrace": "123",
+				},
+			},
+			err: errors.New("Invalid type for stacktrace"),
+			e: &Event{
+				Timestamp: timestampParsed,
+				Log:       &Log{Message: "Log Msg", Stacktrace: m.Stacktrace{}},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+					"code":    code, "module": module, "attributes": attrs,
+					"type": exType, "handled": handled,
+					"stacktrace": []interface{}{
+						map[string]interface{}{
+							"filename": "file", "lineno": 1.0,
+						},
+					},
+				},
+				"log": map[string]interface{}{
+					"message":       "Log Msg",
+					"param_message": paramMsg,
+					"level":         level, "logger_name": logger,
+					"stacktrace": []interface{}{
+						map[string]interface{}{
+							"filename": "log file", "lineno": 2.0,
+						},
+					},
+				},
+			},
+			err: nil,
+			e: &Event{
+				Timestamp: timestampParsed,
+				Exception: &Exception{
+					Message:    "Exception Msg",
+					Code:       code,
+					Type:       &exType,
+					Module:     &module,
+					Attributes: attrs,
+					Handled:    &handled,
+					Stacktrace: m.Stacktrace{
+						&m.StacktraceFrame{Filename: "file", Lineno: 1},
+					},
+				},
+				Log: &Log{
+					Message:      "Log Msg",
+					ParamMessage: &paramMsg,
+					Level:        &level,
+					LoggerName:   &logger,
+					Stacktrace: m.Stacktrace{
+						&m.StacktraceFrame{Filename: "log file", Lineno: 2},
+					},
+				},
+			},
+		},
+	} {
+		event, err := DecodeEvent(test.input, test.inpErr)
+		assert.Equal(t, test.e, event)
+		assert.Equal(t, test.err, err)
+	}
 }
 
 func TestEventTransform(t *testing.T) {
@@ -167,7 +297,7 @@ func TestEventTransform(t *testing.T) {
 				Context:     context,
 				Exception:   &exception,
 				Log:         &log,
-				Transaction: &struct{ Id string }{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Output: common.MapStr{
 				"id":      "45678",
@@ -541,7 +671,6 @@ func TestSourcemapping(t *testing.T) {
 	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
 
 	assert.NotEqual(t, trNoSmap["grouping_key"], trWithSmap["grouping_key"])
-	fmt.Println(trNoSmap)
 }
 
 type fakeAcc struct{}

@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -12,6 +13,82 @@ import (
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/common"
 )
+
+func TestPayloadDecode(t *testing.T) {
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	pid, ip := 1, "127.0.0.1"
+	for _, test := range []struct {
+		input map[string]interface{}
+		err   error
+		p     *payload
+	}{
+		{input: nil, err: nil, p: nil},
+		{
+			input: map[string]interface{}{"service": 123},
+			err:   errors.New("Invalid type for service"),
+		},
+		{
+			input: map[string]interface{}{"system": 123},
+			err:   errors.New("Invalid type for system"),
+		},
+		{
+			input: map[string]interface{}{"process": 123},
+			err:   errors.New("Invalid type for process"),
+		},
+		{
+			input: map[string]interface{}{"user": 123},
+			err:   errors.New("Invalid type for user"),
+		},
+		{
+			input: map[string]interface{}{},
+			err:   nil,
+			p: &payload{
+				Service: m.Service{}, System: nil,
+				Process: nil, User: nil, Events: []Event{},
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"system": map[string]interface{}{"ip": ip},
+				"service": map[string]interface{}{
+					"name": "a",
+					"agent": map[string]interface{}{
+						"name": "ag", "version": "1.0",
+					}},
+				"process": map[string]interface{}{"pid": 1.0},
+				"user":    map[string]interface{}{"ip": ip},
+				"transactions": []interface{}{
+					map[string]interface{}{
+						"id": "45", "type": "transaction",
+						"timestamp": timestamp, "duration": 34.9,
+					},
+				},
+			},
+			err: nil,
+			p: &payload{
+				Service: m.Service{
+					Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
+				System:  &m.System{IP: &ip},
+				Process: &m.Process{Pid: pid},
+				User:    &m.User{IP: &ip},
+				Events: []Event{
+					Event{
+						Id:        "45",
+						Type:      "transaction",
+						Timestamp: timestampParsed,
+						Duration:  34.9,
+						Spans:     []*Span{},
+					},
+				},
+			},
+		},
+	} {
+		payload, err := decodeTransaction(test.input)
+		assert.Equal(t, test.p, payload)
+		assert.Equal(t, test.err, err)
+	}
+}
 
 func TestPayloadTransform(t *testing.T) {
 	hostname := "a.b.c"
@@ -160,6 +237,5 @@ func TestPayloadTransform(t *testing.T) {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp)
 		}
-
 	}
 }

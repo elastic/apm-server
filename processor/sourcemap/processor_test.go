@@ -1,6 +1,7 @@
 package sourcemap
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -60,4 +61,8 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, "service", getStr(output, "service.name"))
 	assert.Equal(t, "1", getStr(output, "service.version"))
 	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
+
+	rs, err = NewProcessor(nil).Transform(nil)
+	assert.Nil(t, rs)
+	assert.Equal(t, errors.New("Error fetching field"), err)
 }
