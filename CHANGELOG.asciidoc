@@ -25,7 +25,7 @@ https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af66
 - Allow custom `error.log.level` {pull}712[712].
 - Change `concurrent_request` default from 40 to 5 {pull}731[731].
 - Change `max_unzipped_size` default from 50mb to 30mb {pull}731[731].
-- Change `read_timeout` and `write_timeout` defaults from 2s to 30s {pull}748[748].
+- Change `read_timeout` and `write_timeout` defaults from 2s to 30s {pull}748[748], {pull}752[752].
 
 
 ==== Deprecated
