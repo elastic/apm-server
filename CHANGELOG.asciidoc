@@ -30,6 +30,7 @@ https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af66
 - Push spans to separate ES index {pull}774[774].
 - Update Go to 1.9.4 {pull}786[786].
 - Adjust in-memory queue defaults {pull}791[791].
+- Listen on unix domain socket with `host=unix:/path` {pull}768[768].
 
 
 ==== Deprecated

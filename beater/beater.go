@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sync"
 
@@ -56,7 +57,13 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	defer pub.Stop()
 
-	lis, err := net.Listen("tcp", bt.config.Host)
+	path := bt.config.Host
+	network := "tcp"
+	if parsed, err := url.Parse(path); err == nil && parsed.Scheme == "unix" {
+		network = parsed.Scheme
+		path = parsed.Path
+	}
+	lis, err := net.Listen(network, path)
 	if err != nil {
 		bt.logger.Errorf("failed to listen: %s", err)
 		return err
