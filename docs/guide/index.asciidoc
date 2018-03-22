@@ -1,5 +1,5 @@
 :branch: 6.0
-include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
+include::{asciidoc-dir}/../../shared/attributes62.asciidoc[]
 
 [[gettting-started]]
 = Getting Started with APM
