@@ -554,6 +554,11 @@ TODO: investigate use of "path_hierarchy" tokenizer
 
 
 [float]
+=== `transaction.name.keyword`
+
+type: keyword
+
+[float]
 === `transaction.type`
 
 type: keyword

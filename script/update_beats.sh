@@ -45,7 +45,10 @@ cp -r $GIT_CLONE/libbeat/tests/system/beat libbeat/tests/system/beat
 
 # Add version.asciidoc for packaging
 mkdir -p libbeat/docs
-cp $GIT_CLONE/libbeat/docs/version.asciidoc libbeat/docs/version.asciidoc
+curl https://raw.githubusercontent.com/elastic/beats/6.0/libbeat/docs/version.asciidoc -o  libbeat/docs/version.asciidoc
+
+# Setup kibana index-pattern version
+curl https://raw.githubusercontent.com/elastic/beats/6.0/libbeat/_meta/kibana/default/index-pattern/libbeat.json -o  libbeat/_meta/kibana/default/index-pattern/libbeat.json
 
 # Add go version file for CI
 cp $GIT_CLONE/.go-version .go-version
