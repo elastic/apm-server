@@ -20,6 +20,32 @@ apm-server:
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
 
+#================================ General ======================================
+
+# Internal queue configuration for buffering events to be published.
+queue:
+  # Queue type by name (default 'mem')
+  # The memory queue will present all available events (up to the outputs
+  # bulk_max_size) to the output, the moment the output is ready to server
+  # another batch of events.
+  mem:
+    # Max number of events the queue can buffer.
+    events: 32
+
+    # Hints the minimum number of events stored in the queue,
+    # before providing a batch of events to the outputs.
+    # A value of 0 (the default) ensures events are immediately available
+    # to be sent to the outputs.
+    flush.min_events: 0
+
+    # Maximum duration after which events are available to the outputs,
+    # if the number of events stored in the queue is < min_flush_events.
+    flush.timeout: 0s
+
+# Sets the maximum number of CPUs that can be executing simultaneously. The
+# default is the number of logical CPUs available in the system.
+#max_procs:
+
 #==================== Elasticsearch template setting ==========================
 
 # Elasticsearch template settings
