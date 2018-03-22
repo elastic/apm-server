@@ -97,7 +97,7 @@ Email of the logged in user.
 
 type: ip
 
-IP of the user where the event is recorded, typically a web browser.
+IP of the user where the event is recorded, typically a web browser. This is obtained from the X-Forwarded-For header, of which the first entry is the IP of the original client. This value however might not be necessarily trusted, as it can be forged by a malicious user.
 
 
 [float]

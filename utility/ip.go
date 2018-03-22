@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// Obtains the IP of a request, looking up X-Forwarded-For and X-Real-IP headers.
+// X-Forwarded-For has a list of IPs, of which the first is the one of the original client.
+// This value however might not be necessarily trusted, as it can be forged by a malicious user.
 func ExtractIP(r *http.Request) string {
 	var remoteAddr = func() string {
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
