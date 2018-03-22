@@ -243,7 +243,13 @@ func TestServerTcpConnLimit(t *testing.T) {
 		}
 	}
 
-	_, err = connect()
+	// ensure this is hit reasonably close to max conns, say within 150 conns
+	// on some systems it's at connection 129, others at 131, still others 250
+	for i := 0; i < 150; i++ {
+		if _, err = connect(); err != nil {
+			break
+		}
+	}
 	if err == nil {
 		t.Error("expected to reach tcp connection limit")
 	}
