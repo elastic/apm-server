@@ -22,22 +22,6 @@ apm-server:
 
 #==================== Elasticsearch template setting ==========================
 
-# A template is used to set the mapping in Elasticsearch
-# By default template loading is enabled and the template is loaded.
-# These settings can be adjusted to load your own template or overwrite existing ones.
-
-# Set to false to disable template loading.
-#setup.template.enabled: true
-
-# Template name. By default the template name is "apm-%{[beat.version]}"
-# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-setup.template.name: "apm-%{[beat.version]}"
-
-# Template pattern. By default the template pattern is "apm-%{[beat.version]}-*" to apply to the default index settings.
-# The first part is the version of the beat and then -* is used to match all daily indices.
-# The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-setup.template.pattern: "apm-%{[beat.version]}-*"
-
 # Elasticsearch template settings
 setup.template.settings:
 
@@ -48,11 +32,6 @@ setup.template.settings:
     number_of_shards: 1
     codec: best_compression
     #number_of_routing_shards: 30
-
-  # A dictionary of settings for the _source field. For more details, please check
-  # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-source-field.html
-  #_source:
-    #enabled: false
 
 #============================== Dashboards =====================================
 #
@@ -99,7 +78,6 @@ output.elasticsearch:
   # * `setup.template.name`
   # * `setup.template.pattern`
   # * `setup.dashboards.index`
-  index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
   indices:
     - index: "apm-%{[beat.version]}-sourcemap"
       when.contains:
