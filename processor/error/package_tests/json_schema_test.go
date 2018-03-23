@@ -5,7 +5,7 @@ import (
 
 	"github.com/fatih/set"
 
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
 	er "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/tests"
 )
@@ -56,5 +56,5 @@ func TestErrorPayloadSchema(t *testing.T) {
 		{File: "data/invalid/error_payload/no_service.json", Error: "missing properties: \"service\""},
 		{File: "data/invalid/error_payload/no_errors.json", Error: "missing properties: \"errors\""},
 	}
-	tests.TestDataAgainstProcessor(t, er.NewProcessor(processor.Config{}), testData)
+	tests.TestDataAgainstProcessor(t, er.NewProcessor(config.Config{}), testData)
 }

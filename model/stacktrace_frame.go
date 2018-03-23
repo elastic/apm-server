@@ -4,6 +4,7 @@ import (
 	"errors"
 	"regexp"
 
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -70,7 +71,7 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 	return &frame, decoder.Err
 }
 
-func (s *StacktraceFrame) Transform(config Config) common.MapStr {
+func (s *StacktraceFrame) Transform(config config.Config) common.MapStr {
 	m := common.MapStr{}
 	utility.Add(m, "filename", s.Filename)
 	utility.Add(m, "abs_path", s.AbsPath)

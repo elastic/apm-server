@@ -1,8 +1,8 @@
 package error
 
 import (
+	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -54,17 +54,12 @@ func decodeError(raw map[string]interface{}) (*payload, error) {
 	return pa, err
 }
 
-func (pa *payload) transform(c pr.Config) []beat.Event {
+func (pa *payload) transform(config config.Config) []beat.Event {
 	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 	errorCounter.Add(int64(len(pa.Events)))
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
 
-	config := m.Config{
-		LibraryPattern:      c.LibraryPattern,
-		ExcludeFromGrouping: c.ExcludeFromGrouping,
-		SmapMapper:          c.SmapMapper,
-	}
 	var events []beat.Event
 	for _, event := range pa.Events {
 		context := context.Transform(event.Context)

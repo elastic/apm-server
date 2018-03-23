@@ -10,7 +10,7 @@ import (
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
 	er "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
@@ -28,7 +28,7 @@ func TestProcessorBackendOK(t *testing.T) {
 		{Name: "TestProcessErrorNullValues", Path: "data/valid/error/null_values.json"},
 		{Name: "TestProcessErrorAugmentedIP", Path: "data/valid/error/augmented_payload_backend.json"},
 	}
-	conf := processor.Config{ExcludeFromGrouping: nil}
+	conf := config.Config{ExcludeFromGrouping: nil}
 	tests.TestProcessRequests(t, er.NewProcessor, conf, requestInfo, map[string]string{})
 }
 
@@ -40,7 +40,7 @@ func TestProcessorFrontendOK(t *testing.T) {
 		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "data/valid/error/augmented_payload_frontend.json"},
 	}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
-	conf := processor.Config{
+	conf := config.Config{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
@@ -52,7 +52,7 @@ func TestProcessorFrontendOK(t *testing.T) {
 func TestProcessorFailedValidation(t *testing.T) {
 	data, err := loader.LoadInvalidData("error")
 	assert.Nil(t, err)
-	err = er.NewProcessor(processor.Config{}).Validate(data)
+	err = er.NewProcessor(config.Config{}).Validate(data)
 	assert.NotNil(t, err)
 }
 

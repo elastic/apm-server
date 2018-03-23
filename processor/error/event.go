@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -108,7 +109,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	return &e, err
 }
 
-func (e *Event) Transform(config m.Config, service m.Service) common.MapStr {
+func (e *Event) Transform(config config.Config, service m.Service) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 
@@ -123,7 +124,7 @@ func (e *Event) Transform(config m.Config, service m.Service) common.MapStr {
 	return e.data
 }
 
-func (e *Event) updateCulprit(config m.Config) {
+func (e *Event) updateCulprit(config config.Config) {
 	if config.SmapMapper == nil {
 		return
 	}
@@ -153,7 +154,7 @@ func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame 
 	return nil
 }
 
-func (e *Event) addException(config m.Config, service m.Service) {
+func (e *Event) addException(config config.Config, service m.Service) {
 	if e.Exception == nil {
 		return
 	}
@@ -179,7 +180,7 @@ func (e *Event) addException(config m.Config, service m.Service) {
 	e.add("exception", ex)
 }
 
-func (e *Event) addLog(config m.Config, service m.Service) {
+func (e *Event) addLog(config config.Config, service m.Service) {
 	if e.Log == nil {
 		return
 	}

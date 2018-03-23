@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
@@ -119,7 +120,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Span.Transform(m.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
+		output := test.Span.Transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

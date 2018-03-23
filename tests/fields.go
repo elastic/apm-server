@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
@@ -70,7 +71,7 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 }
 
 func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
-	p := fn(processor.Config{})
+	p := fn(config.Config{})
 	data, err := loader.LoadValidData(p.Name())
 	if err != nil {
 		return nil, err

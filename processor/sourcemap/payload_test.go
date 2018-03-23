@@ -7,7 +7,7 @@ import (
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
@@ -26,7 +26,7 @@ func TestPayloadTransform(t *testing.T) {
 		Sourcemap:      "mysmap",
 	}
 
-	events := p.transform(pr.Config{})
+	events := p.transform(config.Config{})
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -63,7 +63,7 @@ func TestInvalidateCache(t *testing.T) {
 	mapping, err := smapMapper.Apply(smapId, 0, 0)
 	assert.NotNil(t, mapping)
 
-	_, err = NewProcessor(pr.Config{SmapMapper: &smapMapper}).Transform(data)
+	_, err = NewProcessor(config.Config{SmapMapper: &smapMapper}).Transform(data)
 	assert.NoError(t, err)
 
 	mapping, err = smapMapper.Apply(smapId, 0, 0)

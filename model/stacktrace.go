@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -23,7 +24,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	return &st, err
 }
 
-func (st *Stacktrace) Transform(config Config, service Service) []common.MapStr {
+func (st *Stacktrace) Transform(config config.Config, service Service) []common.MapStr {
 	if st == nil {
 		return nil
 	}

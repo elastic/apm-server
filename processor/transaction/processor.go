@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -24,13 +25,13 @@ const (
 
 var schema = pr.CreateSchema(transactionSchema, processorName)
 
-func NewProcessor(config pr.Config) pr.Processor {
+func NewProcessor(config config.Config) pr.Processor {
 	return &processor{schema: schema, config: config}
 }
 
 type processor struct {
 	schema *jsonschema.Schema
-	config pr.Config
+	config config.Config
 }
 
 func (p *processor) Name() string {

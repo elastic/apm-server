@@ -3,6 +3,7 @@ package transaction
 import (
 	"errors"
 
+	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -45,7 +46,7 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 	return &sp, err
 }
 
-func (s *Span) Transform(config m.Config, service m.Service) common.MapStr {
+func (s *Span) Transform(config config.Config, service m.Service) common.MapStr {
 	if s == nil {
 		return nil
 	}

@@ -3,7 +3,7 @@ package sourcemap
 import (
 	"time"
 
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
 	smap "github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -23,7 +23,7 @@ type payload struct {
 	BundleFilepath string
 }
 
-func (pa *payload) transform(config pr.Config) []beat.Event {
+func (pa *payload) transform(config config.Config) []beat.Event {
 	sourcemapCounter.Add(1)
 	if pa == nil {
 		return nil

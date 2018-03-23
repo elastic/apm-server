@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
 )
@@ -9,7 +10,7 @@ const (
 	processorName = "healthcheck"
 )
 
-func NewProcessor(_ pr.Config) pr.Processor {
+func NewProcessor(_ config.Config) pr.Processor {
 	return &processor{}
 }
 

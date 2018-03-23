@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/tests/loader"
 )
 
@@ -34,7 +34,7 @@ func generate() error {
 			continue
 		}
 
-		p := mapping.ProcessorFactory(processor.Config{})
+		p := mapping.ProcessorFactory(config.Config{})
 
 		data, err := loader.LoadData(filepath.Join(basePath, p.Name(), filename))
 		if err != nil {
