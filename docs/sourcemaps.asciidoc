@@ -77,10 +77,10 @@ Send an example source map to the APM Server:
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
 curl -X POST http://127.0.0.1:8200/v1/client-side/sourcemaps \
-  -F service_name="test-service" 
-  -F service_version="1.0" 
-  -F bundle_filepath="/static/js/main.js.map" 
-  -F sourcemap=@docs/data/intake-api/generated/sourcemap/bundle.js.map 
+  -F service_name="test-service" \
+  -F service_version="1.0" \
+  -F bundle_filepath="http://localhost/static/js/bundle.js" \
+  -F sourcemap=@bundle.js.map
 ---------------------------------------------------------------------------
 
 [[sourcemap-json-example]]
