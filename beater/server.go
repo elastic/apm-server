@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 
+	"golang.org/x/net/netutil"
+
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
@@ -33,6 +35,11 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 		logger.Info("Frontend endpoints enabled!")
 	case false:
 		logger.Info("Frontend endpoints disabled")
+	}
+
+	if config.MaxConnections > 0 {
+		lis = netutil.LimitListener(lis, config.MaxConnections)
+		logger.Infof("connections limit set to: %d", config.MaxConnections)
 	}
 
 	ssl := config.SSL
