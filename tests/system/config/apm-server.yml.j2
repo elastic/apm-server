@@ -61,21 +61,32 @@ output.elasticsearch:
   hosts: ["{{ elasticsearch_host }}"]
 
   index: {{ index_name }}
-  {% if smap_index %}
+  {% if smap_index or index_name_transaction or index_name_span or index_name_error %}
   indices:
+  {% endif %}
+
+  {% if smap_index %}
     - index: {{ smap_index }}
       when.contains:
         processor.event: "sourcemap"
   {% endif %}
 
-  {% if index_name_transaction and index_name_error %}
-  indices:
+  {% if index_name_transaction %}
     - index: {{ index_name_transaction }}
       when.contains:
-        processor.name: "transaction"
+        processor.event: "transaction"
+  {% endif %}
+
+  {% if index_name_span %}
+    - index: {{ index_name_span }}
+      when.contains:
+        processor.event: "span"
+  {% endif %}
+
+  {% if index_name_error %}
     - index: {{ index_name_error }}
       when.contains:
-        processor.name: "error"
+        processor.event: "error"
   {% endif %}
 
 {% endif %}

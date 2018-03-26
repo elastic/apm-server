@@ -222,8 +222,16 @@ class SplitIndicesIntegrationTest(SplitIndicesTest):
         self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
                                      'http://localhost:8200/v1/transactions',
                                      'transaction',
-                                     9,
+                                     4,
                                      query_index="test-apm-transaction-12-12-2017")
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_span_index(self):
+        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
+                                     'http://localhost:8200/v1/transactions',
+                                     'transaction',
+                                     5,
+                                     query_index="test-apm-span-12-12-2017")
 
 
 class SourcemappingIntegrationTest(ClientSideBaseTest):
