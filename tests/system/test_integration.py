@@ -2,7 +2,8 @@ import os
 import unittest
 
 from apmserver import ElasticTest, ExpvarBaseTest
-from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest, SplitIndicesTest
+from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest
+from apmserver import SplitIndicesTest
 from beat.beat import INTEGRATION_TESTS
 import json
 
@@ -28,16 +29,11 @@ class Test(ElasticTest):
     def test_load_docs_with_template_and_add_transaction(self):
         """
         This test starts the beat with a loaded template and sends transaction data to elasticsearch.
-        It verifies that all data make it into ES means data is compatible with the template.
+        It verifies that all data make it into ES, means data is compatible with the template
+        and data are in expected format.
         """
-        f = os.path.abspath(os.path.join(self.beat_path,
-                                         'tests',
-                                         'data',
-                                         'valid',
-                                         'transaction',
-                                         'payload.json'))
-        self.load_docs_with_template(
-            f, self.transactions_url, 'transaction', 9)
+        self.load_docs_with_template(self.get_transaction_payload_path(),
+                                     self.transactions_url, 'transaction', 9)
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
@@ -62,13 +58,8 @@ class Test(ElasticTest):
         This test starts the beat with a loaded template and sends error data to elasticsearch.
         It verifies that all data make it into ES means data is compatible with the template.
         """
-        f = os.path.abspath(os.path.join(self.beat_path,
-                                         'tests',
-                                         'data',
-                                         'valid',
-                                         'error',
-                                         'payload.json'))
-        self.load_docs_with_template(f, self.errors_url, 'error', 4)
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url, 'error', 4)
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for errors with new ones
@@ -210,20 +201,40 @@ class FrontendEnabledIntegrationTest(ClientSideBaseTest):
 
 class SplitIndicesIntegrationTest(SplitIndicesTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_error_index(self):
-        self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
-                                     'http://localhost:8200/v1/errors',
+    def test_split_docs_into_separate_indices(self):
+        # load error and transaction document to ES
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.errors_url,
                                      'error',
                                      4,
-                                     query_index="test-apm-error-12-12-2017")
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_transaction_index(self):
-        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
-                                     'http://localhost:8200/v1/transactions',
+                                     query_index="test-apm*")
+        self.load_docs_with_template(self.get_transaction_payload_path(),
+                                     self.transactions_url,
                                      'transaction',
                                      9,
-                                     query_index="test-apm-transaction-12-12-2017")
+                                     query_index="test-apm*")
+
+        # check that every document is indexed once (incl.1 onboarding doc)
+        assert 14 == self.es.count(index="test-apm*")['count']
+
+        # check that documents are split into separate indices
+        ct = self.es.count(
+            index="test-apm-error-12-12-2017",
+            body={"query": {"term": {"processor.event": "error"}}}
+        )['count']
+        assert 4 == ct
+
+        ct = self.es.count(
+            index="test-apm-transaction-12-12-2017",
+            body={"query": {"term": {"processor.event": "transaction"}}}
+        )['count']
+        assert 4 == ct
+
+        ct = self.es.count(
+            index="test-apm-span-12-12-2017",
+            body={"query": {"term": {"processor.event": "span"}}}
+        )['count']
+        assert 5 == ct
 
 
 class SourcemappingIntegrationTest(ClientSideBaseTest):
