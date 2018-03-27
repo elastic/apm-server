@@ -142,11 +142,11 @@ class ElasticTest(ServerBaseTest):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
 
         # Cleanup index and template first
-        self.es.indices.delete(index=self.index_name, ignore=[400, 404])
+        self.es.indices.delete(index="*", ignore=[400, 404])
         self.wait_until(lambda: not self.es.indices.exists(self.index_name))
 
         self.es.indices.delete_template(
-            name=self.index_name, ignore=[400, 404])
+            name="*", ignore=[400, 404])
         self.wait_until(
             lambda: not self.es.indices.exists_template(self.index_name))
 
@@ -305,13 +305,14 @@ class SplitIndicesTest(ElasticTest):
     @classmethod
     def setUpClass(cls):
         super(SplitIndicesTest, cls).setUpClass()
-
         cls.index_name_transaction = "test-apm-transaction-12-12-2017"
+        cls.index_name_span = "test-apm-span-12-12-2017"
         cls.index_name_error = "test-apm-error-12-12-2017"
 
     def config(self):
         cfg = super(SplitIndicesTest, self).config()
         cfg.update({"index_name_transaction": self.index_name_transaction,
+                    "index_name_span": self.index_name_span,
                     "index_name_error": self.index_name_error})
         return cfg
 

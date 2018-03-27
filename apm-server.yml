@@ -62,9 +62,10 @@ output.elasticsearch:
   hosts: ["localhost:9200"]
 
   # By using the configuration below, apm documents are stored to separate indices, 
-  # depending on their `processor.name` or `processor.event`:
+  # depending on their `processor.event`:
   # - error
   # - transaction
+  # - span
   # - sourcemap (experimental feature)
   #
   # The indices are all prefixed with `apm-%{[beat.version]}`.
@@ -85,11 +86,15 @@ output.elasticsearch:
 
     - index: "apm-%{[beat.version]}-error-%{+yyyy.MM.dd}"
       when.contains:
-        processor.name: "error"
+        processor.event: "error"
 
     - index: "apm-%{[beat.version]}-transaction-%{+yyyy.MM.dd}"
       when.contains:
-        processor.name: "transaction"
+        processor.event: "transaction"
+
+    - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "span"
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"
