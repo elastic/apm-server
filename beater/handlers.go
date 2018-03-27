@@ -16,6 +16,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/time/rate"
 
+	conf "github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
@@ -42,7 +43,7 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorFactory func(*processor.Config) processor.Processor
+type ProcessorFactory func(conf.Config) processor.Processor
 
 type ProcessorHandler func(ProcessorFactory, *Config, reporter) http.Handler
 
@@ -73,24 +74,24 @@ var (
 	}
 )
 
-func newMuxer(config *Config, report reporter) *http.ServeMux {
+func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
 	for path, mapping := range Routes {
 		logger.Infof("Path %s added to request handler", path)
-		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, config, report))
+		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, beaterConfig, report))
 	}
 
-	if config.Expvar.isEnabled() {
-		path := config.Expvar.Url
+	if beaterConfig.Expvar.isEnabled() {
+		path := beaterConfig.Expvar.Url
 		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, expvar.Handler())
 	}
 	return mux
 }
 
-func concurrencyLimitHandler(config *Config, h http.Handler) http.Handler {
-	semaphore := make(chan struct{}, config.ConcurrentRequests)
+func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler {
+	semaphore := make(chan struct{}, beaterConfig.ConcurrentRequests)
 
 	release := func() {
 		<-semaphore
@@ -101,49 +102,49 @@ func concurrencyLimitHandler(config *Config, h http.Handler) http.Handler {
 		case semaphore <- struct{}{}:
 			defer release()
 			h.ServeHTTP(w, r)
-		case <-time.After(config.MaxRequestQueueTime):
+		case <-time.After(beaterConfig.MaxRequestQueueTime):
 			sendStatus(w, r, http.StatusServiceUnavailable, errConcurrencyLimitReached)
 		}
 
 	})
 }
 
-func backendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
+func backendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
 	return logHandler(
-		concurrencyLimitHandler(config,
-			authHandler(config.SecretToken,
-				processRequestHandler(pf, nil, report,
-					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))
+		concurrencyLimitHandler(beaterConfig,
+			authHandler(beaterConfig.SecretToken,
+				processRequestHandler(pf, conf.Config{}, report,
+					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
-func frontendHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
-	smapper, err := config.Frontend.memoizedSmapMapper()
+func frontendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+	smapper, err := beaterConfig.Frontend.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
-	prConfig := processor.Config{
+	config := conf.Config{
 		SmapMapper:          smapper,
-		LibraryPattern:      regexp.MustCompile(config.Frontend.LibraryPattern),
-		ExcludeFromGrouping: regexp.MustCompile(config.Frontend.ExcludeFromGrouping),
+		LibraryPattern:      regexp.MustCompile(beaterConfig.Frontend.LibraryPattern),
+		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.Frontend.ExcludeFromGrouping),
 	}
 	return logHandler(
-		killSwitchHandler(config.Frontend.isEnabled(),
-			concurrencyLimitHandler(config,
-				ipRateLimitHandler(config.Frontend.RateLimit,
-					corsHandler(config.Frontend.AllowOrigins,
-						processRequestHandler(pf, &prConfig, report,
-							decoder.DecodeUserData(decoder.DecodeLimitJSONData(config.MaxUnzippedSize), config.AugmentEnabled)))))))
+		killSwitchHandler(beaterConfig.Frontend.isEnabled(),
+			concurrencyLimitHandler(beaterConfig,
+				ipRateLimitHandler(beaterConfig.Frontend.RateLimit,
+					corsHandler(beaterConfig.Frontend.AllowOrigins,
+						processRequestHandler(pf, config, report,
+							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))))
 }
 
-func sourcemapHandler(pf ProcessorFactory, config *Config, report reporter) http.Handler {
-	smapper, err := config.Frontend.memoizedSmapMapper()
+func sourcemapHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+	smapper, err := beaterConfig.Frontend.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
 	return logHandler(
-		killSwitchHandler(config.Frontend.isEnabled(),
-			authHandler(config.SecretToken,
-				processRequestHandler(pf, &processor.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
+		killSwitchHandler(beaterConfig.Frontend.isEnabled(),
+			authHandler(beaterConfig.SecretToken,
+				processRequestHandler(pf, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }
 
 func healthCheckHandler(_ ProcessorFactory, _ *Config, _ reporter) http.Handler {
@@ -293,15 +294,15 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder.Decoder) http.Handler {
+func processRequestHandler(pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, prConfig, report, decode)
+		code, err := processRequest(r, pf, config, report, decode)
 		sendStatus(w, r, code, err)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, prConfig *processor.Config, report reporter, decode decoder.Decoder) (int, error) {
-	processor := pf(prConfig)
+func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) (int, error) {
+	processor := pf(config)
 
 	if r.Method != "POST" {
 		return http.StatusMethodNotAllowed, errPOSTRequestOnly

@@ -12,7 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yudai/gojsondiff"
 
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -93,12 +94,13 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, p processor.Processor, requestInfo []RequestInfo, ignored map[string]string) {
+func TestProcessRequests(t *testing.T, pf func(config.Config) pr.Processor, config config.Config, requestInfo []RequestInfo, ignored map[string]string) {
 	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := loader.LoadData(info.Path)
 		assert.Nil(err)
 
+		p := pf(config)
 		err = p.Validate(data)
 		assert.NoError(err)
 

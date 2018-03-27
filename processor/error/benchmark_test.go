@@ -3,11 +3,12 @@ package error
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/tests/loader"
 )
 
 func BenchmarkEventWithFileLoading(b *testing.B) {
-	processor := NewProcessor(nil)
+	processor := NewProcessor(config.Config{})
 	for i := 0; i < b.N; i++ {
 		data, _ := loader.LoadValidData("error")
 		err := processor.Validate(data)
@@ -20,7 +21,7 @@ func BenchmarkEventWithFileLoading(b *testing.B) {
 }
 
 func BenchmarkEventFileLoadingOnce(b *testing.B) {
-	processor := NewProcessor(nil)
+	processor := NewProcessor(config.Config{})
 	data, _ := loader.LoadValidData("error")
 	for i := 0; i < b.N; i++ {
 		err := processor.Validate(data)
