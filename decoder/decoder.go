@@ -24,7 +24,7 @@ func DecodeLimitJSONData(maxSize int64) Decoder {
 		if err != nil {
 			return nil, err
 		}
-		return decodeJSONData(reader)
+		return DecodeJSONData(reader)
 	}
 }
 
@@ -61,7 +61,7 @@ func readRequestJSONData(maxSize int64) Reader {
 	}
 }
 
-func decodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {
+func DecodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {
 	v := make(map[string]interface{})
 	d := json.NewDecoder(reader)
 	if err := d.Decode(&v); err != nil {

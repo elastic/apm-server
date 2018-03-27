@@ -1,11 +1,14 @@
 package loader
 
 import (
-	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/elastic/apm-server/decoder"
 )
 
 func findFile(fileName string) (string, error) {
@@ -13,11 +16,20 @@ func findFile(fileName string) (string, error) {
 	return filepath.Join(filepath.Dir(current), "..", fileName), nil
 }
 
-func readFile(filePath string, err error) ([]byte, error) {
+func fileReader(filePath string, err error) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadFile(filePath)
+	return os.Open(filePath)
+}
+
+func readFile(filePath string, err error) ([]byte, error) {
+	var f io.Reader
+	f, err = fileReader(filePath, err)
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(f)
 }
 
 func LoadData(file string) (map[string]interface{}, error) {
@@ -74,9 +86,10 @@ func buildPath(processorName string, validData bool) (string, error) {
 
 func unmarshalData(filePath string, err error) (map[string]interface{}, error) {
 	var data map[string]interface{}
-	input, err := readFile(filePath, err)
-	if err == nil {
-		err = json.Unmarshal(input, &data)
+	var r io.ReadCloser
+	r, err = fileReader(filePath, err)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return decoder.DecodeJSONData(r)
 }

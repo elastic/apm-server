@@ -1,17 +1,17 @@
-package decoder
+package decoder_test
 
 import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/elastic/apm-server/decoder"
 	"github.com/stretchr/testify/assert"
-
-	"mime/multipart"
 
 	"github.com/elastic/apm-server/tests/loader"
 )
@@ -27,7 +27,7 @@ func TestDecode(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	assert.Nil(t, err)
 
-	body, err := DecodeLimitJSONData(1024 * 1024)(req)
+	body, err := decoder.DecodeLimitJSONData(1024 * 1024)(req)
 	assert.Nil(t, err)
 	assert.Equal(t, data, body)
 }
@@ -43,7 +43,7 @@ func TestDecodeContentType(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	assert.Nil(t, err)
 
-	body, err := DecodeLimitJSONData(1024 * 1024)(req)
+	body, err := decoder.DecodeLimitJSONData(1024 * 1024)(req)
 	assert.Nil(t, err)
 	assert.Equal(t, data, body)
 }
@@ -57,11 +57,11 @@ func TestDecodeSizeLimit(t *testing.T) {
 	}
 
 	// just fits
-	_, err := DecodeLimitJSONData(2)(minimalValid())
+	_, err := decoder.DecodeLimitJSONData(2)(minimalValid())
 	assert.Nil(t, err)
 
 	// too large, should not be EOF
-	_, err = DecodeLimitJSONData(1)(minimalValid())
+	_, err = decoder.DecodeLimitJSONData(1)(minimalValid())
 	assert.NotNil(t, err)
 	assert.NotEqual(t, err, io.EOF)
 }
@@ -91,10 +91,10 @@ func TestDecodeSizeLimitGzip(t *testing.T) {
 		t.Fatal("compressed data unexpectedly big")
 	}
 	/// uncompressed just fits
-	_, err := DecodeLimitJSONData(40)(gzipRequest(bigDataGz))
+	_, err := decoder.DecodeLimitJSONData(40)(gzipRequest(bigDataGz))
 	assert.Nil(t, err)
 	/// uncompressed too big
-	_, err = DecodeLimitJSONData(1)(gzipRequest(bigDataGz))
+	_, err = decoder.DecodeLimitJSONData(1)(gzipRequest(bigDataGz))
 	assert.NotNil(t, err)
 	assert.NotEqual(t, err, io.EOF)
 
@@ -105,10 +105,10 @@ func TestDecodeSizeLimitGzip(t *testing.T) {
 		t.Fatal("compressed data unexpectedly small")
 	}
 	/// uncompressed just fits
-	_, err = DecodeLimitJSONData(2)(gzipRequest(tinyDataGz))
+	_, err = decoder.DecodeLimitJSONData(2)(gzipRequest(tinyDataGz))
 	assert.Nil(t, err)
 	/// uncompressed too big
-	_, err = DecodeLimitJSONData(1)(gzipRequest(tinyDataGz))
+	_, err = decoder.DecodeLimitJSONData(1)(gzipRequest(tinyDataGz))
 	assert.NotNil(t, err)
 	assert.NotEqual(t, err, io.EOF)
 }
@@ -137,7 +137,7 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NoError(t, err)
-	data, err := DecodeSourcemapFormData(req)
+	data, err := decoder.DecodeSourcemapFormData(req)
 	assert.NoError(t, err)
 
 	assert.Len(t, data, 4)
@@ -160,7 +160,7 @@ func TestDecodeSystemData(t *testing.T) {
 		req.Header.Add("Content-Type", "application/json")
 		assert.Nil(t, err)
 
-		body, err := DecodeSystemData(DecodeLimitJSONData(1024*1024), enabled)(req)
+		body, err := decoder.DecodeSystemData(decoder.DecodeLimitJSONData(1024*1024), enabled)(req)
 		assert.Nil(t, err)
 
 		system, hasSystem := body["system"].(map[string]interface{})
@@ -182,7 +182,7 @@ func TestDecodeUserData(t *testing.T) {
 		req.Header.Add("Content-Type", "application/json")
 		assert.Nil(t, err)
 
-		body, err := DecodeUserData(DecodeLimitJSONData(1024*1024), enabled)(req)
+		body, err := decoder.DecodeUserData(decoder.DecodeLimitJSONData(1024*1024), enabled)(req)
 		assert.Nil(t, err)
 		user, hasUser := body["user"].(map[string]interface{})
 		assert.Equal(t, enabled, hasUser)
