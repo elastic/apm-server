@@ -8,13 +8,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestImplementProcessorInterface(t *testing.T) {
-	p := NewProcessor(nil)
+	p := NewProcessor(config.Config{})
 	assert.NotNil(t, p)
 	_, ok := p.(pr.Processor)
 	assert.True(t, ok)
@@ -22,7 +23,7 @@ func TestImplementProcessorInterface(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	p := NewProcessor(nil)
+	p := NewProcessor(config.Config{})
 	data, err := loader.LoadValidData("sourcemap")
 
 	assert.NoError(t, err)
@@ -47,9 +48,9 @@ func TestTransform(t *testing.T) {
 	data, err := loader.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
-	rs, err := NewProcessor(nil).Transform(data)
+	p := NewProcessor(config.Config{})
+	rs, err := p.Transform(data)
 	assert.NoError(t, err)
-
 	assert.Len(t, rs, 1)
 	event := rs[0]
 
@@ -62,7 +63,8 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, "1", getStr(output, "service.version"))
 	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
 
-	rs, err = NewProcessor(nil).Transform(nil)
-	assert.Nil(t, rs)
+	p = NewProcessor(config.Config{})
+	rs, err = p.Transform(nil)
 	assert.Equal(t, errors.New("Error fetching field"), err)
+	assert.Nil(t, rs)
 }

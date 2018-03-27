@@ -1,8 +1,8 @@
 package transaction
 
 import (
+	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -56,16 +56,15 @@ func decodeTransaction(raw map[string]interface{}) (*payload, error) {
 	return pa, err
 }
 
-func (pa *payload) transform(config *pr.Config) []beat.Event {
-	var events []beat.Event
+func (pa *payload) transform(config config.Config) []beat.Event {
+	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
+	transactionCounter.Add(int64(len(pa.Events)))
+
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
 	spanContext := NewSpanContext(&pa.Service)
 
-	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
-
-	transactionCounter.Add(int64(len(pa.Events)))
+	var events []beat.Event
 	for _, event := range pa.Events {
-
 		ev := beat.Event{
 			Fields: common.MapStr{
 				"processor":        processorTransEntry,

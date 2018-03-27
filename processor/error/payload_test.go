@@ -9,8 +9,8 @@ import (
 
 	"time"
 
+	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -76,7 +76,7 @@ func TestPayloadDecode(t *testing.T) {
 				Process: &m.Process{Pid: pid},
 				User:    &m.User{IP: &ip},
 				Events: []Event{
-					{Timestamp: timestampParsed,
+					Event{Timestamp: timestampParsed,
 						Exception: &Exception{Message: "Exception Msg", Stacktrace: m.Stacktrace{}}},
 				},
 			},
@@ -168,7 +168,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.transform(&pr.Config{SmapMapper: &sourcemap.SmapMapper{}})
+		outputEvents := test.Payload.transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}})
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))

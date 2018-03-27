@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
@@ -26,7 +26,7 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
 		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(nil), requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.NewProcessor, config.Config{}, requestInfo, map[string]string{})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
@@ -35,18 +35,18 @@ func TestProcessorFrontendOK(t *testing.T) {
 		{Name: "TestProcessTransactionAugmentedMerge", Path: "data/valid/transaction/augmented_payload_frontend.json"},
 		{Name: "TestProcessTransactionAugmented", Path: "data/valid/transaction/augmented_payload_frontend_no_context.json"},
 	}
-	conf := processor.Config{
+	conf := config.Config{
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(&conf), requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.NewProcessor, conf, requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
 func TestTransactionProcessorValidationFailed(t *testing.T) {
 	data, err := loader.LoadInvalidData("transaction")
 	assert.Nil(t, err)
-	p := transaction.NewProcessor(nil)
+	p := transaction.NewProcessor(config.Config{})
 	err = p.Validate(data)
 	assert.NotNil(t, err)
 }

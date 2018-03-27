@@ -17,8 +17,8 @@ import (
 
 	s "github.com/go-sourcemap/sourcemap"
 
+	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -332,7 +332,7 @@ func TestEventTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Event.Transform(&pr.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
+		output := test.Event.Transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -353,25 +353,25 @@ func TestCulprit(t *testing.T) {
 	mapper := sourcemap.SmapMapper{}
 	tests := []struct {
 		event   Event
-		config  pr.Config
+		config  config.Config
 		culprit string
 		msg     string
 	}{
 		{
 			event:   Event{Culprit: &c},
-			config:  pr.Config{},
+			config:  config.Config{},
 			culprit: "foo",
 			msg:     "No Sourcemap in config",
 		},
 		{
 			event:   Event{Culprit: &c},
-			config:  pr.Config{SmapMapper: &mapper},
+			config:  config.Config{SmapMapper: &mapper},
 			culprit: "foo",
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
 			event:   Event{Culprit: &c, Log: &Log{Stacktrace: st}},
-			config:  pr.Config{SmapMapper: &mapper},
+			config:  config.Config{SmapMapper: &mapper},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
 		},
@@ -387,7 +387,7 @@ func TestCulprit(t *testing.T) {
 					},
 				},
 			},
-			config:  pr.Config{SmapMapper: &mapper},
+			config:  config.Config{SmapMapper: &mapper},
 			culprit: "f",
 			msg:     "Adapt culprit to first valid Log.StacktraceFrame information.",
 		},
@@ -396,7 +396,7 @@ func TestCulprit(t *testing.T) {
 				Culprit:   &c,
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  pr.Config{SmapMapper: &mapper},
+			config:  config.Config{SmapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
 		},
@@ -406,7 +406,7 @@ func TestCulprit(t *testing.T) {
 				Log:       &Log{Stacktrace: st},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  pr.Config{SmapMapper: &mapper},
+			config:  config.Config{SmapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
 		},
@@ -424,13 +424,13 @@ func TestCulprit(t *testing.T) {
 				},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  pr.Config{SmapMapper: &mapper},
+			config:  config.Config{SmapMapper: &mapper},
 			culprit: "a in fct",
 			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
 		},
 	}
 	for idx, test := range tests {
-		test.event.updateCulprit(&test.config)
+		test.event.updateCulprit(test.config)
 		assert.Equal(t, test.culprit, *test.event.Culprit,
 			fmt.Sprintf("(%v) expected <%v>, received <%v>", idx, test.culprit, *test.event.Culprit))
 	}
@@ -656,7 +656,7 @@ func TestSourcemapping(t *testing.T) {
 			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
 		},
 	}}
-	trNoSmap := event.Transform(&pr.Config{SmapMapper: nil}, m.Service{})
+	trNoSmap := event.Transform(config.Config{SmapMapper: nil}, m.Service{})
 
 	event2 := Event{Exception: &Exception{
 		Message: "exception message",
@@ -665,7 +665,7 @@ func TestSourcemapping(t *testing.T) {
 		},
 	}}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
-	trWithSmap := event2.Transform(&pr.Config{SmapMapper: &mapper}, m.Service{})
+	trWithSmap := event2.Transform(config.Config{SmapMapper: &mapper}, m.Service{})
 
 	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
 	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
