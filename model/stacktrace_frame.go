@@ -4,7 +4,7 @@ import (
 	"errors"
 	"regexp"
 
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -71,19 +71,19 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 	return &frame, decoder.Err
 }
 
-func (s *StacktraceFrame) Transform(config *pr.Config) common.MapStr {
+func (s *StacktraceFrame) Transform(config config.Config) common.MapStr {
 	m := common.MapStr{}
 	utility.Add(m, "filename", s.Filename)
 	utility.Add(m, "abs_path", s.AbsPath)
 	utility.Add(m, "module", s.Module)
 	utility.Add(m, "function", s.Function)
 	utility.Add(m, "vars", s.Vars)
-	if config != nil && config.LibraryPattern != nil {
+	if config.LibraryPattern != nil {
 		s.setLibraryFrame(config.LibraryPattern)
 	}
 	utility.Add(m, "library_frame", s.LibraryFrame)
 
-	if config != nil && config.ExcludeFromGrouping != nil {
+	if config.ExcludeFromGrouping != nil {
 		s.setExcludeFromGrouping(config.ExcludeFromGrouping)
 	}
 	utility.Add(m, "exclude_from_grouping", s.ExcludeFromGrouping)
