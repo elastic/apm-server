@@ -215,6 +215,8 @@ func TestServerBadProtocol(t *testing.T) {
 }
 
 func TestServerTcpConnLimit(t *testing.T) {
+	t.Skip("tcp conn limit test disabled")
+
 	if testing.Short() {
 		t.Skip("skipping tcp conn limit test")
 	}
