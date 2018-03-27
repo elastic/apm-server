@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -19,7 +20,14 @@ func (d *ManualDecoder) Float64(base map[string]interface{}, key string, keys ..
 	val := getDeep(base, keys...)[key]
 	if valFloat, ok := val.(float64); ok {
 		return valFloat
+	} else if valNumber, ok := val.(json.Number); ok {
+		if valFloat, err := valNumber.Float64(); err != nil {
+			d.Err = err
+		} else {
+			return valFloat
+		}
 	}
+
 	d.Err = fetchErr
 	return 0.0
 }
@@ -37,6 +45,13 @@ func (d *ManualDecoder) IntPtr(base map[string]interface{}, key string, keys ...
 		valInt := int(valFloat)
 		if valFloat == float32(valInt) {
 			return &valInt
+		}
+	} else if valNumber, ok := val.(json.Number); ok {
+		if valInt, err := valNumber.Int64(); err != nil {
+			d.Err = err
+		} else {
+			i := int(valInt)
+			return &i
 		}
 	}
 	d.Err = fetchErr

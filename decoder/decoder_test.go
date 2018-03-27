@@ -3,27 +3,26 @@ package decoder_test
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/tests/loader"
 )
 
 func TestDecode(t *testing.T) {
 	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
 	assert.Nil(t, err)
-	buffer := bytes.NewReader(transactionBytes)
-	var data map[string]interface{}
-	json.Unmarshal(transactionBytes, &data)
+	data, err := decoder.DecodeJSONData(ioutil.NopCloser(bytes.NewReader(transactionBytes)))
+	assert.Nil(t, err)
 
-	req, err := http.NewRequest("POST", "_", buffer)
+	req, err := http.NewRequest("POST", "_", bytes.NewReader(transactionBytes))
 	req.Header.Add("Content-Type", "application/json")
 	assert.Nil(t, err)
 
@@ -35,11 +34,10 @@ func TestDecode(t *testing.T) {
 func TestDecodeContentType(t *testing.T) {
 	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
 	assert.Nil(t, err)
-	buffer := bytes.NewReader(transactionBytes)
-	var data map[string]interface{}
-	json.Unmarshal(transactionBytes, &data)
+	data, err := decoder.DecodeJSONData(ioutil.NopCloser(bytes.NewReader(transactionBytes)))
+	assert.Nil(t, err)
 
-	req, err := http.NewRequest("POST", "_", buffer)
+	req, err := http.NewRequest("POST", "_", bytes.NewReader(transactionBytes))
 	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	assert.Nil(t, err)
 

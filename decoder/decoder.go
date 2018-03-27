@@ -64,6 +64,7 @@ func readRequestJSONData(maxSize int64) Reader {
 func DecodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {
 	v := make(map[string]interface{})
 	d := json.NewDecoder(reader)
+	d.UseNumber()
 	if err := d.Decode(&v); err != nil {
 		// If we run out of memory, for example
 		return nil, errors.Wrap(err, "data read error")
