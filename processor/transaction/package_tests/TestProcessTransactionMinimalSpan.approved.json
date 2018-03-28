@@ -43,6 +43,7 @@
                 "duration": {
                     "us": 32592
                 },
+                "id": 100000000000,
                 "name": "GET /api/types",
                 "start": {
                     "us": 0
