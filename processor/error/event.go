@@ -3,6 +3,7 @@ package error
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash"
@@ -165,13 +166,15 @@ func (e *Event) addException(config config.Config, service m.Service) {
 	utility.Add(ex, "type", e.Exception.Type)
 	utility.Add(ex, "handled", e.Exception.Handled)
 
-	switch e.Exception.Code.(type) {
+	switch code := e.Exception.Code.(type) {
 	case int:
-		utility.Add(ex, "code", strconv.Itoa(e.Exception.Code.(int)))
+		utility.Add(ex, "code", strconv.Itoa(code))
 	case float64:
-		utility.Add(ex, "code", fmt.Sprintf("%.0f", e.Exception.Code))
+		utility.Add(ex, "code", fmt.Sprintf("%.0f", code))
 	case string:
-		utility.Add(ex, "code", e.Exception.Code.(string))
+		utility.Add(ex, "code", code)
+	case json.Number:
+		utility.Add(ex, "code", code.String())
 	}
 
 	st := e.Exception.Stacktrace.Transform(config, service)

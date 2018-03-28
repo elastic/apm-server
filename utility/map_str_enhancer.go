@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"encoding/json"
 	"reflect"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -15,7 +16,7 @@ func Add(m common.MapStr, key string, val interface{}) {
 		return
 	}
 
-	switch val.(type) {
+	switch value := val.(type) {
 	case *bool:
 		if newVal := val.(*bool); newVal != nil {
 			m[key] = *newVal
@@ -59,6 +60,12 @@ func Add(m common.MapStr, key string, val interface{}) {
 			}
 		} else {
 			delete(m, key)
+		}
+	case json.Number:
+		if floatVal, err := value.Float64(); err != nil {
+			Add(m, key, value.String())
+		} else {
+			Add(m, key, floatVal)
 		}
 	case float64:
 		floatVal := val.(float64)
