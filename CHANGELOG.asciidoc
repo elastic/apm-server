@@ -28,6 +28,7 @@ https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af66
 - Change `read_timeout` and `write_timeout` defaults from 2s to 30s {pull}748[748], {pull}752[752].
 - Limit number of new connections to accept simultaneously {pull}751[751].
 - Push spans to separate ES index {pull}774[774].
+- Update Go to 1.9.4 {pull}786[786].
 
 
 ==== Deprecated
