@@ -18,7 +18,7 @@ $env:PATH = "$env:GOPATH\bin;C:\tools\mingw64\bin;$env:PATH"
 if (Test-Path -PathType leaf _beats\.go-version) {
     & gvm --format=powershell $(Get-Content _beats\.go-version) | Invoke-Expression
 } else {
-    & gvm --format=powershell 1.9.2 | Invoke-Expression
+    & gvm --format=powershell 1.9.4 | Invoke-Expression
 }
 
 if (Test-Path "build") { Remove-Item -Recurse -Force build }
