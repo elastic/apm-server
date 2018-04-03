@@ -367,7 +367,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------
 Dependency: github.com/go-ole/go-ole
 Revision: de8695c8edbf8236f30d6e1376e20b198a028d42
-License type (autodetected): UNKNOWN
+License type (autodetected): MIT
 ./vendor/github.com/go-ole/go-ole/LICENSE:
 --------------------------------------------------------------------
 The MIT License (MIT)
