@@ -176,13 +176,21 @@ func logHandler(h http.Handler) http.Handler {
 
 		h.ServeHTTP(lw, lr)
 
-		reqLogger.Infow("handled request", "response_code", lw.Code,
-			"method", r.Method, "URL", r.URL, "content_length", r.ContentLength,
-			"remote_address", utility.ExtractIP(r), "user-agent", r.Header.Get("User-Agent"))
+		logKey := "handled request"
+		logInfo := []interface{}{
+			"response_code", lw.Code,
+			"method", r.Method,
+			"URL", r.URL,
+			"content_length", r.ContentLength,
+			"remote_address", utility.ExtractIP(r),
+			"user-agent", r.Header.Get("User-Agent"),
+		}
 
 		if lw.Code > 399 {
+			reqLogger.Errorw(logKey, logInfo...)
 			responseErrors.Inc()
 		} else {
+			reqLogger.Infow(logKey, logInfo...)
 			responseValid.Inc()
 		}
 	})
@@ -342,11 +350,10 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	}
 
 	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-	if ok {
-		logger.Errorw("error handling request", "error", err.Error())
-	} else {
-		logp.NewLogger("request").Errorf("error handling request: %v", err)
+	if !ok {
+		logger = logp.NewLogger("request")
 	}
+	logger.Errorw("error handling request", "error", err.Error())
 
 	if acceptsJSON(r) {
 		sendJSON(w, map[string]interface{}{"error": err.Error()})
