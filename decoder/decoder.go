@@ -5,9 +5,9 @@ import (
 	"compress/zlib"
 	"encoding/json"
 	"fmt"
-	"net/http"
-
+	"io"
 	"io/ioutil"
+	"net/http"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -15,10 +15,23 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
+type Reader func(req *http.Request) (io.ReadCloser, error)
 type Decoder func(req *http.Request) (map[string]interface{}, error)
 
 func DecodeLimitJSONData(maxSize int64) Decoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
+		reader, err := readRequestJSONData(maxSize)(req)
+		if err != nil {
+			return nil, err
+		}
+		return DecodeJSONData(reader)
+	}
+}
+
+// readRequestJSONData makes a function that uses information from an http request to construct a Limited ReadCloser
+// of json data from the body of the request
+func readRequestJSONData(maxSize int64) Reader {
+	return func(req *http.Request) (io.ReadCloser, error) {
 		contentType := req.Header.Get("Content-Type")
 		if !strings.Contains(contentType, "application/json") {
 			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
@@ -44,13 +57,19 @@ func DecodeLimitJSONData(maxSize int64) Decoder {
 				return nil, err
 			}
 		}
-		v := make(map[string]interface{})
-		if err := json.NewDecoder(http.MaxBytesReader(nil, reader, maxSize)).Decode(&v); err != nil {
-			// If we run out of memory, for example
-			return nil, errors.Wrap(err, "data read error")
-		}
-		return v, nil
+		return http.MaxBytesReader(nil, reader, maxSize), nil
 	}
+}
+
+func DecodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {
+	v := make(map[string]interface{})
+	d := json.NewDecoder(reader)
+	d.UseNumber()
+	if err := d.Decode(&v); err != nil {
+		// If we run out of memory, for example
+		return nil, errors.Wrap(err, "data read error")
+	}
+	return v, nil
 }
 
 func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) {
