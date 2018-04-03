@@ -43,6 +43,9 @@ rsync -crpv --delete \
     --include="libbeat/tests/system/beat/***" \
     --exclude="libbeat/*" \
     --include=.go-version \
+    --include="vendor/" \
+    --include="vendor/vendor.json" \
+    --exclude="vendor/*" \
     --exclude="*" \
     ${GIT_CLONE}/ .
 
