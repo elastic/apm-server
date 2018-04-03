@@ -126,6 +126,7 @@ func frontendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter)
 		SmapMapper:          smapper,
 		LibraryPattern:      regexp.MustCompile(beaterConfig.Frontend.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.Frontend.ExcludeFromGrouping),
+		IsFrontend:          true,
 	}
 	return logHandler(
 		killSwitchHandler(beaterConfig.Frontend.isEnabled(),
