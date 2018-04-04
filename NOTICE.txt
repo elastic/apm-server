@@ -11,7 +11,7 @@ Third party libraries used by the Apm Server project:
 
 --------------------------------------------------------------------
 Dependency: github.com/davecgh/go-spew
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): MIT
 ./vendor/github.com/davecgh/go-spew/LICENSE:
 --------------------------------------------------------------------
@@ -33,7 +33,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/distribution
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/distribution/LICENSE:
 --------------------------------------------------------------------
@@ -42,7 +42,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/docker
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/docker/LICENSE:
 --------------------------------------------------------------------
@@ -71,7 +71,7 @@ See also https://www.apache.org/dev/crypto.html and/or seek legal counsel.
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/go-connections
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/go-connections/LICENSE:
 --------------------------------------------------------------------
@@ -98,7 +98,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/eapache/go-resiliency
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): MIT
 ./vendor/github.com/eapache/go-resiliency/LICENSE:
 --------------------------------------------------------------------
@@ -183,7 +183,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -192,7 +192,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-lumber
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-lumber/LICENSE:
 --------------------------------------------------------------------
@@ -300,7 +300,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/garyburd/redigo
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): Apache-2.0
 ./vendor/github.com/garyburd/redigo/LICENSE:
 --------------------------------------------------------------------
@@ -426,7 +426,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/golang/protobuf
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/golang/protobuf/LICENSE:
 --------------------------------------------------------------------
@@ -971,7 +971,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/klauspost/compress
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/klauspost/compress/LICENSE:
 --------------------------------------------------------------------
@@ -1179,7 +1179,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/opencontainers/image-spec
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): Apache-2.0
 ./vendor/github.com/opencontainers/image-spec/LICENSE:
 --------------------------------------------------------------------
@@ -1249,7 +1249,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/pierrec/xxHash
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/pierrec/xxHash/LICENSE:
 --------------------------------------------------------------------
@@ -2016,7 +2016,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/net/LICENSE:
 --------------------------------------------------------------------
@@ -2050,7 +2050,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 768e58ede27f7a80b38c983a83537f8669a0cb04
+Revision: fbc61e82107563d211ab23747902e0ad9b29d656
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/sys/LICENSE:
 --------------------------------------------------------------------
