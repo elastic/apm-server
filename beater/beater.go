@@ -68,6 +68,14 @@ func (bt *beater) Run(b *beat.Beat) error {
 		bt.logger.Errorf("failed to listen: %s", err)
 		return err
 	}
+	// in case host is :0 or similar
+	if network == "tcp" {
+		addr := lis.Addr().(*net.TCPAddr).String()
+		if bt.config.Host != addr {
+			bt.logger.Infof("host resolved from %s to %s", bt.config.Host, addr)
+			bt.config.Host = addr
+		}
+	}
 	go notifyListening(bt.config, pub.Send)
 
 	bt.mutex.Lock()

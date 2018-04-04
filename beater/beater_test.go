@@ -3,6 +3,7 @@ package beater
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -226,21 +227,25 @@ func DummyPipeline() (*pipeline.Pipeline, error) {
 	)
 }
 
-func (bt *beater) client() (string, *http.Client) {
+func (bt *beater) client(insecure bool) (string, *http.Client) {
+	transport := &http.Transport{}
+	if insecure {
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+
 	if parsed, err := url.Parse(bt.server.Addr); err == nil && parsed.Scheme == "unix" {
+		transport.DialContext = func(_ context.Context, _, _ string) (net.Conn, error) {
+			return net.Dial("unix", parsed.Path)
+		}
 		return "http://test-apm-server/", &http.Client{
-			Transport: &http.Transport{
-				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-					return net.Dial("unix", parsed.Path)
-				},
-			},
+			Transport: transport,
 		}
 	}
 	scheme := "http://"
-	if bt.server.TLSConfig != nil {
+	if bt.config.SSL.isEnabled() {
 		scheme = "https://"
 	}
-	return scheme + bt.server.Addr, &http.Client{}
+	return scheme + bt.config.Host, &http.Client{Transport: transport}
 }
 
 func (bt *beater) wait() error {
@@ -288,7 +293,7 @@ func setupBeater(t *testing.T, ucfg *common.Config) (*beater, func()) {
 	// wait for ready
 	btr := beatBeater.(*beater)
 	btr.wait()
-	waitForServer(btr.client())
+	waitForServer(btr.client(true))
 
 	return btr, beatBeater.Stop
 }

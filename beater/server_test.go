@@ -42,14 +42,14 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerOk(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, nil)
 	defer teardown()
 
 	req := makeTestRequest(t)
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rr, req)
+	apm.server.Handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusAccepted, rr.Code, rr.Body.String())
 }
 
@@ -68,17 +68,17 @@ func TestServerOkUnix(t *testing.T) {
 		"host": "unix:" + addr,
 	})
 	assert.NoError(t, err)
-	btr, stop := setupBeater(t, ucfg)
+	btr, stop := setupServer(t, ucfg)
 	defer stop()
 
-	baseUrl, client := btr.client()
+	baseUrl, client := btr.client(false)
 	rsp, err := client.Get(baseUrl + HealthCheckURL)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rsp.StatusCode)
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, nil)
 	defer teardown()
 
 	req, err := http.NewRequest("GET", HealthCheckURL, nil)
@@ -87,36 +87,36 @@ func TestServerHealth(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rr, req)
+	apm.server.Handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusOK, rr.Code, rr.Code)
 }
 
 func TestServerFrontendSwitch(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, nil)
 	defer teardown()
 
 	req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
 
 	rec := httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rec, req)
-	apm.Handler = newMuxer(
+	apm.server.Handler.ServeHTTP(rec, req)
+	apm.server.Handler = newMuxer(
 		&Config{
 			Frontend: &FrontendConfig{Enabled: new(bool), AllowOrigins: []string{"*"}}},
 		nil)
 	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
 
 	true := true
-	apm.Handler = newMuxer(
+	apm.server.Handler = newMuxer(
 		&Config{
 			Frontend: &FrontendConfig{Enabled: &true, AllowOrigins: []string{"*"}}},
 		nil)
 	rec = httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rec, req)
+	apm.server.Handler.ServeHTTP(rec, req)
 	assert.NotEqual(t, http.StatusForbidden, rec.Code, rec.Body.String())
 }
 
 func TestServerCORS(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, nil)
 	defer teardown()
 
 	true := true
@@ -159,7 +159,7 @@ func TestServerCORS(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		apm.Handler = newMuxer(
+		apm.server.Handler = newMuxer(
 			&Config{
 				MaxUnzippedSize:     1024 * 1024,
 				ConcurrentRequests:  40,
@@ -174,18 +174,18 @@ func TestServerCORS(t *testing.T) {
 		req, _ := http.NewRequest("POST", FrontendTransactionsURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/json")
-		apm.Handler.ServeHTTP(rec, req)
+		apm.server.Handler.ServeHTTP(rec, req)
 
 		assert.Equal(t, test.expectedStatus, rec.Code, fmt.Sprintf("Failed at idx %v; %s", idx, rec.Body.String()))
 	}
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown := setupServer(t, noSSL)
+	apm, teardown := setupServer(t, nil)
 	defer teardown()
 
 	rr := httptest.NewRecorder()
-	apm.Handler.ServeHTTP(rr, makeTestRequest(t))
+	apm.server.Handler.ServeHTTP(rr, makeTestRequest(t))
 	assert.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
 }
 
@@ -193,7 +193,7 @@ func TestServerSecureUnknownCA(t *testing.T) {
 	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1"))
 	defer teardown()
 
-	_, err := postTestRequest(t, apm, nil, "https")
+	_, err := postTestRequest(t, apm.server, nil, "https")
 	assert.Contains(t, err.Error(), "x509: certificate signed by unknown authority")
 }
 
@@ -201,7 +201,7 @@ func TestServerSecureSkipVerify(t *testing.T) {
 	apm, teardown := setupServer(t, withSSL(t, "127.0.0.1"))
 	defer teardown()
 
-	res, err := postTestRequest(t, apm, insecureClient(), "https")
+	res, err := postTestRequest(t, apm.server, insecureClient(), "https")
 	assert.Nil(t, err)
 	assert.Equal(t, res.StatusCode, http.StatusAccepted)
 }
@@ -210,7 +210,7 @@ func TestServerSecureBadDomain(t *testing.T) {
 	apm, teardown := setupServer(t, withSSL(t, "ELASTIC"))
 	defer teardown()
 
-	_, err := postTestRequest(t, apm, nil, "https")
+	_, err := postTestRequest(t, apm.server, nil, "https")
 
 	msgs := []string{
 		"x509: certificate signed by unknown authority",
@@ -224,7 +224,7 @@ func TestServerSecureBadIP(t *testing.T) {
 	apm, teardown := setupServer(t, withSSL(t, "192.168.10.11"))
 	defer teardown()
 
-	_, err := postTestRequest(t, apm, nil, "https")
+	_, err := postTestRequest(t, apm.server, nil, "https")
 	msgs := []string{
 		"x509: certificate signed by unknown authority",
 		"x509: certificate is valid for 192.168.10.11, not 127.0.0.1",
@@ -237,7 +237,7 @@ func TestServerBadProtocol(t *testing.T) {
 	apm, teardown := setupServer(t, withSSL(t, "localhost"))
 	defer teardown()
 
-	_, err := postTestRequest(t, apm, nil, "http")
+	_, err := postTestRequest(t, apm.server, nil, "http")
 	assert.Contains(t, err.Error(), "malformed HTTP response")
 }
 
@@ -251,7 +251,11 @@ func TestServerTcpConnLimit(t *testing.T) {
 	// this might make this test flaky, we'll see
 	backlog := 128 // default net.core.somaxconn / kern.ipc.somaxconn
 	maxConns := 1
-	apm, teardown := setupServer(t, nil, func(c *Config) { c.MaxConnections = maxConns })
+	ucfg, err := common.NewConfigFrom(map[string]interface{}{
+		"max_connections": maxConns,
+	})
+	assert.NoError(t, err)
+	apm, teardown := setupServer(t, ucfg)
 	defer teardown()
 
 	conns := make([]net.Conn, backlog+maxConns)
@@ -263,8 +267,7 @@ func TestServerTcpConnLimit(t *testing.T) {
 		}
 	}()
 
-	connect := func() (net.Conn, error) { return net.DialTimeout("tcp", apm.Addr, time.Second) }
-	var err error
+	connect := func() (net.Conn, error) { return net.DialTimeout("tcp", apm.server.Addr, time.Second) }
 	for i := 0; i < backlog+maxConns-1; i++ {
 		conns[i], err = connect()
 		if err != nil {
@@ -284,38 +287,22 @@ func TestServerTcpConnLimit(t *testing.T) {
 	}
 }
 
-type configMutator func(*Config)
-
-func setupServer(t *testing.T, ssl *SSLConfig, mutators ...configMutator) (*http.Server, func()) {
+func setupServer(t *testing.T, cfg *common.Config) (*beater, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
 
-	lis, err := net.Listen("tcp", "localhost:0")
+	baseConfig, err := common.NewConfigFrom(map[string]interface{}{
+		"host": "localhost:0",
+	})
 	assert.NoError(t, err)
-
-	cfg := defaultConfig("7.0.0")
-	cfg.Host = lis.Addr().String()
-	cfg.SSL = ssl
-	for _, m := range mutators {
-		m(cfg)
+	if cfg != nil {
+		err = cfg.Unpack(baseConfig)
 	}
-
-	apm := newServer(cfg, nopReporter)
-	go run(apm, lis, cfg)
-
-	client := &http.Client{}
-	scheme := "http://"
-	if cfg.SSL != nil {
-		client = insecureClient()
-		scheme = "https://"
-	}
-	waitForServer(scheme+cfg.Host, client)
-
-	return apm, func() { stop(apm) }
+	assert.NoError(t, err)
+	btr, stop := setupBeater(t, baseConfig)
+	return btr, stop
 }
-
-var noSSL *SSLConfig
 
 var testData = func() []byte {
 	d, err := loader.LoadValidDataAsBytes("transaction")
@@ -325,13 +312,20 @@ var testData = func() []byte {
 	return d
 }()
 
-func withSSL(t *testing.T, domain string) *SSLConfig {
+func withSSL(t *testing.T, domain string) *common.Config {
 	cert := path.Join(tmpCertPath, t.Name()+".crt")
 	key := path.Join(tmpCertPath, t.Name()+".key")
-	t.Log("generating certificate in ", cert)
+	t.Log("generating certificate in", cert)
 	httpscerts.Generate(cert, key, domain)
 
-	return &SSLConfig{Cert: cert, PrivateKey: key}
+	cfg, err := common.NewConfigFrom(map[string]map[string]interface{}{
+		"ssl": {
+			"certificate": cert,
+			"key":         key,
+		},
+	})
+	assert.NoError(t, err)
+	return cfg
 }
 
 func makeTestRequest(t *testing.T) *http.Request {
