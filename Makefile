@@ -89,3 +89,12 @@ notice: python-env
 
 .PHONY: force-update-docs
 force-update-docs: clean docs
+
+.PHONY: update-beats-docs
+update-beats-docs:
+	@python script/copy-docs.py
+
+	@sed -i '' 's/If you plan to monitor {beatname_uc} in Kibana, you must also//' docs/copied-from-beats/security/securing-beats.asciidoc
+	@sed -i '' 's/<<beats-system-user,configure the `beats_system` built-in user>>.//' docs/copied-from-beats/security/securing-beats.asciidoc
+	@sed -i '' 's/include::beats-system.asciidoc\[\]//' docs/copied-from-beats/security/securing-beats.asciidoc
+	@$(MAKE) docs 
