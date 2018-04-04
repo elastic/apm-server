@@ -78,7 +78,7 @@ check-full: check
 .PHONY: notice
 notice: python-env
 	@echo "Generating NOTICE"
-	@$(PYTHON_ENV)/bin/python ${ES_BEATS}/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server" --beats-origin ./_beats/vendor/vendor.json
+	@$(PYTHON_ENV)/bin/python ${ES_BEATS}/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server" --beats-origin <($(PYTHON_ENV)/bin/python script/generate_notice_overrides.py)
 
 .PHONY: force-update-docs
 force-update-docs: clean docs
