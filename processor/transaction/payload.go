@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"time"
+
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
@@ -65,13 +67,21 @@ func (pa *payload) transform(config config.Config) []beat.Event {
 
 	var events []beat.Event
 	for _, event := range pa.Events {
+
+		var timestamp time.Time
+		if config.IsFrontend {
+			timestamp = time.Now()
+		} else {
+			timestamp = event.Timestamp
+		}
+
 		ev := beat.Event{
 			Fields: common.MapStr{
 				"processor":        processorTransEntry,
 				transactionDocType: event.Transform(),
 				"context":          context.Transform(event.Context),
 			},
-			Timestamp: event.Timestamp,
+			Timestamp: timestamp,
 		}
 		events = append(events, ev)
 
@@ -85,7 +95,7 @@ func (pa *payload) transform(config config.Config) []beat.Event {
 					"transaction": trId,
 					"context":     spanContext.Transform(sp.Context),
 				},
-				Timestamp: event.Timestamp,
+				Timestamp: timestamp,
 			}
 			events = append(events, ev)
 		}

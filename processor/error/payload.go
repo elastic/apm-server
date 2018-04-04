@@ -1,6 +1,8 @@
 package error
 
 import (
+	"time"
+
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
@@ -62,6 +64,14 @@ func (pa *payload) transform(config config.Config) []beat.Event {
 
 	var events []beat.Event
 	for _, event := range pa.Events {
+
+		var timestamp time.Time
+		if config.IsFrontend {
+			timestamp = time.Now()
+		} else {
+			timestamp = event.Timestamp
+		}
+
 		context := context.Transform(event.Context)
 		ev := beat.Event{
 			Fields: common.MapStr{
@@ -69,7 +79,7 @@ func (pa *payload) transform(config config.Config) []beat.Event {
 				errorDocType: event.Transform(config, pa.Service),
 				"context":    context,
 			},
-			Timestamp: event.Timestamp,
+			Timestamp: timestamp,
 		}
 		if event.Transaction != nil {
 			ev.Fields["transaction"] = common.MapStr{"id": event.Transaction.Id}

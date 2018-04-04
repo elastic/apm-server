@@ -239,3 +239,17 @@ func TestPayloadTransform(t *testing.T) {
 		}
 	}
 }
+
+func TestOverrideFrontendTimestamp(t *testing.T) {
+	timestamp := time.Now().AddDate(0, 0, -1)
+
+	p := payload{
+		Service: m.Service{Name: "myservice"},
+		Events:  []Event{{Timestamp: timestamp, Spans: []*Span{{}}}},
+	}
+
+	frontendEvents := p.transform(config.Config{IsFrontend: true})
+	for _, event := range frontendEvents {
+		assert.InDelta(t, time.Now().Unix(), event.Timestamp.Unix(), time.Millisecond.Seconds()*10)
+	}
+}
