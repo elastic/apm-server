@@ -3,6 +3,7 @@ package beater
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +16,8 @@ import (
 
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
@@ -48,6 +51,30 @@ func TestServerOk(t *testing.T) {
 	rr := httptest.NewRecorder()
 	apm.Handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusAccepted, rr.Code, rr.Body.String())
+}
+
+func tmpTestUnix(t *testing.T) string {
+	f, err := ioutil.TempFile("", "test-apm-server")
+	assert.NoError(t, err)
+	addr := f.Name()
+	f.Close()
+	os.Remove(addr)
+	return addr
+}
+
+func TestServerOkUnix(t *testing.T) {
+	addr := tmpTestUnix(t)
+	ucfg, err := common.NewConfigFrom(map[string]interface{}{
+		"host": "unix:" + addr,
+	})
+	assert.NoError(t, err)
+	btr, stop := setupBeater(t, ucfg)
+	defer stop()
+
+	baseUrl, client := btr.client()
+	rsp, err := client.Get(baseUrl + HealthCheckURL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rsp.StatusCode)
 }
 
 func TestServerHealth(t *testing.T) {
@@ -277,8 +304,13 @@ func setupServer(t *testing.T, ssl *SSLConfig, mutators ...configMutator) (*http
 	apm := newServer(cfg, nopReporter)
 	go run(apm, lis, cfg)
 
-	secure := cfg.SSL != nil
-	waitForServer(secure, cfg.Host)
+	client := &http.Client{}
+	scheme := "http://"
+	if cfg.SSL != nil {
+		client = insecureClient()
+		scheme = "https://"
+	}
+	waitForServer(scheme+cfg.Host, client)
 
 	return apm, func() { stop(apm) }
 }
@@ -320,16 +352,11 @@ func postTestRequest(t *testing.T, apm *http.Server, client *http.Client, schema
 	return client.Post(addr, "application/json", bytes.NewReader(testData))
 }
 
-func waitForServer(secure bool, host string) {
+func waitForServer(url string, client *http.Client) {
 	var check = func() int {
 		var res *http.Response
 		var err error
-		if secure {
-			res, err = insecureClient().Get("https://" + host + "/healthcheck")
-		} else {
-			res, err = http.Get("http://" + host + "/healthcheck")
-		}
-
+		res, err = client.Get(url + HealthCheckURL)
 		if err != nil {
 			return http.StatusInternalServerError
 		}

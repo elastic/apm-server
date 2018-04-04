@@ -2,19 +2,24 @@ package beater
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/beats/libbeat/cmd/instance"
+
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/outputs"
 	pubs "github.com/elastic/beats/libbeat/publisher"
 	"github.com/elastic/beats/libbeat/publisher/pipeline"
@@ -187,11 +192,6 @@ To get a memory profile, use this:
 
 */
 
-// Needed to make unique registers
-// TODO: When pipeline no longer requires a *monitoring.Registry,
-//       this can be removed.
-var testCount int
-
 type DummyOutputClient struct {
 }
 
@@ -204,36 +204,104 @@ func (d *DummyOutputClient) Close() error {
 	return nil
 }
 
-func SetupServer(b *testing.B) *http.ServeMux {
-	out := outputs.Group{
-		Clients:   []outputs.Client{&DummyOutputClient{}},
-		BatchSize: 5,
-		Retry:     0, // no retry. on error drop events
-	}
-
-	queueFactory := func(e queue.Eventer) (queue.Queue, error) {
-		return memqueue.NewBroker(memqueue.Settings{
-			Eventer: e,
-			Events:  20,
-		}), nil
-	}
-	testCount++
-	pip, err := pipeline.New(
-		beat.Info{Name: "testBeat"},
-		monitoring.Default.NewRegistry("testing"+string(testCount)),
-		queueFactory, out, pipeline.Settings{
+func DummyPipeline() (*pipeline.Pipeline, error) {
+	return pipeline.New(
+		beat.Info{Name: "test-apm-server"},
+		nil,
+		func(e queue.Eventer) (queue.Queue, error) {
+			return memqueue.NewBroker(memqueue.Settings{
+				Eventer: e,
+				Events:  20,
+			}), nil
+		},
+		outputs.Group{
+			Clients:   []outputs.Client{&DummyOutputClient{}},
+			BatchSize: 5,
+			Retry:     0, // no retry. on error drop events
+		},
+		pipeline.Settings{
 			WaitClose:     0,
 			WaitCloseMode: pipeline.NoWaitOnClose,
-		})
+		},
+	)
+}
 
+func (bt *beater) client() (string, *http.Client) {
+	if parsed, err := url.Parse(bt.server.Addr); err == nil && parsed.Scheme == "unix" {
+		return "http://test-apm-server/", &http.Client{
+			Transport: &http.Transport{
+				DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+					return net.Dial("unix", parsed.Path)
+				},
+			},
+		}
+	}
+	scheme := "http://"
+	if bt.server.TLSConfig != nil {
+		scheme = "https://"
+	}
+	return scheme + bt.server.Addr, &http.Client{}
+}
+
+func (bt *beater) wait() error {
+	wait := make(chan struct{}, 1)
+
+	go func() {
+		for bt.server == nil {
+			time.Sleep(10 * time.Millisecond)
+		}
+		wait <- struct{}{}
+	}()
+	timeout := time.NewTimer(2 * time.Second)
+
+	select {
+	case <-wait:
+		return nil
+	case <-timeout.C:
+		return errors.New("timeout waiting server create")
+	}
+}
+
+func setupBeater(t *testing.T, ucfg *common.Config) (*beater, func()) {
+	// create a pipeline
+	pip, err := DummyPipeline()
+	assert.NoError(t, err)
+
+	// create a beat
+	apm, err := instance.NewBeat("test-apm-server", "", "")
+	assert.NoError(t, err)
+	assert.NotNil(t, apm)
+	apmBeat := &apm.Beat
+	// connect pipeline to beat
+	apmBeat.Publisher = pip
+
+	// create our beater
+	beatBeater, err := New(apmBeat, ucfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, beatBeater)
+
+	// start it
+	go func() {
+		beatBeater.Run(apmBeat)
+	}()
+
+	// wait for ready
+	btr := beatBeater.(*beater)
+	btr.wait()
+	waitForServer(btr.client())
+
+	return btr, beatBeater.Stop
+}
+
+func SetupServer(b *testing.B) *http.ServeMux {
+	pip, err := DummyPipeline()
 	if err != nil {
-		b.Fatalf("error initializing publisher: %v", err)
+		b.Fatal("error initializing pipeline", err)
 	}
 
 	pub, err := newPublisher(pip, 1, time.Duration(0))
-
 	if err != nil {
-		b.Fatal(err)
+		b.Fatal("error initializing publisher", err)
 	}
 	return newMuxer(defaultConfig("7.0.0"), pub.Send)
 }
@@ -241,6 +309,7 @@ func SetupServer(b *testing.B) *http.ServeMux {
 func pluralize(entity string) string {
 	return entity + "s"
 }
+
 func createPayload(entityType string, numEntities int) []byte {
 	data, err := loader.LoadValidData(entityType)
 	if err != nil {
