@@ -259,7 +259,7 @@ var transactionSchema = `{
             "properties": {
                 "raw": {
                     "type": ["string", "null"],
-                    "description": "The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.",
+                    "description": "The raw, unparsed URL of the HTTP request line, e.g https://example.com:443/search?q=elasticsearch. This URL may be absolute or relative. For more details, see https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2.",
                     "maxLength": 1024
                 },
                 "protocol": {
