@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -62,6 +63,10 @@ func tmpTestUnix(t *testing.T) string {
 }
 
 func TestServerOkUnix(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows")
+	}
+
 	addr := tmpTestUnix(t)
 	ucfg, err := common.NewConfigFrom(map[string]interface{}{
 		"host": "unix:" + addr,
