@@ -14,17 +14,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/cmd/instance"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
 	pubs "github.com/elastic/beats/libbeat/publisher"
 	"github.com/elastic/beats/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
+	"github.com/elastic/beats/libbeat/version"
 )
 
 func TestBeatConfig(t *testing.T) {
@@ -280,10 +281,15 @@ func setupBeater(t *testing.T, ucfg *common.Config) (*beater, func()) {
 	assert.NoError(t, err)
 
 	// create a beat
-	apm, err := instance.NewBeat("test-apm-server", "", "")
-	assert.NoError(t, err)
-	assert.NotNil(t, apm)
-	apmBeat := &apm.Beat
+	apmBeat := &beat.Beat{
+		Info: beat.Info{
+			Beat:        "test-apm-server",
+			IndexPrefix: "test-apm-server",
+			Version:     version.GetDefaultVersion(),
+			UUID:        uuid.NewV4(),
+		},
+	}
+
 	// connect pipeline to beat
 	apmBeat.Publisher = pip
 
