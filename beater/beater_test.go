@@ -232,6 +232,8 @@ func (bt *beater) client(insecure bool) (string, *http.Client) {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
+	bt.mutex.Lock() // for reading bt.server
+	defer bt.mutex.Unlock()
 	if parsed, err := url.Parse(bt.server.Addr); err == nil && parsed.Scheme == "unix" {
 		transport.DialContext = func(_ context.Context, _, _ string) (net.Conn, error) {
 			return net.Dial("unix", parsed.Path)
@@ -251,7 +253,13 @@ func (bt *beater) wait() error {
 	wait := make(chan struct{}, 1)
 
 	go func() {
-		for bt.server == nil {
+		for {
+			bt.mutex.Lock()
+			if bt.server != nil {
+				bt.mutex.Unlock()
+				break
+			}
+			bt.mutex.Unlock()
 			time.Sleep(10 * time.Millisecond)
 		}
 		wait <- struct{}{}
