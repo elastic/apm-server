@@ -973,10 +973,10 @@
 			"revisionTime": "2018-03-09T00:36:09Z"
 		},
 		{
-			"checksumSHA1": "IdhOS26Kl7cvP0wWAglYOlRlTok=",
+			"checksumSHA1": "Hx0qZhH5c9794AL6uKgBFWQQQ44=",
 			"path": "github.com/elastic/go-sysinfo",
-			"revision": "9c842019df6fc236a6f1ef5537109ac36357dd63",
-			"revisionTime": "2018-03-16T07:12:44Z"
+			"revision": "68648656638a7fb0878499b50f1dcd0499d37c41",
+			"revisionTime": "2018-03-29T11:04:08Z"
 		},
 		{
 			"checksumSHA1": "jTbNB3zTWutaSKScd7UyLWt+jn0=",
@@ -1057,10 +1057,10 @@
 			"revisionTime": "2018-04-03T07:40:42Z"
 		},
 		{
-			"checksumSHA1": "DRu6+HSK/RVvCx0j2LdlL6vQjcA=",
+			"checksumSHA1": "yu/X+qHftvfQlAnjPdYLwrDn2nI=",
 			"path": "github.com/elastic/go-windows",
-			"revision": "a8f9f07dec5f30c1e17afc9f360c0aed39225222",
-			"revisionTime": "2018-02-07T18:09:04Z"
+			"revision": "a730c8b4e08aef7e1ebb642928bf862996ad2383",
+			"revisionTime": "2018-04-05T16:13:57Z"
 		},
 		{
 			"checksumSHA1": "RPOLNUpw00QUUaA/U4YbPVf6WlA=",
@@ -1620,13 +1620,6 @@
 			"revisionTime": "2017-12-30T17:54:59Z",
 			"version": "v1.2.0",
 			"versionExact": "v1.2.0"
-		},
-		{
-			"checksumSHA1": "ci7skUhpD1VwkoR0tKVdggTkYrE=",
-			"origin": "github.com/elastic/beats/vendor/github.com/urso/go-structform",
-			"path": "github.com/urso/go-structform",
-			"revision": "cefe024e4f0198e8d6c656937f3282d7fb7631b6",
-			"revisionTime": "2018-03-08T23:18:40Z"
 		},
 		{
 			"checksumSHA1": "AkYoBxV+Imq2EBwNcb53hEGh7sQ=",
