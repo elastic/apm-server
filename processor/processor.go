@@ -9,11 +9,11 @@ type NewProcessor func() Processor
 
 type Processor interface {
 	Validate(map[string]interface{}) error
-	Decode(config.Config, map[string]interface{}) (Payload, error)
+	Decode(map[string]interface{}) (Payload, error)
 	Name() string
 }
 type Payload interface {
-	Transform() []beat.Event
+	Transform(config.Config) []beat.Event
 }
 
 type Decoder interface {

@@ -46,12 +46,12 @@ func generate() error {
 			return err
 		}
 
-		payload, err := p.Decode(config.Config{}, data)
+		payload, err := p.Decode(data)
 		if err != nil {
 			return err
 		}
 
-		events := payload.Transform()
+		events := payload.Transform(config.Config{})
 
 		for _, d := range events {
 			n, err := d.GetValue("processor.name")

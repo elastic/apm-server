@@ -23,15 +23,13 @@ type Payload struct {
 	Process *m.Process
 	User    *m.User
 	Events  []*Event
-
-	config config.Config
 }
 
-func DecodePayload(config config.Config, raw map[string]interface{}) (*Payload, error) {
+func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 	if raw == nil {
 		return nil, nil
 	}
-	pa := &Payload{config: config}
+	pa := &Payload{}
 
 	var err error
 	service, err := m.DecodeService(raw["service"], err)
@@ -55,7 +53,7 @@ func DecodePayload(config config.Config, raw map[string]interface{}) (*Payload, 
 	return pa, err
 }
 
-func (pa *Payload) Transform() []beat.Event {
+func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 	transactionCounter.Add(int64(len(pa.Events)))
 
@@ -82,7 +80,7 @@ func (pa *Payload) Transform() []beat.Event {
 			ev := beat.Event{
 				Fields: common.MapStr{
 					"processor":   processorSpanEntry,
-					spanDocType:   sp.Transform(pa.config, pa.Service),
+					spanDocType:   sp.Transform(conf, pa.Service),
 					"transaction": trId,
 					"context":     spanContext.Transform(sp.Context),
 				},

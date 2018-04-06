@@ -15,11 +15,11 @@ func BenchmarkWithFileLoading(b *testing.B) {
 		if err != nil {
 			b.Fatalf("Error: %v", err)
 		}
-		payload, err := processor.Decode(config.Config{}, data)
+		payload, err := processor.Decode(data)
 		if err != nil {
 			b.Fatalf("Error: %v", err)
 		}
-		payload.Transform()
+		payload.Transform(config.Config{})
 	}
 }
 
@@ -29,12 +29,12 @@ func BenchmarkTransactionFileLoadingOnce(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		err := processor.Validate(data)
 		if err != nil {
+			payload, err := processor.Decode(data)
+			if err != nil {
+				b.Fatalf("Error: %v", err)
+			}
+			payload.Transform(config.Config{})
 			b.Fatalf("Error: %v", err)
 		}
-		payload, err := processor.Decode(config.Config{}, data)
-		if err != nil {
-			b.Fatalf("Error: %v", err)
-		}
-		payload.Transform()
 	}
 }

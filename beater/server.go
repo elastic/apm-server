@@ -7,12 +7,11 @@ import (
 
 	"golang.org/x/net/netutil"
 
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
 )
 
-type reporter func(pr.Payload) error
+type reporter func(event) error
 
 func newServer(config *Config, report reporter) *http.Server {
 	mux := newMuxer(config, report)

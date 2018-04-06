@@ -48,9 +48,9 @@ func TestTransform(t *testing.T) {
 	data, err := loader.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
-	payload, err := NewProcessor().Decode(config.Config{}, data)
+	payload, err := NewProcessor().Decode(data)
 	assert.NoError(t, err)
-	rs := payload.Transform()
+	rs := payload.Transform(config.Config{})
 	assert.Len(t, rs, 1)
 	event := rs[0]
 	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
@@ -61,6 +61,6 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, "1", getStr(output, "service.version"))
 	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
 
-	payload, err = NewProcessor().Decode(config.Config{}, nil)
+	payload, err = NewProcessor().Decode(nil)
 	assert.Equal(t, errors.New("Error fetching field"), err)
 }

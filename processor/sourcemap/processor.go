@@ -8,7 +8,6 @@ import (
 
 	parser "github.com/go-sourcemap/sourcemap"
 
-	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -60,7 +59,7 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Decode(config config.Config, raw map[string]interface{}) (pr.Payload, error) {
+func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 	transformations.Inc()
 
 	decoder := utility.ManualDecoder{}
@@ -69,8 +68,6 @@ func (p *processor) Decode(config config.Config, raw map[string]interface{}) (pr
 		ServiceVersion: decoder.String(raw, "service_version"),
 		Sourcemap:      decoder.String(raw, "sourcemap"),
 		BundleFilepath: decoder.String(raw, "bundle_filepath"),
-
-		config: config,
 	}
 	if decoder.Err != nil {
 		return nil, decoder.Err

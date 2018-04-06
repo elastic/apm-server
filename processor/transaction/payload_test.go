@@ -84,7 +84,7 @@ func TestPayloadDecode(t *testing.T) {
 			},
 		},
 	} {
-		Payload, err := DecodePayload(config.Config{}, test.input)
+		Payload, err := DecodePayload(test.input)
 		assert.Equal(t, test.p, Payload)
 		assert.Equal(t, test.err, err)
 	}
@@ -232,7 +232,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Payload.Transform()
+		outputEvents := test.Payload.Transform(config.Config{})
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp)

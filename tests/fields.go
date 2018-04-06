@@ -81,11 +81,11 @@ func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set,
 		return nil, err
 	}
 
-	payl, err := p.Decode(config.Config{}, data)
+	payl, err := p.Decode(data)
 	if err != nil {
 		return nil, err
 	}
-	events := payl.Transform()
+	events := payl.Transform(config.Config{})
 
 	eventNames := set.New()
 	for _, event := range events {

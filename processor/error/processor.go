@@ -3,7 +3,6 @@ package error
 import (
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -43,9 +42,9 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Decode(config config.Config, raw map[string]interface{}) (pr.Payload, error) {
+func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 	transformations.Inc()
-	pa, err := DecodePayload(config, raw)
+	pa, err := DecodePayload(raw)
 	if err != nil {
 		return nil, err
 	}

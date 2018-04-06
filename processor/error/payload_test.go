@@ -82,7 +82,7 @@ func TestPayloadDecode(t *testing.T) {
 			},
 		},
 	} {
-		payload, err := DecodePayload(config.Config{}, test.input)
+		payload, err := DecodePayload(test.input)
 		assert.Equal(t, test.p, payload)
 		assert.Equal(t, test.err, err)
 	}
@@ -170,8 +170,8 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		test.Payload.config = config.Config{SmapMapper: &sourcemap.SmapMapper{}}
-		outputEvents := test.Payload.Transform()
+		conf := config.Config{SmapMapper: &sourcemap.SmapMapper{}}
+		outputEvents := test.Payload.Transform(conf)
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))

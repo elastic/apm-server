@@ -16,11 +16,11 @@ func BenchmarkEventWithFileLoading(b *testing.B) {
 			panic(err)
 		}
 
-		payload, err := processor.Decode(config.Config{}, data)
+		payload, err := processor.Decode(data)
 		if err != nil {
 			b.Fatalf("Error: %v", err)
 		}
-		payload.Transform()
+		payload.Transform(config.Config{})
 	}
 }
 
@@ -33,10 +33,10 @@ func BenchmarkEventFileLoadingOnce(b *testing.B) {
 			panic(err)
 		}
 
-		payload, err := processor.Decode(config.Config{}, data)
+		payload, err := processor.Decode(data)
 		if err != nil {
 			b.Fatalf("Error: %v", err)
 		}
-		payload.Transform()
+		payload.Transform(config.Config{})
 	}
 }

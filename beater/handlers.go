@@ -317,12 +317,13 @@ func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, re
 		return http.StatusBadRequest, err
 	}
 
-	payload, err := processor.Decode(config, data)
+	payload, err := processor.Decode(data)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	if err = report(payload); err != nil {
+	event := event{payload: payload, config: config}
+	if err = report(event); err != nil {
 		return http.StatusServiceUnavailable, err
 	}
 

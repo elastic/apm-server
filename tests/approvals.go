@@ -103,10 +103,10 @@ func TestProcessRequests(t *testing.T, p processor.Processor, config config.Conf
 		err = p.Validate(data)
 		assert.NoError(err)
 
-		payload, err := p.Decode(config, data)
+		payload, err := p.Decode(data)
 		assert.NoError(err)
 
-		events := payload.Transform()
+		events := payload.Transform(config)
 
 		// extract Fields and write to received.json
 		eventFields := make([]common.MapStr, len(events))

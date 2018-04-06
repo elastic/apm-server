@@ -21,20 +21,18 @@ type Payload struct {
 	ServiceVersion string
 	Sourcemap      string
 	BundleFilepath string
-
-	config config.Config
 }
 
-func (pa *Payload) Transform() []beat.Event {
+func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	sourcemapCounter.Add(1)
 	if pa == nil {
 		return nil
 	}
 
-	if pa.config.SmapMapper == nil {
+	if conf.SmapMapper == nil {
 		logp.NewLogger("sourcemap").Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		pa.config.SmapMapper.NewSourcemapAdded(smap.Id{
+		conf.SmapMapper.NewSourcemapAdded(smap.Id{
 			ServiceName:    pa.ServiceName,
 			ServiceVersion: pa.ServiceVersion,
 			Path:           pa.BundleFilepath,
