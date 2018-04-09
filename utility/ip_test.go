@@ -40,6 +40,7 @@ func TestExtractIP(t *testing.T) {
 		{forwardedFor, &remoteWithPort, nil, &forwardedForMultiple},
 		{remote, &remoteWithPort, nil, nil},
 		{remote, &remoteWithPort, &empty, &empty},
+		{empty, &empty, &empty, &empty},
 	}
 
 	nilOrString := func(v *string) string {
