@@ -305,6 +305,8 @@ func setupServer(t *testing.T, cfg *common.Config) (*beater, func()) {
 	}
 	assert.NoError(t, err)
 	btr, stop := setupBeater(t, baseConfig)
+
+	assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
 	return btr, stop
 }
 

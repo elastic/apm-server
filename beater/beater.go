@@ -48,25 +48,24 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	return bt, nil
 }
 
-func (bt *beater) Run(b *beat.Beat) error {
-	var err error
-
-	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout)
-	if err != nil {
-		return err
+// parseListener extracts the network and path for a configured host address
+// all paths are tcp unix:/path/to.sock
+func parseListener(host string) (string, string) {
+	if parsed, err := url.Parse(host); err == nil && parsed.Scheme == "unix" {
+		return parsed.Scheme, parsed.Path
 	}
-	defer pub.Stop()
+	return "tcp", host
+}
 
-	path := bt.config.Host
-	network := "tcp"
-	if parsed, err := url.Parse(path); err == nil && parsed.Scheme == "unix" {
-		network = parsed.Scheme
-		path = parsed.Path
-	}
+// listen starts the listener for bt.config.Host
+// bt.config.Host may be mutated by this function in case the resolved listening address does not match the
+// configured bt.config.Host value.
+// This should only be called once, from Run.
+func (bt *beater) listen() (net.Listener, error) {
+	network, path := parseListener(bt.config.Host)
 	lis, err := net.Listen(network, path)
 	if err != nil {
-		bt.logger.Errorf("failed to listen: %s", err)
-		return err
+		return nil, err
 	}
 	// in case host is :0 or similar
 	if network == "tcp" {
@@ -76,6 +75,22 @@ func (bt *beater) Run(b *beat.Beat) error {
 			bt.config.Host = addr
 		}
 	}
+	return lis, err
+}
+
+func (bt *beater) Run(b *beat.Beat) error {
+	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout)
+	if err != nil {
+		return err
+	}
+	defer pub.Stop()
+
+	lis, err := bt.listen()
+	if err != nil {
+		bt.logger.Error("failed to listen:", err)
+		return nil
+	}
+
 	go notifyListening(bt.config, pub.Send)
 
 	bt.mutex.Lock()
