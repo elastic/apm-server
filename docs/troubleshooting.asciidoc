@@ -29,56 +29,69 @@ include::copied-from-beats/getting-help.asciidoc[]
 
 include::copied-from-beats/debugging.asciidoc[]
 
+[[common-problems]]
 == Common problems
+[[queue-is-full]]
 === 503: Queue is full
 APM Server has an internal queue which stores documents until they can be delivered to Elasticsearch.
 It is designed this way to alleviate problems that might occur if Elasticsearch is intermittently unavailable or if a large spike of data arrives at the APM Server at the same time.
 
-When the internal queue is full, APM Server will return a HTTP 503 status with the message "Queue is full".
+When the internal queue is full,
+APM Server will return a HTTP 503 status with the message "Queue is full".
 
-A full queue generally means APM Server that the amount of data being collected by agents and sent to APM Server is greater than the amount of data that the Elasticsearch cluster can ingest.
-If Elasticsearch is unavailable for a prolonged period or if a sudden spike of data arrives at the APM Server, the queue can also fill up.
+A full queue generally means that the amount of data being collected by agents and sent to APM Server is greater than the amount of data that the Elasticsearch cluster can ingest.
+If Elasticsearch is unavailable for a prolonged period or if a sudden spike of data arrives at the APM Server,
+the queue can also fill up.
 
-To solve the "503: Queue is full" problem, you have a few options:
+To solve the "503: Queue is full" problem,
+you have a few options:
 
 * <<reduce-data,Reduce the amount of data collected>>
 * <<increase-ingestion-rate,Increase the ingestion rate of Elasticsearch>>
-* <<increase-queue-size,Increase the size of the APM Server queue.>>
+* <<increase-queue-size,Increase the size of the APM Server queue>>
 
-
+[[request-timed-out]]
 === 503: Request timed out waiting to be processed
 
 There is a limit to the number of requests that the APM Server will process at the same time.
-The APM Server will return a HTTP 503 status with the message "Request timed out waiting to be processed" when the limit is reached and the request from an agent is blocked from delivering the request.
+The APM Server will return a HTTP 503 status with the message "Request timed out waiting to be processed" when the limit is reached and the request from an agent is blocked.
 This limit is determined by the `apm-server.concurrent_requests` configuration parameter.
 
-To alleviate this problem, you can try to:
+To alleviate this problem,
+you can try to:
 
 * <<reduce-data,Reduce the amount of data collected>>
 * <<reduce-payload-size,Decrease the payload size>>
 
+[[troubleshooting-solutions]]
 === Solutions 
-==== Reduce the amount of data collected
 [[reduce-data]]
-The most obvious way to reduce the number of documents to be indexed, is to reduce the _transaction sample rate_.
+==== Reduce the amount of data collected
+
+The most obvious way to reduce the number of documents to be indexed,
+is to reduce the _transaction sample rate_.
 Transaction sample rate is controlled in the configuration of agents (for example for {apm-py-ref}/configuration.html#config-transaction-sample-rate[Python] and {apm-node-ref}/agent-api.html#transaction-sample-rate[Node.js]).
 
 Reducing transaction sample rate does not affect the collection of metrics such as Requests Per Second.
 
-==== Increase the Elasticsearch ingestion rate
 [[increase-ingestion-rate]]
+==== Increase the Elasticsearch ingestion rate
+
 Increasing Elasticsearch ingestion rate is a large topic.
-Please see {ref}/tune-for-indexing-speed.html, particularly `Increase the refresh interval`, `Disable swapping`,
+Please see {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
+particularly `Increase the refresh interval`, `Disable swapping`,
 `Use faster hardware` and `Indexing buffer size`.
 
-==== Increase internal queue size
 [[increase-queue-size]]
+==== Increase internal queue size
+
 A larger internal queue will allow Elasticsearch to be unavailable longer periods and will alleviate problems with sudden spikes of data. 
 The queue size can be increased by increasing `apm-server.queue.mem.size`. 
 Be aware that increasing `apm-server.queue.mem.size` can significantly affect the memory usage of the APM Server. 
 
-==== Reduce the payload size
 [[reduce-payload-size]]
+==== Reduce the payload size
+
 Large payloads coming from agents can cause "503: Request timed out waiting to be processed".
 You can reduce the payload size by decreasing the `max_queue_size` in the agents. 
 This will decrease the size of the payloads delivered by agents to the APM Server.
