@@ -1,35 +1,58 @@
 package utility
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+func testRequest(remote, real, forward *string) *http.Request {
+	req, _ := http.NewRequest("POST", "_", nil)
+	if remote != nil {
+		req.RemoteAddr = *remote
+	}
+	if real != nil {
+		req.Header.Add("X-Real-IP", *real)
+	}
+	if forward != nil {
+		req.Header.Add("X-Forwarded-For", *forward)
+	}
+	return req
+}
+
 func TestExtractIP(t *testing.T) {
-	var req = func(real *string, forward *string) *http.Request {
-		req, _ := http.NewRequest("POST", "_", nil)
-		req.RemoteAddr = "10.11.12.13:8080"
-		if real != nil {
-			req.Header.Add("X-Real-IP", *real)
-		}
-		if forward != nil {
-			req.Header.Add("X-Forwarded-For", *forward)
-		}
-		return req
+	remote := "10.11.12.13"
+	remoteWithPort := remote + ":8080"
+	realIp := "54.55.101.102"
+	forwardedFor := "54.56.103.104"
+	forwardedForMultiple := "54.56.103.104 , 54.57.105.106 , 54.58.107.108"
+	empty := ""
+
+	testCases := []struct {
+		want                  string
+		remote, real, forward *string
+	}{
+		{realIp, &remoteWithPort, &realIp, nil},
+		{realIp, &remoteWithPort, &realIp, &forwardedFor},
+		{forwardedFor, &remoteWithPort, nil, &forwardedFor},
+		{forwardedFor, &remoteWithPort, nil, &forwardedForMultiple},
+		{remote, &remoteWithPort, nil, nil},
+		{remote, &remoteWithPort, &empty, &empty},
 	}
 
-	real := "54.55.101.102"
-	assert.Equal(t, real, ExtractIP(req(&real, nil)))
-
-	forwardedFor := "54.56.103.104"
-	assert.Equal(t, real, ExtractIP(req(&real, &forwardedFor)))
-	assert.Equal(t, forwardedFor, ExtractIP(req(nil, &forwardedFor)))
-
-	forwardedForMultiple := "54.56.103.104 , 54.57.105.106 , 54.58.107.108"
-	assert.Equal(t, forwardedFor, ExtractIP(req(nil, &forwardedForMultiple)))
-
-	assert.Equal(t, "10.11.12.13", ExtractIP(req(nil, nil)))
-	assert.Equal(t, "10.11.12.13", ExtractIP(req(new(string), new(string))))
+	nilOrString := func(v *string) string {
+		if v == nil {
+			return "nil"
+		}
+		return *v
+	}
+	for _, tc := range testCases {
+		name := fmt.Sprintf("extractIP remote: %v, X-Real-IP: %v, X-Forwarded-For: %v",
+			nilOrString(tc.remote), nilOrString(tc.real), nilOrString(tc.forward))
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, ExtractIP(testRequest(tc.remote, tc.real, tc.forward)))
+		})
+	}
 }
