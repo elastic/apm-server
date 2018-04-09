@@ -1,6 +1,8 @@
 package error
 
 import (
+	"time"
+
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
@@ -61,6 +63,10 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	for idx := 0; idx < len(pa.Events); idx++ {
 		event := pa.Events[idx]
 		context := context.Transform(event.Context)
+		var zeroTime = time.Time{}
+		if event.Timestamp == zeroTime {
+			event.Timestamp = time.Now()
+		}
 		ev := beat.Event{
 			Fields: common.MapStr{
 				"processor":  processorEntry,

@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2017-05-09T15:04:05.999999Z",
+            "@timestamp": "-",
             "context": {
                 "service": {
                     "agent": {

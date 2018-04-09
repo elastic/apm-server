@@ -197,7 +197,7 @@ func TestTimeRFC3339(t *testing.T) {
 	tp, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
 	for _, test := range []testStr{
 		{key: "time", keys: []string{}, out: tp, err: nil},
-		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
+		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
 		{key: "str", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
 		{key: "b", keys: []string{"a"}, out: outnil, err: fetchErr},
 	} {
