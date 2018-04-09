@@ -10,29 +10,20 @@ import (
 // X-Forwarded-For has a list of IPs, of which the first is the one of the original client.
 // This value however might not be necessarily trusted, as it can be forged by a malicious user.
 func ExtractIP(r *http.Request) string {
-	var remoteAddr = func() string {
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			return r.RemoteAddr
-		}
-		return ip
+	realIP := r.Header.Get("X-Real-IP")
+	if realIP != "" {
+		return realIP
 	}
 
-	var forwarded = func() string {
-		forwardedFor := r.Header.Get("X-Forwarded-For")
-		client := strings.Split(forwardedFor, ",")[0]
+	forwardedFor := r.Header.Get("X-Forwarded-For")
+	client := strings.Split(forwardedFor, ",")[0]
+	if client != "" {
 		return strings.TrimSpace(client)
 	}
 
-	var real = func() string {
-		return r.Header.Get("X-Real-IP")
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
 	}
-
-	if ip := real(); ip != "" {
-		return ip
-	}
-	if ip := forwarded(); ip != "" {
-		return ip
-	}
-	return remoteAddr()
+	return ip
 }
