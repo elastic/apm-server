@@ -2,24 +2,30 @@ package beater
 
 import (
 	"bytes"
+	"context"
+	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/outputs"
 	pubs "github.com/elastic/beats/libbeat/publisher"
 	"github.com/elastic/beats/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
+	"github.com/elastic/beats/libbeat/version"
 )
 
 func TestBeatConfig(t *testing.T) {
@@ -187,11 +193,6 @@ To get a memory profile, use this:
 
 */
 
-// Needed to make unique registers
-// TODO: When pipeline no longer requires a *monitoring.Registry,
-//       this can be removed.
-var testCount int
-
 type DummyOutputClient struct {
 }
 
@@ -204,36 +205,121 @@ func (d *DummyOutputClient) Close() error {
 	return nil
 }
 
-func SetupServer(b *testing.B) *http.ServeMux {
-	out := outputs.Group{
-		Clients:   []outputs.Client{&DummyOutputClient{}},
-		BatchSize: 5,
-		Retry:     0, // no retry. on error drop events
-	}
-
-	queueFactory := func(e queue.Eventer) (queue.Queue, error) {
-		return memqueue.NewBroker(memqueue.Settings{
-			Eventer: e,
-			Events:  20,
-		}), nil
-	}
-	testCount++
-	pip, err := pipeline.New(
-		beat.Info{Name: "testBeat"},
-		monitoring.Default.NewRegistry("testing"+string(testCount)),
-		queueFactory, out, pipeline.Settings{
+func DummyPipeline() (*pipeline.Pipeline, error) {
+	return pipeline.New(
+		beat.Info{Name: "test-apm-server"},
+		nil,
+		func(e queue.Eventer) (queue.Queue, error) {
+			return memqueue.NewBroker(memqueue.Settings{
+				Eventer: e,
+				Events:  20,
+			}), nil
+		},
+		outputs.Group{
+			Clients:   []outputs.Client{&DummyOutputClient{}},
+			BatchSize: 5,
+			Retry:     0, // no retry. on error drop events
+		},
+		pipeline.Settings{
 			WaitClose:     0,
 			WaitCloseMode: pipeline.NoWaitOnClose,
-		})
+		},
+	)
+}
 
+func (bt *beater) client(insecure bool) (string, *http.Client) {
+	transport := &http.Transport{}
+	if insecure {
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+
+	bt.mutex.Lock() // for reading bt.server
+	defer bt.mutex.Unlock()
+	if parsed, err := url.Parse(bt.server.Addr); err == nil && parsed.Scheme == "unix" {
+		transport.DialContext = func(_ context.Context, _, _ string) (net.Conn, error) {
+			return net.Dial("unix", parsed.Path)
+		}
+		return "http://test-apm-server/", &http.Client{
+			Transport: transport,
+		}
+	}
+	scheme := "http://"
+	if bt.config.SSL.isEnabled() {
+		scheme = "https://"
+	}
+	return scheme + bt.config.Host, &http.Client{Transport: transport}
+}
+
+func (bt *beater) wait() error {
+	wait := make(chan struct{}, 1)
+
+	go func() {
+		for {
+			bt.mutex.Lock()
+			if bt.server != nil {
+				bt.mutex.Unlock()
+				break
+			}
+			bt.mutex.Unlock()
+			time.Sleep(10 * time.Millisecond)
+		}
+		wait <- struct{}{}
+	}()
+	timeout := time.NewTimer(2 * time.Second)
+
+	select {
+	case <-wait:
+		return nil
+	case <-timeout.C:
+		return errors.New("timeout waiting server create")
+	}
+}
+
+func setupBeater(t *testing.T, ucfg *common.Config) (*beater, func()) {
+	// create a pipeline
+	pip, err := DummyPipeline()
+	assert.NoError(t, err)
+
+	// create a beat
+	apmBeat := &beat.Beat{
+		Info: beat.Info{
+			Beat:        "test-apm-server",
+			IndexPrefix: "test-apm-server",
+			Version:     version.GetDefaultVersion(),
+			UUID:        uuid.NewV4(),
+		},
+	}
+
+	// connect pipeline to beat
+	apmBeat.Publisher = pip
+
+	// create our beater
+	beatBeater, err := New(apmBeat, ucfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, beatBeater)
+
+	// start it
+	go func() {
+		beatBeater.Run(apmBeat)
+	}()
+
+	// wait for ready
+	btr := beatBeater.(*beater)
+	btr.wait()
+	waitForServer(btr.client(true))
+
+	return btr, beatBeater.Stop
+}
+
+func SetupServer(b *testing.B) *http.ServeMux {
+	pip, err := DummyPipeline()
 	if err != nil {
-		b.Fatalf("error initializing publisher: %v", err)
+		b.Fatal("error initializing pipeline", err)
 	}
 
 	pub, err := newPublisher(pip, 1, time.Duration(0))
-
 	if err != nil {
-		b.Fatal(err)
+		b.Fatal("error initializing publisher", err)
 	}
 	return newMuxer(defaultConfig("7.0.0"), pub.Send)
 }
@@ -241,6 +327,7 @@ func SetupServer(b *testing.B) *http.ServeMux {
 func pluralize(entity string) string {
 	return entity + "s"
 }
+
 func createPayload(entityType string, numEntities int) []byte {
 	data, err := loader.LoadValidData(entityType)
 	if err != nil {
