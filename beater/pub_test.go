@@ -16,8 +16,7 @@ func TestNumberGoRoutines(t *testing.T) {
 		expectedGoRoutines func() int
 	}{
 		{goMaxProcs: 0, expectedGoRoutines: func() int { return runtime.NumGoroutine() + runtime.NumCPU() }},
-		{goMaxProcs: 1, expectedGoRoutines: func() int { return runtime.NumGoroutine() + 1 }},
-		{goMaxProcs: 15, expectedGoRoutines: func() int { return runtime.NumGoroutine() + runtime.NumCPU() }},
+		{goMaxProcs: 3, expectedGoRoutines: func() int { return runtime.NumGoroutine() + 3 }},
 	} {
 		expected := test.expectedGoRoutines()
 		runtime.GOMAXPROCS(test.goMaxProcs)

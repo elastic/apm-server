@@ -11,7 +11,7 @@ import (
 	"github.com/elastic/beats/libbeat/version"
 )
 
-type reporter func(event) error
+type reporter func(decodedRequest) error
 
 func newServer(config *Config, report reporter) *http.Server {
 	mux := newMuxer(config, report)

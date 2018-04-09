@@ -371,4 +371,4 @@ func waitForServer(url string, client *http.Client) {
 	panic("server run timeout (10 seconds)")
 }
 
-func nopReporter(e event) error { return nil }
+func nopReporter(e decodedRequest) error { return nil }
