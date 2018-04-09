@@ -79,8 +79,8 @@ Be aware that increasing `apm-server.queue.mem.size` can significantly affect th
 
 ==== Reduce the payload size
 [[reduce-payload-size]]
-Often when experiencing this error, it's because payload sizes coming from agents are too large. 
+Large payloads coming from agents can cause "503: Request timed out waiting to be processed".
 You can reduce the payload size by decreasing the `max_queue_size` in the agents. 
 This will decrease the size of the payloads delivered by agents to the APM Server.
 Requests will however be more frequent instead.
-The references for {apm-py-ref}/configuration.html#config-max-queue-size[Python] agent and the {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agent contain more information.
+The reference documentation for {apm-py-ref}/configuration.html#config-max-queue-size[Python] agent and the {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agent contain more information.
