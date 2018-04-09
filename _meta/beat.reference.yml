@@ -3,7 +3,7 @@
 ############################# APM Server ######################################
 
 apm-server:
-  # Defines the host and port the server is listening on
+  # Defines the host and port the server is listening on.  use "unix:/path/to.sock" to listen on a unix domain socket.
   #host: "localhost:8200"
 
   # Maximum permitted size in bytes of an unzipped request accepted by the server to be processed.

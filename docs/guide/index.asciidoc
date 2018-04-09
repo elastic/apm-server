@@ -147,6 +147,7 @@ output.elasticsearch:
 The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
 If you change the listen address from `localhost` to something that is accessible from outside of the machine,
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
+Use path of the form `"unix:/path/to.sock"` to listen on unix domain socket.
 Alternatively,
 you can use the {apm-server-ref}/security.html[secret token and TLS] to secure access to APM Server API.
 
