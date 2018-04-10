@@ -1793,6 +1793,12 @@
 			"revisionTime": "2018-03-22T18:04:37Z"
 		},
 		{
+			"checksumSHA1": "whCSspa9pYarl527EuhPz91cbUE=",
+			"path": "golang.org/x/net/netutil",
+			"revision": "6078986fec03a1dcc236c34816c71b0e05018fda",
+			"revisionTime": "2017-09-09T04:35:08Z"
+		},
+		{
 			"checksumSHA1": "QEm/dePZ0lOnyOs+m22KjXfJ/IU=",
 			"origin": "github.com/elastic/beats/vendor/golang.org/x/net/proxy",
 			"path": "golang.org/x/net/proxy",

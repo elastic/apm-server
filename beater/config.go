@@ -18,6 +18,7 @@ type Config struct {
 	SecretToken         string          `config:"secret_token"`
 	SSL                 *SSLConfig      `config:"ssl"`
 	ConcurrentRequests  int             `config:"concurrent_requests" validate:"min=1"`
+	MaxConnections      int             `config:"max_connections"`
 	MaxRequestQueueTime time.Duration   `config:"max_request_queue_time"`
 	Expvar              *ExpvarConfig   `config:"expvar"`
 	Frontend            *FrontendConfig `config:"frontend"`
@@ -112,6 +113,7 @@ func defaultConfig(beatVersion string) *Config {
 		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
 		MaxHeaderSize:       1 * 1024 * 1024,  // 1mb
 		ConcurrentRequests:  5,
+		MaxConnections:      0, // unlimited
 		MaxRequestQueueTime: 2 * time.Second,
 		ReadTimeout:         30 * time.Second,
 		WriteTimeout:        30 * time.Second,
