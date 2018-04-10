@@ -11,19 +11,10 @@ import (
 )
 
 func TestNumberGoRoutines(t *testing.T) {
-	for _, test := range []struct {
-		goMaxProcs         int
-		expectedGoRoutines func() int
-	}{
-		{goMaxProcs: 0, expectedGoRoutines: func() int { return runtime.NumGoroutine() + runtime.NumCPU() }},
-		{goMaxProcs: 3, expectedGoRoutines: func() int { return runtime.NumGoroutine() + 3 }},
-	} {
-		expected := test.expectedGoRoutines()
-		runtime.GOMAXPROCS(test.goMaxProcs)
-		_, err := newPublisher(pip{}, 1, time.Duration(0))
-		assert.NoError(t, err)
-		assert.Equal(t, expected, runtime.NumGoroutine())
-	}
+	before := runtime.NumGoroutine()
+	_, err := newPublisher(pip{}, 1, time.Duration(0))
+	assert.NoError(t, err)
+	assert.Equal(t, before+runtime.GOMAXPROCS(0), runtime.NumGoroutine())
 }
 
 type pip struct{}
