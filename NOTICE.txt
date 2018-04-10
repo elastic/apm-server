@@ -11,7 +11,7 @@ Third party libraries used by the Apm Server project:
 
 --------------------------------------------------------------------
 Dependency: github.com/davecgh/go-spew
-Revision: 346938d642f2ec3594ed81d874461961cd0faa76
+Revision: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
 License type (autodetected): MIT
 ./vendor/github.com/davecgh/go-spew/LICENSE:
 --------------------------------------------------------------------
@@ -181,7 +181,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.2
-Revision: 50372ae92c0b6f54b780751068f82ea0c5844954
+Revision: 1122568edf4ad039734b5224aece9a6259c72684
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -208,7 +208,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Revision: 237dff72b4ba95da2cd985f96a9c0ede4aefc760
+Revision: cdcbd8c3b8bf28ef6d8639ec1e45bf31d2745f2d
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------
@@ -226,7 +226,7 @@ subcomponents is subject to the terms and conditions of the
 subcomponent's license, as noted in the LICENSE file.
 --------------------------------------------------------------------
 Dependency: github.com/ericchiang/k8s
-Revision: 5912993f00cb7c971aaa54529a06bd3eecd6c3d4
+Revision: 5803ed75e31fc1998b5f781ac08e22ff985c3f8f
 License type (autodetected): Apache-2.0
 ./vendor/github.com/ericchiang/k8s/LICENSE:
 --------------------------------------------------------------------
@@ -1582,7 +1582,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/testify
 Version: v1.1.4
-Revision: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+Revision: f390dcf405f7b83c997eac1b06768bb9f44dec18
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
 --------------------------------------------------------------------
@@ -1611,7 +1611,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/urso/go-structform
-Revision: 50372ae92c0b6f54b780751068f82ea0c5844954
+Revision: 844d7d44009e9e8c0f08016fc4dab64e136ca040
 License type (autodetected): Apache-2.0
 ./vendor/github.com/urso/go-structform/LICENSE:
 --------------------------------------------------------------------
@@ -1929,7 +1929,7 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/crypto
-Revision: 5119cf507ed5294cc409c092980c7497ee5d6fd2
+Revision: e8f229864d71a49e5fdc4a9a134c5f85c4c33d64
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/crypto/LICENSE:
 --------------------------------------------------------------------
@@ -1963,7 +1963,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 44b7c21cbf19450f38b337eb6b6fe4f6496fb5b3
+Revision: e90d6d0afc4c315a0d87a568ae68577cc15149a0
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/net/LICENSE:
 --------------------------------------------------------------------
@@ -1997,7 +1997,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sys
-Revision: 37707fdb30a5b38865cfb95e5aab41707daec7fd
+Revision: 571f7bbbe08da2a8955aed9d4db316e78630e9a3
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/sys/LICENSE:
 --------------------------------------------------------------------
@@ -2031,7 +2031,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/time
-Revision: 8be79e1e0910c292df4e79c241bb7e8f7e725959
+Revision: 26559e0f760e39c24d730d3224364aef164ee23f
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/time/LICENSE:
 --------------------------------------------------------------------
