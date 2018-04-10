@@ -5,6 +5,7 @@ import os
 import shutil
 import argparse
 
+
 def is_dir(d):
     if os.path.isdir(d) and os.access(d, os.R_OK):
         return d
