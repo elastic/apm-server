@@ -21,8 +21,10 @@ git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 )
 
 # sync
+# exclude generate_notice.py on this branch since updates have not been backported in beats
 rsync -crpv --delete \
     --exclude=dev-tools/packer/readme.md.j2 \
+    --exclude=dev-tools/generate_notice.py \
     --include="dev-tools/***" \
     --include="script/***" \
     --include="testing/***" \
