@@ -33,13 +33,21 @@ include::copied-from-beats/debugging.asciidoc[]
 == Common problems
 [[queue-is-full]]
 === 503: Queue is full
-APM Server has an internal queue which stores documents until they can be delivered to Elasticsearch.
-It is designed this way to alleviate problems that might occur if Elasticsearch is intermittently unavailable or if a large spike of data arrives at the APM Server at the same time.
+APM Server has an internal queue which buffers documents until they can be delivered to Elasticsearch.
+It is designed this way because it helps:
+
+* to alleviate problems that might occur if Elasticsearch is intermittently unavailable
+* if a large spike of data arrives at the APM Server at the same time
+* send documents to Elasticsearch in bulk, instead of individually
+
 
 When the internal queue is full,
 APM Server will return a HTTP 503 status with the message "Queue is full".
 
-A full queue generally means that the amount of data being collected by agents and sent to APM Server is greater than the amount of data that the Elasticsearch cluster can ingest.
+A full queue generally means that the amount of data being collected by agents and sent to APM Server is greater than the amount of data that the APM Server was able to deliver to Elasticsearch.
+Being unable to deliver data to Elasticsearch could be due to APM Server not being configured properly for the size of your Elasticsearch cluster,
+or because your Elasticsearch cluster is under powered for the given work load or not configured properly for the given work load.
+
 If Elasticsearch is unavailable for a prolonged period or if a sudden spike of data arrives at the APM Server,
 the queue can also fill up.
 
@@ -47,7 +55,8 @@ To solve the "503: Queue is full" problem,
 you have a few options:
 
 * <<reduce-data,Reduce the amount of data collected>>
-* <<increase-ingestion-rate,Increase the ingestion rate of Elasticsearch>>
+* <<tune-output-config,Tune the APM Server output configuration to your cluster>>
+* <<increase-cluster-ingest,Tune Elasticsearch for higher ingestion>>
 * <<increase-queue-size,Increase the size of the APM Server queue>>
 
 [[request-timed-out]]
@@ -62,9 +71,34 @@ you can try to:
 
 * <<reduce-data,Reduce the amount of data collected>>
 * <<reduce-payload-size,Decrease the payload size>>
+* <<add-apm-server-nodes,Add APM Server nodes>>
 
 [[troubleshooting-solutions]]
-=== Solutions 
+=== Solutions
+
+[[tune-output-config]]
+==== Tune APM Server output parameters for your Elasticsearch cluster
+
+If your Elasticsearch cluster is sized to properly to ingest more data than what you are currently seeing,
+there are options available to tweak in the APM Server to make better use of the cluster:
+
+* Increase `output.elasticsearch.workers`
+* Make sure that `output.elasticsearch.bulk_max_size` is high, for example 5120. The default of 50 is very conservative.
+  * If you increase `bulk_max_size`, make sure to also increase `queue.mem.size`.
+  A good rule of thumb for `queue.mem.size` should equal `workers` multiplied by `bulk_max_size`.
+
+Please see {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
+particularly `Increase the refresh interval`, `Disable swapping`,
+`Use faster hardware` and `Indexing buffer size`.
+
+[[increase-cluster-ingest]]
+==== Tune Elasticsearch for higher ingestion
+
+Increasing the Elasticsearch ingestion rate is a large topic.
++Please see {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
++particularly `Increase the refresh interval`, `Disable swapping`,
++`Use faster hardware` and `Indexing buffer size`.
+
 [[reduce-data]]
 ==== Reduce the amount of data collected
 
@@ -73,14 +107,6 @@ is to reduce the _transaction sample rate_.
 Transaction sample rate is controlled in the configuration of agents (for example for {apm-py-ref}/configuration.html#config-transaction-sample-rate[Python] and {apm-node-ref}/agent-api.html#transaction-sample-rate[Node.js]).
 
 Reducing transaction sample rate does not affect the collection of metrics such as Requests Per Second.
-
-[[increase-ingestion-rate]]
-==== Increase the Elasticsearch ingestion rate
-
-Increasing Elasticsearch ingestion rate is a large topic.
-Please see {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
-particularly `Increase the refresh interval`, `Disable swapping`,
-`Use faster hardware` and `Indexing buffer size`.
 
 [[increase-queue-size]]
 ==== Increase internal queue size
@@ -97,3 +123,12 @@ You can reduce the payload size by decreasing the `max_queue_size` in the agents
 This will decrease the size of the payloads delivered by agents to the APM Server.
 Requests will however be more frequent instead.
 The reference documentation for {apm-py-ref}/configuration.html#config-max-queue-size[Python] agent and the {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agent contain more information.
+
+[[add-apm-server-nodes]]
+==== Add APM Server nodes
+
+If the APM Server cannot process incoming requests quickly enough,
+you will start to see "503: Request timed out waiting to be processed".
+
+The best way to get rid of these is to add more processing power to your APM Server cluster
+You can either migrate your APM Server processes to more powerful machines or add more machines.
