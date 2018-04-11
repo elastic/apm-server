@@ -19,7 +19,6 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionNullValues", Path: "data/valid/transaction/null_values.json"},
 		{Name: "TestProcessSystemNull", Path: "data/valid/transaction/system_null.json"},
 		{Name: "TestProcessProcessNull", Path: "data/valid/transaction/process_null.json"},
-		{Name: "TestProcessTransactionMinimalPayload", Path: "data/valid/transaction/minimal_payload.json"},
 		{Name: "TestProcessTransactionMinimalSpan", Path: "data/valid/transaction/minimal_span.json"},
 		{Name: "TestProcessTransactionMinimalService", Path: "data/valid/transaction/minimal_service.json"},
 		{Name: "TestProcessTransactionMinimalProcess", Path: "data/valid/transaction/minimal_process.json"},
@@ -27,6 +26,13 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
 	}
 	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, requestInfo, map[string]string{})
+}
+
+func TestMinimalTransactionProcessorOK(t *testing.T) {
+	requestInfo := []tests.RequestInfo{
+		{Name: "TestProcessTransactionMinimalPayload", Path: "data/valid/transaction/minimal_payload.json"},
+	}
+	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
@@ -39,7 +45,7 @@ func TestProcessorFrontendOK(t *testing.T) {
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), conf, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.NewProcessor(), conf, requestInfo, map[string]string{"@timestamp": "-"})
 }
 
 // ensure invalid documents fail the json schema validation already

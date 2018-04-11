@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2017-12-08T12:52:53.681Z",
+            "@timestamp": "-",
             "context": {
                 "_metrics": {
                     "connectEnd": 14,
@@ -50,7 +50,7 @@
             }
         },
         {
-            "@timestamp": "2017-12-08T12:52:53.681Z",
+            "@timestamp": "-",
             "context": {
                 "service": {
                     "agent": {
