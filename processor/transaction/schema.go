@@ -552,7 +552,7 @@ var transactionSchema = `{
             }
         }
     },
-    "required": ["id", "duration", "type", "timestamp"]
+    "required": ["id", "duration", "type"]
             },
             "minItems": 1
         }

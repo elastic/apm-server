@@ -43,7 +43,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		Name:      decoder.StringPtr(raw, "name"),
 		Result:    decoder.StringPtr(raw, "result"),
 		Duration:  decoder.Float64(raw, "duration"),
-		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
+		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
 		Context:   decoder.MapStr(raw, "context"),
 		Marks:     decoder.MapStr(raw, "marks"),
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
