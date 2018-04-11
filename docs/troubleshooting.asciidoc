@@ -88,7 +88,8 @@ but not ingesting the amount of data you expect,
 you can tweak APM Server options to make better use of the cluster:
 
 * Increase `output.elasticsearch.workers`
-* Make sure that `output.elasticsearch.bulk_max_size` is high, for example 5120. The default of 50 is very conservative.
+* Make sure that `output.elasticsearch.bulk_max_size` is high, for example 5120.
+  The default of 50 is very conservative.
 +
 If you increase `bulk_max_size`,
 make sure to also increase `queue.mem.size`.
@@ -99,8 +100,8 @@ A good rule of thumb is that `queue.mem.size` should equal `workers` multiplied 
 
 Increasing the Elasticsearch ingestion rate is a large topic.
 See {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
-particularly the sections about how to increase the refresh interval, disable swapping,
-use faster hardware, and set the indexing buffer size.
+particularly the sections about how to increase the refresh interval,
+disable swapping, use faster hardware, and set the indexing buffer size.
 
 [[reduce-data]]
 ==== Reduce the amount of data collected
