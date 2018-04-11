@@ -8,7 +8,7 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-func notifyListening(config *Config, reporter reporter) {
+func notifyListening(config *Config, pubFct func(beat.Event)) {
 
 	var isServerUp = func() bool {
 		secure := config.SSL.isEnabled()
@@ -22,7 +22,6 @@ func notifyListening(config *Config, reporter reporter) {
 			Timestamp: time.Now(),
 			Fields:    common.MapStr{"listening": config.Host},
 		}
-		events := []beat.Event{event}
-		reporter(events)
+		pubFct(event)
 	}
 }

@@ -1,16 +1,14 @@
 package healthcheck
 
 import (
-	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/beats/libbeat/beat"
 )
 
 const (
 	processorName = "healthcheck"
 )
 
-func NewProcessor(_ config.Config) pr.Processor {
+func NewProcessor() pr.Processor {
 	return &processor{}
 }
 
@@ -20,7 +18,7 @@ func (p *processor) Validate(_ map[string]interface{}) error {
 	return nil
 }
 
-func (p *processor) Transform(_ map[string]interface{}) ([]beat.Event, error) {
+func (p *processor) Decode(_ map[string]interface{}) (pr.Payload, error) {
 	return nil, nil
 }
 
