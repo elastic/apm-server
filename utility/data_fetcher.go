@@ -143,10 +143,11 @@ func (d *ManualDecoder) MapStr(base map[string]interface{}, key string, keys ...
 	return nil
 }
 
-func (d *ManualDecoder) TimeRFC3339(base map[string]interface{}, key string, keys ...string) time.Time {
+// if the looked up value doesn't exist, it returns now
+func (d *ManualDecoder) TimeRFC3339WithDefault(base map[string]interface{}, key string, keys ...string) time.Time {
 	val := getDeep(base, keys...)[key]
 	if val == nil {
-		return time.Time{}
+		return time.Now()
 	}
 	if valStr, ok := val.(string); ok {
 		if valTime, err := time.Parse(time.RFC3339, valStr); err == nil {

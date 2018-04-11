@@ -178,13 +178,3 @@ func TestPayloadTransform(t *testing.T) {
 		}
 	}
 }
-
-func TestSetTimestamp(t *testing.T) {
-	p := payload{
-		Service: m.Service{Name: "myservice"},
-		Events:  []Event{{}},
-	}
-	for _, event := range p.transform(config.Config{}) {
-		assert.InDelta(t, time.Now().Unix(), event.Timestamp.Unix(), time.Millisecond.Seconds()*10)
-	}
-}
