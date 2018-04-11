@@ -36,7 +36,7 @@ func TestProcessorMinimalPayloadOK(t *testing.T) {
 		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/valid/error/minimal_payload_log.json"},
 	}
 	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, er.NewProcessor, conf, requestInfo, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
