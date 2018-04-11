@@ -44,14 +44,15 @@ The internal queue helps to:
 * handle large spikes of data arriving at the APM Server at the same time
 * send documents to Elasticsearch in bulk, instead of individually
 
-
 When the internal queue is full,
 APM Server returns an HTTP 503 status with the message "Queue is full".
 
-A full queue generally means that the agents have collected more data than APM server is able to deliver to Elasticsearch. This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster,
+A full queue generally means that the agents have collected more data than APM server is able to deliver to Elasticsearch.
+This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster.
 or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
 
-The queue can also fill up if Elasticsearch is unavailable for a prolonged period, or a sudden spike of data arrives at the APM Server.
+The queue can also fill up if Elasticsearch is unavailable for a prolonged period,
+or a sudden spike of data arrives at the APM Server.
 
 To solve the "503: Queue is full" problem,
 you have a few options:
@@ -81,17 +82,16 @@ you can try to:
 [[tune-output-config]]
 ==== Tune APM Server output parameters for your Elasticsearch cluster
 
-If your Elasticsearch cluster is sized properly, but not ingesting the amount of data you expect, you can tweak APM Server options to make better use of the cluster:
+If your Elasticsearch cluster is sized properly,
+but not ingesting the amount of data you expect,
+you can tweak APM Server options to make better use of the cluster:
 
 * Increase `output.elasticsearch.workers`
 * Make sure that `output.elasticsearch.bulk_max_size` is high, for example 5120. The default of 50 is very conservative.
 +
-If you increase `bulk_max_size`, make sure to also increase `queue.mem.size`.
+If you increase `bulk_max_size`,
+make sure to also increase `queue.mem.size`.
 A good rule of thumb is that `queue.mem.size` should equal `workers` multiplied by `bulk_max_size`.
-
-See {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
-particularly the sections about how to increase the refresh interval, disable swapping,
-use faster hardware, and set the indexing buffer size.
 
 [[increase-cluster-ingest]]
 ==== Tune Elasticsearch for higher ingestion
@@ -113,7 +113,8 @@ Reducing the transaction sample rate does not affect the collection of metrics s
 [[increase-queue-size]]
 ==== Increase internal queue size
 
-A larger internal queue allows Elasticsearch to be unavailable for longer periods, and it alleviates problems that might result from sudden spikes of data. 
+A larger internal queue allows Elasticsearch to be unavailable for longer periods,
+and it alleviates problems that might result from sudden spikes of data. 
 You can increase the queue size by setting `apm-server.queue.mem.size`. 
 Be aware that increasing `apm-server.queue.mem.size` can significantly affect APM Server memory usage. 
 
@@ -122,7 +123,8 @@ Be aware that increasing `apm-server.queue.mem.size` can significantly affect AP
 
 Large payloads coming from agents may result in "503: Request timed out waiting to be processed" messages.
 You can reduce the payload size by decreasing the `max_queue_size` in the agents. 
-This will result in agents sending smaller payloads to the APM Server, but the requests will be more frequent.
+This will result in agents sending smaller payloads to the APM Server,
+but the requests will be more frequent.
 See the documentation for the {apm-py-ref}/configuration.html#config-max-queue-size[Python] and {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agents for more information.
 
 [[add-apm-server-nodes]]
