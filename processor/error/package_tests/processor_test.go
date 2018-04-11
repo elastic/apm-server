@@ -29,7 +29,7 @@ func TestProcessorBackendOK(t *testing.T) {
 		{Name: "TestProcessErrorAugmentedIP", Path: "data/valid/error/augmented_payload_backend.json"},
 	}
 	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, er.NewProcessor, conf, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
@@ -45,14 +45,14 @@ func TestProcessorFrontendOK(t *testing.T) {
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.TestProcessRequests(t, er.NewProcessor, conf, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{})
 }
 
 // ensure invalid documents fail the json schema validation already
 func TestProcessorFailedValidation(t *testing.T) {
 	data, err := loader.LoadInvalidData("error")
 	assert.Nil(t, err)
-	err = er.NewProcessor(config.Config{}).Validate(data)
+	err = er.NewProcessor().Validate(data)
 	assert.NotNil(t, err)
 }
 

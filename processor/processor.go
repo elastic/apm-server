@@ -5,10 +5,17 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 )
 
-type NewProcessor func(conf config.Config) Processor
+type NewProcessor func() Processor
 
 type Processor interface {
 	Validate(map[string]interface{}) error
-	Transform(map[string]interface{}) ([]beat.Event, error)
+	Decode(map[string]interface{}) (Payload, error)
 	Name() string
+}
+type Payload interface {
+	Transform(config.Config) []beat.Event
+}
+
+type Decoder interface {
+	DecodePayload(map[string]interface{}) (*Payload, error)
 }

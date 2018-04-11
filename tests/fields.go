@@ -71,7 +71,7 @@ func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor
 }
 
 func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
-	p := fn(config.Config{})
+	p := fn()
 	data, err := loader.LoadValidData(p.Name())
 	if err != nil {
 		return nil, err
@@ -81,10 +81,11 @@ func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set,
 		return nil, err
 	}
 
-	events, err := p.Transform(data)
+	payl, err := p.Decode(data)
 	if err != nil {
 		return nil, err
 	}
+	events := payl.Transform(config.Config{})
 
 	eventNames := set.New()
 	for _, event := range events {
