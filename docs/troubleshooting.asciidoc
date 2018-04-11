@@ -37,6 +37,7 @@ This section describes common problems you might encounter with APM Server.
 
 [[queue-is-full]]
 === 503: Queue is full
+
 APM Server has an internal queue that buffers documents until they can be delivered to Elasticsearch.
 The internal queue helps to: 
 
