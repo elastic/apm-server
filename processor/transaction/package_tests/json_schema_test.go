@@ -5,7 +5,6 @@ import (
 
 	"github.com/fatih/set"
 
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 )
@@ -57,5 +56,5 @@ func TestTransactionPayloadSchema(t *testing.T) {
 		{File: "data/invalid/transaction_payload/no_service.json", Error: "missing properties: \"service\""},
 		{File: "data/invalid/transaction_payload/no_transactions.json", Error: "minimum 1 items allowed"},
 	}
-	tests.TestDataAgainstProcessor(t, transaction.NewProcessor(config.Config{}), testData)
+	tests.TestDataAgainstProcessor(t, transaction.NewProcessor(), testData)
 }

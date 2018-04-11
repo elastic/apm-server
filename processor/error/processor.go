@@ -3,9 +3,7 @@ package error
 import (
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -23,8 +21,8 @@ const (
 
 var schema = pr.CreateSchema(errorSchema, processorName)
 
-func NewProcessor(config config.Config) pr.Processor {
-	return &processor{schema: schema, config: config}
+func NewProcessor() pr.Processor {
+	return &processor{schema: schema}
 }
 
 func (p *processor) Name() string {
@@ -33,7 +31,6 @@ func (p *processor) Name() string {
 
 type processor struct {
 	schema *jsonschema.Schema
-	config config.Config
 }
 
 func (p *processor) Validate(raw map[string]interface{}) error {
@@ -45,11 +42,11 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Transform(raw map[string]interface{}) ([]beat.Event, error) {
+func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 	transformations.Inc()
-	pa, err := decodeError(raw)
+	pa, err := DecodePayload(raw)
 	if err != nil {
 		return nil, err
 	}
-	return pa.transform(p.config), nil
+	return pa, nil
 }

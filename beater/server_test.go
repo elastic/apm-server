@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -372,4 +371,4 @@ func waitForServer(url string, client *http.Client) {
 	panic("server run timeout (10 seconds)")
 }
 
-func nopReporter(_ []beat.Event) error { return nil }
+func nopReporter(_ pendingReq) error { return nil }
