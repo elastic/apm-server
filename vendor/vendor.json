@@ -517,12 +517,10 @@
 			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "qr5L7wYi9UcKO0ZPX7P6vxE1Vs0=",
+			"checksumSHA1": "z8VztKgyYSA7eyVuhNocdpav6zA=",
 			"path": "github.com/elastic/beats/libbeat/kibana",
-			"revision": "584a2d385004814b8c2a154e53ebe1680775c1de",
-			"revisionTime": "2017-11-30T05:04:44Z",
-			"version": "master",
-			"versionExact": "master"
+			"revision": "4960293df6759a499221c132a453dcf9a64fe172",
+			"revisionTime": "2018-04-12T14:53:20Z"
 		},
 		{
 			"checksumSHA1": "z8VztKgyYSA7eyVuhNocdpav6zA=",
