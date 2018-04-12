@@ -27,6 +27,10 @@ update-beats:
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
 
+.PHONY: is-beats-updated
+is-beats-updated: python-env
+	@$(PYTHON_ENV)/bin/python ./script/is_beats_updated.py ${BEATS_VERSION}
+
 # This is called by the beats packer before building starts
 .PHONY: before-build
 before-build:
@@ -93,4 +97,4 @@ force-update-docs: clean docs
 .PHONY: update-beats-docs
 update-beats-docs:
 	@python script/copy-docs.py
-	@$(MAKE) docs 
+	@$(MAKE) docs
