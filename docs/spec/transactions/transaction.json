@@ -75,5 +75,5 @@
             }
         }
     },
-    "required": ["id", "duration", "type", "timestamp"]
+    "required": ["id", "duration", "type"]
 }

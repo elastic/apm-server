@@ -20,8 +20,6 @@ import (
 // ensure all valid documents pass through the whole validation and transformation process
 func TestProcessorBackendOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
-		{Name: "TestProcessErrorMinimalPayloadException", Path: "data/valid/error/minimal_payload_exception.json"},
-		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/valid/error/minimal_payload_log.json"},
 		{Name: "TestProcessErrorMinimalService", Path: "data/valid/error/minimal_service.json"},
 		{Name: "TestProcessErrorMinimalProcess", Path: "data/valid/error/minimal_process.json"},
 		{Name: "TestProcessErrorFull", Path: "data/valid/error/payload.json"},
@@ -30,6 +28,15 @@ func TestProcessorBackendOK(t *testing.T) {
 	}
 	conf := config.Config{ExcludeFromGrouping: nil}
 	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{})
+}
+
+func TestProcessorMinimalPayloadOK(t *testing.T) {
+	requestInfo := []tests.RequestInfo{
+		{Name: "TestProcessErrorMinimalPayloadException", Path: "data/valid/error/minimal_payload_exception.json"},
+		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/valid/error/minimal_payload_log.json"},
+	}
+	conf := config.Config{ExcludeFromGrouping: nil}
+	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {

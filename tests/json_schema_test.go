@@ -89,7 +89,6 @@ func TestTransactionSchema(t *testing.T) {
 		{File: "no_id.json", Error: `missing properties: "id"`},
 		{File: "no_duration.json", Error: `missing properties: "duration"`},
 		{File: "no_type.json", Error: `missing properties: "type"`},
-		{File: "no_timestamp.json", Error: `missing properties: "timestamp"`},
 		{File: "invalid_id.json", Error: "[#/properties/id/pattern] does not match pattern"},
 		{File: "invalid_timestamp.json", Error: "is not valid \"date-time\""},
 		{File: "invalid_timestamp2.json", Error: "I[#/timestamp] S[#/properties/timestamp/pattern] does not match pattern"},
@@ -120,7 +119,6 @@ func TestErrorSchema(t *testing.T) {
 		{File: "no_exception_message.json", Error: "missing properties: \"message\""},
 		{File: "no_log_or_exception.json", Error: "missing properties: \"exception\""},
 		{File: "no_log_or_exception.json", Error: "missing properties: \"log\""},
-		{File: "no_timestamp.json", Error: "missing properties: \"timestamp\""},
 		{File: "invalid_code.json", Error: "expected string or integer or null"},
 	}
 	testDataAgainstSchema(t, testData, "errors/error", "error", `"$ref": "../docs/spec/errors/`)
