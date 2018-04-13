@@ -89,3 +89,8 @@ notice: python-env
 
 .PHONY: force-update-docs
 force-update-docs: clean docs
+
+.PHONY: update-beats-docs
+update-beats-docs:
+	@python script/copy-docs.py
+	@$(MAKE) docs 
