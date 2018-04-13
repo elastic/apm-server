@@ -92,4 +92,4 @@ include::./copied-from-beats/command-reference.asciidoc[]
 
 include::./copied-from-beats/shared-directory-layout.asciidoc[]
 
-include::./copied-from-beats/running-on-docker.asciidoc[]
+include::./copied-from-beats/shared-docker.asciidoc[]
