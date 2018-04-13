@@ -166,7 +166,13 @@ func logHandler(h http.Handler) http.Handler {
 
 		requestCounter.Inc()
 
-		reqLogger := logger.With("request_id", reqID)
+		reqLogger := logger.With(
+			"request_id", reqID,
+			"method", r.Method,
+			"URL", r.URL,
+			"content_length", r.ContentLength,
+			"remote_address", utility.ExtractIP(r),
+			"user-agent", r.Header.Get("User-Agent"))
 
 		lr := r.WithContext(
 			context.WithValue(r.Context(), reqLoggerContextKey, reqLogger),
@@ -179,14 +185,7 @@ func logHandler(h http.Handler) http.Handler {
 		if lw.Code > 399 {
 			responseErrors.Inc()
 		} else {
-			reqLogger.Infow("handled request", []interface{}{
-				"response_code", lw.Code,
-				"method", r.Method,
-				"URL", r.URL,
-				"content_length", r.ContentLength,
-				"remote_address", utility.ExtractIP(r),
-				"user-agent", r.Header.Get("User-Agent"),
-			}...)
+			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 			responseValid.Inc()
 		}
 	})
@@ -349,15 +348,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	if !ok {
 		logger = logp.NewLogger("request")
 	}
-	logger.Errorw("error handling request", []interface{}{
-		"response_code", code,
-		"method", r.Method,
-		"URL", r.URL,
-		"content_length", r.ContentLength,
-		"remote_address", utility.ExtractIP(r),
-		"user-agent", r.Header.Get("User-Agent"),
-		"error", err.Error(),
-	}...)
+	logger.Errorw("error handling request", []interface{}{"response_code", code, "error", err.Error()}...)
 
 	if acceptsJSON(r) {
 		sendJSON(w, map[string]interface{}{"error": err.Error()})
