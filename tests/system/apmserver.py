@@ -4,7 +4,8 @@ import re
 import shutil
 import sys
 
-sys.path.append('../../_beats/libbeat/tests/system')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../_beats/libbeat/tests/system'))
+
 from beat.beat import TestCase
 from elasticsearch import Elasticsearch
 import requests
@@ -17,7 +18,7 @@ class BaseTest(TestCase):
     def setUpClass(cls):
         cls.beat_name = "apm-server"
         cls.build_path = "../../build/system-tests/"
-        cls.beat_path = "../../"
+        cls.beat_path = os.path.join(os.path.dirname(__file__), "../../")
         cls.index_name = "test-apm-12-12-2017"
         super(BaseTest, cls).setUpClass()
 
