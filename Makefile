@@ -11,7 +11,8 @@ ES_BEATS?=./_beats
 PREFIX?=.
 BEATS_VERSION?=6.x
 NOTICE_FILE=NOTICE.txt
-LICENSE_FILE=LICENSE.txt
+LICENSE_FILE=licenses/APACHE-LICENSE-2.0.txt
+ELASTIC_LICENSE_FILE=licenses/ELASTIC-LICENSE.txt
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 TESTIFY_TOOL_REPO?=github.com/elastic/beats/vendor/github.com/stretchr/testify/assert
