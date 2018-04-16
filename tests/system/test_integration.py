@@ -40,14 +40,16 @@ class Test(ElasticTest):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "transaction"}}})
         assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
-        approved = json.load(open('transaction.approved.json'))
+        with open(self._beat_path_join(os.path.dirname(__file__), 'transaction.approved.json')) as f:
+            approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'transaction')
 
         # compare existing ES documents for spans with new ones
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "span"}}})
         assert rs['hits']['total'] == 5, "found {} documents".format(rs['count'])
-        approved = json.load(open('spans.approved.json'))
+        with open(self._beat_path_join(os.path.dirname(__file__), 'spans.approved.json')) as f:
+            approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'span')
 
         self.check_backend_transaction_sourcemap(count=5)
@@ -66,7 +68,8 @@ class Test(ElasticTest):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "error"}}})
         assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
-        approved = json.load(open('error.approved.json'))
+        with open(self._beat_path_join(os.path.dirname(__file__), 'error.approved.json')) as f:
+            approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'error')
 
         self.check_backend_error_sourcemap(count=4)

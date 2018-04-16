@@ -2,13 +2,14 @@ import json
 import os
 import re
 import shutil
-import sys
 
-sys.path.append('../../_beats/libbeat/tests/system')
-from beat.beat import TestCase
-from elasticsearch import Elasticsearch
 import requests
+import sys
 import time
+from elasticsearch import Elasticsearch
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '_beats', 'libbeat', 'tests', 'system'))
+from beat.beat import TestCase
 
 
 class BaseTest(TestCase):
@@ -16,30 +17,34 @@ class BaseTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.beat_name = "apm-server"
-        cls.build_path = "../../build/system-tests/"
-        cls.beat_path = "../../"
+        cls.beat_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        cls.build_path = cls._beat_path_join("build", "system-tests")
         cls.index_name = "test-apm-12-12-2017"
         super(BaseTest, cls).setUpClass()
 
+    @classmethod
+    def _beat_path_join(cls, *paths):
+        return os.path.abspath(os.path.join(cls.beat_path, *paths))
+
     def get_transaction_payload_path(self, name="payload.json"):
-        return os.path.abspath(os.path.join(self.beat_path,
-                                            'tests',
-                                            'data',
-                                            'valid',
-                                            'transaction',
-                                            name))
+        return self._beat_path_join(
+            'tests',
+            'data',
+            'valid',
+            'transaction',
+            name)
 
     def get_transaction_payload(self):
         path = self.get_transaction_payload_path()
         return json.loads(open(path).read())
 
     def get_error_payload_path(self, name="payload.json"):
-        return os.path.abspath(os.path.join(self.beat_path,
-                                            'tests',
-                                            'data',
-                                            'valid',
-                                            'error',
-                                            name))
+        return self._beat_path_join(
+            'tests',
+            'data',
+            'valid',
+            'error',
+            name)
 
     def get_error_payload(self):
         path = self.get_error_payload_path()
@@ -57,7 +62,7 @@ class ServerSetUpBaseTest(BaseTest):
 
     def setUp(self):
         super(ServerSetUpBaseTest, self).setUp()
-        shutil.copy(self.beat_path + "/fields.yml", self.working_dir)
+        shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
 
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
@@ -109,8 +114,8 @@ class SecureServerBaseTest(ServerSetUpBaseTest):
         cfg = super(SecureServerBaseTest, self).config()
         cfg.update({
             "ssl_enabled": "true",
-            "ssl_cert": "config/certs/cert.pem",
-            "ssl_key": "config/certs/key.pem",
+            "ssl_cert": self._beat_path_join("tests", "system", "config", "certs", "cert.pem"),
+            "ssl_key": self._beat_path_join("tests", "system", "config", "certs", "key.pem"),
         })
         return cfg
 
@@ -244,12 +249,12 @@ class ClientSideBaseTest(ElasticTest):
                          service_version='1.0.1',
                          bundle_filepath='bundle_no_mapping.js.map',
                          expected_ct=1):
-        path = os.path.abspath(os.path.join(self.beat_path,
-                                            'tests',
-                                            'data',
-                                            'valid',
-                                            'sourcemap',
-                                            file_name))
+        path = self._beat_path_join(
+            'tests',
+            'data',
+            'valid',
+            'sourcemap',
+            file_name)
         f = open(path)
         r = requests.post(self.sourcemap_url,
                           files={'sourcemap': f},
