@@ -11,9 +11,11 @@ import (
 )
 
 func TestNumberGoRoutines(t *testing.T) {
+	runtime.GC() // force goroutine accounting?
 	before := runtime.NumGoroutine()
 	_, err := newPublisher(pip{}, 1, time.Duration(0))
 	assert.NoError(t, err)
+	runtime.GC()
 	assert.Equal(t, before+runtime.GOMAXPROCS(0), runtime.NumGoroutine())
 }
 

@@ -37,6 +37,10 @@ var (
 	errChannelClosed     = errors.New("Can't send batch, publisher is being stopped")
 )
 
+type doner interface {
+	Done()
+}
+
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
@@ -64,9 +68,13 @@ func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration) 
 		pendingRequests: make(chan pendingReq, N-1),
 	}
 
+	var wg sync.WaitGroup
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
-		go p.run()
+		wg.Add(1)
+		go p.run(&wg)
 	}
+	// wait for all publishers to start
+	wg.Wait()
 
 	return p, nil
 }
@@ -100,7 +108,8 @@ func (p *publisher) Send(req pendingReq) error {
 	}
 }
 
-func (p *publisher) run() {
+func (p *publisher) run(d doner) {
+	d.Done()
 	for req := range p.pendingRequests {
 		p.client.PublishAll(req.payload.Transform(req.config))
 	}
