@@ -1,20 +1,21 @@
+from collections import defaultdict
+import gzip
+import json
+import requests
+import threading
+import time
+import zlib
+
 from nose.tools import raises
+from requests.exceptions import SSLError
 
 from apmserver import ServerBaseTest, SecureServerBaseTest, ClientSideBaseTest, CorsBaseTest
-from requests.exceptions import SSLError
-import requests
-import json
-import zlib
-import gzip
-import time
-from datetime import datetime
-from collections import defaultdict
-import threading
+
 
 try:
     from StringIO import StringIO
 except ImportError:
-    import io
+    from io import StringIO
 
 
 class Test(ServerBaseTest):
@@ -150,13 +151,12 @@ class ClientSideTest(ClientSideBaseTest):
         assert r.status_code == 202, r.status_code
 
     def test_sourcemap_upload_fail(self):
-        import os
-        path = os.path.abspath(os.path.join(self.beat_path,
-                                            'tests',
-                                            'data',
-                                            'valid',
-                                            'sourcemap',
-                                            'bundle.js.map'))
+        path = self._beat_path_join(
+            'tests',
+            'data',
+            'valid',
+            'sourcemap',
+            'bundle.js.map')
         file = open(path)
         r = requests.post(self.sourcemap_url,
                           files={'sourcemap': file})
