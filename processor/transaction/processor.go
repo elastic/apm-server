@@ -9,7 +9,8 @@ import (
 
 var (
 	transactionMetrics = monitoring.Default.NewRegistry("apm-server.processor.transaction")
-	transformations    = monitoring.NewInt(transactionMetrics, "transformations")
+	decodingCount      = monitoring.NewInt(transactionMetrics, "decoding.count")
+	decodingError      = monitoring.NewInt(transactionMetrics, "decoding.errors")
 	validationCount    = monitoring.NewInt(transactionMetrics, "validation.count")
 	validationError    = monitoring.NewInt(transactionMetrics, "validation.errors")
 )
@@ -45,9 +46,10 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 }
 
 func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
-	transformations.Inc()
+	decodingCount.Inc()
 	pa, err := DecodePayload(raw)
 	if err != nil {
+		decodingError.Inc()
 		return nil, err
 	}
 	return pa, nil
