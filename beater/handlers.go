@@ -55,8 +55,22 @@ type routeMapping struct {
 var (
 	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server")
 	requestCounter = monitoring.NewInt(serverMetrics, "requests.counter")
-	responseValid  = monitoring.NewInt(serverMetrics, "response.valid")
-	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
+	responseValid  = monitoring.NewInt(serverMetrics, "response.valid.count")
+	responseErrors = monitoring.NewInt(serverMetrics, "response.errors.count")
+
+	statusQueueFull        = 5030
+	statusConcurrencyLimit = 5031
+	statusChannelClosed    = 5032
+	errMap                 = map[int]*monitoring.Int{
+		http.StatusBadRequest:       monitoring.NewInt(serverMetrics, "response.errors.badrequest"),
+		http.StatusForbidden:        monitoring.NewInt(serverMetrics, "response.errors.forbidden"),
+		http.StatusUnauthorized:     monitoring.NewInt(serverMetrics, "response.errors.unauthorized"),
+		http.StatusTooManyRequests:  monitoring.NewInt(serverMetrics, "response.errors.ratelimit"),
+		http.StatusMethodNotAllowed: monitoring.NewInt(serverMetrics, "response.errors.method"),
+		statusQueueFull:             monitoring.NewInt(serverMetrics, "response.errors.queue"),
+		statusConcurrencyLimit:      monitoring.NewInt(serverMetrics, "response.errors.concurrency"),
+		statusChannelClosed:         monitoring.NewInt(serverMetrics, "response.errors.closed"),
+	}
 
 	errInvalidToken            = errors.New("invalid token")
 	errForbidden               = errors.New("forbidden request")
@@ -182,14 +196,11 @@ func logHandler(h http.Handler) http.Handler {
 
 		h.ServeHTTP(lw, lr)
 
-		if lw.Code > 399 {
-			responseErrors.Inc()
-		} else {
+		if lw.Code <= 399 {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 			responseValid.Inc()
 		}
 	})
-
 }
 
 func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
@@ -348,7 +359,24 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	if !ok {
 		logger = logp.NewLogger("request")
 	}
-	logger.Errorw("error handling request", []interface{}{"response_code", code, "error", err.Error()}...)
+	logger.Errorw("error handling request", "response_code", code, "error", err.Error())
+
+	if code == http.StatusServiceUnavailable {
+		if err == errFull {
+			errMap[statusQueueFull].Inc()
+		} else if err == errConcurrencyLimitReached {
+			errMap[statusConcurrencyLimit].Inc()
+		} else if err == errChannelClosed {
+			errMap[statusChannelClosed].Inc()
+		} else {
+			logger.Warnw("error counter missing", "response_code", code, "error", err.Error())
+		}
+	} else if errCt, ok := errMap[code]; ok {
+		errCt.Inc()
+	} else {
+		logger.Warnw("error counter missing", "response_code", code)
+	}
+	responseErrors.Inc()
 
 	if acceptsJSON(r) {
 		sendJSON(w, map[string]interface{}{"error": err.Error()})
