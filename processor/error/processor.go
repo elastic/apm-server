@@ -11,7 +11,8 @@ var (
 	errorMetrics    = monitoring.Default.NewRegistry("apm-server.processor.error")
 	validationCount = monitoring.NewInt(errorMetrics, "validation.count")
 	validationError = monitoring.NewInt(errorMetrics, "validation.errors")
-	transformations = monitoring.NewInt(errorMetrics, "transformations")
+	decodingCount   = monitoring.NewInt(errorMetrics, "decoding.count")
+	decodingError   = monitoring.NewInt(errorMetrics, "decoding.errors")
 )
 
 const (
@@ -43,9 +44,10 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 }
 
 func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
-	transformations.Inc()
+	decodingCount.Inc()
 	pa, err := DecodePayload(raw)
 	if err != nil {
+		decodingError.Inc()
 		return nil, err
 	}
 	return pa, nil

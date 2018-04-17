@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	transformations     = monitoring.NewInt(transactionMetrics, "transformations")
 	transactionCounter  = monitoring.NewInt(transactionMetrics, "counter")
 	spanCounter         = monitoring.NewInt(transactionMetrics, "spans")
 	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
@@ -54,6 +55,7 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 }
 
 func (pa *Payload) Transform(conf config.Config) []beat.Event {
+	transformations.Inc()
 	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 	transactionCounter.Add(int64(len(pa.Events)))
 

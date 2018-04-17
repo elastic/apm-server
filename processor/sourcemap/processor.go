@@ -20,9 +20,10 @@ const (
 
 var (
 	sourcemapUploadMetrics = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
-	transformations        = monitoring.NewInt(sourcemapUploadMetrics, "transformations")
 	validationCount        = monitoring.NewInt(sourcemapUploadMetrics, "validation.count")
 	validationError        = monitoring.NewInt(sourcemapUploadMetrics, "validation.errors")
+	decodingCount          = monitoring.NewInt(sourcemapUploadMetrics, "decoding.count")
+	decodingError          = monitoring.NewInt(sourcemapUploadMetrics, "decoding.errors")
 )
 
 var schema = pr.CreateSchema(sourcemapSchema, processorName)
@@ -60,7 +61,7 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 }
 
 func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
-	transformations.Inc()
+	decodingCount.Inc()
 
 	decoder := utility.ManualDecoder{}
 	pa := Payload{
@@ -70,6 +71,7 @@ func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 		BundleFilepath: decoder.String(raw, "bundle_filepath"),
 	}
 	if decoder.Err != nil {
+		decodingError.Inc()
 		return nil, decoder.Err
 	}
 	return &pa, nil
