@@ -97,6 +97,34 @@ Apache License 2.0
 
 
 --------------------------------------------------------------------
+Dependency: github.com/dustin/go-humanize
+Revision: 259d2a102b871d17f30e3cd9881a642961a1e486
+License type (autodetected): MIT
+./vendor/github.com/dustin/go-humanize/LICENSE:
+--------------------------------------------------------------------
+Copyright (c) 2005-2008  Dustin Sallings <dustin@spy.net>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+<http://www.opensource.org/licenses/mit-license.php>
+
+--------------------------------------------------------------------
 Dependency: github.com/eapache/go-resiliency
 Revision: b86b1ec0dd4209a588dc1285cdd471e73525c0b3
 License type (autodetected): MIT
@@ -183,7 +211,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.x
-Revision: a8d5d73f2389e7e0e7d1e80c779cd73c3329ac97
+Revision: 014fbffe7f447fdfa71e02d1c9804de175fdfc28
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -209,6 +237,30 @@ Apache License 2.0
 
 
 --------------------------------------------------------------------
+Dependency: github.com/elastic/go-sysinfo
+Revision: fda017eee28b7420d931e08c7361c1c17f516aa2
+License type (autodetected): Apache-2.0
+./vendor/github.com/elastic/go-sysinfo/LICENSE.txt:
+--------------------------------------------------------------------
+Apache License 2.0
+
+-------NOTICE.txt-----
+Elastic go-sysinfo
+Copyright 2017-2018 Elasticsearch B.V.
+
+This product includes software developed at
+Elasticsearch, B.V. (https://www.elastic.co/).
+
+--------------------------------------------------------------------
+Dependency: github.com/elastic/go-txfile
+Revision: 7e7e33cc236f30fff545f3ee2c35ada5b70b6b13
+License type (autodetected): Apache-2.0
+./vendor/github.com/elastic/go-txfile/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
 Dependency: github.com/elastic/go-ucfg
 Revision: ec8488a52542c0c51e42e8ea204dcaff400bc644
 License type (autodetected): Apache-2.0
@@ -218,8 +270,23 @@ Apache License 2.0
 
 
 --------------------------------------------------------------------
+Dependency: github.com/elastic/go-windows
+Revision: a730c8b4e08aef7e1ebb642928bf862996ad2383
+License type (autodetected): Apache-2.0
+./vendor/github.com/elastic/go-windows/LICENSE.txt:
+--------------------------------------------------------------------
+Apache License 2.0
+
+-------NOTICE.txt-----
+Elastic go-windows
+Copyright 2017-2018 Elasticsearch B.V.
+
+This product includes software developed at
+Elasticsearch, B.V. (https://www.elastic.co/).
+
+--------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Revision: cdcbd8c3b8bf28ef6d8639ec1e45bf31d2745f2d
+Revision: 237dff72b4ba95da2cd985f96a9c0ede4aefc760
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------
@@ -363,6 +430,20 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+--------------------------------------------------------------------
+Dependency: github.com/go-ole/go-ole
+Revision: de8695c8edbf8236f30d6e1376e20b198a028d42
+License type (autodetected): MIT
+./vendor/github.com/go-ole/go-ole/LICENSE:
+--------------------------------------------------------------------
+Copyright © 2013-2018 Yasuhiro Matsumoto, http://mattn.kaoriya.net <mattn.jp@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/go-sourcemap/sourcemap
@@ -1610,6 +1691,49 @@ OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
+Dependency: github.com/theckman/go-flock
+Revision: b139a2487364247d91814e4a7c7b8fdc69e342b2
+License type (autodetected): BSD-3-Clause
+./vendor/github.com/theckman/go-flock/LICENSE:
+--------------------------------------------------------------------
+Copyright (c) 2015, Tim Heckman
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of linode-netint nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+--------------------------------------------------------------------
+Dependency: github.com/urso/go-bin
+Revision: 781c575c9f0eb3cb9dca94521bd7ad7d5aec7fd4
+License type (autodetected): Apache-2.0
+./vendor/github.com/urso/go-bin/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
 Dependency: github.com/yudai/gojsondiff
 Revision: 081cda2ee95045a2c26da52c2ba80860838549de
 License type (autodetected): MIT
@@ -2056,7 +2180,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/time
-Revision: 8be79e1e0910c292df4e79c241bb7e8f7e725959
+Revision: 26559e0f760e39c24d730d3224364aef164ee23f
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/time/LICENSE:
 --------------------------------------------------------------------

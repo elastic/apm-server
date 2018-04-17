@@ -908,7 +908,7 @@ Info collected for the host machine.
 
 
 [float]
-=== `host.hostname`
+=== `host.name`
 
 type: keyword
 
