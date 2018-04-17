@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/model"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/config"
@@ -48,11 +50,10 @@ func TestTransform(t *testing.T) {
 	data, err := loader.LoadValidData("sourcemap")
 	assert.NoError(t, err)
 
-	payload, err := NewProcessor().Decode(data)
+	transformables, err := NewProcessor().Decode(data)
 	assert.NoError(t, err)
-	rs := payload.Transform(config.Config{})
-	assert.Len(t, rs, 1)
-	event := rs[0]
+	assert.Equal(t, 1, len(transformables))
+	event := transformables[0].Transform(config.TransformConfig{}, &model.TransformContext{})
 	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
 	output := event.Fields["sourcemap"].(common.MapStr)
 
@@ -61,6 +62,6 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, "1", getStr(output, "service.version"))
 	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
 
-	payload, err = NewProcessor().Decode(nil)
+	transformables, err = NewProcessor().Decode(nil)
 	assert.Equal(t, errors.New("Error fetching field"), err)
 }

@@ -284,6 +284,7 @@ func TestEventTransform(t *testing.T) {
 		{
 			Event: Event{Exception: baseException().withCode(13.0)},
 			Output: common.MapStr{
+
 				"exception":    common.MapStr{"message": "exception message", "code": "13"},
 				"grouping_key": baseExceptionGroupingKey,
 			},
@@ -331,8 +332,14 @@ func TestEventTransform(t *testing.T) {
 		},
 	}
 
+	tctx := m.TransformContext{
+		Service: &service,
+	}
+
 	for idx, test := range tests {
-		output := test.Event.Transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
+		eventOut := test.Event.Transform(config.TransformConfig{SmapMapper: &sourcemap.SmapMapper{}}, &tctx)
+		output := eventOut.Fields["error"]
+
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -353,25 +360,25 @@ func TestCulprit(t *testing.T) {
 	mapper := sourcemap.SmapMapper{}
 	tests := []struct {
 		event   Event
-		config  config.Config
+		config  config.TransformConfig
 		culprit string
 		msg     string
 	}{
 		{
 			event:   Event{Culprit: &c},
-			config:  config.Config{},
+			config:  config.TransformConfig{},
 			culprit: "foo",
 			msg:     "No Sourcemap in config",
 		},
 		{
 			event:   Event{Culprit: &c},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  config.TransformConfig{SmapMapper: &mapper},
 			culprit: "foo",
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
 			event:   Event{Culprit: &c, Log: &Log{Stacktrace: st}},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  config.TransformConfig{SmapMapper: &mapper},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
 		},
@@ -387,7 +394,7 @@ func TestCulprit(t *testing.T) {
 					},
 				},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  config.TransformConfig{SmapMapper: &mapper},
 			culprit: "f",
 			msg:     "Adapt culprit to first valid Log.StacktraceFrame information.",
 		},
@@ -396,7 +403,7 @@ func TestCulprit(t *testing.T) {
 				Culprit:   &c,
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  config.TransformConfig{SmapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
 		},
@@ -406,7 +413,7 @@ func TestCulprit(t *testing.T) {
 				Log:       &Log{Stacktrace: st},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  config.TransformConfig{SmapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
 		},
@@ -424,7 +431,7 @@ func TestCulprit(t *testing.T) {
 				},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  config.TransformConfig{SmapMapper: &mapper},
 			culprit: "a in fct",
 			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
 		},
@@ -649,6 +656,9 @@ func md5With(args ...string) []byte {
 }
 
 func TestSourcemapping(t *testing.T) {
+	tctx := m.TransformContext{
+		Service: &m.Service{},
+	}
 	c1 := 18
 	event := Event{Exception: &Exception{
 		Message: "exception message",
@@ -656,7 +666,7 @@ func TestSourcemapping(t *testing.T) {
 			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
 		},
 	}}
-	trNoSmap := event.Transform(config.Config{SmapMapper: nil}, m.Service{})
+	trNoSmap := event.Transform(config.TransformConfig{SmapMapper: nil}, &tctx)
 
 	event2 := Event{Exception: &Exception{
 		Message: "exception message",
@@ -665,12 +675,15 @@ func TestSourcemapping(t *testing.T) {
 		},
 	}}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
-	trWithSmap := event2.Transform(config.Config{SmapMapper: &mapper}, m.Service{})
-
+	trWithSmap := event2.Transform(config.TransformConfig{SmapMapper: &mapper}, &tctx)
 	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
 	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
 
-	assert.NotEqual(t, trNoSmap["grouping_key"], trWithSmap["grouping_key"])
+	key1, err := trNoSmap.GetValue("error.grouping_key")
+	assert.NoError(t, err)
+	key2, err := trWithSmap.GetValue("error.grouping_key")
+	assert.NoError(t, err)
+	assert.NotEqual(t, key1, key2)
 }
 
 type fakeAcc struct{}

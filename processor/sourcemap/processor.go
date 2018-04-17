@@ -8,7 +8,9 @@ import (
 
 	parser "github.com/go-sourcemap/sourcemap"
 
+	"github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
+	sc "github.com/elastic/apm-server/processor/sourcemap/generated-schemas"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -26,7 +28,7 @@ var (
 	decodingError          = monitoring.NewInt(sourcemapUploadMetrics, "decoding.errors")
 )
 
-var schema = pr.CreateSchema(sourcemapSchema, processorName)
+var schema = pr.CreateSchema(sc.SourcemapSchema, processorName)
 
 func NewProcessor() pr.Processor {
 	return &processor{schema: schema}
@@ -60,11 +62,11 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
+func (p *processor) Decode(raw map[string]interface{}) (model.TransformableBatch, error) {
 	decodingCount.Inc()
 
 	decoder := utility.ManualDecoder{}
-	pa := Payload{
+	pa := &Payload{
 		ServiceName:    decoder.String(raw, "service_name"),
 		ServiceVersion: decoder.String(raw, "service_version"),
 		Sourcemap:      decoder.String(raw, "sourcemap"),
@@ -74,5 +76,5 @@ func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 		decodingError.Inc()
 		return nil, decoder.Err
 	}
-	return &pa, nil
+	return []model.Transformable{pa}, nil
 }

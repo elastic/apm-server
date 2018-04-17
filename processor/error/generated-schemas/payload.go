@@ -1,10 +1,6 @@
-package error
+package schemas
 
-func Schema() string {
-	return errorSchema
-}
-
-var errorSchema = `{
+const PayloadSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/errors/payload.json",
     "title": "Errors payload",

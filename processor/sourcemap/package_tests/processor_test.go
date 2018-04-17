@@ -17,7 +17,7 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		{Name: "TestProcessSourcemapFull", Path: "data/valid/sourcemap/payload.json"},
 		{Name: "TestProcessSourcemapMinimalPayload", Path: "data/valid/sourcemap/minimal_payload.json"},
 	}
-	tests.TestProcessRequests(t, sourcemap.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
+	tests.TestProcessRequests(t, sourcemap.NewProcessor(), config.TransformConfig{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
 }
 
 // ensure invalid documents fail the json schema validation already

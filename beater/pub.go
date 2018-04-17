@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/config"
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
@@ -27,8 +27,9 @@ type publisher struct {
 }
 
 type pendingReq struct {
-	payload pr.Payload
-	config  config.Config
+	transformable []model.Transformable
+	config        config.TransformConfig
+	context       *model.TransformContext
 }
 
 var (
@@ -102,6 +103,9 @@ func (p *publisher) Send(req pendingReq) error {
 
 func (p *publisher) run() {
 	for req := range p.pendingRequests {
-		p.client.PublishAll(req.payload.Transform(req.config))
+		for _, transformable := range req.transformable {
+			// todo: is this threadsafe?
+			p.client.Publish(transformable.Transform(req.config, req.context))
+		}
 	}
 }

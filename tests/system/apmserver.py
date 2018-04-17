@@ -38,6 +38,11 @@ class BaseTest(TestCase):
         path = self.get_transaction_payload_path()
         return json.loads(open(path).read())
 
+    def get_transaction_v2_payload(self):
+        path = self.get_transaction_payload_path()
+        payload = json.loads(open(path).read())
+        return "\n".join([json.dumps(p) for p in payload])
+
     def get_error_payload_path(self, name="payload.json"):
         return self._beat_path_join(
             'tests',
@@ -53,6 +58,7 @@ class BaseTest(TestCase):
 
 class ServerSetUpBaseTest(BaseTest):
     transactions_url = 'http://localhost:8200/v1/transactions'
+    v2_url = 'http://localhost:8200/v2/intake'
     errors_url = 'http://localhost:8200/v1/errors'
     expvar_url = 'http://localhost:8200/debug/vars'
 

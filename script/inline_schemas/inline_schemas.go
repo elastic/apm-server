@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -12,11 +14,15 @@ const basePath = "./docs/spec/"
 
 func main() {
 	schemaPaths := []struct {
-		path, schemaOut, goVariable, packageName string
+		path, schemaOut, goVariable string
 	}{
-		{"errors/payload.json", "processor/error/schema.go", "errorSchema", "error"},
-		{"transactions/payload.json", "processor/transaction/schema.go", "transactionSchema", "transaction"},
-		{"sourcemaps/payload.json", "processor/sourcemap/schema.go", "sourcemapSchema", "sourcemap"},
+		{"errors/payload.json", "processor/error/generated-schemas/payload.go", "PayloadSchema"},
+		{"transactions/payload.json", "processor/transaction/generated-schemas/payload.go", "PayloadSchema"},
+		{"sourcemaps/payload.json", "processor/sourcemap/generated-schemas/payload.go", "SourcemapSchema"},
+
+		{"transactions/transaction.json", "processor/transaction/generated-schemas/transaction.go", "TransactionSchema"},
+		{"transactions/span.json", "processor/transaction/generated-schemas/span.go", "SpanSchema"},
+		{"errors/error.json", "processor/error/generated-schemas/error.go", "ErrorSchema"},
 	}
 	for _, schemaInfo := range schemaPaths {
 		file := filepath.Join(filepath.Dir(basePath), schemaInfo.path)
@@ -30,8 +36,11 @@ func main() {
 			panic(err)
 		}
 
-		publicSchema := fmt.Sprintf("func Schema() string {\n\treturn %s\n}\n", schemaInfo.goVariable)
-		goScript := fmt.Sprintf("package %s\n\n%s\nvar %s = `%s`\n", schemaInfo.packageName, publicSchema, schemaInfo.goVariable, schema)
+		goScript := fmt.Sprintf("package schemas\n\nconst %s = `%s`\n", schemaInfo.goVariable, schema)
+		err = os.MkdirAll(path.Dir(schemaInfo.schemaOut), os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
 		err = ioutil.WriteFile(schemaInfo.schemaOut, []byte(goScript), 0644)
 		if err != nil {
 			panic(err)

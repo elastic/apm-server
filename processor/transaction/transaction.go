@@ -4,11 +4,14 @@ import (
 	"errors"
 	"time"
 
+	"github.com/elastic/apm-server/config"
+	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type Event struct {
+type Transaction struct {
 	Id        string
 	Type      string
 	Name      *string
@@ -28,7 +31,7 @@ type Dropped struct {
 	Total *int
 }
 
-func DecodeEvent(input interface{}, err error) (*Event, error) {
+func DecodeTransaction(input interface{}, err error) (*Transaction, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -37,7 +40,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		return nil, errors.New("Invalid type for transaction event")
 	}
 	decoder := utility.ManualDecoder{}
-	e := Event{
+	e := Transaction{
 		Id:        decoder.String(raw, "id"),
 		Type:      decoder.String(raw, "type"),
 		Name:      decoder.StringPtr(raw, "name"),
@@ -55,11 +58,21 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	e.Spans = make([]*Span, len(spans))
 	for idx, sp := range spans {
 		span, err = DecodeSpan(sp, err)
+		if span.Timestamp.IsZero() {
+			span.Timestamp = e.Timestamp
+		}
+
+		if span.TransactionId == nil {
+			span.TransactionId = &e.Id
+		}
 		e.Spans[idx] = span
 	}
 	return &e, err
 }
-func (t *Event) Transform() common.MapStr {
+
+func (t *Transaction) Transform(config config.TransformConfig, context *m.TransformContext) beat.Event {
+	transactionCounter.Inc()
+
 	tx := common.MapStr{"id": t.Id}
 	utility.Add(tx, "name", t.Name)
 	utility.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
@@ -81,5 +94,14 @@ func (t *Event) Transform() common.MapStr {
 		}
 		utility.Add(tx, "span_count", s)
 	}
-	return tx
+
+	return beat.Event{
+		Fields: common.MapStr{
+			"processor":        processorTransEntry,
+			transactionDocType: tx,
+			"context":          context.TransformInto(t.Context),
+		},
+		Timestamp: t.Timestamp,
+	}
+
 }
