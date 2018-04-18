@@ -14,8 +14,8 @@
 == Configure the output
 
 ifdef::only-elasticsearch[]
-You configure {beatname_uc} to write to Elasticsearch by setting options in
-the `output.elasticsearch` of the +{beatname_lc}.yml+ config file.
+You configure {beatname_uc} to write to Elasticsearch by setting options 
+in the `output.elasticsearch` section of the +{beatname_lc}.yml+ config file
 endif::[]
 
 ifndef::only-elasticsearch[]
@@ -132,6 +132,8 @@ The default value is 0.
 The number of workers per configured host publishing events to Elasticsearch. This
 is best used with load balancing mode enabled. Example: If you have 2 hosts and
 3 workers, in total 6 workers are started (3 for each host).
+
+The default value is 1.
 
 ===== `username`
 
@@ -283,6 +285,7 @@ After the specified number of retries, the events are typically dropped.
 ifeval::["{beatname_lc}" == "filebeat"]
 Filebeat will ignore the `max_retries` setting and retry until all
 events are published.
+endif::[]
 ifeval::["{beatname_lc}" != "filebeat"]
 Set `max_retries` to a value less than 0 to retry until all events are published.
 endif::[]
@@ -468,7 +471,7 @@ output.logstash:
 Configures number of batches to be sent asynchronously to logstash while waiting
 for ACK from logstash. Output only becomes blocking once number of `pipelining`
 batches have been written. Pipelining is disabled if a values of 0 is
-configured. The default value is 5.
+configured. The default value is 2.
 
 [[port]]
 ===== `port`
@@ -530,6 +533,7 @@ After the specified number of retries, the events are typically dropped.
 ifeval::["{beatname_lc}" == "filebeat"]
 Filebeat will ignore the `max_retries` setting and retry until all
 events are published.
+endif::[]
 ifeval::["{beatname_lc}" != "filebeat"]
 Set `max_retries` to a value less than 0 to retry until all events are published.
 endif::[]
@@ -724,6 +728,8 @@ After the specified number of retries, the events are typically dropped.
 ifeval::["{beatname_lc}" == "filebeat"]
 Filebeat will ignore the `max_retries` setting and retry until all
 events are published.
+endif::[]
+
 ifeval::["{beatname_lc}" != "filebeat"]
 Set `max_retries` to a value less than 0 to retry until all events are published.
 endif::[]
@@ -949,6 +955,7 @@ After the specified number of retries, the events are typically dropped.
 ifeval::["{beatname_lc}" == "filebeat"]
 Filebeat will ignore the `max_retries` setting and retry until all
 events are published.
+endif::[]
 ifeval::["{beatname_lc}" != "filebeat"]
 Set `max_retries` to a value less than 0 to retry until all events are published.
 endif::[]
