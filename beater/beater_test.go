@@ -62,6 +62,7 @@ func TestBeatConfig(t *testing.T) {
 					"enabled": true,
 					"url":     "/debug/vars",
 				},
+				"agents": []string{"nodejs"},
 				"frontend": map[string]interface{}{
 					"enabled":       true,
 					"rate_limit":    1000,
@@ -91,6 +92,7 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
+				Agents: []string{"nodejs"},
 				Frontend: &FrontendConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,
@@ -143,6 +145,7 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
+				Agents: []string{"nodejs", "python", "ruby", "apm-js", "java", "go"},
 				Frontend: &FrontendConfig{
 					Enabled:      &truthy,
 					RateLimit:    10,

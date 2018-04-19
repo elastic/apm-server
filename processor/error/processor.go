@@ -29,7 +29,7 @@ var (
 	decodingError   = monitoring.NewInt(errorMetrics, "decoding.errors")
 
 	metricKeys = []string{transformationsKey, errorsKey, stacktracesKey, framesKey}
-	metrics    = pr.NewMetrics(errorMetrics, metricKeys)
+	metrics    = pr.NewMetricMap(errorMetrics, metricKeys)
 )
 
 func NewProcessor() pr.Processor {

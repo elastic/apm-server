@@ -51,6 +51,9 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 
 func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	agent := pa.Service.Agent.Name
+	if !conf.Agents.Contain(agent) {
+		agent = "unknownAgent"
+	}
 	metrics.Inc(agent, transformationsKey)
 	metrics.Add(agent, errorsKey, len(pa.Events))
 	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)

@@ -31,6 +31,7 @@ func TestConfig(t *testing.T) {
 					"certificate": "1234cert",
 				},
         "concurrent_requests": 15,
+				"agents": ["ruby"],
 				"frontend": {
 					"enabled": true,
 					"rate_limit": 1000,
@@ -54,6 +55,7 @@ func TestConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				Agents:          []string{"ruby"},
 				Frontend: &FrontendConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,

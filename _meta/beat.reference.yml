@@ -78,6 +78,8 @@ apm-server:
   # or the IP and User Agent of the real user (frontend requests). It defaults to true.
   #capture_personal_data: true
 
+  #agents: ["nodejs", "python"]
+  #
   # golang expvar support - https://golang.org/pkg/expvar/
   #expvar:
     # Set to true to Expose expvar

@@ -29,7 +29,7 @@ var (
 	validationError    = monitoring.NewInt(transactionMetrics, "validation.errors")
 
 	metricKeys = []string{transformationsKey, transactionsKey, spansKey, stacktracesKey, framesKey}
-	metrics    = pr.NewMetrics(transactionMetrics, metricKeys)
+	metrics    = pr.NewMetricMap(transactionMetrics, metricKeys)
 )
 
 func NewProcessor() pr.Processor {
