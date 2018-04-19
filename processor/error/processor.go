@@ -13,6 +13,7 @@ var (
 	validationError = monitoring.NewInt(errorMetrics, "validation.errors")
 	decodingCount   = monitoring.NewInt(errorMetrics, "decoding.count")
 	decodingError   = monitoring.NewInt(errorMetrics, "decoding.errors")
+	agent           = monitoring.NewString(errorMetrics, "agent")
 )
 
 const (
@@ -50,5 +51,6 @@ func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 		decodingError.Inc()
 		return nil, err
 	}
+	agent.Set(pa.Service.Agent.Name)
 	return pa, nil
 }

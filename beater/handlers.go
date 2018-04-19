@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
-	glob "github.com/ryanuber/go-glob"
-	uuid "github.com/satori/go.uuid"
+	"github.com/ryanuber/go-glob"
+	"github.com/satori/go.uuid"
 	"golang.org/x/time/rate"
 
 	conf "github.com/elastic/apm-server/config"
@@ -52,31 +52,70 @@ type routeMapping struct {
 	ProcessorFactory
 }
 
+type serverResponse struct {
+	err     error
+	code    int
+	counter *monitoring.Int
+}
+
 var (
-	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server")
-	requestCounter = monitoring.NewInt(serverMetrics, "requests.counter")
-	responseValid  = monitoring.NewInt(serverMetrics, "response.valid.count")
-	responseErrors = monitoring.NewInt(serverMetrics, "response.errors.count")
-
-	statusQueueFull        = 5030
-	statusConcurrencyLimit = 5031
-	statusChannelClosed    = 5032
-	errMap                 = map[int]*monitoring.Int{
-		http.StatusBadRequest:       monitoring.NewInt(serverMetrics, "response.errors.badrequest"),
-		http.StatusForbidden:        monitoring.NewInt(serverMetrics, "response.errors.forbidden"),
-		http.StatusUnauthorized:     monitoring.NewInt(serverMetrics, "response.errors.unauthorized"),
-		http.StatusTooManyRequests:  monitoring.NewInt(serverMetrics, "response.errors.ratelimit"),
-		http.StatusMethodNotAllowed: monitoring.NewInt(serverMetrics, "response.errors.method"),
-		statusQueueFull:             monitoring.NewInt(serverMetrics, "response.errors.queue"),
-		statusConcurrencyLimit:      monitoring.NewInt(serverMetrics, "response.errors.concurrency"),
-		statusChannelClosed:         monitoring.NewInt(serverMetrics, "response.errors.closed"),
+	serverMetrics = monitoring.Default.NewRegistry("apm-server.server")
+	counter       = func(s string) *monitoring.Int {
+		return monitoring.NewInt(serverMetrics, s)
 	}
+	requestCounter   = counter("request.count")
+	responseCounter  = counter("response.count")
+	responseErrors   = counter("response.errors.count")
+	responseSucesses = counter("response.valid.count")
 
-	errInvalidToken            = errors.New("invalid token")
-	errForbidden               = errors.New("forbidden request")
-	errPOSTRequestOnly         = errors.New("only POST requests are supported")
-	errTooManyRequests         = errors.New("too many requests")
-	errConcurrencyLimitReached = errors.New("request timed out waiting to be processed. Increase `concurrent_requests` or `max_request_queue_time` or reduce payload size")
+	okResponse = serverResponse{
+		nil, http.StatusOK, counter("response.valid.okResponse"),
+	}
+	acceptedResponse = serverResponse{
+		nil, http.StatusAccepted, counter("response.valid.acceptedResponse"),
+	}
+	forbiddenResponse = serverResponse{
+		errors.New("forbiddenResponse request"), http.StatusForbidden, counter("response.errors.forbiddenResponse"),
+	}
+	unauthorizedResponse = serverResponse{
+		errors.New("invalid token"), http.StatusUnauthorized, counter("response.errors.unauthorizedResponse"),
+	}
+	requestTooLargeResponse = serverResponse{
+		errors.New("request body too large"), http.StatusRequestEntityTooLarge, counter("response.errors.toolarge"),
+	}
+	decodeCounter        = counter("response.errors.decode")
+	cannotDecodeResponse = func(err error) serverResponse {
+		return serverResponse{
+			errors.Wrap(err, "data decoding error"), http.StatusBadRequest, decodeCounter,
+		}
+	}
+	validateCounter        = counter("response.errors.validate")
+	cannotValidateResponse = func(err error) serverResponse {
+		return serverResponse{
+			errors.Wrap(err, "data validation error"), http.StatusBadRequest, validateCounter,
+		}
+	}
+	rateLimitedResponse = serverResponse{
+		errors.New("too many requests"), http.StatusTooManyRequests, counter("response.error.ratelimit"),
+	}
+	methodNotAllowedResponse = serverResponse{
+		errors.New("only POST requests are supported"), http.StatusMethodNotAllowed, counter("response.error.method"),
+	}
+	tooManyConcurrentRequestsResponse = serverResponse{
+		errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, counter("response.error.concurrency"),
+	}
+	fullQueueCounter  = counter("response.error.queue")
+	fullQueueResponse = func(err error) serverResponse {
+		return serverResponse{
+			errors.New("queue "), http.StatusServiceUnavailable, fullQueueCounter,
+		}
+	}
+	serverShuttingDownCounter  = counter("response.error.closed")
+	serverShuttingDownResponse = func(err error) serverResponse {
+		return serverResponse{
+			errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, serverShuttingDownCounter,
+		}
+	}
 
 	Routes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
@@ -117,7 +156,7 @@ func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler 
 			defer release()
 			h.ServeHTTP(w, r)
 		case <-time.After(beaterConfig.MaxRequestQueueTime):
-			sendStatus(w, r, http.StatusServiceUnavailable, errConcurrencyLimitReached)
+			sendStatus(w, r, tooManyConcurrentRequestsResponse)
 		}
 
 	})
@@ -164,7 +203,7 @@ func sourcemapHandler(pf ProcessorFactory, beaterConfig *Config, report reporter
 func healthCheckHandler(_ ProcessorFactory, _ *Config, _ reporter) http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sendStatus(w, r, http.StatusOK, nil)
+			sendStatus(w, r, okResponse)
 		}))
 }
 
@@ -198,7 +237,6 @@ func logHandler(h http.Handler) http.Handler {
 
 		if lw.Code <= 399 {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
-			responseValid.Inc()
 		}
 	})
 }
@@ -208,7 +246,7 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 		if killSwitch {
 			h.ServeHTTP(w, r)
 		} else {
-			sendStatus(w, r, http.StatusForbidden, errForbidden)
+			sendStatus(w, r, forbiddenResponse)
 		}
 	})
 }
@@ -226,7 +264,7 @@ func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if deny(utility.ExtractIP(r)) {
-			sendStatus(w, r, http.StatusTooManyRequests, errTooManyRequests)
+			sendStatus(w, r, rateLimitedResponse)
 			return
 		}
 		h.ServeHTTP(w, r)
@@ -236,7 +274,7 @@ func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 func authHandler(secretToken string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isAuthorized(r, secretToken) {
-			sendStatus(w, r, http.StatusUnauthorized, errInvalidToken)
+			sendStatus(w, r, unauthorizedResponse)
 			return
 		}
 		h.ServeHTTP(w, r)
@@ -295,7 +333,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 
 			w.Header().Set("Content-Length", "0")
 
-			sendStatus(w, r, http.StatusOK, nil)
+			sendStatus(w, r, okResponse)
 
 		} else if validOrigin {
 			// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
@@ -303,55 +341,65 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 			h.ServeHTTP(w, r)
 
 		} else {
-			sendStatus(w, r, http.StatusForbidden, errForbidden)
+			sendStatus(w, r, forbiddenResponse)
 		}
 	})
 }
 
 func processRequestHandler(pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, err := processRequest(r, pf, config, report, decode)
-		sendStatus(w, r, code, err)
+		res := processRequest(r, pf, config, report, decode)
+		sendStatus(w, r, res)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) (int, error) {
+func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) serverResponse {
 	processor := pf()
 
 	if r.Method != "POST" {
-		return http.StatusMethodNotAllowed, errPOSTRequestOnly
+		return methodNotAllowedResponse
 	}
 
 	data, err := decode(r)
 	if err != nil {
-		return http.StatusBadRequest, errors.Wrap(err, "while decoding")
+		if strings.Contains(err.Error(), "request body too large") {
+			return requestTooLargeResponse
+		}
+		return cannotDecodeResponse(err)
+
 	}
 
 	if err = processor.Validate(data); err != nil {
-		return http.StatusBadRequest, err
+		return cannotValidateResponse(err)
 	}
 
 	payload, err := processor.Decode(data)
 	if err != nil {
-		return http.StatusBadRequest, err
+		return cannotDecodeResponse(err)
 	}
 
 	if err = report(pendingReq{payload: payload, config: config}); err != nil {
-		return http.StatusServiceUnavailable, err
+		if strings.Contains(err.Error(), "publisher is being stopped") {
+			return serverShuttingDownResponse(err)
+		}
+		return fullQueueResponse(err)
 	}
 
-	return http.StatusAccepted, nil
+	return acceptedResponse
 }
 
-func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
+func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	contentType := "text/plain; charset=utf-8"
 	if acceptsJSON(r) {
 		contentType = "application/json"
 	}
 	w.Header().Set("Content-Type", contentType)
-	w.WriteHeader(code)
+	w.WriteHeader(res.code)
 
-	if err == nil {
+	responseCounter.Inc()
+	res.counter.Inc()
+	if res.err == nil {
+		responseSucesses.Inc()
 		return
 	}
 
@@ -359,29 +407,15 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	if !ok {
 		logger = logp.NewLogger("request")
 	}
-	logger.Errorw("error handling request", "response_code", code, "error", err.Error())
+	errMsg := res.err.Error()
+	logger.Errorw("error handling request", "response_code", res.code, "error", errMsg)
 
-	if code == http.StatusServiceUnavailable {
-		if err == errFull {
-			errMap[statusQueueFull].Inc()
-		} else if err == errConcurrencyLimitReached {
-			errMap[statusConcurrencyLimit].Inc()
-		} else if err == errChannelClosed {
-			errMap[statusChannelClosed].Inc()
-		} else {
-			logger.Warnw("error counter missing", "response_code", code, "error", err.Error())
-		}
-	} else if errCt, ok := errMap[code]; ok {
-		errCt.Inc()
-	} else {
-		logger.Warnw("error counter missing", "response_code", code)
-	}
 	responseErrors.Inc()
 
 	if acceptsJSON(r) {
-		sendJSON(w, map[string]interface{}{"error": err.Error()})
+		sendJSON(w, map[string]interface{}{"error": errMsg})
 	} else {
-		sendPlain(w, err.Error())
+		sendPlain(w, errMsg)
 	}
 }
 
