@@ -10,6 +10,48 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIncCounter(t *testing.T) {
+	req, err := http.NewRequest("POST", "_", nil)
+	assert.Nil(t, err)
+	req.Header.Set("Accept", "application/json")
+	w := httptest.NewRecorder()
+
+	sendStatus(w, req, http.StatusServiceUnavailable, errFull)
+	assert.Equal(t, int64(1), errMap[5030].Get())
+
+	sendStatus(w, req, http.StatusServiceUnavailable, errConcurrencyLimitReached)
+	assert.Equal(t, int64(1), errMap[5031].Get())
+
+	sendStatus(w, req, http.StatusServiceUnavailable, errChannelClosed)
+	assert.Equal(t, int64(1), errMap[5032].Get())
+
+	sendStatus(w, req, http.StatusMethodNotAllowed, errors.New(""))
+	assert.Equal(t, int64(1), errMap[405].Get())
+
+	sendStatus(w, req, http.StatusTooManyRequests, errors.New(""))
+	assert.Equal(t, int64(1), errMap[429].Get())
+
+	sendStatus(w, req, http.StatusUnauthorized, errors.New(""))
+	assert.Equal(t, int64(1), errMap[401].Get())
+
+	sendStatus(w, req, http.StatusForbidden, errors.New(""))
+	assert.Equal(t, int64(1), errMap[403].Get())
+
+	sendStatus(w, req, http.StatusBadRequest, errors.New(""))
+	assert.Equal(t, int64(1), errMap[400].Get())
+
+	assert.Equal(t, int64(8), responseErrors.Get())
+
+	responseErrors.Set(0)
+	sendStatus(w, req, http.StatusNotImplemented, errors.New(""))
+	sendStatus(w, req, http.StatusServiceUnavailable, errors.New(""))
+	assert.Equal(t, int64(2), responseErrors.Get())
+
+	responseErrors.Set(0)
+	sendStatus(w, req, http.StatusOK, nil)
+	assert.Equal(t, int64(0), responseErrors.Get())
+}
+
 func TestJSONFailureResponse(t *testing.T) {
 	req, err := http.NewRequest("POST", "_", nil)
 	assert.Nil(t, err)
