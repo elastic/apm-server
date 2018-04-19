@@ -7,22 +7,30 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 )
 
+const (
+	processorName      = "transaction"
+	transactionDocType = "transaction"
+	spanDocType        = "span"
+
+	transformationsKey = "transformation"
+	transactionsKey    = "transactions"
+	spansKey           = "spans"
+	stacktracesKey     = "stacktraces"
+	framesKey          = "frames"
+)
+
 var (
+	schema = pr.CreateSchema(transactionSchema, processorName)
+
 	transactionMetrics = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
 	decodingCount      = monitoring.NewInt(transactionMetrics, "decoding.count")
 	decodingError      = monitoring.NewInt(transactionMetrics, "decoding.errors")
 	validationCount    = monitoring.NewInt(transactionMetrics, "validation.count")
 	validationError    = monitoring.NewInt(transactionMetrics, "validation.errors")
-	agent              = monitoring.NewString(transactionMetrics, "agent")
-)
 
-const (
-	processorName      = "transaction"
-	transactionDocType = "transaction"
-	spanDocType        = "span"
+	metricKeys = []string{transformationsKey, transactionsKey, spansKey, stacktracesKey, framesKey}
+	metrics    = pr.NewMetrics(transactionMetrics, metricKeys)
 )
-
-var schema = pr.CreateSchema(transactionSchema, processorName)
 
 func NewProcessor() pr.Processor {
 	return &processor{schema: schema}
@@ -52,6 +60,5 @@ func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 		decodingError.Inc()
 		return nil, err
 	}
-	agent.Set(pa.Service.Agent.Name)
 	return pa, nil
 }
