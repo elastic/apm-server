@@ -54,7 +54,7 @@ type routeMapping struct {
 
 var (
 	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server")
-	requestCounter = monitoring.NewInt(serverMetrics, "requests.counter")
+	requestCounter = monitoring.NewInt(serverMetrics, "requests.count")
 	responseValid  = monitoring.NewInt(serverMetrics, "response.valid.count")
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors.count")
 
@@ -71,6 +71,7 @@ var (
 		statusConcurrencyLimit:      monitoring.NewInt(serverMetrics, "response.errors.concurrency"),
 		statusChannelClosed:         monitoring.NewInt(serverMetrics, "response.errors.closed"),
 	}
+	errCountMissing = "metrics.apm-server.server.response.errors count missing for"
 
 	errInvalidToken            = errors.New("invalid token")
 	errForbidden               = errors.New("forbidden request")
@@ -354,35 +355,39 @@ func sendStatus(w http.ResponseWriter, r *http.Request, code int, err error) {
 	if err == nil {
 		return
 	}
-
-	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-	if !ok {
-		logger = logp.NewLogger("request")
-	}
-	logger.Errorw("error handling request", "response_code", code, "error", err.Error())
-
-	if code == http.StatusServiceUnavailable {
-		if err == errFull {
-			errMap[statusQueueFull].Inc()
-		} else if err == errConcurrencyLimitReached {
-			errMap[statusConcurrencyLimit].Inc()
-		} else if err == errChannelClosed {
-			errMap[statusChannelClosed].Inc()
-		} else {
-			logger.Warnw("error counter missing", "response_code", code, "error", err.Error())
-		}
-	} else if errCt, ok := errMap[code]; ok {
-		errCt.Inc()
-	} else {
-		logger.Warnw("error counter missing", "response_code", code)
-	}
-	responseErrors.Inc()
+	logErrMetrics(r.Context(), code, err)
 
 	if acceptsJSON(r) {
 		sendJSON(w, map[string]interface{}{"error": err.Error()})
 	} else {
 		sendPlain(w, err.Error())
 	}
+}
+
+func logErrMetrics(c context.Context, code int, err error) {
+	logger, ok := c.Value(reqLoggerContextKey).(*logp.Logger)
+	if !ok {
+		logger = logp.NewLogger("request")
+	}
+	logger.Errorw("error handling request", "response_code", code, "error", err.Error())
+
+	if code == http.StatusServiceUnavailable {
+		switch err {
+		case errFull:
+			errMap[statusQueueFull].Inc()
+		case errConcurrencyLimitReached:
+			errMap[statusConcurrencyLimit].Inc()
+		case errChannelClosed:
+			errMap[statusChannelClosed].Inc()
+		default:
+			logp.NewLogger("monitoring").Warnw(errCountMissing, "response_code", code, "error", err.Error())
+		}
+	} else if errCt, ok := errMap[code]; ok {
+		errCt.Inc()
+	} else {
+		logp.NewLogger("monitoring").Warnw(errCountMissing, "response_code", code)
+	}
+	responseErrors.Inc()
 }
 
 func acceptsJSON(r *http.Request) bool {
