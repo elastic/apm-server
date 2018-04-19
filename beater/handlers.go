@@ -53,7 +53,7 @@ type routeMapping struct {
 }
 
 var (
-	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server")
+	serverMetrics  = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
 	requestCounter = monitoring.NewInt(serverMetrics, "requests.counter")
 	responseValid  = monitoring.NewInt(serverMetrics, "response.valid")
 	responseErrors = monitoring.NewInt(serverMetrics, "response.errors")
