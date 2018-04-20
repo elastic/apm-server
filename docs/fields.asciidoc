@@ -30,27 +30,33 @@ grouped in the following categories:
 None
 
 
-[float]
-=== `listening`
-
+*`listening`*::
++
+--
 type: keyword
 
 Address the server is listening on.
 
 
-[float]
-=== `processor.name`
+--
 
+*`processor.name`*::
++
+--
 type: keyword
 
 Processor name.
 
-[float]
-=== `processor.event`
+--
 
+*`processor.event`*::
++
+--
 type: keyword
 
 Processor event.
+
+--
 
 [float]
 == context fields
@@ -59,54 +65,66 @@ Any arbitrary contextual information regarding the event, captured by the agent,
 
 
 
-[float]
-=== `context.tags`
-
+*`context.tags`*::
++
+--
 type: object
 
 A flat mapping of user-defined tags with string values.
 
 
+--
 
-[float]
-=== `context.user.username`
 
+*`context.user.username`*::
++
+--
 type: keyword
 
 The username of the logged in user.
 
 
-[float]
-=== `context.user.id`
+--
 
+*`context.user.id`*::
++
+--
 type: keyword
 
 Identifier of the logged in user.
 
 
-[float]
-=== `context.user.email`
+--
 
+*`context.user.email`*::
++
+--
 type: keyword
 
 Email of the logged in user.
 
 
-[float]
-=== `context.user.ip`
+--
 
+*`context.user.ip`*::
++
+--
 type: ip
 
 IP of the user where the event is recorded, typically a web browser. This is obtained from the X-Forwarded-For header, of which the first entry is the IP of the original client. This value however might not be necessarily trusted, as it can be forged by a malicious user.
 
 
-[float]
-=== `context.user.user-agent`
+--
 
+*`context.user.user-agent`*::
++
+--
 type: text
 
 Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
+
+--
 
 
 [float]
@@ -116,102 +134,126 @@ A complete Url, with scheme, host and path.
 
 
 
-[float]
-=== `context.request.url.raw`
-
+*`context.request.url.raw`*::
++
+--
 type: keyword
 
 The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
-[float]
-=== `context.request.url.protocol`
+--
 
+*`context.request.url.protocol`*::
++
+--
 type: keyword
 
 The protocol of the request, e.g. "https:".
 
 
-[float]
-=== `context.request.url.full`
+--
 
+*`context.request.url.full`*::
++
+--
 type: keyword
 
 The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
 
 
-[float]
-=== `context.request.url.hostname`
+--
 
+*`context.request.url.hostname`*::
++
+--
 type: keyword
 
 The hostname of the request, e.g. "example.com".
 
 
-[float]
-=== `context.request.url.port`
+--
 
+*`context.request.url.port`*::
++
+--
 type: keyword
 
 The port of the request, e.g. 443.
 
 
-[float]
-=== `context.request.url.pathname`
+--
 
+*`context.request.url.pathname`*::
++
+--
 type: keyword
 
 The path of the request, e.g. "/search".
 
 
-[float]
-=== `context.request.url.search`
+--
 
+*`context.request.url.search`*::
++
+--
 type: keyword
 
 The search describes the query string of the request, e.g. "q=elasticsearch".
 
 
-[float]
-=== `context.request.url.hash`
+--
 
+*`context.request.url.hash`*::
++
+--
 type: keyword
 
 The hash of the request URL, e.g. "top".
 
 
-[float]
-=== `context.request.http_version`
+--
 
+*`context.request.http_version`*::
++
+--
 type: keyword
 
 The http version of the request leading to this event.
 
 
-[float]
-=== `context.request.method`
+--
 
+*`context.request.method`*::
++
+--
 type: keyword
 
 The http method of the request leading to this event.
 
 
+--
 
-[float]
-=== `context.response.status_code`
 
+*`context.response.status_code`*::
++
+--
 type: long
 
 The http status code of the response, eg. '200'.
 
 
-[float]
-=== `context.response.finished`
+--
 
+*`context.response.finished`*::
++
+--
 type: boolean
 
 A boolean indicating whether the response was finished or not.
 
+
+--
 
 [float]
 == system fields
@@ -220,37 +262,45 @@ Optional system fields.
 
 
 
-[float]
-=== `context.system.hostname`
-
+*`context.system.hostname`*::
++
+--
 type: keyword
 
 The hostname of the system the event was recorded on.
 
 
-[float]
-=== `context.system.architecture`
+--
 
+*`context.system.architecture`*::
++
+--
 type: keyword
 
 The architecture of the system the event was recorded on.
 
 
-[float]
-=== `context.system.platform`
+--
 
+*`context.system.platform`*::
++
+--
 type: keyword
 
 The platform of the system the event was recorded on.
 
 
-[float]
-=== `context.system.ip`
+--
 
+*`context.system.ip`*::
++
+--
 type: ip
 
 IP of the host that records the event.
 
+
+--
 
 [float]
 == process fields
@@ -259,29 +309,35 @@ Information pertaining to the running process where the data was collected
 
 
 
-[float]
-=== `context.process.pid`
-
+*`context.process.pid`*::
++
+--
 type: long
 
 Numeric process ID of the service process.
 
 
-[float]
-=== `context.process.ppid`
+--
 
+*`context.process.ppid`*::
++
+--
 type: long
 
 Numeric ID of the service's parent process.
 
 
-[float]
-=== `context.process.title`
+--
 
+*`context.process.title`*::
++
+--
 type: keyword
 
 Service process title.
 
+
+--
 
 [float]
 == service fields
@@ -290,9 +346,9 @@ Service fields.
 
 
 
-[float]
-=== `context.service.name`
-
+*`context.service.name`*::
++
+--
 type: keyword
 
 format: url
@@ -300,94 +356,116 @@ format: url
 Immutable unique name of the service emitting this event.
 
 
-[float]
-=== `context.service.version`
+--
 
+*`context.service.version`*::
++
+--
 type: keyword
 
 Version of the service emitting this event.
 
 
-[float]
-=== `context.service.environment`
+--
 
+*`context.service.environment`*::
++
+--
 type: keyword
 
 Service environment.
 
 
+--
 
-[float]
-=== `context.service.language.name`
 
+*`context.service.language.name`*::
++
+--
 type: keyword
 
 Name of the programming language used.
 
 
-[float]
-=== `context.service.language.version`
+--
 
+*`context.service.language.version`*::
++
+--
 type: keyword
 
 Version of the programming language used.
 
 
+--
 
-[float]
-=== `context.service.runtime.name`
 
+*`context.service.runtime.name`*::
++
+--
 type: keyword
 
 Name of the runtime used.
 
 
-[float]
-=== `context.service.runtime.version`
+--
 
+*`context.service.runtime.version`*::
++
+--
 type: keyword
 
 Version of the runtime used.
 
 
+--
 
-[float]
-=== `context.service.framework.name`
 
+*`context.service.framework.name`*::
++
+--
 type: keyword
 
 Name of the framework used.
 
 
-[float]
-=== `context.service.framework.version`
+--
 
+*`context.service.framework.version`*::
++
+--
 type: keyword
 
 Version of the framework used.
 
 
+--
 
-[float]
-=== `context.service.agent.name`
 
+*`context.service.agent.name`*::
++
+--
 type: keyword
 
 Name of the agent used.
 
 
-[float]
-=== `context.service.agent.version`
+--
 
+*`context.service.agent.version`*::
++
+--
 type: keyword
 
 Version of the agent used.
 
 
+--
 
-[float]
-=== `transaction.id`
 
+*`transaction.id`*::
++
+--
 type: keyword
 
 format: url
@@ -395,25 +473,31 @@ format: url
 A UUID4 transaction ID.
 
 
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
 Error-specific data for APM
 
 
-[float]
-=== `view errors`
-
+*`view errors`*::
++
+--
 type: keyword
 
 format: url
 
-[float]
-=== `error id icon`
+--
 
+*`error id icon`*::
++
+--
 type: keyword
 
 format: url
+
+--
 
 [float]
 == error fields
@@ -422,30 +506,36 @@ Data captured by an agent representing an event occurring in a monitored service
 
 
 
-[float]
-=== `error.id`
-
+*`error.id`*::
++
+--
 type: keyword
 
 A UUID for the error.
 
 
-[float]
-=== `error.culprit`
+--
 
+*`error.culprit`*::
++
+--
 type: text
 
 Function call which was the primary perpetrator of this event.
 
-[float]
-=== `error.grouping_key`
+--
 
+*`error.grouping_key`*::
++
+--
 type: keyword
 
 format: url
 
 GroupingKey of the logged error for use in grouping.
 
+
+--
 
 [float]
 == exception fields
@@ -454,38 +544,48 @@ Information about the originally thrown error.
 
 
 
-[float]
-=== `error.exception.code`
-
+*`error.exception.code`*::
++
+--
 type: keyword
 
 The error code set when the error happened, e.g. database error code.
 
-[float]
-=== `error.exception.message`
+--
 
+*`error.exception.message`*::
++
+--
 type: text
 
 The original error message.
 
-[float]
-=== `error.exception.module`
+--
 
+*`error.exception.module`*::
++
+--
 type: keyword
 
 The module namespace of the original error.
 
-[float]
-=== `error.exception.type`
+--
 
+*`error.exception.type`*::
++
+--
 type: keyword
 
-[float]
-=== `error.exception.handled`
+--
 
+*`error.exception.handled`*::
++
+--
 type: boolean
 
 Indicator whether the error was caught somewhere in the code or not.
+
+--
 
 [float]
 == log fields
@@ -494,34 +594,42 @@ Additional information added by logging the error.
 
 
 
-[float]
-=== `error.log.level`
-
+*`error.log.level`*::
++
+--
 type: keyword
 
 The severity of the record.
 
-[float]
-=== `error.log.logger_name`
+--
 
+*`error.log.logger_name`*::
++
+--
 type: keyword
 
 The name of the logger instance used.
 
-[float]
-=== `error.log.message`
+--
 
+*`error.log.message`*::
++
+--
 type: text
 
 The additionally logged error message.
 
-[float]
-=== `error.log.param_message`
+--
 
+*`error.log.param_message`*::
++
+--
 type: keyword
 
 A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
 
+
+--
 
 [[exported-fields-apm-sourcemap]]
 == APM Sourcemap fields
@@ -537,29 +645,35 @@ Service fields.
 
 
 
-[float]
-=== `sourcemap.service.name`
-
+*`sourcemap.service.name`*::
++
+--
 type: keyword
 
 The name of the service this sourcemap belongs to.
 
 
-[float]
-=== `sourcemap.service.version`
+--
 
+*`sourcemap.service.version`*::
++
+--
 type: keyword
 
 Service version.
 
 
-[float]
-=== `sourcemap.bundle_filepath`
+--
 
+*`sourcemap.bundle_filepath`*::
++
+--
 type: keyword
 
 Location of the sourcemap relative to the file requesting it.
 
+
+--
 
 [[exported-fields-apm-span]]
 == APM Span fields
@@ -567,35 +681,43 @@ Location of the sourcemap relative to the file requesting it.
 Span-specific data for APM.
 
 
-[float]
-=== `view spans`
-
+*`view spans`*::
++
+--
 format: url
 
+--
 
-[float]
-=== `span.id`
 
+*`span.id`*::
++
+--
 type: long
 
 A locally unique ID of the span.
 
 
-[float]
-=== `span.name`
+--
 
+*`span.name`*::
++
+--
 type: keyword
 
 Generic designation of a span in the scope of a transaction.
 
 
-[float]
-=== `span.type`
+--
 
+*`span.type`*::
++
+--
 type: keyword
 
 Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 
+
+--
 
 [float]
 == start fields
@@ -603,13 +725,15 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 None
 
 
-[float]
-=== `span.start.us`
-
+*`span.start.us`*::
++
+--
 type: long
 
 Offset relative to the transaction's timestamp identifying the start of the span, in microseconds.
 
+
+--
 
 [float]
 == duration fields
@@ -617,9 +741,9 @@ Offset relative to the transaction's timestamp identifying the start of the span
 None
 
 
-[float]
-=== `span.duration.us`
-
+*`span.duration.us`*::
++
+--
 type: long
 
 format: duration
@@ -627,13 +751,17 @@ format: duration
 Duration of the span, in microseconds.
 
 
-[float]
-=== `span.parent`
+--
 
+*`span.parent`*::
++
+--
 type: long
 
 The locally unique ID of the parent of the span.
 
+
+--
 
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
@@ -642,26 +770,32 @@ Transaction-specific data for APM
 
 
 
-[float]
-=== `transaction.name`
-
+*`transaction.name`*::
++
+--
 type: text
 
 Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
 
-[float]
-=== `transaction.name.keyword`
-
+*`transaction.name.keyword`*::
++
+--
 type: keyword
 
-[float]
-=== `transaction.type`
+--
 
+--
+
+*`transaction.type`*::
++
+--
 type: keyword
 
 Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 
+
+--
 
 [float]
 == duration fields
@@ -669,9 +803,9 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 None
 
 
-[float]
-=== `transaction.duration.us`
-
+*`transaction.duration.us`*::
++
+--
 type: long
 
 format: duration
@@ -679,38 +813,48 @@ format: duration
 Total duration of this transaction, in microseconds.
 
 
-[float]
-=== `transaction.result`
+--
 
+*`transaction.result`*::
++
+--
 type: keyword
 
 The result of the transaction. HTTP status code for HTTP-related transactions.
 
 
-[float]
-=== `transaction.marks`
+--
 
+*`transaction.marks`*::
++
+--
 type: object
 
 A user-defined mapping of groups of marks in milliseconds.
 
 
-[float]
-=== `transaction.sampled`
+--
 
+*`transaction.sampled`*::
++
+--
 type: boolean
 
 Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
 
 
+--
 
 
-[float]
-=== `transaction.span_count.dropped.total`
 
+*`transaction.span_count.dropped.total`*::
++
+--
 type: long
 
 The total amount of dropped spans for this transaction.
+
+--
 
 [[exported-fields-beat]]
 == Beat fields
@@ -719,33 +863,41 @@ Contains common beat fields available in all event types.
 
 
 
-[float]
-=== `beat.name`
-
+*`beat.name`*::
++
+--
 The name of the Beat sending the log messages. If the Beat name is set in the configuration file, then that value is used. If it is not set, the hostname is used. To set the Beat name, use the `name` option in the configuration file.
 
 
-[float]
-=== `beat.hostname`
+--
 
+*`beat.hostname`*::
++
+--
 The hostname as returned by the operating system on which the Beat is running.
 
 
-[float]
-=== `beat.timezone`
+--
 
+*`beat.timezone`*::
++
+--
 The timezone as returned by the operating system on which the Beat is running.
 
 
-[float]
-=== `beat.version`
+--
 
+*`beat.version`*::
++
+--
 The version of the beat that generated this event.
 
 
-[float]
-=== `@timestamp`
+--
 
+*`@timestamp`*::
++
+--
 type: date
 
 example: August 26th 2016, 12:35:53.332
@@ -757,19 +909,25 @@ required: True
 The timestamp when the event log record was generated.
 
 
-[float]
-=== `tags`
+--
 
+*`tags`*::
++
+--
 Arbitrary tags that can be set per Beat and per transaction type.
 
 
-[float]
-=== `fields`
+--
 
+*`fields`*::
++
+--
 type: object
 
 Contains user configurable fields.
 
+
+--
 
 [float]
 == error fields
@@ -778,29 +936,35 @@ Error fields containing additional info in case of errors.
 
 
 
-[float]
-=== `error.message`
-
+*`error.message`*::
++
+--
 type: text
 
 Error message.
 
 
-[float]
-=== `error.code`
+--
 
+*`error.code`*::
++
+--
 type: long
 
 Error code.
 
 
-[float]
-=== `error.type`
+--
 
+*`error.type`*::
++
+--
 type: keyword
 
 Error type.
 
+
+--
 
 [[exported-fields-cloud]]
 == Cloud provider metadata fields
@@ -809,55 +973,69 @@ Metadata from cloud providers added by the add_cloud_metadata processor.
 
 
 
-[float]
-=== `meta.cloud.provider`
-
+*`meta.cloud.provider`*::
++
+--
 example: ec2
 
 Name of the cloud provider. Possible values are ec2, gce, or digitalocean.
 
 
-[float]
-=== `meta.cloud.instance_id`
+--
 
+*`meta.cloud.instance_id`*::
++
+--
 Instance ID of the host machine.
 
 
-[float]
-=== `meta.cloud.instance_name`
+--
 
+*`meta.cloud.instance_name`*::
++
+--
 Instance name of the host machine.
 
 
-[float]
-=== `meta.cloud.machine_type`
+--
 
+*`meta.cloud.machine_type`*::
++
+--
 example: t2.medium
 
 Machine type of the host machine.
 
 
-[float]
-=== `meta.cloud.availability_zone`
+--
 
+*`meta.cloud.availability_zone`*::
++
+--
 example: us-east-1c
 
 Availability zone in which this host is running.
 
 
-[float]
-=== `meta.cloud.project_id`
+--
 
+*`meta.cloud.project_id`*::
++
+--
 example: project-x
 
 Name of the project in Google Cloud.
 
 
-[float]
-=== `meta.cloud.region`
+--
 
+*`meta.cloud.region`*::
++
+--
 Region in which this host is running.
 
+
+--
 
 [[exported-fields-docker-processor]]
 == Docker fields
@@ -867,37 +1045,45 @@ Docker stats collected from Docker.
 
 
 
-[float]
-=== `docker.container.id`
-
+*`docker.container.id`*::
++
+--
 type: keyword
 
 Unique container id.
 
 
-[float]
-=== `docker.container.image`
+--
 
+*`docker.container.image`*::
++
+--
 type: keyword
 
 Name of the image the container was built on.
 
 
-[float]
-=== `docker.container.name`
+--
 
+*`docker.container.name`*::
++
+--
 type: keyword
 
 Container name.
 
 
-[float]
-=== `docker.container.labels`
+--
 
+*`docker.container.labels`*::
++
+--
 type: object
 
 Image labels.
 
+
+--
 
 [[exported-fields-host-processor]]
 == Host fields
@@ -907,53 +1093,65 @@ Info collected for the host machine.
 
 
 
-[float]
-=== `host.name`
-
+*`host.name`*::
++
+--
 type: keyword
 
 Hostname.
 
 
-[float]
-=== `host.id`
+--
 
+*`host.id`*::
++
+--
 type: keyword
 
 Unique host id.
 
 
-[float]
-=== `host.architecture`
+--
 
+*`host.architecture`*::
++
+--
 type: keyword
 
 Host architecture (e.g. x86_64, arm, ppc, mips).
 
 
-[float]
-=== `host.os.platform`
+--
 
+*`host.os.platform`*::
++
+--
 type: keyword
 
 OS platform (e.g. centos, ubuntu, windows).
 
 
-[float]
-=== `host.os.version`
+--
 
+*`host.os.version`*::
++
+--
 type: keyword
 
 OS version.
 
 
-[float]
-=== `host.os.family`
+--
 
+*`host.os.family`*::
++
+--
 type: keyword
 
 OS family (e.g. redhat, debian, freebsd, windows).
 
+
+--
 
 [[exported-fields-kubernetes-processor]]
 == Kubernetes fields
@@ -963,59 +1161,73 @@ Kubernetes metadata added by the kubernetes processor
 
 
 
-[float]
-=== `kubernetes.pod.name`
-
+*`kubernetes.pod.name`*::
++
+--
 type: keyword
 
 Kubernetes pod name
 
 
-[float]
-=== `kubernetes.namespace`
+--
 
+*`kubernetes.namespace`*::
++
+--
 type: keyword
 
 Kubernetes namespace
 
 
-[float]
-=== `kubernetes.node.name`
+--
 
+*`kubernetes.node.name`*::
++
+--
 type: keyword
 
 Kubernetes node name
 
 
-[float]
-=== `kubernetes.labels`
+--
 
+*`kubernetes.labels`*::
++
+--
 type: object
 
 Kubernetes labels map
 
 
-[float]
-=== `kubernetes.annotations`
+--
 
+*`kubernetes.annotations`*::
++
+--
 type: object
 
 Kubernetes annotations map
 
 
-[float]
-=== `kubernetes.container.name`
+--
 
+*`kubernetes.container.name`*::
++
+--
 type: keyword
 
 Kubernetes container name
 
 
-[float]
-=== `kubernetes.container.image`
+--
 
+*`kubernetes.container.image`*::
++
+--
 type: keyword
 
 Kubernetes container image
 
+
+--
 
