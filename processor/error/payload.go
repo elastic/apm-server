@@ -11,9 +11,11 @@ import (
 )
 
 var (
-	transformations = monitoring.NewInt(errorMetrics, "transformations")
-	errorCounter    = monitoring.NewInt(errorMetrics, "counter")
-	processorEntry  = common.MapStr{"name": processorName, "event": errorDocType}
+	transformations   = monitoring.NewInt(errorMetrics, "transformations")
+	errorCounter      = monitoring.NewInt(errorMetrics, "errors")
+	stacktraceCounter = monitoring.NewInt(errorMetrics, "stacktraces")
+	frameCounter      = monitoring.NewInt(errorMetrics, "frames")
+	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
 )
 
 type Payload struct {
@@ -54,14 +56,20 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 
 func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	transformations.Inc()
-	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 	errorCounter.Add(int64(len(pa.Events)))
+	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
 
 	var events []beat.Event
 	for idx := 0; idx < len(pa.Events); idx++ {
 		event := pa.Events[idx]
+		if event.Exception != nil {
+			addStacktraceCounter(event.Exception.Stacktrace)
+		}
+		if event.Log != nil {
+			addStacktraceCounter(event.Log.Stacktrace)
+		}
 		context := context.Transform(event.Context)
 		ev := beat.Event{
 			Fields: common.MapStr{
@@ -78,4 +86,11 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 		pa.Events[idx] = nil
 	}
 	return events
+}
+
+func addStacktraceCounter(st m.Stacktrace) {
+	if frames := len(st); frames > 0 {
+		stacktraceCounter.Inc()
+		frameCounter.Add(int64(frames))
+	}
 }
