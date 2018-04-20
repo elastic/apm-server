@@ -13,10 +13,33 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 type Reader func(req *http.Request) (io.ReadCloser, error)
 type Decoder func(req *http.Request) (map[string]interface{}, error)
+
+var (
+	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)
+	deflateLengthAccumulator      = monitoring.NewInt(decoderMetrics, "deflate.content-length")
+	gzipLengthAccumulator         = monitoring.NewInt(decoderMetrics, "gzip.content-length")
+	uncompressedLengthAccumulator = monitoring.NewInt(decoderMetrics, "uncompressed.content-length")
+	readerAccumulator             = monitoring.NewInt(decoderMetrics, "reader.size")
+)
+
+type monitoringReader struct {
+	r io.ReadCloser
+}
+
+func (mr monitoringReader) Read(p []byte) (int, error) {
+	n, err := mr.r.Read(p)
+	readerAccumulator.Add(int64(n))
+	return n, err
+}
+
+func (mr monitoringReader) Close() error {
+	return mr.r.Close()
+}
 
 func DecodeLimitJSONData(maxSize int64) Decoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
@@ -24,7 +47,7 @@ func DecodeLimitJSONData(maxSize int64) Decoder {
 		if err != nil {
 			return nil, err
 		}
-		return DecodeJSONData(reader)
+		return DecodeJSONData(monitoringReader{reader})
 	}
 }
 
@@ -42,8 +65,13 @@ func readRequestJSONData(maxSize int64) Reader {
 			return nil, errors.New("no content")
 		}
 
+		cLen := req.ContentLength
+		knownCLen := cLen > -1
 		switch req.Header.Get("Content-Encoding") {
 		case "deflate":
+			if knownCLen {
+				deflateLengthAccumulator.Add(cLen)
+			}
 			var err error
 			reader, err = zlib.NewReader(reader)
 			if err != nil {
@@ -51,10 +79,17 @@ func readRequestJSONData(maxSize int64) Reader {
 			}
 
 		case "gzip":
+			if knownCLen {
+				gzipLengthAccumulator.Add(cLen)
+			}
 			var err error
 			reader, err = gzip.NewReader(reader)
 			if err != nil {
 				return nil, err
+			}
+		default:
+			if knownCLen {
+				uncompressedLengthAccumulator.Add(cLen)
 			}
 		}
 		return http.MaxBytesReader(nil, reader, maxSize), nil
