@@ -10,12 +10,16 @@
 If you have issues installing or running APM Server, 
 read the following tips:
 
+* <<common-problems>>
 * <<getting-help>>
 * <<enable-apm-server-debugging>>
 
 //sets block macro for getting-help.asciidoc included in next section
 
 --
+
+include::common-problems.asciidoc[]
+
 
 [[getting-help]]
 == Get help
