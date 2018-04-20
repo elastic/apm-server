@@ -20,8 +20,6 @@ apm-server:
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
 
-  #agents: ["nodejs", "python"]
-
 #================================ General ======================================
 
 # Internal queue configuration for buffering events to be published.

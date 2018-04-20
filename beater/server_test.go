@@ -104,6 +104,7 @@ func TestServerFrontendSwitch(t *testing.T) {
 	apm.server.Handler.ServeHTTP(rec, req)
 	apm.server.Handler = newMuxer(
 		&Config{
+			Metrics:  &Metrics{},
 			Frontend: &FrontendConfig{Enabled: new(bool), AllowOrigins: []string{"*"}}},
 		nil)
 	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
@@ -111,6 +112,7 @@ func TestServerFrontendSwitch(t *testing.T) {
 	true := true
 	apm.server.Handler = newMuxer(
 		&Config{
+			Metrics:  &Metrics{},
 			Frontend: &FrontendConfig{Enabled: &true, AllowOrigins: []string{"*"}}},
 		nil)
 	rec = httptest.NewRecorder()
@@ -167,6 +169,7 @@ func TestServerCORS(t *testing.T) {
 				MaxUnzippedSize:     1024 * 1024,
 				ConcurrentRequests:  40,
 				MaxRequestQueueTime: time.Second * 10,
+				Metrics:             &Metrics{},
 				Frontend: &FrontendConfig{
 					Enabled:      &true,
 					RateLimit:    10,
