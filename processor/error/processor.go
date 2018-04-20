@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	errorMetrics    = monitoring.Default.NewRegistry("apm-server.processor.error")
+	errorMetrics    = monitoring.Default.NewRegistry("apm-server.processor.error", monitoring.PublishExpvar)
 	validationCount = monitoring.NewInt(errorMetrics, "validation.count")
 	validationError = monitoring.NewInt(errorMetrics, "validation.errors")
 	decodingCount   = monitoring.NewInt(errorMetrics, "decoding.count")

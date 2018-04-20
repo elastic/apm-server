@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	sourcemapUploadMetrics = monitoring.Default.NewRegistry("apm-server.processor.sourcemap")
+	sourcemapUploadMetrics = monitoring.Default.NewRegistry("apm-server.processor.sourcemap", monitoring.PublishExpvar)
 	validationCount        = monitoring.NewInt(sourcemapUploadMetrics, "validation.count")
 	validationError        = monitoring.NewInt(sourcemapUploadMetrics, "validation.errors")
 	decodingCount          = monitoring.NewInt(sourcemapUploadMetrics, "decoding.count")

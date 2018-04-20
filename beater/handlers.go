@@ -59,26 +59,26 @@ type serverResponse struct {
 }
 
 var (
-	serverMetrics = monitoring.Default.NewRegistry("apm-server.server")
+	serverMetrics = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
 	counter       = func(s string) *monitoring.Int {
 		return monitoring.NewInt(serverMetrics, s)
 	}
-	requestCounter   = counter("request.count")
-	responseCounter  = counter("response.count")
-	responseErrors   = counter("response.errors.count")
-	responseSucesses = counter("response.valid.count")
+	requestCounter    = counter("request.count")
+	responseCounter   = counter("response.count")
+	responseErrors    = counter("response.errors.count")
+	responseSuccesses = counter("response.valid.count")
 
 	okResponse = serverResponse{
-		nil, http.StatusOK, counter("response.valid.okResponse"),
+		nil, http.StatusOK, counter("response.valid.ok"),
 	}
 	acceptedResponse = serverResponse{
-		nil, http.StatusAccepted, counter("response.valid.acceptedResponse"),
+		nil, http.StatusAccepted, counter("response.valid.accepted"),
 	}
 	forbiddenResponse = serverResponse{
-		errors.New("forbiddenResponse request"), http.StatusForbidden, counter("response.errors.forbiddenResponse"),
+		errors.New("forbidden request"), http.StatusForbidden, counter("response.errors.forbidden"),
 	}
 	unauthorizedResponse = serverResponse{
-		errors.New("invalid token"), http.StatusUnauthorized, counter("response.errors.unauthorizedResponse"),
+		errors.New("invalid token"), http.StatusUnauthorized, counter("response.errors.unauthorized"),
 	}
 	requestTooLargeResponse = serverResponse{
 		errors.New("request body too large"), http.StatusRequestEntityTooLarge, counter("response.errors.toolarge"),
@@ -107,13 +107,13 @@ var (
 	fullQueueCounter  = counter("response.error.queue")
 	fullQueueResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.New("queue "), http.StatusServiceUnavailable, fullQueueCounter,
+			errors.New("queue is full"), http.StatusServiceUnavailable, fullQueueCounter,
 		}
 	}
 	serverShuttingDownCounter  = counter("response.error.closed")
 	serverShuttingDownResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, serverShuttingDownCounter,
+			errors.New("server is shutting down"), http.StatusServiceUnavailable, serverShuttingDownCounter,
 		}
 	}
 
@@ -399,7 +399,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	responseCounter.Inc()
 	res.counter.Inc()
 	if res.err == nil {
-		responseSucesses.Inc()
+		responseSuccesses.Inc()
 		return
 	}
 
