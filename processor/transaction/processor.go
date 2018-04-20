@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	transactionMetrics = monitoring.Default.NewRegistry("apm-server.processor.transaction")
+	transactionMetrics = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
 	decodingCount      = monitoring.NewInt(transactionMetrics, "decoding.count")
 	decodingError      = monitoring.NewInt(transactionMetrics, "decoding.errors")
 	validationCount    = monitoring.NewInt(transactionMetrics, "validation.count")
