@@ -7,21 +7,30 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
+const (
+	processorName = "error"
+	errorDocType  = "error"
+
+	transformationsKey = "transformation"
+	errorsKey          = "errors"
+	spansKey           = "spans"
+	stacktracesKey     = "stacktraces"
+	framesKey          = "frames"
+)
+
 var (
-	errorMetrics    = monitoring.Default.NewRegistry("apm-server.processor.error", monitoring.PublishExpvar)
+	schema = pr.CreateSchema(errorSchema, processorName)
+
+	errorMetrics = monitoring.Default.NewRegistry("apm-server.processor.error", monitoring.PublishExpvar)
+
 	validationCount = monitoring.NewInt(errorMetrics, "validation.count")
 	validationError = monitoring.NewInt(errorMetrics, "validation.errors")
 	decodingCount   = monitoring.NewInt(errorMetrics, "decoding.count")
 	decodingError   = monitoring.NewInt(errorMetrics, "decoding.errors")
-	agent           = monitoring.NewString(errorMetrics, "agent")
-)
 
-const (
-	processorName = "error"
-	errorDocType  = "error"
+	metricKeys = []string{transformationsKey, errorsKey, stacktracesKey, framesKey}
+	metrics    = pr.NewMetricMap(errorMetrics, metricKeys)
 )
-
-var schema = pr.CreateSchema(errorSchema, processorName)
 
 func NewProcessor() pr.Processor {
 	return &processor{schema: schema}
@@ -51,6 +60,5 @@ func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
 		decodingError.Inc()
 		return nil, err
 	}
-	agent.Set(pa.Service.Agent.Name)
 	return pa, nil
 }

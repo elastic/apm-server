@@ -166,7 +166,7 @@ func backendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) 
 	return logHandler(
 		concurrencyLimitHandler(beaterConfig,
 			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(pf, conf.Config{}, report,
+				processRequestHandler(pf, conf.NewMinimalConfig(beaterConfig.Metrics.Agents), report,
 					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
@@ -175,11 +175,8 @@ func frontendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter)
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
-	config := conf.Config{
-		SmapMapper:          smapper,
-		LibraryPattern:      regexp.MustCompile(beaterConfig.Frontend.LibraryPattern),
-		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.Frontend.ExcludeFromGrouping),
-	}
+	config := conf.NewConfig(regexp.MustCompile(beaterConfig.Frontend.LibraryPattern),
+		regexp.MustCompile(beaterConfig.Frontend.ExcludeFromGrouping), smapper, beaterConfig.Metrics.Agents)
 	return logHandler(
 		killSwitchHandler(beaterConfig.Frontend.isEnabled(),
 			concurrencyLimitHandler(beaterConfig,

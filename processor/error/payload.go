@@ -7,13 +7,10 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 var (
-	transformations = monitoring.NewInt(errorMetrics, "transformations")
-	errorCounter    = monitoring.NewInt(errorMetrics, "counter")
-	processorEntry  = common.MapStr{"name": processorName, "event": errorDocType}
+	processorEntry = common.MapStr{"name": processorName, "event": errorDocType}
 )
 
 type Payload struct {
@@ -53,15 +50,25 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 }
 
 func (pa *Payload) Transform(conf config.Config) []beat.Event {
-	transformations.Inc()
+	agent := pa.Service.Agent.Name
+	if !conf.Agents.Contain(agent) {
+		agent = "unknownAgent"
+	}
+	metrics.Inc(agent, transformationsKey)
+	metrics.Add(agent, errorsKey, len(pa.Events))
 	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
-	errorCounter.Add(int64(len(pa.Events)))
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
 
 	var events []beat.Event
 	for idx := 0; idx < len(pa.Events); idx++ {
 		event := pa.Events[idx]
+		if event.Exception != nil {
+			addStacktraceCounter(agent, event.Exception.Stacktrace)
+		}
+		if event.Log != nil {
+			addStacktraceCounter(agent, event.Log.Stacktrace)
+		}
 		context := context.Transform(event.Context)
 		ev := beat.Event{
 			Fields: common.MapStr{
@@ -78,4 +85,11 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 		pa.Events[idx] = nil
 	}
 	return events
+}
+
+func addStacktraceCounter(agent string, st m.Stacktrace) {
+	if frames := len(st); frames > 0 {
+		metrics.Inc(agent, stacktracesKey)
+		metrics.Add(agent, framesKey, frames)
+	}
 }

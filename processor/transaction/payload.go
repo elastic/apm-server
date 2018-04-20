@@ -7,13 +7,9 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 var (
-	transformations     = monitoring.NewInt(transactionMetrics, "transformations")
-	transactionCounter  = monitoring.NewInt(transactionMetrics, "counter")
-	spanCounter         = monitoring.NewInt(transactionMetrics, "spans")
 	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
 	processorSpanEntry  = common.MapStr{"name": processorName, "event": spanDocType}
 )
@@ -55,9 +51,13 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 }
 
 func (pa *Payload) Transform(conf config.Config) []beat.Event {
-	transformations.Inc()
+	agent := pa.Service.Agent.Name
+	if !conf.Agents.Contain(agent) {
+		agent = "unknownAgent"
+	}
+	metrics.Inc(agent, transformationsKey)
+	metrics.Add(agent, transactionsKey, len(pa.Events))
 	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
-	transactionCounter.Add(int64(len(pa.Events)))
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
 	spanContext := NewSpanContext(&pa.Service)
@@ -76,9 +76,13 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 		events = append(events, ev)
 
 		trId := common.MapStr{"id": event.Id}
-		spanCounter.Add(int64(len(event.Spans)))
+		metrics.Add(agent, spansKey, len(event.Spans))
 		for spIdx := 0; spIdx < len(event.Spans); spIdx++ {
 			sp := event.Spans[spIdx]
+			if frames := len(sp.Stacktrace); frames > 0 {
+				metrics.Inc(agent, stacktracesKey)
+				metrics.Add(agent, framesKey, frames)
+			}
 			ev := beat.Event{
 				Fields: common.MapStr{
 					"processor":   processorSpanEntry,

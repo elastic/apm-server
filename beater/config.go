@@ -23,6 +23,11 @@ type Config struct {
 	Expvar              *ExpvarConfig   `config:"expvar"`
 	Frontend            *FrontendConfig `config:"frontend"`
 	AugmentEnabled      bool            `config:"capture_personal_data"`
+	Metrics             *Metrics        `config:"metrics"`
+}
+
+type Metrics struct {
+	Agents []string `config:agents`
 }
 
 type ExpvarConfig struct {
@@ -120,6 +125,9 @@ func defaultConfig(beatVersion string) *Config {
 		ShutdownTimeout:     5 * time.Second,
 		SecretToken:         "",
 		AugmentEnabled:      true,
+		Metrics: &Metrics{
+			Agents: []string{"nodejs", "python", "js-base", "ruby", "java", "go"},
+		},
 		Frontend: &FrontendConfig{
 			beatVersion:  beatVersion,
 			Enabled:      new(bool),
