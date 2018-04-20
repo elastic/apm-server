@@ -4,9 +4,25 @@
 :pull: https://github.com/elastic/apm-server/pull/
 
 
-
 === APM Server version HEAD
-https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af663756c6\...master[View commits]
+https://github.com/elastic/apm-server/compare/9e0a1e281e56044745f1a4f18dcbf00a7fa03683\...master[View commits]
+
+==== Breaking changes
+
+==== Bug fixes
+
+==== Added
+
+==== Deprecated
+
+==== Known Issues
+
+
+
+
+
+=== APM Server version 6.3
+https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af663756c6\...9e0a1e281e56044745f1a4f18dcbf00a7fa03683[View commits]
 
 ==== Breaking changes
 
@@ -30,7 +46,6 @@ https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af66
 - Limit number of new connections to accept simultaneously {pull}751[751].
 - Push spans to separate ES index {pull}774[774].
 - Update Go to 1.9.4 {pull}786[786].
-- Adjust in-memory queue defaults {pull}791[791].
 - Listen on unix domain socket with `host=unix:/path` {pull}768[768].
 - Make timestamp optional in the intake api {pull}819[819].
 
