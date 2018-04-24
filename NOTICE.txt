@@ -210,8 +210,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
-Version: 6.x
-Revision: 52b95427ecbf6530773d19d43d9c379e9b2426f7
+Version: 6.3
+Revision: 237acd2ce4e8990009a556b154e7e459eb182e78
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
