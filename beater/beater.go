@@ -63,6 +63,13 @@ func parseListener(host string) (string, string) {
 // This should only be called once, from Run.
 func (bt *beater) listen() (net.Listener, error) {
 	network, path := parseListener(bt.config.Host)
+	if network == "tcp" {
+		if _, _, err := net.SplitHostPort(path); err != nil {
+			// tack on a port if SplitHostPort fails on what should be a tcp network address
+			// if there were already too many colons, one more won't hurt
+			path = net.JoinHostPort(path, defaultPort)
+		}
+	}
 	lis, err := net.Listen(network, path)
 	if err != nil {
 		return nil, err

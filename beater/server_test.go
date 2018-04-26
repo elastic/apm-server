@@ -54,6 +54,33 @@ func TestServerOk(t *testing.T) {
 	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
 }
 
+func TestServerTcpNoPort(t *testing.T) {
+	// possibly flakey but worth it
+	// try to connect to localhost:defaultPort
+	// if connection succeeds, port is in use and skip test
+	// if it fails, make sure it is because connection refused
+	if conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", defaultPort), 2*time.Second); err == nil {
+		conn.Close()
+		t.Skipf("default port is in use")
+	} else {
+		if e, ok := err.(*net.OpError); !ok || e.Op != "dial" {
+			// failed for some other reason, not connection refused
+			t.Error(err)
+		}
+	}
+	ucfg, err := common.NewConfigFrom(map[string]interface{}{
+		"host": "localhost",
+	})
+	assert.NoError(t, err)
+	btr, teardown := setupServer(t, ucfg)
+	defer teardown()
+
+	baseUrl, client := btr.client(false)
+	rsp, err := client.Get(baseUrl + HealthCheckURL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rsp.StatusCode)
+}
+
 func tmpTestUnix(t *testing.T) string {
 	f, err := ioutil.TempFile("", "test-apm-server")
 	assert.NoError(t, err)
