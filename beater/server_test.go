@@ -143,10 +143,13 @@ func TestServerCORS(t *testing.T) {
 		},
 	}
 
+	var teardown = func() {}
+	defer teardown() // in case test crashes. calling teardown twice is ok
 	for idx, test := range tests {
 		ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": test.allowedOrigins}})
 		assert.NoError(t, err)
-		apm, teardown := setupServer(t, ucfg)
+		var apm *beater
+		apm, teardown = setupServer(t, ucfg)
 		baseUrl, client := apm.client(false)
 		req, err := http.NewRequest("POST", baseUrl+FrontendTransactionsURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
@@ -171,6 +174,7 @@ func TestServerNoContentType(t *testing.T) {
 
 func TestServerSSL(t *testing.T) {
 	tests := []struct {
+		label            string
 		domain           string
 		expectedMsgs     []string
 		insecure         bool
@@ -178,18 +182,20 @@ func TestServerSSL(t *testing.T) {
 		overrideProtocol bool
 	}{
 		{
-			domain: "127.0.0.1", expectedMsgs: []string{"x509: certificate signed by unknown authority"},
+			label: "unknown CA", domain: "127.0.0.1", expectedMsgs: []string{"x509: certificate signed by unknown authority"},
 		},
 		{
-			domain: "127.0.0.1", insecure: true, statusCode: http.StatusAccepted,
+			label: "skip verification", domain: "127.0.0.1", insecure: true, statusCode: http.StatusAccepted,
 		},
 		{
+			label:  "bad domain",
 			domain: "ELASTIC", expectedMsgs: []string{
 				"x509: certificate signed by unknown authority",
 				"x509: cannot validate certificate for 127.0.0.1",
 			},
 		},
 		{
+			label:  "bad IP",
 			domain: "192.168.10.11", expectedMsgs: []string{
 				"x509: certificate signed by unknown authority",
 				"x509: certificate is valid for 192.168.10.11, not 127.0.0.1",
@@ -199,8 +205,11 @@ func TestServerSSL(t *testing.T) {
 			domain: "localhost", expectedMsgs: []string{"malformed HTTP response"}, overrideProtocol: true,
 		},
 	}
+	var teardown = func() {}
+	defer teardown() // in case test crashes. calling teardown twice is ok
 	for idx, test := range tests {
-		apm, teardown := setupServer(t, withSSL(t, test.domain))
+		var apm *beater
+		apm, teardown = setupServer(t, withSSL(t, test.domain))
 		baseUrl, client := apm.client(test.insecure)
 		if test.overrideProtocol {
 			baseUrl = strings.Replace(baseUrl, "https", "http", 1)
@@ -214,11 +223,13 @@ func TestServerSSL(t *testing.T) {
 			for _, msg := range test.expectedMsgs {
 				containsErrMsg = containsErrMsg || strings.Contains(err.Error(), msg)
 			}
-			assert.True(t, containsErrMsg, fmt.Sprintf("expected %v at idx %d", err, idx))
+			assert.True(t, containsErrMsg,
+				fmt.Sprintf("expected %v at idx %d (%s)", err, idx, test.label))
 		}
 
 		if test.statusCode != 0 {
-			assert.Equal(t, res.StatusCode, test.statusCode, fmt.Sprintf("wrong code at idx %d", idx))
+			assert.Equal(t, res.StatusCode, test.statusCode,
+				fmt.Sprintf("wrong code at idx %d (%s)", idx, test.label))
 		}
 		teardown()
 	}
