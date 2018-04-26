@@ -1,12 +1,15 @@
 package beater
 
 import (
+	"net"
 	"regexp"
 	"time"
 
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 )
+
+const defaultPort = "8200"
 
 type Config struct {
 	Host                string          `config:"host"`
@@ -109,7 +112,7 @@ func replaceVersion(pattern, version string) string {
 
 func defaultConfig(beatVersion string) *Config {
 	return &Config{
-		Host:                "localhost:8200",
+		Host:                net.JoinHostPort("localhost", defaultPort),
 		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
 		MaxHeaderSize:       1 * 1024 * 1024,  // 1mb
 		ConcurrentRequests:  5,
