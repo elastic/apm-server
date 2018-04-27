@@ -43,7 +43,8 @@ func TestMiddleware(t *testing.T) {
 	true_ := true
 	assert.Equal(t, &model.Context{
 		Custom: model.IfaceMap{{
-			"gin", map[string]interface{}{
+			Key: "gin",
+			Value: map[string]interface{}{
 				"handler": "github.com/elastic/apm-agent-go/contrib/apmgin_test.handleHello",
 			},
 		}},
