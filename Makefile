@@ -19,6 +19,19 @@ GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/li
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
 
+metrics:
+	go build -i ./cmd/metrics
+
+.PHONY: metrics-send
+metrics-send: metrics
+	ELASTIC_APM_SERVER_URL=http://localhost:8200 ./metrics
+
+.PHONY: metrics-send-test
+metrics-send-test: metrics apm-server
+	timeout 5 ./apm-server -e -d publish,request &
+	sleep 1
+	ELASTIC_APM_SERVER_URL=http://localhost:8200 ./metrics
+
 # updates beats updates the framework part and go parts of beats
 update-beats:
 	rm -rf vendor/github.com/elastic/beats

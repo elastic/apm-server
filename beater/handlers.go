@@ -21,6 +21,7 @@ import (
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
+	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/utility"
@@ -35,6 +36,7 @@ const (
 	FrontendErrorsURL       = "/v1/client-side/errors"
 	HealthCheckURL          = "/healthcheck"
 	SourcemapsURL           = "/v1/client-side/sourcemaps"
+	MetricsURL              = "/v1/metrics"
 
 	rateLimitCacheSize       = 1000
 	rateLimitBurstMultiplier = 2
@@ -122,6 +124,7 @@ var (
 		FrontendTransactionsURL: {frontendHandler, transaction.NewProcessor},
 		BackendErrorsURL:        {backendHandler, perr.NewProcessor},
 		FrontendErrorsURL:       {frontendHandler, perr.NewProcessor},
+		MetricsURL:              {metricsHandler, metric.NewProcessor},
 		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
 		SourcemapsURL:           {sourcemapHandler, sourcemap.NewProcessor},
 	}
@@ -160,6 +163,13 @@ func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler 
 		}
 
 	})
+}
+
+func metricsHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+	return logHandler(
+		authHandler(beaterConfig.SecretToken,
+			processRequestHandler(pf, conf.Config{}, report,
+				decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled))))
 }
 
 func backendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
