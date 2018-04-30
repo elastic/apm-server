@@ -528,7 +528,9 @@
 			"checksumSHA1": "z8VztKgyYSA7eyVuhNocdpav6zA=",
 			"path": "github.com/elastic/beats/libbeat/kibana",
 			"revision": "88911e75a197f7eeeb5c24b6196569469ed866cb",
-			"revisionTime": "2018-04-16T15:49:05Z"
+			"revisionTime": "2018-04-16T15:49:05Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "z8VztKgyYSA7eyVuhNocdpav6zA=",
