@@ -21,10 +21,15 @@ type Decoder func(req *http.Request) (map[string]interface{}, error)
 
 var (
 	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)
+	missingContentLengthCounter   = monitoring.NewInt(decoderMetrics, "missing-content-length.count")
 	deflateLengthAccumulator      = monitoring.NewInt(decoderMetrics, "deflate.content-length")
+	deflateCounter                = monitoring.NewInt(decoderMetrics, "deflate.count")
 	gzipLengthAccumulator         = monitoring.NewInt(decoderMetrics, "gzip.content-length")
+	gzipCounter                   = monitoring.NewInt(decoderMetrics, "gzip.count")
 	uncompressedLengthAccumulator = monitoring.NewInt(decoderMetrics, "uncompressed.content-length")
+	uncompressedCounter           = monitoring.NewInt(decoderMetrics, "uncompressed.count")
 	readerAccumulator             = monitoring.NewInt(decoderMetrics, "reader.size")
+	readerCounter                 = monitoring.NewInt(decoderMetrics, "reader.count")
 )
 
 type monitoringReader struct {
@@ -67,10 +72,14 @@ func readRequestJSONData(maxSize int64) Reader {
 
 		cLen := req.ContentLength
 		knownCLen := cLen > -1
+		if !knownCLen {
+			missingContentLengthCounter.Inc()
+		}
 		switch req.Header.Get("Content-Encoding") {
 		case "deflate":
 			if knownCLen {
 				deflateLengthAccumulator.Add(cLen)
+				deflateCounter.Inc()
 			}
 			var err error
 			reader, err = zlib.NewReader(reader)
@@ -81,6 +90,7 @@ func readRequestJSONData(maxSize int64) Reader {
 		case "gzip":
 			if knownCLen {
 				gzipLengthAccumulator.Add(cLen)
+				gzipCounter.Inc()
 			}
 			var err error
 			reader, err = gzip.NewReader(reader)
@@ -90,8 +100,10 @@ func readRequestJSONData(maxSize int64) Reader {
 		default:
 			if knownCLen {
 				uncompressedLengthAccumulator.Add(cLen)
+				uncompressedCounter.Inc()
 			}
 		}
+		readerCounter.Inc()
 		return http.MaxBytesReader(nil, reader, maxSize), nil
 	}
 }
