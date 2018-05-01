@@ -514,16 +514,8 @@
 			"versionExact": "6.2"
 		},
 		{
-			"checksumSHA1": "qr5L7wYi9UcKO0ZPX7P6vxE1Vs0=",
-			"path": "github.com/elastic/beats/libbeat/kibana",
-			"revision": "3e2622dfaca8c4a3c28b0ec35622ea1d838d204d",
-			"revisionTime": "2017-11-27T03:18:09Z",
-			"version": "6.x",
-			"versionExact": "6.x"
-		},
-		{
 			"checksumSHA1": "z8VztKgyYSA7eyVuhNocdpav6zA=",
-			"path": "github.com/elastic/beats/libbeat/kibana/",
+			"path": "github.com/elastic/beats/libbeat/kibana",
 			"revision": "4460b29570f24d07ec5e5f410321fd6830065152",
 			"revisionTime": "2018-04-30T13:39:34Z",
 			"version": "6.2",
