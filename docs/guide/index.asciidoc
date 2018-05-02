@@ -8,23 +8,19 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 == Overview
 
 APM is an application performance monitoring system built on the Elastic Stack.
-It uses Elasticsearch as its data store and allows you to monitor performance of thousands of services in real time.
+It uses Elasticsearch as its data store and allows you to monitor software services and applications in real time.
+Regardless of whether your code is best described as a service or as an application, this guide will use indistinctly
+the word service.
 
-With APM,
-you can automatically collect detailed performance information from inside your service with only minor changes to your code.
-APM agents will automatically instrument your code and measure the response time for incoming requests.
-It also automatically measures what your service was doing while it was preparing the response.
-For example,
-external database queries are measured to make it easy to detect slow queries.
-It also measures calls to caches,
-external HTTP requests etc.
-This makes it possible to pinpoint and fix performance problems and unhandled errors quickly and with minimal effort.
+With APM, you can automatically collect detailed performance information from inside your service with only minor
+changes to your code.
+For example, APM agents can measure the response time for incoming requests, time spent in database queries, calls
+to caches, external HTTP requests, etc.
+This makes it easier to pinpoint and fix performance problems quickly.
 
 APM also automatically collects errors and exceptions that are not handled by your service.
-When errors and exceptions get collected,
-they automatically get a checksum assigned based primarily of the stacktrace.
-This makes it possible to discern new errors from errors that have been happening for some time.
-It also makes it much easier to keep an eye on how many times specific errors happen.
+Collected errors automatically get assigned a checksum based primarily on the stacktrace.
+This enables you to spot new errors as they appear and keep an eye on how many times specific errors happen.
 
 [[components]]
 [float]
@@ -41,8 +37,8 @@ image::apm-architecture.png[Architecture of Elastic APM]
 
 *APM agents* are open source libraries written in the same language as your service.
 You install them into your service as you would install any other library.
-The agents hook into your service and start collecting performance metrics and errors automatically once it starts.
-All data that gets collected by agents is buffered for a short period and sent on to APM Server.
+The agents hook into your service and start collecting performance metrics and errors once it starts.
+All data collected by agents is buffered for a short period and sent on to APM Server.
 This happens once per minute,
 by default.
 
@@ -51,38 +47,30 @@ APM automatically instruments most popular web frameworks,
 database drivers,
 calls to caching servers,
 and HTTP libraries for requests to external services.
-For everything else,
-the agents provide an API that you can call from your service to manually instrument anything you find interesting.
+Additionally, agents provide an API that you can use to manually instrument anything else you find interesting.
 
-*APM Server* is an open source application written in Go which runs on your servers.
-It listens on port 8200 by default and receives data from agents periodically.
-The API is a simple JSON based HTTP API.
-APM Server builds Elasticsearch documents from the data received from agents.
-These documents are stored in an Elasticsearch cluster.
-A single APM Server process can typically handle data from hundreds of agents.
+*APM Server* is an open source application written in Go which typically runs on dedicated servers.
+It listens on port 8200 by default and receives data from agents periodically through a JSON API.
+APM Server creates documents from the data received from agents and stores them in an Elasticsearch cluster.
 
-To visualize the data after it's sent to Elasticsearch,
-you can use the pre-built,
-open source Kibana dashboards that come with APM Server.
+To visualize the data after it's sent to Elasticsearch, you can use the pre-built open source Kibana dashboards
+that come with APM Server; or the dedicated APM UI bundled in X-Pack.
 
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines,
-and it's easy to get started.
+and it's easy to get started with.
 
 [[separate-component]]
 == Why is APM Server a separate component?
 
 The APM Server is kept as a separate component for the following reasons:
 
-* Agents can offload their heavy lifting tasks to the APM Server thereby reducing the load on your app.
-  It helps keep the agents as light as possible and since the APM Server is a separate component,
+* It helps keep the agents as light as possible and since the APM Server is a stateless separate component,
   it can be scaled independently.
-* For real-user-monitoring, data is being collected in agents running in browsers.
-  Browsers communicate with the APM Server which acts as a central point to control the amount of data flowing into Elasticsearch and also control the pace of ingesting data.
-  This also prevents the browser from directly interacting with Elasticsearch which is not recommended.
-* In cases where Elasticsearch is temporarily down, APM Server can buffer up the data until Elasticsearch becomes available again.
-  We can't rely on the agents to buffer up the data since that increases the memory footprint of the application and we can't rely on disk access being available to the agents
+* For real-user-monitoring (beta), data is being collected in agents running in browsers.
+  APM Server prevents browsers from interacting directly with Elasticsearch (which poses a security risk), and controls the amount of data flowing into Elasticsearch.
+* In cases where Elasticsearch becomes unresponsive, APM Server can buffer data temporarily (configurable) without adding overhead to the agents.
 * APM Server serves as a middleware for source mapping for javascript in the browser.
-* The APM Server provides a JSON API for agents to use thereby improving compatibility across different versions of agents and Elasticsearch.
+* The APM Server provides a JSON API for agents to use thereby improving compatibility across different versions of agents and the Elastic Stack.
 
 [[install-and-run]]
 == Install and run Elastic APM
@@ -91,7 +79,7 @@ To get started using Elastic APM,
 you need to have:
 
 * an Elasticsearch cluster and Kibana (version 5.6 or above)
-* a running APM Server process
+* APM Server
 * APM agents installed in your services
 
 
@@ -163,14 +151,13 @@ output.elasticsearch:
 The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
 If you change the listen address from `localhost` to something that is accessible from outside of the machine,
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
-Use path of the form `"unix:/path/to.sock"` to listen on unix domain socket.
 Alternatively,
 you can use the {apm-server-ref}/security.html[secret token and TLS] to secure access to APM Server API.
-
+You can configure APM Server to listen on a UNIX domain socket.
 [[kibana-dashboards]]
 [float]
 ==== Install the Kibana dashboards
-APM Server comes with predefined Kibana dashboards and index templates for the APM data.
+APM Server comes with predefined Kibana dashboards and index templates for APM data.
 To install those run the following command:
 
 [source,bash]
@@ -185,7 +172,9 @@ See an example screenshot of a Kibana dashboard:
 
 image::kibana-dashboard.png[Screenshot of a Kibana Dashboard]
 
-.More information
+[[more-information]]
+[float]
+=== More information
 For detailed instructions on how to install and secure APM Server in your server environment,
 including details on how to run APM Server in a highly available environment,
 please see {apm-server-ref}/index.html[APM Server documentation].
@@ -268,7 +257,3 @@ See the {apm-py-ref}/index.html[APM Python Agent documentation] for more details
 
 [[kibana]]
 [float]
-=== Set up Kibana
-
-You can use the `dashboards` that are packaged with APM Server,
-as mentioned above.
