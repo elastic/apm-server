@@ -359,8 +359,8 @@ var transactionSchema = `{
             "maxLength": 1024
         },
         "result": {
-          	"type": "string",
-          	"description": "The result of the transaction. HTTP status code for HTTP-related transactions.",
+            "type": "string",
+            "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
             "maxLength": 1024
         },
         "timestamp": {
