@@ -96,21 +96,21 @@ var (
 		}
 	}
 	rateLimitedResponse = serverResponse{
-		errors.New("too many requests"), http.StatusTooManyRequests, counter("response.error.ratelimit"),
+		errors.New("too many requests"), http.StatusTooManyRequests, counter("response.errors.ratelimit"),
 	}
 	methodNotAllowedResponse = serverResponse{
-		errors.New("only POST requests are supported"), http.StatusMethodNotAllowed, counter("response.error.method"),
+		errors.New("only POST requests are supported"), http.StatusMethodNotAllowed, counter("response.errors.method"),
 	}
 	tooManyConcurrentRequestsResponse = serverResponse{
-		errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, counter("response.error.concurrency"),
+		errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, counter("response.errors.concurrency"),
 	}
-	fullQueueCounter  = counter("response.error.queue")
+	fullQueueCounter  = counter("response.errors.queue")
 	fullQueueResponse = func(err error) serverResponse {
 		return serverResponse{
 			errors.New("queue is full"), http.StatusServiceUnavailable, fullQueueCounter,
 		}
 	}
-	serverShuttingDownCounter  = counter("response.error.closed")
+	serverShuttingDownCounter  = counter("response.errors.closed")
 	serverShuttingDownResponse = func(err error) serverResponse {
 		return serverResponse{
 			errors.New("server is shutting down"), http.StatusServiceUnavailable, serverShuttingDownCounter,
