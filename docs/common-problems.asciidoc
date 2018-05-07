@@ -4,6 +4,7 @@
 
 This section describes common problems you might encounter with APM Server.
 
+[float]
 [[queue-is-full]]
 === 503: Queue is full
 
@@ -17,8 +18,8 @@ The internal queue helps to:
 When the internal queue is full,
 APM Server returns an HTTP 503 status with the message "Queue is full".
 
-A full queue generally means that the agents have collected more data than APM server is able to deliver to Elasticsearch.
-This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster.
+A full queue generally means that the agents collect more data than APM server is able to deliver to Elasticsearch.
+This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster,
 or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
 
 The queue can also fill up if Elasticsearch is unavailable for a prolonged period,
@@ -32,6 +33,7 @@ you have a few options:
 * <<increase-cluster-ingest,Tune Elasticsearch for higher ingestion>>
 * <<increase-queue-size,Increase the size of the APM Server queue>>
 
+[float]
 [[request-timed-out]]
 === 503: Request timed out waiting to be processed
 
@@ -46,6 +48,7 @@ you can try to:
 * <<reduce-payload-size,Decrease the payload size>>
 * <<add-apm-server-nodes,Add APM Server nodes>>
 
+[float]
 [[troubleshooting-solutions]]
 === Solutions
 
