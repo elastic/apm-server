@@ -52,6 +52,7 @@ you can try to:
 [[troubleshooting-solutions]]
 === Solutions
 
+[float]
 [[tune-output-config]]
 ==== Tune APM Server output parameters for your Elasticsearch cluster
 
@@ -67,6 +68,7 @@ If you increase `bulk_max_size`,
 make sure to also increase `queue.mem.size`.
 A good rule of thumb is that `queue.mem.size` should equal `workers` multiplied by `bulk_max_size`.
 
+[float]
 [[increase-cluster-ingest]]
 ==== Tune Elasticsearch for higher ingestion
 
@@ -75,6 +77,7 @@ See {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
 particularly the sections about how to increase the refresh interval,
 disable swapping, use faster hardware, and set the indexing buffer size.
 
+[float]
 [[reduce-data]]
 ==== Reduce the amount of data collected
 
@@ -84,6 +87,7 @@ The transaction sample rate is controlled in the configuration of agents (for ex
 
 Reducing the transaction sample rate does not affect the collection of metrics such as Requests Per Second.
 
+[float]
 [[increase-queue-size]]
 ==== Increase internal queue size
 
@@ -92,6 +96,7 @@ and it alleviates problems that might result from sudden spikes of data.
 You can increase the queue size by setting `apm-server.queue.mem.size`. 
 Be aware that increasing `apm-server.queue.mem.size` can significantly affect APM Server memory usage. 
 
+[float]
 [[reduce-payload-size]]
 ==== Reduce the payload size
 
@@ -101,6 +106,7 @@ This will result in agents sending smaller payloads to the APM Server,
 but the requests will be more frequent.
 See the documentation for the {apm-py-ref}/configuration.html#config-max-queue-size[Python] and {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agents for more information.
 
+[float]
 [[add-apm-server-nodes]]
 ==== Add APM Server nodes
 
