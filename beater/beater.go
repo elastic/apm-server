@@ -1,13 +1,14 @@
 package beater
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"regexp"
 	"sync"
+
+	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -26,7 +27,7 @@ type beater struct {
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	beaterConfig := defaultConfig(b.Info.Version)
 	if err := ucfg.Unpack(beaterConfig); err != nil {
-		return nil, fmt.Errorf("Error reading config file: %v", err)
+		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 	if beaterConfig.Frontend.isEnabled() {
 		if _, err := regexp.Compile(beaterConfig.Frontend.LibraryPattern); err != nil {
