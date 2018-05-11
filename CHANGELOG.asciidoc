@@ -25,7 +25,7 @@ https://github.com/elastic/apm-server/compare/9e0a1e281e56044745f1a4f18dcbf00a7f
 
 
 === APM Server version 6.3
-https://github.com/elastic/apm-server/compare/4daa36bd5c144cf9182afc62dc8042af663756c6\...9e0a1e281e56044745f1a4f18dcbf00a7fa03683[View commits]
+https://github.com/elastic/apm-server/compare/6.2\...6.3[View commits]
 
 ==== Breaking changes
 
