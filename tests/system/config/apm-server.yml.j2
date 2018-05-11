@@ -33,6 +33,10 @@ apm-server:
 
 setup.template.name: {{ index_name }}
 setup.template.pattern: {{ index_name }}*
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+  index.refresh_interval: 1ms
 
 {% endif %}
 
