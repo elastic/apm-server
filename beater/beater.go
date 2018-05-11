@@ -5,11 +5,17 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/apm-agent-go"
+	"github.com/elastic/apm-agent-go/transport"
+	"github.com/elastic/apm-server/pipelistener"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -87,7 +93,14 @@ func (bt *beater) listen() (net.Listener, error) {
 }
 
 func (bt *beater) Run(b *beat.Beat) error {
-	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout)
+	tracer, traceListener, err := initTracer(b.Info, bt.config, bt.logger)
+	if err != nil {
+		return err
+	}
+	defer traceListener.Close()
+	defer tracer.Close()
+
+	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout, tracer)
 	if err != nil {
 		return err
 	}
@@ -107,15 +120,66 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	bt.server = newServer(bt.config, pub.Send)
+	bt.server = newServer(bt.config, tracer, pub.Send)
 	bt.mutex.Unlock()
 
-	err = run(bt.server, lis, bt.config)
-	if err == http.ErrServerClosed {
-		bt.logger.Infof("Listener stopped: %s", err.Error())
-		return nil
+	var g errgroup.Group
+	g.Go(func() error {
+		return run(bt.server, lis, bt.config)
+	})
+	if bt.config.Tracing.isEnabled() {
+		g.Go(func() error {
+			return bt.server.Serve(traceListener)
+		})
 	}
-	return err
+	if err := g.Wait(); err != http.ErrServerClosed {
+		return err
+	}
+	bt.logger.Infof("Server stopped")
+	return nil
+}
+
+// initTracer configures and returns an elasticapm.Tracer for tracing
+// the APM server's own execution.
+func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticapm.Tracer, net.Listener, error) {
+	if !config.Tracing.isEnabled() {
+		os.Setenv("ELASTIC_APM_ACTIVE", "false")
+		logger.Infof("Tracing is disabled")
+	} else {
+		os.Setenv("ELASTIC_APM_ACTIVE", "true")
+		logger.Infof("Tracing is enabled")
+	}
+
+	tracer, err := elasticapm.NewTracer(info.Beat, info.Version)
+	if err != nil {
+		return nil, nil, err
+	}
+	if config.Tracing.isEnabled() {
+		if config.Tracing.Environment != nil {
+			tracer.Service.Environment = *config.Tracing.Environment
+		}
+		tracer.SetLogger(logp.NewLogger("tracing"))
+	}
+
+	// Create an in-process net.Listener for the tracer. This enables us to:
+	// - avoid the network stack
+	// - avoid/ignore TLS for self-tracing
+	// - skip tracing when the requests come from the in-process transport
+	//   (i.e. to avoid recursive/repeated tracing.)
+	lis := pipelistener.New()
+	transport, err := transport.NewHTTPTransport("http://localhost", config.SecretToken)
+	if err != nil {
+		tracer.Close()
+		lis.Close()
+		return nil, nil, err
+	}
+	transport.Client.Transport = &http.Transport{
+		DialContext:     lis.DialContext,
+		MaxIdleConns:    100,
+		IdleConnTimeout: 90 * time.Second,
+	}
+	tracer.Transport = transport
+	return tracer, lis, nil
 }
 
 // Graceful shutdown
