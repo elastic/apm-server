@@ -224,7 +224,7 @@ func logHandler(h http.Handler) http.Handler {
 			"method", r.Method,
 			"URL", r.URL,
 			"content_length", r.ContentLength,
-			"remote_address", utility.ExtractIP(r),
+			"remote_address", utility.RemoteAddr(r),
 			"user-agent", r.Header.Get("User-Agent"))
 
 		lr := r.WithContext(
@@ -263,7 +263,7 @@ func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if deny(utility.ExtractIP(r)) {
+		if deny(utility.RemoteAddr(r)) {
 			sendStatus(w, r, rateLimitedResponse)
 			return
 		}
