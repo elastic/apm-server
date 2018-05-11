@@ -35,6 +35,7 @@ rsync -crpv --delete \
     --include="libbeat/processors/" \
     --include="libbeat/processors/*/" \
     --include="libbeat/processors/*/_meta/***" \
+    --include="libbeat/processors/testing/***" \
     --include="libbeat/scripts/***" \
     --include="libbeat/testing/***" \
     --include="libbeat/tests/" \

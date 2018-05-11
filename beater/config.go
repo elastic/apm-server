@@ -26,6 +26,7 @@ type Config struct {
 	Expvar              *ExpvarConfig   `config:"expvar"`
 	Frontend            *FrontendConfig `config:"frontend"`
 	AugmentEnabled      bool            `config:"capture_personal_data"`
+	Tracing             *TraceConfig    `config:"tracing"`
 }
 
 type ExpvarConfig struct {
@@ -60,6 +61,11 @@ type SSLConfig struct {
 	Enabled    *bool  `config:"enabled"`
 	PrivateKey string `config:"key"`
 	Cert       string `config:"certificate"`
+}
+
+type TraceConfig struct {
+	Enabled     *bool   `config:"enabled"`
+	Environment *string `config:"environment"`
 }
 
 func (c *Config) setElasticsearch(esConfig *common.Config) {
@@ -103,6 +109,11 @@ func (c *FrontendConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
 	}
 	c.SourceMapping.mapper = smapMapper
 	return c.SourceMapping.mapper, nil
+}
+
+func (c *TraceConfig) isEnabled() bool {
+	// Tracing is disabled by default.
+	return c != nil && c.Enabled != nil && *c.Enabled
 }
 
 func replaceVersion(pattern, version string) string {

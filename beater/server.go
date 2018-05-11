@@ -7,22 +7,40 @@ import (
 
 	"golang.org/x/net/netutil"
 
+	"github.com/elastic/apm-agent-go"
+	"github.com/elastic/apm-agent-go/module/apmhttp"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
 )
 
-type reporter func(pendingReq) error
+type reporter func(context.Context, pendingReq) error
 
-func newServer(config *Config, report reporter) *http.Server {
+func newServer(config *Config, tracer *elasticapm.Tracer, report reporter) *http.Server {
 	mux := newMuxer(config, report)
 
 	return &http.Server{
-		Addr:           config.Host,
-		Handler:        mux,
+		Addr: config.Host,
+		Handler: apmhttp.Wrap(mux,
+			apmhttp.WithServerRequestIgnorer(doNotTrace),
+			apmhttp.WithTracer(tracer),
+		),
 		ReadTimeout:    config.ReadTimeout,
 		WriteTimeout:   config.WriteTimeout,
 		MaxHeaderBytes: config.MaxHeaderSize,
 	}
+}
+
+func doNotTrace(req *http.Request) bool {
+	if req.RemoteAddr == "pipe" {
+		// Don't trace requests coming from self,
+		// or we will go into a continuous cycle.
+		return true
+	}
+	if req.URL.Path == HealthCheckURL {
+		// Don't trace healthcheck requests.
+		return true
+	}
+	return false
 }
 
 func run(server *http.Server, lis net.Listener, config *Config) error {
