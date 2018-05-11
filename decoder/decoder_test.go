@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -167,7 +166,6 @@ func TestDecodeSystemData(t *testing.T) {
 		assert.Nil(t, err)
 
 		res := decoder.SystemExtractor(req)
-		log.Println("ASASDSA", res)
 		system, hasSystem := res["system"].(map[string]interface{})
 
 		if test.expectIP == "" {
