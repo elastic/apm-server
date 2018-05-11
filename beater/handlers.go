@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"expvar"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -125,6 +126,13 @@ var (
 		}
 	}
 
+	invalidContentTypeCoutner = counter("response.errors.contenttype")
+	invalidContentType        = func(err error) serverResponse {
+		return serverResponse{
+			err, http.StatusBadRequest, serverShuttingDownCounter,
+		}
+	}
+
 	errHeaderMissing = errors.New("header must be first object in stream")
 
 	Routes = map[string]routeMapping{
@@ -208,8 +216,9 @@ func frontendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter)
 			concurrencyLimitHandler(beaterConfig,
 				ipRateLimitHandler(beaterConfig.Frontend.RateLimit,
 					corsHandler(beaterConfig.Frontend.AllowOrigins,
-						processRequestHandler(pf, config, report, extractors,
-							decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize)))))))
+						ensureContentTypeHandler("application/json",
+							processRequestHandler(pf, config, report, extractors,
+								decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize))))))))
 }
 
 func streamBackendHandler(_ ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
@@ -222,7 +231,8 @@ func streamBackendHandler(_ ProcessorFactory, beaterConfig *Config, report repor
 	return logHandler(
 		concurrencyLimitHandler(beaterConfig,
 			authHandler(beaterConfig.SecretToken,
-				processStreamRequest(v2TransformBatchSize, conf.TransformConfig{}, report, extractors, requestDecodeer))))
+				ensureContentTypeHandler("application/ndjson",
+					processStreamRequest(v2TransformBatchSize, conf.TransformConfig{}, report, extractors, requestDecodeer)))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
@@ -379,6 +389,17 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 		} else {
 			sendStatus(w, r, forbiddenResponse)
 		}
+	})
+}
+
+func ensureContentTypeHandler(expectedContentType string, h http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		actualContentType := r.Header.Get("Content-Type")
+		if !strings.Contains(actualContentType, expectedContentType) {
+			sendStatus(w, r, invalidContentType(fmt.Errorf("invalid content type: %s", r.Header.Get("Content-Type"))))
+			return
+		}
+		h.ServeHTTP(w, r)
 	})
 }
 

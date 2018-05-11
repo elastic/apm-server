@@ -21,8 +21,6 @@ import (
 
 type Reader func(req *http.Request) (io.ReadCloser, error)
 
-// type Decoder func(req *http.Request) (map[string]interface{}, error)
-
 var (
 	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)
 	missingContentLengthCounter   = monitoring.NewInt(decoderMetrics, "missing-content-length.count")
@@ -52,16 +50,20 @@ func (mr monitoringReader) Close() error {
 
 func DecodeLimitJSONData(maxSize int64) V1Decoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
-		reader, err := readRequestJSONData(maxSize)(req)
+		reader, err := getDecompressionReader(req)
 		if err != nil {
 			return nil, err
 		}
 
-		return DecodeJSONData(monitoringReader{reader})
+		limitedReader := http.MaxBytesReader(nil, reader, maxSize)
+
+		return DecodeJSONData(monitoringReader{limitedReader})
 	}
 }
 
 func getDecompressionReader(req *http.Request) (io.ReadCloser, error) {
+	readerCounter.Inc()
+
 	reader := req.Body
 	if reader == nil {
 		return nil, errors.New("no content")
@@ -101,44 +103,6 @@ func getDecompressionReader(req *http.Request) (io.ReadCloser, error) {
 		}
 	}
 	return reader, nil
-}
-
-// readRequestJSONData makes a function that uses information from an http request to construct a Limited ReadCloser
-// of json data from the body of the request
-func readRequestJSONData(maxSize int64) Reader {
-	return func(req *http.Request) (io.ReadCloser, error) {
-		contentType := req.Header.Get("Content-Type")
-		if !strings.Contains(contentType, "application/json") {
-			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-		}
-
-		reader, err := getDecompressionReader(req)
-		if err != nil {
-			return nil, err
-		}
-
-		readerCounter.Inc()
-		return http.MaxBytesReader(nil, reader, maxSize), nil
-	}
-}
-
-// readRequestNDJSONData makes a function that uses information from an http request to construct a Limited ReadCloser
-// of json data from the body of the request
-func readRequestNDJSONData(maxSize int64) Reader {
-	return func(req *http.Request) (io.ReadCloser, error) {
-		contentType := req.Header.Get("Content-Type")
-		if !strings.Contains(contentType, "application/ndjson") {
-			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-		}
-
-		reader, err := getDecompressionReader(req)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting decompression reader")
-		}
-
-		readerCounter.Inc()
-		return http.MaxBytesReader(nil, reader, maxSize), nil
-	}
 }
 
 func DecodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {
@@ -225,51 +189,3 @@ func (a *Augmenter) Augment(input common.MapStr) {
 		}
 	}
 }
-
-// func DecodeUserData(decoder StreamDecoder, enabled bool) StreamDecoder {
-// 	if !enabled {
-// 		return decoder
-// 	}
-
-// 	augment := func(req *http.Request) map[string]interface{} {
-// 		return map[string]interface{}{
-// 			"ip":         utility.ExtractIP(req),
-// 			"user-agent": req.Header.Get("User-Agent"),
-// 		}
-// 	}
-// 	return augmentData(decoder, "user", augment)
-// }
-
-// func DecodeSystemData(decoder StreamDecoder, enabled bool) StreamDecoder {
-// 	if !enabled {
-// 		return decoder
-// 	}
-
-// 	augment := func(req *http.Request) map[string]interface{} {
-// 		return map[string]interface{}{"ip": utility.ExtractIP(req)}
-// 	}
-// 	return augmentData(decoder, "system", augment)
-// }
-
-// func AugmenterHandler(decoder StreamDecoder, key string, extract func(req *http.Request) map[string]interface{}) StreamDecoder {
-// 	return func(req *http.Request) (EntityStreamReader, error) {
-// 		decoder, err := decoder(req)
-// 		if err != nil {
-// 			return v, err
-// 		}
-
-// 		val := extract(req)
-
-// 		return func() (map[string]interface{}, error) {
-// 			utility.InsertInMap(v, key)
-// 		}
-
-// 		return v, nil
-// 	}
-// }
-
-// func Augmenter() {
-// 	return func(req *http.Request) {
-
-// 	}
-// }

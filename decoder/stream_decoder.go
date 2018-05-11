@@ -43,27 +43,15 @@ func (sr *StreamReader) Read() (map[string]interface{}, error) {
 
 func StreamDecodeLimitJSONData(maxSize int64) StreamDecoder {
 	return func(req *http.Request) (EntityStreamReader, error) {
-		reader, err := readRequestNDJSONData(maxSize)(req)
+		reader, err := getDecompressionReader(req)
 		if err != nil {
 			return nil, err
 		}
-		sr := &StreamReader{bufio.NewReader(reader), false}
+
+		limitedReader := http.MaxBytesReader(nil, reader, maxSize)
+
+		sr := &StreamReader{bufio.NewReader(limitedReader), false}
 
 		return sr.Read, nil
 	}
 }
-
-// func DecoderStreamAdapter(sd StreamDecoder) Decoder {
-// 	return func(req *http.Request) (map[string]interface{}, error) {
-// 		var sr *StreamReader
-// 		var err error
-
-// 		if sr == nil {
-// 			sr, err = sd(req)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 		}
-// 		return sr.Read()
-// 	}
-// }

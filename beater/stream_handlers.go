@@ -27,8 +27,6 @@ var (
 	errUnknownType    = errors.New("unknown 'type' supplied")
 )
 
-// var log = logp.NewLogger("streamdecoder")
-
 func validate(objType string, value interface{}) error {
 	switch objType {
 	case "header":
