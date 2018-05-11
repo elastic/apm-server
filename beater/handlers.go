@@ -114,16 +114,12 @@ var (
 		errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, counter("response.errors.concurrency"),
 	}
 	fullQueueCounter  = counter("response.errors.queue")
-	fullQueueResponse = func(err error) serverResponse {
-		return serverResponse{
-			errors.New("queue is full"), http.StatusServiceUnavailable, fullQueueCounter,
-		}
+	fullQueueResponse = serverResponse{
+		errors.New("queue is full"), http.StatusServiceUnavailable, fullQueueCounter,
 	}
 	serverShuttingDownCounter  = counter("response.errors.closed")
-	serverShuttingDownResponse = func(err error) serverResponse {
-		return serverResponse{
-			errors.New("server is shutting down"), http.StatusServiceUnavailable, serverShuttingDownCounter,
-		}
+	serverShuttingDownResponse = serverResponse{
+		errors.New("server is shutting down"), http.StatusServiceUnavailable, serverShuttingDownCounter,
 	}
 
 	invalidContentTypeCoutner = counter("response.errors.contenttype")
@@ -439,9 +435,9 @@ func processRequest(r *http.Request, pf ProcessorFactory, config conf.TransformC
 
 	if err = report(req); err != nil {
 		if strings.Contains(err.Error(), "publisher is being stopped") {
-			return serverShuttingDownResponse(err)
+			return serverShuttingDownResponse
 		}
-		return fullQueueResponse(err)
+		return fullQueueResponse
 	}
 
 	return acceptedResponse
