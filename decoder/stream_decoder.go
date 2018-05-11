@@ -5,12 +5,10 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
 type EntityStreamReader func() (map[string]interface{}, error)
-type V1Decoder func(*http.Request) (map[string]interface{}, error)
 type StreamDecoder func(*http.Request) (EntityStreamReader, error)
 
 type StreamReader struct {
@@ -34,8 +32,6 @@ func (sr *StreamReader) Read() (map[string]interface{}, error) {
 	if len(buf) == 0 {
 		return sr.Read()
 	}
-
-	log.Println("len(buf), sr.isEOF", len(buf), string(buf), sr.isEOF, err)
 
 	tmpreader := ioutil.NopCloser(bytes.NewBuffer(buf))
 	return DecodeJSONData(tmpreader)

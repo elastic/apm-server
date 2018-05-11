@@ -20,21 +20,6 @@ type TransformContext struct {
 	user    *common.MapStr
 }
 
-// type Header struct {
-// 	Service *Service
-// 	Process *Process
-// 	System  *System
-// }
-
-// func NewTransformContext(service *Service, process *Process, system *System, user *User) *TransformContext {
-// 	return &TransformContext{
-// 		service: service.Transform(),
-// 		process: process.Transform(),
-// 		system:  system.Transform(),
-// 		user:    user.Transform(),
-// 	}
-// }
-
 func (c *TransformContext) TransformInto(m common.MapStr) common.MapStr {
 	if c.service == nil {
 		service := c.Service.Transform()

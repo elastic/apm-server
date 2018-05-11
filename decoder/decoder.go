@@ -20,6 +20,7 @@ import (
 )
 
 type Reader func(req *http.Request) (io.ReadCloser, error)
+type V1Decoder func(*http.Request) (map[string]interface{}, error)
 
 var (
 	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)

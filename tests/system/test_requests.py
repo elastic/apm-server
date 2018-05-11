@@ -119,15 +119,6 @@ class Test(ServerBaseTest):
         assert r.status_code == 404, r.status_code
 
 
-
-class TestIntakeV2(ServerBaseTest):
-
-    def test_ok(self):
-        v2_payload = self.get_transaction_v2_payload()
-        r = requests.post(self.v2_url, data=v2_payload)
-        assert r.status_code == 202, r.status_code
-
-
 class SecureTest(SecureServerBaseTest):
 
     def test_https_ok(self):
