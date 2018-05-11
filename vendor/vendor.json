@@ -253,6 +253,110 @@
 			"revisionTime": "2018-06-13T21:14:35Z"
 		},
 		{
+			"checksumSHA1": "iS7awdGQOMgYrHf2XvIiT5w6weA=",
+			"path": "github.com/elastic/apm-agent-go",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "oCqBwFulgX7XDIyO07faoDP6QmM=",
+			"path": "github.com/elastic/apm-agent-go/internal/apmdebug",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "7dJYXMln/aY2uE4kcet8ELcJVCo=",
+			"path": "github.com/elastic/apm-agent-go/internal/apmhttputil",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "V51r1XndkriNAkSEMQvmOZ6QEcw=",
+			"path": "github.com/elastic/apm-agent-go/internal/apmstrings",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "2FGOw1HeQLBVHCH3gHUkAo0QB+g=",
+			"path": "github.com/elastic/apm-agent-go/internal/fastjson",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "1NiCEYGuDSVQWFu2DqMSosoGHRo=",
+			"path": "github.com/elastic/apm-agent-go/internal/krtext",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "NkjOdCL/WD8wTejMHFTBrWz9vEE=",
+			"path": "github.com/elastic/apm-agent-go/internal/pretty",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "Ftir4VbNGnS1/O0fnMohEe3jPIQ=",
+			"path": "github.com/elastic/apm-agent-go/internal/radix",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "47nLeS8ZcPyy6uu1zEVoNLf/ja0=",
+			"path": "github.com/elastic/apm-agent-go/internal/uuid",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "V6BFYs8WcmU8fKCZSaav4ml8nxY=",
+			"path": "github.com/elastic/apm-agent-go/model",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "SLappMH97o3pnOexptBBvDNAtsc=",
+			"path": "github.com/elastic/apm-agent-go/module/apmhttp",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "oWBpOvqWZI37sEBIZaFz1SrcOkY=",
+			"path": "github.com/elastic/apm-agent-go/stacktrace",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
+			"checksumSHA1": "IJ2rTYMtCOXDSHA0EbT3BaJa05s=",
+			"path": "github.com/elastic/apm-agent-go/transport",
+			"revision": "a22839728ee5955c96524d56af60813250d26a5b",
+			"revisionTime": "2018-06-18T03:19:02Z",
+			"version": "v0.4.0",
+			"versionExact": "v0.4.0"
+		},
+		{
 			"checksumSHA1": "1ehnSD4NWvAj66S6kqtSiFENecM=",
 			"path": "github.com/elastic/beats/libbeat/api",
 			"revision": "c941a3d38792137bfc53a3a121f40cebf20b5512",
@@ -1794,6 +1898,12 @@
 			"path": "golang.org/x/net/proxy",
 			"revision": "c941a3d38792137bfc53a3a121f40cebf20b5512",
 			"revisionTime": "2018-06-13T21:14:35Z"
+		},
+		{
+			"checksumSHA1": "S0DP7Pn7sZUmXc55IzZnNvERu6s=",
+			"path": "golang.org/x/sync/errgroup",
+			"revision": "1d60e4601c6fd243af51cc01ddf169918a5407ca",
+			"revisionTime": "2018-03-14T17:21:19Z"
 		},
 		{
 			"checksumSHA1": "CNHEeGnucEUlTHJrLS2kHtfNbws=",
