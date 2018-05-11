@@ -33,7 +33,9 @@ func generate() error {
 		if path == beater.HealthCheckURL {
 			continue
 		}
-
+		if mapping.ProcessorFactory == nil {
+			continue
+		}
 		p := mapping.ProcessorFactory()
 
 		data, err := loader.LoadData(filepath.Join(basePath, p.Name(), filename))
@@ -41,17 +43,12 @@ func generate() error {
 			return err
 		}
 
-		err = p.Validate(data)
-		if err != nil {
+		txBatch, tctx, response := beater.ProcessPayload(data, p)
+		if response.IsError() {
 			return err
 		}
 
-		payload, err := p.Decode(data)
-		if err != nil {
-			return err
-		}
-
-		events := payload.Transform(config.Config{})
+		events := txBatch.Transform(config.TransformConfig{}, tctx)
 
 		for _, d := range events {
 			n, err := d.GetValue("processor.name")

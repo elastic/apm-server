@@ -9,6 +9,9 @@ import (
 
 	"time"
 
+	"github.com/elastic/apm-server/config"
+	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -30,7 +33,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	for _, test := range []struct {
 		input       interface{}
 		err, inpErr error
-		e           *Event
+		e           *Transaction
 	}{
 		{input: nil, err: nil, e: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
@@ -38,7 +41,7 @@ func TestTransactionEventDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{"timestamp": 123},
 			err:   errors.New("Error fetching field"),
-			e: &Event{
+			e: &Transaction{
 				Id: "", Type: "", Name: nil, Result: nil,
 				Duration: 0.0, Timestamp: time.Time{},
 				Context: nil, Marks: nil, Sampled: nil,
@@ -59,18 +62,21 @@ func TestTransactionEventDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			e: &Event{
+			e: &Transaction{
 				Id: id, Type: trType, Name: &name, Result: &result,
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 				Spans: []*Span{
-					&Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3},
+					&Span{
+						Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
+						Timestamp: timestampParsed, TransactionId: &id,
+					},
 				},
 			},
 		},
 	} {
-		event, err := DecodeEvent(test.input, test.inpErr)
+		event, err := DecodeTransaction(test.input, test.inpErr)
 		assert.Equal(t, test.e, event)
 		assert.Equal(t, test.err, err)
 	}
@@ -83,50 +89,64 @@ func TestEventTransform(t *testing.T) {
 	sampled := false
 	dropped := 5
 	name := "mytransaction"
+	ts := time.Date(2018, 1, 1, 10, 23, 59, 0, time.UTC)
 
 	tests := []struct {
-		Event  Event
-		Output common.MapStr
+		Event  Transaction
+		Output beat.Event
 		Msg    string
 	}{
 		{
-			Event: Event{},
-			Output: common.MapStr{
-				"id":       "",
-				"type":     "",
-				"duration": common.MapStr{"us": 0},
-				"sampled":  true,
+			Event: Transaction{},
+			Output: beat.Event{
+				Fields: common.MapStr{
+					"transaction": common.MapStr{
+						"id":       "",
+						"type":     "",
+						"duration": common.MapStr{"us": 0},
+						"sampled":  true,
+					},
+					"context":   common.MapStr{},
+					"processor": common.MapStr{"event": "transaction", "name": "transaction"},
+				},
 			},
 			Msg: "Empty Event",
 		},
 		{
-			Event: Event{
+			Event: Transaction{
 				Id:        id,
 				Name:      &name,
 				Type:      "tx",
 				Result:    &result,
-				Timestamp: time.Now(),
+				Timestamp: ts,
 				Duration:  65.98,
 				Context:   common.MapStr{"foo": "bar"},
 				Spans:     []*Span{},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 			},
-			Output: common.MapStr{
-				"id":         id,
-				"name":       "mytransaction",
-				"type":       "tx",
-				"result":     "tx result",
-				"duration":   common.MapStr{"us": 65980},
-				"span_count": common.MapStr{"dropped": common.MapStr{"total": 5}},
-				"sampled":    false,
+			Output: beat.Event{
+				Fields: common.MapStr{
+					"transaction": common.MapStr{
+						"id":         id,
+						"name":       "mytransaction",
+						"type":       "tx",
+						"result":     "tx result",
+						"duration":   common.MapStr{"us": 65980},
+						"span_count": common.MapStr{"dropped": common.MapStr{"total": 5}},
+						"sampled":    false,
+					},
+					"context":   common.MapStr{"foo": "bar"},
+					"processor": common.MapStr{"event": "transaction", "name": "transaction"},
+				},
+				Timestamp: ts,
 			},
 			Msg: "Full Event",
 		},
 	}
 
 	for idx, test := range tests {
-		output := test.Event.Transform()
+		output := test.Event.Transform(config.TransformConfig{}, &m.TransformContext{})
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

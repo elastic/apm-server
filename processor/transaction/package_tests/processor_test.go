@@ -25,14 +25,14 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
 		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.NewProcessor(), config.TransformConfig{}, requestInfo, map[string]string{})
 }
 
 func TestMinimalTransactionProcessorOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
 		{Name: "TestProcessTransactionMinimalPayload", Path: "data/valid/transaction/minimal_payload.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, transaction.NewProcessor(), config.TransformConfig{}, requestInfo, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
@@ -41,7 +41,7 @@ func TestProcessorFrontendOK(t *testing.T) {
 		{Name: "TestProcessTransactionAugmentedMerge", Path: "data/valid/transaction/augmented_payload_frontend.json"},
 		{Name: "TestProcessTransactionAugmented", Path: "data/valid/transaction/augmented_payload_frontend_no_context.json"},
 	}
-	conf := config.Config{
+	conf := config.TransformConfig{
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}

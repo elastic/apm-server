@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/utility"
@@ -18,7 +20,7 @@ import (
 )
 
 type Reader func(req *http.Request) (io.ReadCloser, error)
-type Decoder func(req *http.Request) (map[string]interface{}, error)
+type V1Decoder func(*http.Request) (map[string]interface{}, error)
 
 var (
 	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)
@@ -47,66 +49,61 @@ func (mr monitoringReader) Close() error {
 	return mr.r.Close()
 }
 
-func DecodeLimitJSONData(maxSize int64) Decoder {
+func DecodeLimitJSONData(maxSize int64) V1Decoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
-		reader, err := readRequestJSONData(maxSize)(req)
+		reader, err := getDecompressionReader(req)
 		if err != nil {
 			return nil, err
 		}
-		return DecodeJSONData(monitoringReader{reader})
+
+		limitedReader := http.MaxBytesReader(nil, reader, maxSize)
+
+		return DecodeJSONData(monitoringReader{limitedReader})
 	}
 }
 
-// readRequestJSONData makes a function that uses information from an http request to construct a Limited ReadCloser
-// of json data from the body of the request
-func readRequestJSONData(maxSize int64) Reader {
-	return func(req *http.Request) (io.ReadCloser, error) {
-		contentType := req.Header.Get("Content-Type")
-		if !strings.Contains(contentType, "application/json") {
-			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-		}
+func getDecompressionReader(req *http.Request) (io.ReadCloser, error) {
+	readerCounter.Inc()
 
-		reader := req.Body
-		if reader == nil {
-			return nil, errors.New("no content")
-		}
-
-		cLen := req.ContentLength
-		knownCLen := cLen > -1
-		if !knownCLen {
-			missingContentLengthCounter.Inc()
-		}
-		switch req.Header.Get("Content-Encoding") {
-		case "deflate":
-			if knownCLen {
-				deflateLengthAccumulator.Add(cLen)
-				deflateCounter.Inc()
-			}
-			var err error
-			reader, err = zlib.NewReader(reader)
-			if err != nil {
-				return nil, err
-			}
-
-		case "gzip":
-			if knownCLen {
-				gzipLengthAccumulator.Add(cLen)
-				gzipCounter.Inc()
-			}
-			var err error
-			reader, err = gzip.NewReader(reader)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			if knownCLen {
-				uncompressedLengthAccumulator.Add(cLen)
-				uncompressedCounter.Inc()
-			}
-		}
-		readerCounter.Inc()
-		return http.MaxBytesReader(nil, reader, maxSize), nil
+	reader := req.Body
+	if reader == nil {
+		return nil, errors.New("no content")
 	}
+
+	cLen := req.ContentLength
+	knownCLen := cLen > -1
+	if !knownCLen {
+		missingContentLengthCounter.Inc()
+	}
+	switch req.Header.Get("Content-Encoding") {
+	case "deflate":
+		if knownCLen {
+			deflateLengthAccumulator.Add(cLen)
+			deflateCounter.Inc()
+		}
+		var err error
+		reader, err = zlib.NewReader(reader)
+		if err != nil {
+			return nil, err
+		}
+
+	case "gzip":
+		if knownCLen {
+			gzipLengthAccumulator.Add(cLen)
+			gzipCounter.Inc()
+		}
+		var err error
+		reader, err = gzip.NewReader(reader)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		if knownCLen {
+			uncompressedLengthAccumulator.Add(cLen)
+			uncompressedCounter.Inc()
+		}
+	}
+	return reader, nil
 }
 
 func DecodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {
@@ -147,44 +144,49 @@ func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) 
 	return payload, nil
 }
 
-func DecodeUserData(decoder Decoder, enabled bool) Decoder {
-	if !enabled {
-		return decoder
+type Extractor func(req *http.Request) map[string]interface{}
+
+func UserExtractor(req *http.Request) map[string]interface{} {
+	m := map[string]interface{}{
+		"user-agent": req.Header.Get("User-Agent"),
+	}
+	if ip := utility.ExtractIP(req); net.ParseIP(ip) != nil {
+		m["ip"] = ip
 	}
 
-	augment := func(req *http.Request) map[string]interface{} {
-		m := map[string]interface{}{
-			"user-agent": req.Header.Get("User-Agent"),
-		}
-		if ip := utility.ExtractIP(req); net.ParseIP(ip) != nil {
-			m["ip"] = ip
-		}
-		return m
+	return map[string]interface{}{
+		"user": m,
 	}
-	return augmentData(decoder, "user", augment)
 }
 
-func DecodeSystemData(decoder Decoder, enabled bool) Decoder {
-	if !enabled {
-		return decoder
+func SystemExtractor(req *http.Request) map[string]interface{} {
+	if ip := utility.ExtractIP(req); net.ParseIP(ip) != nil {
+		return map[string]interface{}{
+			"system": map[string]interface{}{"ip": ip},
+		}
 	}
 
-	augment := func(req *http.Request) map[string]interface{} {
-		if ip := utility.ExtractIP(req); net.ParseIP(ip) != nil {
-			return map[string]interface{}{"ip": ip}
-		}
-		return nil
-	}
-	return augmentData(decoder, "system", augment)
+	return map[string]interface{}{}
 }
 
-func augmentData(decoder Decoder, key string, augment func(req *http.Request) map[string]interface{}) Decoder {
-	return func(req *http.Request) (map[string]interface{}, error) {
-		v, err := decoder(req)
-		if err != nil {
-			return v, err
+func GetAugmenter(req *http.Request, extractors []Extractor) Augmenter {
+	extra := make([]map[string]interface{}, len(extractors))
+	for idx, extractor := range extractors {
+		extra[idx] = extractor(req)
+	}
+
+	return Augmenter{extra}
+}
+
+type Augmenter struct {
+	extra []map[string]interface{}
+}
+
+func (a *Augmenter) Augment(input common.MapStr) {
+	for _, e := range a.extra {
+		for key, v := range e {
+			val := v.(map[string]interface{})
+			utility.MergeAdd(input, key, val)
 		}
-		utility.InsertInMap(v, key, augment(req))
-		return v, nil
 	}
 }

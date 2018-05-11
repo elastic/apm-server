@@ -26,7 +26,7 @@ func TestProcessorBackendOK(t *testing.T) {
 		{Name: "TestProcessErrorNullValues", Path: "data/valid/error/null_values.json"},
 		{Name: "TestProcessErrorAugmentedIP", Path: "data/valid/error/augmented_payload_backend.json"},
 	}
-	conf := config.Config{ExcludeFromGrouping: nil}
+	conf := config.TransformConfig{ExcludeFromGrouping: nil}
 	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{})
 }
 
@@ -35,7 +35,7 @@ func TestProcessorMinimalPayloadOK(t *testing.T) {
 		{Name: "TestProcessErrorMinimalPayloadException", Path: "data/valid/error/minimal_payload_exception.json"},
 		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/valid/error/minimal_payload_log.json"},
 	}
-	conf := config.Config{ExcludeFromGrouping: nil}
+	conf := config.TransformConfig{ExcludeFromGrouping: nil}
 	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{"@timestamp": "-"})
 }
 
@@ -47,7 +47,7 @@ func TestProcessorFrontendOK(t *testing.T) {
 		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "data/valid/error/augmented_payload_frontend.json"},
 	}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
-	conf := config.Config{
+	conf := config.TransformConfig{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),

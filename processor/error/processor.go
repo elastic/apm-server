@@ -3,7 +3,9 @@ package error
 import (
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-server/model"
 	pr "github.com/elastic/apm-server/processor"
+	sc "github.com/elastic/apm-server/processor/error/generated-schemas"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -20,7 +22,7 @@ const (
 	errorDocType  = "error"
 )
 
-var schema = pr.CreateSchema(errorSchema, processorName)
+var schema = pr.CreateSchema(sc.PayloadSchema, processorName)
 
 func NewProcessor() pr.Processor {
 	return &processor{schema: schema}
@@ -43,7 +45,7 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 	return err
 }
 
-func (p *processor) Decode(raw map[string]interface{}) (pr.Payload, error) {
+func (p *processor) Decode(raw map[string]interface{}) (model.TransformableBatch, error) {
 	decodingCount.Inc()
 	pa, err := DecodePayload(raw)
 	if err != nil {

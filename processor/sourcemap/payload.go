@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/config"
+	"github.com/elastic/apm-server/model"
 	smap "github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -23,11 +24,8 @@ type Payload struct {
 	BundleFilepath string
 }
 
-func (pa *Payload) Transform(conf config.Config) []beat.Event {
+func (pa *Payload) Transform(conf config.TransformConfig, _ *model.TransformContext) beat.Event {
 	sourcemapCounter.Add(1)
-	if pa == nil {
-		return nil
-	}
 
 	if conf.SmapMapper == nil {
 		logp.NewLogger("sourcemap").Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
@@ -50,5 +48,5 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 		},
 		Timestamp: time.Now(),
 	}
-	return []beat.Event{ev}
+	return ev
 }

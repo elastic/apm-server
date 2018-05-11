@@ -6,6 +6,7 @@ import (
 	"github.com/fatih/set"
 
 	"github.com/elastic/apm-server/processor/sourcemap"
+	sc "github.com/elastic/apm-server/processor/sourcemap/generated-schemas"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -16,7 +17,7 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"sourcemap",
 		set.New("sourcemap", "sourcemap.file", "sourcemap.names", "sourcemap.sources", "sourcemap.sourceRoot",
 			"sourcemap.mappings", "sourcemap.sourcesContent", "sourcemap.version"),
-		sourcemap.Schema())
+		sc.SourcemapSchema)
 }
 
 func TestSourcemapPayloadSchema(t *testing.T) {

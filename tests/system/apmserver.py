@@ -53,6 +53,7 @@ class BaseTest(TestCase):
 
 class ServerSetUpBaseTest(BaseTest):
     transactions_url = 'http://localhost:8200/v1/transactions'
+    v2_url = 'http://localhost:8200/v2/intake'
     errors_url = 'http://localhost:8200/v1/errors'
     expvar_url = 'http://localhost:8200/debug/vars'
 

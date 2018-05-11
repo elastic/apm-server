@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
+
+	"github.com/elastic/beats/libbeat/beat"
 
 	"github.com/stretchr/testify/assert"
 
@@ -69,20 +72,23 @@ func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	parent := 12
 	tid := 1
-	service := m.Service{Name: "myService"}
+	ts := time.Now()
+	tctx := m.TransformContext{Service: &m.Service{Name: "myService"}}
 
 	tests := []struct {
 		Span   Span
-		Output common.MapStr
+		Output beat.Event
 		Msg    string
 	}{
 		{
 			Span: Span{},
-			Output: common.MapStr{
-				"type":     "",
-				"start":    common.MapStr{"us": 0},
-				"duration": common.MapStr{"us": 0},
-				"name":     "",
+			Output: beat.Event{
+				Fields: common.MapStr{
+					"type":     "",
+					"start":    common.MapStr{"us": 0},
+					"duration": common.MapStr{"us": 0},
+					"name":     "",
+				},
 			},
 			Msg: "Span without a Stacktrace",
 		},
@@ -96,31 +102,36 @@ func TestSpanTransform(t *testing.T) {
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
 				Context:    common.MapStr{"key": "val"},
 				Parent:     &parent,
+				Timestamp:  ts,
 			},
-			Output: common.MapStr{
-				"duration": common.MapStr{"us": 1200},
-				"id":       1,
-				"name":     "myspan",
-				"start":    common.MapStr{"us": 650},
-				"type":     "myspantype",
-				"parent":   12,
-				"stacktrace": []common.MapStr{{
-					"exclude_from_grouping": false,
-					"abs_path":              path,
-					"filename":              "",
-					"line":                  common.MapStr{"number": 0},
-					"sourcemap": common.MapStr{
-						"error":   "Colno mandatory for sourcemapping.",
-						"updated": false,
+			Output: beat.Event{
+				Fields: common.MapStr{
+					"transaction": common.MapStr{
+						"duration": common.MapStr{"us": 1200},
+						"id":       1,
+						"name":     "myspan",
+						"start":    common.MapStr{"us": 650},
+						"type":     "myspantype",
+						"parent":   12,
+						"stacktrace": []common.MapStr{{
+							"exclude_from_grouping": false,
+							"abs_path":              path,
+							"filename":              "",
+							"line":                  common.MapStr{"number": 0},
+							"sourcemap": common.MapStr{
+								"error":   "Colno mandatory for sourcemapping.",
+								"updated": false,
+							},
+						}},
 					},
-				}},
+				},
 			},
 			Msg: "Full Span",
 		},
 	}
 
 	for idx, test := range tests {
-		output := test.Span.Transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
+		output := test.Span.Transform(config.TransformConfig{SmapMapper: &sourcemap.SmapMapper{}}, &tctx)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

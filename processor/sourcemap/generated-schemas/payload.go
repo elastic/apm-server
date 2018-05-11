@@ -1,10 +1,6 @@
-package sourcemap
+package schemas
 
-func Schema() string {
-	return sourcemapSchema
-}
-
-var sourcemapSchema = `{
+const SourcemapSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/sourcemaps/sourcemap-metadata.json",
     "title": "Sourcemap Metadata",

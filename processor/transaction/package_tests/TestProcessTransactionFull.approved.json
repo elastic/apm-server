@@ -136,7 +136,7 @@
             }
         },
         {
-            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "@timestamp": "2017-05-30T18:53:27.156Z",
             "context": {
                 "db": {
                     "instance": "customers",
@@ -239,7 +239,7 @@
             }
         },
         {
-            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "@timestamp": "2017-05-30T18:53:27.155Z",
             "context": {
                 "service": {
                     "agent": {
@@ -468,7 +468,7 @@
             }
         },
         {
-            "@timestamp": "2017-05-30T18:53:42.281999Z",
+            "@timestamp": "2017-05-30T18:53:42.283999Z",
             "context": {
                 "db": {
                     "instance": "customers",

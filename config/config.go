@@ -6,7 +6,7 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 )
 
-type Config struct {
+type TransformConfig struct {
 	LibraryPattern      *regexp.Regexp
 	ExcludeFromGrouping *regexp.Regexp
 	SmapMapper          sourcemap.Mapper

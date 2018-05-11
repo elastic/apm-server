@@ -24,7 +24,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	return &st, err
 }
 
-func (st *Stacktrace) Transform(config config.Config, service Service) []common.MapStr {
+func (st *Stacktrace) Transform(config config.TransformConfig, context *TransformContext) []common.MapStr {
 	if st == nil {
 		return nil
 	}
@@ -48,6 +48,7 @@ func (st *Stacktrace) Transform(config config.Config, service Service) []common.
 	if frameCount == 0 {
 		return nil
 	}
+
 	var fr *StacktraceFrame
 	var frames []common.MapStr
 	frames = make([]common.MapStr, frameCount)
@@ -55,8 +56,8 @@ func (st *Stacktrace) Transform(config config.Config, service Service) []common.
 	fct := "<anonymous>"
 	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = (*st)[idx]
-		if config.SmapMapper != nil {
-			fct = fr.applySourcemap(config.SmapMapper, service, fct)
+		if config.SmapMapper != nil && context.Service != nil {
+			fct = fr.applySourcemap(config.SmapMapper, *context.Service, fct)
 		}
 		frames[idx] = fr.Transform(config)
 	}

@@ -42,7 +42,7 @@ func TestStacktraceDecode(t *testing.T) {
 }
 
 func TestStacktraceTransform(t *testing.T) {
-	service := Service{Name: "myService"}
+	transformContext := TransformContext{Service: &Service{Name: "myService"}}
 	colno := 1
 	fct := "original function"
 	absPath := "original path"
@@ -125,13 +125,13 @@ func TestStacktraceTransform(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		output := test.Stacktrace.Transform(config.Config{}, service)
+		output := test.Stacktrace.Transform(config.TransformConfig{}, &transformContext)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
 func TestStacktraceTransformWithSourcemapping(t *testing.T) {
-	service := Service{Name: "myService"}
+	transformContext := TransformContext{Service: &Service{Name: "myService"}}
 	colno := 1
 	fct := "original function"
 	absPath := "original path"
@@ -242,8 +242,8 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 
 	for idx, test := range tests {
 		// run `Stacktrace.Transform` twice to ensure method is idempotent
-		test.Stacktrace.Transform(config.Config{SmapMapper: &FakeMapper{}}, service)
-		output := test.Stacktrace.Transform(config.Config{SmapMapper: &FakeMapper{}}, service)
+		test.Stacktrace.Transform(config.TransformConfig{SmapMapper: &FakeMapper{}}, &transformContext)
+		output := test.Stacktrace.Transform(config.TransformConfig{SmapMapper: &FakeMapper{}}, &transformContext)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

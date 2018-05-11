@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elastic/apm-server/model"
+
 	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 
@@ -85,7 +87,13 @@ func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set,
 	if err != nil {
 		return nil, err
 	}
-	events := payl.Transform(config.Config{})
+
+	transformationContext, err := model.DecodeContext(data, err)
+	if err != nil {
+		return nil, err
+	}
+
+	events := payl.Transform(config.TransformConfig{}, transformationContext)
 
 	eventNames := set.New()
 	for _, event := range events {
@@ -125,6 +133,7 @@ func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *set
 	if okCommonMapStr || okMapStr {
 		flattenMapStr(v, flattenedKey, keysBlacklist, flattened)
 	}
+	// panic(fmt.Sprintf("Not sure what do to with a '%s'. Content: %s", reflect.TypeOf(v), v))
 }
 
 func isBlacklistedKey(keysBlacklist *set.Set, key string) bool {

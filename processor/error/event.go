@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/elastic/beats/libbeat/beat"
+
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/utility"
@@ -110,22 +112,42 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	return &e, err
 }
 
-func (e *Event) Transform(config config.Config, service m.Service) common.MapStr {
+func (e *Event) Transform(config config.TransformConfig, context *m.TransformContext) beat.Event {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 
-	e.addException(config, service)
-	e.addLog(config, service)
+	if e.Exception != nil {
+		addStacktraceCounter(e.Exception.Stacktrace)
+	}
+	if e.Log != nil {
+		addStacktraceCounter(e.Log.Stacktrace)
+	}
+
+	e.addException(config, context)
+	e.addLog(config, context)
 
 	e.updateCulprit(config)
 	e.add("culprit", e.Culprit)
 
 	e.addGroupingKey()
 
-	return e.data
+	var tx common.MapStr
+	if e.Transaction != nil && e.Transaction.Id != "" {
+		tx = common.MapStr{"id": e.Transaction.Id}
+	}
+
+	return beat.Event{
+		Fields: common.MapStr{
+			"processor":   processorEntry,
+			errorDocType:  e.data,
+			"context":     context.TransformInto(e.Context),
+			"transaction": tx,
+		},
+		Timestamp: e.Timestamp,
+	}
 }
 
-func (e *Event) updateCulprit(config config.Config) {
+func (e *Event) updateCulprit(config config.TransformConfig) {
 	if config.SmapMapper == nil {
 		return
 	}
@@ -146,6 +168,13 @@ func (e *Event) updateCulprit(config config.Config) {
 	e.Culprit = &culprit
 }
 
+func addStacktraceCounter(st m.Stacktrace) {
+	if frames := len(st); frames > 0 {
+		stacktraceCounter.Inc()
+		frameCounter.Add(int64(frames))
+	}
+}
+
 func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame {
 	for _, fr := range frames {
 		if fr.IsSourcemapApplied() && !fr.IsLibraryFrame() {
@@ -155,7 +184,7 @@ func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame 
 	return nil
 }
 
-func (e *Event) addException(config config.Config, service m.Service) {
+func (e *Event) addException(config config.TransformConfig, context *m.TransformContext) {
 	if e.Exception == nil {
 		return
 	}
@@ -177,13 +206,13 @@ func (e *Event) addException(config config.Config, service m.Service) {
 		utility.Add(ex, "code", code.String())
 	}
 
-	st := e.Exception.Stacktrace.Transform(config, service)
+	st := e.Exception.Stacktrace.Transform(config, context)
 	utility.Add(ex, "stacktrace", st)
 
 	e.add("exception", ex)
 }
 
-func (e *Event) addLog(config config.Config, service m.Service) {
+func (e *Event) addLog(config config.TransformConfig, context *m.TransformContext) {
 	if e.Log == nil {
 		return
 	}
@@ -192,7 +221,7 @@ func (e *Event) addLog(config config.Config, service m.Service) {
 	utility.Add(log, "param_message", e.Log.ParamMessage)
 	utility.Add(log, "logger_name", e.Log.LoggerName)
 	utility.Add(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(config, service)
+	st := e.Log.Stacktrace.Transform(config, context)
 	utility.Add(log, "stacktrace", st)
 
 	e.add("log", log)
