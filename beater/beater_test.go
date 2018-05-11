@@ -17,6 +17,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -205,8 +206,11 @@ func (d *DummyOutputClient) Close() error {
 	return nil
 }
 
-func DummyPipeline() (*pipeline.Pipeline, error) {
-	return pipeline.New(
+func DummyPipeline(clients ...outputs.Client) *pipeline.Pipeline {
+	if len(clients) == 0 {
+		clients = []outputs.Client{&DummyOutputClient{}}
+	}
+	p, err := pipeline.New(
 		beat.Info{Name: "test-apm-server"},
 		nil,
 		func(e queue.Eventer) (queue.Queue, error) {
@@ -216,7 +220,7 @@ func DummyPipeline() (*pipeline.Pipeline, error) {
 			}), nil
 		},
 		outputs.Group{
-			Clients:   []outputs.Client{&DummyOutputClient{}},
+			Clients:   clients,
 			BatchSize: 5,
 			Retry:     0, // no retry. on error drop events
 		},
@@ -225,6 +229,10 @@ func DummyPipeline() (*pipeline.Pipeline, error) {
 			WaitCloseMode: pipeline.NoWaitOnClose,
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
+	return p
 }
 
 func (bt *beater) client(insecure bool) (string, *http.Client) {
@@ -275,13 +283,10 @@ func (bt *beater) wait() error {
 	}
 }
 
-func setupBeater(t *testing.T, ucfg *common.Config) (*beater, func()) {
-	// create a pipeline
-	pip, err := DummyPipeline()
-	assert.NoError(t, err)
-
+func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*beater, func()) {
 	// create a beat
 	apmBeat := &beat.Beat{
+		Publisher: publisher,
 		Info: beat.Info{
 			Beat:        "test-apm-server",
 			IndexPrefix: "test-apm-server",
@@ -289,9 +294,6 @@ func setupBeater(t *testing.T, ucfg *common.Config) (*beater, func()) {
 			UUID:        uuid.NewV4(),
 		},
 	}
-
-	// connect pipeline to beat
-	apmBeat.Publisher = pip
 
 	// create our beater
 	beatBeater, err := New(apmBeat, ucfg)
@@ -312,12 +314,8 @@ func setupBeater(t *testing.T, ucfg *common.Config) (*beater, func()) {
 }
 
 func SetupServer(b *testing.B) *http.ServeMux {
-	pip, err := DummyPipeline()
-	if err != nil {
-		b.Fatal("error initializing pipeline", err)
-	}
-
-	pub, err := newPublisher(pip, 1, time.Duration(0))
+	pip := DummyPipeline()
+	pub, err := newPublisher(pip, 1, time.Duration(0), elasticapm.DefaultTracer)
 	if err != nil {
 		b.Fatal("error initializing publisher", err)
 	}
