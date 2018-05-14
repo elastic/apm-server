@@ -934,6 +934,14 @@
 			"versionExact": "6.x"
 		},
 		{
+			"checksumSHA1": "OZKgeedHl9I4WOMR+7ROvCJR9pU=",
+			"path": "github.com/elastic/beats/libbeat/publisher/testing",
+			"revision": "0438ae89b76724cd3e7d2b3f69b3d3ec1ff46181",
+			"revisionTime": "2018-04-25T11:07:50Z",
+			"version": "6.x",
+			"versionExact": "6.x"
+		},
+		{
 			"checksumSHA1": "AQpIjVClosTUbCL9bFO0onlxr9Y=",
 			"path": "github.com/elastic/beats/libbeat/service",
 			"revision": "0438ae89b76724cd3e7d2b3f69b3d3ec1ff46181",
