@@ -148,7 +148,20 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 
 func TestDecodeSystemData(t *testing.T) {
 
-	for _, enabled := range []bool{true, false} {
+	type test struct {
+		augment    bool
+		remoteAddr string
+		expectIP   string
+	}
+
+	tests := []test{
+		{augment: false, remoteAddr: "1.2.3.4:1234"},
+		{augment: true, remoteAddr: "1.2.3.4:1234", expectIP: "1.2.3.4"},
+		{augment: true, remoteAddr: "not-an-ip:1234"},
+		{augment: true, remoteAddr: ""},
+	}
+
+	for _, test := range tests {
 
 		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
 		assert.Nil(t, err)
@@ -156,21 +169,39 @@ func TestDecodeSystemData(t *testing.T) {
 
 		req, err := http.NewRequest("POST", "_", buffer)
 		req.Header.Add("Content-Type", "application/json")
+		req.RemoteAddr = test.remoteAddr
 		assert.Nil(t, err)
 
-		body, err := decoder.DecodeSystemData(decoder.DecodeLimitJSONData(1024*1024), enabled)(req)
+		body, err := decoder.DecodeSystemData(decoder.DecodeLimitJSONData(1024*1024), test.augment)(req)
 		assert.Nil(t, err)
 
 		system, hasSystem := body["system"].(map[string]interface{})
 		assert.True(t, hasSystem)
-		_, hasIp := system["ip"]
-		assert.Equal(t, enabled, hasIp)
+
+		if test.expectIP == "" {
+			assert.NotContains(t, system, "ip")
+		} else {
+			assert.Equal(t, test.expectIP, system["ip"])
+		}
 	}
 }
 
 func TestDecodeUserData(t *testing.T) {
 
-	for _, enabled := range []bool{true, false} {
+	type test struct {
+		augment    bool
+		remoteAddr string
+		expectIP   string
+	}
+
+	tests := []test{
+		{augment: false, remoteAddr: "1.2.3.4:1234"},
+		{augment: true, remoteAddr: "1.2.3.4:1234", expectIP: "1.2.3.4"},
+		{augment: true, remoteAddr: "not-an-ip:1234"},
+		{augment: true, remoteAddr: ""},
+	}
+
+	for _, test := range tests {
 
 		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
 		assert.Nil(t, err)
@@ -178,16 +209,21 @@ func TestDecodeUserData(t *testing.T) {
 
 		req, err := http.NewRequest("POST", "_", buffer)
 		req.Header.Add("Content-Type", "application/json")
+		req.RemoteAddr = test.remoteAddr
 		assert.Nil(t, err)
 
-		body, err := decoder.DecodeUserData(decoder.DecodeLimitJSONData(1024*1024), enabled)(req)
+		body, err := decoder.DecodeUserData(decoder.DecodeLimitJSONData(1024*1024), test.augment)(req)
 		assert.Nil(t, err)
 		user, hasUser := body["user"].(map[string]interface{})
-		assert.Equal(t, enabled, hasUser)
-		_, hasIp := user["ip"]
-		assert.Equal(t, enabled, hasIp)
+		assert.Equal(t, test.augment, hasUser)
 
 		_, hasUserAgent := user["user-agent"]
-		assert.Equal(t, enabled, hasUserAgent)
+		assert.Equal(t, test.augment, hasUserAgent)
+
+		if test.expectIP == "" {
+			assert.NotContains(t, user, "ip")
+		} else {
+			assert.Equal(t, test.expectIP, user["ip"])
+		}
 	}
 }

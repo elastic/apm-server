@@ -10,20 +10,29 @@ import (
 // X-Forwarded-For has a list of IPs, of which the first is the one of the original client.
 // This value however might not be necessarily trusted, as it can be forged by a malicious user.
 func ExtractIP(r *http.Request) string {
-	realIP := r.Header.Get("X-Real-IP")
-	if realIP != "" {
+	if realIP := r.Header.Get("X-Real-Ip"); realIP != "" {
 		return realIP
 	}
-
-	forwardedFor := r.Header.Get("X-Forwarded-For")
-	client := strings.Split(forwardedFor, ",")[0]
-	if client != "" {
-		return strings.TrimSpace(client)
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if sep := strings.IndexRune(xff, ','); sep > 0 {
+			xff = xff[:sep]
+		}
+		return strings.TrimSpace(xff)
 	}
+	remoteAddr, _ := splitHost(r.RemoteAddr)
+	return remoteAddr
+}
 
-	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+func splitHost(in string) (host, port string) {
+	if strings.LastIndexByte(in, ':') == -1 {
+		// In the common (relative to other "errors") case that
+		// there is no colon, we can avoid allocations by not
+		// calling SplitHostPort.
+		return in, ""
+	}
+	host, port, err := net.SplitHostPort(in)
 	if err != nil {
-		return r.RemoteAddr
+		return in, ""
 	}
-	return ip
+	return host, port
 }
