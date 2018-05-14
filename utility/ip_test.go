@@ -54,7 +54,14 @@ func TestExtractIP(t *testing.T) {
 			nilOrString(tc.remote), nilOrString(tc.real), nilOrString(tc.forward))
 		req := testRequest(tc.remote, tc.real, tc.forward)
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.want, ExtractIP(req))
+			ip := ExtractIP(req)
+			if tc.want == empty {
+				assert.Nil(t, ip)
+			} else {
+				if assert.NotNil(t, ip) {
+					assert.Equal(t, tc.want, ip.String())
+				}
+			}
 		})
 	}
 }
