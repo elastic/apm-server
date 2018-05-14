@@ -885,6 +885,14 @@
 			"versionExact": "master"
 		},
 		{
+			"checksumSHA1": "OZKgeedHl9I4WOMR+7ROvCJR9pU=",
+			"path": "github.com/elastic/beats/libbeat/publisher/testing",
+			"revision": "15d95395dd87cdbde0b622a770d48103141362e4",
+			"revisionTime": "2018-05-10T09:30:25Z",
+			"version": "master",
+			"versionExact": "master"
+		},
+		{
 			"checksumSHA1": "AQpIjVClosTUbCL9bFO0onlxr9Y=",
 			"path": "github.com/elastic/beats/libbeat/service",
 			"revision": "c941a3d38792137bfc53a3a121f40cebf20b5512",
