@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"strings"
 
@@ -156,8 +155,8 @@ func DecodeUserData(decoder Decoder, enabled bool) Decoder {
 		m := map[string]interface{}{
 			"user-agent": req.Header.Get("User-Agent"),
 		}
-		if ip := utility.ExtractIP(req); net.ParseIP(ip) != nil {
-			m["ip"] = ip
+		if ip := utility.ExtractIP(req); ip != nil {
+			m["ip"] = ip.String()
 		}
 		return m
 	}
@@ -170,8 +169,8 @@ func DecodeSystemData(decoder Decoder, enabled bool) Decoder {
 	}
 
 	augment := func(req *http.Request) map[string]interface{} {
-		if ip := utility.ExtractIP(req); net.ParseIP(ip) != nil {
-			return map[string]interface{}{"ip": ip}
+		if ip := utility.ExtractIP(req); ip != nil {
+			return map[string]interface{}{"ip": ip.String()}
 		}
 		return nil
 	}
