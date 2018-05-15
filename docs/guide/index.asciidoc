@@ -9,13 +9,15 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 APM is an application performance monitoring system built on the Elastic Stack.
 It uses Elasticsearch as its data store and allows you to monitor software services and applications in real time.
-Regardless of whether your code is best described as a service or as an application, this guide will use indistinctly
-the word service.
+Regardless of whether your code is best described as a service or as an application,
+this guide will indiscriminately use the word service.
 
-With APM, you can automatically collect detailed performance information from inside your service with only minor
-changes to your code.
-For example, APM agents can measure the response time for incoming requests, time spent in database queries, calls
-to caches, external HTTP requests, etc.
+With APM you can automatically collect detailed performance information from inside your service with only minor changes to your code.
+For example APM agents can measure the response time for incoming requests,
+time spent in database queries,
+calls to caches,
+external HTTP requests,
+etc.
 This makes it easier to pinpoint and fix performance problems quickly.
 
 APM also automatically collects errors and exceptions that are not handled by your service.
@@ -47,17 +49,19 @@ APM automatically instruments most popular web frameworks,
 database drivers,
 calls to caching servers,
 and HTTP libraries for requests to external services.
-Additionally, agents provide an API that you can use to manually instrument anything else you find interesting.
+Additionally,
+agents provide an API that you can use to manually instrument anything else you find interesting.
 
 *APM Server* is an open source application written in Go which typically runs on dedicated servers.
 It listens on port 8200 by default and receives data from agents periodically through a JSON API.
 APM Server creates documents from the data received from agents and stores them in an Elasticsearch cluster.
 
-To visualize the data after it's sent to Elasticsearch, you can use the pre-built open source Kibana dashboards
-that come with APM Server; or the dedicated APM UI bundled in X-Pack.
+To visualize the data after it's sent to Elasticsearch,
+you can use the the dedicated APM UI bundled in X-Pack,
+or the pre-built open source Kibana dashboards that come with APM Server.
 
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines,
-and it's easy to get started with.
+and it's easy to get started.
 
 [[separate-component]]
 == Why is APM Server a separate component?
@@ -65,10 +69,13 @@ and it's easy to get started with.
 The APM Server is kept as a separate component for the following reasons:
 
 * It helps keep the agents as light as possible and since the APM Server is a stateless separate component,
-  it can be scaled independently.
-* For real-user-monitoring (beta), data is being collected in agents running in browsers.
-  APM Server prevents browsers from interacting directly with Elasticsearch (which poses a security risk), and controls the amount of data flowing into Elasticsearch.
-* In cases where Elasticsearch becomes unresponsive, APM Server can buffer data temporarily (configurable) without adding overhead to the agents.
+it can be scaled independently.
+* For real-user-monitoring (beta),
+data is being collected in agents running in browsers.
+  APM Server prevents browsers from interacting directly with Elasticsearch (which poses a security risk),
+  and controls the amount of data flowing into Elasticsearch.
+* In cases where Elasticsearch becomes unresponsive,
+APM Server can buffer data temporarily (configurable) without adding overhead to the agents.
 * APM Server serves as a middleware for source mapping for javascript in the browser.
 * The APM Server provides a JSON API for agents to use thereby improving compatibility across different versions of agents and the Elastic Stack.
 
@@ -85,8 +92,7 @@ you need to have:
 
 For information about setting up an Elasticsearch cluster,
 see the Elasticsearch {ref}/getting-started.html[Getting Started].
-To view the collected data,
-you need Kibana.
+To view the collected data you need Kibana.
 
 The following sections show how to get started quickly with Elastic APM on a local machine.
 
@@ -103,7 +109,8 @@ You _can_ run it on the same machines as Elasticsearch,
 but this is not recommended,
 as the processes will be competing for resources.
 
-To start APM Server, run:
+To start APM Server,
+run:
 
 [source,bash]
 ----------------------------------
@@ -153,7 +160,7 @@ If you change the listen address from `localhost` to something that is accessibl
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively,
 you can use the {apm-server-ref}/security.html[secret token and TLS] to secure access to APM Server API.
-You can configure APM Server to listen on a UNIX domain socket.
+You can also configure APM Server to listen on a Unix domain socket.
 [[kibana-dashboards]]
 [float]
 ==== Install the Kibana dashboards
@@ -187,8 +194,7 @@ you need to install an agent in your service.
 === Install and configure APM agents
 
 Agents are written in the same language as your service.
-Currently,
-Elastic APM has agents for Node.js and for Python.
+Currently Elastic APM has agents for Node.js and for Python.
 
 Setting up a new service to be monitored requires installing the agent in the service,
 coming up with a good name for the service,
@@ -199,14 +205,18 @@ and then configuring the agents so they know the address of your APM Server and 
 ==== Choose a service name
 
 The service name is used by Elastic APM to differentiate between data coming from different services and to group data coming from the same services.
-When configuring an agent, you need to supply a service name.
+When configuring an agent,
+you need to supply a service name.
 
 Elastic APM includes the service name field on every document that it saves in Elasticsearch.
 This has the implication that if you change the service name after using Elastic APM for some time,
 you will see the old service name and the new service name as two separate services.
 Make sure you choose a good service name before you get started.
 
-The service name can only contain alphanumeric characters, spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
+The service name can only contain alphanumeric characters,
+spaces,
+underscores,
+and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
 [[nodejs-agent]]
 [float]
@@ -237,7 +247,9 @@ var apm = require('elastic-apm-node').start({
 })
 ----------------------------------
 
-The Node.js agent supports Express, hapi, and Koa out of the box.
+The Node.js agent supports Express,
+hapi,
+and Koa out of the box.
 See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more details.
 
 [[python-agent]]
