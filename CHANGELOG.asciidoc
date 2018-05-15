@@ -30,7 +30,7 @@ https://github.com/elastic/apm-server/compare/6.2\...6.3[View commits]
 
 ==== Added
 
-- Enriched data with IP and UserAgent {pull}393[393], {pull}701[701], {pull}730[730].
+- Enriched data with IP and UserAgent {pull}393[393], {pull}701[701], {pull}730[730], {pull}923[923].
 - Push errors and transactions to different ES indices {pull}706[706].
 - Allow custom `error.log.level` {pull}712[712].
 - Change `concurrent_request` default from 40 to 5 {pull}731[731].
