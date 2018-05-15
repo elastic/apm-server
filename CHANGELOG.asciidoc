@@ -11,8 +11,6 @@ https://github.com/elastic/apm-server/compare/9e0a1e281e56044745f1a4f18dcbf00a7f
 
 ==== Bug fixes
 
-- Don't augment payloads with invalid IPs {pull}923[923], {pull}927[927].
-
 ==== Added
 
 - Listen on default port 8200 if unspecified {pull}[886]886.
@@ -43,7 +41,7 @@ https://github.com/elastic/apm-server/compare/6.2\...6.3[View commits]
 
 ==== Added
 
-- Enriched data with IP and UserAgent {pull}393[393], {pull}701[701], {pull}730[730].
+- Enriched data with IP and UserAgent {pull}393[393], {pull}701[701], {pull}730[730], {pull}923[923].
 - Push errors and transactions to different ES indices {pull}706[706].
 - Allow custom `error.log.level` {pull}712[712].
 - Change `concurrent_request` default from 40 to 5 {pull}731[731].
