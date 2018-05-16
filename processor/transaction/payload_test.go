@@ -17,8 +17,8 @@ import (
 func TestPayloadDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
-	pid, ip := 1, "127.0.0.1"
-	for _, test := range []struct {
+	pid, ip, id := 1, "127.0.0.1", "abcd4567-9087-cdef-0123-0123456789ab"
+	for idx, test := range []struct {
 		input map[string]interface{}
 		err   error
 		p     *Payload
@@ -60,7 +60,7 @@ func TestPayloadDecode(t *testing.T) {
 				"user":    map[string]interface{}{"ip": ip},
 				"transactions": []interface{}{
 					map[string]interface{}{
-						"id": "45", "type": "transaction",
+						"id": id, "type": "transaction",
 						"timestamp": timestamp, "duration": 34.9,
 					},
 				},
@@ -74,19 +74,22 @@ func TestPayloadDecode(t *testing.T) {
 				User:    &m.User{IP: &ip},
 				Events: []*Event{
 					&Event{
-						Id:        "45",
+						Id:        id,
 						Type:      "transaction",
 						Timestamp: timestampParsed,
 						Duration:  34.9,
-						Spans:     []*Span{},
 					},
 				},
 			},
 		},
 	} {
-		Payload, err := DecodePayload(test.input)
-		assert.Equal(t, test.p, Payload)
+		payload, err := DecodePayload(test.input)
 		assert.Equal(t, test.err, err)
+		if test.err != nil {
+			assert.Error(t, err)
+			assert.Equal(t, test.err, err)
+		}
+		assert.Equal(t, test.p, payload, fmt.Sprintf("Idx <%x>", idx))
 	}
 }
 
@@ -171,8 +174,7 @@ func TestPayloadTransform(t *testing.T) {
 			},
 		},
 	}
-	spans := []*Span{{}}
-	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
+	txValidWithSpan := Event{Timestamp: timestamp}
 	spanEs := common.MapStr{
 		"context": common.MapStr{
 			"service": common.MapStr{

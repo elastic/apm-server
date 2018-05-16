@@ -9,10 +9,10 @@ import (
 
 func CreateSchema(schemaData string, url string) *jsonschema.Schema {
 	compiler := jsonschema.NewCompiler()
+	compiler.Draft = jsonschema.Draft7
 	if err := compiler.AddResource(url, strings.NewReader(schemaData)); err != nil {
 		panic(err)
 	}
-	compiler.Draft = jsonschema.Draft7
 	schema, err := compiler.Compile(url)
 	if err != nil {
 		panic(err)

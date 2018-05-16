@@ -268,10 +268,15 @@
       dynamic: false
       fields:
 
+        - name: hex_id 
+          type: keyword 
+          description: >
+             The hex encoded ID of the transaction, unique per trace.
+
         - name: id
           type: keyword
           description: >
-            A UUID4 transaction ID.
+            Deprecated (>= 6.4). A UUID4 transaction ID. 
           format: url
           label_template: "View Spans"
           open_link_in_current_tab: true

@@ -27,6 +27,7 @@ type Payload struct {
 	Process *m.Process
 	User    *m.User
 	Events  []*Event
+	Spans   []*Span
 }
 
 func DecodePayload(raw map[string]interface{}) (*Payload, error) {
@@ -48,11 +49,21 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 	}
 
 	decoder := utility.ManualDecoder{}
+	if sp := decoder.InterfaceArr(raw, "spans"); len(sp) > 0 {
+		spans := make([]*Span, len(sp))
+		for idx, s := range sp {
+			spans[idx], err = DecodeDtSpan(s, err)
+		}
+		pa.Spans = spans
+	}
+
 	txs := decoder.InterfaceArr(raw, "transactions")
 	err = decoder.Err
 	pa.Events = make([]*Event, len(txs))
+	var spans []*Span
 	for idx, tx := range txs {
-		pa.Events[idx], err = DecodeEvent(tx, err)
+		pa.Events[idx], spans, err = DecodeEvent(tx, err)
+		pa.Spans = append(pa.Spans, spans...)
 	}
 	return pa, err
 }
@@ -60,6 +71,7 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	transformations.Inc()
 	transactionCounter.Add(int64(len(pa.Events)))
+	spanCounter.Add(int64(len(pa.Spans)))
 	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
@@ -77,28 +89,25 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 			Timestamp: event.Timestamp,
 		}
 		events = append(events, ev)
-
-		trId := common.MapStr{"id": event.Id}
-		spanCounter.Add(int64(len(event.Spans)))
-		for spIdx := 0; spIdx < len(event.Spans); spIdx++ {
-			sp := event.Spans[spIdx]
-			if frames := len(sp.Stacktrace); frames > 0 {
-				stacktraceCounter.Inc()
-				frameCounter.Add(int64(frames))
-			}
-			ev := beat.Event{
-				Fields: common.MapStr{
-					"processor":   processorSpanEntry,
-					spanDocType:   sp.Transform(conf, pa.Service),
-					"transaction": trId,
-					"context":     spanContext.Transform(sp.Context),
-				},
-				Timestamp: event.Timestamp,
-			}
-			events = append(events, ev)
-			event.Spans[spIdx] = nil
-		}
 		pa.Events[idx] = nil
+	}
+
+	for spIdx := 0; spIdx < len(pa.Spans); spIdx++ {
+		sp := pa.Spans[spIdx]
+		if frames := len(sp.Stacktrace); frames > 0 {
+			stacktraceCounter.Inc()
+			frameCounter.Add(int64(frames))
+		}
+		fields := common.MapStr{
+			"processor": processorSpanEntry,
+			spanDocType: sp.Transform(conf, pa.Service),
+			"context":   spanContext.Transform(sp.Context),
+		}
+		if sp.TransactionId != nil {
+			fields["transaction"] = common.MapStr{"id": sp.TransactionId}
+		}
+		events = append(events, beat.Event{Fields: fields, Timestamp: sp.Timestamp})
+		pa.Spans[spIdx] = nil
 	}
 
 	return events

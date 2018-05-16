@@ -9,6 +9,7 @@ import (
 	"hash"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/elastic/apm-server/config"
@@ -18,6 +19,11 @@ import (
 )
 
 type Event struct {
+	// new interface
+	ParentId *string
+	TraceId  *string
+	HexId    *string
+
 	Id        *string
 	Culprit   *string
 	Context   common.MapStr
@@ -67,9 +73,37 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		Context:   decoder.MapStr(raw, "context"),
 		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
 	}
-	transactionId := decoder.StringPtr(raw, "id", "transaction")
-	if transactionId != nil {
-		e.Transaction = &Transaction{Id: *transactionId}
+
+	// format of Id indicates single service or distributed tracing
+	if e.Id == nil || utility.IsUUID(*e.Id) {
+
+		// single service tracing format
+		// no further additional settings necessary for backwards compatibility
+
+		transactionId := decoder.StringPtr(raw, "id", "transaction")
+		if transactionId != nil {
+			e.Transaction = &Transaction{Id: *transactionId}
+		}
+		if decoder.Err != nil {
+			return nil, decoder.Err
+		}
+	} else {
+		// distributed tracing format
+
+		// set new hexId
+		e.HexId = e.Id
+		e.ParentId = decoder.StringPtr(raw, "parent_id")
+		traceId := decoder.String(raw, "trace_id")
+		transactionId := decoder.String(raw, "transaction_id")
+		if decoder.Err != nil {
+			return nil, decoder.Err
+		}
+		e.TraceId = &traceId
+
+		// ensure some backwards compatibility
+		// - set TransactionId to `traceId:hexId`
+		//   for global uniqueness when queried from old UI
+		e.Transaction = &Transaction{Id: strings.Join([]string{traceId, transactionId}, "-")}
 	}
 
 	var stacktr *m.Stacktrace
@@ -107,12 +141,18 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 			e.Log.Stacktrace = *stacktr
 		}
 	}
-	return &e, err
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
 }
 
 func (e *Event) Transform(config config.Config, service m.Service) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
+	e.add("hex_id", e.HexId)
+	e.add("parent_id", e.ParentId)
+	e.add("trace_id", e.TraceId)
 
 	e.addException(config, service)
 	e.addLog(config, service)

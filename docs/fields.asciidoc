@@ -464,6 +464,16 @@ Version of the agent used.
 --
 
 
+*`transaction.hex_id`*::
++
+--
+type: keyword
+
+The hex encoded ID of the transaction, unique per trace.
+
+
+--
+
 *`transaction.id`*::
 +
 --
@@ -471,7 +481,7 @@ type: keyword
 
 format: url
 
-A UUID4 transaction ID.
+Deprecated (>= 6.4). A UUID4 transaction ID. 
 
 
 --
@@ -507,12 +517,42 @@ Data captured by an agent representing an event occurring in a monitored service
 
 
 
+*`error.hex_id`*::
++
+--
+type: keyword
+
+The hex encoded ID of the error, unique per trace.
+
+
+--
+
 *`error.id`*::
 +
 --
 type: keyword
 
-A UUID for the error.
+Deprecated (>= 6.4). A UUID for the error.
+
+
+--
+
+*`error.parent_id`*::
++
+--
+type: keyword
+
+The ID of the parent transaction or span, unique per trace.
+
+
+--
+
+*`error.trace_id`*::
++
+--
+type: keyword
+
+The UUID of the corresponding trace.
 
 
 --
@@ -711,7 +751,17 @@ format: url
 --
 type: long
 
-A locally unique ID of the span.
+Deprecated (>= 6.4). A locally unique ID of the span.
+
+
+--
+
+*`span.hex_id`*::
++
+--
+type: keyword
+
+The hex encoded ID of the span, unique per trace.
 
 
 --
@@ -770,12 +820,32 @@ Duration of the span, in microseconds.
 
 --
 
+*`span.parent_id`*::
++
+--
+type: keyword
+
+The ID of the parent transaction or span, unique per trace.
+
+
+--
+
+*`span.trace_id`*::
++
+--
+type: keyword
+
+The UUID of the corresponding trace.
+
+
+--
+
 *`span.parent`*::
 +
 --
 type: long
 
-The locally unique ID of the parent of the span.
+Deprecated (>= 6.4). The locally unique ID of the parent of the span.
 
 
 --
@@ -810,6 +880,26 @@ type: keyword
 type: keyword
 
 Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+
+--
+
+*`transaction.trace_id`*::
++
+--
+type: keyword
+
+The UUID of the corresponding trace.
+
+
+--
+
+*`transaction.parent_id`*::
++
+--
+type: keyword
+
+The ID of the parent transaction or span, unique per trace.
 
 
 --

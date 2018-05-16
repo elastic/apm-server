@@ -1,0 +1,268 @@
+{
+  "service": {
+    "name": "dttest",
+    "environment": "staging",
+    "version": "1.2.3",
+    "language": {
+        "name": "ruby",
+        "version": "2.2.4"
+    },
+    "runtime": {
+        "name": "node",
+        "version": "8.0.0"
+    },
+    "framework": {
+        "name": "Express",
+        "version": "1.2.3"
+    },
+    "agent": {
+        "name": "elastic-node",
+        "version": "3.14.0"
+    }
+  },
+  "process": {
+    "pid": 0,
+    "ppid": 6789,
+    "argv": [
+      "test"
+    ],
+    "title": "title"
+  },
+  "system": {
+    "architecture": "",
+    "hostname": "",
+    "platform": ""
+  },
+  "spans": [
+    {
+      "name": "SELECT FROM product_types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "cb102228424b6af7",
+      "timestamp": "2018-05-16T10:30:26.512Z",
+      "parent_id": "9002b14857338fa7",
+      "transaction_id": "9002b14857338fa7",
+      "duration": 0.08,
+      "start": 0.0,
+      "type": "db.postgresql.query",
+      "context": {
+        "db": {
+          "instance": "customers",
+          "statement": "SELECT * FROM product_types WHERE user_id=?",
+          "type": "sql",
+          "user": "readonly_user"
+        },
+        "http": {
+          "url": "http://localhost:8000"
+        }
+      }
+    },
+    {
+      "name": "SELECT FROM product_types",
+      "trace_id": "2cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "ca102228424b6af7",
+      "transaction_id": "8102b14857338fa7",
+      "duration": 0.07,
+      "start": 0.0,
+      "type": "db.postgresql.query",
+      "context": {
+        "db": {
+          "instance": "customers",
+          "statement": "SELECT * FROM product_types WHERE user_id=?",
+          "type": "sql",
+          "user": "readonly_user"
+        }
+      }
+    },
+    {
+      "name": "GET /api/types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "681784192bc0dbc4",
+      "parent_id": "9002b14857338fa7",
+      "transaction_id": "9002b14857338fa7",
+      "duration": 1.20,
+      "start": 10.0,
+      "type": "request"
+    },
+    {
+      "name": "GET /api/types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "0123456789abcdef",
+      "parent_id": "681784192bc0dbc4",
+      "transaction_id": "9002b14857338fa7",
+      "duration": 0.05,
+      "start": 5.0,
+      "type": "request"
+    },
+    {
+      "name": "GET /api/types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "81d87bb748c234b2",
+      "parent_id": "9002b14857338fa7",
+      "transaction_id": "9002b14857338fa7",
+      "duration": 0.0,
+      "start": 0.05,
+      "type": "request"
+    },
+    {
+      "name": "GET /api/types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "ffffffffffffffff",
+      "parent_id": "81d87bb748c234b2",
+      "transaction_id": "9002b14857338fa7",
+      "duration": 5.0,
+      "start": 0.0,
+      "type": "request"
+    },
+    {
+      "name": "GET /api/types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "60c10592e604a5b3",
+      "parent_id": "ffffffffffffffff",
+      "transaction_id": "9002b14857338fa7",
+      "duration": 1.9,
+      "start": 0.0,
+      "type": "request"
+    },
+    {
+      "name": "GET zero length /api/types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "id": "560ca10592e604a5",
+      "parent_id": "9002b14857338fa7",
+      "transaction_id": "9002b14857338fa7",
+      "duration": 0.0,
+      "start": 0.0,
+      "type": "request",
+      "stacktrace": [
+          {
+              "function": "onread",
+              "abs_path": "net.js",
+              "filename": "net.js",
+              "lineno": 547,
+              "library_frame": true,
+              "vars": {
+                "key": "value"
+              },
+              "module": "some module",
+              "colno": 4,
+              "context_line": "line3",
+              "pre_context": [
+                  "  var trans = this.currentTransaction",
+                  ""
+              ],
+              "post_context": [
+                  "    ins.currentTransaction = prev",
+                  "    return result",
+                  "}"
+              ]
+          },
+          {
+              "filename": "my2file.js",
+              "lineno": 10
+          }
+      ]
+    }
+  ],
+  "transactions": [
+    {
+      "timestamp": "2018-05-16T10:30:25.512Z",
+      "name": "GET /api/types",
+      "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
+      "parent_id": "9102b14857338fa7",
+      "id": "9002b14857338fa7",
+      "type": "request",
+      "duration": 20.9,
+      "result": "success",
+      "span_count": {
+          "dropped": {
+              "total": 2
+          }
+      },
+      "marks": {
+          "navigationTiming": {
+              "appBeforeBootstrap": 608.9300000000001,
+              "navigationStart": -21
+
+          },
+          "another_mark": {
+              "some_long": 10,
+              "some_float": 10.0
+          },
+          "performance": {}
+      },
+      "context": {
+        "user": {
+          "id": "99",
+          "email": "foo@example.com",
+          "username": "foo"
+        },
+        "custom": {
+            "my_key": 1,
+            "some_other_value": "foo bar",
+            "and_objects": {
+                "foo": [
+                    "bar",
+                    "baz"
+                ]
+            }
+        },
+        "request": {
+            "socket": {
+                "remote_address": "12.53.12.1",
+                "encrypted": true
+            },
+            "http_version": "1.1",
+            "method": "POST",
+            "url": {
+                "protocol": "https:",
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                "hostname": "www.example.com",
+                "port": "8080",
+                "pathname": "/p/a/t/h",
+                "search": "?query=string",
+                "hash": "#hash",
+                "raw": "/p/a/t/h?query=string#hash"
+            },
+            "headers": {
+                "user-agent": "Mozilla Chrome Edge",
+                "content-type": "text/html",
+                "cookie": "c1=v1; c2=v2",
+                "some-other-header": "foo",
+                "array": [
+                    "foo",
+                    "bar",
+                    "baz"
+                ]
+            },
+            "cookies": {
+                "c1": "v1",
+                "c2": "v2"
+            },
+            "env": {
+                "SERVER_SOFTWARE": "nginx",
+                "GATEWAY_INTERFACE": "CGI/1.1"
+            },
+            "body": {
+              "str": "hello world",
+              "additional": { 
+                "foo": {},
+                "bar": 123,
+                "req": "additional information"
+              }
+            }
+        },
+        "response": {
+          "headers": {
+            "content-type": "application/json"
+          },
+          "finished": true,
+          "headers_sent": true,
+          "status_code": 200
+        },
+        "tags": {
+          "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+        }
+      },
+      "sampled": true
+    }
+  ]
+}

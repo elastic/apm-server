@@ -40,12 +40,8 @@ Find details on how the schema is defined:
 * <<error-payload-schema>>
 * <<error-error-schema>>
 * <<error-service-schema>>
+* <<error-process-schema>>
 * <<error-system-schema>>
-* <<error-context-schema>>
-* <<error-stacktraceframe-schema>>
-* <<error-request-schema>>
-* <<error-user-schema>>
-
 
 [[error-payload-schema]]
 [float]
@@ -59,19 +55,69 @@ include::./spec/errors/payload.json[]
 [[error-error-schema]]
 [float]
 ==== Error
+An error document must meet the schema requirements for either `single service tracing` or `distributed tracing`.
+
+* <<error-stacktraceframe-schema>>
+* <<error-context-schema>>
+* <<error-request-schema>>
+* <<error-user-schema>>
 
 [source,json]
 ----
 include::./spec/errors/error.json[]
 ----
 
+[[error-stacktraceframe-schema]]
+[float]
+===== Stacktrace Frame
+
+[source,json]
+----
+include::./spec/stacktrace_frame.json[]
+----
+
+[[error-context-schema]]
+[float]
+===== Context
+
+[source,json]
+----
+include::./spec/context.json[]
+----
+
+[[error-request-schema]]
+[float]
+===== Request
+
+[source,json]
+----
+include::./spec/request.json[]
+----
+
+[[error-user-schema]]
+[float]
+===== User
+
+[source,json]
+----
+include::./spec/user.json[]
+----
 [[error-service-schema]]
 [float]
-==== Service
+===== Service
 
 [source,json]
 ----
 include::./spec/service.json[]
+----
+
+[[error-process-schema]]
+[float]
+==== Process
+
+[source,json]
+----
+include::./spec/process.json[]
 ----
 
 [[error-system-schema]]
@@ -83,41 +129,6 @@ include::./spec/service.json[]
 include::./spec/system.json[]
 ----
 
-[[error-context-schema]]
-[float]
-==== Context
-
-[source,json]
-----
-include::./spec/context.json[]
-----
-
-[[error-stacktraceframe-schema]]
-[float]
-==== Stacktrace Frame
-
-[source,json]
-----
-include::./spec/stacktrace_frame.json[]
-----
-
-[[error-request-schema]]
-[float]
-==== Request
-
-[source,json]
-----
-include::./spec/request.json[]
-----
-
-[[error-user-schema]]
-[float]
-==== User
-
-[source,json]
-----
-include::./spec/user.json[]
-----
 
 [[error-api-examples]]
 [float]

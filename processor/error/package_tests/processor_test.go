@@ -43,6 +43,13 @@ func TestProcessorBackendOK(t *testing.T) {
 	tests.TestProcessRequests(t, er.NewProcessor(), conf, backendRequestInfo, map[string]string{})
 }
 
+func TestDistributedTracingConformProcessorOK(t *testing.T) {
+	requestInfo := []tests.RequestInfo{
+		{Name: "TestProcessDtErrorFull", Path: "../testdata/error/dt_payload.json"},
+	}
+	tests.TestProcessRequests(t, er.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "-"})
+}
+
 func TestProcessorMinimalPayloadOK(t *testing.T) {
 	conf := config.Config{ExcludeFromGrouping: nil}
 	tests.TestProcessRequests(t, er.NewProcessor(), conf, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})

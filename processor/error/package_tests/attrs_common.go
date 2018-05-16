@@ -9,10 +9,16 @@ import (
 type obj = map[string]interface{}
 type val = []interface{}
 
-func procSetup() *tests.ProcessorSetup {
+func procSetup(tracingType string) *tests.ProcessorSetup {
+	var payloadPath string
+	if tracingType == "dt" {
+		payloadPath = "../testdata/error/dt_payload.json"
+	} else {
+		payloadPath = "../testdata/error/payload.json"
+	}
 	return &tests.ProcessorSetup{
 		Proc:            er.NewProcessor(),
-		FullPayloadPath: "../testdata/error/payload.json",
+		FullPayloadPath: payloadPath,
 		TemplatePaths: []string{"../_meta/fields.yml",
 			"../../../_meta/fields.common.yml"},
 		Schema: schema.PayloadSchema,
@@ -31,6 +37,7 @@ func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"listening", "view errors", "error id icon",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
+		"error.hex_id", "transaction.hex_id",
 	))
 }
 
@@ -76,7 +83,8 @@ func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 func keywordExceptionKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"processor.event", "processor.name", "listening", "error.grouping_key",
-		"error.id", "transaction.id", "context.tags",
+		"error.id", "error.hex_id", "error.parent_id", "error.trace_id",
+		"transaction.id", "context.tags", "transaction.hex_id",
 		"view errors", "error id icon"))
 }
 
@@ -103,12 +111,6 @@ func schemaTestData(td []tests.SchemaTestData) []tests.SchemaTestData {
 		td = []tests.SchemaTestData{}
 	}
 	return append(td, []tests.SchemaTestData{
-		{Key: "errors.id", Valid: val{"85925e55-B43f-4340-a8e0-df1906ecbf7a"},
-			Invalid: []tests.Invalid{{Msg: `id/pattern`, Values: val{"123", "z5925e55-b43f-4340-a8e0-df1906ecbf7a", "85925e55-b43f-4340-a8e0-df1906ecbf7", "0123456789abcdef"}}}},
-		{Key: "errors.transaction.id",
-			Valid: val{"85925e55-B43f-4340-a8e0-df1906ecbf7a"},
-			Invalid: []tests.Invalid{{Msg: `transaction/properties/id/pattern`, Values: val{"123",
-				"z5925e55-b43f-4340-a8e0-df1906ecbf7a", "z5925e55-b43f-4340-a8e0-df1906ecbf7ia"}}}},
 		{Key: "service.name", Valid: val{tests.Str1024},
 			Invalid: []tests.Invalid{{Msg: `service/properties/name`, Values: val{tests.Str1024Special, tests.Str1025}}}},
 		{Key: "errors",

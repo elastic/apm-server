@@ -124,11 +124,66 @@ const PayloadSchema = `{
             "type": "array",
             "items": {
                     "$id": "docs/spec/errors/error.json",
-    "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
-    "properties": {
-        "context": {
-                "$id": "doc/spec/context.json",
+
+    "allOf": [
+        {
+            "oneOf": [
+                { 
+                    "properties": {
+                        "id": {
+                            "description": "ID for the error",
+                            "deprecated": true,
+                            "description": "UUID",
+                            "type": ["string", "null"],
+                            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                        },
+                        "transaction": {
+                            "type": ["object", "null"],
+                            "description": "Data for correlating errors with transactions",
+                            "properties": {
+                                "id": {
+                                    "deprecated": true,
+                                    "type": ["string","null"],
+                                    "description": "UUID for the transaction",
+                                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+                                    "maxLength": 1024
+                                }
+                            }
+                        }
+                    }
+                },
+                { 
+                    "properties": {
+                        "id": {
+                            "description": "Unique ID within the corresponding trace, hex encoded 64 random bits",
+                            "type": "string",
+                            "pattern": "^[a-fA-F0-9]{16}$"
+                        },
+                        "trace_id": {
+                            "type": "string",
+                            "description": "UUID for the trace, hex encoded 128 random bits",
+                            "pattern": "^[a-fA-F0-9]{32}$"
+                        },
+                        "parent_id": {
+                            "type": ["string","null"],
+                            "description": "ID for the parent (transaction or span) where the error occured, hex encoded 64 random bits",
+                            "pattern": "^[a-fA-F0-9]{16}$"
+                        },
+                        "transaction_id": {
+                            "type": ["string"],
+                            "description": "Id of the correlated transaction.",
+                            "pattern": "^[a-fA-F0-9]{16}$"
+                        }
+                    },
+                    "required": ["id", "trace_id", "transaction_id"]
+                }
+            ]
+        },
+        {
+            "properties": {
+                "context": {
+                        "$id": "doc/spec/context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
     "type": ["object", "null"],
@@ -168,7 +223,7 @@ const PayloadSchema = `{
             }
         },
         "request": {
-                "$id": "docs/spec/http.json",
+                "$id": "docs/spec/request.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
     "type": ["object", "null"],
@@ -309,36 +364,36 @@ const PayloadSchema = `{
     }
         }
     }
-        },
-        "culprit": {
-            "description": "Function call which was the primary perpetrator of this event.",
-            "type": ["string", "null"]
-        },
-        "exception": {
-            "description": "Information about the originally thrown error.",
-            "type": ["object", "null"],
-            "properties": {
-                "code": {
-                    "type": ["string", "integer", "null"],
-                    "maxLength": 1024,
-                    "description": "The error code set when the error happened, e.g. database error code."
                 },
-                "message": {
-                   "description": "The original error message.",
-                   "type": "string"
+                "culprit": {
+                    "description": "Function call which was the primary perpetrator of this event.",
+                    "type": ["string", "null"]
                 },
-                "module": {
-                    "description": "Describes the exception type's module namespace.",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "attributes": {
-                    "type": ["object", "null"]
-                },
-                "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                            "$id": "docs/spec/stacktrace_frame.json",
+                "exception": {
+                    "description": "Information about the originally thrown error.",
+                    "type": ["object", "null"],
+                    "properties": {
+                        "code": {
+                            "type": ["string", "integer", "null"],
+                            "maxLength": 1024,
+                            "description": "The error code set when the error happened, e.g. database error code."
+                        },
+                        "message": {
+                           "description": "The original error message.",
+                           "type": "string"
+                        },
+                        "module": {
+                            "description": "Describes the exception type's module namespace.",
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+                        },
+                        "attributes": {
+                            "type": ["object", "null"]
+                        },
+                        "stacktrace": {
+                            "type": ["array", "null"],
+                            "items": {
+                                    "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -398,54 +453,49 @@ const PayloadSchema = `{
         }
     },
     "required": ["filename", "lineno"]
+                            },
+                            "minItems": 0
+                        },
+                        "type": {
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+                        },
+                        "handled": {
+                            "type": ["boolean", "null"],
+                            "description": "Indicator whether the error was caught somewhere in the code or not."
+                        }
                     },
-                    "minItems": 0
+                    "required": ["message"]
                 },
-                "type": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "handled": {
-                    "type": ["boolean", "null"],
-                    "description": "Indicator whether the error was caught somewhere in the code or not."
-                }
-            },
-            "required": ["message"]
-        },
-        "id": {
-            "type": ["string", "null"],
-            "description": "UUID for the error",
-            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
-        },
-        "log": {
-            "type": ["object", "null"],
-            "description": "Additional information added when logging the error.",
-            "properties": {
-                "level": {
-                    "description": "The severity of the record.",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "logger_name": {
-                    "description": "The name of the logger instance used.",
-                    "type": ["string", "null"],
-                    "default": "default",
-                    "maxLength": 1024
-                },
-                "message": {
-                    "description": "The additionally logged error message.",
-                    "type": "string"
-                },
-                "param_message": {
-                    "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-
-                },
-                "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                            "$id": "docs/spec/stacktrace_frame.json",
+                "log": {
+                    "type": ["object", "null"],
+                    "description": "Additional information added when logging the error.",
+                    "properties": {
+                        "level": {
+                            "description": "The severity of the record.",
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+                        },
+                        "logger_name": {
+                            "description": "The name of the logger instance used.",
+                            "type": ["string", "null"],
+                            "default": "default",
+                            "maxLength": 1024
+                        },
+                        "message": {
+                            "description": "The additionally logged error message.",
+                            "type": "string"
+                        },
+                        "param_message": {
+                            "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+    
+                        },
+                        "stacktrace": {
+                            "type": ["array", "null"],
+                            "items": {
+                                    "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -505,30 +555,21 @@ const PayloadSchema = `{
         }
     },
     "required": ["filename", "lineno"]
+                            },
+                            "minItems": 0
+                        }
                     },
-                    "minItems": 0
-                }
-            },
-            "required": ["message"]
-        },
-        "timestamp": {
-            "type": ["string","null"],
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        },
-        "transaction": {
-            "type": ["object", "null"],
-            "description": "Data for correlating errors with transactions",
-            "properties": {
-                "id": {
-                    "type": ["string", "null"],
-                    "description": "UUID for the transaction",
-                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                    "required": ["message"]
+                },
+                "timestamp": {
+                    "type": ["string","null"],
+                    "format": "date-time",
+                    "pattern": "Z$",
+                    "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
                 }
             }
         }
-    },
+    ],
     "anyOf": [
         {
             "required": ["exception"]
