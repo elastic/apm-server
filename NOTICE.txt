@@ -211,7 +211,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 15d95395dd87cdbde0b622a770d48103141362e4
+Revision: c4593443ab5943ac5dd3465d88236b0cf417fab6
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -229,7 +229,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-seccomp-bpf
-Revision: bc35619931bc4ae13c582a78cfb2ebdaee789ff2
+Revision: 5bed103a93993f24c58dd267faaab582f2373e31
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-seccomp-bpf/LICENSE.txt:
 --------------------------------------------------------------------
