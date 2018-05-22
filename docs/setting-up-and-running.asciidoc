@@ -30,9 +30,7 @@ To configure APM Server, you can also update the `apm-server.yml` configuration 
 
 For rpm and deb,
 you’ll find the configuration file at +/etc/{beatname_lc}/{beatname_lc}.yml+.
-There's also a full example configuration file at
-+/etc/{beatname_lc}/{beatname_lc}.reference.yml+ that shows all non-deprecated
-options. For mac and win, look in the archive that you extracted.
+For mac and win, look in the archive that you extracted.
 
 See {libbeat}/config-file-format.html[Config File Format] in _Beats Platform Reference_ for more about the structure of the config file.
 
