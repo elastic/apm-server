@@ -1191,6 +1191,16 @@ Kubernetes pod name
 
 --
 
+*`kubernetes.pod.uid`*::
++
+--
+type: keyword
+
+Kubernetes pod uid
+
+
+--
+
 *`kubernetes.namespace`*::
 +
 --
