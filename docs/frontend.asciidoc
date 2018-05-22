@@ -10,7 +10,7 @@ and a guide on how to enable experimental frontend support.
 [float]
 === Enable Frontend Support
 To try out experimental frontend support, set the `apm-server.frontend.enabled` to `true`.
-See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.reference.yml[`apm-server.reference.yml`] for more configuration options.
+See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.yml[`apm-server.yml`] for configuration options.
 
 Read more about frontend specific features:
 
