@@ -9,7 +9,7 @@ This section describes common problems you might encounter with APM Server.
 === 503: Queue is full
 
 APM Server has an internal queue that buffers documents until they can be delivered to Elasticsearch.
-The internal queue helps to: 
+The internal queue helps to:
 
 * alleviate problems that might occur if Elasticsearch is intermittently unavailable
 * handle large spikes of data arriving at the APM Server at the same time
@@ -65,8 +65,8 @@ you can tweak APM Server options to make better use of the cluster:
   The default of 50 is very conservative.
 +
 If you increase `bulk_max_size`,
-make sure to also increase `queue.mem.size`.
-A good rule of thumb is that `queue.mem.size` should equal `workers` multiplied by `bulk_max_size`.
+make sure to also increase `queue.mem.events`.
+A good rule of thumb is that `queue.mem.events` should equal `output.elasticsearch.worker` multiplied by `output.elasticsearch.bulk_max_size`.
 
 [float]
 [[increase-cluster-ingest]]
@@ -92,16 +92,16 @@ Reducing the transaction sample rate does not affect the collection of metrics s
 ==== Increase internal queue size
 
 A larger internal queue allows Elasticsearch to be unavailable for longer periods,
-and it alleviates problems that might result from sudden spikes of data. 
-You can increase the queue size by setting `apm-server.queue.mem.size`. 
-Be aware that increasing `apm-server.queue.mem.size` can significantly affect APM Server memory usage. 
+and it alleviates problems that might result from sudden spikes of data.
+You can increase the queue size by overriding `queue.mem.events`.
+Be aware that increasing `queue.mem.events` can significantly affect APM Server memory usage.
 
 [float]
 [[reduce-payload-size]]
 ==== Reduce the payload size
 
 Large payloads coming from agents may result in "503: Request timed out waiting to be processed" messages.
-You can reduce the payload size by decreasing the `max_queue_size` in the agents. 
+You can reduce the payload size by decreasing the `max_queue_size` in the agents.
 This will result in agents sending smaller payloads to the APM Server,
 but the requests will be more frequent.
 See the documentation for the {apm-py-ref}/configuration.html#config-max-queue-size[Python] and {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agents for more information.
