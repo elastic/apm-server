@@ -188,7 +188,7 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"abs_path": "changed path", "filename": "changed filename", "function": "<unknown>",
-					"line":                  common.MapStr{"column": 100, "number": 400},
+					"line":                  common.MapStr{"column": 100, "number": 400, "context": ""},
 					"exclude_from_grouping": false,
 					"sourcemap":             common.MapStr{"updated": true},
 					"original": common.MapStr{
@@ -212,7 +212,7 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 				},
 				{
 					"abs_path": "changed path", "filename": "original filename", "function": "changed function",
-					"line":                  common.MapStr{"column": 100, "number": 500},
+					"line":                  common.MapStr{"column": 100, "number": 500, "context": ""},
 					"exclude_from_grouping": false,
 					"sourcemap":             common.MapStr{"updated": true},
 					"original": common.MapStr{
@@ -225,7 +225,7 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 				},
 				{
 					"abs_path": "changed path", "filename": "changed filename", "function": "<anonymous>",
-					"line":                  common.MapStr{"column": 100, "number": 400},
+					"line":                  common.MapStr{"column": 100, "number": 400, "context": ""},
 					"exclude_from_grouping": false,
 					"sourcemap":             common.MapStr{"updated": true},
 					"original": common.MapStr{

@@ -476,7 +476,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/go-sourcemap/sourcemap
-Revision: 4dcf5f6442018e298fdd505370345ef78552c31c
+Revision: b019cc30c1eaa584753491b0d8f8c1534bf1eb44
 License type (autodetected): BSD-2-Clause
 ./vendor/github.com/go-sourcemap/sourcemap/LICENSE:
 --------------------------------------------------------------------

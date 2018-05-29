@@ -20,14 +20,14 @@ func init() {
 	}
 }
 
-func toVLQSigned(n int) int {
+func toVLQSigned(n int32) int32 {
 	if n < 0 {
 		return -n<<1 + 1
 	}
 	return n << 1
 }
 
-func fromVLQSigned(n int) int {
+func fromVLQSigned(n int32) int32 {
 	isNeg := n&vlqSignBit != 0
 	n >>= 1
 	if isNeg {
@@ -46,9 +46,9 @@ func NewEncoder(w io.ByteWriter) *Encoder {
 	}
 }
 
-func (enc Encoder) Encode(n int) error {
+func (enc Encoder) Encode(n int32) error {
 	n = toVLQSigned(n)
-	for digit := vlqContinuationBit; digit&vlqContinuationBit != 0; {
+	for digit := int32(vlqContinuationBit); digit&vlqContinuationBit != 0; {
 		digit = n & vlqBaseMask
 		n >>= vlqBaseShift
 		if n > 0 {
@@ -67,13 +67,13 @@ type Decoder struct {
 	r io.ByteReader
 }
 
-func NewDecoder(r io.ByteReader) *Decoder {
-	return &Decoder{
+func NewDecoder(r io.ByteReader) Decoder {
+	return Decoder{
 		r: r,
 	}
 }
 
-func (dec Decoder) Decode() (n int, err error) {
+func (dec Decoder) Decode() (n int32, err error) {
 	shift := uint(0)
 	for continuation := true; continuation; {
 		c, err := dec.r.ReadByte()
@@ -83,7 +83,7 @@ func (dec Decoder) Decode() (n int, err error) {
 
 		c = decodeMap[c]
 		continuation = c&vlqContinuationBit != 0
-		n += int(c&vlqBaseMask) << shift
+		n += int32(c&vlqBaseMask) << shift
 		shift += vlqBaseShift
 	}
 	return fromVLQSigned(n), nil

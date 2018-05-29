@@ -33,12 +33,28 @@
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "context": {
+                                "post": [
+                                    "",
+                                    " \t\t// Check if module is in cache",
+                                    " \t\tif(installedModules[moduleId])",
+                                    " \t\t\treturn installedModules[moduleId].exports;",
+                                    ""
+                                ],
+                                "pre": [
+                                    " \t// The module cache",
+                                    " \tvar installedModules = {};",
+                                    "",
+                                    " \t// The require function"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "__webpack_require__",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": " \tfunction __webpack_require__(moduleId) {",
                                 "number": 5
                             },
                             "original": {
@@ -55,12 +71,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "context": {
+                                "post": [
+                                    "",
+                                    " \t// __webpack_public_path__",
+                                    " \t__webpack_require__.p = \"\";",
+                                    "",
+                                    " \t// Load entry module and return exports"
+                                ],
+                                "pre": [
+                                    "",
+                                    " \t// expose the modules object (__webpack_modules__)",
+                                    " \t__webpack_require__.m = modules;",
+                                    "",
+                                    " \t// expose the module cache"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003cunknown\u003e",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": " \t__webpack_require__.c = installedModules;",
                                 "number": 33
                             },
                             "original": {
@@ -77,12 +110,28 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "context": {
+                                "post": [
+                                    "",
+                                    " \t\t// Check if module is in cache",
+                                    " \t\tif(installedModules[moduleId])",
+                                    " \t\t\treturn installedModules[moduleId].exports;",
+                                    ""
+                                ],
+                                "pre": [
+                                    " \t// The module cache",
+                                    " \tvar installedModules = {};",
+                                    "",
+                                    " \t// The require function"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003cunknown\u003e",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": " \tfunction __webpack_require__(moduleId) {",
                                 "number": 5
                             },
                             "original": {
@@ -98,12 +147,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "context": {
+                                "post": [
+                                    "",
+                                    "",
+                                    "",
+                                    "/** WEBPACK FOOTER **",
+                                    " ** webpack/bootstrap 6002740481c9666b0d38"
+                                ],
+                                "pre": [
+                                    "",
+                                    " \t// __webpack_public_path__",
+                                    " \t__webpack_require__.p = \"\";",
+                                    "",
+                                    " \t// Load entry module and return exports"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "moduleId",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": " \treturn __webpack_require__(0);",
                                 "number": 39
                             },
                             "original": {
@@ -119,12 +185,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "context": {
+                                "post": [
+                                    " \t\t\treturn installedModules[moduleId].exports;",
+                                    "",
+                                    " \t\t// Create a new module (and put it into the cache)",
+                                    " \t\tvar module = installedModules[moduleId] = {",
+                                    " \t\t\texports: {},"
+                                ],
+                                "pre": [
+                                    "",
+                                    " \t// The require function",
+                                    " \tfunction __webpack_require__(moduleId) {",
+                                    "",
+                                    " \t\t// Check if module is in cache"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": " \t\tif(installedModules[moduleId])",
                                 "number": 8
                             },
                             "original": {
@@ -148,12 +231,28 @@
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                            "context": {
+                                "post": [
+                                    "",
+                                    " \t\t// Check if module is in cache",
+                                    " \t\tif(installedModules[moduleId])",
+                                    " \t\t\treturn installedModules[moduleId].exports;",
+                                    ""
+                                ],
+                                "pre": [
+                                    " \t// The module cache",
+                                    " \tvar installedModules = {};",
+                                    "",
+                                    " \t// The require function"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
                             "function": "\u003canonymous\u003e",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": " \tfunction __webpack_require__(moduleId) {",
                                 "number": 5
                             },
                             "original": {
