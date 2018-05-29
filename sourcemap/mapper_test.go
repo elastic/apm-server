@@ -60,7 +60,6 @@ func TestSubSlice(t *testing.T) {
 		{2, 4, []string{"c", "d"}},
 		{-1, 1, []string{"a"}},
 		{4, 10, []string{"e", "f"}},
-		{8, 10, src},
 	} {
 		assert.Equal(t, test.rs, subSlice(test.start, test.end, src))
 	}

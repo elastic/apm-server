@@ -84,7 +84,7 @@ func (m *SmapMapper) NewSourcemapAdded(id Id) {
 }
 
 func subSlice(from, to int, content []string) []string {
-	if from > len(content) {
+	if len(content) == 0 {
 		return content
 	}
 	if from < 0 {
