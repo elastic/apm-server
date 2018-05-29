@@ -344,7 +344,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 			h.ServeHTTP(w, r)
 
 		} else {
-			sendStatus(w, r, forbiddenResponse(errors.New(origin+" is not allowed")))
+			sendStatus(w, r, forbiddenResponse(errors.New("origin: '" + origin + "' is not allowed")))
 		}
 	})
 }
