@@ -51,6 +51,31 @@ func TestApply(t *testing.T) {
 	assert.Equal(t, "bundle.js.map", mapping.Path)
 }
 
+func TestSubSlice(t *testing.T) {
+	src := []string{"a", "b", "c", "d", "e", "f"}
+	for _, test := range []struct {
+		start, end int
+		rs         []string
+	}{
+		{2, 4, []string{"c", "d"}},
+		{-1, 1, []string{"a"}},
+		{4, 10, []string{"e", "f"}},
+		{8, 10, src},
+	} {
+		assert.Equal(t, test.rs, subSlice(test.start, test.end, src))
+	}
+
+	for _, test := range []struct {
+		start, end int
+	}{
+		{0, 1},
+		{0, 0},
+		{-1, 0},
+	} {
+		assert.Equal(t, []string{}, subSlice(test.start, test.end, []string{}))
+	}
+}
+
 type fakeAccessor struct{}
 
 func (ac *fakeAccessor) Fetch(smapId Id) (*sourcemap.Consumer, error) {
