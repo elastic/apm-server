@@ -19,7 +19,7 @@ func TestIncCounter(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	for i := 1; i <= 5; i++ {
-		for _, res := range []serverResponse{acceptedResponse, okResponse, forbiddenResponse, unauthorizedResponse,
+		for _, res := range []serverResponse{acceptedResponse, okResponse, forbiddenResponse(errors.New("")), unauthorizedResponse,
 			requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse, tooManyConcurrentRequestsResponse,
 			cannotValidateResponse(errors.New("")), cannotDecodeResponse(errors.New("")),
 			fullQueueResponse(errors.New("")), serverShuttingDownResponse(errors.New(""))} {
