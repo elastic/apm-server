@@ -1,5 +1,4 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/transactions/transaction.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
@@ -22,12 +21,12 @@
             "maxLength": 1024
         },
         "result": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
             "maxLength": 1024
         },
         "timestamp": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "Z$",
             "format": "date-time",
             "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
@@ -50,8 +49,7 @@
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
-                    "$ref": "mark.json",
-                    "maxLength": 1024
+                    "$ref": "mark.json"
                 }
             },
             "additionalProperties": false

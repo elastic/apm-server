@@ -5,7 +5,6 @@ func Schema() string {
 }
 
 var sourcemapSchema = `{
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/sourcemaps/sourcemap-metadata.json",
     "title": "Sourcemap Metadata",
     "description": "Sourcemap Metadata",

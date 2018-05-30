@@ -1,6 +1,6 @@
 package tests
 
-func StrConcat(pre string, post string, delimiter string) string {
+func strConcat(pre string, post string, delimiter string) string {
 	if pre == "" {
 		return post
 	}

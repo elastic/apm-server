@@ -5,15 +5,13 @@ func Schema() string {
 }
 
 var transactionSchema = `{
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/transactions/payload.json",
     "title": "Transactions payload",
     "description": "List of transactions wrapped in an object containing some other attributes normalized away from the transactions themselves",
     "type": "object",
     "properties": {
         "service": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/service.json",
+                "$id": "doc/spec/service.json",
     "title": "Service",
     "type": "object",
     "properties": {
@@ -99,8 +97,7 @@ var transactionSchema = `{
     "required": ["agent", "name"]
         },
         "process": {
-              "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "doc/spec/process.json",
+              "$id": "doc/spec/process.json",
   "title": "Process",
   "type": ["object", "null"],
   "properties": {
@@ -128,8 +125,7 @@ var transactionSchema = `{
   "required": ["pid"]
         },
         "system": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/system.json",
+                "$id": "doc/spec/system.json",
     "title": "System",
     "type": ["object", "null"],
     "properties": {
@@ -153,14 +149,12 @@ var transactionSchema = `{
         "transactions": {
             "type": "array",
             "items": {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/transactions/transaction.json",
+                    "$id": "docs/spec/transactions/transaction.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
         "context": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/context.json",
+                "$id": "doc/spec/context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
     "type": ["object", "null"],
@@ -200,8 +194,7 @@ var transactionSchema = `{
             }
         },
         "request": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/http.json",
+                "$id": "docs/spec/http.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
     "type": ["object", "null"],
@@ -312,15 +305,14 @@ var transactionSchema = `{
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
             },
             "additionalProperties": false
         },
         "user": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/user.json",
+                "$id": "docs/spec/user.json",
     "title": "User",
     "description": "Describes the authenticated User for a request.",
     "type": ["object", "null"],
@@ -359,12 +351,12 @@ var transactionSchema = `{
             "maxLength": 1024
         },
         "result": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
             "maxLength": 1024
         },
         "timestamp": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "Z$",
             "format": "date-time",
             "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
@@ -372,8 +364,7 @@ var transactionSchema = `{
         "spans": {
             "type": ["array", "null"],
             "items": {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/transactions/span.json",
+                    "$id": "docs/spec/transactions/span.json",
     "type": "object",
     "properties": {
         "id": {
@@ -425,8 +416,7 @@ var transactionSchema = `{
             "type": ["array", "null"],
             "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
             "items": {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace_frame.json",
+                    "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -519,16 +509,16 @@ var transactionSchema = `{
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
-                        "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/transactions/mark.json",
+                        "$id": "docs/spec/transactions/mark.json",
     "type": ["object", "null"],
     "description": "A mark captures the timing in milliseconds of a significant event during the lifetime of a transaction. Every mark is a simple key value pair, where the value has to be a number, and can be set by the user or the agent.",
     "regexProperties": true,
     "patternProperties": {
-        "^[^.*\"]*$": { "type": "number" }
+        "^[^.*\"]*$": {
+            "type": ["number", "null"]
+        }
     },
-    "additionalProperties": false,
-                    "maxLength": 1024
+    "additionalProperties": false
                 }
             },
             "additionalProperties": false

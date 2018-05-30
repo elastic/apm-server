@@ -12,6 +12,7 @@ func CreateSchema(schemaData string, url string) *jsonschema.Schema {
 	if err := compiler.AddResource(url, strings.NewReader(schemaData)); err != nil {
 		panic(err)
 	}
+	compiler.Draft = jsonschema.Draft7
 	schema, err := compiler.Compile(url)
 	if err != nil {
 		panic(err)

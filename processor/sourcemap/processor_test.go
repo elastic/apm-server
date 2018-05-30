@@ -1,8 +1,6 @@
 package sourcemap
 
 import (
-	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -29,19 +27,6 @@ func TestValidate(t *testing.T) {
 	assert.NoError(t, err)
 	err = p.Validate(data)
 	assert.NoError(t, err)
-
-	err = p.Validate(map[string]interface{}{})
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "not in expected format"))
-
-	err = p.Validate(map[string]interface{}{"sourcemap": ""})
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "Error validating sourcemap"))
-
-	delete(data, "bundle_filepath")
-	err = p.Validate(data)
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "missing properties"))
 }
 
 func TestTransform(t *testing.T) {
@@ -62,5 +47,7 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
 
 	payload, err = NewProcessor().Decode(nil)
-	assert.Equal(t, errors.New("Error fetching field"), err)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "Error fetching field")
+	}
 }
