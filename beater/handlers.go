@@ -64,6 +64,7 @@ var (
 		return monitoring.NewInt(serverMetrics, s)
 	}
 	requestCounter    = counter("request.count")
+	concurrentWait    = counter("concurrent.wait.ms")
 	responseCounter   = counter("response.count")
 	responseErrors    = counter("response.errors.count")
 	responseSuccesses = counter("response.valid.count")
@@ -148,17 +149,22 @@ func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 
 func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	semaphore := make(chan struct{}, beaterConfig.ConcurrentRequests)
-
 	release := func() {
 		<-semaphore
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t := time.Now()
+		var wait = func() int64 {
+			return time.Now().Sub(t).Nanoseconds() / 1e6
+		}
 		select {
 		case semaphore <- struct{}{}:
+			concurrentWait.Add(wait())
 			defer release()
 			h.ServeHTTP(w, r)
 		case <-time.After(beaterConfig.MaxRequestQueueTime):
+			concurrentWait.Add(wait())
 			sendStatus(w, r, tooManyConcurrentRequestsResponse)
 		}
 
