@@ -23,7 +23,7 @@ func main() {
 
 func generate() error {
 	filename := "payload.json"
-	basePath := "data/valid"
+	basePath := "data"
 	outputPath := "docs/data/elasticsearch/"
 
 	var checked = map[string]struct{}{}

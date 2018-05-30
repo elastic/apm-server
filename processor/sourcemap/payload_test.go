@@ -40,7 +40,7 @@ func TestPayloadTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := loader.LoadDataAsBytes("data/valid/sourcemap/bundle.js.map")
+	fileBytes, err := loader.LoadDataAsBytes("data/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)

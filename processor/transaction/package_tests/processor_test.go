@@ -11,25 +11,25 @@ import (
 
 var (
 	backendRequestInfo = []tests.RequestInfo{
-		{Name: "TestProcessTransactionFull", Path: "data/valid/transaction/payload.json"},
-		{Name: "TestProcessTransactionNullValues", Path: "data/valid/transaction/null_values.json"},
-		{Name: "TestProcessSystemNull", Path: "data/valid/transaction/system_null.json"},
-		{Name: "TestProcessProcessNull", Path: "data/valid/transaction/process_null.json"},
-		{Name: "TestProcessTransactionMinimalSpan", Path: "data/valid/transaction/minimal_span.json"},
-		{Name: "TestProcessTransactionMinimalService", Path: "data/valid/transaction/minimal_service.json"},
-		{Name: "TestProcessTransactionMinimalProcess", Path: "data/valid/transaction/minimal_process.json"},
-		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
-		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
+		{Name: "TestProcessTransactionFull", Path: "data/transaction/payload.json"},
+		{Name: "TestProcessTransactionNullValues", Path: "data/transaction/null_values.json"},
+		{Name: "TestProcessSystemNull", Path: "data/transaction/system_null.json"},
+		{Name: "TestProcessProcessNull", Path: "data/transaction/process_null.json"},
+		{Name: "TestProcessTransactionMinimalSpan", Path: "data/transaction/minimal_span.json"},
+		{Name: "TestProcessTransactionMinimalService", Path: "data/transaction/minimal_service.json"},
+		{Name: "TestProcessTransactionMinimalProcess", Path: "data/transaction/minimal_process.json"},
+		{Name: "TestProcessTransactionEmpty", Path: "data/transaction/transaction_empty_values.json"},
+		{Name: "TestProcessTransactionAugmentedIP", Path: "data/transaction/augmented_payload_backend.json"},
 	}
 
 	backendRequestInfoIgnoreTimestamp = []tests.RequestInfo{
-		{Name: "TestProcessTransactionMinimalPayload", Path: "data/valid/transaction/minimal_payload.json"},
+		{Name: "TestProcessTransactionMinimalPayload", Path: "data/transaction/minimal_payload.json"},
 	}
 
 	frontendRequestInfo = []tests.RequestInfo{
-		{Name: "TestProcessTransactionFrontend", Path: "data/valid/transaction/frontend.json"},
-		{Name: "TestProcessTransactionAugmentedMerge", Path: "data/valid/transaction/augmented_payload_frontend.json"},
-		{Name: "TestProcessTransactionAugmented", Path: "data/valid/transaction/augmented_payload_frontend_no_context.json"},
+		{Name: "TestProcessTransactionFrontend", Path: "data/transaction/frontend.json"},
+		{Name: "TestProcessTransactionAugmentedMerge", Path: "data/transaction/augmented_payload_frontend.json"},
+		{Name: "TestProcessTransactionAugmented", Path: "data/transaction/augmented_payload_frontend_no_context.json"},
 	}
 )
 

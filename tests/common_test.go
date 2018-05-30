@@ -22,7 +22,7 @@ func TestStrConcat(t *testing.T) {
 		{"", "post", ",", "post"},
 	}
 	for _, dataRow := range testData {
-		newStr := StrConcat(dataRow[preIdx], dataRow[postIdx], dataRow[delimiterIdx])
+		newStr := strConcat(dataRow[preIdx], dataRow[postIdx], dataRow[delimiterIdx])
 		assert.Equal(t, dataRow[expectedIdx], newStr)
 	}
 }
