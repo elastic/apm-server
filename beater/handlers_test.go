@@ -9,6 +9,11 @@ import (
 
 	"fmt"
 
+	"sync"
+	"time"
+
+	"strconv"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,6 +34,28 @@ func TestIncCounter(t *testing.T) {
 	}
 	assert.Equal(t, int64(60), responseCounter.Get())
 	assert.Equal(t, int64(50), responseErrors.Get())
+}
+
+type noopHandler struct {
+	wg *sync.WaitGroup
+}
+
+func (h noopHandler) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
+	time.Sleep(time.Millisecond * 100)
+	h.wg.Done()
+}
+
+func TestConcurrency(t *testing.T) {
+	config := Config{ConcurrentRequests: 2, MaxRequestQueueTime: time.Second}
+	var wg sync.WaitGroup
+	h := concurrencyLimitHandler(&config, noopHandler{&wg})
+	for i := 1; i <= 3; i++ {
+		wg.Add(1)
+		go h.ServeHTTP(nil, nil)
+	}
+	wg.Wait()
+	// 3rd request must wait at least for one to complete
+	assert.True(t, concurrentWait.Get() > 20, strconv.FormatInt(concurrentWait.Get(), 10))
 }
 
 func TestAccept(t *testing.T) {

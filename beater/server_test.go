@@ -55,7 +55,7 @@ func TestServerOk(t *testing.T) {
 }
 
 func TestServerTcpNoPort(t *testing.T) {
-	// possibly flakey but worth it
+	// possibly flaky but worth it
 	// try to connect to localhost:defaultPort
 	// if connection succeeds, port is in use and skip test
 	// if it fails, make sure it is because connection refused
