@@ -695,7 +695,7 @@ type fakeAcc struct{}
 func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
 	file := "bundle.js.map"
 	current, _ := os.Getwd()
-	path := filepath.Join(current, "../../tests/data/valid/sourcemap/", file)
+	path := filepath.Join(current, "../../tests/data/sourcemap/", file)
 	fileBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

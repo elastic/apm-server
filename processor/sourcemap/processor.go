@@ -62,7 +62,11 @@ func (p *processor) Validate(raw map[string]interface{}) error {
 
 	smap, ok := raw["sourcemap"].(string)
 	if !ok {
-		return errors.New("Sourcemap not in expected format.")
+		if s, _ := raw["sourcemap"]; s == nil {
+			return errors.New(`missing properties: "sourcemap", expected sourcemap to be sent as string, but got null`)
+		} else {
+			return errors.New("sourcemap not in expected format")
+		}
 	}
 
 	_, err := parser.Parse("", []byte(smap))

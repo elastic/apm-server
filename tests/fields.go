@@ -137,7 +137,7 @@ func flattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *
 }
 
 func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
-	flattenedKey := StrConcat(prefix, k, ".")
+	flattenedKey := strConcat(prefix, k, ".")
 	if !isBlacklistedKey(keysBlacklist, flattenedKey) {
 		flattened.Add(flattenedKey)
 	}
@@ -172,7 +172,7 @@ func fetchFlattenedFieldNames(paths []string, addFn addField) (*Set, error) {
 
 func flattenFieldNames(fields []common.Field, prefix string, addFn addField, flattened *Set) {
 	for _, field := range fields {
-		flattenedKey := StrConcat(prefix, field.Name, ".")
+		flattenedKey := strConcat(prefix, field.Name, ".")
 		if addFn(field) {
 			flattened.Add(flattenedKey)
 		}
@@ -206,19 +206,6 @@ func addAllFields(f common.Field) bool {
 
 func addOnlyDisabledFields(f common.Field) bool {
 	return shouldAddField(f, true)
-}
-
-func addKeywordFields(f common.Field) bool {
-	if f.Type == "keyword" || f.ObjectType == "keyword" {
-		return true
-	} else if len(f.MultiFields) > 0 {
-		for _, mf := range f.MultiFields {
-			if mf.Type == "keyword" {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func shouldAddField(f common.Field, onlyDisabled bool) bool {
