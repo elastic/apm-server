@@ -164,6 +164,9 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Servic
 	s.AbsPath = &mapping.Path
 	s.updateSmap(true)
 	s.Function = &prevFunction
+	s.ContextLine = &mapping.ContextLine
+	s.PreContext = mapping.PreContext
+	s.PostContext = mapping.PostContext
 
 	if mapping.Function != "" {
 		return mapping.Function

@@ -6,48 +6,52 @@ import (
 	"net/url"
 	"path"
 	"sort"
-	"strconv"
 )
+
+type sourceMap struct {
+	Version        int           `json:"version"`
+	File           string        `json:"file"`
+	SourceRoot     string        `json:"sourceRoot"`
+	Sources        []string      `json:"sources"`
+	SourcesContent []string      `json:"sourcesContent"`
+	Names          []json.Number `json:"names"`
+	Mappings       string        `json:"mappings"`
+
+	mappings []mapping
+}
 
 type v3 struct {
 	sourceMap
 	Sections []section `json:"sections"`
 }
 
-type sourceMap struct {
-	Version    int           `json:"version"`
-	File       string        `json:"file"`
-	SourceRoot string        `json:"sourceRoot"`
-	Sources    []string      `json:"sources"`
-	Names      []interface{} `json:"names"`
-	Mappings   string        `json:"mappings"`
-
-	sourceRootURL *url.URL
-	mappings      []mapping
-}
-
-func (m *sourceMap) parse(mapURL string) error {
+func (m *sourceMap) parse(sourcemapURL string) error {
 	if err := checkVersion(m.Version); err != nil {
 		return err
 	}
 
+	var sourceRootURL *url.URL
 	if m.SourceRoot != "" {
 		u, err := url.Parse(m.SourceRoot)
 		if err != nil {
 			return err
 		}
 		if u.IsAbs() {
-			m.sourceRootURL = u
+			sourceRootURL = u
 		}
-	} else if mapURL != "" {
-		u, err := url.Parse(mapURL)
+	} else if sourcemapURL != "" {
+		u, err := url.Parse(sourcemapURL)
 		if err != nil {
 			return err
 		}
 		if u.IsAbs() {
 			u.Path = path.Dir(u.Path)
-			m.sourceRootURL = u
+			sourceRootURL = u
 		}
+	}
+
+	for i, src := range m.Sources {
+		m.Sources[i] = m.absSource(sourceRootURL, src)
 	}
 
 	mappings, err := parseMappings(m.Mappings)
@@ -62,7 +66,7 @@ func (m *sourceMap) parse(mapURL string) error {
 	return nil
 }
 
-func (m *sourceMap) absSource(source string) string {
+func (m *sourceMap) absSource(root *url.URL, source string) string {
 	if path.IsAbs(source) {
 		return source
 	}
@@ -71,9 +75,9 @@ func (m *sourceMap) absSource(source string) string {
 		return source
 	}
 
-	if m.sourceRootURL != nil {
-		u := *m.sourceRootURL
-		u.Path = path.Join(m.sourceRootURL.Path, source)
+	if root != nil {
+		u := *root
+		u.Path = path.Join(u.Path, source)
 		return u.String()
 	}
 
@@ -93,11 +97,12 @@ type section struct {
 }
 
 type Consumer struct {
-	file     string
-	sections []section
+	sourcemapURL string
+	file         string
+	sections     []section
 }
 
-func Parse(mapURL string, b []byte) (*Consumer, error) {
+func Parse(sourcemapURL string, b []byte) (*Consumer, error) {
 	v3 := new(v3)
 	err := json.Unmarshal(b, v3)
 	if err != nil {
@@ -115,7 +120,7 @@ func Parse(mapURL string, b []byte) (*Consumer, error) {
 	}
 
 	for _, s := range v3.Sections {
-		err := s.Map.parse(mapURL)
+		err := s.Map.parse(sourcemapURL)
 		if err != nil {
 			return nil, err
 		}
@@ -123,15 +128,24 @@ func Parse(mapURL string, b []byte) (*Consumer, error) {
 
 	reverse(v3.Sections)
 	return &Consumer{
-		file:     v3.File,
-		sections: v3.Sections,
+		sourcemapURL: sourcemapURL,
+		file:         v3.File,
+		sections:     v3.Sections,
 	}, nil
 }
 
+func (c *Consumer) SourcemapURL() string {
+	return c.sourcemapURL
+}
+
+// File returns an optional name of the generated code
+// that this source map is associated with.
 func (c *Consumer) File() string {
 	return c.file
 }
 
+// Source returns the original source, name, line, and column information
+// for the generated source's line and column positions.
 func (c *Consumer) Source(
 	genLine, genColumn int,
 ) (source, name string, line, column int, ok bool) {
@@ -152,10 +166,10 @@ func (c *Consumer) source(
 ) (source, name string, line, column int, ok bool) {
 	i := sort.Search(len(m.mappings), func(i int) bool {
 		m := &m.mappings[i]
-		if m.genLine == genLine {
-			return m.genColumn >= genColumn
+		if int(m.genLine) == genLine {
+			return int(m.genColumn) >= genColumn
 		}
-		return m.genLine >= genLine
+		return int(m.genLine) >= genLine
 	})
 
 	// Mapping not found.
@@ -166,7 +180,7 @@ func (c *Consumer) source(
 	match := &m.mappings[i]
 
 	// Fuzzy match.
-	if match.genLine > genLine || match.genColumn > genColumn {
+	if int(match.genLine) > genLine || int(match.genColumn) > genColumn {
 		if i == 0 {
 			return
 		}
@@ -174,23 +188,31 @@ func (c *Consumer) source(
 	}
 
 	if match.sourcesInd >= 0 {
-		source = m.absSource(m.Sources[match.sourcesInd])
+		source = m.Sources[match.sourcesInd]
 	}
 	if match.namesInd >= 0 {
-		v := m.Names[match.namesInd]
-		switch v := v.(type) {
-		case string:
-			name = v
-		case float64:
-			name = strconv.FormatFloat(v, 'f', -1, 64)
-		default:
-			name = fmt.Sprint(v)
-		}
+		name = string(m.Names[match.namesInd])
 	}
-	line = match.sourceLine
-	column = match.sourceColumn
+	line = int(match.sourceLine)
+	column = int(match.sourceColumn)
 	ok = true
 	return
+}
+
+// SourceContent returns the original source content for the source.
+func (c *Consumer) SourceContent(source string) string {
+	for i := range c.sections {
+		s := &c.sections[i]
+		for i, src := range s.Map.Sources {
+			if src == source {
+				if i < len(s.Map.SourcesContent) {
+					return s.Map.SourcesContent[i]
+				}
+				break
+			}
+		}
+	}
+	return ""
 }
 
 func checkVersion(version int) error {

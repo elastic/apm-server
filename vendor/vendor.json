@@ -1365,16 +1365,16 @@
 			"revisionTime": "2018-04-25T11:07:50Z"
 		},
 		{
-			"checksumSHA1": "zF83b/btagb1yQnrxoNwL2+mqpQ=",
+			"checksumSHA1": "OFaReqy4hyrLlTTYFmcqkvidHsQ=",
 			"path": "github.com/go-sourcemap/sourcemap",
-			"revision": "4dcf5f6442018e298fdd505370345ef78552c31c",
-			"revisionTime": "2017-10-16T12:45:54Z"
+			"revision": "b019cc30c1eaa584753491b0d8f8c1534bf1eb44",
+			"revisionTime": "2018-01-19T11:52:46Z"
 		},
 		{
-			"checksumSHA1": "DfsvjnJzhSLNcRlw4ZA9StFfGLA=",
-			"path": "github.com/go-sourcemap/sourcemap/base64vlq",
-			"revision": "4dcf5f6442018e298fdd505370345ef78552c31c",
-			"revisionTime": "2017-10-16T12:45:54Z"
+			"checksumSHA1": "0E8fllZSmEqSDpUEKUZ+GyyrK5k=",
+			"path": "github.com/go-sourcemap/sourcemap/internal/base64vlq",
+			"revision": "b019cc30c1eaa584753491b0d8f8c1534bf1eb44",
+			"revisionTime": "2018-01-19T11:52:46Z"
 		},
 		{
 			"checksumSHA1": "kBeNcaKk56FguvPSUCEaH6AxpRc=",

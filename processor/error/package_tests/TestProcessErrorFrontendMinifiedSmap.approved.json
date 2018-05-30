@@ -41,12 +41,29 @@
                     "stacktrace": [
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "context": {
+                                "post": [
+                                    "}",
+                                    "",
+                                    "setTimeout(function () {",
+                                    "  generateError()",
+                                    "}, 100)"
+                                ],
+                                "pre": [
+                                    "",
+                                    "elasticApm.setUserContext({usertest: 'usertest',id: 'userId',username: 'username',email: 'email'})",
+                                    "elasticApm.setCustomContext({testContext: 'testContext'})",
+                                    "",
+                                    "function generateError () {"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./test/e2e/general-usecase/app.js",
                             "function": "generateError",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": "  throw new Error('timeout test error')",
                                 "number": 17
                             },
                             "original": {
@@ -62,12 +79,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "context": {
+                                "post": [
+                                    "}, 100)",
+                                    "",
+                                    "generateError.tmp = 'tmp'",
+                                    "",
+                                    "var appEl = document.getElementById('app')"
+                                ],
+                                "pre": [
+                                    "function generateError () {",
+                                    "  throw new Error('timeout test error')",
+                                    "}",
+                                    "",
+                                    "setTimeout(function () {"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./test/e2e/general-usecase/app.js",
                             "function": "apply",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": "  generateError()",
                                 "number": 21
                             },
                             "original": {
@@ -83,12 +117,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "context": {
+                                "post": [
+                                    "            };",
+                                    "            ZoneDelegate.prototype.cancelTask = function (targetZone, task) {",
+                                    "                var value;",
+                                    "                if (this._cancelTaskZS) {",
+                                    "                    value = this._cancelTaskZS.onCancelTask(this._cancelTaskDlgt, this._cancelTaskCurrZone, targetZone, task);"
+                                ],
+                                "pre": [
+                                    "                    }",
+                                    "                }",
+                                    "                return returnTask;",
+                                    "            };",
+                                    "            ZoneDelegate.prototype.invokeTask = function (targetZone, task, applyThis, applyArgs) {"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "invokeTask",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": "                return this._invokeTaskZS ? this._invokeTaskZS.onInvokeTask(this._invokeTaskDlgt, this._invokeTaskCurrZone, targetZone, task, applyThis, applyArgs) : task.callback.apply(applyThis, applyArgs);",
                                 "number": 3609
                             },
                             "original": {
@@ -104,12 +155,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "context": {
+                                "post": [
+                                    "                    } catch (error) {",
+                                    "                        if (this._zoneDelegate.handleError(this, error)) {",
+                                    "                            throw error;",
+                                    "                        }",
+                                    "                    }"
+                                ],
+                                "pre": [
+                                    "                try {",
+                                    "                    if (task.type == macroTask \u0026\u0026 task.data \u0026\u0026 !task.data.isPeriodic) {",
+                                    "                        task.cancelFn = null;",
+                                    "                    }",
+                                    "                    try {"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "runTask",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": "                        return this._zoneDelegate.invokeTask(this, task, applyThis, applyArgs);",
                                 "number": 3412
                             },
                             "original": {
@@ -125,12 +193,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "context": {
+                                "post": [
+                                    "                } finally {",
+                                    "                    if (_numberOfNestedTaskFrames == 1) {",
+                                    "                        drainMicroTaskQueue();",
+                                    "                    }",
+                                    "                    _numberOfNestedTaskFrames--;"
+                                ],
+                                "pre": [
+                                    "                    task = this;",
+                                    "                }",
+                                    "                _numberOfNestedTaskFrames++;",
+                                    "                try {",
+                                    "                    task.runCount++;"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "apply",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": "                    return task.zone.runTask(task, target, args);",
                                 "number": 3679
                             },
                             "original": {
@@ -146,12 +231,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "context": {
+                                "post": [
+                                    "                    };",
+                                    "                }",
+                                    "            }",
+                                    "            ZoneTask.invokeTask = function (task, target, args) {",
+                                    "                if (!task) {"
+                                ],
+                                "pre": [
+                                    "                var self = this;",
+                                    "                if (type === eventTask \u0026\u0026 options \u0026\u0026 options.isUsingGlobalCallback) {",
+                                    "                    this.invoke = ZoneTask.invokeTask;",
+                                    "                } else {",
+                                    "                    this.invoke = function () {"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "apply",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": "                        return ZoneTask.invokeTask.apply(global, [self, this, arguments]);",
                                 "number": 3668
                             },
                             "original": {
@@ -167,12 +269,29 @@
                         },
                         {
                             "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+                            "context": {
+                                "post": [
+                                    "                } finally {",
+                                    "                    if (task.data \u0026\u0026 task.data.isPeriodic) {",
+                                    "                        // issue-934, task will be cancelled",
+                                    "                        // even it is a periodic task such as",
+                                    "                        // setInterval"
+                                ],
+                                "pre": [
+                                    "        var NOT_SCHEDULED = 'notScheduled';",
+                                    "        function scheduleTask(task) {",
+                                    "            var data = task.data;",
+                                    "            function timer() {",
+                                    "                try {"
+                                ]
+                            },
                             "exclude_from_grouping": false,
                             "filename": "webpack:///./dist/bundles/elastic-apm-js-base.umd.js",
                             "function": "\u003canonymous\u003e",
                             "library_frame": false,
                             "line": {
                                 "column": 0,
+                                "context": "                    task.invoke.apply(this, arguments);",
                                 "number": 5180
                             },
                             "original": {
