@@ -7,9 +7,10 @@ import requests
 import sys
 import time
 from elasticsearch import Elasticsearch
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '_beats', 'libbeat', 'tests', 'system'))
-from beat.beat import TestCase
+from datetime import datetime, timedelta
+sys.path.append(os.path.join(os.path.dirname(__file__), '..',
+                             '..', '_beats', 'libbeat', 'tests', 'system'))
+from beat.beat import TestCase, TimeoutError
 
 
 class BaseTest(TestCase):
@@ -17,7 +18,8 @@ class BaseTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.beat_name = "apm-server"
-        cls.beat_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        cls.beat_path = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "..", ".."))
         cls.build_path = cls._beat_path_join("build", "system-tests")
         cls.index_name = "test-apm-12-12-2017"
         super(BaseTest, cls).setUpClass()
@@ -142,6 +144,24 @@ class ElasticTest(ServerBaseTest):
             "index_name": self.index_name,
         })
         return cfg
+
+    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
+        """
+        Like beat.beat.wait_until but catches exceptions
+        In a ElasticTest `cond` will usually be a query, and we need to keep retrying
+         eg. on 503 response codes
+        """
+        start = datetime.now()
+        abort = False
+        while not abort:
+            try:
+                abort = cond()
+            except:
+                abort = False
+            if datetime.now() - start > timedelta(seconds=max_timeout):
+                raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
+                                   "Waited {} seconds.".format(max_timeout))
+            time.sleep(poll_interval)
 
     def setUp(self):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
