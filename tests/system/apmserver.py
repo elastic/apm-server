@@ -32,7 +32,6 @@ class BaseTest(TestCase):
         return self._beat_path_join(
             'tests',
             'data',
-            'valid',
             'transaction',
             name)
 
@@ -44,7 +43,6 @@ class BaseTest(TestCase):
         return self._beat_path_join(
             'tests',
             'data',
-            'valid',
             'error',
             name)
 
@@ -272,7 +270,6 @@ class ClientSideBaseTest(ElasticTest):
         path = self._beat_path_join(
             'tests',
             'data',
-            'valid',
             'sourcemap',
             file_name)
         f = open(path)

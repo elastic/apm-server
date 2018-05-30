@@ -22,15 +22,13 @@ func Schema() string {
 }
 
 var errorSchema = `{
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/errors/payload.json",
     "title": "Errors payload",
     "description": "List of errors wrapped in an object containing some other attributes normalized away from the errors themselves",
     "type": "object",
     "properties": {
         "service": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/service.json",
+                "$id": "doc/spec/service.json",
     "title": "Service",
     "type": "object",
     "properties": {
@@ -116,8 +114,7 @@ var errorSchema = `{
     "required": ["agent", "name"]
         },
         "process": {
-              "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "doc/spec/process.json",
+              "$id": "doc/spec/process.json",
   "title": "Process",
   "type": ["object", "null"],
   "properties": {
@@ -147,14 +144,12 @@ var errorSchema = `{
         "errors": {
             "type": "array",
             "items": {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/errors/error.json",
+                    "$id": "docs/spec/errors/error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
         "context": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/context.json",
+                "$id": "doc/spec/context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
     "type": ["object", "null"],
@@ -194,8 +189,7 @@ var errorSchema = `{
             }
         },
         "request": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/http.json",
+                "$id": "docs/spec/http.json",
     "title": "Request",
     "description": "If a log record was generated as a result of a http request, the http interface can be used to collect this information.",
     "type": ["object", "null"],
@@ -306,15 +300,14 @@ var errorSchema = `{
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
             },
             "additionalProperties": false
         },
         "user": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/user.json",
+                "$id": "docs/spec/user.json",
     "title": "User",
     "description": "Describes the authenticated User for a request.",
     "type": ["object", "null"],
@@ -366,8 +359,7 @@ var errorSchema = `{
                 "stacktrace": {
                     "type": ["array", "null"],
                     "items": {
-                            "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace_frame.json",
+                            "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -474,8 +466,7 @@ var errorSchema = `{
                 "stacktrace": {
                     "type": ["array", "null"],
                     "items": {
-                            "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/stacktrace_frame.json",
+                            "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -542,7 +533,7 @@ var errorSchema = `{
             "required": ["message"]
         },
         "timestamp": {
-            "type": "string",
+            "type": ["string","null"],
             "format": "date-time",
             "pattern": "Z$",
             "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
@@ -552,7 +543,7 @@ var errorSchema = `{
             "description": "Data for correlating errors with transactions",
             "properties": {
                 "id": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "UUID for the transaction",
                     "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
                 }
@@ -571,8 +562,7 @@ var errorSchema = `{
             "minItems": 1
         },
         "system": {
-                "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "doc/spec/system.json",
+                "$id": "doc/spec/system.json",
     "title": "System",
     "type": ["object", "null"],
     "properties": {

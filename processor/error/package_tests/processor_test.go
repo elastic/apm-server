@@ -34,23 +34,23 @@ import (
 
 var (
 	backendRequestInfo = []tests.RequestInfo{
-		{Name: "TestProcessErrorMinimalService", Path: "data/valid/error/minimal_service.json"},
-		{Name: "TestProcessErrorMinimalProcess", Path: "data/valid/error/minimal_process.json"},
-		{Name: "TestProcessErrorFull", Path: "data/valid/error/payload.json"},
-		{Name: "TestProcessErrorNullValues", Path: "data/valid/error/null_values.json"},
-		{Name: "TestProcessErrorAugmentedIP", Path: "data/valid/error/augmented_payload_backend.json"},
+		{Name: "TestProcessErrorMinimalService", Path: "data/error/minimal_service.json"},
+		{Name: "TestProcessErrorMinimalProcess", Path: "data/error/minimal_process.json"},
+		{Name: "TestProcessErrorFull", Path: "data/error/payload.json"},
+		{Name: "TestProcessErrorNullValues", Path: "data/error/null_values.json"},
+		{Name: "TestProcessErrorAugmentedIP", Path: "data/error/augmented_payload_backend.json"},
 	}
 
 	backendRequestInfoIgnoreTimestamp = []tests.RequestInfo{
-		{Name: "TestProcessErrorMinimalPayloadException", Path: "data/valid/error/minimal_payload_exception.json"},
-		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/valid/error/minimal_payload_log.json"},
+		{Name: "TestProcessErrorMinimalPayloadException", Path: "data/error/minimal_payload_exception.json"},
+		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/error/minimal_payload_log.json"},
 	}
 
 	frontendRequestInfo = []tests.RequestInfo{
-		{Name: "TestProcessErrorFrontend", Path: "data/valid/error/frontend.json"},
-		{Name: "TestProcessErrorFrontendNoSmap", Path: "data/valid/error/frontend_app.e2e-bundle.json"},
-		{Name: "TestProcessErrorFrontendMinifiedSmap", Path: "data/valid/error/frontend_app.e2e-bundle.min.json"},
-		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "data/valid/error/augmented_payload_frontend.json"},
+		{Name: "TestProcessErrorFrontend", Path: "data/error/frontend.json"},
+		{Name: "TestProcessErrorFrontendNoSmap", Path: "data/error/frontend_app.e2e-bundle.json"},
+		{Name: "TestProcessErrorFrontendMinifiedSmap", Path: "data/error/frontend_app.e2e-bundle.min.json"},
+		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "data/error/augmented_payload_frontend.json"},
 	}
 )
 
@@ -104,7 +104,7 @@ func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
 		file = testSourcemapInfo.file
 	}
 	current, _ := os.Getwd()
-	path := filepath.Join(current, "../../../tests/data/valid/sourcemap/", file)
+	path := filepath.Join(current, "../../../tests/data/sourcemap/", file)
 	fileBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

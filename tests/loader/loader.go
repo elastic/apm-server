@@ -68,7 +68,7 @@ func LoadValidData(processorName string) (map[string]interface{}, error) {
 func buildPath(processorName string) (string, error) {
 	switch processorName {
 	case "error", "transaction", "sourcemap":
-		return findFile(filepath.Join("data", "valid", processorName, "payload.json"))
+		return findFile(filepath.Join("data", processorName, "payload.json"))
 	default:
 		return "", errors.New("unknown data type")
 	}

@@ -1,5 +1,4 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "doc/spec/context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
@@ -48,7 +47,7 @@
             "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
             },

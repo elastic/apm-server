@@ -1,5 +1,4 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
   "$id": "doc/spec/process.json",
   "title": "Process",
   "type": ["object", "null"],

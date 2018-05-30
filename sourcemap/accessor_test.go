@@ -162,7 +162,7 @@ func getFakeId() Id {
 
 func getFakeSmap() *sourcemap.Consumer {
 	cwd, _ := os.Getwd()
-	data, err := ioutil.ReadFile(filepath.Join(cwd, "..", "tests/data/valid/sourcemap/bundle.js.map"))
+	data, err := ioutil.ReadFile(filepath.Join(cwd, "..", "tests/data/sourcemap/bundle.js.map"))
 	if err != nil {
 		panic(err)
 	}
