@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/elastic/apm-server/beater"
+	_ "github.com/elastic/apm-server/include"
 	"github.com/elastic/beats/libbeat/cmd"
 )
 
