@@ -16,6 +16,7 @@ LICENSE_FILE=licenses/APACHE-LICENSE-2.0.txt
 ELASTIC_LICENSE_FILE=licenses/ELASTIC-LICENSE.txt
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
+FIELDS_FILE_PATH=processor
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
@@ -39,18 +40,7 @@ before-build:
 
 # Collects all dependencies and then calls update
 .PHONY: collect
-collect: imports fields go-generate create-docs notice
-
-# Generates imports for all modules and metricsets
-.PHONY: imports
-imports:
-	@mkdir -p include
-	@mkdir -p processor
-
-.PHONY: fields
-fields:
-	@cat _meta/fields.common.yml > _meta/fields.generated.yml
-	@cat processor/*/_meta/fields.yml >> _meta/fields.generated.yml
+collect: fields go-generate create-docs notice
 
 .PHONY: go-generate
 go-generate:
