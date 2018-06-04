@@ -13,8 +13,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/outputs/transport"
 )
 
@@ -59,12 +59,18 @@ func extractError(result []byte) error {
 	return nil
 }
 
+// NewKibanaClient builds and returns a new Kibana client
 func NewKibanaClient(cfg *common.Config) (*Client, error) {
-	config := defaultKibanaConfig
+	config := defaultClientConfig
 	if err := cfg.Unpack(&config); err != nil {
 		return nil, err
 	}
 
+	return NewClientWithConfig(&config)
+}
+
+// NewClientWithConfig creates and returns a kibana client using the given config
+func NewClientWithConfig(config *ClientConfig) (*Client, error) {
 	kibanaURL, err := common.MakeURL(config.Protocol, config.Path, config.Host, 5601)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Kibana host: %v", err)
@@ -91,7 +97,7 @@ func NewKibanaClient(cfg *common.Config) (*Client, error) {
 
 	var dialer, tlsDialer transport.Dialer
 
-	tlsConfig, err := outputs.LoadTLSConfig(config.TLS)
+	tlsConfig, err := tlscommon.LoadTLSConfig(config.TLS)
 	if err != nil {
 		return nil, fmt.Errorf("fail to load the TLS config: %v", err)
 	}
@@ -125,7 +131,7 @@ func NewKibanaClient(cfg *common.Config) (*Client, error) {
 }
 
 func (conn *Connection) Request(method, extraPath string,
-	params url.Values, body io.Reader) (int, []byte, error) {
+	params url.Values, headers http.Header, body io.Reader) (int, []byte, error) {
 
 	reqURL := addToURL(conn.URL, extraPath, params)
 
@@ -140,6 +146,12 @@ func (conn *Connection) Request(method, extraPath string,
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
+
+	for header, values := range headers {
+		for _, value := range values {
+			req.Header.Add(header, value)
+		}
+	}
 
 	if method != "GET" {
 		req.Header.Set("kbn-version", conn.version)
@@ -179,7 +191,7 @@ func (client *Client) SetVersion() error {
 		Version string `json:"version"`
 	}
 
-	code, result, err := client.Connection.Request("GET", "/api/status", nil, nil)
+	code, result, err := client.Connection.Request("GET", "/api/status", nil, nil, nil)
 	if err != nil || code >= 400 {
 		return fmt.Errorf("HTTP GET request to /api/status fails: %v. Response: %s.",
 			err, truncateString(result))
@@ -222,7 +234,7 @@ func (client *Client) ImportJSON(url string, params url.Values, jsonBody map[str
 		return fmt.Errorf("fail to marshal the json content: %v", err)
 	}
 
-	statusCode, response, err := client.Connection.Request("POST", url, params, bytes.NewBuffer(body))
+	statusCode, response, err := client.Connection.Request("POST", url, params, nil, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("%v. Response: %s", err, truncateString(response))
 	}
@@ -233,6 +245,22 @@ func (client *Client) ImportJSON(url string, params url.Values, jsonBody map[str
 }
 
 func (client *Client) Close() error { return nil }
+
+// GetDashboard returns the dashboard with the given id with the index pattern removed
+func (client *Client) GetDashboard(id string) (common.MapStr, error) {
+	params := url.Values{}
+	params.Add("dashboard", id)
+	_, response, err := client.Request("GET", "/api/kibana/dashboards/export", params, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error exporting dashboard: %+v", err)
+	}
+
+	result, err := RemoveIndexPattern(response)
+	if err != nil {
+		return nil, fmt.Errorf("error removing index pattern: %+v", err)
+	}
+	return result, nil
+}
 
 // truncateString returns a truncated string if the length is greater than 250
 // runes. If the string is truncated "... (truncated)" is appended. Newlines are

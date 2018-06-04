@@ -23,6 +23,7 @@ git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 # sync
 rsync -crpv --delete \
     --exclude=dev-tools/packer/readme.md.j2 \
+    --exclude="dev-tools/packer/platforms/darwin/preference-pane/***" \
     --include="dev-tools/***" \
     --include="script/***" \
     --include="testing/***" \
