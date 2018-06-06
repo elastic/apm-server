@@ -11,7 +11,9 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
 :discuss_forum: apm
 :github_repo_name: apm-server
-
+:sample_date_0: 2018.05.10
+:sample_date_1: 2018.05.11
+:sample_date_2: 2018.05.12
 :libbeat: http://www.elastic.co/guide/en/beats/libbeat/{doc-branch}
 :logstashdoc: https://www.elastic.co/guide/en/logstash/{doc-branch}
 :elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/{doc-branch}
