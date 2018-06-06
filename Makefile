@@ -16,6 +16,7 @@ LICENSE_FILE=licenses/APACHE-LICENSE-2.0.txt
 ELASTIC_LICENSE_FILE=licenses/ELASTIC-LICENSE.txt
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
+FIELDS_FILE_PATH=processor
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
@@ -24,7 +25,7 @@ GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/li
 update-beats:
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/libbeat/kibana@$(BEATS_VERSION)
+	@govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION) github.com/elastic/beats/libbeat/kibana@$(BEATS_VERSION)
 	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
@@ -39,18 +40,7 @@ before-build:
 
 # Collects all dependencies and then calls update
 .PHONY: collect
-collect: imports fields go-generate create-docs notice
-
-# Generates imports for all modules and metricsets
-.PHONY: imports
-imports:
-	@mkdir -p include
-	@mkdir -p processor
-
-.PHONY: fields
-fields:
-	@cat _meta/fields.common.yml > _meta/fields.generated.yml
-	@cat processor/*/_meta/fields.yml >> _meta/fields.generated.yml
+collect: fields go-generate create-docs notice
 
 .PHONY: go-generate
 go-generate:
