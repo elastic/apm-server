@@ -8,13 +8,11 @@ import (
 	"testing"
 
 	s "github.com/go-sourcemap/sourcemap"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/config"
 	er "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 // ensure all valid documents pass through the whole validation and transformation process
@@ -53,14 +51,6 @@ func TestProcessorFrontendOK(t *testing.T) {
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
 	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{})
-}
-
-// ensure invalid documents fail the json schema validation already
-func TestProcessorFailedValidation(t *testing.T) {
-	data, err := loader.LoadInvalidData("error")
-	assert.Nil(t, err)
-	err = er.NewProcessor().Validate(data)
-	assert.NotNil(t, err)
 }
 
 type fakeAcc struct{}
