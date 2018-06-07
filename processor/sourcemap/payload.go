@@ -13,7 +13,7 @@ import (
 
 var (
 	sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
-	processorEntry   = common.MapStr{"name": processorName, "event": smapDocType}
+	processorEntry   = common.MapStr{"name": ProcessorName, "event": smapDocType}
 )
 
 type Payload struct {

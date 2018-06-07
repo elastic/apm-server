@@ -16,12 +16,12 @@ var (
 )
 
 const (
-	processorName      = "transaction"
+	ProcessorName      = "transaction"
 	transactionDocType = "transaction"
 	spanDocType        = "span"
 )
 
-var schema = pr.CreateSchema(transactionSchema, processorName)
+var schema = pr.CreateSchema(transactionSchema, ProcessorName)
 
 func NewProcessor() pr.Processor {
 	return &processor{schema: schema}
@@ -32,7 +32,7 @@ type processor struct {
 }
 
 func (p *processor) Name() string {
-	return processorName
+	return ProcessorName
 }
 
 func (p *processor) Validate(raw map[string]interface{}) error {

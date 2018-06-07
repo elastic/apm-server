@@ -17,8 +17,8 @@ var (
 	stacktraceCounter  = monitoring.NewInt(transactionMetrics, "stacktraces")
 	frameCounter       = monitoring.NewInt(transactionMetrics, "frames")
 
-	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
-	processorSpanEntry  = common.MapStr{"name": processorName, "event": spanDocType}
+	processorTransEntry = common.MapStr{"name": ProcessorName, "event": transactionDocType}
+	processorSpanEntry  = common.MapStr{"name": ProcessorName, "event": spanDocType}
 )
 
 type Payload struct {

@@ -15,7 +15,7 @@ var (
 	errorCounter      = monitoring.NewInt(errorMetrics, "errors")
 	stacktraceCounter = monitoring.NewInt(errorMetrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(errorMetrics, "frames")
-	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
+	processorEntry    = common.MapStr{"name": ProcessorName, "event": errorDocType}
 )
 
 type Payload struct {
