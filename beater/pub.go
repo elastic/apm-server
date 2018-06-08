@@ -128,7 +128,7 @@ func (p *publisher) Send(req pendingReq) error {
 }
 
 func (p *publisher) run() {
-	pendingRequests := make(chan pendingReq, math.MaxInt16)
+	pendingRequests := make(chan pendingReq)
 	go func() {
 		defer close(pendingRequests)
 		var ok = true
