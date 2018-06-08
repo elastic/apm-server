@@ -9,13 +9,14 @@ import (
 
 	"math"
 
+	"fmt"
+
 	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/beats/libbeat/beat"
-	"fmt"
 )
 
 // Publisher forwards batches of events to libbeat. It uses GuaranteedSend
@@ -65,7 +66,7 @@ func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration) 
 		return nil, err
 	}
 	transactionsCSize := N - 1
-	errorsCSize := int(math.Max(math.Trunc(float64(transactionsCSize) * 0.2), 1))
+	errorsCSize := int(math.Max(math.Trunc(float64(transactionsCSize)*0.2), 1))
 	fmt.Println("transSize  ", transactionsCSize)
 	fmt.Println("errSize ", errorsCSize)
 	p := &publisher{
@@ -135,9 +136,9 @@ func (p *publisher) run() {
 		for ok {
 			var req pendingReq
 			select {
-			case req, ok = <- p.transactionsC:
-			case req, ok = <- p.errorsC:
-			case req, ok = <- p.sourcemapsC:
+			case req, ok = <-p.transactionsC:
+			case req, ok = <-p.errorsC:
+			case req, ok = <-p.sourcemapsC:
 			}
 			if ok {
 				pendingRequests <- req
