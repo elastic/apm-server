@@ -58,47 +58,20 @@ func LoadDataAsBytes(fileName string) ([]byte, error) {
 }
 
 func LoadValidDataAsBytes(processorName string) ([]byte, error) {
-	return readFile(buildPath(processorName, true))
+	return readFile(buildPath(processorName))
 }
 
 func LoadValidData(processorName string) (map[string]interface{}, error) {
-	return unmarshalData(buildPath(processorName, true))
+	return unmarshalData(buildPath(processorName))
 }
 
-func LoadInvalidData(processorName string) (map[string]interface{}, error) {
-	return unmarshalData(buildPath(processorName, false))
-}
-
-func buildPath(processorName string, validData bool) (string, error) {
-	valid := "valid"
-	if !validData {
-		valid = "invalid"
-	}
-
-	var file string
+func buildPath(processorName string) (string, error) {
 	switch processorName {
-	case "error":
-		if validData {
-			file = "error/payload.json"
-		} else {
-			file = "error_payload/no_service.json"
-		}
-	case "transaction":
-		if validData {
-			file = "transaction/payload.json"
-		} else {
-			file = "transaction_payload/no_service.json"
-		}
-	case "sourcemap":
-		if validData {
-			file = "sourcemap/payload.json"
-		} else {
-			file = "sourcemap/no_bundle_filepath.json"
-		}
+	case "error", "transaction", "sourcemap":
+		return findFile(filepath.Join("data", "valid", processorName, "payload.json"))
 	default:
-		return "", errors.New("data type not specified")
+		return "", errors.New("unknown data type")
 	}
-	return findFile(filepath.Join("data", valid, file))
 }
 
 func unmarshalData(filePath string, err error) (map[string]interface{}, error) {
