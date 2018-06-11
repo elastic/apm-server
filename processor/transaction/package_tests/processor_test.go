@@ -21,12 +21,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/tests/loader"
 )
 
 // ensure all valid documents pass through the whole validation and transformation process
@@ -63,13 +60,4 @@ func TestProcessorFrontendOK(t *testing.T) {
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
 	tests.TestProcessRequests(t, transaction.NewProcessor(), conf, requestInfo, map[string]string{"@timestamp": "-"})
-}
-
-// ensure invalid documents fail the json schema validation already
-func TestTransactionProcessorValidationFailed(t *testing.T) {
-	data, err := loader.LoadInvalidData("transaction")
-	assert.Nil(t, err)
-	p := transaction.NewProcessor()
-	err = p.Validate(data)
-	assert.NotNil(t, err)
 }
