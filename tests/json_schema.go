@@ -158,6 +158,8 @@ func TestDataAgainstProcessor(t *testing.T, p processor.Processor, testData []Sc
 		data, err := loader.LoadData(d.File)
 		assert.Nil(t, err)
 		err = p.Validate(data)
-		assert.Contains(t, err.Error(), d.Error)
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), d.Error)
+		}
 	}
 }
