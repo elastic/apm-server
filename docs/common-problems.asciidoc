@@ -23,7 +23,11 @@ This might happen when APM Server is not configured properly for the size of you
 or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
 
 The queue can also fill up if Elasticsearch is unavailable for a prolonged period,
+it runs out of disk space,
 or a sudden spike of data arrives at the APM Server.
+
+If the APM Server only returns 503 responses, it might indicate that an Elasticsearch disk is full.
+If the APM Server returns interleaved 503 and 202 responses, it might indicate that the APM Server can't process that much data.
 
 To solve the "503: Queue is full" problem,
 you have a few options:
