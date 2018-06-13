@@ -90,6 +90,9 @@ func generate() error {
 				if err != nil {
 					return err
 				}
+				if len(output) > 0 && output[len(output)-1] != '\n' {
+					output = append(output, '\n')
+				}
 				err = ioutil.WriteFile(file, output, 0644)
 				if err != nil {
 					return err
