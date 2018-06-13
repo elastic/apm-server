@@ -35,6 +35,9 @@ func ApproveJson(received map[string]interface{}, name string, ignored map[strin
 	}
 	if len(diff.Deltas()) > 0 {
 		r, _ := json.MarshalIndent(received, "", "    ")
+		if len(r) > 0 && r[len(r)-1] != '\n' {
+			r = append(r, '\n')
+		}
 		ioutil.WriteFile(receivedPath, r, 0644)
 		return errors.New(fmt.Sprintf("Received data differ from approved data. Run 'make update' and then 'approvals' to verify the Diff."))
 	}
