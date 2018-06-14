@@ -32,6 +32,7 @@ you have a few options:
 * <<tune-output-config,Tune the APM Server output configuration to your cluster>>
 * <<increase-cluster-ingest,Tune Elasticsearch for higher ingestion>>
 * <<increase-queue-size,Increase the size of the APM Server queue>>
+* <<delete-old-data,Delete old data>>
 
 [float]
 [[request-timed-out]]
@@ -95,6 +96,48 @@ A larger internal queue allows Elasticsearch to be unavailable for longer period
 and it alleviates problems that might result from sudden spikes of data.
 You can increase the queue size by overriding `queue.mem.events`.
 Be aware that increasing `queue.mem.events` can significantly affect APM Server memory usage.
+
+[float]
+[[delete-old-data]]
+==== Delete old data
+
+The internal queue might be full because Elasticsearch ran out of disk space and started rejecting insertions.
+If this happens,
+you will need to remove old indices to make room for new data.
+To do this you can use a tool like Curator and set up a cron job to run it periodically.
+
+By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
+With the curator command line interface you can, for instance, see all your existing indices:
+
+["source","sh",subs="attributes"]
+------------------------------------------------------------
+curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
+
+apm-{stack-version}-error-{sample_date_0}
+apm-{stack-version}-error-{sample_date_1}
+apm-{stack-version}-error-{sample_date_2}
+apm-{stack-version}-sourcemap
+apm-{stack-version}-span-{sample_date_0}
+apm-{stack-version}-span-{sample_date_1}
+apm-{stack-version}-span-{sample_date_2}
+apm-{stack-version}-transaction-{sample_date_0}
+apm-{stack-version}-transaction-{sample_date_1}
+apm-{stack-version}-transaction-{sample_date_2}
+------------------------------------------------------------
+
+And then delete any span indices older than 1 day:
+
+["source","sh",subs="attributes"]
+------------------------------------------------------------
+curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
+
+INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
+INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
+INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
+INFO      "delete_indices" action completed.
+------------------------------------------------------------
+
+You can read more on Curator here: https://www.elastic.co/guide/en/elasticsearch/client/curator/current/index.html
 
 [float]
 [[reduce-payload-size]]
