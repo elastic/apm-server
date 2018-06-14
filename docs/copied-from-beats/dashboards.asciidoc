@@ -18,7 +18,7 @@ command (as described here) or
 +{beatname_lc}.yml+ config file.
 
 This requires a Kibana endpoint configuration. If you didn't already configure
-a Kibana endpoint, see <<{beatname_lc}-configuration,configure {beatname_uc}>>. 
+a Kibana endpoint, see <<{beatname_lc}-configuration,configured {beatname_uc}>> 
 
 Make sure Kibana is running before you perform this step. If you are accessing a
 secured Kibana instance, make sure you've configured credentials as described in
@@ -67,12 +67,13 @@ endif::[]
 endif::allplatforms[]
 
 Open a PowerShell prompt as an Administrator (right-click the PowerShell icon
-and select *Run As Administrator*).
+and select *Run As Administrator*). If you are running Windows XP, you may need
+to download and install PowerShell.
 
 From the PowerShell prompt, change to the directory where you installed {beatname_uc},
 and run:
 
-["source","sh",subs="attributes"]
+["source","sh",subs="attributes,callouts"]
 ----------------------------------------------------------------------
-PS > .{backslash}{beatname_lc}.exe setup --dashboards
+PS > {beatname_lc} setup --dashboards
 ----------------------------------------------------------------------
