@@ -9,6 +9,20 @@ For more details also check APM Server https://github.com/elastic/apm-server[Git
 APM Server is a central component in the Elastic APM system.
 It receives data from APM agents and transforms them into Elasticsearch documents.
 
+A single APM server can handle data from multiple services.
+APM Server works by exposing an HTTP server to which agents post the APM data they collect.
+This includes performance information about the services,
+as well as errors that occur in them.
+
+APM Server is an application built in Go using the beats framework
+and as such it shares many of the same configuration options as beats.
+
+In the following you can read more about the APM Server
+
+* <<installing>>
+* <<setting-up-and-running>>
+* <<configuring-howto-apm-server>>
+
 To get an overview of the whole Elastic APM system,
 please also have a look at the documentation for
 
@@ -18,16 +32,18 @@ please also have a look at the documentation for
 
 See how to {apm-get-started}/index.html[Get Started] with the Elastic APM system.
 
-A single APM server can handle data from multiple services.
-APM Server works by exposing an HTTP server to which agents post the APM data they collect.
-This includes performance information about the services,
-as well as errors that occur in them.
+[[why-separate-component]]
+== Why is APM Server a separate component?
 
-APM Server is an application built in Go using the beats framework
-and as such it shares many of the same configuration options as beats.
+The APM Server is kept as a separate component for the following reasons:
 
-In the following you can read more about
-
-* <<installing>>
-* <<setting-up-and-running>>
-* <<configuring-howto-apm-server>>
+* It helps keep the agents as light as possible and since the APM Server is a stateless separate component,
+it can be scaled independently.
+* For real-user-monitoring (beta),
+data is being collected in agents running in browsers.
+  APM Server prevents browsers from interacting directly with Elasticsearch (which poses a security risk),
+  and controls the amount of data flowing into Elasticsearch.
+* In cases where Elasticsearch becomes unresponsive,
+APM Server can buffer data temporarily (configurable) without adding overhead to the agents.
+* APM Server serves as a middleware for source mapping for javascript in the browser.
+* The APM Server provides a JSON API for agents to use thereby improving compatibility across different versions of agents and the Elastic Stack.

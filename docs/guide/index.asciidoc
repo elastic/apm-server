@@ -63,22 +63,6 @@ or the pre-built open source Kibana dashboards that come with APM Server.
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines,
 and it's easy to get started.
 
-[[separate-component]]
-== Why is APM Server a separate component?
-
-The APM Server is kept as a separate component for the following reasons:
-
-* It helps keep the agents as light as possible and since the APM Server is a stateless separate component,
-it can be scaled independently.
-* For real-user-monitoring (beta),
-data is being collected in agents running in browsers.
-  APM Server prevents browsers from interacting directly with Elasticsearch (which poses a security risk),
-  and controls the amount of data flowing into Elasticsearch.
-* In cases where Elasticsearch becomes unresponsive,
-APM Server can buffer data temporarily (configurable) without adding overhead to the agents.
-* APM Server serves as a middleware for source mapping for javascript in the browser.
-* The APM Server provides a JSON API for agents to use thereby improving compatibility across different versions of agents and the Elastic Stack.
-
 [[install-and-run]]
 == Install and run Elastic APM
 
