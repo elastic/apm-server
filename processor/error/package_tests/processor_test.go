@@ -15,42 +15,47 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
-// ensure all valid documents pass through the whole validation and transformation process
-func TestProcessorBackendOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
+var (
+	backendRequestInfo = []tests.RequestInfo{
 		{Name: "TestProcessErrorMinimalService", Path: "data/valid/error/minimal_service.json"},
 		{Name: "TestProcessErrorMinimalProcess", Path: "data/valid/error/minimal_process.json"},
 		{Name: "TestProcessErrorFull", Path: "data/valid/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "data/valid/error/null_values.json"},
 		{Name: "TestProcessErrorAugmentedIP", Path: "data/valid/error/augmented_payload_backend.json"},
 	}
-	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{})
-}
 
-func TestProcessorMinimalPayloadOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
+	backendRequestInfoIgnoreTimestamp = []tests.RequestInfo{
 		{Name: "TestProcessErrorMinimalPayloadException", Path: "data/valid/error/minimal_payload_exception.json"},
 		{Name: "TestProcessErrorMinimalPayloadLog", Path: "data/valid/error/minimal_payload_log.json"},
 	}
-	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{"@timestamp": "-"})
-}
 
-func TestProcessorFrontendOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
+	frontendRequestInfo = []tests.RequestInfo{
 		{Name: "TestProcessErrorFrontend", Path: "data/valid/error/frontend.json"},
 		{Name: "TestProcessErrorFrontendNoSmap", Path: "data/valid/error/frontend_app.e2e-bundle.json"},
 		{Name: "TestProcessErrorFrontendMinifiedSmap", Path: "data/valid/error/frontend_app.e2e-bundle.min.json"},
 		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "data/valid/error/augmented_payload_frontend.json"},
 	}
+)
+
+// ensure all valid documents pass through the whole validation and transformation process
+func TestProcessorBackendOK(t *testing.T) {
+	conf := config.Config{ExcludeFromGrouping: nil}
+	tests.TestProcessRequests(t, er.NewProcessor(), conf, backendRequestInfo, map[string]string{})
+}
+
+func TestProcessorMinimalPayloadOK(t *testing.T) {
+	conf := config.Config{ExcludeFromGrouping: nil}
+	tests.TestProcessRequests(t, er.NewProcessor(), conf, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
+}
+
+func TestProcessorFrontendOK(t *testing.T) {
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	conf := config.Config{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.TestProcessRequests(t, er.NewProcessor(), conf, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, er.NewProcessor(), conf, frontendRequestInfo, map[string]string{})
 }
 
 type fakeAcc struct{}
@@ -70,3 +75,18 @@ func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
 	return s.Parse("", fileBytes)
 }
 func (a *fakeAcc) Remove(smapId sourcemap.Id) {}
+
+func BenchmarkBackendProcessor(b *testing.B) {
+	tests.BenchmarkProcessRequests(b, er.NewProcessor(), config.Config{ExcludeFromGrouping: nil}, backendRequestInfo)
+	tests.BenchmarkProcessRequests(b, er.NewProcessor(), config.Config{ExcludeFromGrouping: nil}, backendRequestInfoIgnoreTimestamp)
+}
+
+func BenchmarkFrontendProcessor(b *testing.B) {
+	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
+	conf := config.Config{
+		SmapMapper:          &mapper,
+		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
+		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
+	}
+	tests.BenchmarkProcessRequests(b, er.NewProcessor(), conf, frontendRequestInfo)
+}

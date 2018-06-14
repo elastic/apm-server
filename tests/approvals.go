@@ -122,7 +122,6 @@ func TestProcessRequests(t *testing.T, p processor.Processor, config config.Conf
 		verifyErr := ApproveJson(receivedJson, info.Name, ignored)
 		if verifyErr != nil {
 			assert.Fail(fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
-
 		}
 	}
 }
