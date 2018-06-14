@@ -74,8 +74,11 @@ var (
 	acceptedResponse = serverResponse{
 		nil, http.StatusAccepted, counter("response.valid.accepted"),
 	}
-	forbiddenResponse = serverResponse{
-		errors.New("forbidden request"), http.StatusForbidden, counter("response.errors.forbidden"),
+	forbiddenCounter  = counter("response.errors.forbidden")
+	forbiddenResponse = func(err error) serverResponse {
+		return serverResponse{
+			errors.Wrap(err, "forbidden request"), http.StatusForbidden, forbiddenCounter,
+		}
 	}
 	unauthorizedResponse = serverResponse{
 		errors.New("invalid token"), http.StatusUnauthorized, counter("response.errors.unauthorized"),
@@ -246,7 +249,7 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 		if killSwitch {
 			h.ServeHTTP(w, r)
 		} else {
-			sendStatus(w, r, forbiddenResponse)
+			sendStatus(w, r, forbiddenResponse(errors.New("endpoint is disabled")))
 		}
 	})
 }
@@ -341,7 +344,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 			h.ServeHTTP(w, r)
 
 		} else {
-			sendStatus(w, r, forbiddenResponse)
+			sendStatus(w, r, forbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
 		}
 	})
 }
