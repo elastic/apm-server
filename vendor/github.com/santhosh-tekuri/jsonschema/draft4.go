@@ -6,8 +6,8 @@ package jsonschema
 
 import "strings"
 
-// Draft4 resprensets http://json-schema.org/specification-links.html#draft-4
-var Draft4 = &Draft{id: "id"}
+// Draft4 respresents http://json-schema.org/specification-links.html#draft-4
+var Draft4 = &Draft{id: "id", version: 4}
 
 func init() {
 	c := NewCompiler()
