@@ -119,6 +119,10 @@
                 },
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
                 "marks": {
+                    "another_mark": {
+                        "some_float": 10,
+                        "some_long": 10
+                    },
                     "navigationTiming": {
                         "appBeforeBootstrap": 608.93,
                         "navigationStart": -21
