@@ -60,18 +60,32 @@ func TestProcessorFrontendOK(t *testing.T) {
 
 type fakeAcc struct {
 	*testing.B
+	benchmarkingConsumer *s.Consumer
+}
+
+var testSourcemapInfo = struct {
+	name, file string
+}{
+	name: "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
+	file: "app.e2e-bundle.min.js.map",
+}
+
+func (ac *fakeAcc) PreFetch() error {
+	var err error
+	ac.benchmarkingConsumer, err = ac.Fetch(sourcemap.Id{ServiceName: testSourcemapInfo.name})
+	return err
 }
 
 func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
-	if ac.B != nil {
-		ac.B.StopTimer()
-		defer ac.B.StartTimer()
-	}
 	file := "bundle.js.map"
-	if smapId.Path == "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js" {
-		file = "app.e2e-bundle.min.js.map"
+	if smapId.Path == testSourcemapInfo.name {
+		// only not nil if PreFetch called
+		// PreFetch only called from benchmarks, optionally
+		if ac.B != nil && ac.benchmarkingConsumer != nil {
+			return ac.benchmarkingConsumer, nil
+		}
+		file = testSourcemapInfo.file
 	}
-
 	current, _ := os.Getwd()
 	path := filepath.Join(current, "../../../tests/data/valid/sourcemap/", file)
 	fileBytes, err := ioutil.ReadFile(path)
@@ -88,7 +102,11 @@ func BenchmarkBackendProcessor(b *testing.B) {
 }
 
 func BenchmarkFrontendProcessor(b *testing.B) {
-	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{B: b}}
+	accessor := &fakeAcc{B: b}
+	if err := accessor.PreFetch(); err != nil {
+		b.Fatal(err)
+	}
+	mapper := sourcemap.SmapMapper{Accessor: accessor}
 	conf := config.Config{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
