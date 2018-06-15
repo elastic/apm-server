@@ -130,6 +130,10 @@
                     }
                 },
                 "marks": {
+                    "another_mark": {
+                        "some_long": 10,
+                        "some_float": 10
+                    },
                     "navigationTiming": {
                         "navigationStart": -21,
                         "appBeforeBootstrap": 608.9300000000001
