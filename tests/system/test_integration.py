@@ -55,6 +55,23 @@ class Test(ElasticTest):
         self.check_backend_transaction_sourcemap(count=5)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_mark_navigation_timing(self):
+        self.load_docs_with_template(self.get_transaction_payload_path(), self.transactions_url, 'transaction', 9)
+        self.assert_no_logged_warnings()
+        mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="transaction.marks.*")
+        found_other = False
+        for name, metric in mappings[self.index_name]["mappings"]["doc"].items():
+            for mapping in metric["mapping"].values():
+                mtype = mapping["type"]
+                if name.startswith("transaction.marks.navigationTiming."):
+                    assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
+                else:
+                    # only navigation timing marks are scaled floats for now
+                    assert mtype != "scaled_float", name + " mapped as scaled_float"
+                    found_other = True
+        assert found_other, "no non-scaled_float marks found"
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_error(self):
         """
         This test starts the beat with a loaded template and sends error data to elasticsearch.
