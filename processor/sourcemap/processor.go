@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	processorName = "sourcemap"
+	ProcessorName = "sourcemap"
 	smapDocType   = "sourcemap"
 )
 
@@ -26,14 +26,14 @@ var (
 	decodingError          = monitoring.NewInt(sourcemapUploadMetrics, "decoding.errors")
 )
 
-var schema = pr.CreateSchema(sourcemapSchema, processorName)
+var schema = pr.CreateSchema(sourcemapSchema, ProcessorName)
 
 func NewProcessor() pr.Processor {
 	return &processor{schema: schema}
 }
 
 func (p *processor) Name() string {
-	return processorName
+	return ProcessorName
 }
 
 type processor struct {

@@ -16,18 +16,18 @@ var (
 )
 
 const (
-	processorName = "error"
+	ProcessorName = "error"
 	errorDocType  = "error"
 )
 
-var schema = pr.CreateSchema(errorSchema, processorName)
+var schema = pr.CreateSchema(errorSchema, ProcessorName)
 
 func NewProcessor() pr.Processor {
 	return &processor{schema: schema}
 }
 
 func (p *processor) Name() string {
-	return processorName
+	return ProcessorName
 }
 
 type processor struct {

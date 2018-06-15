@@ -7,8 +7,15 @@ import (
 
 	"github.com/pkg/errors"
 
+	"math"
+
+	"fmt"
+
 	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
+	perr "github.com/elastic/apm-server/processor/error"
+	"github.com/elastic/apm-server/processor/sourcemap"
+	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
@@ -20,15 +27,18 @@ import (
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type publisher struct {
-	pendingRequests chan pendingReq
-	client          beat.Client
-	m               sync.RWMutex
-	stopped         bool
+	errorsC       chan pendingReq
+	transactionsC chan pendingReq
+	sourcemapsC   chan pendingReq
+	client        beat.Client
+	m             sync.RWMutex
+	stopped       bool
 }
 
 type pendingReq struct {
-	payload pr.Payload
-	config  config.Config
+	processorName string
+	payload       pr.Payload
+	config        config.Config
 }
 
 var (
@@ -55,13 +65,15 @@ func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration) 
 	if err != nil {
 		return nil, err
 	}
-
+	transactionsCSize := N - 1
+	errorsCSize := int(math.Max(math.Trunc(float64(transactionsCSize)*0.2), 1))
+	fmt.Println("transSize  ", transactionsCSize)
+	fmt.Println("errSize ", errorsCSize)
 	p := &publisher{
-		client: client,
-
-		// Set channel size to N - 1. One request will be actively processed by the
-		// worker, while the other concurrent requests will be buffered in the queue.
-		pendingRequests: make(chan pendingReq, N-1),
+		client:        client,
+		transactionsC: make(chan pendingReq, transactionsCSize),
+		errorsC:       make(chan pendingReq, errorsCSize),
+		sourcemapsC:   make(chan pendingReq, 1),
 	}
 
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
@@ -78,7 +90,9 @@ func (p *publisher) Stop() {
 	p.m.Lock()
 	p.stopped = true
 	p.m.Unlock()
-	close(p.pendingRequests)
+	close(p.transactionsC)
+	close(p.errorsC)
+	close(p.sourcemapsC)
 	p.client.Close()
 }
 
@@ -91,17 +105,47 @@ func (p *publisher) Send(req pendingReq) error {
 	if p.stopped {
 		return errChannelClosed
 	}
+	switch req.processorName {
+	case transaction.ProcessorName:
+		select {
+		case p.transactionsC <- req:
+			return nil
+		case <-time.After(time.Second * 1):
+			return errFull
+		}
 
-	select {
-	case p.pendingRequests <- req:
-		return nil
-	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
-		return errFull
+	case perr.ProcessorName:
+		select {
+		case p.errorsC <- req:
+			return nil
+		case <-time.After(time.Second * 1):
+			return errFull
+		}
+
+	case sourcemap.ProcessorName:
+		p.sourcemapsC <- req
 	}
+	return nil
 }
 
 func (p *publisher) run() {
-	for req := range p.pendingRequests {
+	pendingRequests := make(chan pendingReq)
+	go func() {
+		defer close(pendingRequests)
+		var ok = true
+		for ok {
+			var req pendingReq
+			select {
+			case req, ok = <-p.transactionsC:
+			case req, ok = <-p.errorsC:
+			case req, ok = <-p.sourcemapsC:
+			}
+			if ok {
+				pendingRequests <- req
+			}
+		}
+	}()
+	for req := range pendingRequests {
 		p.client.PublishAll(req.payload.Transform(req.config))
 	}
 }

@@ -387,7 +387,7 @@ func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, re
 		return cannotDecodeResponse(err)
 	}
 
-	if err = report(pendingReq{payload: payload, config: config}); err != nil {
+	if err = report(pendingReq{payload: payload, config: config, processorName: processor.Name()}); err != nil {
 		if strings.Contains(err.Error(), "publisher is being stopped") {
 			return serverShuttingDownResponse(err)
 		}
