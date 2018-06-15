@@ -58,9 +58,15 @@ func TestProcessorFrontendOK(t *testing.T) {
 	tests.TestProcessRequests(t, er.NewProcessor(), conf, frontendRequestInfo, map[string]string{})
 }
 
-type fakeAcc struct{}
+type fakeAcc struct {
+	*testing.B
+}
 
 func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
+	if ac.B != nil {
+		ac.B.StopTimer()
+		defer ac.B.StartTimer()
+	}
 	file := "bundle.js.map"
 	if smapId.Path == "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js" {
 		file = "app.e2e-bundle.min.js.map"
@@ -74,7 +80,7 @@ func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
 	}
 	return s.Parse("", fileBytes)
 }
-func (a *fakeAcc) Remove(smapId sourcemap.Id) {}
+func (ac *fakeAcc) Remove(smapId sourcemap.Id) {}
 
 func BenchmarkBackendProcessor(b *testing.B) {
 	tests.BenchmarkProcessRequests(b, er.NewProcessor(), config.Config{ExcludeFromGrouping: nil}, backendRequestInfo)
@@ -82,7 +88,7 @@ func BenchmarkBackendProcessor(b *testing.B) {
 }
 
 func BenchmarkFrontendProcessor(b *testing.B) {
-	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
+	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{B: b}}
 	conf := config.Config{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
