@@ -26,9 +26,8 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
-// ensure all valid documents pass through the whole validation and transformation process
-func TestTransactionProcessorOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
+var (
+	backendRequestInfo = []tests.RequestInfo{
 		{Name: "TestProcessTransactionFull", Path: "data/valid/transaction/payload.json"},
 		{Name: "TestProcessTransactionNullValues", Path: "data/valid/transaction/null_values.json"},
 		{Name: "TestProcessSystemNull", Path: "data/valid/transaction/system_null.json"},
@@ -39,25 +38,44 @@ func TestTransactionProcessorOK(t *testing.T) {
 		{Name: "TestProcessTransactionEmpty", Path: "data/valid/transaction/transaction_empty_values.json"},
 		{Name: "TestProcessTransactionAugmentedIP", Path: "data/valid/transaction/augmented_payload_backend.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, requestInfo, map[string]string{})
-}
 
-func TestMinimalTransactionProcessorOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
+	backendRequestInfoIgnoreTimestamp = []tests.RequestInfo{
 		{Name: "TestProcessTransactionMinimalPayload", Path: "data/valid/transaction/minimal_payload.json"},
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "-"})
-}
 
-func TestProcessorFrontendOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
+	frontendRequestInfo = []tests.RequestInfo{
 		{Name: "TestProcessTransactionFrontend", Path: "data/valid/transaction/frontend.json"},
 		{Name: "TestProcessTransactionAugmentedMerge", Path: "data/valid/transaction/augmented_payload_frontend.json"},
 		{Name: "TestProcessTransactionAugmented", Path: "data/valid/transaction/augmented_payload_frontend_no_context.json"},
 	}
+)
+
+// ensure all valid documents pass through the whole validation and transformation process
+func TestTransactionProcessorOK(t *testing.T) {
+	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, backendRequestInfo, map[string]string{})
+}
+
+func TestMinimalTransactionProcessorOK(t *testing.T) {
+	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
+}
+
+func TestProcessorFrontendOK(t *testing.T) {
 	conf := config.Config{
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), conf, requestInfo, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, transaction.NewProcessor(), conf, frontendRequestInfo, map[string]string{"@timestamp": "-"})
+}
+
+func BenchmarkBackendProcessor(b *testing.B) {
+	tests.BenchmarkProcessRequests(b, transaction.NewProcessor(), config.Config{}, backendRequestInfo)
+	tests.BenchmarkProcessRequests(b, transaction.NewProcessor(), config.Config{}, backendRequestInfoIgnoreTimestamp)
+}
+
+func BenchmarkFrontendProcessor(b *testing.B) {
+	conf := config.Config{
+		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
+		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
+	}
+	tests.BenchmarkProcessRequests(b, transaction.NewProcessor(), conf, frontendRequestInfo)
 }
