@@ -138,8 +138,10 @@ func testDataAgainstSchema(t *testing.T, testData []SchemaTestData, schemaPath s
 		assert.Nil(t, err)
 		err = schema.Validate(bytes.NewReader(data))
 		assert.NotNil(t, err)
-		msg := fmt.Sprintf("Test %v (%v): '%v' not found in '%v'", idx, d.File, d.Error, err.Error())
-		assert.True(t, strings.Contains(err.Error(), d.Error), msg)
+		if assert.Error(t, err) {
+			msg := fmt.Sprintf("Test %v (%v): '%v' not found in '%v'", idx, d.File, d.Error, err.Error())
+			assert.True(t, strings.Contains(err.Error(), d.Error), msg)
+		}
 		filesToTest.Add(d.File)
 	}
 	path := filepath.Join("data/invalid/", filePath)
