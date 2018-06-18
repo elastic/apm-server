@@ -120,6 +120,7 @@ func TestErrorSchema(t *testing.T) {
 		{File: "no_log_or_exception.json", Error: "missing properties: \"exception\""},
 		{File: "no_log_or_exception.json", Error: "missing properties: \"log\""},
 		{File: "invalid_code.json", Error: "expected string or integer or null"},
+		{File: "invalid_transaction_id.json", Error: "does not match pattern"},
 	}
 	testDataAgainstSchema(t, testData, "errors/error", "error", `"$ref": "../docs/spec/errors/`)
 }
