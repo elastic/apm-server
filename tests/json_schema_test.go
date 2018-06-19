@@ -137,6 +137,7 @@ func TestErrorSchema(t *testing.T) {
 		{File: "no_log_or_exception.json", Error: "missing properties: \"exception\""},
 		{File: "no_log_or_exception.json", Error: "missing properties: \"log\""},
 		{File: "invalid_code.json", Error: "expected string or integer or null"},
+		{File: "invalid_transaction_id.json", Error: "does not match pattern"},
 	}
 	testDataAgainstSchema(t, testData, "errors/error", "error", `"$ref": "../docs/spec/errors/`)
 }
@@ -155,8 +156,10 @@ func testDataAgainstSchema(t *testing.T, testData []SchemaTestData, schemaPath s
 		assert.Nil(t, err)
 		err = schema.Validate(bytes.NewReader(data))
 		assert.NotNil(t, err)
-		msg := fmt.Sprintf("Test %v (%v): '%v' not found in '%v'", idx, d.File, d.Error, err.Error())
-		assert.True(t, strings.Contains(err.Error(), d.Error), msg)
+		if assert.Error(t, err) {
+			msg := fmt.Sprintf("Test %v (%v): '%v' not found in '%v'", idx, d.File, d.Error, err.Error())
+			assert.True(t, strings.Contains(err.Error(), d.Error), msg)
+		}
 		filesToTest.Add(d.File)
 	}
 	path := filepath.Join("data/invalid/", filePath)
