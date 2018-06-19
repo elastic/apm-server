@@ -1,12 +1,14 @@
 package beater
 
 import (
+	"context"
 	"runtime"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/beat"
@@ -21,6 +23,7 @@ import (
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type publisher struct {
 	pendingRequests chan pendingReq
+	tracer          *elasticapm.Tracer
 	client          beat.Client
 	m               sync.RWMutex
 	stopped         bool
@@ -29,6 +32,7 @@ type publisher struct {
 type pendingReq struct {
 	payload pr.Payload
 	config  config.Config
+	trace   bool
 }
 
 var (
@@ -40,7 +44,7 @@ var (
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration) (*publisher, error) {
+func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, tracer *elasticapm.Tracer) (*publisher, error) {
 	if N <= 0 {
 		return nil, errInvalidBufferSize
 	}
@@ -57,6 +61,7 @@ func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration) 
 	}
 
 	p := &publisher{
+		tracer: tracer,
 		client: client,
 
 		// Set channel size to N - 1. One request will be actively processed by the
@@ -85,14 +90,22 @@ func (p *publisher) Stop() {
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,
 // an error is returned.
 // Calling send after Stop will return an error.
-func (p *publisher) Send(req pendingReq) error {
+func (p *publisher) Send(ctx context.Context, req pendingReq) error {
 	p.m.RLock()
 	defer p.m.RUnlock()
 	if p.stopped {
 		return errChannelClosed
 	}
 
+	span, ctx := elasticapm.StartSpan(ctx, "Send", "Publisher")
+	if span != nil {
+		defer span.End()
+		req.trace = !span.Dropped()
+	}
+
 	select {
+	case <-ctx.Done():
+		return ctx.Err()
 	case p.pendingRequests <- req:
 		return nil
 	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
@@ -102,6 +115,22 @@ func (p *publisher) Send(req pendingReq) error {
 
 func (p *publisher) run() {
 	for req := range p.pendingRequests {
-		p.client.PublishAll(req.payload.Transform(req.config))
+		p.processPendingReq(req)
 	}
+}
+
+func (p *publisher) processPendingReq(req pendingReq) {
+	var tx *elasticapm.Transaction
+	if req.trace {
+		tx = p.tracer.StartTransaction("ProcessPending", "Publisher")
+		defer tx.End()
+	}
+
+	span := tx.StartSpan("Transform", "Publisher", nil)
+	events := req.payload.Transform(req.config)
+	span.End()
+
+	span = tx.StartSpan("PublishAll", "Publisher", nil)
+	p.client.PublishAll(events)
+	span.End()
 }
