@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/processor"
@@ -133,7 +132,7 @@ func testDataAgainstSchema(t *testing.T, testData []SchemaTestData, schemaPath s
 		schemaStr = strings.Replace(schemaStr, `"$ref": "`, replace, -1)
 	}
 	schema := processor.CreateSchema(schemaStr, "myschema")
-	filesToTest := set.New()
+	filesToTest := NewSet()
 	for idx, d := range testData {
 		data, err := ioutil.ReadFile(filepath.Join("data/invalid", filePath, d.File))
 		assert.Nil(t, err)
@@ -149,23 +148,23 @@ func testDataAgainstSchema(t *testing.T, testData []SchemaTestData, schemaPath s
 	filesInDir, err := ioutil.ReadDir(path)
 	assert.Nil(t, err)
 	for _, f := range filesInDir {
-		assert.True(t, filesToTest.Has(f.Name()), fmt.Sprintf("Did you miss to add the file %v to `json_schema_tests`?", filepath.Join(path, f.Name())))
+		assert.True(t, filesToTest.Contains(f.Name()), fmt.Sprintf("Did you miss to add the file %v to `json_schema_tests`?", filepath.Join(path, f.Name())))
 	}
 }
 
 func TestGetSchemaProperties(t *testing.T) {
 	schema, err := schemaStruct(strings.NewReader(test_schema))
 	assert.Nil(t, err)
-	flattened := set.New()
+	flattened := NewSet()
 	addFn := func(s *Schema) bool { return false }
 	flattenSchemaNames(schema, "", addFn, flattened)
-	assert.Equal(t, set.New(), flattened)
+	assert.Equal(t, NewSet(), flattened)
 
 	addFn = func(s *Schema) bool { return true }
 	flattenSchemaNames(schema, "", addFn, flattened)
-	expected := set.New("service", "service.name", "service.version", "service.argv", "service.language", "service.language.name", "service.language.version", "errors", "errors.timestamp", "errors.message", "errors.stacktrace", "errors.stacktrace.abs_path", "errors.stacktrace.filename", "errors.id")
+	expected := NewSet("service", "service.name", "service.version", "service.argv", "service.language", "service.language.name", "service.language.version", "errors", "errors.timestamp", "errors.message", "errors.stacktrace", "errors.stacktrace.abs_path", "errors.stacktrace.filename", "errors.id")
 
-	assert.Equal(t, 0, set.Difference(expected, flattened).(*set.Set).Size())
+	assert.Equal(t, 0, Difference(expected, flattened).Len())
 
 }
 
