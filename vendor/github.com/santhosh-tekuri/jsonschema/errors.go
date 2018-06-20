@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+// InvalidJSONTypeError is the error type returned by ValidateInteface.
+// this tells that specified go object is not valid jsonType.
+type InvalidJSONTypeError string
+
+func (e InvalidJSONTypeError) Error() string {
+	return fmt.Sprintf("invalid jsonType: %s", string(e))
+}
+
 // SchemaError is the error type returned by Compile.
 type SchemaError struct {
 	// SchemaURL is the url to json-schema that filed to compile.
@@ -83,8 +91,8 @@ func addContext(instancePtr, schemaPtr string, err error) error {
 func finishSchemaContext(err error, s *Schema) {
 	ve := err.(*ValidationError)
 	if len(ve.SchemaURL) == 0 {
-		ve.SchemaURL = s.url
-		ve.SchemaPtr = s.ptr + "/" + ve.SchemaPtr
+		ve.SchemaURL = s.URL
+		ve.SchemaPtr = s.Ptr + "/" + ve.SchemaPtr
 		for _, cause := range ve.Causes {
 			finishSchemaContext(cause, s)
 		}

@@ -1759,10 +1759,20 @@
 			"revisionTime": "2017-01-28T01:21:29Z"
 		},
 		{
-			"checksumSHA1": "7IhJTQp7vzGrgo24rRkG6VkgvvA=",
+			"checksumSHA1": "YJJBFL4yBiD854HU/9Ewt89gIv4=",
 			"path": "github.com/santhosh-tekuri/jsonschema",
-			"revision": "63accc9deedeee33b7caf4e241f8a9ebdf031069",
-			"revisionTime": "2017-11-30T20:27:46Z"
+			"revision": "1471bfd74cff003b1e329d46a4de4487e88cc47b",
+			"revisionTime": "2018-05-04T20:54:25Z",
+			"version": "v1.2.2",
+			"versionExact": "v1.2.2"
+		},
+		{
+			"checksumSHA1": "lN+LowbLxWVX16qL7xAb724z5NY=",
+			"path": "github.com/santhosh-tekuri/jsonschema/decoders",
+			"revision": "1471bfd74cff003b1e329d46a4de4487e88cc47b",
+			"revisionTime": "2018-05-04T20:54:25Z",
+			"version": "v1.2.2",
+			"versionExact": "v1.2.2"
 		},
 		{
 			"checksumSHA1": "wu+Masd8AYe2EzCsiq370Sl0wqw=",
@@ -1775,6 +1785,14 @@
 			"path": "github.com/santhosh-tekuri/jsonschema/loader",
 			"revision": "63accc9deedeee33b7caf4e241f8a9ebdf031069",
 			"revisionTime": "2017-11-30T20:27:46Z"
+		},
+		{
+			"checksumSHA1": "/Y9KMWCFmB8+iZC71i+U+kab/ok=",
+			"path": "github.com/santhosh-tekuri/jsonschema/mediatypes",
+			"revision": "1471bfd74cff003b1e329d46a4de4487e88cc47b",
+			"revisionTime": "2018-05-04T20:54:25Z",
+			"version": "v1.2.2",
+			"versionExact": "v1.2.2"
 		},
 		{
 			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",
