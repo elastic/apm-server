@@ -12,17 +12,31 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/santhosh-tekuri/jsonschema/decoders"
 	"github.com/santhosh-tekuri/jsonschema/formats"
 	"github.com/santhosh-tekuri/jsonschema/loader"
+	"github.com/santhosh-tekuri/jsonschema/mediatypes"
 )
+
+func init() {
+	formats.Register("encoding", func(s string) bool {
+		_, ok := decoders.Get(s)
+		return ok
+	})
+	formats.Register("mediatype", func(s string) bool {
+		_, ok := mediatypes.Get(s)
+		return ok
+	})
+}
 
 // A Draft represents json-schema draft
 type Draft struct {
-	meta *Schema
-	id   string
+	meta    *Schema
+	id      string // property name used to represent schema id.
+	version int
 }
 
-var latest = Draft6
+var latest = Draft7
 
 func (draft *Draft) validateSchema(url, ptr string, v interface{}) error {
 	if meta := draft.meta; meta != nil {
@@ -39,9 +53,9 @@ func (draft *Draft) validateSchema(url, ptr string, v interface{}) error {
 			return &SchemaError{
 				url,
 				&ValidationError{
-					Message:     fmt.Sprintf("doesn't validate with %q", meta.url+meta.ptr),
+					Message:     fmt.Sprintf("doesn't validate with %q", meta.URL+meta.Ptr),
 					InstancePtr: instancePtr,
-					SchemaURL:   meta.url,
+					SchemaURL:   meta.URL,
 					SchemaPtr:   "#",
 					Causes:      []*ValidationError{err.(*ValidationError)},
 				},
@@ -60,6 +74,10 @@ type Compiler struct {
 	// This defaults to latest draft (currently draft6).
 	Draft     *Draft
 	resources map[string]*resource
+
+	// ExtractAnnotations tells whether schema annotations has to be extracted
+	// in compiled Schema or not.
+	ExtractAnnotations bool
 }
 
 // NewCompiler returns a draft4 json-schema Compiler object.
@@ -85,6 +103,8 @@ func (c *Compiler) draft(v interface{}) (*Draft, error) {
 			switch url {
 			case "http://json-schema.org/schema#":
 				return latest, nil
+			case "http://json-schema.org/draft-07/schema#":
+				return Draft7, nil
 			case "http://json-schema.org/draft-06/schema#":
 				return Draft6, nil
 			case "http://json-schema.org/draft-04/schema#":
@@ -141,7 +161,7 @@ func (c Compiler) compileRef(draft *Draft, r *resource, root map[string]interfac
 			if err := draft.validateSchema(r.url, "", r.doc); err != nil {
 				return nil, err
 			}
-			s := &Schema{url: r.url, ptr: "#"}
+			s := &Schema{URL: r.url, Ptr: "#"}
 			r.schemas["#"] = s
 			if m, ok := r.doc.(map[string]interface{}); ok {
 				if _, err := c.compile(draft, r, s, base, m, m); err != nil {
@@ -178,7 +198,7 @@ func (c Compiler) compileRef(draft *Draft, r *resource, root map[string]interfac
 			if err := draft.validateSchema(r.url, strings.TrimPrefix(ref, "#/"), doc); err != nil {
 				return nil, err
 			}
-			r.schemas[ref] = &Schema{url: base, ptr: ref}
+			r.schemas[ref] = &Schema{URL: base, Ptr: ref}
 			if _, err := c.compile(draft, r, r.schemas[ref], ptrBase, root, doc); err != nil {
 				return nil, err
 			}
@@ -203,7 +223,7 @@ func (c Compiler) compileRef(draft *Draft, r *resource, root map[string]interfac
 			return nil, err
 		}
 		u, f := split(refURL)
-		s := &Schema{url: u, ptr: f}
+		s := &Schema{URL: u, Ptr: f}
 		r.schemas[refURL] = s
 		if err := c.compileMap(draft, r, s, refURL, root, v); err != nil {
 			return nil, err
@@ -221,11 +241,11 @@ func (c Compiler) compileRef(draft *Draft, r *resource, root map[string]interfac
 func (c Compiler) compile(draft *Draft, r *resource, s *Schema, base string, root map[string]interface{}, m interface{}) (*Schema, error) {
 	if s == nil {
 		s = new(Schema)
-		s.url, _ = split(base)
+		s.URL, _ = split(base)
 	}
 	switch m := m.(type) {
 	case bool:
-		s.always = &m
+		s.Always = &m
 		return s, nil
 	default:
 		return s, c.compileMap(draft, r, s, base, root, m.(map[string]interface{}))
@@ -243,7 +263,7 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 
 	if ref, ok := m["$ref"]; ok {
 		b, _ := split(base)
-		s.ref, err = c.compileRef(draft, r, root, b, ref.(string))
+		s.Ref, err = c.compileRef(draft, r, root, b, ref.(string))
 		if err != nil {
 			return err
 		}
@@ -254,16 +274,16 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 	if t, ok := m["type"]; ok {
 		switch t := t.(type) {
 		case string:
-			s.types = []string{t}
+			s.Types = []string{t}
 		case []interface{}:
-			s.types = toStrings(t)
+			s.Types = toStrings(t)
 		}
 	}
 
 	if e, ok := m["enum"]; ok {
-		s.enum = e.([]interface{})
+		s.Enum = e.([]interface{})
 		allPrimitives := true
-		for _, item := range s.enum {
+		for _, item := range s.Enum {
 			switch jsonType(item) {
 			case "object", "array":
 				allPrimitives = false
@@ -272,11 +292,11 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 		}
 		s.enumError = "enum failed"
 		if allPrimitives {
-			if len(s.enum) == 1 {
-				s.enumError = fmt.Sprintf("value must be %#v", s.enum[0])
+			if len(s.Enum) == 1 {
+				s.enumError = fmt.Sprintf("value must be %#v", s.Enum[0])
 			} else {
-				strEnum := make([]string, len(s.enum))
-				for i, item := range s.enum {
+				strEnum := make([]string, len(s.Enum))
+				for i, item := range s.Enum {
 					strEnum[i] = fmt.Sprintf("%#v", item)
 				}
 				s.enumError = fmt.Sprintf("value must be one of %s", strings.Join(strEnum, ", "))
@@ -284,11 +304,15 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 		}
 	}
 
-	if not, ok := m["not"]; ok {
-		s.not, err = c.compile(draft, r, nil, base, root, not)
-		if err != nil {
-			return err
+	loadSchema := func(pname string) (*Schema, error) {
+		if pvalue, ok := m[pname]; ok {
+			return c.compile(draft, r, nil, base, root, pvalue)
 		}
+		return nil, nil
+	}
+
+	if s.Not, err = loadSchema("not"); err != nil {
+		return err
 	}
 
 	loadSchemas := func(pname string) ([]*Schema, error) {
@@ -306,13 +330,13 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 		}
 		return nil, nil
 	}
-	if s.allOf, err = loadSchemas("allOf"); err != nil {
+	if s.AllOf, err = loadSchemas("allOf"); err != nil {
 		return err
 	}
-	if s.anyOf, err = loadSchemas("anyOf"); err != nil {
+	if s.AnyOf, err = loadSchemas("anyOf"); err != nil {
 		return err
 	}
-	if s.oneOf, err = loadSchemas("oneOf"); err != nil {
+	if s.OneOf, err = loadSchemas("oneOf"); err != nil {
 		return err
 	}
 
@@ -323,17 +347,17 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 		}
 		return -1
 	}
-	s.minProperties, s.maxProperties = loadInt("minProperties"), loadInt("maxProperties")
+	s.MinProperties, s.MaxProperties = loadInt("minProperties"), loadInt("maxProperties")
 
 	if req, ok := m["required"]; ok {
-		s.required = toStrings(req.([]interface{}))
+		s.Required = toStrings(req.([]interface{}))
 	}
 
 	if props, ok := m["properties"]; ok {
 		props := props.(map[string]interface{})
-		s.properties = make(map[string]*Schema, len(props))
+		s.Properties = make(map[string]*Schema, len(props))
 		for pname, pmap := range props {
-			s.properties[pname], err = c.compile(draft, r, nil, base, root, pmap)
+			s.Properties[pname], err = c.compile(draft, r, nil, base, root, pmap)
 			if err != nil {
 				return err
 			}
@@ -341,14 +365,14 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 	}
 
 	if regexProps, ok := m["regexProperties"]; ok {
-		s.regexProperties = regexProps.(bool)
+		s.RegexProperties = regexProps.(bool)
 	}
 
 	if patternProps, ok := m["patternProperties"]; ok {
 		patternProps := patternProps.(map[string]interface{})
-		s.patternProperties = make(map[*regexp.Regexp]*Schema, len(patternProps))
+		s.PatternProperties = make(map[*regexp.Regexp]*Schema, len(patternProps))
 		for pattern, pmap := range patternProps {
-			s.patternProperties[regexp.MustCompile(pattern)], err = c.compile(draft, r, nil, base, root, pmap)
+			s.PatternProperties[regexp.MustCompile(pattern)], err = c.compile(draft, r, nil, base, root, pmap)
 			if err != nil {
 				return err
 			}
@@ -359,10 +383,10 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 		switch additionalProps := additionalProps.(type) {
 		case bool:
 			if !additionalProps {
-				s.additionalProperties = false
+				s.AdditionalProperties = false
 			}
 		case map[string]interface{}:
-			s.additionalProperties, err = c.compile(draft, r, nil, base, root, additionalProps)
+			s.AdditionalProperties, err = c.compile(draft, r, nil, base, root, additionalProps)
 			if err != nil {
 				return err
 			}
@@ -371,13 +395,13 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 
 	if deps, ok := m["dependencies"]; ok {
 		deps := deps.(map[string]interface{})
-		s.dependencies = make(map[string]interface{}, len(deps))
+		s.Dependencies = make(map[string]interface{}, len(deps))
 		for pname, pvalue := range deps {
 			switch pvalue := pvalue.(type) {
 			case []interface{}:
-				s.dependencies[pname] = toStrings(pvalue)
+				s.Dependencies[pname] = toStrings(pvalue)
 			default:
-				s.dependencies[pname], err = c.compile(draft, r, nil, base, root, pvalue)
+				s.Dependencies[pname], err = c.compile(draft, r, nil, base, root, pvalue)
 				if err != nil {
 					return err
 				}
@@ -385,49 +409,49 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 		}
 	}
 
-	s.minItems, s.maxItems = loadInt("minItems"), loadInt("maxItems")
+	s.MinItems, s.MaxItems = loadInt("minItems"), loadInt("maxItems")
 
 	if unique, ok := m["uniqueItems"]; ok {
-		s.uniqueItems = unique.(bool)
+		s.UniqueItems = unique.(bool)
 	}
 
 	if items, ok := m["items"]; ok {
 		switch items := items.(type) {
 		case []interface{}:
-			s.items, err = loadSchemas("items")
+			s.Items, err = loadSchemas("items")
 			if err != nil {
 				return err
 			}
 			if additionalItems, ok := m["additionalItems"]; ok {
 				switch additionalItems := additionalItems.(type) {
 				case bool:
-					s.additionalItems = additionalItems
+					s.AdditionalItems = additionalItems
 				case map[string]interface{}:
-					s.additionalItems, err = c.compile(draft, r, nil, base, root, additionalItems)
+					s.AdditionalItems, err = c.compile(draft, r, nil, base, root, additionalItems)
 					if err != nil {
 						return err
 					}
 				}
 			} else {
-				s.additionalItems = true
+				s.AdditionalItems = true
 			}
 		default:
-			s.items, err = c.compile(draft, r, nil, base, root, items)
+			s.Items, err = c.compile(draft, r, nil, base, root, items)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	s.minLength, s.maxLength = loadInt("minLength"), loadInt("maxLength")
+	s.MinLength, s.MaxLength = loadInt("minLength"), loadInt("maxLength")
 
 	if pattern, ok := m["pattern"]; ok {
-		s.pattern = regexp.MustCompile(pattern.(string))
+		s.Pattern = regexp.MustCompile(pattern.(string))
 	}
 
 	if format, ok := m["format"]; ok {
-		s.formatName = format.(string)
-		s.format, _ = formats.Get(s.formatName)
+		s.FormatName = format.(string)
+		s.Format, _ = formats.Get(s.FormatName)
 	}
 
 	loadFloat := func(pname string) *big.Float {
@@ -438,45 +462,84 @@ func (c Compiler) compileMap(draft *Draft, r *resource, s *Schema, base string, 
 		return nil
 	}
 
-	s.minimum = loadFloat("minimum")
+	s.Minimum = loadFloat("minimum")
 	if exclusive, ok := m["exclusiveMinimum"]; ok {
 		if exclusive, ok := exclusive.(bool); ok {
 			if exclusive {
-				s.minimum, s.exclusiveMinimum = nil, s.minimum
+				s.Minimum, s.ExclusiveMinimum = nil, s.Minimum
 			}
 		} else {
-			s.exclusiveMinimum = loadFloat("exclusiveMinimum")
+			s.ExclusiveMinimum = loadFloat("exclusiveMinimum")
 		}
 	}
 
-	s.maximum = loadFloat("maximum")
+	s.Maximum = loadFloat("maximum")
 	if exclusive, ok := m["exclusiveMaximum"]; ok {
 		if exclusive, ok := exclusive.(bool); ok {
 			if exclusive {
-				s.maximum, s.exclusiveMaximum = nil, s.maximum
+				s.Maximum, s.ExclusiveMaximum = nil, s.Maximum
 			}
 		} else {
-			s.exclusiveMaximum = loadFloat("exclusiveMaximum")
+			s.ExclusiveMaximum = loadFloat("exclusiveMaximum")
 		}
 	}
 
-	s.multipleOf = loadFloat("multipleOf")
+	s.MultipleOf = loadFloat("multipleOf")
 
-	if draft == Draft6 {
+	if c.ExtractAnnotations {
+		if title, ok := m["title"]; ok {
+			s.Title = title.(string)
+		}
+		if description, ok := m["description"]; ok {
+			s.Description = description.(string)
+		}
+		s.Default = m["default"]
+	}
+
+	if draft.version >= 6 {
 		if c, ok := m["const"]; ok {
-			s.constant = []interface{}{c}
+			s.Constant = []interface{}{c}
 		}
-		if propertyNames, ok := m["propertyNames"]; ok {
-			s.propertyNames, err = c.compile(draft, r, nil, base, root, propertyNames)
-			if err != nil {
+		if s.PropertyNames, err = loadSchema("propertyNames"); err != nil {
+			return err
+		}
+		if s.Contains, err = loadSchema("contains"); err != nil {
+			return err
+		}
+	}
+
+	if draft.version >= 7 {
+		if m["if"] != nil && (m["then"] != nil || m["else"] != nil) {
+			if s.If, err = loadSchema("if"); err != nil {
 				return err
 			}
-		}
-		if contains, ok := m["contains"]; ok {
-			s.contains, err = c.compile(draft, r, nil, base, root, contains)
-			if err != nil {
+			if s.Then, err = loadSchema("then"); err != nil {
 				return err
 			}
+			if s.Else, err = loadSchema("else"); err != nil {
+				return err
+			}
+
+			if c.ExtractAnnotations {
+				if readOnly, ok := m["readOnly"]; ok {
+					s.ReadOnly = readOnly.(bool)
+				}
+				if writeOnly, ok := m["writeOnly"]; ok {
+					s.WriteOnly = writeOnly.(bool)
+				}
+				if examples, ok := m["examples"]; ok {
+					s.Examples = examples.([]interface{})
+				}
+			}
+		}
+
+		if encoding, ok := m["contentEncoding"]; ok {
+			s.ContentEncoding = encoding.(string)
+			s.Decoder, _ = decoders.Get(s.ContentEncoding)
+		}
+		if mediaType, ok := m["contentMediaType"]; ok {
+			s.ContentMediaType = mediaType.(string)
+			s.MediaType, _ = mediatypes.Get(s.ContentMediaType)
 		}
 	}
 
