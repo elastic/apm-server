@@ -1519,7 +1519,8 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/santhosh-tekuri/jsonschema
-Revision: 63accc9deedeee33b7caf4e241f8a9ebdf031069
+Version: v1.2.2
+Revision: 1471bfd74cff003b1e329d46a4de4487e88cc47b
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/santhosh-tekuri/jsonschema/LICENSE:
 --------------------------------------------------------------------
