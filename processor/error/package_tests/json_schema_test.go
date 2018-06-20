@@ -20,8 +20,6 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/fatih/set"
-
 	er "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/tests"
 )
@@ -29,7 +27,7 @@ import (
 //Check whether attributes are added to the example payload but not to the schema
 func TestPayloadAttributesInSchema(t *testing.T) {
 	//only add attributes that should not be documented by the schema
-	undocumented := set.New(
+	undocumented := tests.NewSet(
 		"errors.log.stacktrace.vars.key",
 		"errors.exception.stacktrace.vars.key",
 		"errors.exception.attributes.foo",
@@ -53,7 +51,7 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 		"./../../../_meta/fields.common.yml",
 		"./../_meta/fields.yml",
 	}
-	exceptions := set.New(
+	exceptions := tests.NewSet(
 		"processor.event",
 		"processor.name",
 		"error.id",

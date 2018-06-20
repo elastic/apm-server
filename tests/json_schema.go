@@ -24,7 +24,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/processor"
@@ -44,35 +43,35 @@ type Mapping struct {
 	to   string
 }
 
-func TestPayloadAttributesInSchema(t *testing.T, name string, undocumentedAttrs *set.Set, schema string) {
+func TestPayloadAttributesInSchema(t *testing.T, name string, undocumentedAttrs *Set, schema string) {
 	payload, _ := loader.LoadValidData(name)
-	jsonNames := set.New()
+	jsonNames := NewSet()
 	flattenJsonKeys(payload, "", jsonNames)
-	jsonNamesDoc := set.Difference(jsonNames, undocumentedAttrs).(*set.Set)
+	jsonNamesDoc := Difference(jsonNames, undocumentedAttrs)
 
 	schemaStruct, _ := schemaStruct(strings.NewReader(schema))
-	schemaNames := set.New()
+	schemaNames := NewSet()
 	flattenSchemaNames(schemaStruct, "", addAllPropNames, schemaNames)
 
-	missing := set.Difference(jsonNamesDoc, schemaNames).(*set.Set)
-	if missing.Size() > 0 {
+	missing := Difference(jsonNamesDoc, schemaNames)
+	if missing.Len() > 0 {
 		msg := fmt.Sprintf("Json payload fields missing in Schema %v", missing)
 		assert.Fail(t, msg)
 	}
 
-	missing = set.Difference(schemaNames, jsonNames).(*set.Set)
-	if missing.Size() > 0 {
+	missing = Difference(schemaNames, jsonNames)
+	if missing.Len() > 0 {
 		msg := fmt.Sprintf("Json schema fields missing in Payload %v", missing)
 		assert.Fail(t, msg)
 	}
 }
 
-func TestJsonSchemaKeywordLimitation(t *testing.T, fieldPaths []string, schema string, exceptions *set.Set) {
+func TestJsonSchemaKeywordLimitation(t *testing.T, fieldPaths []string, schema string, exceptions *Set) {
 	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addKeywordFields)
 	assert.NoError(t, err)
 
 	schemaStruct, _ := schemaStruct(strings.NewReader(schema))
-	schemaNames := set.New()
+	schemaNames := NewSet()
 	flattenSchemaNames(schemaStruct, "", addLengthRestrictedPropNames, schemaNames)
 
 	mapping := []Mapping{
@@ -87,8 +86,8 @@ func TestJsonSchemaKeywordLimitation(t *testing.T, fieldPaths []string, schema s
 		{"system", "context.system"},
 	}
 
-	mappedSchemaNames := set.New()
-	for _, k := range schemaNames.List() {
+	mappedSchemaNames := NewSet()
+	for _, k := range schemaNames.Array() {
 		name := k.(string)
 		for _, m := range mapping {
 			if strings.HasPrefix(name, m.from) {
@@ -98,11 +97,11 @@ func TestJsonSchemaKeywordLimitation(t *testing.T, fieldPaths []string, schema s
 		}
 		mappedSchemaNames.Add(k)
 	}
-	found := set.Union(mappedSchemaNames, exceptions).(*set.Set)
-	diff := set.SymmetricDifference(fieldNames, found).(*set.Set)
+	found := Union(mappedSchemaNames, exceptions)
+	diff := SymmDifference(fieldNames, found)
 
 	errMsg := fmt.Sprintf("Missing json schema length limit 1024 for: %v", diff)
-	assert.Equal(t, 0, diff.Size(), errMsg)
+	assert.Equal(t, 0, diff.Len(), errMsg)
 }
 
 func schemaStruct(reader io.Reader) (*Schema, error) {
@@ -112,7 +111,7 @@ func schemaStruct(reader io.Reader) (*Schema, error) {
 	return &schema, err
 }
 
-func flattenSchemaNames(s *Schema, prefix string, addFn addProperty, flattened *set.Set) {
+func flattenSchemaNames(s *Schema, prefix string, addFn addProperty, flattened *Set) {
 	if len(s.Properties) > 0 {
 		for k, v := range s.Properties {
 			flattenedKey := StrConcat(prefix, k, ".")
@@ -126,7 +125,7 @@ func flattenSchemaNames(s *Schema, prefix string, addFn addProperty, flattened *
 	}
 }
 
-func flattenJsonKeys(data interface{}, prefix string, flattened *set.Set) {
+func flattenJsonKeys(data interface{}, prefix string, flattened *Set) {
 	if d, ok := data.(map[string]interface{}); ok {
 		for k, v := range d {
 			key := StrConcat(prefix, k, ".")
