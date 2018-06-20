@@ -1,0 +1,153 @@
+package tests
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+type mapInterface = map[interface{}]interface{}
+
+func TestNewSet(t *testing.T) {
+	for _, d := range []struct {
+		init []interface{}
+		out  []interface{}
+	}{
+		{[]interface{}{"a", "b", "b"}, []interface{}{"a", "b"}},
+		{[]interface{}{1, 2, 1, 0, "a"}, []interface{}{1, 2, 0, "a"}},
+		{[]interface{}{}, []interface{}{}},
+		{nil, []interface{}{}},
+	} {
+		assert.ElementsMatch(t, d.out, NewSet(d.init...).Array())
+	}
+}
+
+func TestSetAdd(t *testing.T) {
+	for _, d := range []struct {
+		s   *Set
+		add interface{}
+		out []interface{}
+	}{
+		{NewSet(), "a", []interface{}{"a"}},
+		{NewSet(1, "a"), "a", []interface{}{1, "a"}},
+		{NewSet(123), "a", []interface{}{123, "a"}},
+	} {
+		d.s.Add(d.add)
+		assert.ElementsMatch(t, d.out, d.s.Array())
+	}
+}
+
+func TestSetRemove(t *testing.T) {
+	for _, d := range []struct {
+		s      *Set
+		remove interface{}
+		out    []interface{}
+	}{
+		{NewSet(), "a", []interface{}{}},
+		{NewSet("a"), "a", []interface{}{}},
+		{NewSet(123, "a"), 123, []interface{}{"a"}},
+		{NewSet(123, "a", "a"), "a", []interface{}{123}},
+	} {
+		d.s.Remove(d.remove)
+		assert.ElementsMatch(t, d.out, d.s.Array())
+	}
+}
+
+func TestSetContains(t *testing.T) {
+	for _, d := range []struct {
+		s     *Set
+		input interface{}
+		out   bool
+	}{
+		{NewSet(), "a", false},
+		{NewSet(1, 2, 3), "a", false},
+		{NewSet("a", "b"), "a", true},
+	} {
+		assert.Equal(t, d.out, d.s.Contains(d.input))
+	}
+}
+func TestSetCopy(t *testing.T) {
+	for _, d := range []struct {
+		s   *Set
+		out []interface{}
+	}{
+		{NewSet(), []interface{}{}},
+		{NewSet("a"), []interface{}{"a"}},
+		{NewSet(123, "a", "a"), []interface{}{"a", 123}},
+	} {
+		copied := d.s.Copy()
+		d.s.Add(500)
+		assert.ElementsMatch(t, d.out, copied.Array())
+	}
+}
+
+func TestSetLen(t *testing.T) {
+	for _, d := range []struct {
+		s   *Set
+		len int
+	}{
+		{NewSet(), 0},
+		{NewSet("a"), 1},
+		{NewSet(123, "a", "a"), 2},
+	} {
+		assert.Equal(t, d.len, d.s.Len())
+	}
+}
+
+func TestSetUnion(t *testing.T) {
+	for _, d := range []struct {
+		s1  *Set
+		s2  *Set
+		out []interface{}
+	}{
+		{NewSet(), NewSet(), []interface{}{}},
+		{NewSet(34.5, "a"), NewSet(), []interface{}{34.5, "a"}},
+		{NewSet(), NewSet(1), []interface{}{1}},
+		{NewSet(1, 2, 3), NewSet(1, "a"), []interface{}{1, 2, 3, "a"}},
+	} {
+		assert.ElementsMatch(t, d.out, Union(d.s1, d.s2).Array())
+	}
+}
+
+func TestSetDifference(t *testing.T) {
+	for _, d := range []struct {
+		s1  *Set
+		s2  *Set
+		out []interface{}
+	}{
+		{NewSet(), NewSet(), []interface{}{}},
+		{NewSet(34.5, "a"), NewSet(), []interface{}{34.5, "a"}},
+		{NewSet(), NewSet(1), []interface{}{}},
+		{NewSet(1, 2, 3), NewSet(1, "a"), []interface{}{2, 3}},
+	} {
+		assert.ElementsMatch(t, d.out, Difference(d.s1, d.s2).Array())
+	}
+}
+
+func TestSetSymmDifference(t *testing.T) {
+	for _, d := range []struct {
+		s1  *Set
+		s2  *Set
+		out []interface{}
+	}{
+		{NewSet(), NewSet(), []interface{}{}},
+		{NewSet(34.5, "a"), NewSet(), []interface{}{34.5, "a"}},
+		{NewSet(), NewSet(1), []interface{}{1}},
+		{NewSet(1, 2, 3, 8.9, "b"), NewSet(1, "a", 8.9, "b"), []interface{}{2, 3, "a"}},
+	} {
+		assert.ElementsMatch(t, d.out, SymmDifference(d.s1, d.s2).Array())
+	}
+}
+
+func TestSetArray(t *testing.T) {
+	for _, d := range []struct {
+		s   *Set
+		out []interface{}
+	}{
+		{NewSet(), []interface{}{}},
+		{NewSet(34.5, "a"), []interface{}{34.5, "a"}},
+		{NewSet(1, 1, 1), []interface{}{1}},
+	} {
+		assert.ElementsMatch(t, d.out, d.s.Array())
+	}
+}

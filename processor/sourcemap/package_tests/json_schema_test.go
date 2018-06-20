@@ -3,8 +3,6 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/fatih/set"
-
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/tests"
 )
@@ -14,7 +12,7 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 
 	tests.TestPayloadAttributesInSchema(t,
 		"sourcemap",
-		set.New("sourcemap", "sourcemap.file", "sourcemap.names", "sourcemap.sources", "sourcemap.sourceRoot",
+		tests.NewSet("sourcemap", "sourcemap.file", "sourcemap.names", "sourcemap.sources", "sourcemap.sourceRoot",
 			"sourcemap.mappings", "sourcemap.sourcesContent", "sourcemap.version"),
 		sourcemap.Schema())
 }
