@@ -54,14 +54,14 @@ create-docs:
 	@mkdir -p docs/data/intake-api/generated/error
 	@mkdir -p docs/data/intake-api/generated/transaction
 	@mkdir -p docs/data/intake-api/generated/sourcemap
-	@cp tests/data/error/payload.json docs/data/intake-api/generated/error/
-	@cp tests/data/error/frontend.json docs/data/intake-api/generated/error/
-	@cp tests/data/error/minimal_payload_exception.json docs/data/intake-api/generated/error/
-	@cp tests/data/error/minimal_payload_log.json docs/data/intake-api/generated/error/
-	@cp tests/data/transaction/payload.json docs/data/intake-api/generated/transaction/
-	@cp tests/data/transaction/minimal_payload.json docs/data/intake-api/generated/transaction/
-	@cp tests/data/transaction/minimal_span.json docs/data/intake-api/generated/transaction/
-	@cp tests/data/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
+	@cp testdata/error/payload.json docs/data/intake-api/generated/error/
+	@cp testdata/error/frontend.json docs/data/intake-api/generated/error/
+	@cp testdata/error/minimal_payload_exception.json docs/data/intake-api/generated/error/
+	@cp testdata/error/minimal_payload_log.json docs/data/intake-api/generated/error/
+	@cp testdata/transaction/payload.json docs/data/intake-api/generated/transaction/
+	@cp testdata/transaction/minimal_payload.json docs/data/intake-api/generated/transaction/
+	@cp testdata/transaction/minimal_span.json docs/data/intake-api/generated/transaction/
+	@cp testdata/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
 
 # Start manual testing environment with agents
 start-env:

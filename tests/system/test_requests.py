@@ -152,9 +152,7 @@ class ClientSideTest(ClientSideBaseTest):
 
     def test_sourcemap_upload_fail(self):
         path = self._beat_path_join(
-            'tests',
-            'data',
-            'valid',
+            'testdata',
             'sourcemap',
             'bundle.js.map')
         file = open(path)

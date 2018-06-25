@@ -28,8 +28,8 @@ import (
 // ensure all valid documents pass through the whole validation and transformation process
 func TestSourcemapProcessorOK(t *testing.T) {
 	requestInfo := []tests.RequestInfo{
-		{Name: "TestProcessSourcemapFull", Path: "data/sourcemap/payload.json"},
-		{Name: "TestProcessSourcemapMinimalPayload", Path: "data/sourcemap/minimal_payload.json"},
+		{Name: "TestProcessSourcemapFull", Path: "../testdata/sourcemap/payload.json"},
+		{Name: "TestProcessSourcemapMinimalPayload", Path: "../testdata/sourcemap/minimal_payload.json"},
 	}
 	tests.TestProcessRequests(t, sourcemap.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
 }
