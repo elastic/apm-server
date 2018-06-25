@@ -1,7 +1,7 @@
-
 [[release-notes-head]]
 == APM Server version HEAD
 
+// These have to be under a == headline unfortunately:
 // Use these for links to issue and pulls. Note issues and pulls redirect one to
 // each other on Github, so don't worry too much on using the right prefix.
 :issue: https://github.com/elastic/apm-server/issues/
@@ -12,9 +12,9 @@ https://github.com/elastic/apm-server/compare/9e0a1e281e56044745f1a4f18dcbf00a7f
 
 === Added
 
-- Listen on default port 8200 if unspecified {pull}[886]886.
+- Listen on default port 8200 if unspecified {pull}886[886].
 - Update Go to 1.10.1 {pull}894[894].
-- Combine `apm-server.yml` and `apm-server.reference.yml` into one file {pull}[958]958.
+- Combine `apm-server.yml` and `apm-server.reference.yml` into one file {pull}958[958].
 - Add optional tracing for the server's API and event publisher {pull}816[816].
 
 
