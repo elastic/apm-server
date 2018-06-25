@@ -116,7 +116,7 @@ func TestDecodeSourcemapFormData(t *testing.T) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	fileBytes, err := loader.LoadDataAsBytes("data/sourcemap/bundle.js.map")
+	fileBytes, err := loader.LoadDataAsBytes("../testdata/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	part, err := writer.CreateFormFile("sourcemap", "bundle_no_mapping.js.map")
 	assert.NoError(t, err)

@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/yudai/gojsondiff"
 
 	"github.com/elastic/apm-server/config"
@@ -98,16 +99,15 @@ type RequestInfo struct {
 }
 
 func TestProcessRequests(t *testing.T, p processor.Processor, config config.Config, requestInfo []RequestInfo, ignored map[string]string) {
-	assert := assert.New(t)
 	for _, info := range requestInfo {
 		data, err := loader.LoadData(info.Path)
-		assert.Nil(err)
+		require.NoError(t, err)
 
 		err = p.Validate(data)
-		assert.NoError(err)
+		require.NoError(t, err)
 
 		payload, err := p.Decode(data)
-		assert.NoError(err)
+		require.NoError(t, err)
 
 		events := payload.Transform(config)
 
@@ -121,7 +121,7 @@ func TestProcessRequests(t *testing.T, p processor.Processor, config config.Conf
 		receivedJson := map[string]interface{}{"events": eventFields}
 		verifyErr := ApproveJson(receivedJson, info.Name, ignored)
 		if verifyErr != nil {
-			assert.Fail(fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
+			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
 		}
 	}
 }
