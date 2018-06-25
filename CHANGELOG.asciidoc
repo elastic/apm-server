@@ -1,3 +1,7 @@
+[[release-notes-head]]
+== APM Server version HEAD
+
+// These have to be under a == headline unfortunately:
 // Use these for links to issue and pulls. Note issues and pulls redirect one to
 // each other on Github, so don't worry too much on using the right prefix.
 :issue: https://github.com/elastic/apm-server/issues/
@@ -6,8 +10,52 @@
 
 === APM Server version 6.2
 https://github.com/elastic/apm-server/compare/6.1...6.2[View commits]
+https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
 
-==== Breaking changes
+=== Added
+
+- Listen on default port 8200 if unspecified {pull}886[886].
+- Update Go to 1.10.1 {pull}894[894].
+- Combine `apm-server.yml` and `apm-server.reference.yml` into one file {pull}958[958].
+- Add optional tracing for the server's API and event publisher {pull}816[816].
+- Read sourcemap content and fill context lines {pull}972[972].
+
+
+
+[[release-notes-6.3]]
+== APM Server version 6.3
+https://github.com/elastic/apm-server/compare/6.2\...6.3[View commits]
+
+=== Bug fixes
+
+- Accept charset in request's content type {pull}677[677].
+- Use type integer instead of number in JSON schemas where applicable {pull}641[641].
+- Set array item types to string in JSON schemas {pull}651[651].
+- Fix issue preventing server from being stopped {pull}704[704].
+- Limit the amount of concurrent requests being processed {pull}731[731].
+- Return proper response code for request entity too large {pull}862[862].
+- Make APM Server docker image listen on all interfaces by default https://github.com/elastic/apm-server-docker/pull/16[apm-server-dockers#16]
+
+=== Added
+
+- Enriched data with IP and UserAgent {pull}393[393], {pull}701[701], {pull}730[730], {pull}923[923].
+- Push errors and transactions to different ES indices {pull}706[706].
+- Allow custom `error.log.level` {pull}712[712].
+- Change `concurrent_request` default from 40 to 5 {pull}731[731].
+- Change `max_unzipped_size` default from 50mb to 30mb {pull}731[731].
+- Change `read_timeout` and `write_timeout` defaults from 2s to 30s {pull}748[748], {pull}752[752].
+- Limit number of new connections to accept simultaneously {pull}751[751].
+- Push spans to separate ES index {pull}774[774].
+- Update Go to 1.9.4 {pull}786[786].
+- Listen on unix domain socket with `host=unix:/path` {pull}768[768].
+- Make timestamp optional in the intake api {pull}819[819].
+
+
+[[release-notes-6.2]]
+== APM Server version 6.2
+https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828e0761d\...4daa36bd5c144cf9182afc62dc8042af663756c6[View commits]
+
+=== Breaking changes
 - Renaming and reverse boolean `in_app` to `library_frame` {pull}385[385].
 - Renaming `app` to `service` {pull}377[377]
 - Move `trace.transaction_id` to `transaction.id` {pull}345[345], {pull}347[347], {pull}371[371]
@@ -19,13 +67,15 @@ https://github.com/elastic/apm-server/compare/6.1...6.2[View commits]
 - Change config option `frontend.sourcemapping.index` to `frontend.source_mapping.index_pattern` and remove adding a '*' by default.{pull}492[492].
 - Remove untested config options from config yml files {pull}496[496]
 
-==== Bug fixes
+=== Bug fixes
 - Updated systemd doc url {pull}354[354]
 - Updated readme doc urls {pull}356[356]
 - Use updated stack trace frame values for calculating error `grouping_keys` {pull}485[485]
 - Fix panic when a signal is delivered before the server is instantiated {pull}580[580]
 
 ==== Added
+=== Added
+- Include build time and revision in version information {pull}396[396]
 - service.environment {pull}366[366]
 - Consider exception or log message for grouping key when nothing else is available {pull}435[435]
 - Add context.request.url.full {pull}436[436]
@@ -50,21 +100,17 @@ https://github.com/elastic/apm-server/compare/6.1...6.2[View commits]
 - Add Config option for excluding stack trace frames from `grouping_key` calculation {pull}482[482]
 - Remove config files from beats. Manually add relevant config options {pull}578[578]
 
-==== Deprecated
 
-==== Known Issues
-
-
-
-=== APM Server version 6.1
+[[release-notes-6.1]]
+== APM Server version 6.1
 https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21af0e74\...421db9d1e10935e7b9aec00b64cf66ad2d50d797[View commits]
 
-==== Breaking changes
+=== Breaking changes
 - Allow ES template index prefix to be `apm` {pull}152[152].
 - Remove `git_ref` from Intake API and Elasticsearch output {pull}158[158].
 - Switch to Go 1.9.2
 
-==== Bug fixes
+=== Bug fixes
 - Fix dashboard loading for Kibana 5x {pull}221[221].
 - Fix command for loading dashboards in docs {pull}205[205].
 - Log a warning message if secret token is set but ssl is not {pull}204[204].
@@ -75,7 +121,7 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 - Update dashboard with fix for rpm graphs {pull}315[315].
 - Dashboards: Remove time from url_templates {pull}321[321].
 
-==== Added
+=== Added
 - Added wildcard matching for allowed origins for frontend {pull}287[287].
 - Added rate limit per IP for frontend {pull}257[257].
 - Allow null for all optional fields {pull}253[253].
@@ -87,15 +133,11 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 - Send document to output on start of server {pull}117[117].
 - Log frontend status at startup  {pull}284[284].
 
-==== Deprecated
-
-==== Known Issues
-
-
-=== APM Server version 0.2.0
+[[release-notes-0.2]]
+== APM Server version 0.2.0
 https://github.com/elastic/apm-server/compare/3ad33b3129c0be3b0e4057efc53948c381a2af79\...f9a2086ceed0b918e1a0b3d8ddc140fc21af0e74[View commits]
 
-==== Breaking changes
+=== Breaking changes
 - Changed response status code in the API from 201 to 202 {pull}34[34]
 - Set dynamic mapping to false, enable only for `context.tags`. Fix issues with indexing. Removed from index: `request.headers_sent`, `app.argv`. Changes take place with {pull}43[43], after updating beats framework.
 - Remove `context.db.sql` and add `context.db.instance`, `context.db.statement`, `context.db.type` and `context.db.user` instead {pull}38[38].
@@ -105,14 +147,14 @@ https://github.com/elastic/apm-server/compare/3ad33b3129c0be3b0e4057efc53948c381
 - Changed default APM Server listen port from 8080 to 8200 {pull}91[91].
 - Removed `debug` unneeded handler. {pull}85[85].
 
-==== Bug fixes
+=== Bug fixes
 - changed `context.system.title` to `context.system.process_title`, removed `transaction.context`, `trace.context` (already available on top level). {pull}10[10]
 - changed type of `context.request.body` from `object` to `text`. {pull}27[27]
 - incoming transactions and errors could reuse data from previous POSTs due to payload state being kept in processors {pull}98[98].
 - forced apm-server to stop if/when the underlying http server is not running. Exit code is 0 for SIGINT / SIGTERM, 1 otherwise. {pull}94[94]
 - close http server immediately if it doesn't shutdown gracefully after a configurable timeout. {pull}107[107]
 
-==== Added
+=== Added
 
 - apm-server now returns JSON error responses when the Accept header allows for it.
 - Added `context.request.http_version` property {pull}52[52]
