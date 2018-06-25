@@ -18,6 +18,9 @@ https://github.com/elastic/apm-server/compare/9e0a1e281e56044745f1a4f18dcbf00a7f
 - Add optional tracing for the server's API and event publisher {pull}1029[1029].
 - Update Go to 1.10.1 {pull}894[894].
 - Combine `apm-server.yml` and `apm-server.reference.yml` into one file {pull}[958]958.
+- Add optional tracing for the server's API and event publisher {pull}816[816].
+- Read sourcemap content and fill context lines {pull}972[972].
+
 
 ==== Deprecated
 
