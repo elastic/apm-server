@@ -10,7 +10,7 @@ import (
 var (
 	procSetup = tests.ProcessorSetup{
 		Proc:            er.NewProcessor(),
-		FullPayloadPath: "data/error/payload.json",
+		FullPayloadPath: "../testdata/error/payload.json",
 		TemplatePaths: []string{"../_meta/fields.yml",
 			"../../../_meta/fields.common.yml"},
 	}

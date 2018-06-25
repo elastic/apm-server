@@ -20,7 +20,7 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 var (
 	procSetup = tests.ProcessorSetup{
 		Proc:            sm.NewProcessor(),
-		FullPayloadPath: "data/sourcemap/payload.json",
+		FullPayloadPath: "../testdata/sourcemap/payload.json",
 		TemplatePaths:   []string{"../_meta/fields.yml"},
 	}
 )

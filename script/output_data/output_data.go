@@ -22,10 +22,6 @@ func main() {
 }
 
 func generate() error {
-	filename := "payload.json"
-	basePath := "data"
-	outputPath := "docs/data/elasticsearch/"
-
 	var checked = map[string]struct{}{}
 
 	for path, mapping := range beater.Routes {
@@ -36,7 +32,7 @@ func generate() error {
 
 		p := mapping.ProcessorFactory()
 
-		data, err := loader.LoadData(filepath.Join(basePath, p.Name(), filename))
+		data, err := loader.LoadData(filepath.Join("..", "testdata", p.Name(), "payload.json"))
 		if err != nil {
 			return err
 		}
@@ -67,7 +63,7 @@ func generate() error {
 
 			if _, ok := checked[key]; !ok {
 				checked[key] = struct{}{}
-				file := filepath.Join(outputPath, event.(string)+".json")
+				file := filepath.Join("docs/data/elasticsearch", event.(string)+".json")
 
 				output, err := json.MarshalIndent(d.Fields, "", "    ")
 				if err != nil {

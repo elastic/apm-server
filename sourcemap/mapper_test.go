@@ -79,7 +79,7 @@ type fakeAccessor struct{}
 
 func (ac *fakeAccessor) Fetch(smapId Id) (*sourcemap.Consumer, error) {
 	current, _ := os.Getwd()
-	path := filepath.Join(current, "../tests/data/sourcemap/", smapId.Path)
+	path := filepath.Join(current, "../testdata/sourcemap/", smapId.Path)
 	fileBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
