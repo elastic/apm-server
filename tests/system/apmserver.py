@@ -30,8 +30,7 @@ class BaseTest(TestCase):
 
     def get_transaction_payload_path(self, name="payload.json"):
         return self._beat_path_join(
-            'tests',
-            'data',
+            'testdata',
             'transaction',
             name)
 
@@ -41,8 +40,7 @@ class BaseTest(TestCase):
 
     def get_error_payload_path(self, name="payload.json"):
         return self._beat_path_join(
-            'tests',
-            'data',
+            'testdata',
             'error',
             name)
 
@@ -268,8 +266,7 @@ class ClientSideBaseTest(ElasticTest):
                          bundle_filepath='bundle_no_mapping.js.map',
                          expected_ct=1):
         path = self._beat_path_join(
-            'tests',
-            'data',
+            'testdata',
             'sourcemap',
             file_name)
         f = open(path)
