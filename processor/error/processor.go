@@ -4,6 +4,7 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/processor/error/generated/schema"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -20,10 +21,10 @@ const (
 	errorDocType  = "error"
 )
 
-var schema = pr.CreateSchema(errorSchema, processorName)
+var loadedSchema = pr.CreateSchema(schema.PayloadSchema, processorName)
 
 func NewProcessor() pr.Processor {
-	return &processor{schema: schema}
+	return &processor{schema: loadedSchema}
 }
 
 func (p *processor) Name() string {

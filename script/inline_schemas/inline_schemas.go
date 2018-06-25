@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -12,11 +14,11 @@ const basePath = "./docs/spec/"
 
 func main() {
 	schemaPaths := []struct {
-		path, schemaOut, goVariable, packageName string
+		path, schemaOut string
 	}{
-		{"errors/payload.json", "processor/error/schema.go", "errorSchema", "error"},
-		{"transactions/payload.json", "processor/transaction/schema.go", "transactionSchema", "transaction"},
-		{"sourcemaps/payload.json", "processor/sourcemap/schema.go", "sourcemapSchema", "sourcemap"},
+		{"errors/payload.json", "processor/error/generated/schema/payload.go"},
+		{"transactions/payload.json", "processor/transaction/generated/schema/payload.go"},
+		{"sourcemaps/payload.json", "processor/sourcemap/generated/schema/payload.go"},
 	}
 	for _, schemaInfo := range schemaPaths {
 		file := filepath.Join(filepath.Dir(basePath), schemaInfo.path)
@@ -30,8 +32,11 @@ func main() {
 			panic(err)
 		}
 
-		publicSchema := fmt.Sprintf("func Schema() string {\n\treturn %s\n}\n", schemaInfo.goVariable)
-		goScript := fmt.Sprintf("package %s\n\n%s\nvar %s = `%s`\n", schemaInfo.packageName, publicSchema, schemaInfo.goVariable, schema)
+		goScript := fmt.Sprintf("package schema\n\nconst PayloadSchema = `%s`\n", schema)
+		err = os.MkdirAll(path.Dir(schemaInfo.schemaOut), os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
 		err = ioutil.WriteFile(schemaInfo.schemaOut, []byte(goScript), 0644)
 		if err != nil {
 			panic(err)

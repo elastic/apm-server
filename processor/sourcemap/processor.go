@@ -9,6 +9,7 @@ import (
 	parser "github.com/go-sourcemap/sourcemap"
 
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/processor/sourcemap/generated/schema"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -26,10 +27,10 @@ var (
 	decodingError          = monitoring.NewInt(sourcemapUploadMetrics, "decoding.errors")
 )
 
-var schema = pr.CreateSchema(sourcemapSchema, processorName)
+var loadedSchema = pr.CreateSchema(schema.PayloadSchema, processorName)
 
 func NewProcessor() pr.Processor {
-	return &processor{schema: schema}
+	return &processor{schema: loadedSchema}
 }
 
 func (p *processor) Name() string {

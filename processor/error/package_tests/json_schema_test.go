@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	er "github.com/elastic/apm-server/processor/error"
+	"github.com/elastic/apm-server/processor/error/generated/schema"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -148,5 +149,5 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"errors.context.request.cookies.c2",
 		"errors.context.tags.organization_uuid",
 	)
-	tests.TestPayloadAttributesInSchema(t, "error", undocumented, er.Schema())
+	tests.TestPayloadAttributesInSchema(t, "error", undocumented, schema.PayloadSchema)
 }
