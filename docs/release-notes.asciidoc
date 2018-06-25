@@ -1,0 +1,8 @@
+:root-dir: ../
+
+[[release-notes]]
+== Release notes
+
+* <<release-notes-6.1>>
+
+include::{root-dir}/CHANGELOG.asciidoc[]
