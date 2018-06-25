@@ -30,3 +30,5 @@ include::./error-api.asciidoc[]
 include::./generated-docs.asciidoc[]
 
 include::./fields.asciidoc[]
+
+include::./release-notes.asciidoc[]
