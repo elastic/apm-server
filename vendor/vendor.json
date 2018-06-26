@@ -936,8 +936,8 @@
 		{
 			"checksumSHA1": "OZKgeedHl9I4WOMR+7ROvCJR9pU=",
 			"path": "github.com/elastic/beats/libbeat/publisher/testing",
-			"revision": "0438ae89b76724cd3e7d2b3f69b3d3ec1ff46181",
-			"revisionTime": "2018-04-25T11:07:50Z",
+			"revision": "575c6758d3ef0b33d4b1af54f35cadbc87fda08e",
+			"revisionTime": "2018-06-19T23:39:25Z",
 			"version": "6.x",
 			"versionExact": "6.x"
 		},
