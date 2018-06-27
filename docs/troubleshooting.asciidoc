@@ -10,7 +10,7 @@
 If you have issues installing or running APM Server, 
 read the following tips:
 
-* <<common-problems>>
+* <<faq>>
 * <<getting-help>>
 * <<enable-apm-server-debugging>>
 
@@ -18,7 +18,7 @@ read the following tips:
 
 --
 
-include::common-problems.asciidoc[]
+include::faq.asciidoc[]
 
 
 [[getting-help]]
