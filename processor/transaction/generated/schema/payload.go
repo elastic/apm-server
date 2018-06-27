@@ -1,10 +1,6 @@
-package transaction
+package schema
 
-func Schema() string {
-	return transactionSchema
-}
-
-var transactionSchema = `{
+const PayloadSchema = `{
     "$id": "docs/spec/transactions/payload.json",
     "title": "Transactions payload",
     "description": "List of transactions wrapped in an object containing some other attributes normalized away from the transactions themselves",

@@ -2,6 +2,7 @@ package transaction
 
 import (
 	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/processor/transaction/generated/schema"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -21,10 +22,10 @@ const (
 	spanDocType        = "span"
 )
 
-var schema = pr.CreateSchema(transactionSchema, processorName)
+var loadedSchema = pr.CreateSchema(schema.PayloadSchema, processorName)
 
 func NewProcessor() pr.Processor {
-	return &processor{schema: schema}
+	return &processor{schema: loadedSchema}
 }
 
 type processor struct {
