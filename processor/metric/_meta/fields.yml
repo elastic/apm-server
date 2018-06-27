@@ -1,0 +1,11 @@
+- key: apm-metric
+  title: APM Metric
+  description: APM Metrics for correlation with traces and logs
+  fields:
+    - name: metric
+      type: object
+      object_type: float
+      object_type_mapping_type: long
+      dynamic: true
+      description: >
+        Sampled metrics collected from the agent

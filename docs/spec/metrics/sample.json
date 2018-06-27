@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metrics/sample.json",
+    "type": ["object", "null"],
+    "description": "A single metric sample.",
+    "oneOf": [
+        {
+            "properties": {
+                "type": {"enum": ["counter", "gauge"]},
+                "unit": {"type": ["string", "null"]},
+                "value": {"type": "number"}
+            },
+            "required": ["type", "value"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["summary"]},
+                "unit": {"type": ["string", "null"]},
+                "count": {"type": "number"},
+                "sum": {"type": "number"},
+                "stddev": {"type": ["number", "null"]},
+                "min": {"type": ["number", "null"]},
+                "max": {"type": ["number", "null"]},
+                "quantiles": {
+                    "type": ["array", "null"],
+                    "items": {
+                        "type": ["array", "null"],
+                        "items": {
+                            "type": "number"
+                        },
+                        "maxItems": 2,
+                        "minItems": 2
+                    }
+                }
+            },
+            "required": ["type", "count", "sum"]
+        }
+    ]
+}

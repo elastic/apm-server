@@ -32,6 +32,24 @@ func (d *ManualDecoder) Float64(base map[string]interface{}, key string, keys ..
 	return 0.0
 }
 
+func (d *ManualDecoder) Float64Ptr(base map[string]interface{}, key string, keys ...string) *float64 {
+	val := getDeep(base, keys...)[key]
+	if val == nil {
+		return nil
+	} else if valFloat, ok := val.(float64); ok {
+		return &valFloat
+	} else if valNumber, ok := val.(json.Number); ok {
+		if valFloat, err := valNumber.Float64(); err != nil {
+			d.Err = err
+		} else {
+			return &valFloat
+		}
+	}
+
+	d.Err = fetchErr
+	return nil
+}
+
 func (d *ManualDecoder) IntPtr(base map[string]interface{}, key string, keys ...string) *int {
 	val := getDeep(base, keys...)[key]
 	if val == nil {

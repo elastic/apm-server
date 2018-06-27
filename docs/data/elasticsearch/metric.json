@@ -1,0 +1,89 @@
+{
+    "context": {
+        "process": {
+            "argv": [
+                "./apm-server"
+            ],
+            "pid": 32472,
+            "ppid": 26110
+        },
+        "service": {
+            "agent": {
+                "name": "elastic-go",
+                "version": "0.1.0"
+            },
+            "environment": "staging",
+            "language": {
+                "name": "go",
+                "version": "go1.10.1"
+            },
+            "name": "apm-server",
+            "runtime": {
+                "name": "gc",
+                "version": "go1.10.1"
+            },
+            "version": "6.x"
+        },
+        "system": {
+            "architecture": "amd64",
+            "ip": "127.0.0.1",
+            "platform": "darwin"
+        },
+        "tags": {
+            "code": "200",
+            "some.other.code": "abc"
+        }
+    },
+    "metric": {
+        "byte_counter": {
+            "type": "counter",
+            "value": 1
+        },
+        "dotted.float.gauge": {
+            "type": "gauge",
+            "value": 6.12
+        },
+        "double_gauge": {
+            "type": "gauge",
+            "value": 3.141592653589793
+        },
+        "float_gauge": {
+            "type": "gauge",
+            "value": 9.16
+        },
+        "integer_gauge": {
+            "type": "gauge",
+            "value": 42767
+        },
+        "long_gauge": {
+            "type": "gauge",
+            "value": 3147483648
+        },
+        "negative.d.o.t.t.e.d": {
+            "type": "gauge",
+            "value": -1022
+        },
+        "short_counter": {
+            "type": "counter",
+            "unit": "foos",
+            "value": 227
+        },
+        "summary.maximal": {
+            "count": 5,
+            "max": 12,
+            "min": -5.1,
+            "stddev": 7.45,
+            "sum": 100,
+            "type": "summary"
+        },
+        "summary.minimal": {
+            "count": 5,
+            "sum": 100,
+            "type": "summary"
+        }
+    },
+    "processor": {
+        "event": "metric",
+        "name": "metric"
+    }
+}
