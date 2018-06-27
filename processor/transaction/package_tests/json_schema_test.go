@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	tr "github.com/elastic/apm-server/processor/transaction"
+	"github.com/elastic/apm-server/processor/transaction/generated/schema"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -190,5 +191,5 @@ func TestPayloadAttributesInSchema(t *testing.T) {
 		"transactions.marks.navigationTiming.navigationStart",
 		"transactions.marks.performance",
 	)
-	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, tr.Schema())
+	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, schema.PayloadSchema)
 }

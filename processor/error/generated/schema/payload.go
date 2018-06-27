@@ -15,13 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package error
+package schema
 
-func Schema() string {
-	return errorSchema
-}
-
-var errorSchema = `{
+const PayloadSchema = `{
     "$id": "docs/spec/errors/payload.json",
     "title": "Errors payload",
     "description": "List of errors wrapped in an object containing some other attributes normalized away from the errors themselves",
