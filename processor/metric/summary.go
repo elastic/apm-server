@@ -2,7 +2,7 @@ package metric
 
 import (
 	"encoding/json"
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -85,8 +85,7 @@ func (s *summary) mapstr() common.MapStr {
 		quantiles := common.MapStr{}
 		for q, value := range s.quantiles {
 			// index quantiles as percentiles
-			k := fmt.Sprintf("%f", q*100)
-			k = strings.TrimRight(strings.TrimRight(k, "0"), ".") // 99.0000 -> 99
+			k := strconv.FormatFloat(q*100, 'f', -1, 64)
 			// can't have {99: 1} and {99: {.95: 1}} at the same time
 			k = strings.Replace(k, ".", "_", -1)
 			utility.Add(quantiles, k, value)
