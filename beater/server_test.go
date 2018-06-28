@@ -18,6 +18,8 @@ import (
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -45,7 +47,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerOk(t *testing.T) {
-	apm, teardown := setupServer(t, nil)
+	apm, teardown, err := setupServer(t, nil)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -75,7 +78,8 @@ func TestServerTcpNoPort(t *testing.T) {
 		"host": "localhost",
 	})
 	assert.NoError(t, err)
-	btr, teardown := setupServer(t, ucfg)
+	btr, teardown, err := setupServer(t, ucfg)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := btr.client(false)
@@ -101,7 +105,8 @@ func TestServerOkUnix(t *testing.T) {
 	addr := tmpTestUnix(t)
 	ucfg, err := common.NewConfigFrom(m{"host": "unix:" + addr})
 	assert.NoError(t, err)
-	btr, stop := setupServer(t, ucfg)
+	btr, stop, err := setupServer(t, ucfg)
+	require.NoError(t, err)
 	defer stop()
 
 	baseUrl, client := btr.client(false)
@@ -111,7 +116,8 @@ func TestServerOkUnix(t *testing.T) {
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, teardown := setupServer(t, nil)
+	apm, teardown, err := setupServer(t, nil)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -124,7 +130,8 @@ func TestServerHealth(t *testing.T) {
 func TestServerFrontendSwitch(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": []string{"*"}}})
 	assert.NoError(t, err)
-	apm, teardown := setupServer(t, ucfg)
+	apm, teardown, err := setupServer(t, ucfg)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -179,7 +186,8 @@ func TestServerCORS(t *testing.T) {
 		ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": test.allowedOrigins}})
 		assert.NoError(t, err)
 		var apm *beater
-		apm, teardown = setupServer(t, ucfg)
+		apm, teardown, err = setupServer(t, ucfg)
+		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 		req, err := http.NewRequest("POST", baseUrl+FrontendTransactionsURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
@@ -192,7 +200,8 @@ func TestServerCORS(t *testing.T) {
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown := setupServer(t, nil)
+	apm, teardown, err := setupServer(t, nil)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -239,7 +248,9 @@ func TestServerSSL(t *testing.T) {
 	defer teardown() // in case test crashes. calling teardown twice is ok
 	for idx, test := range tests {
 		var apm *beater
-		apm, teardown = setupServer(t, withSSL(t, test.domain))
+		var err error
+		apm, teardown, err = setupServer(t, withSSL(t, test.domain))
+		require.NoError(t, err)
 		baseUrl, client := apm.client(test.insecure)
 		if test.overrideProtocol {
 			baseUrl = strings.Replace(baseUrl, "https", "http", 1)
@@ -279,7 +290,8 @@ func TestServerTcpConnLimit(t *testing.T) {
 		"max_connections": maxConns,
 	})
 	assert.NoError(t, err)
-	apm, teardown := setupServer(t, ucfg)
+	apm, teardown, err := setupServer(t, ucfg)
+	require.NoError(t, err)
 	defer teardown()
 
 	conns := make([]net.Conn, backlog+maxConns)
@@ -398,7 +410,8 @@ func setupTestServerTracing(t *testing.T, enabled bool) (chan beat.Event, func()
 		"host":    "localhost:0",
 	})
 	assert.NoError(t, err)
-	beater, teardown := setupBeater(t, pub, cfg)
+	beater, teardown, err := setupBeater(t, pub, cfg)
+	require.NoError(t, err)
 
 	// onboarding event
 	e := <-events
@@ -415,7 +428,7 @@ func setupTestServerTracing(t *testing.T, enabled bool) (chan beat.Event, func()
 	return events, teardown
 }
 
-func setupServer(t *testing.T, cfg *common.Config) (*beater, func()) {
+func setupServer(t *testing.T, cfg *common.Config) (*beater, func(), error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -428,10 +441,11 @@ func setupServer(t *testing.T, cfg *common.Config) (*beater, func()) {
 		err = cfg.Unpack(baseConfig)
 	}
 	assert.NoError(t, err)
-	btr, stop := setupBeater(t, DummyPipeline(), baseConfig)
-
-	assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
-	return btr, stop
+	btr, stop, err := setupBeater(t, DummyPipeline(), baseConfig)
+	if err == nil {
+		assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
+	}
+	return btr, stop, err
 }
 
 var testData = func() []byte {
@@ -467,7 +481,7 @@ func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
 	return req
 }
 
-func waitForServer(url string, client *http.Client) {
+func waitForServer(url string, client *http.Client, c chan error) {
 	var check = func() int {
 		var res *http.Response
 		var err error
@@ -478,13 +492,12 @@ func waitForServer(url string, client *http.Client) {
 		return res.StatusCode
 	}
 
-	for i := 0; i <= 1000; i++ {
+	for {
 		time.Sleep(time.Second / 50)
 		if check() == http.StatusOK {
-			return
+			c <- nil
 		}
 	}
-	panic("server run timeout (10 seconds)")
 }
 
 func body(t *testing.T, response *http.Response) string {
