@@ -409,6 +409,16 @@ const PayloadSchema = `{
                            "description": "Username for accessing database"
                         }
                     }
+                },
+                "http": {
+                    "type": ["object", "null"],
+                    "description": "An object containing contextual data of the related http request.",
+                    "properties": {
+                        "url": {
+                            "type": ["string", "null"],
+                            "description": "The raw url of the correlating http request."
+                        }
+                    }
                 }
             }
         },
