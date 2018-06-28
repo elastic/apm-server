@@ -198,6 +198,9 @@
                     "user": "readonly_user",
                     "statement": "SELECT * FROM product_types WHERE user_id=?"
                 },
+                "http": {
+                    "url": "http://localhost:8000"
+                },
                 "service": {
                     "name": "1234_service-12a3",
                     "agent": {

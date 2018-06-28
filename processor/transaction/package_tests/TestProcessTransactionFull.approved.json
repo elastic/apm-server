@@ -148,6 +148,9 @@
                     "type": "sql",
                     "user": "readonly_user"
                 },
+                "http": {
+                    "url": "http://localhost:8000"
+                },
                 "service": {
                     "agent": {
                         "name": "elastic-node",
