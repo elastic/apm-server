@@ -5,7 +5,7 @@
     "description": "Metric data captured by an APM agent",
     "properties": {
         "samples": {
-            "type": ["object", "null"],
+            "type": ["object"],
             "description": "Sampled application metrics collected from the agent",
             "regexProperties": true,
             "patternProperties": {
@@ -17,7 +17,7 @@
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of user-defined tags with string values.",
+            "description": "A flat mapping of user-defined tags with string values",
             "regexProperties": true,
             "patternProperties": {
                 "^[^*\"]*$": {
