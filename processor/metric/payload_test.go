@@ -14,6 +14,17 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
+// assertMetricsMatch is an equality test for a metric as sample order is not important
+func assertMetricsMatch(t *testing.T, expected, actual metric) bool {
+	samplesMatch := assert.ElementsMatch(t, expected.samples, actual.samples)
+	expected.samples = nil
+	actual.samples = nil
+	nonSamplesMatch := assert.Equal(t, expected, actual)
+
+	return assert.True(t, samplesMatch && nonSamplesMatch,
+		fmt.Sprintf("metrics mismatch\nexpected:%#v\n   actual:%#v", expected, actual))
+}
+
 func TestPayloadDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
@@ -201,14 +212,14 @@ func TestPayloadDecode(t *testing.T) {
 				Metrics: []*metric{
 					{
 						samples: []sample{
+							&gauge{
+								name:  "some.gauge",
+								value: 9.16,
+							},
 							&counter{
 								name:  "a.counter",
 								count: 612,
 								unit:  &unit,
-							},
-							&gauge{
-								name:  "some.gauge",
-								value: 9.16,
 							},
 						},
 						tags: common.MapStr{
@@ -221,6 +232,22 @@ func TestPayloadDecode(t *testing.T) {
 		},
 	} {
 		payload, err := DecodePayload(test.input)
+
+		// compare metrics separately as they may be ordered differently
+		if test.p != nil && test.p.Metrics != nil {
+			for i := range test.p.Metrics {
+				if test.p.Metrics[i] == nil {
+					continue
+				}
+				want := *test.p.Metrics[i]
+				got := *payload.Metrics[i]
+				assertMetricsMatch(t, want, got)
+			}
+			// leave everything else in payload for comparison
+			test.p.Metrics = nil
+			payload.Metrics = nil
+		}
+		// compare remaining payload
 		assert.Equal(t, test.p, payload)
 		if test.err != nil {
 			assert.Error(t, err)
