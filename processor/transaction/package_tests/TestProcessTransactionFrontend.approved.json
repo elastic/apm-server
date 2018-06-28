@@ -52,6 +52,9 @@
         {
             "@timestamp": "-",
             "context": {
+                "http": {
+                    "url": "http://localhost:8000/test/e2e/general-usecase/span"
+                },
                 "service": {
                     "agent": {
                         "name": "apm-js",

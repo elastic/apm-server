@@ -42,6 +42,7 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"context.db.type",
 		"context.db.instance",
 		"context.db.user",
+		"context.http",
 		"sourcemap",
 		"transaction.marks.another_mark",
 		"transaction.marks.another_mark.some_long",

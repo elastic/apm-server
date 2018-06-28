@@ -163,6 +163,9 @@
                             "statement": "SELECT * FROM product_types WHERE user_id=?",
                             "type": "sql",
                             "user": "readonly_user"
+                        },
+                        "http": {
+                            "url": "http://localhost:8000"
                         }
                     }
                 },
