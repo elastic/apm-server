@@ -18,6 +18,8 @@ import (
 	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -46,7 +48,7 @@ func TestMain(m *testing.M) {
 
 func TestServerOk(t *testing.T) {
 	apm, teardown, err := setupServer(t, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -77,7 +79,7 @@ func TestServerTcpNoPort(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	btr, teardown, err := setupServer(t, ucfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := btr.client(false)
@@ -104,7 +106,7 @@ func TestServerOkUnix(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"host": "unix:" + addr})
 	assert.NoError(t, err)
 	btr, stop, err := setupServer(t, ucfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer stop()
 
 	baseUrl, client := btr.client(false)
@@ -115,7 +117,7 @@ func TestServerOkUnix(t *testing.T) {
 
 func TestServerHealth(t *testing.T) {
 	apm, teardown, err := setupServer(t, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -129,7 +131,7 @@ func TestServerFrontendSwitch(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": []string{"*"}}})
 	assert.NoError(t, err)
 	apm, teardown, err := setupServer(t, ucfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -185,7 +187,7 @@ func TestServerCORS(t *testing.T) {
 		assert.NoError(t, err)
 		var apm *beater
 		apm, teardown, err = setupServer(t, ucfg)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 		req, err := http.NewRequest("POST", baseUrl+FrontendTransactionsURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
@@ -199,7 +201,7 @@ func TestServerCORS(t *testing.T) {
 
 func TestServerNoContentType(t *testing.T) {
 	apm, teardown, err := setupServer(t, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
@@ -248,7 +250,7 @@ func TestServerSSL(t *testing.T) {
 		var apm *beater
 		var err error
 		apm, teardown, err = setupServer(t, withSSL(t, test.domain))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		baseUrl, client := apm.client(test.insecure)
 		if test.overrideProtocol {
 			baseUrl = strings.Replace(baseUrl, "https", "http", 1)
@@ -289,7 +291,7 @@ func TestServerTcpConnLimit(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	apm, teardown, err := setupServer(t, ucfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer teardown()
 
 	conns := make([]net.Conn, backlog+maxConns)
@@ -409,7 +411,7 @@ func setupTestServerTracing(t *testing.T, enabled bool) (chan beat.Event, func()
 	})
 	assert.NoError(t, err)
 	beater, teardown, err := setupBeater(t, pub, cfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// onboarding event
 	e := <-events
