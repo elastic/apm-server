@@ -40,9 +40,8 @@ apm-server:
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
 
-  # Please be aware that frontend support is an experimental feature at the moment!
   frontend:
-    # To enable experimental frontend support set this to true.
+    # To enable frontend support set this to true.
     enabled: false
 
     # Rate limit per second and IP address for requests sent to the frontend endpoint.
@@ -305,7 +304,7 @@ output.elasticsearch:
   # - error
   # - transaction
   # - span
-  # - sourcemap (experimental feature)
+  # - sourcemap
   #
   # The indices are all prefixed with `apm-%{[beat.version]}`.
   # To allow managing indices based on their age, all indices (except for sourcemaps) 
