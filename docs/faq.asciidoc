@@ -4,20 +4,20 @@
 
 This section describes frequently asked questions and common problems you might encounter with APM Server.
 
-* <<queue-is-full,How to handle a HTTP 503 Queue is full?>>
-* <<request-timed-out,How to handle a HTTP 503 Request timed out?>>
-* <<reduce-data,How to reduce the amount of data collected?>>
-* <<reduce-payload-size,How to decrease the payload size?>>
-* <<tune-output-config,How to tune the APM Server output configuration to your cluster?>>
-* <<increase-cluster-ingest,How to tune Elasticsearch for higher ingestion?>>
-* <<increase-queue-size,How to increase the size of the APM Server queue?>>
-* <<add-apm-server-nodes,How to add APM Server nodes?>>
-* <<delete-old-data,How to delete old data?>>
-* <<update-existing-data,How to update existing data?>>
+* <<queue-is-full>>
+* <<request-timed-out,How to handle an HTTP 503 Request timed out?>>
+* <<reduce-data>>
+* <<reduce-payload-size>>
+* <<tune-output-config>>
+* <<increase-cluster-ingest>>
+* <<increase-queue-size>>
+* <<add-apm-server-nodes>>
+* <<delete-old-data>>
+* <<update-existing-data>>
 
 [float]
 [[queue-is-full]]
-=== How to handle a HTTP 503 Queue is full?
+=== How to handle an HTTP 503 Queue is full?
 
 APM Server has an internal queue that buffers documents until they can be delivered to Elasticsearch.
 The internal queue helps to:
@@ -51,7 +51,7 @@ you might want to look into:
 
 [float]
 [[request-timed-out]]
-=== How to handle a HTTP 503 Request timed out waiting to be processed?
+=== How to handle an HTTP 503 Request timed out waiting to be processed?
 
 There is a limit to the number of requests that the APM Server can process concurrently.
 The APM Server returns an HTTP 503 status with the message "Request timed out waiting to be processed" when the limit is reached and the request from an agent is blocked.
@@ -133,15 +133,20 @@ You can either migrate your APM Server processes to more powerful machines or ad
 === How to delete old data?
 
 It might make sense to delete old APM indices on a regular basis to make room for new data. 
-To do this you can use a tool like Curator and set up a cron job to run it periodically.
+To do this you can use a tool like {curator-ref-current}[Curator] and set up a cron job to run it periodically.
 
 By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
 With the curator command line interface you can, for instance, see all your existing indices:
 
-["source","sh",subs="attributes"]
+["source","sh"]
 ------------------------------------------------------------
 curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
+------------------------------------------------------------
+// CONSOLE
 
+You should receive an output similar to: 
+["source","sh"]
+------------------------------------------------------------
 apm-{stack-version}-error-{sample_date_0}
 apm-{stack-version}-error-{sample_date_1}
 apm-{stack-version}-error-{sample_date_2}
@@ -156,21 +161,25 @@ apm-{stack-version}-transaction-{sample_date_2}
 
 And then delete any span indices older than 1 day:
 
-["source","sh",subs="attributes"]
+["source","sh"]
 ------------------------------------------------------------
 curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
+------------------------------------------------------------
+// CONSOLE
 
+["source","sh"]
+------------------------------------------------------------
 INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
 INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
 INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
 INFO      "delete_indices" action completed.
 ------------------------------------------------------------
 
-You can read more on Curator here: https://www.elastic.co/guide/en/elasticsearch/client/curator/current/index.html
 
-If you want to delete documents that match a specific query, e.g. all documents with a given `context.service.name`,
-you can do this by sending following request against your Elasticsearch API:
-["source","sh",subs="attributes"]
+In case you want to delete documents matching a specific query, e.g. all documents with a given `context.service.name`,
+you can do this by sending the following request:
+
+["source","sh"]
 ------------------------------------------------------------
 POST /apm-*/_delete_by_query
 {
@@ -189,17 +198,18 @@ POST /apm-*/_delete_by_query
   }
 }
 ------------------------------------------------------------
+// CONSOLE
 
-See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-delete-by-query.html for further information
-on this topic.
+See {ref}/docs-delete-by-query.html[delete by query] for further information on this topic.
 
 
 [float]
 [[update-existing-data]]
 === How to update existing data?
 In case you want to update specific attributes in existing documents, e.g. update `context.service.name` to a new value, 
-you can do this by sending following request against your Elasticsearch API: 
-["source","sh",subs="attributes"]
+you can do this by sending the following request: 
+
+["source","sh"]
 ------------------------------------------------------------
 POST /apm-*/_update_by_query
 {
@@ -222,5 +232,6 @@ POST /apm-*/_update_by_query
   }
 }
 ------------------------------------------------------------
-See https://www.elastic.co/guide/en/elasticsearch/reference/6.0//docs-update-by-query.html for further information on 
-this topic.
+// CONSOLE
+
+See {ref}/docs-update-by-query.html[update by query] for further information on this topic.
