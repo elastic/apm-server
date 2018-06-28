@@ -47,9 +47,10 @@ const PayloadSchema = `{
                     "type": ["array", "null"],
                     "items": {
                         "type": ["array", "null"],
-                        "items": {
-                            "type": "number"
-                        },
+                        "items": [
+                            {"type": "number", "minimum": 0, "maximum": 1},
+                            {"type": "number"}
+                        ],
                         "maxItems": 2,
                         "minItems": 2
                     }

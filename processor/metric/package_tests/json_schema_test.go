@@ -56,6 +56,30 @@ func TestInvalidPayloads(t *testing.T) {
 						val{obj{tsk: ts, "samples": obj{"metric-*-key-star": validGauge}}},
 					},
 				},
+				{
+					Msg: "properties/quantiles/items/items/0/minimum",
+					Values: val{
+						val{obj{tsk: ts, "samples": obj{
+							"min-exceeded": obj{
+								"type":      "summary",
+								"count":     1,
+								"sum":       1,
+								"quantiles": val{val{0, 6.12}, val{-0.5, 10}, val{0.5, 10}}}}},
+						},
+					},
+				},
+				{
+					Msg: "properties/quantiles/items/items/0/maximum",
+					Values: val{
+						val{obj{tsk: ts, "samples": obj{
+							"max-exceeded": obj{
+								"type":      "summary",
+								"count":     1,
+								"sum":       1,
+								"quantiles": val{val{0, 6.12}, val{100, 10}, val{0.5, 10}}}}},
+						},
+					},
+				},
 			},
 		},
 	}
