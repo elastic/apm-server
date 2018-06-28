@@ -16,14 +16,14 @@ const PayloadSchema = `{
     "description": "Metric data captured by an APM agent",
     "properties": {
         "samples": {
-            "type": ["object", "null"],
+            "type": ["object"],
             "description": "Sampled application metrics collected from the agent",
             "regexProperties": true,
             "patternProperties": {
                 "^[^*\"]*$": {
                         "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/metrics/sample.json",
-    "type": ["object", "null"],
+    "type": ["object"],
     "description": "A single metric sample.",
     "oneOf": [
         {

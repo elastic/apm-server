@@ -31,11 +31,20 @@ func TestInvalidPayloads(t *testing.T) {
 			Valid: val{
 				val{obj{tsk: ts, "samples": obj{"valid-counter": validCounter}}},
 				val{obj{tsk: ts, "samples": obj{"valid-gauge": validGauge}}},
+				val{obj{tsk: ts, "samples": obj{"valid-gauge": obj{"type": "gauge", "value": json.Number("1.0"), "unit": "foos"}}}},
+				val{obj{tsk: ts, "samples": obj{"valid-gauge": obj{"type": "gauge", "value": json.Number("1.0"), "unit": nil}}}},
 			},
 			Invalid: []tests.Invalid{
 				{
+					Msg: "properties/metrics/items/required",
+					Values: val{
+						val{obj{tsk: ts}},
+					},
+				},
+				{
 					Msg: "properties/metrics/items/properties/samples/type",
 					Values: val{
+						val{obj{tsk: ts, "samples": nil}},
 						val{obj{tsk: ts, "samples": "samples-as-string"}},
 						val{obj{tsk: ts, "samples": val{"samples-as-array"}}},
 					},
@@ -43,10 +52,14 @@ func TestInvalidPayloads(t *testing.T) {
 				{
 					Msg: "properties/metrics/items/properties/samples/patternproperties",
 					Values: val{
-						val{obj{tsk: ts, "samples": obj{"no-type": obj{"count": 17}}}},
-						val{obj{tsk: ts, "samples": obj{"invalid-type": obj{"type": "foo", "count": 17}}}},
-						val{obj{tsk: ts, "samples": obj{"string-counter": obj{"type": "counter", "count": "foo"}}}},
-						val{obj{tsk: ts, "samples": obj{"string-gauge": obj{"type": "gauge", "count": "foo"}}}},
+						val{obj{tsk: ts, "samples": obj{"valid-key": nil}}},
+						val{obj{tsk: ts, "samples": obj{"no-type": obj{"value": 17}}}},
+						val{obj{tsk: ts, "samples": obj{"invalid-type": obj{"type": "foo", "value": 17}}}},
+						val{obj{tsk: ts, "samples": obj{"nil-type": obj{"type": nil, "value": "foo"}}}},
+						val{obj{tsk: ts, "samples": obj{"nil-counter-value": obj{"type": "counter", "value": nil}}}},
+						val{obj{tsk: ts, "samples": obj{"nil-gauge-value": obj{"type": "gauge", "value": nil}}}},
+						val{obj{tsk: ts, "samples": obj{"string-counter": obj{"type": "counter", "value": "foo"}}}},
+						val{obj{tsk: ts, "samples": obj{"string-gauge": obj{"type": "gauge", "value": "foo"}}}},
 					},
 				},
 				{
