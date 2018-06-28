@@ -283,7 +283,7 @@ func (bt *beater) wait() error {
 	}
 }
 
-func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*beater, func()) {
+func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*beater, func(), error) {
 	// create a beat
 	apmBeat := &beat.Beat{
 		Publisher: publisher,
@@ -300,17 +300,28 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*b
 	assert.NoError(t, err)
 	assert.NotNil(t, beatBeater)
 
+	c := make(chan error)
 	// start it
 	go func() {
-		beatBeater.Run(apmBeat)
+		err := beatBeater.Run(apmBeat)
+		if err != nil {
+			c <- err
+		}
 	}()
 
-	// wait for ready
 	btr := beatBeater.(*beater)
 	btr.wait()
-	waitForServer(btr.client(true))
 
-	return btr, beatBeater.Stop
+	url, client := btr.client(true)
+	go func() {
+		waitForServer(url, client, c)
+	}()
+	select {
+	case err := <-c:
+		return btr, beatBeater.Stop, err
+	case <-time.After(time.Second * 10):
+		return nil, nil, errors.New("timeout waiting for server start")
+	}
 }
 
 func SetupServer(b *testing.B) *http.ServeMux {
