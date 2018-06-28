@@ -21,7 +21,7 @@ func TestDtPayloadMatchJsonSchema(t *testing.T) {
 
 func TestDtAttrsPresenceInError(t *testing.T) {
 	procSetup("dt").AttrsPresence(t,
-		requiredKeys(tests.NewSet("errors.trace_id", "errors.transaction_id")),
+		requiredKeys(tests.NewSet("errors.trace_id", "errors.transaction_id", "errors.parent_id")),
 		condRequiredKeys(nil))
 }
 

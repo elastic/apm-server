@@ -166,7 +166,7 @@ const PayloadSchema = `{
                             "pattern": "^[a-fA-F0-9]{32}$"
                         },
                         "parent_id": {
-                            "type": ["string","null"],
+                            "type": ["string"],
                             "description": "ID for the parent (transaction or span) where the error occured, hex encoded 64 random bits",
                             "pattern": "^[a-fA-F0-9]{16}$"
                         },
@@ -176,7 +176,7 @@ const PayloadSchema = `{
                             "pattern": "^[a-fA-F0-9]{16}$"
                         }
                     },
-                    "required": ["id", "trace_id", "transaction_id"]
+                    "required": ["id", "trace_id", "parent_id", "transaction_id"]
                 }
             ]
         },

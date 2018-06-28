@@ -231,6 +231,7 @@
             "id": "abcedf0123456789",
             "trace_id": "4cf497c7fd3df407d9b8c77740a40ec7",
             "transaction_id": "F002b14857338fa7",
+            "parent_id": "F002b14857338fa7",
             "timestamp": "2018-05-16T10:31:25.512Z",
             "log": {
                 "level": "custom log level",
