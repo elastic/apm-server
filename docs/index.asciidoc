@@ -40,3 +40,5 @@ include::./intake-api.asciidoc[]
 include::./fields.asciidoc[]
 
 include::./troubleshooting.asciidoc[]
+
+include::./release-notes.asciidoc[]
