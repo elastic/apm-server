@@ -33,7 +33,7 @@ please also have a look at the documentation for
 See how to {apm-get-started}/index.html[Get Started] with the Elastic APM system.
 
 [[why-separate-component]]
-== Why is APM Server a separate component?
+=== Why is APM Server a separate component?
 
 The APM Server is kept as a separate component for the following reasons:
 
