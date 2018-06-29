@@ -139,6 +139,9 @@ func (md *metricDecoder) decodeSamples(input interface{}) []sample {
 	samples := make([]sample, len(raw))
 	i := 0
 	for name, s := range raw {
+		if s == nil {
+			continue
+		}
 		sampleMap, ok := s.(map[string]interface{})
 		if !ok {
 			md.Err = fmt.Errorf("invalid sample: %s: %s", name, s)

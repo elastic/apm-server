@@ -23,9 +23,9 @@ const PayloadSchema = `{
                 "^[^*\"]*$": {
                         "$schema": "http://json-schema.org/draft-04/schema#",
     "$id": "docs/spec/metrics/sample.json",
-    "type": ["object"],
+    "type": ["object", "null"],
     "description": "A single metric sample.",
-    "oneOf": [
+    "anyOf": [
         {
             "properties": {
                 "type": {
@@ -74,7 +74,7 @@ const PayloadSchema = `{
                     "type": ["array", "null"],
                     "items": {
                         "descrption": "A [quantile, value] tuple",
-                        "type": ["array"],
+                        "type": ["array", "null"],
                         "items": [
                             {
                                 "type": "number",
