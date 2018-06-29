@@ -1,0 +1,18 @@
+{
+    "service": {
+        "name": "apm-server",
+        "agent": {
+            "name": "elastic-go",
+            "version": "0.1.0"
+        }
+    },
+    "metrics": [{
+        "samples": {
+            "go.memstats.heap.sys.bytes": {
+                "type": "gauge",
+                "value": 6.520832e+06
+            }
+        },
+        "timestamp": "2017-05-30T18:53:42.281Z"
+    }]
+}

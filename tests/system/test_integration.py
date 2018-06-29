@@ -505,3 +505,20 @@ class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
         """expvar enabled, should 200"""
         r = self.get_debug_vars()
         assert r.status_code == 200, r.status_code
+
+
+class MetricsIntegrationTest(Test):
+    def all_metrics_docs(self):
+        return self.es.search(index=self.index_name,
+                              body={"query": {"term": {"processor.event": "metric"}}})
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_metric_doc(self):
+        self.load_docs_with_template(self.get_metrics_payload_path(), self.metrics_url, 'metric', 1)
+        mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="metric*value")
+        found_mapping = False
+        for name, metric in mappings[self.index_name]["mappings"]["doc"].items():
+            for mapping in metric["mapping"].values():
+                assert mapping["type"] == "float", name + " mapped as " + mapping["type"] + ", not float"
+                found_mapping = True
+        assert found_mapping, "expected to find metric value mappings"

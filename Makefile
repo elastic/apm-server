@@ -49,13 +49,12 @@ go-generate:
 
 .PHONY: create-docs
 create-docs:
-	@mkdir -p docs/data/intake-api/generated/error
-	@mkdir -p docs/data/intake-api/generated/transaction
-	@mkdir -p docs/data/intake-api/generated/sourcemap
+	@mkdir -p docs/data/intake-api/generated/{error,transaction,metric,sourcemap}
 	@cp testdata/error/payload.json docs/data/intake-api/generated/error/
 	@cp testdata/error/frontend.json docs/data/intake-api/generated/error/
 	@cp testdata/error/minimal_payload_exception.json docs/data/intake-api/generated/error/
 	@cp testdata/error/minimal_payload_log.json docs/data/intake-api/generated/error/
+	@cp testdata/metric/payload.json docs/data/intake-api/generated/metric/
 	@cp testdata/transaction/payload.json docs/data/intake-api/generated/transaction/
 	@cp testdata/transaction/minimal_payload.json docs/data/intake-api/generated/transaction/
 	@cp testdata/transaction/minimal_span.json docs/data/intake-api/generated/transaction/

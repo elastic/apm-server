@@ -1,0 +1,30 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-go",
+                        "version": "0.1.0"
+                    },
+                    "name": "apm-server"
+                }
+            },
+            "metric": {
+                "counter.null.unit": {
+                    "type": "counter",
+                    "value": 6520832
+                },
+                "gauge.null.unit": {
+                    "type": "gauge",
+                    "value": 6520832
+                }
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            }
+        }
+    ]
+}

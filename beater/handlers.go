@@ -21,6 +21,7 @@ import (
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/healthcheck"
+	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/utility"
@@ -34,6 +35,7 @@ const (
 	BackendErrorsURL        = "/v1/errors"
 	FrontendErrorsURL       = "/v1/client-side/errors"
 	HealthCheckURL          = "/healthcheck"
+	MetricsURL              = "/v1/metrics"
 	SourcemapsURL           = "/v1/client-side/sourcemaps"
 
 	rateLimitCacheSize       = 1000
@@ -127,6 +129,7 @@ var (
 		BackendErrorsURL:        {backendHandler, perr.NewProcessor},
 		FrontendErrorsURL:       {frontendHandler, perr.NewProcessor},
 		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
+		MetricsURL:              {metricsHandler, metric.NewProcessor},
 		SourcemapsURL:           {sourcemapHandler, sourcemap.NewProcessor},
 	}
 )
@@ -196,6 +199,14 @@ func frontendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter)
 					corsHandler(beaterConfig.Frontend.AllowOrigins,
 						processRequestHandler(pf, config, report,
 							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))))
+}
+
+func metricsHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+	return logHandler(
+		killSwitchHandler(beaterConfig.Metrics.isEnabled(),
+			authHandler(beaterConfig.SecretToken,
+				processRequestHandler(pf, conf.Config{}, report,
+					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
 func sourcemapHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {

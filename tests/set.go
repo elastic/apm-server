@@ -1,5 +1,10 @@
 package tests
 
+import (
+	"fmt"
+	"regexp"
+)
+
 type Set struct {
 	entries map[interface{}]interface{}
 }
@@ -23,6 +28,21 @@ func (s *Set) Remove(input interface{}) {
 func (s *Set) Contains(input interface{}) bool {
 	if _, ok := s.entries[input]; ok {
 		return true
+	}
+	return false
+}
+
+func (s *Set) ContainsStrPattern(str string) bool {
+	if s.Contains(str) {
+		return true
+	}
+	for _, entry := range s.Array() {
+		if entryStr, ok := entry.(string); ok {
+			re, err := regexp.Compile(fmt.Sprintf("^%s$", entryStr))
+			if err == nil && re.MatchString(str) {
+				return true
+			}
+		}
 	}
 	return false
 }

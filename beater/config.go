@@ -25,6 +25,7 @@ type Config struct {
 	MaxRequestQueueTime time.Duration   `config:"max_request_queue_time"`
 	Expvar              *ExpvarConfig   `config:"expvar"`
 	Frontend            *FrontendConfig `config:"frontend"`
+	Metrics             *metricsConfig  `config:"metrics"`
 	AugmentEnabled      bool            `config:"capture_personal_data"`
 	Tracing             *TraceConfig    `config:"tracing"`
 }
@@ -43,6 +44,10 @@ type FrontendConfig struct {
 	SourceMapping       *SourceMapping `config:"source_mapping"`
 
 	beatVersion string
+}
+
+type metricsConfig struct {
+	Enabled *bool `config:"enabled"`
 }
 
 type SourceMapping struct {
@@ -86,6 +91,10 @@ func (c *FrontendConfig) isEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
+func (c *metricsConfig) isEnabled() bool {
+	return c != nil && (c.Enabled == nil || *c.Enabled)
+}
+
 func (s *SourceMapping) isSetup() bool {
 	return s != nil && (s.esConfig != nil)
 }
@@ -122,6 +131,7 @@ func replaceVersion(pattern, version string) string {
 }
 
 func defaultConfig(beatVersion string) *Config {
+	metricsEnabled := true
 	return &Config{
 		Host:                net.JoinHostPort("localhost", defaultPort),
 		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
@@ -151,6 +161,9 @@ func defaultConfig(beatVersion string) *Config {
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
 			Url:     "/debug/vars",
+		},
+		Metrics: &metricsConfig{
+			Enabled: &metricsEnabled,
 		},
 	}
 }
