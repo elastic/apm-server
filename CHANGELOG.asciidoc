@@ -9,7 +9,8 @@
 
 
 https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
-==== Added
+
+=== Added
 
 - Listen on default port 8200 if unspecified {pull}[886]886.
 - Add optional tracing for the server's API and event publisher {pull}1029[1029].
@@ -70,7 +71,6 @@ https://github.com/elastic/apm-server/compare/71df0d96445df35afe27f38bcf734a0828
 - Use updated stack trace frame values for calculating error `grouping_keys` {pull}485[485]
 - Fix panic when a signal is delivered before the server is instantiated {pull}580[580]
 
-==== Added
 === Added
 - Include build time and revision in version information {pull}396[396]
 - service.environment {pull}366[366]
