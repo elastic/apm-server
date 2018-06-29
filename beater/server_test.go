@@ -2,6 +2,7 @@ package beater
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -18,7 +19,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	publishertesting "github.com/elastic/beats/libbeat/publisher/testing"
 )
 
 var tmpCertPath string
@@ -308,6 +311,110 @@ func TestServerTcpConnLimit(t *testing.T) {
 	}
 }
 
+func TestServerTracingEnabled(t *testing.T) {
+	events, teardown := setupTestServerTracing(t, true)
+	defer teardown()
+
+	txEvents := transactionEvents(events)
+	var selfTransactions []string
+	for len(selfTransactions) < 2 {
+		select {
+		case e := <-txEvents:
+			name := eventTransactionName(e)
+			if name == "GET /api/types" {
+				continue
+			}
+			selfTransactions = append(selfTransactions, name)
+		case <-time.After(5 * time.Second):
+			assert.FailNow(t, "timed out waiting for transaction")
+		}
+	}
+	assert.Contains(t, selfTransactions, "POST "+BackendTransactionsURL)
+	assert.Contains(t, selfTransactions, "ProcessPending")
+
+	// We expect no more events, i.e. no recursive self-tracing.
+	for {
+		select {
+		case e := <-txEvents:
+			assert.FailNow(t, "unexpected event", "%v", e)
+		case <-time.After(time.Second):
+			return
+		}
+	}
+}
+
+func TestServerTracingDisabled(t *testing.T) {
+	events, teardown := setupTestServerTracing(t, false)
+	defer teardown()
+
+	txEvents := transactionEvents(events)
+	for {
+		select {
+		case e := <-txEvents:
+			assert.Equal(t, "GET /api/types", eventTransactionName(e))
+		case <-time.After(time.Second):
+			return
+		}
+	}
+}
+
+func eventTransactionName(event beat.Event) string {
+	transaction := event.Fields["transaction"].(common.MapStr)
+	return transaction["name"].(string)
+}
+
+func transactionEvents(events <-chan beat.Event) <-chan beat.Event {
+	out := make(chan beat.Event, 1)
+	go func() {
+		defer close(out)
+		for event := range events {
+			processor := event.Fields["processor"].(common.MapStr)
+			if processor["event"] == "transaction" {
+				out <- event
+			}
+		}
+	}()
+	return out
+}
+
+// setupTestServerTracing sets up a beater with or without tracing enabled,
+// and returns a channl to which events are published, and a function to be
+// called to teardown the beater. The initial onboarding event is consumed
+// and a transactions request is made before returning.
+func setupTestServerTracing(t *testing.T, enabled bool) (chan beat.Event, func()) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	os.Setenv("ELASTIC_APM_FLUSH_INTERVAL", "100ms")
+	defer os.Unsetenv("ELASTIC_APM_FLUSH_INTERVAL")
+
+	events := make(chan beat.Event, 10)
+	pubClient := publishertesting.NewChanClientWith(events)
+	pub := publishertesting.PublisherWithClient(pubClient)
+
+	cfg, err := common.NewConfigFrom(m{
+		"tracing": m{"enabled": enabled},
+		"host":    "localhost:0",
+	})
+	assert.NoError(t, err)
+	beater, teardown := setupBeater(t, pub, cfg)
+
+	// onboarding event
+	e := <-events
+	assert.Contains(t, e.Fields, "listening")
+
+	// Send a transaction request so we have something to trace.
+	baseUrl, client := beater.client(false)
+	req := makeTransactionRequest(t, baseUrl)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	assert.NoError(t, err)
+	resp.Body.Close()
+
+	return events, teardown
+}
+
 func setupServer(t *testing.T, cfg *common.Config) (*beater, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
@@ -321,7 +428,7 @@ func setupServer(t *testing.T, cfg *common.Config) (*beater, func()) {
 		err = cfg.Unpack(baseConfig)
 	}
 	assert.NoError(t, err)
-	btr, stop := setupBeater(t, baseConfig)
+	btr, stop := setupBeater(t, DummyPipeline(), baseConfig)
 
 	assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
 	return btr, stop
@@ -386,4 +493,4 @@ func body(t *testing.T, response *http.Response) string {
 	return string(body)
 }
 
-func nopReporter(_ pendingReq) error { return nil }
+func nopReporter(context.Context, pendingReq) error { return nil }

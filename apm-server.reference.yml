@@ -74,6 +74,11 @@ apm-server:
       # is changed, a matching index pattern needs to be specified here.
       #index_pattern: "apm-*-sourcemap*"
 
+  # Tracing support for the server's HTTP endpoints and event publisher.
+  #tracing:
+    # Set to true to enable tracing in the APM server itself.
+    #enabled: false
+
   # If set to true, APM Server augments data received by the agent with the original IP of the backend server,
   # or the IP and User Agent of the real user (frontend requests). It defaults to true.
   #capture_personal_data: true
