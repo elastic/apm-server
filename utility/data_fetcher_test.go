@@ -25,17 +25,18 @@ import (
 )
 
 var (
-	strPtr, strPtr2                     = "a", "b"
-	str, str2                           = "foo", "bar"
-	intPtr, intPtr2                     = 123, 456
-	integer, integer2, intFl32, intFl64 = 12.0, 24.0, 32, 64
-	boolTrue, boolFalse                 = true, false
-	timeRFC3339                         = "2017-05-30T18:53:27.154Z"
-	decoderBase                         = map[string]interface{}{
+	strPtr, strPtr2                             = "a", "b"
+	str, str2                                   = "foo", "bar"
+	intPtr, intPtr2                             = 123, 456
+	integer, integer2, intFl32, intFl64         = 12.0, 24.0, 32, 64
+	fl64, fl64Also                      float64 = 7.1, 90.1
+	boolTrue, boolFalse                         = true, false
+	timeRFC3339                                 = "2017-05-30T18:53:27.154Z"
+	decoderBase                                 = map[string]interface{}{
 		"true":    boolTrue,
 		"str":     str,
 		"fl32":    float32(5.4),
-		"fl64":    float64(7.1),
+		"fl64":    fl64,
 		"intfl32": float32(intFl32),
 		"intfl64": float64(intFl64),
 		"int":     integer,
@@ -46,7 +47,7 @@ var (
 				"false":  boolFalse,
 				"str":    str2,
 				"fl32":   float32(78.4),
-				"fl64":   float64(90.1),
+				"fl64":   fl64Also,
 				"int":    integer2,
 				"strArr": []interface{}{"k", "d"},
 				"intArr": []interface{}{1, 2},
@@ -64,13 +65,28 @@ type testStr struct {
 
 func TestFloat64(t *testing.T) {
 	for _, test := range []testStr{
-		{key: "fl64", keys: []string{"a", "b"}, out: float64(90.1), err: nil},
-		{key: "fl64", keys: []string{}, out: float64(7.1), err: nil},
+		{key: "fl64", keys: []string{"a", "b"}, out: fl64Also, err: nil},
+		{key: "fl64", keys: []string{}, out: fl64, err: nil},
 		{key: "missing", keys: []string{"a", "b"}, out: 0.0, err: fetchErr},
 		{key: "str", keys: []string{"a", "b"}, out: 0.0, err: fetchErr},
 	} {
 		decoder := ManualDecoder{}
 		out := decoder.Float64(decoderBase, test.key, test.keys...)
+		assert.Equal(t, out, test.out)
+		assert.Equal(t, decoder.Err, test.err)
+	}
+}
+
+func TestFloat64Ptr(t *testing.T) {
+	var outnil *float64
+	for _, test := range []testStr{
+		{key: "fl64", keys: []string{"a", "b"}, out: &fl64Also, err: nil},
+		{key: "fl64", keys: []string{}, out: &fl64, err: nil},
+		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
+		{key: "str", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
+	} {
+		decoder := ManualDecoder{}
+		out := decoder.Float64Ptr(decoderBase, test.key, test.keys...)
 		assert.Equal(t, out, test.out)
 		assert.Equal(t, decoder.Err, test.err)
 	}

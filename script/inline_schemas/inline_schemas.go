@@ -35,6 +35,7 @@ func main() {
 	}{
 		{"errors/payload.json", "processor/error/generated/schema/payload.go"},
 		{"transactions/payload.json", "processor/transaction/generated/schema/payload.go"},
+		{"metrics/payload.json", "processor/metric/generated/schema/payload.go"},
 		{"sourcemaps/payload.json", "processor/sourcemap/generated/schema/payload.go"},
 	}
 	for _, schemaInfo := range schemaPaths {

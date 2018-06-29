@@ -86,6 +86,30 @@ func TestSetContains(t *testing.T) {
 		assert.Equal(t, d.out, d.s.Contains(d.input))
 	}
 }
+
+func TestSetContainsStrPattern(t *testing.T) {
+	for _, d := range []struct {
+		s     *Set
+		input string
+		out   bool
+	}{
+		{NewSet(), "a", false},
+		{NewSet(1, 2, 3), "a", false},
+		{NewSet("a", 1, "b"), "a", true},
+		{NewSet("a.b.c.d", 1, "bc"), "b.c", false},
+		{NewSet("b.c", 1, "bc"), "a.b.c", false},
+		{NewSet("a.*c.d", 1), "a.b.c.d", true},
+		{NewSet("a.*c.", 1), "a.b.c.d", false},
+		{NewSet("a.[^.]*.c.d", 1), "a.b_d.c.d", true},
+		{NewSet("a.[^.].*c*", 1), "a.b.c.d", true},
+		{NewSet("*", 1), "a.b.c.d", true},
+		{NewSet("a.[^.].c", 1), "a.b.x.c.d", false},
+		{NewSet("metrics.samples.[^.]+.type", "a", 1), "metrics.samples.shortcounter.type", true},
+	} {
+		assert.Equal(t, d.out, d.s.ContainsStrPattern(d.input))
+	}
+}
+
 func TestSetCopy(t *testing.T) {
 	for _, d := range []struct {
 		s   *Set

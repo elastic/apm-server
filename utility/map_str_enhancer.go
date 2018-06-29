@@ -91,6 +91,10 @@ func Add(m common.MapStr, key string, val interface{}) {
 		} else {
 			m[key] = common.Float(floatVal)
 		}
+	case *float64:
+		if value != nil {
+			m[key] = *value
+		}
 	case float32:
 		floatVal := val.(float32)
 		if floatVal == float32(int32(floatVal)) {
@@ -148,5 +152,14 @@ func MergeAdd(m common.MapStr, key string, val common.MapStr) {
 func MillisAsMicros(ms float64) common.MapStr {
 	m := common.MapStr{}
 	m["us"] = int(ms * 1000)
+	return m
+}
+
+func Prune(m common.MapStr) common.MapStr {
+	for k, v := range m {
+		if v == nil {
+			delete(m, k)
+		}
+	}
 	return m
 }

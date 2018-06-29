@@ -20,7 +20,7 @@ https://github.com/elastic/apm-server/compare/6.3\...6.x[View commits]
 - Combine `apm-server.yml` and `apm-server.reference.yml` into one file {pull}[958]958.
 - Add optional tracing for the server's API and event publisher {pull}816[816].
 - Read sourcemap content and fill context lines {pull}972[972].
-
+- Add /v1/metrics endpoint {pull}1000[1000].
 
 
 
