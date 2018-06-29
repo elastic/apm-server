@@ -8,7 +8,7 @@
 :pull: https://github.com/elastic/apm-server/pull/
 
 
-https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
+https://github.com/elastic/apm-server/compare/6.3\...6.x[View commits]
 
 === Added
 
