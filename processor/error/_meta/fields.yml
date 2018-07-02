@@ -29,11 +29,26 @@
       dynamic: false
       fields:
 
+        - name: hex_id 
+          type: keyword 
+          description: >
+             The hex encoded ID of the error, unique per trace.
+
         - name: id
           type: keyword
           count: 4
           description: >
-            A UUID for the error.
+            Deprecated (>= 6.4). A UUID for the error.
+
+        - name: parent_id
+          type: keyword 
+          description: >
+             The ID of the parent transaction or span, unique per trace.
+
+        - name: trace_id 
+          type: keyword
+          description: >
+             The UUID of the corresponding trace.
 
         - name: culprit
           type: text

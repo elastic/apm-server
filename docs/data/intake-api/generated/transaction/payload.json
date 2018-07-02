@@ -129,6 +129,7 @@
                     "type": "db.postgresql.query",
                     "start": 2.83092,
                     "duration": 3.781912,
+                    "timestamp": "2017-05-30T18:53:27.154Z",
                     "stacktrace": [
                         {
                             "function": "onread",

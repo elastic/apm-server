@@ -1,0 +1,72 @@
+{
+    "$id": "docs/spec/transactions/distributed_tracing.json",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+
+    "type": "object",
+    "properties": {
+        "transactions": {
+            "type": "array",
+            "items": {
+                "allOf": [
+                    {
+                        "properties": {
+                            "id": {
+                                "description": "Hex encoded 64 random bits ID, locally unique within a trace.",
+                                "type": "string",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "trace_id": {
+                                "type": "string",
+                                "description": "Hex encoded 128 random bits UUID of the correlated trace.",
+                                "pattern": "^[a-fA-F0-9]{32}$"
+                            },
+                            "parent_id": {
+                                "type": ["string", "null"],
+                                "description": "Hex encoded 64 random bits ID of the parent transaction or span, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            }
+                        },
+                        "required": ["id", "trace_id"]
+                    },
+                    { "$ref": "transaction_common.json" }
+                ]
+            },
+            "minItems": 1
+        }, 
+        "spans": {
+            "type": ["array", "null"],
+            "items": {
+                "allOf": [
+                    { "$ref": "span_common.json" },
+                    {
+                        "properties": {
+                            "transaction_id": {
+                                "type": ["string"],
+                                "description": "Hex encoded 64 random bits ID of the correlated transaction, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "id": {
+                                "description": "Hex encoded 64 random bits ID, locally unique within a trace.",
+                                "type": "string",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "trace_id": {
+                                "type": "string",
+                                "description": "Hex encoded 128 random bits UUID of the correlated trace.",
+                                "pattern": "^[a-fA-F0-9]{32}$"
+                            },
+                            "parent_id": {
+                                "type": ["string"],
+                                "description": "Hex encoded 64 random bits ID of the parent transaction or span, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            }
+                        },
+                        "required": ["transaction_id", "id", "trace_id", "parent_id"]
+                    }
+                ]
+            },
+            "minItems": 0
+        }
+    },
+    "required": ["transactions"]
+}

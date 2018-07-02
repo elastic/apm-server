@@ -39,13 +39,9 @@ Find details on how the schema is defined:
 
 * <<transaction-payload-schema>>
 * <<transaction-transaction-schema>>
-* <<transaction-span-schema>>
 * <<transaction-service-schema>>
+* <<transaction-process-schema>>
 * <<transaction-system-schema>>
-* <<transaction-context-schema>>
-* <<transaction-stacktraceframe-schema>>
-* <<transaction-request-schema>>
-* <<transaction-user-schema>>
 
 [[transaction-payload-schema]]
 [float]
@@ -59,19 +55,102 @@ include::./spec/transactions/payload.json[]
 [[transaction-transaction-schema]]
 [float]
 ==== Transaction
+A transaction must meet the schema requirements for either `single service tracing` or `distributed tracing`.
 
-[source,json]
-----
-include::./spec/transactions/transaction.json[]
-----
+* <<transaction-single-service-tracing-schema>>
+* <<transaction-distributed-tracing-schema>>
+* <<transaction-common-transaction-schema>>
+* <<transaction-common-span-schema>>
+* <<transaction-stacktraceframe-schema>>
+* <<transaction-marks-schema>>
+* <<transaction-context-schema>>
+* <<transaction-request-schema>>
+* <<transaction-user-schema>>
 
-[[transaction-span-schema]]
+
+[[transaction-single-service-tracing-schema]]
 [float]
-==== Span
+===== Single Service Tracing Specificas
 
 [source,json]
 ----
-include::./spec/transactions/span.json[]
+include::./spec/transactions/single_service_tracing.json[]
+----
+
+[[transaction-distributed-tracing-schema]]
+[float]
+===== Distributed Tracing Specificas
+
+[source,json]
+----
+include::./spec/transactions/distributed_tracing.json[]
+----
+
+[source,json]
+----
+include::./spec/transactions/distributed_tracing_relations.json[]
+----
+
+[[transaction-common-transaction-schema]]
+[float]
+===== Common Transaction Attributes 
+[source,json]
+----
+include::./spec/transactions/transaction_common.json[]
+----
+
+[[transaction-common-span-schema]]
+[float]
+===== Common Span Attributes 
+
+[source,json]
+----
+include::./spec/transactions/span_common.json[]
+----
+
+[[transaction-stacktraceframe-schema]]
+[float]
+===== Stacktrace Frame
+
+[source,json]
+----
+include::./spec/stacktrace_frame.json[]
+----
+
+
+[[transaction-marks-schema]]
+[float]
+===== Marks 
+[source,json]
+----
+include::./spec/transactions/mark.json[]
+----
+
+[[transaction-context-schema]]
+[float]
+===== Context
+
+[source,json]
+----
+include::./spec/context.json[]
+----
+
+[[transaction-request-schema]]
+[float]
+===== Request
+
+[source,json]
+----
+include::./spec/request.json[]
+----
+
+[[transaction-user-schema]]
+[float]
+===== User
+
+[source,json]
+----
+include::./spec/user.json[]
 ----
 
 [[transaction-service-schema]]
@@ -83,6 +162,15 @@ include::./spec/transactions/span.json[]
 include::./spec/service.json[]
 ----
 
+[[transaction-process-schema]]
+[float]
+==== Process
+
+[source,json]
+----
+include::./spec/process.json[]
+----
+
 [[transaction-system-schema]]
 [float]
 ==== System
@@ -90,42 +178,6 @@ include::./spec/service.json[]
 [source,json]
 ----
 include::./spec/system.json[]
-----
-
-[[transaction-context-schema]]
-[float]
-==== Context
-
-[source,json]
-----
-include::./spec/context.json[]
-----
-
-[[transaction-stacktraceframe-schema]]
-[float]
-==== Stacktrace Frame
-
-[source,json]
-----
-include::./spec/stacktrace_frame.json[]
-----
-
-[[transaction-request-schema]]
-[float]
-==== Request
-
-[source,json]
-----
-include::./spec/request.json[]
-----
-
-[[transaction-user-schema]]
-[float]
-==== User
-
-[source,json]
-----
-include::./spec/user.json[]
 ----
 
 [[transaction-api-examples]]

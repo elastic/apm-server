@@ -28,6 +28,7 @@ func TestSetAdd(t *testing.T) {
 		add interface{}
 		out []interface{}
 	}{
+		{nil, "a", []interface{}{}},
 		{NewSet(), "a", []interface{}{"a"}},
 		{NewSet(1, "a"), "a", []interface{}{1, "a"}},
 		{NewSet(123), "a", []interface{}{123, "a"}},
@@ -43,6 +44,7 @@ func TestSetRemove(t *testing.T) {
 		remove interface{}
 		out    []interface{}
 	}{
+		{nil, "a", []interface{}{}},
 		{NewSet(), "a", []interface{}{}},
 		{NewSet("a"), "a", []interface{}{}},
 		{NewSet(123, "a"), 123, []interface{}{"a"}},
@@ -59,6 +61,7 @@ func TestSetContains(t *testing.T) {
 		input interface{}
 		out   bool
 	}{
+		{nil, "a", false},
 		{NewSet(), "a", false},
 		{NewSet(1, 2, 3), "a", false},
 		{NewSet("a", "b"), "a", true},
@@ -95,6 +98,7 @@ func TestSetCopy(t *testing.T) {
 		s   *Set
 		out []interface{}
 	}{
+		{nil, []interface{}{}},
 		{NewSet(), []interface{}{}},
 		{NewSet("a"), []interface{}{"a"}},
 		{NewSet(123, "a", "a"), []interface{}{"a", 123}},
@@ -110,6 +114,7 @@ func TestSetLen(t *testing.T) {
 		s   *Set
 		len int
 	}{
+		{nil, 0},
 		{NewSet(), 0},
 		{NewSet("a"), 1},
 		{NewSet(123, "a", "a"), 2},
@@ -124,6 +129,9 @@ func TestSetUnion(t *testing.T) {
 		s2  *Set
 		out []interface{}
 	}{
+		{nil, nil, []interface{}{}},
+		{nil, NewSet(1), []interface{}{1}},
+		{NewSet(1), nil, []interface{}{1}},
 		{NewSet(), NewSet(), []interface{}{}},
 		{NewSet(34.5, "a"), NewSet(), []interface{}{34.5, "a"}},
 		{NewSet(), NewSet(1), []interface{}{1}},
@@ -139,6 +147,9 @@ func TestSetDifference(t *testing.T) {
 		s2  *Set
 		out []interface{}
 	}{
+		{nil, nil, []interface{}{}},
+		{nil, NewSet("a"), []interface{}{}},
+		{NewSet(34.5), nil, []interface{}{34.5}},
 		{NewSet(), NewSet(), []interface{}{}},
 		{NewSet(34.5, "a"), NewSet(), []interface{}{34.5, "a"}},
 		{NewSet(), NewSet(1), []interface{}{}},
@@ -154,6 +165,10 @@ func TestSetSymmDifference(t *testing.T) {
 		s2  *Set
 		out []interface{}
 	}{
+		{nil, nil, []interface{}{}},
+		{nil, NewSet("a"), []interface{}{"a"}},
+		{NewSet("a"), nil, []interface{}{"a"}},
+		{NewSet(34.5), nil, []interface{}{34.5}},
 		{NewSet(), NewSet(), []interface{}{}},
 		{NewSet(34.5, "a"), NewSet(), []interface{}{34.5, "a"}},
 		{NewSet(), NewSet(1), []interface{}{1}},
@@ -168,6 +183,7 @@ func TestSetArray(t *testing.T) {
 		s   *Set
 		out []interface{}
 	}{
+		{nil, []interface{}{}},
 		{NewSet(), []interface{}{}},
 		{NewSet(34.5, "a"), []interface{}{34.5, "a"}},
 		{NewSet(1, 1, 1), []interface{}{1}},

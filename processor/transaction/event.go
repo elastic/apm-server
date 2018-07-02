@@ -2,6 +2,8 @@ package transaction
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/elastic/apm-server/utility"
@@ -9,6 +11,11 @@ import (
 )
 
 type Event struct {
+	// new interface
+	ParentId *string
+	TraceId  *string
+	HexId    *string
+
 	Id        string
 	Type      string
 	Name      *string
@@ -19,7 +26,6 @@ type Event struct {
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
-	Spans     []*Span
 }
 type SpanCount struct {
 	Dropped Dropped
@@ -28,13 +34,13 @@ type Dropped struct {
 	Total *int
 }
 
-func DecodeEvent(input interface{}, err error) (*Event, error) {
+func DecodeEvent(input interface{}, err error) (*Event, []*Span, error) {
 	if input == nil || err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for transaction event")
+		return nil, nil, errors.New("Invalid type for transaction event")
 	}
 	decoder := utility.ManualDecoder{}
 	e := Event{
@@ -49,16 +55,52 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
 		SpanCount: SpanCount{Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")}},
 	}
-	err = decoder.Err
-	var span *Span
-	spans := decoder.InterfaceArr(raw, "spans")
-	e.Spans = make([]*Span, len(spans))
-	for idx, sp := range spans {
-		span, err = DecodeSpan(sp, err)
-		e.Spans[idx] = span
+
+	// format of Id indicates single service or distributed tracing
+	if utility.IsUUID(e.Id) {
+
+		// single service tracing format
+		// no further additional settings necessary for backwards compatibility
+
+		// nested spans are only allowed for single service tracing
+		err = decoder.Err
+		var spans []*Span
+		if sp := decoder.InterfaceArr(raw, "spans"); len(sp) > 0 {
+			spans = make([]*Span, len(sp))
+			var span *Span
+			for idx, s := range sp {
+				span, err = DecodeSpan(s, err)
+				if err != nil {
+					fmt.Println(err.Error())
+					return nil, nil, err
+				}
+				span.Timestamp = e.Timestamp
+				span.TransactionId = &e.Id
+
+				spans[idx] = span
+			}
+		}
+		return &e, spans, nil
+	} else {
+
+		// set new hexId
+		dtId := e.Id
+		e.HexId = &dtId
+		e.ParentId = decoder.StringPtr(raw, "parent_id")
+		traceId := decoder.String(raw, "trace_id")
+		if decoder.Err != nil {
+			return nil, nil, decoder.Err
+		}
+		e.TraceId = &traceId
+
+		// ensure some backwards compatibility
+		// - set Id to `traceId:hexId`
+		//   for global uniqueness when queried from old UI
+		e.Id = strings.Join([]string{traceId, dtId}, "-")
+		return &e, nil, nil
 	}
-	return &e, err
 }
+
 func (t *Event) Transform() common.MapStr {
 	tx := common.MapStr{"id": t.Id}
 	utility.Add(tx, "name", t.Name)
@@ -66,6 +108,9 @@ func (t *Event) Transform() common.MapStr {
 	utility.Add(tx, "type", t.Type)
 	utility.Add(tx, "result", t.Result)
 	utility.Add(tx, "marks", t.Marks)
+	utility.Add(tx, "hex_id", t.HexId)
+	utility.Add(tx, "parent_id", t.ParentId)
+	utility.Add(tx, "trace_id", t.TraceId)
 
 	if t.Sampled == nil {
 		utility.Add(tx, "sampled", true)

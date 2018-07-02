@@ -1,7 +1,8 @@
 {
-    "$id": "docs/spec/transactions/transaction.json",
-    "type": "object",
+    "$id": "docs/spec/transactions/transaction_common.json",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
+
+    "type": "object",
     "properties": {
         "context": {
             "$ref": "../context.json"
@@ -9,11 +10,6 @@
         "duration": {
             "type": "number",
             "description": "How long the transaction took to complete, in ms with 3 decimal points"
-        },
-        "id": {
-            "type": "string",
-            "description": "UUID for the transaction, referred by its spans",
-            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         },
         "name": {
             "type": ["string","null"],
@@ -30,13 +26,6 @@
             "pattern": "Z$",
             "format": "date-time",
             "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        },
-        "spans": {
-            "type": ["array", "null"],
-            "items": {
-                "$ref": "span.json"
-            },
-            "minItems": 0
         },
         "type": {
             "type": "string",
@@ -73,5 +62,5 @@
             }
         }
     },
-    "required": ["id", "duration", "type"]
+    "required": ["duration", "type"]
 }

@@ -19,6 +19,16 @@
           description: >
             Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 
+        - name: trace_id 
+          type: keyword
+          description: >
+             The UUID of the corresponding trace.
+
+        - name: parent_id
+          type: keyword 
+          description: >
+             The ID of the parent transaction or span, unique per trace.
+
         - name: duration
           type: group
           description:
@@ -82,7 +92,12 @@
         - name: id
           type: long
           description: >
-            A locally unique ID of the span.
+            Deprecated (>= 6.4). A locally unique ID of the span.
+
+        - name: hex_id 
+          type: keyword 
+          description: >
+             The hex encoded ID of the span, unique per trace.
 
         - name: name
           type: keyword
@@ -121,7 +136,17 @@
               output_format: asMilliseconds
               output_precision: 0
 
+        - name: parent_id
+          type: keyword 
+          description: >
+             The ID of the parent transaction or span, unique per trace.
+
+        - name: trace_id 
+          type: keyword
+          description: >
+             The UUID of the corresponding trace.
+
         - name: parent
           type: long
           description: >
-             The locally unique ID of the parent of the span.
+             Deprecated (>= 6.4). The locally unique ID of the parent of the span.

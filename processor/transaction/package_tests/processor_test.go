@@ -38,6 +38,13 @@ func TestTransactionProcessorOK(t *testing.T) {
 	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, backendRequestInfo, map[string]string{})
 }
 
+func TestDistributedTracingConformProcessorOK(t *testing.T) {
+	requestInfo := []tests.RequestInfo{
+		{Name: "TestProcessDtTransactionSimple", Path: "../testdata/transaction/dt_payload.json"},
+	}
+	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "-"})
+}
+
 func TestMinimalTransactionProcessorOK(t *testing.T) {
 	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
 }

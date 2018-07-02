@@ -18,14 +18,23 @@ func NewSet(entries ...interface{}) *Set {
 }
 
 func (s *Set) Add(input interface{}) {
+	if s == nil {
+		return
+	}
 	s.entries[input] = nil
 }
 
 func (s *Set) Remove(input interface{}) {
+	if s == nil {
+		return
+	}
 	delete(s.entries, input)
 }
 
 func (s *Set) Contains(input interface{}) bool {
+	if s == nil {
+		return false
+	}
 	if _, ok := s.entries[input]; ok {
 		return true
 	}
@@ -49,6 +58,9 @@ func (s *Set) ContainsStrPattern(str string) bool {
 
 func (s *Set) Copy() *Set {
 	copy := NewSet()
+	if s == nil {
+		return nil
+	}
 	for k, _ := range s.entries {
 		copy.Add(k)
 	}
@@ -56,10 +68,19 @@ func (s *Set) Copy() *Set {
 }
 
 func (s *Set) Len() int {
+	if s == nil {
+		return 0
+	}
 	return len(s.entries)
 }
 
 func Union(s1, s2 *Set) *Set {
+	if s1 == nil {
+		return s2.Copy()
+	}
+	if s2 == nil {
+		return s1.Copy()
+	}
 	s := s1.Copy()
 	for k, _ := range s2.entries {
 		s.Add(k)
@@ -69,6 +90,9 @@ func Union(s1, s2 *Set) *Set {
 
 func Difference(s1, s2 *Set) *Set {
 	s := NewSet()
+	if s1 == nil {
+		return s
+	}
 	for k, _ := range s1.entries {
 		if !s2.Contains(k) {
 			s.Add(k)
@@ -83,7 +107,7 @@ func SymmDifference(s1, s2 *Set) *Set {
 
 func (s *Set) Array() []interface{} {
 	if s == nil {
-		return nil
+		return []interface{}{}
 	}
 	a := make([]interface{}, 0, len(s.entries))
 	for k, _ := range s.entries {

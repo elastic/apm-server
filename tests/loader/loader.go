@@ -13,7 +13,9 @@ import (
 
 func findFile(fileName string) (string, error) {
 	_, current, _, _ := runtime.Caller(0)
-	return filepath.Join(filepath.Dir(current), "..", fileName), nil
+	p := filepath.Join(filepath.Dir(current), "..", fileName)
+	_, err := os.Stat(p)
+	return p, err
 }
 
 func fileReader(filePath string, err error) (io.ReadCloser, error) {
@@ -58,11 +60,10 @@ func buildPath(processorName string) (string, error) {
 }
 
 func unmarshalData(filePath string, err error) (map[string]interface{}, error) {
-	var data map[string]interface{}
 	var r io.ReadCloser
 	r, err = fileReader(filePath, err)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 	defer r.Close()
 	return decoder.DecodeJSONData(r)

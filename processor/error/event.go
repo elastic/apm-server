@@ -9,6 +9,7 @@ import (
 	"hash"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/elastic/apm-server/config"
@@ -18,6 +19,10 @@ import (
 )
 
 type Event struct {
+	// new interface
+	ParentId *string
+	TraceId  *string
+
 	Id        *string
 	Culprit   *string
 	Context   common.MapStr
@@ -67,9 +72,36 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		Context:   decoder.MapStr(raw, "context"),
 		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
 	}
-	transactionId := decoder.StringPtr(raw, "id", "transaction")
-	if transactionId != nil {
-		e.Transaction = &Transaction{Id: *transactionId}
+
+	// Differentiate between single service and distributed tracing format.
+	if e.TraceId = decoder.StringPtr(raw, "trace_id"); e.TraceId != nil {
+
+		// ** distributed tracing format **
+
+		// Ensure backwards compatibility:
+		// The new transactionId is only locally unique within a trace. For
+		// global uniqueness when queried from existing UI, set TransactionId to
+		// `traceId:transactionId`.
+
+		parentId := decoder.String(raw, "parent_id")
+		transactionId := decoder.String(raw, "transaction_id")
+		if decoder.Err != nil {
+			return nil, decoder.Err
+		}
+		e.ParentId = &parentId
+		e.Transaction = &Transaction{Id: strings.Join([]string{*e.TraceId, transactionId}, "-")}
+
+	} else {
+
+		// ** single service tracing format **
+
+		transactionId := decoder.StringPtr(raw, "id", "transaction")
+		if transactionId != nil {
+			e.Transaction = &Transaction{Id: *transactionId}
+		}
+		if decoder.Err != nil {
+			return nil, decoder.Err
+		}
 	}
 
 	var stacktr *m.Stacktrace
@@ -107,12 +139,17 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 			e.Log.Stacktrace = *stacktr
 		}
 	}
-	return &e, err
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
 }
 
 func (e *Event) Transform(config config.Config, service m.Service) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
+	e.add("parent_id", e.ParentId)
+	e.add("trace_id", e.TraceId)
 
 	e.addException(config, service)
 	e.addLog(config, service)

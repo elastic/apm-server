@@ -3,6 +3,8 @@ package utility
 import (
 	"net/url"
 	"path"
+	"regexp"
+	"sync"
 )
 
 func CleanUrlPath(p string) string {
@@ -32,4 +34,18 @@ func InsertInMap(data map[string]interface{}, key string, values map[string]inte
 		}
 	}
 
+}
+
+const uuidRegexp = "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+
+var (
+	uuidRegexpOnce sync.Once
+	re             *regexp.Regexp
+)
+
+func IsUUID(s string) bool {
+	uuidRegexpOnce.Do(func() {
+		re = regexp.MustCompile(uuidRegexp)
+	})
+	return re.MatchString(s)
 }
