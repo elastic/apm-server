@@ -20,6 +20,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -53,6 +55,10 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+	}
+	if checkHeader := os.Getenv("CHECK_HEADERS_DISABLED"); checkHeader == "" {
+		cmd := exec.Command("go-licenser")
+		cmd.Run()
 	}
 }
 
