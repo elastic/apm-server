@@ -14,7 +14,7 @@ https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
 === Added
 
 - Listen on default port 8200 if unspecified {pull}886[886].
-- Update Go to 1.10.1 {pull}894[894].
+- Update Go to 1.10.3 {pull}1054[1054].
 - Combine `apm-server.yml` and `apm-server.reference.yml` into one file {pull}958[958].
 - Add optional tracing for the server's API and event publisher {pull}816[816].
 - Read sourcemap content and fill context lines {pull}972[972].
