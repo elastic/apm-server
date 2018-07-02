@@ -8,28 +8,29 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
-//Check whether attributes are added to the example payload but not to the schema
-func TestPayloadAttributesInSchema(t *testing.T) {
-
-	tests.TestPayloadAttributesInSchema(t,
-		"sourcemap",
-		tests.NewSet("sourcemap", "sourcemap.file", "sourcemap.names", "sourcemap.sources", "sourcemap.sourceRoot",
-			"sourcemap.mappings", "sourcemap.sourcesContent", "sourcemap.version"),
-		schema.PayloadSchema)
-}
-
 var (
 	procSetup = tests.ProcessorSetup{
 		Proc:            sm.NewProcessor(),
 		FullPayloadPath: "../testdata/sourcemap/payload.json",
 		TemplatePaths:   []string{"../_meta/fields.yml"},
+		Schema:          schema.PayloadSchema,
 	}
 )
 
-func TestAttributesPresenceInSourcemap(t *testing.T) {
-	requiredKeys := tests.NewSet("service_name", "service_version",
-		"bundle_filepath", "sourcemap")
-	procSetup.AttrsPresence(t, requiredKeys, nil)
+func TestPayloadAttrsMatchFields(t *testing.T) {
+	procSetup.PayloadAttrsMatchFields(t, tests.NewSet("sourcemap"), tests.NewSet())
+}
+
+func TestPayloadAttrsMatchJsonSchema(t *testing.T) {
+	procSetup.PayloadAttrsMatchJsonSchema(t,
+		tests.NewSet("sourcemap", "sourcemap.file", "sourcemap.names",
+			"sourcemap.sources", "sourcemap.sourceRoot"), tests.NewSet())
+}
+
+func TestAttributesPresenceRequirementInSourcemap(t *testing.T) {
+	procSetup.AttrsPresence(t,
+		tests.NewSet("service_name", "service_version",
+			"bundle_filepath", "sourcemap"), nil)
 }
 
 func TestKeywordLimitationOnSourcemapAttributes(t *testing.T) {

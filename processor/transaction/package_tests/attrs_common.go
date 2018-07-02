@@ -1,24 +1,55 @@
 package package_tests
 
 import (
-	"testing"
-
 	tr "github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/processor/transaction/generated/schema"
 	"github.com/elastic/apm-server/tests"
 )
 
-var (
-	procSetup = tests.ProcessorSetup{
+type obj = map[string]interface{}
+type val = []interface{}
+
+func procSetup() *tests.ProcessorSetup {
+	return &tests.ProcessorSetup{
 		Proc:            tr.NewProcessor(),
 		FullPayloadPath: "../testdata/transaction/payload.json",
 		TemplatePaths: []string{"../_meta/fields.yml",
 			"../../../_meta/fields.common.yml"},
+		Schema: schema.PayloadSchema,
 	}
-)
+}
 
-func TestAttributesPresenceInTransaction(t *testing.T) {
-	requiredKeys := tests.NewSet(
+func payloadAttrsNotInFields(s *tests.Set) *tests.Set {
+	return tests.Union(s, tests.NewSet("span.stacktrace", tests.Group("transaction.marks."), tests.Group("context.db"),
+		"context.http", "context.http.url"))
+}
+
+func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
+	return tests.Union(s, tests.NewSet(
+		"listening", "view spans", "context.user.user-agent",
+		"context.user.ip", "context.system.ip"))
+}
+
+func payloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
+	return tests.Union(s, tests.NewSet(
+		"transactions.context.request.headers.some-other-header",
+		"transactions.context.request.headers.array",
+		"transactions.spans.stacktrace.vars.key",
+		tests.Group("transactions.context.request.env."),
+		tests.Group("transactions.context.request.body"),
+		tests.Group("transactions.context.request.cookies"),
+		tests.Group("transactions.context.custom"),
+		tests.Group("transactions.context.tags"),
+		tests.Group("transactions.marks"),
+	))
+}
+
+func jsonSchemaNotInPayloadAttrs(s *tests.Set) *tests.Set {
+	return s
+}
+
+func requiredKeys(s *tests.Set) *tests.Set {
+	return tests.Union(s, tests.NewSet(
 		"transactions",
 		"transactions.id",
 		"transactions.duration",
@@ -31,41 +62,65 @@ func TestAttributesPresenceInTransaction(t *testing.T) {
 		"transactions.spans.type",
 		"transactions.spans.stacktrace.filename",
 		"transactions.spans.stacktrace.lineno",
-	)
-	condRequiredKeys := map[string]tests.Condition{
-		"transactions.spans.id": tests.Condition{Existence: map[string]interface{}{"transactions.spans.parent": float64(123)}},
-	}
-	procSetup.AttrsPresence(t, requiredKeys, condRequiredKeys)
+	))
 }
 
-func TestKeywordLimitationOnTransactionAttributes(t *testing.T) {
-	keywordExceptionKeys := tests.NewSet(
-		"processor.event", "processor.name", "listening",
-		"transaction.id", "transaction.marks", "context.tags")
+func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
+	base := map[string]tests.Condition{
+		"transactions.spans.id": tests.Condition{Existence: map[string]interface{}{"transactions.spans.parent": float64(123)}},
+	}
+	for k, v := range c {
+		base[k] = v
+	}
+	return base
+}
 
-	mapping := map[string]string{
+func keywordExceptionKeys(s *tests.Set) *tests.Set {
+	return tests.Union(s, tests.NewSet(
+		"processor.event", "processor.name", "listening",
+		"transaction.id", "transaction.marks", "context.tags"))
+}
+
+func templateToSchemaMapping(mapping map[string]string) map[string]string {
+	base := map[string]string{
 		"context.system.":  "system.",
 		"context.process.": "process.",
 		"context.service.": "service.",
 		"context.request.": "transactions.context.request.",
 		"context.user.":    "transactions.context.user.",
-		"span.":            "transactions.spans.",
 		"transaction.":     "transactions.",
+		"span":             "transactions.spans",
 	}
-	procSetup.KeywordLimitation(t, keywordExceptionKeys, mapping)
+	for k, v := range mapping {
+		base[k] = v
+	}
+	return base
 }
 
-func TestPayloadDataForTransaction(t *testing.T) {
+func schemaTestData(td []tests.SchemaTestData) []tests.SchemaTestData {
 	// add test data for testing
 	// * specific edge cases
 	// * multiple allowed dataypes
 	// * regex pattern, time formats
 	// * length restrictions, other than keyword length restrictions
-
-	type obj = map[string]interface{}
-	type val = []interface{}
-
-	payloadData := []tests.SchemaTestData{
+	if td == nil {
+		td = []tests.SchemaTestData{}
+	}
+	return append(td, []tests.SchemaTestData{
+		{Key: "transactions.id",
+			Valid:   []interface{}{"85925e55-B43f-4340-a8e0-df1906ecbf7a"},
+			Invalid: []tests.Invalid{{Msg: `id/pattern`, Values: val{"123", "z5925e55-b43f-4340-a8e0-df1906ecbf7a", "85925e55-b43f-4340-a8e0-df1906ecbf7"}}}},
+		{Key: "transactions.spans", Valid: []interface{}{[]interface{}{}}},
+		{Key: "transactions.spans.stacktrace.pre_context",
+			Valid: val{[]interface{}{}, []interface{}{"context"}},
+			Invalid: []tests.Invalid{
+				{Msg: `/stacktrace/items/properties/pre_context/items/type`, Values: val{[]interface{}{123}}},
+				{Msg: `stacktrace/items/properties/pre_context/type`, Values: val{"test"}}}},
+		{Key: "transactions.spans.stacktrace.post_context",
+			Valid: val{[]interface{}{}, []interface{}{"context"}},
+			Invalid: []tests.Invalid{
+				{Msg: `/stacktrace/items/properties/post_context/items/type`, Values: val{[]interface{}{123}}},
+				{Msg: `stacktrace/items/properties/post_context/type`, Values: val{"test"}}}},
 		{Key: "service.name",
 			Valid:   val{tests.Str1024},
 			Invalid: []tests.Invalid{{Msg: `service/properties/name`, Values: val{tests.Str1024Special, tests.Str1025}}}},
@@ -137,42 +192,5 @@ func TestPayloadDataForTransaction(t *testing.T) {
 			Invalid: []tests.Invalid{
 				{Msg: `/stacktrace/items/properties/post_context/items/type`, Values: val{[]interface{}{123}}},
 				{Msg: `stacktrace/items/properties/post_context/type`, Values: val{"test"}}}},
-	}
-	procSetup.DataValidation(t, payloadData)
-}
-
-//Check whether attributes are added to the example payload but not to the schema
-func TestPayloadAttributesInSchema(t *testing.T) {
-
-	//only add attributes that should not be documented by the schema
-	undocumented := tests.NewSet(
-		"transactions.spans.stacktrace.vars.key",
-		"transactions.context.request.headers.some-other-header",
-		"transactions.context.request.headers.array",
-		"transactions.context.request.env.SERVER_SOFTWARE",
-		"transactions.context.request.env.GATEWAY_INTERFACE",
-		"transactions.context.request.body",
-		"transactions.context.request.body.str",
-		"transactions.context.request.body.additional",
-		"transactions.context.request.body.additional.foo",
-		"transactions.context.request.body.additional.bar",
-		"transactions.context.request.body.additional.req",
-		"transactions.context.request.cookies.c1",
-		"transactions.context.request.cookies.c2",
-		"transactions.context.custom",
-		"transactions.context.custom.my_key",
-		"transactions.context.custom.some_other_value",
-		"transactions.context.custom.and_objects",
-		"transactions.context.custom.and_objects.foo",
-		"transactions.context.tags",
-		"transactions.context.tags.organization_uuid",
-		"transactions.marks.another_mark",
-		"transactions.marks.another_mark.some_long",
-		"transactions.marks.another_mark.some_float",
-		"transactions.marks.navigationTiming",
-		"transactions.marks.navigationTiming.appBeforeBootstrap",
-		"transactions.marks.navigationTiming.navigationStart",
-		"transactions.marks.performance",
-	)
-	tests.TestPayloadAttributesInSchema(t, "transaction", undocumented, schema.PayloadSchema)
+	}...)
 }
