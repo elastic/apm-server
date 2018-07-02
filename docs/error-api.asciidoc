@@ -20,7 +20,7 @@ To send an error record you need to send a `HTTP POST` request to the APM Server
 http(s)://{hostname}:{port}/v1/errors
 ------------------------------------------------------------
 
-To send a record for a frontend error (see <<frontend,experimental frontend support>>), 
+To send a record for a frontend error (see <<frontend,frontend support>>), 
 you need to send a `HTTP POST` request to the APM Server `frontend errors` endpoint:
 
 [source,bash]
