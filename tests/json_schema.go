@@ -39,6 +39,8 @@ type ProcessorSetup struct {
 	FullPayloadPath string
 	// path to ES template definitions
 	TemplatePaths []string
+	// json schema string
+	Schema string
 }
 
 type SchemaTestData struct {
@@ -68,6 +70,38 @@ var (
 	Str1024Special = createStr(1024, `⌘ `)
 	Str1025        = createStr(1025, "")
 )
+
+// This test checks
+// * that all payload attributes are reflected in the json Schema, except for
+// dynamic attributes not be specified in the schema;
+// * that all attributes in the json schema are also included in the payload,
+// to ensure full test coverage.
+// Parameters:
+// - payloadAttrsNotInSchema: attributes sent with the payload but should not be
+// specified in the schema.
+// - schemaAttrsNotInPayload: attributes that are reflected in the json schema but are
+// not part of the payload.
+func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
+	require.NotNil(t, ps.Schema)
+
+	// check payload attrs in json schema
+	payload, err := loader.LoadData(ps.FullPayloadPath)
+	require.NoError(t, err, fmt.Sprintf("File %s not loaded", ps.FullPayloadPath))
+	payloadAttrs := NewSet()
+	flattenJsonKeys(payload, "", payloadAttrs)
+
+	schemaStruct, _ := schemaStruct(strings.NewReader(ps.Schema))
+	schemaKeys := NewSet()
+	flattenSchemaNames(schemaStruct, "", schemaKeys)
+
+	missing := Difference(payloadAttrs, schemaKeys)
+	missing = differenceWithGroup(missing, payloadAttrsNotInSchema)
+	assertEmptySet(t, missing, fmt.Sprintf("Json payload fields missing in schema %v", missing))
+
+	missing = Difference(schemaKeys, payloadAttrs)
+	missing = differenceWithGroup(missing, schemaAttrsNotInPayload)
+	assertEmptySet(t, missing, fmt.Sprintf("Json schema fields missing in payload %v", missing))
+}
 
 // Test that payloads missing `required `attributes fail validation.
 // - `required`: ensure required keys must not be missing or nil
@@ -134,7 +168,7 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 
 	// fetch keyword restricted field names from ES template
 	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, addKeywordFields)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	for _, k := range keywordFields.Array() {
 		key := k.(string)
@@ -221,7 +255,7 @@ func (ps *ProcessorSetup) changePayload(
 	// run actual validation
 	err = ps.Proc.Validate(payload)
 	if shouldValidate, errMsg := validateFn(key); shouldValidate {
-		assert.NoError(t, err, fmt.Sprintf("Expected <%v> for key <%v> to be valid", val, key))
+		assert.NoError(t, err, fmt.Sprintf("Expected <%v> for key <%s> to be valid", val, key))
 		_, err = ps.Proc.Decode(payload)
 		assert.NoError(t, err)
 	} else {
@@ -307,35 +341,14 @@ type Schema struct {
 	AdditionalProperties obj
 	PatternProperties    obj
 	Items                *Schema
+	AllOf                []*Schema
+	OneOf                []*Schema
+	AnyOf                []*Schema
 	MaxLength            int
 }
 type Mapping struct {
 	from string
 	to   string
-}
-
-func TestPayloadAttributesInSchema(t *testing.T, name string, undocumentedAttrs *Set, schema string) {
-	payload, err := loader.LoadValidData(name)
-	require.NoError(t, err)
-	jsonNames := NewSet()
-	flattenJsonKeys(payload, "", jsonNames)
-	jsonNamesDoc := Difference(jsonNames, undocumentedAttrs)
-
-	schemaStruct, _ := schemaStruct(strings.NewReader(schema))
-	schemaNames := NewSet()
-	flattenSchemaNames(schemaStruct, "", addAllPropNames, schemaNames)
-
-	missing := Difference(jsonNamesDoc, schemaNames)
-	if missing.Len() > 0 {
-		msg := fmt.Sprintf("Json payload fields missing in Schema %v", missing)
-		assert.Fail(t, msg)
-	}
-
-	missing = Difference(schemaNames, jsonNames)
-	if missing.Len() > 0 {
-		msg := fmt.Sprintf("Json schema fields missing in Payload %v", missing)
-		assert.Fail(t, msg)
-	}
 }
 
 func schemaStruct(reader io.Reader) (*Schema, error) {
@@ -345,23 +358,25 @@ func schemaStruct(reader io.Reader) (*Schema, error) {
 	return &schema, err
 }
 
-func flattenSchemaNames(s *Schema, prefix string, addFn addProperty, flattened *Set) {
+func flattenSchemaNames(s *Schema, prefix string, flattened *Set) {
 	if len(s.Properties) > 0 {
 		for k, v := range s.Properties {
-			flattenedKey := strConcat(prefix, k, ".")
-			if addFn(v) {
-				flattened.Add(flattenedKey)
-			}
-			flattenSchemaNames(v, flattenedKey, addFn, flattened)
+			key := strConcat(prefix, k, ".")
+			flattened.Add(key)
+			flattenSchemaNames(v, key, flattened)
 		}
 	} else if s.Items != nil {
-		flattenSchemaNames(s.Items, prefix, addFn, flattened)
+		flattenSchemaNames(s.Items, prefix, flattened)
+	} else {
+		for _, schemas := range [][]*Schema{s.AllOf, s.OneOf, s.AnyOf} {
+			if schemas != nil {
+				for _, e := range schemas {
+					flattenSchemaNames(e, prefix, flattened)
+				}
+			}
+		}
 	}
 }
-
-type addProperty func(s *Schema) bool
-
-func addAllPropNames(s *Schema) bool { return true }
 
 func flattenJsonKeys(data interface{}, prefix string, flattened *Set) {
 	if d, ok := data.(obj); ok {

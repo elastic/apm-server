@@ -23,21 +23,33 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/config"
-	"github.com/elastic/apm-server/processor"
+	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn processor.NewProcessor) {
-	assert := assert.New(t)
-	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
-	assert.NoError(err)
-	disabledFieldNames, err := fetchFlattenedFieldNames(fieldPaths, addOnlyDisabledFields)
-	assert.NoError(err)
-	undocumentedFieldNames := NewSet(
+// This test checks
+// * that all payload attributes are reflected in the ES template,
+// except for attributes that should not be indexed in ES;
+// * that all attributes in ES template are also included in the payload,
+// to ensure full test coverage.
+// Parameters:
+// - payloadAttrsNotInFields: attributes sent with the payload but should not be
+// indexed or not specifically mentioned in ES template.
+// - fieldsAttrsNotInPayload: attributes that are reflected in the fields.yml but are
+// not part of the payload, e.g. Kibana visualisation attributes.
+func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotInFields, fieldsNotInPayload *Set) {
+	all, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	require.NoError(t, err)
+
+	// check event attributes in ES fields
+	disabled, err := fetchFlattenedFieldNames(ps.TemplatePaths, addOnlyDisabledFields)
+	require.NoError(t, err)
+
+	notInFields := Union(payloadAttrsNotInFields, NewSet(
 		"processor",
 		//dynamically indexed:
 		"context.tags.organization_uuid",
@@ -50,76 +62,41 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"context.request.body",
 		"context.response.headers",
 		"context.process.argv",
-		"error.exception.attributes",
-		"error.exception.stacktrace",
-		"error.log.stacktrace",
-		"span.stacktrace",
-		"context.db",
-		"context.db.statement",
-		"context.db.type",
-		"context.db.instance",
-		"context.db.user",
-		"context.http",
-		"sourcemap",
-		"transaction.marks.another_mark",
-		"transaction.marks.another_mark.some_long",
-		"transaction.marks.another_mark.some_float",
-		"transaction.marks.performance",
-		"transaction.marks.navigationTiming",
-		"transaction.marks.navigationTiming.navigationStart",
-		"transaction.marks.navigationTiming.appBeforeBootstrap",
-	)
-	blacklistedFieldNames := Union(disabledFieldNames, undocumentedFieldNames)
+		"context.db*",
+	))
 
-	eventNames, err := fetchEventNames(fn, blacklistedFieldNames)
-	assert.NoError(err)
+	notInFields = Union(disabled, notInFields)
+	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
+	missing := Difference(events, all)
+	missing = differenceWithGroup(missing, notInFields)
+	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
 
-	undocumentedNames := Difference(eventNames, fieldNames)
-	undocumentedNames = Difference(undocumentedNames, blacklistedFieldNames)
-	assert.Equal(0, undocumentedNames.Len(), fmt.Sprintf("Event attributes not documented in fields.yml: %v", undocumentedNames))
+	// check ES fields in event
+	events = fetchFields(t, ps.Proc, ps.FullPayloadPath, fieldsNotInPayload)
+	missing = Difference(all, events)
+	missing = differenceWithGroup(missing, fieldsNotInPayload)
+	assertEmptySet(t, missing, fmt.Sprintf("Documented Fields missing in event: %v", missing))
 }
 
-func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor, exceptions *Set) {
-	assert := assert.New(t)
-	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
-	assert.NoError(err)
-
-	eventNames, err := fetchEventNames(fn, NewSet())
-	assert.NoError(err)
-
-	unusedNames := Difference(fieldNames, eventNames)
-	unusedNames = Difference(unusedNames, exceptions)
-	assert.Equal(0, unusedNames.Len(), fmt.Sprintf("Documented Fields missing in event: %v", unusedNames))
-}
-
-func fetchEventNames(fn processor.NewProcessor, blacklisted *Set) (*Set, error) {
-	p := fn()
-	data, err := loader.LoadValidData(p.Name())
-	if err != nil {
-		return nil, err
-	}
+func fetchFields(t *testing.T, p pr.Processor, path string, blacklisted *Set) *Set {
+	data, err := loader.LoadData(path)
+	require.NoError(t, err)
 	err = p.Validate(data)
-	if err != nil {
-		return nil, err
-	}
+	require.NoError(t, err)
+	payload, err := p.Decode(data)
+	require.NoError(t, err)
+	events := payload.Transform(config.Config{})
 
-	payl, err := p.Decode(data)
-	if err != nil {
-		return nil, err
-	}
-	events := payl.Transform(config.Config{})
-
-	eventNames := NewSet()
+	keys := NewSet()
 	for _, event := range events {
 		for k, _ := range event.Fields {
 			if k == "@timestamp" {
 				continue
 			}
-			e := event.Fields[k]
-			flattenMapStr(e, k, blacklisted, eventNames)
+			flattenMapStr(event.Fields[k], k, blacklisted, keys)
 		}
 	}
-	return eventNames, nil
+	return keys
 }
 
 func flattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
@@ -138,46 +115,53 @@ func flattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *
 }
 
 func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
-	flattenedKey := strConcat(prefix, k, ".")
-	if !isBlacklistedKey(keysBlacklist, flattenedKey) {
-		flattened.Add(flattenedKey)
+	key := strConcat(prefix, k, ".")
+	if !isBlacklistedKey(keysBlacklist, key) {
+		flattened.Add(key)
 	}
 	_, okCommonMapStr := v.(common.MapStr)
 	_, okMapStr := v.(map[string]interface{})
 	if okCommonMapStr || okMapStr {
-		flattenMapStr(v, flattenedKey, keysBlacklist, flattened)
+		flattenMapStr(v, key, keysBlacklist, flattened)
 	}
 }
 
 func isBlacklistedKey(keysBlacklist *Set, key string) bool {
 	for _, disabledKey := range keysBlacklist.Array() {
-		if strings.HasPrefix(key, disabledKey.(string)) {
+		disabled, ok := disabledKey.(string)
+		if !ok {
+			if disabledGrp, ok := disabledKey.(group); ok {
+				disabled = disabledGrp.str
+			} else {
+				continue
+			}
+		}
+		if strings.HasPrefix(key, disabled) {
 			return true
-
 		}
 	}
 	return false
 }
 
-func fetchFlattenedFieldNames(paths []string, addFn addField) (*Set, error) {
+func fetchFlattenedFieldNames(paths []string, fn func(common.Field) bool) (*Set, error) {
 	fields := NewSet()
 	for _, path := range paths {
 		f, err := loadFields(path)
 		if err != nil {
 			return nil, err
 		}
-		flattenFieldNames(f, "", addFn, fields)
+		flattenFieldNames(f, "", fn, fields)
 	}
 	return fields, nil
 }
 
-func flattenFieldNames(fields []common.Field, prefix string, addFn addField, flattened *Set) {
-	for _, field := range fields {
-		flattenedKey := strConcat(prefix, field.Name, ".")
-		if addFn(field) {
-			flattened.Add(flattenedKey)
+func flattenFieldNames(fields []common.Field, prefix string, fn func(common.Field) bool, flattened *Set) {
+	for _, f := range fields {
+		key := strConcat(prefix, f.Name, ".")
+		if fn(f) {
+			flattened.Add(key)
 		}
-		flattenFieldNames(field.Fields, flattenedKey, addFn, flattened)
+		flattenFieldNames(f.Fields, key, fn, flattened)
 	}
 }
 
@@ -198,8 +182,6 @@ func loadFields(yamlPath string) ([]common.Field, error) {
 	}
 	return fields, err
 }
-
-type addField func(f common.Field) bool
 
 func addAllFields(f common.Field) bool {
 	return shouldAddField(f, false)
