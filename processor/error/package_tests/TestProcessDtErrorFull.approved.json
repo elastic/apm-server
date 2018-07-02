@@ -177,8 +177,7 @@
                     "type": "DbError"
                 },
                 "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
-                "hex_id": "cb102228424b6af7",
-                "id": "cb102228424b6af7",
+                "id": "0f01bd67-c185-4d21-a6f4-4673ed561ec8",
                 "log": {
                     "level": "warning",
                     "logger_name": "my.logger.name",
@@ -298,8 +297,6 @@
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
-                "hex_id": "abcedf0123456789",
-                "id": "abcedf0123456789",
                 "log": {
                     "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"

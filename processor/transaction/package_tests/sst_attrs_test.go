@@ -19,18 +19,20 @@ func TestPayloadMatchJsonSchema(t *testing.T) {
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {
-	procSetup("sst").AttrsPresence(t,
-		requiredKeys(tests.NewSet(
-			"transactions.spans.duration",
-			"transactions.spans.name",
-			"transactions.spans.start",
-			"transactions.spans.type",
-			"transactions.spans.stacktrace.filename",
-			"transactions.spans.stacktrace.lineno",
-		)),
+	reqKeys := requiredKeys(tests.NewSet(
+		"transactions.spans.duration",
+		"transactions.spans.name",
+		"transactions.spans.start",
+		"transactions.spans.type",
+		"transactions.spans.stacktrace.filename",
+		"transactions.spans.stacktrace.lineno",
+	))
+
+	procSetup("sst").AttrsPresence(t, reqKeys,
 		condRequiredKeys(map[string]tests.Condition{
 			"transactions.spans.id": tests.Condition{Existence: map[string]interface{}{"transactions.spans.parent": float64(123)}},
 		}))
+	procSetup("sst").AttrsNotNullable(t, reqKeys)
 }
 
 func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {

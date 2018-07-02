@@ -28,9 +28,9 @@ func TestPayloadAttrsMatchJsonSchema(t *testing.T) {
 }
 
 func TestAttributesPresenceRequirementInSourcemap(t *testing.T) {
-	procSetup.AttrsPresence(t,
-		tests.NewSet("service_name", "service_version",
-			"bundle_filepath", "sourcemap"), nil)
+	required := tests.NewSet("service_name", "service_version", "bundle_filepath", "sourcemap")
+	procSetup.AttrsPresence(t, required, nil)
+	procSetup.AttrsNotNullable(t, required)
 }
 
 func TestKeywordLimitationOnSourcemapAttributes(t *testing.T) {

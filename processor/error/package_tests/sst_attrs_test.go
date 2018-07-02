@@ -22,6 +22,7 @@ func TestPayloadAttrsMatchJsonSchema(t *testing.T) {
 
 func TestAttrsPresenceInError(t *testing.T) {
 	procSetup("sst").AttrsPresence(t, requiredKeys(nil), condRequiredKeys(nil))
+	procSetup("sst").AttrsNotNullable(t, requiredKeys(nil))
 }
 
 func TestKeywordLimitationOnErrorAttributes(t *testing.T) {

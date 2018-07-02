@@ -55,6 +55,20 @@ var (
 	Str1025        = createStr(1025, "")
 )
 
+var generalRequiredKeys = NewSet(
+	"service",
+	"service.name",
+	"service.agent",
+	"service.agent.name",
+	"service.agent.version",
+	"service.language.name",
+	"service.runtime.name",
+	"service.runtime.version",
+	"service.framework.name",
+	"service.framework.version",
+	"process.pid",
+)
+
 // This test checks
 // * that all payload attributes are reflected in the json Schema, except for
 // dynamic attributes not be specified in the schema;
@@ -92,37 +106,17 @@ func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrs
 // - `conditionally required`: prepare payload according to conditions, then
 //   ensure required keys must not be missing
 func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condRequiredKeys map[string]Condition) {
-
-	required := Union(requiredKeys, NewSet(
-		"service",
-		"service.name",
-		"service.agent",
-		"service.agent.name",
-		"service.agent.version",
-		"service.language.name",
-		"service.runtime.name",
-		"service.runtime.version",
-		"service.framework.name",
-		"service.framework.version",
-		"process.pid",
-	))
-
 	payload, err := loader.LoadData(ps.FullPayloadPath)
 	require.NoError(t, err)
 
 	payloadKeys := NewSet()
 	flattenJsonKeys(payload, "", payloadKeys)
 
+	required := Union(requiredKeys, generalRequiredKeys)
+
 	for _, k := range payloadKeys.Array() {
 		key := k.(string)
 		_, keyLast := splitKey(key)
-
-		//test sending nil value for key
-		ps.changePayload(t, key, nil, Condition{}, upsertFn,
-			func(k string) (bool, string) {
-				return !required.ContainsStrPattern(k), keyLast
-			},
-		)
 
 		//test removing key from payload
 		cond, _ := condRequiredKeys[key]
@@ -134,6 +128,29 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 					return false, fmt.Sprintf("missing properties: \"%s\"", keyLast)
 				}
 				return true, ""
+			},
+		)
+	}
+}
+
+// Test that attribute values cannot be nil, if not configured.
+func (ps *ProcessorSetup) AttrsNotNullable(t *testing.T, notNullable *Set) {
+	payload, err := loader.LoadData(ps.FullPayloadPath)
+	require.NoError(t, err)
+
+	payloadKeys := NewSet()
+	flattenJsonKeys(payload, "", payloadKeys)
+
+	notNullable = Union(notNullable, generalRequiredKeys)
+
+	for _, k := range payloadKeys.Array() {
+		key := k.(string)
+		_, keyLast := splitKey(key)
+
+		//test sending nil value for key
+		ps.changePayload(t, key, nil, Condition{}, upsertFn,
+			func(k string) (bool, string) {
+				return !notNullable.ContainsStrPattern(k), keyLast
 			},
 		)
 	}
@@ -329,6 +346,7 @@ type Schema struct {
 	AllOf                []*Schema
 	OneOf                []*Schema
 	AnyOf                []*Schema
+	If, Else, Then       *Schema
 	MaxLength            int
 }
 type Mapping struct {
@@ -344,6 +362,9 @@ func schemaStruct(reader io.Reader) (*Schema, error) {
 }
 
 func flattenSchemaNames(s *Schema, prefix string, flattened *Set) {
+	if s == nil {
+		return
+	}
 	if len(s.Properties) > 0 {
 		for k, v := range s.Properties {
 			key := strConcat(prefix, k, ".")
@@ -359,6 +380,9 @@ func flattenSchemaNames(s *Schema, prefix string, flattened *Set) {
 					flattenSchemaNames(e, prefix, flattened)
 				}
 			}
+		}
+		for _, schema := range []*Schema{s.If, s.Else, s.Then} {
+			flattenSchemaNames(schema, prefix, flattened)
 		}
 	}
 }

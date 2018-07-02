@@ -602,29 +602,25 @@ const PayloadSchema = `{
             "type": "array",
             "items": {
                 "allOf": [
-                    { 
-                          "$id": "docs/spec/distributed_tracing.json",
-    "description": "Ids and relations according to distributed tracing concept",
-
-    "type": "object",
-    "properties": {
-        "id": {
-            "description": "Unique ID within the corresponding trace, hex encoded 64 random bits",
-            "type": "string",
-            "pattern": "^[a-fA-F0-9]{16}$"
-        },
-        "trace_id": {
-            "type": "string",
-            "description": "UUID for the trace, hex encoded 128 random bits",
-            "pattern": "^[a-fA-F0-9]{32}$"
-        },
-        "parent_id": {
-            "type": ["string","null"],
-            "description": "ID for the parent (transaction or span) where the error occured, hex encoded 64 random bits",
-            "pattern": "^[a-fA-F0-9]{16}$"
-        }
-    },
-    "required": ["id", "trace_id"] 
+                    {
+                        "properties": {
+                            "id": {
+                                "description": "Hex encoded 64 random bits ID, locally unique within a trace.",
+                                "type": "string",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "trace_id": {
+                                "type": "string",
+                                "description": "Hex encoded 128 random bits UUID of the correlated trace.",
+                                "pattern": "^[a-fA-F0-9]{32}$"
+                            },
+                            "parent_id": {
+                                "type": ["string", "null"],
+                                "description": "Hex encoded 64 random bits ID of the parent transaction or span, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            }
+                        },
+                        "required": ["id", "trace_id"]
                     },
                     {     "$id": "docs/spec/transactions/transaction_common.json",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
@@ -887,29 +883,7 @@ const PayloadSchema = `{
             "type": ["array", "null"],
             "items": {
                 "allOf": [
-                     {     "$id": "docs/spec/distributed_tracing.json",
-    "description": "Ids and relations according to distributed tracing concept",
-
-    "type": "object",
-    "properties": {
-        "id": {
-            "description": "Unique ID within the corresponding trace, hex encoded 64 random bits",
-            "type": "string",
-            "pattern": "^[a-fA-F0-9]{16}$"
-        },
-        "trace_id": {
-            "type": "string",
-            "description": "UUID for the trace, hex encoded 128 random bits",
-            "pattern": "^[a-fA-F0-9]{32}$"
-        },
-        "parent_id": {
-            "type": ["string","null"],
-            "description": "ID for the parent (transaction or span) where the error occured, hex encoded 64 random bits",
-            "pattern": "^[a-fA-F0-9]{16}$"
-        }
-    },
-    "required": ["id", "trace_id"] },
-                     {     "$id": "docs/spec/transactions/span_common.json",
+                    {     "$id": "docs/spec/transactions/span_common.json",
 
     "type": "object",
     "properties": {
@@ -1044,16 +1018,31 @@ const PayloadSchema = `{
         }
     },
     "required": ["duration", "name", "start", "type"] },
-                     {
-                         "properties": {
-                             "transaction_id": {
-                                 "type": ["string"],
-                                 "description": "Id of the correlated transaction.",
-                                 "pattern": "^[a-fA-F0-9]{16}$"
-                             }
-                         },
-                         "required": ["transaction_id"]
-                     }
+                    {
+                        "properties": {
+                            "transaction_id": {
+                                "type": ["string"],
+                                "description": "Hex encoded 64 random bits ID of the correlated transaction, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "id": {
+                                "description": "Hex encoded 64 random bits ID, locally unique within a trace.",
+                                "type": "string",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "trace_id": {
+                                "type": "string",
+                                "description": "Hex encoded 128 random bits UUID of the correlated trace.",
+                                "pattern": "^[a-fA-F0-9]{32}$"
+                            },
+                            "parent_id": {
+                                "type": ["string"],
+                                "description": "Hex encoded 64 random bits ID of the parent transaction or span, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            }
+                        },
+                        "required": ["transaction_id", "id", "trace_id", "parent_id"]
+                    }
                 ]
             },
             "minItems": 0

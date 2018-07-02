@@ -22,7 +22,6 @@ type Event struct {
 	// new interface
 	ParentId *string
 	TraceId  *string
-	HexId    *string
 
 	Id        *string
 	Culprit   *string
@@ -74,11 +73,27 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
 	}
 
-	// format of Id indicates single service or distributed tracing
-	if e.Id == nil || utility.IsUUID(*e.Id) {
+	// Differentiate between single service and distributed tracing format.
+	if e.TraceId = decoder.StringPtr(raw, "trace_id"); e.TraceId != nil {
 
-		// single service tracing format
-		// no further additional settings necessary for backwards compatibility
+		// ** distributed tracing format **
+
+		// Ensure backwards compatibility:
+		// The new transactionId is only locally unique within a trace. For
+		// global uniqueness when queried from existing UI, set TransactionId to
+		// `traceId:transactionId`.
+
+		parentId := decoder.String(raw, "parent_id")
+		transactionId := decoder.String(raw, "transaction_id")
+		if decoder.Err != nil {
+			return nil, decoder.Err
+		}
+		e.ParentId = &parentId
+		e.Transaction = &Transaction{Id: strings.Join([]string{*e.TraceId, transactionId}, "-")}
+
+	} else {
+
+		// ** single service tracing format **
 
 		transactionId := decoder.StringPtr(raw, "id", "transaction")
 		if transactionId != nil {
@@ -87,23 +102,6 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		if decoder.Err != nil {
 			return nil, decoder.Err
 		}
-	} else {
-		// distributed tracing format
-
-		// set new hexId
-		e.HexId = e.Id
-		e.ParentId = decoder.StringPtr(raw, "parent_id")
-		traceId := decoder.String(raw, "trace_id")
-		transactionId := decoder.String(raw, "transaction_id")
-		if decoder.Err != nil {
-			return nil, decoder.Err
-		}
-		e.TraceId = &traceId
-
-		// ensure some backwards compatibility
-		// - set TransactionId to `traceId:hexId`
-		//   for global uniqueness when queried from old UI
-		e.Transaction = &Transaction{Id: strings.Join([]string{traceId, transactionId}, "-")}
 	}
 
 	var stacktr *m.Stacktrace
@@ -150,7 +148,6 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 func (e *Event) Transform(config config.Config, service m.Service) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
-	e.add("hex_id", e.HexId)
 	e.add("parent_id", e.ParentId)
 	e.add("trace_id", e.TraceId)
 

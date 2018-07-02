@@ -60,6 +60,7 @@
       "name": "SELECT FROM product_types",
       "trace_id": "2cf497c7fd3df407d9b8c77740a40ec7",
       "id": "ca102228424b6af7",
+      "parent_id": "8102b14857338fa7",
       "transaction_id": "8102b14857338fa7",
       "duration": 0.07,
       "start": 0.0,

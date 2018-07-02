@@ -4,53 +4,58 @@
 
     "allOf": [
         {
-            "oneOf": [
-                { 
-                    "properties": {
-                        "transaction": {
-                            "type": ["object", "null"],
-                            "description": "Data for correlating errors with transactions",
-                            "properties": {
-                                "id": {
-                                    "deprecated": true,
-                                    "type": ["string","null"],
-                                    "description": "UUID for the transaction",
-                                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
-                                    "maxLength": 1024
-                                }
+            "if": { 
+                "properties": {
+                    "trace_id": {
+                        "type": "string",
+                        "description": "UUID for the trace, hex encoded 128 random bits",
+                        "pattern": "^[a-fA-F0-9]{32}$"
+                    }
+                }, 
+                "required": ["trace_id"]
+            },
+            "then": {
+                "properties": {
+                    "parent_id": {
+                        "type": ["string"],
+                        "description": "ID for the parent (transaction or span) where the error occured, hex encoded 64 random bits",
+                        "pattern": "^[a-fA-F0-9]{16}$"
+                    },
+                    "transaction_id": {
+                        "type": ["string"],
+                        "description": "Id of the correlated transaction.",
+                        "pattern": "^[a-fA-F0-9]{16}$"
+                    }
+                },
+                "required": ["parent_id", "transaction_id"]
+            }, 
+            "else": {
+                "properties": {
+                    "transaction": {
+                        "type": ["object", "null"],
+                        "description": "Data for correlating errors with transactions",
+                        "properties": {
+                            "id": {
+                                "deprecated": true,
+                                "type": ["string","null"],
+                                "description": "UUID for the transaction",
+                                "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+                                "maxLength": 1024
                             }
                         }
-                    },
-                    "not": { 
-                        "required": ["trace_id"]
-                    } 
+                    }
                 },
-                { 
-                    "properties": {
-                        "trace_id": {
-                            "type": "string",
-                            "description": "Hex encoded 128 random bits UUID of the correlated trace.",
-                            "pattern": "^[a-fA-F0-9]{32}$"
-                        },
-                        "parent_id": {
-                            "type": ["string"],
-                            "description": "Hex encoded 64 random bits ID of the parent transaction or span, locally unique within a trace.",
-                            "pattern": "^[a-fA-F0-9]{16}$"
-                        },
-                        "transaction_id": {
-                            "type": ["string"],
-                            "description": "Hex encoded 64 random bits ID of the correlated transaction, locally unique within a trace.",
-                            "pattern": "^[a-fA-F0-9]{16}$"
-                        }
-                    },
-                    "required": ["trace_id", "parent_id", "transaction_id"]
+                "not": {
+                    "required": ["trace_id"]
                 }
-            ]
+            }
         },
         {
             "properties": {
                 "id": {
-                    "description": "UUID for the error",
+                    "description": "ID for the error",
+                    "deprecated": true,
+                    "description": "UUID",
                     "type": ["string", "null"],
                     "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
                 },

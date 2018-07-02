@@ -21,8 +21,10 @@ func TestDtPayloadMatchJsonSchema(t *testing.T) {
 
 func TestDtAttrsPresenceInError(t *testing.T) {
 	procSetup("dt").AttrsPresence(t,
-		requiredKeys(tests.NewSet("errors.trace_id", "errors.transaction_id", "errors.parent_id")),
+		requiredKeys(tests.NewSet("errors.transaction_id", "errors.parent_id")),
 		condRequiredKeys(nil))
+
+	procSetup("dt").AttrsNotNullable(t, requiredKeys(tests.NewSet("errors.trace_id", "errors.transaction_id", "errors.parent_id")))
 }
 
 func TestDtKeywordLimitationOnErrorAttributes(t *testing.T) {
@@ -37,12 +39,6 @@ func TestDtPayloadDataForError(t *testing.T) {
 	//// * length restrictions, other than keyword length restrictions
 	procSetup("dt").DataValidation(t, schemaTestData(
 		[]tests.SchemaTestData{
-			{Key: "errors.id",
-				Valid:   []interface{}{"0123456789abcDEF"},
-				Invalid: []tests.Invalid{{Msg: `id/pattern`, Values: val{"123"}}},
-				Condition: tests.Condition{Existence: map[string]interface{}{
-					"errors.trace_id":       "0123456789abcdef0123456789ABCDEF",
-					"errors.transaction_id": "0123456789abcdef"}}},
 			{Key: "errors.trace_id",
 				Valid: []interface{}{"0123456789abcDEF0123456789ABCdef"},
 				Invalid: []tests.Invalid{{Msg: `trace_id/pattern`,

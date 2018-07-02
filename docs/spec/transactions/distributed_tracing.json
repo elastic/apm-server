@@ -8,8 +8,25 @@
             "type": "array",
             "items": {
                 "allOf": [
-                    { 
-                      "$ref": "distributed_tracing_relations.json" 
+                    {
+                        "properties": {
+                            "id": {
+                                "description": "Hex encoded 64 random bits ID, locally unique within a trace.",
+                                "type": "string",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "trace_id": {
+                                "type": "string",
+                                "description": "Hex encoded 128 random bits UUID of the correlated trace.",
+                                "pattern": "^[a-fA-F0-9]{32}$"
+                            },
+                            "parent_id": {
+                                "type": ["string", "null"],
+                                "description": "Hex encoded 64 random bits ID of the parent transaction or span, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            }
+                        },
+                        "required": ["id", "trace_id"]
                     },
                     { "$ref": "transaction_common.json" }
                 ]
@@ -20,18 +37,32 @@
             "type": ["array", "null"],
             "items": {
                 "allOf": [
-                     { "$ref": "distributed_tracing_relations.json" },
-                     { "$ref": "span_common.json" },
-                     {
-                         "properties": {
-                             "transaction_id": {
-                                 "type": ["string"],
-                                 "description": "Id of the correlated transaction.",
-                                 "pattern": "^[a-fA-F0-9]{16}$"
-                             }
-                         },
-                         "required": ["transaction_id"]
-                     }
+                    { "$ref": "span_common.json" },
+                    {
+                        "properties": {
+                            "transaction_id": {
+                                "type": ["string"],
+                                "description": "Hex encoded 64 random bits ID of the correlated transaction, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "id": {
+                                "description": "Hex encoded 64 random bits ID, locally unique within a trace.",
+                                "type": "string",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            },
+                            "trace_id": {
+                                "type": "string",
+                                "description": "Hex encoded 128 random bits UUID of the correlated trace.",
+                                "pattern": "^[a-fA-F0-9]{32}$"
+                            },
+                            "parent_id": {
+                                "type": ["string"],
+                                "description": "Hex encoded 64 random bits ID of the parent transaction or span, locally unique within a trace.",
+                                "pattern": "^[a-fA-F0-9]{16}$"
+                            }
+                        },
+                        "required": ["transaction_id", "id", "trace_id", "parent_id"]
+                    }
                 ]
             },
             "minItems": 0

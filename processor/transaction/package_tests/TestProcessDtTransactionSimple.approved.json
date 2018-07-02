@@ -212,6 +212,8 @@
                 "hex_id": "ca102228424b6af7",
                 "id": 5336803114740313000,
                 "name": "SELECT FROM product_types",
+                "parent": 72815468250107800,
+                "parent_id": "8102b14857338fa7",
                 "start": {
                     "us": 0
                 },

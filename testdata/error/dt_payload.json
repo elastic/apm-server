@@ -36,8 +36,8 @@
     },
     "errors": [
         {
+            "id": "0f01bd67-c185-4d21-a6f4-4673ed561ec8",
             "trace_id": "1cf497c7fd3df407d9b8c77740a40ec7",
-            "id": "cb102228424b6af7",
             "parent_id": "a002b14857338fa7",
             "timestamp": "2018-05-16T10:31:25.512Z",
             "culprit": "my.module.function_name",
@@ -228,7 +228,6 @@
             "transaction_id": "a002b14857338fa7"
         },
         {
-            "id": "abcedf0123456789",
             "trace_id": "4cf497c7fd3df407d9b8c77740a40ec7",
             "transaction_id": "F002b14857338fa7",
             "parent_id": "F002b14857338fa7",

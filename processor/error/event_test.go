@@ -58,9 +58,8 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 
 func TestErrorEventDecode(t *testing.T) {
 	id, culprit, transactionId := "12345678-abcd-EFef-0123-0123456789ab", "foo()", "555"
-	dtId, dtTransactionId := "abcDEF0123456789", "ABCdef0123456789"
-	parentId, hexId := "0123456789abcdef", "0123456789ABCDEF"
-	traceId := "0123456789abcdef0123456789ABCDEF"
+	dtTransactionId := "ABCdef0123456789"
+	parentId, traceId := "0123456789abcdef", "0123456789abcdef0123456789ABCDEF"
 	context := map[string]interface{}{"a": "b"}
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
@@ -101,7 +100,7 @@ func TestErrorEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
 				"transaction": map[string]interface{}{"id": transactionId},
-				"parent_id":   parentId, "trace_id": traceId, "hex_id": hexId,
+				"parent_id":   parentId, "transaction_id": dtTransactionId,
 			},
 			err: nil,
 			e: &Event{
@@ -117,13 +116,12 @@ func TestErrorEventDecode(t *testing.T) {
 		{
 			// distributed tracing
 			input: map[string]interface{}{
-				"id": dtId, "culprit": culprit, "context": context, "timestamp": timestamp,
-				"parent_id": parentId, "trace_id": traceId, "hex_id": hexId, "transaction_id": dtTransactionId,
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
+				"parent_id": parentId, "trace_id": traceId, "transaction_id": dtTransactionId,
 			},
 			err: nil,
 			e: &Event{
-				Id:       &dtId,
-				HexId:    &dtId,
+				Id:       &id,
 				TraceId:  &traceId,
 				ParentId: &parentId,
 
@@ -139,14 +137,13 @@ func TestErrorEventDecode(t *testing.T) {
 			// distributed tracing with transaction.id in single service tracing
 			// format
 			input: map[string]interface{}{
-				"id": dtId, "timestamp": timestamp,
+				"id": id, "timestamp": timestamp,
 				"transaction": map[string]interface{}{"id": transactionId},
-				"parent_id":   parentId, "trace_id": traceId, "hex_id": hexId, "transaction_id": dtTransactionId,
+				"parent_id":   parentId, "trace_id": traceId, "transaction_id": dtTransactionId,
 			},
 			err: nil,
 			e: &Event{
-				Id:       &dtId,
-				HexId:    &dtId,
+				Id:       &id,
 				TraceId:  &traceId,
 				ParentId: &parentId,
 
@@ -157,17 +154,9 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 		},
 		{
-			// distributed tracing: trace_id missing
-			input: map[string]interface{}{
-				"id": dtId, "timestamp": timestamp, "parent_id": parentId, "transaction_id": dtTransactionId,
-			},
-			err: errors.New("Error fetching field"),
-			e:   nil,
-		},
-		{
 			// distributed tracing: transaction_id missing
 			input: map[string]interface{}{
-				"id": dtId, "timestamp": timestamp, "parent_id": parentId, "trace_id": traceId,
+				"id": id, "timestamp": timestamp, "parent_id": parentId, "trace_id": traceId,
 			},
 			err: errors.New("Error fetching field"),
 			e:   nil,
@@ -175,18 +164,10 @@ func TestErrorEventDecode(t *testing.T) {
 		{
 			// distributed tracing: parent_id missing
 			input: map[string]interface{}{
-				"id": dtId, "timestamp": timestamp, "trace_id": traceId, "transaction_id": dtTransactionId,
+				"id": id, "timestamp": timestamp, "trace_id": traceId, "transaction_id": dtTransactionId,
 			},
-			err: nil,
-			e: &Event{
-				Id:        &dtId,
-				HexId:     &dtId,
-				TraceId:   &traceId,
-				Timestamp: timestampParsed,
-				Transaction: &Transaction{
-					Id: "0123456789abcdef0123456789ABCDEF-ABCdef0123456789",
-				},
-			},
+			err: errors.New("Error fetching field"),
+			e:   nil,
 		},
 		{
 			input: map[string]interface{}{
