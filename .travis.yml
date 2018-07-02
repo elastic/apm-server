@@ -6,7 +6,7 @@ services:
 language: go
 
 go:
-  - 1.10.1
+  - 1.10.3
 
 os:
   - linux
@@ -16,7 +16,7 @@ env:
   global:
     # Cross-compile for amd64 only to speed up testing.
     - GOX_FLAGS="-arch amd64"
-    - GO_VERSION="1.9.4"
+    - GO_VERSION="1.10.3"
 
 jobs:
   include:
