@@ -39,7 +39,7 @@ func init() {
 	})
 
 	mage.BeatDescription = "Elastic APM Server"
-	mage.BeatURL         = "https://www.elastic.co/solutions/apm"
+	mage.BeatURL = "https://www.elastic.co/solutions/apm"
 	mage.BeatIndexPrefix = "apm"
 }
 
@@ -107,7 +107,7 @@ func Update() error {
 func customizePackaging() {
 	var (
 		readmeTemplate = mage.PackageFile{
-			Mode: 0644,
+			Mode:     0644,
 			Template: "package-README.md.tmpl",
 		}
 	)
