@@ -32,7 +32,7 @@ is-beats-updated: python-env
 
 # Collects all dependencies and then calls update
 .PHONY: collect
-collect: fields go-generate create-docs notice
+collect: fields go-generate add-headers create-docs notice
 
 .PHONY: go-generate
 go-generate:
