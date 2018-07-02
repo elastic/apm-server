@@ -1,5 +1,4 @@
 BEAT_NAME=apm-server
-BEAT_DESCRIPTION=Elastic Application Performance Monitoring Server
 BEAT_INDEX_PREFIX=apm
 BEAT_PATH=github.com/elastic/apm-server
 BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
@@ -9,15 +8,12 @@ BEAT_REF_YAML=false
 SYSTEM_TESTS=true
 TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
-PREFIX?=.
 BEATS_VERSION?=6.x
-NOTICE_FILE=NOTICE.txt
-LICENSE_FILE=licenses/APACHE-LICENSE-2.0.txt
-ELASTIC_LICENSE_FILE=licenses/ELASTIC-LICENSE.txt
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 TESTIFY_TOOL_REPO?=github.com/elastic/beats/vendor/github.com/stretchr/testify/assert
 FIELDS_FILE_PATH=processor
+MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 
 # Path to the libbeat Makefile
 -include $(ES_BEATS)/libbeat/scripts/Makefile
@@ -34,10 +30,6 @@ update-beats:
 .PHONY: is-beats-updated
 is-beats-updated: python-env
 	@$(PYTHON_ENV)/bin/python ./script/is_beats_updated.py ${BEATS_VERSION}
-
-# This is called by the beats packer before building starts
-.PHONY: before-build
-before-build:
 
 # Collects all dependencies and then calls update
 .PHONY: collect
@@ -89,4 +81,16 @@ force-update-docs: clean docs
 .PHONY: update-beats-docs
 update-beats-docs:
 	@python script/copy-docs.py
-	@$(MAKE) docs 
+	@$(MAKE) docs
+
+# Builds a snapshot release. The Go version defined in .go-version will be
+# installed and used for the build.
+.PHONY: release-manager-release
+release-manager-snapshot:
+	@$(MAKE) SNAPSHOT=true release-manager-release
+
+# Builds a snapshot release. The Go version defined in .go-version will be
+# installed and used for the build.
+.PHONY: release-manager-release
+release-manager-release:
+	./_beats/dev-tools/run_with_go_ver $(MAKE) release
