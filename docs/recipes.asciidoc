@@ -1,0 +1,138 @@
+
+[[recipes]]
+= Recipes
+
+[partintro]
+--
+This section contains a few recipes to cover frequently asked questions about APM Server:
+
+* <<delete-old-data-periodically>>
+* <<delete-data-by-query>>
+* <<update-existing-data>>
+* <<rename-a-service>>
+
+Not what you were looking for? Check out our <<troubleshooting>> section. 
+--
+
+[[delete-old-data-periodically]]
+== How to delete old data periodically?
+
+It might make sense to delete old APM indices on a periodical basis to make room for new data. 
+To do this you can use a tool like {curator-ref-current}[Curator] and set up a cron job to run it periodically.
+
+By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
+With the curator command line interface you can, for instance, see all your existing indices:
+
+["source","sh"]
+------------------------------------------------------------
+curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
+
+apm-{stack-version}-error-{sample_date_0}
+apm-{stack-version}-error-{sample_date_1}
+apm-{stack-version}-error-{sample_date_2}
+apm-{stack-version}-sourcemap
+apm-{stack-version}-span-{sample_date_0}
+apm-{stack-version}-span-{sample_date_1}
+apm-{stack-version}-span-{sample_date_2}
+apm-{stack-version}-transaction-{sample_date_0}
+apm-{stack-version}-transaction-{sample_date_1}
+apm-{stack-version}-transaction-{sample_date_2}
+------------------------------------------------------------
+
+And then delete any span indices older than 1 day:
+
+["source","sh"]
+------------------------------------------------------------
+curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
+
+INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
+INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
+INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
+INFO      "delete_indices" action completed.
+------------------------------------------------------------
+
+
+[[delete-data-by-query]]
+== How to delete data matching a query?
+
+In case you want to delete documents matching a specific query, e.g. all documents with a given `context.service.name`,
+you can do this by sending the following request:
+
+["source","sh"]
+------------------------------------------------------------
+POST /apm-*/_delete_by_query
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "context.service.name": {
+              "value": "old-service-name"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+------------------------------------------------------------
+// CONSOLE
+
+See {ref}/docs-delete-by-query.html[delete by query] for further information on this topic.
+
+
+[[update-existing-data]]
+== How to update existing data?
+In case you want to update specific attributes in existing documents, e.g. you want to change the `context.service.name` 
+for all documents where `beat.version=6.3.0` you can do this by sending the following request: 
+
+["source","sh"]
+------------------------------------------------------------
+POST /apm-*/_update_by_query
+{
+  "query": {
+    "term": {
+      "beat.version": {
+        "value": "6.3.0"
+      }
+    }
+  },
+  "script": {
+    "source": "ctx._source.context.service.name = 'new-service-name'",
+    "lang": "painless"
+  }
+}
+----------------------------------------------------------
+// CONSOLE
+
+See {ref}/docs-update-by-query.html[update by query] for further information on this topic.
+
+
+[[rename-a-service]]
+== How to rename a service?
+If you want to change the service name reported for your monitored data, you can do that. 
+Check out how to change the {apm-agents-ref}/index.html[APM agent configuration] accordingly.
+Once you have set up the agents to send the new service name, you also might want to adapt existing documents.
+You can do that by sending the following request:
+
+["source","sh"]
+------------------------------------------------------------
+POST /apm-*/_update_by_query
+{
+  "query": {
+    "term": {
+      "context.service.name": {
+        "value": "old-service-name"
+      }
+    }
+  },
+  "script": {
+    "source": "ctx._source.context.service.name = 'new-service-name'",
+    "lang": "painless"
+  }
+}
+------------------------------------------------------------
+// CONSOLE
+
+

@@ -1,16 +1,32 @@
-
 [[common-problems]]
 == Common problems
 
 This section describes common problems you might encounter with APM Server.
 
+[[queue-full]]
 [float]
-[[queue-is-full]]
-=== 503: Queue is full
+=== HTTP 503: Queue is full
 
 APM Server has an internal queue that buffers documents until they can be delivered to Elasticsearch.
-When the internal queue has reached the maximum buffer size, APM Server will return an HTTP 503 queue is full message.
-Read more about <<why-queue-is-full,potential issues leading to a full queue>>.
+The internal queue helps to:
+
+* alleviate problems that might occur if Elasticsearch is intermittently unavailable
+* handle large spikes of data arriving at the APM Server at the same time
+* send documents to Elasticsearch in bulk, instead of individually
+
+When the internal queue has reached the maximum buffer size, 
+APM Server returns an HTTP 503 status with the message "Queue is full".
+
+A full queue generally means that the agents collect more data than APM server is able to deliver to Elasticsearch.
+This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster,
+or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
+
+The queue can also fill up if Elasticsearch is unavailable for a prolonged period,
+it runs out of disk space,
+or a sudden spike of data arrives at the APM Server.
+
+If the APM Server only returns 503 responses, it might indicate that an Elasticsearch disk is full.
+If the APM Server returns interleaved 503 and 202 responses, it might indicate that the APM Server can't process that much data.
 
 You have a few options to solve this problem: 
 
@@ -20,12 +36,13 @@ You have a few options to solve this problem:
 * <<increase-queue-size,Increase the size of the APM Server queue>>
 * <<delete-old-data,Delete old data>>
 
-[float]
 [[request-timed-out]]
-=== 503: Request timed out waiting to be processed
+[float]
+=== HTTP 503: Request timed out waiting to be processed
 
-A timeout returned by the APM Server indicates that the maximum amount of concurrently processed requests is reached. 
-Read more about <<why-request-timed-out,possible reasons for a timeout>>. 
+There is a limit to the number of requests that the APM Server can process concurrently.
+The APM Server returns an HTTP 503 status with the message "Request timed out waiting to be processed" when the limit is reached and the request from an agent is blocked.
+This limit is determined by the `apm-server.concurrent_requests` configuration parameter.
 
 To alleviate this problem,
 you can try to:
@@ -34,12 +51,14 @@ you can try to:
 * <<reduce-payload-size,Decrease the payload size>>
 * <<add-apm-server-nodes,Add APM Server nodes>>
 
-[float]
-[[troubleshooting-solutions]]
-=== Solutions
 
+[[solutions]]
 [float]
+=== Possible Solutions
+There are several options how you can fix underlying issues causing an APM Server to respond with 503:
+
 [[tune-output-config]]
+[float]
 ==== Tune APM Server output parameters for your Elasticsearch cluster
 
 If your Elasticsearch cluster is sized properly,
@@ -54,17 +73,17 @@ If you increase `bulk_max_size`,
 make sure to also increase `queue.mem.events`.
 A good rule of thumb is that `queue.mem.events` should equal `output.elasticsearch.worker` multiplied by `output.elasticsearch.bulk_max_size`.
 
-[float]
 [[increase-cluster-ingest]]
+[float]
 ==== Tune Elasticsearch for higher ingestion
 
 Increasing the Elasticsearch ingestion rate is a large topic.
-See {ref}/tune-for-indexing-speed.html[Tune for indexing speed],
+See {ref}/tune-for-indexing-speed.html[tune for indexing speed],
 particularly the sections about how to increase the refresh interval,
 disable swapping, use faster hardware, and set the indexing buffer size.
 
-[float]
 [[reduce-data]]
+[float]
 ==== Reduce the amount of data collected
 
 The most obvious way to reduce the number of documents to be indexed
@@ -73,8 +92,8 @@ The transaction sample rate is controlled in the configuration of agents (for ex
 
 Reducing the transaction sample rate does not affect the collection of metrics such as Requests Per Second.
 
-[float]
 [[increase-queue-size]]
+[float]
 ==== Increase internal queue size
 
 A larger internal queue allows Elasticsearch to be unavailable for longer periods,
@@ -82,50 +101,18 @@ and it alleviates problems that might result from sudden spikes of data.
 You can increase the queue size by overriding `queue.mem.events`.
 Be aware that increasing `queue.mem.events` can significantly affect APM Server memory usage.
 
-[float]
 [[delete-old-data]]
+[float]
 ==== Delete old data
 
 The internal queue might be full because Elasticsearch ran out of disk space and started rejecting insertions.
-If this happens,
-you will need to remove old indices to make room for new data.
+If this happens, you can remove old indices to make room for new data.
 To do this you can use a tool like Curator and set up a cron job to run it periodically.
+For more details and an example have a look at <<delete-old-data-periodically>>.
 
-By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
-With the curator command line interface you can, for instance, see all your existing indices:
 
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
-
-apm-{stack-version}-error-{sample_date_0}
-apm-{stack-version}-error-{sample_date_1}
-apm-{stack-version}-error-{sample_date_2}
-apm-{stack-version}-sourcemap
-apm-{stack-version}-span-{sample_date_0}
-apm-{stack-version}-span-{sample_date_1}
-apm-{stack-version}-span-{sample_date_2}
-apm-{stack-version}-transaction-{sample_date_0}
-apm-{stack-version}-transaction-{sample_date_1}
-apm-{stack-version}-transaction-{sample_date_2}
-------------------------------------------------------------
-
-And then delete any span indices older than 1 day:
-
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
-
-INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
-INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
-INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
-INFO      "delete_indices" action completed.
-------------------------------------------------------------
-
-You can read more on Curator here: https://www.elastic.co/guide/en/elasticsearch/client/curator/current/index.html
-
-[float]
 [[reduce-payload-size]]
+[float]
 ==== Reduce the payload size
 
 Large payloads coming from agents may result in "503: Request timed out waiting to be processed" messages.
@@ -134,8 +121,8 @@ This will result in agents sending smaller payloads to the APM Server,
 but the requests will be more frequent.
 See the documentation for the {apm-py-ref}/configuration.html#config-max-queue-size[Python] and {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agents for more information.
 
-[float]
 [[add-apm-server-nodes]]
+[float]
 ==== Add APM Server nodes
 
 When the APM Server cannot process incoming requests quickly enough,
