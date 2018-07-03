@@ -14,6 +14,7 @@
 /apm-server.dev.yml
 /_meta/fields.generated.yml
 /_meta/kibana/*/index-pattern
+/_meta/kibana.generated/*
 
 /fields.yml
 /apm-server.template-es.json

@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/9e0a1e281e56044745f1a4f18dcbf00a7f
 ==== Added
 
 - Listen on default port 8200 if unspecified {pull}[886]886.
+- Update Go to 1.10.3 {pull}1054[1054].
 - Add optional tracing for the server's API and event publisher {pull}1029[1029].
 
 ==== Deprecated
