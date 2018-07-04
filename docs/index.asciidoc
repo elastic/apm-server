@@ -29,4 +29,6 @@ include::./error-api.asciidoc[]
 
 include::./generated-docs.asciidoc[]
 
+include::./release-notes.asciidoc[]
+
 include::./fields.asciidoc[]
