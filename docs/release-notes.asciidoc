@@ -1,0 +1,18 @@
+:root-dir: ../
+
+[[release-notes]]
+= Release notes
+
+[partintro]
+
+--
+This following section summarizes the changes in each release.
+
+* <<release-notes-6.3>>
+* <<release-notes-6.2>>
+* <<release-notes-6.1>>
+
+
+--
+
+include::{root-dir}/CHANGELOG.asciidoc[]
