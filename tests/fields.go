@@ -23,7 +23,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/set"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/config"
@@ -38,7 +37,7 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 	assert.NoError(err)
 	disabledFieldNames, err := fetchFlattenedFieldNames(fieldPaths, addOnlyDisabledFields)
 	assert.NoError(err)
-	undocumentedFieldNames := set.New(
+	undocumentedFieldNames := NewSet(
 		"processor",
 		//dynamically indexed:
 		"context.tags.organization_uuid",
@@ -66,28 +65,30 @@ func TestEventAttrsDocumentedInFields(t *testing.T, fieldPaths []string, fn proc
 		"transaction.marks.navigationTiming.navigationStart",
 		"transaction.marks.navigationTiming.appBeforeBootstrap",
 	)
-	blacklistedFieldNames := set.Union(disabledFieldNames, undocumentedFieldNames).(*set.Set)
+	blacklistedFieldNames := Union(disabledFieldNames, undocumentedFieldNames)
 
 	eventNames, err := fetchEventNames(fn, blacklistedFieldNames)
 	assert.NoError(err)
 
-	undocumentedNames := set.Difference(eventNames, fieldNames, blacklistedFieldNames)
-	assert.Equal(0, undocumentedNames.Size(), fmt.Sprintf("Event attributes not documented in fields.yml: %v", undocumentedNames))
+	undocumentedNames := Difference(eventNames, fieldNames)
+	undocumentedNames = Difference(undocumentedNames, blacklistedFieldNames)
+	assert.Equal(0, undocumentedNames.Len(), fmt.Sprintf("Event attributes not documented in fields.yml: %v", undocumentedNames))
 }
 
-func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor, exceptions *set.Set) {
+func TestDocumentedFieldsInEvent(t *testing.T, fieldPaths []string, fn processor.NewProcessor, exceptions *Set) {
 	assert := assert.New(t)
 	fieldNames, err := fetchFlattenedFieldNames(fieldPaths, addAllFields)
 	assert.NoError(err)
 
-	eventNames, err := fetchEventNames(fn, set.New())
+	eventNames, err := fetchEventNames(fn, NewSet())
 	assert.NoError(err)
 
-	unusedNames := set.Difference(fieldNames, eventNames, exceptions)
-	assert.Equal(0, unusedNames.Size(), fmt.Sprintf("Documented Fields missing in event: %v", unusedNames))
+	unusedNames := Difference(fieldNames, eventNames)
+	unusedNames = Difference(unusedNames, exceptions)
+	assert.Equal(0, unusedNames.Len(), fmt.Sprintf("Documented Fields missing in event: %v", unusedNames))
 }
 
-func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set, error) {
+func fetchEventNames(fn processor.NewProcessor, blacklisted *Set) (*Set, error) {
 	p := fn()
 	data, err := loader.LoadValidData(p.Name())
 	if err != nil {
@@ -104,7 +105,7 @@ func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set,
 	}
 	events := payl.Transform(config.Config{})
 
-	eventNames := set.New()
+	eventNames := NewSet()
 	for _, event := range events {
 		for k, _ := range event.Fields {
 			if k == "@timestamp" {
@@ -117,7 +118,7 @@ func fetchEventNames(fn processor.NewProcessor, blacklisted *set.Set) (*set.Set,
 	return eventNames, nil
 }
 
-func flattenMapStr(m interface{}, prefix string, keysBlacklist *set.Set, flattened *set.Set) {
+func flattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
 	if commonMapStr, ok := m.(common.MapStr); ok {
 		for k, v := range commonMapStr {
 			flattenMapStrStr(k, v, prefix, keysBlacklist, flattened)
@@ -132,7 +133,7 @@ func flattenMapStr(m interface{}, prefix string, keysBlacklist *set.Set, flatten
 	}
 }
 
-func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *set.Set, flattened *set.Set) {
+func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
 	flattenedKey := StrConcat(prefix, k, ".")
 	if !isBlacklistedKey(keysBlacklist, flattenedKey) {
 		flattened.Add(flattenedKey)
@@ -144,8 +145,8 @@ func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *set
 	}
 }
 
-func isBlacklistedKey(keysBlacklist *set.Set, key string) bool {
-	for _, disabledKey := range keysBlacklist.List() {
+func isBlacklistedKey(keysBlacklist *Set, key string) bool {
+	for _, disabledKey := range keysBlacklist.Array() {
 		if strings.HasPrefix(key, disabledKey.(string)) {
 			return true
 
@@ -154,8 +155,8 @@ func isBlacklistedKey(keysBlacklist *set.Set, key string) bool {
 	return false
 }
 
-func fetchFlattenedFieldNames(paths []string, addFn addField) (*set.Set, error) {
-	fields := set.New()
+func fetchFlattenedFieldNames(paths []string, addFn addField) (*Set, error) {
+	fields := NewSet()
 	for _, path := range paths {
 		f, err := loadFields(path)
 		if err != nil {
@@ -166,7 +167,7 @@ func fetchFlattenedFieldNames(paths []string, addFn addField) (*set.Set, error) 
 	return fields, nil
 }
 
-func flattenFieldNames(fields []common.Field, prefix string, addFn addField, flattened *set.Set) {
+func flattenFieldNames(fields []common.Field, prefix string, addFn addField, flattened *Set) {
 	for _, field := range fields {
 		flattenedKey := StrConcat(prefix, field.Name, ".")
 		if addFn(field) {

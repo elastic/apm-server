@@ -20,8 +20,6 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/fatih/set"
-
 	er "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/tests"
 )
@@ -33,7 +31,7 @@ func TestFields(t *testing.T) {
 	}
 	tests.TestEventAttrsDocumentedInFields(t, fieldsPaths, er.NewProcessor)
 
-	notInEvent := set.New(
+	notInEvent := tests.NewSet(
 		"context.db.instance",
 		"context.db.statement",
 		"context.db.user",

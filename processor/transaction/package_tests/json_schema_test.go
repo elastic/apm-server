@@ -20,8 +20,6 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/fatih/set"
-
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 )
@@ -30,7 +28,7 @@ import (
 func TestPayloadAttributesInSchema(t *testing.T) {
 
 	//only add attributes that should not be documented by the schema
-	undocumented := set.New(
+	undocumented := tests.NewSet(
 		"transactions.spans.stacktrace.vars.key",
 		"transactions.context.request.headers.some-other-header",
 		"transactions.context.request.headers.array",
@@ -64,7 +62,7 @@ func TestJsonSchemaKeywordLimitation(t *testing.T) {
 		"./../../../_meta/fields.common.yml",
 		"./../_meta/fields.yml",
 	}
-	exceptions := set.New("processor.event", "processor.name", "context.service.name", "transaction.id", "listening")
+	exceptions := tests.NewSet("processor.event", "processor.name", "context.service.name", "transaction.id", "listening")
 	tests.TestJsonSchemaKeywordLimitation(t, fieldsPaths, transaction.Schema(), exceptions)
 }
 
