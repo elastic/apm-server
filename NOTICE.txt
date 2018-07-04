@@ -1759,7 +1759,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/testify
-Version: v1.1.4
+Version: v1.2.0
 Revision: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
