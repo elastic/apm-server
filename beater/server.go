@@ -24,9 +24,13 @@ import (
 
 	"golang.org/x/net/netutil"
 
+	"crypto/tls"
+
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-agent-go/module/apmhttp"
+
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/version"
 )
 
@@ -78,7 +82,12 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 
 	ssl := config.SSL
 	if ssl.isEnabled() {
-		return server.ServeTLS(lis, ssl.Cert, ssl.PrivateKey)
+		cert, err := outputs.LoadCertificate(&config.SSL.Certificate)
+		if err != nil {
+			return err
+		}
+		server.TLSConfig = &tls.Config{Certificates: []tls.Certificate{*cert}}
+		return server.ServeTLS(lis, "", "")
 	}
 	if config.SecretToken != "" {
 		logger.Warn("Secret token is set, but SSL is not enabled.")
