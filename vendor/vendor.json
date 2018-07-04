@@ -870,6 +870,14 @@
 			"versionExact": "6.x"
 		},
 		{
+			"checksumSHA1": "72qBNCQrGrvLZFMGD2AqxxKQMsw=",
+			"path": "github.com/elastic/beats/libbeat/outputs/transport/transptest",
+			"revision": "39cd1ab0a3be3576efc2a9557f38abf1b2ed8889",
+			"revisionTime": "2018-06-29T11:58:43Z",
+			"version": "6.x",
+			"versionExact": "6.x"
+		},
+		{
 			"checksumSHA1": "hb8M4qSLzgDXpQmdQfEyB7aChhI=",
 			"path": "github.com/elastic/beats/libbeat/paths",
 			"revision": "39cd1ab0a3be3576efc2a9557f38abf1b2ed8889",
