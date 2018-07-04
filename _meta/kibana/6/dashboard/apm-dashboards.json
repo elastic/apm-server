@@ -29,7 +29,7 @@
               "schema": "metric",
               "params": {
                 "field": "transaction.duration.us",
-                "customLabel": "Avg. Resp. Time"
+                "customLabel": "Avg. Trans. Time"
               }
             },
             {
@@ -42,7 +42,7 @@
                 "percents": [
                   95
                 ],
-                "customLabel": "Resp. Time"
+                "customLabel": "Trans. Time"
               }
             },
             {
@@ -122,9 +122,9 @@
       "type": "visualization",
       "version": 2,
       "attributes": {
-        "title": "Top Services by Response Time [APM]",
+        "title": "Top Services by Transaction Time [APM]",
         "visState": {
-          "title": "Top Services by Response Time [APM]",
+          "title": "Top Services by Transaction Time [APM]",
           "type": "metrics",
           "params": {
             "id": "61ca57f0-469d-11e7-af02-69e470af7417",
@@ -183,9 +183,9 @@
       "type": "visualization",
       "version": 1,
       "attributes": {
-        "title": "Top Services by Request Per Minute [APM]",
+        "title": "Top Services by Transaction Per Minute [APM]",
         "visState": {
-          "title": "Top Apps by Request Per Minute [APM]",
+          "title": "Top Apps by Transaction Per Minute [APM]",
           "type": "metrics",
           "params": {
             "id": "61ca57f0-469d-11e7-af02-69e470af7417",
@@ -228,7 +228,7 @@
                 "stacked": "none",
                 "terms_field": "context.service.name",
                 "terms_order_by": "_count",
-                "value_template": "{{value}} rpm"
+                "value_template": "{{value}} tpm"
               }
             ],
             "time_field": "@timestamp",
@@ -814,9 +814,9 @@
       "type": "visualization",
       "version": 2,
       "attributes": {
-        "title": "Response Times [APM]",
+        "title": "Transaction Times [APM]",
         "visState": {
-          "title": "Response Times [APM]",
+          "title": "Transaction Times [APM]",
           "type": "metrics",
           "params": {
             "id": "61ca57f0-469d-11e7-af02-69e470af7417",
@@ -936,9 +936,9 @@
       "type": "visualization",
       "version": 1,
       "attributes": {
-        "title": "Request Per Minute [APM]",
+        "title": "Transaction Per Minute [APM]",
         "visState": {
-          "title": "Request Per Minute [APM]",
+          "title": "Transaction Per Minute [APM]",
           "type": "metrics",
           "params": {
             "id": "61ca57f0-469d-11e7-af02-69e470af7417",
@@ -947,11 +947,12 @@
               {
                 "id": "61ca57f1-469d-11e7-af02-69e470af7417",
                 "color": "rgba(115,216,255,1)",
-                "split_mode": "terms",
+                "split_mode": "everything",
                 "metrics": [
                   {
                     "id": "61ca57f2-469d-11e7-af02-69e470af7417",
-                    "type": "count"
+                    "type": "cardinality",
+                    "field": "transaction.id"
                   },
                   {
                     "id": "3fcaa6c0-7828-11e7-bb25-2ff6dee07a1b",
@@ -980,7 +981,7 @@
                 "fill": "0",
                 "stacked": "none",
                 "label": "",
-                "value_template": "{{value}} rpm",
+                "value_template": "{{value}} tpm",
                 "terms_field": "transaction.result"
               }
             ],
@@ -988,7 +989,7 @@
             "interval": ">=1m",
             "axis_position": "left",
             "axis_formatter": "number",
-            "show_legend": 1,
+            "show_legend": 0,
             "show_grid": 1
           },
           "aggs": []
