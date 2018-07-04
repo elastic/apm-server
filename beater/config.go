@@ -24,6 +24,7 @@ import (
 
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/outputs"
 )
 
 const defaultPort = "8200"
@@ -75,9 +76,8 @@ type Cache struct {
 }
 
 type SSLConfig struct {
-	Enabled    *bool  `config:"enabled"`
-	PrivateKey string `config:"key"`
-	Cert       string `config:"certificate"`
+	Enabled     *bool                     `config:"enabled"`
+	Certificate outputs.CertificateConfig `config:",inline"`
 }
 
 type TraceConfig struct {

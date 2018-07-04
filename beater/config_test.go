@@ -24,6 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/go-ucfg/yaml"
 )
 
@@ -70,7 +71,7 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
-				SSL:             &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
 				Frontend: &FrontendConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,
@@ -109,7 +110,7 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:       2000000000,
 				ShutdownTimeout:    5000000000,
 				SecretToken:        "1234random",
-				SSL:                &SSLConfig{Enabled: nil, PrivateKey: "", Cert: ""},
+				SSL:                &SSLConfig{Enabled: nil, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
 				ConcurrentRequests: 20,
 				Frontend: &FrontendConfig{
 					Enabled:      nil,
@@ -158,9 +159,9 @@ func TestIsEnabled(t *testing.T) {
 	}{
 		{config: nil, expected: false},
 		{config: &SSLConfig{Enabled: nil}, expected: true},
-		{config: &SSLConfig{Cert: "Cert"}, expected: true},
-		{config: &SSLConfig{Cert: "Cert", PrivateKey: "key"}, expected: true},
-		{config: &SSLConfig{Cert: "Cert", PrivateKey: "key", Enabled: &falsy}, expected: false},
+		{config: &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert"}}, expected: true},
+		{config: &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
+		{config: &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: &falsy}, expected: false},
 		{config: &SSLConfig{Enabled: &truthy}, expected: true},
 		{config: &SSLConfig{Enabled: &falsy}, expected: false},
 	}
