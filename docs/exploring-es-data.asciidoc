@@ -1,0 +1,63 @@
+[[exploring-es-data]]
+= Exploring data in Elasticsearch
+
+[partintro]
+--
+By default Elastic APM data are stored in different index types. 
+
+Indices storing monitored data are built in the format of `apm-[version]-[type]-[date]` by default. 
+
+This format makes it easy to query for all Elastic APM data at once by using `apm-*`.
+
+It also allows for querying documents that have been collected with a specific APM Server version, e.g. `apm-{version}*`.
+
+If you are only interested in e.g. error documents you can use the type in your query `apm-*-error-*`.
+
+Adding the date is useful when you want to query for data in a specific time range, 
+or <<delete-data, delete old data>>.
+
+Read more about the specific indices:
+
+* <<transaction-indices>>
+* <<span-indices>>
+* <<error-indices>>
+* <<sourcemap-indices>>
+* <<healthcheck-indices>>
+
+You can explore the raw data stored in Elasticsearch by querying the indices. 
+
+For getting an overview of existing indices you can run:
+["source","sh"]
+------------------------------------------------------------
+GET _cat/indices
+------------------------------------------------------------
+// CONSOLE
+
+
+If you want to see which _settings_ and _mappings_ are applied to the Elastic APM indices you can fetch the index 
+templates.
+First send a query to see which templates exist:
+
+["source","sh"]
+------------------------------------------------------------
+GET _cat/templates
+------------------------------------------------------------
+// CONSOLE
+
+Then you can retrieve the specific template you are interested in by sending:
+
+["source","sh"]
+------------------------------------------------------------
+GET  /_template/your-template-name
+------------------------------------------------------------
+// CONSOLE
+
+You can read more about {ref}/indices-templates.html[Index Templates] and how they are used.
+--
+
+
+include::./transaction-indices.asciidoc[]
+include::./span-indices.asciidoc[]
+include::./error-indices.asciidoc[]
+include::./sourcemap-indices.asciidoc[]
+include::./healthcheck-indices.asciidoc[]

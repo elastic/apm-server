@@ -1,0 +1,38 @@
+[[error-indices]]
+== Error Indices
+
+Errors are stored in separate indices of the format `apm-[version]-error-[date]`.
+Read more about the general purpose of <<errors, error>> documents.
+
+Some of the key attributes of an error are described in more detail:
+
+[[errors-context]]
+include::./context.asciidoc[]
+
+[[errors-error]]
+[float]
+=== Error
+An error event contains at least
+information about the original `exception` that occured 
+or information about a `log` that was created when the exception occured. 
+
+Both the captured `exception` and the captured `log` of an error can contain `stack trace` information,
+helpful for debugging an error. 
+
+The `culprit` of an error gives some information about the origin of the error. 
+
+Errors also contain a `grouping_key` which can be used to group together identical or similar errors. 
+
+An error can be mapped to the <<transactions,transaction>> during which it happened, 
+via the `transaction.id`, indexed together with the error event.  
+
+[[error-example]]
+[float]
+=== Example document
+
+Example of an error document indexed in Elasticsearch:
+
+[source,json]
+----
+include::./data/elasticsearch/error.json[]
+----

@@ -3,35 +3,11 @@
 
 An error record represents one error event, captured by Elastic APM agents within one service. 
 It is identified by a unique ID.
+Errors contain information about the `exception` that has been captured
+and some meta information about the setting in which the error occured. 
 
-Some of the key attributes of an error are described in more detail:
+Errors can either relate to monitored <<transactions, transactions>> 
+or be monitored stand alone, 
+depending on how your APM agents are set up.
 
-[[errors-context]]
-include::./context.asciidoc[]
-
-[[errors-error]]
-[float]
-=== Error
-An error event contains at least
-information about the original `exception` that occured 
-or information about a `log` that was created when the exception occured. 
-
-Both the captured `exception` and the captured `log` of an error can contain `stack trace` information,
-helpful for debugging an error. 
-
-The `culprit` of an error gives some information about the origin of the error. 
-
-Errors also contain a `grouping_key` which can be used to group together identical or similar errors. 
-
-An error can be mapped to the <<transactions,transaction>> during which it happened, 
-via the `transaction.id`, indexed together with the error event.  
-
-
-[[error-example]]
-[float]
-=== Example document
-
-[source,json]
-----
-include::./data/elasticsearch/error.json[]
-----
+Read more about how an <<error-indices, error document>> is indexed in Elasticsearch and which information erorr documents hold.
