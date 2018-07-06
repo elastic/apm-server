@@ -35,7 +35,7 @@ You have a few options to solve this problem:
 
 * <<reduce-storage, Reduce storage>>
 * <<tune-output-config>>
-* <<increase-queue-size>>
+* <<adjust-queue-size>>
 * <<tune-es, Tune Elasticsearch for higher ingestion>>
 
 [[request-timed-out]]
@@ -52,6 +52,6 @@ you can try to:
 * <<reduce-sample-rate>>
 * <<reduce-stacktrace>>
 * <<reduce-payload-size>>
-* <<increase-concurrent-requests>>
+* <<adjust-concurrent-requests>>
 * <<add-apm-server-nodes>>
 

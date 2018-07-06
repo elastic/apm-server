@@ -17,7 +17,7 @@ Depending on how many services you are instrumenting and how much traffic the se
 the number of recorded transactions varies.
 You can influence the detail level of the information collected 
 by reducing the sample rate or reducing collected stacktrace information.
-Another factor is how long you want to keep monitoring data around.
+Another factor is for how long you want to keep monitoring data around.
 
 [[reduce-sample-rate]]
 [float]
@@ -56,7 +56,7 @@ or by using the {ref}/docs-delete-by-query.html[Delete By Query API].
 [float]
 ==== Delete data periodically
 
-It might make sense to delete old APM indices on a periodical basis to make room for new data. 
+It might make sense to delete old APM indices on a periodic basis to make room for new data. 
 To do this you can use a tool like {curator-ref-current}[Curator] and set up a cron job to run it periodically.
 
 By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.

@@ -18,8 +18,8 @@ For optimizing your Elastic APM setup read more about how to:
 You can fine tune your setup considering following options:
 
 * <<tune-output-config>>
-* <<increase-queue-size>>
-* <<increase-concurrent-requests>>
+* <<adjust-queue-size>>
+* <<adjust-concurrent-requests>>
 * <<add-apm-server-nodes>>
 * <<reduce-payload-size>>
 
@@ -31,29 +31,30 @@ If your Elasticsearch cluster is sized properly,
 but not ingesting the amount of data you expect,
 you can tweak APM Server options to make better use of the cluster:
 
-* Increase `output.elasticsearch.workers` to a number that suits your setup.
+* Adjust `output.elasticsearch.workers` to a number that suits your setup.
 See {ref}/tune-for-indexing-speed.html[tune for indexing speed] for an overview.
 * Ensure `output.elasticsearch.bulk_max_size` is set to a high value, for example 5120.
   The default of 50 is very conservative.
 * Ensure that `queue.mem.events` is set to a reasonable value compared to your other settings.
 A good rule of thumb is that `queue.mem.events` should equal `output.elasticsearch.worker` multiplied by `output.elasticsearch.bulk_max_size`.
 
-Get detailled information on available <<configuring-output,output configuration options>> and their default values.
+Get detailed information on available <<configuring-output,output configuration options>> and their default values.
 
-[[increase-queue-size]]
+[[adjust-queue-size]]
 [float]
-=== Increase internal queue size
+=== Adjust internal queue size
 
 APM Server uses an internal queue to allow buffering incoming requests until they can be delievered to Elasticsearch. 
 A larger internal queue allows Elasticsearch to be unavailable for longer periods,
 and it alleviates problems that might result from sudden spikes of data.
-You can increase the queue size by overriding `queue.mem.events`.
+You can adjust the queue size by overriding `queue.mem.events`.
 Be aware that increasing `queue.mem.events` can significantly affect APM Server memory usage.
 
-[[increase-concurrent-requests]]
+[[adjust-concurrent-requests]]
 [float]
-=== Increase concurrent requests
-To avoid overfloating the APM Server has an upper limit to how many requests are accepted concurrently.
+=== Adjust concurrent requests
+To avoid overflowing the APM Server,
+it has an upper limit to how many requests are accepted concurrently.
 This limit is determined by the `apm-server.concurrent_requests` configuration parameter.
 As this limit is set to a rather conservative default you might want to set it to some higher value.
 Be aware though, that increasing the limit can significantly affect APM Server memory usage.
@@ -89,8 +90,8 @@ Read more about configuration options directly in the {apm-agents-ref}/index.htm
 [[tune-es]]
 == Tune Elasticsearch
 
-Increasing the Elasticsearch ingestion rate is a large topic.
-Get more insights about 
+Get insights about tuning the Elasticsearch ingestion rate, 
+especially with regards to 
 
 * refresh interval
 * disable swapping
