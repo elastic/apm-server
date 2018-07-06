@@ -3,9 +3,8 @@
 
 [partintro]
 --
-By default Elastic APM data are stored in different index types. 
-
-Indices storing monitored data are built in the format of `apm-[version]-[type]-[date]` by default. 
+By default Elastic APM data are stored in different indices, 
+in the format of `apm-[version]-[type]-[date]`.
 
 This format makes it easy to query for all Elastic APM data at once by using `apm-*`.
 
@@ -29,7 +28,7 @@ You can explore the raw data stored in Elasticsearch by querying the indices.
 For getting an overview of existing indices you can run:
 ["source","sh"]
 ------------------------------------------------------------
-GET _cat/indices
+GET _cat/indices/apm*
 ------------------------------------------------------------
 // CONSOLE
 
@@ -40,7 +39,7 @@ First send a query to see which templates exist:
 
 ["source","sh"]
 ------------------------------------------------------------
-GET _cat/templates
+GET _cat/templates/apm*
 ------------------------------------------------------------
 // CONSOLE
 
