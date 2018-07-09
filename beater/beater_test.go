@@ -47,6 +47,7 @@ import (
 )
 
 func TestBeatConfig(t *testing.T) {
+	falsy := false
 	truthy := true
 	tests := []struct {
 		conf       map[string]interface{}
@@ -93,6 +94,9 @@ func TestBeatConfig(t *testing.T) {
 					"library_pattern":       "^custom",
 					"exclude_from_grouping": "^grouping",
 				},
+				"metrics": map[string]interface{}{
+					"enabled": false,
+				},
 			},
 			beaterConf: &Config{
 				Host:                "localhost:3000",
@@ -120,6 +124,9 @@ func TestBeatConfig(t *testing.T) {
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
 					beatVersion:         "6.2.0",
+				},
+				Metrics: &metricsConfig{
+					Enabled: &falsy,
 				},
 				ConcurrentRequests: 15,
 			},
@@ -174,6 +181,9 @@ func TestBeatConfig(t *testing.T) {
 					LibraryPattern:      "node_modules|bower_components|~",
 					ExcludeFromGrouping: "^/webpack",
 					beatVersion:         "6.2.0",
+				},
+				Metrics: &metricsConfig{
+					Enabled: &truthy,
 				},
 				ConcurrentRequests: 5,
 			},

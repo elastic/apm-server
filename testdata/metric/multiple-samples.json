@@ -1,0 +1,76 @@
+{
+    "service": {
+        "name": "apm-server",
+        "version": "6.x",
+        "environment": "staging",
+        "language": {
+            "name": "go",
+            "version": "go1.10.1"
+        },
+        "runtime": {
+            "name": "gc",
+            "version": "go1.10.1"
+        },
+        "agent": {
+            "name": "elastic-go",
+            "version": "0.1.0"
+        }
+    },
+    "process": {
+        "pid": 32472,
+        "ppid": 26110,
+        "argv": ["./apm-server"]
+    },
+    "system": {
+        "ip":"127.0.0.1",
+        "architecture":"amd64",
+        "platform": "darwin"
+    },
+    "metrics": [
+        {
+            "samples": {
+                "http.requests": {
+                    "type": "counter",
+                    "value": 1
+                }
+            },
+            "tags": {
+                "url": "/foo"
+            },
+            "timestamp": "2017-05-30T18:53:42.281Z"
+        },
+        {
+            "samples": {
+                "http.requests": {
+                    "type": "counter",
+                    "value": 6
+                }
+            },
+            "tags": {
+                "url": "/bar"
+            },
+            "timestamp": "2017-05-30T18:53:42.281Z"
+        },
+        {
+            "samples": {
+                "http.requests": {
+                    "type": "counter",
+                    "value": 2
+                }
+            },
+            "tags": {
+                "url": "/foo"
+            },
+            "timestamp": "2017-05-30T18:53:52.281Z"
+        },
+        {
+            "samples": {
+                "http.requests": {
+                    "type": "counter",
+                    "value": 10
+                }
+            },
+            "timestamp": "2017-05-30T18:53:52.281Z"
+        }
+    ]
+}

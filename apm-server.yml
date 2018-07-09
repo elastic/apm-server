@@ -77,7 +77,7 @@ apm-server:
       # If the default index pattern for source maps at 'outputs.elasticsearch.indices'
       # is changed, a matching index pattern needs to be specified here.
       #index_pattern: "apm-*-sourcemap*"
-       
+
   # If set to true, APM Server augments data received by the agent with the original IP of the backend server,
   # or the IP and User Agent of the real user (frontend requests). It defaults to true.
   #capture_personal_data: true
@@ -90,6 +90,10 @@ apm-server:
     # Url to expose expvar
     #url: "/debug/vars"
 
+  # Experimental Metrics endpoint
+  #metrics:
+    # Set to false to disable the metrics endpoint
+    #enabled: true
 
 #================================ General ======================================
 
@@ -173,7 +177,7 @@ setup.template.settings:
 # Maximum number of retries before exiting with an error, 0 for unlimited retrying.
 #setup.dashboards.retry.maximum: 0
 
-    
+
 #============================== Template =====================================
 
 # A template is used to set the mapping in Elasticsearch
@@ -298,8 +302,8 @@ output.elasticsearch:
 
   # Number of workers per Elasticsearch host.
   #worker: 1
-  
-  # By using the configuration below, apm documents are stored to separate indices, 
+
+  # By using the configuration below, apm documents are stored to separate indices,
   # depending on their `processor.event`:
   # - error
   # - transaction
@@ -307,12 +311,12 @@ output.elasticsearch:
   # - sourcemap
   #
   # The indices are all prefixed with `apm-%{[beat.version]}`.
-  # To allow managing indices based on their age, all indices (except for sourcemaps) 
+  # To allow managing indices based on their age, all indices (except for sourcemaps)
   # end with the information of the day they got indexed.
   # e.g. "apm-6.3.0-transaction-2018.03.20"
   #
   # Be aware that you can only specify one Elasticsearch template and one Kibana Index Pattern,
-  # In case you modify the index patterns you must also update those configurations accordingly, 
+  # In case you modify the index patterns you must also update those configurations accordingly,
   # as they need to be aligned:
   # * `setup.template.name`
   # * `setup.template.pattern`
@@ -334,6 +338,10 @@ output.elasticsearch:
     - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
       when.contains:
         processor.event: "span"
+
+    - index: "apm-%{[beat.version]}-metric-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "metric"
 
   # Optional ingest node pipeline. By default no pipeline will be used.
   #pipeline: ""

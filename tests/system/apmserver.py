@@ -28,30 +28,34 @@ class BaseTest(TestCase):
     def _beat_path_join(cls, *paths):
         return os.path.abspath(os.path.join(cls.beat_path, *paths))
 
-    def get_transaction_payload_path(self, name="payload.json"):
+    def get_payload_path(self, processor, name):
         return self._beat_path_join(
             'testdata',
-            'transaction',
-            name)
-
-    def get_transaction_payload(self):
-        path = self.get_transaction_payload_path()
-        return json.loads(open(path).read())
-
-    def get_error_payload_path(self, name="payload.json"):
-        return self._beat_path_join(
-            'testdata',
-            'error',
+            processor,
             name)
 
     def get_error_payload(self):
-        path = self.get_error_payload_path()
-        return json.loads(open(path).read())
+        with open(self.get_error_payload_path()) as f:
+            return json.load(f)
+
+    def get_error_payload_path(self, name="payload.json"):
+        return self.get_payload_path("error", name)
+
+    def get_transaction_payload(self):
+        with open(self.get_transaction_payload_path()) as f:
+            return json.load(f)
+
+    def get_transaction_payload_path(self, name="payload.json"):
+        return self.get_payload_path("transaction", name)
+
+    def get_metrics_payload_path(self, name="payload.json"):
+        return self.get_payload_path("metric", name)
 
 
 class ServerSetUpBaseTest(BaseTest):
     transactions_url = 'http://localhost:8200/v1/transactions'
     errors_url = 'http://localhost:8200/v1/errors'
+    metrics_url = 'http://localhost:8200/v1/metrics'
     expvar_url = 'http://localhost:8200/debug/vars'
 
     def config(self):

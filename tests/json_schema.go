@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -126,25 +127,25 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 	payload, err := loader.LoadData(ps.FullPayloadPath)
 	require.NoError(t, err)
 
-	schemaKeys := NewSet()
-	flattenJsonKeys(payload, "", schemaKeys)
+	payloadKeys := NewSet()
+	flattenJsonKeys(payload, "", payloadKeys)
 
-	for _, k := range schemaKeys.Array() {
+	for _, k := range payloadKeys.Array() {
 		key := k.(string)
+		_, keyLast := splitKey(key)
 
 		//test sending nil value for key
 		ps.changePayload(t, key, nil, Condition{}, upsertFn,
 			func(k string) (bool, string) {
-				return !required.Contains(k), "but got null"
+				return !required.ContainsStrPattern(k), keyLast
 			},
 		)
 
 		//test removing key from payload
 		cond, _ := condRequiredKeys[key]
-		_, keyLast := splitKey(key)
 		ps.changePayload(t, key, nil, cond, deleteFn,
 			func(k string) (bool, string) {
-				if required.Contains(k) {
+				if required.ContainsStrPattern(k) {
 					return false, fmt.Sprintf("missing properties: \"%s\"", keyLast)
 				} else if _, ok := condRequiredKeys[k]; ok {
 					return false, fmt.Sprintf("missing properties: \"%s\"", keyLast)
@@ -259,7 +260,7 @@ func (ps *ProcessorSetup) changePayload(
 		_, err = ps.Proc.Decode(payload)
 		assert.NoError(t, err)
 	} else {
-		if assert.Error(t, err) {
+		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v> with msg "%s", but received no error.`, key, errMsg)) {
 			assert.Contains(t, strings.ToLower(err.Error()), errMsg)
 		}
 	}
@@ -306,6 +307,7 @@ func applyFn(m interface{}, k string, val interface{}, fn func(obj, string, inte
 }
 
 func iterateMap(m interface{}, prefix, fnKey, xKey string, val interface{}, fn func(interface{}, string, interface{}) interface{}) interface{} {
+	re := regexp.MustCompile(fmt.Sprintf("^%s$", fnKey))
 	if d, ok := m.(obj); ok {
 		ma := d
 		if prefix == "" && fnKey == "" {
@@ -314,7 +316,7 @@ func iterateMap(m interface{}, prefix, fnKey, xKey string, val interface{}, fn f
 		for k, v := range d {
 			key := strConcat(prefix, k, ".")
 			ma[k] = iterateMap(v, key, fnKey, xKey, val, fn)
-			if key == fnKey {
+			if key == fnKey || re.MatchString(key) {
 				ma[k] = fn(ma[k], xKey, val)
 			}
 		}
