@@ -1,0 +1,6 @@
+[[healthcheck-indices]]
+== Healthcheck Indices 
+
+Healthcheck indices by default are in the format of `apm-version-date`.
+When starting an APM Server a healtcheck document is sent to Elasticsearch, 
+ensuring the configuration is set up properly.

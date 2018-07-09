@@ -1,0 +1,17 @@
+[[error-indices]]
+== Error Indices
+
+Errors are stored in separate indices of the format `apm-[version]-error-[date]`.
+Read more about the general purpose of <<errors, error>> documents.
+
+
+[[error-example]]
+[float]
+=== Example document
+
+Example of an error document indexed in Elasticsearch:
+
+[source,json]
+----
+include::./data/elasticsearch/error.json[]
+----
