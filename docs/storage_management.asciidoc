@@ -1,0 +1,158 @@
+[[storage-management]]
+= Storage Management
+
+[partintro]
+--
+Storage management is a large topic.
+In the following we focus on how you can <<reduce-storage, reduce storage>> by deleting data 
+or trimming data collection already during ingestion time. 
+
+We also cover how you can <<update-existing-data, update data>> once they are stored. 
+--
+
+[[reduce-storage]]
+== Reduce storage
+The amount of storage for APM data depends on several factors. 
+Depending on how many services you are instrumenting and how much traffic the services see, 
+the number of recorded transactions varies.
+You can influence the detail level of the information collected 
+by reducing the sample rate or reducing collected stacktrace information.
+Another factor is for how long you want to keep monitoring data around.
+
+[[reduce-sample-rate]]
+[float]
+=== Reduce the sample rate
+In case you are monitoring high traffic services you might want to decrease the number of transactions that are sampled. 
+The transaction sample rate directly influences the number of documents to be indexed
+and therefore is the most obvious way to reduce storage. 
+
+The transaction sample rate is controlled in the configuration of agents (for example for {apm-py-ref}/configuration.html#config-transaction-sample-rate[Python] and {apm-node-ref}/agent-api.html#transaction-sample-rate[Node.js]).
+
+Reducing the transaction sample rate does not affect the collection of metrics such as _Transactions Per Second_.
+
+[[reduce-stacktrace]]
+[float]
+=== Reduce collected stacktrace information
+Elastic APM agents automatically collect information regarding stacktraces under certain circumstances. 
+This can be very helpful by identifying issues in your code,
+but it also comes with an overhead at collection time 
+and increaeses the storage usage. 
+If you want to decrease collected stacktrace information you have to configure this directly in the agents. 
+Please refer to our {apm-agents-ref}/index.html[agent documentation] to read more about the options in the single 
+agents. 
+
+[[delete-data]]
+[float]
+=== Delete data
+You might want to delete data for several reasons.
+A common use case is to keep data only for a defined time period and delete older documents. 
+You might also want to delete data collected for specific services or customers. 
+Depending on your use case, 
+you can either delete data periodically with a tool like {curator-ref-current}[Curator] 
+or by using the {ref}/docs-delete-by-query.html[Delete By Query API].
+
+
+[[delete-data-periodically]]
+[float]
+==== Delete data periodically
+
+It might make sense to delete old APM indices on a periodic basis to make room for new data. 
+To do this you can use a tool like {curator-ref-current}[Curator] and set up a cron job to run it periodically.
+
+By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
+With the curator command line interface you can, for instance, see all your existing indices:
+
+["source","sh"]
+------------------------------------------------------------
+curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
+
+apm-{stack-version}-error-{sample_date_0}
+apm-{stack-version}-error-{sample_date_1}
+apm-{stack-version}-error-{sample_date_2}
+apm-{stack-version}-sourcemap
+apm-{stack-version}-span-{sample_date_0}
+apm-{stack-version}-span-{sample_date_1}
+apm-{stack-version}-span-{sample_date_2}
+apm-{stack-version}-transaction-{sample_date_0}
+apm-{stack-version}-transaction-{sample_date_1}
+apm-{stack-version}-transaction-{sample_date_2}
+------------------------------------------------------------
+
+And then delete any span indices older than 1 day:
+
+["source","sh"]
+------------------------------------------------------------
+curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
+
+INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
+INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
+INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
+INFO      "delete_indices" action completed.
+------------------------------------------------------------
+
+
+[[delete-data-by-query]]
+[float]
+==== Delete data matching a query
+
+In case you want to delete documents matching a specific query, e.g. all documents with a given `context.service.name`,
+you can do this by sending the following request:
+
+["source","sh"]
+------------------------------------------------------------
+POST /apm-*/_delete_by_query
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "context.service.name": {
+              "value": "old-service-name"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+------------------------------------------------------------
+// CONSOLE
+
+See {ref}/docs-delete-by-query.html[delete by query] for further information on this topic.
+
+[[update-existing-data]]
+== Update existing data
+You might want to update documents already ingested to Elasticsearch, 
+e.g. if you your service name was set incorrectly, 
+or you need to update a tag you have set.
+
+You can update existing data by using the {ref}/docs-update-by-query.html[Update By Query API].
+
+[[update-data-rename-a-service]]
+[float]
+=== Rename a service
+For exampe, 
+if you want to change the service name reported for your monitored data,
+you can do that by sending the following request:
+
+["source","sh"]
+------------------------------------------------------------
+POST /apm-*/_update_by_query
+{
+  "query": {
+    "term": {
+      "context.service.name": {
+        "value": "old-service-name"
+      }
+    }
+  },
+  "script": {
+    "source": "ctx._source.context.service.name = 'new-service-name'",
+    "lang": "painless"
+  }
+}
+------------------------------------------------------------
+// CONSOLE
+
+Also check out how to change the service name for newly collected documents in the {apm-agents-ref}/index.html[APM agent configuration] accordingly.

@@ -35,9 +35,13 @@ include::./setting-up-and-running.asciidoc[]
 
 include::./configuring.asciidoc[]
 
-include::./event-types.asciidoc[]
+include::./data_ingestion.asciidoc[]
+
+include::./storage_management.asciidoc[]
 
 include::./intake-api.asciidoc[]
+
+include::./event-types.asciidoc[]
 
 include::./fields.asciidoc[]
 
