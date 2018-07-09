@@ -46,6 +46,8 @@ include::./intake-api.asciidoc[]
 
 include::./exploring-es-data.asciidoc[]
 
+include::./fields.asciidoc[]
+
 include::./troubleshooting.asciidoc[]
 
 include::./release-notes.asciidoc[]

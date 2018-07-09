@@ -14,8 +14,9 @@ GET _cat/indices/apm*
 ------------------------------------------------------------
 // CONSOLE
 
-Following indices are created by default:
+Default APM `template` and `indices`:
 
+//* <<fields>>
 * <<transaction-indices>>
 * <<span-indices>>
 * <<error-indices>>
