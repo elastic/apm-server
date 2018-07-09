@@ -1,0 +1,16 @@
+[[span-indices]]
+== Span Indices
+
+Spans are monitored as parts of <<transactions, transactions>>. 
+They are stored in their separate indices `apm-[version]-span-[date]` though.
+
+
+[[span-example]]
+[float]
+=== Example document
+
+[source,json]
+----
+include::./data/elasticsearch/span.json[]
+----
+

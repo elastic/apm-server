@@ -1,0 +1,16 @@
+[[configuration-rum]]
+== Set up Frontend Support
+
+NOTE: Frontend support is an experimental feature not intended for production usage at the moment. 
+
+This section describes configuration settings related to frontend support.
+
+[[rum-enable]]
+[float]
+=== Enable Frontend Support
+To try out experimental real user monitoring, set the `apm-server.frontend.enabled` to `true`.
+See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.yml[`apm-server.yml`] for configuration options.
+
+Read more about specific features related to experimental <<rum, real user monitoring>>
+and how to set up the
+{apm-rum-ref}/index.html[JavaScript RUM Agent].

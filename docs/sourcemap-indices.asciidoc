@@ -1,0 +1,19 @@
+[[sourcemap-indices]]
+== Source Map Indices
+
+NOTE: Source maps is an experimental feature not intended for production usage at the moment. 
+
+Source maps are also stored in a separate index, 
+defined by the Elastic APM Server version and the date. 
+
+
+[[sourcemap-example]]
+[float]
+==== Example document
+
+Example of an acceptable source map file:
+
+[source,json]
+----
+include::./data/intake-api/generated/sourcemap/bundle.js.map[]
+----

@@ -20,8 +20,9 @@ To send a transaction record you need to send a `HTTP POST` request to the APM S
 http(s)://{hostname}:{port}/v1/transactions
 ------------------------------------------------------------
 
-To send a record for a frontend transaction (see <<frontend,experimental frontend support>>), 
-you need to send a `HTTP POST` request to the APM Server `frontend transactions` endpoint:
+To send a record for a transaction monitored by the 
+{apm-rum-ref}/index.html[JavaScript RUM Agent]
+you need to send a `HTTP POST` request to the experimental APM Server `client-side transactions` endpoint:
 
 [source,bash]
 ------------------------------------------------------------
