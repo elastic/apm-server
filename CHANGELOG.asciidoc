@@ -9,8 +9,48 @@
 
 https://github.com/elastic/apm-server/compare/6.1...6.2[View commits]
 
+* <<release-notes-6.2.4>>
+* <<release-notes-6.2.3>>
+* <<release-notes-6.2.2>>
+* <<release-notes-6.2.1>>
+* <<release-notes-6.2.0>>
+
+
+[[release-notes-6.2.4]]
+=== APM Server version 6.2.4
+
+https://github.com/elastic/apm-server/compare/v6.2.3\...v6.2.4[View commits]
+
+No significant changes.
+
+[[release-notes-6.2.3]]
+=== APM Server version 6.2.3
+
+https://github.com/elastic/apm-server/compare/v6.2.2\...v6.2.3[View commits]
+
+No significant changes.
+
+[[release-notes-6.2.2]]
+=== APM Server version 6.2.2
+
+https://github.com/elastic/apm-server/compare/v6.2.1\...v6.2.2[View commits]
+
+No significant changes.
+
+[[release-notes-6.2.1]]
+=== APM Server version 6.2.1
+
+https://github.com/elastic/apm-server/compare/v6.2.0\...v6.2.1[View commits]
+
+No significant changes.
+
+[[release-notes-6.2.0]]
+=== APM Server version 6.2.0
+
+https://github.com/elastic/apm-server/compare/v6.1.4\...v6.2.0[View commits]
+
 [float]
-=== Breaking changes
+==== Breaking changes
 - Renaming and reverse boolean `in_app` to `library_frame` {pull}385[385].
 - Renaming `app` to `service` {pull}377[377]
 - Move `trace.transaction_id` to `transaction.id` {pull}345[345], {pull}347[347], {pull}371[371]
@@ -23,7 +63,7 @@ https://github.com/elastic/apm-server/compare/6.1...6.2[View commits]
 - Remove untested config options from config yml files {pull}496[496]
 
 [float]
-=== Bug fixes
+==== Bug fixes
 - Updated systemd doc url {pull}354[354]
 - Updated readme doc urls {pull}356[356]
 - Use updated stack trace frame values for calculating error `grouping_keys` {pull}485[485]
@@ -31,6 +71,7 @@ https://github.com/elastic/apm-server/compare/6.1...6.2[View commits]
 
 [float]
 === Added
+==== Added
 - service.environment {pull}366[366]
 - Consider exception or log message for grouping key when nothing else is available {pull}435[435]
 - Add context.request.url.full {pull}436[436]
@@ -51,23 +92,67 @@ https://github.com/elastic/apm-server/compare/6.1...6.2[View commits]
 - Optional field `transaction.sampled` {pull}441[441]
 - Add Kibana sourcefilter for `sourcemap.sourcemap` {pull}454[454]
 - Increase default 'ConcurrentRequests' from 20 to 40 {pull}492[492]
-- Change config option `frontend.sourcemapping.index` to `frontend.source_mapping.index_pattern` and remove adding a '*' by default.{pull}492[492].
 - Add Config option for excluding stack trace frames from `grouping_key` calculation {pull}482[482]
 - Remove config files from beats. Manually add relevant config options {pull}578[578]
 
 
 [[release-notes-6.1]]
 == APM Server version 6.1
-https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21af0e74\...421db9d1e10935e7b9aec00b64cf66ad2d50d797[View commits]
+
+https://github.com/elastic/apm-server/compare/6.0\...6.1[View commits]
+
+* <<release-notes-6.1.4>>
+* <<release-notes-6.1.3>>
+* <<release-notes-6.1.2>>
+* <<release-notes-6.1.1>>
+* <<release-notes-6.1.0>>
+
+
+[[release-notes-6.1.4]]
+=== APM Server version 6.1.4
+
+https://github.com/elastic/apm-server/compare/v6.1.3\...v6.1.4[View commits]
+
+No significant changes.
+
+
+[[release-notes-6.1.3]]
+=== APM Server version 6.1.3
+
+https://github.com/elastic/apm-server/compare/v6.1.2\...v6.1.3[View commits]
+
+No significant changes.
+
+
+[[release-notes-6.1.2]]
+=== APM Server version 6.1.2
+
+https://github.com/elastic/apm-server/compare/v6.1.1\...v6.1.2[View commits]
+
+No significant changes.
+
+
+[[release-notes-6.1.1]]
+=== APM Server version 6.1.1
+
+https://github.com/elastic/apm-server/compare/v6.1.0\...v6.1.1[View commits]
+
+No significant changes.
+
+
+[[release-notes-6.1.0]]
+=== APM Server version 6.1.0
+
+https://github.com/elastic/apm-server/compare/v6.0.1\...v6.1.0[View commits]
 
 [float]
-=== Breaking changes
+==== Breaking changes
 - Allow ES template index prefix to be `apm` {pull}152[152].
 - Remove `git_ref` from Intake API and Elasticsearch output {pull}158[158].
 - Switch to Go 1.9.2
 
 [float]
-=== Bug fixes
+==== Bug fixes
 - Fix dashboard loading for Kibana 5x {pull}221[221].
 - Fix command for loading dashboards in docs {pull}205[205].
 - Log a warning message if secret token is set but ssl is not {pull}204[204].
@@ -77,9 +162,10 @@ https://github.com/elastic/apm-server/compare/f9a2086ceed0b918e1a0b3d8ddc140fc21
 - Updated systemd doc url {pull}354[354]
 - Update dashboard with fix for rpm graphs {pull}315[315].
 - Dashboards: Remove time from url_templates {pull}321[321].
+- Updated readme doc urls {pull}356[356]
 
 [float]
-=== Added
+==== Added
 - Added wildcard matching for allowed origins for frontend {pull}287[287].
 - Added rate limit per IP for frontend {pull}257[257].
 - Allow null for all optional fields {pull}253[253].
