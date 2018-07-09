@@ -1,0 +1,51 @@
+[[sourcemap-api]]
+== Sourcemap Upload API
+
+NOTE: Source maps is an experimental feature not intended for production usage at the moment. 
+
+The APM Server exposes an API Endpoint to upload source maps,
+helpful if you are using <<rum, real user monitoring>>.
+
+[[sourcemap-endpoint]]
+[float]
+=== Upload Endpoint 
+To upload a source map you need to send a `HTTP POST` request
+with `Content-Type` set to `multipart/form-data` to the APM Server source maps endpoint:
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/v1/client-side/sourcemaps
+------------------------------------------------------------
+
+[[sourcemap-request-fields]]
+[float]
+==== Request Fields
+The request consists of some meta information and the actual source map.
+The meta information must contain the following fields:
+
+* `service_name`
+* `service_version`
+* `bundle_filepath`: needs to be the absolute path of the final bundle as it is used in the web application
+
+The meta information is used to identify a `source map` when source mapping is applied.
+
+The actual source map must be attached to the request as a `file upload`
+and it must match the specification for 
+https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k[Source map revision 3 proposal].
+
+
+[[sourcemap-api-examples]]
+[float]
+==== Example
+
+Send an example source map to the APM Server:
+
+["source","sh",subs="attributes"]
+---------------------------------------------------------------------------
+curl -X POST http://127.0.0.1:8200/v1/client-side/sourcemaps \
+  -F service_name="test-service" \
+  -F service_version="1.0" \
+  -F bundle_filepath="http://localhost/static/js/bundle.js" \
+  -F sourcemap=@bundle.js.map
+---------------------------------------------------------------------------
+
