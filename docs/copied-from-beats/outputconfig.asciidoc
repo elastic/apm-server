@@ -372,7 +372,7 @@ The Logstash output sends events directly to Logstash by using the lumberjack
 protocol, which runs over TCP. Logstash allows for additional processing and routing of
 generated events.
 
-include::../../libbeat/docs/shared-logstash-config.asciidoc[]
+include::./shared-logstash-config.asciidoc[]
 
 ==== Accessing metadata fields
 
