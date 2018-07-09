@@ -62,7 +62,7 @@ To do this you can use a tool like {curator-ref-current}[Curator] and set up a c
 By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
 With the curator command line interface you can, for instance, see all your existing indices:
 
-["source","sh"]
+["source","sh",subs="attributes"]
 ------------------------------------------------------------
 curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
 
@@ -80,7 +80,7 @@ apm-{stack-version}-transaction-{sample_date_2}
 
 And then delete any span indices older than 1 day:
 
-["source","sh"]
+["source","sh",subs="attributes"]
 ------------------------------------------------------------
 curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
 
