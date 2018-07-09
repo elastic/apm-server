@@ -20,8 +20,9 @@ To send an error record you need to send a `HTTP POST` request to the APM Server
 http(s)://{hostname}:{port}/v1/errors
 ------------------------------------------------------------
 
-To send a record for a frontend error (see <<frontend,frontend support>>), 
-you need to send a `HTTP POST` request to the APM Server `frontend errors` endpoint:
+To send a record for an error monitored by the
+{apm-rum-ref}/index.html[JavaScript RUM Agent]
+you need to send a `HTTP POST` request to the APM Server `client-side errors` endpoint:
 
 [source,bash]
 ------------------------------------------------------------
