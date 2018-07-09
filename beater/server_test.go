@@ -32,7 +32,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kabukky/httpscerts"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/require"
@@ -40,6 +39,7 @@ import (
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/outputs/transport/transptest"
 	publishertesting "github.com/elastic/beats/libbeat/publisher/testing"
 )
 
@@ -232,6 +232,7 @@ func TestServerSSL(t *testing.T) {
 	tests := []struct {
 		label            string
 		domain           string
+		passphrase       string
 		expectedMsgs     []string
 		insecure         bool
 		statusCode       int
@@ -258,7 +259,10 @@ func TestServerSSL(t *testing.T) {
 			},
 		},
 		{
-			domain: "localhost", expectedMsgs: []string{"malformed HTTP response"}, overrideProtocol: true,
+			label: "bad schema", domain: "localhost", expectedMsgs: []string{"malformed HTTP response"}, overrideProtocol: true,
+		},
+		{
+			label: "with passphrase", domain: "localhost", statusCode: http.StatusAccepted, insecure: true, passphrase: "foobar",
 		},
 	}
 	var teardown = func() {}
@@ -266,7 +270,7 @@ func TestServerSSL(t *testing.T) {
 	for idx, test := range tests {
 		var apm *beater
 		var err error
-		apm, teardown, err = setupServer(t, withSSL(t, test.domain))
+		apm, teardown, err = setupServer(t, withSSL(t, test.domain, test.passphrase))
 		require.NoError(t, err)
 		baseUrl, client := apm.client(test.insecure)
 		if test.overrideProtocol {
@@ -291,6 +295,26 @@ func TestServerSSL(t *testing.T) {
 		}
 		teardown()
 	}
+}
+
+func TestServerSecureBadPassphrase(t *testing.T) {
+	withSSL(t, "127.0.0.1", "foo")
+	name := path.Join(tmpCertPath, t.Name())
+	cfg, err := common.NewConfigFrom(map[string]map[string]interface{}{
+		"ssl": {
+			"certificate":    name + ".pem",
+			"key":            name + ".key",
+			"key_passphrase": "bar",
+		},
+	})
+	assert.NoError(t, err)
+	_, _, err = setupServer(t, cfg)
+	if assert.Error(t, err) {
+		b := strings.Contains(err.Error(), "no PEM blocks") ||
+			strings.Contains(err.Error(), "failed to parse private key")
+		assert.True(t, b, err.Error())
+	}
+
 }
 
 func TestServerTcpConnLimit(t *testing.T) {
@@ -473,16 +497,16 @@ var testData = func() []byte {
 	return d
 }()
 
-func withSSL(t *testing.T, domain string) *common.Config {
-	cert := path.Join(tmpCertPath, t.Name()+".crt")
-	key := path.Join(tmpCertPath, t.Name()+".key")
-	t.Log("generating certificate in", cert)
-	httpscerts.Generate(cert, key, domain)
-
+func withSSL(t *testing.T, domain, passphrase string) *common.Config {
+	name := path.Join(tmpCertPath, t.Name())
+	t.Log("generating certificate in", name)
+	err := transptest.GenCertForTestingPurpose(t, domain, name, passphrase)
+	assert.NoError(t, err)
 	cfg, err := common.NewConfigFrom(map[string]map[string]interface{}{
 		"ssl": {
-			"certificate": cert,
-			"key":         key,
+			"certificate":    name + ".pem",
+			"key":            name + ".key",
+			"key_passphrase": passphrase,
 		},
 	})
 	assert.NoError(t, err)

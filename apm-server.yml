@@ -39,6 +39,8 @@ apm-server:
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
+  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
+  #ssl.key_passphrase: ""
 
   frontend:
     # To enable frontend support set this to true.

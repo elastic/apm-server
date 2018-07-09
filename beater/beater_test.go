@@ -107,7 +107,7 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:        4000000000,
 				ShutdownTimeout:     9000000000,
 				SecretToken:         "1234random",
-				SSL:                 &SSLConfig{Enabled: &truthy, PrivateKey: "1234key", Cert: "1234cert"},
+				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
 				AugmentEnabled:      true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
@@ -162,7 +162,7 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:        30000000000,
 				ShutdownTimeout:     5000000000,
 				SecretToken:         "1234random",
-				SSL:                 &SSLConfig{Enabled: &truthy, PrivateKey: "", Cert: ""},
+				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
 				AugmentEnabled:      true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
