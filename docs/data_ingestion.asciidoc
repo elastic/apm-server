@@ -1,0 +1,104 @@
+[[tune-data-ingestion]]
+= Tune Data Ingestion
+
+[partintro]
+--
+APM Server offers a set of <<configuring-howto-apm-server, configuration options>>,
+helping you to adapt Elastic APM according to your needs.
+
+For optimizing your Elastic APM setup read more about how to:
+
+* <<tune-apm-server>>
+* <<tune-es>>
+
+--
+
+[[tune-apm-server]]
+== Tune APM Server
+You can fine tune your setup considering following options:
+
+* <<tune-output-config>>
+* <<adjust-queue-size>>
+* <<adjust-concurrent-requests>>
+* <<add-apm-server-nodes>>
+* <<reduce-payload-size>>
+
+[[tune-output-config]]
+[float]
+=== Tune APM Server output parameters for your Elasticsearch cluster
+
+If your Elasticsearch cluster is sized properly,
+but not ingesting the amount of data you expect,
+you can tweak APM Server options to make better use of the cluster:
+
+* Adjust `output.elasticsearch.workers` to a number that suits your setup.
+See {ref}/tune-for-indexing-speed.html[tune for indexing speed] for an overview.
+* Ensure `output.elasticsearch.bulk_max_size` is set to a high value, for example 5120.
+  The default of 50 is very conservative.
+* Ensure that `queue.mem.events` is set to a reasonable value compared to your other settings.
+A good rule of thumb is that `queue.mem.events` should equal `output.elasticsearch.worker` multiplied by `output.elasticsearch.bulk_max_size`.
+
+Get detailed information on available <<configuring-output,output configuration options>> and their default values.
+
+[[adjust-queue-size]]
+[float]
+=== Adjust internal queue size
+
+APM Server uses an internal queue to allow buffering incoming requests until they can be delievered to Elasticsearch. 
+A larger internal queue allows Elasticsearch to be unavailable for longer periods,
+and it alleviates problems that might result from sudden spikes of data.
+You can adjust the queue size by overriding `queue.mem.events`.
+Be aware that increasing `queue.mem.events` can significantly affect APM Server memory usage.
+
+[[adjust-concurrent-requests]]
+[float]
+=== Adjust concurrent requests
+To avoid overflowing the APM Server,
+it has an upper limit to how many requests are accepted concurrently.
+This limit is determined by the `apm-server.concurrent_requests` configuration parameter.
+As this limit is set to a rather conservative default you might want to set it to some higher value.
+Be aware though, that increasing the limit can significantly affect APM Server memory usage.
+
+[[add-apm-server-nodes]]
+[float]
+=== Add APM Server nodes
+
+In case the APM Server cannot process incoming requests quickly enough,
+you will see a server timeout.
+
+One way to avoid this problem is to add more processing power to your APM Server cluster.
+This can be easily done by either migrating your APM Server processes to more powerful machines 
+or adding more APM Server nodes.
+Please refer to the <<high-availability, high availability>> section for general information on how to set up multiple APM Server.
+
+[[reduce-payload-size]]
+[float]
+=== Reduce the payload size
+
+Large payloads coming from agents may result in a server timeout.
+You can reduce the payload size by decreasing the `max_queue_size` in the agents.
+This will result in agents sending smaller payloads to the APM Server,
+but the requests will be more frequent.
+See the documentation for the {apm-py-ref}/configuration.html#config-max-queue-size[Python] and {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agents for more information.
+
+Optionally you can also <<reduce-sample-rate, reduce the sample rate>> or <<reduce-stacktrace, reduce the amount of stacktraces 
+collected>>,
+both leading to collect less data and decreasing the payload size. 
+
+Read more about configuration options directly in the {apm-agents-ref}/index.html[agent documentation].
+
+[[tune-es]]
+== Tune Elasticsearch
+
+Get insights about tuning the Elasticsearch ingestion rate, 
+especially with regards to 
+
+* refresh interval
+* disable swapping
+* optimizing filesystem cache
+* considerations regarding faster hardware
+* setting the indexing buffer size
+
+directly at the {ref}/tune-for-indexing-speed.html[Elasticsearch reference].
+
+You might also want to read up on how to {ref}/tune-for-disk-usage.html[tune for disk usage].
