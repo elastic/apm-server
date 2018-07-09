@@ -1,0 +1,14 @@
+[[configuration-rum]]
+== Configuring Real User Monitoring (RUM) Support
+
+This section describes configuration settings related to real user monitoring.
+
+[[rum-enable]]
+[float]
+=== Enable RUM Support
+To try out real user montioring, set the `apm-server.frontend.enabled` to `true`.
+See https://github.com/elastic/apm-server/blob/{doc-branch}/apm-server.yml[`apm-server.yml`] for configuration options.
+
+Read more about specific features related to <<rum, real user monitoring>>
+and how to set up the
+{apm-rum-ref}/index.html[JavaScript RUM Agent].
