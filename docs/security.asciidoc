@@ -17,20 +17,4 @@ Both the agents and the APM servers have to be configured with the same secret t
 
 NOTE: The usage of a secret token only provides any security when used in combination with having SSL/TLS configured.
 
-[[ssl-setup]]
-[float]
-==== SSL/TLS setup
-
-To enable SSL/TLS you need a private key and a certificate issued by a certification authority (CA).
-Then you can specify the path to those files in the configuration properties
-`apm-server.ssl.key` and
-`apm-server.ssl.certificate`
-respectively.
-This will make the APM Server to serve HTTPS requests instead of HTTP.
-Hence, you also need to enable SSL in the agent.
-For agent specific details,
-please check the {apm-agents-ref}/index.html[agent documentation] for how to do it.
-
-[[x-pack-setup]]
-[float]
-include::./copied-from-beats/security/securing-beats.asciidoc[]
+include::./copied-from-beats/shared-securing-beat.asciidoc[]
