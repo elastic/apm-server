@@ -70,7 +70,6 @@ https://github.com/elastic/apm-server/compare/v6.1.4\...v6.2.0[View commits]
 - Fix panic when a signal is delivered before the server is instantiated {pull}580[580]
 
 [float]
-=== Added
 ==== Added
 - service.environment {pull}366[366]
 - Consider exception or log message for grouping key when nothing else is available {pull}435[435]
