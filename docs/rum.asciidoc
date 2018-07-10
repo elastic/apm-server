@@ -34,10 +34,10 @@ to the original source code files for easier debugging.
 [float]
 === How source maps are applied
 
-When source maps have been <<sourcemap-endpoint,uploaded>> and <<rum-enable,RUM support>> is enabled, 
+When source maps have been <<sourcemap-endpoint,uploaded>> and <<frontend-enable,RUM support>> is enabled, 
 source mapping is automatically applied to the _stack trace frames_ of all errors and transactions 
 recorded with the
-{apm-rum-ref}/index.html[JavaScript RUM Agent].
+https://github.com/elastic/apm-agent-js-base[JavaScript Frontend Agent].
 
 The server tries to find an uploaded source map for every `stack trace frame` of the record.
 The following information is used to find the previously uploaded source map entry:

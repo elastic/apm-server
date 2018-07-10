@@ -1,0 +1,77 @@
+[[configuration-frontend]]
+== Set up Frontend support
+
+NOTE: Frontend support is an experimental feature not intended for production usage at the moment. 
+
+At the moment the 
+https://github.com/elastic/apm-agent-js-base[JavaScript Frontend Agent]
+offers experimental frontend support by supporting _real user monitoring (rum)_.
+Read more about specific features related to experimental <<rum, real user monitoring>>.
+
+
+Example config with frontent support enabled:
+
+["source","yaml"]
+----
+apm-server.frontend.enabled: true 
+apm-server.frontend.rate_limit: 10 
+apm-server.frontend.allow_origins: ['*'] 
+apm-server.frontend.library_pattern: "node_modules|bower_components|~" 
+apm-server.frontend.exclude_from_grouping: "^/webpack" 
+apm-server.frontend.source_mapping.cache.expiration: 5m 
+apm-server.frontend.source_mapping.index_pattern: "apm-*-sourcemap*" 
+----
+
+[float]
+=== Configuration options
+
+[[frontend-enable]]
+[float]
+==== `enabled` 
+For enabling frontend support, set the `apm-server.frontend.enabled` to `true`.
+By default this is disabled.
+
+[float]
+==== `rate_limit`
+Rate limit per second and IP address for requests sent to the frontend endpoint.
+If the rate limit is hit the APM Server will return an HTTP status code `429`. 
+The rate limit cannot be disabled. Ensure to have it set to a number suiting your requirements.
+Default value is set to 10.
+
+[float]
+==== `allow_origins`
+Comma separated list of permitted origins for frontend supprt. 
+User-agents send an origin header that will be validated against this list.
+This is done by default by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
+An origin is made of a protocol scheme, host and port, without the url path.
+Default value is set to `['*']`, which allows everything.
+
+[float]
+==== `library_pattern`
+Configure a regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
+If the regexp matches, the stacktrace frame is considered to be a library frame.
+When source mapping is applied the `error.culprit` is set to reflect the _function_ and the _filename_ 
+of the first stacktrace frame not considered to be a library frame. 
+This aims to provide an entry point for identifying issues. 
+Default value is `"node_modules|bower_components|~"`.
+
+[float]
+==== `exclude_from_grouping`
+Configure a regexp to be matched against a stacktrace frame's `file_name`.
+If the regexp matches, the stacktrace frame is excluded from being used for calculating error groups.
+The default pattern excludes stacktrace frames that have a filename starting with `/webpack`.
+
+[float]
+==== `source_mapping.cache.expiration`
+If a source map has been uploaded to the APM Server, 
+<<sourcemaps,source mapping>> is automatically applied to documents sent to the frontend endpoint.
+Source maps are fetched from Elasticsearch and then kept in an in-memory cache for the configured time.
+Values configured without a time unit are treated as seconds.
+Default value is 5 minutes.
+
+[float]
+==== `source_mapping.index_pattern`
+Source maps are stored in a seperate index `apm-%{[beat.version]}-sourcemap` by default. 
+If this default is changed, 
+a matching index pattern needs to be specified here.
+Default value is `apm-*-sourcemap*`
