@@ -80,7 +80,8 @@ See <<configuring-howto-apm-server>> for more configuration options.
 
 include::./high-availability.asciidoc[]
 
-include::./security.asciidoc[]
+:beat-specific-security: ../security.asciidoc
+include::./copied-from-beats/shared-securing-beat.asciidoc[]
 
 include::./dashboards.asciidoc[]
 

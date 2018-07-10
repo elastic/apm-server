@@ -1,5 +1,6 @@
-[[security]]
-=== Security
+[[security-overview]]
+[float]
+=== Security Overview
 
 APM Server exposes a HTTP endpoint and as with anything that opens ports on your servers,
 you should be careful about who can connect to it.
@@ -30,5 +31,3 @@ This will make the APM Server to serve HTTPS requests instead of HTTP.
 Hence, you also need to enable SSL in the agent.
 For agent specific details,
 please check the {apm-agents-ref}/index.html[agent documentation] for how to do it.
-
-include::./copied-from-beats/shared-securing-beat.asciidoc[]
