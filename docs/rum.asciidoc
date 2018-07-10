@@ -7,7 +7,8 @@ NOTE: Real user monitoring is an experimental feature not intended for productio
 
 By supporting real user monitoring (RUM).
 Elastic APM allows to collect performance data about your frontend JavaScript applications 
-by setting up the {apm-rum-ref}/index.html[JavaScript RUM Agent].
+by setting up the 
+https://github.com/elastic/apm-agent-js-base[JavaScript Frontend Agent].
 
 You can make use of <<sourcemaps, source maps>> when using Elastic RUM. 
 --

@@ -21,7 +21,7 @@ http(s)://{hostname}:{port}/v1/transactions
 ------------------------------------------------------------
 
 To send a record for a transaction monitored by the 
-{apm-rum-ref}/index.html[JavaScript RUM Agent]
+https://github.com/elastic/apm-agent-js-base[JavaScript Frontend Agent]
 you need to send a `HTTP POST` request to the experimental APM Server `client-side transactions` endpoint:
 
 [source,bash]
