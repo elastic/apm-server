@@ -139,7 +139,7 @@ https://github.com/elastic/apm-server/compare/v6.1.4\...v6.2.0[View commits]
 - Change `error.culprit` after successfully applying sourcemapping {pull}520[520]
 - Make `transaction.name` optional {pull}554[554]
 - Remove config files from beats. Manually add relevant config options {pull}578[578]
-- Use seperate index for uploaded `source maps` {pull}582[582].
+- Use separate index for uploaded `source maps` {pull}582[582].
 - Store original values when applying source mapping or changing `library_frame` value {pull}647[647]
 
 
@@ -206,10 +206,8 @@ https://github.com/elastic/apm-server/compare/v6.0.1\...v6.1.0[View commits]
 - Fix wrong content-type in response {pull}171[171].
 - Remove duplicate dashboard entries {pull}162[162].
 - Remove `context.db` from `fields.yml` for consistency, has not been indexed before {pull}159[159].
-- Updated systemd doc url {pull}354[354]
 - Update dashboard with fix for rpm graphs {pull}315[315].
 - Dashboards: Remove time from url_templates {pull}321[321].
-- Updated readme doc urls {pull}356[356]
 
 [float]
 ==== Added
