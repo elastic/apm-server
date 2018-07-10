@@ -39,9 +39,9 @@ include::./event-types.asciidoc[]
 
 include::./rum.asciidoc[]
 
-include::./data_ingestion.asciidoc[]
+include::./data-ingestion.asciidoc[]
 
-include::./storage_management.asciidoc[]
+include::./storage-management.asciidoc[]
 
 include::./intake-api.asciidoc[]
 
