@@ -30,12 +30,14 @@ By default this is disabled.
 ==== `rate_limit`
 Rate limit per second and IP address for requests sent to the frontend endpoint.
 If the rate limit is hit the APM Server will return an HTTP status code `429`. 
+The rate limit cannot be disabled. Ensure to have it set to a number suiting your requirements.
 Default value is set to 10.
 
 [float]
 ==== `allow_origins`
 Comma separated list of permitted origins for frontend supprt. 
 User-agents send an origin header that will be validated against this list.
+This is done by default by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
 An origin is made of a protocol scheme, host and port, without the url path.
 Default value is set to `['*']`, which allows everything.
 
@@ -43,6 +45,9 @@ Default value is set to `['*']`, which allows everything.
 ==== `library_pattern`
 Configure a regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
 If the regexp matches, the stacktrace frame is considered to be a library frame.
+When source mapping is applied the `error.culprit` is set to reflect the _function_ and the _filename_ 
+of the first stacktrace frame not considered to be a library frame. 
+This aims to provide an entry point for identifying issues. 
 Default value is `"node_modules|bower_components|~"`.
 
 [float]
@@ -55,7 +60,7 @@ The default pattern excludes stacktrace frames that have a filename starting wit
 ==== `source_mapping.cache.expiration`
 If a source map has been uploaded to the APM Server, 
 <<sourcemaps,source mapping>> is automatically applied to documents sent to the frontend endpoint.
-Source maps are are fetched from Elasticsearch and then kept in an in-memory cache for the configured time.
+Source maps are fetched from Elasticsearch and then kept in an in-memory cache for the configured time.
 Values configured without a time unit are treated as seconds.
 Default value is 5 minutes.
 
