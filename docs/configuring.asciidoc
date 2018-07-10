@@ -7,7 +7,7 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 
 The following topics describe how to configure APM Server:
 
-* <<output-config>>
+* <<configuring-output>>
 * <<configuration-ssl>>
 * <<configuration-template>>
 * <<configuration-logging>>
@@ -18,7 +18,10 @@ The following topics describe how to configure APM Server:
 * <<configuration-path>>
 --
 
-include::./configuring-output.asciidoc[]
+:no-redis-output:
+include::./copied-from-beats/outputconfig.asciidoc[]
+
+include::./copied-from-beats/shared-config-ingest.asciidoc[]
 
 include::./copied-from-beats/shared-ssl-config.asciidoc[]
 

@@ -32,6 +32,7 @@ include::./installing.asciidoc[]
 
 include::./setting-up-and-running.asciidoc[]
 
+:beat-specific-output-config: ./../configuring-output-after.asciidoc
 include::./configuring.asciidoc[]
 
 include::./event-types.asciidoc[]

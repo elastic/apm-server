@@ -1,9 +1,4 @@
-[[output-config]]
-== Output Configuration
-
-An output direct data from APM Server to the desired storage system.
-A typical deployment uses Elasticsearch as the output.
-Options like Logstash and Kafka are popular with users requiring additional data enrichment and highly scalable setups.
+[[sourcemap-output]]
 
 [float]
 === Sourcemaps
@@ -12,7 +7,7 @@ Sourcemaps can be uploaded through various outputs but can currently only be app
 
 [[libbeat-configuration-fields]]
 [float]
-== `fields`
+=== `fields`
 
 Fields are optional tags that can be added to any output.
 Fields can be scalar values, arrays, dictionaries, or any nested combination of these.
@@ -27,8 +22,3 @@ fields: {project: "myproject", instance-id: "574734885120952459"}
 
 To store the custom fields as top-level fields, set the `fields_under_root` option to true.
 This is not recommended as backwards compatibility can not be ensured as new fields are added to APM documents.
-
-:no-redis-output:
-include::./copied-from-beats/outputconfig.asciidoc[]
-
-include::./copied-from-beats/shared-config-ingest.asciidoc[]
