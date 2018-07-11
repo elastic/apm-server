@@ -18,7 +18,6 @@
 package metric
 
 import (
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -36,16 +35,7 @@ func (md *metricDecoder) decodeGauge(name string, raw map[string]interface{}) *g
 	}
 }
 
-func (g *gauge) mapstr() common.MapStr {
-	v := common.MapStr{
-		"type":  "gauge",
-		"value": g.value,
-	}
-	utility.Add(v, "unit", g.unit)
-	return v
-}
-
 func (g *gauge) transform(m common.MapStr) error {
-	m[g.name] = g.mapstr()
+	m.Put(g.name, g.value)
 	return nil
 }

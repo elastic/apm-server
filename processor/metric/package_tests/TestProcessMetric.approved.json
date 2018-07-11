@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
+            "byte_counter": 1,
             "context": {
                 "process": {
                     "argv": [
@@ -37,41 +38,35 @@
                     "some.other.code": "abc"
                 }
             },
-            "metric": {
-                "byte_counter": {
-                    "type": "counter",
-                    "value": 1
-                },
-                "dotted.float.gauge": {
-                    "type": "gauge",
-                    "value": 6.12
-                },
-                "double_gauge": {
-                    "type": "gauge",
-                    "value": 3.141592653589793
-                },
-                "float_gauge": {
-                    "type": "gauge",
-                    "value": 9.16
-                },
-                "integer_gauge": {
-                    "type": "gauge",
-                    "value": 42767
-                },
-                "long_gauge": {
-                    "type": "gauge",
-                    "value": 3147483648
-                },
-                "negative.d.o.t.t.e.d": {
-                    "type": "gauge",
-                    "value": -1022
-                },
-                "short_counter": {
-                    "type": "counter",
-                    "unit": "foos",
-                    "value": 227
-                },
-                "summary.maximal": {
+            "dotted": {
+                "float": {
+                    "gauge": 6.12
+                }
+            },
+            "double_gauge": 3.141592653589793,
+            "float_gauge": 9.16,
+            "integer_gauge": 42767,
+            "long_gauge": 3147483648,
+            "negative": {
+                "d": {
+                    "o": {
+                        "t": {
+                            "t": {
+                                "e": {
+                                    "d": -1022
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "short_counter": 227,
+            "summary": {
+                "maximal": {
                     "count": 5,
                     "max": 12,
                     "min": -5.1,
@@ -83,18 +78,12 @@
                         "99_95": 2
                     },
                     "stddev": 7.45,
-                    "sum": 100,
-                    "type": "summary"
+                    "sum": 100
                 },
-                "summary.minimal": {
+                "minimal": {
                     "count": 5,
-                    "sum": 100,
-                    "type": "summary"
+                    "sum": 100
                 }
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
             }
         }
     ]

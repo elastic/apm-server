@@ -1,0 +1,42 @@
+{
+    "service": {
+        "name": "apm-server",
+        "agent": {
+            "name": "elastic-go",
+            "version": "0.1.0"
+        }
+    },
+    "metrics": [{
+        "samples": {
+            "system.load.norm.1": {
+                "type": "gauge",
+                "value": 0.8
+            },
+            "system.load.norm.5": {
+                "type": "gauge",
+                "value": 0.2
+            },
+            "system.load.norm.15": {
+                "type": "gauge",
+                "value": 1.7
+            },
+            "memory.total.bytes": {
+                "type": "gauge",
+                "value": 128
+            },
+            "memory.actual.free.bytes": {
+                "type": "gauge",
+                "value": 96
+            },
+            "memory.actual.used.bytes": {
+                "type": "gauge",
+                "value": 32
+            },
+            "memory.used.pct": {
+                "type": "gauge",
+                "value": 0.8
+            }
+        },
+        "timestamp": "2017-05-30T18:53:42.281Z"
+    }]
+}

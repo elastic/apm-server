@@ -81,9 +81,9 @@ func (pa *Payload) Transform(config.Config) []beat.Event {
 
 	var events []beat.Event
 	for _, metric := range pa.Metrics {
-		samples := common.MapStr{}
+		fields := common.MapStr{}
 		for _, sample := range metric.samples {
-			if err := sample.transform(samples); err != nil {
+			if err := sample.transform(fields); err != nil {
 				logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
 				continue
 			}
@@ -92,12 +92,11 @@ func (pa *Payload) Transform(config.Config) []beat.Event {
 		if metric.tags != nil {
 			context["tags"] = metric.tags
 		}
+		fields["context"] = context
+		fields["processor"] = processorEntry
+
 		ev := beat.Event{
-			Fields: common.MapStr{
-				"processor": processorEntry,
-				"context":   context,
-				"metric":    samples,
-			},
+			Fields:    fields,
 			Timestamp: metric.timestamp,
 		}
 		events = append(events, ev)

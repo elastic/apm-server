@@ -90,7 +90,6 @@ func (md *metricDecoder) decodeSummary(name string, raw map[string]interface{}) 
 
 func (s *summary) mapstr() common.MapStr {
 	v := common.MapStr{
-		"type":  "summary",
 		"count": s.count,
 		"sum":   s.sum,
 	}
@@ -113,6 +112,6 @@ func (s *summary) mapstr() common.MapStr {
 }
 
 func (s *summary) transform(m common.MapStr) error {
-	m[s.name] = s.mapstr()
+	m.Put(s.name, s.mapstr())
 	return nil
 }

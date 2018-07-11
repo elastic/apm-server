@@ -11,14 +11,14 @@
                     "name": "apm-server"
                 }
             },
-            "metric": {
-                "counter.null.unit": {
-                    "type": "counter",
-                    "value": 6520832
-                },
-                "gauge.null.unit": {
-                    "type": "gauge",
-                    "value": 6520832
+            "counter": {
+                "null": {
+                    "unit": 6520832
+                }
+            },
+            "gauge": {
+                "null": {
+                    "unit": 6520832
                 }
             },
             "processor": {
