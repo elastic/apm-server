@@ -6,7 +6,6 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :beatname_uc: APM Server
 :beatname_pkg: {beatname_lc}
 :beat_default_index_prefix: apm
-:has_ml_jobs: no
 :dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
 :dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
 :discuss_forum: apm
