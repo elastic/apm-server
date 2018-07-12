@@ -365,7 +365,7 @@ func TestServerTcpConnLimit(t *testing.T) {
 }
 
 func TestServerTracingEnabled(t *testing.T) {
-	events, teardown := setupTestServerTracing(t, true)
+	events, teardown := setupTestServerInstrumentation(t, true)
 	defer teardown()
 
 	txEvents := transactionEvents(events)
@@ -397,7 +397,7 @@ func TestServerTracingEnabled(t *testing.T) {
 }
 
 func TestServerTracingDisabled(t *testing.T) {
-	events, teardown := setupTestServerTracing(t, false)
+	events, teardown := setupTestServerInstrumentation(t, false)
 	defer teardown()
 
 	txEvents := transactionEvents(events)
@@ -430,11 +430,11 @@ func transactionEvents(events <-chan beat.Event) <-chan beat.Event {
 	return out
 }
 
-// setupTestServerTracing sets up a beater with or without tracing enabled,
+// setupTestServerInstrumentation sets up a beater with or without instrumentation enabled,
 // and returns a channl to which events are published, and a function to be
 // called to teardown the beater. The initial onboarding event is consumed
 // and a transactions request is made before returning.
-func setupTestServerTracing(t *testing.T, enabled bool) (chan beat.Event, func()) {
+func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event, func()) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -447,8 +447,8 @@ func setupTestServerTracing(t *testing.T, enabled bool) (chan beat.Event, func()
 	pub := publishertesting.PublisherWithClient(pubClient)
 
 	cfg, err := common.NewConfigFrom(m{
-		"tracing": m{"enabled": enabled},
-		"host":    "localhost:0",
+		"instrumentation": m{"enabled": enabled},
+		"host":            "localhost:0",
 	})
 	assert.NoError(t, err)
 	beater, teardown, err := setupBeater(t, pub, cfg)
