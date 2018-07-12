@@ -464,7 +464,7 @@ output.elasticsearch:
 # in the last period. For each metric that changed, the delta from the value at
 # the beginning of the period is logged. Also, the total values for
 # all non-zero internal metrics are logged on shutdown. The default is true.
-#logging.metrics.enabled: true
+logging.metrics.enabled: false
 
 # The period after which to log the internal metrics. The default is 30s.
 #logging.metrics.period: 30s
