@@ -1,0 +1,47 @@
+[[upgrading]]
+=== Upgrading APM Server
+
+We do our best to keep APM Server backwards compatible between minor releases.
+However, check out the <<breaking-changes, breaking changes>> section before upgrading.
+
+Before upgrading we recommend to:
+
+* Review changes between your currently used version and the one you want to upgrade to,
+by checking the <<release-notes,release notes>>.
+* Check the {stack-ref}/index.html[Elastic Stack Installation and Upgrade Guide] for guidance on how to upgrade your 
+ Elastic Stack used in combination with APM. 
+ For a more tailored upgrade guide you can also try out the {upgrade_guide}[Interactive Upgrade Guide].
+
+When ready to actually upgrade your APM Server between minor versions, 
+simply install the new release.
+
+Ensure the configuration file `apm-server.yml` is configured properly again according to your needs.
+Be aware of newly added configuration options and their default settings.
+Also check out the documentation for <<configuring-howto-apm-server, configuration>>
+to read more about available configuration options.
+
+In case you had set up index patterns and dashboards manually by running `./apm-server setup`, 
+rerun the command to update the index pattern and the dashboards.
+
+When you have ensured everything is properly configured and updated,
+start the APM Server again.
+
+By default index names and the mapping templates are versioned. 
+When starting the new installation of APM Server new indices with the current version are created, 
+and the correct template for this version is applied automatically. 
+
+[[breaking-changes]]
+[float]
+==== Breaking Changes
+
+[float]
+===== master 
+No breaking changes
+
+[float]
+===== 6.3
+No breaking changes
+
+[float]
+===== 6.2
+First stable version.
