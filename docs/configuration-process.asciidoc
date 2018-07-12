@@ -103,7 +103,7 @@ Authorization: Bearer <secret-token>.
 By default no authorization token is set.
 
 It is recommended though to use an authorization token in combination with SSL enabled.
-Read more about <<security, APM Server security>> and the <<secret-token, secret token>>.
+Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token, secret token>>.
 
 [[capture_personal_data]]
 [float]

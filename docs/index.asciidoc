@@ -6,7 +6,6 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :beatname_uc: APM Server
 :beatname_pkg: {beatname_lc}
 :beat_default_index_prefix: apm
-:has_ml_jobs: no
 :dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
 :dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
 :discuss_forum: apm
@@ -17,6 +16,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :libbeat: http://www.elastic.co/guide/en/beats/libbeat/{doc-branch}
 :logstashdoc: https://www.elastic.co/guide/en/logstash/{doc-branch}
 :elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/{doc-branch}
+:securitydoc: https://www.elastic.co/guide/en/elastic-stack-overview/{doc-branch}
 
 ifdef::env-github[]
 NOTE: For the best reading experience,
@@ -32,7 +32,11 @@ include::./installing.asciidoc[]
 
 include::./setting-up-and-running.asciidoc[]
 
+:beat-specific-output-config: ./../configuring-output-after.asciidoc
 include::./configuring.asciidoc[]
+
+:beat-specific-security: ../security.asciidoc
+include::./copied-from-beats/shared-securing-beat.asciidoc[]
 
 include::./event-types.asciidoc[]
 
