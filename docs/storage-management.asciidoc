@@ -3,11 +3,9 @@
 
 [partintro]
 --
-There are a view options how you can manage your APM data in Elasticsearch.
-
 In the following we focus on how you can 
 
-* <<manage-indices-kibana, manage indices via Kibana>>
+* <<manage-indices-kibana, manage APM indices via Kibana>>
 * <<reduce-storage, reduce storage>> by deleting data 
 or trimming data collection already during ingestion time 
 * <<update-existing-data, update data>> once they are stored 
@@ -140,7 +138,7 @@ See {ref}/docs-delete-by-query.html[delete by query] for further information on 
 ==== Delete data via Kibana Index Management UI
 Follow the {kibana-ref}/managing-indices.html[Kibana Index Management] docs 
 for how to get started with the index management UI.
-Select the indices you want to delete, then click the _Manage n indices_ button to see supported options.
+Select the indices you want to delete, then click the _Manage indices_ button to see supported options.
 Choose _delete indices_ and your indices will be deleted. 
 
 [[update-existing-data]]
