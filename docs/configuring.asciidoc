@@ -7,6 +7,7 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 
 The following topics describe how to configure APM Server:
 
+* <<configuration-process>>
 * <<configuring-output>>
 * <<configuration-ssl>>
 * <<configuration-template>>
@@ -20,6 +21,9 @@ The following topics describe how to configure APM Server:
 
 :only-elasticsearch:
 :no-pipeline:
+
+include::./configuration-process.asciidoc[]
+
 include::./copied-from-beats/outputconfig.asciidoc[]
 
 include::./copied-from-beats/shared-ssl-config.asciidoc[]
