@@ -14,7 +14,8 @@ apm-server:
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.
-  # It is recommended to use an authorization token in combination with SSL enabled.
+  # It is recommended to use an authorization token in combination with SSL enabled,
+  # and save the token in the beats keystore.
   #secret_token:
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
@@ -65,7 +66,7 @@ output.elasticsearch:
   # Array of hosts to connect to.
   hosts: ["localhost:9200"]
 
-  # By using the configuration below, apm documents are stored to separate indices, 
+  # By using the configuration below, apm documents are stored to separate indices,
   # depending on their `processor.event`:
   # - error
   # - transaction
@@ -73,12 +74,12 @@ output.elasticsearch:
   # - sourcemap (experimental feature)
   #
   # The indices are all prefixed with `apm-%{[beat.version]}`.
-  # To allow managing indices based on their age, all indices (except for sourcemaps) 
+  # To allow managing indices based on their age, all indices (except for sourcemaps)
   # end with the information of the day they got indexed.
   # e.g. "apm-6.3.0-transaction-2018.03.20"
   #
   # Be aware that you can only specify one Elasticsearch template and one Kibana Index Pattern,
-  # In case you modify the index patterns you must also update those configurations accordingly, 
+  # In case you modify the index patterns you must also update those configurations accordingly,
   # as they need to be aligned:
   # * `setup.template.name`
   # * `setup.template.pattern`
