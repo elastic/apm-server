@@ -34,7 +34,8 @@ apm-server:
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.
-  # It is recommended to use an authorization token in combination with SSL enabled.
+  # It is recommended to use an authorization token in combination with SSL enabled,
+  # and save the token in the beats keystore.
   #secret_token:
   #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
@@ -265,6 +266,7 @@ setup.template.settings:
   #ssl.key: "/etc/pki/client/cert.key"
 
   # Optional passphrase for decrypting the Certificate Key.
+  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
   #ssl.key_passphrase: ''
 
   # Configure cipher suites to be used for SSL connections
@@ -394,6 +396,7 @@ output.elasticsearch:
   #ssl.key: "/etc/pki/client/cert.key"
 
   # Optional passphrase for decrypting the Certificate Key.
+  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
   #ssl.key_passphrase: ''
 
   # Configure cipher suites to be used for SSL connections
