@@ -19,12 +19,12 @@ The following topics describe how to configure APM Server:
 * <<configuration-path>>
 --
 
-:only-elasticsearch:
-:no-pipeline:
-
 include::./configuration-process.asciidoc[]
 
+:no-redis-output:
 include::./copied-from-beats/outputconfig.asciidoc[]
+
+include::./copied-from-beats/shared-config-ingest.asciidoc[]
 
 include::./copied-from-beats/shared-ssl-config.asciidoc[]
 
@@ -42,7 +42,3 @@ include::./configuration-frontend.asciidoc[]
 include::./copied-from-beats/shared-env-vars.asciidoc[]
 
 include::./copied-from-beats/shared-path-config.asciidoc[]
-
-
-
-
