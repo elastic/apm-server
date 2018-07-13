@@ -30,22 +30,22 @@ import (
 const defaultPort = "8200"
 
 type Config struct {
-	Host                string          `config:"host"`
-	MaxUnzippedSize     int64           `config:"max_unzipped_size"`
-	MaxHeaderSize       int             `config:"max_header_size"`
-	ReadTimeout         time.Duration   `config:"read_timeout"`
-	WriteTimeout        time.Duration   `config:"write_timeout"`
-	ShutdownTimeout     time.Duration   `config:"shutdown_timeout"`
-	SecretToken         string          `config:"secret_token"`
-	SSL                 *SSLConfig      `config:"ssl"`
-	ConcurrentRequests  int             `config:"concurrent_requests" validate:"min=1"`
-	MaxConnections      int             `config:"max_connections"`
-	MaxRequestQueueTime time.Duration   `config:"max_request_queue_time"`
-	Expvar              *ExpvarConfig   `config:"expvar"`
-	Frontend            *FrontendConfig `config:"frontend"`
-	Metrics             *metricsConfig  `config:"metrics"`
-	AugmentEnabled      bool            `config:"capture_personal_data"`
-	Tracing             *TraceConfig    `config:"tracing"`
+	Host                string                 `config:"host"`
+	MaxUnzippedSize     int64                  `config:"max_unzipped_size"`
+	MaxHeaderSize       int                    `config:"max_header_size"`
+	ReadTimeout         time.Duration          `config:"read_timeout"`
+	WriteTimeout        time.Duration          `config:"write_timeout"`
+	ShutdownTimeout     time.Duration          `config:"shutdown_timeout"`
+	SecretToken         string                 `config:"secret_token"`
+	SSL                 *SSLConfig             `config:"ssl"`
+	ConcurrentRequests  int                    `config:"concurrent_requests" validate:"min=1"`
+	MaxConnections      int                    `config:"max_connections"`
+	MaxRequestQueueTime time.Duration          `config:"max_request_queue_time"`
+	Expvar              *ExpvarConfig          `config:"expvar"`
+	Frontend            *FrontendConfig        `config:"frontend"`
+	Metrics             *metricsConfig         `config:"metrics"`
+	AugmentEnabled      bool                   `config:"capture_personal_data"`
+	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
 }
 
 type ExpvarConfig struct {
@@ -85,7 +85,7 @@ type SSLConfig struct {
 	Certificate outputs.CertificateConfig `config:",inline"`
 }
 
-type TraceConfig struct {
+type InstrumentationConfig struct {
 	Enabled     *bool   `config:"enabled"`
 	Environment *string `config:"environment"`
 }
@@ -137,8 +137,8 @@ func (c *FrontendConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
 	return c.SourceMapping.mapper, nil
 }
 
-func (c *TraceConfig) isEnabled() bool {
-	// Tracing is disabled by default.
+func (c *InstrumentationConfig) isEnabled() bool {
+	// self instrumentation is disabled by default.
 	return c != nil && c.Enabled != nil && *c.Enabled
 }
 
