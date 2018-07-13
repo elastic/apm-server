@@ -5,23 +5,23 @@ Example config showing some basic configuration options for APM Server:
 
 ["source","yaml"]
 ----
-apm-server.host: "localhost:8200" 
-apm-server.max_unzipped_size: 31457280 
+apm-server.host: "localhost:8200"
+apm-server.max_unzipped_size: 31457280
 apm-server.max_header_size: 1048576
-apm-server.max_request_queue_time: 2s 
+apm-server.max_request_queue_time: 2s
 apm-server.read_timeout: 30s
 apm-server.write_timeout: 30s
 apm-server.shutdown_timeout: 5s
-apm-server.concurrent_requests: 5 
+apm-server.concurrent_requests: 5
 apm-server.max_connections: 0
-apm-server.tracing.enabled: false 
-apm-server.capture_personal_data: true 
-apm-server.expvar.enabled: false 
+apm-server.instrumentation.enabled: false
+apm-server.capture_personal_data: true
+apm-server.expvar.enabled: false
 apm-server.expvar.url:"/debug/vars"
-apm-server.metrics.enabled: true 
+apm-server.metrics.enabled: true
 
 queue.mem.events: 4096
-queue.mem.flush.min_events: 0 
+queue.mem.flush.min_events: 0
 queue.mem.flush.timeout: 1s
 
 max_procs: 4
@@ -33,72 +33,70 @@ max_procs: 4
 [[host]]
 [float]
 ==== `host`
-Defines the host and port the server is listening on.  
+Defines the host and port the server is listening on.
 Use "unix:/path/to.sock" to listen on a unix domain socket.
 Defaults to 'localhost:8200'.
 
 [[max_unzipped_size]]
 [float]
-==== `max_unzipped_size` 
+==== `max_unzipped_size`
 Maximum permitted size of an unzipped request accepted by the server to be processed (in Bytes).
 Defaults to 31457280 Bytes (30 MB).
 
 [[max_header_size]]
 [float]
-==== `max_header_size` 
+==== `max_header_size`
 Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
 Defaults to 1048576 Bytes (1 MB).
 
 [[max_request_queue_time]]
 [float]
-==== `max_request_queue_time` 
+==== `max_request_queue_time`
 Maximum duration a request will be queued before being read.
 Defaults to 2 seconds.
 
 [[read_timeout]]
 [float]
-==== `read_timeout` 
+==== `read_timeout`
 Maximum permitted duration for reading an entire request.
 Defaults to 30 seconds.
 
 [[write_timeout]]
 [float]
-==== `write_timeout` 
+==== `write_timeout`
 Maximum permitted duration for writing a response.
 Defaults to 30 seconds.
 
 [[shutdown_timeout]]
 [float]
-==== `shutdown_timeout` 
+==== `shutdown_timeout`
 Maximum duration in seconds before releasing resources when shutting down the server.
 Defaults to 5 seconds.
 
 [[concurrent_requests]]
 [float]
-==== `concurrent_request` 
+==== `concurrent_request`
 Maximum number of requests a server is allowed to process concurrently.
-Read more about how to tune data ingestion by <<adjust-concurrent-requests, adjusting concurrent_requests>>. 
-Default value is set to 5. 
+Read more about how to tune data ingestion by <<adjust-concurrent-requests, adjusting concurrent_requests>>.
+Default value is set to 5.
 
 [[max_connections]]
 [float]
-==== `max_connections` 
+==== `max_connections`
 Maximum number of new connections to accept simultaneously..
 Default value is set to 0, which means _unlimited_.
 
-[[tracing.enabled]]
+[[instrumentation.enabled]]
 [float]
-==== `tracing.enabled` 
-Tracing support for the server's HTTP endpoints and event publisher.
-When set to true,
-Elastic APM tracing will be enabled for the server itself. 
-Tracing is disabled by default.
+==== `instrumentation.enabled`
+Enables self instrumentation of the APM Server itself.
+Disabled by default.
 
 [[config-secret-token]]
 [float]
-==== `secret_token` 
-Authorization token for sending data to the APM server. 
-If a token is set the agents must send the token in the following format: 
+==== `secret_token`
+Authorization token for sending data to the APM server.
+If a token is set the agents must send the token in the following format:
 Authorization: Bearer <secret-token>.
 By default no authorization token is set.
 
@@ -107,29 +105,29 @@ Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-to
 
 [[capture_personal_data]]
 [float]
-==== `capture_personal_data` 
-If set to true, 
+==== `capture_personal_data`
+If set to true,
 APM Server augments data received by the agent with the original IP of either the backend server,
-or the IP and User Agent of the real user (frontend requests). 
+or the IP and User Agent of the real user (frontend requests).
 It defaults to true.
 
 [[expvar.enabled]]
 [float]
-==== `expvar.enabled` 
+==== `expvar.enabled`
 When set to true APM Server exposes https://golang.org/pkg/expvar/[golang expvar].
 Disabled by default.
 
 [[expvar.url]]
 [float]
-==== `expvar.url` 
+==== `expvar.url`
 Configure the url to expose expvar.
 Defaults to `debug/vars`.
 
 [[metrics.enabled]]
 [float]
-==== `metrics` 
+==== `metrics`
 Experimental Metrics endpoint allowing to collect and upload metrics related to APM.
-The experimental endpoint is enabled by default. 
+The experimental endpoint is enabled by default.
 
 [float]
 === Configuration options `queue.mem.*`
@@ -141,7 +139,7 @@ is directly influenced by the `queue.mem.*` settings.
 [float]
 ==== `events`
 Maximum number of events the memory queue can buffer.
-Read more about how this setting can be used for <<tune-data-ingestion, tuning data ingestion>> and how it plays 
+Read more about how this setting can be used for <<tune-data-ingestion, tuning data ingestion>> and how it plays
 together with other config options.
 Defaults to 4096.
 
@@ -165,5 +163,5 @@ Default value is 1 second.
 [[max_procs]]
 [float]
 ==== `max_procs`
-Sets the maximum number of CPUs that can be executing simultaneously. 
+Sets the maximum number of CPUs that can be executing simultaneously.
 The default is the number of logical CPUs available in the system.
