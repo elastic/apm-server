@@ -14,7 +14,6 @@ grouped in the following categories:
 
 * <<exported-fields-apm>>
 * <<exported-fields-apm-error>>
-* <<exported-fields-apm-metric>>
 * <<exported-fields-apm-sourcemap>>
 * <<exported-fields-apm-span>>
 * <<exported-fields-apm-transaction>>
@@ -628,22 +627,6 @@ The additionally logged error message.
 type: keyword
 
 A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
-
-
---
-
-[[exported-fields-apm-metric]]
-== APM Metric fields
-
-APM Metrics for correlation with traces and logs
-
-
-*`metric`*::
-+
---
-type: object
-
-Sampled metrics collected from the agent
 
 
 --
