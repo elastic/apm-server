@@ -64,6 +64,13 @@ Source maps are fetched from Elasticsearch and then kept in an in-memory cache f
 Values configured without a time unit are treated as seconds.
 Default value is 5 minutes.
 
+[[config-sourcemapping-elasticsearch]]
+[float]
+==== `source_mapping.elasticsearch`
+Configure the Elasticsearch source map retrieval location, taking the same options as <<elasticsearch-output,output.elasticsearch>>.
+If unset, sourcemaps are fetched from `output.elasticsearch` when that output is enabled.
+This must be set when using an output other than Elasticsearch for source maps to be applied.
+
 [float]
 ==== `source_mapping.index_pattern`
 Source maps are stored in a seperate index `apm-%{[beat.version]}-sourcemap` by default. 
