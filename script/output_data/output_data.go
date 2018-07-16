@@ -41,11 +41,7 @@ func main() {
 func generate() error {
 	var checked = map[string]struct{}{}
 
-	for path, mapping := range beater.Routes {
-
-		if path == beater.HealthCheckURL {
-			continue
-		}
+	for _, mapping := range beater.ProcessorRoutes {
 
 		data, err := loader.LoadData(filepath.Join("..", "testdata", mapping.Processor.Name(), "payload.json"))
 		if err != nil {

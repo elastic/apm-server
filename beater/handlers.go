@@ -138,7 +138,7 @@ var (
 		}
 	}
 
-	Routes = map[string]routeMapping{
+	ProcessorRoutes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.Processor},
 		FrontendTransactionsURL: {frontendHandler, transaction.Processor},
 		BackendErrorsURL:        {backendHandler, err.Processor},
@@ -151,7 +151,7 @@ var (
 func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
-	for path, mapping := range Routes {
+	for path, mapping := range ProcessorRoutes {
 		logger.Infof("Path %s added to request handler", path)
 
 		mux.Handle(path, mapping.ProcessorHandler(mapping.Processor, beaterConfig, report))
