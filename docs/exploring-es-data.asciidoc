@@ -63,6 +63,10 @@ GET  /_template/your-template-name
 // CONSOLE
 
 You can read more about {ref}/indices-templates.html[Index Templates] and how they are used.
+
+Another option is to use the {kibana-ref}/managing-indices.html[Kibana Index Management UI]. 
+When clicking on a specific index you can view the _settings_ and _mapping_ for it. 
+
 --
 
 
