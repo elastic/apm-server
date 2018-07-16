@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 [[setup-kibana-endpoint]]
-== Set up the Kibana endpoint
+== Set up the Kibana endpoint (deprecated)
 
 ifeval::["{beatname_lc}" == "apm-server"]
 The Kibana dashboards are loaded into Kibana via the Kibana API.

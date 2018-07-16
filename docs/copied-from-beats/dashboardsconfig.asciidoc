@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 [[configuration-dashboards]]
-== Load the Kibana dashboards
+== Load the Kibana dashboards (deprecated)
 
 {beatname_uc} comes packaged with example Kibana dashboards, visualizations,
 and searches for visualizing {beatname_uc} data in Kibana.
