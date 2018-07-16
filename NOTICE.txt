@@ -1694,6 +1694,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/spf13/pflag
+Version: v1.0.1
 Revision: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/spf13/pflag/LICENSE:

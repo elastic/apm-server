@@ -34,7 +34,7 @@ func genSetupCmd(name, idxPrefix, version string, beatCreator beat.Creator) *cob
 		Long: `This command does initial setup of the environment:
 
  * Index mapping template in Elasticsearch to ensure fields are mapped.
- * Kibana dashboards (where available).
+ * Kibana dashboards and index patterns (where available).
  * ML jobs (where available).
  * Ingest pipelines (where available).
 `,
