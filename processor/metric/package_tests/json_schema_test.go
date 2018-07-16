@@ -94,30 +94,6 @@ func TestInvalidPayloads(t *testing.T) {
 						obj{"missing-sum": obj{"type": "summary", "count": 1}},
 					},
 				},
-				{
-					Msg: "properties/quantiles/items/items/0/minimum",
-					Values: val{
-						obj{
-							"min-exceeded": obj{
-								"type":      "summary",
-								"count":     1,
-								"sum":       1,
-								"quantiles": val{val{0, 6.12}, val{-0.5, 10}, val{0.5, 10}}},
-						},
-					},
-				},
-				{
-					Msg: "properties/quantiles/items/items/0/maximum",
-					Values: val{
-						obj{
-							"max-exceeded": obj{
-								"type":      "summary",
-								"count":     1,
-								"sum":       1,
-								"quantiles": val{val{0, 6.12}, val{100, 10}, val{0.5, 10}}},
-						},
-					},
-				},
 			},
 		},
 	}

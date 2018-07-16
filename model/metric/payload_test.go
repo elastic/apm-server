@@ -98,7 +98,7 @@ func TestPayloadDecode(t *testing.T) {
 				Process: &m.Process{Pid: pid},
 				Metrics: []*metric{
 					{
-						samples:   []sample{},
+						samples:   []*sample{},
 						tags:      nil,
 						timestamp: timestampParsed,
 					},
@@ -229,14 +229,14 @@ func TestPayloadDecode(t *testing.T) {
 				Process: &m.Process{Pid: pid},
 				Metrics: []*metric{
 					{
-						samples: []sample{
-							&gauge{
+						samples: []*sample{
+							{
 								name:  "some.gauge",
 								value: 9.16,
 							},
-							&counter{
+							{
 								name:  "a.counter",
-								count: 612,
+								value: 612,
 								unit:  &unit,
 							},
 						},
@@ -315,12 +315,12 @@ func TestPayloadTransform(t *testing.T) {
 					{
 						tags:      common.MapStr{"a.tag": "a.tag.value"},
 						timestamp: timestamp,
-						samples: []sample{
-							&counter{
+						samples: []*sample{
+							{
 								name:  "a.counter",
-								count: 612,
+								value: 612,
 							},
-							&gauge{
+							{
 								name:  "some.gauge",
 								value: 9.16,
 								unit:  &unit,

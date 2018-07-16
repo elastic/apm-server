@@ -60,26 +60,6 @@
             "negative.d.o.t.t.e.d": {
                 "type": "gauge",
                 "value": -1022
-            },
-            "summary.minimal": {
-                "type": "summary",
-                "count": 5,
-                "sum": 100
-            },
-            "summary.maximal": {
-                "type": "summary",
-                "count": 5,
-                "sum": 100,
-                "min": -5.1,
-                "max": 12,
-                "stddev": 7.45,
-                "quantiles": [
-                    [0, -5.1],
-                    [0.5, 1.4],
-                    [0.99, 1.8],
-                    [0.9995, 2],
-                    [1, 12]
-                ]
             }
         },
         "tags": {

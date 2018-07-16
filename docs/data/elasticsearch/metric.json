@@ -61,25 +61,5 @@
         "event": "metric",
         "name": "metric"
     },
-    "short_counter": 227,
-    "summary": {
-        "maximal": {
-            "count": 5,
-            "max": 12,
-            "min": -5.1,
-            "p": {
-                "0": -5.100000,
-                "100": 12,
-                "50": 1.400000,
-                "99": 1.800000,
-                "99_95": 2
-            },
-            "stddev": 7.45,
-            "sum": 100
-        },
-        "minimal": {
-            "count": 5,
-            "sum": 100
-        }
-    }
+    "short_counter": 227
 }
