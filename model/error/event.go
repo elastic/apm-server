@@ -28,11 +28,37 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
+
+var (
+	Metrics = monitoring.Default.NewRegistry("apm-server.processor.error", monitoring.PublishExpvar)
+
+	transformations   = monitoring.NewInt(Metrics, "transformations")
+	errorCounter      = monitoring.NewInt(Metrics, "errors")
+	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
+	frameCounter      = monitoring.NewInt(Metrics, "frames")
+	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
+)
+
+const (
+	processorName = "error"
+	errorDocType  = "error"
+)
+
+var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
+
+func PayloadSchema() *jsonschema.Schema {
+	return cachedSchema
+}
 
 type Event struct {
 	Id        *string

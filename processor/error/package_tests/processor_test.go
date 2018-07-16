@@ -27,7 +27,7 @@ import (
 	s "github.com/go-sourcemap/sourcemap"
 
 	"github.com/elastic/apm-server/config"
-	er "github.com/elastic/apm-server/processor/error"
+	err "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
 )
@@ -57,12 +57,12 @@ var (
 // ensure all valid documents pass through the whole validation and transformation process
 func TestProcessorBackendOK(t *testing.T) {
 	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, er.NewProcessor(), conf, backendRequestInfo, map[string]string{})
+	tests.TestProcessRequests(t, err.Processor, conf, backendRequestInfo, map[string]string{})
 }
 
 func TestProcessorMinimalPayloadOK(t *testing.T) {
 	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, er.NewProcessor(), conf, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, err.Processor, conf, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
@@ -72,7 +72,7 @@ func TestProcessorFrontendOK(t *testing.T) {
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.TestProcessRequests(t, er.NewProcessor(), conf, frontendRequestInfo, map[string]string{})
+	tests.TestProcessRequests(t, err.Processor, conf, frontendRequestInfo, map[string]string{})
 }
 
 type fakeAcc struct {
@@ -114,8 +114,8 @@ func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
 func (ac *fakeAcc) Remove(smapId sourcemap.Id) {}
 
 func BenchmarkBackendProcessor(b *testing.B) {
-	tests.BenchmarkProcessRequests(b, er.NewProcessor(), config.Config{ExcludeFromGrouping: nil}, backendRequestInfo)
-	tests.BenchmarkProcessRequests(b, er.NewProcessor(), config.Config{ExcludeFromGrouping: nil}, backendRequestInfoIgnoreTimestamp)
+	tests.BenchmarkProcessRequests(b, err.Processor, config.Config{ExcludeFromGrouping: nil}, backendRequestInfo)
+	tests.BenchmarkProcessRequests(b, err.Processor, config.Config{ExcludeFromGrouping: nil}, backendRequestInfoIgnoreTimestamp)
 }
 
 func BenchmarkFrontendProcessor(b *testing.B) {
@@ -129,5 +129,5 @@ func BenchmarkFrontendProcessor(b *testing.B) {
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.BenchmarkProcessRequests(b, er.NewProcessor(), conf, frontendRequestInfo)
+	tests.BenchmarkProcessRequests(b, err.Processor, conf, frontendRequestInfo)
 }

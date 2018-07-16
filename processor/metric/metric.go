@@ -15,31 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package processor
+package metric
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/santhosh-tekuri/jsonschema"
+	"github.com/elastic/apm-server/model/metric"
+	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-func CreateSchema(schemaData string, url string) *jsonschema.Schema {
-	compiler := jsonschema.NewCompiler()
-	if err := compiler.AddResource(url, strings.NewReader(schemaData)); err != nil {
-		panic(err)
+var (
+	Processor = &processor.PayloadProcessor{
+		ProcessorName: "metric",
+		DecodePayload: metric.DecodePayload,
+		PayloadSchema: metric.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(metric.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(metric.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(metric.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(metric.Metrics, "validation.errors"),
 	}
-	compiler.Draft = jsonschema.Draft7
-	schema, err := compiler.Compile(url)
-	if err != nil {
-		panic(err)
-	}
-	return schema
-}
-
-func Validate(raw interface{}, schema *jsonschema.Schema) error {
-	if err := schema.ValidateInterface(raw); err != nil {
-		return fmt.Errorf("Problem validating JSON document against schema: %v", err)
-	}
-	return nil
-}
+)

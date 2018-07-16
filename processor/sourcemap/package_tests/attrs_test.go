@@ -20,16 +20,16 @@ package package_tests
 import (
 	"testing"
 
-	sm "github.com/elastic/apm-server/processor/sourcemap"
-	"github.com/elastic/apm-server/processor/sourcemap/generated/schema"
+	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
+	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/tests"
 )
 
 var (
 	procSetup = tests.ProcessorSetup{
-		Proc:            sm.NewProcessor(),
+		Proc:            sourcemap.Processor,
 		FullPayloadPath: "../testdata/sourcemap/payload.json",
-		TemplatePaths:   []string{"../_meta/fields.yml"},
+		TemplatePaths:   []string{"../../../model/sourcemap/_meta/fields.yml"},
 		Schema:          schema.PayloadSchema,
 	}
 )

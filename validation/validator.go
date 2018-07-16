@@ -15,20 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package error
+package validation
 
 import (
-	"testing"
+	"fmt"
+	"strings"
 
-	"github.com/stretchr/testify/assert"
-
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/santhosh-tekuri/jsonschema"
 )
 
-func TestImplementProcessorInterface(t *testing.T) {
-	p := NewProcessor()
-	assert.NotNil(t, p)
-	_, ok := p.(pr.Processor)
-	assert.True(t, ok)
-	assert.IsType(t, &processor{}, p)
+func CreateSchema(schemaData string, url string) *jsonschema.Schema {
+	compiler := jsonschema.NewCompiler()
+	if err := compiler.AddResource(url, strings.NewReader(schemaData)); err != nil {
+		panic(err)
+	}
+	compiler.Draft = jsonschema.Draft7
+	schema, err := compiler.Compile(url)
+	if err != nil {
+		panic(err)
+	}
+	return schema
+}
+
+func Validate(raw interface{}, schema *jsonschema.Schema) error {
+	if err := schema.ValidateInterface(raw); err != nil {
+		return fmt.Errorf("Problem validating JSON document against schema: %v", err)
+	}
+	return nil
 }

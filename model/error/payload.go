@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package transaction
+package error
 
 import (
 	"github.com/elastic/apm-server/config"
@@ -24,18 +24,6 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
-)
-
-var (
-	transformations    = monitoring.NewInt(transactionMetrics, "transformations")
-	transactionCounter = monitoring.NewInt(transactionMetrics, "transactions")
-	spanCounter        = monitoring.NewInt(transactionMetrics, "spans")
-	stacktraceCounter  = monitoring.NewInt(transactionMetrics, "stacktraces")
-	frameCounter       = monitoring.NewInt(transactionMetrics, "frames")
-
-	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
-	processorSpanEntry  = common.MapStr{"name": processorName, "event": spanDocType}
 )
 
 type Payload struct {
@@ -46,11 +34,11 @@ type Payload struct {
 	Events  []*Event
 }
 
-func DecodePayload(raw map[string]interface{}) (*Payload, error) {
+func DecodePayload(raw map[string]interface{}) (m.Payload, error) {
 	if raw == nil {
 		return nil, nil
 	}
-	pa := &Payload{}
+	pa := Payload{}
 
 	var err error
 	service, err := m.DecodeService(raw["service"], err)
@@ -65,58 +53,52 @@ func DecodePayload(raw map[string]interface{}) (*Payload, error) {
 	}
 
 	decoder := utility.ManualDecoder{}
-	txs := decoder.InterfaceArr(raw, "transactions")
+	errs := decoder.InterfaceArr(raw, "errors")
+	pa.Events = make([]*Event, len(errs))
 	err = decoder.Err
-	pa.Events = make([]*Event, len(txs))
-	for idx, tx := range txs {
-		pa.Events[idx], err = DecodeEvent(tx, err)
+	for idx, errData := range errs {
+		pa.Events[idx], err = DecodeEvent(errData, err)
 	}
-	return pa, err
+	return &pa, err
 }
 
 func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	transformations.Inc()
-	transactionCounter.Add(int64(len(pa.Events)))
-	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
+	errorCounter.Add(int64(len(pa.Events)))
+	logp.NewLogger("transform").Debugf("Transform error events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
-	spanContext := NewSpanContext(&pa.Service)
 
 	var events []beat.Event
 	for idx := 0; idx < len(pa.Events); idx++ {
 		event := pa.Events[idx]
+		if event.Exception != nil {
+			addStacktraceCounter(event.Exception.Stacktrace)
+		}
+		if event.Log != nil {
+			addStacktraceCounter(event.Log.Stacktrace)
+		}
+		context := context.Transform(event.Context)
 		ev := beat.Event{
 			Fields: common.MapStr{
-				"processor":        processorTransEntry,
-				transactionDocType: event.Transform(),
-				"context":          context.Transform(event.Context),
+				"processor":  processorEntry,
+				errorDocType: event.Transform(conf, pa.Service),
+				"context":    context,
 			},
 			Timestamp: event.Timestamp,
 		}
-		events = append(events, ev)
-
-		trId := common.MapStr{"id": event.Id}
-		spanCounter.Add(int64(len(event.Spans)))
-		for spIdx := 0; spIdx < len(event.Spans); spIdx++ {
-			sp := event.Spans[spIdx]
-			if frames := len(sp.Stacktrace); frames > 0 {
-				stacktraceCounter.Inc()
-				frameCounter.Add(int64(frames))
-			}
-			ev := beat.Event{
-				Fields: common.MapStr{
-					"processor":   processorSpanEntry,
-					spanDocType:   sp.Transform(conf, pa.Service),
-					"transaction": trId,
-					"context":     spanContext.Transform(sp.Context),
-				},
-				Timestamp: event.Timestamp,
-			}
-			events = append(events, ev)
-			event.Spans[spIdx] = nil
+		if event.Transaction != nil {
+			ev.Fields["transaction"] = common.MapStr{"id": event.Transaction.Id}
 		}
+		events = append(events, ev)
 		pa.Events[idx] = nil
 	}
-
 	return events
+}
+
+func addStacktraceCounter(st m.Stacktrace) {
+	if frames := len(st); frames > 0 {
+		stacktraceCounter.Inc()
+		frameCounter.Add(int64(frames))
+	}
 }

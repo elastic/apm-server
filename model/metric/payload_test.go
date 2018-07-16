@@ -248,7 +248,11 @@ func TestPayloadDecode(t *testing.T) {
 			},
 		},
 	} {
-		payload, err := DecodePayload(test.input)
+		payloadInterface, err := DecodePayload(test.input)
+
+		// its ok to ignore the outcome of this cast here because
+		// we assert everything below
+		payload, _ := payloadInterface.(*Payload)
 
 		// compare metrics separately as they may be ordered differently
 		if test.p != nil && test.p.Metrics != nil {

@@ -27,9 +27,9 @@ import (
 
 var (
 	procSetup = tests.ProcessorSetup{
-		Proc:            metric.NewProcessor(),
+		Proc:            metric.Processor,
 		FullPayloadPath: "../testdata/metric/payload.json",
-		TemplatePaths:   []string{"../_meta/fields.yml", "../../../_meta/fields.common.yml"},
+		TemplatePaths:   []string{"../../../model/metric/_meta/fields.yml", "../../../_meta/fields.common.yml"},
 	}
 )
 

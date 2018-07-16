@@ -15,30 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package healthcheck
+package model
 
 import (
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
+	"github.com/elastic/beats/libbeat/beat"
 )
 
-const (
-	processorName = "healthcheck"
-)
-
-func NewProcessor() pr.Processor {
-	return &processor{}
-}
-
-type processor struct{}
-
-func (p *processor) Validate(_ map[string]interface{}) error {
-	return nil
-}
-
-func (p *processor) Decode(_ map[string]interface{}) (pr.Payload, error) {
-	return nil, nil
-}
-
-func (p *processor) Name() string {
-	return processorName
+type Payload interface {
+	Transform(config.Config) []beat.Event
 }

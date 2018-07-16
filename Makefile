@@ -11,7 +11,7 @@ ES_BEATS?=./_beats
 BEATS_VERSION?=master
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
-FIELDS_FILE_PATH=processor
+FIELDS_FILE_PATH=model
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 
 # Path to the libbeat Makefile

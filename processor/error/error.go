@@ -15,21 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package package_tests
+package processor
 
 import (
-	"testing"
-
-	"github.com/elastic/apm-server/config"
-	sm "github.com/elastic/apm-server/processor/sourcemap"
-	"github.com/elastic/apm-server/tests"
+	err "github.com/elastic/apm-server/model/error"
+	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-// ensure all valid documents pass through the whole validation and transformation process
-func TestSourcemapProcessorOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
-		{Name: "TestProcessSourcemapFull", Path: "../testdata/sourcemap/payload.json"},
-		{Name: "TestProcessSourcemapMinimalPayload", Path: "../testdata/sourcemap/minimal_payload.json"},
+var (
+	Processor = &processor.PayloadProcessor{
+		ProcessorName: "error",
+		DecodePayload: err.DecodePayload,
+		PayloadSchema: err.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(err.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(err.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(err.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(err.Metrics, "validation.errors"),
 	}
-	tests.TestProcessRequests(t, sm.Processor, config.Config{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
-}
+)

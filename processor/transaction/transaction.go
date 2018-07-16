@@ -15,20 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package healthcheck
+package transaction
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/model/transaction"
+	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-func TestImplementProcessorInterface(t *testing.T) {
-	p := NewProcessor()
-	assert.NotNil(t, p)
-	_, ok := p.(pr.Processor)
-	assert.True(t, ok)
-	assert.IsType(t, &processor{}, p)
-}
+var (
+	Processor = &processor.PayloadProcessor{
+		ProcessorName: "transaction",
+		DecodePayload: transaction.DecodePayload,
+		PayloadSchema: transaction.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(transaction.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(transaction.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(transaction.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(transaction.Metrics, "validation.errors"),
+	}
+)

@@ -47,19 +47,17 @@ func generate() error {
 			continue
 		}
 
-		p := mapping.ProcessorFactory()
-
-		data, err := loader.LoadData(filepath.Join("..", "testdata", p.Name(), "payload.json"))
+		data, err := loader.LoadData(filepath.Join("..", "testdata", mapping.Processor.Name(), "payload.json"))
 		if err != nil {
 			return err
 		}
 
-		err = p.Validate(data)
+		err = mapping.Processor.Validate(data)
 		if err != nil {
 			return err
 		}
 
-		payload, err := p.Decode(data)
+		payload, err := mapping.Processor.Decode(data)
 		if err != nil {
 			return err
 		}
