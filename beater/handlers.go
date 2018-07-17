@@ -36,7 +36,7 @@ import (
 	conf "github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
-	err "github.com/elastic/apm-server/processor/error"
+	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
@@ -141,8 +141,8 @@ var (
 	ProcessorRoutes = map[string]routeMapping{
 		BackendTransactionsURL:  {backendHandler, transaction.Processor},
 		FrontendTransactionsURL: {frontendHandler, transaction.Processor},
-		BackendErrorsURL:        {backendHandler, err.Processor},
-		FrontendErrorsURL:       {frontendHandler, err.Processor},
+		BackendErrorsURL:        {backendHandler, perr.Processor},
+		FrontendErrorsURL:       {frontendHandler, perr.Processor},
 		MetricsURL:              {metricsHandler, metric.Processor},
 		SourcemapsURL:           {sourcemapHandler, sourcemap.Processor},
 	}

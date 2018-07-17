@@ -251,10 +251,10 @@ func TestPayloadDecode(t *testing.T) {
 	} {
 		payloadInterface, err := DecodePayload(test.input)
 
-		// its ok to ignore the outcome of this cast here because
-		// we assert everything below
 		payload, ok := payloadInterface.(*Payload)
-		require.True(t, ok)
+		if payloadInterface != nil {
+			require.True(t, ok)
+		}
 
 		// compare metrics separately as they may be ordered differently
 		if test.p != nil && test.p.Metrics != nil {
