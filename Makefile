@@ -93,3 +93,7 @@ release-manager-snapshot:
 .PHONY: release-manager-release
 release-manager-release:
 	./_beats/dev-tools/run_with_go_ver $(MAKE) release
+
+.PHONY: bench
+bench:
+	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*Processor$$' ./processor/...
