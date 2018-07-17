@@ -26,6 +26,7 @@ import (
 
 	"time"
 
+	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -60,7 +61,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration: 0.0, Timestamp: time.Time{},
 				Context: nil, Marks: nil, Sampled: nil,
 				SpanCount: SpanCount{Dropped: Dropped{Total: nil}},
-				Spans:     []*Span{},
+				Spans:     []*span.Span{},
 			},
 		},
 		{
@@ -81,8 +82,8 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
-				Spans: []*Span{
-					&Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3},
+				Spans: []*span.Span{
+					&span.Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3},
 				},
 			},
 		},
@@ -125,7 +126,7 @@ func TestEventTransform(t *testing.T) {
 				Timestamp: time.Now(),
 				Duration:  65.98,
 				Context:   common.MapStr{"foo": "bar"},
-				Spans:     []*Span{},
+				Spans:     []*span.Span{},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 			},
