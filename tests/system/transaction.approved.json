@@ -44,7 +44,8 @@
                             "baz"
                         ]
                     },
-                    "my_key": 1
+                    "my_key": 1,
+                    "(": "not a valid regex and that is fine"
                 },
                 "user": {
                     "id": "99",

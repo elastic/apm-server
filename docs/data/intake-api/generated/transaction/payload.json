@@ -118,7 +118,8 @@
                             "bar",
                             "baz"
                         ]
-                    }
+                    },
+                    "(": "not a valid regex and that is fine"
                 }
             },
             "spans": [

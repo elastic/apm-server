@@ -1,6 +1,7 @@
 {
     "context": {
         "custom": {
+            "(": "not a valid regex and that is fine",
             "and_objects": {
                 "foo": [
                     "bar",
