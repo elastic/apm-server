@@ -41,12 +41,6 @@ import (
 
 var (
 	Metrics = monitoring.Default.NewRegistry("apm-server.processor.error", monitoring.PublishExpvar)
-
-	transformations   = monitoring.NewInt(Metrics, "transformations")
-	errorCounter      = monitoring.NewInt(Metrics, "errors")
-	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
-	frameCounter      = monitoring.NewInt(Metrics, "frames")
-	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
 )
 
 const (

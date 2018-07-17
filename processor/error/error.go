@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package processor
+package error
 
 import (
 	err "github.com/elastic/apm-server/model/error"

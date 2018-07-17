@@ -24,6 +24,15 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
+)
+
+var (
+	transformations   = monitoring.NewInt(Metrics, "transformations")
+	errorCounter      = monitoring.NewInt(Metrics, "errors")
+	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
+	frameCounter      = monitoring.NewInt(Metrics, "frames")
+	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
 )
 
 type Payload struct {

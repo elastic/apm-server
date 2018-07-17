@@ -25,8 +25,6 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-type NewProcessor func() Processor
-
 type Processor interface {
 	Validate(map[string]interface{}) error
 	Decode(map[string]interface{}) (model.Payload, error)

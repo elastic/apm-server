@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
@@ -252,7 +253,8 @@ func TestPayloadDecode(t *testing.T) {
 
 		// its ok to ignore the outcome of this cast here because
 		// we assert everything below
-		payload, _ := payloadInterface.(*Payload)
+		payload, ok := payloadInterface.(*Payload)
+		require.True(t, ok)
 
 		// compare metrics separately as they may be ordered differently
 		if test.p != nil && test.p.Metrics != nil {

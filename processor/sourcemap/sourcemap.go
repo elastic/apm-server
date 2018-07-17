@@ -30,9 +30,6 @@ import (
 )
 
 var (
-	validateCount = monitoring.NewInt(sm.Metrics, "validation.count")
-	validateError = monitoring.NewInt(sm.Metrics, "validation.errors")
-
 	Processor = &sourcemapProcessor{
 		processor.PayloadProcessor{
 			ProcessorName: "sourcemap",
@@ -40,6 +37,8 @@ var (
 			PayloadSchema: sm.PayloadSchema(),
 			DecodingCount: monitoring.NewInt(sm.Metrics, "decoding.count"),
 			DecodingError: monitoring.NewInt(sm.Metrics, "decoding.errors"),
+			ValidateCount: monitoring.NewInt(sm.Metrics, "validation.count"),
+			ValidateError: monitoring.NewInt(sm.Metrics, "validation.errors"),
 		},
 	}
 )
@@ -49,7 +48,7 @@ type sourcemapProcessor struct {
 }
 
 func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {
-	validateCount.Inc()
+	p.PayloadProcessor.ValidateCount.Inc()
 
 	smap, ok := raw["sourcemap"].(string)
 	if !ok {
@@ -67,7 +66,7 @@ func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {
 
 	err = validation.Validate(raw, p.PayloadSchema)
 	if err != nil {
-		validateError.Inc()
+		p.PayloadProcessor.ValidateError.Inc()
 	}
 	return err
 }
