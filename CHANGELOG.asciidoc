@@ -57,6 +57,7 @@ https://github.com/elastic/apm-server/compare/v6.2.4\...v6.3.0[View commits]
 - Limit the amount of concurrent requests being processed {pull}731[731].
 - Return proper response code for request entity too large {pull}862[862].
 - Make APM Server docker image listen on all interfaces by default https://github.com/elastic/apm-server-docker/pull/16[apm-server-dockers#16]
+- Remove regexProperties validation rules {pull}1148[1148].
 
 [float]
 ==== Added
