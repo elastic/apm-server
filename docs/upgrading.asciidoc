@@ -33,14 +33,16 @@ and the correct template for this version is applied automatically.
 [[breaking-changes]]
 [float]
 ==== Breaking Changes
+APM Server is built on top of {beats-ref}/index.html[libbeat].
+As such any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
-===== master 
-No breaking changes
+===== HEAD 
+https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html
 
 [float]
 ===== 6.3
-No breaking changes
+https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html
 
 [float]
 ===== 6.2
