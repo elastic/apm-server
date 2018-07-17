@@ -27,10 +27,12 @@ apm-server:
   # Maximum number of new connections to accept simultaneously (0 means unlimited)
   # max_connections: 0
 
-  # Tracing support for the server's HTTP endpoints and event publisher.
-  #tracing:
-    # Set to true to enable tracing in the APM server itself.
+  # Instrumentation support for the server's HTTP endpoints and event publisher.
+  #instrumentation:
+    # Set to true to enable instrumentation of the APM server itself.
     #enabled: false
+    # Environment in which the APM Server is running on (eg: staging, production, etc.)
+    #environment: ""
 
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.

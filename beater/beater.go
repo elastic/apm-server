@@ -144,7 +144,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	g.Go(func() error {
 		return run(bt.server, lis, bt.config)
 	})
-	if bt.config.Tracing.isEnabled() {
+	if bt.config.SelfInstrumentation.isEnabled() {
 		g.Go(func() error {
 			return bt.server.Serve(traceListener)
 		})
@@ -159,21 +159,21 @@ func (bt *beater) Run(b *beat.Beat) error {
 // initTracer configures and returns an elasticapm.Tracer for tracing
 // the APM server's own execution.
 func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticapm.Tracer, net.Listener, error) {
-	if !config.Tracing.isEnabled() {
+	if !config.SelfInstrumentation.isEnabled() {
 		os.Setenv("ELASTIC_APM_ACTIVE", "false")
-		logger.Infof("Tracing is disabled")
+		logger.Infof("self instrumentation is disabled")
 	} else {
 		os.Setenv("ELASTIC_APM_ACTIVE", "true")
-		logger.Infof("Tracing is enabled")
+		logger.Infof("self instrumentation is enabled")
 	}
 
 	tracer, err := elasticapm.NewTracer(info.Beat, info.Version)
 	if err != nil {
 		return nil, nil, err
 	}
-	if config.Tracing.isEnabled() {
-		if config.Tracing.Environment != nil {
-			tracer.Service.Environment = *config.Tracing.Environment
+	if config.SelfInstrumentation.isEnabled() {
+		if config.SelfInstrumentation.Environment != nil {
+			tracer.Service.Environment = *config.SelfInstrumentation.Environment
 		}
 		tracer.SetLogger(logp.NewLogger("tracing"))
 	}
