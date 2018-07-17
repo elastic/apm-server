@@ -153,7 +153,6 @@ const PayloadSchema = `{
         "custom": {
             "description": "An arbitrary mapping of additional metadata to store with the event.",
             "type": ["object", "null"],
-            "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {}
             },
@@ -293,7 +292,6 @@ const PayloadSchema = `{
         "tags": {
             "type": ["object", "null"],
             "description": "A flat mapping of user-defined tags with string values.",
-            "regexProperties": true,
             "patternProperties": {
                 "^[^.*\"]*$": {
                     "type": ["string", "null"],
