@@ -12,7 +12,7 @@ with `Content-Type` set to `multipart/form-data` to the APM Server source maps e
 
 [source,bash]
 ------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/client-side/sourcemaps
+http(s)://{hostname}:{port}/v1/rum/sourcemaps
 ------------------------------------------------------------
 
 [[sourcemap-request-fields]]
@@ -40,7 +40,7 @@ Send an example source map to the APM Server:
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
-curl -X POST http://127.0.0.1:8200/v1/client-side/sourcemaps \
+curl -X POST http://127.0.0.1:8200/v1/rum/sourcemaps \
   -F service_name="test-service" \
   -F service_version="1.0" \
   -F bundle_filepath="http://localhost/static/js/bundle.js" \

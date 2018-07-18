@@ -108,7 +108,7 @@ Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-to
 ==== `capture_personal_data`
 If set to true,
 APM Server augments data received by the agent with the original IP of either the backend server,
-or the IP and User Agent of the real user (frontend requests).
+or the IP and User Agent of the real user (only for real user monitoring).
 It defaults to true.
 
 [[expvar.enabled]]

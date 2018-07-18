@@ -22,11 +22,11 @@ http(s)://{hostname}:{port}/v1/transactions
 
 To send a record for a transaction monitored by the 
 {apm-rum-ref}/index.html[JavaScript RUM Agent]
-you need to send a `HTTP POST` request to the APM Server `client-side transactions` endpoint:
+you need to send a `HTTP POST` request to the APM Server `rum transactions` endpoint:
 
 [source,bash]
 ------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/client-side/transactions
+http(s)://{hostname}:{port}/v1/rum/transactions
 ------------------------------------------------------------
 
 Information pertaining to the record must be sent as a JSON object.

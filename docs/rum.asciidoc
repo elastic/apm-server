@@ -2,16 +2,13 @@
 = Real User Monitoring (RUM)
 [partintro]
 --
-By supporting real user monitoring (RUM).
-Elastic APM allows to collect performance data about your frontend JavaScript applications 
-by setting up the {apm-rum-ref}/index.html[JavaScript RUM Agent].
-
+The {apm-rum-ref}/index.html[JavaScript RUM Agent] is supporting Real User Monitoring.
 You can make use of <<sourcemaps, source maps>> when using Elastic RUM. 
 --
 
 [[sourcemaps]]
 == Source Maps
-It is common practice to minify client-side JavaScript code for several reasons, e.g. performance gain. 
+It is common practice to minify JavaScript code for several reasons, e.g. performance gain. 
 This can make debugging very difficult, as it is hard to read the minified files.
 Source mapping can help for debugging minfied JavaScript files, 
 by mapping code from the minified files to the original source code. 
@@ -27,7 +24,7 @@ to the original source code files for easier debugging.
 [float]
 === How source maps are applied
 
-When source maps have been <<sourcemap-endpoint,uploaded>> and <<frontend-enable,RUM support>> is enabled, 
+When source maps have been <<sourcemap-endpoint,uploaded>> and <<rum-enable,RUM support>> is enabled, 
 source mapping is automatically applied to the _stack trace frames_ of all errors and transactions 
 recorded with the
 {apm-rum-ref}/index.html[JavaScript RUM Agent].
