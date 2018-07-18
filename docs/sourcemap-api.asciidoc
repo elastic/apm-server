@@ -2,7 +2,7 @@
 == Sourcemap Upload API
 
 The APM Server exposes an API Endpoint to upload source maps,
-helpful if you are using <<rum, real user monitoring>>.
+helpful if you are using <<rum, real user monitoring (RUM)>>.
 
 [[sourcemap-endpoint]]
 [float]

@@ -2,7 +2,7 @@
 == Set up Real User Monitoring (RUM) support
 
 At the moment the {apm-rum-ref}/index.html[JavaScript RUM Agent] 
-offers <<rum, real user monitoring (rum)>> support.
+offers <<rum, real user monitoring (RUM)>> support.
 
 Example config with RUM enabled:
 
@@ -23,19 +23,19 @@ apm-server.rum.source_mapping.index_pattern: "apm-*-sourcemap*"
 [[rum-enable]]
 [float]
 ==== `enabled` 
-For enabling rum support, set the `apm-server.rum.enabled` to `true`.
+For enabling RUM support, set the `apm-server.rum.enabled` to `true`.
 By default this is disabled.
 
 [float]
 ==== `rate_limit`
-Rate limit per second and IP address for requests sent to the rum endpoint.
+Rate limit per second and IP address for requests sent to the RUM endpoint.
 If the rate limit is hit the APM Server will return an HTTP status code `429`. 
 The rate limit cannot be disabled. Ensure to have it set to a number suiting your requirements.
 Default value is set to 10.
 
 [float]
 ==== `allow_origins`
-Comma separated list of permitted origins for rum supprt. 
+Comma separated list of permitted origins for RUM supprt. 
 User-agents send an origin header that will be validated against this list.
 This is done by default by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
 An origin is made of a protocol scheme, host and port, without the url path.
@@ -59,7 +59,7 @@ The default pattern excludes stacktrace frames that have a filename starting wit
 [float]
 ==== `source_mapping.cache.expiration`
 If a source map has been uploaded to the APM Server, 
-<<sourcemaps,source mapping>> is automatically applied to documents sent to the rum endpoint.
+<<sourcemaps,source mapping>> is automatically applied to documents sent to the RUM endpoint.
 Source maps are fetched from Elasticsearch and then kept in an in-memory cache for the configured time.
 Values configured without a time unit are treated as seconds.
 Default value is 5 minutes.
