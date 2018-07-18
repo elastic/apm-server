@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/model"
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
@@ -99,7 +100,7 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	logp.NewLogger("transaction").Debugf("Transform transaction events: events=%d, service=%s, agent=%s:%s", len(pa.Events), pa.Service.Name, pa.Service.Agent.Name, pa.Service.Agent.Version)
 
 	context := m.NewContext(&pa.Service, pa.Process, pa.System, pa.User)
-	spanContext := NewSpanContext(&pa.Service)
+	spanContext := span.NewSpanContext(&pa.Service)
 
 	var events []beat.Event
 	for idx := 0; idx < len(pa.Events); idx++ {
