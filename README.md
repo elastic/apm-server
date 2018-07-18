@@ -129,26 +129,6 @@ make package
 This will fetch and create all images required for the build process. The whole process can take several minutes.
 
 
-## Benchmarking
-
-To run simple benchmark tests, run:
-
-```
-make bench
-```
-
-A good way to present your results is by using `benchcmp`.
-With your changes in the current working tree, do:
-
-```
-$ go get -u benchcmp
-$ make bench > new.txt
-$ git checkout master
-$ make bench > old.txt
-$ benchcmp old.txt new.txt
-```
-
-
 ## Documentation
 The [Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.
 

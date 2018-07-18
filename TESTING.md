@@ -43,3 +43,23 @@ Alternatively you can send a `curl` request to the
 * Open `localhost:5601` in your browser
 * In Kibana go to the Dashboards to see APM Data
 * In Kibana go to the Discovery tab to query for APM Data
+
+
+## Benchmarking
+
+To run simple benchmark tests, run:
+
+```
+make bench
+```
+
+A good way to present your results is by using `benchcmp`.
+With your changes in the current working tree, do:
+
+```
+$ go get -u benchcmp
+$ make bench > new.txt
+$ git checkout master
+$ make bench > old.txt
+$ benchcmp old.txt new.txt
+```
