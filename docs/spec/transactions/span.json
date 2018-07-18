@@ -41,6 +41,9 @@
                             "description": "The raw url of the correlating http request."
                         }
                     }
+                },
+                "tags": {
+                    "$ref": "tags.json"
                 }
             }
         },

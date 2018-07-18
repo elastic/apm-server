@@ -167,6 +167,9 @@
                         },
                         "http": {
                             "url": "http://localhost:8000"
+                        },
+                        "tags": {
+                            "span_tag": "something"
                         }
                     }
                 },
