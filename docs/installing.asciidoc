@@ -14,5 +14,3 @@ To run APM Server in Docker, please see <<running-on-docker>>.
 include::./copied-from-beats/repositories.asciidoc[]
 
 include::./installing-on-windows.asciidoc[]
-
-include::./upgrading.asciidoc[]

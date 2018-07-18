@@ -1,16 +1,16 @@
 [[upgrading]]
-=== Upgrading APM Server
+== Upgrading APM Server
 
 We do our best to keep APM Server backwards compatible between minor releases.
-However, check out the <<breaking-changes, breaking changes>> section before upgrading.
+However, check out the <<breaking-changes, breaking changes>> section for exceptions.
 
-Before upgrading we recommend to:
+Before upgrading:
 
-* Review changes between your currently used version and the one you want to upgrade to,
-by checking the <<release-notes,release notes>>.
+* Review the <<release-notes,release notes>> and the <<breaking-changes, breaking changes>> 
+for changes between your current version and the one you are upgrading to.
 * Check the {stack-ref}/index.html[Elastic Stack Installation and Upgrade Guide] for guidance on how to upgrade your 
- Elastic Stack used in combination with APM. 
- For a more tailored upgrade guide you can also try out the {upgrade_guide}[Interactive Upgrade Guide].
+ Elastic Stack. 
+ For a more tailored upgrade guide, try out the {upgrade_guide}[Interactive Upgrade Guide].
 
 When ready to actually upgrade your APM Server between minor versions, 
 simply install the new release.
@@ -20,30 +20,31 @@ Be aware of newly added configuration options and their default settings.
 Also check out the documentation for <<configuring-howto-apm-server, configuration>>
 to read more about available configuration options.
 
-In case you had set up index patterns and dashboards manually by running `./apm-server setup`, 
-rerun the command to update the index pattern and the dashboards.
+If you set up index patterns and dashboards manually by running `./apm-server setup`, rerun
+the command to update the index pattern and the dashboards.
 
-When you have ensured everything is properly configured and updated,
-start the APM Server again.
+When everything is properly configured and updated, start the APM server.
 
-By default index names and the mapping templates are versioned. 
-When starting the new installation of APM Server new indices with the current version are created, 
-and the correct template for this version is applied automatically. 
+When you start the APM server after upgrading, it creates new indices that use the current version,
+and applies the correct template automatically.
 
 [[breaking-changes]]
-[float]
-==== Breaking Changes
+=== Breaking Changes
 APM Server is built on top of {beats-ref}/index.html[libbeat].
 As such any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
-===== HEAD 
-https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html
+==== HEAD 
+no breaking changes in APM Server
+
+https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[breaking changes in libbeat]
 
 [float]
-===== 6.3
-https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html
+==== 6.3
+no breaking changes in APM Server
+
+https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[breaking changes in libbeat]
 
 [float]
-===== 6.2
+==== 6.2
 First stable version.
