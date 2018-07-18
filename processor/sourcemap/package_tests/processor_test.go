@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/config"
-	"github.com/elastic/apm-server/processor/sourcemap"
+	sm "github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -31,5 +31,5 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		{Name: "TestProcessSourcemapFull", Path: "../testdata/sourcemap/payload.json"},
 		{Name: "TestProcessSourcemapMinimalPayload", Path: "../testdata/sourcemap/minimal_payload.json"},
 	}
-	tests.TestProcessRequests(t, sourcemap.NewProcessor(), config.Config{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
+	tests.TestProcessRequests(t, sm.Processor, config.Config{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
 }

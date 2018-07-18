@@ -15,30 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package healthcheck
+package error
 
 import (
-	pr "github.com/elastic/apm-server/processor"
+	merr "github.com/elastic/apm-server/model/error"
+	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-const (
-	processorName = "healthcheck"
+var (
+	Processor = &processor.PayloadProcessor{
+		ProcessorName: "error",
+		DecodePayload: merr.DecodePayload,
+		PayloadSchema: merr.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(merr.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(merr.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(merr.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(merr.Metrics, "validation.errors"),
+	}
 )
-
-func NewProcessor() pr.Processor {
-	return &processor{}
-}
-
-type processor struct{}
-
-func (p *processor) Validate(_ map[string]interface{}) error {
-	return nil
-}
-
-func (p *processor) Decode(_ map[string]interface{}) (pr.Payload, error) {
-	return nil, nil
-}
-
-func (p *processor) Name() string {
-	return processorName
-}

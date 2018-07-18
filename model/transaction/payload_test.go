@@ -38,7 +38,7 @@ func TestPayloadDecode(t *testing.T) {
 	for _, test := range []struct {
 		input map[string]interface{}
 		err   error
-		p     *Payload
+		p     m.Payload
 	}{
 		{input: nil, err: nil, p: nil},
 		{

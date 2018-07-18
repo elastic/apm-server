@@ -21,6 +21,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metric/generated/schema"
+	"github.com/elastic/apm-server/validation"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/config"
@@ -32,10 +38,23 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-var (
-	transformations = monitoring.NewInt(metricMetrics, "transformations")
-	processorEntry  = common.MapStr{"name": processorName, "event": docType}
+const (
+	processorName = "metric"
+	docType       = "metric"
 )
+
+var (
+	transformations = monitoring.NewInt(Metrics, "transformations")
+	processorEntry  = common.MapStr{"name": processorName, "event": docType}
+
+	Metrics = monitoring.Default.NewRegistry("apm-server.processor.metric", monitoring.PublishExpvar)
+)
+
+var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
+
+func PayloadSchema() *jsonschema.Schema {
+	return cachedSchema
+}
 
 type sample interface {
 	transform(common.MapStr) error
@@ -90,7 +109,7 @@ type metricDecoder struct {
 	*utility.ManualDecoder
 }
 
-func DecodePayload(raw map[string]interface{}) (*Payload, error) {
+func DecodePayload(raw map[string]interface{}) (model.Payload, error) {
 	if raw == nil {
 		return nil, nil
 	}

@@ -20,8 +20,14 @@ package sourcemap
 import (
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/elastic/apm-server/config"
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
 	smap "github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -29,9 +35,24 @@ import (
 )
 
 var (
-	sourcemapCounter = monitoring.NewInt(sourcemapUploadMetrics, "counter")
+	sourcemapCounter = monitoring.NewInt(Metrics, "counter")
 	processorEntry   = common.MapStr{"name": processorName, "event": smapDocType}
 )
+
+const (
+	processorName = "sourcemap"
+	smapDocType   = "sourcemap"
+)
+
+var (
+	Metrics = monitoring.Default.NewRegistry("apm-server.processor.sourcemap", monitoring.PublishExpvar)
+)
+
+var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
+
+func PayloadSchema() *jsonschema.Schema {
+	return cachedSchema
+}
 
 type Payload struct {
 	ServiceName    string
@@ -68,4 +89,15 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 		Timestamp: time.Now(),
 	}
 	return []beat.Event{ev}
+}
+
+func DecodePayload(raw map[string]interface{}) (model.Payload, error) {
+	decoder := utility.ManualDecoder{}
+	pa := Payload{
+		ServiceName:    decoder.String(raw, "service_name"),
+		ServiceVersion: decoder.String(raw, "service_version"),
+		Sourcemap:      decoder.String(raw, "sourcemap"),
+		BundleFilepath: decoder.String(raw, "bundle_filepath"),
+	}
+	return &pa, decoder.Err
 }

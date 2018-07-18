@@ -18,21 +18,50 @@
 package processor
 
 import (
-	"github.com/elastic/apm-server/config"
-	"github.com/elastic/beats/libbeat/beat"
-)
+	"github.com/santhosh-tekuri/jsonschema"
 
-type NewProcessor func() Processor
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/validation"
+	"github.com/elastic/beats/libbeat/monitoring"
+)
 
 type Processor interface {
 	Validate(map[string]interface{}) error
-	Decode(map[string]interface{}) (Payload, error)
+	Decode(map[string]interface{}) (model.Payload, error)
 	Name() string
 }
-type Payload interface {
-	Transform(config.Config) []beat.Event
+
+type PayloadDecoder func(map[string]interface{}) (model.Payload, error)
+
+type PayloadProcessor struct {
+	ProcessorName string
+	DecodePayload PayloadDecoder
+	PayloadSchema *jsonschema.Schema
+	DecodingCount *monitoring.Int
+	DecodingError *monitoring.Int
+	ValidateCount *monitoring.Int
+	ValidateError *monitoring.Int
 }
 
-type Decoder interface {
-	DecodePayload(map[string]interface{}) (*Payload, error)
+func (p *PayloadProcessor) Name() string {
+	return p.ProcessorName
+}
+
+func (p *PayloadProcessor) Decode(raw map[string]interface{}) (model.Payload, error) {
+	p.DecodingCount.Inc()
+	payload, err := p.DecodePayload(raw)
+	if err != nil {
+		p.DecodingError.Inc()
+		return nil, err
+	}
+	return payload, err
+}
+
+func (p *PayloadProcessor) Validate(raw map[string]interface{}) error {
+	p.ValidateCount.Inc()
+	err := validation.Validate(raw, p.PayloadSchema)
+	if err != nil {
+		p.ValidateError.Inc()
+	}
+	return err
 }
