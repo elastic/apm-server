@@ -18,8 +18,8 @@
 package package_tests
 
 import (
-	tr "github.com/elastic/apm-server/processor/transaction"
-	"github.com/elastic/apm-server/processor/transaction/generated/schema"
+	"github.com/elastic/apm-server/model/transaction/generated/schema"
+	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -28,9 +28,9 @@ type val = []interface{}
 
 func procSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            tr.NewProcessor(),
+		Proc:            transaction.Processor,
 		FullPayloadPath: "../testdata/transaction/payload.json",
-		TemplatePaths: []string{"../_meta/fields.yml",
+		TemplatePaths: []string{"../../../model/transaction/_meta/fields.yml",
 			"../../../_meta/fields.common.yml"},
 		Schema: schema.PayloadSchema,
 	}

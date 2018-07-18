@@ -15,20 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package healthcheck
+package model
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/config"
+	"github.com/elastic/beats/libbeat/beat"
 )
 
-func TestImplementProcessorInterface(t *testing.T) {
-	p := NewProcessor()
-	assert.NotNil(t, p)
-	_, ok := p.(pr.Processor)
-	assert.True(t, ok)
-	assert.IsType(t, &processor{}, p)
+type Payload interface {
+	Transform(config.Config) []beat.Event
 }

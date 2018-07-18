@@ -21,8 +21,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/processor/transaction"
+
+	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -52,11 +53,11 @@ var (
 
 // ensure all valid documents pass through the whole validation and transformation process
 func TestTransactionProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, backendRequestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.Processor, config.Config{}, backendRequestInfo, map[string]string{})
 }
 
 func TestMinimalTransactionProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, transaction.NewProcessor(), config.Config{}, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, transaction.Processor, config.Config{}, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorFrontendOK(t *testing.T) {
@@ -64,12 +65,12 @@ func TestProcessorFrontendOK(t *testing.T) {
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
-	tests.TestProcessRequests(t, transaction.NewProcessor(), conf, frontendRequestInfo, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, transaction.Processor, conf, frontendRequestInfo, map[string]string{"@timestamp": "-"})
 }
 
 func BenchmarkBackendProcessor(b *testing.B) {
-	tests.BenchmarkProcessRequests(b, transaction.NewProcessor(), config.Config{}, backendRequestInfo)
-	tests.BenchmarkProcessRequests(b, transaction.NewProcessor(), config.Config{}, backendRequestInfoIgnoreTimestamp)
+	tests.BenchmarkProcessRequests(b, transaction.Processor, config.Config{}, backendRequestInfo)
+	tests.BenchmarkProcessRequests(b, transaction.Processor, config.Config{}, backendRequestInfoIgnoreTimestamp)
 }
 
 func BenchmarkFrontendProcessor(b *testing.B) {
@@ -77,5 +78,5 @@ func BenchmarkFrontendProcessor(b *testing.B) {
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
-	tests.BenchmarkProcessRequests(b, transaction.NewProcessor(), conf, frontendRequestInfo)
+	tests.BenchmarkProcessRequests(b, transaction.Processor, conf, frontendRequestInfo)
 }

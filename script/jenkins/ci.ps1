@@ -33,7 +33,7 @@ exec { go build } "Build FAILURE"
 
 
 cp .\_meta\fields.common.yml .\_meta\fields.generated.yml
-cat processor\*\_meta\fields.yml | Out-File -append -encoding UTF8 -filepath .\_meta\fields.generated.yml
+cat model\*\_meta\fields.yml | Out-File -append -encoding UTF8 -filepath .\_meta\fields.generated.yml
 cp .\_meta\fields.generated.yml .\fields.yml
 
 
