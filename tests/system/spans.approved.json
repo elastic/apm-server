@@ -207,6 +207,9 @@
                         "version": "3.14.0",
                         "name": "elastic-node"
                     }
+                },
+                "tags": {
+                    "span_tag": "something"
                 }
             },
             "processor": {

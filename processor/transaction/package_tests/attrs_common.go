@@ -53,6 +53,7 @@ func payloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 		"transactions.context.request.headers.some-other-header",
 		"transactions.context.request.headers.array",
 		"transactions.spans.stacktrace.vars.key",
+		tests.Group("transactions.spans.context.tags"),
 		tests.Group("transactions.context.request.env."),
 		tests.Group("transactions.context.request.body"),
 		tests.Group("transactions.context.request.cookies"),
@@ -190,6 +191,12 @@ func schemaTestData(td []tests.SchemaTestData) []tests.SchemaTestData {
 			Valid:   []interface{}{obj{}},
 			Invalid: []tests.Invalid{{Msg: `context/properties/request/properties/cookies/type`, Values: val{123, ""}}}},
 		{Key: "transactions.context.tags",
+			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
+			Invalid: []tests.Invalid{
+				{Msg: `tags/type`, Values: val{"tags"}},
+				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
+				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
+		{Key: "transactions.spans.context.tags",
 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
 			Invalid: []tests.Invalid{
 				{Msg: `tags/type`, Values: val{"tags"}},
