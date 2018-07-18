@@ -18,6 +18,7 @@ https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
 - Add optional tracing for the server's API and event publisher {pull}816[816].
 - Read sourcemap content and fill context lines {pull}972[972].
 - Add /v1/metrics endpoint {pull}1000[1000].
+- Remove regexProperties validation rules {pull}1148[1148], {pull}1150[1150].
 
 
 [[release-notes-6.3]]
@@ -52,7 +53,6 @@ https://github.com/elastic/apm-server/compare/v6.2.4\...v6.3.0[View commits]
 - Limit the amount of concurrent requests being processed {pull}731[731].
 - Return proper response code for request entity too large {pull}862[862].
 - Make APM Server docker image listen on all interfaces by default https://github.com/elastic/apm-server-docker/pull/16[apm-server-dockers#16]
-- Remove regexProperties validation rules {pull}1148[1148].
 
 [float]
 ==== Added
