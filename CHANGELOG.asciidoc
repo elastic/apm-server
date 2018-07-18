@@ -19,7 +19,6 @@ https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
 - Read sourcemap content and fill context lines {pull}972[972].
 - Add /v1/metrics endpoint {pull}1000[1000].
 - Remove regexProperties validation rules {pull}1148[1148], {pull}1150[1150].
-- Add source_mapping.elasticsearch configuration option {pull}XXXX[XXXX]
 - Add source_mapping.elasticsearch configuration option {pull}1114[1114].
 
 
