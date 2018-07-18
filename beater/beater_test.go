@@ -310,7 +310,20 @@ func (bt *beater) wait() error {
 	}
 }
 
-func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*beater, func(), error) {
+func (bt *beater) smapElasticsearchHosts() []string {
+	var content map[string]interface{}
+	if err := bt.config.Frontend.SourceMapping.EsConfig.Unpack(&content); err != nil {
+		return nil
+	}
+	hostsContent := content["hosts"].([]interface{})
+	hosts := make([]string, len(hostsContent))
+	for i := range hostsContent {
+		hosts[i] = hostsContent[i].(string)
+	}
+	return hosts
+}
+
+func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
 	// create a beat
 	apmBeat := &beat.Beat{
 		Publisher: publisher,
@@ -320,6 +333,7 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*b
 			Version:     version.GetDefaultVersion(),
 			UUID:        uuid.NewV4(),
 		},
+		Config: beatConfig,
 	}
 
 	// create our beater

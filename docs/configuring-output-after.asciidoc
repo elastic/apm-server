@@ -3,7 +3,10 @@
 [float]
 === Sourcemaps
 
-Sourcemaps can be uploaded through various outputs but can currently only be applied when Elasticsearch is the output.
+Sourcemaps can be uploaded through all outputs but must eventually be stored in Elasticsearch.
+When using outputs other than Elasticsearch, `source_mapping.elasticsearch` must be set for source maps to be applied.
+Be sure to update `source_mapping.index_pattern` if sourcemaps are stored in the non-default location.
+See <<config-sourcemapping-elasticsearch>> for more details.
 
 [[libbeat-configuration-fields]]
 [float]
