@@ -18,7 +18,7 @@
 package error
 
 import (
-	err "github.com/elastic/apm-server/model/error"
+	merr "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -26,11 +26,11 @@ import (
 var (
 	Processor = &processor.PayloadProcessor{
 		ProcessorName: "error",
-		DecodePayload: err.DecodePayload,
-		PayloadSchema: err.PayloadSchema(),
-		DecodingCount: monitoring.NewInt(err.Metrics, "decoding.count"),
-		DecodingError: monitoring.NewInt(err.Metrics, "decoding.errors"),
-		ValidateCount: monitoring.NewInt(err.Metrics, "validation.count"),
-		ValidateError: monitoring.NewInt(err.Metrics, "validation.errors"),
+		DecodePayload: merr.DecodePayload,
+		PayloadSchema: merr.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(merr.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(merr.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(merr.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(merr.Metrics, "validation.errors"),
 	}
 )
