@@ -49,6 +49,9 @@ import (
 func TestBeatConfig(t *testing.T) {
 	falsy := false
 	truthy := true
+	defConf := defaultConfig("6.2.0")
+	defConf.rum = defaultRum()
+
 	tests := []struct {
 		conf       map[string]interface{}
 		beaterConf *Config
@@ -57,7 +60,7 @@ func TestBeatConfig(t *testing.T) {
 	}{
 		{
 			conf:       map[string]interface{}{},
-			beaterConf: defaultConfig("6.2.0"),
+			beaterConf: defConf,
 			msg:        "Default config created for empty config.",
 		},
 		{
@@ -87,7 +90,7 @@ func TestBeatConfig(t *testing.T) {
 					"allow_origins": []string{"example*"},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
-							"expiration": 5 * time.Minute,
+							"expiration": 8 * time.Minute,
 						},
 						"index_pattern": "apm-test*",
 					},
@@ -113,22 +116,34 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
-				Frontend: &FrontendConfig{
+				FrontendConfig: &rumConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
-						Cache:        &Cache{Expiration: 5 * time.Minute},
+						Cache:        &Cache{Expiration: 8 * time.Minute},
 						IndexPattern: "apm-test*",
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
-					beatVersion:         "6.2.0",
 				},
+				RumConfig: defaultRum(),
 				Metrics: &metricsConfig{
 					Enabled: &falsy,
 				},
 				ConcurrentRequests: 15,
+				beatVersion:        "6.2.0",
+				rum: &rumConfig{
+					Enabled:      &truthy,
+					RateLimit:    1000,
+					AllowOrigins: []string{"example*"},
+					SourceMapping: &SourceMapping{
+						Cache:        &Cache{Expiration: 8 * time.Minute},
+						IndexPattern: "apm-test*",
+					},
+					LibraryPattern:      "^custom",
+					ExcludeFromGrouping: "^grouping",
+				},
 			},
 			msg: "Given config overwrites default",
 		},
@@ -145,12 +160,22 @@ func TestBeatConfig(t *testing.T) {
 					"url":     "/debug/vars",
 				},
 				"frontend": map[string]interface{}{
+					"enabled":    true,
+					"rate_limit": 890,
+					"source_mapping": map[string]interface{}{
+						"cache": map[string]interface{}{
+							"expiration": 4,
+						},
+					},
+				},
+				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 7,
 						},
 					},
+					"library_pattern": "rum",
 				},
 			},
 			beaterConf: &Config{
@@ -168,7 +193,20 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
-				Frontend: &FrontendConfig{
+				FrontendConfig: &rumConfig{
+					Enabled:   &truthy,
+					RateLimit: 890,
+					SourceMapping: &SourceMapping{
+						Cache: &Cache{
+							Expiration: 4 * time.Second,
+						},
+						IndexPattern: "apm-*-sourcemap*",
+					},
+					AllowOrigins:        []string{"*"},
+					LibraryPattern:      "node_modules|bower_components|~",
+					ExcludeFromGrouping: "^/webpack",
+				},
+				RumConfig: &rumConfig{
 					Enabled:      &truthy,
 					RateLimit:    10,
 					AllowOrigins: []string{"*"},
@@ -178,20 +216,34 @@ func TestBeatConfig(t *testing.T) {
 						},
 						IndexPattern: "apm-*-sourcemap*",
 					},
-					LibraryPattern:      "node_modules|bower_components|~",
+					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
-					beatVersion:         "6.2.0",
 				},
 				Metrics: &metricsConfig{
 					Enabled: &truthy,
 				},
 				ConcurrentRequests: 5,
+				beatVersion:        "6.2.0",
+				rum: &rumConfig{
+					Enabled:      &truthy,
+					RateLimit:    10,
+					AllowOrigins: []string{"*"},
+					SourceMapping: &SourceMapping{
+						Cache: &Cache{
+							Expiration: 7 * time.Second,
+						},
+						IndexPattern: "apm-*-sourcemap*",
+					},
+					LibraryPattern:      "rum",
+					ExcludeFromGrouping: "^/webpack",
+				},
 			},
 			msg: "Given config merged with default",
 		},
 	}
 
 	for _, test := range tests {
+		test.beaterConf.rumOnce.Do(func() {})
 		ucfgConfig, err := common.NewConfigFrom(test.conf)
 		assert.NoError(t, err)
 		btr, err := New(&beat.Beat{Info: beat.Info{Version: "6.2.0"}}, ucfgConfig)
@@ -312,7 +364,7 @@ func (bt *beater) wait() error {
 
 func (bt *beater) smapElasticsearchHosts() []string {
 	var content map[string]interface{}
-	if err := bt.config.Frontend.SourceMapping.EsConfig.Unpack(&content); err != nil {
+	if err := bt.config.Rum().SourceMapping.EsConfig.Unpack(&content); err != nil {
 		return nil
 	}
 	hostsContent := content["hosts"].([]interface{})

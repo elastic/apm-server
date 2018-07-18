@@ -23,7 +23,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/go-ucfg/yaml"
 )
@@ -32,7 +34,7 @@ func TestConfig(t *testing.T) {
 	truthy := true
 	cases := []struct {
 		config         []byte
-		expectedConfig Config
+		expectedConfig *Config
 	}{
 		{
 			config: []byte(`{
@@ -49,6 +51,19 @@ func TestConfig(t *testing.T) {
 					"certificate": "1234cert",
 				},
         "concurrent_requests": 15,
+				"rum": {
+					"enabled": true,
+					"rate_limit": 800,
+					"allow_origins": ["rum*"],
+					"source_mapping": {
+						"cache": {
+							"expiration": 1m,
+						},
+						"index_pattern": "apm-rum-test*"
+					},
+					"library_pattern": "pattern-rum",
+					"exclude_from_grouping": "group_pattern-rum",
+				},
 				"frontend": {
 					"enabled": true,
 					"rate_limit": 1000,
@@ -63,7 +78,7 @@ func TestConfig(t *testing.T) {
 					"exclude_from_grouping": "group_pattern",
 				}
       }`),
-			expectedConfig: Config{
+			expectedConfig: &Config{
 				Host:            "localhost:3000",
 				MaxUnzippedSize: 64,
 				MaxHeaderSize:   8,
@@ -72,7 +87,18 @@ func TestConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
-				Frontend: &FrontendConfig{
+				RumConfig: &rumConfig{
+					Enabled:      &truthy,
+					RateLimit:    800,
+					AllowOrigins: []string{"rum*"},
+					SourceMapping: &SourceMapping{
+						Cache:        &Cache{Expiration: 1 * time.Minute},
+						IndexPattern: "apm-rum-test*",
+					},
+					LibraryPattern:      "pattern-rum",
+					ExcludeFromGrouping: "group_pattern-rum",
+				},
+				FrontendConfig: &rumConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
@@ -100,9 +126,13 @@ func TestConfig(t *testing.T) {
 				"frontend": {
 					"source_mapping": {
 					}
+				},
+				"rum": {
+					"source_mapping": {
+					}
 				}
       }`),
-			expectedConfig: Config{
+			expectedConfig: &Config{
 				Host:               "localhost:8200",
 				MaxUnzippedSize:    64,
 				MaxHeaderSize:      8,
@@ -112,7 +142,15 @@ func TestConfig(t *testing.T) {
 				SecretToken:        "1234random",
 				SSL:                &SSLConfig{Enabled: nil, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
 				ConcurrentRequests: 20,
-				Frontend: &FrontendConfig{
+				FrontendConfig: &rumConfig{
+					Enabled:      nil,
+					RateLimit:    0,
+					AllowOrigins: nil,
+					SourceMapping: &SourceMapping{
+						IndexPattern: "",
+					},
+				},
+				RumConfig: &rumConfig{
 					Enabled:      nil,
 					RateLimit:    0,
 					AllowOrigins: nil,
@@ -124,7 +162,7 @@ func TestConfig(t *testing.T) {
 		},
 		{
 			config: []byte(`{ }`),
-			expectedConfig: Config{
+			expectedConfig: &Config{
 				Host:               "",
 				MaxUnzippedSize:    0,
 				MaxHeaderSize:      0,
@@ -134,7 +172,8 @@ func TestConfig(t *testing.T) {
 				SecretToken:        "",
 				SSL:                nil,
 				ConcurrentRequests: 0,
-				Frontend:           nil,
+				FrontendConfig:     nil,
+				RumConfig:          nil,
 			},
 		},
 	}
@@ -145,8 +184,8 @@ func TestConfig(t *testing.T) {
 		var beaterConfig Config
 		err = cfg.Unpack(&beaterConfig)
 		assert.NoError(t, err)
-		msg := fmt.Sprintf("Test number %v failed. Config: %v, ExpectedConfig: %v", idx, beaterConfig, test.expectedConfig)
-		assert.Equal(t, test.expectedConfig, beaterConfig, msg)
+		msg := fmt.Sprintf("Test number %v failed.", idx)
+		assert.Equal(t, test.expectedConfig, &beaterConfig, msg)
 	}
 }
 
@@ -189,5 +228,116 @@ func TestReplaceBeatVersion(t *testing.T) {
 	for _, test := range cases {
 		out := replaceVersion(test.indexPattern, test.version)
 		assert.Equal(t, test.replaced, out)
+	}
+}
+
+func TestIsRumEnabled(t *testing.T) {
+	truthy := true
+	for _, td := range []struct {
+		c       *Config
+		enabled bool
+	}{
+		{c: nil, enabled: false},
+		{c: &Config{}, enabled: false},
+		{c: &Config{FrontendConfig: &rumConfig{Enabled: new(bool)}}, enabled: false},
+		{c: &Config{FrontendConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
+		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}}, enabled: false},
+		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
+		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}, FrontendConfig: &rumConfig{Enabled: &truthy}}, enabled: false},
+	} {
+		assert.Equal(t, td.enabled, td.c.isRumEnabled())
+	}
+}
+
+func TestDefaultRum(t *testing.T) {
+	c := defaultConfig("7.0.0")
+	assert.Equal(t, c.FrontendConfig, defaultRum())
+	assert.Equal(t, c.RumConfig, defaultRum())
+	assert.Nil(t, c.rum)
+}
+
+func TestRum(t *testing.T) {
+	testRumConf := &rumConfig{
+		Enabled:      new(bool),
+		RateLimit:    22,
+		AllowOrigins: []string{"test*"},
+	}
+	testFrontendConf := &rumConfig{
+		Enabled:      new(bool),
+		RateLimit:    8,
+		AllowOrigins: []string{"frontend*"},
+	}
+
+	cases := []struct {
+		c  *Config
+		rc *rumConfig
+	}{
+		{c: &Config{}, rc: defaultRum()},
+		{c: &Config{RumConfig: &rumConfig{}}, rc: defaultRum()},
+		{c: &Config{RumConfig: testRumConf}, rc: testRumConf},
+		{c: &Config{FrontendConfig: testFrontendConf}, rc: testFrontendConf},
+		{c: &Config{RumConfig: testRumConf, FrontendConfig: testFrontendConf}, rc: testRumConf},
+	}
+	for _, test := range cases {
+		assert.Equal(t, test.rc, test.c.Rum())
+		assert.Equal(t, test.rc, test.c.rum)
+	}
+}
+
+func TestRumOnce(t *testing.T) {
+	// defaultRum is set as `rum` if nothing else is given
+	c := Config{}
+	assert.Equal(t, defaultRum(), c.Rum())
+	assert.Equal(t, defaultRum(), c.rum)
+
+	// if Rum() is called again, nothing changes
+	c.RumConfig = &rumConfig{RateLimit: 22}
+	assert.Equal(t, defaultRum(), c.Rum())
+	assert.Equal(t, defaultRum(), c.rum)
+}
+
+func TestMemoizedSmapMapper(t *testing.T) {
+	truthy := true
+	esConfig, err := common.NewConfigFrom(map[string]interface{}{
+		"hosts": []string{"localhost:0"},
+	})
+	require.NoError(t, err)
+	smapping := SourceMapping{
+		Cache:        &Cache{Expiration: 1 * time.Minute},
+		IndexPattern: "apm-rum-test*",
+		EsConfig:     esConfig,
+	}
+
+	for _, td := range []struct {
+		c       *Config
+		smapper bool
+		e       error
+	}{
+		{c: nil, smapper: false, e: nil},
+		{c: &Config{RumConfig: &rumConfig{}}, smapper: false, e: nil},
+		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}}, smapper: false, e: nil},
+		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, smapper: false, e: nil},
+		{c: &Config{RumConfig: &rumConfig{SourceMapping: &smapping}}, smapper: false, e: nil},
+		{c: &Config{
+			RumConfig: &rumConfig{
+				Enabled: &truthy,
+				SourceMapping: &SourceMapping{
+					Cache:        &Cache{Expiration: 1 * time.Minute},
+					IndexPattern: "apm-rum-test*",
+				},
+			}},
+			smapper: false,
+			e:       nil},
+		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy, SourceMapping: &smapping}},
+			smapper: true,
+			e:       nil},
+	} {
+		smapper, e := td.c.memoizedSmapMapper()
+		if td.smapper {
+			assert.NotNil(t, smapper)
+		} else {
+			assert.Nil(t, smapper)
+		}
+		assert.Equal(t, td.e, e)
 	}
 }

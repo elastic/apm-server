@@ -46,11 +46,11 @@ var (
 		{Name: "TestProcessErrorMinimalPayloadLog", Path: "../testdata/error/minimal_payload_log.json"},
 	}
 
-	frontendRequestInfo = []tests.RequestInfo{
-		{Name: "TestProcessErrorFrontend", Path: "../testdata/error/frontend.json"},
-		{Name: "TestProcessErrorFrontendNoSmap", Path: "../testdata/error/frontend_app.e2e-bundle.json"},
-		{Name: "TestProcessErrorFrontendMinifiedSmap", Path: "../testdata/error/frontend_app.e2e-bundle.min.json"},
-		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "../testdata/error/augmented_payload_frontend.json"},
+	rumRequestInfo = []tests.RequestInfo{
+		{Name: "TestProcessErrorRum", Path: "../testdata/error/rum.json"},
+		{Name: "TestProcessErrorRumNoSmap", Path: "../testdata/error/rum_app.e2e-bundle.json"},
+		{Name: "TestProcessErrorRumMinifiedSmap", Path: "../testdata/error/rum_app.e2e-bundle.min.json"},
+		{Name: "TestProcessErrorAugmentedUserAgentAndIP", Path: "../testdata/error/augmented_payload_rum.json"},
 	}
 )
 
@@ -65,14 +65,14 @@ func TestProcessorMinimalPayloadOK(t *testing.T) {
 	tests.TestProcessRequests(t, perr.Processor, conf, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
 }
 
-func TestProcessorFrontendOK(t *testing.T) {
+func TestProcessorRumOK(t *testing.T) {
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 	conf := config.Config{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.TestProcessRequests(t, perr.Processor, conf, frontendRequestInfo, map[string]string{})
+	tests.TestProcessRequests(t, perr.Processor, conf, rumRequestInfo, map[string]string{})
 }
 
 type fakeAcc struct {
@@ -118,7 +118,7 @@ func BenchmarkBackendProcessor(b *testing.B) {
 	tests.BenchmarkProcessRequests(b, perr.Processor, config.Config{ExcludeFromGrouping: nil}, backendRequestInfoIgnoreTimestamp)
 }
 
-func BenchmarkFrontendProcessor(b *testing.B) {
+func BenchmarkRumProcessor(b *testing.B) {
 	accessor := &fakeAcc{B: b}
 	if err := accessor.PreFetch(); err != nil {
 		b.Fatal(err)
@@ -129,5 +129,5 @@ func BenchmarkFrontendProcessor(b *testing.B) {
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.BenchmarkProcessRequests(b, perr.Processor, conf, frontendRequestInfo)
+	tests.BenchmarkProcessRequests(b, perr.Processor, conf, rumRequestInfo)
 }

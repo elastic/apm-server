@@ -45,15 +45,15 @@ apm-server:
   # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
   #ssl.key_passphrase: ""
 
-  frontend:
-    # To enable frontend support set this to true.
-    enabled: false
+  #rum:
+    # To enable real user monitoring (rum) support set this to true.
+    #enabled: false
 
-    # Rate limit per second and IP address for requests sent to the frontend endpoint.
+    # Rate limit per second and IP address for requests sent to the rum endpoint.
     #rate_limit: 10
 
-    # Comma separated list of permitted origins for frontend. User-agents will send
-    # a origin header that will be validated against this list.
+    # Comma separated list of permitted origins for real user monitoring. 
+    # User-agents will send an origin header that will be validated against this list.
     # An origin is made of a protocol scheme, host and port, without the url path.
     # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)
     # If an item in the list is a single '*', everything will be allowed
@@ -69,7 +69,7 @@ apm-server:
     #exclude_from_grouping: "^/webpack"
 
     # If a source map has previously been uploaded, source mapping is automatically applied
-    # to all error and transaction documents sent to the frontend endpoint.
+    # to all error and transaction documents sent to the rum endpoint.
     #source_mapping:
 
       # Source maps are always fetched from Elasticsearch, by default using the output.elasticsearch configuration.
@@ -98,7 +98,7 @@ apm-server:
       #index_pattern: "apm-*-sourcemap*"
 
   # If set to true, APM Server augments data received by the agent with the original IP of the backend server,
-  # or the IP and User Agent of the real user (frontend requests). It defaults to true.
+  # or the IP and User Agent of the real user (rum requests). It defaults to true.
   #capture_personal_data: true
 
   # golang expvar support - https://golang.org/pkg/expvar/

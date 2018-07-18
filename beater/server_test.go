@@ -144,15 +144,15 @@ func TestServerHealth(t *testing.T) {
 	assert.Equal(t, http.StatusOK, res.StatusCode, body(t, res))
 }
 
-func TestServerFrontendSwitch(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": []string{"*"}}})
+func TestServerRumSwitch(t *testing.T) {
+	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": []string{"*"}}})
 	assert.NoError(t, err)
 	apm, teardown, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest("POST", baseUrl+FrontendTransactionsURL, bytes.NewReader(testData))
+	req, err := http.NewRequest("POST", baseUrl+RumTransactionsURL, bytes.NewReader(testData))
 	assert.NoError(t, err)
 	res, err := client.Do(req)
 	assert.NotEqual(t, http.StatusForbidden, res.StatusCode, body(t, res))
@@ -200,13 +200,13 @@ func TestServerCORS(t *testing.T) {
 	var teardown = func() {}
 	defer teardown() // in case test crashes. calling teardown twice is ok
 	for idx, test := range tests {
-		ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": test.allowedOrigins}})
+		ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
 		assert.NoError(t, err)
 		var apm *beater
 		apm, teardown, err = setupServer(t, ucfg, nil)
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
-		req, err := http.NewRequest("POST", baseUrl+FrontendTransactionsURL, bytes.NewReader(testData))
+		req, err := http.NewRequest("POST", baseUrl+RumTransactionsURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/json")
 		assert.NoError(t, err)

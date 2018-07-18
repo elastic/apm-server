@@ -20,6 +20,7 @@ package beater
 import (
 	"net"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/elastic/apm-server/sourcemap"
@@ -42,10 +43,16 @@ type Config struct {
 	MaxConnections      int                    `config:"max_connections"`
 	MaxRequestQueueTime time.Duration          `config:"max_request_queue_time"`
 	Expvar              *ExpvarConfig          `config:"expvar"`
-	Frontend            *FrontendConfig        `config:"frontend"`
 	Metrics             *metricsConfig         `config:"metrics"`
 	AugmentEnabled      bool                   `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
+
+	RumConfig      *rumConfig `config:"rum"`
+	FrontendConfig *rumConfig `config:"frontend"`
+	rum            *rumConfig
+	rumOnce        sync.Once
+
+	beatVersion string
 }
 
 type ExpvarConfig struct {
@@ -53,15 +60,13 @@ type ExpvarConfig struct {
 	Url     string `config:"url"`
 }
 
-type FrontendConfig struct {
+type rumConfig struct {
 	Enabled             *bool          `config:"enabled"`
 	RateLimit           int            `config:"rate_limit"`
 	AllowOrigins        []string       `config:"allow_origins"`
 	LibraryPattern      string         `config:"library_pattern"`
 	ExcludeFromGrouping string         `config:"exclude_from_grouping"`
 	SourceMapping       *SourceMapping `config:"source_mapping"`
-
-	beatVersion string
 }
 
 type metricsConfig struct {
@@ -90,21 +95,11 @@ type InstrumentationConfig struct {
 	Environment *string `config:"environment"`
 }
 
-func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
-	if c != nil && c.Frontend.isEnabled() && c.Frontend.SourceMapping != nil {
-		c.Frontend.SourceMapping.EsConfig = esConfig
-	}
-}
-
 func (c *SSLConfig) isEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
 func (c *ExpvarConfig) isEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
-}
-
-func (c *FrontendConfig) isEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
@@ -116,25 +111,54 @@ func (s *SourceMapping) isSetup() bool {
 	return s != nil && (s.EsConfig != nil)
 }
 
-func (c *FrontendConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
-	smap := c.SourceMapping
-	if !c.isEnabled() || !smap.isSetup() {
+func (c *Config) Rum() *rumConfig {
+	c.rumOnce.Do(func() {
+		if c.RumConfig != nil && c.RumConfig.Enabled != nil {
+			c.rum = c.RumConfig
+		} else if c.FrontendConfig != nil && c.FrontendConfig.Enabled != nil {
+			c.rum = c.FrontendConfig
+		} else {
+			c.rum = defaultRum()
+		}
+	})
+	return c.rum
+}
+
+func (c *Config) isRumEnabled() bool {
+	return c != nil && c.Rum().Enabled != nil && *c.Rum().Enabled
+}
+
+func (c *Config) setSmapES(esConfig *common.Config) {
+	if c != nil && c.Rum().SourceMapping != nil {
+		c.Rum().SourceMapping.EsConfig = esConfig
+	}
+}
+
+func (c *Config) memoizedSmapMapper() (sourcemap.Mapper, error) {
+	if c == nil {
 		return nil, nil
 	}
-	if smap.mapper != nil {
-		return c.SourceMapping.mapper, nil
+	if !c.isRumEnabled() || c.Rum().SourceMapping == nil || !c.Rum().SourceMapping.isSetup() {
+		return nil, nil
 	}
+
+	if c.Rum().SourceMapping.mapper != nil {
+		return c.Rum().SourceMapping.mapper, nil
+	}
+
+	smap := c.Rum().SourceMapping
 	smapConfig := sourcemap.Config{
 		CacheExpiration:     smap.Cache.Expiration,
 		ElasticsearchConfig: smap.EsConfig,
-		Index:               replaceVersion(c.SourceMapping.IndexPattern, c.beatVersion),
+		Index:               replaceVersion(smap.IndexPattern, c.beatVersion),
 	}
 	smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
 	if err != nil {
 		return nil, err
 	}
-	c.SourceMapping.mapper = smapMapper
-	return c.SourceMapping.mapper, nil
+
+	c.Rum().SourceMapping.mapper = smapMapper
+	return smapMapper, nil
 }
 
 func (c *InstrumentationConfig) isEnabled() bool {
@@ -145,6 +169,21 @@ func (c *InstrumentationConfig) isEnabled() bool {
 func replaceVersion(pattern, version string) string {
 	re := regexp.MustCompile("%.*{.*beat.version.?}")
 	return re.ReplaceAllLiteralString(pattern, version)
+}
+
+func defaultRum() *rumConfig {
+	return &rumConfig{
+		RateLimit:    10,
+		AllowOrigins: []string{"*"},
+		SourceMapping: &SourceMapping{
+			Cache: &Cache{
+				Expiration: 5 * time.Minute,
+			},
+			IndexPattern: "apm-*-sourcemap*",
+		},
+		LibraryPattern:      "node_modules|bower_components|~",
+		ExcludeFromGrouping: "^/webpack",
+	}
 }
 
 func defaultConfig(beatVersion string) *Config {
@@ -161,20 +200,7 @@ func defaultConfig(beatVersion string) *Config {
 		ShutdownTimeout:     5 * time.Second,
 		SecretToken:         "",
 		AugmentEnabled:      true,
-		Frontend: &FrontendConfig{
-			beatVersion:  beatVersion,
-			Enabled:      new(bool),
-			RateLimit:    10,
-			AllowOrigins: []string{"*"},
-			SourceMapping: &SourceMapping{
-				Cache: &Cache{
-					Expiration: 5 * time.Minute,
-				},
-				IndexPattern: "apm-*-sourcemap*",
-			},
-			LibraryPattern:      "node_modules|bower_components|~",
-			ExcludeFromGrouping: "^/webpack",
-		},
+		beatVersion:         beatVersion,
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
 			Url:     "/debug/vars",
@@ -182,5 +208,7 @@ func defaultConfig(beatVersion string) *Config {
 		Metrics: &metricsConfig{
 			Enabled: &metricsEnabled,
 		},
+		FrontendConfig: defaultRum(),
+		RumConfig:      defaultRum(),
 	}
 }

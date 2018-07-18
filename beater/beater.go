@@ -53,18 +53,18 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	if err := ucfg.Unpack(beaterConfig); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
-	if beaterConfig.Frontend.isEnabled() {
-		if _, err := regexp.Compile(beaterConfig.Frontend.LibraryPattern); err != nil {
+	if beaterConfig.isRumEnabled() {
+		if _, err := regexp.Compile(beaterConfig.Rum().LibraryPattern); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
 		}
-		if _, err := regexp.Compile(beaterConfig.Frontend.ExcludeFromGrouping); err != nil {
+		if _, err := regexp.Compile(beaterConfig.Rum().ExcludeFromGrouping); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
 		}
-		if b.Config != nil && beaterConfig.Frontend.SourceMapping.EsConfig == nil {
+		if b.Config != nil && beaterConfig.Rum().SourceMapping.EsConfig == nil {
 			// fall back to elasticsearch output configuration for sourcemap storage if possible
 			if b.Config.Output.Name() == "elasticsearch" {
 				logger.Info("Falling back to elasticsearch output for sourcemap storage")
-				beaterConfig.setSmapElasticsearch(b.Config.Output.Config())
+				beaterConfig.setSmapES(b.Config.Output.Config())
 			} else {
 				logger.Info("Unable to determine sourcemap storage, sourcemaps will not be applied")
 			}

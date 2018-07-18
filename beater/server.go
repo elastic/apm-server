@@ -68,11 +68,11 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 	logger := logp.NewLogger("server")
 	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	logger.Infof("Listening on: %s", server.Addr)
-	switch config.Frontend.isEnabled() {
+	switch config.isRumEnabled() {
 	case true:
-		logger.Info("Frontend endpoints enabled!")
+		logger.Info("RUM endpoints enabled!")
 	case false:
-		logger.Info("Frontend endpoints disabled")
+		logger.Info("RUM endpoints disabled")
 	}
 
 	if config.MaxConnections > 0 {
