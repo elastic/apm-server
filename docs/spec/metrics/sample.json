@@ -4,14 +4,7 @@
     "type": ["object", "null"],
     "description": "A single metric sample.",
     "properties": {
-        "type": {
-            "description": "Counters and gauges capture a single value at a point in time.  Counter are cumulative, strictly increasing or decreasing, and typically most useful with derivative aggregations.  Gauges increase and decrease over time.",
-            "enum": ["counter", "gauge"]
-        },
-        "unit": {
-            "type": ["string", "null"]
-        },
         "value": {"type": "number"}
     },
-    "required": ["type", "value"]
+    "required": ["value"]
 }
