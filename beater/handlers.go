@@ -76,6 +76,7 @@ type serverResponse struct {
 	err     error
 	code    int
 	counter *monitoring.Int
+	body    string
 }
 
 var (
@@ -90,54 +91,76 @@ var (
 	responseSuccesses = counter("response.valid.count")
 
 	okResponse = serverResponse{
-		nil, http.StatusOK, counter("response.valid.ok"),
+		code:    http.StatusOK,
+		counter: counter("response.valid.ok"),
 	}
 	acceptedResponse = serverResponse{
-		nil, http.StatusAccepted, counter("response.valid.accepted"),
+		code:    http.StatusAccepted,
+		counter: counter("response.valid.accepted"),
 	}
 	forbiddenCounter  = counter("response.errors.forbidden")
 	forbiddenResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.Wrap(err, "forbidden request"), http.StatusForbidden, forbiddenCounter,
+			err:     errors.Wrap(err, "forbidden request"),
+			code:    http.StatusForbidden,
+			counter: forbiddenCounter,
 		}
 	}
 	unauthorizedResponse = serverResponse{
-		errors.New("invalid token"), http.StatusUnauthorized, counter("response.errors.unauthorized"),
+		err:     errors.New("invalid token"),
+		code:    http.StatusUnauthorized,
+		counter: counter("response.errors.unauthorized"),
 	}
 	requestTooLargeResponse = serverResponse{
-		errors.New("request body too large"), http.StatusRequestEntityTooLarge, counter("response.errors.toolarge"),
+		err:     errors.New("request body too large"),
+		code:    http.StatusRequestEntityTooLarge,
+		counter: counter("response.errors.toolarge"),
 	}
 	decodeCounter        = counter("response.errors.decode")
 	cannotDecodeResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.Wrap(err, "data decoding error"), http.StatusBadRequest, decodeCounter,
+			err:     errors.Wrap(err, "data decoding error"),
+			code:    http.StatusBadRequest,
+			counter: decodeCounter,
 		}
 	}
 	validateCounter        = counter("response.errors.validate")
 	cannotValidateResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.Wrap(err, "data validation error"), http.StatusBadRequest, validateCounter,
+			err:     errors.Wrap(err, "data validation error"),
+			code:    http.StatusBadRequest,
+			counter: validateCounter,
 		}
 	}
 	rateLimitedResponse = serverResponse{
-		errors.New("too many requests"), http.StatusTooManyRequests, counter("response.errors.ratelimit"),
+		err:     errors.New("too many requests"),
+		code:    http.StatusTooManyRequests,
+		counter: counter("response.errors.ratelimit"),
 	}
 	methodNotAllowedResponse = serverResponse{
-		errors.New("only POST requests are supported"), http.StatusMethodNotAllowed, counter("response.errors.method"),
+		err:     errors.New("only POST requests are supported"),
+		code:    http.StatusMethodNotAllowed,
+		counter: counter("response.errors.method"),
 	}
 	tooManyConcurrentRequestsResponse = serverResponse{
-		errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, counter("response.errors.concurrency"),
+		err:     errors.New("timeout waiting to be processed"),
+		code:    http.StatusServiceUnavailable,
+		counter: counter("response.errors.concurrency"),
 	}
 	fullQueueCounter  = counter("response.errors.queue")
 	fullQueueResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.New("queue is full"), http.StatusServiceUnavailable, fullQueueCounter,
+			err:     errors.New("queue is full"),
+			code:    http.StatusServiceUnavailable,
+			counter: fullQueueCounter,
 		}
 	}
 	serverShuttingDownCounter  = counter("response.errors.closed")
 	serverShuttingDownResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.New("server is shutting down"), http.StatusServiceUnavailable, serverShuttingDownCounter,
+			err:     errors.New("server is shutting down"),
+			code:    http.StatusServiceUnavailable,
+			counter: serverShuttingDownCounter,
 		}
 	}
 
@@ -439,24 +462,31 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 
 	responseCounter.Inc()
 	res.counter.Inc()
+
+	var msg, msgKey string
 	if res.err == nil {
 		responseSuccesses.Inc()
-		return
-	}
+		if len(res.body) == 0 {
+			return
+		}
+		msgKey = "ok"
+		msg = res.body
+	} else {
+		responseErrors.Inc()
 
-	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-	if !ok {
-		logger = logp.NewLogger("request")
+		logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+		if !ok {
+			logger = logp.NewLogger("request")
+		}
+		msgKey = "error"
+		msg = res.err.Error()
+		logger.Errorw("error handling request", "response_code", res.code, "error", msg)
 	}
-	errMsg := res.err.Error()
-	logger.Errorw("error handling request", "response_code", res.code, "error", errMsg)
-
-	responseErrors.Inc()
 
 	if acceptsJSON(r) {
-		sendJSON(w, map[string]interface{}{"error": errMsg})
+		sendJSON(w, map[string]interface{}{msgKey: msg})
 	} else {
-		sendPlain(w, errMsg)
+		sendPlain(w, msg)
 	}
 }
 
