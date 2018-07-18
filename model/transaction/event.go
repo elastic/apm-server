@@ -21,6 +21,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -36,7 +37,7 @@ type Event struct {
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
-	Spans     []*Span
+	Spans     []*span.Span
 }
 type SpanCount struct {
 	Dropped Dropped
@@ -67,12 +68,12 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 		SpanCount: SpanCount{Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")}},
 	}
 	err = decoder.Err
-	var span *Span
+	var sp *span.Span
 	spans := decoder.InterfaceArr(raw, "spans")
-	e.Spans = make([]*Span, len(spans))
-	for idx, sp := range spans {
-		span, err = DecodeSpan(sp, err)
-		e.Spans[idx] = span
+	e.Spans = make([]*span.Span, len(spans))
+	for idx, rawSpan := range spans {
+		sp, err = span.DecodeSpan(rawSpan, err)
+		e.Spans[idx] = sp
 	}
 	return &e, err
 }
