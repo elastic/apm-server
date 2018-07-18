@@ -72,7 +72,7 @@ type SourceMapping struct {
 	Cache        *Cache `config:"cache"`
 	IndexPattern string `config:"index_pattern"`
 
-	esConfig *common.Config
+	EsConfig *common.Config `config:"elasticsearch"`
 	mapper   sourcemap.Mapper
 }
 
@@ -90,9 +90,9 @@ type InstrumentationConfig struct {
 	Environment *string `config:"environment"`
 }
 
-func (c *Config) setElasticsearch(esConfig *common.Config) {
+func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
 	if c != nil && c.Frontend.isEnabled() && c.Frontend.SourceMapping != nil {
-		c.Frontend.SourceMapping.esConfig = esConfig
+		c.Frontend.SourceMapping.EsConfig = esConfig
 	}
 }
 
@@ -113,7 +113,7 @@ func (c *metricsConfig) isEnabled() bool {
 }
 
 func (s *SourceMapping) isSetup() bool {
-	return s != nil && (s.esConfig != nil)
+	return s != nil && (s.EsConfig != nil)
 }
 
 func (c *FrontendConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
@@ -126,7 +126,7 @@ func (c *FrontendConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
 	}
 	smapConfig := sourcemap.Config{
 		CacheExpiration:     smap.Cache.Expiration,
-		ElasticsearchConfig: smap.esConfig,
+		ElasticsearchConfig: smap.EsConfig,
 		Index:               replaceVersion(c.SourceMapping.IndexPattern, c.beatVersion),
 	}
 	smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
