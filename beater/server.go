@@ -68,7 +68,7 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 	logger := logp.NewLogger("server")
 	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	logger.Infof("Listening on: %s", server.Addr)
-	switch config.isRumEnabled() {
+	switch config.RumConfig.isEnabled() {
 	case true:
 		logger.Info("RUM endpoints enabled!")
 	case false:

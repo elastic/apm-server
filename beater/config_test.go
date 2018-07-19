@@ -34,7 +34,7 @@ func TestConfig(t *testing.T) {
 	truthy := true
 	cases := []struct {
 		config         []byte
-		expectedConfig *Config
+		expectedConfig Config
 	}{
 		{
 			config: []byte(`{
@@ -78,7 +78,7 @@ func TestConfig(t *testing.T) {
 					"exclude_from_grouping": "group_pattern",
 				}
       }`),
-			expectedConfig: &Config{
+			expectedConfig: Config{
 				Host:            "localhost:3000",
 				MaxUnzippedSize: 64,
 				MaxHeaderSize:   8,
@@ -132,7 +132,7 @@ func TestConfig(t *testing.T) {
 					}
 				}
       }`),
-			expectedConfig: &Config{
+			expectedConfig: Config{
 				Host:               "localhost:8200",
 				MaxUnzippedSize:    64,
 				MaxHeaderSize:      8,
@@ -162,7 +162,7 @@ func TestConfig(t *testing.T) {
 		},
 		{
 			config: []byte(`{ }`),
-			expectedConfig: &Config{
+			expectedConfig: Config{
 				Host:               "",
 				MaxUnzippedSize:    0,
 				MaxHeaderSize:      0,
@@ -184,8 +184,8 @@ func TestConfig(t *testing.T) {
 		var beaterConfig Config
 		err = cfg.Unpack(&beaterConfig)
 		assert.NoError(t, err)
-		msg := fmt.Sprintf("Test number %v failed.", idx)
-		assert.Equal(t, test.expectedConfig, &beaterConfig, msg)
+		msg := fmt.Sprintf("Test number %v failed. Config: %v, ExpectedConfig: %v", idx, beaterConfig, test.expectedConfig)
+		assert.Equal(t, test.expectedConfig, beaterConfig, msg)
 	}
 }
 
@@ -237,26 +237,25 @@ func TestIsRumEnabled(t *testing.T) {
 		c       *Config
 		enabled bool
 	}{
-		{c: nil, enabled: false},
-		{c: &Config{}, enabled: false},
 		{c: &Config{FrontendConfig: &rumConfig{Enabled: new(bool)}}, enabled: false},
 		{c: &Config{FrontendConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
 		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}}, enabled: false},
 		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
 		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}, FrontendConfig: &rumConfig{Enabled: &truthy}}, enabled: false},
 	} {
-		assert.Equal(t, td.enabled, td.c.isRumEnabled())
+		td.c.SetRumConfig()
+		assert.Equal(t, td.enabled, td.c.RumConfig.isEnabled())
+
 	}
 }
 
 func TestDefaultRum(t *testing.T) {
 	c := defaultConfig("7.0.0")
-	assert.Equal(t, c.FrontendConfig, defaultRum())
-	assert.Equal(t, c.RumConfig, defaultRum())
-	assert.Nil(t, c.rum)
+	assert.Equal(t, c.FrontendConfig, defaultRum("7.0.0"))
+	assert.Equal(t, c.RumConfig, defaultRum("7.0.0"))
 }
 
-func TestRum(t *testing.T) {
+func TestSetRum(t *testing.T) {
 	testRumConf := &rumConfig{
 		Enabled:      new(bool),
 		RateLimit:    22,
@@ -272,28 +271,17 @@ func TestRum(t *testing.T) {
 		c  *Config
 		rc *rumConfig
 	}{
-		{c: &Config{}, rc: defaultRum()},
-		{c: &Config{RumConfig: &rumConfig{}}, rc: defaultRum()},
+		{c: &Config{}, rc: nil},
+		{c: &Config{RumConfig: &rumConfig{}}, rc: &rumConfig{}},
 		{c: &Config{RumConfig: testRumConf}, rc: testRumConf},
 		{c: &Config{FrontendConfig: testFrontendConf}, rc: testFrontendConf},
+		{c: &Config{RumConfig: &rumConfig{}, FrontendConfig: testFrontendConf}, rc: testFrontendConf},
 		{c: &Config{RumConfig: testRumConf, FrontendConfig: testFrontendConf}, rc: testRumConf},
 	}
 	for _, test := range cases {
-		assert.Equal(t, test.rc, test.c.Rum())
-		assert.Equal(t, test.rc, test.c.rum)
+		test.c.SetRumConfig()
+		assert.Equal(t, test.rc, test.c.RumConfig)
 	}
-}
-
-func TestRumOnce(t *testing.T) {
-	// defaultRum is set as `rum` if nothing else is given
-	c := Config{}
-	assert.Equal(t, defaultRum(), c.Rum())
-	assert.Equal(t, defaultRum(), c.rum)
-
-	// if Rum() is called again, nothing changes
-	c.RumConfig = &rumConfig{RateLimit: 22}
-	assert.Equal(t, defaultRum(), c.Rum())
-	assert.Equal(t, defaultRum(), c.rum)
 }
 
 func TestMemoizedSmapMapper(t *testing.T) {
@@ -308,12 +296,11 @@ func TestMemoizedSmapMapper(t *testing.T) {
 		EsConfig:     esConfig,
 	}
 
-	for _, td := range []struct {
+	for idx, td := range []struct {
 		c       *Config
 		smapper bool
 		e       error
 	}{
-		{c: nil, smapper: false, e: nil},
 		{c: &Config{RumConfig: &rumConfig{}}, smapper: false, e: nil},
 		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}}, smapper: false, e: nil},
 		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, smapper: false, e: nil},
@@ -332,11 +319,11 @@ func TestMemoizedSmapMapper(t *testing.T) {
 			smapper: true,
 			e:       nil},
 	} {
-		smapper, e := td.c.memoizedSmapMapper()
+		smapper, e := td.c.RumConfig.memoizedSmapMapper()
 		if td.smapper {
-			assert.NotNil(t, smapper)
+			assert.NotNil(t, smapper, fmt.Sprintf("Test number <%v> failed", idx))
 		} else {
-			assert.Nil(t, smapper)
+			assert.Nil(t, smapper, fmt.Sprintf("Test number <%v> failed", idx))
 		}
 		assert.Equal(t, td.e, e)
 	}

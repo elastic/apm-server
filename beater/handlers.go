@@ -206,20 +206,20 @@ func backendHandler(p processor.Processor, beaterConfig *Config, report reporter
 }
 
 func rumHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	smapper, err := beaterConfig.memoizedSmapMapper()
+	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
 	config := conf.Config{
 		SmapMapper:          smapper,
-		LibraryPattern:      regexp.MustCompile(beaterConfig.Rum().LibraryPattern),
-		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.Rum().ExcludeFromGrouping),
+		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
+		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
 	}
 	return logHandler(
-		killSwitchHandler(beaterConfig.isRumEnabled(),
+		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 			concurrencyLimitHandler(beaterConfig,
-				ipRateLimitHandler(beaterConfig.Rum().RateLimit,
-					corsHandler(beaterConfig.Rum().AllowOrigins,
+				ipRateLimitHandler(beaterConfig.RumConfig.RateLimit,
+					corsHandler(beaterConfig.RumConfig.AllowOrigins,
 						processRequestHandler(p, config, report,
 							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))))
 }
@@ -233,12 +233,12 @@ func metricsHandler(p processor.Processor, beaterConfig *Config, report reporter
 }
 
 func sourcemapHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	smapper, err := beaterConfig.memoizedSmapMapper()
+	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
 	return logHandler(
-		killSwitchHandler(beaterConfig.isRumEnabled(),
+		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 			authHandler(beaterConfig.SecretToken,
 				processRequestHandler(p, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }

@@ -49,8 +49,6 @@ import (
 func TestBeatConfig(t *testing.T) {
 	falsy := false
 	truthy := true
-	defConf := defaultConfig("6.2.0")
-	defConf.rum = defaultRum()
 
 	tests := []struct {
 		conf       map[string]interface{}
@@ -60,7 +58,7 @@ func TestBeatConfig(t *testing.T) {
 	}{
 		{
 			conf:       map[string]interface{}{},
-			beaterConf: defConf,
+			beaterConf: defaultConfig("6.2.0"),
 			msg:        "Default config created for empty config.",
 		},
 		{
@@ -126,14 +124,9 @@ func TestBeatConfig(t *testing.T) {
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
+					beatVersion:         "6.2.0",
 				},
-				RumConfig: defaultRum(),
-				Metrics: &metricsConfig{
-					Enabled: &falsy,
-				},
-				ConcurrentRequests: 15,
-				beatVersion:        "6.2.0",
-				rum: &rumConfig{
+				RumConfig: &rumConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
@@ -143,7 +136,12 @@ func TestBeatConfig(t *testing.T) {
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
+					beatVersion:         "6.2.0",
 				},
+				Metrics: &metricsConfig{
+					Enabled: &falsy,
+				},
+				ConcurrentRequests: 15,
 			},
 			msg: "Given config overwrites default",
 		},
@@ -205,6 +203,7 @@ func TestBeatConfig(t *testing.T) {
 					AllowOrigins:        []string{"*"},
 					LibraryPattern:      "node_modules|bower_components|~",
 					ExcludeFromGrouping: "^/webpack",
+					beatVersion:         "6.2.0",
 				},
 				RumConfig: &rumConfig{
 					Enabled:      &truthy,
@@ -218,32 +217,18 @@ func TestBeatConfig(t *testing.T) {
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
+					beatVersion:         "6.2.0",
 				},
 				Metrics: &metricsConfig{
 					Enabled: &truthy,
 				},
 				ConcurrentRequests: 5,
-				beatVersion:        "6.2.0",
-				rum: &rumConfig{
-					Enabled:      &truthy,
-					RateLimit:    10,
-					AllowOrigins: []string{"*"},
-					SourceMapping: &SourceMapping{
-						Cache: &Cache{
-							Expiration: 7 * time.Second,
-						},
-						IndexPattern: "apm-*-sourcemap*",
-					},
-					LibraryPattern:      "rum",
-					ExcludeFromGrouping: "^/webpack",
-				},
 			},
 			msg: "Given config merged with default",
 		},
 	}
 
 	for _, test := range tests {
-		test.beaterConf.rumOnce.Do(func() {})
 		ucfgConfig, err := common.NewConfigFrom(test.conf)
 		assert.NoError(t, err)
 		btr, err := New(&beat.Beat{Info: beat.Info{Version: "6.2.0"}}, ucfgConfig)
@@ -364,7 +349,7 @@ func (bt *beater) wait() error {
 
 func (bt *beater) smapElasticsearchHosts() []string {
 	var content map[string]interface{}
-	if err := bt.config.Rum().SourceMapping.EsConfig.Unpack(&content); err != nil {
+	if err := bt.config.RumConfig.SourceMapping.EsConfig.Unpack(&content); err != nil {
 		return nil
 	}
 	hostsContent := content["hosts"].([]interface{})
