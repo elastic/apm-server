@@ -1,0 +1,45 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-go",
+                        "version": "0.1.0"
+                    },
+                    "name": "apm-server"
+                }
+            },
+            "memory": {
+                "actual": {
+                    "free": {
+                        "bytes": 96
+                    },
+                    "used": {
+                        "bytes": 32
+                    }
+                },
+                "total": {
+                    "bytes": 128
+                },
+                "used": {
+                    "pct": 0.8
+                }
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "system": {
+                "load": {
+                    "norm": {
+                        "1": 0.8,
+                        "15": 1.7,
+                        "5": 0.2
+                    }
+                }
+            }
+        }
+    ]
+}

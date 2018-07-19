@@ -515,10 +515,7 @@ class MetricsIntegrationTest(Test):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_metric_doc(self):
         self.load_docs_with_template(self.get_metrics_payload_path(), self.metrics_url, 'metric', 1)
-        mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="metric*value")
-        found_mapping = False
-        for name, metric in mappings[self.index_name]["mappings"]["doc"].items():
-            for mapping in metric["mapping"].values():
-                assert mapping["type"] == "float", name + " mapped as " + mapping["type"] + ", not float"
-                found_mapping = True
-        assert found_mapping, "expected to find metric value mappings"
+        mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="system.process.cpu.total.norm.pct")
+        expected_type = "scaled_float"
+        actual_type = mappings[self.index_name]["mappings"]["doc"]["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
+        assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)

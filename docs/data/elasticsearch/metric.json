@@ -1,4 +1,5 @@
 {
+    "byte_counter": 1,
     "context": {
         "process": {
             "argv": [
@@ -34,63 +35,31 @@
             "some.other.code": "abc"
         }
     },
-    "metric": {
-        "byte_counter": {
-            "type": "counter",
-            "value": 1
-        },
-        "dotted.float.gauge": {
-            "type": "gauge",
-            "value": 6.12
-        },
-        "double_gauge": {
-            "type": "gauge",
-            "value": 3.141592653589793
-        },
-        "float_gauge": {
-            "type": "gauge",
-            "value": 9.16
-        },
-        "integer_gauge": {
-            "type": "gauge",
-            "value": 42767
-        },
-        "long_gauge": {
-            "type": "gauge",
-            "value": 3147483648
-        },
-        "negative.d.o.t.t.e.d": {
-            "type": "gauge",
-            "value": -1022
-        },
-        "short_counter": {
-            "type": "counter",
-            "unit": "foos",
-            "value": 227
-        },
-        "summary.maximal": {
-            "count": 5,
-            "max": 12,
-            "min": -5.1,
-            "p": {
-                "0": -5.100000,
-                "100": 12,
-                "50": 1.400000,
-                "99": 1.800000,
-                "99_95": 2
-            },
-            "stddev": 7.45,
-            "sum": 100,
-            "type": "summary"
-        },
-        "summary.minimal": {
-            "count": 5,
-            "sum": 100,
-            "type": "summary"
+    "dotted": {
+        "float": {
+            "gauge": 6.12
+        }
+    },
+    "double_gauge": 3.141592653589793,
+    "float_gauge": 9.16,
+    "integer_gauge": 42767,
+    "long_gauge": 3147483648,
+    "negative": {
+        "d": {
+            "o": {
+                "t": {
+                    "t": {
+                        "e": {
+                            "d": -1022
+                        }
+                    }
+                }
+            }
         }
     },
     "processor": {
         "event": "metric",
         "name": "metric"
-    }
+    },
+    "short_counter": 227
 }

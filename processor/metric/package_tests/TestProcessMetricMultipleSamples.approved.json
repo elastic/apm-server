@@ -36,11 +36,8 @@
                     "url": "/foo"
                 }
             },
-            "metric": {
-                "http.requests": {
-                    "type": "counter",
-                    "value": 1
-                }
+            "http": {
+                "requests": 1
             },
             "processor": {
                 "event": "metric",
@@ -83,11 +80,8 @@
                     "url": "/bar"
                 }
             },
-            "metric": {
-                "http.requests": {
-                    "type": "counter",
-                    "value": 6
-                }
+            "http": {
+                "requests": 6
             },
             "processor": {
                 "event": "metric",
@@ -130,11 +124,8 @@
                     "url": "/foo"
                 }
             },
-            "metric": {
-                "http.requests": {
-                    "type": "counter",
-                    "value": 2
-                }
+            "http": {
+                "requests": 2
             },
             "processor": {
                 "event": "metric",
@@ -174,11 +165,8 @@
                     "platform": "darwin"
                 }
             },
-            "metric": {
-                "http.requests": {
-                    "type": "counter",
-                    "value": 10
-                }
+            "http": {
+                "requests": 10
             },
             "processor": {
                 "event": "metric",
