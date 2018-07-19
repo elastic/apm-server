@@ -30,8 +30,6 @@ var (
 		{Name: "TestProcessMetric", Path: "../testdata/metric/payload.json"},
 		{Name: "TestProcessMetricMinimal", Path: "../testdata/metric/minimal.json"},
 		{Name: "TestProcessMetricMultipleSamples", Path: "../testdata/metric/multiple-samples.json"},
-		{Name: "TestProcessMetricNull", Path: "../testdata/metric/null.json"},
-		{Name: "TestProcessMetricMetricbeat", Path: "../testdata/metric/metricbeat.json"},
 	}
 )
 

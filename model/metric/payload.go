@@ -57,7 +57,6 @@ func PayloadSchema() *jsonschema.Schema {
 type sample struct {
 	name  string
 	value float64
-	unit  *string
 }
 
 type metric struct {
@@ -186,7 +185,6 @@ func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
 		samples[i] = &sample{
 			name:  name,
 			value: md.Float64(sampleMap, "value"),
-			unit:  md.StringPtr(sampleMap, "unit"),
 		}
 		if md.Err != nil {
 			return nil

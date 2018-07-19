@@ -29,36 +29,27 @@
     "metrics": [{
         "samples": {
             "byte_counter": {
-                "type": "counter",
                 "value": 1
             },
             "short_counter": {
-                "type": "counter",
-                "value": 227,
-                "unit": "foos"
+                "value": 227
             },
             "integer_gauge": {
-                "type": "gauge",
                 "value": 42767
             },
             "long_gauge": {
-                "type": "gauge",
                 "value": 3147483648
             },
             "float_gauge": {
-                "type": "gauge",
                 "value": 9.16
             },
             "double_gauge": {
-                "type": "gauge",
                 "value": 3.141592653589793
             },
             "dotted.float.gauge": {
-                "type": "gauge",
                 "value": 6.12
             },
             "negative.d.o.t.t.e.d": {
-                "type": "gauge",
                 "value": -1022
             }
         },

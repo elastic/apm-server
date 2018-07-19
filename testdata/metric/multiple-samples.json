@@ -30,7 +30,6 @@
         {
             "samples": {
                 "http.requests": {
-                    "type": "counter",
                     "value": 1
                 }
             },
@@ -42,7 +41,6 @@
         {
             "samples": {
                 "http.requests": {
-                    "type": "counter",
                     "value": 6
                 }
             },
@@ -54,7 +52,6 @@
         {
             "samples": {
                 "http.requests": {
-                    "type": "counter",
                     "value": 2
                 }
             },
@@ -66,7 +63,6 @@
         {
             "samples": {
                 "http.requests": {
-                    "type": "counter",
                     "value": 10
                 }
             },

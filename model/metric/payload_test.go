@@ -47,7 +47,6 @@ func TestPayloadDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	pid, ip := 1, "127.0.0.1"
-	unit := "foos"
 	for _, test := range []struct {
 		input map[string]interface{}
 		err   error
@@ -118,8 +117,7 @@ func TestPayloadDecode(t *testing.T) {
 					map[string]interface{}{
 						"timestamp": timestamp,
 						"samples": map[string]interface{}{
-							"invalid.counter": map[string]interface{}{
-								"type":  "counter",
+							"invalid.metric": map[string]interface{}{
 								"value": "foo",
 							},
 						},
@@ -127,71 +125,6 @@ func TestPayloadDecode(t *testing.T) {
 				},
 			},
 			err: errors.New("Error fetching field"),
-		},
-		{
-			input: map[string]interface{}{
-				"system": map[string]interface{}{"ip": ip},
-				"service": map[string]interface{}{
-					"name": "a",
-					"agent": map[string]interface{}{
-						"name": "ag", "version": "1.0",
-					}},
-				"process": map[string]interface{}{"pid": 1.0},
-				"metrics": []interface{}{
-					map[string]interface{}{
-						"timestamp": timestamp,
-						"samples": map[string]interface{}{
-							"invalid.gauge": map[string]interface{}{
-								"type":  "gauge",
-								"value": "foo",
-							},
-						},
-					},
-				},
-			},
-			err: errors.New("Error fetching field"),
-		},
-		{
-			input: map[string]interface{}{
-				"system": map[string]interface{}{"ip": ip},
-				"service": map[string]interface{}{
-					"name": "a",
-					"agent": map[string]interface{}{
-						"name": "ag", "version": "1.0",
-					}},
-				"process": map[string]interface{}{"pid": 1.0},
-				"metrics": []interface{}{
-					map[string]interface{}{
-						"timestamp": timestamp,
-						"samples": map[string]interface{}{
-							"empty.metric": map[string]interface{}{},
-						},
-					},
-				},
-			},
-			err: errors.New("missing sample type"),
-		},
-		{
-			input: map[string]interface{}{
-				"system": map[string]interface{}{"ip": ip},
-				"service": map[string]interface{}{
-					"name": "a",
-					"agent": map[string]interface{}{
-						"name": "ag", "version": "1.0",
-					}},
-				"process": map[string]interface{}{"pid": 1.0},
-				"metrics": []interface{}{
-					map[string]interface{}{
-						"timestamp": timestamp,
-						"samples": map[string]interface{}{
-							"invalid.key.metric": map[string]interface{}{
-								"foo": "bar",
-							},
-						},
-					},
-				},
-			},
-			err: errors.New("missing sample type"),
 		},
 		{
 			input: map[string]interface{}{
@@ -210,12 +143,9 @@ func TestPayloadDecode(t *testing.T) {
 						"timestamp": timestamp,
 						"samples": map[string]interface{}{
 							"a.counter": map[string]interface{}{
-								"type":  "counter",
 								"value": json.Number("612"),
-								"unit":  unit,
 							},
 							"some.gauge": map[string]interface{}{
-								"type":  "gauge",
 								"value": json.Number("9.16"),
 							},
 						},
@@ -237,7 +167,6 @@ func TestPayloadDecode(t *testing.T) {
 							{
 								name:  "a.counter",
 								value: 612,
-								unit:  &unit,
 							},
 						},
 						tags: common.MapStr{
@@ -281,7 +210,6 @@ func TestPayloadDecode(t *testing.T) {
 func TestPayloadTransform(t *testing.T) {
 	svc := m.Service{Name: "myservice"}
 	timestamp := time.Now()
-	unit := "bytes"
 
 	tests := []struct {
 		Payload Payload
@@ -323,7 +251,6 @@ func TestPayloadTransform(t *testing.T) {
 							{
 								name:  "some.gauge",
 								value: 9.16,
-								unit:  &unit,
 							},
 						},
 					},
