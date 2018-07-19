@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
 
 - Change `frontend` to `rum` in config file, but still support `frontend` for backwards compatibility {pull}1155[1155].
 - Support `rum` and `client-side` endpoint for RUM for backwards compatibility {pull}1155[1155].
+- Push onboarding doc to separate ES index {pull}1159[1159].
 - Listen on default port 8200 if unspecified {pull}886[886].
 - Update Go to 1.10.3 {pull}1054[1054].
 - Combine `apm-server.yml` and `apm-server.reference.yml` into one file {pull}958[958].
