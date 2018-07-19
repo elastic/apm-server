@@ -1,0 +1,50 @@
+[[upgrading]]
+== Upgrading APM Server
+
+We do our best to keep APM Server backwards compatible between minor releases.
+However, check out the <<breaking-changes, breaking changes>> section for exceptions.
+
+Before upgrading:
+
+* Review the <<release-notes,release notes>> and the <<breaking-changes, breaking changes>> 
+for changes between your current version and the one you are upgrading to.
+* Check the {stack-ref}/index.html[Elastic Stack Installation and Upgrade Guide] for guidance on how to upgrade your 
+ Elastic Stack. 
+ For a more tailored upgrade guide, try out the {upgrade_guide}[Interactive Upgrade Guide].
+
+When ready to actually upgrade your APM Server between minor versions, 
+simply install the new release.
+
+Ensure the configuration file `apm-server.yml` is configured properly again according to your needs.
+Be aware of newly added configuration options and their default settings.
+Also check out the documentation for <<configuring-howto-apm-server, configuration>>
+to read more about available configuration options.
+
+If you set up index patterns and dashboards manually by running `./apm-server setup`, rerun
+the command to update the index pattern and the dashboards.
+
+When everything is properly configured and updated, start the APM server.
+
+When you start the APM server after upgrading, it creates new indices that use the current version,
+and applies the correct template automatically.
+
+[[breaking-changes]]
+=== Breaking Changes
+APM Server is built on top of {beats-ref}/index.html[libbeat].
+As such any breaking change in libbeat is also considered to be a breaking change in APM Server.
+
+[float]
+==== HEAD 
+no breaking changes in APM Server
+
+https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[breaking changes in libbeat]
+
+[float]
+==== 6.3
+no breaking changes in APM Server
+
+https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[breaking changes in libbeat]
+
+[float]
+==== 6.2
+APM Server GA
