@@ -388,53 +388,6 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 
 }
 
-func TestServerTcpConnLimit(t *testing.T) {
-	t.Skip("tcp conn limit test disabled")
-
-	if testing.Short() {
-		t.Skip("skipping tcp conn limit test")
-	}
-
-	// this might make this test flaky, we'll see
-	backlog := 128 // default net.core.somaxconn / kern.ipc.somaxconn
-	maxConns := 1
-	ucfg, err := common.NewConfigFrom(map[string]interface{}{
-		"max_connections": maxConns,
-	})
-	assert.NoError(t, err)
-	apm, teardown, err := setupServer(t, ucfg, nil)
-	require.NoError(t, err)
-	defer teardown()
-
-	conns := make([]net.Conn, backlog+maxConns)
-	defer func() {
-		for _, conn := range conns {
-			if conn != nil {
-				conn.Close()
-			}
-		}
-	}()
-
-	connect := func() (net.Conn, error) { return net.DialTimeout("tcp", apm.server.Addr, time.Second) }
-	for i := 0; i < backlog+maxConns-1; i++ {
-		conns[i], err = connect()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// ensure this is hit reasonably close to max conns, say within 150 conns
-	// on some systems it's at connection 129, others at 131, still others 250
-	for i := 0; i < 150; i++ {
-		if _, err = connect(); err != nil {
-			break
-		}
-	}
-	if err == nil {
-		t.Error("expected to reach tcp connection limit")
-	}
-}
-
 func TestServerTracingEnabled(t *testing.T) {
 	events, teardown := setupTestServerInstrumentation(t, true)
 	defer teardown()
