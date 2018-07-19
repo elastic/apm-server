@@ -21,17 +21,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metric/generated/schema"
-	"github.com/elastic/apm-server/validation"
-
-	"github.com/pkg/errors"
-
 	"github.com/elastic/apm-server/config"
+	"github.com/elastic/apm-server/model"
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metric/generated/schema"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -56,12 +54,13 @@ func PayloadSchema() *jsonschema.Schema {
 	return cachedSchema
 }
 
-type sample interface {
-	transform(common.MapStr) error
+type sample struct {
+	name  string
+	value float64
 }
 
 type metric struct {
-	samples   []sample
+	samples   []*sample
 	tags      common.MapStr
 	timestamp time.Time
 }
@@ -81,9 +80,9 @@ func (pa *Payload) Transform(config.Config) []beat.Event {
 
 	var events []beat.Event
 	for _, metric := range pa.Metrics {
-		samples := common.MapStr{}
+		fields := common.MapStr{}
 		for _, sample := range metric.samples {
-			if err := sample.transform(samples); err != nil {
+			if _, err := fields.Put(sample.name, sample.value); err != nil {
 				logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
 				continue
 			}
@@ -92,12 +91,11 @@ func (pa *Payload) Transform(config.Config) []beat.Event {
 		if metric.tags != nil {
 			context["tags"] = metric.tags
 		}
+		fields["context"] = context
+		fields["processor"] = processorEntry
+
 		ev := beat.Event{
-			Fields: common.MapStr{
-				"processor": processorEntry,
-				"context":   context,
-				"metric":    samples,
-			},
+			Fields:    fields,
 			Timestamp: metric.timestamp,
 		}
 		events = append(events, ev)
@@ -161,7 +159,7 @@ func (md *metricDecoder) decodeMetric(input interface{}) *metric {
 	return &metric
 }
 
-func (md *metricDecoder) decodeSamples(input interface{}) []sample {
+func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
 	if input == nil {
 		md.Err = errors.New("no samples for metric event")
 		return nil
@@ -172,7 +170,7 @@ func (md *metricDecoder) decodeSamples(input interface{}) []sample {
 		return nil
 	}
 
-	samples := make([]sample, len(raw))
+	samples := make([]*sample, len(raw))
 	i := 0
 	for name, s := range raw {
 		if s == nil {
@@ -184,25 +182,13 @@ func (md *metricDecoder) decodeSamples(input interface{}) []sample {
 			return nil
 		}
 
-		sampleType, ok := sampleMap["type"]
-		if !ok {
-			md.Err = fmt.Errorf("missing sample type: %s: %s", name, s)
-			return nil
-		}
-
-		var sample sample
-		switch sampleType {
-		case "counter":
-			sample = md.decodeCounter(name, sampleMap)
-		case "gauge":
-			sample = md.decodeGauge(name, sampleMap)
-		case "summary":
-			sample = md.decodeSummary(name, sampleMap)
+		samples[i] = &sample{
+			name:  name,
+			value: md.Float64(sampleMap, "value"),
 		}
 		if md.Err != nil {
 			return nil
 		}
-		samples[i] = sample
 		i++
 	}
 	return samples
