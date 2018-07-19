@@ -30,6 +30,8 @@ include::./overview.asciidoc[]
 
 include::./installing.asciidoc[]
 
+include::./upgrading.asciidoc[]
+
 include::./setting-up-and-running.asciidoc[]
 
 :beat-specific-output-config: ./../configuring-output-after.asciidoc
