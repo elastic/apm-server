@@ -47,4 +47,4 @@ https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[
 
 [float]
 ==== 6.2
-First stable version.
+APM Server GA
