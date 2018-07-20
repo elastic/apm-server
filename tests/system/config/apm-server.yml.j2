@@ -8,17 +8,17 @@ apm-server:
   ssl.certificate:  {{ ssl_cert }}
   ssl.key: {{ ssl_key }}
 
-  frontend.enabled: {{ enable_frontend }}
-  frontend.rate_limit: 3
-  frontend.allow_origins: {{ allow_origins }}
-  frontend.library_pattern: "~/test|library"
-  frontend.exclude_from_grouping: "~/test"
+  rum.enabled: {{ enable_rum }}
+  rum.rate_limit: 3
+  rum.allow_origins: {{ allow_origins }}
+  rum.library_pattern: "~/test|library"
+  rum.exclude_from_grouping: "~/test"
 
   {% if smap_cache_expiration%}
-  frontend.source_mapping.cache.expiration: {{ smap_cache_expiration}}
+  rum.source_mapping.cache.expiration: {{ smap_cache_expiration}}
   {% endif %}
   {% if smap_index_pattern%}
-  frontend.source_mapping.index_pattern: {{ smap_index_pattern}}
+  rum.source_mapping.index_pattern: {{ smap_index_pattern}}
   {% endif %}
 
   {% if expvar_enabled %}
