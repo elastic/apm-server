@@ -22,11 +22,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/elastic/apm-server/transform"
+
 	"github.com/stretchr/testify/assert"
 
 	"time"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -143,8 +147,173 @@ func TestEventTransform(t *testing.T) {
 		},
 	}
 
+	tctx := &transform.Context{}
+
 	for idx, test := range tests {
-		output := test.Event.Transform()
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		output := test.Event.Events(tctx)
+		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+	}
+}
+
+func TestPayloadTransform(t *testing.T) {
+	hostname := "a.b.c"
+	architecture := "darwin"
+	platform := "x64"
+	timestamp := time.Now()
+
+	service := metadata.Service{Name: "myservice"}
+	system := &metadata.System{
+		Hostname:     &hostname,
+		Architecture: &architecture,
+		Platform:     &platform,
+	}
+
+	txValid := Event{Timestamp: timestamp}
+	txValidEs := common.MapStr{
+		"context": common.MapStr{
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+		},
+		"processor": common.MapStr{
+			"event": "transaction",
+			"name":  "transaction",
+		},
+		"transaction": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"id":       "",
+			"type":     "",
+			"sampled":  true,
+		},
+	}
+
+	txValidWithSystem := common.MapStr{
+		"processor": common.MapStr{
+			"event": "transaction",
+			"name":  "transaction",
+		},
+		"transaction": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"id":       "",
+			"type":     "",
+			"sampled":  true,
+		},
+		"context": common.MapStr{
+			"system": common.MapStr{
+				"hostname":     hostname,
+				"architecture": architecture,
+				"platform":     platform,
+			},
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+		},
+	}
+	txWithContext := Event{Timestamp: timestamp, Context: common.MapStr{"foo": "bar", "user": common.MapStr{"id": "55"}}}
+	txWithContextEs := common.MapStr{
+		"processor": common.MapStr{
+			"event": "transaction",
+			"name":  "transaction",
+		},
+		"transaction": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"id":       "",
+			"type":     "",
+			"sampled":  true,
+		},
+		"context": common.MapStr{
+			"foo": "bar", "user": common.MapStr{"id": "55"},
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+			"system": common.MapStr{
+				"hostname":     "a.b.c",
+				"architecture": "darwin",
+				"platform":     "x64",
+			},
+		},
+	}
+	spans := []*span.Span{{}}
+	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
+	spanEs := common.MapStr{
+		"context": common.MapStr{
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+		},
+		"processor": common.MapStr{
+			"event": "span",
+			"name":  "transaction",
+		},
+		"span": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"name":     "",
+			"start":    common.MapStr{"us": 0},
+			"type":     "",
+		},
+		"transaction": common.MapStr{"id": ""},
+	}
+
+	tests := []struct {
+		Metadata metadata.Metadata
+		Events   []transform.Eventable
+		Output   []common.MapStr
+		Msg      string
+	}{
+		{
+			Metadata: metadata.Metadata{},
+			Events:   []transform.Eventable{},
+			Output:   nil,
+			Msg:      "Payload with empty Event Array",
+		},
+		{
+			Metadata: metadata.Metadata{
+				Service: &service,
+			},
+			Events: []transform.Eventable{
+				&txValid, &txValidWithSpan,
+			},
+			Output: []common.MapStr{txValidEs, txValidEs, spanEs},
+			Msg:    "Payload with multiple Events",
+		},
+		{
+			Metadata: metadata.Metadata{
+				Service: &service,
+				System:  system,
+			},
+
+			Events: []transform.Eventable{&txValid},
+			Output: []common.MapStr{txValidWithSystem},
+			Msg:    "Payload with System and Event",
+		},
+		{
+			Metadata: metadata.Metadata{
+				Service: &service,
+				System:  system,
+			},
+			Events: []transform.Eventable{&txWithContext},
+			Output: []common.MapStr{txWithContextEs},
+			Msg:    "Payload with Service, System and Event with context",
+		},
+	}
+
+	for idx, test := range tests {
+		var outputEvents []beat.Event
+
+		tctx := &transform.Context{
+			Metadata: test.Metadata,
+		}
+		for _, events := range test.Events {
+			outputEvents = append(outputEvents, events.Events(tctx)...)
+		}
+
+		for j, outputEvent := range outputEvents {
+			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
+			assert.Equal(t, timestamp, outputEvent.Timestamp)
+		}
 	}
 }

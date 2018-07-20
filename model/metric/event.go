@@ -16,3 +16,58 @@
 // under the License.
 
 package metric
+
+import (
+	"time"
+
+	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
+)
+
+type sample struct {
+	name  string
+	value float64
+}
+
+type metric struct {
+	samples   []*sample
+	tags      common.MapStr
+	timestamp time.Time
+}
+
+func (me *metric) Events(tctx *transform.Context) []beat.Event {
+	transformations.Inc()
+	if me == nil {
+		return nil
+	}
+
+	fields := common.MapStr{}
+	for _, sample := range me.samples {
+		if _, err := fields.Put(sample.name, sample.value); err != nil {
+			logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
+			continue
+		}
+	}
+
+	context := common.MapStr{}
+	if me.tags != nil {
+		context["tags"] = me.tags
+	}
+
+	fields["context"] = tctx.Metadata.Merge(context)
+	fields["processor"] = processorEntry
+
+	return []beat.Event{
+		beat.Event{
+			Fields:    fields,
+			Timestamp: me.timestamp,
+		},
+	}
+}
+
+type metricDecoder struct {
+	*utility.ManualDecoder
+}

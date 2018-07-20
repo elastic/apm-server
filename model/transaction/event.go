@@ -21,9 +21,28 @@ import (
 	"errors"
 	"time"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+)
+
+const (
+	processorName      = "transaction"
+	transactionDocType = "transaction"
+)
+
+var (
+	Metrics = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
+
+	spanCounter        = monitoring.NewInt(Metrics, "count")
+	transformations    = monitoring.NewInt(Metrics, "transformations")
+	transactionCounter = monitoring.NewInt(Metrics, "transactions")
+
+	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
 )
 
 type Event struct {
@@ -77,7 +96,8 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	}
 	return &e, err
 }
-func (t *Event) Transform() common.MapStr {
+
+func (t *Event) Transform(tctx *transform.Context) common.MapStr {
 	tx := common.MapStr{"id": t.Id}
 	utility.Add(tx, "name", t.Name)
 	utility.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
@@ -100,4 +120,34 @@ func (t *Event) Transform() common.MapStr {
 		utility.Add(tx, "span_count", s)
 	}
 	return tx
+}
+
+func (e *Event) Events(tctx *transform.Context) []beat.Event {
+	transformations.Inc()
+	events := []beat.Event{}
+	ev := beat.Event{
+		Fields: common.MapStr{
+			"processor":        processorTransEntry,
+			transactionDocType: e.Transform(tctx),
+			"context":          tctx.Metadata.Merge(e.Context),
+		},
+		Timestamp: e.Timestamp,
+	}
+	events = append(events, ev)
+
+	spanCounter.Add(int64(len(e.Spans)))
+	for spIdx := 0; spIdx < len(e.Spans); spIdx++ {
+		sp := e.Spans[spIdx]
+		if sp.Timestamp.IsZero() {
+			sp.Timestamp = e.Timestamp
+		}
+
+		if sp.TransactionId == "" {
+			sp.TransactionId = e.Id
+		}
+
+		events = append(events, sp.Events(tctx)...)
+		e.Spans[spIdx] = nil
+	}
+	return events
 }

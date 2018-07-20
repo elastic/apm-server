@@ -20,18 +20,19 @@ package processor
 import (
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 type Processor interface {
 	Validate(map[string]interface{}) error
-	Decode(map[string]interface{}) (model.Payload, error)
+	Decode(map[string]interface{}) (*metadata.Metadata, []transform.Eventable, error)
 	Name() string
 }
 
-type PayloadDecoder func(map[string]interface{}) (model.Payload, error)
+type PayloadDecoder func(map[string]interface{}) ([]transform.Eventable, error)
 
 type PayloadProcessor struct {
 	ProcessorName string
@@ -47,14 +48,21 @@ func (p *PayloadProcessor) Name() string {
 	return p.ProcessorName
 }
 
-func (p *PayloadProcessor) Decode(raw map[string]interface{}) (model.Payload, error) {
+func (p *PayloadProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata, []transform.Eventable, error) {
 	p.DecodingCount.Inc()
 	payload, err := p.DecodePayload(raw)
 	if err != nil {
 		p.DecodingError.Inc()
-		return nil, err
+		return nil, nil, err
 	}
-	return payload, err
+
+	metadata, err := metadata.DecodeMetadata(raw)
+	if err != nil {
+		p.DecodingError.Inc()
+		return nil, nil, err
+	}
+
+	return metadata, payload, err
 }
 
 func (p *PayloadProcessor) Validate(raw map[string]interface{}) error {

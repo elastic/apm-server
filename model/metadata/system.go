@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package metadata
 
 import (
 	"errors"
@@ -24,42 +24,41 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type User struct {
-	Id        *string
-	Email     *string
-	Username  *string
-	IP        *string
-	UserAgent *string
+type System struct {
+	Hostname     *string
+	Architecture *string
+	Platform     *string
+	IP           *string
 }
 
-func DecodeUser(input interface{}, err error) (*User, error) {
+func DecodeSystem(input interface{}, err error) (*System, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for user")
+		return nil, errors.New("Invalid type for system")
 	}
 	decoder := utility.ManualDecoder{}
-	user := User{
-		Id:        decoder.StringPtr(raw, "id"),
-		Email:     decoder.StringPtr(raw, "email"),
-		Username:  decoder.StringPtr(raw, "username"),
-		IP:        decoder.StringPtr(raw, "ip"),
-		UserAgent: decoder.StringPtr(raw, "user-agent"),
+	system := System{
+		Hostname:     decoder.StringPtr(raw, "hostname"),
+		Platform:     decoder.StringPtr(raw, "platform"),
+		Architecture: decoder.StringPtr(raw, "architecture"),
+		IP:           decoder.StringPtr(raw, "ip"),
 	}
-	return &user, decoder.Err
+	return &system, decoder.Err
 }
 
-func (u *User) Transform() common.MapStr {
-	if u == nil {
+func (s *System) Transform() common.MapStr {
+	if s == nil {
 		return nil
 	}
-	user := common.MapStr{}
-	utility.Add(user, "id", u.Id)
-	utility.Add(user, "email", u.Email)
-	utility.Add(user, "username", u.Username)
-	utility.Add(user, "ip", u.IP)
-	utility.Add(user, "user-agent", u.UserAgent)
-	return user
+	system := common.MapStr{}
+	utility.Add(system, "hostname", s.Hostname)
+	utility.Add(system, "architecture", s.Architecture)
+	utility.Add(system, "platform", s.Platform)
+	if s.IP != nil && *s.IP != "" {
+		utility.Add(system, "ip", s.IP)
+	}
+	return system
 }

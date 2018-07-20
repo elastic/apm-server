@@ -28,11 +28,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/elastic/beats/libbeat/beat"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/common"
@@ -147,14 +149,41 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	return &e, err
 }
 
-func (e *Event) Transform(config config.Config, service m.Service) common.MapStr {
+func (e *Event) Events(tctx *transform.Context) []beat.Event {
+	transformations.Inc()
+	if e.Exception != nil {
+		addStacktraceCounter(e.Exception.Stacktrace)
+	}
+	if e.Log != nil {
+		addStacktraceCounter(e.Log.Stacktrace)
+	}
+
+	fields := common.MapStr{
+		"error":     e.Transform(tctx),
+		"context":   tctx.Metadata.Merge(e.Context),
+		"processor": processorEntry,
+	}
+
+	if e.Transaction != nil && e.Transaction.Id != "" {
+		fields["transaction"] = common.MapStr{"id": e.Transaction.Id}
+	}
+
+	return []beat.Event{
+		beat.Event{
+			Fields:    fields,
+			Timestamp: e.Timestamp,
+		},
+	}
+}
+
+func (e *Event) Transform(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 
-	e.addException(config, service)
-	e.addLog(config, service)
+	e.addException(tctx)
+	e.addLog(tctx)
 
-	e.updateCulprit(config)
+	e.updateCulprit(tctx)
 	e.add("culprit", e.Culprit)
 
 	e.addGroupingKey()
@@ -162,8 +191,8 @@ func (e *Event) Transform(config config.Config, service m.Service) common.MapStr
 	return e.data
 }
 
-func (e *Event) updateCulprit(config config.Config) {
-	if config.SmapMapper == nil {
+func (e *Event) updateCulprit(tctx *transform.Context) {
+	if tctx.Config.SmapMapper == nil {
 		return
 	}
 	var fr *m.StacktraceFrame
@@ -192,7 +221,7 @@ func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame 
 	return nil
 }
 
-func (e *Event) addException(config config.Config, service m.Service) {
+func (e *Event) addException(tctx *transform.Context) {
 	if e.Exception == nil {
 		return
 	}
@@ -214,13 +243,13 @@ func (e *Event) addException(config config.Config, service m.Service) {
 		utility.Add(ex, "code", code.String())
 	}
 
-	st := e.Exception.Stacktrace.Transform(config, service)
+	st := e.Exception.Stacktrace.Transform(tctx)
 	utility.Add(ex, "stacktrace", st)
 
 	e.add("exception", ex)
 }
 
-func (e *Event) addLog(config config.Config, service m.Service) {
+func (e *Event) addLog(tctx *transform.Context) {
 	if e.Log == nil {
 		return
 	}
@@ -229,7 +258,7 @@ func (e *Event) addLog(config config.Config, service m.Service) {
 	utility.Add(log, "param_message", e.Log.ParamMessage)
 	utility.Add(log, "logger_name", e.Log.LoggerName)
 	utility.Add(log, "level", e.Log.Level)
-	st := e.Log.Stacktrace.Transform(config, service)
+	st := e.Log.Stacktrace.Transform(tctx)
 	utility.Add(log, "stacktrace", st)
 
 	e.add("log", log)
@@ -307,4 +336,11 @@ func (e *Event) calcGroupingKey() string {
 
 func (e *Event) add(key string, val interface{}) {
 	utility.Add(e.data, key, val)
+}
+
+func addStacktraceCounter(st m.Stacktrace) {
+	if frames := len(st); frames > 0 {
+		stacktraceCounter.Inc()
+		frameCounter.Add(int64(frames))
+	}
 }

@@ -19,11 +19,27 @@ package span
 
 import (
 	"errors"
+	"time"
 
-	"github.com/elastic/apm-server/config"
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+)
+
+var (
+	Metrics = monitoring.Default.NewRegistry("apm-server.processor.span", monitoring.PublishExpvar)
+
+	spanCounter       = monitoring.NewInt(Metrics, "count")
+	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
+	frameCounter      = monitoring.NewInt(Metrics, "frames")
+
+	spanDocType = "span"
+
+	processorSpanEntry = common.MapStr{"name": "transaction", "event": spanDocType}
 )
 
 type Span struct {
@@ -35,6 +51,9 @@ type Span struct {
 	Context    common.MapStr
 	Parent     *int
 	Stacktrace m.Stacktrace
+
+	Timestamp     time.Time
+	TransactionId string
 }
 
 func DecodeSpan(input interface{}, err error) (*Span, error) {
@@ -63,7 +82,26 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 	return &sp, err
 }
 
-func (s *Span) Transform(config config.Config, service m.Service) common.MapStr {
+func (s *Span) Events(tctx *transform.Context) []beat.Event {
+	if frames := len(s.Stacktrace); frames > 0 {
+		stacktraceCounter.Inc()
+		frameCounter.Add(int64(frames))
+	}
+
+	ev := beat.Event{
+		Fields: common.MapStr{
+			"processor":   processorSpanEntry,
+			spanDocType:   s.Transform(tctx),
+			"transaction": common.MapStr{"id": s.TransactionId},
+			"context":     tctx.Metadata.MergeMinimal(s.Context),
+		},
+		Timestamp: s.Timestamp,
+	}
+
+	return []beat.Event{ev}
+}
+
+func (s *Span) Transform(tctx *transform.Context) common.MapStr {
 	if s == nil {
 		return nil
 	}
@@ -74,7 +112,7 @@ func (s *Span) Transform(config config.Config, service m.Service) common.MapStr 
 	utility.Add(tr, "start", utility.MillisAsMicros(s.Start))
 	utility.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
 	utility.Add(tr, "parent", s.Parent)
-	st := s.Stacktrace.Transform(config, service)
+	st := s.Stacktrace.Transform(tctx)
 	utility.Add(tr, "stacktrace", st)
 	return tr
 }

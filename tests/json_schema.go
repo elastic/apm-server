@@ -269,7 +269,7 @@ func (ps *ProcessorSetup) changePayload(
 	err = ps.Proc.Validate(payload)
 	if shouldValidate, errMsg := validateFn(key); shouldValidate {
 		wantLog = !assert.NoError(t, err, fmt.Sprintf("Expected <%v> for key <%s> to be valid", val, key))
-		_, err = ps.Proc.Decode(payload)
+		_, _, err = ps.Proc.Decode(payload)
 		assert.NoError(t, err)
 	} else {
 		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v> with msg "%s", but received no error.`, key, errMsg)) {

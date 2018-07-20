@@ -15,31 +15,51 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package span
+package metadata
 
 import (
-	m "github.com/elastic/apm-server/model"
+	"errors"
+
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type SpanContext struct {
-	service common.MapStr
+type Process struct {
+	Pid   int
+	Ppid  *int
+	Title *string
+	Argv  []string
 }
 
-func NewSpanContext(service *m.Service) *SpanContext {
-	return &SpanContext{service: service.MinimalTransform()}
-}
-
-func (c *SpanContext) Transform(m common.MapStr) common.MapStr {
-	if m == nil {
-		m = common.MapStr{}
-	} else {
-		for k, v := range m {
-			// normalize map entries by calling utility.Add
-			utility.Add(m, k, v)
-		}
+func DecodeProcess(input interface{}, err error) (*Process, error) {
+	if input == nil || err != nil {
+		return nil, err
 	}
-	utility.Add(m, "service", c.service)
-	return m
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Invalid type for process")
+	}
+	decoder := utility.ManualDecoder{}
+	process := Process{
+		Ppid:  decoder.IntPtr(raw, "ppid"),
+		Title: decoder.StringPtr(raw, "title"),
+		Argv:  decoder.StringArr(raw, "argv"),
+	}
+	if pid := decoder.IntPtr(raw, "pid"); pid != nil {
+		process.Pid = *pid
+	}
+	return &process, decoder.Err
+}
+
+func (p *Process) Transform() common.MapStr {
+	if p == nil {
+		return nil
+	}
+	svc := common.MapStr{}
+	utility.Add(svc, "pid", p.Pid)
+	utility.Add(svc, "ppid", p.Ppid)
+	utility.Add(svc, "title", p.Title)
+	utility.Add(svc, "argv", p.Argv)
+
+	return svc
 }

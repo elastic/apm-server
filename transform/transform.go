@@ -15,13 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package transform
 
 import (
-	"github.com/elastic/apm-server/config"
+	"regexp"
+
 	"github.com/elastic/beats/libbeat/beat"
+
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/sourcemap"
 )
 
-type Payload interface {
-	Transform(config.Config) []beat.Event
+type Eventable interface {
+	Events(*Context) []beat.Event
+}
+
+type Context struct {
+	Config   Config
+	Metadata metadata.Metadata
+}
+
+type Config struct {
+	LibraryPattern      *regexp.Regexp
+	ExcludeFromGrouping *regexp.Regexp
+	SmapMapper          sourcemap.Mapper
 }

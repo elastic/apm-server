@@ -24,9 +24,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/elastic/beats/libbeat/beat"
+
 	"github.com/elastic/apm-server/beater"
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 )
 
 func main() {
@@ -53,12 +55,19 @@ func generate() error {
 			return err
 		}
 
-		payload, err := mapping.Processor.Decode(data)
+		metadata, payload, err := mapping.Processor.Decode(data)
 		if err != nil {
 			return err
 		}
 
-		events := payload.Transform(config.Config{})
+		tctx := &transform.Context{
+			Metadata: *metadata,
+		}
+
+		var events []beat.Event
+		for _, transformable := range payload {
+			events = append(events, transformable.Events(tctx)...)
+		}
 
 		for _, d := range events {
 			n, err := d.GetValue("processor.name")

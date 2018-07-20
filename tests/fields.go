@@ -23,11 +23,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elastic/beats/libbeat/beat"
+
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/config"
 	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -83,9 +85,13 @@ func fetchFields(t *testing.T, p pr.Processor, path string, blacklisted *Set) *S
 	require.NoError(t, err)
 	err = p.Validate(data)
 	require.NoError(t, err)
-	payload, err := p.Decode(data)
+	metadata, transformables, err := p.Decode(data)
 	require.NoError(t, err)
-	events := payload.Transform(config.Config{})
+
+	var events []beat.Event
+	for _, transformable := range transformables {
+		events = append(events, transformable.Events(&transform.Context{Metadata: *metadata})...)
+	}
 
 	keys := NewSet()
 	for _, event := range events {

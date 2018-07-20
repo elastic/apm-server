@@ -22,11 +22,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/elastic/apm-server/model/metadata"
+
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -86,7 +88,7 @@ func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	parent := 12
 	tid := 1
-	service := m.Service{Name: "myService"}
+	service := metadata.Service{Name: "myService"}
 
 	tests := []struct {
 		Span   Span
@@ -136,8 +138,14 @@ func TestSpanTransform(t *testing.T) {
 		},
 	}
 
+	tctx := &transform.Context{
+		Config: transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Metadata: metadata.Metadata{
+			Service: &service,
+		},
+	}
 	for idx, test := range tests {
-		output := test.Span.Transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
+		output := test.Span.Transform(tctx)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

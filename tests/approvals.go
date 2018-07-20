@@ -26,13 +26,15 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/elastic/beats/libbeat/beat"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/yudai/gojsondiff"
 
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -115,7 +117,7 @@ type RequestInfo struct {
 	Path string
 }
 
-func TestProcessRequests(t *testing.T, p processor.Processor, config config.Config, requestInfo []RequestInfo, ignored map[string]string) {
+func TestProcessRequests(t *testing.T, p processor.Processor, tctx transform.Context, requestInfo []RequestInfo, ignored map[string]string) {
 	for _, info := range requestInfo {
 		data, err := loader.LoadData(info.Path)
 		require.NoError(t, err)
@@ -123,10 +125,14 @@ func TestProcessRequests(t *testing.T, p processor.Processor, config config.Conf
 		err = p.Validate(data)
 		require.NoError(t, err)
 
-		payload, err := p.Decode(data)
+		metadata, payload, err := p.Decode(data)
 		require.NoError(t, err)
 
-		events := payload.Transform(config)
+		tctx.Metadata = *metadata
+		var events []beat.Event
+		for _, transformable := range payload {
+			events = append(events, transformable.Events(&tctx)...)
+		}
 
 		// extract Fields and write to received.json
 		eventFields := make([]common.MapStr, len(events))

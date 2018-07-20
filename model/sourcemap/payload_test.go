@@ -23,10 +23,11 @@ import (
 
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -43,7 +44,8 @@ func TestPayloadTransform(t *testing.T) {
 		Sourcemap:      "mysmap",
 	}
 
-	events := p.Transform(config.Config{})
+	tctx := &transform.Context{}
+	events := p.Events(tctx)
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -80,15 +82,20 @@ func TestInvalidateCache(t *testing.T) {
 	mapping, err := smapMapper.Apply(smapId, 0, 0)
 	assert.NotNil(t, mapping)
 
-	conf := config.Config{SmapMapper: &smapMapper}
+	conf := transform.Config{SmapMapper: &smapMapper}
+	tctx := &transform.Context{Config: conf}
 
-	payload, err := DecodePayload(data)
+	events, err := DecodePayload(data)
 	assert.NoError(t, err)
-	payload.Transform(conf)
+	for _, e := range events {
+		e.Events(tctx)
+	}
 
-	payload, err = DecodePayload(data)
+	events, err = DecodePayload(data)
 	assert.NoError(t, err)
-	payload.Transform(conf)
+	for _, e := range events {
+		e.Events(tctx)
+	}
 
 	mapping, err = smapMapper.Apply(smapId, 0, 0)
 	assert.Nil(t, mapping)
@@ -112,7 +119,9 @@ func TestTransform(t *testing.T) {
 
 	payload, err := DecodePayload(data)
 	assert.NoError(t, err)
-	rs := payload.Transform(config.Config{})
+	require.Len(t, payload, 1)
+
+	rs := payload[0].Events(&transform.Context{})
 	assert.Len(t, rs, 1)
 	event := rs[0]
 	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)

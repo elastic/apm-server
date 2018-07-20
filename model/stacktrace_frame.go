@@ -21,8 +21,9 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/elastic/apm-server/config"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -88,20 +89,20 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 	return &frame, decoder.Err
 }
 
-func (s *StacktraceFrame) Transform(config config.Config) common.MapStr {
+func (s *StacktraceFrame) Transform(tctx *transform.Context) common.MapStr {
 	m := common.MapStr{}
 	utility.Add(m, "filename", s.Filename)
 	utility.Add(m, "abs_path", s.AbsPath)
 	utility.Add(m, "module", s.Module)
 	utility.Add(m, "function", s.Function)
 	utility.Add(m, "vars", s.Vars)
-	if config.LibraryPattern != nil {
-		s.setLibraryFrame(config.LibraryPattern)
+	if tctx.Config.LibraryPattern != nil {
+		s.setLibraryFrame(tctx.Config.LibraryPattern)
 	}
 	utility.Add(m, "library_frame", s.LibraryFrame)
 
-	if config.ExcludeFromGrouping != nil {
-		s.setExcludeFromGrouping(config.ExcludeFromGrouping)
+	if tctx.Config.ExcludeFromGrouping != nil {
+		s.setExcludeFromGrouping(tctx.Config.ExcludeFromGrouping)
 	}
 	utility.Add(m, "exclude_from_grouping", s.ExcludeFromGrouping)
 
@@ -154,7 +155,7 @@ func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.LibraryFrame = &libraryFrame
 }
 
-func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service Service, prevFunction string) string {
+func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metadata.Service, prevFunction string) string {
 	s.setOriginalSourcemapData()
 
 	if s.Original.Colno == nil {
@@ -204,7 +205,7 @@ func (s *StacktraceFrame) setOriginalSourcemapData() {
 	s.Original.sourcemapCopied = true
 }
 
-func (s *StacktraceFrame) buildSourcemapId(service Service) sourcemap.Id {
+func (s *StacktraceFrame) buildSourcemapId(service *metadata.Service) sourcemap.Id {
 	id := sourcemap.Id{ServiceName: service.Name}
 	if service.Version != nil {
 		id.ServiceVersion = *service.Version

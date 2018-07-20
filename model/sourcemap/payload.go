@@ -22,10 +22,9 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/config"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
 	smap "github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/beat"
@@ -61,16 +60,16 @@ type Payload struct {
 	BundleFilepath string
 }
 
-func (pa *Payload) Transform(conf config.Config) []beat.Event {
+func (pa *Payload) Events(tctx *transform.Context) []beat.Event {
 	sourcemapCounter.Add(1)
 	if pa == nil {
 		return nil
 	}
 
-	if conf.SmapMapper == nil {
+	if tctx.Config.SmapMapper == nil {
 		logp.NewLogger("sourcemap").Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		conf.SmapMapper.NewSourcemapAdded(smap.Id{
+		tctx.Config.SmapMapper.NewSourcemapAdded(smap.Id{
 			ServiceName:    pa.ServiceName,
 			ServiceVersion: pa.ServiceVersion,
 			Path:           pa.BundleFilepath,
@@ -91,7 +90,7 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	return []beat.Event{ev}
 }
 
-func DecodePayload(raw map[string]interface{}) (model.Payload, error) {
+func DecodePayload(raw map[string]interface{}) ([]transform.Eventable, error) {
 	decoder := utility.ManualDecoder{}
 	pa := Payload{
 		ServiceName:    decoder.String(raw, "service_name"),
@@ -99,5 +98,5 @@ func DecodePayload(raw map[string]interface{}) (model.Payload, error) {
 		Sourcemap:      decoder.String(raw, "sourcemap"),
 		BundleFilepath: decoder.String(raw, "bundle_filepath"),
 	}
-	return &pa, decoder.Err
+	return []transform.Eventable{&pa}, decoder.Err
 }

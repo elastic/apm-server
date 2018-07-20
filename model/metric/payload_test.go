@@ -25,10 +25,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/config"
-	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -46,32 +44,17 @@ func assertMetricsMatch(t *testing.T, expected, actual metric) bool {
 func TestPayloadDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
-	pid, ip := 1, "127.0.0.1"
+	ip := "127.0.0.1"
 	for _, test := range []struct {
-		input map[string]interface{}
-		err   error
-		p     *Payload
+		input   map[string]interface{}
+		err     error
+		metrics []transform.Eventable
 	}{
-		{input: nil, err: nil, p: nil},
+		{input: nil, err: nil, metrics: nil},
 		{
-			input: map[string]interface{}{"service": 123},
-			err:   errors.New("Invalid type for service"),
-		},
-		{
-			input: map[string]interface{}{"system": 123},
-			err:   errors.New("Invalid type for system"),
-		},
-		{
-			input: map[string]interface{}{"process": 123},
-			err:   errors.New("Invalid type for process"),
-		},
-		{
-			input: map[string]interface{}{},
-			err:   nil,
-			p: &Payload{
-				Service: m.Service{}, System: nil,
-				Process: nil, Metrics: []*metric{},
-			},
+			input:   map[string]interface{}{},
+			err:     nil,
+			metrics: []transform.Eventable{},
 		},
 		{
 			input: map[string]interface{}{
@@ -90,17 +73,11 @@ func TestPayloadDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			p: &Payload{
-				Service: m.Service{
-					Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
-				System:  &m.System{IP: &ip},
-				Process: &m.Process{Pid: pid},
-				Metrics: []*metric{
-					{
-						samples:   []*sample{},
-						tags:      nil,
-						timestamp: timestampParsed,
-					},
+			metrics: []transform.Eventable{
+				&metric{
+					samples:   []*sample{},
+					tags:      nil,
+					timestamp: timestampParsed,
 				},
 			},
 		},
@@ -153,135 +130,40 @@ func TestPayloadDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			p: &Payload{
-				Service: m.Service{Name: "a", Agent: m.Agent{Name: "ag", Version: "1.0"}},
-				System:  &m.System{IP: &ip},
-				Process: &m.Process{Pid: pid},
-				Metrics: []*metric{
-					{
-						samples: []*sample{
-							{
-								name:  "some.gauge",
-								value: 9.16,
-							},
-							{
-								name:  "a.counter",
-								value: 612,
-							},
+			metrics: []transform.Eventable{
+				&metric{
+					samples: []*sample{
+						{
+							name:  "some.gauge",
+							value: 9.16,
 						},
-						tags: common.MapStr{
-							"a.tag": "a.tag.value",
+						{
+							name:  "a.counter",
+							value: 612,
 						},
-						timestamp: timestampParsed,
 					},
+					tags: common.MapStr{
+						"a.tag": "a.tag.value",
+					},
+					timestamp: timestampParsed,
 				},
 			},
 		},
 	} {
-		payloadInterface, err := DecodePayload(test.input)
-
-		payload, ok := payloadInterface.(*Payload)
-		if payloadInterface != nil {
-			require.True(t, ok)
-		}
-
-		// compare metrics separately as they may be ordered differently
-		if test.p != nil && test.p.Metrics != nil {
-			for i := range test.p.Metrics {
-				if test.p.Metrics[i] == nil {
-					continue
-				}
-				want := *test.p.Metrics[i]
-				got := *payload.Metrics[i]
-				assertMetricsMatch(t, want, got)
-			}
-			// leave everything else in payload for comparison
-			test.p.Metrics = nil
-			payload.Metrics = nil
-		}
-		// compare remaining payload
-		assert.Equal(t, test.p, payload)
+		transformables, err := DecodePayload(test.input)
 		if test.err != nil {
 			assert.Error(t, err)
 		}
-	}
-}
-
-func TestPayloadTransform(t *testing.T) {
-	svc := m.Service{Name: "myservice"}
-	timestamp := time.Now()
-
-	tests := []struct {
-		Payload Payload
-		Output  []common.MapStr
-		Msg     string
-	}{
-		{
-			Payload: Payload{Service: svc, Metrics: []*metric{}},
-			Output:  nil,
-			Msg:     "Empty metric Array",
-		},
-		{
-			Payload: Payload{Service: svc, Metrics: []*metric{{timestamp: timestamp}}},
-			Output: []common.MapStr{
-				{
-					"context": common.MapStr{
-						"service": common.MapStr{
-							"agent": common.MapStr{"name": "", "version": ""},
-							"name":  "myservice",
-						},
-					},
-					"processor": common.MapStr{"event": "metric", "name": "metric"},
-				},
-			},
-			Msg: "Payload with empty metric.",
-		},
-		{
-			Payload: Payload{
-				Service: svc,
-				Metrics: []*metric{
-					{
-						tags:      common.MapStr{"a.tag": "a.tag.value"},
-						timestamp: timestamp,
-						samples: []*sample{
-							{
-								name:  "a.counter",
-								value: 612,
-							},
-							{
-								name:  "some.gauge",
-								value: 9.16,
-							},
-						},
-					},
-				},
-			},
-			Output: []common.MapStr{
-				{
-					"context": common.MapStr{
-						"service": common.MapStr{
-							"name":  "myservice",
-							"agent": common.MapStr{"name": "", "version": ""},
-						},
-						"tags": common.MapStr{
-							"a.tag": "a.tag.value",
-						},
-					},
-					"a":         common.MapStr{"counter": float64(612)},
-					"some":      common.MapStr{"gauge": float64(9.16)},
-					"processor": common.MapStr{"event": "metric", "name": "metric"},
-				},
-			},
-			Msg: "Payload with valid metric.",
-		},
-	}
-
-	for idx, test := range tests {
-		conf := config.Config{}
-		outputEvents := test.Payload.Transform(conf)
-		for j, outputEvent := range outputEvents {
-			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
+		// compare metrics separately as they may be ordered differently
+		if test.metrics != nil {
+			for i := range test.metrics {
+				if test.metrics[i] == nil {
+					continue
+				}
+				want := test.metrics[i].(*metric)
+				got := transformables[i].(*metric)
+				assertMetricsMatch(t, *want, *got)
+			}
 		}
 	}
 }

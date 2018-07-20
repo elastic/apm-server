@@ -19,20 +19,17 @@ package metric
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/config"
-	"github.com/elastic/apm-server/model"
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metric/generated/schema"
-	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
+
+	"github.com/pkg/errors"
+
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
@@ -54,88 +51,24 @@ func PayloadSchema() *jsonschema.Schema {
 	return cachedSchema
 }
 
-type sample struct {
-	name  string
-	value float64
-}
-
-type metric struct {
-	samples   []*sample
-	tags      common.MapStr
-	timestamp time.Time
-}
-
-type Payload struct {
-	Process *m.Process
-	Service m.Service
-	System  *m.System
-	Metrics []*metric
-}
-
-func (pa *Payload) Transform(config.Config) []beat.Event {
-	transformations.Inc()
-	if pa == nil {
-		return nil
-	}
-
-	var events []beat.Event
-	for _, metric := range pa.Metrics {
-		fields := common.MapStr{}
-		for _, sample := range metric.samples {
-			if _, err := fields.Put(sample.name, sample.value); err != nil {
-				logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
-				continue
-			}
-		}
-		context := m.NewContext(&pa.Service, pa.Process, pa.System, nil).Transform(nil)
-		if metric.tags != nil {
-			context["tags"] = metric.tags
-		}
-		fields["context"] = context
-		fields["processor"] = processorEntry
-
-		ev := beat.Event{
-			Fields:    fields,
-			Timestamp: metric.timestamp,
-		}
-		events = append(events, ev)
-	}
-	return events
-}
-
-type metricDecoder struct {
-	*utility.ManualDecoder
-}
-
-func DecodePayload(raw map[string]interface{}) (model.Payload, error) {
+func DecodePayload(raw map[string]interface{}) ([]transform.Eventable, error) {
 	if raw == nil {
 		return nil, nil
 	}
-	pa := &Payload{}
-
-	service, err := m.DecodeService(raw["service"], nil)
-	if service != nil {
-		pa.Service = *service
-	}
-	pa.System, err = m.DecodeSystem(raw["system"], err)
-	pa.Process, err = m.DecodeProcess(raw["process"], err)
-	if err != nil {
-		return nil, err
-	}
 
 	decoder := metricDecoder{&utility.ManualDecoder{}}
-	metrics := decoder.InterfaceArr(raw, "metrics")
+	metricsIntfArr := decoder.InterfaceArr(raw, "metrics")
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
-	pa.Metrics = make([]*metric, len(metrics))
-	for idx, metricData := range metrics {
-		pa.Metrics[idx] = decoder.decodeMetric(metricData)
+	metrics := make([]transform.Eventable, len(metricsIntfArr))
+	for idx, metricData := range metricsIntfArr {
+		metrics[idx] = decoder.decodeMetric(metricData)
 		if decoder.Err != nil {
 			return nil, decoder.Err
 		}
 	}
-	return pa, decoder.Err
+	return metrics, decoder.Err
 }
 
 func (md *metricDecoder) decodeMetric(input interface{}) *metric {

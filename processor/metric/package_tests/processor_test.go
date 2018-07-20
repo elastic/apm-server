@@ -20,9 +20,9 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -34,9 +34,9 @@ var (
 )
 
 func TestMetricProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, metric.Processor, config.Config{}, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, metric.Processor, transform.Context{}, requestInfo, map[string]string{})
 }
 
 func BenchmarkProcessor(b *testing.B) {
-	tests.BenchmarkProcessRequests(b, metric.Processor, config.Config{}, requestInfo)
+	tests.BenchmarkProcessRequests(b, metric.Processor, transform.Context{}, requestInfo)
 }

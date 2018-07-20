@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package metadata
 
 import (
 	"errors"
@@ -24,42 +24,42 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type Process struct {
-	Pid   int
-	Ppid  *int
-	Title *string
-	Argv  []string
+type User struct {
+	Id        *string
+	Email     *string
+	Username  *string
+	IP        *string
+	UserAgent *string
 }
 
-func DecodeProcess(input interface{}, err error) (*Process, error) {
+func DecodeUser(input interface{}, err error) (*User, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for process")
+		return nil, errors.New("Invalid type for user")
 	}
 	decoder := utility.ManualDecoder{}
-	process := Process{
-		Ppid:  decoder.IntPtr(raw, "ppid"),
-		Title: decoder.StringPtr(raw, "title"),
-		Argv:  decoder.StringArr(raw, "argv"),
+	user := User{
+		Id:        decoder.StringPtr(raw, "id"),
+		Email:     decoder.StringPtr(raw, "email"),
+		Username:  decoder.StringPtr(raw, "username"),
+		IP:        decoder.StringPtr(raw, "ip"),
+		UserAgent: decoder.StringPtr(raw, "user-agent"),
 	}
-	if pid := decoder.IntPtr(raw, "pid"); pid != nil {
-		process.Pid = *pid
-	}
-	return &process, decoder.Err
+	return &user, decoder.Err
 }
 
-func (p *Process) Transform() common.MapStr {
-	if p == nil {
+func (u *User) Transform() common.MapStr {
+	if u == nil {
 		return nil
 	}
-	svc := common.MapStr{}
-	utility.Add(svc, "pid", p.Pid)
-	utility.Add(svc, "ppid", p.Ppid)
-	utility.Add(svc, "title", p.Title)
-	utility.Add(svc, "argv", p.Argv)
-
-	return svc
+	user := common.MapStr{}
+	utility.Add(user, "id", u.Id)
+	utility.Add(user, "email", u.Email)
+	utility.Add(user, "username", u.Username)
+	utility.Add(user, "ip", u.IP)
+	utility.Add(user, "user-agent", u.UserAgent)
+	return user
 }
