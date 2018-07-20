@@ -22,11 +22,11 @@ http(s)://{hostname}:{port}/v1/errors
 
 To send a record for an error monitored by the
 {apm-rum-ref}/index.html[JavaScript RUM Agent]
-you need to send a `HTTP POST` request to the APM Server `client-side errors` endpoint:
+you need to send a `HTTP POST` request to the APM Server `rum errors` endpoint:
 
 [source,bash]
 ------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/client-side/errors
+http(s)://{hostname}:{port}/v1/rum/errors
 ------------------------------------------------------------
 
 Information pertaining to the error record must be sent as a JSON object to the endpoint.
