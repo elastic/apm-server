@@ -34,6 +34,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -44,6 +45,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/magefile/mage/target"
 	"github.com/magefile/mage/types"
@@ -235,66 +237,6 @@ func MustFindReplace(file string, re *regexp.Regexp, repl string) {
 	if err := FindReplace(file, re, repl); err != nil {
 		panic(errors.Wrap(err, "failed to find and replace"))
 	}
-}
-
-// Copy copies a file or a directory (recursively) and preserves the permissions.
-func Copy(src, dest string) error {
-	info, err := os.Stat(src)
-	if err != nil {
-		return errors.Wrapf(err, "failed to stat source file %v", src)
-	}
-	return recursiveCopy(src, dest, info)
-}
-
-func fileCopy(src, dest string, info os.FileInfo) error {
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	if !info.Mode().IsRegular() {
-		return errors.Errorf("failed to copy source file because it is not a regular file")
-	}
-
-	destFile, err := os.OpenFile(createDir(dest), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode()&os.ModePerm)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	if _, err = io.Copy(destFile, srcFile); err != nil {
-		return err
-	}
-	return destFile.Close()
-}
-
-func dirCopy(src, dest string, info os.FileInfo) error {
-	if err := os.MkdirAll(dest, info.Mode()); err != nil {
-		return errors.Wrap(err, "failed creating dirs")
-	}
-
-	contents, err := ioutil.ReadDir(src)
-	if err != nil {
-		return errors.Wrapf(err, "failed to read dir %v", src)
-	}
-
-	for _, info := range contents {
-		srcFile := filepath.Join(src, info.Name())
-		destFile := filepath.Join(dest, info.Name())
-		if err = recursiveCopy(srcFile, destFile, info); err != nil {
-			return errors.Wrapf(err, "failed to copy %v to %v", srcFile, destFile)
-		}
-	}
-
-	return nil
-}
-
-func recursiveCopy(src, dest string, info os.FileInfo) error {
-	if info.IsDir() {
-		return dirCopy(src, dest, info)
-	}
-	return fileCopy(src, dest, info)
 }
 
 // DownloadFile downloads the given URL and writes the file to destinationDir.
@@ -660,13 +602,47 @@ func CreateSHA512File(file string) error {
 	return ioutil.WriteFile(file+".sha512", []byte(out), 0644)
 }
 
+// Mage executes mage targets in the specified directory.
+func Mage(dir string, targets ...string) error {
+	c := exec.Command("mage", targets...)
+	c.Dir = dir
+	if mg.Verbose() {
+		c.Env = append(os.Environ(), "MAGEFILE_VERBOSE=1")
+	}
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	c.Stdin = os.Stdin
+	log.Println("exec:", strings.Join(c.Args, " "))
+	err := c.Run()
+	return err
+}
+
 // IsUpToDate returns true iff dst exists and is older based on modtime than all
 // of the sources.
 func IsUpToDate(dst string, sources ...string) bool {
 	if len(sources) == 0 {
 		panic("No sources passed to IsUpToDate")
 	}
-	execute, err := target.Path(dst, sources...)
+
+	var files []string
+	for _, s := range sources {
+		filepath.Walk(s, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				if os.IsNotExist(err) {
+					return nil
+				}
+				return err
+			}
+
+			if info.Mode().IsRegular() {
+				files = append(files, path)
+			}
+
+			return nil
+		})
+	}
+
+	execute, err := target.Path(dst, files...)
 	return err == nil && !execute
 }
 

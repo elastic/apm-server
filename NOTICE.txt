@@ -291,7 +291,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
-Revision: af1638c90567274690c8111d47e3c5f12c396558
+Version: master
+Revision: a314e34ea823c39f0838be59de7f299831a8a018
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -357,7 +358,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-ucfg
-Revision: ec8488a52542c0c51e42e8ea204dcaff400bc644
+Revision: 9c66f5c432b1d25bdb449a1e588d58b5d0cd7268
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-ucfg/LICENSE:
 --------------------------------------------------------------------
@@ -1756,7 +1757,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/testify
 Version: v1.2.0
-Revision: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+Revision: f35b8ab0b5a2cef36673838d662e249dd9c94686
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
 --------------------------------------------------------------------

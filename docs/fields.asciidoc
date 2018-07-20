@@ -1204,7 +1204,7 @@ Kubernetes pod name
 --
 type: keyword
 
-Kubernetes pod uid
+Kubernetes Pod UID
 
 
 --
