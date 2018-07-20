@@ -28,6 +28,8 @@ please also have a look at the documentation for
 
 * {apm-node-ref}/index.html[APM Node.js Agent]
 * {apm-py-ref}/index.html[APM Python Agent]
+* {apm-ruby-ref}/index.html[APM Ruby Agent]
+* {apm-rum-ref}/index.html[APM Javascript RUM Agent]
 * {ref}/index.html[Elasticsearch]
 
 See how to {apm-get-started}/index.html[Get Started] with the Elastic APM system.

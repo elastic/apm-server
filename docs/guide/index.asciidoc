@@ -178,7 +178,7 @@ you need to install an agent in your service.
 === Install and configure APM agents
 
 Agents are written in the same language as your service.
-Currently Elastic APM has agents for Node.js and for Python.
+Currently Elastic APM has agents for Node.js, Python, Ruby, and Javascript.
 
 Setting up a new service to be monitored requires installing the agent in the service,
 coming up with a good name for the service,
@@ -250,6 +250,61 @@ pip install elastic-apm
 
 The Python agent supports Django and Flask out of the box.
 See the {apm-py-ref}/index.html[APM Python Agent documentation] for more details.
+
+[[ruby-agent]]
+[float]
+==== Install the Ruby agent
+
+Add the gem to your Gemfile:
+
+[source,bash]
+----------------------------------
+gem 'elastic-apm'
+----------------------------------
+
+Create a config file config/elastic_apm.yml:
+
+[source,bash]
+----------------------------------
+server_url: http://localhost:8100
+secret_token: ''
+----------------------------------
+
+The Ruby agent automatically instruments Rails out of the box.
+See the {apm-ruby-ref}/index.html[APM Ruby Agent documentation] for more details.
+
+
+[[rum-agent]]
+[float]
+==== Install the Javascript RUM agent
+
+Install the agent as a dependency to your application:
+
+[source,bash]
+----------------------------------
+npm install elastic-apm-js-base --save
+----------------------------------
+
+Configure the agent:
+
+[source,bash]
+----------------------------------
+import { init as initApm } from 'elastic-apm-js-base'
+var apm = initApm({
+
+  // Set required service name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
+  serviceName: '',
+
+  // Set custom APM Server URL (default: http://localhost:8200)
+  serverUrl: 'http://localhost:8200',
+
+  // Set service version (required for sourcemap feature)
+  serviceVersion: ''
+})
+----------------------------------
+
+See the {apm-rum-ref}/index.html[APM Javascript RUM Agent documentation] for more details.
+
 
 [[kibana]]
 [float]
