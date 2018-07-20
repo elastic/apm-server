@@ -121,13 +121,11 @@ func (c *Config) SetRumConfig() {
 	if c.RumConfig != nil && c.RumConfig.Enabled != nil {
 		return
 	}
-	if c.FrontendConfig != nil && c.FrontendConfig.Enabled != nil {
-		c.RumConfig = c.FrontendConfig
-	}
+	c.RumConfig = c.FrontendConfig
 }
 
 func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
-	if c == nil || !c.isEnabled() || !c.SourceMapping.isSetup() {
+	if !c.isEnabled() || !c.SourceMapping.isSetup() {
 		return nil, nil
 	}
 	if c.SourceMapping.mapper != nil {

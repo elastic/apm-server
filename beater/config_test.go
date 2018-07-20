@@ -272,7 +272,7 @@ func TestSetRum(t *testing.T) {
 		rc *rumConfig
 	}{
 		{c: &Config{}, rc: nil},
-		{c: &Config{RumConfig: &rumConfig{}}, rc: &rumConfig{}},
+		{c: &Config{RumConfig: &rumConfig{}}, rc: nil},
 		{c: &Config{RumConfig: testRumConf}, rc: testRumConf},
 		{c: &Config{FrontendConfig: testFrontendConf}, rc: testFrontendConf},
 		{c: &Config{RumConfig: &rumConfig{}, FrontendConfig: testFrontendConf}, rc: testFrontendConf},
