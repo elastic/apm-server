@@ -11,6 +11,7 @@ This section describes common problems you might encounter with APM Server.
 * <<queue-full>>
 * <<request-timed-out>>
 * <<ssl-client-fails>>
+* <<field-limit-exceeded>>
 
 [[no-data-indexed]]
 [float]
@@ -177,3 +178,37 @@ This is not a SSL problem. Make sure that Logstash is running and that there is 
 
 A firewall is refusing the connection. Check if a firewall is blocking the traffic on the client, the network, or the
 destination host.
+
+[[field-limit-exceeded]]
+[float]
+=== Field limit exceeded
+
+When adding too many distinct tag keys on a transaction or span, 
+you risk creating a link:{ref}/mapping.html#mapping-limit-settings[mapping explosion].
+
+For example,
+you should avoid that user-specified data,
+like URL parameters,
+is used as a tag key.
+Likewise,
+using the current timestamp or a user ID as a tag key is not a good idea.
+However,
+tag *values* with a high cardinality are not a problem.
+Just try to keep the number of distinct tag keys at a minimum.
+
+The symptom of a mapping explosion is that transactions and spans are not indexed anymore after a certain time.
+Usually,
+on the next day,
+the spans and transactions will be indexed again because a new index is created each day.
+But as soon as the field limit is reached,
+indexing stops again.
+
+In the agent logs,
+you won't see a sign of failures as the APM server asynchronously sends the data it received from the agents to Elasticsearch.
+However,
+the APM server and Elasticsearch log a warning like this:
+
+----
+{\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in index [apm-7.0.0-transaction-2017.05.30] has been exceeded\"}
+----
+
