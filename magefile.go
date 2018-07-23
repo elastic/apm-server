@@ -122,6 +122,9 @@ func customizePackaging() {
 		case mage.Deb, mage.RPM:
 			delete(args.Spec.Files, "/etc/{{.BeatName}}/{{.BeatName}}.reference.yml")
 			args.Spec.ReplaceFile("/usr/share/{{.BeatName}}/README.md", readmeTemplate)
+
+		case mage.DMG:
+			delete(args.Spec.Files, "/etc/{{.BeatName}}/{{.BeatName}}.reference.yml")
 		}
 	}
 }
