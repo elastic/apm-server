@@ -34,8 +34,7 @@ endif::[]
 
 ifdef::deprecate_dashboard_loading[]
 
-:setup-command-short-desc: Sets up the initial environment,
-including the ES index template and Kibana dashboards (deprecated).
+:setup-command-short-desc: Sets up the initial environment, including the ES index template and Kibana dashboards (deprecated).
 
 endif::[]
 
@@ -409,24 +408,20 @@ the end of the file is reached. By default harvesters are closed after
 
 endif::[]
 
-ifndef::deprecate_dashboard_loading[]
 *`--setup`*::
-endif::[]
-
 ifdef::deprecate_dashboard_loading[]
-*`--setup (deprecated)`*::
+deprecated[{deprecate_dashboard_loading}]
 endif::[]
-
++
 ifdef::has_ml_jobs[]
 Loads the initial setup, including Elasticsearch template, Kibana index pattern,
 Kibana dashboards and Machine learning jobs.
 endif::[]
-
 ifndef::has_ml_jobs[]
 Loads the initial setup, including Elasticsearch template, Kibana index pattern and Kibana dashboards.
 endif::[]
-
 If you want to use the command without running {beatname_uc}, use the <<setup-command,`setup`>> command instead.
+
 
 ifeval::["{beatname_lc}"=="metricbeat"]
 
@@ -465,15 +460,12 @@ Or:
 [[setup-command]]
 ==== `setup` command
 
-{setup-command-short-desc}.
+{setup-command-short-desc}
 
 * The index template ensures that fields are mapped correctly in Elasticsearch.
 
 * The Kibana dashboards make it easier for you to visualize {beatname_uc} data
 in Kibana.
-ifdef::deprecate_dashboard_loading[]
-(deprecated)
-endif::[]
 
 ifdef::has_ml_jobs[]
 * The machine learning jobs contain the configuration information and metadata
@@ -502,7 +494,10 @@ in the _Beats Developer Guide_.
 endif::[]
 
 ifdef::deprecate_dashboard_loading[]
-*`--dashboards` (deprecated)*::
+*`--dashboards`*::
+
+deprecated[{deprecate_dashboard_loading}]
++
 Sets up the Kibana dashboards only.
 endif::[]
 

@@ -10,12 +10,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 [[configuration-dashboards]]
-ifndef::deprecate_dashboard_loading[]
 == Load the Kibana dashboards
-endif::[]
-
 ifdef::deprecate_dashboard_loading[]
-== Load the Kibana dashboards (deprecated)
+
+deprecated[{deprecate_dashboard_loading}]
+
 endif::[]
 
 {beatname_uc} comes packaged with example Kibana dashboards, visualizations,

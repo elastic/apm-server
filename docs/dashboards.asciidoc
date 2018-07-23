@@ -3,10 +3,10 @@
 
 From APM Server and Kibana 6.4 on you can load dashboards directly via the Kibana UI.
 
-NOTE: Loading index pattern and dashboards through the APM Server is deprecated.
-      It is recommended to use the Kibana UI instead.
+==== Setup via APM Server
 
-==== Setup via APM Server (deprecated)
+deprecated[{deprecate_dashboard_loading}]
+
 Loading via APM Server requires a <<setup-kibana-endpoint,Kibana endpoint configuration>>. 
 If you are accessing a secured Kibana instance, make sure you've configured credentials.
 

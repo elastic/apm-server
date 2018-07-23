@@ -12,8 +12,8 @@ The following topics describe how to configure APM Server:
 * <<configuration-ssl>>
 * <<configuration-template>>
 * <<configuration-logging>>
-* <<setup-kibana-endpoint, Set up the Kibana endpoint (deprecated)>>
-* <<configuration-dashboards, Load the Kibana dashboards (deprecated)>>
+* <<setup-kibana-endpoint>>
+* <<configuration-dashboards>>
 * <<configuration-rum>>
 * <<using-environ-vars>>
 * <<configuration-path>>
