@@ -3,8 +3,7 @@
 
 [partintro]
 --
-Elastic APM agents capture information about `transaction` and `error` events and send the information to the APM Server.
-The actual available information might be optimized per agent. 
+Agents capture different types of information, namely `transactions` and `errors`.
 
 * <<transactions,Transactions>>
 * <<errors,Errors>>

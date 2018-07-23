@@ -7,22 +7,18 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 [[overview]]
 == Overview
 
-APM is an application performance monitoring system built on the Elastic Stack.
-It uses Elasticsearch as its data store and allows you to monitor software services and applications in real time.
-Regardless of whether your code is best described as a service or as an application,
-this guide will indiscriminately use the word service.
-
-With APM you can automatically collect detailed performance information from inside your service with only minor changes to your code.
-For example APM agents can measure the response time for incoming requests,
-time spent in database queries,
+Elastic APM is an application performance monitoring system built on the Elastic Stack.
+It allows you to monitor software services and applications in real time (this guide will indiscriminately use the word service),
+collecting detailed performance information on response time for incoming requests,
+database queries,
 calls to caches,
 external HTTP requests,
 etc.
 This makes it easier to pinpoint and fix performance problems quickly.
 
-APM also automatically collects errors and exceptions that are not handled by your service.
-Collected errors automatically get assigned a checksum based primarily on the stacktrace.
-This enables you to spot new errors as they appear and keep an eye on how many times specific errors happen.
+Elastic APM also collects automatically unhandled errors and exceptions.
+Errors are grouped based primarily on the stacktrace,
+so you can identify new errors as they appear and keep an eye on how many times specific errors happen.
 
 [[components]]
 [float]
@@ -39,29 +35,23 @@ image::apm-architecture.png[Architecture of Elastic APM]
 
 *APM agents* are open source libraries written in the same language as your service.
 You install them into your service as you would install any other library.
-The agents hook into your service and start collecting performance metrics and errors once it starts.
-All data collected by agents is buffered for a short period and sent on to APM Server.
-This happens once per minute,
-by default.
+They instrument your code and collect performance data and errors at runtime.
+This data is buffered for a short period and sent on to APM Server.
 
 Out of the box,
-APM automatically instruments most popular web frameworks,
+APM automatically instruments web frameworks,
 database drivers,
 calls to caching servers,
 and HTTP libraries for requests to external services.
 Additionally,
-agents provide an API that you can use to manually instrument anything else you find interesting.
+agents provide an API to manually instrument anything else you find interesting.
 
 *APM Server* is an open source application written in Go which typically runs on dedicated servers.
-It listens on port 8200 by default and receives data from agents periodically through a JSON API.
-APM Server creates documents from the data received from agents and stores them in an Elasticsearch cluster.
+It receives data from the agents through a JSON API, process it, and stores it in Elasticsearch.
 
 To visualize the data after it's sent to Elasticsearch,
 you can use the the dedicated APM UI bundled in X-Pack,
 or the pre-built open source Kibana dashboards that come with APM Server.
-
-We designed Elastic APM to run on anything from a regular laptop to thousands of machines,
-and it's easy to get started.
 
 [[install-and-run]]
 == Install and run Elastic APM
@@ -76,7 +66,6 @@ you need to have:
 
 For information about setting up an Elasticsearch cluster,
 see the Elasticsearch {ref}/getting-started.html[Getting Started].
-To view the collected data you need Kibana.
 
 The following sections show how to get started quickly with Elastic APM on a local machine.
 
@@ -86,31 +75,28 @@ The following sections show how to get started quickly with Elastic APM on a loc
 
 First, https://www.elastic.co/downloads/apm/apm-server[download APM Server] for your operating system and extract the package.
 
-In a production environment,
-you would put APM Server on it's own machines,
+In a production environment you would put APM Server on it's own machines,
 similar to how you run Elasticsearch.
 You _can_ run it on the same machines as Elasticsearch,
 but this is not recommended,
 as the processes will be competing for resources.
 
-To start APM Server,
-run:
+To start APM Server run:
 
 [source,bash]
 ----------------------------------
 ./apm-server -e
 ----------------------------------
 
-You should see APM Server start up.
 It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
-You can change the defaults by supplying a different addresses on the command line:
+You can change the defaults by supplying different addresses on the command line:
 
 [source,bash]
 ----------------------------------
 ./apm-server -e -E output.elasticsearch.hosts=ElasticsearchAddress:9200 -E apm-server.host=localhost:8200
 ----------------------------------
 
-Or you can update the `apm-server.yml` configuration file to change the defaults.
+Or you can update the `apm-server.yml` configuration file:
 
 [source,yaml]
 ----------------------------------
@@ -123,8 +109,7 @@ output:
 ----------------------------------
 
 NOTE: If you are using an X-Pack secured version of Elastic Stack,
-you need to specify credentials in the config file before you run the commands that set up and start APM Server.
-For example:
+you need to specify credentials in the config file:
 
 [source,yaml]
 ----
@@ -139,12 +124,13 @@ output.elasticsearch:
 [[secure-api-access]]
 [float]
 ==== Secure access to the API
-The HTTP API exposed by APM Server listens on `localhost` and port 8200 by default.
 If you change the listen address from `localhost` to something that is accessible from outside of the machine,
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively,
-you can use the {apm-server-ref}/securing-apm-server.html[secret token and TLS] to secure access to APM Server API.
-You can also configure APM Server to listen on a Unix domain socket.
+you can use a {apm-server-ref}/securing-apm-server.html[secret token and TLS].
+
+If you have APM Server running on the same host as your service, you can configure it to listen on a Unix domain socket.
+
 [[kibana-dashboards]]
 [float]
 ==== Install the Kibana dashboards
@@ -180,20 +166,17 @@ you need to install an agent in your service.
 Agents are written in the same language as your service.
 Currently Elastic APM has agents for Node.js, Python, Ruby, and JavaScript.
 
-Setting up a new service to be monitored requires installing the agent in the service,
-coming up with a good name for the service,
-and then configuring the agents so they know the address of your APM Server and the service name.
+Setting up a new service to be monitored requires installing the agent,
+and configuring it with the address of your APM Server and the service name.
 
 [[choose-service-name]]
 [float]
 ==== Choose a service name
 
-The service name is used by Elastic APM to differentiate between data coming from different services and to group data coming from the same services.
-When configuring an agent,
-you need to supply a service name.
+The service name is used by Elastic APM to differentiate between data coming from different services.
 
 Elastic APM includes the service name field on every document that it saves in Elasticsearch.
-This has the implication that if you change the service name after using Elastic APM for some time,
+If you change the service name after using Elastic APM,
 you will see the old service name and the new service name as two separate services.
 Make sure you choose a good service name before you get started.
 
@@ -206,15 +189,14 @@ and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 [float]
 ==== Install the Node.js agent
 
-To install the Node.js agent,
-simply install the elastic-apm-node module from npm in your service:
+Install the elastic-apm-node module from npm in your service:
 
 [source,bash]
 ----------------------------------
 npm install elastic-apm-node --save
 ----------------------------------
 
-Then configure the elastic-apm-node module inside your service by adding the following lines to the very top of your code:
+Then configure the elastic-apm-node module by adding the following lines to the very top of your code:
 
 [source,javascript]
 ----------------------------------
@@ -231,7 +213,7 @@ var apm = require('elastic-apm-node').start({
 })
 ----------------------------------
 
-The Node.js agent supports Express,
+The Node.js agent automatically instruments Express,
 hapi,
 and Koa out of the box.
 See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more details.
@@ -240,15 +222,14 @@ See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more deta
 [float]
 ==== Install the Python agent
 
-To install the Python agent,
-install the Elastic APM module from pypi:
+Install the Elastic APM module from pypi:
 
 [source,bash]
 ----------------------------------
 pip install elastic-apm
 ----------------------------------
 
-The Python agent supports Django and Flask out of the box.
+The Python agent automatically instruments Django and Flask out of the box.
 See the {apm-py-ref}/index.html[APM Python Agent documentation] for more details.
 
 [[ruby-agent]]

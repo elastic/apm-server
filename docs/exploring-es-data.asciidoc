@@ -3,11 +3,12 @@
 
 [partintro]
 --
-By default Elastic APM data are stored in different indices, 
-in the format of 
-`apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
+By default Elastic APM data is stored in separated indices following the format:
+`apm-%{[version]}-{type}-%{+yyyy.MM.dd}`.
 
-For getting an overview of existing indices you can run:
+Data types are described <<event-types, here>>.
+
+To get an overview of existing indices you can run:
 ["source","sh"]
 ------------------------------------------------------------
 GET _cat/indices/apm*
@@ -21,33 +22,24 @@ Default APM `template` and `indices`:
 * <<span-indices>>
 * <<error-indices>>
 * <<sourcemap-indices>>
-* <<healthcheck-indices>>
 
 
-For querying all APM data:
-["source","sh"]
-------------------------------------------------------------
-GET apm*/_search
-------------------------------------------------------------
-// CONSOLE
-
-Querying documents that have been collected with a specific APM Server version:
+To query all documents collected with a specific APM Server version:
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
 GET apm-{version}-*/_search
 ------------------------------------------------------------
 // CONSOLE
 
-If you are only interested in specific document types, e.g. error documents you can use the type in your query:
+To query a specific type, e.g. transactions:
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-GET apm-*error-*/_search
+GET apm-*transactions-*/_search
 ------------------------------------------------------------
 // CONSOLE
 
-If you are interested in the _settings_ and _mappings_ applied to the Elastic APM indices,
-you can fetch the index templates.
-First run a query for figuring out which templates exist:
+If you are interested in the _settings_ and _mappings_ of the Elastic APM indices,
+first run a query to find template names:
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -55,17 +47,17 @@ GET _cat/templates/apm*
 ------------------------------------------------------------
 // CONSOLE
 
-Then you can retrieve the specific template you are interested in by sending:
+Then you can retrieve the specific template you are interested in:
 ["source","sh"]
 ------------------------------------------------------------
 GET  /_template/your-template-name
 ------------------------------------------------------------
 // CONSOLE
 
-You can read more about {ref}/indices-templates.html[Index Templates] and how they are used.
+Read more about {ref}/indices-templates.html[Index Templates] and how they are used.
 
-Another option is to use the {kibana-ref}/managing-indices.html[Kibana Index Management UI]. 
-When clicking on a specific index you can view the _settings_ and _mapping_ for it. 
+Alternatively, use the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
+When clicking on a specific index you can view the _settings_ and _mapping_ for it.
 
 --
 
@@ -74,4 +66,3 @@ include::./transaction-indices.asciidoc[]
 include::./span-indices.asciidoc[]
 include::./error-indices.asciidoc[]
 include::./sourcemap-indices.asciidoc[]
-include::./healthcheck-indices.asciidoc[]

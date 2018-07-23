@@ -4,19 +4,18 @@
 
 APM Server exposes a HTTP endpoint and as with anything that opens ports on your servers,
 you should be careful about who can connect to it.
-We recommend using firewall rules to ensure only authorized systems can connect.
-
-There is also the option of setting up SSL to ensure data sent to the APM Server is encrypted.
+Firewall rules are recommended to ensure only authorized systems can connect.
 
 [[secret-token]]
 [float]
 ==== Secret token
 
-You can configure a secret token which is sent with every request from the APM agents to the server.
-This string is used to ensure that only your agents can send data to your APM servers.
+You can configure a secret token to authorize requests to the APM Server,
+and ensure that only your agents can send data to your APM servers.
 Both the agents and the APM servers have to be configured with the same secret token.
 
-NOTE: The usage of a secret token only provides any security when used in combination with having SSL/TLS configured.
+NOTE: The usage of a secret token only provides any security when used in combination with having SSL/TLS configured,
+and is not applicable for RUM.
 
 [[ssl-setup]]
 [float]

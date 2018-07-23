@@ -2,51 +2,43 @@
 = Real User Monitoring (RUM)
 [partintro]
 --
-The {apm-rum-ref}/index.html[JavaScript RUM Agent] is supporting Real User Monitoring.
-You can make use of <<sourcemaps, source maps>> when using Elastic RUM. 
+Real User Monitoring captures user interaction with clients such as web browsers.
+The {apm-rum-ref}/index.html[JavaScript Agent] is Elastic's RUM Agent.
+To use it you need to <<rum-enable,enable RUM support>> in the APM Server.
 --
 
 [[sourcemaps]]
 == Source Maps
-It is common practice to minify JavaScript code for several reasons, e.g. performance gain. 
-This can make debugging very difficult, as it is hard to read the minified files.
-Source mapping can help for debugging minfied JavaScript files, 
-by mapping code from the minified files to the original source code. 
+It is common practice to minify JavaScript code, e.g. to reduce network latency.
+While improving performance, minified code is also hard to debug.
+A source map library helps by mapping the minified files back the the original source code.
 
-APM Server provides a <<sourcemap-api,Source Map API>> 
-which accepts source maps complying to the 
-https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k[Source map revision 3 proposal].
+APM Server provides a <<sourcemap-api,Source Map API>> for uploading source maps.
 
-Uploaded source maps are used to map _stack trace_ information from recorded transaction and error documents 
-to the original source code files for easier debugging.  
+Source maps are then automatically applied to all incoming transactions and errors.
+
+Source maps are cached in memory for as long as the <<rum-sourcemap-cache,cache expiration>> setting indicates.
 
 [[sourcemap-apply]]
 [float]
 === How source maps are applied
 
-When source maps have been <<sourcemap-endpoint,uploaded>> and <<rum-enable,RUM support>> is enabled, 
-source mapping is automatically applied to the _stack trace frames_ of all errors and transactions 
-recorded with the
-{apm-rum-ref}/index.html[JavaScript RUM Agent].
+APM Server needs to find the correct source map for every `stack trace frame` in an event.
+To do so, it tries the following:
 
-The server tries to find an uploaded source map for every `stack trace frame` of the record.
-The following information is used to find the previously uploaded source map entry:
+* compare the event's `service.name` with the source map's `service_name`
+* compare the event's `service.version` with the source map's `service_version`
+* compare the stack trace frame's `abs_path` with the source map's `bundle_filepath`
 
-* the record's `service.name` is matched against the source map's `service_name`
-* the record's `service.version` is matched against the source map's `service_version`
-* the stack trace frame's `abs_path` is matched against the source map's `bundle_filepath`
+If multiple source maps are found,
+the one with the latest upload timestamp is used.
 
-If multiple source maps with the same meta information are found, 
-the source map with the latest upload timestamp is used. 
-
-In case a matching source map is found and the source map can be applied to the `stack trace frame`, 
-the frame's information is updated with the mapped information before the record is indexed.
-The following information is changed to reflect the original source code file, when source mapping is applied:
+If succeeded, the following attributes in the `stack trace frames` are overwritten:
 
 * `filename`
 * `function`
 * `line number`
 * `column number`
-* `abs path`: is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name 
+* `abs path`: is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name
 
 See how an <<sourcemap-example, example source map>> looks like in Elasticsearch.
