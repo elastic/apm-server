@@ -20,7 +20,7 @@
 :modules-command-short-desc: Manages configured modules
 :run-command-short-desc: Runs {beatname_uc}. This command is used by default if you start {beatname_uc} without specifying a command
 
-ifndef::deprecate_dashboard_loading[] 
+ifndef::deprecate_dashboard_loading[]
 
 ifdef::has_ml_jobs[]
 :setup-command-short-desc: Sets up the initial environment, including the index template, Kibana dashboards (when available), and machine learning jobs (when available)
@@ -32,9 +32,9 @@ endif::[]
 
 endif::[]
 
-ifdef::deprecate_dashboard_loading[] 
+ifdef::deprecate_dashboard_loading[]
 
-:setup-command-short-desc: Sets up the initial environment, 
+:setup-command-short-desc: Sets up the initial environment,
 including the ES index template and Kibana dashboards (deprecated).
 
 endif::[]
@@ -50,12 +50,12 @@ endif::[]
 <titleabbrev>Command reference</titleabbrev>
 ++++
 
-ifndef::deprecate_dashboard_loading[] 
+ifndef::deprecate_dashboard_loading[]
 {beatname_uc} provides a command-line interface for starting {beatname_uc} and
-performing common tasks, like testing configuration files and loading dashboards. 
+performing common tasks, like testing configuration files and loading dashboards.
 endif::[]
 
-ifdef::deprecate_dashboard_loading[] 
+ifdef::deprecate_dashboard_loading[]
 {beatname_uc} provides a command-line interface for starting {beatname_uc} and
 performing common tasks, like testing configuration files and loading dashboards (deprecated).
 endif::[]
@@ -409,16 +409,16 @@ the end of the file is reached. By default harvesters are closed after
 
 endif::[]
 
-ifndef::deprecate_dashboard_loading[] 
-*`--setup`*:: 
+ifndef::deprecate_dashboard_loading[]
+*`--setup`*::
 endif::[]
 
-ifdef::deprecate_dashboard_loading[] 
-*`--setup (deprecated)`*:: 
+ifdef::deprecate_dashboard_loading[]
+*`--setup (deprecated)`*::
 endif::[]
 
 ifdef::has_ml_jobs[]
-Loads the initial setup, including Elasticsearch template, Kibana index pattern, 
+Loads the initial setup, including Elasticsearch template, Kibana index pattern,
 Kibana dashboards and Machine learning jobs.
 endif::[]
 
@@ -471,7 +471,7 @@ Or:
 
 * The Kibana dashboards make it easier for you to visualize {beatname_uc} data
 in Kibana.
-ifdef::deprecate_dashboard_loading[] 
+ifdef::deprecate_dashboard_loading[]
 (deprecated)
 endif::[]
 
@@ -493,7 +493,7 @@ environment without actually running {beatname_uc} and ingesting data.
 
 *FLAGS*
 
-ifndef::deprecate_dashboard_loading[] 
+ifndef::deprecate_dashboard_loading[]
 *`--dashboards`*::
 Sets up the Kibana dashboards only. This option loads the dashboards from the
 {beatname_uc} package. For more options, such as loading customized dashboards,
@@ -501,7 +501,7 @@ see {beatsdevguide}/import-dashboards.html[Importing Existing Beat Dashboards]
 in the _Beats Developer Guide_.
 endif::[]
 
-ifdef::deprecate_dashboard_loading[] 
+ifdef::deprecate_dashboard_loading[]
 *`--dashboards` (deprecated)*::
 Sets up the Kibana dashboards only.
 endif::[]

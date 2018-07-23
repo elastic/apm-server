@@ -94,7 +94,7 @@ that you specify should include the root name of the index plus version and
 date information. You also need to configure the `setup.template.name` and
 `setup.template.pattern` options to match the new name. For example:
 +
-ifndef::deprecate_dashboard_loading[] 
+ifndef::deprecate_dashboard_loading[]
 
 ["source","sh",subs="attributes,callouts"]
 -----
@@ -111,7 +111,7 @@ pattern.
 
 endif::[]
 
-ifdef::deprecate_dashboard_loading[] 
+ifdef::deprecate_dashboard_loading[]
 
 ["source","sh",subs="attributes,callouts"]
 -----

@@ -5,7 +5,6 @@ You can specify SSL options when you configure:
 
 * <<configuring-output,outputs>> that support SSL
 * the <<setup-kibana-endpoint,Kibana endpoint>>
-
 ifeval::["{beatname_lc}"=="heartbeat"]
 * <<configuration-heartbeat-options,{beatname_uc} monitors>> that support SSL
 endif::[]
@@ -23,7 +22,6 @@ output.elasticsearch.ssl.key: "/etc/pki/client/cert.key"
 ifndef::only-elasticsearch[]
 Also see <<configuring-ssl-logstash>>.
 endif::[]
-
 
 Example Kibana endpoint config with SSL enabled:
 
