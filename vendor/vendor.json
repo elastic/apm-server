@@ -358,10 +358,12 @@
 			"versionExact": "v0.4.0"
 		},
 		{
-			"checksumSHA1": "L2zyst1TWHCaLzB0kg2rmi+WRBU=",
+			"checksumSHA1": "6Vys4++kajSzgUGaTkhN+daIIt4=",
 			"path": "github.com/elastic/beats/dev-tools/mage",
-			"revision": "af1638c90567274690c8111d47e3c5f12c396558",
-			"revisionTime": "2018-07-02T08:06:33Z"
+			"revision": "fd9c363fbab84b8812408ad6fe34908c131b985b",
+			"revisionTime": "2018-07-18T20:05:11Z",
+			"version": "6.x",
+			"versionExact": "6.x"
 		},
 		{
 			"checksumSHA1": "Dvdr9g4Whhfaym7yRl8YFI3e7Ak=",
