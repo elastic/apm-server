@@ -22,7 +22,7 @@ MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 update-beats:
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
-	@govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION) github.com/elastic/beats/libbeat/kibana@$(BEATS_VERSION) github.com/elastic/beats/libbeat/outputs/transport/transptest@$(BEATS_VERSION)
+	@govendor fetch github.com/elastic/beats/dev-tools/mage@$(BEATS_VERSION) github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION) github.com/elastic/beats/libbeat/kibana@$(BEATS_VERSION) github.com/elastic/beats/libbeat/outputs/transport/transptest@$(BEATS_VERSION)
 	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
