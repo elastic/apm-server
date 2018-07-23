@@ -363,6 +363,10 @@ output.elasticsearch:
       when.contains:
         processor.event: "metric"
 
+    - index: "apm-%{[beat.version]}-onboarding-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "onboarding"
+
   # Optional ingest node pipeline. By default no pipeline will be used.
   #pipeline: ""
 
