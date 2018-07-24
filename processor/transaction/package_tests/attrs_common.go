@@ -31,6 +31,7 @@ func procSetup() *tests.ProcessorSetup {
 		Proc:            transaction.Processor,
 		FullPayloadPath: "../testdata/transaction/payload.json",
 		TemplatePaths: []string{"../../../model/transaction/_meta/fields.yml",
+			"../../../model/span/_meta/fields.yml",
 			"../../../_meta/fields.common.yml"},
 		Schema: schema.PayloadSchema,
 	}

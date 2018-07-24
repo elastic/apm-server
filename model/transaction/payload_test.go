@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -95,7 +96,7 @@ func TestPayloadDecode(t *testing.T) {
 						Type:      "transaction",
 						Timestamp: timestampParsed,
 						Duration:  34.9,
-						Spans:     []*Span{},
+						Spans:     []*span.Span{},
 					},
 				},
 			},
@@ -188,7 +189,7 @@ func TestPayloadTransform(t *testing.T) {
 			},
 		},
 	}
-	spans := []*Span{{}}
+	spans := []*span.Span{{}}
 	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
 	spanEs := common.MapStr{
 		"context": common.MapStr{
