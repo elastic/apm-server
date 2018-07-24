@@ -22,7 +22,6 @@ grouped in the following categories:
 * <<exported-fields-docker-processor>>
 * <<exported-fields-host-processor>>
 * <<exported-fields-kubernetes-processor>>
-* <<exported-fields-system>>
 
 --
 [[exported-fields-apm]]
@@ -1204,7 +1203,7 @@ Kubernetes pod name
 --
 type: keyword
 
-Kubernetes Pod UID
+Kubernetes pod uid
 
 
 --
@@ -1265,133 +1264,6 @@ Kubernetes container name
 type: keyword
 
 Kubernetes container image
-
-
---
-
-[[exported-fields-system]]
-== APM System Metrics fields
-
-System status metrics, like CPU and memory usage, that are collected from the operating system.
-
-
-
-[float]
-== system fields
-
-`system` contains local system metrics.
-
-
-
-[float]
-== cpu fields
-
-`cpu` contains local CPU stats.
-
-
-
-*`system.cpu.total.norm.pct`*::
-+
---
-type: scaled_float
-
-format: percent
-
-The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
-
-
---
-
-[float]
-== memory fields
-
-`memory` contains local memory stats.
-
-
-
-*`system.memory.total`*::
-+
---
-type: long
-
-format: bytes
-
-Total memory.
-
-
---
-
-[float]
-== actual fields
-
-Actual memory used and free.
-
-
-
-*`system.memory.actual.free`*::
-+
---
-type: long
-
-format: bytes
-
-Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal to `system.memory.free`.
-
-
---
-
-[float]
-== process fields
-
-`process` contains process metadata, CPU metrics, and memory metrics.
-
-
-
-[float]
-== cpu fields
-
-`cpu` contains local CPU stats.
-
-
-
-*`system.process.cpu.total.norm.pct`*::
-+
---
-type: scaled_float
-
-format: percent
-
-The percentage of CPU time spent by the process since the last event. This value is normalized by the number of CPU cores and it ranges from 0 to 100%.
-
-
---
-
-[float]
-== memory fields
-
-Memory-specific statistics per process.
-
-
-*`system.process.memory.size`*::
-+
---
-type: long
-
-format: bytes
-
-The total virtual memory the process has.
-
-
---
-
-*`system.process.memory.rss.bytes`*::
-+
---
-type: long
-
-format: bytes
-
-The Resident Set Size. The amount of memory the process occupied in main memory (RAM).
 
 
 --
