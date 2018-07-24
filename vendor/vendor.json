@@ -701,14 +701,6 @@
 			"versionExact": "master"
 		},
 		{
-			"checksumSHA1": "z8VztKgyYSA7eyVuhNocdpav6zA=",
-			"path": "github.com/elastic/beats/libbeat/kibana/",
-			"revision": "78f520f2c417ebc51aac558662cb68b3500d03bf",
-			"revisionTime": "2018-04-30T12:46:23Z",
-			"version": "master",
-			"versionExact": "master"
-		},
-		{
 			"checksumSHA1": "EJeVCFtI/9yrAYD5VuBhtJ1pl4c=",
 			"path": "github.com/elastic/beats/libbeat/logp",
 			"revision": "9b268ba852ae93e1080c745a1031c72243f64df0",
@@ -1049,14 +1041,6 @@
 			"path": "github.com/elastic/beats/libbeat/service",
 			"revision": "9b268ba852ae93e1080c745a1031c72243f64df0",
 			"revisionTime": "2018-07-24T15:10:07Z",
-			"version": "master",
-			"versionExact": "master"
-		},
-		{
-			"checksumSHA1": "unPYsSkPZR/PukshE+IZlyvCrE4=",
-			"path": "github.com/elastic/beats/libbeat/setup/kibana",
-			"revision": "c4593443ab5943ac5dd3465d88236b0cf417fab6",
-			"revisionTime": "2018-05-22T10:47:09Z",
 			"version": "master",
 			"versionExact": "master"
 		},
