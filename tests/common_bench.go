@@ -68,8 +68,8 @@ func benchmarkTransform(b *testing.B, p processor.Processor, tctx transform.Cont
 		} else {
 			tctx.Metadata = *metadata
 			b.StartTimer()
-			for _, transformable := range payload {
-				transformable.Events(&tctx)
+			for _, eventable := range payload {
+				eventable.Events(&tctx)
 			}
 		}
 	}
@@ -91,8 +91,8 @@ func benchmarkProcessRequest(b *testing.B, p processor.Processor, tctx transform
 			b.Error(err)
 		} else {
 			tctx.Metadata = *metadata
-			for _, transformable := range payload {
-				transformable.Events(&tctx)
+			for _, eventable := range payload {
+				eventable.Events(&tctx)
 			}
 		}
 	}

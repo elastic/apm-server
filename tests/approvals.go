@@ -130,8 +130,8 @@ func TestProcessRequests(t *testing.T, p processor.Processor, tctx transform.Con
 
 		tctx.Metadata = *metadata
 		var events []beat.Event
-		for _, transformable := range payload {
-			events = append(events, transformable.Events(&tctx)...)
+		for _, eventable := range payload {
+			events = append(events, eventable.Events(&tctx)...)
 		}
 
 		// extract Fields and write to received.json

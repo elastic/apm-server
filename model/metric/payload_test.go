@@ -150,7 +150,7 @@ func TestPayloadDecode(t *testing.T) {
 			},
 		},
 	} {
-		transformables, err := DecodePayload(test.input)
+		eventables, err := DecodePayload(test.input)
 		if test.err != nil {
 			assert.Error(t, err)
 		}
@@ -161,7 +161,7 @@ func TestPayloadDecode(t *testing.T) {
 					continue
 				}
 				want := test.metrics[i].(*metric)
-				got := transformables[i].(*metric)
+				got := eventables[i].(*metric)
 				assertMetricsMatch(t, *want, *got)
 			}
 		}

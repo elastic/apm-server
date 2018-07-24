@@ -85,12 +85,12 @@ func fetchFields(t *testing.T, p pr.Processor, path string, blacklisted *Set) *S
 	require.NoError(t, err)
 	err = p.Validate(data)
 	require.NoError(t, err)
-	metadata, transformables, err := p.Decode(data)
+	metadata, eventables, err := p.Decode(data)
 	require.NoError(t, err)
 
 	var events []beat.Event
-	for _, transformable := range transformables {
-		events = append(events, transformable.Events(&transform.Context{Metadata: *metadata})...)
+	for _, eventable := range eventables {
+		events = append(events, eventable.Events(&transform.Context{Metadata: *metadata})...)
 	}
 
 	keys := NewSet()
