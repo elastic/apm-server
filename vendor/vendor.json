@@ -1835,10 +1835,12 @@
 			"revisionTime": "2017-11-23T00:13:03Z"
 		},
 		{
-			"checksumSHA1": "fKq6NiaqP3DFxnCRF5mmpJWTSUA=",
+			"checksumSHA1": "k5TsfhX2vvfffYbZQ4fMKtL5+cA=",
 			"path": "github.com/spf13/pflag",
-			"revision": "4c012f6dcd9546820e378d0bdda4d8fc772cdfea",
-			"revisionTime": "2017-11-06T14:28:49Z"
+			"revision": "583c0c0531f06d5278b7d917446061adc344b5cd",
+			"revisionTime": "2018-04-12T12:09:13Z",
+			"version": "v1.0.1",
+			"versionExact": "v1.0.1"
 		},
 		{
 			"checksumSHA1": "Le1psgZO0t6mRg6oY5dmnjH13hk=",
@@ -2105,6 +2107,11 @@
 			"path": "howett.net/plist",
 			"revision": "84d08b7bddb35583bb3153b811c6cc52bb306f52",
 			"revisionTime": "2018-02-14T08:12:42Z"
+		},
+		{
+			"path": "https://github.com/spf13/pflag",
+			"revision": "v1.0.1",
+			"version": "v1.0.1"
 		}
 	],
 	"rootPath": "github.com/elastic/apm-server"

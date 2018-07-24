@@ -18,14 +18,17 @@ command (as described here) or
 +{beatname_lc}.yml+ config file.
 
 This requires a Kibana endpoint configuration. If you didn't already configure
-a Kibana endpoint, see <<{beatname_lc}-configuration,configure {beatname_uc}>>.
+a Kibana endpoint, see <<{beatname_lc}-configuration,configure {beatname_uc}>>. 
 
 Make sure Kibana is running before you perform this step. If you are accessing a
 secured Kibana instance, make sure you've configured credentials as described in
 <<{beatname_lc}-configuration>>.
 
 To set up the Kibana dashboards for {beatname_uc}, use the appropriate command
-for your system.
+for your system. The command shown here loads the dashboards from the {beatname_uc}
+package. For more options, such as loading customized dashboards, see
+{beatsdevguide}/import-dashboards.html[Importing Existing Beat Dashboards] in
+the _Beats Developer Guide_.
 ifndef::only-elasticsearch[]
 If you've configured the Logstash output, see
 <<load-dashboards-logstash>>.
