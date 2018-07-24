@@ -292,7 +292,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: a314e34ea823c39f0838be59de7f299831a8a018
+Revision: 623be88feced0ac25ac8f1a642af97128050a9bb
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -358,7 +358,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-ucfg
-Revision: 9c66f5c432b1d25bdb449a1e588d58b5d0cd7268
+Revision: 581f7b1fe9d84f4c18ef0694d6e0eb944a925dae
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-ucfg/LICENSE:
 --------------------------------------------------------------------
@@ -1630,11 +1630,11 @@ DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Shopify/sarama
-Revision: 32b4ad5c9537ed14e471779b76713ff65420db39
+Revision: d1575e4abe04acbbe8ac766320585cdf271dd189
 License type (autodetected): MIT
 ./vendor/github.com/Shopify/sarama/LICENSE:
 --------------------------------------------------------------------
-Copyright (c) 2013 Evan Huus
+Copyright (c) 2013 Shopify
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
