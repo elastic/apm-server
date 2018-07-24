@@ -22,6 +22,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"expvar"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -40,13 +41,15 @@ import (
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
-
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/elastic/beats/libbeat/version"
 )
 
 const (
+	rootURL                   = "/"
 	BackendTransactionsURL    = "/v1/transactions"
 	ClientSideTransactionsURL = "/v1/client-side/transactions"
 	RumTransactionsURL        = "/v1/rum/transactions"
@@ -76,7 +79,7 @@ type serverResponse struct {
 	err     error
 	code    int
 	counter *monitoring.Int
-	body    string
+	body    interface{}
 }
 
 var (
@@ -89,10 +92,11 @@ var (
 	responseCounter   = counter("response.count")
 	responseErrors    = counter("response.errors.count")
 	responseSuccesses = counter("response.valid.count")
+	responseOk        = counter("response.valid.ok")
 
 	okResponse = serverResponse{
 		code:    http.StatusOK,
-		counter: counter("response.valid.ok"),
+		counter: responseOk,
 	}
 	acceptedResponse = serverResponse{
 		code:    http.StatusAccepted,
@@ -186,6 +190,7 @@ func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 		mux.Handle(path, mapping.ProcessorHandler(mapping.Processor, beaterConfig, report))
 	}
 
+	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
 	mux.Handle(HealthCheckURL, healthCheckHandler())
 
 	if beaterConfig.Expvar.isEnabled() {
@@ -266,11 +271,39 @@ func sourcemapHandler(p processor.Processor, beaterConfig *Config, report report
 				processRequestHandler(p, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }
 
+// Deprecated: use rootHandler instead
 func healthCheckHandler() http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sendStatus(w, r, okResponse)
 		}))
+}
+
+func rootHandler(secretToken string) http.Handler {
+	serverInfo := common.MapStr{
+		"build_date": version.BuildTime().Format(time.RFC3339),
+		"build_sha":  version.Commit(),
+		"version":    version.GetDefaultVersion(),
+	}
+	detailedOkResponse := serverResponse{
+		code:    http.StatusOK,
+		counter: responseOk,
+		body:    serverInfo,
+	}
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		if isAuthorized(r, secretToken) {
+			sendStatus(w, r, detailedOkResponse)
+			return
+		}
+		sendStatus(w, r, okResponse)
+	})
+	return logHandler(handler)
 }
 
 type logContextKey string
@@ -463,10 +496,11 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	responseCounter.Inc()
 	res.counter.Inc()
 
-	var msg, msgKey string
+	var msgKey string
+	var msg interface{}
 	if res.err == nil {
 		responseSuccesses.Inc()
-		if len(res.body) == 0 {
+		if res.body == nil {
 			return
 		}
 		msgKey = "ok"
@@ -486,7 +520,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	if acceptsJSON(r) {
 		sendJSON(w, map[string]interface{}{msgKey: msg})
 	} else {
-		sendPlain(w, msg)
+		sendPlain(w, fmt.Sprintf("%s", msg))
 	}
 }
 
