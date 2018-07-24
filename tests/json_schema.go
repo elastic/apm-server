@@ -219,6 +219,11 @@ func (ps *ProcessorSetup) DataValidation(t *testing.T, testData []SchemaTestData
 	}
 }
 
+func logPayload(t *testing.T, payload map[string]interface{}) {
+	j, _ := json.MarshalIndent(payload, "", " ")
+	t.Log("payload:", string(j))
+}
+
 func (ps *ProcessorSetup) changePayload(
 	t *testing.T,
 	key string,
@@ -253,15 +258,24 @@ func (ps *ProcessorSetup) changePayload(
 	fnKey, keyToChange := splitKey(key)
 	payload = iterateMap(payload, "", fnKey, keyToChange, val, changeFn).(obj)
 
+	wantLog := false
+	defer func() {
+		if wantLog {
+			logPayload(t, payload)
+		}
+	}()
+
 	// run actual validation
 	err = ps.Proc.Validate(payload)
 	if shouldValidate, errMsg := validateFn(key); shouldValidate {
-		assert.NoError(t, err, fmt.Sprintf("Expected <%v> for key <%s> to be valid", val, key))
+		wantLog = !assert.NoError(t, err, fmt.Sprintf("Expected <%v> for key <%s> to be valid", val, key))
 		_, err = ps.Proc.Decode(payload)
 		assert.NoError(t, err)
 	} else {
 		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v> with msg "%s", but received no error.`, key, errMsg)) {
-			assert.Contains(t, strings.ToLower(err.Error()), errMsg)
+			wantLog = !assert.Contains(t, strings.ToLower(err.Error()), errMsg)
+		} else {
+			wantLog = true
 		}
 	}
 }
