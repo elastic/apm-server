@@ -11,7 +11,6 @@ ES_BEATS?=./_beats
 BEATS_VERSION?=master
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
-FIELDS_FILE_PATH=model
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 
 # Path to the libbeat Makefile
@@ -25,6 +24,10 @@ update-beats:
 	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
+
+.PHONY: libbeat_fields
+libbeat_fields:
+	@$(MAKE) fields
 
 .PHONY: is-beats-updated
 is-beats-updated: python-env
