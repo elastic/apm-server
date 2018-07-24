@@ -64,7 +64,7 @@ class ServerSetUpBaseTest(BaseTest):
 
     def setUp(self):
         super(ServerSetUpBaseTest, self).setUp()
-        shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
+        shutil.copy(self._beat_path_join("fields.test.yml"), self.working_dir)
 
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()

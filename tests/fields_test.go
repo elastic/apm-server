@@ -84,7 +84,7 @@ func TestLoadFields(t *testing.T) {
 	_, err := loadFields("non-existing")
 	assert.NotNil(t, err)
 
-	fields, err := loadFields("./_meta/fields.yml")
+	fields, err := loadFields("./_meta/fields.test.yml")
 	assert.Nil(t, err)
 	expected := NewSet("transaction", "transaction.id", "transaction.context", "exception", "exception.http", "exception.http.url", "exception.http.meta", "exception.stacktrace")
 	flattened := NewSet()
@@ -94,7 +94,7 @@ func TestLoadFields(t *testing.T) {
 
 func TestFlattenFieldNames(t *testing.T) {
 
-	fields, _ := loadFields("./_meta/fields.yml")
+	fields, _ := loadFields("./_meta/fields.test.yml")
 
 	expected := NewSet("transaction", "transaction.id", "transaction.context", "exception", "exception.http", "exception.http.url", "exception.http.meta", "exception.stacktrace")
 
