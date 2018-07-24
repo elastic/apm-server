@@ -292,7 +292,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.x
-Revision: fd9c363fbab84b8812408ad6fe34908c131b985b
+Revision: b4f921bc44032da6a7f78f152dc001b0ad052586
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -359,7 +359,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-ucfg
-Revision: 9c66f5c432b1d25bdb449a1e588d58b5d0cd7268
+Revision: 581f7b1fe9d84f4c18ef0694d6e0eb944a925dae
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-ucfg/LICENSE:
 --------------------------------------------------------------------
@@ -1616,11 +1616,11 @@ DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Shopify/sarama
-Revision: 32b4ad5c9537ed14e471779b76713ff65420db39
+Revision: d1575e4abe04acbbe8ac766320585cdf271dd189
 License type (autodetected): MIT
 ./vendor/github.com/Shopify/sarama/LICENSE:
 --------------------------------------------------------------------
-Copyright (c) 2013 Evan Huus
+Copyright (c) 2013 Shopify
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1743,7 +1743,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/testify
 Version: v1.2.0
-Revision: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+Revision: f35b8ab0b5a2cef36673838d662e249dd9c94686
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
 --------------------------------------------------------------------

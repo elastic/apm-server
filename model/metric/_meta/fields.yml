@@ -1,0 +1,80 @@
+- key: system
+  title: "APM System Metrics"
+  description: >
+    System status metrics, like CPU and memory usage, that are collected from the operating system.
+  short_config: true
+  fields:
+    - name: system
+      type: group
+      description: >
+        `system` contains local system metrics.
+      fields:
+
+      - name: cpu
+        type: group
+        description: >
+          `cpu` contains local CPU stats.
+        fields:
+        - name: total.norm.pct
+          type: scaled_float
+          format: percent
+          description: >
+            The percentage of CPU time spent by the process since the last event.
+            This value is normalized by the number of CPU cores and it ranges
+            from 0 to 100%.
+
+      - name: memory
+        type: group
+        description: >
+          `memory` contains local memory stats.
+        fields:
+        - name: total
+          type: long
+          format: bytes
+          description: >
+            Total memory.
+        - name: actual
+          type: group
+          description: >
+            Actual memory used and free.
+          fields:
+          - name: free
+            type: long
+            format: bytes
+            description: >
+              Actual free memory in bytes. It is calculated based on the OS. On Linux it consists of the free memory
+              plus caches and buffers. On OSX it is a sum of free memory and the inactive memory. On Windows, it is equal
+              to `system.memory.free`.
+
+      - name: process
+        type: group
+        description: >
+          `process` contains process metadata, CPU metrics, and memory metrics.
+        fields:
+        - name: cpu
+          type: group
+          description: >
+            `cpu` contains local CPU stats.
+          fields:
+          - name: total.norm.pct
+            type: scaled_float
+            format: percent
+            description: >
+              The percentage of CPU time spent by the process since the last event.
+              This value is normalized by the number of CPU cores and it ranges
+              from 0 to 100%.
+        - name: memory
+          type: group
+          description: Memory-specific statistics per process.
+          prefix: "[float]"
+          fields:
+          - name: size
+            type: long
+            format: bytes
+            description: >
+              The total virtual memory the process has.
+          - name: rss.bytes
+            type: long
+            format: bytes
+            description: >
+              The Resident Set Size. The amount of memory the process occupied in main memory (RAM).

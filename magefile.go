@@ -99,6 +99,10 @@ func Update() error {
 	return sh.Run("make", "update")
 }
 
+func Fields() error {
+	return mage.GenerateFieldsYAML("model")
+}
+
 // -----------------------------------------------------------------------------
 // Customizations specific to apm-server.
 // - readme.md.tmpl used in packages is customized.
