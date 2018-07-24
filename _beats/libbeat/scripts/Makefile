@@ -307,7 +307,6 @@ coverage-report:
 
 .PHONY: fields
 fields: mage
-	echo $(PWD)
 	mage -v fields
 
 .PHONY: libbeat_fields
