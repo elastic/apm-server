@@ -33,8 +33,17 @@ https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
 
 https://github.com/elastic/apm-server/compare/6.2\...6.3[View commits]
 
+* <<release-notes-6.3.2>>
 * <<release-notes-6.3.1>>
 * <<release-notes-6.3.0>>
+
+
+[[release-notes-6.3.2]]
+=== APM Server version 6.3.2
+
+https://github.com/elastic/apm-server/compare/v6.3.1\...v6.3.2[View commits]
+
+No significant changes.
 
 
 [[release-notes-6.3.1]]
