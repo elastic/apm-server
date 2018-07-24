@@ -24,6 +24,7 @@ https://github.com/elastic/apm-server/compare/6.3\...master[View commits]
 - Add source_mapping.elasticsearch configuration option {pull}1114[1114].
 - Add /v1/metrics endpoint {pull}1000[1000] {pull}1121[1121].
 - Push onboarding doc to separate ES index {pull}1159[1159].
+- Disable metrics logging by default {pull}1127[1127].
 
 
 [[release-notes-6.3]]
