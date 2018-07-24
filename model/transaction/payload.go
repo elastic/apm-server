@@ -18,8 +18,9 @@
 package transaction
 
 import (
-	"github.com/elastic/apm-server/transform"
 	"github.com/santhosh-tekuri/jsonschema"
+
+	"github.com/elastic/apm-server/transform"
 
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/utility"
