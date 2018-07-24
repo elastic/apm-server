@@ -94,3 +94,8 @@ release-manager-snapshot:
 .PHONY: release-manager-release
 release-manager-release:
 	./_beats/dev-tools/run_with_go_ver $(MAKE) release
+
+.PHONY: are-kibana-objects-updated
+are-kibana-objects-updated: python-env
+	@$(MAKE) clean update
+	@$(PYTHON_ENV)/bin/python ./script/are_kibana_saved_objects_updated.py ${BEATS_VERSION}
