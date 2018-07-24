@@ -81,13 +81,12 @@ func TestInvalidateCache(t *testing.T) {
 	assert.NotNil(t, mapping)
 
 	conf := config.Config{SmapMapper: &smapMapper}
-	p := NewProcessor()
-	payload, err := p.Decode(data)
+
+	payload, err := DecodePayload(data)
 	assert.NoError(t, err)
 	payload.Transform(conf)
 
-	p = NewProcessor()
-	payload, err = p.Decode(data)
+	payload, err = DecodePayload(data)
 	assert.NoError(t, err)
 	payload.Transform(conf)
 
@@ -105,4 +104,27 @@ func (a *smapMapperFake) Apply(id sourcemap.Id, lineno, colno int) (*sourcemap.M
 
 func (sm *smapMapperFake) NewSourcemapAdded(id sourcemap.Id) {
 	sm.c = map[string]*sourcemap.Mapping{}
+}
+
+func TestTransform(t *testing.T) {
+	data, err := loader.LoadValidData("sourcemap")
+	assert.NoError(t, err)
+
+	payload, err := DecodePayload(data)
+	assert.NoError(t, err)
+	rs := payload.Transform(config.Config{})
+	assert.Len(t, rs, 1)
+	event := rs[0]
+	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
+	output := event.Fields["sourcemap"].(common.MapStr)
+
+	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
+	assert.Equal(t, "service", getStr(output, "service.name"))
+	assert.Equal(t, "1", getStr(output, "service.version"))
+	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
+
+	payload, err = DecodePayload(nil)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "Error fetching field")
+	}
 }

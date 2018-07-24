@@ -37,10 +37,10 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
-	"github.com/elastic/apm-server/processor/healthcheck"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
+
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -62,13 +62,11 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorFactory func() processor.Processor
-
-type ProcessorHandler func(ProcessorFactory, *Config, reporter) http.Handler
+type ProcessorHandler func(processor.Processor, *Config, reporter) http.Handler
 
 type routeMapping struct {
 	ProcessorHandler
-	ProcessorFactory
+	processor.Processor
 }
 
 type serverResponse struct {
@@ -140,24 +138,26 @@ var (
 		}
 	}
 
-	Routes = map[string]routeMapping{
-		BackendTransactionsURL:  {backendHandler, transaction.NewProcessor},
-		FrontendTransactionsURL: {frontendHandler, transaction.NewProcessor},
-		BackendErrorsURL:        {backendHandler, perr.NewProcessor},
-		FrontendErrorsURL:       {frontendHandler, perr.NewProcessor},
-		HealthCheckURL:          {healthCheckHandler, healthcheck.NewProcessor},
-		MetricsURL:              {metricsHandler, metric.NewProcessor},
-		SourcemapsURL:           {sourcemapHandler, sourcemap.NewProcessor},
+	ProcessorRoutes = map[string]routeMapping{
+		BackendTransactionsURL:  {backendHandler, transaction.Processor},
+		FrontendTransactionsURL: {frontendHandler, transaction.Processor},
+		BackendErrorsURL:        {backendHandler, perr.Processor},
+		FrontendErrorsURL:       {frontendHandler, perr.Processor},
+		MetricsURL:              {metricsHandler, metric.Processor},
+		SourcemapsURL:           {sourcemapHandler, sourcemap.Processor},
 	}
 )
 
 func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
-	for path, mapping := range Routes {
+	for path, mapping := range ProcessorRoutes {
 		logger.Infof("Path %s added to request handler", path)
-		mux.Handle(path, mapping.ProcessorHandler(mapping.ProcessorFactory, beaterConfig, report))
+
+		mux.Handle(path, mapping.ProcessorHandler(mapping.Processor, beaterConfig, report))
 	}
+
+	mux.Handle(HealthCheckURL, healthCheckHandler())
 
 	if beaterConfig.Expvar.isEnabled() {
 		path := beaterConfig.Expvar.Url
@@ -191,15 +191,15 @@ func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler 
 	})
 }
 
-func backendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+func backendHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
 	return logHandler(
 		concurrencyLimitHandler(beaterConfig,
 			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(pf, conf.Config{}, report,
+				processRequestHandler(p, conf.Config{}, report,
 					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
-func frontendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+func frontendHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
 	smapper, err := beaterConfig.Frontend.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
@@ -214,19 +214,19 @@ func frontendHandler(pf ProcessorFactory, beaterConfig *Config, report reporter)
 			concurrencyLimitHandler(beaterConfig,
 				ipRateLimitHandler(beaterConfig.Frontend.RateLimit,
 					corsHandler(beaterConfig.Frontend.AllowOrigins,
-						processRequestHandler(pf, config, report,
+						processRequestHandler(p, config, report,
 							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))))
 }
 
-func metricsHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+func metricsHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
 	return logHandler(
 		killSwitchHandler(beaterConfig.Metrics.isEnabled(),
 			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(pf, conf.Config{}, report,
+				processRequestHandler(p, conf.Config{}, report,
 					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
-func sourcemapHandler(pf ProcessorFactory, beaterConfig *Config, report reporter) http.Handler {
+func sourcemapHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
 	smapper, err := beaterConfig.Frontend.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
@@ -234,10 +234,10 @@ func sourcemapHandler(pf ProcessorFactory, beaterConfig *Config, report reporter
 	return logHandler(
 		killSwitchHandler(beaterConfig.Frontend.isEnabled(),
 			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(pf, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
+				processRequestHandler(p, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }
 
-func healthCheckHandler(_ ProcessorFactory, _ *Config, _ reporter) http.Handler {
+func healthCheckHandler() http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sendStatus(w, r, okResponse)
@@ -383,16 +383,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) http.Handler {
+func processRequestHandler(p processor.Processor, config conf.Config, report reporter, decode decoder.Decoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := processRequest(r, pf, config, report, decode)
+		res := processRequest(r, p, config, report, decode)
 		sendStatus(w, r, res)
 	})
 }
 
-func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, report reporter, decode decoder.Decoder) serverResponse {
-	processor := pf()
-
+func processRequest(r *http.Request, p processor.Processor, config conf.Config, report reporter, decode decoder.Decoder) serverResponse {
 	if r.Method != "POST" {
 		return methodNotAllowedResponse
 	}
@@ -406,11 +404,11 @@ func processRequest(r *http.Request, pf ProcessorFactory, config conf.Config, re
 
 	}
 
-	if err = processor.Validate(data); err != nil {
+	if err = p.Validate(data); err != nil {
 		return cannotValidateResponse(err)
 	}
 
-	payload, err := processor.Decode(data)
+	payload, err := p.Decode(data)
 	if err != nil {
 		return cannotDecodeResponse(err)
 	}

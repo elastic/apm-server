@@ -18,8 +18,8 @@
 package package_tests
 
 import (
-	er "github.com/elastic/apm-server/processor/error"
-	"github.com/elastic/apm-server/processor/error/generated/schema"
+	"github.com/elastic/apm-server/model/error/generated/schema"
+	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -28,9 +28,9 @@ type val = []interface{}
 
 func procSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            er.NewProcessor(),
+		Proc:            perr.Processor,
 		FullPayloadPath: "../testdata/error/payload.json",
-		TemplatePaths: []string{"../_meta/fields.yml",
+		TemplatePaths: []string{"../../../model/error/_meta/fields.yml",
 			"../../../_meta/fields.common.yml"},
 		Schema: schema.PayloadSchema,
 	}

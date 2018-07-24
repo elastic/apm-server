@@ -15,20 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package transaction
+package metric
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/model/metric"
+	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-func TestImplementProcessorInterface(t *testing.T) {
-	p := NewProcessor()
-	assert.NotNil(t, p)
-	_, ok := p.(pr.Processor)
-	assert.True(t, ok)
-	assert.IsType(t, &processor{}, p)
-}
+var (
+	Processor = &processor.PayloadProcessor{
+		ProcessorName: "metric",
+		DecodePayload: metric.DecodePayload,
+		PayloadSchema: metric.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(metric.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(metric.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(metric.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(metric.Metrics, "validation.errors"),
+	}
+)
