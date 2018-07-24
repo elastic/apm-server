@@ -242,9 +242,9 @@ class ElasticTest(ServerBaseTest):
 
 class ClientSideBaseTest(ElasticTest):
 
-    transactions_url = 'http://localhost:8200/v1/client-side/transactions'
-    errors_url = 'http://localhost:8200/v1/client-side/errors'
-    sourcemap_url = 'http://localhost:8200/v1/client-side/sourcemaps'
+    transactions_url = 'http://localhost:8200/v1/rum/transactions'
+    errors_url = 'http://localhost:8200/v1/rum/errors'
+    sourcemap_url = 'http://localhost:8200/v1/rum/sourcemaps'
 
     @classmethod
     def setUpClass(cls):
@@ -253,15 +253,15 @@ class ClientSideBaseTest(ElasticTest):
 
     def config(self):
         cfg = super(ClientSideBaseTest, self).config()
-        cfg.update({"enable_frontend": "true",
+        cfg.update({"enable_rum": "true",
                     "smap_index_pattern": self.smap_index_pattern,
                     "smap_cache_expiration": "200"})
         return cfg
 
-    def get_transaction_payload_path(self, name='frontend.json'):
+    def get_transaction_payload_path(self, name='rum.json'):
         return super(ClientSideBaseTest, self).get_transaction_payload_path(name)
 
-    def get_error_payload_path(self, name='frontend.json'):
+    def get_error_payload_path(self, name='rum.json'):
         return super(ClientSideBaseTest, self).get_error_payload_path(name)
 
     def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',
@@ -290,7 +290,7 @@ class ClientSideBaseTest(ElasticTest):
             )['count'] == expected_ct)
         )
 
-    def check_frontend_error_sourcemap(self, updated, expected_err=None, count=1):
+    def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "error"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
@@ -302,7 +302,7 @@ class ClientSideBaseTest(ElasticTest):
             if "log" in err:
                 self.check_smap(err["log"], updated, expected_err)
 
-    def check_frontend_transaction_sourcemap(self, updated, expected_err=None, count=1):
+    def check_rum_transaction_sourcemap(self, updated, expected_err=None, count=1):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "span"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(

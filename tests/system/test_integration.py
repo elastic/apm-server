@@ -113,7 +113,7 @@ class Test(ElasticTest):
         return json.dumps(data, indent=4, separators=(',', ': '))
 
 
-class FrontendEnabledIntegrationTest(ClientSideBaseTest):
+class RumEnabledIntegrationTest(ClientSideBaseTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
@@ -123,7 +123,7 @@ class FrontendEnabledIntegrationTest(ClientSideBaseTest):
         self.check_library_frames({"true": 1, "false": 1, "empty": 2}, "error")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_frontend_error(self):
+    def test_rum_error(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.errors_url,
                                      'error',
@@ -139,7 +139,7 @@ class FrontendEnabledIntegrationTest(ClientSideBaseTest):
         self.check_library_frames({"true": 1, "false": 0, "empty": 1}, "span")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_frontend_transaction(self):
+    def test_rum_transaction(self):
         self.load_docs_with_template(self.get_transaction_payload_path(),
                                      self.transactions_url,
                                      'transaction',
@@ -157,7 +157,7 @@ class FrontendEnabledIntegrationTest(ClientSideBaseTest):
         assert "ip" in rs['hits']['hits'][0]["_source"]["context"]["system"], rs['hits']
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_enrich_frontend_event(self):
+    def test_enrich_rum_event(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.errors_url,
                                      'error',
@@ -173,9 +173,9 @@ class FrontendEnabledIntegrationTest(ClientSideBaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_grouping_key_for_error(self):
-        # upload the same error, once via frontend, once via backend endpoint
+        # upload the same error, once via rum, once via backend endpoint
         # check they don't have the same grouping key, as the
-        # `frontend.exclude_from_grouping` should only be applied to the frontend error.
+        # `rum.exclude_from_grouping` should only be applied to the rum error.
         self.load_docs_with_template(self.get_error_payload_path(),
                                      'http://localhost:8200/v1/errors',
                                      'error',
@@ -295,7 +295,7 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
             ["WARN.*Overriding sourcemap", "WARN.*Multiple sourcemaps"])
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_frontend_error(self):
+    def test_rum_error(self):
         # use an uncleaned path to test that path is cleaned in upload
         path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(
@@ -308,7 +308,7 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
-        self.check_frontend_error_sourcemap(True)
+        self.check_rum_error_sourcemap(True)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_transaction(self):
@@ -327,7 +327,7 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
         self.check_backend_transaction_sourcemap()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_frontend_transaction(self):
+    def test_rum_transaction(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(file_name='bundle.js.map',
                                   bundle_filepath=path,
@@ -340,7 +340,7 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
                                      'transaction',
                                      2)
         self.assert_no_logged_warnings()
-        self.check_frontend_transaction_sourcemap(True)
+        self.check_rum_transaction_sourcemap(True)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_sourcemap(self):
@@ -348,7 +348,7 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.check_frontend_error_sourcemap(
+        self.check_rum_error_sourcemap(
             False, expected_err="No Sourcemap available for")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -371,7 +371,7 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.check_frontend_error_sourcemap(
+        self.check_rum_error_sourcemap(
             False, expected_err="No Sourcemap found for")
 
         # remove existing document
@@ -395,7 +395,7 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.check_frontend_error_sourcemap(True, count=1)
+        self.check_rum_error_sourcemap(True, count=1)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_mapping_cache_usage(self):
@@ -424,13 +424,13 @@ class SourcemappingIntegrationTest(ClientSideBaseTest):
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
-        self.check_frontend_error_sourcemap(True)
+        self.check_rum_error_sourcemap(True)
 
 
 class SourcemappingIntegrationChangedConfigTest(SmapIndexBaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_frontend_error_changed_index(self):
+    def test_rum_error_changed_index(self):
         # use an uncleaned path to test that path is cleaned in upload
         path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(
@@ -443,7 +443,7 @@ class SourcemappingIntegrationChangedConfigTest(SmapIndexBaseTest):
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
-        self.check_frontend_error_sourcemap(True)
+        self.check_rum_error_sourcemap(True)
 
 
 class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
@@ -472,7 +472,7 @@ class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
                                      self.errors_url,
                                      'error',
                                      1)
-        self.check_frontend_error_sourcemap(
+        self.check_rum_error_sourcemap(
             False, expected_err="No Sourcemap available for")
 
 
@@ -515,10 +515,7 @@ class MetricsIntegrationTest(Test):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_metric_doc(self):
         self.load_docs_with_template(self.get_metrics_payload_path(), self.metrics_url, 'metric', 1)
-        mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="metric*value")
-        found_mapping = False
-        for name, metric in mappings[self.index_name]["mappings"]["doc"].items():
-            for mapping in metric["mapping"].values():
-                assert mapping["type"] == "float", name + " mapped as " + mapping["type"] + ", not float"
-                found_mapping = True
-        assert found_mapping, "expected to find metric value mappings"
+        mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="system.process.cpu.total.norm.pct")
+        expected_type = "scaled_float"
+        actual_type = mappings[self.index_name]["mappings"]["doc"]["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
+        assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)

@@ -27,7 +27,7 @@ import (
 
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/config"
-	pr "github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
@@ -47,7 +47,7 @@ type publisher struct {
 }
 
 type pendingReq struct {
-	payload pr.Payload
+	payload model.Payload
 	config  config.Config
 	trace   bool
 }

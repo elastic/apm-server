@@ -11,10 +11,13 @@
                     "name": "apm-server"
                 }
             },
-            "metric": {
-                "go.memstats.heap.sys.bytes": {
-                    "type": "gauge",
-                    "value": 6520832
+            "go": {
+                "memstats": {
+                    "heap": {
+                        "sys": {
+                            "bytes": 6520832
+                        }
+                    }
                 }
             },
             "processor": {

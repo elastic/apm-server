@@ -49,6 +49,7 @@ import (
 func TestBeatConfig(t *testing.T) {
 	falsy := false
 	truthy := true
+
 	tests := []struct {
 		conf       map[string]interface{}
 		beaterConf *Config
@@ -87,7 +88,7 @@ func TestBeatConfig(t *testing.T) {
 					"allow_origins": []string{"example*"},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
-							"expiration": 5 * time.Minute,
+							"expiration": 8 * time.Minute,
 						},
 						"index_pattern": "apm-test*",
 					},
@@ -113,12 +114,24 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
-				Frontend: &FrontendConfig{
+				FrontendConfig: &rumConfig{
 					Enabled:      &truthy,
 					RateLimit:    1000,
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
-						Cache:        &Cache{Expiration: 5 * time.Minute},
+						Cache:        &Cache{Expiration: 8 * time.Minute},
+						IndexPattern: "apm-test*",
+					},
+					LibraryPattern:      "^custom",
+					ExcludeFromGrouping: "^grouping",
+					beatVersion:         "6.2.0",
+				},
+				RumConfig: &rumConfig{
+					Enabled:      &truthy,
+					RateLimit:    1000,
+					AllowOrigins: []string{"example*"},
+					SourceMapping: &SourceMapping{
+						Cache:        &Cache{Expiration: 8 * time.Minute},
 						IndexPattern: "apm-test*",
 					},
 					LibraryPattern:      "^custom",
@@ -145,12 +158,22 @@ func TestBeatConfig(t *testing.T) {
 					"url":     "/debug/vars",
 				},
 				"frontend": map[string]interface{}{
+					"enabled":    true,
+					"rate_limit": 890,
+					"source_mapping": map[string]interface{}{
+						"cache": map[string]interface{}{
+							"expiration": 4,
+						},
+					},
+				},
+				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 7,
 						},
 					},
+					"library_pattern": "rum",
 				},
 			},
 			beaterConf: &Config{
@@ -168,7 +191,21 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
-				Frontend: &FrontendConfig{
+				FrontendConfig: &rumConfig{
+					Enabled:   &truthy,
+					RateLimit: 890,
+					SourceMapping: &SourceMapping{
+						Cache: &Cache{
+							Expiration: 4 * time.Second,
+						},
+						IndexPattern: "apm-*-sourcemap*",
+					},
+					AllowOrigins:        []string{"*"},
+					LibraryPattern:      "node_modules|bower_components|~",
+					ExcludeFromGrouping: "^/webpack",
+					beatVersion:         "6.2.0",
+				},
+				RumConfig: &rumConfig{
 					Enabled:      &truthy,
 					RateLimit:    10,
 					AllowOrigins: []string{"*"},
@@ -178,7 +215,7 @@ func TestBeatConfig(t *testing.T) {
 						},
 						IndexPattern: "apm-*-sourcemap*",
 					},
-					LibraryPattern:      "node_modules|bower_components|~",
+					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
 					beatVersion:         "6.2.0",
 				},
@@ -310,7 +347,20 @@ func (bt *beater) wait() error {
 	}
 }
 
-func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*beater, func(), error) {
+func (bt *beater) smapElasticsearchHosts() []string {
+	var content map[string]interface{}
+	if err := bt.config.RumConfig.SourceMapping.EsConfig.Unpack(&content); err != nil {
+		return nil
+	}
+	hostsContent := content["hosts"].([]interface{})
+	hosts := make([]string, len(hostsContent))
+	for i := range hostsContent {
+		hosts[i] = hostsContent[i].(string)
+	}
+	return hosts
+}
+
+func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
 	// create a beat
 	apmBeat := &beat.Beat{
 		Publisher: publisher,
@@ -320,6 +370,7 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config) (*b
 			Version:     version.GetDefaultVersion(),
 			UUID:        uuid.NewV4(),
 		},
+		Config: beatConfig,
 	}
 
 	// create our beater

@@ -27,14 +27,14 @@ import (
 
 var (
 	procSetup = tests.ProcessorSetup{
-		Proc:            metric.NewProcessor(),
+		Proc:            metric.Processor,
 		FullPayloadPath: "../testdata/metric/payload.json",
-		TemplatePaths:   []string{"../_meta/fields.yml", "../../../_meta/fields.common.yml"},
+		TemplatePaths:   []string{"../../../model/metric/_meta/fields.yml", "../../../_meta/fields.common.yml"},
 	}
 )
 
 func TestAttributesPresenceInMetric(t *testing.T) {
-	requiredKeys := tests.NewSet("service", "metrics", "metrics.samples", "metrics.timestamp", "metrics.samples.+.type", "metrics.samples.+.value", "metrics.samples.+.count", "metrics.samples.+.sum")
+	requiredKeys := tests.NewSet("service", "metrics", "metrics.samples", "metrics.timestamp", "metrics.samples.+.value")
 	procSetup.AttrsPresence(t, requiredKeys, nil)
 }
 
@@ -42,16 +42,14 @@ func TestInvalidPayloads(t *testing.T) {
 	type obj = map[string]interface{}
 	type val = []interface{}
 
-	validCounter := obj{"type": "counter", "value": json.Number("1.0")}
-	validGauge := obj{"type": "gauge", "value": json.Number("1.0")}
+	validMetric := obj{"value": json.Number("1.0")}
 	// every payload needs a timestamp, these reduce the clutter
 	//tsk, ts := "timestamp", "2017-05-30T18:53:42.281Z"
 
 	payloadData := []tests.SchemaTestData{
 		{Key: "metrics", Invalid: []tests.Invalid{
 			{Msg: "metrics/minitems", Values: val{[]interface{}{}}},
-			{Msg: "metrics/type", Values: val{"metrics-string"}}},
-		},
+		}},
 		{Key: "metrics.timestamp",
 			Valid: val{"2017-05-30T18:53:42.281Z"},
 			Invalid: []tests.Invalid{
@@ -67,55 +65,21 @@ func TestInvalidPayloads(t *testing.T) {
 		{
 			Key: "metrics.samples",
 			Valid: val{
-				obj{"valid-counter": validCounter},
-				obj{"valid-gauge": validGauge},
-				obj{"valid-gauge": obj{"type": "gauge", "value": json.Number("1.0"), "unit": "foos"}}},
+				obj{"valid-metric": validMetric},
+			},
 			Invalid: []tests.Invalid{
-				{
-					Msg:    "properties/metrics/items/properties/samples/type",
-					Values: val{nil, "samples-as-string", "samples-as-array"},
-				},
 				{
 					Msg: "properties/metrics/items/properties/samples/additionalproperties",
 					Values: val{
-						obj{"metric\"key\"_quotes": validCounter},
-						obj{"metric-*-key-star": validGauge},
+						obj{"metric\"key\"_quotes": validMetric},
+						obj{"metric-*-key-star": validMetric},
 					},
 				},
 				{
 					Msg: "properties/metrics/items/properties/samples/patternproperties",
 					Values: val{
-						obj{"invalid-type": obj{"type": "foo", "value": 17}},
-						obj{"nil-counter-value": obj{"type": "counter", "value": nil}},
-						obj{"nil-gauge-value": obj{"type": "gauge", "value": nil}},
-						obj{"string-counter": obj{"type": "counter", "value": "foo"}},
-						obj{"string-gauge": obj{"type": "gauge", "value": "foo"}},
-						obj{"missing-count": obj{"type": "summary", "sum": 1}},
-						obj{"missing-sum": obj{"type": "summary", "count": 1}},
-					},
-				},
-				{
-					Msg: "properties/quantiles/items/items/0/minimum",
-					Values: val{
-						obj{
-							"min-exceeded": obj{
-								"type":      "summary",
-								"count":     1,
-								"sum":       1,
-								"quantiles": val{val{0, 6.12}, val{-0.5, 10}, val{0.5, 10}}},
-						},
-					},
-				},
-				{
-					Msg: "properties/quantiles/items/items/0/maximum",
-					Values: val{
-						obj{
-							"max-exceeded": obj{
-								"type":      "summary",
-								"count":     1,
-								"sum":       1,
-								"quantiles": val{val{0, 6.12}, val{100, 10}, val{0.5, 10}}},
-						},
+						obj{"nil-value": obj{"value": nil}},
+						obj{"string-value": obj{"value": "foo"}},
 					},
 				},
 			},

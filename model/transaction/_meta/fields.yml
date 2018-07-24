@@ -1,0 +1,66 @@
+- key: apm-transaction
+  title: APM Transaction
+  description: Transaction-specific data for APM
+  fields:
+    - name: transaction
+      type: group
+      dynamic: false
+      fields:
+        - name: name
+          type: text
+          multi_fields:
+            - name: keyword
+              type: keyword
+          description: >
+            Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+
+        - name: type
+          type: keyword
+          description: >
+            Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+        - name: duration
+          type: group
+          description:
+          fields:
+
+            - name: us
+              type: long
+              description: >
+                Total duration of this transaction, in microseconds.
+              format: duration
+              input_format: microseconds
+              output_format: asMilliseconds
+              output_precision: 0
+
+        - name: result
+          type: keyword
+          description: >
+            The result of the transaction. HTTP status code for HTTP-related transactions.
+
+        - name: marks
+          type: object
+          object_type: keyword
+          dynamic: true
+          description: >
+            A user-defined mapping of groups of marks in milliseconds.
+
+        - name: marks.navigationTiming
+          type: object
+          object_type: scaled_float
+          scaling_factor: 1000000
+          dynamic: true
+
+        - name: sampled
+          type: boolean
+          description: >
+            Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
+        - name: span_count
+          type: group
+          fields:
+            - name: dropped
+              type: group
+              fields:
+                - name: total
+                  type: long
+                  description: The total amount of dropped spans for this transaction.

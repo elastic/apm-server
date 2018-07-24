@@ -19,7 +19,6 @@ package sourcemap
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/go-sourcemap/sourcemap"
 
@@ -37,7 +36,7 @@ type SmapAccessor struct {
 }
 
 func NewSmapAccessor(config Config) (*SmapAccessor, error) {
-	logp.NewLogger("sourcemap").Debugf("NewSmapAccessor created at Time.now %v for index", time.Now().Unix(), config.Index)
+	logp.NewLogger("sourcemap").Debugf("creating NewSmapAccessor for index: %s", config.Index)
 
 	es, err := NewElasticsearch(config.ElasticsearchConfig, config.Index)
 	if err != nil {

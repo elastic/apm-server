@@ -30,14 +30,13 @@ var (
 		{Name: "TestProcessMetric", Path: "../testdata/metric/payload.json"},
 		{Name: "TestProcessMetricMinimal", Path: "../testdata/metric/minimal.json"},
 		{Name: "TestProcessMetricMultipleSamples", Path: "../testdata/metric/multiple-samples.json"},
-		{Name: "TestProcessMetricNull", Path: "../testdata/metric/null.json"},
 	}
 )
 
 func TestMetricProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, metric.NewProcessor(), config.Config{}, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, metric.Processor, config.Config{}, requestInfo, map[string]string{})
 }
 
 func BenchmarkProcessor(b *testing.B) {
-	tests.BenchmarkProcessRequests(b, metric.NewProcessor(), config.Config{}, requestInfo)
+	tests.BenchmarkProcessRequests(b, metric.Processor, config.Config{}, requestInfo)
 }

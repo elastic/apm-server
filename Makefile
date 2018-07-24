@@ -11,7 +11,7 @@ ES_BEATS?=./_beats
 BEATS_VERSION?=master
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
-FIELDS_FILE_PATH=processor
+FIELDS_FILE_PATH=model
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 
 # Path to the libbeat Makefile
@@ -43,7 +43,7 @@ go-generate:
 create-docs:
 	@mkdir -p docs/data/intake-api/generated/{error,transaction,metric,sourcemap}
 	@cp testdata/error/payload.json docs/data/intake-api/generated/error/
-	@cp testdata/error/frontend.json docs/data/intake-api/generated/error/
+	@cp testdata/error/rum.json docs/data/intake-api/generated/error/
 	@cp testdata/error/minimal_payload_exception.json docs/data/intake-api/generated/error/
 	@cp testdata/error/minimal_payload_log.json docs/data/intake-api/generated/error/
 	@cp testdata/metric/payload.json docs/data/intake-api/generated/metric/
@@ -97,3 +97,9 @@ release-manager-release:
 .PHONY: bench
 bench:
 	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./processor/...
+
+.PHONY: are-kibana-objects-updated
+are-kibana-objects-updated: python-env
+	@$(MAKE) clean update
+	@$(PYTHON_ENV)/bin/python ./script/are_kibana_saved_objects_updated.py ${BEATS_VERSION}
+

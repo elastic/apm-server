@@ -42,10 +42,11 @@ type Config struct {
 	MaxConnections      int                    `config:"max_connections"`
 	MaxRequestQueueTime time.Duration          `config:"max_request_queue_time"`
 	Expvar              *ExpvarConfig          `config:"expvar"`
-	Frontend            *FrontendConfig        `config:"frontend"`
 	Metrics             *metricsConfig         `config:"metrics"`
 	AugmentEnabled      bool                   `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
+	RumConfig           *rumConfig             `config:"rum"`
+	FrontendConfig      *rumConfig             `config:"frontend"`
 }
 
 type ExpvarConfig struct {
@@ -53,7 +54,7 @@ type ExpvarConfig struct {
 	Url     string `config:"url"`
 }
 
-type FrontendConfig struct {
+type rumConfig struct {
 	Enabled             *bool          `config:"enabled"`
 	RateLimit           int            `config:"rate_limit"`
 	AllowOrigins        []string       `config:"allow_origins"`
@@ -72,7 +73,7 @@ type SourceMapping struct {
 	Cache        *Cache `config:"cache"`
 	IndexPattern string `config:"index_pattern"`
 
-	esConfig *common.Config
+	EsConfig *common.Config `config:"elasticsearch"`
 	mapper   sourcemap.Mapper
 }
 
@@ -90,9 +91,9 @@ type InstrumentationConfig struct {
 	Environment *string `config:"environment"`
 }
 
-func (c *Config) setElasticsearch(esConfig *common.Config) {
-	if c != nil && c.Frontend.isEnabled() && c.Frontend.SourceMapping != nil {
-		c.Frontend.SourceMapping.esConfig = esConfig
+func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
+	if c != nil && c.RumConfig.isEnabled() && c.RumConfig.SourceMapping != nil {
+		c.RumConfig.SourceMapping.EsConfig = esConfig
 	}
 }
 
@@ -104,8 +105,8 @@ func (c *ExpvarConfig) isEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
-func (c *FrontendConfig) isEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
+func (c *rumConfig) isEnabled() bool {
+	return c != nil && (c.Enabled != nil && *c.Enabled)
 }
 
 func (c *metricsConfig) isEnabled() bool {
@@ -113,20 +114,27 @@ func (c *metricsConfig) isEnabled() bool {
 }
 
 func (s *SourceMapping) isSetup() bool {
-	return s != nil && (s.esConfig != nil)
+	return s != nil && (s.EsConfig != nil)
 }
 
-func (c *FrontendConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
-	smap := c.SourceMapping
-	if !c.isEnabled() || !smap.isSetup() {
+func (c *Config) SetRumConfig() {
+	if c.RumConfig != nil && c.RumConfig.Enabled != nil {
+		return
+	}
+	c.RumConfig = c.FrontendConfig
+}
+
+func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
+	if !c.isEnabled() || !c.SourceMapping.isSetup() {
 		return nil, nil
 	}
-	if smap.mapper != nil {
+	if c.SourceMapping.mapper != nil {
 		return c.SourceMapping.mapper, nil
 	}
+
 	smapConfig := sourcemap.Config{
-		CacheExpiration:     smap.Cache.Expiration,
-		ElasticsearchConfig: smap.esConfig,
+		CacheExpiration:     c.SourceMapping.Cache.Expiration,
+		ElasticsearchConfig: c.SourceMapping.EsConfig,
 		Index:               replaceVersion(c.SourceMapping.IndexPattern, c.beatVersion),
 	}
 	smapMapper, err := sourcemap.NewSmapMapper(smapConfig)
@@ -147,6 +155,22 @@ func replaceVersion(pattern, version string) string {
 	return re.ReplaceAllLiteralString(pattern, version)
 }
 
+func defaultRum(beatVersion string) *rumConfig {
+	return &rumConfig{
+		RateLimit:    10,
+		AllowOrigins: []string{"*"},
+		SourceMapping: &SourceMapping{
+			Cache: &Cache{
+				Expiration: 5 * time.Minute,
+			},
+			IndexPattern: "apm-*-sourcemap*",
+		},
+		LibraryPattern:      "node_modules|bower_components|~",
+		ExcludeFromGrouping: "^/webpack",
+		beatVersion:         beatVersion,
+	}
+}
+
 func defaultConfig(beatVersion string) *Config {
 	metricsEnabled := true
 	return &Config{
@@ -161,20 +185,6 @@ func defaultConfig(beatVersion string) *Config {
 		ShutdownTimeout:     5 * time.Second,
 		SecretToken:         "",
 		AugmentEnabled:      true,
-		Frontend: &FrontendConfig{
-			beatVersion:  beatVersion,
-			Enabled:      new(bool),
-			RateLimit:    10,
-			AllowOrigins: []string{"*"},
-			SourceMapping: &SourceMapping{
-				Cache: &Cache{
-					Expiration: 5 * time.Minute,
-				},
-				IndexPattern: "apm-*-sourcemap*",
-			},
-			LibraryPattern:      "node_modules|bower_components|~",
-			ExcludeFromGrouping: "^/webpack",
-		},
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
 			Url:     "/debug/vars",
@@ -182,5 +192,7 @@ func defaultConfig(beatVersion string) *Config {
 		Metrics: &metricsConfig{
 			Enabled: &metricsEnabled,
 		},
+		FrontendConfig: defaultRum(beatVersion),
+		RumConfig:      defaultRum(beatVersion),
 	}
 }

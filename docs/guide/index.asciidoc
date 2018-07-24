@@ -58,7 +58,7 @@ APM Server creates documents from the data received from agents and stores them 
 
 To visualize the data after it's sent to Elasticsearch,
 you can use the the dedicated APM UI bundled in X-Pack,
-or the pre-built open source Kibana dashboards that come with APM Server.
+or the pre-built open source Kibana dashboards that can be loaded directly in the Kibana UI.
 
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines,
 and it's easy to get started.
@@ -148,16 +148,8 @@ You can also configure APM Server to listen on a Unix domain socket.
 [[kibana-dashboards]]
 [float]
 ==== Install the Kibana dashboards
-APM Server comes with predefined Kibana dashboards and index templates for APM data.
-To install those run the following command:
 
-[source,bash]
-----------------------------------
-./apm-server setup
-----------------------------------
-
-NOTE: Due to a bug in Kibana 6.0.0.-rc2 the dashboards don't work in Kibana 6.0.0-rc2.
-
+From APM Server and Kibana 6.4 on you can load dashboards directly via the Kibana UI.
 
 See an example screenshot of a Kibana dashboard:
 
@@ -178,7 +170,7 @@ you need to install an agent in your service.
 === Install and configure APM agents
 
 Agents are written in the same language as your service.
-Currently Elastic APM has agents for Node.js and for Python.
+Currently Elastic APM has agents for Node.js, Python, Ruby, and JavaScript.
 
 Setting up a new service to be monitored requires installing the agent in the service,
 coming up with a good name for the service,
@@ -250,6 +242,61 @@ pip install elastic-apm
 
 The Python agent supports Django and Flask out of the box.
 See the {apm-py-ref}/index.html[APM Python Agent documentation] for more details.
+
+[[ruby-agent]]
+[float]
+==== Install the Ruby agent
+
+Add the gem to your Gemfile:
+
+[source,bash]
+----------------------------------
+gem 'elastic-apm'
+----------------------------------
+
+Create a config file config/elastic_apm.yml:
+
+[source,bash]
+----------------------------------
+server_url: http://localhost:8200
+secret_token: ''
+----------------------------------
+
+The Ruby agent automatically instruments Rails out of the box.
+See the {apm-ruby-ref}/index.html[APM Ruby Agent documentation] for more details.
+
+
+[[rum-agent]]
+[float]
+==== Install the RUM JavaScript agent
+
+Install the agent as a dependency to your application:
+
+[source,bash]
+----------------------------------
+npm install elastic-apm-js-base --save
+----------------------------------
+
+Configure the agent:
+
+[source,bash]
+----------------------------------
+import { init as initApm } from 'elastic-apm-js-base'
+var apm = initApm({
+
+  // Set required service name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
+  serviceName: '',
+
+  // Set custom APM Server URL (default: http://localhost:8200)
+  serverUrl: 'http://localhost:8200',
+
+  // Set service version (required for sourcemap feature)
+  serviceVersion: ''
+})
+----------------------------------
+
+See the {apm-rum-ref}/index.html[APM RUM JavaScript Agent documentation] for more details.
+
 
 [[kibana]]
 [float]

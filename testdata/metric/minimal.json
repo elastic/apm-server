@@ -9,7 +9,6 @@
     "metrics": [{
         "samples": {
             "go.memstats.heap.sys.bytes": {
-                "type": "gauge",
                 "value": 6.520832e+06
             }
         },

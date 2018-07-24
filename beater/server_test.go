@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerOk(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil)
+	apm, teardown, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -95,7 +95,7 @@ func TestServerTcpNoPort(t *testing.T) {
 		"host": "localhost",
 	})
 	assert.NoError(t, err)
-	btr, teardown, err := setupServer(t, ucfg)
+	btr, teardown, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -122,7 +122,7 @@ func TestServerOkUnix(t *testing.T) {
 	addr := tmpTestUnix(t)
 	ucfg, err := common.NewConfigFrom(m{"host": "unix:" + addr})
 	assert.NoError(t, err)
-	btr, stop, err := setupServer(t, ucfg)
+	btr, stop, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer stop()
 
@@ -133,7 +133,7 @@ func TestServerOkUnix(t *testing.T) {
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil)
+	apm, teardown, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -144,15 +144,15 @@ func TestServerHealth(t *testing.T) {
 	assert.Equal(t, http.StatusOK, res.StatusCode, body(t, res))
 }
 
-func TestServerFrontendSwitch(t *testing.T) {
-	ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": []string{"*"}}})
+func TestServerRumSwitch(t *testing.T) {
+	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": []string{"*"}}})
 	assert.NoError(t, err)
-	apm, teardown, err := setupServer(t, ucfg)
+	apm, teardown, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest("POST", baseUrl+FrontendTransactionsURL, bytes.NewReader(testData))
+	req, err := http.NewRequest("POST", baseUrl+RumTransactionsURL, bytes.NewReader(testData))
 	assert.NoError(t, err)
 	res, err := client.Do(req)
 	assert.NotEqual(t, http.StatusForbidden, res.StatusCode, body(t, res))
@@ -200,13 +200,13 @@ func TestServerCORS(t *testing.T) {
 	var teardown = func() {}
 	defer teardown() // in case test crashes. calling teardown twice is ok
 	for idx, test := range tests {
-		ucfg, err := common.NewConfigFrom(m{"frontend": m{"enabled": true, "allow_origins": test.allowedOrigins}})
+		ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
 		assert.NoError(t, err)
 		var apm *beater
-		apm, teardown, err = setupServer(t, ucfg)
+		apm, teardown, err = setupServer(t, ucfg, nil)
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
-		req, err := http.NewRequest("POST", baseUrl+FrontendTransactionsURL, bytes.NewReader(testData))
+		req, err := http.NewRequest("POST", baseUrl+RumTransactionsURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/json")
 		assert.NoError(t, err)
@@ -217,7 +217,7 @@ func TestServerCORS(t *testing.T) {
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil)
+	apm, teardown, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -226,6 +226,77 @@ func TestServerNoContentType(t *testing.T) {
 	res, error := client.Do(req)
 	assert.NoError(t, error)
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode, body(t, res))
+}
+
+func TestServerSourcemapElasticsearch(t *testing.T) {
+	cases := []struct {
+		expected     []string
+		config       m
+		outputConfig m
+	}{
+		{
+			expected: nil,
+			config:   m{},
+		},
+		{
+			// source_mapping.elasticsearch.hosts set
+			expected: []string{"localhost:5200"},
+			config: m{
+				"frontend": m{
+					"enabled": "true",
+					"source_mapping.elasticsearch.hosts": []string{"localhost:5200"},
+				},
+			},
+		},
+		{
+			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = true
+			expected: []string{"localhost:5201"},
+			config: m{
+				"frontend": m{
+					"enabled": "true",
+				},
+			},
+			outputConfig: m{
+				"elasticsearch": m{
+					"enabled": true,
+					"hosts":   []string{"localhost:5201"},
+				},
+			},
+		},
+		{
+			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = false
+			expected: nil,
+			config: m{
+				"frontend": m{
+					"enabled": "true",
+				},
+			},
+			outputConfig: m{
+				"elasticsearch": m{
+					"enabled": false,
+					"hosts":   []string{"localhost:5202"},
+				},
+			},
+		},
+	}
+	for _, testCase := range cases {
+		ucfg, err := common.NewConfigFrom(testCase.config)
+		if !assert.NoError(t, err) {
+			continue
+		}
+
+		var beatConfig beat.BeatConfig
+		ocfg, err := common.NewConfigFrom(testCase.outputConfig)
+		if !assert.NoError(t, err) {
+			continue
+		}
+		beatConfig.Output.Unpack(ocfg)
+		apm, teardown, err := setupServer(t, ucfg, &beatConfig)
+		if assert.NoError(t, err) {
+			assert.Equal(t, testCase.expected, apm.smapElasticsearchHosts())
+		}
+		teardown()
+	}
 }
 
 func TestServerSSL(t *testing.T) {
@@ -270,7 +341,7 @@ func TestServerSSL(t *testing.T) {
 	for idx, test := range tests {
 		var apm *beater
 		var err error
-		apm, teardown, err = setupServer(t, withSSL(t, test.domain, test.passphrase))
+		apm, teardown, err = setupServer(t, withSSL(t, test.domain, test.passphrase), nil)
 		require.NoError(t, err)
 		baseUrl, client := apm.client(test.insecure)
 		if test.overrideProtocol {
@@ -308,60 +379,13 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	_, _, err = setupServer(t, cfg)
+	_, _, err = setupServer(t, cfg, nil)
 	if assert.Error(t, err) {
 		b := strings.Contains(err.Error(), "no PEM blocks") ||
 			strings.Contains(err.Error(), "failed to parse private key")
 		assert.True(t, b, err.Error())
 	}
 
-}
-
-func TestServerTcpConnLimit(t *testing.T) {
-	t.Skip("tcp conn limit test disabled")
-
-	if testing.Short() {
-		t.Skip("skipping tcp conn limit test")
-	}
-
-	// this might make this test flaky, we'll see
-	backlog := 128 // default net.core.somaxconn / kern.ipc.somaxconn
-	maxConns := 1
-	ucfg, err := common.NewConfigFrom(map[string]interface{}{
-		"max_connections": maxConns,
-	})
-	assert.NoError(t, err)
-	apm, teardown, err := setupServer(t, ucfg)
-	require.NoError(t, err)
-	defer teardown()
-
-	conns := make([]net.Conn, backlog+maxConns)
-	defer func() {
-		for _, conn := range conns {
-			if conn != nil {
-				conn.Close()
-			}
-		}
-	}()
-
-	connect := func() (net.Conn, error) { return net.DialTimeout("tcp", apm.server.Addr, time.Second) }
-	for i := 0; i < backlog+maxConns-1; i++ {
-		conns[i], err = connect()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// ensure this is hit reasonably close to max conns, say within 150 conns
-	// on some systems it's at connection 129, others at 131, still others 250
-	for i := 0; i < 150; i++ {
-		if _, err = connect(); err != nil {
-			break
-		}
-	}
-	if err == nil {
-		t.Error("expected to reach tcp connection limit")
-	}
 }
 
 func TestServerTracingEnabled(t *testing.T) {
@@ -451,7 +475,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 		"host":            "localhost:0",
 	})
 	assert.NoError(t, err)
-	beater, teardown, err := setupBeater(t, pub, cfg)
+	beater, teardown, err := setupBeater(t, pub, cfg, nil)
 	require.NoError(t, err)
 
 	// onboarding event
@@ -469,7 +493,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 	return events, teardown
 }
 
-func setupServer(t *testing.T, cfg *common.Config) (*beater, func(), error) {
+func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -482,7 +506,7 @@ func setupServer(t *testing.T, cfg *common.Config) (*beater, func(), error) {
 		err = cfg.Unpack(baseConfig)
 	}
 	assert.NoError(t, err)
-	btr, stop, err := setupBeater(t, DummyPipeline(), baseConfig)
+	btr, stop, err := setupBeater(t, DummyPipeline(), baseConfig, beatConfig)
 	if err == nil {
 		assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
 	}
