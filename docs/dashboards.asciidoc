@@ -1,5 +1,53 @@
 [[load-kibana-dashboards]]
 === Dashboards
 
+From APM Server and Kibana 6.4 on you can load dashboards directly via the Kibana UI.
 
-include::./copied-from-beats/dashboards.asciidoc[]
+==== Setup via APM Server
+
+deprecated[{deprecate_dashboard_loading}]
+
+Loading via APM Server requires a <<setup-kibana-endpoint,Kibana endpoint configuration>>. 
+If you are accessing a secured Kibana instance, make sure you've configured credentials.
+
+You have to either <<configuration-dashboards,configure dashboard loading>> in the
++{beatname_lc}.yml+ config file,
+or run the appropriate `setup` command for your system:
+
+*deb and rpm:*
+
+["source","sh",subs="attributes"]
+----------------------------------------------------------------------
+{beatname_lc} setup --dashboards
+----------------------------------------------------------------------
+
+
+*mac:*
+
+["source","sh",subs="attributes"]
+----------------------------------------------------------------------
+./{beatname_lc} setup --dashboards
+----------------------------------------------------------------------
+
+
+*docker:*
+
+["source","sh",subs="attributes"]
+----------------------------------------------------------------------
+docker run {dockerimage} setup --dashboards
+----------------------------------------------------------------------
+
+*win:*
+
+endif::allplatforms[]
+
+Open a PowerShell prompt as an Administrator (right-click the PowerShell icon
+and select *Run As Administrator*).
+
+From the PowerShell prompt, change to the directory where you installed {beatname_uc},
+and run:
+
+["source","sh",subs="attributes"]
+----------------------------------------------------------------------
+PS > .{backslash}{beatname_lc}.exe setup --dashboards
+----------------------------------------------------------------------
