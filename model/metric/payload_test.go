@@ -47,7 +47,6 @@ func TestPayloadDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	pid, ip := 1, "127.0.0.1"
-	unit := "foos"
 	for _, test := range []struct {
 		input map[string]interface{}
 		err   error
@@ -98,7 +97,7 @@ func TestPayloadDecode(t *testing.T) {
 				Process: &m.Process{Pid: pid},
 				Metrics: []*metric{
 					{
-						samples:   []sample{},
+						samples:   []*sample{},
 						tags:      nil,
 						timestamp: timestampParsed,
 					},
@@ -118,8 +117,7 @@ func TestPayloadDecode(t *testing.T) {
 					map[string]interface{}{
 						"timestamp": timestamp,
 						"samples": map[string]interface{}{
-							"invalid.counter": map[string]interface{}{
-								"type":  "counter",
+							"invalid.metric": map[string]interface{}{
 								"value": "foo",
 							},
 						},
@@ -127,71 +125,6 @@ func TestPayloadDecode(t *testing.T) {
 				},
 			},
 			err: errors.New("Error fetching field"),
-		},
-		{
-			input: map[string]interface{}{
-				"system": map[string]interface{}{"ip": ip},
-				"service": map[string]interface{}{
-					"name": "a",
-					"agent": map[string]interface{}{
-						"name": "ag", "version": "1.0",
-					}},
-				"process": map[string]interface{}{"pid": 1.0},
-				"metrics": []interface{}{
-					map[string]interface{}{
-						"timestamp": timestamp,
-						"samples": map[string]interface{}{
-							"invalid.gauge": map[string]interface{}{
-								"type":  "gauge",
-								"value": "foo",
-							},
-						},
-					},
-				},
-			},
-			err: errors.New("Error fetching field"),
-		},
-		{
-			input: map[string]interface{}{
-				"system": map[string]interface{}{"ip": ip},
-				"service": map[string]interface{}{
-					"name": "a",
-					"agent": map[string]interface{}{
-						"name": "ag", "version": "1.0",
-					}},
-				"process": map[string]interface{}{"pid": 1.0},
-				"metrics": []interface{}{
-					map[string]interface{}{
-						"timestamp": timestamp,
-						"samples": map[string]interface{}{
-							"empty.metric": map[string]interface{}{},
-						},
-					},
-				},
-			},
-			err: errors.New("missing sample type"),
-		},
-		{
-			input: map[string]interface{}{
-				"system": map[string]interface{}{"ip": ip},
-				"service": map[string]interface{}{
-					"name": "a",
-					"agent": map[string]interface{}{
-						"name": "ag", "version": "1.0",
-					}},
-				"process": map[string]interface{}{"pid": 1.0},
-				"metrics": []interface{}{
-					map[string]interface{}{
-						"timestamp": timestamp,
-						"samples": map[string]interface{}{
-							"invalid.key.metric": map[string]interface{}{
-								"foo": "bar",
-							},
-						},
-					},
-				},
-			},
-			err: errors.New("missing sample type"),
 		},
 		{
 			input: map[string]interface{}{
@@ -210,12 +143,9 @@ func TestPayloadDecode(t *testing.T) {
 						"timestamp": timestamp,
 						"samples": map[string]interface{}{
 							"a.counter": map[string]interface{}{
-								"type":  "counter",
 								"value": json.Number("612"),
-								"unit":  unit,
 							},
 							"some.gauge": map[string]interface{}{
-								"type":  "gauge",
 								"value": json.Number("9.16"),
 							},
 						},
@@ -229,15 +159,14 @@ func TestPayloadDecode(t *testing.T) {
 				Process: &m.Process{Pid: pid},
 				Metrics: []*metric{
 					{
-						samples: []sample{
-							&gauge{
+						samples: []*sample{
+							{
 								name:  "some.gauge",
 								value: 9.16,
 							},
-							&counter{
+							{
 								name:  "a.counter",
-								count: 612,
-								unit:  &unit,
+								value: 612,
 							},
 						},
 						tags: common.MapStr{
@@ -281,7 +210,6 @@ func TestPayloadDecode(t *testing.T) {
 func TestPayloadTransform(t *testing.T) {
 	svc := m.Service{Name: "myservice"}
 	timestamp := time.Now()
-	unit := "bytes"
 
 	tests := []struct {
 		Payload Payload
@@ -303,7 +231,6 @@ func TestPayloadTransform(t *testing.T) {
 							"name":  "myservice",
 						},
 					},
-					"metric":    common.MapStr{},
 					"processor": common.MapStr{"event": "metric", "name": "metric"},
 				},
 			},
@@ -316,15 +243,14 @@ func TestPayloadTransform(t *testing.T) {
 					{
 						tags:      common.MapStr{"a.tag": "a.tag.value"},
 						timestamp: timestamp,
-						samples: []sample{
-							&counter{
+						samples: []*sample{
+							{
 								name:  "a.counter",
-								count: 612,
+								value: 612,
 							},
-							&gauge{
+							{
 								name:  "some.gauge",
 								value: 9.16,
-								unit:  &unit,
 							},
 						},
 					},
@@ -341,10 +267,8 @@ func TestPayloadTransform(t *testing.T) {
 							"a.tag": "a.tag.value",
 						},
 					},
-					"metric": common.MapStr{
-						"a.counter":  common.MapStr{"value": float64(612), "type": "counter"},
-						"some.gauge": common.MapStr{"value": float64(9.16), "type": "gauge", "unit": unit},
-					},
+					"a":         common.MapStr{"counter": float64(612)},
+					"some":      common.MapStr{"gauge": float64(9.16)},
 					"processor": common.MapStr{"event": "metric", "name": "metric"},
 				},
 			},
