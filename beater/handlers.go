@@ -47,13 +47,16 @@ import (
 )
 
 const (
-	BackendTransactionsURL  = "/v1/transactions"
-	FrontendTransactionsURL = "/v1/client-side/transactions"
-	BackendErrorsURL        = "/v1/errors"
-	FrontendErrorsURL       = "/v1/client-side/errors"
-	HealthCheckURL          = "/healthcheck"
-	MetricsURL              = "/v1/metrics"
-	SourcemapsURL           = "/v1/client-side/sourcemaps"
+	BackendTransactionsURL    = "/v1/transactions"
+	ClientSideTransactionsURL = "/v1/client-side/transactions"
+	RumTransactionsURL        = "/v1/rum/transactions"
+	BackendErrorsURL          = "/v1/errors"
+	ClientSideErrorsURL       = "/v1/client-side/errors"
+	RumErrorsURL              = "/v1/rum/errors"
+	HealthCheckURL            = "/healthcheck"
+	MetricsURL                = "/v1/metrics"
+	SourcemapsClientSideURL   = "/v1/client-side/sourcemaps"
+	SourcemapsURL             = "/v1/rum/sourcemaps"
 
 	rateLimitCacheSize       = 1000
 	rateLimitBurstMultiplier = 2
@@ -139,12 +142,15 @@ var (
 	}
 
 	ProcessorRoutes = map[string]routeMapping{
-		BackendTransactionsURL:  {backendHandler, transaction.Processor},
-		FrontendTransactionsURL: {frontendHandler, transaction.Processor},
-		BackendErrorsURL:        {backendHandler, perr.Processor},
-		FrontendErrorsURL:       {frontendHandler, perr.Processor},
-		MetricsURL:              {metricsHandler, metric.Processor},
-		SourcemapsURL:           {sourcemapHandler, sourcemap.Processor},
+		BackendTransactionsURL:    {backendHandler, transaction.Processor},
+		ClientSideTransactionsURL: {rumHandler, transaction.Processor},
+		RumTransactionsURL:        {rumHandler, transaction.Processor},
+		BackendErrorsURL:          {backendHandler, perr.Processor},
+		ClientSideErrorsURL:       {rumHandler, perr.Processor},
+		RumErrorsURL:              {rumHandler, perr.Processor},
+		MetricsURL:                {metricsHandler, metric.Processor},
+		SourcemapsClientSideURL:   {sourcemapHandler, sourcemap.Processor},
+		SourcemapsURL:             {sourcemapHandler, sourcemap.Processor},
 	}
 )
 
@@ -199,21 +205,21 @@ func backendHandler(p processor.Processor, beaterConfig *Config, report reporter
 					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
-func frontendHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	smapper, err := beaterConfig.Frontend.memoizedSmapMapper()
+func rumHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
+	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
 	config := conf.Config{
 		SmapMapper:          smapper,
-		LibraryPattern:      regexp.MustCompile(beaterConfig.Frontend.LibraryPattern),
-		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.Frontend.ExcludeFromGrouping),
+		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
+		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
 	}
 	return logHandler(
-		killSwitchHandler(beaterConfig.Frontend.isEnabled(),
+		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 			concurrencyLimitHandler(beaterConfig,
-				ipRateLimitHandler(beaterConfig.Frontend.RateLimit,
-					corsHandler(beaterConfig.Frontend.AllowOrigins,
+				ipRateLimitHandler(beaterConfig.RumConfig.RateLimit,
+					corsHandler(beaterConfig.RumConfig.AllowOrigins,
 						processRequestHandler(p, config, report,
 							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))))
 }
@@ -227,12 +233,12 @@ func metricsHandler(p processor.Processor, beaterConfig *Config, report reporter
 }
 
 func sourcemapHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	smapper, err := beaterConfig.Frontend.memoizedSmapMapper()
+	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
 	return logHandler(
-		killSwitchHandler(beaterConfig.Frontend.isEnabled(),
+		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 			authHandler(beaterConfig.SecretToken,
 				processRequestHandler(p, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }

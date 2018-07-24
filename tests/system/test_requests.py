@@ -60,10 +60,16 @@ class Test(ServerBaseTest):
         assert r.status_code == 400, r.status_code
         assert "Problem validating JSON document against schema" in r.content, r.content
 
-    def test_frontend_default_disabled(self):
+    def test_rum_default_disabled(self):
         transactions = self.get_transaction_payload()
         r = requests.post(
             'http://localhost:8200/v1/client-side/transactions', json=transactions)
+        assert r.status_code == 403, r.status_code
+
+    def test_rum_default_disabled(self):
+        transactions = self.get_transaction_payload()
+        r = requests.post(
+            'http://localhost:8200/v1/rum/transactions', json=transactions)
         assert r.status_code == 403, r.status_code
 
     def test_healthcheck(self):
