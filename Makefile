@@ -25,9 +25,9 @@ update-beats:
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
 
-.PHONY: libbeat_fields
-libbeat_fields:
-	@$(MAKE) fields
+#.PHONY: libbeat_fields
+#libbeat_fields:
+#	@$(MAKE) fields
 
 .PHONY: is-beats-updated
 is-beats-updated: python-env
