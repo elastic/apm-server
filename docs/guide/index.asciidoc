@@ -58,7 +58,7 @@ APM Server creates documents from the data received from agents and stores them 
 
 To visualize the data after it's sent to Elasticsearch,
 you can use the the dedicated APM UI bundled in X-Pack,
-or the pre-built open source Kibana dashboards that come with APM Server.
+or the pre-built open source Kibana dashboards that can be loaded directly in the Kibana UI.
 
 We designed Elastic APM to run on anything from a regular laptop to thousands of machines,
 and it's easy to get started.
@@ -148,16 +148,8 @@ You can also configure APM Server to listen on a Unix domain socket.
 [[kibana-dashboards]]
 [float]
 ==== Install the Kibana dashboards
-APM Server comes with predefined Kibana dashboards and index templates for APM data.
-To install those run the following command:
 
-[source,bash]
-----------------------------------
-./apm-server setup
-----------------------------------
-
-NOTE: Due to a bug in Kibana 6.0.0.-rc2 the dashboards don't work in Kibana 6.0.0-rc2.
-
+From APM Server and Kibana 6.4 on you can load dashboards directly via the Kibana UI.
 
 See an example screenshot of a Kibana dashboard:
 
