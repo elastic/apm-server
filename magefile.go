@@ -100,7 +100,7 @@ func Update() error {
 }
 
 func Fields() error {
-	return mage.GenerateFieldsYAML(".")
+	return mage.GenerateFieldsYAML("model")
 }
 
 // -----------------------------------------------------------------------------
