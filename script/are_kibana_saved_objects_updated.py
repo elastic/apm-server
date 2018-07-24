@@ -36,6 +36,8 @@ def find_key(item):
         return "type"
     elif "query" in item:
         return "query"
+    elif "value" in item:
+        return "value"
     else:
         return ""
 
