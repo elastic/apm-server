@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 set -euox pipefail
 
-source ./_beats/dev-tools/common.bash && jenkins_setup
+: "${HOME:?Need to set HOME to a non-empty value.}"
+: "${WORKSPACE:?Need to set WORKSPACE to a non-empty value.}"
+
+source $(dirname "$0")/common.bash
+
+jenkins_setup
 
 cleanup() {
+  echo "Running cleanup..."
   rm -rf $TEMP_PYTHON_ENV
+  echo "Cleanup complete."
 }
 trap cleanup EXIT
 
-# Run the deploy script with the appropriate version in the environment.
-cd ${WORKSPACE}/src/github.com/elastic/apm-server
-make SNAPSHOT=yes clean update package
-
-ln -s ${WORKSPACE}/src/github.com/elastic/apm-server/build/upload ${WORKSPACE}/src/github.com/elastic/apm-server/build/distributions
+make release
