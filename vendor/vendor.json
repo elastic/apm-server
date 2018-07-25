@@ -678,14 +678,6 @@
 			"versionExact": "6.4"
 		},
 		{
-			"checksumSHA1": "h4ANSlJvMh6mwPkmteTGW0Gc/k0=",
-			"path": "github.com/elastic/beats/libbeat/generator",
-			"revision": "4e544c691029f816b2d56c028cbe5ce28dd8b363",
-			"revisionTime": "2018-07-24T22:23:57Z",
-			"version": "6.x",
-			"versionExact": "6.x"
-		},
-		{
 			"checksumSHA1": "J6JozoRRF+ZB7RvepDmYbSrZ8U0=",
 			"path": "github.com/elastic/beats/libbeat/generator/fields",
 			"revision": "191f5266416d3a18f8a9ab5c2ec47240f256e265",
