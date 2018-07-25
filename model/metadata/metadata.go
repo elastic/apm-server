@@ -29,6 +29,13 @@ type Metadata struct {
 	Process *Process
 	System  *System
 	User    *User
+
+	cachedServiceTransform common.MapStr
+	cachedProcessTransform common.MapStr
+	cachedSystemTransform  common.MapStr
+	cachedUserTransform    common.MapStr
+
+	cachedServiceMinimalTransform common.MapStr
 }
 
 func DecodeMetadata(input interface{}) (*Metadata, error) {
@@ -69,10 +76,17 @@ func (m *Metadata) normalizeContext(eventContext common.MapStr) common.MapStr {
 func (m *Metadata) Merge(eventContext common.MapStr) common.MapStr {
 	eventContext = m.normalizeContext(eventContext)
 
-	utility.Add(eventContext, "system", m.System.Transform())
-	utility.Add(eventContext, "process", m.Process.Transform())
-	utility.MergeAdd(eventContext, "user", m.User.Transform())
-	utility.MergeAdd(eventContext, "service", m.Service.Transform())
+	if m.cachedSystemTransform == nil {
+		m.cachedServiceTransform = m.Service.Transform()
+		m.cachedSystemTransform = m.System.Transform()
+		m.cachedProcessTransform = m.Process.Transform()
+		m.cachedUserTransform = m.User.Transform()
+	}
+
+	utility.Add(eventContext, "system", m.cachedSystemTransform)
+	utility.Add(eventContext, "process", m.cachedProcessTransform)
+	utility.MergeAdd(eventContext, "user", m.cachedUserTransform)
+	utility.MergeAdd(eventContext, "service", m.cachedServiceTransform)
 
 	return eventContext
 }
@@ -80,6 +94,10 @@ func (m *Metadata) Merge(eventContext common.MapStr) common.MapStr {
 func (m *Metadata) MergeMinimal(eventContext common.MapStr) common.MapStr {
 	eventContext = m.normalizeContext(eventContext)
 
-	utility.MergeAdd(eventContext, "service", m.Service.MinimalTransform())
+	if m.cachedServiceMinimalTransform == nil {
+		m.cachedServiceMinimalTransform = m.Service.MinimalTransform()
+	}
+
+	utility.MergeAdd(eventContext, "service", m.cachedServiceMinimalTransform)
 	return eventContext
 }
