@@ -29,6 +29,7 @@ rsync -crpv --delete \
     --include="testing/***" \
     --include="libbeat/" \
     --include=libbeat/Makefile \
+    --include="libbeat/magefile.go" \
     --include="libbeat/_meta/" \
     --include="libbeat/_meta/fields.common.yml" \
     --include="libbeat/docs/" \

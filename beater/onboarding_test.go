@@ -25,6 +25,7 @@ import (
 
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestNotifyUpServerDown(t *testing.T) {
@@ -44,5 +45,9 @@ func TestNotifyUpServerDown(t *testing.T) {
 
 	listening := saved.Fields["listening"].(string)
 	assert.Equal(t, config.Host, listening)
+
+	processor := saved.Fields["processor"].(common.MapStr)
+	assert.Equal(t, "onboarding", processor["name"])
+	assert.Equal(t, "onboarding", processor["event"])
 
 }

@@ -291,7 +291,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
-Revision: af1638c90567274690c8111d47e3c5f12c396558
+Version: master
+Revision: 2a3aabcde1bf9218b43c20f5e58b7563d90c5b65
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -357,7 +358,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-ucfg
-Revision: ec8488a52542c0c51e42e8ea204dcaff400bc644
+Revision: 581f7b1fe9d84f4c18ef0694d6e0eb944a925dae
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-ucfg/LICENSE:
 --------------------------------------------------------------------
@@ -1629,11 +1630,11 @@ DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Shopify/sarama
-Revision: 32b4ad5c9537ed14e471779b76713ff65420db39
+Revision: d1575e4abe04acbbe8ac766320585cdf271dd189
 License type (autodetected): MIT
 ./vendor/github.com/Shopify/sarama/LICENSE:
 --------------------------------------------------------------------
-Copyright (c) 2013 Evan Huus
+Copyright (c) 2013 Shopify
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1693,6 +1694,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/spf13/pflag
+Version: v1.0.1
 Revision: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/spf13/pflag/LICENSE:
@@ -1756,7 +1758,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/testify
 Version: v1.2.0
-Revision: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+Revision: f35b8ab0b5a2cef36673838d662e249dd9c94686
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
 --------------------------------------------------------------------

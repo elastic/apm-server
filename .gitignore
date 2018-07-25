@@ -17,5 +17,6 @@
 /_meta/kibana.generated/*
 /fields.yml
 /apm-server.template-es.json
+/vendor/github.com/elastic/beats/libbeat/fields.yml
 
 html_docs
