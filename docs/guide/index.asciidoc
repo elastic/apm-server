@@ -8,7 +8,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 == Overview
 
 Elastic APM is an application performance monitoring system built on the Elastic Stack.
-It allows you to monitor software services and applications in real time (this guide will indiscriminately use the word service),
+It allows you to monitor software services and applications in real time,
 collecting detailed performance information on response time for incoming requests,
 database queries,
 calls to caches,
@@ -19,6 +19,8 @@ This makes it easier to pinpoint and fix performance problems quickly.
 Elastic APM also collects automatically unhandled errors and exceptions.
 Errors are grouped based primarily on the stacktrace,
 so you can identify new errors as they appear and keep an eye on how many times specific errors happen.
+
+NOTE: this guide will indiscriminately use the word service for both services and applications.
 
 [[components]]
 [float]
@@ -47,7 +49,8 @@ Additionally,
 agents provide an API to manually instrument anything else you find interesting.
 
 *APM Server* is an open source application written in Go which typically runs on dedicated servers.
-It receives data from the agents through a JSON API, process it, and stores it in Elasticsearch.
+It listens on port 8200 by default and receives data from agents through a JSON HTTP API.
+Then it creates documents from that data and stores them in Elasticsearch.
 
 To visualize the data after it's sent to Elasticsearch,
 you can use the the dedicated APM UI bundled in X-Pack,
@@ -75,13 +78,13 @@ The following sections show how to get started quickly with Elastic APM on a loc
 
 First, https://www.elastic.co/downloads/apm/apm-server[download APM Server] for your operating system and extract the package.
 
-In a production environment you would put APM Server on it's own machines,
+In a production environment you would put APM Server on its own machines,
 similar to how you run Elasticsearch.
 You _can_ run it on the same machines as Elasticsearch,
 but this is not recommended,
 as the processes will be competing for resources.
 
-To start APM Server run:
+To start APM Server, run:
 
 [source,bash]
 ----------------------------------
@@ -196,7 +199,7 @@ Install the elastic-apm-node module from npm in your service:
 npm install elastic-apm-node --save
 ----------------------------------
 
-Then configure the elastic-apm-node module by adding the following lines to the very top of your code:
+Then configure the elastic-apm-node module by adding the following lines to the top of your code:
 
 [source,javascript]
 ----------------------------------

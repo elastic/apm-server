@@ -124,7 +124,7 @@ curl http://localhost:8200/v1/errors \
   --data @docs/data/intake-api/generated/error/payload.json
 ------------------------------------------------------------
 
-See how errors look like:
+Example error requests:
 
 * <<payload-with-error>>
 * <<payload-with-minimal-exception>>

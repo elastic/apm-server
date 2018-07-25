@@ -1,6 +1,20 @@
 [[configuration-process]]
 == General configuration options
 
+Example config file:
+
+["source","yaml"]
+----
+apm-server:
+  host: "localhost:8200"
+  concurrent_requests: 5
+  rum:
+    enabled: true
+
+queue.mem.events: 4096
+
+max_procs: 4
+----
 
 [float]
 === Configuration options `apm-server.*`
@@ -82,7 +96,7 @@ Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-to
 [float]
 ==== `capture_personal_data`
 If true,
-APM Server augments data received with the original IP of either the backend server or the IP and User Agent of the real user (RUM).
+APM Server captures the IP of the instrumented service and its User Agent if any.
 Enabled by default.
 
 [[expvar.enabled]]

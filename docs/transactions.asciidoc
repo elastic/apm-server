@@ -2,11 +2,11 @@
 == Transactions
 
 A transaction describes an event captured by an Elastic APM agent instrumeting a service.
-A transaction can for example be a HTTP request or an asynchrounous background job.
+A transaction can for example be an HTTP request or an asynchrounous background job.
 
 It contains the timestamp and duration of the event,
 a unique id, type, name,
-a result (e.g. response code), some contextual data, and other relevant information depending on the agent.
+a result (for example a response code), some contextual data, and other relevant information depending on the agent.
 For instance, the JavaScript RUM captures transaction marks,
 which are points in time relative to the start of the transaction with some label.
 
@@ -22,7 +22,7 @@ Transactions are stored in <<transaction-indices, transaction indices>>.
 [[transaction-spans]]
 [float]
 === Spans
-Spans can have 0, 1 or many spans. Spans have a `transaction.id` attribute that refer to their transaction.
+Spans can have 0, 1, or many spans. Spans have a `transaction.id` attribute that refer to their transaction.
 
 A span contains information about a specific code path,
 executed as part of a transaction. Such information includes start time, duration, name, type, and optionally a `stack trace`.
@@ -35,6 +35,6 @@ and the type about the database.
 Typically, agents instrument automatically a variety of libraries,
 but also provide an API for ad hoc instrumentation of specific code paths.
 
-Transactions are stored in <<transaction-indices, transaction indices>>and spans are stored in separated indices by default.
+Transactions are stored in <<transaction-indices, transaction indices>> and spans are stored in separated indices by default.
 
 Spans are stored in <<span-indices, span indices>>.

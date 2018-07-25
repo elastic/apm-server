@@ -26,7 +26,7 @@ You can change the defaults by supplying a different address on the command line
 
 [[apm-server-configuration]]
 === Configuration file
-To configure APM Server you can also update the `apm-server.yml` configuration file.
+To configure APM Server, you can also update the `apm-server.yml` configuration file.
 
 For rpm and deb,
 you’ll find the configuration file at +/etc/{beatname_lc}/{beatname_lc}.yml+.

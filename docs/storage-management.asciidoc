@@ -15,7 +15,7 @@ In the following section you can learn how to
 The Kibana UI for managing indices allows you to
 view indices, index settings, mappings, docs count, used storage per index and much more.
 You can perform management operations,
-e.g. deleting indices directly via the Kibana UI.
+for example deleting indices directly via the Kibana UI.
 The UI also supports applying bulk operations on several indices at once.
 Check out the {kibana-ref}/managing-indices.html[Kibana Managing Indices] documentation for more details.
 
@@ -29,10 +29,10 @@ and for how long you keep monitoring data.
 [float]
 === Reduce the sample rate
 
-The transaction sample rate directly influences the number of documents (more precisely, Spans) to be indexed
+The transaction sample rate directly influences the number of documents (more precisely, spans) to be indexed
 and therefore is the most obvious way to reduce storage.
 
-The transaction sample rate is a configuration of the agents.
+The transaction sample rate is a configuration setting of the agents.
 
 Reducing it does not affect the collection of metrics such as _Transactions Per Second_.
 
@@ -52,9 +52,9 @@ You might want to keep data only for a defined time period and delete old docume
 or you might also want to delete data collected for specific services or customers,
 or delete specific indices.
 Depending on your use case,
-you can either delete data periodically with a tool like {curator-ref-current}[Curator],
-using the {ref}/docs-delete-by-query.html[Delete By Query API]
-or using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
+you can either delete data periodically with {curator-ref-current}[Curator],
+by using the {ref}/docs-delete-by-query.html[Delete By Query API],
+or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
 
 [[delete-data-periodically]]
@@ -99,8 +99,10 @@ INFO      "delete_indices" action completed.
 [float]
 ==== Delete data matching a query
 
-To delete documents matching a specific query, e.g. all documents with a given `context.service.name`,
-you can do this with the following request:
+To delete documents matching a specific query, for example, all documents with a given context.service.name,
+use the following request:
+
+
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -136,7 +138,7 @@ Follow the {kibana-ref}/managing-indices.html[Kibana Index Management] documenta
 [[update-existing-data]]
 == Update existing data
 You might want to update documents already indexed,
-e.g. if you your service name was set incorrectly.
+for example if you your service name was set incorrectly.
 
 For this you can use the {ref}/docs-update-by-query.html[Update By Query API].
 

@@ -31,7 +31,7 @@ GET apm-{version}-*/_search
 ------------------------------------------------------------
 // CONSOLE
 
-To query a specific type, e.g. transactions:
+To query a specific type, for example transactions:
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
 GET apm-*transactions-*/_search

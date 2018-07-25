@@ -134,7 +134,7 @@ curl http://localhost:8200/v1/transactions \
   --data @docs/data/intake-api/generated/transaction/payload.json
 ------------------------------------------------------------
 
-See how transactions look like:
+Example transaction requests:
 
 * <<payload-with-transactions>>
 * <<payload-with-minimal-transaction>>

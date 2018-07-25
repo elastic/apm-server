@@ -9,9 +9,9 @@ or about a `log` created when the exception occured.
 Both the captured `exception` and the captured `log` of an error can contain a `stack trace`,
 helpful for debugging.
 
-The `culprit` of an error indicate where is originated.
+The `culprit` of an error indicates where is originated.
 
-An error can be related to the <<transactions,transaction>> during which it happened,
+An error might relate to the <<transactions,transaction>> during which it happened,
 via the `transaction.id`.
 
 Errors also have some contextual data.

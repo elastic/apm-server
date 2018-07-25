@@ -9,7 +9,7 @@ To use it you need to <<rum-enable,enable RUM support>> in the APM Server.
 
 [[sourcemaps]]
 == Source Maps
-It is common practice to minify JavaScript code, e.g. to reduce network latency.
+It is common practice to minify JavaScript code, for example to reduce network latency.
 While improving performance, minified code is also hard to debug.
 A source map library helps by mapping the minified files back the the original source code.
 
@@ -30,15 +30,15 @@ To do so, it tries the following:
 * compare the event's `service.version` with the source map's `service_version`
 * compare the stack trace frame's `abs_path` with the source map's `bundle_filepath`
 
-If multiple source maps are found,
-the one with the latest upload timestamp is used.
-
-If succeeded, the following attributes in the `stack trace frames` are overwritten:
+If a source map is found, the following attributes in the `stack trace frames` are overwritten:
 
 * `filename`
 * `function`
 * `line number`
 * `column number`
 * `abs path`: is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name
+
+If multiple source maps are found,
+the one with the latest upload timestamp is used.
 
 See how an <<sourcemap-example, example source map>> looks like in Elasticsearch.
