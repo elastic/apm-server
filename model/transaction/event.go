@@ -23,10 +23,13 @@ import (
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -43,6 +46,14 @@ var (
 
 	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
 )
+
+var (
+	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
+)
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type Event struct {
 	Id        string
@@ -86,11 +97,12 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		SpanCount: SpanCount{Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")}},
 	}
 	err = decoder.Err
-	var sp *span.Span
+	var transformable transform.Transformable
 	spans := decoder.InterfaceArr(raw, "spans")
 	e.Spans = make([]*span.Span, len(spans))
 	for idx, rawSpan := range spans {
-		sp, err = span.DecodeSpan(rawSpan, err)
+		transformable, err = span.DecodeSpan(rawSpan, err)
+		sp := transformable.(*span.Span)
 
 		if sp.Timestamp.IsZero() {
 			sp.Timestamp = e.Timestamp

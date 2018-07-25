@@ -78,8 +78,14 @@ func TestSpanDecode(t *testing.T) {
 			},
 		},
 	} {
-		span, err := DecodeSpan(test.input, test.inpErr)
-		assert.Equal(t, test.s, span)
+		transformable, err := DecodeSpan(test.input, test.inpErr)
+
+		if test.s != nil {
+			span := transformable.(*Span)
+			assert.Equal(t, test.s, span)
+		} else {
+			assert.Nil(t, transformable)
+		}
 		assert.Equal(t, test.err, err)
 	}
 }

@@ -47,7 +47,7 @@ type publisher struct {
 
 type pendingReq struct {
 	transformables []transform.Transformable
-	tcontext       transform.Context
+	tcontext       *transform.Context
 	trace          bool
 }
 
@@ -144,7 +144,7 @@ func (p *publisher) processPendingReq(req pendingReq) {
 
 	for _, transformable := range req.transformables {
 		span := tx.StartSpan("Transform", "Publisher", nil)
-		events := transformable.Transform(&req.tcontext)
+		events := transformable.Transform(req.tcontext)
 		span.End()
 
 		span = tx.StartSpan("PublishAll", "Publisher", nil)

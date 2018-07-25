@@ -1,87 +1,11 @@
 package schema
 
-const PayloadSchema = `{
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/payload.json",
-    "title": "Metrics payload",
-    "description": "Metrics for correlation with other APM data",
-    "type": "object",
+const ModelSchema = `{
+    "$id": "doc/spec/metadata.json",
+    "title": "Context",
+    "description": "Metadata concerning the other objects in the stream.",
+    "type": ["object"],
     "properties": {
-        "metrics": {
-            "type": "array",
-            "items": {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/metric.json",
-    "type": "object",
-    "description": "Metric data captured by an APM agent",
-    "properties": {
-        "samples": {
-            "type": ["object"],
-            "description": "Sampled application metrics collected from the agent",
-            "patternProperties": {
-                "^[^*\"]*$": {
-                        "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/sample.json",
-    "type": ["object", "null"],
-    "description": "A single metric sample.",
-    "properties": {
-        "value": {"type": "number"}
-    },
-    "required": ["value"]
-                }
-            },
-            "additionalProperties": false
-        },
-        "tags": {
-            "type": ["object", "null"],
-            "description": "A flat mapping of user-defined tags with string values",
-            "patternProperties": {
-                "^[^*\"]*$": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                }
-            },
-            "additionalProperties": false
-        },
-        "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the metric, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        }
-    },
-    "required": ["samples", "timestamp"]
-            },
-            "minItems": 1
-        },
-        "process": {
-              "$id": "doc/spec/process.json",
-  "title": "Process",
-  "type": ["object", "null"],
-  "properties": {
-      "pid": {
-          "description": "Process ID of the service",
-          "type": ["integer"]
-      },
-      "ppid": {
-          "description": "Parent process ID of the service",
-          "type": ["integer", "null"]
-      },
-      "title": {
-          "type": ["string", "null"],
-          "maxLength": 1024
-      },
-      "argv": {
-        "description": "Command line arguments used to start this process",
-        "type": ["array", "null"],
-        "minItems": 0,
-        "items": {
-           "type": "string"
-        }
-    }
-  },
-  "required": ["pid"]
-        },
         "service": {
                 "$id": "doc/spec/service.json",
     "title": "Service",
@@ -168,6 +92,34 @@ const PayloadSchema = `{
     },
     "required": ["agent", "name"]
         },
+        "process": {
+              "$id": "doc/spec/process.json",
+  "title": "Process",
+  "type": ["object", "null"],
+  "properties": {
+      "pid": {
+          "description": "Process ID of the service",
+          "type": ["integer"]
+      },
+      "ppid": {
+          "description": "Parent process ID of the service",
+          "type": ["integer", "null"]
+      },
+      "title": {
+          "type": ["string", "null"],
+          "maxLength": 1024
+      },
+      "argv": {
+        "description": "Command line arguments used to start this process",
+        "type": ["array", "null"],
+        "minItems": 0,
+        "items": {
+           "type": "string"
+        }
+    }
+  },
+  "required": ["pid"]
+        },
         "system": {
                 "$id": "doc/spec/system.json",
     "title": "System",
@@ -189,8 +141,31 @@ const PayloadSchema = `{
             "maxLength": 1024
         }
     }
+        },
+        "user": {
+                "$id": "docs/spec/user.json",
+    "title": "User",
+    "description": "Describes the authenticated User for a request.",
+    "type": ["object", "null"],
+    "properties": {
+        "id": {
+            "description": "Identifier of the logged in user, e.g. the primary key of the user",
+            "type": ["string", "integer", "null"],
+            "maxLength": 1024
+        },
+        "email": {
+            "description": "Email of the logged in user",
+            "type": ["string", "null"],
+            "maxLength": 1024
+        },
+        "username": {
+            "description": "The username of the logged in user",
+            "type": ["string", "null"],
+            "maxLength": 1024
+        }
+    }
         }
     },
-    "required": ["service", "metrics"]
+    "required": ["service"]
 }
 `

@@ -23,10 +23,13 @@ import (
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/santhosh-tekuri/jsonschema"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -40,7 +43,13 @@ var (
 	spanDocType = "span"
 
 	processorSpanEntry = common.MapStr{"name": "transaction", "event": spanDocType}
+
+	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
 )
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type Span struct {
 	Id         *int
@@ -56,7 +65,7 @@ type Span struct {
 	TransactionId string
 }
 
-func DecodeSpan(input interface{}, err error) (*Span, error) {
+func DecodeSpan(input interface{}, err error) (transform.Transformable, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}

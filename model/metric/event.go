@@ -22,12 +22,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/elastic/apm-server/model/metric/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/santhosh-tekuri/jsonschema"
 )
 
 const (
@@ -40,6 +43,12 @@ var (
 	transformations = monitoring.NewInt(Metrics, "transformations")
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
 )
+
+var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type sample struct {
 	name  string

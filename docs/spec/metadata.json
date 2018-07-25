@@ -1,0 +1,21 @@
+{
+    "$id": "doc/spec/metadata.json",
+    "title": "Context",
+    "description": "Metadata concerning the other objects in the stream.",
+    "type": ["object"],
+    "properties": {
+        "service": {
+            "$ref": "service.json"
+        },
+        "process": {
+            "$ref": "process.json"
+        },
+        "system": {
+            "$ref": "system.json"
+        },
+        "user": {
+            "$ref": "user.json"
+        }
+    },
+    "required": ["service"]
+}

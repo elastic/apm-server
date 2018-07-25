@@ -29,10 +29,13 @@ import (
 	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
+	"github.com/santhosh-tekuri/jsonschema"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
@@ -49,6 +52,12 @@ const (
 	processorName = "error"
 	errorDocType  = "error"
 )
+
+var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type Event struct {
 	Id        *string

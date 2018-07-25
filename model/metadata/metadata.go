@@ -20,9 +20,18 @@ package metadata
 import (
 	"errors"
 
+	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/santhosh-tekuri/jsonschema"
 )
+
+var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metadata")
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type Metadata struct {
 	Service *Service

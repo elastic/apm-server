@@ -25,9 +25,9 @@ import (
 )
 
 var (
-	cachedSchema = validation.CreateSchema(schema.PayloadSchema, "transaction")
+	cachedPayloadSchema = validation.CreateSchema(schema.PayloadSchema, "transaction")
 )
 
 func PayloadSchema() *jsonschema.Schema {
-	return cachedSchema
+	return cachedPayloadSchema
 }
