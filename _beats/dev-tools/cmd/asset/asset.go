@@ -52,6 +52,9 @@ func main() {
 		data           []byte
 		err            error
 	)
+
+	dir, err := os.Getwd()
+	fmt.Fprintf(os.Stderr, "CWD: %s %v\n", dir, err)
 	if input == "-" {
 		if len(args) != 2 {
 			fmt.Fprintln(os.Stderr, "File path must be set")

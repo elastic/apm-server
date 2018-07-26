@@ -40,6 +40,7 @@ func main() {
 	beatFieldsPaths := flag.Args()
 	name := filepath.Base(beatPath)
 
+	fmt.Fprintf(os.Stderr, "generating fields.yml\n")
 	if beatPath == "" {
 		fmt.Fprintf(os.Stderr, "beat_path cannot be empty")
 		os.Exit(1)
@@ -96,6 +97,8 @@ func main() {
 	}
 
 	if output != "-" {
+		abs, err := filepath.Abs(output)
+		fmt.Fprintf(os.Stderr, "done %s %s %s\n", abs, output, err)
 		fmt.Printf("Generated fields.yml for %s\n", name)
 	}
 }
