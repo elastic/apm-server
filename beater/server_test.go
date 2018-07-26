@@ -330,7 +330,10 @@ func TestServerSSL(t *testing.T) {
 			},
 		},
 		{
-			label: "bad schema", domain: "localhost", expectedMsgs: []string{"malformed HTTP response"}, overrideProtocol: true,
+			label: "bad schema", domain: "localhost", expectedMsgs: []string{
+				"malformed HTTP response",
+				"transport connection broken"},
+			overrideProtocol: true,
 		},
 		{
 			label: "with passphrase", domain: "localhost", statusCode: http.StatusAccepted, insecure: true, passphrase: "foobar",
