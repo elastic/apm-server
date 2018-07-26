@@ -27,6 +27,11 @@ apm-server:
   {% if expvar_url %}
   expvar.url: {{ expvar_url }}
   {% endif %}
+
+  register.ingest.pipeline:
+    enabled: {{ register_pipeline_enabled }}
+    overwrite: {{ register_pipeline_overwrite  }}
+
 ############################# Setup ##########################################
 
 {% if index_name %}

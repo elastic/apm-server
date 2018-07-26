@@ -135,6 +135,7 @@ class AccessTest(ServerBaseTest):
 
 
 class ElasticTest(ServerBaseTest):
+    config_overrides = {}
 
     def config(self):
         cfg = super(ElasticTest, self).config()
@@ -143,6 +144,7 @@ class ElasticTest(ServerBaseTest):
             "file_enabled": "false",
             "index_name": self.index_name,
         })
+        cfg.update(self.config_overrides)
         return cfg
 
     def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
@@ -174,6 +176,14 @@ class ElasticTest(ServerBaseTest):
             name="*", ignore=[400, 404])
         self.wait_until(
             lambda: not self.es.indices.exists_template(self.index_name))
+
+        # Cleanup pipelines
+        self.es.ingest.delete_pipeline(id="*")
+        # Write empyt pipeline for user_agent
+        self.es.ingest.put_pipeline(
+            id="apm_user_agent",
+            body={"description": "user agent test", "processors": []})
+        self.wait_until(lambda: self.es.ingest.get_pipeline("apm_user_agent"))
 
         super(ElasticTest, self).setUp()
 

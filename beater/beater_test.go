@@ -47,8 +47,7 @@ import (
 )
 
 func TestBeatConfig(t *testing.T) {
-	falsy := false
-	truthy := true
+	falsy, truthy := false, true
 
 	tests := []struct {
 		conf       map[string]interface{}
@@ -98,6 +97,15 @@ func TestBeatConfig(t *testing.T) {
 				"metrics": map[string]interface{}{
 					"enabled": false,
 				},
+				"register": map[string]interface{}{
+					"ingest": map[string]interface{}{
+						"pipeline": map[string]interface{}{
+							"enabled":   true,
+							"overwrite": false,
+							"path":      "/tmp/definition.json",
+						},
+					},
+				},
 			},
 			beaterConf: &Config{
 				Host:                "localhost:3000",
@@ -142,6 +150,15 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &falsy,
 				},
 				ConcurrentRequests: 15,
+				Register: &registerConfig{
+					Ingest: &ingestConfig{
+						Pipeline: &pipelineConfig{
+							Enabled:   &truthy,
+							Overwrite: &falsy,
+							Path:      "/tmp/definition.json",
+						},
+					},
+				},
 			},
 			msg: "Given config overwrites default",
 		},
@@ -174,6 +191,13 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 					"library_pattern": "rum",
+				},
+				"register": map[string]interface{}{
+					"ingest": map[string]interface{}{
+						"pipeline": map[string]interface{}{
+							"enabled": false,
+						},
+					},
 				},
 			},
 			beaterConf: &Config{
@@ -223,6 +247,15 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 				},
 				ConcurrentRequests: 5,
+				Register: &registerConfig{
+					Ingest: &ingestConfig{
+						Pipeline: &pipelineConfig{
+							Enabled:   &falsy,
+							Overwrite: &truthy,
+							Path:      "ingest/pipeline/definition.json",
+						},
+					},
+				},
 			},
 			msg: "Given config merged with default",
 		},

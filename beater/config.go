@@ -19,6 +19,7 @@ package beater
 
 import (
 	"net"
+	"path/filepath"
 	"regexp"
 	"time"
 
@@ -47,6 +48,7 @@ type Config struct {
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
 	RumConfig           *rumConfig             `config:"rum"`
 	FrontendConfig      *rumConfig             `config:"frontend"`
+	Register            *registerConfig        `config:"register"`
 }
 
 type ExpvarConfig struct {
@@ -67,6 +69,20 @@ type rumConfig struct {
 
 type metricsConfig struct {
 	Enabled *bool `config:"enabled"`
+}
+
+type registerConfig struct {
+	Ingest *ingestConfig `config:"ingest"`
+}
+
+type ingestConfig struct {
+	Pipeline *pipelineConfig `config:"pipeline"`
+}
+
+type pipelineConfig struct {
+	Enabled   *bool `config:"enabled"`
+	Overwrite *bool `config:"overwrite"`
+	Path      string
 }
 
 type SourceMapping struct {
@@ -115,6 +131,14 @@ func (c *metricsConfig) isEnabled() bool {
 
 func (s *SourceMapping) isSetup() bool {
 	return s != nil && (s.EsConfig != nil)
+}
+
+func (c *pipelineConfig) isEnabled() bool {
+	return c != nil && (c.Enabled != nil && *c.Enabled)
+}
+
+func (c *pipelineConfig) shouldOverwrite() bool {
+	return c != nil && (c.Overwrite != nil && *c.Overwrite)
 }
 
 func (c *Config) SetRumConfig() {
@@ -173,6 +197,7 @@ func defaultRum(beatVersion string) *rumConfig {
 
 func defaultConfig(beatVersion string) *Config {
 	metricsEnabled := true
+	pipelineEnabled, pipelineOverwrite := false, true
 	return &Config{
 		Host:                net.JoinHostPort("localhost", defaultPort),
 		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
@@ -194,5 +219,13 @@ func defaultConfig(beatVersion string) *Config {
 		},
 		FrontendConfig: defaultRum(beatVersion),
 		RumConfig:      defaultRum(beatVersion),
+		Register: &registerConfig{
+			Ingest: &ingestConfig{
+				Pipeline: &pipelineConfig{
+					Enabled:   &pipelineEnabled,
+					Overwrite: &pipelineOverwrite,
+					Path:      filepath.Join("ingest", "pipeline", "definition.json"),
+				}},
+		},
 	}
 }

@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
 === Added
 
 - Provide basic server information at `/` {pull}1197[1197]
+- Add pipeline registration and pipeline usage {pull}[]
 
 [[release-notes-6.4]]
 == APM Server version 6.4

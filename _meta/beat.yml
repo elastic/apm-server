@@ -114,6 +114,25 @@ apm-server:
     # Set to false to disable the metrics endpoint
     #enabled: true
 
+  # Pipeline definitions are registered at the configured Elasticsearch instances.
+  # Registering pipelines therefore requires to have `output.elasticsearch` enabled and configured.
+  #
+  # If registering pipelines is disabled, you can still configure `output.elasticsearch.pipelines`
+  # to be applied to all processed documents, but you have to ensure yourself that the necessary
+  # pipelines are registered in Elasticsearch.
+  #
+  # NOTE: When registering pipelines the according Elasticsearch Processor Plugins 
+  # must be installed on every node!
+  # APM Server default ingest pipeline definitions require following plugins:
+  # * Ingest User Agent Plugin
+  #register.ingest.pipeline:
+  #
+    # Registers pipeline definitions in Elasticsearch on APM Server startup. Defaults to false.
+    #enabled: false 
+
+    # Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
+    #overwrite: true 
+
 #================================ General ======================================
 
 # Internal queue configuration for buffering events to be published.
@@ -374,8 +393,14 @@ output.elasticsearch:
       when.contains:
         processor.event: "onboarding"
 
-  # Optional ingest node pipeline. By default no pipeline will be used.
-  #pipeline: ""
+  # Ingest node pipelines are applied when writing documents to Elasticsearch.
+  # To make use of APM Server default pipelines:
+  # * ensure pipelines are registered in Elasticsearch. When using APM default pipelines,
+  #   you only need to set `apm-server.register.ingest.pipeline.enabled` to true
+  #   and ensure you have the proper Elasticsearch plugins installed. 
+  # * enable following pipelines
+  #pipelines:
+  #- pipeline: "apm_user_agent"
 
   # Optional HTTP Path
   #path: "/elasticsearch"
