@@ -381,7 +381,7 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 			"key_passphrase": "bar",
 		},
 	})
-	assert.NoError(t, err, err.Error())
+	assert.NoError(t, err)
 	_, _, err = setupServer(t, cfg, nil)
 	if assert.Error(t, err) {
 		b := strings.Contains(err.Error(), "no PEM blocks") ||
