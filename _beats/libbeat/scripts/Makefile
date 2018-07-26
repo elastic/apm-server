@@ -440,9 +440,7 @@ seccomp-package:
 
 .PHONY: mage
 mage:
-ifndef MAGE_PRESENT
 	go install ${MAGE_IMPORT_PATH}
-endif
 
 .PHONY: release
 release: mage
