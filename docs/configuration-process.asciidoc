@@ -1,28 +1,17 @@
 [[configuration-process]]
 == General configuration options
 
-Example config showing some basic configuration options for APM Server:
+Example config file:
 
 ["source","yaml"]
 ----
-apm-server.host: "localhost:8200"
-apm-server.max_unzipped_size: 31457280
-apm-server.max_header_size: 1048576
-apm-server.max_request_queue_time: 2s
-apm-server.read_timeout: 30s
-apm-server.write_timeout: 30s
-apm-server.shutdown_timeout: 5s
-apm-server.concurrent_requests: 5
-apm-server.max_connections: 0
-apm-server.instrumentation.enabled: false
-apm-server.capture_personal_data: true
-apm-server.expvar.enabled: false
-apm-server.expvar.url:"/debug/vars"
-apm-server.metrics.enabled: true
+apm-server:
+  host: "localhost:8200"
+  concurrent_requests: 5
+  rum:
+    enabled: true
 
 queue.mem.events: 4096
-queue.mem.flush.min_events: 0
-queue.mem.flush.timeout: 1s
 
 max_procs: 4
 ----
@@ -76,15 +65,15 @@ Defaults to 5 seconds.
 [[concurrent_requests]]
 [float]
 ==== `concurrent_request`
-Maximum number of requests a server is allowed to process concurrently.
+Maximum number of requests the server can process concurrently.
 Read more about how to tune data ingestion by <<adjust-concurrent-requests, adjusting concurrent_requests>>.
-Default value is set to 5.
+Default value is 5.
 
 [[max_connections]]
 [float]
 ==== `max_connections`
-Maximum number of new connections to accept simultaneously..
-Default value is set to 0, which means _unlimited_.
+Maximum number of TCP connections to accept simultaneously.
+Default value is 0, which means _unlimited_.
 
 [[instrumentation.enabled]]
 [float]
@@ -96,20 +85,19 @@ Disabled by default.
 [float]
 ==== `secret_token`
 Authorization token for sending data to the APM server.
-If a token is set the agents must send the token in the following format:
+If a token is set, the agents must send it in the following format:
 Authorization: Bearer <secret-token>.
-By default no authorization token is set.
+The token is not used for RUM endpoints. By default no authorization token is set.
 
-It is recommended though to use an authorization token in combination with SSL enabled.
+It is recommended to use an authorization token in combination with SSL enabled.
 Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token, secret token>>.
 
 [[capture_personal_data]]
 [float]
 ==== `capture_personal_data`
-If set to true,
-APM Server augments data received by the agent with the original IP of either the backend server,
-or the IP and User Agent of the real user (only for real user monitoring).
-It defaults to true.
+If true,
+APM Server captures the IP of the instrumented service and its User Agent if any.
+Enabled by default.
 
 [[expvar.enabled]]
 [float]
@@ -126,22 +114,20 @@ Defaults to `debug/vars`.
 [[metrics.enabled]]
 [float]
 ==== `metrics`
-Experimental Metrics endpoint allowing to collect and upload metrics related to APM.
-The experimental endpoint is enabled by default.
+Experimental Metrics endpoint for collecting application metrics.
+Enabled by default.
 
 [float]
 === Configuration options `queue.mem.*`
-All event data are buffered in a memory queue before they get published to the configured output.
-How manya data events are buffered and for how long
-is directly influenced by the `queue.mem.*` settings.
+Data is buffered in a memory queue before it is published to the configured output.
+`queue.mem.*` settings modify the queue behaviour.
 
 [[mem.events]]
 [float]
 ==== `events`
 Maximum number of events the memory queue can buffer.
-Read more about how this setting can be used for <<tune-data-ingestion, tuning data ingestion>> and how it plays
-together with other config options.
-Defaults to 4096.
+Read more about how this setting can be used for <<tune-data-ingestion, tuning data ingestion>>.
+Default value is 4096.
 
 [[mem.flush.min_events]]
 [float]

@@ -1,9 +1,6 @@
 [[error-api]]
 == Error API
 
-The APM Server exposes an API Endpoint to send error records.
-Unless you are implementing an agent, you don't need to know about the specifics of this API.
-
 The following section contains information about:
 
 * <<error-endpoint>>
@@ -14,30 +11,24 @@ The following section contains information about:
 [float]
 === Endpoint
 
-To send an error record you need to send a `HTTP POST` request to the APM Server `errors` endpoint:
+Send a `HTTP POST` request to the APM Server `errors` endpoint:
 [source,bash]
 ------------------------------------------------------------
 http(s)://{hostname}:{port}/v1/errors
 ------------------------------------------------------------
 
-To send a record for an error monitored by the
-{apm-rum-ref}/index.html[JavaScript RUM Agent]
-you need to send a `HTTP POST` request to the APM Server `rum errors` endpoint:
+For <<rum, RUM>> send a `HTTP POST` request to the `rum errors` endpoint instead:
 
 [source,bash]
 ------------------------------------------------------------
 http(s)://{hostname}:{port}/v1/rum/errors
 ------------------------------------------------------------
 
-Information pertaining to the error record must be sent as a JSON object to the endpoint.
-
 [[error-schema-definition]]
 [float]
 === Schema Definition
 
-The APM Server uses a JSON Schema for validating the transaction requests.
-Find details on how the schema is defined:
-
+The APM Server uses JSON Schema for validating requests. The specification for errors is defined bellow:
 * <<error-payload-schema>>
 * <<error-error-schema>>
 * <<error-service-schema>>
@@ -124,7 +115,7 @@ include::./spec/user.json[]
 [float]
 === Examples
 
-Send an example request to the APM Server:
+Request example:
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
@@ -133,7 +124,7 @@ curl http://localhost:8200/v1/errors \
   --data @docs/data/intake-api/generated/error/payload.json
 ------------------------------------------------------------
 
-See examples on how an error request to the APM Server can look like:
+Example error requests:
 
 * <<payload-with-error>>
 * <<payload-with-minimal-exception>>

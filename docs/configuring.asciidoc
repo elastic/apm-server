@@ -5,8 +5,6 @@
 --
 include::./copied-from-beats/shared-configuring.asciidoc[]
 
-The following topics describe how to configure APM Server:
-
 * <<configuration-process>>
 * <<configuring-output>>
 * <<configuration-ssl>>
