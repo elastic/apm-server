@@ -18,6 +18,8 @@
 package mage
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/magefile/mage/sh"
@@ -38,6 +40,7 @@ func GenerateFieldsYAML(fieldsFiles ...string) error {
 		return err
 	}
 
+	fmt.Fprintf(os.Stderr, ">>>> updated mage\n")
 	globalFieldsCmd := sh.RunCmd("go", "run",
 		filepath.Join(beatsDir, globalFieldsCmdPath),
 		"-es_beats_path", beatsDir,
