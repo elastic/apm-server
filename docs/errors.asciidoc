@@ -1,21 +1,21 @@
 [[errors]]
 == Errors
 
-An error record represents one error event, 
-captured by Elastic APM agents within one service. 
-It is identified by a unique ID.
+Errors are identified by a unique ID.
 An error event contains at least
-information about the original `exception` that occured 
-or information about a `log` that was created when the exception occured. 
+information about the original `exception` that occured
+or about a `log` created when the exception occured.
 
-Both the captured `exception` and the captured `log` of an error can contain `stack trace` information,
-helpful for debugging an error. 
+Both the captured `exception` and the captured `log` of an error can contain a `stack trace`,
+helpful for debugging.
 
-The `culprit` of an error gives some information about the origin of the error. 
+The `culprit` of an error indicates where is originated.
 
-An error can be mapped to the <<transactions,transaction>> during which it happened, 
+An error might relate to the <<transactions,transaction>> during which it happened,
 via the `transaction.id`.
+
+Errors also have some contextual data.
 
 include::./context.asciidoc[]
 
-Read more about how an <<error-indices, error document>> is indexed in Elasticsearch.
+Errors are stored in <<error-indices, error indices>>.
