@@ -71,7 +71,7 @@ func main() {
 		beatName = args[0]
 		data, err = ioutil.ReadFile(input)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Invalid file path: %s\n", input)
+			fmt.Fprintf(os.Stderr, "Error while reading from file %s: %v\n", input, err)
 			os.Exit(1)
 		}
 	}
