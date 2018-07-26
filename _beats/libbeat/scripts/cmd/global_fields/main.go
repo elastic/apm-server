@@ -97,9 +97,9 @@ func main() {
 		os.Exit(3)
 	}
 
+	abs, err := filepath.Abs(output)
+	fmt.Fprintf(os.Stderr, "done %s %s %s\n", abs, output, err)
 	if output != "-" {
-		abs, err := filepath.Abs(output)
-		fmt.Fprintf(os.Stderr, "done %s %s %s\n", abs, output, err)
 		fmt.Printf("Generated fields.yml for %s\n", name)
 	}
 }
