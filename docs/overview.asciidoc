@@ -1,30 +1,15 @@
 [[overview]]
 == Overview
 
-Welcome to APM Server Docs.
+The APM Server receives data from APM agents and transforms them into Elasticsearch documents.
 
-NOTE: The documentation pages are still work in progress.
-For more details also check APM Server https://github.com/elastic/apm-server[Github repository].
+It works by exposing an HTTP server to which agents post the APM data they collect.
 
-APM Server is a central component in the Elastic APM system.
-It receives data from APM agents and transforms them into Elasticsearch documents.
-
-A single APM server can handle data from multiple services.
-APM Server works by exposing an HTTP server to which agents post the APM data they collect.
-This includes performance information about the services,
-as well as errors that occur in them.
-
-APM Server is an application built in Go using the beats framework
-and as such it shares many of the same configuration options as beats.
-
-In the following you can read more about the APM Server
-
-* <<installing>>
-* <<setting-up-and-running>>
-* <<configuring-howto-apm-server>>
+APM Server is built with the Beats framework,
+and as such it levarages its functionality.
 
 To get an overview of the whole Elastic APM system,
-please also have a look at the documentation for
+ also have a look at:
 
 * {apm-node-ref}/index.html[APM Node.js Agent]
 * {apm-py-ref}/index.html[APM Python Agent]
@@ -32,20 +17,18 @@ please also have a look at the documentation for
 * {apm-rum-ref}/index.html[APM RUM JavaScript Agent]
 * {ref}/index.html[Elasticsearch]
 
-See how to {apm-get-started}/index.html[Get Started] with the Elastic APM system.
 
 [[why-separate-component]]
 === Why is APM Server a separate component?
 
-The APM Server is kept as a separate component for the following reasons:
+The APM Server is a separate component for the following reasons:
 
-* It helps keep the agents as light as possible and since the APM Server is a stateless separate component,
+* It helps to keep the agents as light as possible and since the APM Server is a stateless separate component,
 it can be scaled independently.
-* For real-user-monitoring (beta),
-data is being collected in agents running in browsers.
+* For Real User monitoring data is collected in browsers.
   APM Server prevents browsers from interacting directly with Elasticsearch (which poses a security risk),
   and controls the amount of data flowing into Elasticsearch.
 * In cases where Elasticsearch becomes unresponsive,
-APM Server can buffer data temporarily (configurable) without adding overhead to the agents.
-* APM Server serves as a middleware for source mapping for javascript in the browser.
-* The APM Server provides a JSON API for agents to use thereby improving compatibility across different versions of agents and the Elastic Stack.
+APM Server can buffer data temporarily without adding overhead to the agents.
+* Acts as a middleware for source mapping for javascript in the browser.
+* Provides a JSON API for agents to use thereby improving compatibility across different versions of agents and the Elastic Stack.

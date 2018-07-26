@@ -1,9 +1,6 @@
 [[transaction-api]]
 == Transaction API
 
-The APM Server exposes an API Endpoint to send <<transactions,transaction records>>.
-Unless you are implementing an agent, you don't need to know about the specifics of this API.
-
 The following section contains information about:
 
 * <<transaction-endpoint>>
@@ -13,30 +10,25 @@ The following section contains information about:
 [[transaction-endpoint]]
 [float]
 === Endpoint
-To send a transaction record you need to send a `HTTP POST` request to the APM Server `transactions` endpoint:
+Send a `HTTP POST` request to the APM Server `transactions` endpoint:
 
 [source,bash]
 ------------------------------------------------------------
 http(s)://{hostname}:{port}/v1/transactions
 ------------------------------------------------------------
 
-To send a record for a transaction monitored by the 
-{apm-rum-ref}/index.html[JavaScript RUM Agent]
-you need to send a `HTTP POST` request to the APM Server `rum transactions` endpoint:
+For <<rum, RUM>> send a `HTTP POST` request to the APM Server `rum transactions` endpoint instead:
 
 [source,bash]
 ------------------------------------------------------------
 http(s)://{hostname}:{port}/v1/rum/transactions
 ------------------------------------------------------------
 
-Information pertaining to the record must be sent as a JSON object.
-
 [[transaction-schema-definition]]
 [float]
 === Schema Definition
 
-The APM Server uses a JSON Schema for validating the transaction requests.
-Find details on how the schema is defined:
+The APM Server uses JSON Schema for validating requests. The specification for transactions is defined bellow:
 
 * <<transaction-payload-schema>>
 * <<transaction-transaction-schema>>
@@ -133,7 +125,7 @@ include::./spec/user.json[]
 [float]
 === Examples
 
-Send an example request to the APM Server:
+Request example:
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
@@ -142,7 +134,7 @@ curl http://localhost:8200/v1/transactions \
   --data @docs/data/intake-api/generated/transaction/payload.json
 ------------------------------------------------------------
 
-See examples on how a transaction request to the APM Server can look like:
+Example transaction requests:
 
 * <<payload-with-transactions>>
 * <<payload-with-minimal-transaction>>

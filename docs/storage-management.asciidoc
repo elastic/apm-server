@@ -3,73 +3,65 @@
 
 [partintro]
 --
-In the following we focus on how you can 
+In the following section you can learn how to
 
 * <<manage-indices-kibana, manage APM indices via Kibana>>
-* <<reduce-storage, reduce storage>> by deleting data 
-or trimming data collection already during ingestion time 
-* <<update-existing-data, update data>> once they are stored 
+* <<reduce-storage, reduce storage usage>>
+* <<update-existing-data, update existing data>>
 --
 
 [[manage-indices-kibana]]
 == Manage Indices via Kibana
-The Kinana UI for managing indices allows you to 
-view your indices, index settings, mappings, docs count, used storage per index and much more. 
-You can perform management operations, 
-e.g. deleting indices directly via the Kibana UI.
-The UI also supports applying bulk operations on several indices at once. 
-Check out the {kibana-ref}/managing-indices.html[Kibana Managing Indices] docs for how to use the index management UI.
+The Kibana UI for managing indices allows you to
+view indices, index settings, mappings, docs count, used storage per index and much more.
+You can perform management operations,
+for example deleting indices directly via the Kibana UI.
+The UI also supports applying bulk operations on several indices at once.
+Check out the {kibana-ref}/managing-indices.html[Kibana Managing Indices] documentation for more details.
 
 [[reduce-storage]]
 == Reduce storage
-The amount of storage for APM data depends on several factors. 
-Depending on how many services you are instrumenting and how much traffic the services see, 
-the number of recorded transactions varies.
-You can influence the detail level of the information collected 
-by reducing the sample rate or reducing collected stacktrace information.
-Another factor is for how long you want to keep monitoring data around.
+The amount of storage for APM data depends on several factors:
+how many services you are instrumenting, how much traffic the services see, agent and server settings,
+and for how long you keep monitoring data.
 
 [[reduce-sample-rate]]
 [float]
 === Reduce the sample rate
-In case you are monitoring high traffic services you might want to decrease the number of transactions that are sampled. 
-The transaction sample rate directly influences the number of documents to be indexed
-and therefore is the most obvious way to reduce storage. 
 
-The transaction sample rate is controlled in the configuration of agents (for example for {apm-py-ref}/configuration.html#config-transaction-sample-rate[Python] and {apm-node-ref}/agent-api.html#transaction-sample-rate[Node.js]).
+The transaction sample rate directly influences the number of documents (more precisely, spans) to be indexed
+and therefore is the most obvious way to reduce storage.
 
-Reducing the transaction sample rate does not affect the collection of metrics such as _Transactions Per Second_.
+The transaction sample rate is a configuration setting of the agents.
+
+Reducing it does not affect the collection of metrics such as _Transactions Per Second_.
 
 [[reduce-stacktrace]]
 [float]
 === Reduce collected stacktrace information
-Elastic APM agents automatically collect information regarding stacktraces under certain circumstances. 
+Elastic APM agents collect `stacktrace` information under certain circumstances.
 This can be very helpful by identifying issues in your code,
-but it also comes with an overhead at collection time 
-and increaeses the storage usage. 
-If you want to decrease collected stacktrace information you have to configure this directly in the agents. 
-Please refer to our {apm-agents-ref}/index.html[agent documentation] to read more about the options in the single 
-agents. 
+but it also comes with an overhead at collection time and increases the storage usage.
+Stacktrace collection settings are managed in the agents.
 
 [[delete-data]]
 [float]
 === Delete data
-You might want to delete data for several reasons.
-A common use case is to keep data only for a defined time period and delete older documents. 
-You might also want to delete data collected for specific services or customers, 
-or delete specific indices. 
-Depending on your use case, 
-you can either delete data periodically with a tool like {curator-ref-current}[Curator] 
-or by using the {ref}/docs-delete-by-query.html[Delete By Query API]
-or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI]. 
+
+You might want to keep data only for a defined time period and delete old documents periodically,
+or you might also want to delete data collected for specific services or customers,
+or delete specific indices.
+Depending on your use case,
+you can either delete data periodically with {curator-ref-current}[Curator],
+by using the {ref}/docs-delete-by-query.html[Delete By Query API],
+or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
 
 [[delete-data-periodically]]
 [float]
 ==== Delete data periodically
 
-It might make sense to delete old APM indices on a periodic basis to make room for new data. 
-To do this you can use a tool like {curator-ref-current}[Curator] and set up a cron job to run it periodically.
+To delete data periodically you can use {curator-ref-current}[Curator] and set up a cron job to run it.
 
 By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
 With the curator command line interface you can, for instance, see all your existing indices:
@@ -107,8 +99,10 @@ INFO      "delete_indices" action completed.
 [float]
 ==== Delete data matching a query
 
-In case you want to delete documents matching a specific query, e.g. all documents with a given `context.service.name`,
-you can do this by sending the following request:
+To delete documents matching a specific query, for example, all documents with a given context.service.name,
+use the following request:
+
+
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -136,25 +130,23 @@ See {ref}/docs-delete-by-query.html[delete by query] for further information on 
 [[delete-data-kibana]]
 [float]
 ==== Delete data via Kibana Index Management UI
-Follow the {kibana-ref}/managing-indices.html[Kibana Index Management] docs 
-for how to get started with the index management UI.
-Select the indices you want to delete, then click the _Manage indices_ button to see supported options.
-Choose _delete indices_ and your indices will be deleted. 
+Select the indices you want to delete, and click the _Manage indices_ button to see the available actions.
+Then click _delete indices_.
+Follow the {kibana-ref}/managing-indices.html[Kibana Index Management] documentation
+ to get started with the index management UI.
 
 [[update-existing-data]]
 == Update existing data
-You might want to update documents already ingested to Elasticsearch, 
-e.g. if you your service name was set incorrectly, 
-or you need to update a tag you have set.
+You might want to update documents already indexed,
+for example if you your service name was set incorrectly.
 
-You can update existing data by using the {ref}/docs-update-by-query.html[Update By Query API].
+For this you can use the {ref}/docs-update-by-query.html[Update By Query API].
 
 [[update-data-rename-a-service]]
 [float]
 === Rename a service
-For exampe, 
-if you want to change the service name reported for your monitored data,
-you can do that by sending the following request:
+
+To rename a service send the following request:
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -175,4 +167,4 @@ POST /apm-*/_update_by_query
 ------------------------------------------------------------
 // CONSOLE
 
-Also check out how to change the service name for newly collected documents in the {apm-agents-ref}/index.html[APM agent configuration] accordingly.
+Remember to also change the service name in the {apm-agents-ref}/index.html[APM agent configuration] accordingly.

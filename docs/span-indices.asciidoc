@@ -1,9 +1,8 @@
 [[span-indices]]
 == Span Indices
 
-Spans are monitored as parts of <<transactions, transactions>>. 
-They are stored in their separate indices `apm-[version]-span-[date]` though.
-
+Spans are stored in separate indices of the format `apm-[version]-span-[date]`.
+Conceptually, spans are part of transactions.
 
 [[span-example]]
 [float]
