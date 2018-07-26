@@ -9,7 +9,7 @@ You can also install APM Server from our repositories or install as a service on
 * <<setup-repositories>>
 * <<installing-on-windows>>
 
-To run APM Server in Docker, please see <<running-on-docker>>.
+To run APM Server in Docker, see <<running-on-docker>>.
 
 include::./copied-from-beats/repositories.asciidoc[]
 

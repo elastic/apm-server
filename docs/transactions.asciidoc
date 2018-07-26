@@ -1,48 +1,40 @@
 [[transactions]]
 == Transactions
 
-A transaction represents one event, captured by an Elastic APM agent within one service. 
-A transaction can for example be a single HTTP request or an asynchrounous background job within one service.
+A transaction describes an event captured by an Elastic APM agent instrumeting a service.
+A transaction can for example be an HTTP request or an asynchrounous background job.
 
-The transaction shows the duration of the event, 
-a unique id, the type and an automatically retrieved name,
-as well as an indication whether or not the transaction was handled successfully. 
-
-
-If a transaction was sampled, 
-the <<transaction-spans,spans>> of the transaction were captured and are available as seperate documents.
-There is a configuration option on how many spans should be captured per transaction.
-
-A transaction can also contain information regarding `marks`. 
-Marks capture the timing in milliseconds of a significant event during the lifetime of a transaction, 
-set by the user or the agent
+It contains the timestamp and duration of the event,
+a unique id, type, name,
+a result (for example a response code), some contextual data, and other relevant information depending on the agent.
+For instance, the JavaScript RUM captures transaction marks,
+which are points in time relative to the start of the transaction with some label.
 
 [[transactions-context]]
 include::./context.asciidoc[]
 
+Agents decide whether to sample transactions or not, and provide settings to control sampling behaviour.
+If sampled,
+the <<transaction-spans,spans>> of a transaction are sent and stored seperate documents.
+
+Transactions are stored in <<transaction-indices, transaction indices>>.
+
 [[transaction-spans]]
 [float]
 === Spans
-Several spans can be related to a transaction. 
-The relationship is indicated by a `transaction.id`.
+Spans can have 0, 1, or many spans. Spans have a `transaction.id` attribute that refer to their transaction.
 
-A span contains information about a specific code path, 
-executed as part of a transaction. 
-Elastic APM agents automatically instrument a variety of libraries, 
-but also support custom instrumentation for code paths.
-Every code path that is captured by an agent creates a span.
+A span contains information about a specific code path,
+executed as part of a transaction. Such information includes start time, duration, name, type, and optionally a `stack trace`.
 
-Every span is identified by an unique ID per transaction.
-Spans at least collect information about when the code path execution started, 
-the duration, and the type of the code path execution.
-
-This means, if for example a database query happens within a recorded transaction,
-a span representing this database query will be created.
+If for example a database query happens within a sampled transaction,
+a span describing the database query will be created.
 In such a case the name of the span will contain information about the query itself,
-and the type will hold information about the database type. 
+and the type about the database.
 
-A span can also contain `stack trace` information.
+Typically, agents instrument automatically a variety of libraries,
+but also provide an API for ad hoc instrumentation of specific code paths.
 
-Transactions and spans are stored in separated indices by default. 
-Read more about their representation in Elasticsearch in <<transaction-indices, transaction indices>> and 
-<<span-indices, span indices>>.
+Transactions are stored in <<transaction-indices, transaction indices>> and spans are stored in separated indices by default.
+
+Spans are stored in <<span-indices, span indices>>.

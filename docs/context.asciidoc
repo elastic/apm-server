@@ -1,12 +1,10 @@
-An event's context bundles information regarding the environment in which it is recorded.
-It describes the `service` in which the event is captured, 
-the `system` in which the monitored service is running and the event's `process` information.
+The contextual data describes the environment in which an event is recorded.
+It includes the `service`, the `system` where the service runs, and the `process`.
 
-It can also contain information about the authenticated `user`. 
+It can also contain information about the authenticated `user`.
 
-An event's context can also include information about the request leading to the event and the response of processing the event. 
-In case a http request is captured, it contains information about the `url`, `cookies`, `body`, `headers`, etc.
+An event's context can also include information about an authenticated `user`, a request leading to it, or a response.
+For instance, HTTP requests context have `url`, `cookies`, `body`, `headers`, etc.
 
-The agents provide some configuration options with which the users can also capture customized information.
-The non-indexed information is captured within a `custom` object,
-while the searchable information is stored within `tags`.
+The agents provide some settings for users to capture customized information. This data is stored as not-indexed in a `custom` object.
+Searchable information is stored as `tags` instead.
