@@ -19,6 +19,7 @@ package utility
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 	"unsafe"
 
@@ -190,6 +191,28 @@ func TestAdd(t *testing.T) {
 		expected = common.MapStr{}
 		assert.Equal(t, expected, m,
 			fmt.Sprintf("<%v>: Remove empty value - Expected: %v, Actual: %v", idx, expected, m))
+	}
+}
+
+func TestAddEnsureCopy(t *testing.T) {
+	for _, test := range []struct {
+		v interface{}
+	}{
+		{
+			common.MapStr{"b": "bar"},
+		},
+		{
+			map[string]interface{}{"b": "bar"},
+		},
+	} {
+		dest := common.MapStr{}
+		Add(dest, "key", test.v)
+
+		// modify the original value and ensure if doesn't modify the "add"ed value
+		reflect.ValueOf(test.v).SetMapIndex(reflect.ValueOf("f"), reflect.ValueOf("foo"))
+		actual := dest["key"]
+
+		assert.NotEqual(t, actual, test.v)
 	}
 }
 
