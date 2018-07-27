@@ -54,11 +54,12 @@ func Add(m common.MapStr, key string, val interface{}) {
 		}
 	case common.MapStr:
 		if valMap := val.(common.MapStr); len(valMap) > 0 {
+			newValMap := common.MapStr{}
 			for k, v := range valMap {
-				Add(valMap, k, v)
+				Add(newValMap, k, v)
 			}
-			if len(valMap) > 0 {
-				m[key] = valMap
+			if len(newValMap) > 0 {
+				m[key] = newValMap
 			} else {
 				delete(m, key)
 			}
@@ -67,11 +68,12 @@ func Add(m common.MapStr, key string, val interface{}) {
 		}
 	case map[string]interface{}:
 		if valMap := val.(map[string]interface{}); len(valMap) > 0 {
+			newValMap := map[string]interface{}{}
 			for k, v := range valMap {
-				Add(valMap, k, v)
+				Add(newValMap, k, v)
 			}
-			if len(valMap) > 0 {
-				m[key] = valMap
+			if len(newValMap) > 0 {
+				m[key] = newValMap
 			} else {
 				delete(m, key)
 			}
