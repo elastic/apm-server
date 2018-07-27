@@ -28,6 +28,7 @@ func Add(m common.MapStr, key string, val interface{}) {
 	if m == nil || key == "" {
 		return
 	}
+
 	if val == nil {
 		delete(m, key)
 		return
@@ -35,27 +36,27 @@ func Add(m common.MapStr, key string, val interface{}) {
 
 	switch value := val.(type) {
 	case *bool:
-		if newVal := val.(*bool); newVal != nil {
-			m[key] = *newVal
+		if value != nil {
+			m[key] = *value
 		} else {
 			delete(m, key)
 		}
 	case *int:
-		if newVal := val.(*int); newVal != nil {
-			m[key] = *newVal
+		if value != nil {
+			m[key] = *value
 		} else {
 			delete(m, key)
 		}
 	case *string:
-		if newVal := val.(*string); newVal != nil {
-			m[key] = *newVal
+		if value != nil {
+			m[key] = *value
 		} else {
 			delete(m, key)
 		}
 	case common.MapStr:
-		if valMap := val.(common.MapStr); len(valMap) > 0 {
+		if len(value) > 0 {
 			newValMap := common.MapStr{}
-			for k, v := range valMap {
+			for k, v := range value {
 				Add(newValMap, k, v)
 			}
 			if len(newValMap) > 0 {
@@ -67,9 +68,9 @@ func Add(m common.MapStr, key string, val interface{}) {
 			delete(m, key)
 		}
 	case map[string]interface{}:
-		if valMap := val.(map[string]interface{}); len(valMap) > 0 {
+		if len(value) > 0 {
 			newValMap := map[string]interface{}{}
-			for k, v := range valMap {
+			for k, v := range value {
 				Add(newValMap, k, v)
 			}
 			if len(newValMap) > 0 {
@@ -87,22 +88,22 @@ func Add(m common.MapStr, key string, val interface{}) {
 			Add(m, key, floatVal)
 		}
 	case float64:
-		floatVal := val.(float64)
-		if floatVal == float64(int64(floatVal)) {
-			m[key] = int64(floatVal)
+		if value == float64(int64(value)) {
+			m[key] = int64(value)
 		} else {
-			m[key] = common.Float(floatVal)
+			m[key] = common.Float(value)
 		}
 	case *float64:
 		if value != nil {
 			m[key] = *value
+		} else {
+			delete(m, key)
 		}
 	case float32:
-		floatVal := val.(float32)
-		if floatVal == float32(int32(floatVal)) {
-			m[key] = int32(floatVal)
+		if value == float32(int32(value)) {
+			m[key] = int32(value)
 		} else {
-			m[key] = common.Float(floatVal)
+			m[key] = common.Float(value)
 		}
 	case string, bool, complex64, complex128:
 		m[key] = val
