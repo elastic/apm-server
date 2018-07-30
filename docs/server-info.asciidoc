@@ -3,6 +3,8 @@
 
 The APM Server exposes an API endpoint to query some server information.
 
+This lightweight endpoint is useful as a server up/down healthcheck.
+
 [[server-info-endpoint]]
 [float]
 === Server Information endpoint
@@ -17,7 +19,7 @@ This endpoint always returns an HTTP 200.
 
 If a <<secret-token, secret token>> is set, only requests including <<config-secret-token, authentication>> will include server details.
 
-Set the `Content-Type` header set to `text/plain` to move the server information to the root level of the response, removing `ok`.
+Set the `Accept` header set to `text/plain` to move the server information to the root level of the response, removing `ok`.
 
 [[server-info-examples]]
 [float]
