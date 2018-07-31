@@ -20,6 +20,7 @@ package beater
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -33,7 +34,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/tests/loader"
@@ -75,6 +75,90 @@ func TestServerOk(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
+}
+
+func TestServerRoot(t *testing.T) {
+	apm, teardown, err := setupServer(t, nil, nil)
+	require.NoError(t, err)
+	defer teardown()
+
+	baseUrl, client := apm.client(false)
+	rootRequest := func(path string, accept *string) *http.Response {
+		req, err := http.NewRequest(http.MethodGet, baseUrl+path, nil)
+		require.NoError(t, err, "Failed to create test request object: %v", err)
+		if accept != nil {
+			req.Header.Add("Accept", *accept)
+		}
+		res, err := client.Do(req)
+		assert.NoError(t, err)
+		return res
+	}
+
+	checkResponse := func(hasOk bool) func(t *testing.T, res *http.Response) {
+		return func(t *testing.T, res *http.Response) {
+			var rsp map[string]interface{}
+			b, err := ioutil.ReadAll(res.Body)
+			require.NoError(t, err)
+			if err := json.Unmarshal(b, &rsp); err != nil {
+				t.Fatal(err, b)
+			}
+			assert.Equal(t, hasOk, rsp["ok"] != nil, string(b))
+		}
+	}
+
+	jsonContent := "application/json"
+	plain := "text/plain; charset=utf-8"
+	testCases := []struct {
+		path              string
+		accept            *string
+		expectStatus      int
+		expectContentType string
+		assertions        func(t *testing.T, res *http.Response)
+	}{
+		{path: "/", expectStatus: http.StatusOK, expectContentType: plain, assertions: checkResponse(false)},
+		{path: "/", accept: &jsonContent, expectStatus: http.StatusOK, expectContentType: jsonContent, assertions: checkResponse(true)},
+		{path: "/foo", expectStatus: http.StatusNotFound, expectContentType: plain},
+		{path: "/foo", accept: &jsonContent, expectStatus: http.StatusNotFound, expectContentType: plain},
+	}
+	for _, testCase := range testCases {
+		res := rootRequest(testCase.path, testCase.accept)
+		assert.Equal(t, testCase.expectStatus, res.StatusCode)
+		assert.Equal(t, testCase.expectContentType, res.Header.Get("Content-Type"))
+		if testCase.assertions != nil {
+			testCase.assertions(t, res)
+		}
+	}
+}
+
+func TestServerRootWithToken(t *testing.T) {
+	token := "verysecret"
+	badToken := "Verysecret"
+	ucfg, err := common.NewConfigFrom(map[string]interface{}{"secret_token": token})
+	assert.NoError(t, err)
+	apm, teardown, err := setupServer(t, ucfg, nil)
+	require.NoError(t, err)
+	defer teardown()
+	baseUrl, client := apm.client(false)
+
+	rootRequest := func(token *string) *http.Response {
+		req, err := http.NewRequest(http.MethodGet, baseUrl+"/", nil)
+		require.NoError(t, err, "Failed to create test request object: %v", err)
+		if token != nil {
+			req.Header.Add("Authorization", "Bearer "+*token)
+		}
+		res, err := client.Do(req)
+		require.NoError(t, err)
+		return res
+	}
+
+	noToken := body(t, rootRequest(nil))
+	withToken := body(t, rootRequest(&token))
+	assert.NotEqual(t, token, badToken)
+	withBadToken := body(t, rootRequest(&badToken))
+	assert.Equal(t, 0, len(noToken), noToken)
+	assert.True(t, len(withToken) > 0, withToken)
+	assert.NotEqual(t, noToken, withToken)
+	assert.Equal(t, noToken, withBadToken)
 }
 
 func TestServerTcpNoPort(t *testing.T) {
