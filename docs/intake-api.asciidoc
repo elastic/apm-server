@@ -7,6 +7,7 @@ The Intake API is HTTP JSON based. The APM Server exposes endpoints for
 * <<transaction-api,Transactions>>
 * <<error-api,Errors>>
 * <<sourcemap-api,Source Map Upload>>
+* <<server-info,Server Information>>
 
 Unless you are implementing an agent, you don't need to know about the specifics of this API.
 
@@ -14,3 +15,4 @@ Unless you are implementing an agent, you don't need to know about the specifics
 include::./transaction-api.asciidoc[]
 include::./error-api.asciidoc[]
 include::./sourcemap-api.asciidoc[]
+include::./server-info.asciidoc[]

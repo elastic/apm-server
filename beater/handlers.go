@@ -22,6 +22,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"expvar"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -40,13 +41,15 @@ import (
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
-
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/elastic/beats/libbeat/version"
 )
 
 const (
+	rootURL                   = "/"
 	BackendTransactionsURL    = "/v1/transactions"
 	ClientSideTransactionsURL = "/v1/client-side/transactions"
 	RumTransactionsURL        = "/v1/rum/transactions"
@@ -76,6 +79,7 @@ type serverResponse struct {
 	err     error
 	code    int
 	counter *monitoring.Int
+	body    interface{}
 }
 
 var (
@@ -88,56 +92,79 @@ var (
 	responseCounter   = counter("response.count")
 	responseErrors    = counter("response.errors.count")
 	responseSuccesses = counter("response.valid.count")
+	responseOk        = counter("response.valid.ok")
 
 	okResponse = serverResponse{
-		nil, http.StatusOK, counter("response.valid.ok"),
+		code:    http.StatusOK,
+		counter: responseOk,
 	}
 	acceptedResponse = serverResponse{
-		nil, http.StatusAccepted, counter("response.valid.accepted"),
+		code:    http.StatusAccepted,
+		counter: counter("response.valid.accepted"),
 	}
 	forbiddenCounter  = counter("response.errors.forbidden")
 	forbiddenResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.Wrap(err, "forbidden request"), http.StatusForbidden, forbiddenCounter,
+			err:     errors.Wrap(err, "forbidden request"),
+			code:    http.StatusForbidden,
+			counter: forbiddenCounter,
 		}
 	}
 	unauthorizedResponse = serverResponse{
-		errors.New("invalid token"), http.StatusUnauthorized, counter("response.errors.unauthorized"),
+		err:     errors.New("invalid token"),
+		code:    http.StatusUnauthorized,
+		counter: counter("response.errors.unauthorized"),
 	}
 	requestTooLargeResponse = serverResponse{
-		errors.New("request body too large"), http.StatusRequestEntityTooLarge, counter("response.errors.toolarge"),
+		err:     errors.New("request body too large"),
+		code:    http.StatusRequestEntityTooLarge,
+		counter: counter("response.errors.toolarge"),
 	}
 	decodeCounter        = counter("response.errors.decode")
 	cannotDecodeResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.Wrap(err, "data decoding error"), http.StatusBadRequest, decodeCounter,
+			err:     errors.Wrap(err, "data decoding error"),
+			code:    http.StatusBadRequest,
+			counter: decodeCounter,
 		}
 	}
 	validateCounter        = counter("response.errors.validate")
 	cannotValidateResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.Wrap(err, "data validation error"), http.StatusBadRequest, validateCounter,
+			err:     errors.Wrap(err, "data validation error"),
+			code:    http.StatusBadRequest,
+			counter: validateCounter,
 		}
 	}
 	rateLimitedResponse = serverResponse{
-		errors.New("too many requests"), http.StatusTooManyRequests, counter("response.errors.ratelimit"),
+		err:     errors.New("too many requests"),
+		code:    http.StatusTooManyRequests,
+		counter: counter("response.errors.ratelimit"),
 	}
 	methodNotAllowedResponse = serverResponse{
-		errors.New("only POST requests are supported"), http.StatusMethodNotAllowed, counter("response.errors.method"),
+		err:     errors.New("only POST requests are supported"),
+		code:    http.StatusMethodNotAllowed,
+		counter: counter("response.errors.method"),
 	}
 	tooManyConcurrentRequestsResponse = serverResponse{
-		errors.New("timeout waiting to be processed"), http.StatusServiceUnavailable, counter("response.errors.concurrency"),
+		err:     errors.New("timeout waiting to be processed"),
+		code:    http.StatusServiceUnavailable,
+		counter: counter("response.errors.concurrency"),
 	}
 	fullQueueCounter  = counter("response.errors.queue")
 	fullQueueResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.New("queue is full"), http.StatusServiceUnavailable, fullQueueCounter,
+			err:     errors.New("queue is full"),
+			code:    http.StatusServiceUnavailable,
+			counter: fullQueueCounter,
 		}
 	}
 	serverShuttingDownCounter  = counter("response.errors.closed")
 	serverShuttingDownResponse = func(err error) serverResponse {
 		return serverResponse{
-			errors.New("server is shutting down"), http.StatusServiceUnavailable, serverShuttingDownCounter,
+			err:     errors.New("server is shutting down"),
+			code:    http.StatusServiceUnavailable,
+			counter: serverShuttingDownCounter,
 		}
 	}
 
@@ -163,6 +190,7 @@ func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 		mux.Handle(path, mapping.ProcessorHandler(mapping.Processor, beaterConfig, report))
 	}
 
+	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
 	mux.Handle(HealthCheckURL, healthCheckHandler())
 
 	if beaterConfig.Expvar.isEnabled() {
@@ -243,11 +271,39 @@ func sourcemapHandler(p processor.Processor, beaterConfig *Config, report report
 				processRequestHandler(p, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }
 
+// Deprecated: use rootHandler instead
 func healthCheckHandler() http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sendStatus(w, r, okResponse)
 		}))
+}
+
+func rootHandler(secretToken string) http.Handler {
+	serverInfo := common.MapStr{
+		"build_date": version.BuildTime().Format(time.RFC3339),
+		"build_sha":  version.Commit(),
+		"version":    version.GetDefaultVersion(),
+	}
+	detailedOkResponse := serverResponse{
+		code:    http.StatusOK,
+		counter: responseOk,
+		body:    serverInfo,
+	}
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		if isAuthorized(r, secretToken) {
+			sendStatus(w, r, detailedOkResponse)
+			return
+		}
+		sendStatus(w, r, okResponse)
+	})
+	return logHandler(handler)
 }
 
 type logContextKey string
@@ -439,24 +495,32 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 
 	responseCounter.Inc()
 	res.counter.Inc()
+
+	var msgKey string
+	var msg interface{}
 	if res.err == nil {
 		responseSuccesses.Inc()
-		return
-	}
+		if res.body == nil {
+			return
+		}
+		msgKey = "ok"
+		msg = res.body
+	} else {
+		responseErrors.Inc()
 
-	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-	if !ok {
-		logger = logp.NewLogger("request")
+		logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+		if !ok {
+			logger = logp.NewLogger("request")
+		}
+		msgKey = "error"
+		msg = res.err.Error()
+		logger.Errorw("error handling request", "response_code", res.code, "error", msg)
 	}
-	errMsg := res.err.Error()
-	logger.Errorw("error handling request", "response_code", res.code, "error", errMsg)
-
-	responseErrors.Inc()
 
 	if acceptsJSON(r) {
-		sendJSON(w, map[string]interface{}{"error": errMsg})
+		sendJSON(w, map[string]interface{}{msgKey: msg})
 	} else {
-		sendPlain(w, errMsg)
+		sendPlain(w, fmt.Sprintf("%s", msg))
 	}
 }
 
