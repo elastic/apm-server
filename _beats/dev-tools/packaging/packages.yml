@@ -248,13 +248,6 @@ specs:
         <<: *apache_license_for_binaries
         name: '{{.BeatName}}-oss'
 
-    - os: darwin
-      types: [dmg]
-      spec:
-        <<: *macos_beat_pkg_spec
-        <<: *apache_license_for_macos_pkg
-        name: '{{.BeatName}}-oss'
-
     - os: linux
       types: [tgz]
       spec:
@@ -283,12 +276,6 @@ specs:
       spec:
         <<: *binary_spec
         <<: *elastic_license_for_binaries
-
-    - os: darwin
-      types: [dmg]
-      spec:
-        <<: *macos_beat_pkg_spec
-        <<: *elastic_license_for_macos_pkg
 
     - os: linux
       types: [tgz]
