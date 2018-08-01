@@ -97,7 +97,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	return &e, err
 }
 
-func (t *Event) Fields(tctx *transform.Context) common.MapStr {
+func (t *Event) fields(tctx *transform.Context) common.MapStr {
 	tx := common.MapStr{"id": t.Id}
 	utility.Add(tx, "name", t.Name)
 	utility.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
@@ -128,7 +128,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	ev := beat.Event{
 		Fields: common.MapStr{
 			"processor":        processorTransEntry,
-			transactionDocType: e.Fields(tctx),
+			transactionDocType: e.fields(tctx),
 			"context":          tctx.Metadata.Merge(e.Context),
 		},
 		Timestamp: e.Timestamp,

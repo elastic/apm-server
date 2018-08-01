@@ -91,7 +91,7 @@ func (s *Span) Transform(tctx *transform.Context) []beat.Event {
 	ev := beat.Event{
 		Fields: common.MapStr{
 			"processor":   processorSpanEntry,
-			spanDocType:   s.Fields(tctx),
+			spanDocType:   s.fields(tctx),
 			"transaction": common.MapStr{"id": s.TransactionId},
 			"context":     tctx.Metadata.MergeMinimal(s.Context),
 		},
@@ -101,7 +101,7 @@ func (s *Span) Transform(tctx *transform.Context) []beat.Event {
 	return []beat.Event{ev}
 }
 
-func (s *Span) Fields(tctx *transform.Context) common.MapStr {
+func (s *Span) fields(tctx *transform.Context) common.MapStr {
 	if s == nil {
 		return nil
 	}

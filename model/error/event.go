@@ -154,7 +154,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	fields := common.MapStr{
-		"error":     e.Fields(tctx),
+		"error":     e.fields(tctx),
 		"context":   tctx.Metadata.Merge(e.Context),
 		"processor": processorEntry,
 	}
@@ -171,7 +171,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 }
 
-func (e *Event) Fields(tctx *transform.Context) common.MapStr {
+func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 

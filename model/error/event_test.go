@@ -802,7 +802,7 @@ func TestSourcemapping(t *testing.T) {
 			Service: &metadata.Service{},
 		},
 	}
-	trNoSmap := event.Fields(tctx)
+	trNoSmap := event.fields(tctx)
 
 	event2 := Event{Exception: &Exception{
 		Message: "exception message",
@@ -813,7 +813,7 @@ func TestSourcemapping(t *testing.T) {
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 
 	tctx.Config = transform.Config{SmapMapper: &mapper}
-	trWithSmap := event2.Fields(tctx)
+	trWithSmap := event2.fields(tctx)
 
 	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
 	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
