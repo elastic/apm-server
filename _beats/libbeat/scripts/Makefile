@@ -201,7 +201,7 @@ integration-tests-environment: prepare-tests build-image
 # Runs the system tests
 .PHONY: system-tests
 system-tests: ## @testing Runs the system tests
-system-tests: prepare-tests ${BEAT_NAME}.test python-env ${ES_BEATS}/dev-tools/cmd/dashboards/export_dashboards
+system-tests: prepare-tests ${BEAT_NAME}.test python-env
 	. ${PYTHON_ENV}/bin/activate; INTEGRATION_TESTS=${INTEGRATION_TESTS} TESTING_ENVIRONMENT=${TESTING_ENVIRONMENT} DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME} nosetests ${PYTHON_TEST_FILES} ${NOSETESTS_OPTIONS}
 	python ${ES_BEATS}/dev-tools/aggregate_coverage.py -o ${COVERAGE_DIR}/system.cov ./build/system-tests/run
 
@@ -332,12 +332,14 @@ endif
 
 ifneq ($(shell [[ $(BEAT_NAME) == libbeat || $(BEAT_NAME) == metricbeat ]] && echo true ),true)
 	mkdir -p include
-	go run  ${ES_BEATS}/dev-tools/cmd/asset/asset.go -pkg include -in fields.yml -out include/fields.go $(BEAT_NAME)
+	go run  ${ES_BEATS}/dev-tools/cmd/asset/asset.go -pkg include -in fields.yml -out include/fields.go $(BEAT_NAME) 
 endif
 
+ifneq ($(shell [[ $(BEAT_NAME) == libbeat ]] && echo true ),true)
 	@# Update docs
 	@mkdir -p docs
 	@${PYTHON_ENV}/bin/python ${ES_BEATS}/libbeat/scripts/generate_fields_docs.py $(PWD) ${BEAT_TITLE} ${ES_BEATS}
+endif
 
 	@mkdir -p $(PWD)/_meta/kibana.generated
 	@# Generate Kibana index pattern and copy dashboard files
@@ -361,9 +363,6 @@ docs-preview:  ## @build Preview the documents for the beat in the browser
 ### KIBANA FILES HANDLING ###
 ES_URL?=http://localhost:9200
 KIBANA_URL?=http://localhost:5601
-
-${ES_BEATS}/dev-tools/cmd/dashboards/export_dashboards:
-	$(MAKE) -C ${ES_BEATS}/dev-tools/cmd/dashboards export_dashboards
 
 .PHONY: import-dashboards
 import-dashboards: update ${BEAT_NAME}
@@ -449,6 +448,6 @@ endif
 release: mage
 	@mage package
 
-.PHONY: package
+.PHONY: snapshot
 snapshot: mage
 	@SNAPSHOT=true mage package
