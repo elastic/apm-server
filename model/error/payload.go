@@ -18,9 +18,10 @@
 package error
 
 import (
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/validation"
-	"github.com/santhosh-tekuri/jsonschema"
 )
 
 var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
