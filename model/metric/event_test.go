@@ -133,9 +133,12 @@ func TestDecode(t *testing.T) {
 
 func TestPayloadTransform(t *testing.T) {
 	timestamp := time.Now()
-	md := metadata.Metadata{
-		Service: &metadata.Service{Name: "myservice"},
-	}
+	md := metadata.NewMetadata(
+		&metadata.Service{Name: "myservice"},
+		nil,
+		nil,
+		nil,
+	)
 
 	tests := []struct {
 		Metrics []*metric
@@ -199,7 +202,7 @@ func TestPayloadTransform(t *testing.T) {
 		},
 	}
 
-	tctx := &transform.Context{Config: transform.Config{}, Metadata: md}
+	tctx := &transform.Context{Config: transform.Config{}, Metadata: *md}
 	for idx, test := range tests {
 		var outputEvents []beat.Event
 		for _, metric := range test.Metrics {

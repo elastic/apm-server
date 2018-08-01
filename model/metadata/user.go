@@ -51,7 +51,7 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 	return &user, decoder.Err
 }
 
-func (u *User) Transform() common.MapStr {
+func (u *User) fields() common.MapStr {
 	if u == nil {
 		return nil
 	}

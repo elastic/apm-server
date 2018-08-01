@@ -57,7 +57,7 @@ func TestProcessTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Process.Transform()
+		output := test.Process.fields()
 		assert.Equal(t, test.Output, output)
 	}
 }

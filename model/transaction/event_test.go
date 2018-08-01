@@ -264,21 +264,22 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	tests := []struct {
-		Metadata metadata.Metadata
+		Metadata *metadata.Metadata
 		Events   []transform.Transformable
 		Output   []common.MapStr
 		Msg      string
 	}{
 		{
-			Metadata: metadata.Metadata{},
+			Metadata: metadata.NewMetadata(nil, nil, nil, nil),
 			Events:   []transform.Transformable{},
 			Output:   nil,
 			Msg:      "Payload with empty Event Array",
 		},
 		{
-			Metadata: metadata.Metadata{
-				Service: &service,
-			},
+			Metadata: metadata.NewMetadata(
+				&service,
+				nil, nil, nil,
+			),
 			Events: []transform.Transformable{
 				&txValid, &txValidWithSpan,
 			},
@@ -286,20 +287,20 @@ func TestPayloadTransform(t *testing.T) {
 			Msg:    "Payload with multiple Events",
 		},
 		{
-			Metadata: metadata.Metadata{
-				Service: &service,
-				System:  system,
-			},
+			Metadata: metadata.NewMetadata(
+				&service, system,
+				nil, nil,
+			),
 
 			Events: []transform.Transformable{&txValid},
 			Output: []common.MapStr{txValidWithSystem},
 			Msg:    "Payload with System and Event",
 		},
 		{
-			Metadata: metadata.Metadata{
-				Service: &service,
-				System:  system,
-			},
+			Metadata: metadata.NewMetadata(
+				&service, system,
+				nil, nil,
+			),
 			Events: []transform.Transformable{&txWithContext},
 			Output: []common.MapStr{txWithContextEs},
 			Msg:    "Payload with Service, System and Event with context",
@@ -310,7 +311,7 @@ func TestPayloadTransform(t *testing.T) {
 		var outputEvents []beat.Event
 
 		tctx := &transform.Context{
-			Metadata: test.Metadata,
+			Metadata: *test.Metadata,
 		}
 		for _, events := range test.Events {
 			outputEvents = append(outputEvents, events.Transform(tctx)...)

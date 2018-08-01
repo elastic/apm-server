@@ -51,7 +51,7 @@ func DecodeProcess(input interface{}, err error) (*Process, error) {
 	return &process, decoder.Err
 }
 
-func (p *Process) Transform() common.MapStr {
+func (p *Process) fields() common.MapStr {
 	if p == nil {
 		return nil
 	}

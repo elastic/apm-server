@@ -49,7 +49,7 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	return &system, decoder.Err
 }
 
-func (s *System) Transform() common.MapStr {
+func (s *System) fields() common.MapStr {
 	if s == nil {
 		return nil
 	}

@@ -30,12 +30,12 @@ type Metadata struct {
 	System  *System
 	User    *User
 
-	cachedServiceTransform common.MapStr
-	cachedProcessTransform common.MapStr
-	cachedSystemTransform  common.MapStr
-	cachedUserTransform    common.MapStr
+	serviceFields common.MapStr
+	processFields common.MapStr
+	systemFields  common.MapStr
+	userFields    common.MapStr
 
-	cachedServiceMinimalTransform common.MapStr
+	minimalServiceFields common.MapStr
 }
 
 func DecodeMetadata(input interface{}) (*Metadata, error) {
@@ -46,19 +46,37 @@ func DecodeMetadata(input interface{}) (*Metadata, error) {
 	if !ok {
 		return nil, errors.New("Invalid type for metadata")
 	}
-	var err error
 
-	metadata := Metadata{}
-	metadata.Service, err = DecodeService(raw["service"], err)
-	metadata.System, err = DecodeSystem(raw["system"], err)
-	metadata.Process, err = DecodeProcess(raw["process"], err)
-	metadata.User, err = DecodeUser(raw["user"], err)
+	var err error
+	var service *Service
+	var system *System
+	var process *Process
+	var user *User
+	service, err = DecodeService(raw["service"], err)
+	system, err = DecodeSystem(raw["system"], err)
+	process, err = DecodeProcess(raw["process"], err)
+	user, err = DecodeUser(raw["user"], err)
 
 	if err != nil {
 		return nil, err
 	}
+	return NewMetadata(service, system, process, user), nil
+}
 
-	return &metadata, err
+func NewMetadata(service *Service, system *System, process *Process, user *User) *Metadata {
+	m := Metadata{
+		Service: service,
+		System:  system,
+		Process: process,
+		User:    user,
+	}
+
+	m.serviceFields = m.Service.fields()
+	m.systemFields = m.System.fields()
+	m.processFields = m.Process.fields()
+	m.userFields = m.User.fields()
+	m.minimalServiceFields = m.Service.minimalFields()
+	return &m
 }
 
 func (m *Metadata) normalizeContext(eventContext common.MapStr) common.MapStr {
@@ -76,17 +94,10 @@ func (m *Metadata) normalizeContext(eventContext common.MapStr) common.MapStr {
 func (m *Metadata) Merge(eventContext common.MapStr) common.MapStr {
 	eventContext = m.normalizeContext(eventContext)
 
-	if m.cachedSystemTransform == nil {
-		m.cachedServiceTransform = m.Service.Transform()
-		m.cachedSystemTransform = m.System.Transform()
-		m.cachedProcessTransform = m.Process.Transform()
-		m.cachedUserTransform = m.User.Transform()
-	}
-
-	utility.Add(eventContext, "system", m.cachedSystemTransform)
-	utility.Add(eventContext, "process", m.cachedProcessTransform)
-	utility.MergeAdd(eventContext, "user", m.cachedUserTransform)
-	utility.MergeAdd(eventContext, "service", m.cachedServiceTransform)
+	utility.Add(eventContext, "system", m.systemFields)
+	utility.Add(eventContext, "process", m.processFields)
+	utility.MergeAdd(eventContext, "user", m.userFields)
+	utility.MergeAdd(eventContext, "service", m.serviceFields)
 
 	return eventContext
 }
@@ -94,10 +105,6 @@ func (m *Metadata) Merge(eventContext common.MapStr) common.MapStr {
 func (m *Metadata) MergeMinimal(eventContext common.MapStr) common.MapStr {
 	eventContext = m.normalizeContext(eventContext)
 
-	if m.cachedServiceMinimalTransform == nil {
-		m.cachedServiceMinimalTransform = m.Service.MinimalTransform()
-	}
-
-	utility.MergeAdd(eventContext, "service", m.cachedServiceMinimalTransform)
+	utility.MergeAdd(eventContext, "service", m.minimalServiceFields)
 	return eventContext
 }

@@ -452,11 +452,12 @@ func TestEvents(t *testing.T) {
 		},
 	}
 
+	me := metadata.NewMetadata(
+		&service, nil, nil, nil,
+	)
 	tctx := &transform.Context{
-		Metadata: metadata.Metadata{
-			Service: &service,
-		},
-		Config: transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Metadata: *me,
+		Config:   transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
 	}
 
 	for idx, test := range tests {

@@ -84,17 +84,17 @@ func TestDecodeMetadata(t *testing.T) {
 					"id": uid, "email": mail,
 				},
 			},
-			output: &Metadata{
-				Process: &Process{Pid: pid},
-				Service: &Service{Name: serviceName,
+			output: NewMetadata(
+				&Service{Name: serviceName,
 					Agent: Agent{
 						Name:    agentName,
 						Version: agentVersion,
 					},
 				},
-				System: &System{Hostname: &host},
-				User:   &User{Id: &uid, Email: &mail},
-			},
+				&System{Hostname: &host},
+				&Process{Pid: pid},
+				&User{Id: &uid, Email: &mail},
+			),
 		},
 	} {
 		metadata, err := DecodeMetadata(test.input)
