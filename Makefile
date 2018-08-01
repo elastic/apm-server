@@ -63,7 +63,6 @@ stop-env:
 
 check-full: check
 	@# Validate that all updates were committed
-	@$(MAKE) clean
 	@$(MAKE) update
 	@$(MAKE) check
 	@git diff | cat

@@ -332,7 +332,7 @@ endif
 
 ifneq ($(shell [[ $(BEAT_NAME) == libbeat || $(BEAT_NAME) == metricbeat ]] && echo true ),true)
 	mkdir -p include
-	go run  ${ES_BEATS}/dev-tools/cmd/asset/asset.go -pkg include -in fields.yml -out include/fields.go $(BEAT_NAME) 
+	go run  ${ES_BEATS}/dev-tools/cmd/asset/asset.go -pkg include -in fields.yml -out include/fields.go $(BEAT_NAME)
 endif
 
 	@# Update docs
@@ -442,6 +442,7 @@ seccomp-package:
 mage:
 ifndef MAGE_PRESENT
 	go install ${MAGE_IMPORT_PATH}
+	@-mage -clean 2> /dev/null
 endif
 
 .PHONY: release
