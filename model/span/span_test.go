@@ -146,6 +146,8 @@ func TestSpanTransform(t *testing.T) {
 	}
 	for idx, test := range tests {
 		output := test.Span.Transform(tctx)
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		fields := output[0].Fields["span"]
+		assert.Equal(t, test.Output, fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+
 	}
 }

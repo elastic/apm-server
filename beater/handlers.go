@@ -470,7 +470,7 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 		return cannotValidateResponse(err)
 	}
 
-	metadata, eventables, err := p.Decode(data)
+	metadata, transformables, err := p.Decode(data)
 	if err != nil {
 		return cannotDecodeResponse(err)
 	}
@@ -480,7 +480,7 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 		Metadata: *metadata,
 	}
 
-	if err = report(r.Context(), pendingReq{eventables: eventables, tcontext: tctx}); err != nil {
+	if err = report(r.Context(), pendingReq{transformables: transformables, tcontext: tctx}); err != nil {
 		if strings.Contains(err.Error(), "publisher is being stopped") {
 			return serverShuttingDownResponse(err)
 		}

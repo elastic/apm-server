@@ -150,7 +150,7 @@ func TestEventTransform(t *testing.T) {
 	tctx := &transform.Context{}
 
 	for idx, test := range tests {
-		output := test.Event.Events(tctx)
+		output := test.Event.Transform(tctx)
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -260,13 +260,13 @@ func TestPayloadTransform(t *testing.T) {
 
 	tests := []struct {
 		Metadata metadata.Metadata
-		Events   []transform.Eventable
+		Events   []transform.Transformable
 		Output   []common.MapStr
 		Msg      string
 	}{
 		{
 			Metadata: metadata.Metadata{},
-			Events:   []transform.Eventable{},
+			Events:   []transform.Transformable{},
 			Output:   nil,
 			Msg:      "Payload with empty Event Array",
 		},
@@ -274,7 +274,7 @@ func TestPayloadTransform(t *testing.T) {
 			Metadata: metadata.Metadata{
 				Service: &service,
 			},
-			Events: []transform.Eventable{
+			Events: []transform.Transformable{
 				&txValid, &txValidWithSpan,
 			},
 			Output: []common.MapStr{txValidEs, txValidEs, spanEs},
@@ -286,7 +286,7 @@ func TestPayloadTransform(t *testing.T) {
 				System:  system,
 			},
 
-			Events: []transform.Eventable{&txValid},
+			Events: []transform.Transformable{&txValid},
 			Output: []common.MapStr{txValidWithSystem},
 			Msg:    "Payload with System and Event",
 		},
@@ -295,7 +295,7 @@ func TestPayloadTransform(t *testing.T) {
 				Service: &service,
 				System:  system,
 			},
-			Events: []transform.Eventable{&txWithContext},
+			Events: []transform.Transformable{&txWithContext},
 			Output: []common.MapStr{txWithContextEs},
 			Msg:    "Payload with Service, System and Event with context",
 		},
@@ -308,7 +308,7 @@ func TestPayloadTransform(t *testing.T) {
 			Metadata: test.Metadata,
 		}
 		for _, events := range test.Events {
-			outputEvents = append(outputEvents, events.Events(tctx)...)
+			outputEvents = append(outputEvents, events.Transform(tctx)...)
 		}
 
 		for j, outputEvent := range outputEvents {

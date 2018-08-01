@@ -65,7 +65,7 @@ type Dropped struct {
 	Total *int
 }
 
-func DecodeEvent(input interface{}, err error) (*Event, error) {
+func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	return &e, err
 }
 
-func (t *Event) Transform(tctx *transform.Context) common.MapStr {
+func (t *Event) Fields(tctx *transform.Context) common.MapStr {
 	tx := common.MapStr{"id": t.Id}
 	utility.Add(tx, "name", t.Name)
 	utility.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
@@ -122,13 +122,13 @@ func (t *Event) Transform(tctx *transform.Context) common.MapStr {
 	return tx
 }
 
-func (e *Event) Events(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	events := []beat.Event{}
 	ev := beat.Event{
 		Fields: common.MapStr{
 			"processor":        processorTransEntry,
-			transactionDocType: e.Transform(tctx),
+			transactionDocType: e.Fields(tctx),
 			"context":          tctx.Metadata.Merge(e.Context),
 		},
 		Timestamp: e.Timestamp,
@@ -146,7 +146,7 @@ func (e *Event) Events(tctx *transform.Context) []beat.Event {
 			sp.TransactionId = e.Id
 		}
 
-		events = append(events, sp.Events(tctx)...)
+		events = append(events, sp.Transform(tctx)...)
 		e.Spans[spIdx] = nil
 	}
 	return events

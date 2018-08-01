@@ -82,7 +82,7 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 	return &sp, err
 }
 
-func (s *Span) Events(tctx *transform.Context) []beat.Event {
+func (s *Span) Transform(tctx *transform.Context) []beat.Event {
 	if frames := len(s.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
@@ -91,7 +91,7 @@ func (s *Span) Events(tctx *transform.Context) []beat.Event {
 	ev := beat.Event{
 		Fields: common.MapStr{
 			"processor":   processorSpanEntry,
-			spanDocType:   s.Transform(tctx),
+			spanDocType:   s.Fields(tctx),
 			"transaction": common.MapStr{"id": s.TransactionId},
 			"context":     tctx.Metadata.MergeMinimal(s.Context),
 		},
@@ -101,7 +101,7 @@ func (s *Span) Events(tctx *transform.Context) []beat.Event {
 	return []beat.Event{ev}
 }
 
-func (s *Span) Transform(tctx *transform.Context) common.MapStr {
+func (s *Span) Fields(tctx *transform.Context) common.MapStr {
 	if s == nil {
 		return nil
 	}

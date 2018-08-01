@@ -26,8 +26,8 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 )
 
-type Eventable interface {
-	Events(*Context) []beat.Event
+type Transformable interface {
+	Transform(*Context) []beat.Event
 }
 
 type Context struct {

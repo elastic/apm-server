@@ -53,14 +53,14 @@ func PayloadSchema() *jsonschema.Schema {
 	return cachedSchema
 }
 
-type Payload struct {
+type Sourcemap struct {
 	ServiceName    string
 	ServiceVersion string
 	Sourcemap      string
 	BundleFilepath string
 }
 
-func (pa *Payload) Events(tctx *transform.Context) []beat.Event {
+func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
 	sourcemapCounter.Add(1)
 	if pa == nil {
 		return nil
@@ -90,13 +90,13 @@ func (pa *Payload) Events(tctx *transform.Context) []beat.Event {
 	return []beat.Event{ev}
 }
 
-func DecodePayload(raw map[string]interface{}) ([]transform.Eventable, error) {
+func DecodeSourcemap(raw map[string]interface{}) (transform.Transformable, error) {
 	decoder := utility.ManualDecoder{}
-	pa := Payload{
+	pa := Sourcemap{
 		ServiceName:    decoder.String(raw, "service_name"),
 		ServiceVersion: decoder.String(raw, "service_version"),
 		Sourcemap:      decoder.String(raw, "sourcemap"),
 		BundleFilepath: decoder.String(raw, "bundle_filepath"),
 	}
-	return []transform.Eventable{&pa}, decoder.Err
+	return &pa, decoder.Err
 }

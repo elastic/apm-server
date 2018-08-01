@@ -371,17 +371,17 @@ func TestEvents(t *testing.T) {
 	}
 
 	tests := []struct {
-		Events []transform.Eventable
+		Events []transform.Transformable
 		Output []common.MapStr
 		Msg    string
 	}{
 		{
-			Events: []transform.Eventable{},
+			Events: []transform.Transformable{},
 			Output: nil,
 			Msg:    "Empty Event Array",
 		},
 		{
-			Events: []transform.Eventable{&Event{Timestamp: timestamp}},
+			Events: []transform.Transformable{&Event{Timestamp: timestamp}},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
@@ -399,7 +399,7 @@ func TestEvents(t *testing.T) {
 			Msg: "Payload with valid Event.",
 		},
 		{
-			Events: []transform.Eventable{
+			Events: []transform.Transformable{
 				&Event{
 					Timestamp: timestamp,
 					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
@@ -454,7 +454,7 @@ func TestEvents(t *testing.T) {
 	for idx, test := range tests {
 		var outputEvents []beat.Event
 		for _, event := range test.Events {
-			outputEvents = append(outputEvents, event.Events(tctx)...)
+			outputEvents = append(outputEvents, event.Transform(tctx)...)
 		}
 		require.Equal(t, len(test.Output), len(outputEvents), "Failed at idx %v; %s", idx, test.Msg)
 
@@ -794,7 +794,7 @@ func TestSourcemapping(t *testing.T) {
 			Service: &metadata.Service{},
 		},
 	}
-	trNoSmap := event.Transform(tctx)
+	trNoSmap := event.Fields(tctx)
 
 	event2 := Event{Exception: &Exception{
 		Message: "exception message",
@@ -805,7 +805,7 @@ func TestSourcemapping(t *testing.T) {
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 
 	tctx.Config = transform.Config{SmapMapper: &mapper}
-	trWithSmap := event2.Transform(tctx)
+	trWithSmap := event2.Fields(tctx)
 
 	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
 	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)

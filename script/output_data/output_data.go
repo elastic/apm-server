@@ -65,8 +65,8 @@ func generate() error {
 		}
 
 		var events []beat.Event
-		for _, eventable := range payload {
-			events = append(events, eventable.Events(tctx)...)
+		for _, transformable := range payload {
+			events = append(events, transformable.Transform(tctx)...)
 		}
 
 		for _, d := range events {

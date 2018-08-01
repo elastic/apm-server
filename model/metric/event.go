@@ -38,7 +38,7 @@ type metric struct {
 	timestamp time.Time
 }
 
-func (me *metric) Events(tctx *transform.Context) []beat.Event {
+func (me *metric) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if me == nil {
 		return nil

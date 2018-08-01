@@ -44,13 +44,25 @@ type PayloadProcessor struct {
 	ValidateError *monitoring.Int
 }
 
-func (p *PayloadProcessor) Name() string {
-	return p.ProcessorName
+func (e *EventsProcessor) Name() string {
+	return e.SingularName
 }
 
-func (p *PayloadProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata, []transform.Eventable, error) {
+func (p *EventsProcessor) decodePayload(raw map[string]interface{}) ([]transform.Transformable, error) {
+	var err error
+	decoder := utility.ManualDecoder{}
+	rawObjects := decoder.InterfaceArr(raw, p.PluralKeyName)
+
+	events := make([]transform.Transformable, len(rawObjects))
+	for idx, errData := range rawObjects {
+		events[idx], err = p.EventDecoder(errData, err)
+	}
+	return events, err
+}
+
+func (p *EventsProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error) {
 	p.DecodingCount.Inc()
-	payload, err := p.DecodePayload(raw)
+	payload, err := p.decodePayload(raw)
 	if err != nil {
 		p.DecodingError.Inc()
 		return nil, nil, err

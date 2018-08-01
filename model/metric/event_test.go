@@ -103,7 +103,7 @@ func TestPayloadTransform(t *testing.T) {
 	for idx, test := range tests {
 		var outputEvents []beat.Event
 		for _, metric := range test.Metrics {
-			outputEvents = append(outputEvents, metric.Events(tctx)...)
+			outputEvents = append(outputEvents, metric.Transform(tctx)...)
 		}
 
 		for j, outputEvent := range outputEvents {

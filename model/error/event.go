@@ -91,7 +91,7 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func DecodeEvent(input interface{}, err error) (*Event, error) {
+func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func DecodeEvent(input interface{}, err error) (*Event, error) {
 	return &e, err
 }
 
-func (e *Event) Events(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if e.Exception != nil {
 		addStacktraceCounter(e.Exception.Stacktrace)
@@ -159,7 +159,7 @@ func (e *Event) Events(tctx *transform.Context) []beat.Event {
 	}
 
 	fields := common.MapStr{
-		"error":     e.Transform(tctx),
+		"error":     e.Fields(tctx),
 		"context":   tctx.Metadata.Merge(e.Context),
 		"processor": processorEntry,
 	}
@@ -176,7 +176,7 @@ func (e *Event) Events(tctx *transform.Context) []beat.Event {
 	}
 }
 
-func (e *Event) Transform(tctx *transform.Context) common.MapStr {
+func (e *Event) Fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 

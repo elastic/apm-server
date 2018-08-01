@@ -45,7 +45,7 @@ func TestPayloadTransform(t *testing.T) {
 	}
 
 	tctx := &transform.Context{}
-	events := p.Events(tctx)
+	events := p.Transform(tctx)
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -85,17 +85,13 @@ func TestInvalidateCache(t *testing.T) {
 	conf := transform.Config{SmapMapper: &smapMapper}
 	tctx := &transform.Context{Config: conf}
 
-	events, err := DecodePayload(data)
+	sourcemap, err := DecodeSourcemap(data)
 	assert.NoError(t, err)
-	for _, e := range events {
-		e.Events(tctx)
-	}
+	sourcemap.Transform(tctx)
 
-	events, err = DecodePayload(data)
+	sourcemap, err = DecodeSourcemap(data)
 	assert.NoError(t, err)
-	for _, e := range events {
-		e.Events(tctx)
-	}
+	sourcemap.Transform(tctx)
 
 	mapping, err = smapMapper.Apply(smapId, 0, 0)
 	assert.Nil(t, mapping)
