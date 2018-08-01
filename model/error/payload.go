@@ -18,32 +18,13 @@
 package error
 
 import (
-	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/elastic/apm-server/model/error/generated/schema"
+	"github.com/elastic/apm-server/validation"
+	"github.com/santhosh-tekuri/jsonschema"
 )
 
-var (
-	transformations   = monitoring.NewInt(Metrics, "transformations")
-	errorCounter      = monitoring.NewInt(Metrics, "errors")
-	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
-	frameCounter      = monitoring.NewInt(Metrics, "frames")
-	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
-)
+var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
 
-func DecodePayload(raw map[string]interface{}) ([]transform.Eventable, error) {
-	if raw == nil {
-		return nil, nil
-	}
-
-	var err error
-	decoder := utility.ManualDecoder{}
-	errs := decoder.InterfaceArr(raw, "errors")
-
-	events := make([]transform.Eventable, len(errs))
-	for idx, errData := range errs {
-		events[idx], err = DecodeEvent(errData, err)
-	}
-	return events, err
+func PayloadSchema() *jsonschema.Schema {
+	return cachedSchema
 }

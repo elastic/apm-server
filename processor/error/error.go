@@ -24,9 +24,10 @@ import (
 )
 
 var (
-	Processor = &processor.PayloadProcessor{
-		ProcessorName: "error",
-		DecodePayload: merr.DecodePayload,
+	Processor = &processor.EventsProcessor{
+		SingularName:  "error",
+		PluralKeyName: "errors",
+		EventDecoder:  merr.DecodeEvent,
 		PayloadSchema: merr.PayloadSchema(),
 		DecodingCount: monitoring.NewInt(merr.Metrics, "decoding.count"),
 		DecodingError: monitoring.NewInt(merr.Metrics, "decoding.errors"),

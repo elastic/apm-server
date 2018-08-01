@@ -93,7 +93,12 @@ func TestTransactionEventDecode(t *testing.T) {
 		},
 	} {
 		event, err := DecodeEvent(test.input, test.inpErr)
-		assert.Equal(t, test.e, event)
+		if test.e != nil {
+			transaction := event.(*Event)
+			assert.Equal(t, test.e, transaction)
+		} else {
+			assert.Nil(t, event)
+		}
 		assert.Equal(t, test.err, err)
 	}
 }

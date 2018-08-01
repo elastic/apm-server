@@ -23,17 +23,18 @@ import (
 
 	parser "github.com/go-sourcemap/sourcemap"
 
+	"github.com/elastic/apm-server/model/metadata"
 	sm "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 var (
 	Processor = &sourcemapProcessor{
-		processor.PayloadProcessor{
-			ProcessorName: "sourcemap",
-			DecodePayload: sm.DecodePayload,
+		processor.EventsProcessor{
+			SingularName:  "sourcemap",
 			PayloadSchema: sm.PayloadSchema(),
 			DecodingCount: monitoring.NewInt(sm.Metrics, "decoding.count"),
 			DecodingError: monitoring.NewInt(sm.Metrics, "decoding.errors"),
@@ -44,11 +45,22 @@ var (
 )
 
 type sourcemapProcessor struct {
-	processor.PayloadProcessor
+	processor.EventsProcessor
+}
+
+func (p *sourcemapProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error) {
+	p.DecodingCount.Inc()
+	transformable, err := sm.DecodeSourcemap(raw)
+	if err != nil {
+		p.DecodingError.Inc()
+		return nil, nil, err
+	}
+
+	return &metadata.Metadata{}, []transform.Transformable{transformable}, err
 }
 
 func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {
-	p.PayloadProcessor.ValidateCount.Inc()
+	p.EventsProcessor.ValidateCount.Inc()
 
 	smap, ok := raw["sourcemap"].(string)
 	if !ok {
@@ -66,7 +78,7 @@ func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {
 
 	err = validation.Validate(raw, p.PayloadSchema)
 	if err != nil {
-		p.PayloadProcessor.ValidateError.Inc()
+		p.EventsProcessor.ValidateError.Inc()
 	}
 	return err
 }

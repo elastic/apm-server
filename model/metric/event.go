@@ -18,6 +18,8 @@
 package metric
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/elastic/apm-server/transform"
@@ -25,6 +27,18 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
+)
+
+const (
+	processorName = "metric"
+	docType       = "metric"
+)
+
+var (
+	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.metric", monitoring.PublishExpvar)
+	transformations = monitoring.NewInt(Metrics, "transformations")
+	processorEntry  = common.MapStr{"name": processorName, "event": docType}
 )
 
 type sample struct {
@@ -66,6 +80,71 @@ func (me *metric) Transform(tctx *transform.Context) []beat.Event {
 			Timestamp: me.timestamp,
 		},
 	}
+}
+
+func DecodeMetric(input interface{}, err error) (transform.Transformable, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	md := metricDecoder{&utility.ManualDecoder{}}
+	if input == nil {
+		md.Err = errors.New("no data for metric event")
+		return nil, md.Err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		md.Err = errors.New("invalid type for metric event")
+		return nil, md.Err
+	}
+
+	metric := metric{
+		samples:   md.decodeSamples(raw["samples"]),
+		timestamp: md.TimeRFC3339WithDefault(raw, "timestamp"),
+	}
+
+	if md.Err != nil {
+		return nil, md.Err
+	}
+
+	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
+		metric.tags = tags
+	}
+	return &metric, nil
+}
+
+func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
+	if input == nil {
+		md.Err = errors.New("no samples for metric event")
+		return nil
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		md.Err = errors.New("invalid type for samples in metric event")
+		return nil
+	}
+
+	samples := make([]*sample, len(raw))
+	i := 0
+	for name, s := range raw {
+		if s == nil {
+			continue
+		}
+		sampleMap, ok := s.(map[string]interface{})
+		if !ok {
+			md.Err = fmt.Errorf("invalid sample: %s: %s", name, s)
+			return nil
+		}
+
+		samples[i] = &sample{
+			name:  name,
+			value: md.Float64(sampleMap, "value"),
+		}
+		if md.Err != nil {
+			return nil
+		}
+		i++
+	}
+	return samples
 }
 
 type metricDecoder struct {

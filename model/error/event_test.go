@@ -200,8 +200,15 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		event, err := DecodeEvent(test.input, test.inpErr)
-		assert.Equal(t, test.e, event)
+		transformable, err := DecodeEvent(test.input, test.inpErr)
+
+		if test.e != nil {
+			event := transformable.(*Event)
+			assert.Equal(t, test.e, event)
+		} else {
+			assert.Nil(t, transformable)
+		}
+
 		assert.Equal(t, test.err, err)
 	}
 }
@@ -360,7 +367,8 @@ func TestEventTransformFields(t *testing.T) {
 
 	for idx, test := range tests {
 		output := test.Event.Transform(tctx)
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		fields := output[0].Fields["error"]
+		assert.Equal(t, test.Output, fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 

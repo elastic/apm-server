@@ -31,18 +31,3 @@ var (
 func PayloadSchema() *jsonschema.Schema {
 	return cachedSchema
 }
-
-func DecodePayload(raw map[string]interface{}) ([]transform.Eventable, error) {
-	if raw == nil {
-		return nil, nil
-	}
-
-	decoder := utility.ManualDecoder{}
-	txs := decoder.InterfaceArr(raw, "transactions")
-	err := decoder.Err
-	events := make([]transform.Eventable, len(txs))
-	for idx, tx := range txs {
-		events[idx], err = DecodeEvent(tx, err)
-	}
-	return events, err
-}

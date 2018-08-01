@@ -20,23 +20,24 @@ package processor
 import (
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 type Processor interface {
 	Validate(map[string]interface{}) error
-	Decode(map[string]interface{}) (*metadata.Metadata, []transform.Eventable, error)
+	Decode(map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error)
 	Name() string
 }
 
-type PayloadDecoder func(map[string]interface{}) ([]transform.Eventable, error)
-
-type PayloadProcessor struct {
-	ProcessorName string
-	DecodePayload PayloadDecoder
+type EventsProcessor struct {
+	PluralKeyName string
+	SingularName  string
+	EventDecoder  decoder.EventDecoder
 	PayloadSchema *jsonschema.Schema
 	DecodingCount *monitoring.Int
 	DecodingError *monitoring.Int
@@ -77,7 +78,7 @@ func (p *EventsProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata
 	return metadata, payload, err
 }
 
-func (p *PayloadProcessor) Validate(raw map[string]interface{}) error {
+func (p *EventsProcessor) Validate(raw map[string]interface{}) error {
 	p.ValidateCount.Inc()
 	err := validation.Validate(raw, p.PayloadSchema)
 	if err != nil {

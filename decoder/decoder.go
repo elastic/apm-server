@@ -29,12 +29,14 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 type Reader func(req *http.Request) (io.ReadCloser, error)
 type ReqDecoder func(req *http.Request) (map[string]interface{}, error)
+type EventDecoder func(input interface{}, err error) (transform.Transformable, error)
 
 var (
 	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)

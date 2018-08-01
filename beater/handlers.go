@@ -222,7 +222,6 @@ func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler 
 			concurrentWait.Add(wait())
 			sendStatus(w, r, tooManyConcurrentRequestsResponse)
 		}
-
 	})
 }
 

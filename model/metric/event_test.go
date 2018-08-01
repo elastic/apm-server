@@ -18,6 +18,8 @@
 package metric
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -30,6 +32,104 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
+
+// assertMetricsMatch is an equality test for a metric as sample order is not important
+func assertMetricsMatch(t *testing.T, expected, actual metric) bool {
+	samplesMatch := assert.ElementsMatch(t, expected.samples, actual.samples)
+	expected.samples = nil
+	actual.samples = nil
+	nonSamplesMatch := assert.Equal(t, expected, actual)
+
+	return assert.True(t, samplesMatch && nonSamplesMatch,
+		fmt.Sprintf("metrics mismatch\nexpected:%#v\n   actual:%#v", expected, actual))
+}
+
+func TestDecode(t *testing.T) {
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	// ip := "127.0.0.1"
+	for _, test := range []struct {
+		input  map[string]interface{}
+		err    error
+		metric *metric
+	}{
+		{input: nil, err: nil, metric: nil},
+		{
+			input:  map[string]interface{}{},
+			err:    nil,
+			metric: nil,
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"samples":   map[string]interface{}{},
+			},
+
+			err: nil,
+			metric: &metric{
+				samples:   []*sample{},
+				tags:      nil,
+				timestamp: timestampParsed,
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"samples": map[string]interface{}{
+					"invalid.metric": map[string]interface{}{
+						"value": "foo",
+					},
+				},
+			},
+			err: errors.New("Error fetching field"),
+		},
+		{
+			input: map[string]interface{}{
+				"tags": map[string]interface{}{
+					"a.tag": "a.tag.value",
+				},
+				"timestamp": timestamp,
+				"samples": map[string]interface{}{
+					"a.counter": map[string]interface{}{
+						"value": json.Number("612"),
+					},
+					"some.gauge": map[string]interface{}{
+						"value": json.Number("9.16"),
+					},
+				},
+			},
+			err: nil,
+			metric: &metric{
+				samples: []*sample{
+					{
+						name:  "some.gauge",
+						value: 9.16,
+					},
+					{
+						name:  "a.counter",
+						value: 612,
+					},
+				},
+				tags: common.MapStr{
+					"a.tag": "a.tag.value",
+				},
+				timestamp: timestampParsed,
+			},
+		},
+	} {
+		var err error
+		transformables, err := DecodeMetric(test.input, err)
+		if test.err != nil {
+			assert.Error(t, err)
+		}
+
+		if test.metric != nil {
+			want := test.metric
+			got := transformables.(*metric)
+			assertMetricsMatch(t, *want, *got)
+		}
+	}
+}
 
 func TestPayloadTransform(t *testing.T) {
 	timestamp := time.Now()
