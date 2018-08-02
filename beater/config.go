@@ -43,7 +43,7 @@ type Config struct {
 	MaxRequestQueueTime time.Duration          `config:"max_request_queue_time"`
 	Expvar              *ExpvarConfig          `config:"expvar"`
 	Metrics             *metricsConfig         `config:"metrics"`
-	AugmentEnabled      bool                   `config:"capture_personal_data"`
+	AugmentEnabled      *bool                  `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
 	RumConfig           *rumConfig             `config:"rum"`
 	FrontendConfig      *rumConfig             `config:"frontend"`
@@ -95,6 +95,10 @@ func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
 	if c != nil && c.RumConfig.isEnabled() && c.RumConfig.SourceMapping != nil {
 		c.RumConfig.SourceMapping.EsConfig = esConfig
 	}
+}
+
+func (c *Config) isAugmentEnabled() bool {
+	return c != nil && (c.AugmentEnabled == nil || *c.AugmentEnabled)
 }
 
 func (c *SSLConfig) isEnabled() bool {
@@ -172,7 +176,7 @@ func defaultRum(beatVersion string) *rumConfig {
 }
 
 func defaultConfig(beatVersion string) *Config {
-	metricsEnabled := true
+	metricsEnabled, augmentEnabled := true, true
 	return &Config{
 		Host:                net.JoinHostPort("localhost", defaultPort),
 		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
@@ -184,7 +188,7 @@ func defaultConfig(beatVersion string) *Config {
 		WriteTimeout:        30 * time.Second,
 		ShutdownTimeout:     5 * time.Second,
 		SecretToken:         "",
-		AugmentEnabled:      true,
+		AugmentEnabled:      &augmentEnabled,
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
 			Url:     "/debug/vars",

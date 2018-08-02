@@ -26,6 +26,14 @@ https://github.com/elastic/apm-server/compare/6.3\...6.4[View commits]
 
 https://github.com/elastic/apm-server/compare/v6.3.2\...v6.4.0[View commits]
 
+[float]
+==== Bug fixes
+
+- Allow config option `capture_personal_data` to be overwritten {pull}1253[1253].
+
+[float]
+==== Added
+
 - Change `frontend` to `rum` in config file, but still support `frontend` for backwards compatibility {pull}1155[1155].
 - Support `rum` and `client-side` endpoint for RUM for backwards compatibility {pull}1155[1155].
 - Listen on default port 8200 if unspecified {pull}886[886].

@@ -64,6 +64,7 @@ func TestConfig(t *testing.T) {
 					"library_pattern": "pattern-rum",
 					"exclude_from_grouping": "group_pattern-rum",
 				},
+				"capture_personal_data": false, 
 				"frontend": {
 					"enabled": true,
 					"rate_limit": 1000,
@@ -87,6 +88,7 @@ func TestConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
+				AugmentEnabled:  new(bool),
 				RumConfig: &rumConfig{
 					Enabled:      &truthy,
 					RateLimit:    800,
@@ -212,6 +214,24 @@ func TestIsEnabled(t *testing.T) {
 			isEnabled := test.config.isEnabled()
 			assert.Equal(t, b, isEnabled, "ssl config but should be %v", b)
 		})
+	}
+}
+
+func TestIsAugmentEnabled(t *testing.T) {
+	truthy, falsy := true, false
+	cases := []struct {
+		c        *Config
+		expected bool
+	}{
+		{c: nil, expected: false},
+		{c: &Config{}, expected: true}, // defaults to true,
+		{c: &Config{AugmentEnabled: &falsy}, expected: false},
+		{c: &Config{AugmentEnabled: &truthy}, expected: true},
+	}
+
+	for idx, test := range cases {
+		isEnabled := test.c.isAugmentEnabled()
+		assert.Equal(t, test.expected, isEnabled, fmt.Sprintf("<%v> expected: %v", idx, test.expected))
 	}
 }
 
