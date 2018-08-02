@@ -70,7 +70,7 @@ func TestBeatConfig(t *testing.T) {
 				"read_timeout":           3 * time.Second,
 				"write_timeout":          4 * time.Second,
 				"shutdown_timeout":       9 * time.Second,
-				"capture_personal_data":  true,
+				"capture_personal_data":  false,
 				"secret_token":           "1234random",
 				"ssl": map[string]interface{}{
 					"enabled":     true,
@@ -109,7 +109,7 @@ func TestBeatConfig(t *testing.T) {
 				ShutdownTimeout:     9000000000,
 				SecretToken:         "1234random",
 				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
-				AugmentEnabled:      true,
+				AugmentEnabled:      &falsy,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
@@ -186,7 +186,7 @@ func TestBeatConfig(t *testing.T) {
 				ShutdownTimeout:     5000000000,
 				SecretToken:         "1234random",
 				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
-				AugmentEnabled:      true,
+				AugmentEnabled:      &truthy,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",

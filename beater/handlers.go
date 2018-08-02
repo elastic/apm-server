@@ -230,7 +230,7 @@ func backendHandler(p processor.Processor, beaterConfig *Config, report reporter
 		concurrencyLimitHandler(beaterConfig,
 			authHandler(beaterConfig.SecretToken,
 				processRequestHandler(p, conf.Config{}, report,
-					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
+					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.isAugmentEnabled())))))
 }
 
 func rumHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
@@ -249,7 +249,7 @@ func rumHandler(p processor.Processor, beaterConfig *Config, report reporter) ht
 				ipRateLimitHandler(beaterConfig.RumConfig.RateLimit,
 					corsHandler(beaterConfig.RumConfig.AllowOrigins,
 						processRequestHandler(p, config, report,
-							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))))
+							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.isAugmentEnabled())))))))
 }
 
 func metricsHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
@@ -257,7 +257,7 @@ func metricsHandler(p processor.Processor, beaterConfig *Config, report reporter
 		killSwitchHandler(beaterConfig.Metrics.isEnabled(),
 			authHandler(beaterConfig.SecretToken,
 				processRequestHandler(p, conf.Config{}, report,
-					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
+					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.isAugmentEnabled())))))
 }
 
 func sourcemapHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
