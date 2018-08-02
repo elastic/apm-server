@@ -21,6 +21,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -105,5 +107,134 @@ func TestDecodeMetadata(t *testing.T) {
 }
 
 func TestMetadataMerge(t *testing.T) {
+	pid := 1234
+	host := "host"
+	serviceName := "myservice"
+	uid := "12321"
+	mail := "user@email.com"
+	agentName := "elastic-node"
 
+	for _, test := range []struct {
+		input        *Metadata
+		mergeContext common.MapStr
+		output       common.MapStr
+	}{
+		{
+			input: NewMetadata(
+				&Service{
+					Name: serviceName,
+					Agent: Agent{
+						Name:    agentName,
+						Version: agentVersion,
+					},
+				},
+				&System{Hostname: &host},
+				&Process{Pid: pid},
+				&User{Id: &uid, Email: &mail},
+			),
+			output: common.MapStr{
+				"service": common.MapStr{
+					"name":  "myservice",
+					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				},
+				"system":  common.MapStr{"hostname": host},
+				"process": common.MapStr{"pid": pid},
+				"user":    common.MapStr{"id": "12321", "email": "user@email.com"},
+			},
+		},
+		{
+			input: NewMetadata(
+				&Service{
+					Name: serviceName,
+					Agent: Agent{
+						Name:    agentName,
+						Version: agentVersion,
+					},
+				},
+				&System{Hostname: &host},
+				&Process{Pid: pid},
+				&User{Id: &uid},
+			),
+			mergeContext: common.MapStr{
+				"foo": "bar",
+				"user": common.MapStr{
+					"email": "override@email.com",
+				},
+			},
+			output: common.MapStr{
+				"foo": "bar",
+				"service": common.MapStr{
+					"name":  "myservice",
+					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				},
+				"system":  common.MapStr{"hostname": host},
+				"process": common.MapStr{"pid": pid},
+				"user":    common.MapStr{"id": "12321", "email": "override@email.com"},
+			},
+		},
+	} {
+		assert.Equal(t, test.output, test.input.Merge(test.mergeContext))
+	}
+}
+
+func TestMetadataMergeMinimal(t *testing.T) {
+	pid := 1234
+	host := "host"
+	serviceName := "myservice"
+	uid := "12321"
+	mail := "user@email.com"
+	agentName := "elastic-node"
+
+	for _, test := range []struct {
+		input        *Metadata
+		mergeContext common.MapStr
+		output       common.MapStr
+	}{
+		{
+			input: NewMetadata(
+				&Service{
+					Name: serviceName,
+					Agent: Agent{
+						Name:    agentName,
+						Version: agentVersion,
+					},
+				},
+				&System{Hostname: &host},
+				&Process{Pid: pid},
+				&User{Id: &uid, Email: &mail},
+			),
+			output: common.MapStr{
+				"service": common.MapStr{
+					"name":  "myservice",
+					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				},
+			},
+		},
+		{
+			input: NewMetadata(
+				&Service{
+					Name: serviceName,
+					Agent: Agent{
+						Name:    agentName,
+						Version: agentVersion,
+					},
+				},
+				&System{Hostname: &host},
+				&Process{Pid: pid},
+				&User{Id: &uid},
+			),
+			mergeContext: common.MapStr{
+				"foo": "bar",
+			},
+			output: common.MapStr{
+				"foo": "bar",
+				"service": common.MapStr{
+					"name":  "myservice",
+					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				},
+			},
+		},
+	} {
+		assert.Equal(t, test.output, test.input.MergeMinimal(test.mergeContext))
+	}
 }
