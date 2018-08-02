@@ -96,7 +96,7 @@ release-manager-release:
 
 .PHONY: bench
 bench:
-	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./processor/...
+	@go test -benchmem -run=XXX -benchtime=100ms -bench='.*' ./...
 
 .PHONY: are-kibana-objects-updated
 are-kibana-objects-updated: python-env
