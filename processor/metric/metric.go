@@ -26,7 +26,6 @@ import (
 var (
 	Processor = &processor.EventsProcessor{
 		SingularName:  "metric",
-		PluralKeyName: "metrics",
 		EventDecoder:  metric.DecodeMetric,
 		PayloadSchema: metric.PayloadSchema(),
 		DecodingCount: monitoring.NewInt(metric.Metrics, "decoding.count"),
