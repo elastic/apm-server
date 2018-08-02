@@ -142,15 +142,13 @@ func (p *publisher) processPendingReq(req pendingReq) {
 		defer tx.End()
 	}
 
-	var events []beat.Event
-	span := tx.StartSpan("Transform", "Publisher", nil)
 	for _, transformable := range req.transformables {
-		events = append(events, transformable.Transform(&req.tcontext)...)
+		span := tx.StartSpan("Transform", "Publisher", nil)
+		events := transformable.Transform(&req.tcontext)
+		span.End()
+
+		span = tx.StartSpan("PublishAll", "Publisher", nil)
+		p.client.PublishAll(events)
+		span.End()
 	}
-
-	span.End()
-
-	span = tx.StartSpan("PublishAll", "Publisher", nil)
-	p.client.PublishAll(events)
-	span.End()
 }

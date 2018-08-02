@@ -146,6 +146,8 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
+	errorCounter.Inc()
+
 	if e.Exception != nil {
 		addStacktraceCounter(e.Exception.Stacktrace)
 	}
