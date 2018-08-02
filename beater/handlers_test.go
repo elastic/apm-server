@@ -75,6 +75,37 @@ func TestConcurrency(t *testing.T) {
 	assert.True(t, concurrentWait.Get() > 20, strconv.FormatInt(concurrentWait.Get(), 10))
 }
 
+func TestOkBody(t *testing.T) {
+	req, err := http.NewRequest("POST", "_", nil)
+	assert.Nil(t, err)
+	w := httptest.NewRecorder()
+	sendStatus(w, req, serverResponse{
+		code:    http.StatusNonAuthoritativeInfo,
+		counter: requestCounter,
+		body:    "some body",
+	})
+	resp := w.Result()
+	got, _ := ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "some body", string(got))
+	assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
+}
+
+func TestOkBodyJson(t *testing.T) {
+	req, err := http.NewRequest("POST", "_", nil)
+	req.Header.Set("Accept", "application/json")
+	assert.Nil(t, err)
+	w := httptest.NewRecorder()
+	sendStatus(w, req, serverResponse{
+		code:    http.StatusNonAuthoritativeInfo,
+		counter: requestCounter,
+		body:    "some body",
+	})
+	resp := w.Result()
+	got, _ := ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "{\"ok\":\"some body\"}", string(got))
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+}
+
 func TestAccept(t *testing.T) {
 	for idx, test := range []struct{ accept, expectedError, expectedContentType string }{
 		{"application/json", "{\"error\":\"data validation error: error message\"}", "application/json"},
