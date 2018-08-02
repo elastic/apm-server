@@ -292,7 +292,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.4
-Revision: 191f5266416d3a18f8a9ab5c2ec47240f256e265
+Revision: bc7bd2a6b0aadeef55f7382e39636cdd98906124
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -368,7 +368,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-windows
-Revision: a730c8b4e08aef7e1ebb642928bf862996ad2383
+Revision: f11b8c9a625322edbca44926f9c0e4dc4916c9ac
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-windows/LICENSE.txt:
 --------------------------------------------------------------------
