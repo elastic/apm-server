@@ -31,9 +31,9 @@ import (
 )
 
 var (
-	Metrics = monitoring.Default.NewRegistry("apm-server.processor.span", monitoring.PublishExpvar)
+	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.span", monitoring.PublishExpvar)
+	transformations = monitoring.NewInt(Metrics, "transformations")
 
-	spanCounter       = monitoring.NewInt(Metrics, "count")
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")
 
@@ -83,6 +83,7 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 }
 
 func (s *Span) Transform(tctx *transform.Context) []beat.Event {
+	transformations.Inc()
 	if frames := len(s.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))

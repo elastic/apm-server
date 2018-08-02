@@ -33,18 +33,16 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-var (
-	sourcemapCounter = monitoring.NewInt(Metrics, "counter")
-	processorEntry   = common.MapStr{"name": processorName, "event": smapDocType}
-)
-
 const (
 	processorName = "sourcemap"
 	smapDocType   = "sourcemap"
 )
 
 var (
-	Metrics = monitoring.Default.NewRegistry("apm-server.processor.sourcemap", monitoring.PublishExpvar)
+	Metrics          = monitoring.Default.NewRegistry("apm-server.processor.sourcemap", monitoring.PublishExpvar)
+	sourcemapCounter = monitoring.NewInt(Metrics, "counter")
+
+	processorEntry = common.MapStr{"name": processorName, "event": smapDocType}
 )
 
 var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
@@ -61,7 +59,7 @@ type Sourcemap struct {
 }
 
 func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
-	sourcemapCounter.Add(1)
+	sourcemapCounter.Inc()
 	if pa == nil {
 		return nil
 	}

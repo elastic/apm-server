@@ -40,7 +40,6 @@ import (
 var (
 	Metrics           = monitoring.Default.NewRegistry("apm-server.processor.error", monitoring.PublishExpvar)
 	transformations   = monitoring.NewInt(Metrics, "transformations")
-	errorCounter      = monitoring.NewInt(Metrics, "errors")
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")
 	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
@@ -146,7 +145,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
-	errorCounter.Inc()
 
 	if e.Exception != nil {
 		addStacktraceCounter(e.Exception.Stacktrace)

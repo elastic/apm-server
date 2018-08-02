@@ -38,9 +38,8 @@ const (
 var (
 	Metrics = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
 
-	spanCounter        = monitoring.NewInt(Metrics, "count")
-	transformations    = monitoring.NewInt(Metrics, "transformations")
-	transactionCounter = monitoring.NewInt(Metrics, "transactions")
+	spanCounter     = monitoring.NewInt(Metrics, "spans")
+	transformations = monitoring.NewInt(Metrics, "transformations")
 
 	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
 )
