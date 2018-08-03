@@ -27,7 +27,6 @@ rsync -crpv --delete \
     --exclude="dev-tools/jenkins_ci.ps1" \
     --exclude="dev-tools/jenkins_intake.sh" \
     --exclude="dev-tools/packaging/preference-pane/***" \
-    --exclude="dev-tools/packaging/packages.yml" \
     --include="dev-tools/***" \
     --include="script/***" \
     --include="testing/***" \
