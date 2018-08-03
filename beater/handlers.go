@@ -34,13 +34,14 @@ import (
 	"github.com/satori/go.uuid"
 	"golang.org/x/time/rate"
 
-	conf "github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
+	"github.com/elastic/apm-server/transform"
+
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -221,7 +222,6 @@ func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler 
 			concurrentWait.Add(wait())
 			sendStatus(w, r, tooManyConcurrentRequestsResponse)
 		}
-
 	})
 }
 
@@ -229,7 +229,7 @@ func backendHandler(p processor.Processor, beaterConfig *Config, report reporter
 	return logHandler(
 		concurrencyLimitHandler(beaterConfig,
 			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(p, conf.Config{}, report,
+				processRequestHandler(p, transform.Config{}, report,
 					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
@@ -238,7 +238,7 @@ func rumHandler(p processor.Processor, beaterConfig *Config, report reporter) ht
 	if err != nil {
 		logp.NewLogger("handler").Error(err.Error())
 	}
-	config := conf.Config{
+	config := transform.Config{
 		SmapMapper:          smapper,
 		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
@@ -256,7 +256,7 @@ func metricsHandler(p processor.Processor, beaterConfig *Config, report reporter
 	return logHandler(
 		killSwitchHandler(beaterConfig.Metrics.isEnabled(),
 			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(p, conf.Config{}, report,
+				processRequestHandler(p, transform.Config{}, report,
 					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
 }
 
@@ -268,7 +268,7 @@ func sourcemapHandler(p processor.Processor, beaterConfig *Config, report report
 	return logHandler(
 		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(p, conf.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
+				processRequestHandler(p, transform.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }
 
 // Deprecated: use rootHandler instead
@@ -445,14 +445,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(p processor.Processor, config conf.Config, report reporter, decode decoder.Decoder) http.Handler {
+func processRequestHandler(p processor.Processor, config transform.Config, report reporter, decode decoder.ReqDecoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res := processRequest(r, p, config, report, decode)
 		sendStatus(w, r, res)
 	})
 }
 
-func processRequest(r *http.Request, p processor.Processor, config conf.Config, report reporter, decode decoder.Decoder) serverResponse {
+func processRequest(r *http.Request, p processor.Processor, config transform.Config, report reporter, decode decoder.ReqDecoder) serverResponse {
 	if r.Method != "POST" {
 		return methodNotAllowedResponse
 	}
@@ -463,19 +463,23 @@ func processRequest(r *http.Request, p processor.Processor, config conf.Config, 
 			return requestTooLargeResponse
 		}
 		return cannotDecodeResponse(err)
-
 	}
 
 	if err = p.Validate(data); err != nil {
 		return cannotValidateResponse(err)
 	}
 
-	payload, err := p.Decode(data)
+	metadata, transformables, err := p.Decode(data)
 	if err != nil {
 		return cannotDecodeResponse(err)
 	}
 
-	if err = report(r.Context(), pendingReq{payload: payload, config: config}); err != nil {
+	tctx := transform.Context{
+		Config:   config,
+		Metadata: *metadata,
+	}
+
+	if err = report(r.Context(), pendingReq{transformables: transformables, tcontext: tctx}); err != nil {
 		if strings.Contains(err.Error(), "publisher is being stopped") {
 			return serverShuttingDownResponse(err)
 		}

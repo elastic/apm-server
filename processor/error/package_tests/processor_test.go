@@ -26,10 +26,10 @@ import (
 
 	s "github.com/go-sourcemap/sourcemap"
 
-	"github.com/elastic/apm-server/config"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/transform"
 )
 
 var (
@@ -56,23 +56,24 @@ var (
 
 // ensure all valid documents pass through the whole validation and transformation process
 func TestProcessorBackendOK(t *testing.T) {
-	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, perr.Processor, conf, backendRequestInfo, map[string]string{})
+	tctx := transform.Context{}
+	tests.TestProcessRequests(t, perr.Processor, tctx, backendRequestInfo, map[string]string{})
 }
 
 func TestProcessorMinimalPayloadOK(t *testing.T) {
-	conf := config.Config{ExcludeFromGrouping: nil}
-	tests.TestProcessRequests(t, perr.Processor, conf, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
+	tctx := transform.Context{}
+	tests.TestProcessRequests(t, perr.Processor, tctx, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorRumOK(t *testing.T) {
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
-	conf := config.Config{
+	conf := transform.Config{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.TestProcessRequests(t, perr.Processor, conf, rumRequestInfo, map[string]string{})
+	tctx := transform.Context{Config: conf}
+	tests.TestProcessRequests(t, perr.Processor, tctx, rumRequestInfo, map[string]string{})
 }
 
 type fakeAcc struct {
@@ -114,8 +115,9 @@ func (ac *fakeAcc) Fetch(smapId sourcemap.Id) (*s.Consumer, error) {
 func (ac *fakeAcc) Remove(smapId sourcemap.Id) {}
 
 func BenchmarkBackendProcessor(b *testing.B) {
-	tests.BenchmarkProcessRequests(b, perr.Processor, config.Config{ExcludeFromGrouping: nil}, backendRequestInfo)
-	tests.BenchmarkProcessRequests(b, perr.Processor, config.Config{ExcludeFromGrouping: nil}, backendRequestInfoIgnoreTimestamp)
+	tctx := transform.Context{Config: transform.Config{ExcludeFromGrouping: nil}}
+	tests.BenchmarkProcessRequests(b, perr.Processor, tctx, backendRequestInfo)
+	tests.BenchmarkProcessRequests(b, perr.Processor, tctx, backendRequestInfoIgnoreTimestamp)
 }
 
 func BenchmarkRumProcessor(b *testing.B) {
@@ -124,10 +126,11 @@ func BenchmarkRumProcessor(b *testing.B) {
 		b.Fatal(err)
 	}
 	mapper := sourcemap.SmapMapper{Accessor: accessor}
-	conf := config.Config{
+	conf := transform.Config{
 		SmapMapper:          &mapper,
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tests.BenchmarkProcessRequests(b, perr.Processor, conf, rumRequestInfo)
+	tctx := transform.Context{Config: conf}
+	tests.BenchmarkProcessRequests(b, perr.Processor, tctx, rumRequestInfo)
 }

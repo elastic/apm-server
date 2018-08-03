@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package metadata
 
 import (
 	"errors"
@@ -84,7 +84,7 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	return &service, decoder.Err
 }
 
-func (s *Service) MinimalTransform() common.MapStr {
+func (s *Service) minimalFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
@@ -96,11 +96,11 @@ func (s *Service) MinimalTransform() common.MapStr {
 	return svc
 }
 
-func (s *Service) Transform() common.MapStr {
+func (s *Service) fields() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	svc := s.MinimalTransform()
+	svc := s.minimalFields()
 	utility.Add(svc, "version", s.Version)
 	utility.Add(svc, "environment", s.Environment)
 

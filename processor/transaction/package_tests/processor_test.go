@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/processor/transaction"
+	"github.com/elastic/apm-server/transform"
 
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/tests"
 )
 
@@ -53,30 +53,35 @@ var (
 
 // ensure all valid documents pass through the whole validation and transformation process
 func TestTransactionProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, transaction.Processor, config.Config{}, backendRequestInfo, map[string]string{})
+	tests.TestProcessRequests(t, transaction.Processor, transform.Context{}, backendRequestInfo, map[string]string{})
 }
 
 func TestMinimalTransactionProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, transaction.Processor, config.Config{}, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, transaction.Processor, transform.Context{}, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorRumOK(t *testing.T) {
-	conf := config.Config{
-		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
-		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
+	tctx := transform.Context{
+		Config: transform.Config{
+			LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
+			ExcludeFromGrouping: regexp.MustCompile("^~/test"),
+		},
 	}
-	tests.TestProcessRequests(t, transaction.Processor, conf, rumRequestInfo, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, transaction.Processor, tctx, rumRequestInfo, map[string]string{"@timestamp": "-"})
 }
 
 func BenchmarkBackendProcessor(b *testing.B) {
-	tests.BenchmarkProcessRequests(b, transaction.Processor, config.Config{}, backendRequestInfo)
-	tests.BenchmarkProcessRequests(b, transaction.Processor, config.Config{}, backendRequestInfoIgnoreTimestamp)
+	tests.BenchmarkProcessRequests(b, transaction.Processor, transform.Context{}, backendRequestInfo)
+	tests.BenchmarkProcessRequests(b, transaction.Processor, transform.Context{}, backendRequestInfoIgnoreTimestamp)
 }
 
 func BenchmarkRumProcessor(b *testing.B) {
-	conf := config.Config{
+	conf := transform.Config{
 		LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 	}
-	tests.BenchmarkProcessRequests(b, transaction.Processor, conf, rumRequestInfo)
+	tctx := transform.Context{
+		Config: conf,
+	}
+	tests.BenchmarkProcessRequests(b, transaction.Processor, tctx, rumRequestInfo)
 }
