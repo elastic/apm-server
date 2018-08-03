@@ -29,7 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -131,7 +130,7 @@ func TestDecode(t *testing.T) {
 	}
 }
 
-func TestPayloadTransform(t *testing.T) {
+func TestTransform(t *testing.T) {
 	timestamp := time.Now()
 	md := metadata.NewMetadata(
 		&metadata.Service{Name: "myservice"},
@@ -141,17 +140,17 @@ func TestPayloadTransform(t *testing.T) {
 	)
 
 	tests := []struct {
-		Metrics []*metric
-		Output  []common.MapStr
-		Msg     string
+		Metric *metric
+		Output []common.MapStr
+		Msg    string
 	}{
 		{
-			Metrics: []*metric{},
-			Output:  nil,
-			Msg:     "Empty metric Array",
+			Metric: nil,
+			Output: nil,
+			Msg:    "Nil metric",
 		},
 		{
-			Metrics: []*metric{{timestamp: timestamp}},
+			Metric: &metric{timestamp: timestamp},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
@@ -166,19 +165,17 @@ func TestPayloadTransform(t *testing.T) {
 			Msg: "Payload with empty metric.",
 		},
 		{
-			Metrics: []*metric{
-				{
-					tags:      common.MapStr{"a.tag": "a.tag.value"},
-					timestamp: timestamp,
-					samples: []*sample{
-						{
-							name:  "a.counter",
-							value: 612,
-						},
-						{
-							name:  "some.gauge",
-							value: 9.16,
-						},
+			Metric: &metric{
+				tags:      common.MapStr{"a.tag": "a.tag.value"},
+				timestamp: timestamp,
+				samples: []*sample{
+					{
+						name:  "a.counter",
+						value: 612,
+					},
+					{
+						name:  "some.gauge",
+						value: 9.16,
 					},
 				},
 			},
@@ -204,10 +201,7 @@ func TestPayloadTransform(t *testing.T) {
 
 	tctx := &transform.Context{Config: transform.Config{}, Metadata: *md}
 	for idx, test := range tests {
-		var outputEvents []beat.Event
-		for _, metric := range test.Metrics {
-			outputEvents = append(outputEvents, metric.Transform(tctx)...)
-		}
+		outputEvents := test.Metric.Transform(tctx)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))

@@ -30,7 +30,6 @@ import (
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -87,7 +86,8 @@ func TestTransactionEventDecode(t *testing.T) {
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 				Spans: []*span.Span{
-					&span.Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3},
+					&span.Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
+						TransactionId: id, Timestamp: timestampParsed},
 				},
 			},
 		},
@@ -160,7 +160,7 @@ func TestEventTransform(t *testing.T) {
 	}
 }
 
-func TestPayloadTransform(t *testing.T) {
+func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
 	platform := "x64"
@@ -241,7 +241,11 @@ func TestPayloadTransform(t *testing.T) {
 			},
 		},
 	}
-	spans := []*span.Span{{}}
+
+	spans := []*span.Span{{
+		Timestamp: timestamp,
+	}}
+
 	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
 	spanEs := common.MapStr{
 		"context": common.MapStr{
@@ -265,34 +269,34 @@ func TestPayloadTransform(t *testing.T) {
 
 	tests := []struct {
 		Metadata *metadata.Metadata
-		Events   []transform.Transformable
+		Event    transform.Transformable
 		Output   []common.MapStr
 		Msg      string
 	}{
-		{
-			Metadata: metadata.NewMetadata(nil, nil, nil, nil),
-			Events:   []transform.Transformable{},
-			Output:   nil,
-			Msg:      "Payload with empty Event Array",
-		},
 		{
 			Metadata: metadata.NewMetadata(
 				&service,
 				nil, nil, nil,
 			),
-			Events: []transform.Transformable{
-				&txValid, &txValidWithSpan,
-			},
-			Output: []common.MapStr{txValidEs, txValidEs, spanEs},
+			Event:  &txValid,
+			Output: []common.MapStr{txValidEs},
+			Msg:    "Payload with multiple Events",
+		}, {
+			Metadata: metadata.NewMetadata(
+				&service,
+				nil, nil, nil,
+			),
+			Event:  &txValidWithSpan,
+			Output: []common.MapStr{txValidEs, spanEs},
 			Msg:    "Payload with multiple Events",
 		},
+
 		{
 			Metadata: metadata.NewMetadata(
 				&service, system,
 				nil, nil,
 			),
-
-			Events: []transform.Transformable{&txValid},
+			Event:  &txValid,
 			Output: []common.MapStr{txValidWithSystem},
 			Msg:    "Payload with System and Event",
 		},
@@ -301,21 +305,17 @@ func TestPayloadTransform(t *testing.T) {
 				&service, system,
 				nil, nil,
 			),
-			Events: []transform.Transformable{&txWithContext},
+			Event:  &txWithContext,
 			Output: []common.MapStr{txWithContextEs},
 			Msg:    "Payload with Service, System and Event with context",
 		},
 	}
 
 	for idx, test := range tests {
-		var outputEvents []beat.Event
-
 		tctx := &transform.Context{
 			Metadata: *test.Metadata,
 		}
-		for _, events := range test.Events {
-			outputEvents = append(outputEvents, events.Transform(tctx)...)
-		}
+		outputEvents := test.Event.Transform(tctx)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))

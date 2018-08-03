@@ -40,7 +40,6 @@ import (
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -213,7 +212,7 @@ func TestErrorEventDecode(t *testing.T) {
 	}
 }
 
-func TestEventTransformFields(t *testing.T) {
+func TestEventFields(t *testing.T) {
 	id := "45678"
 	culprit := "some trigger"
 
@@ -367,6 +366,7 @@ func TestEventTransformFields(t *testing.T) {
 
 	for idx, test := range tests {
 		output := test.Event.Transform(tctx)
+		require.Len(t, output, 1)
 		fields := output[0].Fields["error"]
 		assert.Equal(t, test.Output, fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
@@ -379,74 +379,64 @@ func TestEvents(t *testing.T) {
 	}
 
 	tests := []struct {
-		Events []transform.Transformable
-		Output []common.MapStr
-		Msg    string
+		Tranformable transform.Transformable
+		Output       common.MapStr
+		Msg          string
 	}{
 		{
-			Events: []transform.Transformable{},
-			Output: nil,
-			Msg:    "Empty Event Array",
-		},
-		{
-			Events: []transform.Transformable{&Event{Timestamp: timestamp}},
-			Output: []common.MapStr{
-				{
-					"context": common.MapStr{
-						"service": common.MapStr{
-							"agent": common.MapStr{"name": "", "version": ""},
-							"name":  "myservice",
-						},
+			Tranformable: &Event{Timestamp: timestamp},
+			Output: common.MapStr{
+				"context": common.MapStr{
+					"service": common.MapStr{
+						"agent": common.MapStr{"name": "", "version": ""},
+						"name":  "myservice",
 					},
-					"error": common.MapStr{
-						"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
-					},
-					"processor": common.MapStr{"event": "error", "name": "error"},
 				},
+				"error": common.MapStr{
+					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+				},
+				"processor": common.MapStr{"event": "error", "name": "error"},
 			},
 			Msg: "Payload with valid Event.",
 		},
 		{
-			Events: []transform.Transformable{
-				&Event{
-					Timestamp: timestamp,
-					Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
-					Log:       baseLog(),
-					Exception: &Exception{
-						Message:    "exception message",
-						Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
-					},
-					Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+			Tranformable: &Event{
+				Timestamp: timestamp,
+				Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
+				Log:       baseLog(),
+				Exception: &Exception{
+					Message:    "exception message",
+					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
 				},
+				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
-			Output: []common.MapStr{
-				{
-					"context": common.MapStr{
-						"foo": "bar", "user": common.MapStr{"email": "m@m.com"},
-						"service": common.MapStr{
-							"name":  "myservice",
-							"agent": common.MapStr{"name": "", "version": ""},
-						},
+
+			Output: common.MapStr{
+				"context": common.MapStr{
+					"foo": "bar", "user": common.MapStr{"email": "m@m.com"},
+					"service": common.MapStr{
+						"name":  "myservice",
+						"agent": common.MapStr{"name": "", "version": ""},
 					},
-					"error": common.MapStr{
-						"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
-						"log":          common.MapStr{"message": "error log message"},
-						"exception": common.MapStr{
-							"message": "exception message",
-							"stacktrace": []common.MapStr{{
-								"exclude_from_grouping": false,
-								"filename":              "myFile",
-								"line":                  common.MapStr{"number": 0},
-								"sourcemap": common.MapStr{
-									"error":   "Colno mandatory for sourcemapping.",
-									"updated": false,
-								},
-							}},
-						},
-					},
-					"processor":   common.MapStr{"event": "error", "name": "error"},
-					"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 				},
+				"error": common.MapStr{
+					"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
+					"log":          common.MapStr{"message": "error log message"},
+					"exception": common.MapStr{
+						"message": "exception message",
+						"stacktrace": []common.MapStr{{
+							"exclude_from_grouping": false,
+							"filename":              "myFile",
+							"line":                  common.MapStr{"number": 0},
+							"sourcemap": common.MapStr{
+								"error":   "Colno mandatory for sourcemapping.",
+								"updated": false,
+							},
+						}},
+					},
+				},
+				"processor":   common.MapStr{"event": "error", "name": "error"},
+				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
 			},
 			Msg: "Payload with Event with Context.",
 		},
@@ -461,16 +451,11 @@ func TestEvents(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		var outputEvents []beat.Event
-		for _, event := range test.Events {
-			outputEvents = append(outputEvents, event.Transform(tctx)...)
-		}
-		require.Equal(t, len(test.Output), len(outputEvents), "Failed at idx %v; %s", idx, test.Msg)
-
-		for j, outputEvent := range outputEvents {
-			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
-		}
+		outputEvents := test.Tranformable.Transform(tctx)
+		require.Len(t, outputEvents, 1)
+		outputEvent := outputEvents[0]
+		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 	}
 }
 

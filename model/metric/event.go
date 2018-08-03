@@ -52,51 +52,23 @@ type metric struct {
 	timestamp time.Time
 }
 
-func (me *metric) Transform(tctx *transform.Context) []beat.Event {
-	transformations.Inc()
-	if me == nil {
-		return nil
-	}
-
-	fields := common.MapStr{}
-	for _, sample := range me.samples {
-		if _, err := fields.Put(sample.name, sample.value); err != nil {
-			logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
-			continue
-		}
-	}
-
-	context := common.MapStr{}
-	if me.tags != nil {
-		context["tags"] = me.tags
-	}
-
-	fields["context"] = tctx.Metadata.Merge(context)
-	fields["processor"] = processorEntry
-
-	return []beat.Event{
-		beat.Event{
-			Fields:    fields,
-			Timestamp: me.timestamp,
-		},
-	}
+type metricDecoder struct {
+	*utility.ManualDecoder
 }
 
 func DecodeMetric(input interface{}, err error) (transform.Transformable, error) {
-	if input == nil || err != nil {
+	if err != nil {
 		return nil, err
 	}
-	md := metricDecoder{&utility.ManualDecoder{}}
 	if input == nil {
-		md.Err = errors.New("no data for metric event")
-		return nil, md.Err
+		return nil, errors.New("no data for metric event")
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		md.Err = errors.New("invalid type for metric event")
-		return nil, md.Err
+		return nil, errors.New("invalid type for metric event")
 	}
 
+	md := metricDecoder{&utility.ManualDecoder{}}
 	metric := metric{
 		samples:   md.decodeSamples(raw["samples"]),
 		timestamp: md.TimeRFC3339WithDefault(raw, "timestamp"),
@@ -147,6 +119,32 @@ func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
 	return samples
 }
 
-type metricDecoder struct {
-	*utility.ManualDecoder
+func (me *metric) Transform(tctx *transform.Context) []beat.Event {
+	transformations.Inc()
+	if me == nil {
+		return nil
+	}
+
+	fields := common.MapStr{}
+	for _, sample := range me.samples {
+		if _, err := fields.Put(sample.name, sample.value); err != nil {
+			logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
+			continue
+		}
+	}
+
+	context := common.MapStr{}
+	if me.tags != nil {
+		context["tags"] = me.tags
+	}
+
+	fields["context"] = tctx.Metadata.Merge(context)
+	fields["processor"] = processorEntry
+
+	return []beat.Event{
+		beat.Event{
+			Fields:    fields,
+			Timestamp: me.timestamp,
+		},
+	}
 }

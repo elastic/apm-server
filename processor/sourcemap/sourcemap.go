@@ -34,7 +34,7 @@ import (
 var (
 	Processor = &sourcemapProcessor{
 		processor.EventsProcessor{
-			SingularName:  "sourcemap",
+			PluralName:    "sourcemaps",
 			PayloadSchema: sm.PayloadSchema(),
 			DecodingCount: monitoring.NewInt(sm.Metrics, "decoding.count"),
 			DecodingError: monitoring.NewInt(sm.Metrics, "decoding.errors"),

@@ -91,6 +91,15 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	e.Spans = make([]*span.Span, len(spans))
 	for idx, rawSpan := range spans {
 		sp, err = span.DecodeSpan(rawSpan, err)
+
+		if sp.Timestamp.IsZero() {
+			sp.Timestamp = e.Timestamp
+		}
+
+		if sp.TransactionId == "" {
+			sp.TransactionId = e.Id
+		}
+
 		e.Spans[idx] = sp
 	}
 	return &e, err
@@ -136,16 +145,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	spanCounter.Add(int64(len(e.Spans)))
 	for spIdx := 0; spIdx < len(e.Spans); spIdx++ {
-		sp := e.Spans[spIdx]
-		if sp.Timestamp.IsZero() {
-			sp.Timestamp = e.Timestamp
-		}
-
-		if sp.TransactionId == "" {
-			sp.TransactionId = e.Id
-		}
-
-		events = append(events, sp.Transform(tctx)...)
+		events = append(events, e.Spans[spIdx].Transform(tctx)...)
 		e.Spans[spIdx] = nil
 	}
 	return events
