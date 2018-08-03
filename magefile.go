@@ -115,7 +115,8 @@ func customizePackaging() {
 			Template: "package-README.md.tmpl",
 		}
 	)
-	for _, args := range mage.Packages {
+	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
+		args := mage.Packages[idx]
 		switch args.Types[0] {
 		case mage.Zip, mage.TarGz:
 			// Remove the reference config file from packages.
@@ -128,9 +129,7 @@ func customizePackaging() {
 			args.Spec.ReplaceFile("/usr/share/{{.BeatName}}/README.md", readmeTemplate)
 
 		case mage.DMG:
-			delete(args.Spec.Files, "/etc/{{.BeatName}}/{{.BeatName}}.reference.yml")
-			args.Spec.ReplaceFile("/Library/Application Support/{{.BeatVendor}}/{{.BeatName}}/README.md", readmeTemplate)
-
+			mage.Packages = append(mage.Packages[:idx], mage.Packages[idx+1:]...)
 		}
 	}
 }
