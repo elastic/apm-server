@@ -22,10 +22,9 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/config"
-	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
 	smap "github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/beat"
@@ -34,18 +33,16 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-var (
-	sourcemapCounter = monitoring.NewInt(Metrics, "counter")
-	processorEntry   = common.MapStr{"name": processorName, "event": smapDocType}
-)
-
 const (
 	processorName = "sourcemap"
 	smapDocType   = "sourcemap"
 )
 
 var (
-	Metrics = monitoring.Default.NewRegistry("apm-server.processor.sourcemap", monitoring.PublishExpvar)
+	Metrics          = monitoring.Default.NewRegistry("apm-server.processor.sourcemap", monitoring.PublishExpvar)
+	sourcemapCounter = monitoring.NewInt(Metrics, "counter")
+
+	processorEntry = common.MapStr{"name": processorName, "event": smapDocType}
 )
 
 var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
@@ -54,23 +51,23 @@ func PayloadSchema() *jsonschema.Schema {
 	return cachedSchema
 }
 
-type Payload struct {
+type Sourcemap struct {
 	ServiceName    string
 	ServiceVersion string
 	Sourcemap      string
 	BundleFilepath string
 }
 
-func (pa *Payload) Transform(conf config.Config) []beat.Event {
-	sourcemapCounter.Add(1)
+func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
+	sourcemapCounter.Inc()
 	if pa == nil {
 		return nil
 	}
 
-	if conf.SmapMapper == nil {
+	if tctx.Config.SmapMapper == nil {
 		logp.NewLogger("sourcemap").Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		conf.SmapMapper.NewSourcemapAdded(smap.Id{
+		tctx.Config.SmapMapper.NewSourcemapAdded(smap.Id{
 			ServiceName:    pa.ServiceName,
 			ServiceVersion: pa.ServiceVersion,
 			Path:           pa.BundleFilepath,
@@ -91,9 +88,9 @@ func (pa *Payload) Transform(conf config.Config) []beat.Event {
 	return []beat.Event{ev}
 }
 
-func DecodePayload(raw map[string]interface{}) (model.Payload, error) {
+func DecodeSourcemap(raw map[string]interface{}) (transform.Transformable, error) {
 	decoder := utility.ManualDecoder{}
-	pa := Payload{
+	pa := Sourcemap{
 		ServiceName:    decoder.String(raw, "service_name"),
 		ServiceVersion: decoder.String(raw, "service_version"),
 		Sourcemap:      decoder.String(raw, "sourcemap"),

@@ -28,15 +28,18 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/elastic/apm-server/model/metadata"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"time"
 
 	s "github.com/go-sourcemap/sourcemap"
 
-	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -196,13 +199,20 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		event, err := DecodeEvent(test.input, test.inpErr)
-		assert.Equal(t, test.e, event)
+		transformable, err := DecodeEvent(test.input, test.inpErr)
+
+		if test.e != nil {
+			event := transformable.(*Event)
+			assert.Equal(t, test.e, event)
+		} else {
+			assert.Nil(t, transformable)
+		}
+
 		assert.Equal(t, test.err, err)
 	}
 }
 
-func TestEventTransform(t *testing.T) {
+func TestEventFields(t *testing.T) {
 	id := "45678"
 	culprit := "some trigger"
 
@@ -243,7 +253,6 @@ func TestEventTransform(t *testing.T) {
 	baseLogHash := md5.New()
 	io.WriteString(baseLogHash, baseLog().Message)
 	baseLogGroupingKey := hex.EncodeToString(baseLogHash.Sum(nil))
-	service := m.Service{Name: "myService"}
 
 	tests := []struct {
 		Event  Event
@@ -348,9 +357,105 @@ func TestEventTransform(t *testing.T) {
 		},
 	}
 
+	tctx := &transform.Context{
+		Config: transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Metadata: metadata.Metadata{
+			Service: &metadata.Service{Name: "myService"},
+		},
+	}
+
 	for idx, test := range tests {
-		output := test.Event.Transform(config.Config{SmapMapper: &sourcemap.SmapMapper{}}, service)
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		output := test.Event.Transform(tctx)
+		require.Len(t, output, 1)
+		fields := output[0].Fields["error"]
+		assert.Equal(t, test.Output, fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+	}
+}
+
+func TestEvents(t *testing.T) {
+	timestamp := time.Now()
+	service := metadata.Service{
+		Name: "myservice",
+	}
+
+	tests := []struct {
+		Tranformable transform.Transformable
+		Output       common.MapStr
+		Msg          string
+	}{
+		{
+			Tranformable: &Event{Timestamp: timestamp},
+			Output: common.MapStr{
+				"context": common.MapStr{
+					"service": common.MapStr{
+						"agent": common.MapStr{"name": "", "version": ""},
+						"name":  "myservice",
+					},
+				},
+				"error": common.MapStr{
+					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+				},
+				"processor": common.MapStr{"event": "error", "name": "error"},
+			},
+			Msg: "Payload with valid Event.",
+		},
+		{
+			Tranformable: &Event{
+				Timestamp: timestamp,
+				Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
+				Log:       baseLog(),
+				Exception: &Exception{
+					Message:    "exception message",
+					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
+				},
+				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+			},
+
+			Output: common.MapStr{
+				"context": common.MapStr{
+					"foo": "bar", "user": common.MapStr{"email": "m@m.com"},
+					"service": common.MapStr{
+						"name":  "myservice",
+						"agent": common.MapStr{"name": "", "version": ""},
+					},
+				},
+				"error": common.MapStr{
+					"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
+					"log":          common.MapStr{"message": "error log message"},
+					"exception": common.MapStr{
+						"message": "exception message",
+						"stacktrace": []common.MapStr{{
+							"exclude_from_grouping": false,
+							"filename":              "myFile",
+							"line":                  common.MapStr{"number": 0},
+							"sourcemap": common.MapStr{
+								"error":   "Colno mandatory for sourcemapping.",
+								"updated": false,
+							},
+						}},
+					},
+				},
+				"processor":   common.MapStr{"event": "error", "name": "error"},
+				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+			},
+			Msg: "Payload with Event with Context.",
+		},
+	}
+
+	me := metadata.NewMetadata(
+		&service, nil, nil, nil,
+	)
+	tctx := &transform.Context{
+		Metadata: *me,
+		Config:   transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+	}
+
+	for idx, test := range tests {
+		outputEvents := test.Tranformable.Transform(tctx)
+		require.Len(t, outputEvents, 1)
+		outputEvent := outputEvents[0]
+		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 	}
 }
 
@@ -370,25 +475,25 @@ func TestCulprit(t *testing.T) {
 	mapper := sourcemap.SmapMapper{}
 	tests := []struct {
 		event   Event
-		config  config.Config
+		config  transform.Config
 		culprit string
 		msg     string
 	}{
 		{
 			event:   Event{Culprit: &c},
-			config:  config.Config{},
+			config:  transform.Config{},
 			culprit: "foo",
 			msg:     "No Sourcemap in config",
 		},
 		{
 			event:   Event{Culprit: &c},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  transform.Config{SmapMapper: &mapper},
 			culprit: "foo",
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
 			event:   Event{Culprit: &c, Log: &Log{Stacktrace: st}},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  transform.Config{SmapMapper: &mapper},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
 		},
@@ -404,7 +509,7 @@ func TestCulprit(t *testing.T) {
 					},
 				},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  transform.Config{SmapMapper: &mapper},
 			culprit: "f",
 			msg:     "Adapt culprit to first valid Log.StacktraceFrame information.",
 		},
@@ -413,7 +518,7 @@ func TestCulprit(t *testing.T) {
 				Culprit:   &c,
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  transform.Config{SmapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
 		},
@@ -423,7 +528,7 @@ func TestCulprit(t *testing.T) {
 				Log:       &Log{Stacktrace: st},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  transform.Config{SmapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
 		},
@@ -441,13 +546,17 @@ func TestCulprit(t *testing.T) {
 				},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  config.Config{SmapMapper: &mapper},
+			config:  transform.Config{SmapMapper: &mapper},
 			culprit: "a in fct",
 			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
 		},
 	}
 	for idx, test := range tests {
-		test.event.updateCulprit(test.config)
+		tctx := &transform.Context{
+			Config: test.config,
+		}
+
+		test.event.updateCulprit(tctx)
 		assert.Equal(t, test.culprit, *test.event.Culprit,
 			fmt.Sprintf("(%v) expected <%v>, received <%v>", idx, test.culprit, *test.event.Culprit))
 	}
@@ -673,7 +782,13 @@ func TestSourcemapping(t *testing.T) {
 			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
 		},
 	}}
-	trNoSmap := event.Transform(config.Config{SmapMapper: nil}, m.Service{})
+	tctx := &transform.Context{
+		Config: transform.Config{SmapMapper: nil},
+		Metadata: metadata.Metadata{
+			Service: &metadata.Service{},
+		},
+	}
+	trNoSmap := event.fields(tctx)
 
 	event2 := Event{Exception: &Exception{
 		Message: "exception message",
@@ -682,7 +797,9 @@ func TestSourcemapping(t *testing.T) {
 		},
 	}}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
-	trWithSmap := event2.Transform(config.Config{SmapMapper: &mapper}, m.Service{})
+
+	tctx.Config = transform.Config{SmapMapper: &mapper}
+	trWithSmap := event2.fields(tctx)
 
 	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
 	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)

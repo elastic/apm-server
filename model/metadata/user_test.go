@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package metadata
 
 import (
 	"errors"
@@ -60,7 +60,7 @@ func TestUserTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.User.Transform()
+		output := test.User.fields()
 		assert.Equal(t, test.Output, output)
 	}
 }
