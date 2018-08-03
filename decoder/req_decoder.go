@@ -34,7 +34,7 @@ import (
 )
 
 type Reader func(req *http.Request) (io.ReadCloser, error)
-type Decoder func(req *http.Request) (map[string]interface{}, error)
+type ReqDecoder func(req *http.Request) (map[string]interface{}, error)
 
 var (
 	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder", monitoring.PublishExpvar)
@@ -63,7 +63,7 @@ func (mr monitoringReader) Close() error {
 	return mr.r.Close()
 }
 
-func DecodeLimitJSONData(maxSize int64) Decoder {
+func DecodeLimitJSONData(maxSize int64) ReqDecoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
 		reader, err := readRequestJSONData(maxSize)(req)
 		if err != nil {
@@ -163,7 +163,7 @@ func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) 
 	return payload, nil
 }
 
-func DecodeUserData(decoder Decoder, enabled bool) Decoder {
+func DecodeUserData(decoder ReqDecoder, enabled bool) ReqDecoder {
 	if !enabled {
 		return decoder
 	}
@@ -180,7 +180,7 @@ func DecodeUserData(decoder Decoder, enabled bool) Decoder {
 	return augmentData(decoder, "user", augment)
 }
 
-func DecodeSystemData(decoder Decoder, enabled bool) Decoder {
+func DecodeSystemData(decoder ReqDecoder, enabled bool) ReqDecoder {
 	if !enabled {
 		return decoder
 	}
@@ -194,7 +194,7 @@ func DecodeSystemData(decoder Decoder, enabled bool) Decoder {
 	return augmentData(decoder, "system", augment)
 }
 
-func augmentData(decoder Decoder, key string, augment func(req *http.Request) map[string]interface{}) Decoder {
+func augmentData(decoder ReqDecoder, key string, augment func(req *http.Request) map[string]interface{}) ReqDecoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
 		v, err := decoder(req)
 		if err != nil {

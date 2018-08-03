@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package metadata
 
 import (
 	"errors"
@@ -24,42 +24,41 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type Process struct {
-	Pid   int
-	Ppid  *int
-	Title *string
-	Argv  []string
+type System struct {
+	Hostname     *string
+	Architecture *string
+	Platform     *string
+	IP           *string
 }
 
-func DecodeProcess(input interface{}, err error) (*Process, error) {
+func DecodeSystem(input interface{}, err error) (*System, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for process")
+		return nil, errors.New("Invalid type for system")
 	}
 	decoder := utility.ManualDecoder{}
-	process := Process{
-		Ppid:  decoder.IntPtr(raw, "ppid"),
-		Title: decoder.StringPtr(raw, "title"),
-		Argv:  decoder.StringArr(raw, "argv"),
+	system := System{
+		Hostname:     decoder.StringPtr(raw, "hostname"),
+		Platform:     decoder.StringPtr(raw, "platform"),
+		Architecture: decoder.StringPtr(raw, "architecture"),
+		IP:           decoder.StringPtr(raw, "ip"),
 	}
-	if pid := decoder.IntPtr(raw, "pid"); pid != nil {
-		process.Pid = *pid
-	}
-	return &process, decoder.Err
+	return &system, decoder.Err
 }
 
-func (p *Process) Transform() common.MapStr {
-	if p == nil {
+func (s *System) fields() common.MapStr {
+	if s == nil {
 		return nil
 	}
-	svc := common.MapStr{}
-	utility.Add(svc, "pid", p.Pid)
-	utility.Add(svc, "ppid", p.Ppid)
-	utility.Add(svc, "title", p.Title)
-	utility.Add(svc, "argv", p.Argv)
-
-	return svc
+	system := common.MapStr{}
+	utility.Add(system, "hostname", s.Hostname)
+	utility.Add(system, "architecture", s.Architecture)
+	utility.Add(system, "platform", s.Platform)
+	if s.IP != nil && *s.IP != "" {
+		utility.Add(system, "ip", s.IP)
+	}
+	return system
 }

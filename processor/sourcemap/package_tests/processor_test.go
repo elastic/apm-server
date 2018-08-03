@@ -20,9 +20,9 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/config"
 	sm "github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/transform"
 )
 
 // ensure all valid documents pass through the whole validation and transformation process
@@ -31,5 +31,5 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		{Name: "TestProcessSourcemapFull", Path: "../testdata/sourcemap/payload.json"},
 		{Name: "TestProcessSourcemapMinimalPayload", Path: "../testdata/sourcemap/minimal_payload.json"},
 	}
-	tests.TestProcessRequests(t, sm.Processor, config.Config{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
+	tests.TestProcessRequests(t, sm.Processor, transform.Context{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
 }

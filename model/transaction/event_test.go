@@ -22,10 +22,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/elastic/apm-server/transform"
+
 	"github.com/stretchr/testify/assert"
 
 	"time"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -83,13 +86,19 @@ func TestTransactionEventDecode(t *testing.T) {
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 				Spans: []*span.Span{
-					&span.Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3},
+					&span.Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
+						TransactionId: id, Timestamp: timestampParsed},
 				},
 			},
 		},
 	} {
 		event, err := DecodeEvent(test.input, test.inpErr)
-		assert.Equal(t, test.e, event)
+		if test.e != nil {
+			transaction := event.(*Event)
+			assert.Equal(t, test.e, transaction)
+		} else {
+			assert.Nil(t, event)
+		}
 		assert.Equal(t, test.err, err)
 	}
 }
@@ -143,8 +152,174 @@ func TestEventTransform(t *testing.T) {
 		},
 	}
 
+	tctx := &transform.Context{}
+
 	for idx, test := range tests {
-		output := test.Event.Transform()
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		output := test.Event.Transform(tctx)
+		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+	}
+}
+
+func TestEventsTransformWithMetadata(t *testing.T) {
+	hostname := "a.b.c"
+	architecture := "darwin"
+	platform := "x64"
+	timestamp := time.Now()
+
+	service := metadata.Service{Name: "myservice"}
+	system := &metadata.System{
+		Hostname:     &hostname,
+		Architecture: &architecture,
+		Platform:     &platform,
+	}
+
+	txValid := Event{Timestamp: timestamp}
+	txValidEs := common.MapStr{
+		"context": common.MapStr{
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+		},
+		"processor": common.MapStr{
+			"event": "transaction",
+			"name":  "transaction",
+		},
+		"transaction": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"id":       "",
+			"type":     "",
+			"sampled":  true,
+		},
+	}
+
+	txValidWithSystem := common.MapStr{
+		"processor": common.MapStr{
+			"event": "transaction",
+			"name":  "transaction",
+		},
+		"transaction": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"id":       "",
+			"type":     "",
+			"sampled":  true,
+		},
+		"context": common.MapStr{
+			"system": common.MapStr{
+				"hostname":     hostname,
+				"architecture": architecture,
+				"platform":     platform,
+			},
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+		},
+	}
+	txWithContext := Event{Timestamp: timestamp, Context: common.MapStr{"foo": "bar", "user": common.MapStr{"id": "55"}}}
+	txWithContextEs := common.MapStr{
+		"processor": common.MapStr{
+			"event": "transaction",
+			"name":  "transaction",
+		},
+		"transaction": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"id":       "",
+			"type":     "",
+			"sampled":  true,
+		},
+		"context": common.MapStr{
+			"foo": "bar", "user": common.MapStr{"id": "55"},
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+			"system": common.MapStr{
+				"hostname":     "a.b.c",
+				"architecture": "darwin",
+				"platform":     "x64",
+			},
+		},
+	}
+
+	spans := []*span.Span{{
+		Timestamp: timestamp,
+	}}
+
+	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
+	spanEs := common.MapStr{
+		"context": common.MapStr{
+			"service": common.MapStr{
+				"name":  "myservice",
+				"agent": common.MapStr{"name": "", "version": ""},
+			},
+		},
+		"processor": common.MapStr{
+			"event": "span",
+			"name":  "transaction",
+		},
+		"span": common.MapStr{
+			"duration": common.MapStr{"us": 0},
+			"name":     "",
+			"start":    common.MapStr{"us": 0},
+			"type":     "",
+		},
+		"transaction": common.MapStr{"id": ""},
+	}
+
+	tests := []struct {
+		Metadata *metadata.Metadata
+		Event    transform.Transformable
+		Output   []common.MapStr
+		Msg      string
+	}{
+		{
+			Metadata: metadata.NewMetadata(
+				&service,
+				nil, nil, nil,
+			),
+			Event:  &txValid,
+			Output: []common.MapStr{txValidEs},
+			Msg:    "Payload with multiple Events",
+		}, {
+			Metadata: metadata.NewMetadata(
+				&service,
+				nil, nil, nil,
+			),
+			Event:  &txValidWithSpan,
+			Output: []common.MapStr{txValidEs, spanEs},
+			Msg:    "Payload with multiple Events",
+		},
+
+		{
+			Metadata: metadata.NewMetadata(
+				&service, system,
+				nil, nil,
+			),
+			Event:  &txValid,
+			Output: []common.MapStr{txValidWithSystem},
+			Msg:    "Payload with System and Event",
+		},
+		{
+			Metadata: metadata.NewMetadata(
+				&service, system,
+				nil, nil,
+			),
+			Event:  &txWithContext,
+			Output: []common.MapStr{txWithContextEs},
+			Msg:    "Payload with Service, System and Event with context",
+		},
+	}
+
+	for idx, test := range tests {
+		tctx := &transform.Context{
+			Metadata: *test.Metadata,
+		}
+		outputEvents := test.Event.Transform(tctx)
+
+		for j, outputEvent := range outputEvents {
+			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
+			assert.Equal(t, timestamp, outputEvent.Timestamp)
+		}
 	}
 }

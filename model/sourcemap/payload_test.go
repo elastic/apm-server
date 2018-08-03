@@ -24,9 +24,9 @@ import (
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/config"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -35,15 +35,40 @@ func getStr(data common.MapStr, key string) string {
 	return rs.(string)
 }
 
-func TestPayloadTransform(t *testing.T) {
-	p := Payload{
+func TestDecode(t *testing.T) {
+	data, err := loader.LoadValidData("sourcemap")
+	assert.NoError(t, err)
+
+	sourcemap, err := DecodeSourcemap(data)
+	assert.NoError(t, err)
+
+	rs := sourcemap.Transform(&transform.Context{})
+	assert.Len(t, rs, 1)
+	event := rs[0]
+	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
+	output := event.Fields["sourcemap"].(common.MapStr)
+
+	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
+	assert.Equal(t, "service", getStr(output, "service.name"))
+	assert.Equal(t, "1", getStr(output, "service.version"))
+	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
+
+	sourcemap, err = DecodeSourcemap(nil)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "Error fetching field")
+	}
+}
+
+func TestTransform(t *testing.T) {
+	p := Sourcemap{
 		ServiceName:    "myService",
 		ServiceVersion: "1.0",
 		BundleFilepath: "/my/path",
 		Sourcemap:      "mysmap",
 	}
 
-	events := p.Transform(config.Config{})
+	tctx := &transform.Context{}
+	events := p.Transform(tctx)
 	assert.Len(t, events, 1)
 	event := events[0]
 
@@ -80,15 +105,16 @@ func TestInvalidateCache(t *testing.T) {
 	mapping, err := smapMapper.Apply(smapId, 0, 0)
 	assert.NotNil(t, mapping)
 
-	conf := config.Config{SmapMapper: &smapMapper}
+	conf := transform.Config{SmapMapper: &smapMapper}
+	tctx := &transform.Context{Config: conf}
 
-	payload, err := DecodePayload(data)
+	sourcemap, err := DecodeSourcemap(data)
 	assert.NoError(t, err)
-	payload.Transform(conf)
+	sourcemap.Transform(tctx)
 
-	payload, err = DecodePayload(data)
+	sourcemap, err = DecodeSourcemap(data)
 	assert.NoError(t, err)
-	payload.Transform(conf)
+	sourcemap.Transform(tctx)
 
 	mapping, err = smapMapper.Apply(smapId, 0, 0)
 	assert.Nil(t, mapping)
@@ -104,27 +130,4 @@ func (a *smapMapperFake) Apply(id sourcemap.Id, lineno, colno int) (*sourcemap.M
 
 func (sm *smapMapperFake) NewSourcemapAdded(id sourcemap.Id) {
 	sm.c = map[string]*sourcemap.Mapping{}
-}
-
-func TestTransform(t *testing.T) {
-	data, err := loader.LoadValidData("sourcemap")
-	assert.NoError(t, err)
-
-	payload, err := DecodePayload(data)
-	assert.NoError(t, err)
-	rs := payload.Transform(config.Config{})
-	assert.Len(t, rs, 1)
-	event := rs[0]
-	assert.WithinDuration(t, time.Now(), event.Timestamp, time.Second)
-	output := event.Fields["sourcemap"].(common.MapStr)
-
-	assert.Equal(t, "js/bundle.js", getStr(output, "bundle_filepath"))
-	assert.Equal(t, "service", getStr(output, "service.name"))
-	assert.Equal(t, "1", getStr(output, "service.version"))
-	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
-
-	payload, err = DecodePayload(nil)
-	if assert.Error(t, err) {
-		assert.Contains(t, err.Error(), "Error fetching field")
-	}
 }

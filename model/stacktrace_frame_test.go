@@ -25,8 +25,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/config"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -146,9 +147,10 @@ func TestStacktraceFrameTransform(t *testing.T) {
 			Msg: "Full StacktraceFrame",
 		},
 	}
+	tctx := transform.Context{}
 
 	for idx, test := range tests {
-		output := (&test.StFrame).Transform(config.Config{})
+		output := (&test.StFrame).Transform(&tctx)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
@@ -276,7 +278,7 @@ func TestApplySourcemap(t *testing.T) {
 	}
 
 	ver := "1"
-	service := Service{Name: "foo", Version: &ver}
+	service := &metadata.Service{Name: "foo", Version: &ver}
 	for idx, test := range tests {
 		// check that original data are preserved,
 		// even when Transform function is applied twice.
@@ -400,7 +402,11 @@ func TestExcludeFromGroupingKey(t *testing.T) {
 		if test.pattern != "" {
 			excludePattern = regexp.MustCompile(test.pattern)
 		}
-		out := test.fr.Transform(config.Config{ExcludeFromGrouping: excludePattern})
+		tctx := transform.Context{
+			Config: transform.Config{ExcludeFromGrouping: excludePattern},
+		}
+
+		out := test.fr.Transform(&tctx)
 		exclude := out["exclude_from_grouping"]
 		assert.Equal(t, test.exclude, exclude,
 			fmt.Sprintf("(%v): Pattern: %v, Filename: %v, expected to be excluded: %v", idx, test.pattern, test.fr.Filename, test.exclude))
@@ -413,75 +419,78 @@ func TestLibraryFrame(t *testing.T) {
 	path := "/~/a/b"
 	tests := []struct {
 		fr               StacktraceFrame
-		conf             config.Config
+		conf             transform.Config
 		libraryFrame     *bool
 		origLibraryFrame *bool
 		msg              string
 	}{
 		{fr: StacktraceFrame{},
-			conf:             config.Config{},
+			conf:             transform.Config{},
 			libraryFrame:     nil,
 			origLibraryFrame: nil,
 			msg:              "Empty StacktraceFrame, empty config"},
 		{fr: StacktraceFrame{AbsPath: &path},
-			conf:             config.Config{LibraryPattern: nil},
+			conf:             transform.Config{LibraryPattern: nil},
 			libraryFrame:     nil,
 			origLibraryFrame: nil,
 			msg:              "No pattern"},
 		{fr: StacktraceFrame{AbsPath: &path},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "Empty pattern"},
 		{fr: StacktraceFrame{LibraryFrame: &falsy},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("~")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: &falsy,
 			msg:              "Empty StacktraceFrame"},
 		{fr: StacktraceFrame{AbsPath: &path, LibraryFrame: &truthy},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "AbsPath given, no Match"},
 		{fr: StacktraceFrame{Filename: "myFile.js", LibraryFrame: &truthy},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: &truthy,
 			msg:              "Filename given, no Match"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "myFile.js"},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("^~/")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("^~/")},
 			libraryFrame:     &falsy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath and Filename given, no Match"},
 		{fr: StacktraceFrame{Filename: "/tmp"},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("/tmp")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("/tmp")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "Filename matching"},
 		{fr: StacktraceFrame{AbsPath: &path, LibraryFrame: &falsy},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("~/")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: &falsy,
 			msg:              "AbsPath matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "/a/b/c"},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("~/")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath matching, Filename not matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "/a/b/c"},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("/a/b/c")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("/a/b/c")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath not matching, Filename matching"},
 		{fr: StacktraceFrame{AbsPath: &path, Filename: "~/a/b/c"},
-			conf:             config.Config{LibraryPattern: regexp.MustCompile("~/")},
+			conf:             transform.Config{LibraryPattern: regexp.MustCompile("~/")},
 			libraryFrame:     &truthy,
 			origLibraryFrame: nil,
 			msg:              "AbsPath and Filename matching"},
 	}
 
 	for _, test := range tests {
-		out := test.fr.Transform(test.conf)["library_frame"]
+		tctx := transform.Context{
+			Config: test.conf,
+		}
+		out := test.fr.Transform(&tctx)["library_frame"]
 		libFrame := test.fr.LibraryFrame
 		origLibFrame := test.fr.Original.LibraryFrame
 		if test.libraryFrame == nil {
@@ -503,22 +512,22 @@ func TestBuildSourcemap(t *testing.T) {
 	version := "1.0"
 	path := "././a/b/../c"
 	tests := []struct {
-		service Service
+		service metadata.Service
 		fr      StacktraceFrame
 		out     string
 	}{
-		{service: Service{}, fr: StacktraceFrame{}, out: ""},
-		{service: Service{Version: &version}, fr: StacktraceFrame{}, out: "1.0"},
-		{service: Service{Name: "foo"}, fr: StacktraceFrame{}, out: "foo"},
-		{service: Service{}, fr: StacktraceFrame{AbsPath: &path}, out: "a/c"},
+		{service: metadata.Service{}, fr: StacktraceFrame{}, out: ""},
+		{service: metadata.Service{Version: &version}, fr: StacktraceFrame{}, out: "1.0"},
+		{service: metadata.Service{Name: "foo"}, fr: StacktraceFrame{}, out: "foo"},
+		{service: metadata.Service{}, fr: StacktraceFrame{AbsPath: &path}, out: "a/c"},
 		{
-			service: Service{Name: "foo", Version: &version},
+			service: metadata.Service{Name: "foo", Version: &version},
 			fr:      StacktraceFrame{AbsPath: &path},
 			out:     "foo_1.0_a/c",
 		},
 	}
 	for _, test := range tests {
-		id := test.fr.buildSourcemapId(test.service)
+		id := test.fr.buildSourcemapId(&test.service)
 		assert.Equal(t, test.out, (&id).Key())
 	}
 }

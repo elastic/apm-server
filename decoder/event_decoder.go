@@ -15,31 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package span
+package decoder
 
-import (
-	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/common"
-)
+import "github.com/elastic/apm-server/transform"
 
-type SpanContext struct {
-	service common.MapStr
-}
-
-func NewSpanContext(service *m.Service) *SpanContext {
-	return &SpanContext{service: service.MinimalTransform()}
-}
-
-func (c *SpanContext) Transform(m common.MapStr) common.MapStr {
-	if m == nil {
-		m = common.MapStr{}
-	} else {
-		for k, v := range m {
-			// normalize map entries by calling utility.Add
-			utility.Add(m, k, v)
-		}
-	}
-	utility.Add(m, "service", c.service)
-	return m
-}
+type EventDecoder func(input interface{}, err error) (transform.Transformable, error)

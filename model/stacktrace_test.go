@@ -24,7 +24,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/config"
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -59,7 +60,7 @@ func TestStacktraceDecode(t *testing.T) {
 }
 
 func TestStacktraceTransform(t *testing.T) {
-	service := Service{Name: "myService"}
+	service := metadata.Service{Name: "myService"}
 	colno := 1
 	fct := "original function"
 	absPath := "original path"
@@ -141,14 +142,19 @@ func TestStacktraceTransform(t *testing.T) {
 		},
 	}
 
+	tctx := transform.Context{
+		Metadata: metadata.Metadata{
+			Service: &service,
+		},
+	}
 	for idx, test := range tests {
-		output := test.Stacktrace.Transform(config.Config{}, service)
+		output := test.Stacktrace.Transform(&tctx)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
 
 func TestStacktraceTransformWithSourcemapping(t *testing.T) {
-	service := Service{Name: "myService"}
+	service := metadata.Service{Name: "myService"}
 	colno := 1
 	fct := "original function"
 	absPath := "original path"
@@ -258,9 +264,14 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 	}
 
 	for idx, test := range tests {
+		tctx := &transform.Context{
+			Config:   transform.Config{SmapMapper: &FakeMapper{}},
+			Metadata: metadata.Metadata{Service: &service},
+		}
+
 		// run `Stacktrace.Transform` twice to ensure method is idempotent
-		test.Stacktrace.Transform(config.Config{SmapMapper: &FakeMapper{}}, service)
-		output := test.Stacktrace.Transform(config.Config{SmapMapper: &FakeMapper{}}, service)
+		test.Stacktrace.Transform(tctx)
+		output := test.Stacktrace.Transform(tctx)
 		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
