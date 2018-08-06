@@ -45,18 +45,6 @@ import (
 )
 
 const (
-	rootURL                   = "/"
-	BackendTransactionsURL    = "/v1/transactions"
-	ClientSideTransactionsURL = "/v1/client-side/transactions"
-	RumTransactionsURL        = "/v1/rum/transactions"
-	BackendErrorsURL          = "/v1/errors"
-	ClientSideErrorsURL       = "/v1/client-side/errors"
-	RumErrorsURL              = "/v1/rum/errors"
-	HealthCheckURL            = "/healthcheck"
-	MetricsURL                = "/v1/metrics"
-	SourcemapsClientSideURL   = "/v1/client-side/sourcemaps"
-	SourcemapsURL             = "/v1/rum/sourcemaps"
-
 	rateLimitCacheSize       = 1000
 	rateLimitBurstMultiplier = 2
 

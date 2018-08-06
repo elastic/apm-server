@@ -15,6 +15,23 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
+var (
+	rootURL                   = "/"
+	BackendTransactionsURL    = "/v1/transactions"
+	ClientSideTransactionsURL = "/v1/client-side/transactions"
+	RumTransactionsURL        = "/v1/rum/transactions"
+	BackendErrorsURL          = "/v1/errors"
+	ClientSideErrorsURL       = "/v1/client-side/errors"
+	RumErrorsURL              = "/v1/rum/errors"
+	MetricsURL                = "/v1/metrics"
+	SourcemapsClientSideURL   = "/v1/client-side/sourcemaps"
+	SourcemapsURL             = "/v1/rum/sourcemaps"
+	V2BackendURL              = "/v2/intake"
+	V2RumURL                  = "/v2/rum/intake"
+
+	HealthCheckURL = "/healthcheck"
+)
+
 type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
 	configurableDecoder func(*Config, decoder.ReqDecoder) decoder.ReqDecoder
@@ -42,6 +59,11 @@ var v1Routes = map[string]v1Route{
 	SourcemapsURL:             {sourcemapRouteType, sourcemap.Processor},
 }
 
+var v2Routes = map[string]v2Route{
+	V2BackendURL: {backendRouteType},
+	V2RumURL:     {rumRouteType},
+}
+
 var (
 	backendRouteType = routeType{
 		backendHandler,
@@ -64,15 +86,6 @@ var (
 		rumTransformConfig,
 	}
 )
-
-var v2Routes = map[string]v2Route{
-	"/v2/intake": {
-		backendRouteType,
-	},
-	"/v2/rum/intake": {
-		rumRouteType,
-	},
-}
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
