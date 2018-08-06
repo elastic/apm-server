@@ -189,7 +189,6 @@ func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *decoder.NDJSONS
 
 	for {
 		transformables, eof := v.readBatch(batchSize, ndjsonReader, resp)
-		log.Println("READ BATCH")
 		if transformables != nil {
 			err := report(r.Context(), pendingReq{
 				transformables: transformables,
