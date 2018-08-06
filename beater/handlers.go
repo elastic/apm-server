@@ -155,13 +155,13 @@ var (
 func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
-	for path, route := range v1Routes {
+	for path, route := range V1Routes {
 		logger.Infof("Path %s added to request handler", path)
 
 		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
 	}
 
-	for path, route := range v2Routes {
+	for path, route := range V2Routes {
 		logger.Infof("Path %s added to request handler", path)
 
 		mux.Handle(path, route.Handler(beaterConfig, report))

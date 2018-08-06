@@ -47,7 +47,7 @@ type v2Route struct {
 	routeType
 }
 
-var v1Routes = map[string]v1Route{
+var V1Routes = map[string]v1Route{
 	BackendTransactionsURL:    {backendRouteType, transaction.Processor},
 	ClientSideTransactionsURL: {rumRouteType, transaction.Processor},
 	RumTransactionsURL:        {rumRouteType, transaction.Processor},
@@ -59,7 +59,7 @@ var v1Routes = map[string]v1Route{
 	SourcemapsURL:             {sourcemapRouteType, sourcemap.Processor},
 }
 
-var v2Routes = map[string]v2Route{
+var V2Routes = map[string]v2Route{
 	V2BackendURL: {backendRouteType},
 	V2RumURL:     {rumRouteType},
 }

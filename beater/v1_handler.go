@@ -10,8 +10,11 @@ import (
 func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
 	decoder := v.configurableDecoder(beaterConfig, decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize))
 	tconfig := v.transformConfig(beaterConfig)
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res := processRequest(r, p, tconfig, report, decoder)
 		sendStatus(w, r, res)
 	})
+
+	return v.wrappingHandler(beaterConfig, handler)
 }
