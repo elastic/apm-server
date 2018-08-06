@@ -20,9 +20,11 @@ package beater
 import (
 	"bufio"
 	"bytes"
+	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -66,4 +68,27 @@ func TestNDJSONStreamReader(t *testing.T) {
 			assert.Contains(t, err.Error(), test.errPattern, "Failed at idx %v", idx)
 		}
 	}
+}
+
+func TestStreamResponse(t *testing.T) {
+	sr := streamResponse{}
+	transmogrifierErr := errors.New("transmogrifier error")
+	err1 := cannotDecodeResponse(transmogrifierErr)
+	sr.addError(err1)
+	sr.addErrorCount(err1, 10)
+
+	err2 := cannotValidateResponse(transmogrifierErr)
+	sr.addError(err2)
+	sr.addErrorCount(err2, 11)
+
+	expected := streamResponse{
+		Errors: map[int]map[string]uint{
+			http.StatusBadRequest: map[string]uint{
+				err1.err.Error(): 11,
+				err2.err.Error(): 12,
+			},
+		},
+	}
+
+	assert.Equal(t, expected, sr)
 }
