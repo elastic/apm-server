@@ -18,12 +18,8 @@
 package beater
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -44,90 +40,7 @@ import (
 	"github.com/elastic/apm-server/model/transaction"
 )
 
-type streamResponse struct {
-	Errors   map[int]map[string]uint `json:"errors"`
-	Accepted uint                    `json:"accepted"`
-	Invalid  uint                    `json:"invalid"`
-	Dropped  uint                    `json:"dropped"`
-}
-
-func (s *streamResponse) addErrorCount(serverResponse serverResponse, count int) {
-	if s.Errors == nil {
-		s.Errors = make(map[int]map[string]uint)
-	}
-
-	errorMsgs, ok := s.Errors[serverResponse.code]
-	if !ok {
-		s.Errors[serverResponse.code] = make(map[string]uint)
-		errorMsgs = s.Errors[serverResponse.code]
-	}
-	errorMsgs[serverResponse.err.Error()] += uint(count)
-}
-
-func (s *streamResponse) addError(serverResponse serverResponse) {
-	s.addErrorCount(serverResponse, 1)
-}
-
-type NDJSONStreamReader struct {
-	stream *bufio.Reader
-	isEOF  bool
-}
-
 const batchSize = 10
-
-func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
-	// ReadBytes can return valid data in `buf` _and_ also an io.EOF
-	buf, readErr := sr.stream.ReadBytes('\n')
-	if readErr != nil && readErr != io.EOF {
-		return nil, readErr
-	}
-
-	sr.isEOF = readErr == io.EOF
-
-	if len(buf) == 0 {
-		return nil, readErr
-	}
-
-	tmpreader := ioutil.NopCloser(bytes.NewBuffer(buf))
-	decoded, err := decoder.DecodeJSONData(tmpreader)
-	if err != nil {
-		return nil, err
-	}
-
-	return decoded, readErr // this might be io.EOF
-}
-
-func (n *NDJSONStreamReader) SkipToEnd() (uint, error) {
-	objects := uint(0)
-	nl := []byte("\n")
-	var readErr error
-	for readErr == nil {
-		countBuf := make([]byte, 2048)
-		_, readErr = n.stream.Read(countBuf)
-		objects += uint(bytes.Count(countBuf, nl))
-	}
-	return objects, readErr
-}
-
-func StreamDecodeLimitJSONData(req *http.Request, maxSize int64) (*NDJSONStreamReader, error) {
-	contentType := req.Header.Get("Content-Type")
-	if !strings.Contains(contentType, "application/x-ndjson") {
-		return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-	}
-
-	reader, err := decoder.CompressedRequestReader(maxSize)(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return &NDJSONStreamReader{bufio.NewReader(reader), false}, nil
-}
-
-type v2Route struct {
-	wrappingHandler     func(h http.Handler) http.Handler
-	configurableDecoder func(*Config, decoder.ReqDecoder) decoder.ReqDecoder
-	transformConfig     func(*Config) transform.Config
-}
 
 func (v v2Route) Handler(beaterConfig *Config, report reporter) http.Handler {
 	reqDecoder := v.configurableDecoder(
@@ -140,10 +53,10 @@ func (v v2Route) Handler(beaterConfig *Config, report reporter) http.Handler {
 		tconfig:        v.transformConfig(beaterConfig),
 	}
 
-	return v.wrappingHandler(v2Handler.Handle(beaterConfig, report))
+	return v.wrappingHandler(beaterConfig, v2Handler.Handle(beaterConfig, report))
 }
 
-var Models = []struct {
+var models = []struct {
 	key          string
 	schema       *jsonschema.Schema
 	modelDecoder func(interface{}, error) (transform.Transformable, error)
@@ -177,7 +90,7 @@ type v2Handler struct {
 
 // handleRawModel validates and decodes a single json object into its struct form
 func (v *v2Handler) handleRawModel(rawModel map[string]interface{}) (transform.Transformable, serverResponse) {
-	for _, model := range Models {
+	for _, model := range models {
 		if entry, ok := rawModel[model.key]; ok {
 			err := validation.Validate(entry, model.schema)
 			if err != nil {
@@ -196,7 +109,7 @@ func (v *v2Handler) handleRawModel(rawModel map[string]interface{}) (transform.T
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables, a serverResponse and a bool that indicates if we're at EOF.
-func (v *v2Handler) readBatch(batchSize int, reader *NDJSONStreamReader, response *streamResponse) ([]transform.Transformable, bool) {
+func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader, response *streamResponse) ([]transform.Transformable, bool) {
 	var err error
 	var rawModel map[string]interface{}
 
@@ -218,9 +131,9 @@ func (v *v2Handler) readBatch(batchSize int, reader *NDJSONStreamReader, respons
 		}
 	}
 
-	return eventables, reader.isEOF
+	return eventables, reader.IsEOF()
 }
-func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *NDJSONStreamReader) (*metadata.Metadata, serverResponse) {
+func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader) (*metadata.Metadata, serverResponse) {
 	// first item is the metadata object
 	rawData, err := ndjsonReader.Read()
 	if err != nil {
@@ -256,7 +169,7 @@ func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *NDJSONStreamRead
 	return metadata, serverResponse{}
 }
 
-func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *NDJSONStreamReader, report reporter) *streamResponse {
+func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader, report reporter) *streamResponse {
 	resp := &streamResponse{}
 
 	metadata, serverResponse := v.readMetadata(r, ndjsonReader)
@@ -319,7 +232,7 @@ func (v *v2Handler) sendResponse(w http.ResponseWriter, streamResponse *streamRe
 func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("BLEH")
-		ndjsonReader, err := StreamDecodeLimitJSONData(r, beaterConfig.MaxUnzippedSize)
+		ndjsonReader, err := decoder.StreamDecodeLimitJSONData(r, beaterConfig.MaxUnzippedSize)
 		if err != nil {
 			sr := streamResponse{}
 			sr.addError(cannotDecodeResponse(err))
@@ -328,7 +241,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 		streamResponse := v.handleRequest(r, ndjsonReader, report)
 		log.Println("BLEH3")
 		// did we return early?
-		if !ndjsonReader.isEOF {
+		if !ndjsonReader.IsEOF() {
 			log.Println("DID NOT RETURN EARLY")
 
 			dropped, err := ndjsonReader.SkipToEnd()
@@ -345,8 +258,3 @@ func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 		}
 	})
 }
-
-// var V2Routes = map[string]v2Route{
-// 	V2BackendURL:  v2Route{BackendRouteType},
-// 	V2FrontendURL: v2Route{FrontendRouteType},
-// }

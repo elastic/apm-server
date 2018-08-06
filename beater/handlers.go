@@ -35,10 +35,6 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
-	perr "github.com/elastic/apm-server/processor/error"
-	"github.com/elastic/apm-server/processor/metric"
-	"github.com/elastic/apm-server/processor/sourcemap"
-	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/transform"
 
 	"github.com/elastic/apm-server/utility"
@@ -69,11 +65,6 @@ const (
 )
 
 type ProcessorHandler func(processor.Processor, *Config, reporter) http.Handler
-
-type routeMapping struct {
-	ProcessorHandler
-	processor.Processor
-}
 
 type serverResponse struct {
 	err     error
@@ -171,38 +162,22 @@ var (
 			counter: serverShuttingDownCounter,
 		}
 	}
-
-	ProcessorRoutes = map[string]routeMapping{
-		BackendTransactionsURL:    {backendHandler, transaction.Processor},
-		ClientSideTransactionsURL: {rumHandler, transaction.Processor},
-		RumTransactionsURL:        {rumHandler, transaction.Processor},
-		BackendErrorsURL:          {backendHandler, perr.Processor},
-		ClientSideErrorsURL:       {rumHandler, perr.Processor},
-		RumErrorsURL:              {rumHandler, perr.Processor},
-		MetricsURL:                {metricsHandler, metric.Processor},
-		SourcemapsClientSideURL:   {sourcemapHandler, sourcemap.Processor},
-		SourcemapsURL:             {sourcemapHandler, sourcemap.Processor},
-	}
 )
 
 func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
-	for path, mapping := range ProcessorRoutes {
+	for path, route := range v1Routes {
 		logger.Infof("Path %s added to request handler", path)
 
-		mux.Handle(path, mapping.ProcessorHandler(mapping.Processor, beaterConfig, report))
+		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
 	}
 
-	intakeV2Route := v2Route{
-		wrappingHandler: logHandler,
-		configurableDecoder: func(beaterConfig *Config, internalDecoder decoder.ReqDecoder) decoder.ReqDecoder {
-			return decoder.DecodeSystemData(internalDecoder, beaterConfig.AugmentEnabled)
-		},
-		transformConfig: func(beaterConfig *Config) transform.Config { return transform.Config{} },
-	}
+	for path, route := range v2Routes {
+		logger.Infof("Path %s added to request handler", path)
 
-	mux.Handle("/v2/intake", intakeV2Route.Handler(beaterConfig, report))
+		mux.Handle(path, route.Handler(beaterConfig, report))
+	}
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
 	mux.Handle(HealthCheckURL, healthCheckHandler())
