@@ -37,6 +37,4 @@ var RootCmd *cmd.BeatsRootCmd
 func init() {
 	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
 	RootCmd = cmd.GenRootCmdWithIndexPrefixWithRunFlags(Name, IdxPattern, "", beater.New, runFlags)
-	RootCmd.RunCmd.Flags().MarkDeprecated("setup", "use Kibana UI for initial setup.")
-	RootCmd.SetupCmd.Deprecated = "use Kibana UI for initial setup."
 }
