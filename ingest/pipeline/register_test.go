@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,9 +40,8 @@ func TestRegisterPipelines(t *testing.T) {
 
 	// pipeline loading goes wrong
 	err = RegisterPipelines(esClient, true, "non-existing")
-	fmt.Println(err)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "no such file or directory")
+	assertContainsErrMsg(t, err.Error(), []string{"cannot find the file", "no such file or directory"})
 
 	// pipeline definition empty
 	emptyPath := filepath.Join(filepath.Dir(current), "..", "..", "testdata", "ingest", "pipeline", "empty.json")
@@ -53,7 +53,7 @@ func TestRegisterPipelines(t *testing.T) {
 	require.NoError(t, err)
 	err = RegisterPipelines(&invalidClients[0], true, path)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "connection refused")
+	assertContainsErrMsg(t, err.Error(), []string{"connect: cannot assign requested address", "connection refused"})
 }
 
 func getFakeESConfig(port int) *common.Config {
@@ -62,4 +62,15 @@ func getFakeESConfig(port int) *common.Config {
 	}
 	c, _ := common.NewConfigFrom(cfg)
 	return c
+}
+
+func assertContainsErrMsg(t *testing.T, errMsg string, msgs []string) {
+	var found bool
+	for _, msg := range msgs {
+		if strings.Contains(errMsg, msg) {
+			found = true
+			break
+		}
+	}
+	assert.NotNil(t, found)
 }

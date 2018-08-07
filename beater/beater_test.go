@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -102,7 +103,7 @@ func TestBeatConfig(t *testing.T) {
 						"pipeline": map[string]interface{}{
 							"enabled":   true,
 							"overwrite": false,
-							"path":      "/tmp/definition.json",
+							"path":      filepath.Join("tmp", "definition.json"),
 						},
 					},
 				},
@@ -155,7 +156,7 @@ func TestBeatConfig(t *testing.T) {
 						Pipeline: &pipelineConfig{
 							Enabled:   &truthy,
 							Overwrite: &falsy,
-							Path:      "/tmp/definition.json",
+							Path:      filepath.Join("tmp", "definition.json"),
 						},
 					},
 				},
@@ -252,7 +253,7 @@ func TestBeatConfig(t *testing.T) {
 						Pipeline: &pipelineConfig{
 							Enabled:   &falsy,
 							Overwrite: &truthy,
-							Path:      "ingest/pipeline/definition.json",
+							Path:      filepath.Join("ingest", "pipeline", "definition.json"),
 						},
 					},
 				},
