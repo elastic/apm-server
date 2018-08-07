@@ -265,10 +265,8 @@ func (d *DummyOutputClient) Publish(batch pubs.Batch) error {
 	batch.ACK()
 	return nil
 }
-
-func (d *DummyOutputClient) Close() error {
-	return nil
-}
+func (d *DummyOutputClient) Close() error   { return nil }
+func (d *DummyOutputClient) String() string { return "" }
 
 func DummyPipeline(clients ...outputs.Client) *pipeline.Pipeline {
 	if len(clients) == 0 {

@@ -15,28 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package conditions
+package testing
 
-import "fmt"
+import "net"
 
-// Not is a condition that negates its inner condition.
-type Not struct {
-	inner Condition
-}
-
-// NewNotCondition builds a new Not condition that negates the provided Condition.
-func NewNotCondition(c Condition) (Not, error) {
-	if c == nil {
-		return Not{}, fmt.Errorf("empty not conditions are not allowed")
+// AvailableTCP4Port returns an unused TCP port for 127.0.0.1.
+func AvailableTCP4Port() (uint16, error) {
+	resolved, err := net.ResolveTCPAddr("tcp4", "127.0.0.1:0")
+	if err != nil {
+		return 0, err
 	}
-	return Not{c}, nil
-}
 
-// Check determines whether the given event matches this condition.
-func (c Not) Check(event ValuesMap) bool {
-	return !c.inner.Check(event)
-}
+	listener, err := net.ListenTCP("tcp4", resolved)
+	if err != nil {
+		return 0, err
+	}
+	defer listener.Close()
 
-func (c Not) String() string {
-	return "!" + c.inner.String()
+	tcpAddr := uint16(listener.Addr().(*net.TCPAddr).Port)
+
+	return tcpAddr, nil
 }
