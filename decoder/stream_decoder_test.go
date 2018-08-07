@@ -20,6 +20,7 @@ package decoder
 import (
 	"bufio"
 	"bytes"
+	"io"
 	"strings"
 	"testing"
 
@@ -65,5 +66,36 @@ func TestNDJSONStreamReader(t *testing.T) {
 		} else {
 			assert.Contains(t, err.Error(), test.errPattern, "Failed at idx %v", idx)
 		}
+		assert.Equal(t, test.isEOF, n.IsEOF())
+	}
+}
+
+func TestNDJSONStreamReaderSkipToEnd(t *testing.T) {
+	lines := []string{
+		`{"key": "value1"}`,
+		`{"key": "value2"}`,
+		`{invalid-json}`,
+		`{"key": "value3"}`,
+	}
+
+	stringLines := strings.Join(lines, "\n")
+
+	for _, test := range []string{
+		stringLines,
+		stringLines + "\n",
+	} {
+		buf := bytes.NewBufferString(test)
+		n := NDJSONStreamReader{stream: bufio.NewReader(buf)}
+
+		// read one
+		out, err := n.Read()
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]interface{}{"key": "value1"}, out)
+
+		// three left
+		count, err := n.SkipToEnd()
+		assert.Equal(t, io.EOF, err)
+		assert.Equal(t, uint(3), count)
+		assert.True(t, n.IsEOF())
 	}
 }

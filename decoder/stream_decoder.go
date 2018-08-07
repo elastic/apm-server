@@ -30,7 +30,7 @@ import (
 func StreamDecodeLimitJSONData(req *http.Request, maxSize int64) (*NDJSONStreamReader, error) {
 	contentType := req.Header.Get("Content-Type")
 	if !strings.Contains(contentType, "application/x-ndjson") {
-		return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
+		return nil, fmt.Errorf("invalid content type: '%s'", req.Header.Get("Content-Type"))
 	}
 
 	reader, err := CompressedRequestReader(maxSize)(req)
@@ -68,15 +68,34 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	return decoded, readErr // this might be io.EOF
 }
 
-func (n *NDJSONStreamReader) SkipToEnd() (uint, error) {
-	objects := uint(0)
+// SkipToEnd fast forwards the stream to the end, counting the
+// number of lines we find without JSON decoding each line.
+func (n *NDJSONStreamReader) SkipToEnd() (int, error) {
+	objects := 0
 	nl := []byte("\n")
 	var readErr error
+	var readCount int
+	var lastWasNL bool
+	countBuf := make([]byte, 2048)
 	for readErr == nil {
-		countBuf := make([]byte, 2048)
-		_, readErr = n.stream.Read(countBuf)
-		objects += uint(bytes.Count(countBuf, nl))
+		readCount, readErr = n.stream.Read(countBuf)
+		objects += bytes.Count(countBuf[:readCount], nl)
+
+		// if the final character is not a newline we assume there
+		// one additional object. This breaks down if agents send
+		// trailing whitespace and not an actual object, but we're
+		// OK with that.
+		lastWasNL = readCount > 0 && countBuf[readCount-1] == '\n'
 	}
+
+	if !lastWasNL {
+		objects++
+	}
+
+	if readErr == io.EOF {
+		n.isEOF = true
+	}
+
 	return objects, readErr
 }
 

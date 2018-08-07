@@ -173,10 +173,9 @@ func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *decoder.NDJSONS
 	resp := &streamResponse{}
 
 	metadata, serverResponse := v.readMetadata(r, ndjsonReader)
-	log.Println("READ METADATA")
+
 	// no point in continueing if we couldn't read the metadata
 	if serverResponse.IsError() {
-		log.Println("METADATA err")
 		sr := streamResponse{}
 		sr.addError(serverResponse)
 		return &sr
@@ -202,7 +201,7 @@ func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *decoder.NDJSONS
 				}
 
 				resp.addErrorCount(fullQueueResponse(err), len(transformables))
-				resp.Dropped += uint(len(transformables))
+				resp.Dropped += len(transformables)
 			}
 		}
 
@@ -230,29 +229,40 @@ func (v *v2Handler) sendResponse(w http.ResponseWriter, streamResponse *streamRe
 
 func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("BLEH")
 		ndjsonReader, err := decoder.StreamDecodeLimitJSONData(r, beaterConfig.MaxUnzippedSize)
 		if err != nil {
-			sr := streamResponse{}
+			sr := streamResponse{
+				// we wont look at the body if the content type is wrong
+				Dropped:  -1,
+				Accepted: -1,
+				Invalid:  -1,
+			}
 			sr.addError(cannotDecodeResponse(err))
+
+			discardBuf := make([]byte, 2048)
+			var err error
+			for err != nil {
+				_, err = r.Body.Read(discardBuf)
+			}
+
+			if err := v.sendResponse(w, &sr); err != nil {
+				// trouble
+			}
+			return
 		}
-		log.Println("BLEH2")
+
 		streamResponse := v.handleRequest(r, ndjsonReader, report)
-		log.Println("BLEH3")
+
 		// did we return early?
 		if !ndjsonReader.IsEOF() {
-			log.Println("DID NOT RETURN EARLY")
-
 			dropped, err := ndjsonReader.SkipToEnd()
 			if err != io.EOF {
 				// trouble
-				log.Println("TROUBLE1")
 			}
 			streamResponse.Dropped += dropped
 		}
 
 		if err := v.sendResponse(w, streamResponse); err != nil {
-			log.Println("TROUBLE2", err)
 			// trouble
 		}
 	})

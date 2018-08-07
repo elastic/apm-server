@@ -18,23 +18,23 @@
 package beater
 
 type streamResponse struct {
-	Errors   map[int]map[string]uint `json:"errors"`
-	Accepted uint                    `json:"accepted"`
-	Invalid  uint                    `json:"invalid"`
-	Dropped  uint                    `json:"dropped"`
+	Errors   map[int]map[string]int `json:"errors"`
+	Accepted int                    `json:"accepted"`
+	Invalid  int                    `json:"invalid"`
+	Dropped  int                    `json:"dropped"`
 }
 
 func (s *streamResponse) addErrorCount(serverResponse serverResponse, count int) {
 	if s.Errors == nil {
-		s.Errors = make(map[int]map[string]uint)
+		s.Errors = make(map[int]map[string]int)
 	}
 
 	errorMsgs, ok := s.Errors[serverResponse.code]
 	if !ok {
-		s.Errors[serverResponse.code] = make(map[string]uint)
+		s.Errors[serverResponse.code] = make(map[string]int)
 		errorMsgs = s.Errors[serverResponse.code]
 	}
-	errorMsgs[serverResponse.err.Error()] += uint(count)
+	errorMsgs[serverResponse.err.Error()] += count
 }
 
 func (s *streamResponse) addError(serverResponse serverResponse) {

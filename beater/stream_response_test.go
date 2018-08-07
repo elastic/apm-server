@@ -37,8 +37,8 @@ func TestStreamResponse(t *testing.T) {
 	sr.addErrorCount(err2, 11)
 
 	expected := streamResponse{
-		Errors: map[int]map[string]uint{
-			http.StatusBadRequest: map[string]uint{
+		Errors: map[int]map[string]int{
+			http.StatusBadRequest: map[string]int{
 				err1.err.Error(): 11,
 				err2.err.Error(): 12,
 			},
