@@ -23,6 +23,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/logp"
 	es "github.com/elastic/beats/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/libbeat/paths"
 )
 
 func RegisterPipelines(esClient *es.Client, overwrite bool, path string) error {
@@ -60,7 +61,7 @@ type pipeline struct {
 }
 
 func loadPipelinesFromJSON(path string) ([]pipeline, error) {
-	pipelineDef, err := ioutil.ReadFile(path)
+	pipelineDef, err := ioutil.ReadFile(paths.Resolve(paths.Home, path))
 	if err != nil {
 		return nil, err
 	}
