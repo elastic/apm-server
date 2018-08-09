@@ -7,6 +7,7 @@ BEATS_VERSION="${BEATS_VERSION:-master}"
 # Find basedir and change to it
 DIRNAME=$(dirname "$0")
 BASEDIR=${DIRNAME}/../_beats
+rm -rf $BASEDIR
 mkdir -p $BASEDIR
 pushd $BASEDIR
 
@@ -54,6 +55,14 @@ rsync -crpv --delete \
     --exclude="vendor/*" \
     --exclude="*" \
     ${GIT_CLONE}/ .
+
+# copy license files
+LICENSEDIR=${DIRNAME}/../licenses
+mkdir -p $LICENSEDIR
+
+rsync -crpv --delete \
+  ${GIT_CLONE}/licenses/*.txt ./../licenses
+
 
 popd
 
