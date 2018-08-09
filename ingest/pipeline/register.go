@@ -26,6 +26,7 @@ import (
 )
 
 func RegisterPipelines(esClient *es.Client, overwrite bool, path string) error {
+	logger := logp.NewLogger("pipelines")
 	pipelines, err := loadPipelinesFromJSON(path)
 	if err != nil {
 		return err
@@ -41,15 +42,15 @@ func RegisterPipelines(esClient *es.Client, overwrite bool, path string) error {
 		if overwrite || !exists {
 			_, _, err := esClient.Connection.CreatePipeline(p.Id, nil, p.Body)
 			if err != nil {
-				logp.Debug("pipelines", "Pipeline registration failed for %s.", p.Id)
+				logger.Errorf("Pipeline registration failed for %s.", p.Id)
 				return err
 			}
-			logp.Debug("pipelines", "Pipeline successfully registered: %s", p.Id)
+			logger.Infof("Pipeline successfully registered: %s", p.Id)
 		} else {
-			logp.Debug("pipelines", "Pipeline already registered: %s", p.Id)
+			logger.Infof("Pipeline already registered: %s", p.Id)
 		}
 	}
-	logp.Debug("pipelines", "Registered Ingest Pipelines successfully.")
+	logger.Info("Registered Ingest Pipelines successfully.")
 	return nil
 }
 

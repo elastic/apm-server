@@ -19,14 +19,13 @@ package pipeline
 
 import (
 	"fmt"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 	es "github.com/elastic/beats/libbeat/outputs/elasticsearch"
 )
@@ -35,8 +34,8 @@ func TestRegisterPipelines(t *testing.T) {
 	esClients, err := es.NewElasticsearchClients(getFakeESConfig(9200))
 	require.NoError(t, err)
 	esClient := &esClients[0]
-	_, current, _, _ := runtime.Caller(0)
-	path := filepath.Join(filepath.Dir(current), "..", "..", "ingest", "pipeline", "definition.json")
+	path, err := loader.FindFile("..", "ingest", "pipeline", "definition.json")
+	require.NoError(t, err)
 
 	// pipeline loading goes wrong
 	err = RegisterPipelines(esClient, true, "non-existing")
@@ -44,7 +43,8 @@ func TestRegisterPipelines(t *testing.T) {
 	assertContainsErrMsg(t, err.Error(), []string{"cannot find the file", "no such file or directory"})
 
 	// pipeline definition empty
-	emptyPath := filepath.Join(filepath.Dir(current), "..", "..", "testdata", "ingest", "pipeline", "empty.json")
+	emptyPath, err := loader.FindFile("..", "testdata", "ingest", "pipeline", "empty.json")
+	require.NoError(t, err)
 	err = RegisterPipelines(esClient, true, emptyPath)
 	assert.NoError(t, err)
 
