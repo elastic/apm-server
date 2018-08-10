@@ -3,8 +3,70 @@
 
 This section describes common problems you might encounter with APM Server.
 
+* <<no-data-indexed>>
+* <<bad-request>>
+* <<unauthorized>>
+* <<forbidden>>
+* <<request-too-large>>
 * <<queue-full>>
 * <<request-timed-out>>
+* <<ssl-client-fails>>
+
+[[no-data-indexed]]
+[float]
+=== No data is indexed
+If no data shows up in Elasticsearch, first check that the APM components are properly connected.
+
+To ensure that APM Server configuration is valid and it can connect to the configured output, Elasticsearch by default,
+run the following commands:
+
+["source","sh"]
+------------------------------------------------------------
+apm-server test config
+apm-server test output
+------------------------------------------------------------
+
+To see if the agent can connect to the APM Server, send requests to the instrumented service and look for lines
+containing `[request]` in the APM Server logs.
+
+If no requests are logged, it might be that SSL is <<ssl-client-fails, misconfigured>> or that the host is wrong.
+Particularly, if you are using Docker, ensure to bind to the right interface (for example, set
+`apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the agent accordingly.
+
+
+
+If you see requests coming trough the APM Server but they are not accepted (response code other than `202`), consider
+the response code to narrow down the possible causes (see sections bellow).
+
+Another reason for data not showing up is that the agent is not auto-instrumenting something you were expecting, check
+the {apm-agents-ref}/index.html[agent documentation] for details on what is automatically instrumented.
+
+[[bad-request]]
+[float]
+=== HTTP 400: Data decoding error / Data validation error
+
+The most likely cause for this is that you are using non compatible versions of agent and APM Server.
+For instance, APM Server 6.2.0 changed the Intake API spec and requires a minimum version of each agent.
+
+[[unauthorized]]
+[float]
+=== HTTP 401: Invalid token
+
+The <<secret-token, secret token>> in the request header doesn't match the configured in the APM Server.
+
+[[forbidden]]
+[float]
+=== HTTP 403: Forbidden request
+
+Either you are sending requests to a <<rum, RUM>> endpoint without RUM enabled, or a request
+is coming from an origin not whitelisted in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
+
+[[request-too-large]]
+[float]
+=== HTTP 413: Request body too large
+
+The agent is collecting too much data and sending it all at once. Consider increasing the `apm-server.max_unzipped_size`
+setting in the APM Server, and adjust relevant settings in the agent.
 
 [[queue-full]]
 [float]
