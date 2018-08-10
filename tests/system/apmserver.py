@@ -66,6 +66,13 @@ class ServerSetUpBaseTest(BaseTest):
         super(ServerSetUpBaseTest, self).setUp()
         shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
 
+        pipeline_dir = os.path.join("ingest", "pipeline")
+        pipeline_def = os.path.join(pipeline_dir, "definition.json")
+        target_dir = os.path.join(self.working_dir, pipeline_dir)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+        shutil.copy(self._beat_path_join(pipeline_def), target_dir)
+
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
         self.wait_until(lambda: self.log_contains("Starting apm-server"))
