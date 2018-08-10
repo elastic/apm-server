@@ -8,7 +8,6 @@ This section describes common problems you might encounter with APM Server.
 * <<unauthorized>>
 * <<forbidden>>
 * <<request-too-large>>
-* <<rate-limited>>
 * <<queue-full>>
 * <<request-timed-out>>
 * <<ssl-client-fails>>
@@ -16,9 +15,10 @@ This section describes common problems you might encounter with APM Server.
 [[no-data-indexed]]
 [float]
 === No data is indexed
-If no data shows up in Elasticsearch or Kibana, first check that the APM components are properly connected.
+If no data shows up in Elasticsearch, first check that the APM components are properly connected.
 
-To ensure that APM Server configuration is valid and it can connect to Elasticsearch, run the following commands:
+To ensure that APM Server configuration is valid and it can connect to the configured output, Elasticsearch by default,
+run the following commands:
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -26,10 +26,10 @@ apm-server test config
 apm-server test output
 ------------------------------------------------------------
 
-To see if the agent can connect to the APM Server, you can send requests to the instrumented service and look for lines
+To see if the agent can connect to the APM Server, send requests to the instrumented service and look for lines
 containing `[request]` in the APM Server logs.
 
-If you don't see any requests, it might be that SSL is <<ssl-client-fails, misconfigured>> or that the host is wrong.
+If no requests are logged, it might be that SSL is <<ssl-client-fails, misconfigured>> or that the host is wrong.
 Particularly, if you are using Docker, ensure to bind to the right interface (for example, set
 `apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the agent accordingly.
 
@@ -58,23 +58,15 @@ The <<secret-token, secret token>> in the request header doesn't match the confi
 [float]
 === HTTP 403: Forbidden request
 
-Either you are sending requests to a <<rum, RUM>> endpoint without the `apm-server.rum` setting enabled, or a request
-is coming from an origin not whitelisted in `apm-server.rum.allow_origins`.
+Either you are sending requests to a <<rum, RUM>> endpoint without RUM enabled, or a request
+is coming from an origin not whitelisted in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
 
 [[request-too-large]]
 [float]
 === HTTP 413: Request body too large
 
 The agent is collecting too much data and sending it all at once. Consider increasing the `apm-server.max_unzipped_size`
-setting in the APM Server, and decreasing the `FLUSH_INTERVAL` setting in the agent.
-
-[[rate-limited]]
-[float]
-=== HTTP 429: Too many requests
-
-This might only occur for <<rum, RUM>>, as requests might come in short intervals from many instrumented apps.
-Consider increasing the `apm-server.rum.rate_limit` setting in the APM Server and the `FLUSH_INTERVAL` setting in the
-agent.
+setting in the APM Server, and adjust relevant settings in the agent.
 
 [[queue-full]]
 [float]
