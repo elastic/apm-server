@@ -7,6 +7,7 @@ BEATS_VERSION="${BEATS_VERSION:-master}"
 # Find basedir and change to it
 DIRNAME=$(dirname "$0")
 BASEDIR=${DIRNAME}/../_beats
+rm -rf $BASEDIR
 mkdir -p $BASEDIR
 pushd $BASEDIR
 
@@ -22,7 +23,6 @@ git clone https://github.com/elastic/beats.git ${GIT_CLONE}
 
 # sync
 rsync -crpv --delete \
-    --exclude=dev-tools/packer/readme.md.j2 \
     --exclude="dev-tools/jenkins_ci.sh" \
     --exclude="dev-tools/jenkins_ci.ps1" \
     --exclude="dev-tools/jenkins_intake.sh" \
@@ -54,6 +54,14 @@ rsync -crpv --delete \
     --exclude="vendor/*" \
     --exclude="*" \
     ${GIT_CLONE}/ .
+
+# copy license files
+LICENSEDIR=${DIRNAME}/../licenses
+mkdir -p $LICENSEDIR
+
+rsync -crpv --delete \
+  ${GIT_CLONE}/licenses/*.txt ./../licenses
+
 
 popd
 
