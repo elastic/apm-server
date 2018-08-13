@@ -6,7 +6,7 @@ The APM Server receives data from APM agents and transforms them into Elasticsea
 It works by exposing an HTTP server to which agents post the APM data they collect.
 
 APM Server is built with the Beats framework,
-and as such it levarages its functionality.
+and as such it leverages its functionality.
 
 To get an overview of the whole Elastic APM system,
  also have a look at:
