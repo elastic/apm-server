@@ -1874,11 +1874,12 @@
 			"revisionTime": "2017-11-23T00:13:03Z"
 		},
 		{
-			"checksumSHA1": "STxYqRb4gnlSr3mRpT+Igfdz/kM=",
-			"origin": "github.com/elastic/beats/vendor/github.com/spf13/pflag",
+			"checksumSHA1": "k5TsfhX2vvfffYbZQ4fMKtL5+cA=",
 			"path": "github.com/spf13/pflag",
-			"revision": "e30da2c174a48511ffc583696e03dcc3237aabe9",
-			"revisionTime": "2018-08-10T09:25:07Z"
+			"revision": "583c0c0531f06d5278b7d917446061adc344b5cd",
+			"revisionTime": "2018-04-12T12:09:13Z",
+			"version": "v1.0.1",
+			"versionExact": "v1.0.1"
 		},
 		{
 			"checksumSHA1": "Le1psgZO0t6mRg6oY5dmnjH13hk=",
