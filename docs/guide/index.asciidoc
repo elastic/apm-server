@@ -31,7 +31,7 @@ Elastic APM consists of four components:
 * {ref}/index.html[Elasticsearch]
 * {apm-agents-ref}/index.html[APM agents]
 * {apm-server-ref}/index.html[APM Server]
-* Kibana APM UI
+* {kibana-ref}/xpack-apm.html[Kibana APM UI]
 
 image::apm-architecture.png[Architecture of Elastic APM]
 
@@ -69,6 +69,7 @@ We previously split APM data into separate indices (transaction, span, error, et
 In 6.4 APM Kibana UI starts to leverage those separate indices for queries.
 In case you only update Kibana but run an older version of APM Server you will not be able to see any APM data by default.
 To fix this, use the Kibana APM configuration options to specify the location of the APM index.
+See {kibana-ref}/apm-settings-kb.html[Kibana APM settings] for details.
 
 When upgrading to Kibana 6.4, you might need to refresh your APM index pattern for certain APM UI features to work.
 
