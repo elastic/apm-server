@@ -28,9 +28,27 @@ import (
 	"github.com/elastic/apm-server/decoder"
 )
 
-func findFile(fileName string) (string, error) {
+func LoadData(file string) (map[string]interface{}, error) {
+	return unmarshalData(FindFile(file))
+}
+
+func LoadDataAsBytes(fileName string) ([]byte, error) {
+	return readFile(FindFile(fileName))
+}
+
+func LoadValidDataAsBytes(processorName string) ([]byte, error) {
+	return readFile(buildPath(processorName))
+}
+
+func LoadValidData(processorName string) (map[string]interface{}, error) {
+	return unmarshalData(buildPath(processorName))
+}
+
+func FindFile(fileInfo ...string) (string, error) {
 	_, current, _, _ := runtime.Caller(0)
-	p := filepath.Join(filepath.Dir(current), "..", fileName)
+	f := []string{filepath.Dir(current), ".."}
+	f = append(f, fileInfo...)
+	p := filepath.Join(f...)
 	_, err := os.Stat(p)
 	return p, err
 }
@@ -51,26 +69,10 @@ func readFile(filePath string, err error) ([]byte, error) {
 	return ioutil.ReadAll(f)
 }
 
-func LoadData(file string) (map[string]interface{}, error) {
-	return unmarshalData(findFile(file))
-}
-
-func LoadDataAsBytes(fileName string) ([]byte, error) {
-	return readFile(findFile(fileName))
-}
-
-func LoadValidDataAsBytes(processorName string) ([]byte, error) {
-	return readFile(buildPath(processorName))
-}
-
-func LoadValidData(processorName string) (map[string]interface{}, error) {
-	return unmarshalData(buildPath(processorName))
-}
-
 func buildPath(processorName string) (string, error) {
 	switch processorName {
 	case "error", "transaction", "sourcemap":
-		return findFile(filepath.Join("..", "testdata", processorName, "payload.json"))
+		return FindFile(filepath.Join("..", "testdata", processorName, "payload.json"))
 	default:
 		return "", errors.New("unknown data type")
 	}

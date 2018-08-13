@@ -32,10 +32,12 @@ import (
 
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-agent-go/transport"
+	"github.com/elastic/apm-server/ingest/pipeline"
 	"github.com/elastic/apm-server/pipelistener"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 )
 
 type beater struct {
@@ -63,7 +65,7 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		}
 		if b.Config != nil && beaterConfig.RumConfig.SourceMapping.EsConfig == nil {
 			// fall back to elasticsearch output configuration for sourcemap storage if possible
-			if b.Config.Output.Name() == "elasticsearch" {
+			if isElasticsearchOutput(b) {
 				logger.Info("Falling back to elasticsearch output for sourcemap storage")
 				beaterConfig.setSmapElasticsearch(b.Config.Output.Config())
 			} else {
@@ -77,6 +79,17 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		stopped: false,
 		logger:  logger,
 	}
+
+	if isElasticsearchOutput(b) && beaterConfig.Register.Ingest.Pipeline.isEnabled() {
+		logger.Info("Registering pipeline callback.")
+		err := bt.registerPipelineCallback(b)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		logger.Info("No pipeline callback registered")
+	}
+
 	return bt, nil
 }
 
@@ -205,6 +218,29 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 	}
 	tracer.Transport = transport
 	return tracer, lis, nil
+}
+
+func isElasticsearchOutput(b *beat.Beat) bool {
+	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
+}
+
+func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
+	overwrite := bt.config.Register.Ingest.Pipeline.shouldOverwrite()
+	path := bt.config.Register.Ingest.Pipeline.Path
+
+	// ensure setup cmd is working properly
+	b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
+		esClient, err := elasticsearch.NewConnectedClient(esConfig)
+		if err != nil {
+			return err
+		}
+		return pipeline.RegisterPipelines(esClient, overwrite, path)
+	}
+	// ensure pipelines are registered when new ES connection is established.
+	elasticsearch.RegisterConnectCallback(func(esClient *elasticsearch.Client) error {
+		return pipeline.RegisterPipelines(esClient, overwrite, path)
+	})
+	return nil
 }
 
 // Graceful shutdown

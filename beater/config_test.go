@@ -76,6 +76,15 @@ func TestConfig(t *testing.T) {
 					},
 					"library_pattern": "pattern",
 					"exclude_from_grouping": "group_pattern",
+				},
+				"register": {
+					"ingest": { 
+						"pipeline": {
+							enabled: true,
+							overwrite: true,
+							path: "tmp",
+						}
+					}
 				}
       }`),
 			expectedConfig: Config{
@@ -110,6 +119,15 @@ func TestConfig(t *testing.T) {
 					ExcludeFromGrouping: "group_pattern",
 				},
 				ConcurrentRequests: 15,
+				Register: &registerConfig{
+					Ingest: &ingestConfig{
+						Pipeline: &pipelineConfig{
+							Enabled:   &truthy,
+							Overwrite: &truthy,
+							Path:      "tmp",
+						},
+					},
+				},
 			},
 		},
 		{
@@ -130,7 +148,8 @@ func TestConfig(t *testing.T) {
 				"rum": {
 					"source_mapping": {
 					}
-				}
+				},
+				"register": {},
       }`),
 			expectedConfig: Config{
 				Host:               "localhost:8200",
@@ -157,6 +176,9 @@ func TestConfig(t *testing.T) {
 					SourceMapping: &SourceMapping{
 						IndexPattern: "",
 					},
+				},
+				Register: &registerConfig{
+					Ingest: nil,
 				},
 			},
 		},
@@ -189,7 +211,7 @@ func TestConfig(t *testing.T) {
 	}
 }
 
-func TestIsEnabled(t *testing.T) {
+func TestIsSSLEnabled(t *testing.T) {
 	truthy := true
 	falsy := false
 	cases := []struct {
@@ -326,5 +348,27 @@ func TestMemoizedSmapMapper(t *testing.T) {
 			assert.Nil(t, smapper, fmt.Sprintf("Test number <%v> failed", idx))
 		}
 		assert.Equal(t, td.e, e)
+	}
+}
+
+func TestPipeline(t *testing.T) {
+	truthy, falsy := true, false
+	cases := []struct {
+		c                  *pipelineConfig
+		enabled, overwrite bool
+	}{
+		{c: nil, enabled: false, overwrite: false},
+		{c: &pipelineConfig{}, enabled: false, overwrite: false},
+		{c: &pipelineConfig{Enabled: &falsy, Overwrite: &truthy},
+			enabled: false, overwrite: true},
+		{c: &pipelineConfig{Enabled: &truthy, Overwrite: &falsy},
+			enabled: true, overwrite: false},
+	}
+
+	for idx, test := range cases {
+		assert.Equal(t, test.enabled, test.c.isEnabled(),
+			fmt.Sprintf("<%v> isEnabled() expected %v", idx, test.enabled))
+		assert.Equal(t, test.overwrite, test.c.shouldOverwrite(),
+			fmt.Sprintf("<%v> shouldOverwrite() expected %v", idx, test.overwrite))
 	}
 }

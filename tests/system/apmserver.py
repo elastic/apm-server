@@ -66,6 +66,17 @@ class ServerSetUpBaseTest(BaseTest):
         super(ServerSetUpBaseTest, self).setUp()
         shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
 
+        # Copy ingest pipeline definition to home directory of the test.
+        # The pipeline definition is expected to be at a specific location
+        # relative to the home dir. This ensures that the file can be loaded
+        # for all installations (deb, tar, ..).
+        pipeline_dir = os.path.join("ingest", "pipeline")
+        pipeline_def = os.path.join(pipeline_dir, "definition.json")
+        target_dir = os.path.join(self.working_dir, pipeline_dir)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+        shutil.copy(self._beat_path_join(pipeline_def), target_dir)
+
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
         self.wait_until(lambda: self.log_contains("Starting apm-server"))
@@ -135,6 +146,7 @@ class AccessTest(ServerBaseTest):
 
 
 class ElasticTest(ServerBaseTest):
+    config_overrides = {}
 
     def config(self):
         cfg = super(ElasticTest, self).config()
@@ -143,6 +155,7 @@ class ElasticTest(ServerBaseTest):
             "file_enabled": "false",
             "index_name": self.index_name,
         })
+        cfg.update(self.config_overrides)
         return cfg
 
     def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
@@ -174,6 +187,14 @@ class ElasticTest(ServerBaseTest):
             name="*", ignore=[400, 404])
         self.wait_until(
             lambda: not self.es.indices.exists_template(self.index_name))
+
+        # Cleanup pipelines
+        self.es.ingest.delete_pipeline(id="*")
+        # Write empyt pipeline for user_agent
+        self.es.ingest.put_pipeline(
+            id="apm_user_agent",
+            body={"description": "user agent test", "processors": []})
+        self.wait_until(lambda: self.es.ingest.get_pipeline("apm_user_agent"))
 
         super(ElasticTest, self).setUp()
 

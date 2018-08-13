@@ -114,6 +114,26 @@ apm-server:
     # Set to false to disable the metrics endpoint
     #enabled: true
 
+  # A pipeline is a definition of processors applied to documents when writing them to Elasticsearch.
+  # Using pipelines involves two steps:
+  # (1) registering a pipeline
+  # (2) applying a pipeline during data ingestion (see `output.elasticsearch.pipelines`)
+  #
+  # You can manually register pipelines, or use this configuration option to ensure
+  # pipelines are loaded and registered at the configured Elasticsearch instances.
+  # Automatic pipeline registration requires 
+  # * `output.elasticsearch` to be enabled and configured.
+  # * having the required Elasticsearch Processor Plugins installed. 
+  #   APM Server default pipelines require you to have the `Ingest User Agent Plugin` installed. 
+  #   Find the default pipeline configuration at `ingest/pipeline/definition.json`.
+  #
+  #register.ingest.pipeline:
+    # Registers pipeline definitions in Elasticsearch on APM Server startup. Defaults to false.
+    #enabled: false 
+
+    # Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
+    #overwrite: true 
+
 #================================ General ======================================
 
 # Internal queue configuration for buffering events to be published.
@@ -374,8 +394,13 @@ output.elasticsearch:
       when.contains:
         processor.event: "onboarding"
 
-  # Optional ingest node pipeline. By default no pipeline will be used.
-  #pipeline: ""
+  # A pipeline is a definition of processors applied to documents when writing them to Elasticsearch.
+  # APM Server comes with a default pipeline definition, located at `ingets/pipeline/definition.json`.
+  # Pipelines are disabled by default. To make use of them you have to:
+  # (1) ensure pipelines are registered in Elasticsearch, see `apm-server.register.ingest.pipeline`
+  # (2) enable the following:
+  #pipelines:
+  #- pipeline: "apm_user_agent"
 
   # Optional HTTP Path
   #path: "/elasticsearch"

@@ -21,10 +21,12 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/dev-tools/mage"
 )
@@ -84,7 +86,7 @@ func Package() {
 	mage.UseElasticBeatPackaging()
 	customizePackaging()
 
-	mg.Deps(Update)
+	mg.Deps(Update, prepareIngestPackaging)
 	mg.Deps(CrossBuild, CrossBuildGoDaemon)
 	mg.SerialDeps(mage.Package, TestPackages)
 }
@@ -104,9 +106,13 @@ func Fields() error {
 }
 
 // -----------------------------------------------------------------------------
+
 // Customizations specific to apm-server.
 // - readme.md.tmpl used in packages is customized.
 // - apm-server.reference.yml is not included in packages.
+// - ingest .json files are included in packaging
+
+var ingestDirGenerated = filepath.Clean("build/packaging/ingest")
 
 func customizePackaging() {
 	var (
@@ -114,22 +120,52 @@ func customizePackaging() {
 			Mode:     0644,
 			Template: "package-README.md.tmpl",
 		}
+		ingestTarget = "ingest"
+		ingest       = mage.PackageFile{
+			Mode:   0644,
+			Source: ingestDirGenerated,
+		}
 	)
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
 		args := mage.Packages[idx]
-		switch args.Types[0] {
+		pkgType := args.Types[0]
+		switch pkgType {
+
 		case mage.Zip, mage.TarGz:
 			// Remove the reference config file from packages.
 			delete(args.Spec.Files, "{{.BeatName}}.reference.yml")
 
 			// Replace the README.md with an APM specific file.
 			args.Spec.ReplaceFile("README.md", readmeTemplate)
+			args.Spec.Files[ingestTarget] = ingest
+
 		case mage.Deb, mage.RPM:
 			delete(args.Spec.Files, "/etc/{{.BeatName}}/{{.BeatName}}.reference.yml")
 			args.Spec.ReplaceFile("/usr/share/{{.BeatName}}/README.md", readmeTemplate)
+			args.Spec.Files["/usr/share/{{.BeatName}}/"+ingestTarget] = ingest
 
 		case mage.DMG:
 			mage.Packages = append(mage.Packages[:idx], mage.Packages[idx+1:]...)
+
+		default:
+			panic(errors.Errorf("unhandled package type: %v", pkgType))
+
 		}
 	}
+}
+
+func prepareIngestPackaging() error {
+	if err := sh.Rm(ingestDirGenerated); err != nil {
+		return err
+	}
+
+	copy := &mage.CopyTask{
+		Source:  "ingest",
+		Dest:    ingestDirGenerated,
+		Mode:    0644,
+		DirMode: 0755,
+		Exclude: []string{".*.go"},
+	}
+	return copy.Execute()
+
 }
