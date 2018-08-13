@@ -66,6 +66,10 @@ class ServerSetUpBaseTest(BaseTest):
         super(ServerSetUpBaseTest, self).setUp()
         shutil.copy(self._beat_path_join("fields.yml"), self.working_dir)
 
+        # Copy ingest pipeline definition to home directory of the test.
+        # The pipeline definition is expected to be at a specific location
+        # relative to the home dir. This ensures that the file can be loaded
+        # for all installations (deb, tar, ..).
         pipeline_dir = os.path.join("ingest", "pipeline")
         pipeline_def = os.path.join(pipeline_dir, "definition.json")
         target_dir = os.path.join(self.working_dir, pipeline_dir)
