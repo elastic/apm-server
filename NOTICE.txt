@@ -292,7 +292,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.4
-Revision: bc7bd2a6b0aadeef55f7382e39636cdd98906124
+Revision: 7d72fbfc4f7ce43053e0ad6aced92eb397f1f658
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -350,7 +350,7 @@ Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-txfile
-Revision: 7e7e33cc236f30fff545f3ee2c35ada5b70b6b13
+Revision: 389b527ad365f6fc6cf5fa7e0ba5a2294ad2f3ed
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-txfile/LICENSE:
 --------------------------------------------------------------------
