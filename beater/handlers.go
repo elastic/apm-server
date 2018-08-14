@@ -270,6 +270,16 @@ func logHandler(h http.Handler) http.Handler {
 	})
 }
 
+// requestLogger is a convenience method to retrieve the logger that was
+// added to the request context by handler `logHandler``
+func requestLogger(r *http.Request) *logp.Logger {
+	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+	if !ok {
+		logger = logp.NewLogger("request")
+	}
+	return logger
+}
+
 func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if killSwitch {
@@ -442,10 +452,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	} else {
 		responseErrors.Inc()
 
-		logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-		if !ok {
-			logger = logp.NewLogger("request")
-		}
+		logger := requestLogger(r)
 		msgKey = "error"
 		msg = res.err.Error()
 		logger.Errorw("error handling request", "response_code", res.code, "error", msg)

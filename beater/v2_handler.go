@@ -246,7 +246,11 @@ func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 			}
 
 			if err := v.sendResponse(w, &sr); err != nil {
-				// trouble
+				logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+				if !ok {
+					logger = logp.NewLogger("request")
+				}
+				logger.Errorw("error handling request", "error", err.Error())
 			}
 			return
 		}
