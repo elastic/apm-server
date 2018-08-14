@@ -24,12 +24,14 @@ import (
 
 	"github.com/elastic/beats/libbeat/logp"
 
-	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/validation"
+	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/santhosh-tekuri/jsonschema"
+
+	"github.com/elastic/apm-server/validation"
 
 	"github.com/elastic/apm-server/decoder"
 	er "github.com/elastic/apm-server/model/error"

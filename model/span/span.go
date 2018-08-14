@@ -21,9 +21,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
-	"github.com/santhosh-tekuri/jsonschema"
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/span/generated/schema"

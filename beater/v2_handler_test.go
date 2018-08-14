@@ -30,9 +30,10 @@ import (
 	"github.com/elastic/apm-server/model/metric"
 	"github.com/elastic/apm-server/model/transaction"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/transform"
-	"github.com/stretchr/testify/assert"
 )
 
 func validMetadata() string {

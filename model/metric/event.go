@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/elastic/apm-server/model/metric/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -30,7 +32,6 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
-	"github.com/santhosh-tekuri/jsonschema"
 )
 
 const (

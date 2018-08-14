@@ -28,8 +28,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/elastic/beats/libbeat/beat"
 	"github.com/santhosh-tekuri/jsonschema"
+
+	"github.com/elastic/beats/libbeat/beat"
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
