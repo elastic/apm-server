@@ -21,10 +21,12 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/elastic/apm-server/model/metadata"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
@@ -156,4 +158,15 @@ func TestSpanTransform(t *testing.T) {
 		assert.Equal(t, test.Output, fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 
 	}
+}
+
+func TestEventTransformUseReqTime(t *testing.T) {
+	reqTimestamp := "2017-05-30T18:53:27.154Z"
+	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
+	require.NoError(t, err)
+
+	e := Span{}
+	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
+	require.Len(t, beatEvent, 1)
+	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
 }

@@ -90,7 +90,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Name:      decoder.StringPtr(raw, "name"),
 		Result:    decoder.StringPtr(raw, "result"),
 		Duration:  decoder.Float64(raw, "duration"),
-		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
 		Context:   decoder.MapStr(raw, "context"),
 		Marks:     decoder.MapStr(raw, "marks"),
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
@@ -145,6 +145,11 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	events := []beat.Event{}
+
+	if e.Timestamp.IsZero() {
+		e.Timestamp = tctx.RequestTime
+	}
+
 	ev := beat.Event{
 		Fields: common.MapStr{
 			"processor":        processorTransEntry,

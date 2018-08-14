@@ -96,21 +96,24 @@ var (
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
-		concurrencyLimitHandler(beaterConfig,
-			authHandler(beaterConfig.SecretToken, h)))
+		requestTimeHandler(
+			concurrencyLimitHandler(beaterConfig,
+				authHandler(beaterConfig.SecretToken, h))))
 }
 
 func rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-		concurrencyLimitHandler(beaterConfig,
-			ipRateLimitHandler(beaterConfig.RumConfig.RateLimit,
-				corsHandler(beaterConfig.RumConfig.AllowOrigins, h))))
+		requestTimeHandler(
+			concurrencyLimitHandler(beaterConfig,
+				ipRateLimitHandler(beaterConfig.RumConfig.RateLimit,
+					corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))))
 }
 
 func metricsHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
-		killSwitchHandler(beaterConfig.Metrics.isEnabled(),
-			authHandler(beaterConfig.SecretToken, h)))
+		requestTimeHandler(
+			killSwitchHandler(beaterConfig.Metrics.isEnabled(),
+				authHandler(beaterConfig.SecretToken, h))))
 }
 
 func sourcemapHandler(beaterConfig *Config, h http.Handler) http.Handler {

@@ -174,6 +174,25 @@ func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 	return mux
 }
 
+const requestTimeContextKey = contextKey("requestTime")
+
+func requestTimeHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if getRequestTime(r).IsZero() {
+			r = r.WithContext(context.WithValue(r.Context(), requestTimeContextKey, time.Now()))
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func getRequestTime(r *http.Request) time.Time {
+	t, ok := r.Context().Value(requestTimeContextKey).(time.Time)
+	if !ok {
+		return time.Time{}
+	}
+	return t
+}
+
 func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	semaphore := make(chan struct{}, beaterConfig.ConcurrentRequests)
 	release := func() {
@@ -232,9 +251,9 @@ func rootHandler(secretToken string) http.Handler {
 	return logHandler(handler)
 }
 
-type logContextKey string
+type contextKey string
 
-var reqLoggerContextKey = logContextKey("requestLogger")
+var reqLoggerContextKey = contextKey("requestLogger")
 
 func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
@@ -389,6 +408,7 @@ func processRequestHandler(p processor.Processor, config transform.Config, repor
 }
 
 func processRequest(r *http.Request, p processor.Processor, config transform.Config, report reporter, decode decoder.ReqDecoder) serverResponse {
+	requestTime := getRequestTime(r)
 	if r.Method != "POST" {
 		return methodNotAllowedResponse
 	}
@@ -411,8 +431,9 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 	}
 
 	tctx := &transform.Context{
-		Config:   config,
-		Metadata: *metadata,
+		RequestTime: requestTime,
+		Config:      config,
+		Metadata:    *metadata,
 	}
 
 	if err = report(r.Context(), pendingReq{transformables: transformables, tcontext: tctx}); err != nil {

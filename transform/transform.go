@@ -19,6 +19,7 @@ package transform
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
 
@@ -31,8 +32,9 @@ type Transformable interface {
 }
 
 type Context struct {
-	Config   Config
-	Metadata metadata.Metadata
+	RequestTime time.Time
+	Config      Config
+	Metadata    metadata.Metadata
 }
 
 type Config struct {

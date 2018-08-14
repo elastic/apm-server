@@ -80,7 +80,7 @@ func DecodeMetric(input interface{}, err error) (transform.Transformable, error)
 	md := metricDecoder{&utility.ManualDecoder{}}
 	metric := Metric{
 		Samples:   md.decodeSamples(raw["samples"]),
-		Timestamp: md.TimeRFC3339WithDefault(raw, "timestamp"),
+		Timestamp: md.TimeRFC3339(raw, "timestamp"),
 	}
 
 	if md.Err != nil {
@@ -149,6 +149,10 @@ func (me *Metric) Transform(tctx *transform.Context) []beat.Event {
 
 	fields["context"] = tctx.Metadata.Merge(context)
 	fields["processor"] = processorEntry
+
+	if me.Timestamp.IsZero() {
+		me.Timestamp = tctx.RequestTime
+	}
 
 	return []beat.Event{
 		beat.Event{

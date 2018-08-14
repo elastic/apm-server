@@ -178,6 +178,7 @@ func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONSt
 }
 
 func (v *v2Handler) handleRequestBody(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader, report reporter) *streamResponse {
+	requestTime := getRequestTime(r)
 	resp := &streamResponse{}
 
 	metadata, err := v.readMetadata(r, ndjsonReader)
@@ -190,8 +191,9 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndjsonReader *decoder.NDJ
 	}
 
 	tctx := &transform.Context{
-		Config:   v.tconfig,
-		Metadata: *metadata,
+		RequestTime: requestTime,
+		Config:      v.tconfig,
+		Metadata:    *metadata,
 	}
 
 	for {

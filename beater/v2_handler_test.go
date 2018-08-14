@@ -24,8 +24,10 @@ func validMetadata() string {
 
 func TestV2Handler(t *testing.T) {
 	var transformables []transform.Transformable
+	var reportedTCtx *transform.Context
 	report := func(ctx context.Context, p pendingReq) error {
 		transformables = append(transformables, p.transformables...)
+		reportedTCtx = p.tcontext
 		return nil
 	}
 
@@ -35,6 +37,8 @@ func TestV2Handler(t *testing.T) {
 
 	tx1 := "tx1"
 	timestamp, err := time.Parse(time.RFC3339, "2018-01-01T10:00:00Z")
+	assert.NoError(t, err)
+	reqTimestamp, err := time.Parse(time.RFC3339, "2018-01-02T10:00:00Z")
 	assert.NoError(t, err)
 
 	for idx, test := range []struct {
@@ -89,15 +93,31 @@ func TestV2Handler(t *testing.T) {
 			body: strings.Join([]string{
 				validMetadata(),
 				`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
-				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db"}}`,
+				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "timestamp": "2018-01-01T10:00:00Z"}}`,
 				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
 			}, "\n"),
 			contentType:  "application/x-ndjson",
 			expectedCode: http.StatusAccepted,
 			reported: []transform.Transformable{
 				&transaction.Event{Name: &tx1, Id: "8ace3f94-cd01-462c-b069-57dc28ebdfc8", Duration: 12, Type: "request", Spans: []*span.Span{}, Timestamp: timestamp},
-				&span.Span{Name: "sp1", Duration: 20.0, Start: 10, Type: "db"},
+				&span.Span{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", Timestamp: timestamp},
 				&metric.Metric{Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}, Timestamp: timestamp},
+			},
+		},
+		{
+			// optional timestamps
+			body: strings.Join([]string{
+				validMetadata(),
+				`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request"}}`,
+				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db"}}`,
+				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
+			}, "\n"),
+			contentType:  "application/x-ndjson",
+			expectedCode: http.StatusAccepted,
+			reported: []transform.Transformable{
+				&transaction.Event{Name: &tx1, Id: "8ace3f94-cd01-462c-b069-57dc28ebdfc8", Duration: 12, Type: "request", Spans: []*span.Span{}},
+				&span.Span{Name: "sp1", Duration: 20.0, Start: 10, Type: "db"},
+				&metric.Metric{Timestamp: timestamp, Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}},
 			},
 		},
 	} {
@@ -108,6 +128,10 @@ func TestV2Handler(t *testing.T) {
 		r.Header.Add("Content-Type", test.contentType)
 
 		w := httptest.NewRecorder()
+
+		// set request time
+		r = r.WithContext(context.WithValue(r.Context(), requestTimeContextKey, reqTimestamp))
+
 		handler.ServeHTTP(w, r)
 
 		assert.Equal(t, test.expectedCode, w.Code, "Failed at index %d: %s", idx, w.Body.String())
@@ -115,10 +139,11 @@ func TestV2Handler(t *testing.T) {
 			var actualResponse streamResponse
 			assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &actualResponse))
 			assert.Equal(t, *test.err, actualResponse, "Failed at index %d", idx)
+		} else {
+			assert.Equal(t, reqTimestamp, reportedTCtx.RequestTime)
 		}
 
 		assert.Equal(t, test.reported, transformables)
-
 	}
 
 }

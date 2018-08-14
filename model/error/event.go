@@ -107,7 +107,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Id:        decoder.StringPtr(raw, "id"),
 		Culprit:   decoder.StringPtr(raw, "culprit"),
 		Context:   decoder.MapStr(raw, "context"),
-		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
 	}
 	transactionId := decoder.StringPtr(raw, "id", "transaction")
 	if transactionId != nil {
