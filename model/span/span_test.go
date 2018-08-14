@@ -35,6 +35,7 @@ import (
 )
 
 func TestSpanDecode(t *testing.T) {
+	tid := "longid"
 	id, parent := 1, 12
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
@@ -63,17 +64,19 @@ func TestSpanDecode(t *testing.T) {
 				"name": name, "id": 1.0, "type": spType,
 				"start": start, "duration": duration,
 				"context": context, "parent": 12.0,
-				"stacktrace": stacktrace,
+				"stacktrace":     stacktrace,
+				"transaction_id": tid,
 			},
 			err: nil,
 			s: &Span{
-				Id:       &id,
-				Name:     name,
-				Type:     spType,
-				Start:    start,
-				Duration: duration,
-				Context:  context,
-				Parent:   &parent,
+				Id:            &id,
+				Name:          name,
+				Type:          spType,
+				Start:         start,
+				Duration:      duration,
+				Context:       context,
+				Parent:        &parent,
+				TransactionId: &tid,
 				Stacktrace: m.Stacktrace{
 					&m.StacktraceFrame{Filename: "file", Lineno: 1},
 				},

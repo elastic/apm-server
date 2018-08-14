@@ -62,7 +62,7 @@ type Span struct {
 	Stacktrace m.Stacktrace
 
 	Timestamp     time.Time
-	TransactionId string
+	TransactionId *string
 }
 
 func DecodeSpan(input interface{}, err error) (transform.Transformable, error) {
@@ -75,14 +75,15 @@ func DecodeSpan(input interface{}, err error) (transform.Transformable, error) {
 	}
 	decoder := utility.ManualDecoder{}
 	sp := Span{
-		Id:        decoder.IntPtr(raw, "id"),
-		Name:      decoder.String(raw, "name"),
-		Type:      decoder.String(raw, "type"),
-		Start:     decoder.Float64(raw, "start"),
-		Duration:  decoder.Float64(raw, "duration"),
-		Context:   decoder.MapStr(raw, "context"),
-		Parent:    decoder.IntPtr(raw, "parent"),
-		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
+		Id:            decoder.IntPtr(raw, "id"),
+		Name:          decoder.String(raw, "name"),
+		Type:          decoder.String(raw, "type"),
+		Start:         decoder.Float64(raw, "start"),
+		Duration:      decoder.Float64(raw, "duration"),
+		Context:       decoder.MapStr(raw, "context"),
+		Parent:        decoder.IntPtr(raw, "parent"),
+		Timestamp:     decoder.TimeRFC3339(raw, "timestamp"),
+		TransactionId: decoder.StringPtr(raw, "transaction_id"),
 	}
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)

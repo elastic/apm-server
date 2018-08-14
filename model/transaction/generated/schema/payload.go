@@ -508,6 +508,11 @@ const PayloadSchema = `{
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
             "maxLength": 1024
+        },
+        "transaction_id": {
+            "type": "string",
+            "description": "UUID for the parent transaction",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         }
     },
     "dependencies": {
