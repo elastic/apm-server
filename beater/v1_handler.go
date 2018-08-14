@@ -24,6 +24,11 @@ import (
 	"github.com/elastic/apm-server/processor"
 )
 
+type v1Route struct {
+	routeType
+	processor.Processor
+}
+
 func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
 	decoder := v.configurableDecoder(beaterConfig, decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize))
 	tconfig := v.transformConfig(beaterConfig)

@@ -46,20 +46,6 @@ var (
 
 const batchSize = 10
 
-func (v v2Route) Handler(beaterConfig *Config, report reporter) http.Handler {
-	reqDecoder := v.configurableDecoder(
-		beaterConfig,
-		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
-	)
-
-	v2Handler := v2Handler{
-		requestDecoder: reqDecoder,
-		tconfig:        v.transformConfig(beaterConfig),
-	}
-
-	return v.wrappingHandler(beaterConfig, v2Handler.Handle(beaterConfig, report))
-}
-
 var models = []struct {
 	key          string
 	schema       *jsonschema.Schema
@@ -85,6 +71,24 @@ var models = []struct {
 		er.ModelSchema(),
 		er.DecodeEvent,
 	},
+}
+
+type v2Route struct {
+	routeType
+}
+
+func (v v2Route) Handler(beaterConfig *Config, report reporter) http.Handler {
+	reqDecoder := v.configurableDecoder(
+		beaterConfig,
+		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
+	)
+
+	v2Handler := v2Handler{
+		requestDecoder: reqDecoder,
+		tconfig:        v.transformConfig(beaterConfig),
+	}
+
+	return v.wrappingHandler(beaterConfig, v2Handler.Handle(beaterConfig, report))
 }
 
 type v2Handler struct {

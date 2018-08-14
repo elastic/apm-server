@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
@@ -55,15 +54,6 @@ type routeType struct {
 	transformConfig     func(*Config) transform.Config
 }
 
-type v1Route struct {
-	routeType
-	processor.Processor
-}
-
-type v2Route struct {
-	routeType
-}
-
 var V1Routes = map[string]v1Route{
 	BackendTransactionsURL:    {backendRouteType, transaction.Processor},
 	ClientSideTransactionsURL: {rumRouteType, transaction.Processor},
@@ -84,22 +74,22 @@ var V2Routes = map[string]v2Route{
 var (
 	backendRouteType = routeType{
 		backendHandler,
-		backendMetadataDecoder,
+		systemMetadataDecoder,
 		func(*Config) transform.Config { return transform.Config{} },
 	}
 	rumRouteType = routeType{
 		rumHandler,
-		rumMetadataDecoder,
+		userMetaDataDecoder,
 		rumTransformConfig,
 	}
 	metricsRouteType = routeType{
 		metricsHandler,
-		backendMetadataDecoder,
+		systemMetadataDecoder,
 		func(*Config) transform.Config { return transform.Config{} },
 	}
 	sourcemapRouteType = routeType{
 		sourcemapHandler,
-		backendMetadataDecoder,
+		systemMetadataDecoder,
 		rumTransformConfig,
 	}
 )
@@ -129,11 +119,11 @@ func sourcemapHandler(beaterConfig *Config, h http.Handler) http.Handler {
 			authHandler(beaterConfig.SecretToken, h)))
 }
 
-func backendMetadataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {
+func systemMetadataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {
 	return decoder.DecodeSystemData(d, beaterConfig.AugmentEnabled)
 }
 
-func rumMetadataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {
+func userMetaDataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {
 	return decoder.DecodeUserData(d, beaterConfig.AugmentEnabled)
 }
 
