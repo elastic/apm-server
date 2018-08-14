@@ -47,6 +47,7 @@ func TestStreamResponseSimple(t *testing.T) {
 
 	expectedStr := `queue is full (23)`
 	assert.Equal(t, expectedStr, sr.String())
+	assert.Equal(t, 429, sr.StatusCode())
 
 }
 func TestStreamResponseAdvanced(t *testing.T) {
@@ -87,4 +88,5 @@ func TestStreamResponseAdvanced(t *testing.T) {
 	expectedStr := `queue is full (23), validation error (5): transmogrifier error ({"wrong": "field"}), thing error ({"wrong": "value"})`
 	assert.Equal(t, expectedStr, sr.String())
 
+	assert.Equal(t, 429, sr.StatusCode())
 }

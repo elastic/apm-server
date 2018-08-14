@@ -20,6 +20,7 @@ package beater
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 )
 
@@ -36,13 +37,16 @@ const (
 	validationErrorsLimit = 5
 )
 
-var standardMessages = map[streamErrorType]string{
-	queueFullErr:          "queue is full",
-	processingTimeoutErr:  "timeout while waiting to process request",
-	schemaValidationErr:   "validation error",
-	invalidJSONErr:        "invalid JSON",
-	shuttingDownErr:       "server is shutting down",
-	invalidContentTypeErr: "invalid content-type. Expected 'application/x-ndjson'",
+var standardMessages = map[streamErrorType]struct {
+	err  string
+	code int
+}{
+	queueFullErr:          {"queue is full", http.StatusTooManyRequests},
+	processingTimeoutErr:  {"timeout while waiting to process request", http.StatusRequestTimeout},
+	schemaValidationErr:   {"validation error", http.StatusBadRequest},
+	invalidJSONErr:        {"invalid JSON", http.StatusBadRequest},
+	shuttingDownErr:       {"server is shutting down", http.StatusServiceUnavailable},
+	invalidContentTypeErr: {"invalid content-type. Expected 'application/x-ndjson'", http.StatusBadRequest},
 }
 
 type streamResponse struct {
@@ -78,7 +82,7 @@ func (s *streamResponse) AddError(errType streamErrorType, count int) {
 	if details, ok = s.Errors[errType]; !ok {
 		s.Errors[errType] = errorDetails{
 			Count:   count,
-			Message: standardMessages[errType],
+			Message: standardMessages[errType].err,
 		}
 		return
 	}
@@ -114,31 +118,17 @@ func (s *streamResponse) String() string {
 	return strings.Join(errorList, ", ")
 }
 
-// func (s *streamResponse) maybeError(key streamErrorType, message string, count int) {
-// 	if count <= 0 {
-// 		return
-// 	}
-// 	s.Errors[key] = errorDetails{
-// 		Count:   count,
-// 		Message: message,
-// 	}
-// }
+func (s *streamResponse) StatusCode() int {
+	statusCode := http.StatusAccepted
+	for k := range s.Errors {
+		if standardMessages[k].code > statusCode {
+			statusCode = standardMessages[k].code
+		}
+	}
+	return statusCode
+}
 
 func (s *streamResponse) Marshal() ([]byte, error) {
-	// 	s.maybeError(queueFullErr, "queue is full", s.queueFullErr)
-	// 	s.maybeError(processingTimeoutErr, "timeout while waiting to process request", s.processingTimeoutErr)
-
-	// 	validationErrors := []*ValidationError{}
-	// 	for _, v := range s.validationErrors {
-	// 		validationErrors = append(validationErrors, v)
-	// 	}
-
-	// 	s.maybeError(schemaValidationKey, "validation error", s.validationErr)
-	// 	if s.validationErr > 0 {
-	// 		details := s.Errors[schemaValidationKey]
-	// 		details.Documents = validationErrors
-	// 		s.Errors[schemaValidationKey] = details
-	// 	}
 	return json.Marshal(s)
 }
 
