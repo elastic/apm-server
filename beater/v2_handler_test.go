@@ -4,10 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/elastic/apm-server/model/transaction"
+
+	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/transform"
 	"github.com/stretchr/testify/assert"
 )

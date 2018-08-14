@@ -19,13 +19,15 @@ package beater
 
 import (
 	"io"
+	"log"
 	"net/http"
+	"reflect"
 	"strings"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/utility"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/validation"
@@ -216,12 +218,7 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndjsonReader *decoder.NDJ
 }
 
 func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, streamResponse *streamResponse) {
-	statusCode := http.StatusAccepted
-	if streamResponse.Invalid > 0 {
-		statusCode = http.StatusBadRequest
-	} else if streamResponse.Dropped > 0 {
-		statusCode = http.StatusTooManyRequests
-	}
+	statusCode := streamResponse.StatusCode()
 
 	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
@@ -233,9 +230,6 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, str
 		if err != nil {
 			logger.Errorw("error sending response", "error", err)
 		}
-	}
-
-	if statusCode >= 400 {
 		logger.Infow("error handling request", "error", streamResponse.String())
 	}
 }

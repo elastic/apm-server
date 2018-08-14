@@ -61,10 +61,6 @@ type serverResponse struct {
 	body    interface{}
 }
 
-func (s *serverResponse) IsError() bool {
-	return s.code >= 400
-}
-
 var (
 	serverMetrics = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
 	counter       = func(s string) *monitoring.Int {
