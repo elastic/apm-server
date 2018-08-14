@@ -38,12 +38,13 @@ func StreamDecodeLimitJSONData(req *http.Request, maxSize int64) (*NDJSONStreamR
 		return nil, err
 	}
 
-	return &NDJSONStreamReader{bufio.NewReader(reader), false}, nil
+	return &NDJSONStreamReader{bufio.NewReader(reader), false, nil}, nil
 }
 
 type NDJSONStreamReader struct {
 	stream *bufio.Reader
 	isEOF  bool
+	rawBuf []byte
 }
 
 func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
@@ -54,6 +55,7 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	}
 
 	sr.isEOF = readErr == io.EOF
+	sr.rawBuf = buf
 
 	if len(buf) == 0 {
 		return nil, readErr
@@ -101,4 +103,8 @@ func (n *NDJSONStreamReader) SkipToEnd() (int, error) {
 
 func (n *NDJSONStreamReader) IsEOF() bool {
 	return n.isEOF
+}
+
+func (n *NDJSONStreamReader) Raw() []byte {
+	return n.rawBuf
 }

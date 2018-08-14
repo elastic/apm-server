@@ -18,32 +18,73 @@
 package beater
 
 import (
-	"net/http"
+	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStreamResponse(t *testing.T) {
+func TestStreamResponseSimple(t *testing.T) {
 	sr := streamResponse{}
-	transmogrifierErr := errors.New("transmogrifier error")
-	err1 := cannotDecodeResponse(transmogrifierErr)
-	sr.addError(err1)
-	sr.addErrorCount(err1, 10)
 
-	err2 := cannotValidateResponse(transmogrifierErr)
-	sr.addError(err2)
-	sr.addErrorCount(err2, 11)
+	sr.AddError(queueFullErr, 23)
 
-	expected := streamResponse{
-		Errors: map[int]map[string]int{
-			http.StatusBadRequest: map[string]int{
-				err1.err.Error(): 11,
-				err2.err.Error(): 12,
+	jsonOut, err := sr.Marshal()
+	assert.NoError(t, err)
+	expectedJSON := `{
+		"accepted":0,
+		"invalid":0,
+		"dropped":0,
+		"errors":{
+			"ERR_QUEUE_FULL":{
+				"count":23,
+				"message":"queue is full"
+			}
+		}
+	}`
+	expectedJSON = strings.Replace(strings.Replace(expectedJSON, "\n", "", -1), "\t", "", -1)
+	assert.Equal(t, expectedJSON, string(jsonOut))
+
+	expectedStr := `queue is full (23)`
+	assert.Equal(t, expectedStr, sr.String())
+
+}
+func TestStreamResponseAdvanced(t *testing.T) {
+	sr := streamResponse{}
+
+	sr.AddError(schemaValidationErr, 1)
+	sr.AddError(schemaValidationErr, 4)
+	sr.ValidationError("transmogrifier error", `{"wrong": "field"}`)
+	sr.ValidationError("transmogrifier error", `{"wrong": "field"}`)
+	sr.ValidationError("thing error", `{"wrong": "value"}`)
+
+	sr.AddError(queueFullErr, 23)
+
+	jsonOut, err := sr.Marshal()
+	assert.NoError(t, err)
+	expectedJSON := `{
+		"accepted":0,
+		"invalid":0,
+		"dropped":0,
+		"errors":{
+			"ERR_QUEUE_FULL":{
+				"count":23,
+				"message":"queue is full"
 			},
-		},
-	}
+			"ERR_SCHEMA_VALIDATION":{
+				"count":5,
+				"message":"validation error",
+				"documents":[
+					{"error":"transmogrifier error","object":"{\"wrong\": \"field\"}"},
+					{"error":"thing error","object":"{\"wrong\": \"value\"}"}
+				]
+			}
+		}
+	}`
+	expectedJSON = strings.Replace(strings.Replace(expectedJSON, "\n", "", -1), "\t", "", -1)
+	assert.Equal(t, expectedJSON, string(jsonOut))
 
-	assert.Equal(t, expected, sr)
+	expectedStr := `queue is full (23), validation error (5): transmogrifier error ({"wrong": "field"}), thing error ({"wrong": "value"})`
+	assert.Equal(t, expectedStr, sr.String())
+
 }

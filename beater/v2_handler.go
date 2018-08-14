@@ -18,13 +18,12 @@
 package beater
 
 import (
-	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/transform"
 	"github.com/pkg/errors"
@@ -38,6 +37,11 @@ import (
 	"github.com/elastic/apm-server/model/metric"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
+)
+
+var (
+	errUnrecognizedObject    = errors.New("did not recognize object type")
+	errInvalidMetadataFormat = errors.New("invalid metadata format")
 )
 
 const batchSize = 10
@@ -89,22 +93,22 @@ type v2Handler struct {
 }
 
 // handleRawModel validates and decodes a single json object into its struct form
-func (v *v2Handler) handleRawModel(rawModel map[string]interface{}) (transform.Transformable, serverResponse) {
+func (v *v2Handler) handleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
 	for _, model := range models {
 		if entry, ok := rawModel[model.key]; ok {
 			err := validation.Validate(entry, model.schema)
 			if err != nil {
-				return nil, cannotValidateResponse(err)
+				return nil, err
 			}
 
 			tr, err := model.modelDecoder(entry, err)
 			if err != nil {
-				return tr, cannotDecodeResponse(err)
+				return tr, err
 			}
-			return tr, serverResponse{}
+			return tr, nil
 		}
 	}
-	return nil, cannotValidateResponse(errors.New("did not recognize object type"))
+	return nil, errUnrecognizedObject
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
@@ -117,14 +121,14 @@ func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader,
 	for i := 0; i < batchSize && err == nil; i++ {
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
-			response.addError(cannotDecodeResponse(err))
+			response.ValidationError(err.Error(), string(reader.Raw()))
 			response.Invalid++
 		}
 
 		if rawModel != nil {
-			tr, resp := v.handleRawModel(rawModel)
-			if resp.IsError() {
-				response.addError(resp)
+			tr, err := v.handleRawModel(rawModel)
+			if err != nil {
+				response.ValidationError(err.Error(), string(reader.Raw()))
 				response.Invalid++
 			}
 			eventables = append(eventables, tr)
@@ -133,22 +137,22 @@ func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader,
 
 	return eventables, reader.IsEOF()
 }
-func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader) (*metadata.Metadata, serverResponse) {
+func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader) (*metadata.Metadata, error) {
 	// first item is the metadata object
 	rawData, err := ndjsonReader.Read()
 	if err != nil {
-		return nil, cannotDecodeResponse(err)
+		return nil, err
 	}
 
 	rawMetadata, ok := rawData["metadata"].(map[string]interface{})
 	if !ok {
-		return nil, cannotValidateResponse(errors.New("invalid metadata format"))
+		return nil, err
 	}
 
 	// augment the metadata object with information from the request, like user-agent or remote address
 	reqMeta, err := v.requestDecoder(r)
 	if err != nil {
-		return nil, cannotDecodeResponse(err)
+		return nil, err
 	}
 
 	for k, v := range reqMeta {
@@ -158,27 +162,27 @@ func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONSt
 	// validate the metadata object against our jsonschema
 	err = validation.Validate(rawMetadata, metadata.ModelSchema())
 	if err != nil {
-		return nil, cannotValidateResponse(err)
+		return nil, err
 	}
 
 	// create a metadata struct
 	metadata, err := metadata.DecodeMetadata(rawMetadata)
 	if err != nil {
-		return nil, cannotDecodeResponse(err)
+		return nil, err
 	}
-	return metadata, serverResponse{}
+	return metadata, nil
 }
 
-func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader, report reporter) *streamResponse {
+func (v *v2Handler) handleRequestBody(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader, report reporter) *streamResponse {
 	resp := &streamResponse{}
 
-	metadata, serverResponse := v.readMetadata(r, ndjsonReader)
+	metadata, err := v.readMetadata(r, ndjsonReader)
 
 	// no point in continueing if we couldn't read the metadata
-	if serverResponse.IsError() {
-		sr := streamResponse{}
-		sr.addError(serverResponse)
-		return &sr
+	if err != nil {
+		resp.AddError(schemaValidationErr, 1)
+		resp.ValidationError(err.Error(), string(ndjsonReader.Raw()))
+		return resp
 	}
 
 	tctx := &transform.Context{
@@ -195,12 +199,11 @@ func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *decoder.NDJSONS
 			})
 			if err != nil {
 				if strings.Contains(err.Error(), "publisher is being stopped") {
-					sr := streamResponse{}
-					sr.addError(serverShuttingDownResponse(err))
-					return &sr
+					resp.AddError(shuttingDownErr, 1)
+					return resp
 				}
 
-				resp.addErrorCount(fullQueueResponse(err), len(transformables))
+				resp.AddError(queueFullErr, len(transformables))
 				resp.Dropped += len(transformables)
 			}
 		}
@@ -212,62 +215,72 @@ func (v *v2Handler) handleRequest(r *http.Request, ndjsonReader *decoder.NDJSONS
 	return resp
 }
 
-func (v *v2Handler) sendResponse(w http.ResponseWriter, streamResponse *streamResponse) error {
+func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, streamResponse *streamResponse) {
 	statusCode := http.StatusAccepted
-	for k := range streamResponse.Errors {
-		if k > statusCode {
-			statusCode = k
-		}
+	if streamResponse.Invalid > 0 {
+		statusCode = http.StatusBadRequest
+	} else if streamResponse.Dropped > 0 {
+		statusCode = http.StatusTooManyRequests
 	}
-	log.Println(statusCode, streamResponse)
+
 	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
-		return json.NewEncoder(w).Encode(streamResponse)
+		buf, err := streamResponse.Marshal()
+		if err != nil {
+			logger.Errorw("error sending response", "error", err)
+		}
+		_, err = w.Write(buf)
+		if err != nil {
+			logger.Errorw("error sending response", "error", err)
+		}
 	}
-	return nil
+
+	if statusCode >= 400 {
+		logger.Infow("error handling request", "error", streamResponse.String())
+	}
+}
+
+// handleInvalidHeaders reads out the rest of the body and discards it
+// then returns an error response
+func (v *v2Handler) handleInvalidHeaders(w http.ResponseWriter, r *http.Request) {
+	sr := streamResponse{
+		Dropped:  -1,
+		Accepted: -1,
+		Invalid:  1,
+	}
+	sr.AddError(invalidContentTypeErr, 1)
+
+	discardBuf := make([]byte, 2048)
+	var err error
+	for err != nil {
+		_, err = r.Body.Read(discardBuf)
+	}
+
+	v.sendResponse(requestLogger(r), w, &sr)
 }
 
 func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := requestLogger(r)
 		ndjsonReader, err := decoder.StreamDecodeLimitJSONData(r, beaterConfig.MaxUnzippedSize)
 		if err != nil {
-			sr := streamResponse{
-				// we wont look at the body if the content type is wrong
-				Dropped:  -1,
-				Accepted: -1,
-				Invalid:  -1,
-			}
-			sr.addError(cannotDecodeResponse(err))
-
-			discardBuf := make([]byte, 2048)
-			var err error
-			for err != nil {
-				_, err = r.Body.Read(discardBuf)
-			}
-
-			if err := v.sendResponse(w, &sr); err != nil {
-				logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-				if !ok {
-					logger = logp.NewLogger("request")
-				}
-				logger.Errorw("error handling request", "error", err.Error())
-			}
+			// if we can't set up the ndjson decoder,
+			// we won't be able to make sense of the body
+			v.handleInvalidHeaders(w, r)
 			return
 		}
 
-		streamResponse := v.handleRequest(r, ndjsonReader, report)
+		streamResponse := v.handleRequestBody(r, ndjsonReader, report)
 
 		// did we return early?
 		if !ndjsonReader.IsEOF() {
 			dropped, err := ndjsonReader.SkipToEnd()
 			if err != io.EOF {
-				// trouble
+				logger.Errorw("error handling request", "error", err.Error())
 			}
 			streamResponse.Dropped += dropped
 		}
 
-		if err := v.sendResponse(w, streamResponse); err != nil {
-			// trouble
-		}
+		v.sendResponse(logger, w, streamResponse)
 	})
 }

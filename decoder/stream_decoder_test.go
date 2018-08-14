@@ -80,7 +80,7 @@ func TestNDJSONStreamReaderSkipToEnd(t *testing.T) {
 
 	stringLines := strings.Join(lines, "\n")
 
-	for _, test := range []string{
+	for idx, test := range []string{
 		stringLines,
 		stringLines + "\n",
 	} {
@@ -95,7 +95,7 @@ func TestNDJSONStreamReaderSkipToEnd(t *testing.T) {
 		// three left
 		count, err := n.SkipToEnd()
 		assert.Equal(t, io.EOF, err)
-		assert.Equal(t, uint(3), count)
+		assert.Equal(t, 3, count, "Failed at index %d", idx)
 		assert.True(t, n.IsEOF())
 	}
 }
