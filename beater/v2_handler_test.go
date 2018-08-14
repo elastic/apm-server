@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/model/metric"
 	"github.com/elastic/apm-server/model/transaction"
 
 	"github.com/elastic/apm-server/model/span"
@@ -89,13 +90,14 @@ func TestV2Handler(t *testing.T) {
 				validMetadata(),
 				`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
 				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db"}}`,
-				`{"metric": {"name": "sp1", "duration": 20, "start": 10, "type": "db"}}`,
+				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
 			}, "\n"),
 			contentType:  "application/x-ndjson",
 			expectedCode: http.StatusAccepted,
 			reported: []transform.Transformable{
 				&transaction.Event{Name: &tx1, Id: "8ace3f94-cd01-462c-b069-57dc28ebdfc8", Duration: 12, Type: "request", Spans: []*span.Span{}, Timestamp: timestamp},
 				&span.Span{Name: "sp1", Duration: 20.0, Start: 10, Type: "db"},
+				&metric.Metric{Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}, Timestamp: timestamp},
 			},
 		},
 	} {

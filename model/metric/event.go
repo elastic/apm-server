@@ -50,15 +50,15 @@ func ModelSchema() *jsonschema.Schema {
 	return cachedModelSchema
 }
 
-type sample struct {
-	name  string
-	value float64
+type Sample struct {
+	Name  string
+	Value float64
 }
 
-type metric struct {
-	samples   []*sample
-	tags      common.MapStr
-	timestamp time.Time
+type Metric struct {
+	Samples   []*Sample
+	Tags      common.MapStr
+	Timestamp time.Time
 }
 
 type metricDecoder struct {
@@ -78,9 +78,9 @@ func DecodeMetric(input interface{}, err error) (transform.Transformable, error)
 	}
 
 	md := metricDecoder{&utility.ManualDecoder{}}
-	metric := metric{
-		samples:   md.decodeSamples(raw["samples"]),
-		timestamp: md.TimeRFC3339WithDefault(raw, "timestamp"),
+	metric := Metric{
+		Samples:   md.decodeSamples(raw["samples"]),
+		Timestamp: md.TimeRFC3339WithDefault(raw, "timestamp"),
 	}
 
 	if md.Err != nil {
@@ -88,12 +88,12 @@ func DecodeMetric(input interface{}, err error) (transform.Transformable, error)
 	}
 
 	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
-		metric.tags = tags
+		metric.Tags = tags
 	}
 	return &metric, nil
 }
 
-func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
+func (md *metricDecoder) decodeSamples(input interface{}) []*Sample {
 	if input == nil {
 		md.Err = errors.New("no samples for metric event")
 		return nil
@@ -104,7 +104,7 @@ func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
 		return nil
 	}
 
-	samples := make([]*sample, len(raw))
+	samples := make([]*Sample, len(raw))
 	i := 0
 	for name, s := range raw {
 		if s == nil {
@@ -116,9 +116,9 @@ func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
 			return nil
 		}
 
-		samples[i] = &sample{
-			name:  name,
-			value: md.Float64(sampleMap, "value"),
+		samples[i] = &Sample{
+			Name:  name,
+			Value: md.Float64(sampleMap, "value"),
 		}
 		if md.Err != nil {
 			return nil
@@ -128,23 +128,23 @@ func (md *metricDecoder) decodeSamples(input interface{}) []*sample {
 	return samples
 }
 
-func (me *metric) Transform(tctx *transform.Context) []beat.Event {
+func (me *Metric) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if me == nil {
 		return nil
 	}
 
 	fields := common.MapStr{}
-	for _, sample := range me.samples {
-		if _, err := fields.Put(sample.name, sample.value); err != nil {
+	for _, sample := range me.Samples {
+		if _, err := fields.Put(sample.Name, sample.Value); err != nil {
 			logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
 			continue
 		}
 	}
 
 	context := common.MapStr{}
-	if me.tags != nil {
-		context["tags"] = me.tags
+	if me.Tags != nil {
+		context["tags"] = me.Tags
 	}
 
 	fields["context"] = tctx.Metadata.Merge(context)
@@ -153,7 +153,7 @@ func (me *metric) Transform(tctx *transform.Context) []beat.Event {
 	return []beat.Event{
 		beat.Event{
 			Fields:    fields,
-			Timestamp: me.timestamp,
+			Timestamp: me.Timestamp,
 		},
 	}
 }
