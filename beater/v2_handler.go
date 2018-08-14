@@ -19,9 +19,7 @@ package beater
 
 import (
 	"io"
-	"log"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/elastic/beats/libbeat/logp"
@@ -158,7 +156,7 @@ func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONSt
 	}
 
 	for k, v := range reqMeta {
-		utility.MergeAdd(rawMetadata, k, v.(map[string]interface{}))
+		utility.InsertInMap(rawMetadata, k, v.(map[string]interface{}))
 	}
 
 	// validate the metadata object against our jsonschema

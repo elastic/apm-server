@@ -44,7 +44,7 @@ var (
 
 	processorSpanEntry = common.MapStr{"name": "transaction", "event": spanDocType}
 
-	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
+	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
 )
 
 func ModelSchema() *jsonschema.Schema {
