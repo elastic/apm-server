@@ -83,7 +83,7 @@ func Package() {
 	start := time.Now()
 	defer func() { fmt.Println("package ran for", time.Since(start)) }()
 
-	mage.UseElasticBeatPackaging()
+	mage.UseElasticBeatWithoutXPackPackaging()
 	customizePackaging()
 
 	mg.Deps(Update, prepareIngestPackaging)
