@@ -88,7 +88,9 @@ func (n *NDJSONStreamReader) SkipToEnd() (int, error) {
 		// one additional object. This breaks down if agents send
 		// trailing whitespace and not an actual object, but we're
 		// OK with that.
-		lastWasNL = readCount > 0 && countBuf[readCount-1] == '\n'
+		if readCount > 0 {
+			lastWasNL = countBuf[readCount-1] == '\n'
+		}
 	}
 
 	if !lastWasNL {
