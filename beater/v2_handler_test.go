@@ -85,6 +85,30 @@ func TestV2Handler(t *testing.T) {
 		},
 		{
 			body: strings.Join([]string{
+				`{"transaction": {"invalid": "metadata"}}`, // invalid metadata
+				`{"transaction": {"invalid": "metadata"}}`,
+			}, "\n"),
+			contentType:  "application/x-ndjson",
+			expectedCode: 400,
+			err: &StreamResponse{
+				Errors: map[StreamErrorType]errorDetails{
+					"ERR_SCHEMA_VALIDATION": errorDetails{
+						Count:   1,
+						Message: "validation error",
+						Documents: []*ValidationError{
+							{
+								Error:          "did not recognize object type",
+								OffendingEvent: "{\"transaction\": {\"invalid\": \"metadata\"}}\n",
+							},
+						},
+					},
+				},
+				Dropped: 1,
+			},
+			reported: []transform.Transformable{},
+		},
+		{
+			body: strings.Join([]string{
 				`{"metadata": {}}`,
 				`{"span": {}}`,
 			}, "\n"),

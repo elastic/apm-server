@@ -159,9 +159,8 @@ func (v *v2Handler) readMetadata(r *http.Request, ndReader *decoder.NDJSONStream
 
 	rawMetadata, ok := rawModel["metadata"].(map[string]interface{})
 	if !ok {
-		return nil, err
+		return nil, errUnrecognizedObject
 	}
-
 	// augment the metadata object with information from the request, like user-agent or remote address
 	reqMeta, err := v.requestDecoder(r)
 	if err != nil {
@@ -183,6 +182,7 @@ func (v *v2Handler) readMetadata(r *http.Request, ndReader *decoder.NDJSONStream
 	if err != nil {
 		return nil, err
 	}
+
 	return metadata, nil
 }
 
@@ -279,7 +279,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 		logger := requestLogger(r)
 		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxUnzippedSize)
 		if err != nil {
-			// if we can't set up the nd reader,
+			// if we can't set up the ndjsonreader,
 			// we won't be able to make sense of the body
 			v.handleInvalidHeaders(w, r)
 			return
