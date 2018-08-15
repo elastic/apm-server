@@ -27,7 +27,7 @@ import (
 	"strings"
 )
 
-func StreamDecodeLimitJSONData(req *http.Request, maxSize int64) (*NDJSONStreamReader, error) {
+func NDJSONStreamDecodeCompressedWithLimit(req *http.Request, maxSize int64) (*NDJSONStreamReader, error) {
 	contentType := req.Header.Get("Content-Type")
 	if !strings.Contains(contentType, "application/x-ndjson") {
 		return nil, fmt.Errorf("invalid content type: '%s'", req.Header.Get("Content-Type"))
@@ -42,29 +42,42 @@ func StreamDecodeLimitJSONData(req *http.Request, maxSize int64) (*NDJSONStreamR
 }
 
 type NDJSONStreamReader struct {
-	stream *bufio.Reader
-	isEOF  bool
-	rawBuf []byte
+	stream     *bufio.Reader
+	isEOF      bool
+	latestLine []byte
+}
+
+type JSONDecodeError string
+
+func (s JSONDecodeError) Error() string {
+	return string(s)
+}
+
+type ReadError string
+
+func (s ReadError) Error() string {
+	return string(s)
 }
 
 func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	// ReadBytes can return valid data in `buf` _and_ also an io.EOF
 	buf, readErr := sr.stream.ReadBytes('\n')
 	if readErr != nil && readErr != io.EOF {
-		return nil, readErr
+		return nil, ReadError(readErr.Error())
 	}
 
 	sr.isEOF = readErr == io.EOF
-	sr.rawBuf = buf
 
 	if len(buf) == 0 {
 		return nil, readErr
 	}
 
+	sr.latestLine = buf
+
 	tmpreader := ioutil.NopCloser(bytes.NewBuffer(buf))
 	decoded, err := DecodeJSONData(tmpreader)
 	if err != nil {
-		return nil, err
+		return nil, JSONDecodeError(err.Error())
 	}
 
 	return decoded, readErr // this might be io.EOF
@@ -72,7 +85,7 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 
 // SkipToEnd fast forwards the stream to the end, counting the
 // number of lines we find without JSON decoding each line.
-func (n *NDJSONStreamReader) SkipToEnd() (int, error) {
+func (sr *NDJSONStreamReader) SkipToEnd() (int, error) {
 	objects := 0
 	nl := []byte("\n")
 	var readErr error
@@ -80,7 +93,7 @@ func (n *NDJSONStreamReader) SkipToEnd() (int, error) {
 	var lastWasNL bool
 	countBuf := make([]byte, 2048)
 	for readErr == nil {
-		readCount, readErr = n.stream.Read(countBuf)
+		readCount, readErr = sr.stream.Read(countBuf)
 		objects += bytes.Count(countBuf[:readCount], nl)
 
 		// if the final character is not a newline we assume there
@@ -97,16 +110,17 @@ func (n *NDJSONStreamReader) SkipToEnd() (int, error) {
 	}
 
 	if readErr == io.EOF {
-		n.isEOF = true
+		sr.isEOF = true
+		return objects, readErr
 	}
 
-	return objects, readErr
+	return objects, ReadError(readErr.Error())
 }
 
-func (n *NDJSONStreamReader) IsEOF() bool {
-	return n.isEOF
+func (sr *NDJSONStreamReader) IsEOF() bool {
+	return sr.isEOF
 }
 
-func (n *NDJSONStreamReader) Raw() []byte {
-	return n.rawBuf
+func (sr *NDJSONStreamReader) LastLine() []byte {
+	return sr.latestLine
 }

@@ -25,9 +25,9 @@ import (
 )
 
 func TestStreamResponseSimple(t *testing.T) {
-	sr := streamResponse{}
+	sr := StreamResponse{}
 
-	sr.AddError(queueFullErr, 23)
+	sr.Add(QueueFullErr, 23)
 
 	jsonOut, err := sr.Marshal()
 	assert.NoError(t, err)
@@ -51,15 +51,14 @@ func TestStreamResponseSimple(t *testing.T) {
 
 }
 func TestStreamResponseAdvanced(t *testing.T) {
-	sr := streamResponse{}
+	sr := StreamResponse{}
 
-	sr.AddError(schemaValidationErr, 1)
-	sr.AddError(schemaValidationErr, 4)
-	sr.ValidationError("transmogrifier error", `{"wrong": "field"}`)
-	sr.ValidationError("transmogrifier error", `{"wrong": "field"}`)
-	sr.ValidationError("thing error", `{"wrong": "value"}`)
+	sr.Add(SchemaValidationErr, 2)
+	sr.AddWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
+	sr.AddWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
+	sr.AddWithOffendingDocument(SchemaValidationErr, "thing error", []byte(`{"wrong": "value"}`))
 
-	sr.AddError(queueFullErr, 23)
+	sr.Add(QueueFullErr, 23)
 
 	jsonOut, err := sr.Marshal()
 	assert.NoError(t, err)

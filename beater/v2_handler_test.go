@@ -62,15 +62,15 @@ func TestV2Handler(t *testing.T) {
 	for idx, test := range []struct {
 		body         string
 		contentType  string
-		err          *streamResponse
+		err          *StreamResponse
 		expectedCode int
 		reported     []transform.Transformable
 	}{
 		{
 			body:        "",
 			contentType: "",
-			err: &streamResponse{
-				Errors: map[streamErrorType]errorDetails{
+			err: &StreamResponse{
+				Errors: map[StreamErrorType]errorDetails{
 					"ERR_CONTENT_TYPE": errorDetails{
 						Count:   1,
 						Message: "invalid content-type. Expected 'application/x-ndjson'",
@@ -90,8 +90,8 @@ func TestV2Handler(t *testing.T) {
 			}, "\n"),
 			contentType:  "application/x-ndjson",
 			expectedCode: 400,
-			err: &streamResponse{
-				Errors: map[streamErrorType]errorDetails{
+			err: &StreamResponse{
+				Errors: map[StreamErrorType]errorDetails{
 					"ERR_SCHEMA_VALIDATION": errorDetails{
 						Count:   1,
 						Message: "validation error",
@@ -154,7 +154,7 @@ func TestV2Handler(t *testing.T) {
 
 		assert.Equal(t, test.expectedCode, w.Code, "Failed at index %d: %s", idx, w.Body.String())
 		if test.err != nil {
-			var actualResponse streamResponse
+			var actualResponse StreamResponse
 			assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &actualResponse))
 			assert.Equal(t, *test.err, actualResponse, "Failed at index %d", idx)
 		} else {

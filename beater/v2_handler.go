@@ -119,7 +119,7 @@ func (v *v2Handler) handleRawModel(rawModel map[string]interface{}) (transform.T
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables, a serverResponse and a bool that indicates if we're at EOF.
-func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader, response *streamResponse) ([]transform.Transformable, bool) {
+func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader, response *StreamResponse) ([]transform.Transformable, bool) {
 	var err error
 	var rawModel map[string]interface{}
 
@@ -127,14 +127,21 @@ func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader,
 	for i := 0; i < batchSize && err == nil; i++ {
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
-			response.ValidationError(err.Error(), string(reader.Raw()))
-			response.Invalid++
+			switch e := err.(type) {
+			case decoder.ReadError:
+				response.AddWithMessage(ServerError, 1, e.Error())
+				// return early, we can't recover from a read error
+				return eventables, false
+			case decoder.JSONDecodeError:
+				response.AddWithOffendingDocument(InvalidJSONErr, e.Error(), reader.LastLine())
+				response.Invalid++
+			}
 		}
 
 		if rawModel != nil {
 			tr, err := v.handleRawModel(rawModel)
 			if err != nil {
-				response.ValidationError(err.Error(), string(reader.Raw()))
+				response.AddWithOffendingDocument(SchemaValidationErr, err.Error(), reader.LastLine())
 				response.Invalid++
 			}
 			eventables = append(eventables, tr)
@@ -143,14 +150,14 @@ func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader,
 
 	return eventables, reader.IsEOF()
 }
-func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader) (*metadata.Metadata, error) {
+func (v *v2Handler) readMetadata(r *http.Request, ndReader *decoder.NDJSONStreamReader) (*metadata.Metadata, error) {
 	// first item is the metadata object
-	rawData, err := ndjsonReader.Read()
+	rawModel, err := ndReader.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	rawMetadata, ok := rawData["metadata"].(map[string]interface{})
+	rawMetadata, ok := rawModel["metadata"].(map[string]interface{})
 	if !ok {
 		return nil, err
 	}
@@ -179,16 +186,23 @@ func (v *v2Handler) readMetadata(r *http.Request, ndjsonReader *decoder.NDJSONSt
 	return metadata, nil
 }
 
-func (v *v2Handler) handleRequestBody(r *http.Request, ndjsonReader *decoder.NDJSONStreamReader, report reporter) *streamResponse {
+func (v *v2Handler) handleRequestBody(r *http.Request, ndReader *decoder.NDJSONStreamReader, report reporter) *StreamResponse {
 	requestTime := getRequestTime(r)
-	resp := &streamResponse{}
+	resp := &StreamResponse{}
 
-	metadata, err := v.readMetadata(r, ndjsonReader)
+	metadata, err := v.readMetadata(r, ndReader)
 
-	// no point in continueing if we couldn't read the metadata
+	// no point in continuing if we couldn't read the metadata
 	if err != nil {
-		resp.AddError(schemaValidationErr, 1)
-		resp.ValidationError(err.Error(), string(ndjsonReader.Raw()))
+		switch e := err.(type) {
+		case decoder.ReadError:
+			resp.AddWithMessage(ServerError, 1, e.Error())
+		case decoder.JSONDecodeError:
+			resp.AddWithOffendingDocument(InvalidJSONErr, err.Error(), ndReader.LastLine())
+		default:
+			resp.AddWithOffendingDocument(SchemaValidationErr, err.Error(), ndReader.LastLine())
+		}
+
 		return resp
 	}
 
@@ -199,19 +213,20 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndjsonReader *decoder.NDJ
 	}
 
 	for {
-		transformables, eof := v.readBatch(batchSize, ndjsonReader, resp)
+		transformables, eof := v.readBatch(batchSize, ndReader, resp)
 		if transformables != nil {
 			err := report(r.Context(), pendingReq{
 				transformables: transformables,
 				tcontext:       tctx,
 			})
+
 			if err != nil {
 				if strings.Contains(err.Error(), "publisher is being stopped") {
-					resp.AddError(shuttingDownErr, 1)
+					resp.Add(ShuttingDownErr, 1)
 					return resp
 				}
 
-				resp.AddError(queueFullErr, len(transformables))
+				resp.Add(QueueFullErr, len(transformables))
 				resp.Dropped += len(transformables)
 			}
 		}
@@ -223,12 +238,12 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndjsonReader *decoder.NDJ
 	return resp
 }
 
-func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, streamResponse *streamResponse) {
-	statusCode := streamResponse.StatusCode()
+func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, StreamResponse *StreamResponse) {
+	statusCode := StreamResponse.StatusCode()
 
 	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
-		buf, err := streamResponse.Marshal()
+		buf, err := StreamResponse.Marshal()
 		if err != nil {
 			logger.Errorw("error sending response", "error", err)
 		}
@@ -236,19 +251,19 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, str
 		if err != nil {
 			logger.Errorw("error sending response", "error", err)
 		}
-		logger.Infow("error handling request", "error", streamResponse.String())
+		logger.Infow("error handling request", "error", StreamResponse.String())
 	}
 }
 
 // handleInvalidHeaders reads out the rest of the body and discards it
 // then returns an error response
 func (v *v2Handler) handleInvalidHeaders(w http.ResponseWriter, r *http.Request) {
-	sr := streamResponse{
+	sr := StreamResponse{
 		Dropped:  -1,
 		Accepted: -1,
 		Invalid:  1,
 	}
-	sr.AddError(invalidContentTypeErr, 1)
+	sr.Add(InvalidContentTypeErr, 1)
 
 	discardBuf := make([]byte, 2048)
 	var err error
@@ -262,19 +277,19 @@ func (v *v2Handler) handleInvalidHeaders(w http.ResponseWriter, r *http.Request)
 func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := requestLogger(r)
-		ndjsonReader, err := decoder.StreamDecodeLimitJSONData(r, beaterConfig.MaxUnzippedSize)
+		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxUnzippedSize)
 		if err != nil {
-			// if we can't set up the ndjson decoder,
+			// if we can't set up the nd reader,
 			// we won't be able to make sense of the body
 			v.handleInvalidHeaders(w, r)
 			return
 		}
 
-		streamResponse := v.handleRequestBody(r, ndjsonReader, report)
+		streamResponse := v.handleRequestBody(r, ndReader, report)
 
 		// did we return early?
-		if !ndjsonReader.IsEOF() {
-			dropped, err := ndjsonReader.SkipToEnd()
+		if !ndReader.IsEOF() {
+			dropped, err := ndReader.SkipToEnd()
 			if err != io.EOF {
 				logger.Errorw("error handling request", "error", err.Error())
 			}

@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNDJSONStreamReader(t *testing.T) {
+func TestNDStreamReader(t *testing.T) {
 	lines := []string{
 		`{"key": "value1"}`,
 		`{"key": "value2"}`,
@@ -70,7 +70,7 @@ func TestNDJSONStreamReader(t *testing.T) {
 	}
 }
 
-func TestNDJSONStreamReaderSkipToEnd(t *testing.T) {
+func TestNDStreamReaderSkipToEnd(t *testing.T) {
 	lines := []string{
 		`{"key": "value1"}`,
 		`{"key": "value2"}`,

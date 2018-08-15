@@ -24,37 +24,38 @@ import (
 	"strings"
 )
 
-type streamErrorType string
+type StreamErrorType string
 
 const (
-	queueFullErr          streamErrorType = "ERR_QUEUE_FULL"
-	processingTimeoutErr  streamErrorType = "ERR_PROCESSING_TIMEOUT"
-	schemaValidationErr   streamErrorType = "ERR_SCHEMA_VALIDATION"
-	invalidJSONErr        streamErrorType = "ERR_INVALID_JSON"
-	shuttingDownErr       streamErrorType = "ERR_SHUTTING_DOWN"
-	invalidContentTypeErr streamErrorType = "ERR_CONTENT_TYPE"
+	QueueFullErr          StreamErrorType = "ERR_QUEUE_FULL"
+	ProcessingTimeoutErr  StreamErrorType = "ERR_PROCESSING_TIMEOUT"
+	SchemaValidationErr   StreamErrorType = "ERR_SCHEMA_VALIDATION"
+	InvalidJSONErr        StreamErrorType = "ERR_INVALID_JSON"
+	ShuttingDownErr       StreamErrorType = "ERR_SHUTTING_DOWN"
+	InvalidContentTypeErr StreamErrorType = "ERR_CONTENT_TYPE"
+	ServerError           StreamErrorType = "ERR_SERVER_ERROR"
 
 	validationErrorsLimit = 5
 )
 
-var standardMessages = map[streamErrorType]struct {
+var standardMessages = map[StreamErrorType]struct {
 	err  string
 	code int
 }{
-	queueFullErr:          {"queue is full", http.StatusTooManyRequests},
-	processingTimeoutErr:  {"timeout while waiting to process request", http.StatusRequestTimeout},
-	schemaValidationErr:   {"validation error", http.StatusBadRequest},
-	invalidJSONErr:        {"invalid JSON", http.StatusBadRequest},
-	shuttingDownErr:       {"server is shutting down", http.StatusServiceUnavailable},
-	invalidContentTypeErr: {"invalid content-type. Expected 'application/x-ndjson'", http.StatusBadRequest},
+	QueueFullErr:          {"queue is full", http.StatusTooManyRequests},
+	ProcessingTimeoutErr:  {"timeout while waiting to process request", http.StatusRequestTimeout},
+	SchemaValidationErr:   {"validation error", http.StatusBadRequest},
+	InvalidJSONErr:        {"invalid JSON", http.StatusBadRequest},
+	ShuttingDownErr:       {"server is shutting down", http.StatusServiceUnavailable},
+	InvalidContentTypeErr: {"invalid content-type. Expected 'application/x-ndjson'", http.StatusBadRequest},
 }
 
-type streamResponse struct {
+type StreamResponse struct {
 	Accepted int `json:"accepted"`
 	Invalid  int `json:"invalid"`
 	Dropped  int `json:"dropped"`
 
-	Errors map[streamErrorType]errorDetails `json:"errors"`
+	Errors map[StreamErrorType]errorDetails `json:"errors"`
 }
 
 type errorDetails struct {
@@ -72,33 +73,38 @@ type ValidationError struct {
 	OffendingEvent string `json:"object"`
 }
 
-func (s *streamResponse) AddError(errType streamErrorType, count int) {
+func (s *StreamResponse) Add(err StreamErrorType, count int) {
+	s.AddWithMessage(err, count, standardMessages[err].err)
+}
+
+func (s *StreamResponse) AddWithMessage(err StreamErrorType, count int, message string) {
 	if s.Errors == nil {
-		s.Errors = make(map[streamErrorType]errorDetails)
+		s.Errors = make(map[StreamErrorType]errorDetails)
 	}
 
 	var details errorDetails
 	var ok bool
-	if details, ok = s.Errors[errType]; !ok {
-		s.Errors[errType] = errorDetails{
+	if details, ok = s.Errors[err]; !ok {
+		s.Errors[err] = errorDetails{
 			Count:   count,
-			Message: standardMessages[errType].err,
+			Message: message,
 		}
 		return
 	}
 
 	details.Count += count
-	s.Errors[errType] = details
+	s.Errors[err] = details
 }
 
-func (s *streamResponse) String() string {
+func (s *StreamResponse) String() string {
 	errorList := []string{}
-	for _, t := range []streamErrorType{
-		queueFullErr,
-		processingTimeoutErr,
-		schemaValidationErr,
-		invalidJSONErr, shuttingDownErr,
-		invalidContentTypeErr,
+	for _, t := range []StreamErrorType{
+		QueueFullErr,
+		ProcessingTimeoutErr,
+		SchemaValidationErr,
+		InvalidJSONErr,
+		ShuttingDownErr,
+		InvalidContentTypeErr,
 	} {
 		if s.Errors[t].Count > 0 {
 			errorStr := fmt.Sprintf("%s (%d)", s.Errors[t].Message, s.Errors[t].Count)
@@ -118,7 +124,7 @@ func (s *streamResponse) String() string {
 	return strings.Join(errorList, ", ")
 }
 
-func (s *streamResponse) StatusCode() int {
+func (s *StreamResponse) StatusCode() int {
 	statusCode := http.StatusAccepted
 	for k := range s.Errors {
 		if standardMessages[k].code > statusCode {
@@ -128,13 +134,13 @@ func (s *streamResponse) StatusCode() int {
 	return statusCode
 }
 
-func (s *streamResponse) Marshal() ([]byte, error) {
+func (s *StreamResponse) Marshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (s *streamResponse) ValidationError(err string, offendingDocument string) {
-	s.AddError(schemaValidationErr, 0)
-	errorDetails := s.Errors[schemaValidationErr]
+func (s *StreamResponse) AddWithOffendingDocument(errType StreamErrorType, errMsg string, offendingDocument []byte) {
+	s.Add(errType, 1)
+	errorDetails := s.Errors[errType]
 	if errorDetails.Documents == nil {
 		errorDetails.Documents = []*ValidationError{}
 		errorDetails.errorsMap = make(map[string]struct{})
@@ -142,14 +148,14 @@ func (s *streamResponse) ValidationError(err string, offendingDocument string) {
 
 	if len(errorDetails.Documents) < validationErrorsLimit {
 		// we only want one specimen of each error
-		if _, ok := errorDetails.errorsMap[err]; !ok {
-			errorDetails.errorsMap[err] = struct{}{}
+		if _, ok := errorDetails.errorsMap[errMsg]; !ok {
+			errorDetails.errorsMap[errMsg] = struct{}{}
 
 			errorDetails.Documents = append(errorDetails.Documents, &ValidationError{
-				Error:          err,
-				OffendingEvent: offendingDocument,
+				Error:          errMsg,
+				OffendingEvent: string(offendingDocument),
 			})
-			s.Errors[schemaValidationErr] = errorDetails
+			s.Errors[SchemaValidationErr] = errorDetails
 		}
 	}
 }
