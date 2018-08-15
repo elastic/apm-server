@@ -18,5 +18,5 @@
 /fields.yml
 /apm-server.template-es.json
 /vendor/github.com/elastic/beats/libbeat/fields.yml
-
+/docs/elastic/
 html_docs
