@@ -55,15 +55,15 @@ type routeType struct {
 }
 
 var V1Routes = map[string]v1Route{
-	BackendTransactionsURL:    {backendRouteType, transaction.Processor},
-	ClientSideTransactionsURL: {rumRouteType, transaction.Processor},
-	RumTransactionsURL:        {rumRouteType, transaction.Processor},
-	BackendErrorsURL:          {backendRouteType, perr.Processor},
-	ClientSideErrorsURL:       {rumRouteType, perr.Processor},
-	RumErrorsURL:              {rumRouteType, perr.Processor},
-	MetricsURL:                {metricsRouteType, metric.Processor},
-	SourcemapsClientSideURL:   {sourcemapRouteType, sourcemap.Processor},
-	SourcemapsURL:             {sourcemapRouteType, sourcemap.Processor},
+	BackendTransactionsURL:    {backendRouteType, transaction.Processor, v1RequestDecoder},
+	ClientSideTransactionsURL: {rumRouteType, transaction.Processor, v1RequestDecoder},
+	RumTransactionsURL:        {rumRouteType, transaction.Processor, v1RequestDecoder},
+	BackendErrorsURL:          {backendRouteType, perr.Processor, v1RequestDecoder},
+	ClientSideErrorsURL:       {rumRouteType, perr.Processor, v1RequestDecoder},
+	RumErrorsURL:              {rumRouteType, perr.Processor, v1RequestDecoder},
+	MetricsURL:                {metricsRouteType, metric.Processor, v1RequestDecoder},
+	SourcemapsClientSideURL:   {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
+	SourcemapsURL:             {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
 }
 
 var V2Routes = map[string]v2Route{
@@ -91,6 +91,14 @@ var (
 		sourcemapHandler,
 		systemMetadataDecoder,
 		rumTransformConfig,
+	}
+
+	v1RequestDecoder = func(beaterConfig *Config) decoder.ReqDecoder {
+		return decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize)
+	}
+
+	sourcemapUploadDecoder = func(beaterConfig *Config) decoder.ReqDecoder {
+		return decoder.DecodeSourcemapFormData
 	}
 )
 

@@ -27,10 +27,11 @@ import (
 type v1Route struct {
 	routeType
 	processor.Processor
+	topLevelRequestDecoder func(*Config) decoder.ReqDecoder
 }
 
 func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	decoder := v.configurableDecoder(beaterConfig, decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize))
+	decoder := v.configurableDecoder(beaterConfig, v.topLevelRequestDecoder(beaterConfig))
 	tconfig := v.transformConfig(beaterConfig)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
