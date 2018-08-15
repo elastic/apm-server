@@ -68,33 +68,3 @@ func TestNDStreamReader(t *testing.T) {
 		assert.Equal(t, test.isEOF, n.IsEOF())
 	}
 }
-
-func TestNDStreamReaderSkipToEnd(t *testing.T) {
-	lines := []string{
-		`{"key": "value1"}`,
-		`{"key": "value2"}`,
-		`{invalid-json}`,
-		`{"key": "value3"}`,
-	}
-
-	stringLines := strings.Join(lines, "\n")
-
-	for idx, test := range []string{
-		stringLines,
-		stringLines + "\n",
-	} {
-		buf := bytes.NewBufferString(test)
-		n := NDJSONStreamReader{stream: bufio.NewReader(buf)}
-
-		// read one
-		out, err := n.Read()
-		assert.NoError(t, err)
-		assert.Equal(t, map[string]interface{}{"key": "value1"}, out)
-
-		// three left
-		count, err := n.SkipToEnd()
-		assert.Equal(t, io.EOF, err)
-		assert.Equal(t, 3, count, "Failed at index %d", idx)
-		assert.True(t, n.IsEOF())
-	}
-}

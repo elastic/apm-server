@@ -243,6 +243,11 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, Str
 
 	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
+		// this singals to the client that we're closing the connection
+		// but also signals to http.Server that it should close it:
+		// https://golang.org/src/net/http/server.go#L1254
+		w.Header().Add("Connection", "Close")
+
 		buf, err := StreamResponse.Marshal()
 		if err != nil {
 			logger.Errorw("error sending response", "error", err)
@@ -286,15 +291,6 @@ func (v *v2Handler) Handle(beaterConfig *Config, report reporter) http.Handler {
 		}
 
 		streamResponse := v.handleRequestBody(r, ndReader, report)
-
-		// did we return early?
-		if !ndReader.IsEOF() {
-			dropped, err := ndReader.SkipToEnd()
-			if err != io.EOF {
-				logger.Errorw("error handling request", "error", err.Error())
-			}
-			streamResponse.Dropped += dropped
-		}
 
 		v.sendResponse(logger, w, streamResponse)
 	})

@@ -83,40 +83,6 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	return decoded, readErr // this might be io.EOF
 }
 
-// SkipToEnd fast forwards the stream to the end, counting the
-// number of lines we find without JSON decoding each line.
-func (sr *NDJSONStreamReader) SkipToEnd() (int, error) {
-	objects := 0
-	nl := []byte("\n")
-	var readErr error
-	var readCount int
-	var lastWasNL bool
-	countBuf := make([]byte, 2048)
-	for readErr == nil {
-		readCount, readErr = sr.stream.Read(countBuf)
-		objects += bytes.Count(countBuf[:readCount], nl)
-
-		// if the final character is not a newline we assume there
-		// one additional object. This breaks down if agents send
-		// trailing whitespace and not an actual object, but we're
-		// OK with that.
-		if readCount > 0 {
-			lastWasNL = countBuf[readCount-1] == '\n'
-		}
-	}
-
-	if !lastWasNL {
-		objects++
-	}
-
-	if readErr == io.EOF {
-		sr.isEOF = true
-		return objects, readErr
-	}
-
-	return objects, ReadError(readErr.Error())
-}
-
 func (sr *NDJSONStreamReader) IsEOF() bool {
 	return sr.isEOF
 }
