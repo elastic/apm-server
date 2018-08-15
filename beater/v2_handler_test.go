@@ -191,10 +191,8 @@ func TestV2Handler(t *testing.T) {
 func TestV2HandlerReadError(t *testing.T) {
 
 	var transformables []transform.Transformable
-	var reportedTCtx *transform.Context
 	report := func(ctx context.Context, p pendingReq) error {
 		transformables = append(transformables, p.transformables...)
-		reportedTCtx = p.tcontext
 		return nil
 	}
 
