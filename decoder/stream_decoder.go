@@ -48,16 +48,10 @@ type NDJSONStreamReader struct {
 }
 
 type JSONDecodeError string
-
-func (s JSONDecodeError) Error() string {
-	return string(s)
-}
-
 type ReadError string
 
-func (s ReadError) Error() string {
-	return string(s)
-}
+func (s JSONDecodeError) Error() string { return string(s) }
+func (s ReadError) Error() string       { return string(s) }
 
 func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	// ReadBytes can return valid data in `buf` _and_ also an io.EOF
@@ -83,10 +77,5 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	return decoded, readErr // this might be io.EOF
 }
 
-func (sr *NDJSONStreamReader) IsEOF() bool {
-	return sr.isEOF
-}
-
-func (sr *NDJSONStreamReader) LastLine() []byte {
-	return sr.latestLine
-}
+func (sr *NDJSONStreamReader) IsEOF() bool      { return sr.isEOF }
+func (sr *NDJSONStreamReader) LastLine() []byte { return sr.latestLine }
