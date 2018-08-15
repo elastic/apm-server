@@ -25,6 +25,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/iotest"
 	"time"
 
 	"github.com/elastic/apm-server/model/metric"
@@ -103,7 +104,6 @@ func TestV2Handler(t *testing.T) {
 						},
 					},
 				},
-				Dropped: 1,
 			},
 			reported: []transform.Transformable{},
 		},
@@ -127,7 +127,6 @@ func TestV2Handler(t *testing.T) {
 						},
 					},
 				},
-				Dropped: 1,
 			},
 			reported: []transform.Transformable{},
 		},
@@ -187,5 +186,37 @@ func TestV2Handler(t *testing.T) {
 
 		assert.Equal(t, test.reported, transformables)
 	}
+}
 
+func TestV2HandlerReadError(t *testing.T) {
+
+	var transformables []transform.Transformable
+	var reportedTCtx *transform.Context
+	report := func(ctx context.Context, p pendingReq) error {
+		transformables = append(transformables, p.transformables...)
+		reportedTCtx = p.tcontext
+		return nil
+	}
+
+	c := defaultConfig("7.0.0")
+
+	body := strings.Join([]string{
+		validMetadata(),
+		`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
+		`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "timestamp": "2018-01-01T10:00:00Z"}}`,
+		`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
+	}, "\n")
+
+	bodyReader := bytes.NewBufferString(body)
+	timeoutReader := iotest.TimeoutReader(bodyReader)
+
+	r := httptest.NewRequest("POST", "/v2/intake", timeoutReader)
+	r.Header.Add("Content-Type", "application/x-ndjson")
+
+	w := httptest.NewRecorder()
+
+	handler := (&v2Route{backendRouteType}).Handler(c, report)
+	handler.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
 }

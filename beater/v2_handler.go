@@ -131,7 +131,7 @@ func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader,
 			case decoder.ReadError:
 				response.AddWithMessage(ServerError, 1, e.Error())
 				// return early, we can't recover from a read error
-				return eventables, false
+				return eventables, true
 			case decoder.JSONDecodeError:
 				response.AddWithOffendingDocument(InvalidJSONErr, e.Error(), reader.LastLine())
 				response.Invalid++
@@ -213,7 +213,7 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndReader *decoder.NDJSONS
 	}
 
 	for {
-		transformables, eof := v.readBatch(batchSize, ndReader, resp)
+		transformables, done := v.readBatch(batchSize, ndReader, resp)
 		if transformables != nil {
 			err := report(r.Context(), pendingReq{
 				transformables: transformables,
@@ -231,7 +231,7 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndReader *decoder.NDJSONS
 			}
 		}
 
-		if eof {
+		if done {
 			break
 		}
 	}

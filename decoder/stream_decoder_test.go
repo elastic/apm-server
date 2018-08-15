@@ -20,7 +20,6 @@ package decoder
 import (
 	"bufio"
 	"bytes"
-	"io"
 	"strings"
 	"testing"
 

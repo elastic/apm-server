@@ -48,6 +48,7 @@ var standardMessages = map[StreamErrorType]struct {
 	InvalidJSONErr:        {"invalid JSON", http.StatusBadRequest},
 	ShuttingDownErr:       {"server is shutting down", http.StatusServiceUnavailable},
 	InvalidContentTypeErr: {"invalid content-type. Expected 'application/x-ndjson'", http.StatusBadRequest},
+	ServerError:           {"internal server error", http.StatusInternalServerError},
 }
 
 type StreamResponse struct {
