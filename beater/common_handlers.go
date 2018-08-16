@@ -133,7 +133,7 @@ var (
 	fullQueueCounter  = counter("response.errors.queue")
 	fullQueueResponse = func(err error) serverResponse {
 		return serverResponse{
-			err:     errors.New("queue is full"),
+			err:     errors.Wrap(err, "queue is full"),
 			code:    http.StatusServiceUnavailable,
 			counter: fullQueueCounter,
 		}
@@ -253,7 +253,7 @@ func requestTime(r *http.Request) time.Time {
 	return t
 }
 
-var reqLoggerContextKey = contextKey("requestLogger")
+const reqLoggerContextKey = contextKey("requestLogger")
 
 func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
@@ -408,7 +408,6 @@ func processRequestHandler(p processor.Processor, config transform.Config, repor
 }
 
 func processRequest(r *http.Request, p processor.Processor, config transform.Config, report reporter, decode decoder.ReqDecoder) serverResponse {
-	requestTime := requestTime(r)
 	if r.Method != "POST" {
 		return methodNotAllowedResponse
 	}
@@ -431,13 +430,13 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 	}
 
 	tctx := &transform.Context{
-		RequestTime: requestTime,
+		RequestTime: requestTime(r),
 		Config:      config,
 		Metadata:    *metadata,
 	}
 
 	if err = report(r.Context(), pendingReq{transformables: transformables, tcontext: tctx}); err != nil {
-		if strings.Contains(err.Error(), "publisher is being stopped") {
+		if err == errChannelClosed {
 			return serverShuttingDownResponse(err)
 		}
 		return fullQueueResponse(err)

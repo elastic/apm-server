@@ -25,11 +25,11 @@ import (
 )
 
 func TestStreamResponseSimple(t *testing.T) {
-	sr := StreamResponse{}
+	sr := streamResponse{}
 
-	sr.Add(QueueFullErr, 23)
+	sr.add(QueueFullErr, 23)
 
-	jsonOut, err := sr.Marshal()
+	jsonOut, err := sr.marshal()
 	assert.NoError(t, err)
 	expectedJSON := `{
 		"accepted":0,
@@ -47,20 +47,20 @@ func TestStreamResponseSimple(t *testing.T) {
 
 	expectedStr := `queue is full (23)`
 	assert.Equal(t, expectedStr, sr.String())
-	assert.Equal(t, 429, sr.StatusCode())
-
+	assert.Equal(t, 429, sr.statusCode())
 }
+
 func TestStreamResponseAdvanced(t *testing.T) {
-	sr := StreamResponse{}
+	sr := streamResponse{}
 
-	sr.Add(SchemaValidationErr, 2)
-	sr.AddWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
-	sr.AddWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
-	sr.AddWithOffendingDocument(SchemaValidationErr, "thing error", []byte(`{"wrong": "value"}`))
+	sr.add(SchemaValidationErr, 2)
+	sr.addWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
+	sr.addWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
+	sr.addWithOffendingDocument(SchemaValidationErr, "thing error", []byte(`{"wrong": "value"}`))
 
-	sr.Add(QueueFullErr, 23)
+	sr.add(QueueFullErr, 23)
 
-	jsonOut, err := sr.Marshal()
+	jsonOut, err := sr.marshal()
 	assert.NoError(t, err)
 	expectedJSON := `{
 		"accepted":0,
@@ -87,5 +87,5 @@ func TestStreamResponseAdvanced(t *testing.T) {
 	expectedStr := `queue is full (23), validation error (5): transmogrifier error ({"wrong": "field"}), thing error ({"wrong": "value"})`
 	assert.Equal(t, expectedStr, sr.String())
 
-	assert.Equal(t, 429, sr.StatusCode())
+	assert.Equal(t, 429, sr.statusCode())
 }

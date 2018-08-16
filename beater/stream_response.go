@@ -52,7 +52,7 @@ var standardMessages = map[StreamErrorType]struct {
 	ServerError:           {"internal server error", http.StatusInternalServerError},
 }
 
-var errorTypesDecreasingImportance = func() []StreamErrorType {
+var errorTypesDecreasingHTTPStatus = func() []StreamErrorType {
 	keys := []StreamErrorType{}
 	for k := range standardMessages {
 		keys = append(keys, k)
@@ -64,7 +64,7 @@ var errorTypesDecreasingImportance = func() []StreamErrorType {
 	return keys
 }()
 
-type StreamResponse struct {
+type streamResponse struct {
 	Accepted int `json:"accepted"`
 	Invalid  int `json:"invalid"`
 	Dropped  int `json:"dropped"`
@@ -87,11 +87,11 @@ type ValidationError struct {
 	OffendingEvent string `json:"object"`
 }
 
-func (s *StreamResponse) Add(err StreamErrorType, count int) {
-	s.AddWithMessage(err, count, standardMessages[err].err)
+func (s *streamResponse) add(err StreamErrorType, count int) {
+	s.addWithMessage(err, count, standardMessages[err].err)
 }
 
-func (s *StreamResponse) AddWithMessage(err StreamErrorType, count int, message string) {
+func (s *streamResponse) addWithMessage(err StreamErrorType, count int, message string) {
 	if s.Errors == nil {
 		s.Errors = make(map[StreamErrorType]errorDetails)
 	}
@@ -110,9 +110,9 @@ func (s *StreamResponse) AddWithMessage(err StreamErrorType, count int, message 
 	s.Errors[err] = details
 }
 
-func (s *StreamResponse) String() string {
+func (s *streamResponse) String() string {
 	errorList := []string{}
-	for _, t := range errorTypesDecreasingImportance {
+	for _, t := range errorTypesDecreasingHTTPStatus {
 		if s.Errors[t].Count > 0 {
 			errorStr := fmt.Sprintf("%s (%d)", s.Errors[t].Message, s.Errors[t].Count)
 
@@ -131,7 +131,7 @@ func (s *StreamResponse) String() string {
 	return strings.Join(errorList, ", ")
 }
 
-func (s *StreamResponse) StatusCode() int {
+func (s *streamResponse) statusCode() int {
 	statusCode := http.StatusAccepted
 	for k := range s.Errors {
 		if standardMessages[k].code > statusCode {
@@ -141,12 +141,12 @@ func (s *StreamResponse) StatusCode() int {
 	return statusCode
 }
 
-func (s *StreamResponse) Marshal() ([]byte, error) {
+func (s *streamResponse) marshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (s *StreamResponse) AddWithOffendingDocument(errType StreamErrorType, errMsg string, offendingDocument []byte) {
-	s.Add(errType, 1)
+func (s *streamResponse) addWithOffendingDocument(errType StreamErrorType, errMsg string, offendingDocument []byte) {
+	s.add(errType, 1)
 	errorDetails := s.Errors[errType]
 	if errorDetails.Documents == nil {
 		errorDetails.Documents = []*ValidationError{}
