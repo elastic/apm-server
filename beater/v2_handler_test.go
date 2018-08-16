@@ -28,12 +28,14 @@ import (
 	"testing/iotest"
 	"time"
 
+	"github.com/elastic/apm-server/model"
+	errorm "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/metric"
+	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -136,6 +138,7 @@ func TestV2Handler(t *testing.T) {
 				`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
 				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "timestamp": "2018-01-01T10:00:00Z"}}`,
 				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
+				`{"error": {"exception": {"message": "hello world!"}}}`,
 			}, "\n"),
 			contentType:  "application/x-ndjson",
 			expectedCode: http.StatusAccepted,
@@ -143,6 +146,7 @@ func TestV2Handler(t *testing.T) {
 				&transaction.Event{Name: &tx1, Id: "8ace3f94-cd01-462c-b069-57dc28ebdfc8", Duration: 12, Type: "request", Spans: []*span.Span{}, Timestamp: timestamp},
 				&span.Span{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", Timestamp: timestamp},
 				&metric.Metric{Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}, Timestamp: timestamp},
+				&errorm.Event{Exception: &errorm.Exception{Message: "hello world!", Stacktrace: model.Stacktrace{}}},
 			},
 		},
 		{
@@ -189,7 +193,6 @@ func TestV2Handler(t *testing.T) {
 }
 
 func TestV2HandlerReadError(t *testing.T) {
-
 	var transformables []transform.Transformable
 	report := func(ctx context.Context, p pendingReq) error {
 		transformables = append(transformables, p.transformables...)
