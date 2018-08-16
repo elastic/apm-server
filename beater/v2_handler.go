@@ -187,7 +187,7 @@ func (v *v2Handler) readMetadata(r *http.Request, ndReader *decoder.NDJSONStream
 }
 
 func (v *v2Handler) handleRequestBody(r *http.Request, ndReader *decoder.NDJSONStreamReader, report reporter) *StreamResponse {
-	requestTime := getRequestTime(r)
+	requestTime := requestTime(r)
 	resp := &StreamResponse{}
 
 	metadata, err := v.readMetadata(r, ndReader)
