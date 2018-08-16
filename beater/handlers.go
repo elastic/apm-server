@@ -232,8 +232,8 @@ func rootHandler(secretToken string) http.Handler {
 	return logHandler(handler)
 }
 
-
 type contextKey string
+
 const requestTimeContextKey = contextKey("requestTime")
 
 func requestTimeHandler(h http.Handler) http.Handler {
@@ -244,7 +244,6 @@ func requestTimeHandler(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	})
 }
-
 
 func requestTime(r *http.Request) time.Time {
 	t, ok := r.Context().Value(requestTimeContextKey).(time.Time)
