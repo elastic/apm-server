@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -50,6 +51,18 @@ var standardMessages = map[StreamErrorType]struct {
 	InvalidContentTypeErr: {"invalid content-type. Expected 'application/x-ndjson'", http.StatusBadRequest},
 	ServerError:           {"internal server error", http.StatusInternalServerError},
 }
+
+var errorTypesDecreasingImportance = func() []StreamErrorType {
+	keys := []StreamErrorType{}
+	for k := range standardMessages {
+		keys = append(keys, k)
+	}
+
+	// sort in reverse order
+	sort.Slice(keys, func(i, j int) bool { return standardMessages[keys[i]].code > standardMessages[keys[j]].code })
+
+	return keys
+}()
 
 type StreamResponse struct {
 	Accepted int `json:"accepted"`
@@ -99,14 +112,7 @@ func (s *StreamResponse) AddWithMessage(err StreamErrorType, count int, message 
 
 func (s *StreamResponse) String() string {
 	errorList := []string{}
-	for _, t := range []StreamErrorType{
-		QueueFullErr,
-		ProcessingTimeoutErr,
-		SchemaValidationErr,
-		InvalidJSONErr,
-		ShuttingDownErr,
-		InvalidContentTypeErr,
-	} {
+	for _, t := range errorTypesDecreasingImportance {
 		if s.Errors[t].Count > 0 {
 			errorStr := fmt.Sprintf("%s (%d)", s.Errors[t].Message, s.Errors[t].Count)
 
