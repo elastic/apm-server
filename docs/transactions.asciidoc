@@ -22,7 +22,7 @@ Transactions are stored in <<transaction-indices, transaction indices>>.
 [[transaction-spans]]
 [float]
 === Spans
-Spans can have 0, 1, or many spans. Spans have a `transaction.id` attribute that refer to their transaction.
+Transactions can have 0, 1, or many spans. Spans have a `transaction.id` attribute that refer to their transaction.
 
 A span contains information about a specific code path,
 executed as part of a transaction. Such information includes start time, duration, name, type, and optionally a `stack trace`.
