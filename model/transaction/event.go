@@ -65,7 +65,9 @@ type Event struct {
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
-	Spans     []*span.Span
+
+	// deprecated in V2
+	Spans []*span.Event
 }
 type SpanCount struct {
 	Dropped Dropped
@@ -74,13 +76,54 @@ type Dropped struct {
 	Total *int
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	if input == nil || err != nil {
+func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+	e, raw, err := decodeEvent(input, err)
+	if err != nil {
 		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	var transformable transform.Transformable
+	spans := decoder.InterfaceArr(raw, "spans")
+	if len(spans) > 0 {
+		e.Spans = make([]*span.Event, len(spans))
+	}
+	err = decoder.Err
+	for idx, rawSpan := range spans {
+		transformable, err = span.V1DecodeEvent(rawSpan, err)
+		sp, ok := transformable.(*span.Event)
+		if ok {
+			if sp.Timestamp.IsZero() {
+				sp.Timestamp = e.Timestamp
+			}
+
+			if sp.TransactionId == nil || *sp.TransactionId == "" {
+				sp.TransactionId = &e.Id
+			}
+		}
+
+		e.Spans[idx] = sp
+	}
+	return e, decoder.Err
+}
+
+func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+	e, _, err := decodeEvent(input, err)
+	if err != nil {
+		return nil, err
+	}
+	return e, nil
+}
+
+func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
+	if err != nil {
+		return nil, nil, err
+	}
+	if input == nil {
+		return nil, nil, errors.New("Input missing for decoding Event")
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for transaction event")
+		return nil, nil, errors.New("Invalid type for transaction event")
 	}
 	decoder := utility.ManualDecoder{}
 	e := Event{
@@ -95,26 +138,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
 		SpanCount: SpanCount{Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")}},
 	}
-	err = decoder.Err
-	var transformable transform.Transformable
-	spans := decoder.InterfaceArr(raw, "spans")
-	e.Spans = make([]*span.Span, len(spans))
-	for idx, rawSpan := range spans {
-		transformable, err = span.DecodeSpan(rawSpan, err)
-		sp, ok := transformable.(*span.Span)
-		if ok {
-			if sp.Timestamp.IsZero() {
-				sp.Timestamp = e.Timestamp
-			}
-
-			if sp.TransactionId == nil || *sp.TransactionId == "" {
-				sp.TransactionId = &e.Id
-			}
-		}
-
-		e.Spans[idx] = sp
-	}
-	return &e, err
+	return &e, raw, decoder.Err
 }
 
 func (t *Event) fields(tctx *transform.Context) common.MapStr {

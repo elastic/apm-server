@@ -1,0 +1,65 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-09T15:04:05.999Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "system": {
+                    "ip": "192.0.0.1"
+                }
+            },
+            "error": {
+                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+                "id": "abcdef0123456789",
+                "log": {
+                    "level": "custom log level",
+                    "message": "Cannot read property 'baz' of undefined"
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "system": {
+                    "ip": "192.0.0.1"
+                }
+            },
+            "go": {
+                "memstats": {
+                    "heap": {
+                        "sys": {
+                            "bytes": 61235
+                        }
+                    }
+                }
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            }
+        }
+    ]
+}

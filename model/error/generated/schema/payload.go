@@ -18,7 +18,7 @@
 package schema
 
 const PayloadSchema = `{
-    "$id": "docs/spec/errors/payload.json",
+    "$id": "docs/spec/errors/v1_error.json",
     "title": "Errors payload",
     "description": "List of errors wrapped in an object containing some other attributes normalized away from the errors themselves",
     "type": "object",
@@ -140,7 +140,11 @@ const PayloadSchema = `{
         "errors": {
             "type": "array",
             "items": {
-                    "$id": "docs/spec/errors/error.json",
+                "type": "object",
+                "description": "Data captured by an agent representing an event occurring in a monitored service",
+                "allOf": [
+
+                    {     "$id": "docs/spec/errors/error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -429,11 +433,6 @@ const PayloadSchema = `{
             },
             "required": ["message"]
         },
-        "id": {
-            "type": ["string", "null"],
-            "description": "UUID for the error",
-            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
-        },
         "log": {
             "type": ["object", "null"],
             "description": "Additional information added when logging the error.",
@@ -533,17 +532,6 @@ const PayloadSchema = `{
             "format": "date-time",
             "pattern": "Z$",
             "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        },
-        "transaction": {
-            "type": ["object", "null"],
-            "description": "Data for correlating errors with transactions",
-            "properties": {
-                "id": {
-                    "type": ["string", "null"],
-                    "description": "UUID for the transaction",
-                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
-                }
-            }
         }
     },
     "anyOf": [
@@ -553,7 +541,29 @@ const PayloadSchema = `{
         {
             "required": ["log"]
         }
-    ]
+    ]  }, 
+                    {  
+                        "properties": {
+                            "id": {
+                                "type": ["string", "null"],
+                                "description": "UUID for the error",
+                                "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                            },
+                            "transaction": {
+                                "type": ["object", "null"],
+                                "description": "Data for correlating errors with transactions",
+                                "properties": {
+                                    "id": {
+                                        "type": ["string", "null"],
+                                        "description": "UUID for the transaction",
+                                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+
             },
             "minItems": 1
         },

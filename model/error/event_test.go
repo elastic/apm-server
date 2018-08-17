@@ -74,7 +74,7 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 }
 
 func TestErrorEventDecode(t *testing.T) {
-	id, culprit, transactionId := "123", "foo()", "555"
+	id, culprit := "123", "foo()"
 	context := map[string]interface{}{"a": "b"}
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
@@ -85,28 +85,23 @@ func TestErrorEventDecode(t *testing.T) {
 		err, inpErr error
 		e           *Event
 	}{
-		{input: nil, err: nil, e: nil},
+		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
 		{input: "", err: errors.New("Invalid type for error event"), e: nil},
 		{
 			input: map[string]interface{}{"timestamp": 123},
 			err:   errors.New("Error fetching field"),
-			e:     &Event{},
+			e:     nil,
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
-				"transaction": map[string]interface{}{"id": transactionId},
-			},
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
 			err: nil,
 			e: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
 				Context:   context,
 				Timestamp: timestampParsed,
-				Transaction: &Transaction{
-					Id: transactionId,
-				},
 			},
 		},
 		{
@@ -127,10 +122,7 @@ func TestErrorEventDecode(t *testing.T) {
 				},
 			},
 			err: errors.New("Invalid type for stacktrace"),
-			e: &Event{
-				Timestamp: timestampParsed,
-				Exception: &Exception{Message: "Exception Msg", Stacktrace: m.Stacktrace{}},
-			},
+			e:   nil,
 		},
 		{
 			input: map[string]interface{}{
@@ -141,10 +133,7 @@ func TestErrorEventDecode(t *testing.T) {
 				},
 			},
 			err: errors.New("Invalid type for stacktrace"),
-			e: &Event{
-				Timestamp: timestampParsed,
-				Log:       &Log{Message: "Log Msg", Stacktrace: m.Stacktrace{}},
-			},
+			e:   nil,
 		},
 		{
 			input: map[string]interface{}{
@@ -196,17 +185,45 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		transformable, err := DecodeEvent(test.input, test.inpErr)
+		for _, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
+			transformable, err := decodeFct(test.input, test.inpErr)
 
-		if test.e != nil {
-			event := transformable.(*Event)
-			assert.Equal(t, test.e, event)
-		} else {
-			assert.Nil(t, transformable)
+			if test.e != nil {
+				event := transformable.(*Event)
+				assert.Equal(t, test.e, event)
+			} else {
+				assert.Nil(t, transformable)
+			}
+
+			assert.Equal(t, test.err, err)
 		}
-
-		assert.Equal(t, test.err, err)
 	}
+}
+
+func TestVersionedErrorEventDecode(t *testing.T) {
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	input := map[string]interface{}{
+		"timestamp":      timestamp,
+		"transaction_id": "abcdefabcdef0000",
+		"transaction":    map[string]interface{}{"id": "01234"},
+	}
+
+	// test V1
+	e := &Event{Timestamp: timestampParsed,
+		Transaction: &Transaction{Id: "01234"},
+	}
+	transformable, err := V1DecodeEvent(input, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, e, transformable.(*Event))
+
+	// test V2
+	e = &Event{Timestamp: timestampParsed,
+		Transaction: &Transaction{Id: "abcdefabcdef0000"},
+	}
+	transformable, err = V2DecodeEvent(input, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, e, transformable.(*Event))
 }
 
 func TestEventFields(t *testing.T) {

@@ -57,7 +57,7 @@ A good way to present your results is by using `benchcmp`.
 With your changes in the current working tree, do:
 
 ```
-$ go get -u benchcmp
+$ go get -u golang.org/x/tools/cmd/benchcmp 
 $ make bench > new.txt
 $ git checkout master
 $ make bench > old.txt

@@ -1,0 +1,211 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 141581
+                },
+                "hex_id": "abcdef01234567",
+                "name": "GET /api/types",
+                "start": {
+                    "us": 0
+                },
+                "type": "request"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 32592
+                },
+                "hex_id": "1234abcdef56789568",
+                "name": "GET /api/types",
+                "start": {
+                    "us": 0
+                },
+                "type": "request"
+            },
+            "transaction": {
+                "id": "ab45781d265894fe"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "hex_id": "0123456a89012345",
+                "name": "GET /api/types",
+                "start": {
+                    "us": 1845
+                },
+                "type": "request"
+            },
+            "transaction": {
+                "id": "ab23456a89012345"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 13980
+                },
+                "hex_id": "abcde56a89012345",
+                "name": "get /api/types",
+                "start": {
+                    "us": 0
+                },
+                "type": "request"
+            },
+            "transaction": {
+                "id": "bed3456a89012345"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "db": {
+                    "instance": "customers",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": "readonly_user"
+                },
+                "http": {
+                    "url": "http://localhost:8000"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 3781
+                },
+                "hex_id": "1234567890aaaade",
+                "name": "SELECT FROM product_types",
+                "stacktrace": [
+                    {
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "line": {
+                            "number": 547
+                        }
+                    },
+                    {
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "}"
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "file2.js",
+                        "line": {
+                            "number": 12
+                        }
+                    },
+                    {
+                        "abs_path": "net.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "function": "onread",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 547
+                        },
+                        "module": "some module",
+                        "vars": {
+                            "key": "value"
+                        }
+                    }
+                ],
+                "start": {
+                    "us": 2830
+                },
+                "type": "db.postgresql.query"
+            },
+            "transaction": {
+                "id": "aff4567890aaaade"
+            }
+        }
+    ]
+}

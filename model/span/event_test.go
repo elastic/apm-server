@@ -33,48 +33,44 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestSpanDecode(t *testing.T) {
+func TestSpanEventDecode(t *testing.T) {
 	tid := "longid"
-	id, parent := 1, 12
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	context := map[string]interface{}{"a": "b"}
 	stacktrace := []interface{}{map[string]interface{}{
 		"filename": "file", "lineno": 1.0,
 	}}
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+
 	for _, test := range []struct {
 		input       interface{}
 		err, inpErr error
-		s           *Span
+		e           *Event
 	}{
-		{input: nil, err: nil, s: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: errors.New("Invalid type for span"), s: nil},
+		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		{input: "", err: errors.New("Invalid type for span"), e: nil},
 		{
 			input: map[string]interface{}{},
 			err:   errors.New("Error fetching field"),
-			s: &Span{
-				Id: nil, Name: "", Type: "", Start: 0.0,
-				Duration: 0.0, Context: nil, Parent: nil,
-			},
+			e:     nil,
 		},
 		{
 			input: map[string]interface{}{
-				"name": name, "id": 1.0, "type": spType,
-				"start": start, "duration": duration,
-				"context": context, "parent": 12.0,
-				"stacktrace":     stacktrace,
-				"transaction_id": tid,
+				"name": name, "type": spType, "start": start, "duration": duration,
+				"context": context, "stacktrace": stacktrace,
+				"transaction_id": tid, "timestamp": timestamp,
 			},
 			err: nil,
-			s: &Span{
-				Id:            &id,
+			e: &Event{
 				Name:          name,
 				Type:          spType,
 				Start:         start,
 				Duration:      duration,
 				Context:       context,
-				Parent:        &parent,
+				Timestamp:     timestampParsed,
 				TransactionId: &tid,
 				Stacktrace: m.Stacktrace{
 					&m.StacktraceFrame{Filename: "file", Lineno: 1},
@@ -82,16 +78,64 @@ func TestSpanDecode(t *testing.T) {
 			},
 		},
 	} {
-		transformable, err := DecodeSpan(test.input, test.inpErr)
-
-		if test.s != nil {
-			span := transformable.(*Span)
-			assert.Equal(t, test.s, span)
-		} else {
-			assert.Nil(t, transformable)
+		for _, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
+			transformable, err := decodeFct(test.input, test.inpErr)
+			if test.e != nil {
+				event := transformable.(*Event)
+				assert.Equal(t, test.e, event)
+			} else {
+				assert.Nil(t, transformable)
+			}
+			assert.Equal(t, test.err, err)
 		}
-		assert.Equal(t, test.err, err)
 	}
+}
+
+func TestVersionedSpanEvendDecode(t *testing.T) {
+	name, spType, start, duration := "foo", "db", 1.2, 3.4
+	tid := "longid"
+	hexId, parentId := "0147258369012345", "abcdef0123456789"
+	id, parent := 1, 12
+	timestamp := "2017-05-30T18:53:27.154Z"
+	//timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+
+	// test V1
+	input := map[string]interface{}{
+		"name": name, "type": spType, "start": start, "duration": duration,
+		"id": 1.0, "parent": 12.0, "parent_id": parentId,
+		"transaction_id": tid, timestamp: "timestamp",
+	}
+	e := &Event{
+		Name:          name,
+		Type:          spType,
+		Start:         start,
+		Duration:      duration,
+		Id:            &id,
+		Parent:        &parent,
+		TransactionId: &tid,
+	}
+	transformable, err := V1DecodeEvent(input, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, e, transformable.(*Event))
+
+	// test V2
+	input = map[string]interface{}{
+		"name": name, "type": spType, "start": start, "duration": duration,
+		"id": hexId, "parent": 12.0, "parent_id": parentId,
+		"transaction_id": tid, timestamp: "timestamp",
+	}
+	e = &Event{
+		Name:          name,
+		Type:          spType,
+		Start:         start,
+		Duration:      duration,
+		HexId:         &hexId,
+		ParentId:      &parentId,
+		TransactionId: &tid,
+	}
+	transformable, err = V2DecodeEvent(input, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, e, transformable.(*Event))
 }
 
 func TestSpanTransform(t *testing.T) {
@@ -99,14 +143,15 @@ func TestSpanTransform(t *testing.T) {
 	parent := 12
 	tid := 1
 	service := metadata.Service{Name: "myService"}
+	hexId, parentId := "0147258369012345", "abcdef0123456789"
 
 	tests := []struct {
-		Span   Span
+		Event  Event
 		Output common.MapStr
 		Msg    string
 	}{
 		{
-			Span: Span{},
+			Event: Event{},
 			Output: common.MapStr{
 				"type":     "",
 				"start":    common.MapStr{"us": 0},
@@ -116,7 +161,7 @@ func TestSpanTransform(t *testing.T) {
 			Msg: "Span without a Stacktrace",
 		},
 		{
-			Span: Span{
+			Event: Event{
 				Id:         &tid,
 				Name:       "myspan",
 				Type:       "myspantype",
@@ -125,6 +170,7 @@ func TestSpanTransform(t *testing.T) {
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
 				Context:    common.MapStr{"key": "val"},
 				Parent:     &parent,
+				HexId:      &hexId,
 			},
 			Output: common.MapStr{
 				"duration": common.MapStr{"us": 1200},
@@ -133,6 +179,7 @@ func TestSpanTransform(t *testing.T) {
 				"start":    common.MapStr{"us": 650},
 				"type":     "myspantype",
 				"parent":   12,
+				"hex_id":   hexId,
 				"stacktrace": []common.MapStr{{
 					"exclude_from_grouping": false,
 					"abs_path":              path,
@@ -146,6 +193,18 @@ func TestSpanTransform(t *testing.T) {
 			},
 			Msg: "Full Span",
 		},
+		{
+			Event: Event{HexId: &hexId, ParentId: &parentId},
+			Output: common.MapStr{
+				"type":      "",
+				"start":     common.MapStr{"us": 0},
+				"duration":  common.MapStr{"us": 0},
+				"name":      "",
+				"parent_id": parentId,
+				"hex_id":    hexId,
+			},
+			Msg: "V2 Span without a Stacktrace",
+		},
 	}
 
 	tctx := &transform.Context{
@@ -155,7 +214,7 @@ func TestSpanTransform(t *testing.T) {
 		},
 	}
 	for idx, test := range tests {
-		output := test.Span.Transform(tctx)
+		output := test.Event.Transform(tctx)
 		fields := output[0].Fields["span"]
 		assert.Equal(t, test.Output, fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 
@@ -167,7 +226,7 @@ func TestEventTransformUseReqTime(t *testing.T) {
 	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
 	require.NoError(t, err)
 
-	e := Span{}
+	e := Event{}
 	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
 	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
