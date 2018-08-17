@@ -1,0 +1,34 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-09T15:04:05.999Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "error": {
+                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+                "id": "abcdef0123456789",
+                "log": {
+                    "level": "custom log level",
+                    "message": "Cannot read property 'baz' of undefined"
+                }
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            }
+        }
+    ]
+}

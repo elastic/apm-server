@@ -66,8 +66,9 @@ type Event struct {
 	Context   common.MapStr
 	Timestamp time.Time
 
-	Exception   *Exception
-	Log         *Log
+	Exception *Exception
+	Log       *Log
+
 	Transaction *Transaction
 
 	data common.MapStr
@@ -95,13 +96,42 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	if input == nil || err != nil {
+func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+	e, raw, err := decodeEvent(input, err)
+	if err != nil {
 		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	transactionId := decoder.StringPtr(raw, "id", "transaction")
+	if transactionId != nil {
+		e.Transaction = &Transaction{Id: *transactionId}
+	}
+	return e, decoder.Err
+}
+
+func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+	e, raw, err := decodeEvent(input, err)
+	if err != nil {
+		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	transactionId := decoder.StringPtr(raw, "transaction_id")
+	if transactionId != nil {
+		e.Transaction = &Transaction{Id: *transactionId}
+	}
+	return e, decoder.Err
+}
+
+func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
+	if err != nil {
+		return nil, nil, err
+	}
+	if input == nil {
+		return nil, nil, errors.New("Input missing for decoding Event")
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for error event")
+		return nil, nil, errors.New("Invalid type for error event")
 	}
 	decoder := utility.ManualDecoder{}
 	e := Event{
@@ -109,10 +139,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Culprit:   decoder.StringPtr(raw, "culprit"),
 		Context:   decoder.MapStr(raw, "context"),
 		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
-	}
-	transactionId := decoder.StringPtr(raw, "id", "transaction")
-	if transactionId != nil {
-		e.Transaction = &Transaction{Id: *transactionId}
 	}
 
 	var stacktr *m.Stacktrace
@@ -150,7 +176,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 			e.Log.Stacktrace = *stacktr
 		}
 	}
-	return &e, err
+	return &e, raw, err
 }
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {

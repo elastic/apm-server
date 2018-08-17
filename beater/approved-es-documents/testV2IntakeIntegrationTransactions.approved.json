@@ -1,0 +1,284 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "945254c567a5417e",
+                "sampled": true,
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2018-08-30T18:53:27.154Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "abcdef1478523690",
+                "result": "200",
+                "sampled": true,
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:42.281999Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "request": {
+                    "method": "POST"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 13980
+                },
+                "id": "4340a8e0df1906ecbfa9",
+                "sampled": true,
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "context": {
+                "custom": {
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "some_other_value": "foo bar"
+                },
+                "process": {
+                    "pid": 1234
+                },
+                "request": {
+                    "method": "POST"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "tags": {
+                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 13980
+                },
+                "id": "85925e55df1906ecbf7a",
+                "sampled": true,
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "1231231231230000",
+                "result": "200",
+                "sampled": true,
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2018-05-30T18:53:42Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 13980
+                },
+                "id": "a43f4340a8e0df19",
+                "sampled": true,
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2018-08-30T18:53:42.281999Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "request": {
+                    "method": "POST"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 13980
+                },
+                "id": "5e55b43f4340a8e0",
+                "sampled": true,
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "context": {
+                "custom": {
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "some_other_value": "foo bar"
+                },
+                "process": {
+                    "pid": 1234
+                },
+                "request": {
+                    "method": "POST"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "tags": {
+                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 13980
+                },
+                "id": "cdef4340a8e0df19",
+                "sampled": true,
+                "type": "request"
+            }
+        }
+    ]
+}

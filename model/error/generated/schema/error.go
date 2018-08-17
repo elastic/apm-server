@@ -18,7 +18,12 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/errors/error.json",
+    "$id": "docs/spec/errors/v2_error.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "allOf": [
+
+        {     "$id": "docs/spec/errors/error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -305,11 +310,6 @@ const ModelSchema = `{
             },
             "required": ["message"]
         },
-        "id": {
-            "type": ["string", "null"],
-            "description": "UUID for the error",
-            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
-        },
         "log": {
             "type": ["object", "null"],
             "description": "Additional information added when logging the error.",
@@ -409,17 +409,6 @@ const ModelSchema = `{
             "format": "date-time",
             "pattern": "Z$",
             "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        },
-        "transaction": {
-            "type": ["object", "null"],
-            "description": "Data for correlating errors with transactions",
-            "properties": {
-                "id": {
-                    "type": ["string", "null"],
-                    "description": "UUID for the transaction",
-                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
-                }
-            }
         }
     },
     "anyOf": [
@@ -428,6 +417,21 @@ const ModelSchema = `{
         },
         {
             "required": ["log"]
+        }
+    ]  }, 
+        {  
+            "properties": {
+                "id": {
+                    "type": ["string", "null"],
+                    "description": "Hex encoded 64 random bits ID of the error.",
+                    "maxLength": 1024
+                },
+                "transaction_id": {
+                    "type": ["string", "null"],
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction.",
+                    "maxLength": 1024
+                }
+            }
         }
     ]
 }

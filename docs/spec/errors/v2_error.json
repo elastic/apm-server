@@ -1,0 +1,23 @@
+{
+    "$id": "docs/spec/errors/v2_error.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "allOf": [
+
+        { "$ref": "common_error.json"  }, 
+        {  
+            "properties": {
+                "id": {
+                    "type": ["string", "null"],
+                    "description": "Hex encoded 64 random bits ID of the error.",
+                    "maxLength": 1024
+                },
+                "transaction_id": {
+                    "type": ["string", "null"],
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction.",
+                    "maxLength": 1024
+                }
+            }
+        }
+    ]
+}

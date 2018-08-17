@@ -271,7 +271,7 @@
         - name: id
           type: keyword
           description: >
-            A UUID4 transaction ID.
+            The transaction ID.
           format: url
           label_template: "View Spans"
           open_link_in_current_tab: true
