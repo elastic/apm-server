@@ -117,6 +117,17 @@ Defaults to `debug/vars`.
 Experimental Metrics endpoint for collecting application metrics.
 Enabled by default.
 
+[[register.ingest.pipeline.enabled]]
+[float]
+==== `register.ingest.pipeline.enabled`
+Loads pipeline definitions to Elasticsearch on APM Server startup.
+Defaults to false.
+
+[[register.ingest.pipeline.overwrite]]
+[float]
+==== `register.ingest.pipeline.overwrite`
+Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
+
 [float]
 === Configuration options `queue.mem.*`
 Data is buffered in a memory queue before it is published to the configured output.
