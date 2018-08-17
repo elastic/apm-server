@@ -7,6 +7,7 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 
 * <<configuration-process>>
 * <<configuring-output>>
+* <<configuring-ingest-node>>
 * <<configuration-ssl>>
 * <<configuration-template>>
 * <<configuration-logging>>
@@ -22,7 +23,7 @@ include::./configuration-process.asciidoc[]
 :no-redis-output:
 include::./copied-from-beats/outputconfig.asciidoc[]
 
-include::./copied-from-beats/shared-config-ingest.asciidoc[]
+include::./configuring-ingest.asciidoc[]
 
 include::./copied-from-beats/shared-ssl-config.asciidoc[]
 

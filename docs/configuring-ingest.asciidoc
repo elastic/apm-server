@@ -1,0 +1,82 @@
+// This file was copied over from libbeat and
+// then adapted to APM Server specific needs
+
+[[configuring-ingest-node]]
+== Parse data using ingest node pipelines
+
+With the Elasticsearch output you can configure the APM Server to use
+{elasticsearch}/ingest.html[ingest node] to pre-process documents before indexing them.
+A pipeline defines processors that operate on your data.
+For example, you can register a pipeline that defines one processor that removes a field and another that renames other field.
+
+Using pipelines involves two steps.
+First you need to <<register-pipelines,register a pipeline>> in Elasticsearch.
+Then the pipeline needs to be <<apply-pipelines, applied during data ingestion>>.
+
+[[register-pipelines]]
+[float]
+=== Registering Pipelines in Elasticsearch
+For registering a pipeline in Elasticsearch you can either manually upload
+a pipeline definition or you can configure APM Server to register pipelines on startup.
+
+[[register-pipelines-apm-server]]
+[float]
+==== Register pipelines on APM Server startup
+Automatic pipeline registration requires `output.elasticsearch` to be enabled and configured,
+as well as having the required Elasticsearch plugins installed.
+
+APM Server default pipelines require you to have the Ingest user agent plugin installed.
+If pipelines are enabeld but required plugins are missing, 
+the APM Server will not be able to properly connect to the Elasticsearch output.
+Find the default pipeline configuration at `ingest/pipeline/definition.json` of your APM Server
+installation's home directory.
+In case you want to add, change or remove pipelines in Elasticsearch,
+you can simply change the definitions in this file
+and restart your APM Server or run `apm-server setup --pipeline`
+
+By default pipeline registration is disabled.
+See how to <<register.ingest.pipeline.enabled,configure pipeline registration>>.
+
+[[register-pipelines-manual]]
+[float]
+==== Manually upload pipeline definitions
+For example, consider the following pipeline in a file named `pipeline.json`:
+
+[source,json]
+------------------------------------------------------------------------------
+{
+    "description": "Test pipeline",
+    "processors": [
+        {
+            "lowercase": {
+                "field": "beat.name"
+            }
+        }
+    ]
+}
+------------------------------------------------------------------------------
+
+To register the pipeline run:
+
+[source,shell]
+------------------------------------------------------------------------------
+curl -H 'Content-Type: application/json' -XPUT 'http://localhost:9200/_ingest/pipeline/test-pipeline' -d @pipeline.json
+------------------------------------------------------------------------------
+
+This pipeline definition converts the value of `beat.name` to lowercase before indexing each document.
+
+[[apply-pipelines]]
+[float]
+=== Apply pipelines during data ingestion
+To specify which pipelines to apply during data ingestion,
+add the pipeline IDs in the `pipelines` option under `elasticsearch` in the +apm-server.yml+ file:
+
+[source,yaml]
+------------------------------------------------------------------------------
+output.elasticsearch:
+  pipelines:
+  - pipeline: "test-pipeline"
+------------------------------------------------------------------------------
+
+For more information about defining a pre-processing pipeline, see the
+{elasticsearch}/ingest.html[Ingest Node] documentation.
