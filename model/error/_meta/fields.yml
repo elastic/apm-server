@@ -33,7 +33,7 @@
           type: keyword
           count: 4
           description: >
-            A UUID for the error.
+            The ID of the error.
 
         - name: culprit
           type: text
@@ -52,7 +52,6 @@
               value: "../app/kibana#/dashboard/5f08a870-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(query_string:(analyze_wildcard:!t,query:'error.grouping_key:%22{{value}}%22')))"
             - min_version: 6.0.0-alpha1
               value: "../app/kibana#/dashboard/5f08a870-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(language:lucene,query:'error.grouping_key:{{value}}'))"
-
 
         - name: exception
           type: group

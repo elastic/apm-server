@@ -40,6 +40,18 @@ import (
 const ApprovedSuffix = ".approved.json"
 const ReceivedSuffix = ".received.json"
 
+func ApproveEvents(events []beat.Event, name string, ignored map[string]string) error {
+	// extract Fields and write to received.json
+	eventFields := make([]common.MapStr, len(events))
+	for idx, event := range events {
+		eventFields[idx] = event.Fields
+		eventFields[idx]["@timestamp"] = event.Timestamp
+	}
+
+	receivedJson := map[string]interface{}{"events": eventFields}
+	return ApproveJson(receivedJson, name, ignored)
+}
+
 func ApproveJson(received map[string]interface{}, name string, ignored map[string]string) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
@@ -132,16 +144,7 @@ func TestProcessRequests(t *testing.T, p processor.Processor, tctx transform.Con
 		for _, transformable := range payload {
 			events = append(events, transformable.Transform(&tctx)...)
 		}
-
-		// extract Fields and write to received.json
-		eventFields := make([]common.MapStr, len(events))
-		for idx, event := range events {
-			eventFields[idx] = event.Fields
-			eventFields[idx]["@timestamp"] = event.Timestamp
-		}
-
-		receivedJson := map[string]interface{}{"events": eventFields}
-		verifyErr := ApproveJson(receivedJson, info.Name, ignored)
+		verifyErr := ApproveEvents(events, info.Name, ignored)
 		if verifyErr != nil {
 			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
 		}

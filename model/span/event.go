@@ -41,7 +41,7 @@ var (
 
 	spanDocType = "span"
 
-	processorSpanEntry = common.MapStr{"name": "transaction", "event": spanDocType}
+	processorEventEntry = common.MapStr{"name": "transaction", "event": spanDocType}
 
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
 )
@@ -50,49 +50,79 @@ func ModelSchema() *jsonschema.Schema {
 	return cachedModelSchema
 }
 
-type Span struct {
-	Id         *int
+type Event struct {
 	Name       string
 	Type       string
 	Start      float64
 	Duration   float64
 	Context    common.MapStr
-	Parent     *int
 	Stacktrace m.Stacktrace
 
 	Timestamp     time.Time
 	TransactionId *string
+
+	// new in v2
+	HexId    *string
+	ParentId *string
+
+	// deprecated in v2
+	Id     *int
+	Parent *int
 }
 
-func DecodeSpan(input interface{}, err error) (transform.Transformable, error) {
-	if input == nil || err != nil {
+func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+	e, raw, err := decodeEvent(input, err)
+	if err != nil {
 		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	e.Id = decoder.IntPtr(raw, "id")
+	e.Parent = decoder.IntPtr(raw, "parent")
+	return e, decoder.Err
+}
+
+func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+	e, raw, err := decodeEvent(input, err)
+	if err != nil {
+		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	e.HexId = decoder.StringPtr(raw, "id")
+	e.ParentId = decoder.StringPtr(raw, "parent_id")
+	return e, decoder.Err
+}
+
+func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
+	if err != nil {
+		return nil, nil, err
+	}
+	if input == nil {
+		return nil, nil, errors.New("Input missing for decoding Event")
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for span")
+		return nil, nil, errors.New("Invalid type for span")
 	}
+
 	decoder := utility.ManualDecoder{}
-	sp := Span{
-		Id:            decoder.IntPtr(raw, "id"),
+	event := Event{
 		Name:          decoder.String(raw, "name"),
 		Type:          decoder.String(raw, "type"),
 		Start:         decoder.Float64(raw, "start"),
 		Duration:      decoder.Float64(raw, "duration"),
 		Context:       decoder.MapStr(raw, "context"),
-		Parent:        decoder.IntPtr(raw, "parent"),
 		Timestamp:     decoder.TimeRFC3339(raw, "timestamp"),
 		TransactionId: decoder.StringPtr(raw, "transaction_id"),
 	}
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
 	if stacktr != nil {
-		sp.Stacktrace = *stacktr
+		event.Stacktrace = *stacktr
 	}
-	return &sp, err
+	return &event, raw, err
 }
 
-func (s *Span) Transform(tctx *transform.Context) []beat.Event {
+func (s *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if frames := len(s.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
@@ -105,7 +135,7 @@ func (s *Span) Transform(tctx *transform.Context) []beat.Event {
 
 	ev := beat.Event{
 		Fields: common.MapStr{
-			"processor":   processorSpanEntry,
+			"processor":   processorEventEntry,
 			spanDocType:   s.fields(tctx),
 			"transaction": common.MapStr{"id": s.TransactionId},
 			"context":     tctx.Metadata.MergeMinimal(s.Context),
@@ -116,17 +146,22 @@ func (s *Span) Transform(tctx *transform.Context) []beat.Event {
 	return []beat.Event{ev}
 }
 
-func (s *Span) fields(tctx *transform.Context) common.MapStr {
+func (s *Event) fields(tctx *transform.Context) common.MapStr {
 	if s == nil {
 		return nil
 	}
 	tr := common.MapStr{}
+	// v1
 	utility.Add(tr, "id", s.Id)
+	utility.Add(tr, "parent", s.Parent)
+	// v2
+	utility.Add(tr, "hex_id", s.HexId)
+	utility.Add(tr, "parent_id", s.ParentId)
+
 	utility.Add(tr, "name", s.Name)
 	utility.Add(tr, "type", s.Type)
 	utility.Add(tr, "start", utility.MillisAsMicros(s.Start))
 	utility.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
-	utility.Add(tr, "parent", s.Parent)
 	st := s.Stacktrace.Transform(tctx)
 	utility.Add(tr, "stacktrace", st)
 	return tr

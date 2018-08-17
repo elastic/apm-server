@@ -1,0 +1,18 @@
+{
+    "$id": "docs/spec/transactions/v2_transaction.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "allOf": [
+        { "$ref": "common_transaction.json"  }, 
+        {  
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "Hex encoded 64 random bits ID of the transaction.", 
+                    "maxLength": 1024
+                }
+            },
+            "required": ["id"]
+        }
+    ]
+}
