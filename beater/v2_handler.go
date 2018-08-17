@@ -194,7 +194,7 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndReader *decoder.NDJSONS
 
 	for {
 		transformables, done := v.readBatch(batchSize, ndReader, resp)
-		if transformables != nil {
+		if transformables != nil && len(transformables) > 0 {
 			err := report(r.Context(), pendingReq{
 				transformables: transformables,
 				tcontext:       tctx,

@@ -21,11 +21,11 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
-	"github.com/elastic/apm-server/processor"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/transform"
@@ -151,7 +151,6 @@ func rumTransformConfig(beaterConfig *Config) transform.Config {
 	}
 	return config
 }
-
 
 type v1Route struct {
 	routeType

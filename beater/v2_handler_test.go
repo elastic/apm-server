@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/apm-server/model/transaction"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/transform"
 )
@@ -81,6 +82,32 @@ func TestV2Handler(t *testing.T) {
 				},
 				Accepted: -1,
 				Dropped:  -1,
+				Invalid:  1,
+			},
+			expectedCode: 400,
+			reported:     []transform.Transformable{},
+		},
+		{
+			body: strings.Join([]string{
+				validMetadata(),
+				`{"invalid json"}`,
+			}, "\n"),
+			contentType: "application/x-ndjson",
+			err: &streamResponse{
+				Errors: map[StreamErrorType]errorDetails{
+					"ERR_INVALID_JSON": errorDetails{
+						Count:   1,
+						Message: "invalid JSON",
+						Documents: []*ValidationError{
+							{
+								Error:          "data read error: invalid character '}' after object key",
+								OffendingEvent: `{"invalid json"}`,
+							},
+						},
+					},
+				},
+				Accepted: 0,
+				Dropped:  0,
 				Invalid:  1,
 			},
 			expectedCode: 400,
@@ -219,5 +246,54 @@ func TestV2HandlerReadError(t *testing.T) {
 	handler := (&v2Route{backendRouteType}).Handler(c, report)
 	handler.ServeHTTP(w, r)
 
+	expected := &streamResponse{
+		Errors: map[StreamErrorType]errorDetails{
+			"ERR_SERVER_ERROR": errorDetails{
+				Count:   1,
+				Message: "timeout",
+			},
+		},
+	}
+	expectedBuf, err := expected.marshal()
+	require.NoError(t, err)
+	assert.Equal(t, string(expectedBuf), string(w.Body.Bytes()))
+
 	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+}
+
+func TestV2HandlerShuttingDown(t *testing.T) {
+	report := func(ctx context.Context, p pendingReq) error {
+		return errChannelClosed
+	}
+
+	c := defaultConfig("7.0.0")
+
+	body := strings.Join([]string{
+		validMetadata(),
+		`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
+	}, "\n")
+
+	bodyReader := bytes.NewBufferString(body)
+
+	r := httptest.NewRequest("POST", "/v2/intake", bodyReader)
+	r.Header.Add("Content-Type", "application/x-ndjson")
+
+	w := httptest.NewRecorder()
+
+	handler := (&v2Route{backendRouteType}).Handler(c, report)
+	handler.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+
+	expected := &streamResponse{
+		Errors: map[StreamErrorType]errorDetails{
+			"ERR_SHUTTING_DOWN": errorDetails{
+				Count:   1,
+				Message: "server is shutting down",
+			},
+		},
+	}
+	expectedBuf, err := expected.marshal()
+	require.NoError(t, err)
+	assert.Equal(t, string(expectedBuf), string(w.Body.Bytes()))
 }

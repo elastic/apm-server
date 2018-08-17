@@ -162,7 +162,7 @@ func (s *streamResponse) addWithOffendingDocument(errType StreamErrorType, errMs
 				Error:          errMsg,
 				OffendingEvent: string(offendingDocument),
 			})
-			s.Errors[SchemaValidationErr] = errorDetails
+			s.Errors[errType] = errorDetails
 		}
 	}
 }
