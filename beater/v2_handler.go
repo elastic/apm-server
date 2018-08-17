@@ -55,12 +55,12 @@ var models = []struct {
 	{
 		"transaction",
 		transaction.ModelSchema(),
-		transaction.DecodeEvent,
+		transaction.V2DecodeEvent,
 	},
 	{
 		"span",
 		span.ModelSchema(),
-		span.DecodeSpan,
+		span.V2DecodeEvent,
 	},
 	{
 		"metric",
@@ -70,7 +70,7 @@ var models = []struct {
 	{
 		"error",
 		er.ModelSchema(),
-		er.DecodeEvent,
+		er.V2DecodeEvent,
 	},
 }
 

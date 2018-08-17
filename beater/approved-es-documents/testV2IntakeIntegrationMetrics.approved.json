@@ -1,0 +1,85 @@
+{
+    "events": [
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "byte_counter": 1,
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "tags": {
+                    "code": "200",
+                    "some.other.code": "abc"
+                }
+            },
+            "dotted": {
+                "float": {
+                    "gauge": 6.12
+                }
+            },
+            "double_gauge": 3.141592653589793,
+            "float_gauge": 9.16,
+            "integer_gauge": 42767,
+            "long_gauge": 3147483648,
+            "negative": {
+                "d": {
+                    "o": {
+                        "t": {
+                            "t": {
+                                "e": {
+                                    "d": -1022
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "short_counter": 227
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "go": {
+                "memstats": {
+                    "heap": {
+                        "sys": {
+                            "bytes": 6520832
+                        }
+                    }
+                }
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            }
+        }
+    ]
+}

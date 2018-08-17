@@ -1,0 +1,34 @@
+{
+    "$id": "docs/spec/spans/v2_span.json",
+    "type": "object",
+    "$ref": "common_span.json",
+    "allOf": [
+        { "$ref": "common_span.json"  }, 
+        {  
+            "properties": {
+                "id": {
+                    "description": "Hex encoded 64 random bits ID of the span.",
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction.", 
+                    "maxLength": 1024
+                },
+                "parent_id": {
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "timestamp": {
+                    "description": "Recorded time of the span, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ",
+                    "type": ["string", "null"],
+                    "pattern": "Z$",
+                    "format": "date-time"
+                }
+            },
+            "required": ["id", "transaction_id"]
+        }
+    ]
+}

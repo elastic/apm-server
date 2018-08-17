@@ -1,0 +1,30 @@
+{
+    "$id": "docs/spec/spans/v1_span.json",
+    "type": "object",
+    "allOf": [
+
+        { "$ref": "common_span.json"  }, 
+        {  
+            "properties": {
+                "id": {
+                    "description": "ID od the span.",
+                    "type": ["integer", "null"]
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "description": "UUID for the parent transaction",
+                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },       
+                "parent": {
+                    "type": ["integer", "null"],
+                    "description": "The ID of the parent of the span."
+                }
+            },
+            "dependencies": {
+                "parent": {
+                    "required": ["id"]
+                }
+            }
+        }
+    ]
+}

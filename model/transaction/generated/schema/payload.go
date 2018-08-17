@@ -18,7 +18,7 @@
 package schema
 
 const PayloadSchema = `{
-    "$id": "docs/spec/transactions/payload.json",
+    "$id": "docs/spec/transactions/v1_transaction.json",
     "title": "Transactions payload",
     "description": "List of transactions wrapped in an object containing some other attributes normalized away from the transactions themselves",
     "type": "object",
@@ -162,7 +162,10 @@ const PayloadSchema = `{
         "transactions": {
             "type": "array",
             "items": {
-                    "$id": "docs/spec/transactions/transaction.json",
+                "type": "object",
+                "description": "Data captured by an agent representing an event occurring in a monitored service",
+                "allOf": [
+                    {     "$id": "docs/spec/transactions/common_transaction.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -351,11 +354,6 @@ const PayloadSchema = `{
             "type": "number",
             "description": "How long the transaction took to complete, in ms with 3 decimal points"
         },
-        "id": {
-            "type": "string",
-            "description": "UUID for the transaction, referred by its spans",
-            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
-        },
         "name": {
             "type": ["string","null"],
             "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
@@ -372,16 +370,66 @@ const PayloadSchema = `{
             "format": "date-time",
             "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         },
-        "spans": {
-            "type": ["array", "null"],
-            "items": {
-                    "$id": "docs/spec/spans/span.json",
+        "type": {
+            "type": "string",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
+            "maxLength": 1024
+        },
+        "marks": {
+            "type": ["object", "null"],
+            "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
+            "patternProperties": {
+                "^[^.*\"]*$": {
+                        "$id": "docs/spec/transactions/mark.json",
+    "type": ["object", "null"],
+    "description": "A mark captures the timing in milliseconds of a significant event during the lifetime of a transaction. Every mark is a simple key value pair, where the value has to be a number, and can be set by the user or the agent.",
+    "patternProperties": {
+        "^[^.*\"]*$": {
+            "type": ["number", "null"]
+        }
+    },
+    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "sampled": {
+            "type": ["boolean", "null"],
+            "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+        },
+        "span_count": {
+            "type": ["object", "null"],
+            "properties": {
+                "dropped": {
+                    "type": ["object", "null"],
+                    "properties": {
+                        "total": {
+                            "type": ["integer","null"],
+                            "description": "Number of spans that have been dropped by the agent recording the transaction."
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "required": ["duration", "type"]  }, 
+                    {  
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "UUID for the transaction, referred by its spans",
+                                "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                            },
+                            "spans": {
+                                "type": ["array", "null"],
+                                "items": {
+                                        "$id": "docs/spec/spans/v1_span.json",
+    "type": "object",
+    "allOf": [
+
+        {     "$id": "docs/spec/spans/common_span.json",
     "type": "object",
     "properties": {
-        "id": {
-            "type": ["integer", "null"],
-            "description": "The locally unique ID of the span."
-        },
         "context": {
             "type": ["object", "null"],
             "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
@@ -428,10 +476,6 @@ const PayloadSchema = `{
             "type": "string",
             "description": "Generic designation of a span in the scope of a transaction",
             "maxLength": 1024
-        },
-        "parent": {
-            "type": ["integer", "null"],
-            "description": "The locally unique ID of the parent of the span."
         },
         "stacktrace": {
             "type": ["array", "null"],
@@ -508,65 +552,39 @@ const PayloadSchema = `{
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
             "maxLength": 1024
-        },
-        "transaction_id": {
-            "type": "string",
-            "description": "UUID for the parent transaction",
-            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
         }
     },
-    "dependencies": {
-        "parent": {
-            "required": ["id"]
-        }
-    },
-    "required": ["duration", "name", "start", "type"]
-            },
-            "minItems": 0
-        },
-        "type": {
-            "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
-            "maxLength": 1024
-        },
-        "marks": {
-            "type": ["object", "null"],
-            "description": "A mark captures the timing of a significant event during the lifetime of a transaction. Marks are organized into groups and can be set by the user or the agent.",
-            "patternProperties": {
-                "^[^.*\"]*$": {
-                        "$id": "docs/spec/transactions/mark.json",
-    "type": ["object", "null"],
-    "description": "A mark captures the timing in milliseconds of a significant event during the lifetime of a transaction. Every mark is a simple key value pair, where the value has to be a number, and can be set by the user or the agent.",
-    "patternProperties": {
-        "^[^.*\"]*$": {
-            "type": ["number", "null"]
-        }
-    },
-    "additionalProperties": false
+    "required": ["duration", "name", "start", "type"]  }, 
+        {  
+            "properties": {
+                "id": {
+                    "description": "ID od the span.",
+                    "type": ["integer", "null"]
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "description": "UUID for the parent transaction",
+                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },       
+                "parent": {
+                    "type": ["integer", "null"],
+                    "description": "The ID of the parent of the span."
                 }
             },
-            "additionalProperties": false
-        },
-        "sampled": {
-            "type": ["boolean", "null"],
-            "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
-        },
-        "span_count": {
-            "type": ["object", "null"],
-            "properties": {
-                "dropped": {
-                    "type": ["object", "null"],
-                    "properties": {
-                        "total": {
-                            "type": ["integer","null"],
-                            "description": "Number of spans that have been dropped by the agent recording the transaction."
-                        }
-                    }
+            "dependencies": {
+                "parent": {
+                    "required": ["id"]
                 }
             }
         }
-    },
-    "required": ["id", "duration", "type"]
+    ]
+                                },
+                                "minItems": 0
+                            }
+                        },
+                        "required": ["id"]
+                    }
+                ]
             },
             "minItems": 1
         }

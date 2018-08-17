@@ -54,19 +54,13 @@ func TestTransactionEventDecode(t *testing.T) {
 		err, inpErr error
 		e           *Event
 	}{
-		{input: nil, err: nil, e: nil},
+		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
 		{input: "", err: errors.New("Invalid type for transaction event"), e: nil},
 		{
 			input: map[string]interface{}{"timestamp": 123},
 			err:   errors.New("Error fetching field"),
-			e: &Event{
-				Id: "", Type: "", Name: nil, Result: nil,
-				Duration: 0.0, Timestamp: time.Time{},
-				Context: nil, Marks: nil, Sampled: nil,
-				SpanCount: SpanCount{Dropped: Dropped{Total: nil}},
-				Spans:     []*span.Span{},
-			},
+			e:     nil,
 		},
 		{
 			input: map[string]interface{}{
@@ -74,11 +68,6 @@ func TestTransactionEventDecode(t *testing.T) {
 				"duration": duration, "timestamp": timestamp,
 				"context": context, "marks": marks, "sampled": sampled,
 				"span_count": spanCount,
-				"spans": []interface{}{
-					map[string]interface{}{
-						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
-					},
-				},
 			},
 			err: nil,
 			e: &Event{
@@ -86,22 +75,55 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
-				Spans: []*span.Span{
-					&span.Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
-						TransactionId: &id, Timestamp: timestampParsed},
-				},
 			},
 		},
 	} {
-		event, err := DecodeEvent(test.input, test.inpErr)
-		if test.e != nil {
-			transaction := event.(*Event)
-			assert.Equal(t, test.e, transaction)
-		} else {
-			assert.Nil(t, event)
+		for _, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
+			transformable, err := decodeFct(test.input, test.inpErr)
+			if test.e != nil {
+				event := transformable.(*Event)
+				assert.Equal(t, test.e, event)
+			} else {
+				assert.Nil(t, transformable)
+			}
+			assert.Equal(t, test.err, err)
 		}
-		assert.Equal(t, test.err, err)
+
 	}
+}
+
+func TestVersionedTransactionEventDecode(t *testing.T) {
+	id, trType, duration := "123", "type", 1.67
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+
+	input := map[string]interface{}{
+		"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+		"spans": []interface{}{
+			map[string]interface{}{
+				"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+			},
+		},
+	}
+	// test V1
+	e := &Event{
+		Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
+		Spans: []*span.Event{
+			&span.Event{Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
+				TransactionId: &id, Timestamp: timestampParsed},
+		},
+	}
+	transformable, err := V1DecodeEvent(input, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, e, transformable.(*Event))
+
+	// test V2
+	e = &Event{
+		Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
+	}
+	transformable, err = V2DecodeEvent(input, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, e, transformable.(*Event))
 }
 
 func TestEventTransform(t *testing.T) {
@@ -136,7 +158,7 @@ func TestEventTransform(t *testing.T) {
 				Timestamp: time.Now(),
 				Duration:  65.98,
 				Context:   common.MapStr{"foo": "bar"},
-				Spans:     []*span.Span{},
+				Spans:     []*span.Event{},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 			},
@@ -243,7 +265,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 	}
 
-	spans := []*span.Span{{
+	spans := []*span.Event{{
 		Timestamp: timestamp,
 	}}
 
