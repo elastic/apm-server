@@ -261,39 +261,68 @@ func TestV2HandlerReadError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
 }
 
-func TestV2HandlerShuttingDown(t *testing.T) {
-	report := func(ctx context.Context, p pendingReq) error {
-		return errChannelClosed
-	}
-
-	c := defaultConfig("7.0.0")
-
-	body := strings.Join([]string{
-		validMetadata(),
-		`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
-	}, "\n")
-
-	bodyReader := bytes.NewBufferString(body)
-
-	r := httptest.NewRequest("POST", "/v2/intake", bodyReader)
-	r.Header.Add("Content-Type", "application/x-ndjson")
-
-	w := httptest.NewRecorder()
-
-	handler := (&v2Route{backendRouteType}).Handler(c, report)
-	handler.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
-
-	expected := &streamResponse{
-		Errors: map[StreamErrorType]errorDetails{
-			"ERR_SHUTTING_DOWN": errorDetails{
-				Count:   1,
-				Message: "server is shutting down",
+func TestV2HandlerReportingError(t *testing.T) {
+	for _, test := range []struct {
+		err          *streamResponse
+		expectedCode int
+		report       func(ctx context.Context, p pendingReq) error
+	}{
+		{
+			err: &streamResponse{
+				Errors: map[StreamErrorType]errorDetails{
+					"ERR_SHUTTING_DOWN": errorDetails{
+						Count:   1,
+						Message: "server is shutting down",
+					},
+				},
+				Accepted: 0,
+				Dropped:  0,
+				Invalid:  0,
+			},
+			expectedCode: 503,
+			report: func(ctx context.Context, p pendingReq) error {
+				return errChannelClosed
+			},
+		}, {
+			err: &streamResponse{
+				Errors: map[StreamErrorType]errorDetails{
+					"ERR_QUEUE_FULL": errorDetails{
+						Count:   1,
+						Message: "queue is full",
+					},
+				},
+				Accepted: 0,
+				Dropped:  1,
+				Invalid:  0,
+			},
+			expectedCode: 429,
+			report: func(ctx context.Context, p pendingReq) error {
+				return errFull
 			},
 		},
+	} {
+
+		c := defaultConfig("7.0.0")
+
+		body := strings.Join([]string{
+			validMetadata(),
+			`{"transaction": {"name": "tx1", "id": "8ace3f94-cd01-462c-b069-57dc28ebdfc8", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
+		}, "\n")
+
+		bodyReader := bytes.NewBufferString(body)
+
+		r := httptest.NewRequest("POST", "/v2/intake", bodyReader)
+		r.Header.Add("Content-Type", "application/x-ndjson")
+
+		w := httptest.NewRecorder()
+
+		handler := (&v2Route{backendRouteType}).Handler(c, test.report)
+		handler.ServeHTTP(w, r)
+
+		assert.Equal(t, test.expectedCode, w.Code, w.Body.String())
+
+		expectedBuf, err := test.err.marshal()
+		require.NoError(t, err)
+		assert.Equal(t, string(expectedBuf), string(w.Body.Bytes()))
 	}
-	expectedBuf, err := expected.marshal()
-	require.NoError(t, err)
-	assert.Equal(t, string(expectedBuf), string(w.Body.Bytes()))
 }

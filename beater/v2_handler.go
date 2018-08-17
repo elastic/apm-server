@@ -206,8 +206,13 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndReader *decoder.NDJSONS
 					return resp
 				}
 
-				resp.add(QueueFullErr, len(transformables))
-				resp.Dropped += len(transformables)
+				if err == errFull {
+					resp.add(QueueFullErr, len(transformables))
+					resp.Dropped += len(transformables)
+					continue
+				}
+
+				resp.addWithMessage(ServerError, len(transformables), err.Error())
 			}
 		}
 
