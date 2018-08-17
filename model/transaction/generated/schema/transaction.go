@@ -231,7 +231,7 @@ const ModelSchema = `{
         "spans": {
             "type": ["array", "null"],
             "items": {
-                    "$id": "docs/spec/transactions/span.json",
+                    "$id": "docs/spec/span/span.json",
     "type": "object",
     "properties": {
         "id": {

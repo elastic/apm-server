@@ -256,8 +256,8 @@ func TestV2HandlerReadError(t *testing.T) {
 	}
 	expectedBuf, err := expected.marshal()
 	require.NoError(t, err)
-	assert.Equal(t, string(expectedBuf), string(w.Body.Bytes()))
 
+	assert.Equal(t, string(expectedBuf), string(w.Body.Bytes()))
 	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
 }
 
