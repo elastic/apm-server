@@ -19,6 +19,7 @@ package transform
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
@@ -30,8 +31,9 @@ type Transformable interface {
 }
 
 type Context struct {
-	Config   Config
-	Metadata metadata.Metadata
+	RequestTime time.Time
+	Config      Config
+	Metadata    metadata.Metadata
 }
 
 type Config struct {

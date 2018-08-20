@@ -22,11 +22,14 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/santhosh-tekuri/jsonschema"
 )
 
 var (
@@ -39,7 +42,13 @@ var (
 	spanDocType = "span"
 
 	processorSpanEntry = common.MapStr{"name": "transaction", "event": spanDocType}
+
+	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
 )
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type Span struct {
 	Id         *int
@@ -52,10 +61,10 @@ type Span struct {
 	Stacktrace m.Stacktrace
 
 	Timestamp     time.Time
-	TransactionId string
+	TransactionId *string
 }
 
-func DecodeSpan(input interface{}, err error) (*Span, error) {
+func DecodeSpan(input interface{}, err error) (transform.Transformable, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -65,13 +74,15 @@ func DecodeSpan(input interface{}, err error) (*Span, error) {
 	}
 	decoder := utility.ManualDecoder{}
 	sp := Span{
-		Id:       decoder.IntPtr(raw, "id"),
-		Name:     decoder.String(raw, "name"),
-		Type:     decoder.String(raw, "type"),
-		Start:    decoder.Float64(raw, "start"),
-		Duration: decoder.Float64(raw, "duration"),
-		Context:  decoder.MapStr(raw, "context"),
-		Parent:   decoder.IntPtr(raw, "parent"),
+		Id:            decoder.IntPtr(raw, "id"),
+		Name:          decoder.String(raw, "name"),
+		Type:          decoder.String(raw, "type"),
+		Start:         decoder.Float64(raw, "start"),
+		Duration:      decoder.Float64(raw, "duration"),
+		Context:       decoder.MapStr(raw, "context"),
+		Parent:        decoder.IntPtr(raw, "parent"),
+		Timestamp:     decoder.TimeRFC3339(raw, "timestamp"),
+		TransactionId: decoder.StringPtr(raw, "transaction_id"),
 	}
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
@@ -86,6 +97,10 @@ func (s *Span) Transform(tctx *transform.Context) []beat.Event {
 	if frames := len(s.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
+	}
+
+	if s.Timestamp.IsZero() {
+		s.Timestamp = tctx.RequestTime
 	}
 
 	ev := beat.Event{

@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
@@ -85,7 +86,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
 				Spans: []*span.Span{
 					&span.Span{Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
-						TransactionId: id, Timestamp: timestampParsed},
+						TransactionId: &id, Timestamp: timestampParsed},
 				},
 			},
 		},
@@ -245,6 +246,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}}
 
 	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
+	var nilTxID *string
 	spanEs := common.MapStr{
 		"context": common.MapStr{
 			"service": common.MapStr{
@@ -262,7 +264,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"start":    common.MapStr{"us": 0},
 			"type":     "",
 		},
-		"transaction": common.MapStr{"id": ""},
+		"transaction": common.MapStr{"id": nilTxID},
 	}
 
 	tests := []struct {
@@ -320,4 +322,15 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			assert.Equal(t, timestamp, outputEvent.Timestamp)
 		}
 	}
+}
+
+func TestEventTransformUseReqTime(t *testing.T) {
+	reqTimestamp := "2017-05-30T18:53:27.154Z"
+	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
+	require.NoError(t, err)
+
+	e := Event{}
+	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
+	require.Len(t, beatEvent, 1)
+	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
 }
