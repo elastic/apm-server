@@ -20,6 +20,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"time"
@@ -103,6 +104,18 @@ func Update() error {
 
 func Fields() error {
 	return mage.GenerateFieldsYAML("model")
+}
+
+// Use RACE_DETECTOR=true to enable the race detector.
+func GoTestUnit(ctx context.Context) error {
+	return mage.GoTest(ctx, mage.DefaultGoTestUnitArgs())
+}
+
+// GoTestIntegration executes the Go integration tests.
+// Use TEST_COVERAGE=true to enable code coverage profiling.
+// Use RACE_DETECTOR=true to enable the race detector.
+func GoTestIntegration(ctx context.Context) error {
+	return mage.GoTest(ctx, mage.DefaultGoTestIntegrationArgs())
 }
 
 // -----------------------------------------------------------------------------
