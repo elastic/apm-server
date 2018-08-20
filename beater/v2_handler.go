@@ -255,12 +255,6 @@ func (v *v2Handler) handleInvalidHeaders(w http.ResponseWriter, r *http.Request)
 	}
 	sr.add(InvalidContentTypeErr, 1)
 
-	discardBuf := make([]byte, 2048)
-	var err error
-	for err != nil {
-		_, err = r.Body.Read(discardBuf)
-	}
-
 	v.sendResponse(requestLogger(r), w, &sr)
 }
 
