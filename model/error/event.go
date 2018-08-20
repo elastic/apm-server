@@ -29,11 +29,14 @@ import (
 	"time"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/santhosh-tekuri/jsonschema"
 )
 
 var (
@@ -48,6 +51,12 @@ const (
 	processorName = "error"
 	errorDocType  = "error"
 )
+
+var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type Event struct {
 	Id        *string
@@ -97,7 +106,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Id:        decoder.StringPtr(raw, "id"),
 		Culprit:   decoder.StringPtr(raw, "culprit"),
 		Context:   decoder.MapStr(raw, "context"),
-		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
 	}
 	transactionId := decoder.StringPtr(raw, "id", "transaction")
 	if transactionId != nil {

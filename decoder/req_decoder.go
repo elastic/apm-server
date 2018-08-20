@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-type Reader func(req *http.Request) (io.ReadCloser, error)
+type ReqReader func(req *http.Request) (io.ReadCloser, error)
 type ReqDecoder func(req *http.Request) (map[string]interface{}, error)
 
 var (
@@ -65,7 +65,12 @@ func (mr monitoringReader) Close() error {
 
 func DecodeLimitJSONData(maxSize int64) ReqDecoder {
 	return func(req *http.Request) (map[string]interface{}, error) {
-		reader, err := readRequestJSONData(maxSize)(req)
+		contentType := req.Header.Get("Content-Type")
+		if !strings.Contains(contentType, "application/json") {
+			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
+		}
+
+		reader, err := CompressedRequestReader(maxSize)(req)
 		if err != nil {
 			return nil, err
 		}
@@ -73,15 +78,10 @@ func DecodeLimitJSONData(maxSize int64) ReqDecoder {
 	}
 }
 
-// readRequestJSONData makes a function that uses information from an http request to construct a Limited ReadCloser
-// of json data from the body of the request
-func readRequestJSONData(maxSize int64) Reader {
+// CompressedRequestReader makes a function that uses information from an http request to construct a Limited ReadCloser
+// from the body of the request, handling any decompression necessary
+func CompressedRequestReader(maxSize int64) ReqReader {
 	return func(req *http.Request) (io.ReadCloser, error) {
-		contentType := req.Header.Get("Content-Type")
-		if !strings.Contains(contentType, "application/json") {
-			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-		}
-
 		reader := req.Body
 		if reader == nil {
 			return nil, errors.New("no content")
