@@ -68,8 +68,16 @@ var V1Routes = map[string]v1Route{
 }
 
 var V2Routes = map[string]v2Route{
-	V2BackendURL: {backendRouteType},
+	V2BackendURL: v2BackendRoute,
 	V2RumURL:     {rumRouteType},
+}
+
+var v2BackendRoute = v2Route{
+	routeType{
+		v2backendHandler,
+		systemMetadataDecoder,
+		func(*Config) transform.Config { return transform.Config{} },
+	},
 }
 
 var (
@@ -102,6 +110,12 @@ var (
 		return decoder.DecodeSourcemapFormData
 	}
 )
+
+func v2backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
+	return logHandler(
+		requestTimeHandler(
+			authHandler(beaterConfig.SecretToken, h)))
+}
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(

@@ -55,7 +55,7 @@ func TestV2Handler(t *testing.T) {
 
 	c := defaultConfig("7.0.0")
 
-	handler := (&v2Route{backendRouteType}).Handler(c, report)
+	handler := (&v2BackendRoute).Handler(c, report)
 
 	tx1 := "tx1"
 	timestamp, err := time.Parse(time.RFC3339, "2018-01-01T10:00:00Z")
@@ -243,7 +243,7 @@ func TestV2HandlerReadError(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	handler := (&v2Route{backendRouteType}).Handler(c, report)
+	handler := (&v2BackendRoute).Handler(c, report)
 	handler.ServeHTTP(w, r)
 
 	expected := &streamResponse{
@@ -316,7 +316,7 @@ func TestV2HandlerReportingError(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		handler := (&v2Route{backendRouteType}).Handler(c, test.report)
+		handler := (&v2BackendRoute).Handler(c, test.report)
 		handler.ServeHTTP(w, r)
 
 		assert.Equal(t, test.expectedCode, w.Code, w.Body.String())
