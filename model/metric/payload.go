@@ -24,8 +24,10 @@ import (
 	"github.com/elastic/apm-server/validation"
 )
 
-var cachedSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
+var (
+	cachedPayloadSchema = validation.CreateSchema(schema.PayloadSchema, processorName)
+)
 
 func PayloadSchema() *jsonschema.Schema {
-	return cachedSchema
+	return cachedPayloadSchema
 }

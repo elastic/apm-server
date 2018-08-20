@@ -230,12 +230,12 @@ func TestTimeRFC3339(t *testing.T) {
 	tp, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
 	for _, test := range []testStr{
 		{key: "time", keys: []string{}, out: tp, err: nil},
-		{key: "missing", keys: []string{"a", "b"}, out: time.Now(), err: nil},
+		{key: "missing", keys: []string{"a", "b"}, out: outZero, err: nil},
 		{key: "str", keys: []string{"a", "b"}, out: outZero, err: fetchErr},
 		{key: "b", keys: []string{"a"}, out: outZero, err: fetchErr},
 	} {
 		decoder := ManualDecoder{}
-		out := decoder.TimeRFC3339WithDefault(decoderBase, test.key, test.keys...)
+		out := decoder.TimeRFC3339(decoderBase, test.key, test.keys...)
 		assert.InDelta(t, out.Unix(), test.out.(time.Time).Unix(), time.Millisecond.Seconds()*10)
 		assert.Equal(t, decoder.Err, test.err)
 	}

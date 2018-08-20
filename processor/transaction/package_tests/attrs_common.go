@@ -63,7 +63,9 @@ func payloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 }
 
 func jsonSchemaNotInPayloadAttrs(s *tests.Set) *tests.Set {
-	return s
+	return tests.Union(s, tests.NewSet(
+		"transactions.spans.transaction_id",
+	))
 }
 
 func requiredKeys(s *tests.Set) *tests.Set {
