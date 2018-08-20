@@ -18,7 +18,7 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/span/span.json",
+    "$id": "docs/spec/spans/span.json",
     "type": "object",
     "properties": {
         "id": {
