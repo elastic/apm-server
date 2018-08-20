@@ -27,16 +27,17 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
 // assertMetricsMatch is an equality test for a metric as sample order is not important
-func assertMetricsMatch(t *testing.T, expected, actual metric) bool {
-	samplesMatch := assert.ElementsMatch(t, expected.samples, actual.samples)
-	expected.samples = nil
-	actual.samples = nil
+func assertMetricsMatch(t *testing.T, expected, actual Metric) bool {
+	samplesMatch := assert.ElementsMatch(t, expected.Samples, actual.Samples)
+	expected.Samples = nil
+	actual.Samples = nil
 	nonSamplesMatch := assert.Equal(t, expected, actual)
 
 	return assert.True(t, samplesMatch && nonSamplesMatch,
@@ -50,7 +51,7 @@ func TestDecode(t *testing.T) {
 	for _, test := range []struct {
 		input  map[string]interface{}
 		err    error
-		metric *metric
+		metric *Metric
 	}{
 		{input: nil, err: nil, metric: nil},
 		{
@@ -65,10 +66,10 @@ func TestDecode(t *testing.T) {
 			},
 
 			err: nil,
-			metric: &metric{
-				samples:   []*sample{},
-				tags:      nil,
-				timestamp: timestampParsed,
+			metric: &Metric{
+				Samples:   []*Sample{},
+				Tags:      nil,
+				Timestamp: timestampParsed,
 			},
 		},
 		{
@@ -98,21 +99,21 @@ func TestDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			metric: &metric{
-				samples: []*sample{
+			metric: &Metric{
+				Samples: []*Sample{
 					{
-						name:  "some.gauge",
-						value: 9.16,
+						Name:  "some.gauge",
+						Value: 9.16,
 					},
 					{
-						name:  "a.counter",
-						value: 612,
+						Name:  "a.counter",
+						Value: 612,
 					},
 				},
-				tags: common.MapStr{
+				Tags: common.MapStr{
 					"a.tag": "a.tag.value",
 				},
-				timestamp: timestampParsed,
+				Timestamp: timestampParsed,
 			},
 		},
 	} {
@@ -124,7 +125,7 @@ func TestDecode(t *testing.T) {
 
 		if test.metric != nil {
 			want := test.metric
-			got := transformables.(*metric)
+			got := transformables.(*Metric)
 			assertMetricsMatch(t, *want, *got)
 		}
 	}
@@ -140,7 +141,7 @@ func TestTransform(t *testing.T) {
 	)
 
 	tests := []struct {
-		Metric *metric
+		Metric *Metric
 		Output []common.MapStr
 		Msg    string
 	}{
@@ -150,7 +151,7 @@ func TestTransform(t *testing.T) {
 			Msg:    "Nil metric",
 		},
 		{
-			Metric: &metric{timestamp: timestamp},
+			Metric: &Metric{Timestamp: timestamp},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
@@ -165,17 +166,17 @@ func TestTransform(t *testing.T) {
 			Msg: "Payload with empty metric.",
 		},
 		{
-			Metric: &metric{
-				tags:      common.MapStr{"a.tag": "a.tag.value"},
-				timestamp: timestamp,
-				samples: []*sample{
+			Metric: &Metric{
+				Tags:      common.MapStr{"a.tag": "a.tag.value"},
+				Timestamp: timestamp,
+				Samples: []*Sample{
 					{
-						name:  "a.counter",
-						value: 612,
+						Name:  "a.counter",
+						Value: 612,
 					},
 					{
-						name:  "some.gauge",
-						value: 9.16,
+						Name:  "some.gauge",
+						Value: 9.16,
 					},
 				},
 			},
@@ -208,4 +209,15 @@ func TestTransform(t *testing.T) {
 			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 		}
 	}
+}
+
+func TestEventTransformUseReqTime(t *testing.T) {
+	reqTimestamp := "2017-05-30T18:53:27.154Z"
+	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
+	require.NoError(t, err)
+
+	e := Metric{}
+	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
+	require.Len(t, beatEvent, 1)
+	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
 }

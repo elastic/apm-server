@@ -21,12 +21,16 @@ import (
 	"errors"
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
+
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -43,6 +47,14 @@ var (
 
 	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
 )
+
+var (
+	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
+)
+
+func ModelSchema() *jsonschema.Schema {
+	return cachedModelSchema
+}
 
 type Event struct {
 	Id        string
@@ -79,25 +91,27 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Name:      decoder.StringPtr(raw, "name"),
 		Result:    decoder.StringPtr(raw, "result"),
 		Duration:  decoder.Float64(raw, "duration"),
-		Timestamp: decoder.TimeRFC3339WithDefault(raw, "timestamp"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
 		Context:   decoder.MapStr(raw, "context"),
 		Marks:     decoder.MapStr(raw, "marks"),
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
 		SpanCount: SpanCount{Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")}},
 	}
 	err = decoder.Err
-	var sp *span.Span
+	var transformable transform.Transformable
 	spans := decoder.InterfaceArr(raw, "spans")
 	e.Spans = make([]*span.Span, len(spans))
 	for idx, rawSpan := range spans {
-		sp, err = span.DecodeSpan(rawSpan, err)
+		transformable, err = span.DecodeSpan(rawSpan, err)
+		sp, ok := transformable.(*span.Span)
+		if ok {
+			if sp.Timestamp.IsZero() {
+				sp.Timestamp = e.Timestamp
+			}
 
-		if sp.Timestamp.IsZero() {
-			sp.Timestamp = e.Timestamp
-		}
-
-		if sp.TransactionId == "" {
-			sp.TransactionId = e.Id
+			if sp.TransactionId == nil || *sp.TransactionId == "" {
+				sp.TransactionId = &e.Id
+			}
 		}
 
 		e.Spans[idx] = sp
@@ -133,6 +147,11 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	events := []beat.Event{}
+
+	if e.Timestamp.IsZero() {
+		e.Timestamp = tctx.RequestTime
+	}
+
 	ev := beat.Event{
 		Fields: common.MapStr{
 			"processor":        processorTransEntry,

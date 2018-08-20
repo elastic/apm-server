@@ -24,7 +24,6 @@ import (
 	"expvar"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -36,10 +35,6 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
-	perr "github.com/elastic/apm-server/processor/error"
-	"github.com/elastic/apm-server/processor/metric"
-	"github.com/elastic/apm-server/processor/sourcemap"
-	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/transform"
 
 	"github.com/elastic/apm-server/utility"
@@ -50,18 +45,6 @@ import (
 )
 
 const (
-	rootURL                   = "/"
-	BackendTransactionsURL    = "/v1/transactions"
-	ClientSideTransactionsURL = "/v1/client-side/transactions"
-	RumTransactionsURL        = "/v1/rum/transactions"
-	BackendErrorsURL          = "/v1/errors"
-	ClientSideErrorsURL       = "/v1/client-side/errors"
-	RumErrorsURL              = "/v1/rum/errors"
-	HealthCheckURL            = "/healthcheck"
-	MetricsURL                = "/v1/metrics"
-	SourcemapsClientSideURL   = "/v1/client-side/sourcemaps"
-	SourcemapsURL             = "/v1/rum/sourcemaps"
-
 	rateLimitCacheSize       = 1000
 	rateLimitBurstMultiplier = 2
 
@@ -70,11 +53,6 @@ const (
 )
 
 type ProcessorHandler func(processor.Processor, *Config, reporter) http.Handler
-
-type routeMapping struct {
-	ProcessorHandler
-	processor.Processor
-}
 
 type serverResponse struct {
 	err     error
@@ -155,7 +133,7 @@ var (
 	fullQueueCounter  = counter("response.errors.queue")
 	fullQueueResponse = func(err error) serverResponse {
 		return serverResponse{
-			err:     errors.New("queue is full"),
+			err:     errors.Wrap(err, "queue is full"),
 			code:    http.StatusServiceUnavailable,
 			counter: fullQueueCounter,
 		}
@@ -168,27 +146,21 @@ var (
 			counter: serverShuttingDownCounter,
 		}
 	}
-
-	ProcessorRoutes = map[string]routeMapping{
-		BackendTransactionsURL:    {backendHandler, transaction.Processor},
-		ClientSideTransactionsURL: {rumHandler, transaction.Processor},
-		RumTransactionsURL:        {rumHandler, transaction.Processor},
-		BackendErrorsURL:          {backendHandler, perr.Processor},
-		ClientSideErrorsURL:       {rumHandler, perr.Processor},
-		RumErrorsURL:              {rumHandler, perr.Processor},
-		MetricsURL:                {metricsHandler, metric.Processor},
-		SourcemapsClientSideURL:   {sourcemapHandler, sourcemap.Processor},
-		SourcemapsURL:             {sourcemapHandler, sourcemap.Processor},
-	}
 )
 
 func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
-	for path, mapping := range ProcessorRoutes {
+	for path, route := range V1Routes {
 		logger.Infof("Path %s added to request handler", path)
 
-		mux.Handle(path, mapping.ProcessorHandler(mapping.Processor, beaterConfig, report))
+		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
+	}
+
+	for path, route := range V2Routes {
+		logger.Infof("Path %s added to request handler", path)
+
+		mux.Handle(path, route.Handler(beaterConfig, report))
 	}
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
@@ -223,52 +195,6 @@ func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler 
 			sendStatus(w, r, tooManyConcurrentRequestsResponse)
 		}
 	})
-}
-
-func backendHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	return logHandler(
-		concurrencyLimitHandler(beaterConfig,
-			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(p, transform.Config{}, report,
-					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
-}
-
-func rumHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
-	if err != nil {
-		logp.NewLogger("handler").Error(err.Error())
-	}
-	config := transform.Config{
-		SmapMapper:          smapper,
-		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
-		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
-	}
-	return logHandler(
-		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-			concurrencyLimitHandler(beaterConfig,
-				ipRateLimitHandler(beaterConfig.RumConfig.RateLimit,
-					corsHandler(beaterConfig.RumConfig.AllowOrigins,
-						processRequestHandler(p, config, report,
-							decoder.DecodeUserData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))))
-}
-
-func metricsHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	return logHandler(
-		killSwitchHandler(beaterConfig.Metrics.isEnabled(),
-			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(p, transform.Config{}, report,
-					decoder.DecodeSystemData(decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize), beaterConfig.AugmentEnabled)))))
-}
-
-func sourcemapHandler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
-	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
-	if err != nil {
-		logp.NewLogger("handler").Error(err.Error())
-	}
-	return logHandler(
-		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-			authHandler(beaterConfig.SecretToken,
-				processRequestHandler(p, transform.Config{SmapMapper: smapper}, report, decoder.DecodeSourcemapFormData))))
 }
 
 // Deprecated: use rootHandler instead
@@ -306,9 +232,28 @@ func rootHandler(secretToken string) http.Handler {
 	return logHandler(handler)
 }
 
-type logContextKey string
+type contextKey string
 
-var reqLoggerContextKey = logContextKey("requestLogger")
+const requestTimeContextKey = contextKey("requestTime")
+
+func requestTimeHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if requestTime(r).IsZero() {
+			r = r.WithContext(context.WithValue(r.Context(), requestTimeContextKey, time.Now()))
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func requestTime(r *http.Request) time.Time {
+	t, ok := r.Context().Value(requestTimeContextKey).(time.Time)
+	if !ok {
+		return time.Time{}
+	}
+	return t
+}
+
+const reqLoggerContextKey = contextKey("requestLogger")
 
 func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
@@ -338,6 +283,16 @@ func logHandler(h http.Handler) http.Handler {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 		}
 	})
+}
+
+// requestLogger is a convenience function to retrieve the logger that was
+// added to the request context by handler `logHandler``
+func requestLogger(r *http.Request) *logp.Logger {
+	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+	if !ok {
+		logger = logp.NewLogger("request")
+	}
+	return logger
 }
 
 func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
@@ -474,13 +429,14 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 		return cannotDecodeResponse(err)
 	}
 
-	tctx := transform.Context{
-		Config:   config,
-		Metadata: *metadata,
+	tctx := &transform.Context{
+		RequestTime: requestTime(r),
+		Config:      config,
+		Metadata:    *metadata,
 	}
 
 	if err = report(r.Context(), pendingReq{transformables: transformables, tcontext: tctx}); err != nil {
-		if strings.Contains(err.Error(), "publisher is being stopped") {
+		if err == errChannelClosed {
 			return serverShuttingDownResponse(err)
 		}
 		return fullQueueResponse(err)
@@ -512,10 +468,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	} else {
 		responseErrors.Inc()
 
-		logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
-		if !ok {
-			logger = logp.NewLogger("request")
-		}
+		logger := requestLogger(r)
 		msgKey = "error"
 		msg = res.err.Error()
 		logger.Errorw("error handling request", "response_code", res.code, "error", msg)

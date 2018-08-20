@@ -34,7 +34,7 @@
         "spans": {
             "type": ["array", "null"],
             "items": {
-                "$ref": "span.json"
+                "$ref": "../spans/span.json"
             },
             "minItems": 0
         },
