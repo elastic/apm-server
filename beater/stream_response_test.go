@@ -18,32 +18,31 @@
 package beater
 
 import (
-	"strings"
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/tests"
 )
 
 func TestStreamResponseSimple(t *testing.T) {
 	sr := streamResponse{}
-
 	sr.add(QueueFullErr, 23)
 
-	jsonOut, err := sr.marshal()
-	assert.NoError(t, err)
-	expectedJSON := `{
-		"accepted":0,
-		"invalid":0,
-		"dropped":0,
-		"errors":{
-			"ERR_QUEUE_FULL":{
-				"count":23,
-				"message":"queue is full"
-			}
-		}
-	}`
-	expectedJSON = strings.Replace(strings.Replace(expectedJSON, "\n", "", -1), "\t", "", -1)
-	assert.Equal(t, expectedJSON, string(jsonOut))
+	jsonByte, err := sr.marshal()
+	require.NoError(t, err)
+
+	var jsonOut map[string]interface{}
+	err = json.Unmarshal(jsonByte, &jsonOut)
+	require.NoError(t, err)
+
+	verifyErr := tests.ApproveJson(jsonOut, "testStreamResponseSimple", nil)
+	if verifyErr != nil {
+		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", "testStreamResponseSimple", verifyErr.Error()))
+	}
 
 	expectedStr := `queue is full (23)`
 	assert.Equal(t, expectedStr, sr.String())
@@ -60,29 +59,17 @@ func TestStreamResponseAdvanced(t *testing.T) {
 
 	sr.add(QueueFullErr, 23)
 
-	jsonOut, err := sr.marshal()
-	assert.NoError(t, err)
-	expectedJSON := `{
-		"accepted":0,
-		"invalid":0,
-		"dropped":0,
-		"errors":{
-			"ERR_QUEUE_FULL":{
-				"count":23,
-				"message":"queue is full"
-			},
-			"ERR_SCHEMA_VALIDATION":{
-				"count":5,
-				"message":"validation error",
-				"documents":[
-					{"error":"transmogrifier error","object":"{\"wrong\": \"field\"}"},
-					{"error":"thing error","object":"{\"wrong\": \"value\"}"}
-				]
-			}
-		}
-	}`
-	expectedJSON = strings.Replace(strings.Replace(expectedJSON, "\n", "", -1), "\t", "", -1)
-	assert.Equal(t, expectedJSON, string(jsonOut))
+	jsonByte, err := sr.marshal()
+	require.NoError(t, err)
+
+	var jsonOut map[string]interface{}
+	err = json.Unmarshal(jsonByte, &jsonOut)
+	require.NoError(t, err)
+
+	verifyErr := tests.ApproveJson(jsonOut, "testStreamResponseAdvanced", nil)
+	if verifyErr != nil {
+		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", "testStreamResponseAdvanced", verifyErr.Error()))
+	}
 
 	expectedStr := `queue is full (23), validation error (5): transmogrifier error ({"wrong": "field"}), thing error ({"wrong": "value"})`
 	assert.Equal(t, expectedStr, sr.String())
