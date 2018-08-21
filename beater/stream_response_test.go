@@ -39,7 +39,7 @@ func TestStreamResponseSimple(t *testing.T) {
 	err = json.Unmarshal(jsonByte, &jsonOut)
 	require.NoError(t, err)
 
-	verifyErr := tests.ApproveJson(jsonOut, "approved-response/testStreamResponseSimple", nil)
+	verifyErr := tests.ApproveJson(jsonOut, "approved-stream-response/testStreamResponseSimple", nil)
 	if verifyErr != nil {
 		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", "testStreamResponseSimple", verifyErr.Error()))
 	}
@@ -66,7 +66,7 @@ func TestStreamResponseAdvanced(t *testing.T) {
 	err = json.Unmarshal(jsonByte, &jsonOut)
 	require.NoError(t, err)
 
-	verifyErr := tests.ApproveJson(jsonOut, "approved-response/testStreamResponseAdvanced", nil)
+	verifyErr := tests.ApproveJson(jsonOut, "approved-stream-response/testStreamResponseAdvanced", nil)
 	if verifyErr != nil {
 		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", "testStreamResponseAdvanced", verifyErr.Error()))
 	}
