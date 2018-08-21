@@ -43,7 +43,7 @@
                     }
                 },
                 "tags": {
-                    "$ref": "tags.json"
+                    "$ref": "../tags.json"
                 }
             }
         },
