@@ -440,8 +440,8 @@ Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-structform
-Version: v0.0.4
-Revision: 0ea09ff9b43c387dd183a4088f6d573bf823e4ed
+Version: v0.0.5
+Revision: 1425975cf4eb470099fcf02cbe9389cf3a7028a3
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-structform/LICENSE:
 --------------------------------------------------------------------
@@ -2301,14 +2301,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/objx
+Revision: b8b73a35e9830ae509858c10dec5866b4d5c8bff
 License type (autodetected): MIT
-./vendor/github.com/stretchr/objx/LICENSE.md:
+./vendor/github.com/stretchr/objx/LICENSE:
 --------------------------------------------------------------------
-objx - by Mat Ryer and Tyler Bunnell
-
-The MIT License (MIT)
+The MIT License
 
 Copyright (c) 2014 Stretchr, Inc.
+Copyright (c) 2017-2018 objx contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -2330,8 +2330,8 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/testify
-Version: v1.2.0
-Revision: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+Version: v1.2.2
+Revision: f35b8ab0b5a2cef36673838d662e249dd9c94686
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
 --------------------------------------------------------------------
