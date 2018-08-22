@@ -2,7 +2,7 @@ import os
 import unittest
 
 from apmserver import ElasticTest, ExpvarBaseTest
-from apmserver import ClientSideBaseTest, SmapIndexBaseTest, SmapCacheBaseTest
+from apmserver import ClientSideElasticTest, SmapIndexBaseTest, SmapCacheBaseTest
 from apmserver import SplitIndicesTest
 from beat.beat import INTEGRATION_TESTS
 import json
@@ -114,7 +114,7 @@ class Test(ElasticTest):
         return json.dumps(data, indent=4, separators=(',', ': '))
 
 
-class RumEnabledIntegrationTest(ClientSideBaseTest):
+class RumEnabledIntegrationTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
@@ -258,7 +258,7 @@ class SplitIndicesIntegrationTest(SplitIndicesTest):
         assert 5 == ct
 
 
-class SourcemappingIntegrationTest(ClientSideBaseTest):
+class SourcemappingIntegrationTest(ClientSideElasticTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
