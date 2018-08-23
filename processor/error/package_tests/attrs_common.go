@@ -93,7 +93,7 @@ func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 func keywordExceptionKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"processor.event", "processor.name", "listening", "error.grouping_key",
-		"error.id", "transaction.id", "context.tags",
+		"error.id", "transaction.id", "context.tags", "error.parent_id", "error.trace_id",
 		"view errors", "error id icon"))
 }
 

@@ -10,9 +10,19 @@
                     "type": "string",
                     "description": "Hex encoded 64 random bits ID of the transaction.", 
                     "maxLength": 1024
+                },
+                "trace_id": {
+                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "parent_id": {
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 }
             },
-            "required": ["id"]
+            "required": ["id", "trace_id"]
         }
     ]
 }

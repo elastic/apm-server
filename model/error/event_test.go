@@ -206,10 +206,13 @@ func TestErrorEventDecode(t *testing.T) {
 func TestVersionedErrorEventDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	parentId, traceId := "0123456789abcdef", "01234567890123456789abcdefabcdef"
 	input := map[string]interface{}{
 		"timestamp":      timestamp,
 		"transaction_id": "abcdefabcdef0000",
 		"transaction":    map[string]interface{}{"id": "01234"},
+		"parent_id":      parentId,
+		"trace_id":       traceId,
 	}
 
 	// test V1
@@ -223,6 +226,8 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 	// test V2
 	e = &Event{Timestamp: timestampParsed,
 		Transaction: &Transaction{Id: "abcdefabcdef0000"},
+		ParentId:    &parentId,
+		TraceId:     &traceId,
 	}
 	transformable, err = V2DecodeEvent(input, nil)
 	assert.NoError(t, err)

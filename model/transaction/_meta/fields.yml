@@ -64,3 +64,13 @@
                 - name: total
                   type: long
                   description: The total amount of dropped spans for this transaction.
+
+        - name: trace_id 
+          type: keyword
+          description: >
+             The ID of the correlated trace.
+
+        - name: parent_id
+          type: keyword
+          description: >
+             The ID of the parent transaction or span.
