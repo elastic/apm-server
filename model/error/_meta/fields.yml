@@ -35,6 +35,16 @@
           description: >
             The ID of the error.
 
+        - name: trace_id 
+          type: keyword
+          description: >
+             The ID of the correlated trace.
+
+        - name: parent_id
+          type: keyword
+          description: >
+             The ID of the parent transaction or span.
+
         - name: culprit
           type: text
           count: 2

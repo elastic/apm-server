@@ -315,6 +315,11 @@ const ModelSchema = `{
                     "description": "Hex encoded 64 random bits ID of the correlated transaction.", 
                     "maxLength": 1024
                 },
+                "trace_id": {
+                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
                 "parent_id": {
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
                     "type": ["string", "null"],
@@ -327,7 +332,7 @@ const ModelSchema = `{
                     "format": "date-time"
                 }
             },
-            "required": ["id", "transaction_id"]
+            "required": ["id", "transaction_id", "trace_id"]
         }
     ]
 }

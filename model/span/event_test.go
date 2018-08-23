@@ -95,6 +95,7 @@ func TestVersionedSpanEvendDecode(t *testing.T) {
 	name, spType, start, duration := "foo", "db", 1.2, 3.4
 	tid := "longid"
 	hexId, parentId := "0147258369012345", "abcdef0123456789"
+	traceId := "abcdef0123456789abcdef0123456789"
 	id, parent := 1, 12
 	timestamp := "2017-05-30T18:53:27.154Z"
 	//timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
@@ -103,6 +104,7 @@ func TestVersionedSpanEvendDecode(t *testing.T) {
 	input := map[string]interface{}{
 		"name": name, "type": spType, "start": start, "duration": duration,
 		"id": 1.0, "parent": 12.0, "parent_id": parentId,
+		"trace_id":       traceId,
 		"transaction_id": tid, timestamp: "timestamp",
 	}
 	e := &Event{
@@ -122,6 +124,7 @@ func TestVersionedSpanEvendDecode(t *testing.T) {
 	input = map[string]interface{}{
 		"name": name, "type": spType, "start": start, "duration": duration,
 		"id": hexId, "parent": 12.0, "parent_id": parentId,
+		"trace_id":       traceId,
 		"transaction_id": tid, timestamp: "timestamp",
 	}
 	e = &Event{
@@ -131,6 +134,7 @@ func TestVersionedSpanEvendDecode(t *testing.T) {
 		Duration:      duration,
 		HexId:         &hexId,
 		ParentId:      &parentId,
+		TraceId:       &traceId,
 		TransactionId: &tid,
 	}
 	transformable, err = V2DecodeEvent(input, nil)
@@ -143,7 +147,7 @@ func TestSpanTransform(t *testing.T) {
 	parent := 12
 	tid := 1
 	service := metadata.Service{Name: "myService"}
-	hexId, parentId := "0147258369012345", "abcdef0123456789"
+	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 
 	tests := []struct {
 		Event  Event
@@ -163,6 +167,9 @@ func TestSpanTransform(t *testing.T) {
 		{
 			Event: Event{
 				Id:         &tid,
+				HexId:      &hexId,
+				TraceId:    &traceId,
+				ParentId:   &parentId,
 				Name:       "myspan",
 				Type:       "myspantype",
 				Start:      0.65,
@@ -170,16 +177,17 @@ func TestSpanTransform(t *testing.T) {
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
 				Context:    common.MapStr{"key": "val"},
 				Parent:     &parent,
-				HexId:      &hexId,
 			},
 			Output: common.MapStr{
-				"duration": common.MapStr{"us": 1200},
-				"id":       1,
-				"name":     "myspan",
-				"start":    common.MapStr{"us": 650},
-				"type":     "myspantype",
-				"parent":   12,
-				"hex_id":   hexId,
+				"duration":  common.MapStr{"us": 1200},
+				"id":        1,
+				"name":      "myspan",
+				"start":     common.MapStr{"us": 650},
+				"type":      "myspantype",
+				"parent":    12,
+				"hex_id":    hexId,
+				"trace_id":  traceId,
+				"parent_id": parentId,
 				"stacktrace": []common.MapStr{{
 					"exclude_from_grouping": false,
 					"abs_path":              path,

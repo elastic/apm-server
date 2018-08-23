@@ -43,7 +43,7 @@ var (
 	spanCounter     = monitoring.NewInt(Metrics, "spans")
 	transformations = monitoring.NewInt(Metrics, "transformations")
 
-	processorTransEntry = common.MapStr{"name": processorName, "event": transactionDocType}
+	processorEntry = common.MapStr{"name": processorName, "event": transactionDocType}
 )
 
 var (
@@ -65,6 +65,10 @@ type Event struct {
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
+
+	//v2
+	ParentId *string
+	TraceId  *string
 
 	// deprecated in V2
 	Spans []*span.Event
@@ -107,11 +111,14 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 }
 
 func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	e, _, err := decodeEvent(input, err)
+	e, raw, err := decodeEvent(input, err)
 	if err != nil {
 		return nil, err
 	}
-	return e, nil
+	decoder := utility.ManualDecoder{}
+	e.ParentId = decoder.StringPtr(raw, "parent_id")
+	e.TraceId = decoder.StringPtr(raw, "trace_id")
+	return e, decoder.Err
 }
 
 func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
@@ -149,6 +156,10 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tx, "result", t.Result)
 	utility.Add(tx, "marks", t.Marks)
 
+	// v2
+	utility.Add(tx, "parent_id", t.ParentId)
+	utility.Add(tx, "trace_id", t.TraceId)
+
 	if t.Sampled == nil {
 		utility.Add(tx, "sampled", true)
 	} else {
@@ -176,7 +187,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	ev := beat.Event{
 		Fields: common.MapStr{
-			"processor":        processorTransEntry,
+			"processor":        processorEntry,
 			transactionDocType: e.fields(tctx),
 			"context":          tctx.Metadata.Merge(e.Context),
 		},

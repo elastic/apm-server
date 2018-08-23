@@ -98,8 +98,9 @@ func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 
 func keywordExceptionKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
-		"processor.event", "processor.name", "listening",
-		"transaction.id", "transaction.marks", "context.tags", "id"))
+		"processor.event", "processor.name", "listening", "transaction.parent_id",
+		"span.parent_id", "span.trace_id", "transaction.trace_id",
+		"transaction.id", "transaction.marks", "context.tags", "span.hex_id"))
 }
 
 func templateToSchemaMapping(mapping map[string]string) map[string]string {

@@ -69,6 +69,10 @@ type Event struct {
 
 	Transaction *Transaction
 
+	//v2
+	TraceId  *string
+	ParentId *string
+
 	data common.MapStr
 }
 
@@ -117,6 +121,8 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	if transactionId != nil {
 		e.Transaction = &Transaction{Id: *transactionId}
 	}
+	e.ParentId = decoder.StringPtr(raw, "parent_id")
+	e.TraceId = decoder.StringPtr(raw, "trace_id")
 	return e, decoder.Err
 }
 
@@ -208,6 +214,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
+	e.add("parent_id", e.ParentId)
+	e.add("trace_id", e.TraceId)
 
 	e.addException(tctx)
 	e.addLog(tctx)
