@@ -96,9 +96,11 @@ func TestVersionedTransactionEventDecode(t *testing.T) {
 	id, trType, duration := "123", "type", 1.67
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
 
 	input := map[string]interface{}{
 		"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+		"parent_id": parentId, "trace_id": traceId,
 		"spans": []interface{}{
 			map[string]interface{}{
 				"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
@@ -120,6 +122,7 @@ func TestVersionedTransactionEventDecode(t *testing.T) {
 	// test V2
 	e = &Event{
 		Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
+		TraceId: &traceId, ParentId: &parentId,
 	}
 	transformable, err = V2DecodeEvent(input, nil)
 	assert.NoError(t, err)

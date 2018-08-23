@@ -57,7 +57,7 @@ func TestV2Handler(t *testing.T) {
 	handler := (&v2BackendRoute).Handler(c, report)
 
 	tx1 := "tx1"
-	spanHexId := "0147258369abcdef"
+	spanHexId, traceId := "0147258369abcdef", "abcdefabcdef01234567890123456789"
 	timestamp, err := time.Parse(time.RFC3339, "2018-01-01T10:00:00Z")
 	assert.NoError(t, err)
 	reqTimestamp, err := time.Parse(time.RFC3339, "2018-01-02T10:00:00Z")
@@ -164,16 +164,16 @@ func TestV2Handler(t *testing.T) {
 		{
 			body: strings.Join([]string{
 				validMetadata(),
-				`{"transaction": {"name": "tx1", "id": "9876543210abcdef", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
-				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "timestamp": "2018-01-01T10:00:00Z", "id": "0147258369abcdef", "transaction_id": "fedcba0123456789", "stacktrace": [{"filename": "file.js", "lineno": 10}, {"filename": "file2.js", "lineno": 11}]}}`,
+				`{"transaction": {"name": "tx1", "id": "9876543210abcdef", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z", "trace_id": "abcdefabcdef01234567890123456789"}}`,
+				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "timestamp": "2018-01-01T10:00:00Z", "id": "0147258369abcdef","trace_id": "abcdefabcdef01234567890123456789",  "transaction_id": "fedcba0123456789", "stacktrace": [{"filename": "file.js", "lineno": 10}, {"filename": "file2.js", "lineno": 11}]}}`,
 				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
 				`{"error": {"exception": {"message": "hello world!"}}}`,
 			}, "\n"),
 			contentType:  "application/x-ndjson",
 			expectedCode: http.StatusAccepted,
 			reported: []transform.Transformable{
-				&transaction.Event{Name: &tx1, Id: "9876543210abcdef", Duration: 12, Type: "request", Timestamp: timestamp},
-				&span.Event{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", Timestamp: timestamp, HexId: &spanHexId, TransactionId: &transactionId, Stacktrace: model.Stacktrace{&model.StacktraceFrame{Filename: "file.js", Lineno: 10}, &model.StacktraceFrame{Filename: "file2.js", Lineno: 11}}},
+				&transaction.Event{Name: &tx1, Id: "9876543210abcdef", Duration: 12, Type: "request", Timestamp: timestamp, TraceId: &traceId},
+				&span.Event{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", Timestamp: timestamp, HexId: &spanHexId, TransactionId: &transactionId, TraceId: &traceId, Stacktrace: model.Stacktrace{&model.StacktraceFrame{Filename: "file.js", Lineno: 10}, &model.StacktraceFrame{Filename: "file2.js", Lineno: 11}}},
 				&metric.Metric{Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}, Timestamp: timestamp},
 				&errorm.Event{Exception: &errorm.Exception{Message: "hello world!", Stacktrace: model.Stacktrace{}}},
 			},
@@ -182,15 +182,15 @@ func TestV2Handler(t *testing.T) {
 			// optional timestamps
 			body: strings.Join([]string{
 				validMetadata(),
-				`{"transaction": {"name": "tx1", "id": "1111222233334444", "duration": 12, "type": "request"}}`,
-				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "id": "0147258369abcdef", "transaction_id": "fedcba0123456789"}}`,
+				`{"transaction": {"name": "tx1", "id": "1111222233334444", "trace_id": "abcdefabcdef01234567890123456789", "duration": 12, "type": "request"}}`,
+				`{"span": {"name": "sp1","trace_id": "abcdefabcdef01234567890123456789", "duration": 20, "start": 10, "type": "db", "id": "0147258369abcdef", "transaction_id": "fedcba0123456789"}}`,
 				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
 			}, "\n"),
 			contentType:  "application/x-ndjson",
 			expectedCode: http.StatusAccepted,
 			reported: []transform.Transformable{
-				&transaction.Event{Name: &tx1, Id: "1111222233334444", Duration: 12, Type: "request"},
-				&span.Event{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", HexId: &spanHexId, TransactionId: &transactionId},
+				&transaction.Event{Name: &tx1, Id: "1111222233334444", Duration: 12, Type: "request", TraceId: &traceId},
+				&span.Event{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", HexId: &spanHexId, TransactionId: &transactionId, TraceId: &traceId},
 				&metric.Metric{Timestamp: timestamp, Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}},
 			},
 		},
@@ -232,8 +232,8 @@ func TestV2HandlerReadError(t *testing.T) {
 
 	body := strings.Join([]string{
 		validMetadata(),
-		`{"transaction": {"name": "tx1", "id": "8ace3f94cd01462c", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
-		`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "id": "0000111122223333", "timestamp": "2018-01-01T10:00:01Z", "transaction_id": "fedcba0123456789"}}`,
+		`{"transaction": {"name": "tx1", "id": "8ace3f94cd01462c", "trace_id": "0123456789", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
+		`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "trace_id": "0123456789", "id": "0000111122223333", "timestamp": "2018-01-01T10:00:01Z", "transaction_id": "fedcba0123456789"}}`,
 		`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
 	}, "\n")
 
@@ -308,7 +308,7 @@ func TestV2HandlerReportingError(t *testing.T) {
 
 		body := strings.Join([]string{
 			validMetadata(),
-			`{"transaction": {"name": "tx1", "id": "8ace3f94462ab069", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
+			`{"transaction": {"name": "tx1","trace_id": "01234567890123456789abcdefabcdef", "id": "8ace3f94462ab069", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z"}}`,
 		}, "\n")
 
 		bodyReader := bytes.NewBufferString(body)
