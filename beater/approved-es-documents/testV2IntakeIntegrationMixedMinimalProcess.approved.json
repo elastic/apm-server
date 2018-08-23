@@ -57,6 +57,7 @@
                 "start": {
                     "us": 1845
                 },
+                "trace_id": "0123456789abcdef0123456789abcdef",
                 "type": "request"
             },
             "transaction": {
@@ -94,6 +95,7 @@
                 "id": "abcdef1478523690",
                 "result": "200",
                 "sampled": true,
+                "trace_id": "01234567890123456789abcdefabcdef",
                 "type": "request"
             }
         },

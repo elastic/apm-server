@@ -428,9 +428,19 @@ const ModelSchema = `{
                     "description": "Hex encoded 64 random bits ID of the error.",
                     "maxLength": 1024
                 },
+                "trace_id": {
+                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
                 "transaction_id": {
                     "type": ["string", "null"],
                     "description": "Hex encoded 64 random bits ID of the correlated transaction.",
+                    "maxLength": 1024
+                },
+                "parent_id": {
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
             }
