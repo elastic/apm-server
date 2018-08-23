@@ -353,7 +353,9 @@
                 "log": {
                     "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"
-                }
+                },
+                "parent_id": "9632587410abcdef",
+                "trace_id": "0123456789abcdeffedcba0123456789"
             },
             "processor": {
                 "event": "error",
