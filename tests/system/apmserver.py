@@ -240,8 +240,7 @@ class ElasticTest(ServerBaseTest):
             assert "sourcemap" not in frame
 
 
-class ClientSideBaseTest(ElasticTest):
-
+class ClientSideBaseTest(ServerBaseTest):
     transactions_url = 'http://localhost:8200/v1/rum/transactions'
     errors_url = 'http://localhost:8200/v1/rum/errors'
     sourcemap_url = 'http://localhost:8200/v1/rum/sourcemaps'
@@ -282,6 +281,8 @@ class ClientSideBaseTest(ElasticTest):
                                 })
         return r
 
+
+class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
     def wait_for_sourcemaps(self, expected_ct=1):
         idx = self.smap_index_pattern
         self.wait_until(
@@ -311,7 +312,8 @@ class ClientSideBaseTest(ElasticTest):
             span = doc["_source"]["span"]
             self.check_smap(span, updated, expected_err)
 
-    def check_smap(self, doc, updated, err=None):
+    @staticmethod
+    def check_smap(doc, updated, err=None):
         if "stacktrace" not in doc:
             return
         for frame in doc["stacktrace"]:
@@ -348,14 +350,14 @@ class CorsBaseTest(ClientSideBaseTest):
         return cfg
 
 
-class SmapCacheBaseTest(ClientSideBaseTest):
+class SmapCacheBaseTest(ClientSideElasticTest):
     def config(self):
         cfg = super(SmapCacheBaseTest, self).config()
         cfg.update({"smap_cache_expiration": "1"})
         return cfg
 
 
-class SmapIndexBaseTest(ClientSideBaseTest):
+class SmapIndexBaseTest(ClientSideElasticTest):
     @classmethod
     def setUpClass(cls):
         super(SmapIndexBaseTest, cls).setUpClass()
