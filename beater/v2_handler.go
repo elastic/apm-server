@@ -90,7 +90,7 @@ func (v *v2Handler) handleRawModel(rawModel map[string]interface{}) (transform.T
 
 			tr, err := model.modelDecoder(entry, err)
 			if err != nil {
-				return tr, err
+				return nil, err
 			}
 			return tr, nil
 		}
@@ -104,7 +104,7 @@ func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader,
 	var err error
 	var rawModel map[string]interface{}
 
-	eventables := []transform.Transformable{}
+	var eventables []transform.Transformable
 	for i := 0; i < batchSize && err == nil; i++ {
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
@@ -124,6 +124,7 @@ func (v *v2Handler) readBatch(batchSize int, reader *decoder.NDJSONStreamReader,
 			if err != nil {
 				response.addWithOffendingDocument(SchemaValidationErr, err.Error(), reader.LastLine())
 				response.Invalid++
+				continue
 			}
 			eventables = append(eventables, tr)
 		}
@@ -194,7 +195,7 @@ func (v *v2Handler) handleRequestBody(r *http.Request, ndReader *decoder.NDJSONS
 
 	for {
 		transformables, done := v.readBatch(batchSize, ndReader, resp)
-		if transformables != nil && len(transformables) > 0 {
+		if transformables != nil {
 			err := report(r.Context(), pendingReq{
 				transformables: transformables,
 				tcontext:       tctx,

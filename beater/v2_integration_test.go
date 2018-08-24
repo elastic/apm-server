@@ -52,16 +52,18 @@ func TestV2IntakeIntegration(t *testing.T) {
 	handler := (&v2BackendRoute).Handler(c, report)
 
 	for _, test := range []struct {
-		path string
-		name string
+		path   string
+		name   string
+		status int
 	}{
-		{path: "../testdata/intake-v2/errors.ndjson", name: "Errors"},
-		{path: "../testdata/intake-v2/transactions.ndjson", name: "Transactions"},
-		{path: "../testdata/intake-v2/spans.ndjson", name: "Spans"},
-		{path: "../testdata/intake-v2/metrics.ndjson", name: "Metrics"},
-		{path: "../testdata/intake-v2/minimal_process.ndjson", name: "MixedMinimalProcess"},
-		{path: "../testdata/intake-v2/minimal_service.ndjson", name: "MinimalService"},
-		{path: "../testdata/intake-v2/metadata_null_values.ndjson", name: "MetadataNullValues"},
+		{status: 202, path: "../testdata/intake-v2/errors.ndjson", name: "Errors"},
+		{status: 202, path: "../testdata/intake-v2/transactions.ndjson", name: "Transactions"},
+		{status: 202, path: "../testdata/intake-v2/spans.ndjson", name: "Spans"},
+		{status: 202, path: "../testdata/intake-v2/metrics.ndjson", name: "Metrics"},
+		{status: 202, path: "../testdata/intake-v2/minimal_process.ndjson", name: "MixedMinimalProcess"},
+		{status: 202, path: "../testdata/intake-v2/minimal_service.ndjson", name: "MinimalService"},
+		{status: 202, path: "../testdata/intake-v2/metadata_null_values.ndjson", name: "MetadataNullValues"},
+		{status: 400, path: "../testdata/intake-v2/invalid-event.ndjson", name: "InvalidEvent"},
 	} {
 
 		b, err := loader.LoadDataAsBytes(test.path)
@@ -80,7 +82,7 @@ func TestV2IntakeIntegration(t *testing.T) {
 		r = r.WithContext(context.WithValue(r.Context(), requestTimeContextKey, reqTimestamp))
 		handler.ServeHTTP(w, r)
 
-		assert.Equal(t, 202, w.Code)
+		assert.Equal(t, test.status, w.Code)
 
 	}
 }
