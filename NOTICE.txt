@@ -292,7 +292,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.4
-Revision: 7d72fbfc4f7ce43053e0ad6aced92eb397f1f658
+Revision: fcc0984f84f45677a64b722afec063f317ab437c
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -325,7 +325,6 @@ Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-structform
-Version: v0.0.4
 Revision: 0a66add879601f69f55663f4c913c72988218982
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-structform/LICENSE:
@@ -1742,7 +1741,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/stretchr/testify
-Version: v1.2.0
 Revision: f35b8ab0b5a2cef36673838d662e249dd9c94686
 License type (autodetected): MIT
 ./vendor/github.com/stretchr/testify/LICENSE:
