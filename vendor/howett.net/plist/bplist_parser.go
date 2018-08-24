@@ -13,10 +13,6 @@ import (
 	"unicode/utf16"
 )
 
-const (
-	signedHighBits = 0xFFFFFFFFFFFFFFFF
-)
-
 type offset uint64
 
 type bplistParser struct {
@@ -116,31 +112,20 @@ func (p *bplistParser) parseDocument() (pval cfValue, parseError error) {
 }
 
 // parseSizedInteger returns a 128-bit integer as low64, high64
-func (p *bplistParser) parseSizedInteger(off offset, nbytes int) (lo uint64, hi uint64, newOffset offset) {
-	// Per comments in CoreFoundation, format version 00 requires that all
-	// 1, 2 or 4-byte integers be interpreted as unsigned. 8-byte integers are
-	// signed (always?) and therefore must be sign extended here.
-	// negative 1, 2, or 4-byte integers are always emitted as 64-bit.
+func (p *bplistParser) parseSizedInteger(off offset, nbytes int) (uint64, uint64, offset) {
 	switch nbytes {
 	case 1:
-		lo, hi = uint64(p.buffer[off]), 0
+		return uint64(p.buffer[off]), 0, off + offset(nbytes)
 	case 2:
-		lo, hi = uint64(binary.BigEndian.Uint16(p.buffer[off:])), 0
+		return uint64(binary.BigEndian.Uint16(p.buffer[off:])), 0, off + offset(nbytes)
 	case 4:
-		lo, hi = uint64(binary.BigEndian.Uint32(p.buffer[off:])), 0
+		return uint64(binary.BigEndian.Uint32(p.buffer[off:])), 0, off + offset(nbytes)
 	case 8:
-		lo = binary.BigEndian.Uint64(p.buffer[off:])
-		if p.buffer[off]&0x80 != 0 {
-			// sign extend if lo is signed
-			hi = signedHighBits
-		}
+		return binary.BigEndian.Uint64(p.buffer[off:]), 0, off + offset(nbytes)
 	case 16:
-		lo, hi = binary.BigEndian.Uint64(p.buffer[off+8:]), binary.BigEndian.Uint64(p.buffer[off:])
-	default:
-		panic(errors.New("illegal integer size"))
+		return binary.BigEndian.Uint64(p.buffer[off+8:]), binary.BigEndian.Uint64(p.buffer[off:]), off + offset(nbytes)
 	}
-	newOffset = off + offset(nbytes)
-	return
+	panic(errors.New("illegal integer size"))
 }
 
 func (p *bplistParser) parseObjectRefAtOffset(off offset) (uint64, offset) {
@@ -208,7 +193,7 @@ func (p *bplistParser) parseTagAtOffset(off offset) cfValue {
 	case bpTagInteger:
 		lo, hi, _ := p.parseIntegerAtOffset(off)
 		return &cfNumber{
-			signed: hi == signedHighBits, // a signed integer is stored as a 128-bit integer with the top 64 bits set
+			signed: hi == 0xFFFFFFFFFFFFFFFF, // a signed integer is stored as a 128-bit integer with the top 64 bits set
 			value:  lo,
 		}
 	case bpTagReal:
