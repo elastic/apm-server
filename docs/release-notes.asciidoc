@@ -8,8 +8,6 @@
 --
 This following section summarizes the changes in each release.
 
-
-* <<release-notes-head>>
 * <<release-notes-6.4>>
 * <<release-notes-6.3>>
 * <<release-notes-6.2>>
