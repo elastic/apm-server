@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package publish
 
 import (
 	"context"
@@ -30,6 +30,8 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 )
 
+type Reporter func(context.Context, PendingReq) error
+
 // Publisher forwards batches of events to libbeat. It uses GuaranteedSend
 // to enable infinite retry of events being processed.
 // If the publisher's input channel is full, an error is returned immediately.
@@ -38,31 +40,31 @@ import (
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type publisher struct {
-	pendingRequests chan pendingReq
+	pendingRequests chan PendingReq
 	tracer          *elasticapm.Tracer
 	client          beat.Client
 	m               sync.RWMutex
 	stopped         bool
 }
 
-type pendingReq struct {
-	transformables []transform.Transformable
-	tcontext       *transform.Context
-	trace          bool
+type PendingReq struct {
+	Transformables []transform.Transformable
+	Tcontext       *transform.Context
+	Trace          bool
 }
 
 var (
-	errFull              = errors.New("Queue is full")
-	errInvalidBufferSize = errors.New("Request buffer must be > 0")
-	errChannelClosed     = errors.New("Can't send batch, publisher is being stopped")
+	ErrFull              = errors.New("Queue is full")
+	ErrInvalidBufferSize = errors.New("Request buffer must be > 0")
+	ErrChannelClosed     = errors.New("Can't send batch, publisher is being stopped")
 )
 
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, tracer *elasticapm.Tracer) (*publisher, error) {
+func NewPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, tracer *elasticapm.Tracer) (*publisher, error) {
 	if N <= 0 {
-		return nil, errInvalidBufferSize
+		return nil, ErrInvalidBufferSize
 	}
 
 	client, err := pipeline.ConnectWith(beat.ClientConfig{
@@ -82,7 +84,7 @@ func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, 
 
 		// Set channel size to N - 1. One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
-		pendingRequests: make(chan pendingReq, N-1),
+		pendingRequests: make(chan PendingReq, N-1),
 	}
 
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
@@ -90,6 +92,10 @@ func newPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, 
 	}
 
 	return p, nil
+}
+
+func (p *publisher) Client() beat.Client {
+	return p.client
 }
 
 // Stop closes all channels and waits for the the worker to stop.
@@ -106,17 +112,17 @@ func (p *publisher) Stop() {
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,
 // an error is returned.
 // Calling send after Stop will return an error.
-func (p *publisher) Send(ctx context.Context, req pendingReq) error {
+func (p *publisher) Send(ctx context.Context, req PendingReq) error {
 	p.m.RLock()
 	defer p.m.RUnlock()
 	if p.stopped {
-		return errChannelClosed
+		return ErrChannelClosed
 	}
 
 	span, ctx := elasticapm.StartSpan(ctx, "Send", "Publisher")
 	if span != nil {
 		defer span.End()
-		req.trace = !span.Dropped()
+		req.Trace = !span.Dropped()
 	}
 
 	select {
@@ -125,7 +131,7 @@ func (p *publisher) Send(ctx context.Context, req pendingReq) error {
 	case p.pendingRequests <- req:
 		return nil
 	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
-		return errFull
+		return ErrFull
 	}
 }
 
@@ -135,16 +141,16 @@ func (p *publisher) run() {
 	}
 }
 
-func (p *publisher) processPendingReq(req pendingReq) {
+func (p *publisher) processPendingReq(req PendingReq) {
 	var tx *elasticapm.Transaction
-	if req.trace {
+	if req.Trace {
 		tx = p.tracer.StartTransaction("ProcessPending", "Publisher")
 		defer tx.End()
 	}
 
-	for _, transformable := range req.transformables {
+	for _, transformable := range req.Transformables {
 		span := tx.StartSpan("Transform", "Publisher", nil)
-		events := transformable.Transform(req.tcontext)
+		events := transformable.Transform(req.Tcontext)
 		span.End()
 
 		span = tx.StartSpan("PublishAll", "Publisher", nil)

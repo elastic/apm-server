@@ -15,26 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package utility
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"context"
+	"time"
 )
 
-func TestInvalidContentType(t *testing.T) {
-	req, err := http.NewRequest("POST", "/v2/intake", nil)
-	require.NoError(t, err)
-	w := httptest.NewRecorder()
+type contextKey string
 
-	c := defaultConfig("7.0.0")
-	handler := (&v2BackendRoute).Handler(c, nil)
+const requestTimeContextKey = contextKey("requestTime")
 
-	handler.ServeHTTP(w, req)
+func ContextWithRequestTime(ctx context.Context, t time.Time) context.Context {
+	if RequestTime(ctx).IsZero() {
+		return context.WithValue(ctx, requestTimeContextKey, t)
+	}
+	return ctx
+}
 
-	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+func RequestTime(ctx context.Context) time.Time {
+	t, ok := ctx.Value(requestTimeContextKey).(time.Time)
+	if !ok {
+		return time.Time{}
+	}
+	return t
 }

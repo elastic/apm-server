@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package stream
 
 import (
 	"encoding/json"
@@ -29,10 +29,10 @@ import (
 )
 
 func TestStreamResponseSimple(t *testing.T) {
-	sr := streamResponse{}
-	sr.add(QueueFullErr, 23)
+	sr := Result{}
+	sr.Add(QueueFullErr, 23)
 
-	jsonByte, err := sr.marshal()
+	jsonByte, err := sr.Marshal()
 	require.NoError(t, err)
 
 	var jsonOut map[string]interface{}
@@ -46,20 +46,20 @@ func TestStreamResponseSimple(t *testing.T) {
 
 	expectedStr := `queue is full (23)`
 	assert.Equal(t, expectedStr, sr.String())
-	assert.Equal(t, 429, sr.statusCode())
+	assert.Equal(t, 429, sr.StatusCode())
 }
 
 func TestStreamResponseAdvanced(t *testing.T) {
-	sr := streamResponse{}
+	sr := Result{}
 
-	sr.add(SchemaValidationErr, 2)
-	sr.addWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
-	sr.addWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
-	sr.addWithOffendingDocument(SchemaValidationErr, "thing error", []byte(`{"wrong": "value"}`))
+	sr.Add(SchemaValidationErr, 2)
+	sr.AddWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
+	sr.AddWithOffendingDocument(SchemaValidationErr, "transmogrifier error", []byte(`{"wrong": "field"}`))
+	sr.AddWithOffendingDocument(SchemaValidationErr, "thing error", []byte(`{"wrong": "value"}`))
 
-	sr.add(QueueFullErr, 23)
+	sr.Add(QueueFullErr, 23)
 
-	jsonByte, err := sr.marshal()
+	jsonByte, err := sr.Marshal()
 	require.NoError(t, err)
 
 	var jsonOut map[string]interface{}
@@ -74,5 +74,5 @@ func TestStreamResponseAdvanced(t *testing.T) {
 	expectedStr := `queue is full (23), validation error (5): transmogrifier error ({"wrong": "field"}), thing error ({"wrong": "value"})`
 	assert.Equal(t, expectedStr, sr.String())
 
-	assert.Equal(t, 429, sr.statusCode())
+	assert.Equal(t, 429, sr.StatusCode())
 }

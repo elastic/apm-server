@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package stream
 
 import (
 	"encoding/json"
@@ -64,7 +64,7 @@ var errorTypesDecreasingHTTPStatus = func() []StreamErrorType {
 	return keys
 }()
 
-type streamResponse struct {
+type Result struct {
 	Accepted int `json:"accepted"`
 	Invalid  int `json:"invalid"`
 	Dropped  int `json:"dropped"`
@@ -87,11 +87,11 @@ type ValidationError struct {
 	OffendingEvent string `json:"object"`
 }
 
-func (s *streamResponse) add(err StreamErrorType, count int) {
-	s.addWithMessage(err, count, standardMessages[err].err)
+func (s *Result) Add(err StreamErrorType, count int) {
+	s.AddWithMessage(err, count, standardMessages[err].err)
 }
 
-func (s *streamResponse) addWithMessage(err StreamErrorType, count int, message string) {
+func (s *Result) AddWithMessage(err StreamErrorType, count int, message string) {
 	if s.Errors == nil {
 		s.Errors = make(map[StreamErrorType]errorDetails)
 	}
@@ -110,7 +110,7 @@ func (s *streamResponse) addWithMessage(err StreamErrorType, count int, message 
 	s.Errors[err] = details
 }
 
-func (s *streamResponse) String() string {
+func (s *Result) String() string {
 	errorList := []string{}
 	for _, t := range errorTypesDecreasingHTTPStatus {
 		if s.Errors[t].Count > 0 {
@@ -131,7 +131,7 @@ func (s *streamResponse) String() string {
 	return strings.Join(errorList, ", ")
 }
 
-func (s *streamResponse) statusCode() int {
+func (s *Result) StatusCode() int {
 	statusCode := http.StatusAccepted
 	for k := range s.Errors {
 		if standardMessages[k].code > statusCode {
@@ -141,12 +141,12 @@ func (s *streamResponse) statusCode() int {
 	return statusCode
 }
 
-func (s *streamResponse) marshal() ([]byte, error) {
+func (s *Result) Marshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (s *streamResponse) addWithOffendingDocument(errType StreamErrorType, errMsg string, offendingDocument []byte) {
-	s.add(errType, 1)
+func (s *Result) AddWithOffendingDocument(errType StreamErrorType, errMsg string, offendingDocument []byte) {
+	s.Add(errType, 1)
 	errorDetails := s.Errors[errType]
 	if errorDetails.Documents == nil {
 		errorDetails.Documents = []*ValidationError{}

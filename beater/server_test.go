@@ -36,6 +36,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -658,4 +659,4 @@ func body(t *testing.T, response *http.Response) string {
 	return string(body)
 }
 
-func nopReporter(context.Context, pendingReq) error { return nil }
+func nopReporter(context.Context, publish.PendingReq) error { return nil }

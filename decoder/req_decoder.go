@@ -74,12 +74,15 @@ func DecodeLimitJSONData(maxSize int64) ReqDecoder {
 		if err != nil {
 			return nil, err
 		}
+
+		reader = http.MaxBytesReader(nil, reader, maxSize)
+
 		return DecodeJSONData(monitoringReader{reader})
 	}
 }
 
-// CompressedRequestReader makes a function that uses information from an http request to construct a Limited ReadCloser
-// from the body of the request, handling any decompression necessary
+// CompressedRequestReader returns a reader that will decompress the body according
+// the supplied Content-Encoding header in the request
 func CompressedRequestReader(maxSize int64) ReqReader {
 	return func(req *http.Request) (io.ReadCloser, error) {
 		reader := req.Body
@@ -121,7 +124,7 @@ func CompressedRequestReader(maxSize int64) ReqReader {
 			}
 		}
 		readerCounter.Inc()
-		return http.MaxBytesReader(nil, reader, maxSize), nil
+		return reader, nil
 	}
 }
 

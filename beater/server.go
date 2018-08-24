@@ -28,15 +28,14 @@ import (
 
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-agent-go/module/apmhttp"
+	"github.com/elastic/apm-server/publish"
 
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/version"
 )
 
-type reporter func(context.Context, pendingReq) error
-
-func newServer(config *Config, tracer *elasticapm.Tracer, report reporter) *http.Server {
+func newServer(config *Config, tracer *elasticapm.Tracer, report publish.Reporter) *http.Server {
 	mux := newMuxer(config, report)
 
 	return &http.Server{

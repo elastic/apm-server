@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-agent-go/transport"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	"github.com/elastic/apm-server/pipelistener"
+	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
@@ -138,7 +139,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	defer traceListener.Close()
 	defer tracer.Close()
 
-	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout, tracer)
+	pub, err := publish.NewPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout, tracer)
 	if err != nil {
 		return err
 	}
@@ -150,7 +151,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	go notifyListening(bt.config, pub.client.Publish)
+	go notifyListening(bt.config, pub.Client().Publish)
 
 	bt.mutex.Lock()
 	if bt.stopped {

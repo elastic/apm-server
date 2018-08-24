@@ -25,19 +25,22 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
 func TestV2IntakeIntegration(t *testing.T) {
-	report := func(ctx context.Context, p pendingReq) error {
+	report := func(ctx context.Context, p publish.PendingReq) error {
 		var events []beat.Event
-		for _, transformable := range p.transformables {
-			events = append(events, transformable.Transform(p.tcontext)...)
+		for _, transformable := range p.Transformables {
+			events = append(events, transformable.Transform(p.Tcontext)...)
 		}
 		name := ctx.Value("name").(string)
 		verifyErr := tests.ApproveEvents(events, name, nil)
@@ -79,7 +82,7 @@ func TestV2IntakeIntegration(t *testing.T) {
 		name := fmt.Sprintf("approved-es-documents/testV2IntakeIntegration%s", test.name)
 		r = r.WithContext(context.WithValue(r.Context(), "name", name))
 		reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
-		r = r.WithContext(context.WithValue(r.Context(), requestTimeContextKey, reqTimestamp))
+		r = r.WithContext(utility.ContextWithRequestTime(r.Context(), reqTimestamp))
 		handler.ServeHTTP(w, r)
 
 		assert.Equal(t, test.status, w.Code)
