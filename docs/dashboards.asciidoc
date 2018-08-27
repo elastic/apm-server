@@ -1,7 +1,8 @@
 [[load-kibana-dashboards]]
 === Dashboards
 
-From APM Server and Kibana 6.4 on you can load dashboards directly via the Kibana UI.
+From APM Server and Kibana 6.4 on you can load dashboards directly via the
+{kibana-ref}/apm-getting-started.html[APM Kibana UI].
 
 ==== Setup via APM Server
 

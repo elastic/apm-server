@@ -54,7 +54,7 @@ Then it creates documents from that data and stores them in Elasticsearch.
 
 To visualize the data after it's sent to Elasticsearch,
 you can use the the dedicated APM UI bundled in X-Pack,
-or the pre-built open source Kibana dashboards that can be loaded directly in the Kibana UI.
+or the pre-built open source Kibana dashboards that can be loaded directly via the {kibana-ref}/apm-getting-started.html[APM Kibana UI].
 
 [[apm-release-notes]]
 === Release notes
