@@ -31,7 +31,6 @@ http(s)://{hostname}:{port}/v1/rum/transactions
 The APM Server uses JSON Schema for validating requests. The specification for transactions is defined bellow:
 
 * <<transaction-payload-schema>>
-* <<transaction-transaction-schema>>
 * <<transaction-span-schema>>
 * <<transaction-service-schema>>
 * <<transaction-system-schema>>
@@ -46,16 +45,7 @@ The APM Server uses JSON Schema for validating requests. The specification for t
 
 [source,json]
 ----
-include::./spec/transactions/payload.json[]
-----
-
-[[transaction-transaction-schema]]
-[float]
-==== Transaction
-
-[source,json]
-----
-include::./spec/transactions/transaction.json[]
+include::./spec/transactions/v1_transaction.json[]
 ----
 
 [[transaction-span-schema]]
@@ -64,7 +54,7 @@ include::./spec/transactions/transaction.json[]
 
 [source,json]
 ----
-include::./spec/span/span.json[]
+include::./spec/spans/v1_span.json[]
 ----
 
 [[transaction-service-schema]]
