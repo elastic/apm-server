@@ -30,7 +30,6 @@ http(s)://{hostname}:{port}/v1/rum/errors
 
 The APM Server uses JSON Schema for validating requests. The specification for errors is defined bellow:
 * <<error-payload-schema>>
-* <<error-error-schema>>
 * <<error-service-schema>>
 * <<error-system-schema>>
 * <<error-context-schema>>
@@ -45,16 +44,7 @@ The APM Server uses JSON Schema for validating requests. The specification for e
 
 [source,json]
 ----
-include::./spec/errors/payload.json[]
-----
-
-[[error-error-schema]]
-[float]
-==== Error
-
-[source,json]
-----
-include::./spec/errors/error.json[]
+include::./spec/errors/v1_error.json[]
 ----
 
 [[error-service-schema]]
