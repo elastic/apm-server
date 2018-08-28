@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "document": "{\"metadata\": {\"user\": null}}\n",
+            "document": "{\"metadata\": {\"user\": null}}",
             "message": "Problem validating JSON document against schema: I[#] S[#] doesn't validate with \"metadata#\"\n  I[#] S[#/required] missing properties: \"service\""
         }
     ]

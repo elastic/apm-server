@@ -36,6 +36,7 @@ type Config struct {
 	MaxHeaderSize       int                    `config:"max_header_size"`
 	ReadTimeout         time.Duration          `config:"read_timeout"`
 	WriteTimeout        time.Duration          `config:"write_timeout"`
+	MaxEventSize        int                    `config:"max_event_size"`
 	ShutdownTimeout     time.Duration          `config:"shutdown_timeout"`
 	SecretToken         string                 `config:"secret_token"`
 	SSL                 *SSLConfig             `config:"ssl"`
@@ -207,6 +208,7 @@ func defaultConfig(beatVersion string) *Config {
 		MaxRequestQueueTime: 2 * time.Second,
 		ReadTimeout:         30 * time.Second,
 		WriteTimeout:        30 * time.Second,
+		MaxEventSize:        300 * 1024, // 300 kb
 		ShutdownTimeout:     5 * time.Second,
 		SecretToken:         "",
 		AugmentEnabled:      true,
