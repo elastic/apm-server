@@ -40,8 +40,14 @@ no breaking changes in APM Server
 https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[breaking changes in libbeat]
 
 [float]
+==== 6.4
+Indexing the `onboarding` document in it's own index by default.
+
+https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.4.html[breaking changes in libbeat]
+
+[float]
 ==== 6.3
-no breaking changes in APM Server
+Indexing events in separate indices by default.
 
 https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[breaking changes in libbeat]
 
