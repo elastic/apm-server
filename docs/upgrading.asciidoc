@@ -43,7 +43,6 @@ https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[break
 ==== 6.4
 Indexing the `onboarding` document in it's own index by default.
 
-https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.4.html[breaking changes in libbeat]
 
 [float]
 ==== 6.3
