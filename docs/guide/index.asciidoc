@@ -295,7 +295,7 @@ See the {apm-rum-ref}/index.html[APM RUM JavaScript Agent documentation] for mor
 ===== Bug Fixes
 Changes introduced in 6.4.0 potentially caused an empty APM Kibana UI.
 This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices. 
-To fix this, the APM Kibana UI now falls back to use `apm-*` as default value for queries.
+To fix this, the APM Kibana UI now falls back to use `apm-*` as default indices to query.
 Users can still leverage separate indices for queries by overwriting the default values described in {kibana-ref}/apm-settings-kb.html[Kibana APM settings].
 
 
