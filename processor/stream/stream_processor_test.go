@@ -20,14 +20,18 @@ package stream
 import (
 	"bytes"
 	"context"
-	"net/http"
+	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"testing/iotest"
 	"time"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/beat"
 
 	"github.com/elastic/apm-server/model"
 	errorm "github.com/elastic/apm-server/model/error"
@@ -37,6 +41,7 @@ import (
 	"github.com/elastic/apm-server/publish"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/transform"
 )
@@ -65,11 +70,9 @@ func TestV2Handler(t *testing.T) {
 	transactionId := "fedcba0123456789"
 
 	for idx, test := range []struct {
-		body         string
-		contentType  string
-		err          *Result
-		expectedCode int
-		reported     []transform.Transformable
+		body     string
+		err      *Result
+		reported []transform.Transformable
 	}{
 		{
 			body: strings.Join([]string{
@@ -77,42 +80,28 @@ func TestV2Handler(t *testing.T) {
 				`{"invalid json"}`,
 			}, "\n"),
 			err: &Result{
-				Errors: map[StreamErrorType]errorDetails{
-					"ERR_INVALID_JSON": errorDetails{
-						Count:   1,
-						Message: "invalid JSON",
-						Documents: []*ValidationError{
-							{
-								Error:          "data read error: invalid character '}' after object key",
-								OffendingEvent: `{"invalid json"}`,
-							},
-						},
+				Errors: []*Error{
+					{
+						Type:     InvalidInputErrType,
+						Message:  "data read error: invalid character '}' after object key",
+						Document: `{"invalid json"}`,
 					},
 				},
 				Accepted: 0,
-				Dropped:  0,
-				Invalid:  1,
 			},
-			expectedCode: 400,
-			reported:     []transform.Transformable{},
+			reported: []transform.Transformable{},
 		},
 		{
 			body: strings.Join([]string{
 				`{"transaction": {"invalid": "metadata"}}`, // invalid metadata
 				`{"transaction": {"invalid": "metadata"}}`,
 			}, "\n"),
-			expectedCode: 400,
 			err: &Result{
-				Errors: map[StreamErrorType]errorDetails{
-					"ERR_SCHEMA_VALIDATION": errorDetails{
-						Count:   1,
-						Message: "validation error",
-						Documents: []*ValidationError{
-							{
-								Error:          "did not recognize object type",
-								OffendingEvent: "{\"transaction\": {\"invalid\": \"metadata\"}}\n",
-							},
-						},
+				Errors: []*Error{
+					{
+						Type:     InvalidInputErrType,
+						Message:  "did not recognize object type",
+						Document: "{\"transaction\": {\"invalid\": \"metadata\"}}\n",
 					},
 				},
 			},
@@ -123,18 +112,12 @@ func TestV2Handler(t *testing.T) {
 				`{"metadata": {}}`,
 				`{"span": {}}`,
 			}, "\n"),
-			expectedCode: 400,
 			err: &Result{
-				Errors: map[StreamErrorType]errorDetails{
-					"ERR_SCHEMA_VALIDATION": errorDetails{
-						Count:   1,
-						Message: "validation error",
-						Documents: []*ValidationError{
-							{
-								Error:          "Problem validating JSON document against schema: I[#] S[#] doesn't validate with \"metadata#\"\n  I[#] S[#/required] missing properties: \"service\"",
-								OffendingEvent: "{\"metadata\": {}}\n",
-							},
-						},
+				Errors: []*Error{
+					{
+						Type:     InvalidInputErrType,
+						Message:  "Problem validating JSON document against schema: I[#] S[#] doesn't validate with \"metadata#\"\n  I[#] S[#/required] missing properties: \"service\"",
+						Document: "{\"metadata\": {}}\n",
 					},
 				},
 			},
@@ -146,15 +129,46 @@ func TestV2Handler(t *testing.T) {
 				`{"transaction": {"name": "tx1", "id": "9876543210abcdef", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z", "trace_id": "abcdefabcdef01234567890123456789"}}`,
 				`{"span": {"name": "sp1", "duration": 20, "start": 10, "type": "db", "timestamp": "2018-01-01T10:00:00Z", "id": "0147258369abcdef","trace_id": "abcdefabcdef01234567890123456789",  "transaction_id": "fedcba0123456789", "stacktrace": [{"filename": "file.js", "lineno": 10}, {"filename": "file2.js", "lineno": 11}]}}`,
 				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
+				`{"error": {}`, // invalid json
 				`{"error": {"exception": {"message": "hello world!"}}}`,
 			}, "\n"),
-			contentType:  "application/x-ndjson",
-			expectedCode: http.StatusAccepted,
+			err: &Result{
+				Errors: []*Error{
+					{
+						Type:     InvalidInputErrType,
+						Message:  "data read error: unexpected EOF",
+						Document: "{\"error\": {}\n",
+					},
+				},
+				Accepted: 4,
+			},
 			reported: []transform.Transformable{
 				&transaction.Event{Name: &tx1, Id: "9876543210abcdef", Duration: 12, Type: "request", Timestamp: timestamp, TraceId: &traceId},
 				&span.Event{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", Timestamp: timestamp, HexId: &spanHexId, TransactionId: &transactionId, TraceId: &traceId, Stacktrace: model.Stacktrace{&model.StacktraceFrame{Filename: "file.js", Lineno: 10}, &model.StacktraceFrame{Filename: "file2.js", Lineno: 11}}},
 				&metric.Metric{Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}, Timestamp: timestamp},
 				&errorm.Event{Exception: &errorm.Exception{Message: "hello world!", Stacktrace: model.Stacktrace{}}},
+			},
+		},
+		{
+			body: strings.Join([]string{
+				validMetadata(),
+				`{"transaction": {"name": "tx1", "id": "9876543210abcdef", "duration": 12, "type": "request", "timestamp": "2018-01-01T10:00:00Z", "trace_id": "abcdefabcdef01234567890123456789"}}`,
+				`{"error": {"log": {}}}`, // schema validation error
+				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
+			}, "\n"),
+			err: &Result{
+				Errors: []*Error{
+					{
+						Type:     InvalidInputErrType,
+						Message:  "Problem validating JSON document against schema: I[#] S[#] doesn't validate with \"error#\"\n  I[#] S[#/allOf/0] allOf failed\n    I[#/log] S[#/allOf/0/properties/log/required] missing properties: \"message\"",
+						Document: "{\"error\": {\"log\": {}}}\n",
+					},
+				},
+				Accepted: 2,
+			},
+			reported: []transform.Transformable{
+				&transaction.Event{Name: &tx1, Id: "9876543210abcdef", Duration: 12, Type: "request", Timestamp: timestamp, TraceId: &traceId},
+				&metric.Metric{Samples: []*metric.Sample{&metric.Sample{Name: "my-metric", Value: 99}}, Timestamp: timestamp},
 			},
 		},
 		{
@@ -165,8 +179,6 @@ func TestV2Handler(t *testing.T) {
 				`{"span": {"name": "sp1","trace_id": "abcdefabcdef01234567890123456789", "duration": 20, "start": 10, "type": "db", "id": "0147258369abcdef", "transaction_id": "fedcba0123456789"}}`,
 				`{"metric": {"samples": {"my-metric": {"value": 99}}, "timestamp": "2018-01-01T10:00:00Z"}}`,
 			}, "\n"),
-			contentType:  "application/x-ndjson",
-			expectedCode: http.StatusAccepted,
 			reported: []transform.Transformable{
 				&transaction.Event{Name: &tx1, Id: "1111222233334444", Duration: 12, Type: "request", TraceId: &traceId},
 				&span.Event{Name: "sp1", Duration: 20.0, Start: 10, Type: "db", HexId: &spanHexId, TransactionId: &transactionId, TraceId: &traceId},
@@ -184,9 +196,8 @@ func TestV2Handler(t *testing.T) {
 
 		actualResponse := sp.HandleStream(ctx, map[string]interface{}{}, reader, report)
 
-		assert.Equal(t, test.expectedCode, actualResponse.StatusCode(), "Failed at index %d: %s", idx, actualResponse.String())
 		if test.err != nil {
-			assert.Equal(t, test.err.String(), actualResponse.String(), "Failed at index %d", idx)
+			assert.Equal(t, test.err, actualResponse, "Failed at index %d (%#v - %#v)", idx, test.err, actualResponse)
 		} else {
 			assert.Equal(t, reqTimestamp, reportedTCtx.RequestTime)
 		}
@@ -195,7 +206,7 @@ func TestV2Handler(t *testing.T) {
 	}
 }
 
-func TestV2HandlerReadError(t *testing.T) {
+func TestV2HandlerReadStreamError(t *testing.T) {
 	var transformables []transform.Transformable
 	report := func(ctx context.Context, p publish.PendingReq) error {
 		transformables = append(transformables, p.Transformables...)
@@ -218,53 +229,43 @@ func TestV2HandlerReadError(t *testing.T) {
 	actualResponse := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, report)
 
 	expected := &Result{
-		Errors: map[StreamErrorType]errorDetails{
-			"ERR_SERVER_ERROR": errorDetails{
-				Count:   1,
+		Errors: []*Error{
+			{
 				Message: "timeout",
 			},
 		},
+		Accepted: 2,
 	}
 
-	assert.Equal(t, expected, actualResponse)
-	assert.Equal(t, http.StatusInternalServerError, actualResponse.StatusCode(), actualResponse.String())
+	assert.Equal(t, expected, actualResponse, "%#v - %#v", expected, actualResponse)
 }
 
-func TestV2HandlerReportingError(t *testing.T) {
-	for _, test := range []struct {
-		err          *Result
-		expectedCode int
-		report       func(ctx context.Context, p publish.PendingReq) error
+func TestV2HandlerReportingStreamError(t *testing.T) {
+	for idx, test := range []struct {
+		err    *Result
+		report func(ctx context.Context, p publish.PendingReq) error
 	}{
 		{
 			err: &Result{
-				Errors: map[StreamErrorType]errorDetails{
-					"ERR_SHUTTING_DOWN": errorDetails{
-						Count:   1,
+				Errors: []*Error{
+					{
+						Type:    ShuttingDownErrType,
 						Message: "server is shutting down",
 					},
 				},
-				Accepted: 0,
-				Dropped:  0,
-				Invalid:  0,
 			},
-			expectedCode: 503,
 			report: func(ctx context.Context, p publish.PendingReq) error {
 				return publish.ErrChannelClosed
 			},
 		}, {
 			err: &Result{
-				Errors: map[StreamErrorType]errorDetails{
-					"ERR_QUEUE_FULL": errorDetails{
-						Count:   2,
+				Errors: []*Error{
+					{
+						Type:    QueueFullErrType,
 						Message: "queue is full",
 					},
 				},
-				Accepted: 0,
-				Dropped:  2,
-				Invalid:  0,
 			},
-			expectedCode: 429,
 			report: func(ctx context.Context, p publish.PendingReq) error {
 				return publish.ErrFull
 			},
@@ -283,7 +284,69 @@ func TestV2HandlerReportingError(t *testing.T) {
 		sp := StreamProcessor{}
 		actualResponse := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, test.report)
 
-		assert.Equal(t, test.expectedCode, actualResponse.StatusCode(), actualResponse.String())
-		assert.Equal(t, test.err, actualResponse)
+		assert.Equal(t, test.err, actualResponse, "Failed at idx %d", idx)
+	}
+}
+
+func TestIntegration(t *testing.T) {
+	report := func(ctx context.Context, p publish.PendingReq) error {
+		var events []beat.Event
+		for _, transformable := range p.Transformables {
+			events = append(events, transformable.Transform(p.Tcontext)...)
+		}
+		name := ctx.Value("name").(string)
+		verifyErr := tests.ApproveEvents(events, name, nil)
+		if verifyErr != nil {
+			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+		}
+		return nil
+	}
+
+	for _, test := range []struct {
+		path string
+		name string
+	}{
+		{path: "../testdata/intake-v2/errors.ndjson", name: "Errors"},
+		{path: "../testdata/intake-v2/transactions.ndjson", name: "Transactions"},
+		{path: "../testdata/intake-v2/spans.ndjson", name: "Spans"},
+		{path: "../testdata/intake-v2/metrics.ndjson", name: "Metrics"},
+		{path: "../testdata/intake-v2/minimal_process.ndjson", name: "MixedMinimalProcess"},
+		{path: "../testdata/intake-v2/minimal_service.ndjson", name: "MinimalService"},
+		{path: "../testdata/intake-v2/metadata_null_values.ndjson", name: "MetadataNullValues"},
+		{path: "../testdata/intake-v2/invalid-event.ndjson", name: "InvalidEvent"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			b, err := loader.LoadDataAsBytes(test.path)
+			require.NoError(t, err)
+			bodyReader := bytes.NewBuffer(b)
+
+			name := fmt.Sprintf("approved-es-documents/testV2IntakeIntegration%s", test.name)
+			ctx := context.WithValue(context.Background(), "name", name)
+			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
+			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
+
+			reader := decoder.NewNDJSONStreamReader(bodyReader)
+
+			reqDecoderMeta := map[string]interface{}{
+				"system": map[string]interface{}{
+					"ip": "192.0.0.1",
+				},
+			}
+
+			result := (&StreamProcessor{}).HandleStream(ctx, reqDecoderMeta, reader, report)
+
+			resultName := fmt.Sprintf("approved-stream-result/testIntegrationResult%s", test.name)
+			resultJSON, err := json.Marshal(result)
+			require.NoError(t, err)
+
+			var resultmap map[string]interface{}
+			err = json.Unmarshal(resultJSON, &resultmap)
+			require.NoError(t, err)
+
+			verifyErr := tests.ApproveJson(resultmap, resultName, map[string]string{})
+			if verifyErr != nil {
+				assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+			}
+		})
 	}
 }

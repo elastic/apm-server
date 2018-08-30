@@ -81,8 +81,8 @@ func DecodeLimitJSONData(maxSize int64) ReqDecoder {
 	}
 }
 
-// CompressedRequestReader returns a reader that will decompress the body according
-// the supplied Content-Encoding header in the request
+// CompressedRequestReader returns a `ReqReader` that will decompress
+// the body according to the supplied Content-Encoding header in the request
 func CompressedRequestReader(maxSize int64) ReqReader {
 	return func(req *http.Request) (io.ReadCloser, error) {
 		reader := req.Body

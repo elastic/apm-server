@@ -50,13 +50,13 @@ type publisher struct {
 type PendingReq struct {
 	Transformables []transform.Transformable
 	Tcontext       *transform.Context
-	Trace          bool
+	trace          bool
 }
 
 var (
-	ErrFull              = errors.New("Queue is full")
-	ErrInvalidBufferSize = errors.New("Request buffer must be > 0")
-	ErrChannelClosed     = errors.New("Can't send batch, publisher is being stopped")
+	ErrFull              = errors.New("queue is full")
+	ErrInvalidBufferSize = errors.New("request buffer must be > 0")
+	ErrChannelClosed     = errors.New("can't send batch, publisher is being stopped")
 )
 
 // newPublisher creates a new publisher instance.
@@ -122,7 +122,7 @@ func (p *publisher) Send(ctx context.Context, req PendingReq) error {
 	span, ctx := elasticapm.StartSpan(ctx, "Send", "Publisher")
 	if span != nil {
 		defer span.End()
-		req.Trace = !span.Dropped()
+		req.trace = !span.Dropped()
 	}
 
 	select {
@@ -143,7 +143,7 @@ func (p *publisher) run() {
 
 func (p *publisher) processPendingReq(req PendingReq) {
 	var tx *elasticapm.Transaction
-	if req.Trace {
+	if req.trace {
 		tx = p.tracer.StartTransaction("ProcessPending", "Publisher")
 		defer tx.End()
 	}

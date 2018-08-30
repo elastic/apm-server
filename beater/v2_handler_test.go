@@ -18,17 +18,20 @@
 package beater
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/transform"
 )
 
 func TestInvalidContentType(t *testing.T) {
-	req, err := http.NewRequest("POST", "/v2/intake", nil)
-	require.NoError(t, err)
+	req := httptest.NewRequest("POST", "/v2/intake", nil)
 	w := httptest.NewRecorder()
 
 	c := defaultConfig("7.0.0")
@@ -37,4 +40,44 @@ func TestInvalidContentType(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+}
+
+func TestEmptyRequest(t *testing.T) {
+	req := httptest.NewRequest("POST", "/v2/intake", nil)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+
+	w := httptest.NewRecorder()
+
+	c := defaultConfig("7.0.0")
+	handler := (&v2BackendRoute).Handler(c, nil)
+
+	handler.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+}
+
+func TestRequestDecoderError(t *testing.T) {
+	req := httptest.NewRequest("POST", "/v2/intake", bytes.NewBufferString(`asdasd`))
+	req.Header.Add("Content-Type", "application/x-ndjson")
+
+	w := httptest.NewRecorder()
+
+	c := defaultConfig("7.0.0")
+	expectedErr := errors.New("Faulty decoder")
+	faultyDecoder := func(r *http.Request) (map[string]interface{}, error) {
+		return nil, expectedErr
+	}
+	testRouteWithFaultyDecoder := v2Route{
+		routeType{
+			v2backendHandler,
+			func(*Config, decoder.ReqDecoder) decoder.ReqDecoder { return faultyDecoder },
+			func(*Config) transform.Config { return transform.Config{} },
+		},
+	}
+
+	handler := testRouteWithFaultyDecoder.Handler(c, nil)
+
+	handler.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
 }

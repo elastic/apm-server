@@ -79,16 +79,27 @@ var models = []struct {
 	},
 }
 
-func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, ndReader StreamReader) (*metadata.Metadata, error) {
+func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
 	// first item is the metadata object
-	rawModel, err := ndReader.Read()
+	rawModel, err := reader.Read()
 	if err != nil {
+		if e, ok := err.(decoder.JSONDecodeError); ok || err == io.EOF {
+			return nil, &Error{
+				Type:     InvalidInputErrType,
+				Message:  e.Error(),
+				Document: string(reader.LastLine()),
+			}
+		}
 		return nil, err
 	}
 
 	rawMetadata, ok := rawModel["metadata"].(map[string]interface{})
 	if !ok {
-		return nil, ErrUnrecognizedObject
+		return nil, &Error{
+			Type:     InvalidInputErrType,
+			Message:  ErrUnrecognizedObject.Error(),
+			Document: string(reader.LastLine()),
+		}
 	}
 
 	for k, v := range reqMeta {
@@ -98,7 +109,11 @@ func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, ndReader 
 	// validate the metadata object against our jsonschema
 	err = validation.Validate(rawMetadata, metadata.ModelSchema())
 	if err != nil {
-		return nil, err
+		return nil, &Error{
+			Type:     InvalidInputErrType,
+			Message:  err.Error(),
+			Document: string(reader.LastLine()),
+		}
 	}
 
 	// create a metadata struct
@@ -139,22 +154,29 @@ func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 	for i := 0; i < batchSize && err == nil; i++ {
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
-			switch e := err.(type) {
-			case decoder.ReadError:
-				response.AddWithMessage(ServerError, 1, e.Error())
-				// return early, we can't recover from a read error
-				return eventables, true
-			case decoder.JSONDecodeError:
-				response.AddWithOffendingDocument(InvalidJSONErr, e.Error(), reader.LastLine())
-				response.Invalid++
+
+			if e, ok := err.(decoder.JSONDecodeError); ok {
+				response.LimitedAdd(&Error{
+					Type:     InvalidInputErrType,
+					Message:  e.Error(),
+					Document: string(reader.LastLine()),
+				})
+				continue
 			}
+
+			// return early, we assume we can only recover from a JSON decode error
+			response.LimitedAdd(err)
+			return eventables, true
 		}
 
 		if rawModel != nil {
 			tr, err := v.handleRawModel(rawModel)
 			if err != nil {
-				response.AddWithOffendingDocument(SchemaValidationErr, err.Error(), reader.LastLine())
-				response.Invalid++
+				response.LimitedAdd(&Error{
+					Type:     InvalidInputErrType,
+					Message:  err.Error(),
+					Document: string(reader.LastLine()),
+				})
 				continue
 			}
 			eventables = append(eventables, tr)
@@ -169,15 +191,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 	metadata, err := s.readMetadata(meta, jsonReader)
 	// no point in continuing if we couldn't read the metadata
 	if err != nil {
-		switch e := err.(type) {
-		case decoder.ReadError:
-			res.AddWithMessage(ServerError, 1, e.Error())
-		case decoder.JSONDecodeError:
-			res.AddWithOffendingDocument(InvalidJSONErr, err.Error(), jsonReader.LastLine())
-		default:
-			res.AddWithOffendingDocument(SchemaValidationErr, err.Error(), jsonReader.LastLine())
-		}
-
+		res.LimitedAdd(err)
 		return res
 	}
 
@@ -196,19 +210,25 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 			})
 
 			if err != nil {
-				if err == publish.ErrChannelClosed {
-					res.Add(ShuttingDownErr, 1)
-					return res
+				switch err {
+				case publish.ErrChannelClosed:
+					res.LimitedAdd(&Error{
+						Type:    ShuttingDownErrType,
+						Message: "server is shutting down",
+					})
+				case publish.ErrFull:
+					res.LimitedAdd(&Error{
+						Type:    QueueFullErrType,
+						Message: err.Error(),
+					})
+				default:
+					res.LimitedAdd(err)
 				}
 
-				if err == publish.ErrFull {
-					res.Add(QueueFullErr, len(transformables))
-					res.Dropped += len(transformables)
-					continue
-				}
-
-				res.AddWithMessage(ServerError, len(transformables), err.Error())
+				return res
 			}
+
+			res.Accepted += len(transformables)
 		}
 
 		if done {

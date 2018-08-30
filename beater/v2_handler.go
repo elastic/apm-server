@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/elastic/apm-server/processor/stream"
@@ -39,8 +40,31 @@ type v2Handler struct {
 	streamProcessor *stream.StreamProcessor
 }
 
+func (v *v2Handler) statusCode(sr *stream.Result) int {
+	var code int
+	higestCode := http.StatusAccepted
+	for _, err := range sr.Errors {
+		switch err.Type {
+		case stream.InvalidInputErrType:
+			code = http.StatusBadRequest
+		case stream.ProcessingTimeoutErrType:
+			code = http.StatusRequestTimeout
+		case stream.QueueFullErrType:
+			code = http.StatusTooManyRequests
+		case stream.ShuttingDownErrType:
+			code = http.StatusServiceUnavailable
+		default:
+			code = http.StatusInternalServerError
+		}
+		if code > higestCode {
+			higestCode = code
+		}
+	}
+	return higestCode
+}
+
 func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr *stream.Result) {
-	statusCode := sr.StatusCode()
+	statusCode := v.statusCode(sr)
 
 	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
@@ -49,7 +73,7 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
 
-		buf, err := sr.Marshal()
+		buf, err := json.Marshal(sr)
 		if err != nil {
 			logger.Errorw("error sending response", "error", err)
 		}
@@ -61,19 +85,6 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 	}
 }
 
-// handleInvalidHeaders reads out the rest of the body and discards it
-// then returns an error response
-func (v *v2Handler) handleInvalidHeaders(w http.ResponseWriter, r *http.Request) {
-	sr := stream.Result{
-		Dropped:  -1,
-		Accepted: -1,
-		Invalid:  1,
-	}
-	sr.Add(stream.InvalidContentTypeErr, 1)
-
-	v.sendResponse(requestLogger(r), w, &sr)
-}
-
 func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := requestLogger(r)
@@ -81,16 +92,21 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 		if err != nil {
 			// if we can't set up the ndjsonreader,
 			// we won't be able to make sense of the body
-			v.handleInvalidHeaders(w, r)
+			sr := stream.Result{}
+			sr.LimitedAdd(&stream.Error{
+				Type:    stream.InvalidInputErrType,
+				Message: err.Error(),
+			})
+			v.sendResponse(logger, w, &sr)
 			return
 		}
-
 		// extract metadata information from the request, like user-agent or remote address
 		reqMeta, err := v.requestDecoder(r)
 		if err != nil {
 			sr := stream.Result{}
-			sr.AddWithMessage(stream.ServerError, 1, err.Error())
+			sr.LimitedAdd(err)
 			v.sendResponse(logger, w, &sr)
+			return
 		}
 
 		res := v.streamProcessor.HandleStream(r.Context(), reqMeta, ndReader, report)
