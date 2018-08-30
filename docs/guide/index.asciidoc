@@ -56,79 +56,6 @@ To visualize the data after it's sent to Elasticsearch,
 you can use the the dedicated APM UI bundled in X-Pack,
 or the pre-built open source Kibana dashboards that can be loaded directly via the {kibana-ref}/apm-getting-started.html[APM Kibana UI].
 
-[[apm-release-notes]]
-=== Release notes
-
-[float]
-==== APM version 6.4
-
-[float]
-===== Breaking changes
-
-We previously split APM data into separate indices (transaction, span, error, etc.).
-In 6.4 APM Kibana UI starts to leverage those separate indices for queries.
-
-In case you only update Kibana but run an older version of APM Server you will not be able to see any APM data by default.
-To fix this, use the {kibana-ref}/apm-settings-kb.html[Kibana APM settings] to specify the location of the APM index:
-["source","sh"]
-------------------------------------------------------------
-apm_oss.errorIndices: apm-*
-apm_oss.spanIndices: apm-*
-apm_oss.transactionIndices: apm-*
-apm_oss.onboardingIndices: apm-*
-------------------------------------------------------------
-
-In case you are upgrading APM Server from an older version, you might need to refresh your APM index pattern for certain APM UI features to work.
-Also ensure to add the new config options in `apm-server.yml` in case you keep your existing configuration file:
-["source","sh"]
-------------------------------------------------------------
-output.elasticsearch:
-  indices:
-    - index: "apm-%{[beat.version]}-sourcemap"
-      when.contains:
-        processor.event: "sourcemap"
-    - index: "apm-%{[beat.version]}-error-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "error"
-    - index: "apm-%{[beat.version]}-transaction-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "transaction"
-    - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "span"
-    - index: "apm-%{[beat.version]}-metric-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "metric"
-    - index: "apm-%{[beat.version]}-onboarding-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "onboarding"
-------------------------------------------------------------
-
-[float]
-===== New features
-
-*APM Server*
-
-* Logstash output
-* Kafka output
-
-
-*APM UI*
-
-* Query bar
-* Machine Learning integration: Anomaly detection on service response times
-* Kibana objects (index pattern, dashboards, etc.) can now be imported via the Kibana setup instuctions
-
-
-*APM agents*
-
-* RUM is now GA
-* Ruby is now GA
-* Java is now Beta
-* Go is now Beta
-* Python added instrumentation for Cassandra, PyODBC and PyMSSQL
-* Node.js added instrumentation for Cassandra and broader MySQL support
-
 
 [[install-and-run]]
 == Install and run Elastic APM
@@ -212,7 +139,8 @@ If you have APM Server running on the same host as your service, you can configu
 [float]
 ==== Install the Kibana dashboards
 
-From APM Server and Kibana 6.4 on you can load dashboards directly via the Kibana UI.
+From APM Server and Kibana 6.4 on you can load dashboards directly via the {kibana-ref}/apm-getting-started.html[APM 
+Kibana UI].
 
 See an example screenshot of a Kibana dashboard:
 
@@ -357,4 +285,87 @@ See the {apm-rum-ref}/index.html[APM RUM JavaScript Agent documentation] for mor
 
 
 [[kibana]]
+[[apm-release-notes]]
+== Release notes
+
 [float]
+==== APM version 6.4.1
+
+[float]
+===== Bug Fixes
+Changes introduced in 6.4.0 potentially caused an empty APM Kibana UI.
+This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices. 
+To fix this, the APM Kibana UI now falls back to use `apm-*` as default indices to query.
+Users can still leverage separate indices for queries by overwriting the default values described in {kibana-ref}/apm-settings-kb.html[Kibana APM settings].
+
+
+[float]
+==== APM version 6.4.0
+
+[float]
+===== Breaking changes
+
+We previously split APM data into separate indices (transaction, span, error, etc.).
+In 6.4 APM Kibana UI starts to leverage those separate indices for queries.
+
+In case you only update Kibana but run an older version of APM Server you will not be able to see any APM data by default.
+To fix this, use the {kibana-ref}/apm-settings-kb.html[Kibana APM settings] to specify the location of the APM index:
+["source","sh"]
+------------------------------------------------------------
+apm_oss.errorIndices: apm-*
+apm_oss.spanIndices: apm-*
+apm_oss.transactionIndices: apm-*
+apm_oss.onboardingIndices: apm-*
+------------------------------------------------------------
+
+In case you are upgrading APM Server from an older version, you might need to refresh your APM index pattern for certain APM UI features to work.
+Also ensure to add the new config options in `apm-server.yml` in case you keep your existing configuration file:
+["source","sh"]
+------------------------------------------------------------
+output.elasticsearch:
+  indices:
+    - index: "apm-%{[beat.version]}-sourcemap"
+      when.contains:
+        processor.event: "sourcemap"
+    - index: "apm-%{[beat.version]}-error-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "error"
+    - index: "apm-%{[beat.version]}-transaction-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "transaction"
+    - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "span"
+    - index: "apm-%{[beat.version]}-metric-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "metric"
+    - index: "apm-%{[beat.version]}-onboarding-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "onboarding"
+------------------------------------------------------------
+
+[float]
+===== New features
+
+*APM Server*
+
+* Logstash output
+* Kafka output
+
+
+*APM UI*
+
+* Query bar
+* Machine Learning integration: Anomaly detection on service response times
+* Kibana objects (index pattern, dashboards, etc.) can now be imported via the Kibana setup instuctions
+
+
+*APM agents*
+
+* RUM is now GA
+* Ruby is now GA
+* Java is now Beta
+* Go is now Beta
+* Python added instrumentation for Cassandra, PyODBC and PyMSSQL
+* Node.js added instrumentation for Cassandra and broader MySQL support
+
