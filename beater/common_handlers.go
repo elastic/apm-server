@@ -35,6 +35,7 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -51,7 +52,7 @@ const (
 	supportedMethods = "POST, OPTIONS"
 )
 
-type ProcessorHandler func(processor.Processor, *Config, reporter) http.Handler
+type ProcessorHandler func(processor.Processor, *Config, publish.Reporter) http.Handler
 
 type serverResponse struct {
 	err     error
@@ -155,7 +156,7 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, report reporter) *http.ServeMux {
+func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
 	for path, route := range V1Routes {
@@ -241,25 +242,6 @@ func rootHandler(secretToken string) http.Handler {
 
 type contextKey string
 
-const requestTimeContextKey = contextKey("requestTime")
-
-func requestTimeHandler(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if requestTime(r).IsZero() {
-			r = r.WithContext(context.WithValue(r.Context(), requestTimeContextKey, time.Now()))
-		}
-		h.ServeHTTP(w, r)
-	})
-}
-
-func requestTime(r *http.Request) time.Time {
-	t, ok := r.Context().Value(requestTimeContextKey).(time.Time)
-	if !ok {
-		return time.Time{}
-	}
-	return t
-}
-
 const reqLoggerContextKey = contextKey("requestLogger")
 
 func logHandler(h http.Handler) http.Handler {
@@ -291,6 +273,13 @@ func logHandler(h http.Handler) http.Handler {
 		if lw.Code <= 399 {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 		}
+	})
+}
+
+func requestTimeHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r = r.WithContext(utility.ContextWithRequestTime(r.Context(), time.Now()))
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -409,14 +398,14 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(p processor.Processor, config transform.Config, report reporter, decode decoder.ReqDecoder) http.Handler {
+func processRequestHandler(p processor.Processor, config transform.Config, report publish.Reporter, decode decoder.ReqDecoder) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res := processRequest(r, p, config, report, decode)
 		sendStatus(w, r, res)
 	})
 }
 
-func processRequest(r *http.Request, p processor.Processor, config transform.Config, report reporter, decode decoder.ReqDecoder) serverResponse {
+func processRequest(r *http.Request, p processor.Processor, config transform.Config, report publish.Reporter, decode decoder.ReqDecoder) serverResponse {
 	if r.Method != "POST" {
 		return methodNotAllowedResponse
 	}
@@ -439,13 +428,13 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 	}
 
 	tctx := &transform.Context{
-		RequestTime: requestTime(r),
+		RequestTime: utility.RequestTime(r.Context()),
 		Config:      config,
 		Metadata:    *metadata,
 	}
 
-	if err = report(r.Context(), pendingReq{transformables: transformables, tcontext: tctx}); err != nil {
-		if err == errChannelClosed {
+	if err = report(r.Context(), publish.PendingReq{Transformables: transformables, Tcontext: tctx}); err != nil {
+		if err == publish.ErrChannelClosed {
 			return serverShuttingDownResponse(err)
 		}
 		return fullQueueResponse(err)
