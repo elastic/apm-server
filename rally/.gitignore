@@ -1,0 +1,4 @@
+documents/*.json.offset
+documents/*.json
+documents-7.0.0/*.json.offset
+documents-7.0.0/*.json

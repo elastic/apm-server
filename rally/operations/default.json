@@ -1,0 +1,7 @@
+    {
+      "name": "index-append",
+      "operation-type": "bulk",
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    }
+    
