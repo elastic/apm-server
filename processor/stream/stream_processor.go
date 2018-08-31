@@ -145,7 +145,7 @@ func (v *StreamProcessor) handleRawModel(rawModel map[string]interface{}) (trans
 }
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
-// it returns a slice of eventables, a serverResponse and a bool that indicates if we're at EOF.
+// it returns a slice of eventables and a bool that indicates if there might be more to read.
 func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
 	var err error
 	var rawModel map[string]interface{}
