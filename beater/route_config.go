@@ -21,11 +21,14 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/apm-server/processor/stream"
+
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
+	"github.com/elastic/apm-server/publish"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/transform"
@@ -172,7 +175,7 @@ type v1Route struct {
 	topLevelRequestDecoder func(*Config) decoder.ReqDecoder
 }
 
-func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report reporter) http.Handler {
+func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report publish.Reporter) http.Handler {
 	decoder := v.configurableDecoder(beaterConfig, v.topLevelRequestDecoder(beaterConfig))
 	tconfig := v.transformConfig(beaterConfig)
 
@@ -188,15 +191,15 @@ type v2Route struct {
 	routeType
 }
 
-func (v v2Route) Handler(beaterConfig *Config, report reporter) http.Handler {
+func (v v2Route) Handler(beaterConfig *Config, report publish.Reporter) http.Handler {
 	reqDecoder := v.configurableDecoder(
 		beaterConfig,
 		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
 	)
 
 	v2Handler := v2Handler{
-		requestDecoder: reqDecoder,
-		tconfig:        v.transformConfig(beaterConfig),
+		requestDecoder:  reqDecoder,
+		streamProcessor: &stream.StreamProcessor{Tconfig: v.transformConfig(beaterConfig)},
 	}
 
 	return v.wrappingHandler(beaterConfig, v2Handler.Handle(beaterConfig, report))

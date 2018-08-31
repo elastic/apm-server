@@ -60,7 +60,6 @@ func ApproveJson(received map[string]interface{}, name string, ignored map[strin
 
 	r, _ := json.MarshalIndent(received, "", "    ")
 	ioutil.WriteFile(receivedPath, r, 0644)
-
 	received, _, diff, err := Compare(path, ignored)
 	if err != nil {
 		return err

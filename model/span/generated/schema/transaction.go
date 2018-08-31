@@ -58,6 +58,19 @@ const ModelSchema = `{
                             "description": "The raw url of the correlating http request."
                         }
                     }
+                },
+                "tags": {
+                        "$id": "doc/spec/tags.json",
+    "title": "Tags",
+    "type": ["object", "null"],
+    "description": "A flat mapping of user-defined tags with string values.",
+    "patternProperties": {
+        "^[^.*\"]*$": {
+            "type": ["string", "null"],
+            "maxLength": 1024
+        }
+    },
+    "additionalProperties": false
                 }
             }
         },
@@ -187,6 +200,19 @@ const ModelSchema = `{
                             "description": "The raw url of the correlating http request."
                         }
                     }
+                },
+                "tags": {
+                        "$id": "doc/spec/tags.json",
+    "title": "Tags",
+    "type": ["object", "null"],
+    "description": "A flat mapping of user-defined tags with string values.",
+    "patternProperties": {
+        "^[^.*\"]*$": {
+            "type": ["string", "null"],
+            "maxLength": 1024
+        }
+    },
+    "additionalProperties": false
                 }
             }
         },
