@@ -136,6 +136,8 @@ func TestIntegration(t *testing.T) {
 		{path: "../testdata/intake-v2/invalid-json-event.ndjson", name: "InvalidJSONEvent"},
 		{path: "../testdata/intake-v2/invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
 		{path: "../testdata/intake-v2/invalid-metadata.ndjson", name: "InvalidMetadata"},
+		{path: "../testdata/intake-v2/invalid-metadata-2.ndjson", name: "InvalidMetadata2"},
+		{path: "../testdata/intake-v2/unrecognized-event.ndjson", name: "UnrecognizedEvent"},
 		{path: "../testdata/intake-v2/optional-timestamps.ndjson", name: "OptionalTimestamps"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
