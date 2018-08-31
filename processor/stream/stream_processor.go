@@ -43,7 +43,7 @@ var (
 type StreamReader interface {
 	Read() (map[string]interface{}, error)
 	IsEOF() bool
-	LastLine() []byte
+	LatestLine() []byte
 }
 
 type StreamProcessor struct {
@@ -87,7 +87,7 @@ func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader St
 			return nil, &Error{
 				Type:     InvalidInputErrType,
 				Message:  e.Error(),
-				Document: string(reader.LastLine()),
+				Document: string(reader.LatestLine()),
 			}
 		}
 		return nil, err
@@ -98,7 +98,7 @@ func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader St
 		return nil, &Error{
 			Type:     InvalidInputErrType,
 			Message:  ErrUnrecognizedObject.Error(),
-			Document: string(reader.LastLine()),
+			Document: string(reader.LatestLine()),
 		}
 	}
 
@@ -112,7 +112,7 @@ func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader St
 		return nil, &Error{
 			Type:     InvalidInputErrType,
 			Message:  err.Error(),
-			Document: string(reader.LastLine()),
+			Document: string(reader.LatestLine()),
 		}
 	}
 
@@ -159,7 +159,7 @@ func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
 					Message:  e.Error(),
-					Document: string(reader.LastLine()),
+					Document: string(reader.LatestLine()),
 				})
 				continue
 			}
@@ -175,7 +175,7 @@ func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
 					Message:  err.Error(),
-					Document: string(reader.LastLine()),
+					Document: string(reader.LatestLine()),
 				})
 				continue
 			}

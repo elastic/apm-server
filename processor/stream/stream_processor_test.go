@@ -232,6 +232,7 @@ func TestV2HandlerReadStreamError(t *testing.T) {
 		Errors: []*Error{
 			{
 				Message: "timeout",
+				Type:    ServerErrType,
 			},
 		},
 		Accepted: 2,

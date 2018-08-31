@@ -23,9 +23,9 @@ import (
 )
 
 type Error struct {
-	Type     ErrorType `json:"-"`
-	Message  string    `json:"message"`
-	Document string    `json:"document"`
+	Type     StreamError `json:"-"`
+	Message  string      `json:"message"`
+	Document string      `json:"document"`
 }
 
 func (s *Error) Error() string {
@@ -35,13 +35,14 @@ func (s *Error) Error() string {
 	return s.Message
 }
 
-type ErrorType int
+type StreamError int
 
 const (
-	QueueFullErrType         ErrorType = 1
-	ProcessingTimeoutErrType ErrorType = 2
-	InvalidInputErrType      ErrorType = 3
-	ShuttingDownErrType      ErrorType = 4
+	QueueFullErrType StreamError = iota
+	ProcessingTimeoutErrType
+	InvalidInputErrType
+	ShuttingDownErrType
+	ServerErrType
 )
 
 const (
@@ -58,7 +59,7 @@ func (r *Result) LimitedAdd(err error) {
 		if e, ok := err.(*Error); ok {
 			r.Errors = append(r.Errors, e)
 		} else {
-			r.Errors = append(r.Errors, &Error{Message: err.Error()})
+			r.Errors = append(r.Errors, &Error{Message: err.Error(), Type: ServerErrType})
 		}
 	}
 }

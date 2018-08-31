@@ -53,6 +53,8 @@ func (v *v2Handler) statusCode(sr *stream.Result) int {
 			code = http.StatusTooManyRequests
 		case stream.ShuttingDownErrType:
 			code = http.StatusServiceUnavailable
+		case stream.ServerErrType:
+			code = http.StatusInternalServerError
 		default:
 			code = http.StatusInternalServerError
 		}

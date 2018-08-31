@@ -81,5 +81,5 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	return decoded, readErr // this might be io.EOF
 }
 
-func (sr *NDJSONStreamReader) IsEOF() bool      { return sr.isEOF }
-func (sr *NDJSONStreamReader) LastLine() []byte { return sr.latestLine }
+func (sr *NDJSONStreamReader) IsEOF() bool        { return sr.isEOF }
+func (sr *NDJSONStreamReader) LatestLine() []byte { return sr.latestLine }
