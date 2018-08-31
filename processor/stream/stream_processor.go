@@ -165,7 +165,7 @@ func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 			}
 
 			// return early, we assume we can only recover from a JSON decode error
-			response.LimitedAdd(err)
+			response.Add(err)
 			return eventables, true
 		}
 
@@ -191,7 +191,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 	metadata, err := s.readMetadata(meta, jsonReader)
 	// no point in continuing if we couldn't read the metadata
 	if err != nil {
-		res.LimitedAdd(err)
+		res.Add(err)
 		return res
 	}
 
@@ -212,17 +212,17 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 			if err != nil {
 				switch err {
 				case publish.ErrChannelClosed:
-					res.LimitedAdd(&Error{
+					res.Add(&Error{
 						Type:    ShuttingDownErrType,
 						Message: "server is shutting down",
 					})
 				case publish.ErrFull:
-					res.LimitedAdd(&Error{
+					res.Add(&Error{
 						Type:    QueueFullErrType,
 						Message: err.Error(),
 					})
 				default:
-					res.LimitedAdd(err)
+					res.Add(err)
 				}
 
 				return res

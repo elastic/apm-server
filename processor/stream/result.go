@@ -56,11 +56,15 @@ type Result struct {
 
 func (r *Result) LimitedAdd(err error) {
 	if len(r.Errors) < errorsLimit {
-		if e, ok := err.(*Error); ok {
-			r.Errors = append(r.Errors, e)
-		} else {
-			r.Errors = append(r.Errors, &Error{Message: err.Error(), Type: ServerErrType})
-		}
+		r.Add(err)
+	}
+}
+
+func (r *Result) Add(err error) {
+	if e, ok := err.(*Error); ok {
+		r.Errors = append(r.Errors, e)
+	} else {
+		r.Errors = append(r.Errors, &Error{Message: err.Error(), Type: ServerErrType})
 	}
 }
 

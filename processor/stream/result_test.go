@@ -37,8 +37,11 @@ func TestStreamResponseSimple(t *testing.T) {
 	// not added
 	sr.LimitedAdd(&Error{Message: "err6"})
 
-	assert.Len(t, sr.Errors, 5)
+	// added
+	sr.Add(&Error{Message: "err6"})
 
-	expectedStr := `err1 [buf1], transmogrifier error, err2 [buf2], err3 [buf3], err4`
+	assert.Len(t, sr.Errors, 6)
+
+	expectedStr := `err1 [buf1], transmogrifier error, err2 [buf2], err3 [buf3], err4, err6`
 	assert.Equal(t, expectedStr, sr.String())
 }
