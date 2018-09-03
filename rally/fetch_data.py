@@ -3,6 +3,7 @@ from elasticsearch import helpers
 import json
 import os
 
+
 def fetch(q, service):
     es = Elasticsearch(["http://localhost:9200"])
     events = ["error", "transaction", "span"]
@@ -28,6 +29,7 @@ def fetch(q, service):
         os.system("wc -l {}".format(f))
         os.system("stat -f '%z' {}".format(f))
 
+
 def main():
     services = [
         "opbeans-node",
@@ -43,9 +45,8 @@ def main():
         fetch(q, service)
 
     # fetch data per event type
-    q = {"query": {"match_all": {} }}
+    q = {"query": {"match_all": {}}}
     fetch(q, "")
-
 
 
 if __name__ == '__main__':
