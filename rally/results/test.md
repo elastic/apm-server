@@ -79,3 +79,48 @@
 |   All |       99.9th percentile service time | index-apm-span |     1670.96 |     ms |
 |   All |        100th percentile service time | index-apm-span |     1680.66 |     ms |
 |   All |                           error rate | index-apm-span |           0 |      % |
+|   Lap |                               Metric |                  Task |     Value |   Unit |
+|------:|-------------------------------------:|----------------------:|----------:|-------:|
+|   All |                  Total indexing time |                       |   4.43477 |    min |
+|   All |          Min indexing time per shard |                       |         0 |    min |
+|   All |       Median indexing time per shard |                       |         0 |    min |
+|   All |          Max indexing time per shard |                       |   4.38043 |    min |
+|   All |                     Total merge time |                       |  0.700083 |    min |
+|   All |             Min merge time per shard |                       |         0 |    min |
+|   All |          Median merge time per shard |                       |         0 |    min |
+|   All |             Max merge time per shard |                       |   0.53775 |    min |
+|   All |            Total merge throttle time |                       |  0.212133 |    min |
+|   All |    Min merge throttle time per shard |                       |         0 |    min |
+|   All | Median merge throttle time per shard |                       |         0 |    min |
+|   All |    Max merge throttle time per shard |                       |  0.212133 |    min |
+|   All |                   Total refresh time |                       |    0.4237 |    min |
+|   All |           Min refresh time per shard |                       |         0 |    min |
+|   All |        Median refresh time per shard |                       |         0 |    min |
+|   All |           Max refresh time per shard |                       |   0.21875 |    min |
+|   All |                     Total flush time |                       | 0.0359333 |    min |
+|   All |             Min flush time per shard |                       |         0 |    min |
+|   All |          Median flush time per shard |                       |         0 |    min |
+|   All |             Max flush time per shard |                       | 0.0359333 |    min |
+|   All |                   Total Young Gen GC |                       |     4.754 |      s |
+|   All |                     Total Old Gen GC |                       |     0.466 |      s |
+|   All |                           Store size |                       |   2.88818 |     GB |
+|   All |                        Translog size |                       |   2.25084 |     GB |
+|   All |               Heap used for segments |                       |   3.88173 |     MB |
+|   All |             Heap used for doc values |                       |  0.232967 |     MB |
+|   All |                  Heap used for terms |                       |   2.16678 |     MB |
+|   All |                  Heap used for norms |                       | 0.0200195 |     MB |
+|   All |                 Heap used for points |                       |  0.147855 |     MB |
+|   All |          Heap used for stored fields |                       |   1.31411 |     MB |
+|   All |                        Segment count |                       |       127 |        |
+|   All |                       Min Throughput | index-apm-transaction |   8530.06 | docs/s |
+|   All |                    Median Throughput | index-apm-transaction |   8651.77 | docs/s |
+|   All |                       Max Throughput | index-apm-transaction |   8715.06 | docs/s |
+|   All |              50th percentile latency | index-apm-transaction |   728.931 |     ms |
+|   All |              90th percentile latency | index-apm-transaction |   1039.96 |     ms |
+|   All |              99th percentile latency | index-apm-transaction |   1245.94 |     ms |
+|   All |             100th percentile latency | index-apm-transaction |   1472.84 |     ms |
+|   All |         50th percentile service time | index-apm-transaction |   728.931 |     ms |
+|   All |         90th percentile service time | index-apm-transaction |   1039.96 |     ms |
+|   All |         99th percentile service time | index-apm-transaction |   1245.94 |     ms |
+|   All |        100th percentile service time | index-apm-transaction |   1472.84 |     ms |
+|   All |                           error rate | index-apm-transaction |         0 |      % |

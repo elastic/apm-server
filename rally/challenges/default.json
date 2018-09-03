@@ -19,15 +19,15 @@
             "tasks": [
               {
                 "operation": "index-append-error",
-                "clients": {{bulk_indexing_clients | default(8)}}
+                "clients": {{bulk_indexing_clients | default(3)}}
               },
               {
                 "operation": "index-append-transaction",
-                "clients": {{bulk_indexing_clients | default(8)}}
+                "clients": {{bulk_indexing_clients | default(3)}}
               },
               {
                 "operation": "index-append-span",
-                "clients": {{bulk_indexing_clients | default(8)}}
+                "clients": {{bulk_indexing_clients | default(3)}}
               }
             ]
           }
