@@ -1,0 +1,36 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 141581
+                },
+                "hex_id": "abcdef01234567",
+                "name": "GET /api/types",
+                "parent_id": "abcdef0123456789",
+                "start": {
+                    "us": 0
+                },
+                "trace_id": "fdedef0123456789abcdef9876543210",
+                "type": "request"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
+        }
+    ]
+}
