@@ -5,9 +5,23 @@
       "ingest-percentage": {{ingest_percentage | default(100)}}
     },
     {
-      "name": "index-append-{{event_type}}",
+      "name": "index-append-error",
       "operation-type": "bulk",
-      "indices": ["apm-{{event_type}}"],
+      "indices": ["apm-error"],
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "index-append-transaction",
+      "operation-type": "bulk",
+      "indices": ["apm-transaction"],
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "index-append-span",
+      "operation-type": "bulk",
+      "indices": ["apm-span"],
       "bulk-size": {{bulk_size | default(1000)}},
       "ingest-percentage": {{ingest_percentage | default(100)}}
     },

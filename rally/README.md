@@ -22,8 +22,7 @@ You can start the race for the default challenge with `esrally --track-path=<loc
 
 ### Single Event Type challenge
 If you want to test only a dedicated event type, you can use the second challenge, by running 
-`esrally 
---track-path=<local-path-to-apm-track> --track-params="event_type:'<event_type>'" --challenge=ingest-event-type`
+`esrally --track-path=<local-path-to-apm-track> --track-params="event_type:'<event_type>'" --challenge=ingest-event-type`
 
 
 If you want to store results to a file, preserve temporary Elasticsearch, use a running Elasticsearch instance, etc. 
