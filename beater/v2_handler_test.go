@@ -20,8 +20,6 @@ package beater
 import (
 	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -37,18 +35,6 @@ import (
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
-
-func approveResultBody(t *testing.T, name string, body []byte) {
-	var resultmap map[string]interface{}
-	err := json.Unmarshal(body, &resultmap)
-	assert.NoError(t, err, "err", string(body))
-
-	resultName := fmt.Sprintf("approved-stream-result/%s", name)
-	verifyErr := tests.ApproveJson(resultmap, resultName, nil)
-	if verifyErr != nil {
-		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
-	}
-}
 
 func TestInvalidContentType(t *testing.T) {
 	req := httptest.NewRequest("POST", "/v2/intake", nil)
@@ -103,18 +89,22 @@ func TestRequestDecoderError(t *testing.T) {
 }
 
 func TestRequestIntegration(t *testing.T) {
+
 	for _, test := range []struct {
-		name string
-		code int
-		path string
+		name         string
+		code         int
+		path         string
+		reportingErr error
 	}{
-		{"Success", http.StatusAccepted, "../testdata/intake-v2/errors.ndjson"},
-		{"InvalidEvent", http.StatusBadRequest, "../testdata/intake-v2/invalid-event.ndjson"},
-		{"InvalidJSONEvent", http.StatusBadRequest, "../testdata/intake-v2/invalid-json-event.ndjson"},
-		{"InvalidJSONMetadata", http.StatusBadRequest, "../testdata/intake-v2/invalid-json-metadata.ndjson"},
-		{"InvalidMetadata", http.StatusBadRequest, "../testdata/intake-v2/invalid-metadata.ndjson"},
-		{"InvalidMetadata2", http.StatusBadRequest, "../testdata/intake-v2/invalid-metadata-2.ndjson"},
-		{"UnrecognizedEvent", http.StatusBadRequest, "../testdata/intake-v2/unrecognized-event.ndjson"},
+		{name: "Success", code: http.StatusAccepted, path: "../testdata/intake-v2/errors.ndjson"},
+		{name: "InvalidEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-event.ndjson"},
+		{name: "InvalidJSONEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-json-event.ndjson"},
+		{name: "InvalidJSONMetadata", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-json-metadata.ndjson"},
+		{name: "InvalidMetadata", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-metadata.ndjson"},
+		{name: "InvalidMetadata2", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-metadata-2.ndjson"},
+		{name: "UnrecognizedEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/unrecognized-event.ndjson"},
+		{name: "Closing", code: http.StatusServiceUnavailable, path: "../testdata/intake-v2/errors.ndjson", reportingErr: publish.ErrChannelClosed},
+		{name: "FullQueue", code: http.StatusTooManyRequests, path: "../testdata/intake-v2/errors.ndjson", reportingErr: publish.ErrFull},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			b, err := loader.LoadDataAsBytes(test.path)
@@ -128,7 +118,7 @@ func TestRequestIntegration(t *testing.T) {
 
 			c := defaultConfig("7.0.0")
 			report := func(context.Context, publish.PendingReq) error {
-				return nil
+				return test.reportingErr
 			}
 			handler := (&v2BackendRoute).Handler(c, report)
 
@@ -139,42 +129,8 @@ func TestRequestIntegration(t *testing.T) {
 				assert.Equal(t, 0, w.Body.Len())
 			} else {
 				body := w.Body.Bytes()
-				approveResultBody(t, "TestRequestIntegration"+test.name, body)
+				tests.AssertApproveResult(t, "approved-stream-result/TestRequestIntegration"+test.name, body)
 			}
-		})
-	}
-}
-
-func TestReportingProblemsIntegration(t *testing.T) {
-	for _, test := range []struct {
-		name string
-		code int
-		err  error
-	}{
-		{"Closing", http.StatusServiceUnavailable, publish.ErrChannelClosed},
-		{"FullQueue", http.StatusTooManyRequests, publish.ErrFull},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes("../testdata/intake-v2/errors.ndjson")
-			require.NoError(t, err)
-			bodyReader := bytes.NewBuffer(b)
-
-			req := httptest.NewRequest("POST", "/v2/intake", bodyReader)
-			req.Header.Add("Content-Type", "application/x-ndjson")
-
-			w := httptest.NewRecorder()
-
-			c := defaultConfig("7.0.0")
-			report := func(context.Context, publish.PendingReq) error {
-				return test.err
-			}
-			handler := (&v2BackendRoute).Handler(c, report)
-
-			handler.ServeHTTP(w, req)
-
-			assert.Equal(t, test.code, w.Code, w.Body.String())
-			approveResultBody(t, "TestReportingProblemsIntegration"+test.name, w.Body.Bytes())
-
 		})
 	}
 }
