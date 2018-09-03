@@ -1,0 +1,9 @@
+{
+    "accepted": 0,
+    "errors": [
+        {
+            "document": "{\"not\": \"metadata\"}\n",
+            "message": "did not recognize object type"
+        }
+    ]
+}
