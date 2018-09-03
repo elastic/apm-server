@@ -39,7 +39,6 @@ type StreamError int
 
 const (
 	QueueFullErrType StreamError = iota
-	ProcessingTimeoutErrType
 	InvalidInputErrType
 	ShuttingDownErrType
 	ServerErrType
