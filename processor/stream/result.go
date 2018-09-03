@@ -25,7 +25,7 @@ import (
 type Error struct {
 	Type     StreamError `json:"-"`
 	Message  string      `json:"message"`
-	Document string      `json:"document"`
+	Document string      `json:"document,omitempty"`
 }
 
 func (s *Error) Error() string {
