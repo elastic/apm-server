@@ -1,0 +1,9 @@
+{
+    "accepted": 0,
+    "errors": [
+        {
+            "document": "{\"metadata\": {\"invalid-json\"}}\n",
+            "message": "data read error: invalid character '}' after object key"
+        }
+    ]
+}

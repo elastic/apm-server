@@ -19,14 +19,20 @@ package beater
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/tests"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -80,4 +86,51 @@ func TestRequestDecoderError(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+}
+
+func TestRequestIntegration(t *testing.T) {
+
+	for _, test := range []struct {
+		name         string
+		code         int
+		path         string
+		reportingErr error
+	}{
+		{name: "Success", code: http.StatusAccepted, path: "../testdata/intake-v2/errors.ndjson"},
+		{name: "InvalidEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-event.ndjson"},
+		{name: "InvalidJSONEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-json-event.ndjson"},
+		{name: "InvalidJSONMetadata", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-json-metadata.ndjson"},
+		{name: "InvalidMetadata", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-metadata.ndjson"},
+		{name: "InvalidMetadata2", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-metadata-2.ndjson"},
+		{name: "UnrecognizedEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/unrecognized-event.ndjson"},
+		{name: "Closing", code: http.StatusServiceUnavailable, path: "../testdata/intake-v2/errors.ndjson", reportingErr: publish.ErrChannelClosed},
+		{name: "FullQueue", code: http.StatusTooManyRequests, path: "../testdata/intake-v2/errors.ndjson", reportingErr: publish.ErrFull},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			b, err := loader.LoadDataAsBytes(test.path)
+			require.NoError(t, err)
+			bodyReader := bytes.NewBuffer(b)
+
+			req := httptest.NewRequest("POST", "/v2/intake", bodyReader)
+			req.Header.Add("Content-Type", "application/x-ndjson")
+
+			w := httptest.NewRecorder()
+
+			c := defaultConfig("7.0.0")
+			report := func(context.Context, publish.PendingReq) error {
+				return test.reportingErr
+			}
+			handler := (&v2BackendRoute).Handler(c, report)
+
+			handler.ServeHTTP(w, req)
+
+			assert.Equal(t, test.code, w.Code, w.Body.String())
+			if test.code == http.StatusAccepted {
+				assert.Equal(t, 0, w.Body.Len())
+			} else {
+				body := w.Body.Bytes()
+				tests.AssertApproveResult(t, "approved-stream-result/TestRequestIntegration"+test.name, body)
+			}
+		})
+	}
 }
