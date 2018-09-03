@@ -255,20 +255,6 @@ const ModelSchema = `{
         "sampled": {
             "type": ["boolean", "null"],
             "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
-        },
-        "span_count": {
-            "type": ["object", "null"],
-            "properties": {
-                "dropped": {
-                    "type": ["object", "null"],
-                    "properties": {
-                        "total": {
-                            "type": ["integer","null"],
-                            "description": "Number of spans that have been dropped by the agent recording the transaction."
-                        }
-                    }
-                }
-            }
         }
     },
     "required": ["duration", "type"]  }, 
@@ -288,9 +274,29 @@ const ModelSchema = `{
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
                     "type": ["string", "null"],
                     "maxLength": 1024
+                },
+                "span_count": {
+                    "type": "object",
+                    "properties": {
+                        "total": {
+                            "type": "integer",
+                            "description": "Number of correlated spans that are recorded."
+
+                        },
+                        "dropped": {
+                            "type": ["object", "null"],
+                            "properties": {
+                                "total": {
+                                    "type": ["integer","null"],
+                                    "description": "Number of spans that have been dropped by the agent recording the transaction."
+                                }
+                            }
+                        }
+                    },
+                    "required": ["total"]
                 }
             },
-            "required": ["id", "trace_id"]
+            "required": ["id", "trace_id","span_count"]
         }
     ]
 }

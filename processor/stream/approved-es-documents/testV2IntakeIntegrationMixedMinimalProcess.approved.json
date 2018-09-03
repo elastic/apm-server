@@ -95,6 +95,9 @@
                 "id": "abcdef1478523690",
                 "result": "200",
                 "sampled": true,
+                "span_count": {
+                    "total": 0
+                },
                 "trace_id": "01234567890123456789abcdefabcdef",
                 "type": "request"
             }

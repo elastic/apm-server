@@ -77,6 +77,7 @@ type Event struct {
 }
 type SpanCount struct {
 	Dropped Dropped
+	Total   *int
 }
 type Dropped struct {
 	Total *int
@@ -145,7 +146,9 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 		Context:   decoder.MapStr(raw, "context"),
 		Marks:     decoder.MapStr(raw, "marks"),
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
-		SpanCount: SpanCount{Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")}},
+		SpanCount: SpanCount{
+			Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")},
+			Total:   decoder.IntPtr(raw, "total", "span_count")},
 	}
 	return &e, raw, decoder.Err
 }
@@ -168,13 +171,16 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 		utility.Add(tx, "sampled", t.Sampled)
 	}
 
-	if t.SpanCount.Dropped.Total != nil {
-		s := common.MapStr{
-			"dropped": common.MapStr{
-				"total": *t.SpanCount.Dropped.Total,
-			},
+	if t.SpanCount.Dropped.Total != nil || t.SpanCount.Total != nil {
+		spanCount := common.MapStr{}
+
+		if t.SpanCount.Dropped.Total != nil {
+			utility.Add(spanCount, "dropped", common.MapStr{"total": *t.SpanCount.Dropped.Total})
 		}
-		utility.Add(tx, "span_count", s)
+		if t.SpanCount.Total != nil {
+			utility.Add(spanCount, "total", *t.SpanCount.Total)
+		}
+		utility.Add(tx, "span_count", spanCount)
 	}
 	return tx
 }

@@ -39,11 +39,12 @@ func TestTransactionEventDecode(t *testing.T) {
 	duration := 1.67
 	context := map[string]interface{}{"a": "b"}
 	marks := map[string]interface{}{"k": "b"}
-	dropped := 12
+	dropped, totalSpans := 12, 148
 	spanCount := map[string]interface{}{
 		"dropped": map[string]interface{}{
 			"total": 12.0,
 		},
+		"total": 148.0,
 	}
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
@@ -74,7 +75,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Id: id, Type: trType, Name: &name, Result: &result,
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
-				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
+				SpanCount: SpanCount{Total: &totalSpans, Dropped: Dropped{Total: &dropped}},
 			},
 		},
 	} {
@@ -134,7 +135,7 @@ func TestEventTransform(t *testing.T) {
 	id := "123"
 	result := "tx result"
 	sampled := false
-	dropped := 5
+	dropped, total := 5, 14
 	name := "mytransaction"
 
 	tests := []struct {
@@ -154,6 +155,52 @@ func TestEventTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
+				Id:       id,
+				Type:     "tx",
+				Duration: 65.98,
+			},
+			Output: common.MapStr{
+				"id":       id,
+				"type":     "tx",
+				"duration": common.MapStr{"us": 65980},
+				"sampled":  true,
+			},
+			Msg: "SpanCount empty",
+		},
+		{
+			Event: Event{
+				Id:        id,
+				Type:      "tx",
+				Duration:  65.98,
+				SpanCount: SpanCount{Total: &total},
+			},
+			Output: common.MapStr{
+				"id":         id,
+				"type":       "tx",
+				"duration":   common.MapStr{"us": 65980},
+				"span_count": common.MapStr{"total": 14},
+				"sampled":    true,
+			},
+			Msg: "SpanCount only contains `total`",
+		},
+		{
+			Event: Event{
+				Id:        id,
+				Type:      "tx",
+				Duration:  65.98,
+				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
+			},
+			Output: common.MapStr{
+				"id":         id,
+				"type":       "tx",
+				"duration":   common.MapStr{"us": 65980},
+				"span_count": common.MapStr{"dropped": common.MapStr{"total": 5}},
+				"sampled":    true,
+			},
+			Msg: "SpanCount only contains `dropped`",
+		},
+		{
+			Event: Event{
 				Id:        id,
 				Name:      &name,
 				Type:      "tx",
@@ -163,7 +210,7 @@ func TestEventTransform(t *testing.T) {
 				Context:   common.MapStr{"foo": "bar"},
 				Spans:     []*span.Event{},
 				Sampled:   &sampled,
-				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
+				SpanCount: SpanCount{Total: &total, Dropped: Dropped{Total: &dropped}},
 			},
 			Output: common.MapStr{
 				"id":         id,
@@ -171,7 +218,7 @@ func TestEventTransform(t *testing.T) {
 				"type":       "tx",
 				"result":     "tx result",
 				"duration":   common.MapStr{"us": 65980},
-				"span_count": common.MapStr{"dropped": common.MapStr{"total": 5}},
+				"span_count": common.MapStr{"total": 14, "dropped": common.MapStr{"total": 5}},
 				"sampled":    false,
 			},
 			Msg: "Full Event",
