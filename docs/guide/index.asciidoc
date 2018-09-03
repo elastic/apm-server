@@ -285,7 +285,8 @@ var apm = require('elastic-apm-node').start({
 
 The Node.js agent automatically instruments Express,
 hapi,
-and Koa out of the box.
+Koa,
+and Restify out of the box.
 See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more details.
 
 [[python-agent]]
