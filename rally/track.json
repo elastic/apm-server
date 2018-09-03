@@ -4,17 +4,17 @@
   "description": "APM benchmark for Rally",
   "indices": [
     {
-      "name": "apm-6.4.0-error",
+      "name": "apm-error",
       "body": "index.json",
       "types": [ "type" ]
     },
     {
-      "name": "apm-6.4.0-transaction",
+      "name": "apm-transaction",
       "body": "index.json",
       "types": [ "type" ]
     },
     {
-      "name": "apm-6.4.0-span",
+      "name": "apm-span",
       "body": "index.json",
       "types": [ "type" ]
     }
@@ -25,19 +25,19 @@
       "target-type": "type",
       "documents": [
         {
-          "target-index": "apm-6.4.0-error",
+          "target-index": "apm-error",
           "source-file": "documents/error.json",
           "document-count": 224250,
           "uncompressed-bytes": 5366030615
         },
         {
-          "target-index": "apm-6.4.0-transaction",
+          "target-index": "apm-transaction",
           "source-file": "documents/transaction.json",
           "document-count": 1224774,
           "uncompressed-bytes": 2224034492
         },
         {
-          "target-index": "apm-6.4.0-span",
+          "target-index": "apm-span",
           "source-file": "documents/span.json",
           "document-count": 2225454,
           "uncompressed-bytes": 10897616683

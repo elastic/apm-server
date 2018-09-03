@@ -3,5 +3,20 @@
       "operation-type": "bulk",
       "bulk-size": {{bulk_size | default(1000)}},
       "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "index-append-{{event_type}}",
+      "operation-type": "bulk",
+      "indices": ["apm-{{event_type}}"],
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "check-cluster-health",
+      "operation-type": "cluster-health",
+      "index": "apm-*",
+      "request-params": {
+        "wait_for_status": "{{cluster_health | default('yellow')}}",
+        "wait_for_no_relocating_shards": "true"
+      }
     }
-    
