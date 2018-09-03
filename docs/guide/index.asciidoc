@@ -271,7 +271,8 @@ Then configure the elastic-apm-node module by adding the following lines to the 
 ----------------------------------
 // Add this to the VERY top of the first file loaded in your app
 var apm = require('elastic-apm-node').start({
-  // Set required service name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
+  // Overwrite service name from package.json
+  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
   serviceName: '',
 
   // Use if APM Server requires a token
