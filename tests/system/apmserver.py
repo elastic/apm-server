@@ -51,6 +51,16 @@ class BaseTest(TestCase):
     def get_metrics_payload_path(self, name="payload.json"):
         return self.get_payload_path("metric", name)
 
+    def get_transaction_v2_payload(self):
+        with open(self.get_transaction_v2_payload_path()) as f:
+            return f.read()
+
+    def get_transaction_v2_payload_path(self, name="transactions.ndjson"):
+        return self._beat_path_join(
+            'testdata',
+            'intake-v2',
+            name)
+
 
 class ServerSetUpBaseTest(BaseTest):
     transactions_url = 'http://localhost:8200/v1/transactions'

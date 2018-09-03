@@ -41,6 +41,17 @@ import (
 const ApprovedSuffix = ".approved.json"
 const ReceivedSuffix = ".received.json"
 
+func AssertApproveResult(t *testing.T, name string, actualResult []byte) {
+	var resultmap map[string]interface{}
+	err := json.Unmarshal(actualResult, &resultmap)
+	require.NoError(t, err)
+
+	verifyErr := ApproveJson(resultmap, name, map[string]string{})
+	if verifyErr != nil {
+		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+	}
+}
+
 func ApproveEvents(events []beat.Event, name string, ignored map[string]string) error {
 	// extract Fields and write to received.json
 	eventFields := make([]common.MapStr, len(events))
