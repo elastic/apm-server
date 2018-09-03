@@ -38,10 +38,10 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
-func approveResultBody(t *testing.T, name string, body *bytes.Buffer) {
+func approveResultBody(t *testing.T, name string, body []byte) {
 	var resultmap map[string]interface{}
-	err := json.Unmarshal(body.Bytes(), &resultmap)
-	assert.NoError(t, err)
+	err := json.Unmarshal(body, &resultmap)
+	assert.NoError(t, err, "err", string(body))
 
 	resultName := fmt.Sprintf("approved-stream-result/%s", name)
 	verifyErr := tests.ApproveJson(resultmap, resultName, nil)
@@ -135,8 +135,12 @@ func TestRequestIntegration(t *testing.T) {
 			handler.ServeHTTP(w, req)
 
 			assert.Equal(t, test.code, w.Code, w.Body.String())
-
-			approveResultBody(t, "TestRequestIntegration"+test.name, w.Body)
+			if test.code == http.StatusAccepted {
+				assert.Equal(t, 0, w.Body.Len())
+			} else {
+				body := w.Body.Bytes()
+				approveResultBody(t, "TestRequestIntegration"+test.name, body)
+			}
 		})
 	}
 }
@@ -169,7 +173,7 @@ func TestReportingProblemsIntegration(t *testing.T) {
 			handler.ServeHTTP(w, req)
 
 			assert.Equal(t, test.code, w.Code, w.Body.String())
-			approveResultBody(t, "TestReportingProblemsIntegration"+test.name, w.Body)
+			approveResultBody(t, "TestReportingProblemsIntegration"+test.name, w.Body.Bytes())
 
 		})
 	}
