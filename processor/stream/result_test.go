@@ -29,7 +29,7 @@ func TestStreamResponseSimple(t *testing.T) {
 	sr.LimitedAdd(&Error{Type: QueueFullErrType, Message: "err1", Document: "buf1"})
 	sr.LimitedAdd(errors.New("transmogrifier error"))
 	sr.LimitedAdd(&Error{Type: InvalidInputErrType, Message: "err2", Document: "buf2"})
-	sr.LimitedAdd(&Error{Type: ProcessingTimeoutErrType, Message: "err3", Document: "buf3"})
+	sr.LimitedAdd(&Error{Type: InvalidInputErrType, Message: "err3", Document: "buf3"})
 
 	sr.LimitedAdd(&Error{Message: "err4"})
 	sr.LimitedAdd(&Error{Message: "err5"})

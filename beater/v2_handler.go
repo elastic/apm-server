@@ -47,8 +47,6 @@ func (v *v2Handler) statusCode(sr *stream.Result) int {
 		switch err.Type {
 		case stream.InvalidInputErrType:
 			code = http.StatusBadRequest
-		case stream.ProcessingTimeoutErrType:
-			code = http.StatusRequestTimeout
 		case stream.QueueFullErrType:
 			code = http.StatusTooManyRequests
 		case stream.ShuttingDownErrType:

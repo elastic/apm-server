@@ -44,19 +44,11 @@ func validMetadata() string {
 	return `{"metadata": {"service": {"name": "myservice", "agent": {"name": "test", "version": "1.0"}}}}`
 }
 
-func approveResult(t *testing.T, actualResponse *Result, name string) {
+func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 	resultName := fmt.Sprintf("approved-stream-result/testIntegrationResult%s", name)
 	resultJSON, err := json.Marshal(actualResponse)
 	require.NoError(t, err)
-
-	var resultmap map[string]interface{}
-	err = json.Unmarshal(resultJSON, &resultmap)
-	require.NoError(t, err)
-
-	verifyErr := tests.ApproveJson(resultmap, resultName, map[string]string{})
-	if verifyErr != nil {
-		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
-	}
+	tests.AssertApproveResult(t, resultName, resultJSON)
 }
 
 func TestV2HandlerReadStreamError(t *testing.T) {
@@ -74,7 +66,7 @@ func TestV2HandlerReadStreamError(t *testing.T) {
 	sp := StreamProcessor{}
 
 	actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, report)
-	approveResult(t, actualResult, "ReadError")
+	assertApproveResult(t, actualResult, "ReadError")
 }
 
 func TestV2HandlerReportingStreamError(t *testing.T) {
@@ -103,7 +95,7 @@ func TestV2HandlerReportingStreamError(t *testing.T) {
 
 		sp := StreamProcessor{}
 		actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, test.report)
-		approveResult(t, actualResult, test.name)
+		assertApproveResult(t, actualResult, test.name)
 	}
 }
 
@@ -159,7 +151,7 @@ func TestIntegration(t *testing.T) {
 			}
 
 			actualResult := (&StreamProcessor{}).HandleStream(ctx, reqDecoderMeta, reader, report)
-			approveResult(t, actualResult, test.name)
+			assertApproveResult(t, actualResult, test.name)
 		})
 	}
 }
