@@ -72,7 +72,7 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
-
+		w.Header().Add("Content-Type", "application/json")
 		buf, err := json.Marshal(sr)
 		if err != nil {
 			logger.Errorw("error sending response", "error", err)

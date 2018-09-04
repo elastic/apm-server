@@ -127,7 +127,10 @@ func TestRequestIntegration(t *testing.T) {
 			assert.Equal(t, test.code, w.Code, w.Body.String())
 			if test.code == http.StatusAccepted {
 				assert.Equal(t, 0, w.Body.Len())
+				assert.Equal(t, w.HeaderMap.Get("Content-Type"), "")
 			} else {
+				assert.Equal(t, w.HeaderMap.Get("Content-Type"), "application/json")
+
 				body := w.Body.Bytes()
 				tests.AssertApproveResult(t, "approved-stream-result/TestRequestIntegration"+test.name, body)
 			}
