@@ -346,7 +346,7 @@ const PayloadSchema = `{
                 },
                 "message": {
                    "description": "The original error message.",
-                   "type": "string"
+                   "type": ["string", "null"]
                 },
                 "module": {
                     "description": "Describes the exception type's module namespace.",
@@ -431,7 +431,9 @@ const PayloadSchema = `{
                     "description": "Indicator whether the error was caught somewhere in the code or not."
                 }
             },
-            "required": ["message"]
+            "anyOf": [
+                {"required": ["message"]},{"required": ["type"]}
+            ]
         },
         "log": {
             "type": ["object", "null"],

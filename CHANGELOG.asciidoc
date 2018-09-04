@@ -7,6 +7,11 @@
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/
 
+include::./changelogs/head.asciidoc[]
+include::./changelogs/6.4.asciidoc[]
+include::./changelogs/6.3.asciidoc[]
+include::./changelogs/6.2.asciidoc[]
+include::./changelogs/6.1.asciidoc[]
 https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
 
 [float]
@@ -20,6 +25,7 @@ https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
 - Make JSON schema spec distributed tracing compliant {pull}1303[1303]
 - Add required `transaction.span_count.started` to Intake v2 {pull}1351[1351]
 - Rename `transaction.span_count.dropped.total` to `transaction.span_count.dropped` on Intake API v2 {pull}1351[1351]
+- Require either `message` or `type` for `error.exception` {pull}1354[1354].
 
 [[release-notes-6.4]]
 == APM Server version 6.4

@@ -239,7 +239,7 @@
             "id": "7f0e9d68-c185-4d21-a6f4-4673ed561ec8",
             "timestamp": "2017-05-09T15:04:05Z",
             "exception": {
-                "message": "foo.bar is not a function"
+                "type": "connection error"
             }
         },
         {
