@@ -280,7 +280,7 @@ const ModelSchema = `{
                     "properties": {
                         "total": {
                             "type": "integer",
-                            "description": "Number of correlated spans that are recorded."
+                            "description": "Number of spans recorded for the transaction."
 
                         },
                         "dropped": {
