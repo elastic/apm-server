@@ -19,7 +19,7 @@
             "tasks": [
               {
                 "operation": "index-append-error",
-                "clients": {{bulk_indexing_clients | default(3)}}
+                "clients": {{bulk_indexing_clients | default(1)}}
               },
               {
                 "operation": "index-append-transaction",
@@ -27,9 +27,10 @@
               },
               {
                 "operation": "index-append-span",
-                "clients": {{bulk_indexing_clients | default(3)}}
+                "clients": {{bulk_indexing_clients | default(6)}}
               }
-            ]
+            ],
+            "completed-by": "index-append-error"
           }
         },    
         {
