@@ -21,8 +21,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
+
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/decoder"
 	er "github.com/elastic/apm-server/model/error"
@@ -34,6 +37,10 @@ import (
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
+)
+
+const (
+	RateLimiterKey = "rateLimiter"
 )
 
 var (
@@ -175,11 +182,14 @@ func (v *StreamProcessor) handleRawModel(rawModel map[string]interface{}) (trans
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
 func (s *StreamProcessor) readBatch(batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
-	var err error
-	var rawModel map[string]interface{}
+	var (
+		err        error
+		rawModel   map[string]interface{}
+		eventables []transform.Transformable
+	)
 
-	var eventables []transform.Transformable
 	for i := 0; i < batchSize && err == nil; i++ {
+
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
 
@@ -229,6 +239,25 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 	}
 
 	for {
+
+		//Throttle read in case rate limit is hit, by using
+		//blocking wait until rate limiter allows to read next batchsize event.
+		//Consider burst and timeout indicating how long to wait for rate limiter.
+		//Return early if rate limiter returns error.
+		limiter, limiterOk := ctx.Value(RateLimiterKey).(*rate.Limiter)
+		if limiterOk && limiter != nil {
+			ctxT, cancel := context.WithTimeout(ctx, time.Second)
+			defer cancel()
+			err = limiter.WaitN(ctxT, batchSize)
+			if err != nil {
+				res.Add(&Error{
+					Type:    RateLimitErrType,
+					Message: "rate limit exceeded",
+				})
+				return res
+			}
+		}
+
 		transformables, done := s.readBatch(batchSize, jsonReader, res)
 		if transformables != nil {
 			err := report(ctx, publish.PendingReq{

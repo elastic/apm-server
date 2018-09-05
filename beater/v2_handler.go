@@ -18,13 +18,18 @@
 package beater
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+
+	lru "github.com/hashicorp/golang-lru"
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/libbeat/logp"
 
@@ -34,6 +39,7 @@ import (
 type v2Handler struct {
 	requestDecoder  decoder.ReqDecoder
 	streamProcessor *stream.StreamProcessor
+	cache           *lru.Cache
 }
 
 func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
@@ -58,6 +64,9 @@ func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 		case stream.ShuttingDownErrType:
 			code = http.StatusServiceUnavailable
 			ct = serverShuttingDownCounter
+		case stream.RateLimitErrType:
+			code = http.StatusTooManyRequests
+			ct = rateLimitCounter
 		default:
 			code = http.StatusInternalServerError
 			ct = responseErrorsOthers
@@ -131,8 +140,22 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 			v.sendResponse(logger, w, &sr)
 			return
 		}
+		ctx := r.Context()
 
-		res := v.streamProcessor.HandleStream(r.Context(), reqMeta, ndReader, report)
+		// fetch the rate limiter from the cache, if a cache is given
+		var limiter *rate.Limiter
+		if v.cache != nil && beaterConfig.RumConfig.EventRate != nil {
+			key := utility.RemoteAddr(r)
+			if !v.cache.Contains(key) {
+				v.cache.Add(key, rate.NewLimiter(rate.Limit(beaterConfig.RumConfig.EventRate.Limit),
+					beaterConfig.RumConfig.EventRate.Limit*2))
+			}
+			entry, _ := v.cache.Get(key)
+			limiter, _ = entry.(*rate.Limiter)
+			ctx = context.WithValue(r.Context(), stream.RateLimiterKey, limiter)
+		}
+
+		res := v.streamProcessor.HandleStream(ctx, reqMeta, ndReader, report)
 
 		v.sendResponse(logger, w, res)
 	})

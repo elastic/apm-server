@@ -39,7 +39,7 @@ class Test(AccessTest):
         """
 
         url = 'http://localhost:8200/intake/v2/events'
-        transactions = self.get_transaction_v2_payload()
+        transactions = self.get_event_v2_payload(name="transactions.ndjson")
         headers = {'content-type': 'application/x-ndjson'}
 
         def oauth(v):

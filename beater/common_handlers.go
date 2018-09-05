@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 	"github.com/satori/go.uuid"
@@ -46,9 +46,6 @@ import (
 )
 
 const (
-	rateLimitCacheSize       = 1000
-	rateLimitBurstMultiplier = 2
-
 	supportedHeaders = "Content-Type, Content-Encoding, Accept"
 	supportedMethods = "POST, OPTIONS"
 )
@@ -119,10 +116,11 @@ var (
 			counter: validateCounter,
 		}
 	}
+	rateLimitCounter    = counter("response.errors.ratelimit")
 	rateLimitedResponse = serverResponse{
 		err:     errors.New("too many requests"),
 		code:    http.StatusTooManyRequests,
-		counter: counter("response.errors.ratelimit"),
+		counter: rateLimitCounter,
 	}
 	methodNotAllowedCounter  = counter("response.errors.method")
 	methodNotAllowedResponse = serverResponse{
@@ -297,6 +295,11 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 		}
 	})
 }
+
+const (
+	rateLimitCacheSize       = 1000
+	rateLimitBurstMultiplier = 2
+)
 
 func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 	cache, _ := lru.New(rateLimitCacheSize)

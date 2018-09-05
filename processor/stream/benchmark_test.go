@@ -22,9 +22,12 @@ import (
 	"context"
 	"errors"
 	"io/ioutil"
+	"math"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	r "golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
@@ -44,7 +47,8 @@ func BenchmarkStreamProcessor(b *testing.B) {
 	if err != nil {
 		b.Error(err)
 	}
-	ctx := context.Background()
+	//ensure to not hit rate limit as blocking wait would be measured otherwise
+	ctx := context.WithValue(context.Background(), RateLimiterKey, r.NewLimiter(r.Limit(math.MaxFloat64), math.MaxInt32))
 	sp := &StreamProcessor{}
 	for _, f := range files {
 		b.Run(f.Name(), func(b *testing.B) {
