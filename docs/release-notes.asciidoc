@@ -1,8 +1,17 @@
 :root-dir: ../
 
 [[release-notes]]
-== Release notes
+= Release notes
+:issue: https://github.com/elastic/apm-server/issues/
+:pull: https://github.com/elastic/apm-server/pull/
+
+[partintro]
+
+--
+This following section summarizes the changes in each release.
 
 * <<release-notes-6.1>>
+
+--
 
 include::{root-dir}/CHANGELOG.asciidoc[]
