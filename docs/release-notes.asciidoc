@@ -2,8 +2,11 @@
 
 [[release-notes]]
 = Release notes
+:issue: https://github.com/elastic/apm-server/issues/
+:pull: https://github.com/elastic/apm-server/pull/
 
 [partintro]
+
 --
 This following section summarizes the changes in each release.
 
