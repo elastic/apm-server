@@ -169,8 +169,8 @@ func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader St
 	return metadata, nil
 }
 
-// handleRawModel validates and decodes a single json object into its struct form
-func (v *StreamProcessor) handleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
+// HandleRawModel validates and decodes a single json object into its struct form
+func (v *StreamProcessor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
 	for _, model := range models {
 		if entry, ok := rawModel[model.key]; ok {
 			err := validation.Validate(entry, model.schema)
@@ -226,7 +226,7 @@ func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batch
 		}
 
 		if rawModel != nil {
-			tr, err := s.handleRawModel(rawModel)
+			tr, err := v.HandleRawModel(rawModel)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,

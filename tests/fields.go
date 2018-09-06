@@ -23,13 +23,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/beat"
-
 	"github.com/stretchr/testify/require"
 
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -57,13 +53,13 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		"context.tags.organization_uuid",
 		"context.tags.span_tag",
 		//known not-indexed fields:
-		"context.custom",
-		"context.request.headers",
-		"context.request.cookies",
-		"context.request.socket",
-		"context.request.env",
-		"context.request.body",
-		"context.response.headers",
+		Group("context.custom"),
+		Group("context.request.headers"),
+		Group("context.request.cookies"),
+		Group("context.request.socket"),
+		Group("context.request.env"),
+		Group("context.request.body"),
+		Group("context.response.headers"),
 		"context.process.argv",
 		"context.db*",
 	))
@@ -81,18 +77,11 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 	assertEmptySet(t, missing, fmt.Sprintf("Documented Fields missing in event: %v", missing))
 }
 
-func fetchFields(t *testing.T, p pr.Processor, path string, blacklisted *Set) *Set {
-	data, err := loader.LoadData(path)
+func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *Set {
+	buf, err := loader.LoadDataAsBytes(path)
 	require.NoError(t, err)
-	err = p.Validate(data)
+	events, err := p.Process(buf)
 	require.NoError(t, err)
-	metadata, transformables, err := p.Decode(data)
-	require.NoError(t, err)
-
-	var events []beat.Event
-	for _, transformable := range transformables {
-		events = append(events, transformable.Transform(&transform.Context{Metadata: *metadata})...)
-	}
 
 	keys := NewSet()
 	for _, event := range events {
@@ -103,6 +92,7 @@ func fetchFields(t *testing.T, p pr.Processor, path string, blacklisted *Set) *S
 			flattenMapStr(event.Fields[k], k, blacklisted, keys)
 		}
 	}
+	t.Logf("Keys in events: %v", keys)
 	return keys
 }
 
@@ -135,16 +125,17 @@ func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set
 
 func isBlacklistedKey(keysBlacklist *Set, key string) bool {
 	for _, disabledKey := range keysBlacklist.Array() {
-		disabled, ok := disabledKey.(string)
-		if !ok {
-			if disabledGrp, ok := disabledKey.(group); ok {
-				disabled = disabledGrp.str
-			} else {
-				continue
+		switch k := disabledKey.(type) {
+		case string:
+			if key == k {
+				return true
 			}
-		}
-		if strings.HasPrefix(key, disabled) {
-			return true
+		case group:
+			if strings.HasPrefix(key, k.str) {
+				return true
+			}
+		default:
+			panic("blacklist key must be string or Group")
 		}
 	}
 	return false

@@ -28,7 +28,7 @@ type val = []interface{}
 
 func procSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            perr.Processor,
+		Proc:            &tests.V1TestProcessor{Processor: perr.Processor},
 		FullPayloadPath: "../testdata/error/payload.json",
 		TemplatePaths: []string{"../../../model/error/_meta/fields.yml",
 			"../../../_meta/fields.common.yml"},
@@ -38,7 +38,8 @@ func procSetup() *tests.ProcessorSetup {
 
 func payloadAttrsNotInFields(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
-		"error.exception.attributes",
+		tests.Group("error.exception.attributes"),
+		// tests.context.custom.and_objects
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
 	))
@@ -104,6 +105,7 @@ func keywordExceptionKeys(s *tests.Set) *tests.Set {
 
 func templateToSchemaMapping(mapping map[string]string) map[string]string {
 	return map[string]string{
+		"context.agent.":   "agent.",
 		"context.system.":  "system.",
 		"context.process.": "process.",
 		"context.service.": "service.",

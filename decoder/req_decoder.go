@@ -124,7 +124,7 @@ func CompressedRequestReader(req *http.Request) (io.ReadCloser, error) {
 	return reader, nil
 }
 
-func DecodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {
+func DecodeJSONData(reader io.Reader) (map[string]interface{}, error) {
 	v := make(map[string]interface{})
 	d := json.NewDecoder(reader)
 	d.UseNumber()

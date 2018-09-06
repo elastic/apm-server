@@ -31,7 +31,7 @@ func TestPayloadAttrsMatchFields(t *testing.T) {
 
 func TestPayloadAttrsMatchJsonSchema(t *testing.T) {
 	procSetup().PayloadAttrsMatchJsonSchema(t,
-		payloadAttrsNotInJsonSchema(nil), tests.NewSet(nil))
+		payloadAttrsNotInJsonSchema(nil), tests.NewSet(nil), "")
 }
 
 func TestAttrsPresenceInError(t *testing.T) {
