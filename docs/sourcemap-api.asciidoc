@@ -10,7 +10,7 @@ Send a `HTTP POST` request with the `Content-Type` header set to `multipart/form
 
 [source,bash]
 ------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/rum/sourcemaps
+http(s)://{hostname}:{port}/assets/v2/sourcemaps
 ------------------------------------------------------------
 
 [[sourcemap-request-fields]]
@@ -35,7 +35,7 @@ Example source map request
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
-curl -X POST http://127.0.0.1:8200/v1/rum/sourcemaps \
+curl -X POST http://127.0.0.1:8200/assets/v1/sourcemaps \
   -F service_name="test-service" \
   -F service_version="1.0" \
   -F bundle_filepath="http://localhost/static/js/bundle.js" \

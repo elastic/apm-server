@@ -274,7 +274,7 @@ class ElasticTest(ServerBaseTest):
 class ClientSideBaseTest(ServerBaseTest):
     transactions_url = 'http://localhost:8200/v1/rum/transactions'
     errors_url = 'http://localhost:8200/v1/rum/errors'
-    sourcemap_url = 'http://localhost:8200/v1/rum/sourcemaps'
+    sourcemap_url = 'http://localhost:8200/assets/v2/sourcemaps'
 
     @classmethod
     def setUpClass(cls):

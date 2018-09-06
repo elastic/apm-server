@@ -38,7 +38,7 @@ class Test(AccessTest):
         Test that access works with token
         """
 
-        url = 'http://localhost:8200/v2/intake'
+        url = 'http://localhost:8200/intake/v2/events'
         transactions = self.get_transaction_v2_payload()
         headers = {'content-type': 'application/x-ndjson'}
 

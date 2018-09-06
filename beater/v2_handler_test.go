@@ -37,7 +37,7 @@ import (
 )
 
 func TestInvalidContentType(t *testing.T) {
-	req := httptest.NewRequest("POST", "/v2/intake", nil)
+	req := httptest.NewRequest("POST", V2BackendURL, nil)
 	w := httptest.NewRecorder()
 
 	c := defaultConfig("7.0.0")
@@ -49,7 +49,7 @@ func TestInvalidContentType(t *testing.T) {
 }
 
 func TestEmptyRequest(t *testing.T) {
-	req := httptest.NewRequest("POST", "/v2/intake", nil)
+	req := httptest.NewRequest("POST", V2BackendURL, nil)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
 	w := httptest.NewRecorder()
@@ -63,7 +63,7 @@ func TestEmptyRequest(t *testing.T) {
 }
 
 func TestRequestDecoderError(t *testing.T) {
-	req := httptest.NewRequest("POST", "/v2/intake", bytes.NewBufferString(`asdasd`))
+	req := httptest.NewRequest("POST", V2BackendURL, bytes.NewBufferString(`asdasd`))
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
 	w := httptest.NewRecorder()
@@ -111,7 +111,7 @@ func TestRequestIntegration(t *testing.T) {
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
-			req := httptest.NewRequest("POST", "/v2/intake", bodyReader)
+			req := httptest.NewRequest("POST", V2BackendURL, bodyReader)
 			req.Header.Add("Content-Type", "application/x-ndjson")
 
 			w := httptest.NewRecorder()

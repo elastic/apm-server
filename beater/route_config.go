@@ -36,7 +36,10 @@ import (
 )
 
 var (
-	rootURL                   = "/"
+	rootURL        = "/"
+	HealthCheckURL = "/healthcheck"
+
+	// intake v1
 	BackendTransactionsURL    = "/v1/transactions"
 	ClientSideTransactionsURL = "/v1/client-side/transactions"
 	RumTransactionsURL        = "/v1/rum/transactions"
@@ -44,12 +47,17 @@ var (
 	ClientSideErrorsURL       = "/v1/client-side/errors"
 	RumErrorsURL              = "/v1/rum/errors"
 	MetricsURL                = "/v1/metrics"
-	SourcemapsClientSideURL   = "/v1/client-side/sourcemaps"
-	SourcemapsURL             = "/v1/rum/sourcemaps"
-	V2BackendURL              = "/v2/intake"
-	V2RumURL                  = "/v2/rum/intake"
 
-	HealthCheckURL = "/healthcheck"
+	// intake v2
+	V2BackendURL = "/intake/v2/events"
+	V2RumURL     = "/intake/v2/rum/events"
+
+	// assets
+	SourcemapsURL = "/assets/v2/sourcemaps"
+
+	// deprecated
+	SourcemapsClientSideURLDeprecated = "/v1/client-side/sourcemaps"
+	SourcemapsURLDeprecated           = "/v1/rum/sourcemaps"
 )
 
 type routeType struct {
@@ -59,15 +67,16 @@ type routeType struct {
 }
 
 var V1Routes = map[string]v1Route{
-	BackendTransactionsURL:    {backendRouteType, transaction.Processor, v1RequestDecoder},
-	ClientSideTransactionsURL: {rumRouteType, transaction.Processor, v1RequestDecoder},
-	RumTransactionsURL:        {rumRouteType, transaction.Processor, v1RequestDecoder},
-	BackendErrorsURL:          {backendRouteType, perr.Processor, v1RequestDecoder},
-	ClientSideErrorsURL:       {rumRouteType, perr.Processor, v1RequestDecoder},
-	RumErrorsURL:              {rumRouteType, perr.Processor, v1RequestDecoder},
-	MetricsURL:                {metricsRouteType, metric.Processor, v1RequestDecoder},
-	SourcemapsClientSideURL:   {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
-	SourcemapsURL:             {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
+	BackendTransactionsURL:            {backendRouteType, transaction.Processor, v1RequestDecoder},
+	ClientSideTransactionsURL:         {rumRouteType, transaction.Processor, v1RequestDecoder},
+	RumTransactionsURL:                {rumRouteType, transaction.Processor, v1RequestDecoder},
+	BackendErrorsURL:                  {backendRouteType, perr.Processor, v1RequestDecoder},
+	ClientSideErrorsURL:               {rumRouteType, perr.Processor, v1RequestDecoder},
+	RumErrorsURL:                      {rumRouteType, perr.Processor, v1RequestDecoder},
+	MetricsURL:                        {metricsRouteType, metric.Processor, v1RequestDecoder},
+	SourcemapsURL:                     {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
+	SourcemapsClientSideURLDeprecated: {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
+	SourcemapsURLDeprecated:           {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
 }
 
 var V2Routes = map[string]v2Route{
