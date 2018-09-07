@@ -1,12 +1,3 @@
-[[release-notes-head]]
-== APM Server version HEAD
-
-// These have to be under a == headline unfortunately:
-// Use these for links to issue and pulls. Note issues and pulls redirect one to
-// each other on Github, so don't worry too much on using the right prefix.
-:issue: https://github.com/elastic/apm-server/issues/
-:pull: https://github.com/elastic/apm-server/pull/
-
 include::./changelogs/head.asciidoc[]
 include::./changelogs/6.4.asciidoc[]
 include::./changelogs/6.3.asciidoc[]
