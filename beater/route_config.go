@@ -36,28 +36,26 @@ import (
 )
 
 var (
-	rootURL        = "/"
-	HealthCheckURL = "/healthcheck"
-
-	// intake v1
-	BackendTransactionsURL    = "/v1/transactions"
-	ClientSideTransactionsURL = "/v1/client-side/transactions"
-	RumTransactionsURL        = "/v1/rum/transactions"
-	BackendErrorsURL          = "/v1/errors"
-	ClientSideErrorsURL       = "/v1/client-side/errors"
-	RumErrorsURL              = "/v1/rum/errors"
-	MetricsURL                = "/v1/metrics"
+	rootURL = "/"
 
 	// intake v2
 	V2BackendURL = "/intake/v2/events"
 	V2RumURL     = "/intake/v2/rum/events"
 
 	// assets
-	SourcemapsURL = "/assets/v2/sourcemaps"
+	SourcemapsURL = "/assets/v1/sourcemaps"
 
 	// deprecated
 	SourcemapsClientSideURLDeprecated = "/v1/client-side/sourcemaps"
 	SourcemapsURLDeprecated           = "/v1/rum/sourcemaps"
+	BackendTransactionsURL            = "/v1/transactions"
+	ClientSideTransactionsURL         = "/v1/client-side/transactions"
+	RumTransactionsURL                = "/v1/rum/transactions"
+	BackendErrorsURL                  = "/v1/errors"
+	ClientSideErrorsURL               = "/v1/client-side/errors"
+	RumErrorsURL                      = "/v1/rum/errors"
+	MetricsURL                        = "/v1/metrics"
+	HealthCheckURL                    = "/healthcheck"
 )
 
 type routeType struct {
