@@ -19,7 +19,7 @@ package schema
 
 const ModelSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/metric.json",
+    "$id": "docs/spec/metrics/metricset.json",
     "type": "object",
     "description": "Metric data captured by an APM agent",
     "properties": {
