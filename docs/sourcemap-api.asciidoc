@@ -10,7 +10,7 @@ Send a `HTTP POST` request with the `Content-Type` header set to `multipart/form
 
 [source,bash]
 ------------------------------------------------------------
-http(s)://{hostname}:{port}/assets/v2/sourcemaps
+http(s)://{hostname}:{port}/assets/v1/sourcemaps
 ------------------------------------------------------------
 
 [[sourcemap-request-fields]]
