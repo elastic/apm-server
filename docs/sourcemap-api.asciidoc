@@ -31,11 +31,12 @@ You can configure a <<secret-token, secret token>> to upload sourcemaps.
 [float]
 ==== Example
 
-Example source map request
+Example source map request including an optional <<secret-token, secret token>> "mysecret":
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
 curl -X POST http://127.0.0.1:8200/v1/rum/sourcemaps \
+  -H "Authorization: Bearer mysecret" \
   -F service_name="test-service" \
   -F service_version="1.0" \
   -F bundle_filepath="http://localhost/static/js/bundle.js" \
