@@ -68,7 +68,7 @@ var models = []struct {
 		span.V2DecodeEvent,
 	},
 	{
-		"metric",
+		"metricset",
 		metric.ModelSchema(),
 		metric.DecodeMetric,
 	},

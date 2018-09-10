@@ -42,7 +42,7 @@ func main() {
 		{"errors/v2_error.json", "model/error/generated/schema/error.go", "ModelSchema"},
 		{"transactions/v2_transaction.json", "model/transaction/generated/schema/transaction.go", "ModelSchema"},
 		{"spans/v2_span.json", "model/span/generated/schema/transaction.go", "ModelSchema"},
-		{"metrics/metric.json", "model/metric/generated/schema/metric.go", "ModelSchema"},
+		{"metrics/metricset.json", "model/metric/generated/schema/metricset.go", "ModelSchema"},
 	}
 	for _, schemaInfo := range schemaPaths {
 		file := filepath.Join(filepath.Dir(basePath), schemaInfo.path)
