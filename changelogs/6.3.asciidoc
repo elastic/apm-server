@@ -1,0 +1,56 @@
+[[release-notes-6.3]]
+== APM Server version 6.3
+
+https://github.com/elastic/apm-server/compare/6.2\...6.3[View commits]
+
+* <<release-notes-6.3.2>>
+* <<release-notes-6.3.1>>
+* <<release-notes-6.3.0>>
+
+
+[[release-notes-6.3.2]]
+=== APM Server version 6.3.2
+
+https://github.com/elastic/apm-server/compare/v6.3.1\...v6.3.2[View commits]
+
+No significant changes.
+
+
+[[release-notes-6.3.1]]
+=== APM Server version 6.3.1
+
+https://github.com/elastic/apm-server/compare/v6.3.0\...v6.3.1[View commits]
+
+No significant changes.
+
+
+[[release-notes-6.3.0]]
+=== APM Server version 6.3.0
+
+https://github.com/elastic/apm-server/compare/v6.2.4\...v6.3.0[View commits]
+
+[float]
+==== Bug fixes
+
+- Accept charset in request's content type {pull}677[677].
+- Use type integer instead of number in JSON schemas where applicable {pull}641[641].
+- Set array item types to string in JSON schemas {pull}651[651].
+- Fix issue preventing server from being stopped {pull}704[704].
+- Limit the amount of concurrent requests being processed {pull}731[731].
+- Return proper response code for request entity too large {pull}862[862].
+- Make APM Server docker image listen on all interfaces by default https://github.com/elastic/apm-server-docker/pull/16[apm-server-dockers#16]
+
+[float]
+==== Added
+
+- Enriched data with IP and UserAgent {pull}393[393], {pull}701[701], {pull}730[730], {pull}923[923].
+- Push errors and transactions to different ES indices {pull}706[706].
+- Allow custom `error.log.level` {pull}712[712].
+- Change `concurrent_request` default from 40 to 5 {pull}731[731].
+- Change `max_unzipped_size` default from 50mb to 30mb {pull}731[731].
+- Change `read_timeout` and `write_timeout` defaults from 2s to 30s {pull}748[748], {pull}752[752].
+- Limit number of new connections to accept simultaneously {pull}751[751].
+- Push spans to separate ES index {pull}774[774].
+- Update Go to 1.9.4 {pull}786[786].
+- Listen on unix domain socket with `host=unix:/path` {pull}768[768].
+- Make timestamp optional in the intake api {pull}819[819].
