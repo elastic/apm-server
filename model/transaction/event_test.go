@@ -39,13 +39,6 @@ func TestTransactionEventDecode(t *testing.T) {
 	duration := 1.67
 	context := map[string]interface{}{"a": "b"}
 	marks := map[string]interface{}{"k": "b"}
-	dropped, totalSpans := 12, 148
-	spanCount := map[string]interface{}{
-		"dropped": map[string]interface{}{
-			"total": 12.0,
-		},
-		"total": 148.0,
-	}
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	sampled := true
@@ -67,15 +60,12 @@ func TestTransactionEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "result": result,
 				"duration": duration, "timestamp": timestamp,
-				"context": context, "marks": marks, "sampled": sampled,
-				"span_count": spanCount,
-			},
+				"context": context, "marks": marks, "sampled": sampled},
 			err: nil,
 			e: &Event{
 				Id: id, Type: trType, Name: &name, Result: &result,
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
-				SpanCount: SpanCount{Total: &totalSpans, Dropped: Dropped{Total: &dropped}},
 			},
 		},
 	} {
@@ -98,7 +88,9 @@ func TestVersionedTransactionEventDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
+	dropped, startedSpans := 12, 148
 
+	// test V1
 	input := map[string]interface{}{
 		"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
 		"parent_id": parentId, "trace_id": traceId,
@@ -107,23 +99,35 @@ func TestVersionedTransactionEventDecode(t *testing.T) {
 				"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
 			},
 		},
+		"span_count": map[string]interface{}{"dropped": map[string]interface{}{"total": 12.0}},
 	}
-	// test V1
 	e := &Event{
 		Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
 		Spans: []*span.Event{
 			&span.Event{Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
 				TransactionId: &id, Timestamp: timestampParsed},
 		},
+		SpanCount: SpanCount{Dropped: &dropped},
 	}
 	transformable, err := V1DecodeEvent(input, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, e, transformable.(*Event))
 
 	// test V2
+	input = map[string]interface{}{
+		"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+		"parent_id": parentId, "trace_id": traceId,
+		"spans": []interface{}{
+			map[string]interface{}{
+				"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+			},
+		},
+		"span_count": map[string]interface{}{"dropped": 12.0, "started": 148.0},
+	}
 	e = &Event{
 		Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
 		TraceId: &traceId, ParentId: &parentId,
+		SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 	}
 	transformable, err = V2DecodeEvent(input, nil)
 	assert.NoError(t, err)
@@ -135,7 +139,7 @@ func TestEventTransform(t *testing.T) {
 	id := "123"
 	result := "tx result"
 	sampled := false
-	dropped, total := 5, 14
+	dropped, startedSpans := 5, 14
 	name := "mytransaction"
 
 	tests := []struct {
@@ -172,23 +176,23 @@ func TestEventTransform(t *testing.T) {
 				Id:        id,
 				Type:      "tx",
 				Duration:  65.98,
-				SpanCount: SpanCount{Total: &total},
+				SpanCount: SpanCount{Started: &startedSpans},
 			},
 			Output: common.MapStr{
 				"id":         id,
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
-				"span_count": common.MapStr{"total": 14},
+				"span_count": common.MapStr{"started": 14},
 				"sampled":    true,
 			},
-			Msg: "SpanCount only contains `total`",
+			Msg: "SpanCount only contains `started`",
 		},
 		{
 			Event: Event{
 				Id:        id,
 				Type:      "tx",
 				Duration:  65.98,
-				SpanCount: SpanCount{Dropped: Dropped{Total: &dropped}},
+				SpanCount: SpanCount{Dropped: &dropped},
 			},
 			Output: common.MapStr{
 				"id":         id,
@@ -210,7 +214,7 @@ func TestEventTransform(t *testing.T) {
 				Context:   common.MapStr{"foo": "bar"},
 				Spans:     []*span.Event{},
 				Sampled:   &sampled,
-				SpanCount: SpanCount{Total: &total, Dropped: Dropped{Total: &dropped}},
+				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
 			Output: common.MapStr{
 				"id":         id,
@@ -218,7 +222,7 @@ func TestEventTransform(t *testing.T) {
 				"type":       "tx",
 				"result":     "tx result",
 				"duration":   common.MapStr{"us": 65980},
-				"span_count": common.MapStr{"total": 14, "dropped": common.MapStr{"total": 5}},
+				"span_count": common.MapStr{"started": 14, "dropped": common.MapStr{"total": 5}},
 				"sampled":    false,
 			},
 			Msg: "Full Event",

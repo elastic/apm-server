@@ -57,7 +57,7 @@
                 "name": "tx1",
                 "sampled": true,
                 "span_count": {
-                    "total": 14
+                    "started": 14
                 },
                 "trace_id": "abcdefabcdef01234567890123456789",
                 "type": "request"

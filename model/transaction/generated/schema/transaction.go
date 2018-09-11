@@ -278,22 +278,18 @@ const ModelSchema = `{
                 "span_count": {
                     "type": "object",
                     "properties": {
-                        "total": {
+                        "started": {
                             "type": "integer",
-                            "description": "Number of spans recorded for the transaction."
+                            "description": "Number of correlated spans that are recorded."
 
                         },
                         "dropped": {
-                            "type": ["object", "null"],
-                            "properties": {
-                                "total": {
-                                    "type": ["integer","null"],
-                                    "description": "Number of spans that have been dropped by the agent recording the transaction."
-                                }
-                            }
+                            "type": ["integer","null"],
+                            "description": "Number of spans that have been dropped by the agent recording the transaction."
+
                         }
                     },
-                    "required": ["total"]
+                    "required": ["started"]
                 }
             },
             "required": ["id", "trace_id","span_count"]

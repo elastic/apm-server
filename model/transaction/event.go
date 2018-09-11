@@ -76,11 +76,8 @@ type Event struct {
 	Spans []*span.Event
 }
 type SpanCount struct {
-	Dropped Dropped
-	Total   *int
-}
-type Dropped struct {
-	Total *int
+	Dropped *int
+	Started *int
 }
 
 func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -89,6 +86,8 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "total", "span_count", "dropped")}
+
 	var transformable transform.Transformable
 	spans := decoder.InterfaceArr(raw, "spans")
 	if len(spans) > 0 {
@@ -110,7 +109,7 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 
 		e.Spans[idx] = sp
 	}
-	return e, decoder.Err
+	return e, err
 }
 
 func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -119,6 +118,8 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
+		Started: decoder.IntPtr(raw, "started", "span_count")}
 	e.ParentId = decoder.StringPtr(raw, "parent_id")
 	e.TraceId = decoder.StringPtr(raw, "trace_id")
 	return e, decoder.Err
@@ -146,9 +147,6 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 		Context:   decoder.MapStr(raw, "context"),
 		Marks:     decoder.MapStr(raw, "marks"),
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
-		SpanCount: SpanCount{
-			Dropped: Dropped{Total: decoder.IntPtr(raw, "total", "span_count", "dropped")},
-			Total:   decoder.IntPtr(raw, "total", "span_count")},
 	}
 	return &e, raw, decoder.Err
 }
@@ -171,14 +169,14 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 		utility.Add(tx, "sampled", t.Sampled)
 	}
 
-	if t.SpanCount.Dropped.Total != nil || t.SpanCount.Total != nil {
+	if t.SpanCount.Dropped != nil || t.SpanCount.Started != nil {
 		spanCount := common.MapStr{}
 
-		if t.SpanCount.Dropped.Total != nil {
-			utility.Add(spanCount, "dropped", common.MapStr{"total": *t.SpanCount.Dropped.Total})
+		if t.SpanCount.Dropped != nil {
+			utility.Add(spanCount, "dropped", common.MapStr{"total": *t.SpanCount.Dropped})
 		}
-		if t.SpanCount.Total != nil {
-			utility.Add(spanCount, "total", *t.SpanCount.Total)
+		if t.SpanCount.Started != nil {
+			utility.Add(spanCount, "started", *t.SpanCount.Started)
 		}
 		utility.Add(tx, "span_count", spanCount)
 	}

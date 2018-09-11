@@ -96,7 +96,7 @@
                 "result": "200",
                 "sampled": true,
                 "span_count": {
-                    "total": 0
+                    "started": 0
                 },
                 "trace_id": "01234567890123456789abcdefabcdef",
                 "type": "request"
