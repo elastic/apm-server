@@ -1,0 +1,68 @@
+    {
+      "name": "ingest-apm",
+      "description": "Indexes the whole document corpus using Elasticsearch default settings. Document corpus consists of `error, transaction, span` events, which are indexed in parallel. Documents don't have ids set, so all index operations are append only.",
+      "default": true,
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": "create-index"
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": "check-cluster-health"
+        },
+        {
+          "parallel": {
+            "warmup-time-period": 120,
+            "tasks": [
+              {
+                "operation": "index-append-error",
+                "clients": {{bulk_indexing_clients | default(1)}}
+              },
+              {
+                "operation": "index-append-transaction",
+                "clients": {{bulk_indexing_clients | default(3)}}
+              },
+              {
+                "operation": "index-append-span",
+                "clients": {{bulk_indexing_clients | default(6)}}
+              }
+            ],
+            "completed-by": "index-append-error"
+          }
+        },    
+        {
+          "operation": "force-merge",
+          "clients": 1
+        }
+      ]
+    },
+    {
+      "name": "ingest-event-type",
+      "description": "Indexes the the error documents from the default corpus using Elasticsearch default settings. Documents don't have ids set, so all index operations are append only.",
+      "default": false,
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": "create-index"
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": "check-cluster-health"
+        },
+        {
+          "name": "index-apm-{{event_type}}",
+          "operation": "index-append-{{event_type}}",
+          "warmup-time-period": 120,
+          "clients": {{bulk_indexing_clients | default(8)}}
+        },
+        {
+          "operation": "force-merge",
+          "clients": 1
+        } 
+      ]
+    }

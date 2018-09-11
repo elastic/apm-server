@@ -1,0 +1,36 @@
+    {
+      "name": "index-append",
+      "operation-type": "bulk",
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "index-append-error",
+      "operation-type": "bulk",
+      "indices": ["apm-error"],
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "index-append-transaction",
+      "operation-type": "bulk",
+      "indices": ["apm-transaction"],
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "index-append-span",
+      "operation-type": "bulk",
+      "indices": ["apm-span"],
+      "bulk-size": {{bulk_size | default(1000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "check-cluster-health",
+      "operation-type": "cluster-health",
+      "index": "apm-*",
+      "request-params": {
+        "wait_for_status": "{{cluster_health | default('yellow')}}",
+        "wait_for_no_relocating_shards": "true"
+      }
+    }
