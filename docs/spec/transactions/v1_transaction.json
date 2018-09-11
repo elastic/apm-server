@@ -33,6 +33,20 @@
                                     "$ref": "./../spans/v1_span.json"
                                 },
                                 "minItems": 0
+                            },
+                            "span_count": {
+                                "type": ["object", "null"],
+                                "properties": {
+                                    "dropped": {
+                                        "type": ["object", "null"],
+                                        "properties": {
+                                            "total": {
+                                                "type": ["integer","null"],
+                                                "description": "number of spans that have been dropped by the agent recording the transaction."
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         },
                         "required": ["id"]
