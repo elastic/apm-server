@@ -398,20 +398,6 @@ const PayloadSchema = `{
         "sampled": {
             "type": ["boolean", "null"],
             "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
-        },
-        "span_count": {
-            "type": ["object", "null"],
-            "properties": {
-                "dropped": {
-                    "type": ["object", "null"],
-                    "properties": {
-                        "total": {
-                            "type": ["integer","null"],
-                            "description": "Number of spans that have been dropped by the agent recording the transaction."
-                        }
-                    }
-                }
-            }
         }
     },
     "required": ["duration", "type"]  }, 
@@ -595,6 +581,20 @@ const PayloadSchema = `{
     ]
                                 },
                                 "minItems": 0
+                            },
+                            "span_count": {
+                                "type": ["object", "null"],
+                                "properties": {
+                                    "dropped": {
+                                        "type": ["object", "null"],
+                                        "properties": {
+                                            "total": {
+                                                "type": ["integer","null"],
+                                                "description": "number of spans that have been dropped by the agent recording the transaction."
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         },
                         "required": ["id"]
