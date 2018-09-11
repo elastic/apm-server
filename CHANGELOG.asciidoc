@@ -7,11 +7,6 @@
 :issue: https://github.com/elastic/apm-server/issues/
 :pull: https://github.com/elastic/apm-server/pull/
 
-include::./changelogs/head.asciidoc[]
-include::./changelogs/6.4.asciidoc[]
-include::./changelogs/6.3.asciidoc[]
-include::./changelogs/6.2.asciidoc[]
-include::./changelogs/6.1.asciidoc[]
 https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
 
 [float]

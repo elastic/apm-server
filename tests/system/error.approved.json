@@ -54,9 +54,9 @@
             },
             "error": {
                 "exception": {
-                    "message": "foo.bar is not a function"
+                    "type": "connection error"
                 },
-                "grouping_key": "5be374e988ceb5382d62c7ab53764663",
+                "grouping_key": "18f82051862e494727fa20e0adc15711",
                 "id": "7f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             }
         },
