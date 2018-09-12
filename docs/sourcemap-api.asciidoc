@@ -13,6 +13,8 @@ Send a `HTTP POST` request with the `Content-Type` header set to `multipart/form
 http(s)://{hostname}:{port}/assets/v1/sourcemaps
 ------------------------------------------------------------
 
+NOTE: The URL for uploading sourcemaps was previously `/v1/sourcemaps`. It still works, but is being deprecated in favor of `/assets/v1/sourcemaps`.
+
 [[sourcemap-request-fields]]
 [float]
 ==== Request Fields
