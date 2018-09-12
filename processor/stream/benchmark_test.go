@@ -45,7 +45,7 @@ func BenchmarkStreamProcessor(b *testing.B) {
 		b.Error(err)
 	}
 	ctx := context.Background()
-	sp := StreamProcessor{}
+	sp := &StreamProcessor{}
 	for _, f := range files {
 		b.Run(f.Name(), func(b *testing.B) {
 			data, err := loader.LoadDataAsBytes(filepath.Join(dir, f.Name()))
@@ -61,7 +61,7 @@ func BenchmarkStreamProcessor(b *testing.B) {
 				r.Reset(data)
 				reader := decoder.NewNDJSONStreamReader(r)
 				b.StartTimer()
-				(&sp).HandleStream(ctx, map[string]interface{}{}, reader, report)
+				sp.HandleStream(ctx, map[string]interface{}{}, reader, report)
 			}
 		})
 	}
