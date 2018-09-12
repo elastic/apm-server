@@ -10,8 +10,10 @@ Send a `HTTP POST` request with the `Content-Type` header set to `multipart/form
 
 [source,bash]
 ------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/rum/sourcemaps
+http(s)://{hostname}:{port}/assets/v1/sourcemaps
 ------------------------------------------------------------
+
+NOTE: The URL for uploading sourcemaps was previously `/v1/sourcemaps`. It still works, but is being deprecated in favor of `/assets/v1/sourcemaps`.
 
 [[sourcemap-request-fields]]
 [float]
@@ -35,7 +37,7 @@ Example source map request including an optional <<secret-token, secret token>> 
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
-curl -X POST http://127.0.0.1:8200/v1/rum/sourcemaps \
+curl -X POST http://127.0.0.1:8200/assets/v1/sourcemaps \
   -H "Authorization: Bearer mysecret" \
   -F service_name="test-service" \
   -F service_version="1.0" \
