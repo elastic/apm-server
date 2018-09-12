@@ -1,0 +1,9 @@
+{
+    "accepted": 0,
+    "errors": [
+        {
+            "document": "{\"metadata\": {\"user\"",
+            "message": "event exceeded the permitted size."
+        }
+    ]
+}

@@ -62,7 +62,7 @@ func TestV2HandlerReadStreamError(t *testing.T) {
 	bodyReader := bytes.NewBuffer(b)
 	timeoutReader := iotest.TimeoutReader(bodyReader)
 
-	reader := decoder.NewNDJSONStreamReader(timeoutReader)
+	reader := decoder.NewNDJSONStreamReader(timeoutReader, 100*1024)
 	sp := StreamProcessor{}
 
 	actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, report)
@@ -91,7 +91,7 @@ func TestV2HandlerReportingStreamError(t *testing.T) {
 		require.NoError(t, err)
 		bodyReader := bytes.NewBuffer(b)
 
-		reader := decoder.NewNDJSONStreamReader(bodyReader)
+		reader := decoder.NewNDJSONStreamReader(bodyReader, 1024)
 
 		sp := StreamProcessor{}
 		actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, test.report)
@@ -142,7 +142,7 @@ func TestIntegration(t *testing.T) {
 			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
 			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
 
-			reader := decoder.NewNDJSONStreamReader(bodyReader)
+			reader := decoder.NewNDJSONStreamReader(bodyReader, 100*1024)
 
 			reqDecoderMeta := map[string]interface{}{
 				"system": map[string]interface{}{

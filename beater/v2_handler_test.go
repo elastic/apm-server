@@ -89,7 +89,6 @@ func TestRequestDecoderError(t *testing.T) {
 }
 
 func TestRequestIntegration(t *testing.T) {
-
 	for _, test := range []struct {
 		name         string
 		code         int
@@ -136,4 +135,49 @@ func TestRequestIntegration(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestV2LineExceeded(t *testing.T) {
+	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+	require.NoError(t, err)
+
+	lineLimitExceededInTestData := func(lineLimit int) bool {
+		var limitExceeded bool
+		for _, l := range bytes.Split(b, []byte("\n")) {
+			if len(l) > lineLimit {
+				limitExceeded = true
+				break
+			}
+		}
+		return limitExceeded
+	}
+
+	req := httptest.NewRequest("POST", "/v2/intake", bytes.NewBuffer(b))
+	req.Header.Add("Content-Type", "application/x-ndjson")
+
+	w := httptest.NewRecorder()
+
+	report := func(ctx context.Context, p publish.PendingReq) error {
+		return nil
+	}
+
+	c := defaultConfig("7.0.0")
+	assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
+	handler := (&v2BackendRoute).Handler(c, report)
+	handler.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusAccepted, w.Code, w.Body.String())
+	assert.Equal(t, 0, w.Body.Len())
+
+	c.MaxEventSize = 20
+	assert.True(t, lineLimitExceededInTestData(c.MaxEventSize))
+	handler = (&v2BackendRoute).Handler(c, report)
+
+	req = httptest.NewRequest("POST", "/v2/intake", bytes.NewBuffer(b))
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	w = httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	tests.AssertApproveResult(t, "approved-stream-result/TestV2LineExceeded", w.Body.Bytes())
 }

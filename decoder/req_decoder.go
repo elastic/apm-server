@@ -70,62 +70,58 @@ func DecodeLimitJSONData(maxSize int64) ReqDecoder {
 			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
 		}
 
-		reader, err := CompressedRequestReader(maxSize)(req)
+		reader, err := CompressedRequestReader(req)
 		if err != nil {
 			return nil, err
 		}
-
 		reader = http.MaxBytesReader(nil, reader, maxSize)
-
 		return DecodeJSONData(monitoringReader{reader})
 	}
 }
 
-// CompressedRequestReader returns a `ReqReader` that will decompress
+// CompressedRequestReader returns a reader that will decompress
 // the body according to the supplied Content-Encoding header in the request
-func CompressedRequestReader(maxSize int64) ReqReader {
-	return func(req *http.Request) (io.ReadCloser, error) {
-		reader := req.Body
-		if reader == nil {
-			return nil, errors.New("no content")
-		}
-
-		cLen := req.ContentLength
-		knownCLen := cLen > -1
-		if !knownCLen {
-			missingContentLengthCounter.Inc()
-		}
-		switch req.Header.Get("Content-Encoding") {
-		case "deflate":
-			if knownCLen {
-				deflateLengthAccumulator.Add(cLen)
-				deflateCounter.Inc()
-			}
-			var err error
-			reader, err = zlib.NewReader(reader)
-			if err != nil {
-				return nil, err
-			}
-
-		case "gzip":
-			if knownCLen {
-				gzipLengthAccumulator.Add(cLen)
-				gzipCounter.Inc()
-			}
-			var err error
-			reader, err = gzip.NewReader(reader)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			if knownCLen {
-				uncompressedLengthAccumulator.Add(cLen)
-				uncompressedCounter.Inc()
-			}
-		}
-		readerCounter.Inc()
-		return reader, nil
+func CompressedRequestReader(req *http.Request) (io.ReadCloser, error) {
+	reader := req.Body
+	if reader == nil {
+		return nil, errors.New("no content")
 	}
+
+	cLen := req.ContentLength
+	knownCLen := cLen > -1
+	if !knownCLen {
+		missingContentLengthCounter.Inc()
+	}
+	switch req.Header.Get("Content-Encoding") {
+	case "deflate":
+		if knownCLen {
+			deflateLengthAccumulator.Add(cLen)
+			deflateCounter.Inc()
+		}
+		var err error
+		reader, err = zlib.NewReader(reader)
+		if err != nil {
+			return nil, err
+		}
+
+	case "gzip":
+		if knownCLen {
+			gzipLengthAccumulator.Add(cLen)
+			gzipCounter.Inc()
+		}
+		var err error
+		reader, err = gzip.NewReader(reader)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		if knownCLen {
+			uncompressedLengthAccumulator.Add(cLen)
+			uncompressedCounter.Inc()
+		}
+	}
+	readerCounter.Inc()
+	return reader, nil
 }
 
 func DecodeJSONData(reader io.ReadCloser) (map[string]interface{}, error) {

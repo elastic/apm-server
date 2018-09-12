@@ -18,18 +18,18 @@
 package decoder
 
 import (
-	"bufio"
 	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNDStreamReader(t *testing.T) {
 	lines := []string{
 		`{"key": "value1"}`,
-		`{"key": "value2"}`,
+		`{"key": "value2", "too": "long"}`,
 		`{invalid-json}`,
 		`{"key": "value3"}`,
 	}
@@ -37,25 +37,31 @@ func TestNDStreamReader(t *testing.T) {
 		errPattern string
 		out        map[string]interface{}
 		isEOF      bool
+		latestLine string
 	}{
 		{
-			out: map[string]interface{}{"key": "value1"},
+			out:        map[string]interface{}{"key": "value1"},
+			latestLine: `{"key": "value1"}`,
 		},
 		{
-			out: map[string]interface{}{"key": "value2"},
+			out:        nil,
+			errPattern: "Line exceeded permitted length",
+			latestLine: `{"key": "value2", "t`,
 		},
 		{
 			out:        nil,
 			errPattern: "invalid character",
+			latestLine: `{invalid-json}`,
 		},
 		{
 			out:        map[string]interface{}{"key": "value3"},
+			latestLine: `{"key": "value3"}`,
 			errPattern: "EOF",
 			isEOF:      true,
 		},
 	}
 	buf := bytes.NewBufferString(strings.Join(lines, "\n"))
-	n := NDJSONStreamReader{stream: bufio.NewReader(buf)}
+	n := NewNDJSONStreamReader(buf, 20)
 
 	for idx, test := range expected {
 		out, err := n.Read()
@@ -63,8 +69,14 @@ func TestNDStreamReader(t *testing.T) {
 		if test.errPattern == "" {
 			assert.Nil(t, err)
 		} else {
+			require.NotNil(t, err, "Failed at idx %v", idx)
 			assert.Contains(t, err.Error(), test.errPattern, "Failed at idx %v", idx)
 		}
 		assert.Equal(t, test.isEOF, n.IsEOF())
+		if test.latestLine == "" {
+			assert.Nil(t, n.LatestLine(), "Failed at idx %v", idx)
+		} else {
+			assert.Equal(t, []byte(test.latestLine), n.LatestLine(), "Failed at idx %v", idx)
+		}
 	}
 }

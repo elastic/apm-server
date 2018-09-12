@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "document": "{\"tennis-court\": {\"name\": \"Centre Court, Wimbledon\"}}\n",
+            "document": "{\"tennis-court\": {\"name\": \"Centre Court, Wimbledon\"}}",
             "message": "did not recognize object type"
         }
     ]

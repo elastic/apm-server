@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "document": "{\"not\": \"metadata\"}\n",
+            "document": "{\"not\": \"metadata\"}",
             "message": "did not recognize object type"
         }
     ]
