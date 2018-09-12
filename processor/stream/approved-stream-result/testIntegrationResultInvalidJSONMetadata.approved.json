@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "document": "{\"metadata\": {\"invalid-json\"}}\n",
+            "document": "{\"metadata\": {\"invalid-json\"}}",
             "message": "data read error: invalid character '}' after object key"
         }
     ]

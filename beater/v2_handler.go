@@ -42,7 +42,7 @@ type v2Handler struct {
 
 func (v *v2Handler) statusCode(sr *stream.Result) int {
 	var code int
-	higestCode := http.StatusAccepted
+	highestCode := http.StatusAccepted
 	for _, err := range sr.Errors {
 		switch err.Type {
 		case stream.InvalidInputErrType:
@@ -56,11 +56,11 @@ func (v *v2Handler) statusCode(sr *stream.Result) int {
 		default:
 			code = http.StatusInternalServerError
 		}
-		if code > higestCode {
-			higestCode = code
+		if code > highestCode {
+			highestCode = code
 		}
 	}
-	return higestCode
+	return highestCode
 }
 
 func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr *stream.Result) {
@@ -88,7 +88,7 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := requestLogger(r)
-		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxUnzippedSize)
+		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxEventSize)
 		if err != nil {
 			// if we can't set up the ndjsonreader,
 			// we won't be able to make sense of the body
