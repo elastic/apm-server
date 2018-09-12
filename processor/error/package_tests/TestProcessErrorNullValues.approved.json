@@ -112,10 +112,10 @@
                 }
             },
             "error": {
-                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
-                "log": {
-                    "message": "Cannot read property 'baz' of undefined"
-                }
+                "exception": {
+                    "type": "Read error"
+                },
+                "grouping_key": "a09e05b29fda7fec0b5dca5df084f336"
             },
             "processor": {
                 "event": "error",
