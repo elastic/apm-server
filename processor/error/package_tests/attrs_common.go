@@ -68,7 +68,6 @@ func payloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 func requiredKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"errors",
-		"errors.exception.message",
 		"errors.log.message",
 		"errors.exception.stacktrace.filename",
 		"errors.exception.stacktrace.lineno",
@@ -81,8 +80,10 @@ func requiredKeys(s *tests.Set) *tests.Set {
 
 func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 	base := map[string]tests.Condition{
-		"errors.exception": tests.Condition{Absence: []string{"errors.log"}},
-		"errors.log":       tests.Condition{Absence: []string{"errors.exception"}},
+		"errors.exception":         tests.Condition{Absence: []string{"errors.log"}},
+		"errors.exception.message": tests.Condition{Absence: []string{"errors.exception.type"}},
+		"errors.exception.type":    tests.Condition{Absence: []string{"errors.exception.message"}},
+		"errors.log":               tests.Condition{Absence: []string{"errors.exception"}},
 	}
 	for k, v := range c {
 		base[k] = v
