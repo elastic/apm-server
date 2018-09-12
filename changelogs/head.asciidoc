@@ -9,3 +9,4 @@ https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
 - Provide basic server information at `/` {pull}1197[1197]
 - Add pipeline registration and pipeline usage {pull}1258[1258],{pull}1296[1296]
 - Allow sending `tags` for `spans`, that get indexed in ES {pull}1156[1156].
+- Add apm-server monitoring {pull}1382[1382].

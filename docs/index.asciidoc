@@ -5,6 +5,9 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :beatname_lc: apm-server
 :beatname_uc: APM Server
 :beatname_pkg: {beatname_lc}
+:beat_monitoring_user: apm_system
+:beat_monitoring_user_version: 6.5.0
+:beat_monitoring_version: 6.5
 :beat_default_index_prefix: apm
 :dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
 :dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
@@ -40,6 +43,8 @@ include::./configuring.asciidoc[]
 
 :beat-specific-security: ../security.asciidoc
 include::./copied-from-beats/shared-securing-beat.asciidoc[]
+
+include::./copied-from-beats/monitoring/monitoring-beats.asciidoc[]
 
 include::./event-types.asciidoc[]
 
