@@ -432,7 +432,8 @@ const PayloadSchema = `{
                 }
             },
             "anyOf": [
-                {"required": ["message"]},{"required": ["type"]}
+                {"required": ["message"], "properties": {"message": {"type": "string"}}},
+                {"required": ["type"], "properties": {"type": {"type": "string"}}}
             ]
         },
         "log": {
@@ -537,12 +538,8 @@ const PayloadSchema = `{
         }
     },
     "anyOf": [
-        {
-            "required": ["exception"]
-        },
-        {
-            "required": ["log"]
-        }
+        { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
+        { "required": ["log"], "properties": {"log": { "type": "object" }} }
     ]  }, 
                     {  
                         "properties": {

@@ -68,7 +68,11 @@ func payloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 func requiredKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"errors",
+		"errors.log",
+		"errors.exception",
 		"errors.log.message",
+		"errors.exception.message",
+		"errors.exception.type",
 		"errors.exception.stacktrace.filename",
 		"errors.exception.stacktrace.lineno",
 		"errors.log.stacktrace.filename",
