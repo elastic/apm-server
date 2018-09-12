@@ -190,7 +190,6 @@ func TestErrorEventDecode(t *testing.T) {
 			transformable, err := decodeFct(test.input, test.inpErr)
 
 			if test.e != nil {
-				fmt.Println(idx)
 				event := transformable.(*Event)
 				assert.Equal(t, test.e, event, idx)
 			} else {
