@@ -47,7 +47,8 @@
         {
             "timestamp": "2017-05-09T15:04:05.1Z",
             "exception": {
-                "message": "foo is not defined"
+                "message": "foo is not defined",
+                "type": null
             },
             "log": null,
             "context": {
@@ -128,8 +129,9 @@
         },
         {
             "timestamp": "2017-05-09T15:04:05.999Z",
-            "log": {
-                "message": "Cannot read property 'baz' of undefined"
+            "exception": {
+                "message": null,
+                "type": "Read error"
             },
             "context": {
                 "request": null,
