@@ -46,6 +46,34 @@ type StreamReader interface {
 	LatestLine() []byte
 }
 
+// srErrorWrapper wraps stream decoders and converts errors to
+// something we know how to deal with
+type srErrorWrapper struct {
+	StreamReader
+}
+
+func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
+	v, err := s.StreamReader.Read()
+	if err != nil {
+		if _, ok := err.(decoder.JSONDecodeError); ok {
+			return nil, &Error{
+				Type:     InvalidInputErrType,
+				Message:  err.Error(),
+				Document: string(s.StreamReader.LatestLine()),
+			}
+		}
+
+		if err == decoder.ErrLineTooLong {
+			return nil, &Error{
+				Type:     InvalidInputErrType,
+				Message:  "event exceeded the permitted size.",
+				Document: string(s.StreamReader.LatestLine()),
+			}
+		}
+	}
+	return v, err
+}
+
 type StreamProcessor struct {
 	Tconfig transform.Config
 }
@@ -83,10 +111,10 @@ func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader St
 	// first item is the metadata object
 	rawModel, err := reader.Read()
 	if err != nil {
-		if e, ok := err.(decoder.JSONDecodeError); ok || err == io.EOF {
+		if err == io.EOF {
 			return nil, &Error{
 				Type:     InvalidInputErrType,
-				Message:  e.Error(),
+				Message:  "EOF while reading metadata",
 				Document: string(reader.LatestLine()),
 			}
 		}
@@ -146,7 +174,7 @@ func (v *StreamProcessor) handleRawModel(rawModel map[string]interface{}) (trans
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+func (s *StreamProcessor) readBatch(batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
 	var err error
 	var rawModel map[string]interface{}
 
@@ -155,22 +183,17 @@ func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
 
-			if e, ok := err.(decoder.JSONDecodeError); ok {
-				response.LimitedAdd(&Error{
-					Type:     InvalidInputErrType,
-					Message:  e.Error(),
-					Document: string(reader.LatestLine()),
-				})
+			if e, ok := err.(*Error); ok && e.Type == InvalidInputErrType {
+				response.LimitedAdd(e)
 				continue
 			}
-
-			// return early, we assume we can only recover from a JSON decode error
+			// return early, we assume we can only recover from a input error types
 			response.Add(err)
 			return eventables, true
 		}
 
 		if rawModel != nil {
-			tr, err := v.handleRawModel(rawModel)
+			tr, err := s.handleRawModel(rawModel)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
@@ -188,6 +211,10 @@ func (v *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 
 func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]interface{}, jsonReader StreamReader, report publish.Reporter) *Result {
 	res := &Result{}
+
+	// our own wrapper converts jsonreader errors to errors that are useful to us
+	jsonReader = &srErrorWrapper{jsonReader}
+
 	metadata, err := s.readMetadata(meta, jsonReader)
 	// no point in continuing if we couldn't read the metadata
 	if err != nil {

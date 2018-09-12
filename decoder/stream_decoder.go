@@ -18,7 +18,6 @@
 package decoder
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -27,41 +26,41 @@ import (
 	"strings"
 )
 
-func NDJSONStreamDecodeCompressedWithLimit(req *http.Request, maxSize int64) (*NDJSONStreamReader, error) {
+func NDJSONStreamDecodeCompressedWithLimit(req *http.Request, lineLimit int) (*NDJSONStreamReader, error) {
 	contentType := req.Header.Get("Content-Type")
 	if !strings.Contains(contentType, "application/x-ndjson") {
 		return nil, fmt.Errorf("invalid content type: '%s'", req.Header.Get("Content-Type"))
 	}
 
-	reader, err := CompressedRequestReader(maxSize)(req)
+	reader, err := CompressedRequestReader(req)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewNDJSONStreamReader(reader), nil
+	return NewNDJSONStreamReader(reader, lineLimit), nil
 }
 
-func NewNDJSONStreamReader(reader io.Reader) *NDJSONStreamReader {
-	return &NDJSONStreamReader{bufio.NewReader(reader), false, nil}
+func NewNDJSONStreamReader(reader io.Reader, lineLimit int) *NDJSONStreamReader {
+	return &NDJSONStreamReader{reader: NewLineReader(reader, lineLimit)}
 }
 
 type NDJSONStreamReader struct {
-	stream     *bufio.Reader
+	reader     *LineReader
 	isEOF      bool
 	latestLine []byte
 }
 
 type JSONDecodeError string
-type ReadError string
 
 func (s JSONDecodeError) Error() string { return string(s) }
-func (s ReadError) Error() string       { return string(s) }
 
 func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	// readLine can return valid data in `buf` _and_ also an io.EOF
-	buf, readErr := sr.stream.ReadBytes('\n')
+	buf, readErr := sr.reader.ReadLine()
+	sr.latestLine = buf
+
 	if readErr != nil && readErr != io.EOF {
-		return nil, ReadError(readErr.Error())
+		return nil, readErr
 	}
 
 	sr.isEOF = readErr == io.EOF
@@ -69,9 +68,6 @@ func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
 	if len(buf) == 0 {
 		return nil, readErr
 	}
-
-	sr.latestLine = buf
-
 	tmpreader := ioutil.NopCloser(bytes.NewBuffer(buf))
 	decoded, err := DecodeJSONData(tmpreader)
 	if err != nil {
