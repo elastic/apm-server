@@ -81,7 +81,7 @@ type Transaction struct {
 }
 
 type Exception struct {
-	Message    string
+	Message    *string
 	Module     *string
 	Code       interface{}
 	Attributes interface{}
@@ -149,13 +149,14 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 	err = decoder.Err
 	ex := decoder.MapStr(raw, "exception")
 	exMsg := decoder.StringPtr(ex, "message")
-	if exMsg != nil {
+	exType := decoder.StringPtr(ex, "type")
+	if exMsg != nil || exType != nil {
 		e.Exception = &Exception{
-			Message:    *exMsg,
+			Message:    exMsg,
+			Type:       exType,
 			Code:       decoder.Interface(ex, "code"),
 			Module:     decoder.StringPtr(ex, "module"),
 			Attributes: decoder.Interface(ex, "attributes"),
-			Type:       decoder.StringPtr(ex, "type"),
 			Handled:    decoder.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
@@ -362,7 +363,7 @@ func (e *Event) calcGroupingKey() string {
 	}
 	if k.empty {
 		if e.Exception != nil {
-			k.add(&e.Exception.Message)
+			k.add(e.Exception.Message)
 		} else if e.Log != nil {
 			k.add(&e.Log.Message)
 		}

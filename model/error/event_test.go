@@ -41,7 +41,8 @@ import (
 )
 
 func baseException() *Exception {
-	return &Exception{Message: "exception message"}
+	msg := "exception message"
+	return &Exception{Message: &msg}
 }
 
 func (e *Exception) withCode(code interface{}) *Exception {
@@ -79,7 +80,7 @@ func TestErrorEventDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
-	paramMsg, level, logger := "log pm", "error", "mylogger"
+	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
 	for _, test := range []struct {
 		input       interface{}
 		err, inpErr error
@@ -163,7 +164,7 @@ func TestErrorEventDecode(t *testing.T) {
 			e: &Event{
 				Timestamp: timestampParsed,
 				Exception: &Exception{
-					Message:    "Exception Msg",
+					Message:    &exMsg,
 					Code:       code,
 					Type:       &exType,
 					Module:     &module,
@@ -185,17 +186,18 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		for _, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
+		for idx, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
 			transformable, err := decodeFct(test.input, test.inpErr)
 
 			if test.e != nil {
+				fmt.Println(idx)
 				event := transformable.(*Event)
-				assert.Equal(t, test.e, event)
+				assert.Equal(t, test.e, event, idx)
 			} else {
-				assert.Nil(t, transformable)
+				assert.Nil(t, transformable, idx)
 			}
 
-			assert.Equal(t, test.err, err)
+			assert.Equal(t, test.err, err, idx)
 		}
 	}
 }
@@ -244,7 +246,7 @@ func TestEventFields(t *testing.T) {
 	exception := Exception{
 		Type:       &errorType,
 		Code:       codeFloat,
-		Message:    exMsg,
+		Message:    &exMsg,
 		Module:     &module,
 		Handled:    &handled,
 		Attributes: attributes,
@@ -265,7 +267,7 @@ func TestEventFields(t *testing.T) {
 	context := common.MapStr{"user": common.MapStr{"id": "888"}, "c1": "val"}
 
 	baseExceptionHash := md5.New()
-	io.WriteString(baseExceptionHash, baseException().Message)
+	io.WriteString(baseExceptionHash, *baseException().Message)
 	// 706a38d554b47b8f82c6b542725c05dc
 	baseExceptionGroupingKey := hex.EncodeToString(baseExceptionHash.Sum(nil))
 
@@ -396,6 +398,7 @@ func TestEvents(t *testing.T) {
 	service := metadata.Service{
 		Name: "myservice",
 	}
+	exMsg := "exception message"
 
 	tests := []struct {
 		Tranformable transform.Transformable
@@ -424,7 +427,7 @@ func TestEvents(t *testing.T) {
 				Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
 				Log:       baseLog(),
 				Exception: &Exception{
-					Message:    "exception message",
+					Message:    &exMsg,
 					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
 				},
 				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
@@ -618,8 +621,9 @@ func TestFramesUsableForGroupingKey(t *testing.T) {
 		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
 		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: false},
 	}
-	e1 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st1}}
-	e2 := Event{Exception: &Exception{Message: "base exception", Stacktrace: st2}}
+	exMsg := "base exception"
+	e1 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st1}}
+	e2 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st2}}
 	key1 := e1.calcGroupingKey()
 	key2 := e2.calcGroupingKey()
 	assert.NotEqual(t, key1, key2)
@@ -795,8 +799,9 @@ func md5With(args ...string) []byte {
 
 func TestSourcemapping(t *testing.T) {
 	c1 := 18
+	exMsg := "exception message"
 	event := Event{Exception: &Exception{
-		Message: "exception message",
+		Message: &exMsg,
 		Stacktrace: m.Stacktrace{
 			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
 		},
@@ -810,7 +815,7 @@ func TestSourcemapping(t *testing.T) {
 	trNoSmap := event.fields(tctx)
 
 	event2 := Event{Exception: &Exception{
-		Message: "exception message",
+		Message: &exMsg,
 		Stacktrace: m.Stacktrace{
 			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
 		},
