@@ -23,6 +23,8 @@ import (
 	"github.com/elastic/apm-server/beater"
 	_ "github.com/elastic/apm-server/include"
 	"github.com/elastic/beats/libbeat/cmd"
+	"github.com/elastic/beats/libbeat/cmd/instance"
+	"github.com/elastic/beats/libbeat/monitoring/report"
 )
 
 // Name of the beat (apm-server).
@@ -36,5 +38,13 @@ var RootCmd *cmd.BeatsRootCmd
 
 func init() {
 	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
-	RootCmd = cmd.GenRootCmdWithIndexPrefixWithRunFlags(Name, IdxPattern, "", beater.New, runFlags)
+	RootCmd = cmd.GenRootCmdWithSettings(beater.New, instance.Settings{
+		Name:        Name,
+		IndexPrefix: IdxPattern,
+		Version:     "",
+		RunFlags:    runFlags,
+		Monitoring: report.Settings{
+			DefaultUsername: "apm_system",
+		},
+	})
 }
