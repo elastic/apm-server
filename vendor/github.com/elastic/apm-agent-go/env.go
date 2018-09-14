@@ -12,10 +12,13 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/elastic/apm-agent-go/internal/apmconfig"
 )
 
 const (
 	envFlushInterval         = "ELASTIC_APM_FLUSH_INTERVAL"
+	envMetricsInterval       = "ELASTIC_APM_METRICS_INTERVAL"
 	envMaxQueueSize          = "ELASTIC_APM_MAX_QUEUE_SIZE"
 	envMaxSpans              = "ELASTIC_APM_TRANSACTION_MAX_SPANS"
 	envTransactionSampleRate = "ELASTIC_APM_TRANSACTION_SAMPLE_RATE"
@@ -26,8 +29,10 @@ const (
 	envEnvironment           = "ELASTIC_APM_ENVIRONMENT"
 	envSpanFramesMinDuration = "ELASTIC_APM_SPAN_FRAMES_MIN_DURATION"
 	envActive                = "ELASTIC_APM_ACTIVE"
+	envDistributedTracing    = "ELASTIC_APM_DISTRIBUTED_TRACING"
 
 	defaultFlushInterval           = 10 * time.Second
+	defaultMetricsInterval         = 0 // disabled by default
 	defaultMaxTransactionQueueSize = 500
 	defaultMaxSpans                = 500
 	defaultCaptureBody             = CaptureBodyOff
@@ -49,25 +54,11 @@ var (
 )
 
 func initialFlushInterval() (time.Duration, error) {
-	value := os.Getenv(envFlushInterval)
-	if value == "" {
-		return defaultFlushInterval, nil
-	}
-	d, err := time.ParseDuration(value)
-	if err != nil {
-		// We allow the value to have no suffix, in which case
-		// we assume seconds, to be compatible with configuration
-		// for other Elastic APM agents.
-		var err2 error
-		d, err2 = time.ParseDuration(value + "s")
-		if err2 == nil {
-			err = nil
-		}
-	}
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to parse %s", envFlushInterval)
-	}
-	return d, nil
+	return apmconfig.ParseDurationEnv(envFlushInterval, "s", defaultFlushInterval)
+}
+
+func initialMetricsInterval() (time.Duration, error) {
+	return apmconfig.ParseDurationEnv(envMetricsInterval, "s", defaultMetricsInterval)
 }
 
 func initialMaxTransactionQueueSize() (int, error) {
@@ -160,25 +151,13 @@ func initialService() (name, version, environment string) {
 }
 
 func initialSpanFramesMinDuration() (time.Duration, error) {
-	value := os.Getenv(envSpanFramesMinDuration)
-	if value == "" {
-		return defaultSpanFramesMinDuration, nil
-	}
-	d, err := time.ParseDuration(value)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to parse %s", envSpanFramesMinDuration)
-	}
-	return d, nil
+	return apmconfig.ParseDurationEnv(envSpanFramesMinDuration, "", defaultSpanFramesMinDuration)
 }
 
 func initialActive() (bool, error) {
-	value := os.Getenv(envActive)
-	if value == "" {
-		return true, nil
-	}
-	active, err := strconv.ParseBool(value)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to parse %s", envActive)
-	}
-	return active, nil
+	return apmconfig.ParseBoolEnv(envActive, true)
+}
+
+func initialDistributedTracing() (bool, error) {
+	return apmconfig.ParseBoolEnv(envDistributedTracing, false)
 }

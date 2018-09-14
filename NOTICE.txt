@@ -210,8 +210,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/apm-agent-go
-Version: v0.4.0
-Revision: a22839728ee5955c96524d56af60813250d26a5b
+Version: v0.5.1
+Revision: a23d41b19d5d148ab96034ae27a52a9314014490
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/apm-agent-go/LICENSE:
 --------------------------------------------------------------------
@@ -220,8 +220,8 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/apm-agent-go/internal/fastjson
-Version: v0.4.0
-Revision: a22839728ee5955c96524d56af60813250d26a5b
+Version: v0.5.1
+Revision: a23d41b19d5d148ab96034ae27a52a9314014490
 License type (autodetected): MIT
 ./vendor/github.com/elastic/apm-agent-go/internal/fastjson/LICENSE.easyjson.txt:
 --------------------------------------------------------------------
@@ -235,8 +235,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/apm-agent-go/internal/radix
-Version: v0.4.0
-Revision: a22839728ee5955c96524d56af60813250d26a5b
+Version: v0.5.1
+Revision: a23d41b19d5d148ab96034ae27a52a9314014490
 License type (autodetected): MIT
 ./vendor/github.com/elastic/apm-agent-go/internal/radix/LICENSE.goradix.txt:
 --------------------------------------------------------------------
@@ -260,34 +260,6 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
---------------------------------------------------------------------
-Dependency: github.com/elastic/apm-agent-go/internal/uuid
-Version: v0.4.0
-Revision: a22839728ee5955c96524d56af60813250d26a5b
-License type (autodetected): MIT
-./vendor/github.com/elastic/apm-agent-go/internal/uuid/LICENSE:
---------------------------------------------------------------------
-Copyright (C) 2013-2018 by Maxim Bublis <b@codemonkey.ru>
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats

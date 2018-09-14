@@ -29,3 +29,11 @@ func (dt *debugTransport) SendErrors(ctx context.Context, p *model.ErrorsPayload
 	log.Printf("elasticapm SendErrors %d <- %v", id, err)
 	return err
 }
+
+func (dt *debugTransport) SendMetrics(ctx context.Context, p *model.MetricsPayload) error {
+	id := atomic.AddUint64(&dt.id, 1)
+	log.Printf("elasticapm SendMetrics %d -> %# v", id, pretty.Formatter(p))
+	err := dt.transport.SendMetrics(ctx, p)
+	log.Printf("elasticapm SendMetrics %d <- %v", id, err)
+	return err
+}

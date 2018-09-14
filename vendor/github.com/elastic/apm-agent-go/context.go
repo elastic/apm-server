@@ -77,10 +77,9 @@ func (c *Context) SetTag(key, value string) {
 
 // SetHTTPRequest sets details of the HTTP request in the context.
 //
-// This function may be used for either clients or servers. For
-// server-side requests, various proxy forwarding headers are taken
-// into account to reconstruct the URL, and determining the client
-// address.
+// This function relates to server-side requests. Various proxy
+// forwarding headers are taken into account to reconstruct the URL,
+// and determining the client address.
 //
 // If the request URL contains user info, it will be removed and
 // excluded from the URL's "full" field.
@@ -178,4 +177,28 @@ func (c *Context) SetHTTPResponseFinished(finished bool) {
 func (c *Context) SetHTTPStatusCode(statusCode int) {
 	c.response.StatusCode = statusCode
 	c.model.Response = &c.response
+}
+
+// SetUserID sets the ID of the authenticated user.
+func (c *Context) SetUserID(id string) {
+	c.user.ID = truncateString(id)
+	if c.user.ID != "" {
+		c.model.User = &c.user
+	}
+}
+
+// SetUserEmail sets the email for the authenticated user.
+func (c *Context) SetUserEmail(email string) {
+	c.user.Email = truncateString(email)
+	if c.user.Email != "" {
+		c.model.User = &c.user
+	}
+}
+
+// SetUsername sets the username of the authenticated user.
+func (c *Context) SetUsername(username string) {
+	c.user.Username = truncateString(username)
+	if c.user.Username != "" {
+		c.model.User = &c.user
+	}
 }

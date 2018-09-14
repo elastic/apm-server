@@ -6,18 +6,17 @@ import (
 	"bytes"
 	"encoding/json"
 
+	"github.com/elastic/apm-agent-go/internal/apmschema"
 	"github.com/elastic/apm-agent-go/internal/fastjson"
-	error_processor "github.com/elastic/apm-server/processor/error"
-	transaction_processor "github.com/elastic/apm-server/processor/transaction"
 )
 
 func Fuzz(data []byte) int {
 	type Payload struct {
-		Service      *Service       `json:"service"`
-		Process      *Process       `json:"process,omitempty"`
-		System       *System        `json:"system,omitempty"`
-		Errors       []*Error       `json:"errors"`
-		Transactions []*Transaction `json:"transactions"`
+		Service      *Service      `json:"service"`
+		Process      *Process      `json:"process,omitempty"`
+		System       *System       `json:"system,omitempty"`
+		Errors       []*Error      `json:"errors"`
+		Transactions []Transaction `json:"transactions"`
 	}
 
 	var payload Payload
@@ -32,10 +31,6 @@ func Fuzz(data []byte) int {
 	}
 
 	if len(payload.Errors) != 0 {
-		p := error_processor.NewProcessor()
-		if err := p.Validate(raw); err != nil {
-			return 0
-		}
 		payload := ErrorsPayload{
 			Service: payload.Service,
 			Process: payload.Process,
@@ -44,20 +39,12 @@ func Fuzz(data []byte) int {
 		}
 		var w fastjson.Writer
 		payload.MarshalFastJSON(&w)
-		raw := make(map[string]interface{})
-		if err := json.Unmarshal(w.Bytes(), &raw); err != nil {
-			return -1
-		}
-		if err := p.Validate(raw); err != nil {
+		if err := apmschema.Errors.Validate(bytes.NewReader(w.Bytes())); err != nil {
 			panic(err)
 		}
 	}
 
 	if len(payload.Transactions) != 0 {
-		p := transaction_processor.NewProcessor()
-		if err := p.Validate(raw); err != nil {
-			return 0
-		}
 		payload := TransactionsPayload{
 			Service:      payload.Service,
 			Process:      payload.Process,
@@ -66,11 +53,7 @@ func Fuzz(data []byte) int {
 		}
 		var w fastjson.Writer
 		payload.MarshalFastJSON(&w)
-		raw := make(map[string]interface{})
-		if err := json.Unmarshal(w.Bytes(), &raw); err != nil {
-			return -1
-		}
-		if err := p.Validate(raw); err != nil {
+		if err := apmschema.Transactions.Validate(bytes.NewReader(w.Bytes())); err != nil {
 			panic(err)
 		}
 	}
