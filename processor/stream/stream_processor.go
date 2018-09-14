@@ -21,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -39,9 +38,11 @@ import (
 	"github.com/elastic/apm-server/validation"
 )
 
-const (
-	RateLimiterKey = "rateLimiter"
-)
+type rateLimiterKey struct{}
+
+func ContextWithRateLimiter(ctx context.Context, limiter *rate.Limiter) context.Context {
+	return context.WithValue(ctx, rateLimiterKey{}, limiter)
+}
 
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
@@ -219,6 +220,19 @@ func (s *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 	return eventables, reader.IsEOF()
 }
 
+type rateLimitStreamReader struct {
+	StreamReader
+	ctx context.Context
+	rl  *rate.Limiter
+}
+
+func (r *rateLimitStreamReader) Read() (map[string]interface{}, error) {
+	if err := r.rl.Wait(r.ctx); err != nil {
+		return nil, err
+	}
+	return r.StreamReader.Read()
+}
+
 func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]interface{}, jsonReader StreamReader, report publish.Reporter) *Result {
 	res := &Result{}
 
@@ -232,6 +246,16 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 		return res
 	}
 
+	if rl := ctx.Value(rateLimiterKey{}); rl != nil {
+		// A rate-limiter has been provided; wrap the stream
+		// reader so that reads are rate-limited.
+		jsonReader = &rateLimitStreamReader{
+			StreamReader: jsonReader,
+			ctx:          ctx,
+			rl:           rl.(*rate.Limiter),
+		}
+	}
+
 	tctx := &transform.Context{
 		RequestTime: utility.RequestTime(ctx),
 		Config:      s.Tconfig,
@@ -239,24 +263,6 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 	}
 
 	for {
-
-		//Throttle read in case rate limit is hit, by using
-		//blocking wait until rate limiter allows to read next batchsize event.
-		//Consider burst and timeout indicating how long to wait for rate limiter.
-		//Return early if rate limiter returns error.
-		limiter, limiterOk := ctx.Value(RateLimiterKey).(*rate.Limiter)
-		if limiterOk && limiter != nil {
-			ctxT, cancel := context.WithTimeout(ctx, time.Second)
-			defer cancel()
-			err = limiter.WaitN(ctxT, batchSize)
-			if err != nil {
-				res.Add(&Error{
-					Type:    RateLimitErrType,
-					Message: "rate limit exceeded",
-				})
-				return res
-			}
-		}
 
 		transformables, done := s.readBatch(batchSize, jsonReader, res)
 		if transformables != nil {

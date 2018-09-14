@@ -48,7 +48,7 @@ func BenchmarkStreamProcessor(b *testing.B) {
 		b.Error(err)
 	}
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
-	ctx := context.WithValue(context.Background(), RateLimiterKey, r.NewLimiter(r.Limit(math.MaxFloat64-1), math.MaxInt32))
+	ctx := ContextWithRateLimiter(context.Background(), r.NewLimiter(r.Limit(math.MaxFloat64-1), math.MaxInt32))
 	sp := &StreamProcessor{}
 	for _, f := range files {
 		b.Run(f.Name(), func(b *testing.B) {

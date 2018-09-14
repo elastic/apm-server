@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -152,7 +151,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 			}
 			entry, _ := v.cache.Get(key)
 			limiter, _ = entry.(*rate.Limiter)
-			ctx = context.WithValue(r.Context(), stream.RateLimiterKey, limiter)
+			ctx = stream.ContextWithRateLimiter(ctx, limiter)
 		}
 
 		res := v.streamProcessor.HandleStream(ctx, reqMeta, ndReader, report)

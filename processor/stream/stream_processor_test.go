@@ -197,7 +197,7 @@ func TestRateLimiting(t *testing.T) {
 
 			limiter := rate.NewLimiter(rate.Limit(test.limit), test.limit*2)
 			require.True(t, limiter.AllowN(time.Now(), test.hit))
-			ctx = context.WithValue(context.Background(), RateLimiterKey, limiter)
+			ctx = ContextWithRateLimiter(context.Background(), limiter)
 			actualResult := (&StreamProcessor{}).HandleStream(ctx, map[string]interface{}{}, reader, report)
 			execTime := time.Now().Sub(start)
 			assert.True(t, execTime > test.minTime,
