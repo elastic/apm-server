@@ -811,3 +811,20 @@ logging.metrics.enabled: false
 
 # Port on which the HTTP endpoint will bind. Default is 5066.
 #http.port: 5066
+
+#============================== Xpack Monitoring ===============================
+# APM server can export internal metrics to a central Elasticsearch monitoring
+# cluster.  This requires xpack monitoring to be enabled in Elasticsearch.  The
+# reporting is disabled by default.
+
+# Set to true to enable the monitoring reporter.
+#xpack.monitoring.enabled: false
+
+# Uncomment to send the metrics to Elasticsearch. Most settings from the
+# Elasticsearch output are accepted here as well. Any setting that is not set is
+# automatically inherited from the Elasticsearch output configuration, so if you
+# have the Elasticsearch output configured, you can simply uncomment the
+# following line.
+#xpack.monitoring.elasticsearch:
+#  username: "apm_system"
+#  password: ""
