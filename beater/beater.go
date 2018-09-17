@@ -135,7 +135,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 	if err != nil {
 		return err
 	}
-	defer traceListener.Close()
+	if traceListener != nil {
+		defer traceListener.Close()
+	}
 	defer tracer.Close()
 
 	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout, tracer)
@@ -165,7 +167,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	g.Go(func() error {
 		return run(bt.server, lis, bt.config)
 	})
-	if bt.config.SelfInstrumentation.isEnabled() {
+	if traceListener != nil {
 		g.Go(func() error {
 			return bt.server.Serve(traceListener)
 		})
@@ -186,6 +188,12 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 	} else {
 		os.Setenv("ELASTIC_APM_ACTIVE", "true")
 		logger.Infof("self instrumentation is enabled")
+
+		if config.SelfInstrumentation.Hosts != nil {
+			os.Setenv("ELASTIC_APM_SECRET_TOKEN", config.SelfInstrumentation.SecretToken)
+			os.Setenv("ELASTIC_APM_SERVER_URL", config.SelfInstrumentation.Hosts[0])
+			logger.Infof("self instrumentation directed to %s", config.SelfInstrumentation.Hosts[0])
+		}
 	}
 
 	tracer, err := elasticapm.NewTracer(info.Beat, info.Version)
@@ -197,6 +205,10 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 			tracer.Service.Environment = *config.SelfInstrumentation.Environment
 		}
 		tracer.SetLogger(logp.NewLogger("tracing"))
+	}
+
+	if config.SelfInstrumentation.isEnabled() && config.SelfInstrumentation.Hosts != nil {
+		return tracer, nil, nil
 	}
 
 	// Create an in-process net.Listener for the tracer. This enables us to:

@@ -18,10 +18,15 @@
 package beater
 
 import (
+	"fmt"
 	"net"
 	"path/filepath"
+	"reflect"
 	"regexp"
+	"strconv"
 	"time"
+
+	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
@@ -102,9 +107,33 @@ type SSLConfig struct {
 	Certificate outputs.CertificateConfig `config:",inline"`
 }
 
+func init() {
+	if err := ucfg.RegisterValidator("maxlen", func(v interface{}, param string) error {
+		if v == nil {
+			return nil
+		}
+		switch v := reflect.ValueOf(v); v.Kind() {
+		case reflect.Array, reflect.Map, reflect.Slice:
+			maxlen, err := strconv.ParseInt(param, 0, 64)
+			if err != nil {
+				return err
+			}
+
+			if length := int64(v.Len()); length > maxlen {
+				return fmt.Errorf("requires length (%d) <= %v", length, param)
+			}
+		}
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+}
+
 type InstrumentationConfig struct {
-	Enabled     *bool   `config:"enabled"`
-	Environment *string `config:"environment"`
+	Enabled     *bool    `config:"enabled"`
+	Environment *string  `config:"environment"`
+	Hosts       []string `config:"hosts" validate:"maxlen=1"`
+	SecretToken string   `config:"secret_token"`
 }
 
 func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
