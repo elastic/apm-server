@@ -185,22 +185,24 @@ func TestRateLimiting(t *testing.T) {
 		name    string
 	}{
 		{limit: 0, name: "DenyAll"},
-		{limit: 40, name: "AllowAll"},
+		{limit: 40, minTime: 0, name: "AllowAll"},
 		{limit: 10, hit: 10, minTime: time.Second, name: "SlowedDownBatch"},
-		{limit: 7, minTime: 600 * time.Millisecond, name: "AllowWithWait"},
-		{limit: 6, name: "Forbidden"},
+		{limit: 6, minTime: time.Second, name: "AllowWithWait"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			start := time.Now()
 			r.Reset(b)
 			reader = decoder.NewNDJSONStreamReader(r, math.MaxInt32)
 
 			limiter := rate.NewLimiter(rate.Limit(test.limit), test.limit*2)
-			require.True(t, limiter.AllowN(time.Now(), test.hit))
+			if test.hit > 0 {
+				require.True(t, limiter.AllowN(time.Now(), test.hit))
+			}
 			ctx = ContextWithRateLimiter(context.Background(), limiter)
+
+			start := time.Now()
 			actualResult := (&StreamProcessor{}).HandleStream(ctx, map[string]interface{}{}, reader, report)
 			execTime := time.Now().Sub(start)
-			assert.True(t, execTime > test.minTime,
+			assert.True(t, execTime > test.minTime && execTime <= test.minTime+time.Second,
 				fmt.Sprintf("%v (ExecTime), %v (expected Min)", execTime, test.minTime))
 			assertApproveResult(t, actualResult, test.name)
 		})

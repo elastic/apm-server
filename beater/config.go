@@ -74,7 +74,7 @@ type rumConfig struct {
 
 type eventRate struct {
 	Limit     int `config:"limit"`
-	CacheSize int `config:"cache_size"`
+	CacheKeys int `config:"cache_keys"`
 }
 
 type metricsConfig struct {
@@ -211,8 +211,8 @@ func defaultRum(beatVersion string) *rumConfig {
 	return &rumConfig{
 		RateLimit: 10,
 		EventRate: &eventRate{
-			Limit:     5000,
-			CacheSize: 1000,
+			Limit:     1000,
+			CacheKeys: 1000,
 		},
 		AllowOrigins: []string{"*"},
 		SourceMapping: &SourceMapping{

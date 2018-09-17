@@ -90,7 +90,7 @@ var (
 			v2backendHandler,
 			systemMetadataDecoder,
 			func(*Config) transform.Config { return transform.Config{} },
-			func(c *Config) *lru.Cache { return nil },
+			nilCache,
 		},
 	}
 	v2RumRoute = v2Route{
@@ -98,7 +98,7 @@ var (
 			v2rumHandler,
 			userMetaDataDecoder,
 			rumTransformConfig,
-			func(c *Config) *lru.Cache { cache, _ := lru.New(c.RumConfig.EventRate.CacheSize); return cache },
+			func(c *Config) *lru.Cache { cache, _ := lru.New(c.RumConfig.EventRate.CacheKeys); return cache },
 		},
 	}
 )
@@ -108,25 +108,25 @@ var (
 		backendHandler,
 		systemMetadataDecoder,
 		func(*Config) transform.Config { return transform.Config{} },
-		func(c *Config) *lru.Cache { return nil },
+		nilCache,
 	}
 	rumRouteType = routeType{
 		rumHandler,
 		userMetaDataDecoder,
 		rumTransformConfig,
-		func(c *Config) *lru.Cache { return nil },
+		nilCache,
 	}
 	metricsRouteType = routeType{
 		metricsHandler,
 		systemMetadataDecoder,
 		func(*Config) transform.Config { return transform.Config{} },
-		func(c *Config) *lru.Cache { return nil },
+		nilCache,
 	}
 	sourcemapRouteType = routeType{
 		sourcemapHandler,
 		systemMetadataDecoder,
 		rumTransformConfig,
-		func(c *Config) *lru.Cache { return nil },
+		nilCache,
 	}
 
 	v1RequestDecoder = func(beaterConfig *Config) decoder.ReqDecoder {
@@ -137,6 +137,8 @@ var (
 		return decoder.DecodeSourcemapFormData
 	}
 )
+
+func nilCache(c *Config) *lru.Cache { return nil }
 
 func v2backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(

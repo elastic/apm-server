@@ -18,8 +18,10 @@
 package beater
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/time/rate"
@@ -35,10 +37,13 @@ import (
 	"github.com/elastic/apm-server/decoder"
 )
 
+const burstMultiplier = 5
+
 type v2Handler struct {
 	requestDecoder  decoder.ReqDecoder
 	streamProcessor *stream.StreamProcessor
 	cache           *lru.Cache
+	mutex           sync.Mutex //guards limiter in cache
 }
 
 func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
@@ -105,6 +110,34 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 	}
 }
 
+func (v *v2Handler) contextWithRateLimiter(ctx context.Context, c *Config, key string) context.Context {
+	if v.cache == nil || c.RumConfig.EventRate == nil {
+		return ctx
+	}
+	// fetch the rate limiter from the cache, if a cache is given
+	getLimiter := func() (*rate.Limiter, bool) {
+		if l, ok := v.cache.Get(key); ok {
+			if lim, ok := l.(*rate.Limiter); ok {
+				return lim, ok
+			}
+		}
+		return nil, false
+	}
+
+	limiter, ok := getLimiter()
+	if !ok {
+		v.mutex.Lock()
+		limiter, ok = getLimiter()
+		if !ok {
+			limiter = rate.NewLimiter(rate.Limit(c.RumConfig.EventRate.Limit),
+				c.RumConfig.EventRate.Limit*burstMultiplier)
+			v.cache.Add(key, limiter)
+		}
+		v.mutex.Unlock()
+	}
+	return stream.ContextWithRateLimiter(ctx, limiter)
+}
+
 func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := requestLogger(r)
@@ -139,21 +172,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 			v.sendResponse(logger, w, &sr)
 			return
 		}
-		ctx := r.Context()
-
-		// fetch the rate limiter from the cache, if a cache is given
-		var limiter *rate.Limiter
-		if v.cache != nil && beaterConfig.RumConfig.EventRate != nil {
-			key := utility.RemoteAddr(r)
-			if !v.cache.Contains(key) {
-				v.cache.Add(key, rate.NewLimiter(rate.Limit(beaterConfig.RumConfig.EventRate.Limit),
-					beaterConfig.RumConfig.EventRate.Limit*2))
-			}
-			entry, _ := v.cache.Get(key)
-			limiter, _ = entry.(*rate.Limiter)
-			ctx = stream.ContextWithRateLimiter(ctx, limiter)
-		}
-
+		ctx := v.contextWithRateLimiter(r.Context(), beaterConfig, utility.RemoteAddr(r))
 		res := v.streamProcessor.HandleStream(ctx, reqMeta, ndReader, report)
 
 		v.sendResponse(logger, w, res)

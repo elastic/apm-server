@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
 
@@ -47,6 +48,24 @@ func ContextWithRateLimiter(ctx context.Context, limiter *rate.Limiter) context.
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
 )
+
+type rateLimitStreamReader struct {
+	StreamReader
+	ctx context.Context
+	rl  *rate.Limiter
+}
+
+func (r *rateLimitStreamReader) Read() (map[string]interface{}, error) {
+	if res := r.rl.Reserve(); !res.OK() {
+		return nil, &Error{
+			Type:    RateLimitErrType,
+			Message: "rate limit exceeded",
+		}
+	} else if res.Delay() > 0 {
+		time.Sleep(res.Delay())
+	}
+	return r.StreamReader.Read()
+}
 
 type StreamReader interface {
 	Read() (map[string]interface{}, error)
@@ -218,19 +237,6 @@ func (s *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 	}
 
 	return eventables, reader.IsEOF()
-}
-
-type rateLimitStreamReader struct {
-	StreamReader
-	ctx context.Context
-	rl  *rate.Limiter
-}
-
-func (r *rateLimitStreamReader) Read() (map[string]interface{}, error) {
-	if err := r.rl.Wait(r.ctx); err != nil {
-		return nil, err
-	}
-	return r.StreamReader.Read()
 }
 
 func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]interface{}, jsonReader StreamReader, report publish.Reporter) *Result {

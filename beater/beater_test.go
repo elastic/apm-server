@@ -89,7 +89,7 @@ func TestBeatConfig(t *testing.T) {
 					"rate_limit": 1000,
 					"event_rate": map[string]interface{}{
 						"limit":      7200,
-						"cache_size": 2000,
+						"cache_keys": 2000,
 					},
 					"allow_origins": []string{"example*"},
 					"source_mapping": map[string]interface{}{
@@ -135,7 +135,7 @@ func TestBeatConfig(t *testing.T) {
 					RateLimit: 1000,
 					EventRate: &eventRate{
 						Limit:     7200,
-						CacheSize: 2000,
+						CacheKeys: 2000,
 					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
@@ -151,7 +151,7 @@ func TestBeatConfig(t *testing.T) {
 					RateLimit: 1000,
 					EventRate: &eventRate{
 						Limit:     7200,
-						CacheSize: 2000,
+						CacheKeys: 2000,
 					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
@@ -195,7 +195,7 @@ func TestBeatConfig(t *testing.T) {
 					"rate_limit": 890,
 					"event_rate": map[string]interface{}{
 						"limit":      500,
-						"cache_size": 200,
+						"cache_keys": 200,
 					},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
@@ -244,7 +244,7 @@ func TestBeatConfig(t *testing.T) {
 					RateLimit: 890,
 					EventRate: &eventRate{
 						Limit:     500,
-						CacheSize: 200,
+						CacheKeys: 200,
 					},
 					SourceMapping: &SourceMapping{
 						Cache: &Cache{
@@ -262,7 +262,7 @@ func TestBeatConfig(t *testing.T) {
 					RateLimit: 10,
 					EventRate: &eventRate{
 						Limit:     7200,
-						CacheSize: 1000,
+						CacheKeys: 1000,
 					},
 					AllowOrigins: []string{"*"},
 					SourceMapping: &SourceMapping{
