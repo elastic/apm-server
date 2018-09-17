@@ -53,6 +53,7 @@
                 },
                 "hex_id": "1234abcdef56789568",
                 "name": "GET /api/types",
+                "parent_id": "0000000011111111",
                 "start": {
                     "us": 0
                 },
@@ -84,6 +85,7 @@
                 },
                 "hex_id": "0123456a89012345",
                 "name": "GET /api/types",
+                "parent_id": "abcdefabcdef7890",
                 "start": {
                     "us": 1845
                 },
@@ -115,6 +117,7 @@
                 },
                 "hex_id": "abcde56a89012345",
                 "name": "get /api/types",
+                "parent_id": "ababcdcdefefabde",
                 "start": {
                     "us": 0
                 },
@@ -155,6 +158,7 @@
                 },
                 "hex_id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
+                "parent_id": "abcdef0123456789",
                 "stacktrace": [
                     {
                         "exclude_from_grouping": false,
