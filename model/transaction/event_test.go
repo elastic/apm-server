@@ -324,7 +324,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}}
 
 	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
-	var nilTxID *string
 	spanEs := common.MapStr{
 		"context": common.MapStr{
 			"service": common.MapStr{
@@ -342,7 +341,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"start":    common.MapStr{"us": 0},
 			"type":     "",
 		},
-		"transaction": common.MapStr{"id": nilTxID},
 	}
 
 	tests := []struct {

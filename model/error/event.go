@@ -69,17 +69,13 @@ type Event struct {
 	Exception *Exception
 	Log       *Log
 
-	Transaction *Transaction
+	TransactionId *string
 
 	//v2
 	TraceId  *string
 	ParentId *string
 
 	data common.MapStr
-}
-
-type Transaction struct {
-	Id string
 }
 
 type Exception struct {
@@ -106,10 +102,7 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	transactionId := decoder.StringPtr(raw, "id", "transaction")
-	if transactionId != nil {
-		e.Transaction = &Transaction{Id: *transactionId}
-	}
+	e.TransactionId = decoder.StringPtr(raw, "id", "transaction")
 	return e, decoder.Err
 }
 
@@ -119,10 +112,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	transactionId := decoder.StringPtr(raw, "transaction_id")
-	if transactionId != nil {
-		e.Transaction = &Transaction{Id: *transactionId}
-	}
+	e.TransactionId = decoder.StringPtr(raw, "transaction_id")
 	e.ParentId = decoder.StringPtr(raw, "parent_id")
 	e.TraceId = decoder.StringPtr(raw, "trace_id")
 	return e, decoder.Err
@@ -201,10 +191,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"context":   tctx.Metadata.Merge(e.Context),
 		"processor": processorEntry,
 	}
-
-	if e.Transaction != nil && e.Transaction.Id != "" {
-		fields["transaction"] = common.MapStr{"id": e.Transaction.Id}
-	}
+	utility.AddId(fields, "transaction", e.TransactionId)
+	utility.AddId(fields, "parent", e.ParentId)
+	utility.AddId(fields, "trace", e.TraceId)
 
 	return []beat.Event{
 		beat.Event{
@@ -217,8 +206,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
-	e.add("parent_id", e.ParentId)
-	e.add("trace_id", e.TraceId)
 
 	e.addException(tctx)
 	e.addLog(tctx)

@@ -126,28 +126,32 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 	return &event, raw, err
 }
 
-func (s *Event) Transform(tctx *transform.Context) []beat.Event {
+func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
-	if frames := len(s.Stacktrace); frames > 0 {
+	if frames := len(e.Stacktrace); frames > 0 {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
 	}
 
-	if s.Timestamp.IsZero() {
-		s.Timestamp = tctx.RequestTime
+	if e.Timestamp.IsZero() {
+		e.Timestamp = tctx.RequestTime
 	}
 
-	ev := beat.Event{
-		Fields: common.MapStr{
-			"processor":   processorEntry,
-			spanDocType:   s.fields(tctx),
-			"transaction": common.MapStr{"id": s.TransactionId},
-			"context":     tctx.Metadata.MergeMinimal(s.Context),
+	fields := common.MapStr{
+		"processor": processorEntry,
+		spanDocType: e.fields(tctx),
+		"context":   tctx.Metadata.MergeMinimal(e.Context),
+	}
+	utility.AddId(fields, "transaction", e.TransactionId)
+	utility.AddId(fields, "parent", e.ParentId)
+	utility.AddId(fields, "trace", e.TraceId)
+
+	return []beat.Event{
+		beat.Event{
+			Fields:    fields,
+			Timestamp: e.Timestamp,
 		},
-		Timestamp: s.Timestamp,
 	}
-
-	return []beat.Event{ev}
 }
 
 func (s *Event) fields(tctx *transform.Context) common.MapStr {
@@ -160,8 +164,6 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tr, "parent", s.Parent)
 	// v2
 	utility.Add(tr, "hex_id", s.HexId)
-	utility.Add(tr, "parent_id", s.ParentId)
-	utility.Add(tr, "trace_id", s.TraceId)
 
 	utility.Add(tr, "name", s.Name)
 	utility.Add(tr, "type", s.Type)

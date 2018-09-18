@@ -57,8 +57,10 @@
                 "start": {
                     "us": 1845
                 },
-                "trace_id": "0123456789abcdef0123456789abcdef",
                 "type": "request"
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
             },
             "transaction": {
                 "id": "ab23456a89012345"
@@ -88,6 +90,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "01234567890123456789abcdefabcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 32592
@@ -98,7 +103,6 @@
                 "span_count": {
                     "started": 0
                 },
-                "trace_id": "01234567890123456789abcdefabcdef",
                 "type": "request"
             }
         },

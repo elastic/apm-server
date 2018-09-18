@@ -159,10 +159,6 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tx, "result", t.Result)
 	utility.Add(tx, "marks", t.Marks)
 
-	// v2
-	utility.Add(tx, "parent_id", t.ParentId)
-	utility.Add(tx, "trace_id", t.TraceId)
-
 	if t.Sampled == nil {
 		utility.Add(tx, "sampled", true)
 	} else {
@@ -191,15 +187,14 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		e.Timestamp = tctx.RequestTime
 	}
 
-	ev := beat.Event{
-		Fields: common.MapStr{
-			"processor":        processorEntry,
-			transactionDocType: e.fields(tctx),
-			"context":          tctx.Metadata.Merge(e.Context),
-		},
-		Timestamp: e.Timestamp,
+	fields := common.MapStr{
+		"processor":        processorEntry,
+		transactionDocType: e.fields(tctx),
+		"context":          tctx.Metadata.Merge(e.Context),
 	}
-	events = append(events, ev)
+	utility.AddId(fields, "parent", e.ParentId)
+	utility.AddId(fields, "trace", e.TraceId)
+	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
 	spanCounter.Add(int64(len(e.Spans)))
 	for spIdx := 0; spIdx < len(e.Spans); spIdx++ {
