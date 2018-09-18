@@ -188,12 +188,6 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 	} else {
 		os.Setenv("ELASTIC_APM_ACTIVE", "true")
 		logger.Infof("self instrumentation is enabled")
-
-		if config.SelfInstrumentation.Hosts != nil {
-			os.Setenv("ELASTIC_APM_SECRET_TOKEN", config.SelfInstrumentation.SecretToken)
-			os.Setenv("ELASTIC_APM_SERVER_URL", config.SelfInstrumentation.Hosts[0])
-			logger.Infof("self instrumentation directed to %s", config.SelfInstrumentation.Hosts[0])
-		}
 	}
 
 	tracer, err := elasticapm.NewTracer(info.Beat, info.Version)
@@ -201,6 +195,15 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 		return nil, nil, err
 	}
 	if config.SelfInstrumentation.isEnabled() {
+		if config.SelfInstrumentation.Hosts != nil {
+			t, err := transport.NewHTTPTransport(config.SelfInstrumentation.Hosts[0], config.SelfInstrumentation.SecretToken)
+			if err != nil {
+				return nil, nil, err
+			}
+			tracer.Transport = t
+			logger.Infof("self instrumentation directed to %s", config.SelfInstrumentation.Hosts[0])
+		}
+
 		if config.SelfInstrumentation.Environment != nil {
 			tracer.Service.Environment = *config.SelfInstrumentation.Environment
 		}
