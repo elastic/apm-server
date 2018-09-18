@@ -26,6 +26,7 @@ https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
 - Add required `transaction.span_count.started` to Intake v2 {pull}1351[1351]
 - Rename `transaction.span_count.dropped.total` to `transaction.span_count.dropped` on Intake API v2 {pull}1351[1351]
 - Require either `message` or `type` for `error.exception` {pull}1354[1354].
+- Require `span.parent_id`, forbid `null` for `span.trace_id`, `transaction.trace_id` {pull}1391[1391]
 
 [[release-notes-6.4]]
 == APM Server version 6.4
