@@ -205,6 +205,7 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	parentId, traceId := "0123456789abcdef", "01234567890123456789abcdefabcdef"
+	transaction, transactionId := "01234", "abcdefabcdef0000"
 	input := map[string]interface{}{
 		"timestamp":      timestamp,
 		"transaction_id": "abcdefabcdef0000",
@@ -214,18 +215,16 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 	}
 
 	// test V1
-	e := &Event{Timestamp: timestampParsed,
-		Transaction: &Transaction{Id: "01234"},
-	}
+	e := &Event{Timestamp: timestampParsed, TransactionId: &transaction}
 	transformable, err := V1DecodeEvent(input, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, e, transformable.(*Event))
 
 	// test V2
 	e = &Event{Timestamp: timestampParsed,
-		Transaction: &Transaction{Id: "abcdefabcdef0000"},
-		ParentId:    &parentId,
-		TraceId:     &traceId,
+		TransactionId: &transactionId,
+		ParentId:      &parentId,
+		TraceId:       &traceId,
 	}
 	transformable, err = V2DecodeEvent(input, nil)
 	assert.NoError(t, err)
@@ -273,6 +272,7 @@ func TestEventFields(t *testing.T) {
 	baseLogHash := md5.New()
 	io.WriteString(baseLogHash, baseLog().Message)
 	baseLogGroupingKey := hex.EncodeToString(baseLogHash.Sum(nil))
+	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 
 	tests := []struct {
 		Event  Event
@@ -337,13 +337,13 @@ func TestEventFields(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:          &id,
-				Timestamp:   time.Now(),
-				Culprit:     &culprit,
-				Context:     context,
-				Exception:   &exception,
-				Log:         &log,
-				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				Id:            &id,
+				Timestamp:     time.Now(),
+				Culprit:       &culprit,
+				Context:       context,
+				Exception:     &exception,
+				Log:           &log,
+				TransactionId: &trId,
 			},
 			Output: common.MapStr{
 				"id":      "45678",
@@ -398,6 +398,7 @@ func TestEvents(t *testing.T) {
 		Name: "myservice",
 	}
 	exMsg := "exception message"
+	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 
 	tests := []struct {
 		Tranformable transform.Transformable
@@ -429,7 +430,7 @@ func TestEvents(t *testing.T) {
 					Message:    &exMsg,
 					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
 				},
-				Transaction: &Transaction{Id: "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				TransactionId: &trId,
 			},
 
 			Output: common.MapStr{
