@@ -25,12 +25,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	lru "github.com/hashicorp/golang-lru"
-
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -83,7 +80,7 @@ func TestRequestDecoderError(t *testing.T) {
 			v2backendHandler,
 			func(*Config, decoder.ReqDecoder) decoder.ReqDecoder { return faultyDecoder },
 			func(*Config) transform.Config { return transform.Config{} },
-			func(*Config) *lru.Cache { return nil },
+			func(*Config) *rlCache { return nil },
 		},
 	}
 

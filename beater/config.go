@@ -22,6 +22,7 @@ import (
 	"net"
 	"path/filepath"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -73,8 +74,9 @@ type rumConfig struct {
 }
 
 type eventRate struct {
-	Limit     int `config:"limit"`
-	CacheKeys int `config:"cache_keys"`
+	Limit       int `config:"limit"`
+	CacheKeys   int `config:"cache_keys"`
+	limiterPool sync.Pool
 }
 
 type metricsConfig struct {

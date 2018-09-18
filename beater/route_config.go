@@ -21,8 +21,6 @@ import (
 	"net/http"
 	"regexp"
 
-	lru "github.com/hashicorp/golang-lru"
-
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metric"
@@ -63,7 +61,7 @@ type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
 	configurableDecoder func(*Config, decoder.ReqDecoder) decoder.ReqDecoder
 	transformConfig     func(*Config) transform.Config
-	cache               func(*Config) *lru.Cache
+	rlc                 func(*Config) *rlCache
 }
 
 var V1Routes = map[string]v1Route{
@@ -98,7 +96,15 @@ var (
 			v2rumHandler,
 			userMetaDataDecoder,
 			rumTransformConfig,
-			func(c *Config) *lru.Cache { cache, _ := lru.New(c.RumConfig.EventRate.CacheKeys); return cache },
+			func(c *Config) *rlCache {
+				rlc, err := NewRlCache(c.RumConfig.EventRate.CacheKeys,
+					c.RumConfig.EventRate.Limit)
+				if err != nil {
+					logp.NewLogger("handler").Error(err.Error())
+					return nil
+				}
+				return rlc
+			},
 		},
 	}
 )
@@ -138,7 +144,7 @@ var (
 	}
 )
 
-func nilCache(c *Config) *lru.Cache { return nil }
+func nilCache(c *Config) *rlCache { return nil }
 
 func v2backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
@@ -233,7 +239,7 @@ func (v v2Route) Handler(beaterConfig *Config, report publish.Reporter) http.Han
 	v2Handler := v2Handler{
 		requestDecoder:  reqDecoder,
 		streamProcessor: &stream.StreamProcessor{Tconfig: v.transformConfig(beaterConfig)},
-		cache:           v.cache(beaterConfig),
+		rlc:             v.rlc(beaterConfig),
 	}
 
 	return v.wrappingHandler(beaterConfig, v2Handler.Handle(beaterConfig, report))

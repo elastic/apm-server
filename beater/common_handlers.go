@@ -235,9 +235,11 @@ func rootHandler(secretToken string) http.Handler {
 	return logHandler(handler)
 }
 
-type contextKey string
+type reqLoggerKey struct{}
 
-const reqLoggerContextKey = contextKey("requestLogger")
+func ContextWithReqLogger(ctx context.Context, rl *logp.Logger) context.Context {
+	return context.WithValue(ctx, reqLoggerKey{}, rl)
+}
 
 func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
@@ -255,13 +257,8 @@ func logHandler(h http.Handler) http.Handler {
 			"remote_address", utility.RemoteAddr(r),
 			"user-agent", r.Header.Get("User-Agent"))
 
-		lr := r.WithContext(
-			context.WithValue(r.Context(), reqLoggerContextKey, reqLogger),
-		)
-
 		lw := utility.NewRecordingResponseWriter(w)
-
-		h.ServeHTTP(lw, lr)
+		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
 
 		if lw.Code <= 399 {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
@@ -279,7 +276,7 @@ func requestTimeHandler(h http.Handler) http.Handler {
 // requestLogger is a convenience function to retrieve the logger that was
 // added to the request context by handler `logHandler``
 func requestLogger(r *http.Request) *logp.Logger {
-	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+	logger, ok := r.Context().Value(reqLoggerKey{}).(*logp.Logger)
 	if !ok {
 		logger = logp.NewLogger("request")
 	}

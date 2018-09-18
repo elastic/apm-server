@@ -21,10 +21,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"sync"
-
-	lru "github.com/hashicorp/golang-lru"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
@@ -37,13 +33,10 @@ import (
 	"github.com/elastic/apm-server/decoder"
 )
 
-const burstMultiplier = 5
-
 type v2Handler struct {
 	requestDecoder  decoder.ReqDecoder
 	streamProcessor *stream.StreamProcessor
-	cache           *lru.Cache
-	mutex           sync.Mutex //guards limiter in cache
+	rlc             *rlCache
 }
 
 func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
@@ -110,32 +103,11 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 	}
 }
 
-func (v *v2Handler) contextWithRateLimiter(ctx context.Context, c *Config, key string) context.Context {
-	if v.cache == nil || c.RumConfig.EventRate == nil {
-		return ctx
+func (v *v2Handler) getContext(r *http.Request) context.Context {
+	if v.rlc == nil {
+		return r.Context()
 	}
-	// fetch the rate limiter from the cache, if a cache is given
-	getLimiter := func() (*rate.Limiter, bool) {
-		if l, ok := v.cache.Get(key); ok {
-			if lim, ok := l.(*rate.Limiter); ok {
-				return lim, ok
-			}
-		}
-		return nil, false
-	}
-
-	limiter, ok := getLimiter()
-	if !ok {
-		v.mutex.Lock()
-		limiter, ok = getLimiter()
-		if !ok {
-			limiter = rate.NewLimiter(rate.Limit(c.RumConfig.EventRate.Limit),
-				c.RumConfig.EventRate.Limit*burstMultiplier)
-			v.cache.Add(key, limiter)
-		}
-		v.mutex.Unlock()
-	}
-	return stream.ContextWithRateLimiter(ctx, limiter)
+	return stream.ContextWithRateLimiter(r.Context(), v.rlc.getRateLimiter(utility.RemoteAddr(r)))
 }
 
 func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
@@ -172,8 +144,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 			v.sendResponse(logger, w, &sr)
 			return
 		}
-		ctx := v.contextWithRateLimiter(r.Context(), beaterConfig, utility.RemoteAddr(r))
-		res := v.streamProcessor.HandleStream(ctx, reqMeta, ndReader, report)
+		res := v.streamProcessor.HandleStream(v.getContext(r), reqMeta, ndReader, report)
 
 		v.sendResponse(logger, w, res)
 	})

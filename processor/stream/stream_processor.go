@@ -49,24 +49,6 @@ var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
 )
 
-type rateLimitStreamReader struct {
-	StreamReader
-	ctx context.Context
-	rl  *rate.Limiter
-}
-
-func (r *rateLimitStreamReader) Read() (map[string]interface{}, error) {
-	if res := r.rl.Reserve(); !res.OK() {
-		return nil, &Error{
-			Type:    RateLimitErrType,
-			Message: "rate limit exceeded",
-		}
-	} else if res.Delay() > 0 {
-		time.Sleep(res.Delay())
-	}
-	return r.StreamReader.Read()
-}
-
 type StreamReader interface {
 	Read() (map[string]interface{}, error)
 	IsEOF() bool
@@ -199,14 +181,46 @@ func (v *StreamProcessor) handleRawModel(rawModel map[string]interface{}) (trans
 	return nil, ErrUnrecognizedObject
 }
 
+type rateLimitStreamReader struct {
+	StreamReader
+	ctx context.Context
+	rl  *rate.Limiter
+}
+
+func (r *rateLimitStreamReader) Read() (map[string]interface{}, error) {
+	if res := r.rl.Reserve(); !res.OK() {
+		return nil, &Error{
+			Type:    RateLimitErrType,
+			Message: "rate limit exceeded",
+		}
+	} else if res.Delay() > 0 {
+		time.Sleep(res.Delay())
+	}
+	return r.StreamReader.Read()
+}
+
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (s *StreamProcessor) readBatch(batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
 	var (
 		err        error
 		rawModel   map[string]interface{}
 		eventables []transform.Transformable
 	)
+
+	if rl != nil {
+		// use provided rate limiter to throttle batch read
+		ctxT, cancel := context.WithTimeout(ctx, time.Second)
+		err = rl.WaitN(ctxT, batchSize)
+		cancel()
+		if err != nil {
+			response.Add(&Error{
+				Type:    RateLimitErrType,
+				Message: "rate limit exceeded",
+			})
+			return eventables, true
+		}
+	}
 
 	for i := 0; i < batchSize && err == nil; i++ {
 
@@ -252,25 +266,20 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 		return res
 	}
 
-	if rl := ctx.Value(rateLimiterKey{}); rl != nil {
-		// A rate-limiter has been provided; wrap the stream
-		// reader so that reads are rate-limited.
-		jsonReader = &rateLimitStreamReader{
-			StreamReader: jsonReader,
-			ctx:          ctx,
-			rl:           rl.(*rate.Limiter),
-		}
-	}
-
 	tctx := &transform.Context{
 		RequestTime: utility.RequestTime(ctx),
 		Config:      s.Tconfig,
 		Metadata:    *metadata,
 	}
 
+	var rl *rate.Limiter
+	if lim, ok := ctx.Value(rateLimiterKey{}).(*rate.Limiter); ok {
+		rl = lim
+	}
+
 	for {
 
-		transformables, done := s.readBatch(batchSize, jsonReader, res)
+		transformables, done := s.readBatch(ctx, rl, batchSize, jsonReader, res)
 		if transformables != nil {
 			err := report(ctx, publish.PendingReq{
 				Transformables: transformables,
