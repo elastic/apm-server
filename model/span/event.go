@@ -19,6 +19,8 @@ package span
 
 import (
 	"errors"
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -61,16 +63,16 @@ type Event struct {
 	Stacktrace m.Stacktrace
 
 	Timestamp     time.Time
-	TransactionId *string
+	TransactionId string
 
 	// new in v2
-	HexId    *string
-	ParentId *string
-	TraceId  *string
+	HexId    string
+	ParentId string
+	TraceId  string
 
 	// deprecated in v2
-	Id     *int
-	Parent *int
+	Id     *int64
+	Parent *int64
 }
 
 func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -79,8 +81,11 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	e.Id = decoder.IntPtr(raw, "id")
-	e.Parent = decoder.IntPtr(raw, "parent")
+	e.Id = decoder.Int64Ptr(raw, "id")
+	e.Parent = decoder.Int64Ptr(raw, "parent")
+	if tid := decoder.StringPtr(raw, "transaction_id"); tid != nil {
+		e.TransactionId = *tid
+	}
 	return e, decoder.Err
 }
 
@@ -90,10 +95,40 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
-	e.HexId = decoder.StringPtr(raw, "id")
-	e.ParentId = decoder.StringPtr(raw, "parent_id")
-	e.TraceId = decoder.StringPtr(raw, "trace_id")
+	e.HexId = decoder.String(raw, "id")
+	e.ParentId = decoder.String(raw, "parent_id")
+	e.TraceId = decoder.String(raw, "trace_id")
+	e.TransactionId = decoder.String(raw, "transaction_id")
+	if decoder.Err != nil {
+		return nil, decoder.Err
+	}
+
+	// HexId must be a 64 bit hex encoded string. The id is set to the integer
+	// converted value of the hexId
+	if idInt, err := hexToInt(e.HexId, 64); err == nil {
+		e.Id = &idInt
+	} else {
+		return nil, err
+	}
+
+	// set parent to parentId
+	if id, err := hexToInt(e.ParentId, 64); err == nil {
+		e.Parent = &id
+	} else {
+		return nil, err
+	}
+
 	return e, decoder.Err
+}
+
+var shift = uint64(math.Pow(2, 63))
+
+func hexToInt(s string, bitSize int) (int64, error) {
+	us, err := strconv.ParseUint(s, 16, bitSize)
+	if err != nil {
+		return 0, err
+	}
+	return int64(us - shift), nil
 }
 
 func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
@@ -110,13 +145,12 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 
 	decoder := utility.ManualDecoder{}
 	event := Event{
-		Name:          decoder.String(raw, "name"),
-		Type:          decoder.String(raw, "type"),
-		Start:         decoder.Float64(raw, "start"),
-		Duration:      decoder.Float64(raw, "duration"),
-		Context:       decoder.MapStr(raw, "context"),
-		Timestamp:     decoder.TimeRFC3339(raw, "timestamp"),
-		TransactionId: decoder.StringPtr(raw, "transaction_id"),
+		Name:      decoder.String(raw, "name"),
+		Type:      decoder.String(raw, "type"),
+		Start:     decoder.Float64(raw, "start"),
+		Duration:  decoder.Float64(raw, "duration"),
+		Context:   decoder.MapStr(raw, "context"),
+		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
 	}
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
@@ -142,9 +176,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		spanDocType: e.fields(tctx),
 		"context":   tctx.Metadata.MergeMinimal(e.Context),
 	}
-	utility.AddId(fields, "transaction", e.TransactionId)
-	utility.AddId(fields, "parent", e.ParentId)
-	utility.AddId(fields, "trace", e.TraceId)
+	utility.AddId(fields, "transaction", &e.TransactionId)
+	utility.AddId(fields, "parent", &e.ParentId)
+	utility.AddId(fields, "trace", &e.TraceId)
 
 	return []beat.Event{
 		beat.Event{
@@ -163,7 +197,9 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tr, "id", s.Id)
 	utility.Add(tr, "parent", s.Parent)
 	// v2
-	utility.Add(tr, "hex_id", s.HexId)
+	if s.HexId != "" {
+		utility.Add(tr, "hex_id", s.HexId)
+	}
 
 	utility.Add(tr, "name", s.Name)
 	utility.Add(tr, "type", s.Type)
