@@ -17,21 +17,25 @@
                     "name": "1234_service-12a3"
                 }
             },
+            "parent": {
+                "id": "abcdefabcdef01234567"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
             },
             "transaction": {
                 "duration": {
                     "us": 32592
                 },
                 "id": "945254c567a5417e",
-                "parent_id": "abcdefabcdef01234567",
                 "sampled": true,
                 "span_count": {
                     "started": 43
                 },
-                "trace_id": "0123456789abcdef0123456789abcdef",
                 "type": "request"
             }
         },
@@ -56,6 +60,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 32592
@@ -66,7 +73,6 @@
                 "span_count": {
                     "started": 17
                 },
-                "trace_id": "0123456789abcdef0123456789abcdef",
                 "type": "request"
             }
         },
@@ -94,6 +100,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "55a3456789abcdef0123456789abcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 13980
@@ -106,7 +115,6 @@
                     },
                     "started": 436
                 },
-                "trace_id": "55a3456789abcdef0123456789abcdef",
                 "type": "request"
             }
         },
@@ -147,6 +155,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "fdefdef789abcdef0123456789abcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 13980
@@ -156,7 +167,6 @@
                 "span_count": {
                     "started": 843
                 },
-                "trace_id": "fdefdef789abcdef0123456789abcdef",
                 "type": "request"
             }
         },
@@ -181,6 +191,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "9873456789abcdef0123456789abcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 32592
@@ -191,7 +204,6 @@
                 "span_count": {
                     "started": 70
                 },
-                "trace_id": "9873456789abcdef0123456789abcdef",
                 "type": "request"
             }
         },
@@ -216,6 +228,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "ffa3456789abcdef0123456789abcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 13980
@@ -225,7 +240,6 @@
                 "span_count": {
                     "started": 22
                 },
-                "trace_id": "ffa3456789abcdef0123456789abcdef",
                 "type": "request"
             }
         },
@@ -253,6 +267,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "0123de6789abcdef0123456789abcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 13980
@@ -262,7 +279,6 @@
                 "span_count": {
                     "started": 15
                 },
-                "trace_id": "0123de6789abcdef0123456789abcdef",
                 "type": "request"
             }
         },
@@ -303,6 +319,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "0acd456789abcdef0123456789abcdef"
+            },
             "transaction": {
                 "duration": {
                     "us": 13980
@@ -312,7 +331,6 @@
                 "span_count": {
                     "started": 8
                 },
-                "trace_id": "0acd456789abcdef0123456789abcdef",
                 "type": "request"
             }
         }

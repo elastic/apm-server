@@ -26,9 +26,7 @@ import (
 func TestPayloadMatchFields(t *testing.T) {
 	procSetup().PayloadAttrsMatchFields(t,
 		payloadAttrsNotInFields(nil),
-		fieldsNotInPayloadAttrs(tests.NewSet("span.parent_id", "span.hex_id",
-			"span.trace_id", "transaction.parent_id", "transaction.trace_id",
-		)))
+		fieldsNotInPayloadAttrs(tests.NewSet("parent", "parent.id", "span.hex_id", "trace", "trace.id")))
 }
 
 func TestPayloadMatchJsonSchema(t *testing.T) {
@@ -42,8 +40,7 @@ func TestAttrsPresenceInTransaction(t *testing.T) {
 }
 
 func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
-	procSetup().KeywordLimitation(t, keywordExceptionKeys(tests.NewSet("span.parent_id")),
-		templateToSchemaMapping(nil))
+	procSetup().KeywordLimitation(t, keywordExceptionKeys(nil), templateToSchemaMapping(nil))
 }
 
 func TestPayloadDataForTransaction(t *testing.T) {

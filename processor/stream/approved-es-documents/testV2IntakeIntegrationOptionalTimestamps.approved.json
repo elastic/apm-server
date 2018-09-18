@@ -49,6 +49,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "trace": {
+                "id": "abcdefabcdef01234567890123456789"
+            },
             "transaction": {
                 "duration": {
                     "us": 12000
@@ -59,7 +62,6 @@
                 "span_count": {
                     "started": 14
                 },
-                "trace_id": "abcdefabcdef01234567890123456789",
                 "type": "request"
             }
         },
@@ -87,8 +89,10 @@
                 "start": {
                     "us": 10000
                 },
-                "trace_id": "abcdefabcdef01234567890123456789",
                 "type": "db"
+            },
+            "trace": {
+                "id": "abcdefabcdef01234567890123456789"
             },
             "transaction": {
                 "id": "fedcba0123456789"
