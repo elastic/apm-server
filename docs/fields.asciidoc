@@ -476,6 +476,28 @@ The transaction ID.
 
 --
 
+
+*`trace.id`*::
++
+--
+type: keyword
+
+The ID of the trace to which the event belongs to.
+
+
+--
+
+
+*`parent.id`*::
++
+--
+type: keyword
+
+The ID of the parent event.
+
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
@@ -513,26 +535,6 @@ Data captured by an agent representing an event occurring in a monitored service
 type: keyword
 
 The ID of the error.
-
-
---
-
-*`error.trace_id`*::
-+
---
-type: keyword
-
-The ID of the correlated trace.
-
-
---
-
-*`error.parent_id`*::
-+
---
-type: keyword
-
-The ID of the parent transaction or span.
 
 
 --
@@ -794,26 +796,6 @@ Deprecated (>= 6.5). The locally unique ID of the parent of the span.
 
 --
 
-*`span.trace_id`*::
-+
---
-type: keyword
-
-The ID of the correlated trace.
-
-
---
-
-*`span.parent_id`*::
-+
---
-type: keyword
-
-The ID of the parent transaction or span.
-
-
---
-
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 
@@ -911,26 +893,6 @@ Transactions that are 'sampled' will include all available information. Transact
 type: long
 
 The total amount of dropped spans for this transaction.
-
---
-
-*`transaction.trace_id`*::
-+
---
-type: keyword
-
-The ID of the correlated trace.
-
-
---
-
-*`transaction.parent_id`*::
-+
---
-type: keyword
-
-The ID of the parent transaction or span.
-
 
 --
 

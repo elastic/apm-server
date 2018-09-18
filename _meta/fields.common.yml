@@ -267,7 +267,6 @@
       type: group
       dynamic: false
       fields:
-
         - name: id
           type: keyword
           description: >
@@ -280,3 +279,21 @@
               value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'transaction.id:%22{{value}}%22')))"
             - min_version: 6.0.0-alpha1
               value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'transaction.id:{{value}}'))"
+
+    - name: trace 
+      type: group
+      dynamic: false
+      fields:
+        - name: id
+          type: keyword
+          description: >
+             The ID of the trace to which the event belongs to.
+
+    - name: parent 
+      type: group
+      dynamic: false
+      fields:
+        - name: id
+          type: keyword
+          description: >
+             The ID of the parent event.
