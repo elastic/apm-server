@@ -28,7 +28,7 @@ import (
 
 func spanProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &tests.V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
+		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
 		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
 		Schema:          schema.ModelSchema,
 		TemplatePaths: []string{

@@ -28,7 +28,7 @@ import (
 
 func metricProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &tests.V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
+		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
 		FullPayloadPath: "../testdata/intake-v2/metrics.ndjson",
 		TemplatePaths: []string{
 			"../../../model/metric/_meta/fields.yml",

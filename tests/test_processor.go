@@ -18,16 +18,9 @@
 package tests
 
 import (
-	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
-	"io"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/beat"
@@ -70,79 +63,5 @@ func (p *V1TestProcessor) Process(buf []byte) ([]beat.Event, error) {
 	for _, transformable := range transformables {
 		events = append(events, transformable.Transform(&transform.Context{Metadata: *metadata})...)
 	}
-	return events, nil
-}
-
-type V2TestProcessor struct {
-	stream.StreamProcessor
-}
-
-func (p *V2TestProcessor) LoadPayload(path string) (interface{}, error) {
-	reader, err := loader.LoadDataAsStream(path)
-	if err != nil {
-		return nil, err
-	}
-	ndjson := decoder.NewNDJSONStreamReader(reader, 100*1024)
-
-	// read metadata
-	ndjson.Read()
-
-	var e map[string]interface{}
-	var events []interface{}
-	for err != io.EOF {
-		e, err = ndjson.Read()
-		if err != nil && err != io.EOF {
-			return events, err
-		}
-		if e != nil {
-			events = append(events, e)
-		}
-	}
-	return events, nil
-}
-
-func (p *V2TestProcessor) Decode(data interface{}) error {
-	events := data.([]interface{})
-	for _, e := range events {
-		_, err := p.StreamProcessor.HandleRawModel(e.(map[string]interface{}))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (p *V2TestProcessor) Validate(data interface{}) error {
-	events := data.([]interface{})
-	for _, e := range events {
-		_, err := p.StreamProcessor.HandleRawModel(e.(map[string]interface{}))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (p *V2TestProcessor) Process(buf []byte) ([]beat.Event, error) {
-	ndjsonreader := decoder.NewNDJSONStreamReader(bytes.NewBuffer(buf), 100*1024)
-
-	var reqs []publish.PendingReq
-	report := TestReporter(&reqs)
-
-	result := p.HandleStream(context.TODO(), nil, ndjsonreader, report)
-	var events []beat.Event
-	for _, req := range reqs {
-		if req.Transformables != nil {
-			for _, transformable := range req.Transformables {
-				events = append(events, transformable.Transform(req.Tcontext)...)
-			}
-		}
-	}
-
-	if len(result.Errors) > 0 {
-		return events, errors.New(result.String())
-	}
-
 	return events, nil
 }
