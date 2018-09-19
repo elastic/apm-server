@@ -423,8 +423,8 @@ const ModelSchema = `{
         {  
             "properties": {
                 "id": {
-                    "type": ["string", "null"],
-                    "description": "Hex encoded 64 random bits ID of the error.",
+                    "type": ["string"],
+                    "description": "Hex encoded 128 random bits ID of the error.",
                     "maxLength": 1024
                 },
                 "trace_id": {
@@ -442,7 +442,8 @@ const ModelSchema = `{
                     "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            }
+            },
+            "required": ["id"]
         }
     ]
 }

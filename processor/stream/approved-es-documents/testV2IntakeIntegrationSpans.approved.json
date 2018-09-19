@@ -23,7 +23,9 @@
                     "us": 141581
                 },
                 "hex_id": "abcdef01234567",
+                "id": -9175013389437287000,
                 "name": "GET /api/types",
+                "parent": 3156441702022342700,
                 "start": {
                     "us": 0
                 },
@@ -58,8 +60,10 @@
                 "duration": {
                     "us": 32592
                 },
-                "hex_id": "1234abcdef56789568",
+                "hex_id": "1234abcdef567895",
+                "id": -7911509744411052000,
                 "name": "GET /api/types",
+                "parent": -9223372036568445000,
                 "start": {
                     "us": 0
                 },
@@ -95,7 +99,9 @@
                     "us": 3564
                 },
                 "hex_id": "0123456a89012345",
+                "id": -9141386494764572000,
                 "name": "GET /api/types",
+                "parent": 3156442435030055000,
                 "start": {
                     "us": 1845
                 },
@@ -131,7 +137,9 @@
                     "us": 13980
                 },
                 "hex_id": "abcde56a89012345",
+                "id": 3156431159584433000,
                 "name": "get /api/types",
+                "parent": 3146835049025875000,
                 "start": {
                     "us": 0
                 },
@@ -176,7 +184,9 @@
                     "us": 3781
                 },
                 "hex_id": "1234567890aaaade",
+                "id": -7911603569559950000,
                 "name": "SELECT FROM product_types",
+                "parent": 3156441702022342700,
                 "stacktrace": [
                     {
                         "exclude_from_grouping": false,

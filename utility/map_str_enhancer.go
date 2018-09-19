@@ -47,6 +47,12 @@ func Add(m common.MapStr, key string, val interface{}) {
 		} else {
 			delete(m, key)
 		}
+	case *int64:
+		if newVal := val.(*int64); newVal != nil {
+			m[key] = *newVal
+		} else {
+			delete(m, key)
+		}
 	case *string:
 		if value != nil {
 			m[key] = *value
