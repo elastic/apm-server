@@ -39,8 +39,14 @@ func transactionProcSetup() *tests.ProcessorSetup {
 }
 
 func transactionPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet("span.stacktrace", tests.Group("transaction.marks."), tests.Group("context.db"),
-		"context.http", "context.http.url"))
+	return tests.Union(s, tests.NewSet(
+		tests.Group("transaction.marks."),
+		tests.Group("context.db"),
+		"span.stacktrace",
+		"context.http",
+		"context.http.url",
+		"transaction.span_count.started",
+	))
 }
 
 func transactionFieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
@@ -114,7 +120,11 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 	transactionProcSetup().KeywordLimitation(
 		t,
 		transactionKeywordExceptionKeys(metadataFields()),
-		map[string]string{"transaction.": ""},
+		map[string]string{
+			"transaction.": "",
+			"parent.id":    "parent_id",
+			"trace.id":     "trace_id",
+		},
 	)
 }
 

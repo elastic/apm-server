@@ -61,7 +61,6 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		Group("context.request.body"),
 		Group("context.response.headers"),
 		"context.process.argv",
-		"context.db*",
 	))
 
 	notInFields = Union(disabled, notInFields)

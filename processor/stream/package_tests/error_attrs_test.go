@@ -44,20 +44,6 @@ func errorPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
 		"error.exception.attributes.foo",
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
-		// tests.Group("context.request"),
-		"context.response.headers.content-type",
-		"context.response.headers_sent",
-		"context.request.headers.user-agent",
-		"context.request.socket.encrypted",
-		"context.request.headers.array",
-		"context.request.headers.content-type",
-		"context.request.socket.remote_address",
-		"context.request.headers.some-other-header",
-		"context.request.headers.cookie",
-
-		tests.Group("context.custom"),
-		tests.Group("context.request.env"),
-		tests.Group("context.request.cookies"),
 	))
 }
 
@@ -120,7 +106,7 @@ func errorCondRequiredKeys(c map[string]tests.Condition) map[string]tests.Condit
 func errorKeywordExceptionKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"processor.event", "processor.name", "listening", "error.grouping_key",
-		"error.id", "transaction.id", "context.tags", "error.parent_id", "error.trace_id",
+		"context.tags",
 		"view errors", "error id icon",
 	))
 }
@@ -144,7 +130,12 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 	errorProcSetup().KeywordLimitation(
 		t,
 		errorKeywordExceptionKeys(metadataFields()),
-		map[string]string{"error.": ""},
+		map[string]string{
+			"error.":         "",
+			"transaction.id": "transaction_id",
+			"parent.id":      "parent_id",
+			"trace.id":       "trace_id",
+		},
 	)
 }
 

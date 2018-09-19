@@ -106,14 +106,7 @@ func (p *V2TestProcessor) Decode(data interface{}) error {
 }
 
 func (p *V2TestProcessor) Validate(data interface{}) error {
-	events := data.([]interface{})
-	for _, e := range events {
-		_, err := p.StreamProcessor.HandleRawModel(e.(map[string]interface{}))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return p.Decode(data)
 }
 
 func (p *V2TestProcessor) Process(buf []byte) ([]beat.Event, error) {

@@ -55,11 +55,11 @@ func spanFieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 		"listening", "view spans", "context.user.user-agent",
 		"context.user.ip", "context.system.ip",
 		"span.parent", // from v1
-		tests.Group("context.request"),
-		tests.Group("context.service"),
-		tests.Group("context.user"),
-		tests.Group("context.process"),
-		tests.Group("context.response"),
+		tests.Group("context.request.url"),
+		// tests.Group("context.service"),
+		// tests.Group("context.user"),
+		// tests.Group("context.process"),
+		// tests.Group("context.response"),
 	))
 }
 
@@ -124,7 +124,8 @@ func spanKeywordExceptionKeys(s *tests.Set) *tests.Set {
 func TestSpanPayloadMatchFields(t *testing.T) {
 	spanProcSetup().PayloadAttrsMatchFields(t,
 		spanPayloadAttrsNotInFields(nil),
-		spanFieldsNotInPayloadAttrs(metadataFields()))
+		spanFieldsNotInPayloadAttrs(nil))
+
 }
 
 func TestSpanPayloadMatchJsonSchema(t *testing.T) {
@@ -142,8 +143,11 @@ func TestSpanKeywordLimitationOnTransactionAttrs(t *testing.T) {
 		t,
 		spanKeywordExceptionKeys(metadataFields()),
 		map[string]string{
+			// "asdasdas":       "asdasdsa",
 			"span.":          "",
 			"transaction.id": "transaction_id",
+			"parent.id":      "parent_id",
+			"trace.id":       "trace_id",
 			"span.hex_id":    "id",
 		},
 	)

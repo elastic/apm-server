@@ -194,6 +194,8 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 	require.NoError(t, err)
 	flattenSchemaNames(schemaStruct, "", maxLengthFilter, schemaKeys)
 
+	t.Log("Schema keys:", schemaKeys.Array())
+
 	keywordFields = differenceWithGroup(keywordFields, keywordExceptionKeys)
 
 	for _, k := range keywordFields.Array() {
@@ -355,10 +357,7 @@ func iterateMap(m interface{}, prefix, fnKey, xKey string, val interface{}, fn f
 				ma[k] = fn(ma[k], xKey, val)
 			}
 		}
-		// if len(ma) > 0 {
 		return ma
-		// }
-		// return nil
 	} else if d, ok := m.([]interface{}); ok {
 		var ma []interface{}
 		for _, i := range d {
