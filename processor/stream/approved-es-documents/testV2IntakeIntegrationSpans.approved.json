@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-07-30T18:53:42.281Z",
             "context": {
                 "service": {
                     "agent": {
@@ -39,7 +39,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-07-30T18:53:42.281Z",
             "context": {
                 "service": {
                     "agent": {
@@ -50,7 +50,7 @@
                 }
             },
             "parent": {
-                "id": "0000000011111111"
+                "id": "abcdef0123456789"
             },
             "processor": {
                 "event": "span",
@@ -85,10 +85,13 @@
                         "version": "3.14.0"
                     },
                     "name": "backendspans"
+                },
+                "tags": {
+                    "tag1": "value1"
                 }
             },
             "parent": {
-                "id": "abcdefabcdef7890"
+                "id": "abcdef0123456789"
             },
             "processor": {
                 "event": "span",
@@ -126,7 +129,7 @@
                 }
             },
             "parent": {
-                "id": "ababcdcdefefabde"
+                "id": "abcdef0123456789"
             },
             "processor": {
                 "event": "span",

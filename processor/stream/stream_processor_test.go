@@ -94,7 +94,7 @@ func TestV2HandlerReportingStreamError(t *testing.T) {
 		require.NoError(t, err)
 		bodyReader := bytes.NewBuffer(b)
 
-		reader := decoder.NewNDJSONStreamReader(bodyReader, 1024)
+		reader := decoder.NewNDJSONStreamReader(bodyReader, 100*1024)
 
 		sp := StreamProcessor{}
 		actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, test.report)
