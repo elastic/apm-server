@@ -22,7 +22,6 @@ import (
 	"context"
 	"errors"
 	"io/ioutil"
-	"math"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -60,7 +59,7 @@ func BenchmarkStreamProcessor(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				r.Reset(data)
-				reader := decoder.NewNDJSONStreamReader(r, math.MaxInt32)
+				reader := decoder.NewNDJSONStreamReader(r, 100000)
 				b.StartTimer()
 				sp.HandleStream(ctx, map[string]interface{}{}, reader, report)
 			}
