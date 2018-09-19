@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"regexp"
 	"strings"
 	"testing"
@@ -195,14 +194,11 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 	require.NoError(t, err)
 	flattenSchemaNames(schemaStruct, "", maxLengthFilter, schemaKeys)
 
-	log.Println("schemaKeys", schemaKeys)
+	keywordFields = differenceWithGroup(keywordFields, keywordExceptionKeys)
 
 	for _, k := range keywordFields.Array() {
 		key := k.(string)
 
-		if keywordExceptionKeys.Contains(key) {
-			continue
-		}
 		for from, to := range templateToSchema {
 			if strings.HasPrefix(key, from) {
 				key = strings.Replace(key, from, to, 1)
@@ -211,14 +207,6 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 		}
 
 		assert.True(t, schemaKeys.Contains(key), "Expected <%s> (original: <%s>) to have the MaxLength limit set because it gets indexed as 'keyword'", key, k.(string))
-
-		// testAttrs := func(val interface{}, valid bool, msg string) {
-		// 	ps.changePayload(t, key, val, Condition{}, upsertFn,
-		// 		func(k string) (bool, []string) { return valid, []string{msg} })
-		// }
-
-		// testAttrs(createStr(1025, ""), false, "maxlength")
-		// testAttrs(createStr(1024, ""), true, "")
 	}
 }
 
