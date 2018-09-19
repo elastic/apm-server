@@ -186,8 +186,6 @@ func TestRateLimiting(t *testing.T) {
 	}{
 		{limit: 0, name: "DenyAll"},
 		{limit: 40, minTime: 0, name: "AllowAll"},
-		{limit: 10, hit: 10, minTime: time.Second, name: "SlowedDownBatch"},
-		{limit: 7, minTime: 600 * time.Millisecond, name: "AllowWithWait"},
 		{limit: 6, name: "Forbidden"},
 	} {
 		t.Run(test.name, func(t *testing.T) {

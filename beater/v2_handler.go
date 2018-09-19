@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -103,13 +102,6 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 	}
 }
 
-func (v *v2Handler) getContext(r *http.Request) context.Context {
-	if v.rlc == nil {
-		return r.Context()
-	}
-	return stream.ContextWithRateLimiter(r.Context(), v.rlc.getRateLimiter(utility.RemoteAddr(r)))
-}
-
 func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := requestLogger(r)
@@ -124,12 +116,27 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 			return
 		}
 
+		ctx := r.Context()
+		if v.rlc != nil {
+			rl := v.rlc.getRateLimiter(utility.RemoteAddr(r))
+			if !rl.Allow() {
+				sr := stream.Result{}
+				sr.Add(&stream.Error{
+					Type:    stream.RateLimitErrType,
+					Message: "rate limit exceeded",
+				})
+				v.sendResponse(logger, w, &sr)
+				return
+			}
+			ctx = stream.ContextWithRateLimiter(ctx, rl)
+		}
+
 		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxEventSize)
 		if err != nil {
 			// if we can't set up the ndjsonreader,
 			// we won't be able to make sense of the body
 			sr := stream.Result{}
-			sr.LimitedAdd(&stream.Error{
+			sr.Add(&stream.Error{
 				Type:    stream.InvalidInputErrType,
 				Message: err.Error(),
 			})
@@ -140,11 +147,11 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 		reqMeta, err := v.requestDecoder(r)
 		if err != nil {
 			sr := stream.Result{}
-			sr.LimitedAdd(err)
+			sr.Add(err)
 			v.sendResponse(logger, w, &sr)
 			return
 		}
-		res := v.streamProcessor.HandleStream(v.getContext(r), reqMeta, ndReader, report)
+		res := v.streamProcessor.HandleStream(ctx, reqMeta, ndReader, report)
 
 		v.sendResponse(logger, w, res)
 	})

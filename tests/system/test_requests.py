@@ -323,10 +323,10 @@ class RateLimitV2Test(ClientSideBaseTest):
         # all requests from the same ip
         # 4 events, batch size 10 => 10 events per requ
         # 8 * 10 = 80
-        codes = self.fire_events("events.ndjson", 9)
+        codes = self.fire_events("events.ndjson", 8)
         assert set(codes.keys()) == set([202, 429]), codes
         assert codes[429] == 1, codes
-        assert codes[202] == 8, codes
+        assert codes[202] == 7, codes
 
     def test_multiple_ips_rate_limit(self):
         # requests from 2 different ips
@@ -342,7 +342,7 @@ class RateLimitV2Test(ClientSideBaseTest):
 
     def test_multiple_ips_rate_limit_small_hit(self):
         # requests from 2 different ips
-        codes = self.fire_events("events.ndjson", 19, True)
+        codes = self.fire_events("events.ndjson", 17, True)
         assert set(codes.keys()) == set([202, 429]), codes
         assert codes[429] == 3, codes
-        assert codes[202] == 16, codes
+        assert codes[202] == 14, codes

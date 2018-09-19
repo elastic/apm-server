@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/pkg/errors"
@@ -110,25 +111,16 @@ func TestRequestIntegration(t *testing.T) {
 		{name: "FullQueue", code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
-			require.NoError(t, err)
-			bodyReader := bytes.NewBuffer(b)
-
-			req := httptest.NewRequest("POST", V2BackendURL, bodyReader)
-			req.Header.Add("Content-Type", "application/x-ndjson")
-
-			w := httptest.NewRecorder()
-
-			c := defaultConfig("7.0.0")
-			report := func(context.Context, publish.PendingReq) error {
-				return test.reportingErr
-			}
-			handler := (&v2BackendRoute).Handler(c, report)
-
 			ctSuccess := responseSuccesses.Get()
 			ctFailure := responseErrors.Get()
 			ct := test.counter.Get()
-			handler.ServeHTTP(w, req)
+
+			w, err := sendReq(defaultConfig("7.0.0"),
+				&v2BackendRoute,
+				V2BackendURL,
+				filepath.Join("../testdata/intake-v2/", test.path),
+				test.reportingErr)
+			require.NoError(t, err)
 
 			assert.Equal(t, test.code, w.Code, w.Body.String())
 			assert.Equal(t, ct+1, test.counter.Get())
@@ -138,7 +130,7 @@ func TestRequestIntegration(t *testing.T) {
 				assert.Equal(t, ctSuccess+1, responseSuccesses.Get())
 				assert.Equal(t, ctFailure, responseErrors.Get())
 			} else {
-				assert.Equal(t, w.HeaderMap.Get("Content-Type"), "application/json")
+				assert.Equal(t, "application/json", w.HeaderMap.Get("Content-Type"))
 				assert.Equal(t, ctSuccess, responseSuccesses.Get())
 				assert.Equal(t, ctFailure+1, responseErrors.Get())
 
@@ -147,6 +139,51 @@ func TestRequestIntegration(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRequestIntegrationRUM(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		code int
+		path string
+	}{
+		{name: "Success", code: http.StatusAccepted, path: "../testdata/intake-v2/errors.ndjson"},
+		{name: "RateLimit", code: http.StatusTooManyRequests, path: "../testdata/intake-v2/heavy.ndjson"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+
+			ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "event_rate": m{"limit": 9}}})
+			require.NoError(t, err)
+			c, err := newconfig("7.0.0", ucfg)
+			require.noerror(t, err)
+			w, err := sendReq(c, &v2RumRoute, V2RumURL, test.path, nil)
+			require.NoError(t, err)
+
+			require.Equal(t, test.code, w.Code, w.Body.String())
+			if test.code != http.StatusAccepted {
+				body := w.Body.Bytes()
+				tests.AssertApproveResult(t, "approved-stream-result/TestRequestIntegrationRum"+test.name, body)
+			}
+		})
+	}
+}
+
+func sendReq(c *Config, route *v2Route, url string, p string, repErr error) (*httptest.ResponseRecorder, error) {
+	b, err := loader.LoadDataAsBytes(p)
+	if err != nil {
+		return nil, err
+	}
+	req := httptest.NewRequest("POST", url, bytes.NewBuffer(b))
+	req.Header.Add("Content-Type", "application/x-ndjson")
+
+	report := func(context.Context, publish.PendingReq) error {
+		return repErr
+	}
+	handler := route.Handler(c, report)
+
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+	return w, nil
 }
 
 func TestV2WrongMethod(t *testing.T) {
