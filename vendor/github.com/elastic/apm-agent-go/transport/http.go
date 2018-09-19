@@ -12,9 +12,11 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-agent-go/internal/apmconfig"
 	"github.com/elastic/apm-agent-go/internal/fastjson"
 	"github.com/elastic/apm-agent-go/model"
 )
@@ -22,9 +24,11 @@ import (
 const (
 	transactionsPath = "/v1/transactions"
 	errorsPath       = "/v1/errors"
+	metricsPath      = "/v1/metrics"
 
 	envSecretToken      = "ELASTIC_APM_SECRET_TOKEN"
 	envServerURL        = "ELASTIC_APM_SERVER_URL"
+	envServerTimeout    = "ELASTIC_APM_SERVER_TIMEOUT"
 	envVerifyServerCert = "ELASTIC_APM_VERIFY_SERVER_CERT"
 
 	// gzipThresholdBytes is the minimum size of the uncompressed
@@ -36,6 +40,9 @@ var (
 	// Take a copy of the http.DefaultTransport pointer,
 	// in case another package replaces the value later.
 	defaultHTTPTransport = http.DefaultTransport.(*http.Transport)
+
+	defaultServerURL     = "http://localhost:8200"
+	defaultServerTimeout = 30 * time.Second
 )
 
 // HTTPTransport is an implementation of Transport, sending payloads via
@@ -45,6 +52,7 @@ type HTTPTransport struct {
 	baseURL         *url.URL
 	transactionsURL *url.URL
 	errorsURL       *url.URL
+	metricsURL      *url.URL
 	headers         http.Header
 	gzipHeaders     http.Header
 	jsonWriter      fastjson.Writer
@@ -58,9 +66,9 @@ type HTTPTransport struct {
 //
 // If the URL specified is the empty string, then NewHTTPTransport will use the
 // value of the ELASTIC_APM_SERVER_URL environment variable, if defined; if
-// the environment variable is also undefined, then an error will be returned.
-// The URL must be the base server URL, excluding any transactions or errors
-// path. e.g. "http://elastic-apm.example:8200".
+// the environment variable is also undefined, then the transport will use the
+// default URL "http://localhost:8200". The URL must be the base server URL,
+// excluding any transactions or errors path. e.g. "http://server.example:8200".
 //
 // If the secret token specified is the empty string, then NewHTTPTransport
 // will use the value of the ELASTIC_APM_SECRET_TOKEN environment variable, if
@@ -77,9 +85,7 @@ func NewHTTPTransport(serverURL, secretToken string) (*HTTPTransport, error) {
 	if serverURL == "" {
 		serverURL = os.Getenv(envServerURL)
 		if serverURL == "" {
-			return nil, errors.Errorf(
-				"URL not specified, and $%s not set", envServerURL,
-			)
+			serverURL = defaultServerURL
 		}
 	}
 	req, err := http.NewRequest("POST", serverURL, nil)
@@ -103,6 +109,14 @@ func NewHTTPTransport(serverURL, secretToken string) (*HTTPTransport, error) {
 		}
 	}
 
+	timeout, err := apmconfig.ParseDurationEnv(envServerTimeout, "s", defaultServerTimeout)
+	if err != nil {
+		return nil, err
+	}
+	if timeout > 0 {
+		client.Timeout = timeout
+	}
+
 	headers := make(http.Header)
 	headers.Set("Content-Type", "application/json")
 	if secretToken == "" {
@@ -123,11 +137,19 @@ func NewHTTPTransport(serverURL, secretToken string) (*HTTPTransport, error) {
 		baseURL:         req.URL,
 		transactionsURL: urlWithPath(req.URL, transactionsPath),
 		errorsURL:       urlWithPath(req.URL, errorsPath),
+		metricsURL:      urlWithPath(req.URL, metricsPath),
 		headers:         headers,
 		gzipHeaders:     gzipHeaders,
 	}
 	t.gzipWriter = gzip.NewWriter(&t.gzipBuffer)
 	return t, nil
+}
+
+// SetUserAgent sets the User-Agent header that will be
+// sent with each request.
+func (t *HTTPTransport) SetUserAgent(ua string) {
+	t.headers.Set("User-Agent", ua)
+	t.gzipHeaders.Set("User-Agent", ua)
 }
 
 // SendTransactions sends the transactions payload over HTTP.
@@ -144,6 +166,14 @@ func (t *HTTPTransport) SendErrors(ctx context.Context, p *model.ErrorsPayload) 
 	p.MarshalFastJSON(&t.jsonWriter)
 	req := requestWithContext(ctx, t.newErrorsRequest())
 	return t.sendPayload(req, "SendErrors")
+}
+
+// SendMetrics sends the metrics payload over HTTP.
+func (t *HTTPTransport) SendMetrics(ctx context.Context, p *model.MetricsPayload) error {
+	t.jsonWriter.Reset()
+	p.MarshalFastJSON(&t.jsonWriter)
+	req := requestWithContext(ctx, t.newMetricsRequest())
+	return t.sendPayload(req, "SendMetrics")
 }
 
 func (t *HTTPTransport) sendPayload(req *http.Request, op string) error {
@@ -169,11 +199,12 @@ func (t *HTTPTransport) sendPayload(req *http.Request, op string) error {
 	if err != nil {
 		return errors.Wrapf(err, "sending request for %s failed", op)
 	}
-	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK, http.StatusAccepted:
+		resp.Body.Close()
 		return nil
 	}
+	defer resp.Body.Close()
 
 	// apm-server will return 503 Service Unavailable
 	// if the data cannot be published to Elasticsearch,
@@ -196,6 +227,10 @@ func (t *HTTPTransport) newTransactionsRequest() *http.Request {
 
 func (t *HTTPTransport) newErrorsRequest() *http.Request {
 	return t.newRequest(t.errorsURL)
+}
+
+func (t *HTTPTransport) newMetricsRequest() *http.Request {
+	return t.newRequest(t.metricsURL)
 }
 
 func (t *HTTPTransport) newRequest(url *url.URL) *http.Request {

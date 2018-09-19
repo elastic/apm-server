@@ -24,7 +24,7 @@ func Wrap(h http.Handler, o ...ServerOption) http.Handler {
 		handler:        h,
 		tracer:         elasticapm.DefaultTracer,
 		requestName:    ServerRequestName,
-		requestIgnorer: ignoreNone,
+		requestIgnorer: DefaultServerRequestIgnorer(),
 	}
 	for _, o := range o {
 		o(handler)
@@ -53,9 +53,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h.handler.ServeHTTP(w, req)
 		return
 	}
-	tx := h.tracer.StartTransaction(h.requestName(req), "request")
-	ctx := elasticapm.ContextWithTransaction(req.Context(), tx)
-	req = RequestWithContext(ctx, req)
+	tx, req := StartTransaction(h.tracer, h.requestName(req), req)
 	defer tx.End()
 
 	finished := false
@@ -70,6 +68,25 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}()
 	h.handler.ServeHTTP(w, req)
 	finished = true
+}
+
+// StartTransaction returns a new Transaction with name,
+// created with tracer, and taking trace context from req.
+//
+// If the transaction is not ignored, the request will be
+// returned with the transaction added to its context.
+func StartTransaction(tracer *elasticapm.Tracer, name string, req *http.Request) (*elasticapm.Transaction, *http.Request) {
+	var opts elasticapm.TransactionOptions
+	if v := req.Header.Get(TraceparentHeader); v != "" {
+		c, err := ParseTraceparentHeader(v)
+		if err == nil {
+			opts.TraceContext = c
+		}
+	}
+	tx := tracer.StartTransactionOptions(name, "request", opts)
+	ctx := elasticapm.ContextWithTransaction(req.Context(), tx)
+	req = RequestWithContext(ctx, req)
+	return tx, req
 }
 
 // SetTransactionContext sets tx.Result and, if the transaction is being
@@ -212,10 +229,6 @@ type responseWriterHijackerPusher struct {
 	http.Pusher
 }
 
-func ignoreNone(*http.Request) bool {
-	return false
-}
-
 // ServerOption sets options for tracing server requests.
 type ServerOption func(*handler)
 
@@ -265,7 +278,7 @@ type RequestIgnorerFunc func(*http.Request) bool
 // be ignored. If r is nil, all requests will be reported.
 func WithServerRequestIgnorer(r RequestIgnorerFunc) ServerOption {
 	if r == nil {
-		r = ignoreNone
+		r = IgnoreNone
 	}
 	return func(h *handler) {
 		h.requestIgnorer = r
