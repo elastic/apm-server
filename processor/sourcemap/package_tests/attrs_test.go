@@ -35,7 +35,7 @@ var (
 )
 
 func TestPayloadAttrsMatchFields(t *testing.T) {
-	procSetup.PayloadAttrsMatchFields(t, tests.NewSet("sourcemap"), tests.NewSet())
+	procSetup.PayloadAttrsMatchFields(t, tests.NewSet("sourcemap.sourcemap"), tests.NewSet())
 }
 
 func TestPayloadAttrsMatchJsonSchema(t *testing.T) {

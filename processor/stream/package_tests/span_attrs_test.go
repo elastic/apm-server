@@ -46,21 +46,17 @@ func spanPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
 		"context.http",
 		"context.http.url",
 		"context.tags.tag1",
-		// "span.parent"
 	))
 }
 
 func spanFieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
-		"listening", "view spans", "context.user.user-agent",
-		"context.user.ip", "context.system.ip",
+	return tests.Union(s, tests.Union(tests.NewSet(
+		"listening",
+		"view spans",
 		"span.parent", // from v1
-		tests.Group("context.request.url"),
-		// tests.Group("context.service"),
-		// tests.Group("context.user"),
-		// tests.Group("context.process"),
-		// tests.Group("context.response"),
-	))
+
+		// not valid for the span context
+	), transactionContext()))
 }
 
 func spanPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
@@ -97,28 +93,23 @@ func spanRequiredKeys(s *tests.Set) *tests.Set {
 	))
 }
 
+func transactionContext() *tests.Set {
+	return tests.NewSet(
+		tests.Group("context.request.url"),
+		tests.Group("context.service"),
+		tests.Group("context.user"),
+		tests.Group("context.process"),
+		tests.Group("context.response"),
+		tests.Group("context.request"),
+		tests.Group("context.system"),
+	)
+}
+
 func spanKeywordExceptionKeys(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+	return tests.Union(s, tests.Union(tests.NewSet(
 		"processor.event", "processor.name", "listening",
-		"transaction.marks",
 		"context.tags",
-		"hex_id",
-		// tests.Group("context.user"),
-		// tests.Group("context.request"),
-		"context.user.email",
-		"context.user.id",
-		"context.user.username",
-		"context.request.url.pathname",
-		"context.request.url.protocol",
-		"context.request.url.hash",
-		"context.request.url.raw",
-		"context.request.url.full",
-		"context.request.url.hostname",
-		"context.request.url.search",
-		"context.request.url.port",
-		"context.request.http_version",
-		"context.request.method",
-	))
+	), transactionContext()))
 }
 
 func TestSpanPayloadMatchFields(t *testing.T) {
@@ -134,21 +125,21 @@ func TestSpanPayloadMatchJsonSchema(t *testing.T) {
 		spanJsonSchemaNotInPayloadAttrs(nil), "span")
 }
 
-func TestSpanAttrsPresenceInTransaction(t *testing.T) {
+func TestAttrsPresenceInSpan(t *testing.T) {
 	spanProcSetup().AttrsPresence(t, spanRequiredKeys(nil), nil)
 }
 
-func TestSpanKeywordLimitationOnTransactionAttrs(t *testing.T) {
+func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 	spanProcSetup().KeywordLimitation(
 		t,
-		spanKeywordExceptionKeys(metadataFields()),
+		spanKeywordExceptionKeys(nil),
 		map[string]string{
-			// "asdasdas":       "asdasdsa",
-			"span.":          "",
 			"transaction.id": "transaction_id",
 			"parent.id":      "parent_id",
 			"trace.id":       "trace_id",
 			"span.hex_id":    "id",
+			"span.name":      "name",
+			"span.type":      "type",
 		},
 	)
 }
