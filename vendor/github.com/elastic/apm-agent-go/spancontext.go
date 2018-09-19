@@ -1,6 +1,8 @@
 package elasticapm
 
 import (
+	"net/http"
+
 	"github.com/elastic/apm-agent-go/model"
 )
 
@@ -8,6 +10,7 @@ import (
 type SpanContext struct {
 	model    model.SpanContext
 	database model.DatabaseSpanContext
+	http     model.HTTPSpanContext
 }
 
 // DatabaseSpanContext holds database span context.
@@ -29,6 +32,7 @@ type DatabaseSpanContext struct {
 func (c *SpanContext) build() *model.SpanContext {
 	switch {
 	case c.model.Database != nil:
+	case c.model.HTTP != nil:
 	default:
 		return nil
 	}
@@ -43,4 +47,13 @@ func (c *SpanContext) reset() {
 func (c *SpanContext) SetDatabase(db DatabaseSpanContext) {
 	c.database = model.DatabaseSpanContext(db)
 	c.model.Database = &c.database
+}
+
+// SetHTTPRequest sets the details of the HTTP request in the context.
+//
+// This function relates to client requests. If the request URL contains
+// user info, it will be removed and excluded from the stored URL.
+func (c *SpanContext) SetHTTPRequest(req *http.Request) {
+	c.http.URL = req.URL
+	c.model.HTTP = &c.http
 }

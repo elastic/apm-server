@@ -3,6 +3,7 @@
 package elasticapm
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -14,13 +15,12 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-agent-go/internal/apmschema"
 	"github.com/elastic/apm-agent-go/internal/fastjson"
 	"github.com/elastic/apm-agent-go/model"
 	"github.com/elastic/apm-agent-go/stacktrace"
-	"github.com/elastic/apm-server/processor"
-	error_processor "github.com/elastic/apm-server/processor/error"
-	transaction_processor "github.com/elastic/apm-server/processor/transaction"
 )
 
 func Fuzz(data []byte) int {
@@ -129,9 +129,6 @@ func Fuzz(data []byte) int {
 			return 0
 		}
 		for _, s := range t.Spans {
-			if s == nil {
-				continue
-			}
 			span := tx.StartSpan(s.Name, s.Type, nil)
 			span.Timestamp = tx.Timestamp.Add(time.Duration(s.Start * float64(time.Millisecond)))
 			if s.Context != nil && s.Context.Database != nil {
@@ -228,26 +225,26 @@ type gofuzzTransport struct {
 func (t *gofuzzTransport) SendErrors(ctx context.Context, payload *model.ErrorsPayload) error {
 	t.writer.Reset()
 	payload.MarshalFastJSON(&t.writer)
-	t.process(error_processor.NewProcessor())
+	t.validate(apmschema.Errors)
+	return nil
+}
+
+func (t *gofuzzTransport) SendMetrics(ctx context.Context, payload *model.MetricsPayload) error {
+	t.writer.Reset()
+	payload.MarshalFastJSON(&t.writer)
+	t.validate(apmschema.Metrics)
 	return nil
 }
 
 func (t *gofuzzTransport) SendTransactions(ctx context.Context, payload *model.TransactionsPayload) error {
 	t.writer.Reset()
 	payload.MarshalFastJSON(&t.writer)
-	t.process(transaction_processor.NewProcessor())
+	t.validate(apmschema.Transactions)
 	return nil
 }
 
-func (t *gofuzzTransport) process(p processor.Processor) {
-	raw := make(map[string]interface{})
-	if err := json.Unmarshal(t.writer.Bytes(), &raw); err != nil {
-		panic(err)
-	}
-	if err := p.Validate(raw); err != nil {
-		panic(err)
-	}
-	if _, err := p.Decode(raw); err != nil {
+func (t *gofuzzTransport) validate(schema *jsonschema.Schema) {
+	if err := schema.Validate(bytes.NewReader(t.writer.Bytes())); err != nil {
 		panic(err)
 	}
 }
