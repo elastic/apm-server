@@ -105,7 +105,6 @@ func keywordExceptionKeys(s *tests.Set) *tests.Set {
 
 func templateToSchemaMapping(mapping map[string]string) map[string]string {
 	return map[string]string{
-		"context.agent.":   "agent.",
 		"context.system.":  "system.",
 		"context.process.": "process.",
 		"context.service.": "service.",

@@ -65,7 +65,3 @@
                 - name: total
                   type: long
                   description: The total amount of dropped spans for this transaction.
-
-            - name: started
-              type: long
-              description: The total amount of spans sent for this transaction. Unsampled transactions will have zero started spans.
