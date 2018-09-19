@@ -42,21 +42,6 @@ type TestSetup struct {
 func metadataFields() *tests.Set {
 	return tests.NewSet(
 		// metadata fields
-		// "context.system",
-		// "context.service.language.name",
-		// "context.system.architecture",
-		// "context.service.language.version",
-		// "context.service.framework.name",
-		// "context.service.environment",
-		// "context.service.framework.version",
-		// "context.service.name",
-		// "context.system.platform",
-		// "context.system.hostname",
-		// "context.service.version",
-		// "context.service.runtime.name",
-		// "context.service.agent.name",
-		// "context.service.agent.version",
-		// "context.service.runtime.version",
 		"context.process.title",
 
 		tests.Group("context.service"),
