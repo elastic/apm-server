@@ -428,22 +428,30 @@ const ModelSchema = `{
                     "maxLength": 1024
                 },
                 "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "description": "Hex encoded 128 random bits ID of the correlated trace. Must be present if transaction_id and parent_id are set.", 
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "transaction_id": {
                     "type": ["string", "null"],
-                    "description": "Hex encoded 64 random bits ID of the correlated transaction.",
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction. Must be present if trace_id and parent_id are set.",
                     "maxLength": 1024
                 },
                 "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.", 
                     "type": ["string", "null"],
                     "maxLength": 1024
                 }
             },
-            "required": ["id"]
+            "oneOf": [
+                { "required": ["id", "trace_id", "transaction_id", "parent_id"] },
+                { "allOf": [
+                    { "required": ["id"] },
+                    { "not": { "required": ["trace_id"] }},
+                    { "not": { "required": ["transaction_id"] }},
+                    { "not": { "required": ["parent_id"] }}
+                ]}
+            ]
         }
     ]
 }
