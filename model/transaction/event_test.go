@@ -32,15 +32,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestTransactionEventDecode(t *testing.T) {
-	id, trType, name, result := "123", "type", "foo()", "555"
-	duration := 1.67
-	context := map[string]interface{}{"a": "b"}
-	marks := map[string]interface{}{"k": "b"}
-	timestamp := "2017-05-30T18:53:27.154Z"
-	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
-	sampled := true
-
+func TestTransactionEventDecodeFailure(t *testing.T) {
 	for _, test := range []struct {
 		input       interface{}
 		err, inpErr error
@@ -54,82 +46,135 @@ func TestTransactionEventDecode(t *testing.T) {
 			err:   errors.New("Error fetching field"),
 			e:     nil,
 		},
-		{
-			input: map[string]interface{}{
-				"id": id, "type": trType, "name": name, "result": result,
-				"duration": duration, "timestamp": timestamp,
-				"context": context, "marks": marks, "sampled": sampled},
-			err: nil,
-			e: &Event{
-				Id: id, Type: trType, Name: &name, Result: &result,
-				Duration: duration, Timestamp: timestampParsed,
-				Context: context, Marks: marks, Sampled: &sampled,
-			},
-		},
 	} {
 		for _, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
 			transformable, err := decodeFct(test.input, test.inpErr)
+			assert.Equal(t, test.err, err)
 			if test.e != nil {
 				event := transformable.(*Event)
 				assert.Equal(t, test.e, event)
 			} else {
 				assert.Nil(t, transformable)
 			}
-			assert.Equal(t, test.err, err)
 		}
 
 	}
 }
 
-func TestVersionedTransactionEventDecode(t *testing.T) {
-	id, trType, duration := "123", "type", 1.67
+func TestTransactionEventDecodeV1(t *testing.T) {
+	id, trType, name, result := "123", "type", "foo()", "555"
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
-	dropped, startedSpans := 12, 148
+	dropped, duration := 12, 1.67
+	context := map[string]interface{}{"a": "b"}
+	marks := map[string]interface{}{"k": "b"}
+	sampled := true
 
-	// test V1
-	input := map[string]interface{}{
-		"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
-		"parent_id": parentId, "trace_id": traceId,
-		"spans": []interface{}{
-			map[string]interface{}{
-				"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+	for _, test := range []struct {
+		input interface{}
+		e     *Event
+	}{
+		// minimal event
+		{input: map[string]interface{}{
+			"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+		},
+			e: &Event{
+				Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
 			},
 		},
-		"span_count": map[string]interface{}{"dropped": map[string]interface{}{"total": 12.0}},
-	}
-	e := &Event{
-		Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
-		Spans: []*span.Event{
-			&span.Event{Name: "span", Type: "db", Start: 1.2, Duration: 2.3,
-				TransactionId: &id, Timestamp: timestampParsed},
-		},
-		SpanCount: SpanCount{Dropped: &dropped},
-	}
-	transformable, err := V1DecodeEvent(input, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, e, transformable.(*Event))
-
-	// test V2
-	input = map[string]interface{}{
-		"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
-		"parent_id": parentId, "trace_id": traceId,
-		"spans": []interface{}{
-			map[string]interface{}{
-				"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+		// full event, ignoring v2 attrs
+		{
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": name, "result": result,
+				"duration": duration, "timestamp": timestamp,
+				"context": context, "marks": marks, "sampled": sampled,
+				"parent_id": parentId, "trace_id": traceId,
+				"spans": []interface{}{
+					map[string]interface{}{
+						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+					}},
+				"span_count": map[string]interface{}{"dropped": map[string]interface{}{"total": 12.0}}},
+			e: &Event{
+				Id: id, Type: trType, Name: &name, Result: &result,
+				Duration: duration, Timestamp: timestampParsed,
+				Context: context, Marks: marks, Sampled: &sampled,
+				SpanCount: SpanCount{Dropped: &dropped},
+				Spans: []*span.Event{
+					&span.Event{Name: "span", Type: "db", Start: 1.2, Duration: 2.3, TransactionId: id, Timestamp: timestampParsed},
+				},
 			},
 		},
-		"span_count": map[string]interface{}{"dropped": 12.0, "started": 148.0},
+	} {
+		transformable, err := V1DecodeEvent(test.input, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, test.e, transformable.(*Event))
 	}
-	e = &Event{
-		Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
-		TraceId: &traceId, ParentId: &parentId,
-		SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
+}
+
+func TestTransactionEventDecodeV2(t *testing.T) {
+	id, trType, name, result := "123", "type", "foo()", "555"
+	timestamp := "2017-05-30T18:53:27.154Z"
+	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
+	dropped, started, duration := 12, 6, 1.67
+	context := map[string]interface{}{"a": "b"}
+	marks := map[string]interface{}{"k": "b"}
+	sampled := true
+
+	for _, test := range []struct {
+		input interface{}
+		err   error
+		e     *Event
+	}{
+		// traceId missing
+		{
+			input: map[string]interface{}{
+				"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+				"span_count": map[string]interface{}{"started": 6.0}},
+			err: errors.New("Error fetching field"),
+		},
+		// minimal event
+		{
+			input: map[string]interface{}{
+				"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+				"trace_id": traceId, "span_count": map[string]interface{}{"started": 6.0}},
+			e: &Event{
+				Id: id, Type: trType, TraceId: traceId,
+				Duration: duration, Timestamp: timestampParsed,
+				SpanCount: SpanCount{Started: &started},
+			},
+		},
+		// full event, ignoring spans
+		{
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": name, "result": result,
+				"duration": duration, "timestamp": timestamp,
+				"context": context, "marks": marks, "sampled": sampled,
+				"parent_id": parentId, "trace_id": traceId,
+				"spans": []interface{}{
+					map[string]interface{}{
+						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
+					}},
+				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0}},
+			e: &Event{
+				Id: id, Type: trType, Name: &name, Result: &result,
+				ParentId: &parentId, TraceId: traceId,
+				Duration: duration, Timestamp: timestampParsed,
+				Context: context, Marks: marks, Sampled: &sampled,
+				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
+			},
+		},
+	} {
+		transformable, err := V2DecodeEvent(test.input, nil)
+		assert.Equal(t, test.err, err)
+		if test.e != nil {
+			event := transformable.(*Event)
+			assert.Equal(t, test.e, event)
+		} else {
+			assert.Nil(t, transformable)
+		}
 	}
-	transformable, err = V2DecodeEvent(input, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, e, transformable.(*Event))
 }
 
 func TestEventTransform(t *testing.T) {

@@ -68,7 +68,7 @@ type Event struct {
 
 	//v2
 	ParentId *string
-	TraceId  *string
+	TraceId  string
 
 	// deprecated in V2
 	Spans []*span.Event
@@ -100,8 +100,8 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 				sp.Timestamp = e.Timestamp
 			}
 
-			if sp.TransactionId == nil || *sp.TransactionId == "" {
-				sp.TransactionId = &e.Id
+			if sp.TransactionId == "" {
+				sp.TransactionId = e.Id
 			}
 		}
 
@@ -119,8 +119,11 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
 		Started: decoder.IntPtr(raw, "started", "span_count")}
 	e.ParentId = decoder.StringPtr(raw, "parent_id")
-	e.TraceId = decoder.StringPtr(raw, "trace_id")
-	return e, decoder.Err
+	e.TraceId = decoder.String(raw, "trace_id")
+	if decoder.Err != nil {
+		return nil, decoder.Err
+	}
+	return e, nil
 }
 
 func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
@@ -191,7 +194,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"context":          tctx.Metadata.Merge(e.Context),
 	}
 	utility.AddId(fields, "parent", e.ParentId)
-	utility.AddId(fields, "trace", e.TraceId)
+	utility.AddId(fields, "trace", &e.TraceId)
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
 	spanCounter.Add(int64(len(e.Spans)))

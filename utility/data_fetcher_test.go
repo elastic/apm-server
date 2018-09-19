@@ -107,6 +107,21 @@ func TestIntPtr(t *testing.T) {
 	}
 }
 
+func TestInt64Ptr(t *testing.T) {
+	var outnil *int64
+	int64Fl64 := int64(intFl64)
+	for _, test := range []testStr{
+		{key: "intfl64", keys: []string{}, out: &int64Fl64, err: nil},
+		{key: "missing", keys: []string{"a", "b"}, out: outnil, err: nil},
+		{key: "str", keys: []string{"a", "b"}, out: outnil, err: fetchErr},
+	} {
+		decoder := ManualDecoder{}
+		out := decoder.Int64Ptr(decoderBase, test.key, test.keys...)
+		assert.Equal(t, test.out, out)
+		assert.Equal(t, test.err, decoder.Err)
+	}
+}
+
 func TestInt(t *testing.T) {
 	for _, test := range []testStr{
 		{key: "intfl32", keys: []string{}, out: intFl32, err: nil},
