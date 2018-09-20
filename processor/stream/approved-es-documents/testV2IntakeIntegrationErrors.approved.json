@@ -250,9 +250,6 @@
             "processor": {
                 "event": "error",
                 "name": "error"
-            },
-            "transaction": {
-                "id": "0000555544446666"
             }
         },
         {

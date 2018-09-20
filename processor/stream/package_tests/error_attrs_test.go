@@ -84,6 +84,10 @@ func errorRequiredKeys(s *tests.Set) *tests.Set {
 		"error.log.stacktrace.lineno",
 		"error.context.request.method",
 		"error.context.request.url",
+
+		"error.trace_id",
+		"error.transaction_id",
+		"error.parent_id",
 	))
 }
 
@@ -94,6 +98,10 @@ func errorCondRequiredKeys(c map[string]tests.Condition) map[string]tests.Condit
 	base := map[string]tests.Condition{
 		"error.exception": tests.Condition{Absence: []string{"error.log"}},
 		"error.log":       tests.Condition{Absence: []string{"error.exception"}},
+
+		"error.trace_id":       tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.transaction_id": "abc123"}},
+		"error.transaction_id": tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.trace_id": "abc123"}},
+		"error.parent_id":      tests.Condition{Existence: obj{"error.transaction_id": "abc123", "error.trace_id": "abc123"}},
 	}
 	for k, v := range c {
 		base[k] = v

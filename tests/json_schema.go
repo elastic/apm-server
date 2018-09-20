@@ -254,6 +254,9 @@ func (ps *ProcessorSetup) changePayload(
 	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
 	require.NoError(t, err)
 
+	err = ps.Proc.Validate(payload)
+	assert.NoError(t, err, "vanilla payload did not validate")
+
 	// prepare payload according to conditions:
 
 	// - ensure specified keys being present
@@ -262,8 +265,6 @@ func (ps *ProcessorSetup) changePayload(
 
 		payload = iterateMap(payload, "", fnKey, keyToChange, val, upsertFn)
 	}
-	err = ps.Proc.Validate(payload)
-	assert.NoError(t, err)
 
 	// - ensure specified keys being absent
 	for _, k := range condition.Absence {
