@@ -61,14 +61,12 @@ func transactionPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 		"transaction.context.request.headers.some-other-header",
 		"transaction.context.request.headers.array",
 		"transaction.spans.stacktrace.vars.key",
-		// tests.Group("transaction.spans.context.tags"),
 		tests.Group("transaction.context.request.env."),
 		tests.Group("transaction.context.request.body"),
 		tests.Group("transaction.context.request.cookies"),
 		tests.Group("transaction.context.custom"),
 		tests.Group("transaction.context.tags"),
 		tests.Group("transaction.marks"),
-		tests.Group("metadata"),
 	))
 }
 
@@ -97,6 +95,11 @@ func transactionKeywordExceptionKeys(s *tests.Set) *tests.Set {
 		"processor.event", "processor.name", "listening",
 		"transaction.marks",
 		"context.tags",
+
+		// metadata fields
+		tests.Group("context.process"),
+		tests.Group("context.service"),
+		tests.Group("context.system"),
 	))
 }
 
@@ -119,7 +122,7 @@ func TestAttrsPresenceInTransaction(t *testing.T) {
 func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 	transactionProcSetup().KeywordLimitation(
 		t,
-		transactionKeywordExceptionKeys(metadataFields()),
+		transactionKeywordExceptionKeys(nil),
 		map[string]string{
 			"transaction.": "",
 			"parent.id":    "parent_id",

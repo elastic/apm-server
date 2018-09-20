@@ -18,6 +18,7 @@
 package package_tests
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/model/metric/generated/schema"
@@ -49,52 +50,49 @@ func TestAttributesPresenceInMetric(t *testing.T) {
 	metricProcSetup().AttrsPresence(t, requiredKeys, nil)
 }
 
-// func TestInvalidPayloads(t *testing.T) {
-// 	type obj = map[string]interface{}
-// 	type val = []interface{}
+func TestInvalidPayloads(t *testing.T) {
+	type obj = map[string]interface{}
+	type val = []interface{}
 
-// 	validMetric := obj{"value": json.Number("1.0")}
-// 	// every payload needs a timestamp, these reduce the clutter
-// 	//tsk, ts := "timestamp", "2017-05-30T18:53:42.281Z"
+	validMetric := obj{"value": json.Number("1.0")}
+	// every payload needs a timestamp, these reduce the clutter
+	//tsk, ts := "timestamp", "2017-05-30T18:53:42.281Z"
 
-// 	payloadData := []tests.SchemaTestData{
-// 		{Key: "metrics", Invalid: []tests.Invalid{
-// 			{Msg: "metrics/minitems", Values: val{[]interface{}{}}},
-// 		}},
-// 		{Key: "metrics.timestamp",
-// 			Valid: val{"2017-05-30T18:53:42.281Z"},
-// 			Invalid: []tests.Invalid{
-// 				{Msg: `timestamp/format`, Values: val{"2017-05-30T18:53Z", "2017-05-30T18:53:27.Z", "2017-05-30T18:53:27a123Z"}},
-// 				{Msg: `timestamp/pattern`, Values: val{"2017-05-30T18:53:27.000+00:20", "2017-05-30T18:53:27ZNOTCORRECT"}}}},
-// 		{Key: "metrics.tags",
-// 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
-// 			Invalid: []tests.Invalid{
-// 				{Msg: `tags/type`, Values: val{"tags"}},
-// 				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
-// 				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
-// 		},
-// 		{
-// 			Key: "metrics.samples",
-// 			Valid: val{
-// 				obj{"valid-metric": validMetric},
-// 			},
-// 			Invalid: []tests.Invalid{
-// 				{
-// 					Msg: "properties/metrics/items/properties/samples/additionalproperties",
-// 					Values: val{
-// 						obj{"metric\"key\"_quotes": validMetric},
-// 						obj{"metric-*-key-star": validMetric},
-// 					},
-// 				},
-// 				{
-// 					Msg: "properties/metrics/items/properties/samples/patternproperties",
-// 					Values: val{
-// 						obj{"nil-value": obj{"value": nil}},
-// 						obj{"string-value": obj{"value": "foo"}},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	}
-// 	metricProcSetup().DataValidation(t, payloadData)
-// }
+	payloadData := []tests.SchemaTestData{
+		{Key: "metricset.timestamp",
+			Valid: val{"2017-05-30T18:53:42.281Z"},
+			Invalid: []tests.Invalid{
+				{Msg: `timestamp/format`, Values: val{"2017-05-30T18:53Z", "2017-05-30T18:53:27.Z", "2017-05-30T18:53:27a123Z"}},
+				{Msg: `timestamp/pattern`, Values: val{"2017-05-30T18:53:27.000+00:20", "2017-05-30T18:53:27ZNOTCORRECT"}}}},
+		{Key: "metricset.tags",
+			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
+			Invalid: []tests.Invalid{
+				{Msg: `tags/type`, Values: val{"tags"}},
+				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
+				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
+		},
+		{
+			Key: "metricset.samples",
+			Valid: val{
+				obj{"valid-metric": validMetric},
+			},
+			Invalid: []tests.Invalid{
+				{
+					Msg: "/properties/samples/additionalproperties",
+					Values: val{
+						obj{"metric\"key\"_quotes": validMetric},
+						obj{"metric-*-key-star": validMetric},
+					},
+				},
+				{
+					Msg: "/properties/samples/patternproperties",
+					Values: val{
+						obj{"nil-value": obj{"value": nil}},
+						obj{"string-value": obj{"value": "foo"}},
+					},
+				},
+			},
+		},
+	}
+	metricProcSetup().DataValidation(t, payloadData)
+}

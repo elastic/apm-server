@@ -86,11 +86,8 @@ func errorRequiredKeys(s *tests.Set) *tests.Set {
 	))
 }
 
-// func errorJsonSchemaNotInPayloadAttrs(s *tests.Set) *tests.Set {
-// 	return tests.Union(s, tests.NewSet(
-// 		"transactions.spans.transaction_id",
-// 	))
-// }
+type val = []interface{}
+type obj = map[string]interface{}
 
 func errorCondRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 	base := map[string]tests.Condition{
@@ -139,11 +136,66 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 	)
 }
 
-// func TestPayloadDataForError(t *testing.T) {
-// 	//// add test data for testing
-// 	//// * specific edge cases
-// 	//// * multiple allowed dataypes
-// 	//// * regex pattern, time formats
-// 	//// * length restrictions, other than keyword length restrictions
-// 	errorProcSetup().DataValidation(t, schemaTestData(nil))
-// }
+func TestPayloadDataForError(t *testing.T) {
+	//// add test data for testing
+	//// * specific edge cases
+	//// * multiple allowed dataypes
+	//// * regex pattern, time formats
+	//// * length restrictions, other than keyword length restrictions
+	errorProcSetup().DataValidation(t,
+		[]tests.SchemaTestData{
+			{Key: "error",
+				Invalid: []tests.Invalid{{Msg: `/type`, Values: val{false}}}},
+			{Key: "error.exception.code", Valid: val{"success", ""},
+				Invalid: []tests.Invalid{{Msg: `exception/properties/code/type`, Values: val{false}}}},
+			{Key: "error.exception.attributes", Valid: val{map[string]interface{}{}},
+				Invalid: []tests.Invalid{{Msg: `exception/properties/attributes/type`, Values: val{123}}}},
+			{Key: "error.timestamp",
+				Valid: val{"2017-05-30T18:53:42.281Z"},
+				Invalid: []tests.Invalid{
+					{Msg: `timestamp/format`, Values: val{"2017-05-30T18:53Z", "2017-05-30T18:53:27.Z", "2017-05-30T18:53:27a123Z"}},
+					{Msg: `timestamp/pattern`, Values: val{"2017-05-30T18:53:27.000+00:20", "2017-05-30T18:53:27ZNOTCORRECT"}}}},
+			{Key: "error.log.stacktrace.post_context",
+				Valid: val{[]interface{}{}, []interface{}{"context"}},
+				Invalid: []tests.Invalid{
+					{Msg: `log/properties/stacktrace/items/properties/post_context/items/type`, Values: val{[]interface{}{123}}},
+					{Msg: `log/properties/stacktrace/items/properties/post_context/type`, Values: val{"test"}}}},
+			{Key: "error.log.stacktrace.pre_context",
+				Valid: val{[]interface{}{}, []interface{}{"context"}},
+				Invalid: []tests.Invalid{
+					{Msg: `log/properties/stacktrace/items/properties/pre_context/items/type`, Values: val{[]interface{}{123}}},
+					{Msg: `log/properties/stacktrace/items/properties/pre_context/type`, Values: val{"test"}}}},
+			{Key: "error.exception.stacktrace.post_context",
+				Valid: val{[]interface{}{}, []interface{}{"context"}},
+				Invalid: []tests.Invalid{
+					{Msg: `exception/properties/stacktrace/items/properties/post_context/items/type`, Values: val{[]interface{}{123}}},
+					{Msg: `exception/properties/stacktrace/items/properties/post_context/type`, Values: val{"test"}}}},
+			{Key: "error.exception.stacktrace.pre_context",
+				Valid: val{[]interface{}{}, []interface{}{"context"}},
+				Invalid: []tests.Invalid{
+					{Msg: `exception/properties/stacktrace/items/properties/pre_context/items/type`, Values: val{[]interface{}{123}}},
+					{Msg: `exception/properties/stacktrace/items/properties/pre_context/type`, Values: val{"test"}}}},
+			{Key: "error.context.custom",
+				Valid: val{obj{"whatever": obj{"comes": obj{"end": -45}}}, obj{"whatever": 123}},
+				Invalid: []tests.Invalid{
+					{Msg: `context/properties/custom/additionalproperties`, Values: val{
+						obj{"what.ever": 123}, obj{"what*ever": 123}, obj{"what\"ever": 123}}},
+					{Msg: `context/properties/custom/type`, Values: val{"context"}}}},
+			{Key: "error.context.request.body", Valid: val{tests.Str1025, obj{}},
+				Invalid: []tests.Invalid{{Msg: `/context/properties/request/properties/body/type`, Values: val{102}}}},
+			{Key: "error.context.request.env", Valid: val{obj{}},
+				Invalid: []tests.Invalid{{Msg: `/context/properties/request/properties/env/type`, Values: val{102, "a"}}}},
+			{Key: "error.context.request.cookies", Valid: val{obj{}},
+				Invalid: []tests.Invalid{{Msg: `/context/properties/request/properties/cookies/type`, Values: val{102, "a"}}}},
+			{Key: "error.context.tags",
+				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
+				Invalid: []tests.Invalid{
+					{Msg: `context/properties/tags/type`, Values: val{"tags"}},
+					{Msg: `context/properties/tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
+					{Msg: `context/properties/tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
+			{Key: "error.context.user.id", Valid: val{123, tests.Str1024Special},
+				Invalid: []tests.Invalid{
+					{Msg: `context/properties/user/properties/id/type`, Values: val{obj{}}},
+					{Msg: `context/properties/user/properties/id/maxlength`, Values: val{tests.Str1025}}}},
+		})
+}

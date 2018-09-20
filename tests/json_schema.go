@@ -98,10 +98,10 @@ func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrs
 	flattenJsonKeys(payload, "", payloadAttrs)
 
 	schemaKeys := NewSet()
-	schemaStruct, err := schemaStruct(strings.NewReader(ps.Schema))
+	schema, err := schemaStruct(strings.NewReader(ps.Schema))
 	require.NoError(t, err)
 
-	flattenSchemaNames(schemaStruct, schemaPrefix, nil, schemaKeys)
+	flattenSchemaNames(schema, schemaPrefix, nil, schemaKeys)
 
 	missing := Difference(payloadAttrs, schemaKeys)
 	missing = differenceWithGroup(missing, payloadAttrsNotInSchema)
@@ -190,9 +190,9 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 		return s.MaxLength > 0
 	}
 	schemaKeys := NewSet()
-	schemaStruct, err := schemaStruct(strings.NewReader(ps.Schema))
+	schema, err := schemaStruct(strings.NewReader(ps.Schema))
 	require.NoError(t, err)
-	flattenSchemaNames(schemaStruct, "", maxLengthFilter, schemaKeys)
+	flattenSchemaNames(schema, "", maxLengthFilter, schemaKeys)
 
 	t.Log("Schema keys:", schemaKeys.Array())
 
