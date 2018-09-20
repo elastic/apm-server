@@ -72,6 +72,7 @@ func errorPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 func errorRequiredKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"error",
+		"error.id",
 		"error.exception.message",
 		"error.exception",
 		"error.log",
