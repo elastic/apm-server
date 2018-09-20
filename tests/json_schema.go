@@ -185,7 +185,6 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 	assert.NoError(t, err)
 
 	// fetch length restricted field names from json schema
-
 	maxLengthFilter := func(s *Schema) bool {
 		return s.MaxLength > 0
 	}

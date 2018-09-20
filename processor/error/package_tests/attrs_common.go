@@ -39,7 +39,7 @@ func procSetup() *tests.ProcessorSetup {
 func payloadAttrsNotInFields(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		tests.Group("error.exception.attributes"),
-		// tests.context.custom.and_objects
+
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
 	))

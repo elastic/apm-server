@@ -39,8 +39,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 func validMetadata() string {
@@ -55,11 +53,9 @@ func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 }
 
 func TestV2HandlerReadStreamError(t *testing.T) {
-	var transformables []transform.Transformable
-	report := func(ctx context.Context, p publish.PendingReq) error {
-		transformables = append(transformables, p.Transformables...)
-		return nil
-	}
+	var pendingReqs []publish.PendingReq
+	report := tests.TestReporter(&pendingReqs)
+
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 	bodyReader := bytes.NewBuffer(b)

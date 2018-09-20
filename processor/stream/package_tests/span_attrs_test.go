@@ -50,13 +50,15 @@ func spanPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
 }
 
 func spanFieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.Union(tests.NewSet(
-		"listening",
-		"view spans",
-		"span.parent", // from v1
-
+	return tests.Union(s, tests.Union(
+		tests.NewSet(
+			"listening",
+			"view spans",
+			"span.parent", // from v1
+		),
 		// not valid for the span context
-	), transactionContext()))
+		transactionContext()),
+	)
 }
 
 func spanPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {

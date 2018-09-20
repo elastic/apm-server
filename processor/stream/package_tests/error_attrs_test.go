@@ -135,7 +135,7 @@ func TestErrorAttrsPresenceInError(t *testing.T) {
 func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 	errorProcSetup().KeywordLimitation(
 		t,
-		errorKeywordExceptionKeys(metadataFields()),
+		errorKeywordExceptionKeys(nil),
 		map[string]string{
 			"error.":         "",
 			"transaction.id": "transaction_id",

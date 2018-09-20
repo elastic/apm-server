@@ -24,11 +24,8 @@ import (
 )
 
 func TestReporter(reqs *[]publish.PendingReq) publish.Reporter {
-	// var newReqs []publish.PendingReq
 	return func(ctx context.Context, req publish.PendingReq) error {
-		// newReqs = *reqs
 		*reqs = append(*reqs, req)
-		//  = newReqs
 		return nil
 	}
 }

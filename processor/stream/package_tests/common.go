@@ -39,17 +39,6 @@ type TestSetup struct {
 	Schema        *jsonschema.Schema
 }
 
-func metadataFields() *tests.Set {
-	return tests.NewSet(
-		// metadata fields
-		"context.process.title",
-
-		tests.Group("context.service"),
-		tests.Group("context.system"),
-	)
-
-}
-
 type V2TestProcessor struct {
 	stream.StreamProcessor
 }
