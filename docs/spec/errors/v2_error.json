@@ -28,14 +28,15 @@
                     "maxLength": 1024
                 }
             },
-            "oneOf": [
-                { "required": ["id", "trace_id", "transaction_id", "parent_id"] },
-                { "allOf": [
-                    { "required": ["id"] },
-                    { "not": { "required": ["trace_id"] }},
-                    { "not": { "required": ["transaction_id"] }},
-                    { "not": { "required": ["parent_id"] }}
-                ]}
+            "allOf": [
+                { "required": ["id"] },
+                { "if": {"required": ["transaction_id"]},
+                  "then": { "required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}} },
+                { "if": {"required": ["trace_id"]},
+                  "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
+                { "if": {"required": ["parent_id"]},
+                  "then": { "required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}} }
+    
             ]
         }
     ]
