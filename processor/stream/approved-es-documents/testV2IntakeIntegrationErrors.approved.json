@@ -302,9 +302,6 @@
             "processor": {
                 "event": "error",
                 "name": "error"
-            },
-            "transaction": {
-                "id": "0000555544446666"
             }
         },
         {
@@ -364,6 +361,9 @@
             },
             "trace": {
                 "id": "0123456789abcdeffedcba0123456789"
+            },
+            "transaction": {
+                "id": "1234567890987654"
             }
         }
     ]
