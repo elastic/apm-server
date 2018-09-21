@@ -65,7 +65,7 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 
 		if err == decoder.ErrLineTooLong {
 			return nil, &Error{
-				Type:     InvalidInputErrType,
+				Type:     InputTooLargeErrType,
 				Message:  "event exceeded the permitted size.",
 				Document: string(s.StreamReader.LatestLine()),
 			}
@@ -183,7 +183,7 @@ func (s *StreamProcessor) readBatch(batchSize int, reader StreamReader, response
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
 
-			if e, ok := err.(*Error); ok && e.Type == InvalidInputErrType {
+			if e, ok := err.(*Error); ok && (e.Type == InvalidInputErrType || e.Type == InputTooLargeErrType) {
 				response.LimitedAdd(e)
 				continue
 			}

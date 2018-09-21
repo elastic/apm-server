@@ -40,6 +40,7 @@ type StreamError int
 const (
 	QueueFullErrType StreamError = iota
 	InvalidInputErrType
+	InputTooLargeErrType
 	ShuttingDownErrType
 	ServerErrType
 )
