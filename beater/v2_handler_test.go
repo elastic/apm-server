@@ -154,8 +154,8 @@ func TestRequestIntegrationRUM(t *testing.T) {
 
 			ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "event_rate": m{"limit": 9}}})
 			require.NoError(t, err)
-			c, err := newconfig("7.0.0", ucfg)
-			require.noerror(t, err)
+			c, err := NewConfig("7.0.0", ucfg)
+			require.NoError(t, err)
 			w, err := sendReq(c, &v2RumRoute, V2RumURL, test.path, nil)
 			require.NoError(t, err)
 

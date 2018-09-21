@@ -45,6 +45,13 @@ func ContextWithRateLimiter(ctx context.Context, limiter *rate.Limiter) context.
 	return context.WithValue(ctx, rateLimiterKey{}, limiter)
 }
 
+func rateLimiterFromContext(ctx context.Context) *rate.Limiter {
+	if lim, ok := ctx.Value(rateLimiterKey{}).(*rate.Limiter); ok {
+		return lim
+	}
+	return nil
+}
+
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
 )
@@ -181,24 +188,6 @@ func (v *StreamProcessor) handleRawModel(rawModel map[string]interface{}) (trans
 	return nil, ErrUnrecognizedObject
 }
 
-type rateLimitStreamReader struct {
-	StreamReader
-	ctx context.Context
-	rl  *rate.Limiter
-}
-
-func (r *rateLimitStreamReader) Read() (map[string]interface{}, error) {
-	if res := r.rl.Reserve(); !res.OK() {
-		return nil, &Error{
-			Type:    RateLimitErrType,
-			Message: "rate limit exceeded",
-		}
-	} else if res.Delay() > 0 {
-		time.Sleep(res.Delay())
-	}
-	return r.StreamReader.Read()
-}
-
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
 func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
@@ -271,11 +260,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 		Config:      s.Tconfig,
 		Metadata:    *metadata,
 	}
-
-	var rl *rate.Limiter
-	if lim, ok := ctx.Value(rateLimiterKey{}).(*rate.Limiter); ok {
-		rl = lim
-	}
+	rl := rateLimiterFromContext(ctx)
 
 	for {
 

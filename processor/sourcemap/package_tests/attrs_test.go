@@ -56,6 +56,7 @@ func TestKeywordLimitationOnSourcemapAttributes(t *testing.T) {
 		"sourcemap.service.version": "service_version",
 		"sourcemap.bundle_filepath": "bundle_filepath",
 	}
+
 	procSetup.KeywordLimitation(t, tests.NewSet(), mapping)
 }
 

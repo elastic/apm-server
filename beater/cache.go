@@ -32,7 +32,7 @@ var limiterPool sync.Pool
 type rlCache struct {
 	cache *lru.Cache
 	limit int
-	mutex sync.Mutex //guards limiter in cache
+	mu    sync.Mutex //guards limiter in cache
 }
 
 func NewRlCache(size, rateLimit int) (*rlCache, error) {
@@ -53,11 +53,11 @@ func NewRlCache(size, rateLimit int) (*rlCache, error) {
 }
 
 func (rlc *rlCache) getRateLimiter(key string) *rate.Limiter {
+	// fetch the rate limiter from the cache, if a cache is given
 	if rlc.cache == nil || rlc.limit == -1 {
 		return nil
 	}
 
-	// fetch the rate limiter from the cache, if a cache is given
 	getLimiter := func() (*rate.Limiter, bool) {
 		if l, ok := rlc.cache.Get(key); ok {
 			return *l.(**rate.Limiter), true
@@ -65,20 +65,25 @@ func (rlc *rlCache) getRateLimiter(key string) *rate.Limiter {
 		return nil, false
 	}
 
-	limiter, ok := getLimiter()
-	if ok {
+	if limiter, ok := getLimiter(); ok {
 		return limiter
 	}
 
-	rlc.mutex.Lock()
-	defer rlc.mutex.Unlock()
-	limiter, ok = getLimiter()
-	if !ok {
-		if evicted := rlc.cache.Add(key, &limiter); evicted {
-			limiter = limiterPool.Get().(*rate.Limiter)
-		} else {
-			limiter = rate.NewLimiter(rate.Limit(rlc.limit), rlc.limit*burstMultiplier)
+	rlc.mu.Lock()
+	defer rlc.mu.Unlock()
+	if limiter, ok := getLimiter(); ok {
+		return limiter
+	}
+
+	var (
+		limiter *rate.Limiter
+		ok      bool
+	)
+	if evicted := rlc.cache.Add(key, &limiter); evicted {
+		if limiter, ok = limiterPool.Get().(*rate.Limiter); ok {
+			return limiter
 		}
 	}
+	limiter = rate.NewLimiter(rate.Limit(rlc.limit), rlc.limit*burstMultiplier)
 	return limiter
 }

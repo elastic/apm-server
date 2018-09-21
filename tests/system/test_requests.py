@@ -304,11 +304,11 @@ class RateLimitV2Test(ClientSideBaseTest):
         return codes
 
     # limit: 14, burst_multiplier: 5, burst: 70
+    # 14+70=84 can be successfully scheduled
 
     def test_rate_limit(self):
-        # 14+70=84 can be successfully scheduled
-        # 19 events, batch size 10 => 20 events per requ
-        # 20 * 4 = 80
+        # all requests from the same ip
+        # 19 events, batch size 10 => 20+1 events per requ
         codes = self.fire_events("ratelimit.ndjson", 4)
         assert set(codes.keys()) == set([202]), codes
 
@@ -321,8 +321,7 @@ class RateLimitV2Test(ClientSideBaseTest):
 
     def test_rate_limit_small_hit(self):
         # all requests from the same ip
-        # 4 events, batch size 10 => 10 events per requ
-        # 8 * 10 = 80
+        # 4 events, batch size 10 => 10+1 events per requ
         codes = self.fire_events("events.ndjson", 8)
         assert set(codes.keys()) == set([202, 429]), codes
         assert codes[429] == 1, codes
