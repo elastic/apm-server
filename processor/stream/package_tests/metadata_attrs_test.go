@@ -20,20 +20,52 @@ package package_tests
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
+	"github.com/stretchr/testify/require"
 )
 
 func metadataProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
-		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
-		Schema:          schema.ModelSchema,
+		Proc:   &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
+		Schema: schema.ModelSchema,
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
 		},
 	}
+}
+
+func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
+	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/spans.ndjson")
+	require.NoError(t, err)
+
+	metadata, err := decoder.NewNDJSONStreamReader(payloadStream, 100*1024).Read()
+	require.NoError(t, err)
+
+	contextMetadata := metadata["metadata"]
+
+	eventFields := tests.NewSet()
+	tests.FlattenMapStr(contextMetadata, prefix, nil, eventFields)
+	t.Logf("Event fields: %s", eventFields)
+	return eventFields
+}
+
+func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
+	setup := metadataProcSetup()
+	eventFields := getMetadataEventAttrs(t, "context")
+	allowedNotInFields := tests.NewSet("context.process.argv")
+	setup.EventFieldsInTemplateFields(t, eventFields, allowedNotInFields)
+}
+
+func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
+	metadataProcSetup().AttrsMatchJsonSchema(t,
+		getMetadataEventAttrs(t, ""),
+		nil,
+		nil,
+		"")
 }
 
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {

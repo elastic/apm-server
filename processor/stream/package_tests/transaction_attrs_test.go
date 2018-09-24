@@ -42,17 +42,17 @@ func transactionPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		tests.Group("transaction.marks."),
 		tests.Group("context.db"),
-		"span.stacktrace",
-		"context.http",
-		"context.http.url",
 		"transaction.span_count.started",
 	))
 }
 
 func transactionFieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
-		"listening", "view spans", "context.user.user-agent",
-		"context.user.ip", "context.system.ip"))
+		"listening",
+		"context.user.user-agent",
+		"context.user.ip",
+		"context.system.ip",
+	))
 }
 
 func transactionPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
@@ -60,19 +60,12 @@ func transactionPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 		"transaction",
 		"transaction.context.request.headers.some-other-header",
 		"transaction.context.request.headers.array",
-		"transaction.spans.stacktrace.vars.key",
 		tests.Group("transaction.context.request.env."),
 		tests.Group("transaction.context.request.body"),
 		tests.Group("transaction.context.request.cookies"),
 		tests.Group("transaction.context.custom"),
 		tests.Group("transaction.context.tags"),
 		tests.Group("transaction.marks"),
-	))
-}
-
-func transactionJsonSchemaNotInPayloadAttrs(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
-		"transactions.spans.transaction_id",
 	))
 }
 
@@ -103,16 +96,17 @@ func transactionKeywordExceptionKeys(s *tests.Set) *tests.Set {
 	))
 }
 
-func TestPayloadMatchFields(t *testing.T) {
+func TestTransactionPayloadMatchFields(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchFields(t,
 		transactionPayloadAttrsNotInFields(nil),
 		transactionFieldsNotInPayloadAttrs(nil))
 }
 
-func TestPayloadMatchJsonSchema(t *testing.T) {
+func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchJsonSchema(t,
 		transactionPayloadAttrsNotInJsonSchema(nil),
-		transactionJsonSchemaNotInPayloadAttrs(nil), "transaction")
+		nil,
+		"transaction")
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {

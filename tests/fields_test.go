@@ -47,7 +47,7 @@ func TestFlattenCommonMapStr(t *testing.T) {
 		{commonMapStr(), "pre", emptyBlacklist, NewSet(), expectedAllPrefixed},
 		{commonMapStr(), "", blacklist, NewSet("prefilled"), expectedWithFilledInput},
 	} {
-		flattenMapStr(dataRow.mapData, dataRow.prefix, dataRow.blacklist, dataRow.input)
+		FlattenMapStr(dataRow.mapData, dataRow.prefix, dataRow.blacklist, dataRow.input)
 		expected := dataRow.retVal
 		diff := SymmDifference(dataRow.input, expected)
 

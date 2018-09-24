@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"regexp"
 	"strings"
 	"testing"
@@ -97,14 +96,19 @@ func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrs
 	payloadAttrs := NewSet()
 	flattenJsonKeys(payload, "", payloadAttrs)
 
+	ps.AttrsMatchJsonSchema(t, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload, schemaPrefix)
+}
+
+func (ps *ProcessorSetup) AttrsMatchJsonSchema(t *testing.T, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set, schemaPrefix string) {
 	schemaKeys := NewSet()
-	schema, err := schemaStruct(strings.NewReader(ps.Schema))
+	schema, err := ParseSchema(ps.Schema)
 	require.NoError(t, err)
 
-	flattenSchemaNames(schema, schemaPrefix, nil, schemaKeys)
+	FlattenSchemaNames(schema, schemaPrefix, nil, schemaKeys)
 
 	missing := Difference(payloadAttrs, schemaKeys)
 	missing = differenceWithGroup(missing, payloadAttrsNotInSchema)
+	t.Logf("schemaKeys: %s", schemaKeys)
 	assertEmptySet(t, missing, fmt.Sprintf("Json payload fields missing in schema %v", missing))
 
 	missing = Difference(schemaKeys, payloadAttrs)
@@ -189,9 +193,9 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 		return s.MaxLength > 0
 	}
 	schemaKeys := NewSet()
-	schema, err := schemaStruct(strings.NewReader(ps.Schema))
+	schema, err := ParseSchema(ps.Schema)
 	require.NoError(t, err)
-	flattenSchemaNames(schema, "", maxLengthFilter, schemaKeys)
+	FlattenSchemaNames(schema, "", maxLengthFilter, schemaKeys)
 
 	t.Log("Schema keys:", schemaKeys.Array())
 
@@ -386,32 +390,32 @@ type Mapping struct {
 	to   string
 }
 
-func schemaStruct(reader io.Reader) (*Schema, error) {
-	decoder := json.NewDecoder(reader)
+func ParseSchema(s string) (*Schema, error) {
+	decoder := json.NewDecoder(bytes.NewBufferString(s))
 	var schema Schema
 	err := decoder.Decode(&schema)
 	return &schema, err
 }
 
-func flattenSchemaNames(s *Schema, prefix string, filter func(*Schema) bool, flattened *Set) {
+func FlattenSchemaNames(s *Schema, prefix string, filter func(*Schema) bool, flattened *Set) {
 	if len(s.Properties) > 0 {
 		for k, v := range s.Properties {
 			key := strConcat(prefix, k, ".")
 			if filter == nil || filter(v) {
 				flattened.Add(key)
 			}
-			flattenSchemaNames(v, key, filter, flattened)
+			FlattenSchemaNames(v, key, filter, flattened)
 		}
 	}
 
 	if s.Items != nil {
-		flattenSchemaNames(s.Items, prefix, filter, flattened)
+		FlattenSchemaNames(s.Items, prefix, filter, flattened)
 	}
 
 	for _, schemas := range [][]*Schema{s.AllOf, s.OneOf, s.AnyOf} {
 		if schemas != nil {
 			for _, e := range schemas {
-				flattenSchemaNames(e, prefix, filter, flattened)
+				FlattenSchemaNames(e, prefix, filter, flattened)
 			}
 		}
 	}

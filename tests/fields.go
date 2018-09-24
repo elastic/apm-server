@@ -40,13 +40,8 @@ import (
 // - fieldsAttrsNotInPayload: attributes that are reflected in the fields.yml but are
 // not part of the payload, e.g. Kibana visualisation attributes.
 func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotInFields, fieldsNotInPayload *Set) {
-	all, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
-	require.NoError(t, err)
-
-	// check event attributes in ES fields
-	disabled, err := fetchFlattenedFieldNames(ps.TemplatePaths, addOnlyDisabledFields)
-	require.NoError(t, err)
-
+	// all, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	// require.NoError(t, err)
 	notInFields := Union(payloadAttrsNotInFields, NewSet(
 		Group("processor"),
 		//dynamically indexed:
@@ -62,17 +57,35 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		Group("context.response.headers"),
 		"context.process.argv",
 	))
-
-	notInFields = Union(disabled, notInFields)
 	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
-	missing := Difference(events, all)
-	missing = differenceWithGroup(missing, notInFields)
-	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
+	ps.EventFieldsInTemplateFields(t, events, notInFields)
 
 	// check ES fields in event
 	events = fetchFields(t, ps.Proc, ps.FullPayloadPath, fieldsNotInPayload)
-	missing = Difference(all, events)
-	missing = differenceWithGroup(missing, fieldsNotInPayload)
+	ps.TemplateFieldsInEventFields(t, events, fieldsNotInPayload)
+}
+
+func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields, allowedNotInFields *Set) {
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	require.NoError(t, err)
+
+	// check event attributes in ES fields
+	disabled, err := fetchFlattenedFieldNames(ps.TemplatePaths, addOnlyDisabledFields)
+	require.NoError(t, err)
+	allowedNotInFields = Union(disabled, allowedNotInFields)
+
+	missing := Difference(eventFields, allFieldNames)
+	missing = differenceWithGroup(missing, allowedNotInFields)
+
+	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
+}
+
+func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields, allowedNotInEvent *Set) {
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	require.NoError(t, err)
+
+	missing := Difference(allFieldNames, eventFields)
+	missing = differenceWithGroup(missing, allowedNotInEvent)
 	assertEmptySet(t, missing, fmt.Sprintf("Documented Fields missing in event: %v", missing))
 }
 
@@ -88,14 +101,14 @@ func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *
 			if k == "@timestamp" {
 				continue
 			}
-			flattenMapStr(event.Fields[k], k, blacklisted, keys)
+			FlattenMapStr(event.Fields[k], k, blacklisted, keys)
 		}
 	}
 	t.Logf("Keys in events: %v", keys)
 	return keys
 }
 
-func flattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
+func FlattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
 	if commonMapStr, ok := m.(common.MapStr); ok {
 		for k, v := range commonMapStr {
 			flattenMapStrStr(k, v, prefix, keysBlacklist, flattened)
@@ -118,7 +131,7 @@ func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set
 	_, okCommonMapStr := v.(common.MapStr)
 	_, okMapStr := v.(map[string]interface{})
 	if okCommonMapStr || okMapStr {
-		flattenMapStr(v, key, keysBlacklist, flattened)
+		FlattenMapStr(v, key, keysBlacklist, flattened)
 	}
 }
 
