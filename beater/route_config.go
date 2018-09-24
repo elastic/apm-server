@@ -97,7 +97,7 @@ var (
 			userMetaDataDecoder,
 			rumTransformConfig,
 			func(c *Config) *rlCache {
-				rlc, err := NewRlCache(c.RumConfig.EventRate.CacheKeys,
+				rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize,
 					c.RumConfig.EventRate.Limit)
 				if err != nil {
 					logp.NewLogger("handler").Error(err.Error())

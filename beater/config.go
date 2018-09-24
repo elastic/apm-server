@@ -22,7 +22,6 @@ import (
 	"net"
 	"path/filepath"
 	"regexp"
-	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -74,9 +73,8 @@ type rumConfig struct {
 }
 
 type eventRate struct {
-	Limit       int `config:"limit"`
-	CacheKeys   int `config:"cache_keys"`
-	limiterPool sync.Pool
+	Limit   int `config:"limit"`
+	LruSize int `config:"lru_size"`
 }
 
 type metricsConfig struct {
@@ -213,8 +211,8 @@ func defaultRum(beatVersion string) *rumConfig {
 	return &rumConfig{
 		RateLimit: 10,
 		EventRate: &eventRate{
-			Limit:     1000,
-			CacheKeys: 1000,
+			Limit:   1000,
+			LruSize: 1000,
 		},
 		AllowOrigins: []string{"*"},
 		SourceMapping: &SourceMapping{

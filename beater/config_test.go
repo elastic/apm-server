@@ -56,7 +56,7 @@ func TestConfig(t *testing.T) {
 					"rate_limit": 800,
 					"event_rate": {
 						"limit":      8000,
-						"cache_keys": 2000,
+						"lru_size": 2000,
 					},
 					"allow_origins": ["rum*"],
 					"source_mapping": {
@@ -73,7 +73,7 @@ func TestConfig(t *testing.T) {
 					"rate_limit": 1000,
 					"event_rate": {
 						"limit":      1000,
-						"cache_keys": 500,
+						"lru_size": 500,
 					},
 					"allow_origins": ["example*"],
 					"source_mapping": {
@@ -108,8 +108,8 @@ func TestConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 800,
 					EventRate: &eventRate{
-						Limit:     8000,
-						CacheKeys: 2000,
+						Limit:   8000,
+						LruSize: 2000,
 					},
 					AllowOrigins: []string{"rum*"},
 					SourceMapping: &SourceMapping{
@@ -123,8 +123,8 @@ func TestConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 1000,
 					EventRate: &eventRate{
-						Limit:     1000,
-						CacheKeys: 500,
+						Limit:   1000,
+						LruSize: 500,
 					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{

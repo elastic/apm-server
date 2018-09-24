@@ -88,8 +88,8 @@ func TestBeatConfig(t *testing.T) {
 					"enabled":    true,
 					"rate_limit": 1000,
 					"event_rate": map[string]interface{}{
-						"limit":      7200,
-						"cache_keys": 2000,
+						"limit":    7200,
+						"lru_size": 2000,
 					},
 					"allow_origins": []string{"example*"},
 					"source_mapping": map[string]interface{}{
@@ -134,8 +134,8 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 1000,
 					EventRate: &eventRate{
-						Limit:     7200,
-						CacheKeys: 2000,
+						Limit:   7200,
+						LruSize: 2000,
 					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
@@ -150,8 +150,8 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 1000,
 					EventRate: &eventRate{
-						Limit:     7200,
-						CacheKeys: 2000,
+						Limit:   7200,
+						LruSize: 2000,
 					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
@@ -194,8 +194,8 @@ func TestBeatConfig(t *testing.T) {
 					"enabled":    true,
 					"rate_limit": 890,
 					"event_rate": map[string]interface{}{
-						"limit":      500,
-						"cache_keys": 200,
+						"limit":    500,
+						"lru_size": 200,
 					},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
@@ -243,8 +243,8 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 890,
 					EventRate: &eventRate{
-						Limit:     500,
-						CacheKeys: 200,
+						Limit:   500,
+						LruSize: 200,
 					},
 					SourceMapping: &SourceMapping{
 						Cache: &Cache{
@@ -261,8 +261,8 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 10,
 					EventRate: &eventRate{
-						Limit:     7200,
-						CacheKeys: 1000,
+						Limit:   7200,
+						LruSize: 1000,
 					},
 					AllowOrigins: []string{"*"},
 					SourceMapping: &SourceMapping{

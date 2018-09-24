@@ -338,10 +338,3 @@ class RateLimitV2Test(ClientSideBaseTest):
         assert set(codes.keys()) == set([202, 429]), codes
         assert codes[429] == 1, codes
         assert codes[202] == 8, codes
-
-    def test_multiple_ips_rate_limit_small_hit(self):
-        # requests from 2 different ips
-        codes = self.fire_events("events.ndjson", 17, True)
-        assert set(codes.keys()) == set([202, 429]), codes
-        assert codes[429] == 3, codes
-        assert codes[202] == 14, codes

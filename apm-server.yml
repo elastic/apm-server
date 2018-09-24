@@ -58,15 +58,12 @@ apm-server:
 
     #event_rate:
       # Defines the maximum amount of events allowed to be sent to the APM Server v2 RUM
-      # endpoint per ip per second. There is an internal burst queue to avoid rejecting short termed spikes. The burst 
-      # queue is set to limit*5.
-      # Defaults to 1000.
-      #limit: 1000
-      # Defines the amount of unique IPs for which a rate limiter is collected.
-      # Ensure a large enough cache size, as the rate limiting cannot properly be applied,
-      # in case the amount of unique IPs exceeds the amount of cache keys configured.
-      # Defaults to 1000.
-      #cache_keys: 1000
+      # endpoint per ip per second. Defaults to 300.
+      #limit: 300
+      # An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
+      # This setting defines the number of unique IPs that can be tracked in the cache.
+      # Sites with many concurrent clients should consider increasing this limit. Defaults to 1000.
+      #lru_size: 1000
 
     #-- General RUM settings
 

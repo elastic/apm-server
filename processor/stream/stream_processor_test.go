@@ -169,15 +169,14 @@ func TestRateLimiting(t *testing.T) {
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/ratelimit.ndjson")
 	require.NoError(t, err)
 	for _, test := range []struct {
-		name    string
-		lim     *rate.Limiter
-		hit     int
-		minTime time.Duration
+		name string
+		lim  *rate.Limiter
+		hit  int
 	}{
 		{name: "NoLimiter"},
 		{name: "LimiterDenyAll", lim: rate.NewLimiter(rate.Limit(0), 2)},
 		{name: "LimiterAllowAll", lim: rate.NewLimiter(rate.Limit(40), 40*5)},
-		{name: "LimiterAllowWithWait", lim: rate.NewLimiter(rate.Limit(10), 10*2), hit: 10, minTime: time.Second},
+		{name: "LimiterAllowWithWait", lim: rate.NewLimiter(rate.Limit(10), 10*2), hit: 10},
 		{name: "LimiterForbiddenHit", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
 		{name: "LimiterForbidden", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
 	} {
@@ -186,10 +185,7 @@ func TestRateLimiting(t *testing.T) {
 			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
 		}
 		ctx := ContextWithRateLimiter(context.Background(), test.lim)
-		start := time.Now()
 		actualResult := (&StreamProcessor{}).HandleStream(ctx, map[string]interface{}{}, reader, report)
-		execTime := time.Now().Sub(start)
-		assert.True(t, execTime > test.minTime && execTime <= test.minTime+time.Second)
 		assertApproveResult(t, actualResult, test.name)
 	}
 }
