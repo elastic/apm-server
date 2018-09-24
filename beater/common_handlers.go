@@ -66,12 +66,14 @@ var (
 	counter       = func(s string) *monitoring.Int {
 		return monitoring.NewInt(serverMetrics, s)
 	}
-	requestCounter    = counter("request.count")
-	concurrentWait    = counter("concurrent.wait.ms")
-	responseCounter   = counter("response.count")
-	responseErrors    = counter("response.errors.count")
-	responseSuccesses = counter("response.valid.count")
-	responseOk        = counter("response.valid.ok")
+	requestCounter       = counter("request.count")
+	concurrentWait       = counter("concurrent.wait.ms")
+	responseCounter      = counter("response.count")
+	responseErrors       = counter("response.errors.count")
+	responseSuccesses    = counter("response.valid.count")
+	responseOk           = counter("response.valid.ok")
+	responseAccepted     = counter("response.valid.accepted")
+	responseErrorsOthers = counter("response.errors.other")
 
 	okResponse = serverResponse{
 		code:    http.StatusOK,
@@ -79,7 +81,7 @@ var (
 	}
 	acceptedResponse = serverResponse{
 		code:    http.StatusAccepted,
-		counter: counter("response.valid.accepted"),
+		counter: responseAccepted,
 	}
 	internalErrorCounter  = counter("response.errors.internal")
 	internalErrorResponse = func(err error) serverResponse {
@@ -102,10 +104,11 @@ var (
 		code:    http.StatusUnauthorized,
 		counter: counter("response.errors.unauthorized"),
 	}
+	requestTooLargeCounter  = counter("response.errors.toolarge")
 	requestTooLargeResponse = serverResponse{
 		err:     errors.New("request body too large"),
 		code:    http.StatusRequestEntityTooLarge,
-		counter: counter("response.errors.toolarge"),
+		counter: requestTooLargeCounter,
 	}
 	decodeCounter        = counter("response.errors.decode")
 	cannotDecodeResponse = func(err error) serverResponse {
@@ -128,10 +131,11 @@ var (
 		code:    http.StatusTooManyRequests,
 		counter: counter("response.errors.ratelimit"),
 	}
+	methodNotAllowedCounter  = counter("response.errors.method")
 	methodNotAllowedResponse = serverResponse{
 		err:     errors.New("only POST requests are supported"),
 		code:    http.StatusMethodNotAllowed,
-		counter: counter("response.errors.method"),
+		counter: methodNotAllowedCounter,
 	}
 	tooManyConcurrentRequestsResponse = serverResponse{
 		err:     errors.New("timeout waiting to be processed"),

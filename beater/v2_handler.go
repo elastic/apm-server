@@ -21,18 +21,14 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 
 	"github.com/elastic/beats/libbeat/logp"
 
-	"github.com/pkg/errors"
-
 	"github.com/elastic/apm-server/decoder"
-)
-
-var (
-	errInvalidMetadataFormat = errors.New("invalid metadata format")
 )
 
 type v2Handler struct {
@@ -40,35 +36,49 @@ type v2Handler struct {
 	streamProcessor *stream.StreamProcessor
 }
 
-func (v *v2Handler) statusCode(sr *stream.Result) int {
+func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 	var code int
+	var ct *monitoring.Int
 	highestCode := http.StatusAccepted
+	monitoringCt := responseAccepted
 	for _, err := range sr.Errors {
 		switch err.Type {
+		case stream.MethodForbiddenErrType:
+			code = http.StatusBadRequest
+			ct = methodNotAllowedCounter
+		case stream.InputTooLargeErrType:
+			code = http.StatusBadRequest
+			ct = requestTooLargeCounter
 		case stream.InvalidInputErrType:
 			code = http.StatusBadRequest
+			ct = validateCounter
 		case stream.QueueFullErrType:
 			code = http.StatusTooManyRequests
+			ct = fullQueueCounter
 		case stream.ShuttingDownErrType:
 			code = http.StatusServiceUnavailable
-		case stream.ServerErrType:
-			code = http.StatusInternalServerError
+			ct = serverShuttingDownCounter
 		default:
 			code = http.StatusInternalServerError
+			ct = responseErrorsOthers
 		}
 		if code > highestCode {
 			highestCode = code
+			monitoringCt = ct
 		}
 	}
-	return highestCode
+	return highestCode, monitoringCt
 }
 
 func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr *stream.Result) {
-	statusCode := v.statusCode(sr)
+	statusCode, counter := v.statusCode(sr)
+	responseCounter.Inc()
+	counter.Inc()
 
 	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
-		// this singals to the client that we're closing the connection
+		responseErrors.Inc()
+		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
@@ -82,12 +92,25 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 			logger.Errorw("error sending response", "error", err)
 		}
 		logger.Infow("error handling request", "error", sr.String())
+	} else {
+		responseSuccesses.Inc()
 	}
 }
 
 func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := requestLogger(r)
+
+		if r.Method != "POST" {
+			sr := stream.Result{}
+			sr.Add(&stream.Error{
+				Type:    stream.MethodForbiddenErrType,
+				Message: "only POST requests are supported",
+			})
+			v.sendResponse(logger, w, &sr)
+			return
+		}
+
 		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxEventSize)
 		if err != nil {
 			// if we can't set up the ndjsonreader,

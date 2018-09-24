@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"testing"
 	"testing/iotest"
 	"time"
@@ -117,23 +118,23 @@ func TestIntegration(t *testing.T) {
 		path string
 		name string
 	}{
-		{path: "../testdata/intake-v2/errors.ndjson", name: "Errors"},
-		{path: "../testdata/intake-v2/transactions.ndjson", name: "Transactions"},
-		{path: "../testdata/intake-v2/spans.ndjson", name: "Spans"},
-		{path: "../testdata/intake-v2/metrics.ndjson", name: "Metrics"},
-		{path: "../testdata/intake-v2/minimal_process.ndjson", name: "MixedMinimalProcess"},
-		{path: "../testdata/intake-v2/minimal_service.ndjson", name: "MinimalService"},
-		{path: "../testdata/intake-v2/metadata_null_values.ndjson", name: "MetadataNullValues"},
-		{path: "../testdata/intake-v2/invalid-event.ndjson", name: "InvalidEvent"},
-		{path: "../testdata/intake-v2/invalid-json-event.ndjson", name: "InvalidJSONEvent"},
-		{path: "../testdata/intake-v2/invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
-		{path: "../testdata/intake-v2/invalid-metadata.ndjson", name: "InvalidMetadata"},
-		{path: "../testdata/intake-v2/invalid-metadata-2.ndjson", name: "InvalidMetadata2"},
-		{path: "../testdata/intake-v2/unrecognized-event.ndjson", name: "UnrecognizedEvent"},
-		{path: "../testdata/intake-v2/optional-timestamps.ndjson", name: "OptionalTimestamps"},
+		{path: "errors.ndjson", name: "Errors"},
+		{path: "transactions.ndjson", name: "Transactions"},
+		{path: "spans.ndjson", name: "Spans"},
+		{path: "metrics.ndjson", name: "Metrics"},
+		{path: "minimal_process.ndjson", name: "MixedMinimalProcess"},
+		{path: "minimal_service.ndjson", name: "MinimalService"},
+		{path: "metadata_null_values.ndjson", name: "MetadataNullValues"},
+		{path: "invalid-event.ndjson", name: "InvalidEvent"},
+		{path: "invalid-json-event.ndjson", name: "InvalidJSONEvent"},
+		{path: "invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
+		{path: "invalid-metadata.ndjson", name: "InvalidMetadata"},
+		{path: "invalid-metadata-2.ndjson", name: "InvalidMetadata2"},
+		{path: "unrecognized-event.ndjson", name: "UnrecognizedEvent"},
+		{path: "optional-timestamps.ndjson", name: "OptionalTimestamps"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(test.path)
+			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
