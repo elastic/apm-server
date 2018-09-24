@@ -43,6 +43,7 @@ const (
 	InputTooLargeErrType
 	ShuttingDownErrType
 	ServerErrType
+	MethodForbiddenErrType
 )
 
 const (

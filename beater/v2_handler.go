@@ -31,8 +31,6 @@ import (
 	"github.com/elastic/apm-server/decoder"
 )
 
-const MethodNotAllowedErrType stream.StreamError = 100
-
 type v2Handler struct {
 	requestDecoder  decoder.ReqDecoder
 	streamProcessor *stream.StreamProcessor
@@ -45,7 +43,7 @@ func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 	monitoringCt := responseAccepted
 	for _, err := range sr.Errors {
 		switch err.Type {
-		case MethodNotAllowedErrType:
+		case stream.MethodForbiddenErrType:
 			code = http.StatusBadRequest
 			ct = methodNotAllowedCounter
 		case stream.InputTooLargeErrType:
@@ -80,7 +78,7 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
 		responseErrors.Inc()
-		// this singals to the client that we're closing the connection
+		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
@@ -94,6 +92,8 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 			logger.Errorw("error sending response", "error", err)
 		}
 		logger.Infow("error handling request", "error", sr.String())
+	} else {
+		responseSuccesses.Inc()
 	}
 }
 
@@ -104,7 +104,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 		if r.Method != "POST" {
 			sr := stream.Result{}
 			sr.Add(&stream.Error{
-				Type:    MethodNotAllowedErrType,
+				Type:    stream.MethodForbiddenErrType,
 				Message: "only POST requests are supported",
 			})
 			v.sendResponse(logger, w, &sr)

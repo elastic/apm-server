@@ -22,6 +22,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -98,18 +99,18 @@ func TestRequestIntegration(t *testing.T) {
 		reportingErr error
 		counter      *monitoring.Int
 	}{
-		{name: "Success", code: http.StatusAccepted, path: "../testdata/intake-v2/errors.ndjson", counter: responseAccepted},
-		{name: "InvalidEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-event.ndjson", counter: validateCounter},
-		{name: "InvalidJSONEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-json-event.ndjson", counter: validateCounter},
-		{name: "InvalidJSONMetadata", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-json-metadata.ndjson", counter: validateCounter},
-		{name: "InvalidMetadata", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-metadata.ndjson", counter: validateCounter},
-		{name: "InvalidMetadata2", code: http.StatusBadRequest, path: "../testdata/intake-v2/invalid-metadata-2.ndjson", counter: validateCounter},
-		{name: "UnrecognizedEvent", code: http.StatusBadRequest, path: "../testdata/intake-v2/unrecognized-event.ndjson", counter: validateCounter},
-		{name: "Closing", code: http.StatusServiceUnavailable, path: "../testdata/intake-v2/errors.ndjson", reportingErr: publish.ErrChannelClosed, counter: serverShuttingDownCounter},
-		{name: "FullQueue", code: http.StatusTooManyRequests, path: "../testdata/intake-v2/errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
+		{name: "Success", code: http.StatusAccepted, path: "errors.ndjson", counter: responseAccepted},
+		{name: "InvalidEvent", code: http.StatusBadRequest, path: "invalid-event.ndjson", counter: validateCounter},
+		{name: "InvalidJSONEvent", code: http.StatusBadRequest, path: "invalid-json-event.ndjson", counter: validateCounter},
+		{name: "InvalidJSONMetadata", code: http.StatusBadRequest, path: "invalid-json-metadata.ndjson", counter: validateCounter},
+		{name: "InvalidMetadata", code: http.StatusBadRequest, path: "invalid-metadata.ndjson", counter: validateCounter},
+		{name: "InvalidMetadata2", code: http.StatusBadRequest, path: "invalid-metadata-2.ndjson", counter: validateCounter},
+		{name: "UnrecognizedEvent", code: http.StatusBadRequest, path: "unrecognized-event.ndjson", counter: validateCounter},
+		{name: "Closing", code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrChannelClosed, counter: serverShuttingDownCounter},
+		{name: "FullQueue", code: http.StatusTooManyRequests, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			b, err := loader.LoadDataAsBytes(test.path)
+			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
@@ -124,6 +125,8 @@ func TestRequestIntegration(t *testing.T) {
 			}
 			handler := (&v2BackendRoute).Handler(c, report)
 
+			ctSuccess := responseSuccesses.Get()
+			ctFailure := responseErrors.Get()
 			ct := test.counter.Get()
 			handler.ServeHTTP(w, req)
 
@@ -132,8 +135,12 @@ func TestRequestIntegration(t *testing.T) {
 			if test.code == http.StatusAccepted {
 				assert.Equal(t, 0, w.Body.Len())
 				assert.Equal(t, w.HeaderMap.Get("Content-Type"), "")
+				assert.Equal(t, ctSuccess+1, responseSuccesses.Get())
+				assert.Equal(t, ctFailure, responseErrors.Get())
 			} else {
 				assert.Equal(t, w.HeaderMap.Get("Content-Type"), "application/json")
+				assert.Equal(t, ctSuccess, responseSuccesses.Get())
+				assert.Equal(t, ctFailure+1, responseErrors.Get())
 
 				body := w.Body.Bytes()
 				tests.AssertApproveResult(t, "approved-stream-result/TestRequestIntegration"+test.name, body)
