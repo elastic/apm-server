@@ -114,6 +114,9 @@ func errorKeywordExceptionKeys(s *tests.Set) *tests.Set {
 		"processor.event", "processor.name", "listening", "error.grouping_key",
 		"context.tags",
 		"view errors", "error id icon",
+		tests.Group("context.service"),
+		tests.Group("context.system"),
+		tests.Group("context.process"),
 	))
 }
 
