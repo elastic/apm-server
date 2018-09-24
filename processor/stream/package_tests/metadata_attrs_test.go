@@ -20,12 +20,13 @@ package package_tests
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/stretchr/testify/require"
 )
 
 func metadataProcSetup() *tests.ProcessorSetup {
