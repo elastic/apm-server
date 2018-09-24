@@ -20,6 +20,8 @@ package stream
 import (
 	"fmt"
 	"strings"
+
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 type Error struct {
@@ -40,12 +42,26 @@ type StreamError int
 const (
 	QueueFullErrType StreamError = iota
 	InvalidInputErrType
+	InputTooLargeErrType
 	ShuttingDownErrType
 	ServerErrType
+	MethodForbiddenErrType
 )
 
 const (
 	errorsLimit = 5
+)
+
+var (
+	m             = monitoring.Default.NewRegistry("apm-server.processor.stream")
+	mAccepted     = monitoring.NewInt(m, "accepted")
+	monitoringMap = map[StreamError]*monitoring.Int{
+		QueueFullErrType:     monitoring.NewInt(m, "errors.queue"),
+		InvalidInputErrType:  monitoring.NewInt(m, "errors.invalid"),
+		InputTooLargeErrType: monitoring.NewInt(m, "errors.toolarge"),
+		ShuttingDownErrType:  monitoring.NewInt(m, "errors.server"),
+		ServerErrType:        monitoring.NewInt(m, "errors.closed"),
+	}
 )
 
 type Result struct {
@@ -54,17 +70,16 @@ type Result struct {
 }
 
 func (r *Result) LimitedAdd(err error) {
-	if len(r.Errors) < errorsLimit {
-		r.Add(err)
-	}
+	r.add(err, len(r.Errors) < errorsLimit)
 }
 
 func (r *Result) Add(err error) {
-	if e, ok := err.(*Error); ok {
-		r.Errors = append(r.Errors, e)
-	} else {
-		r.Errors = append(r.Errors, &Error{Message: err.Error(), Type: ServerErrType})
-	}
+	r.add(err, true)
+}
+
+func (r *Result) AddAccepted(ct int) {
+	r.Accepted += ct
+	mAccepted.Add(int64(ct))
 }
 
 func (r *Result) String() string {
@@ -73,4 +88,23 @@ func (r *Result) String() string {
 		errorList = append(errorList, e.Error())
 	}
 	return strings.Join(errorList, ", ")
+}
+
+func (r *Result) add(err error, add bool) {
+	e, ok := err.(*Error)
+	if !ok {
+		e = &Error{Message: err.Error(), Type: ServerErrType}
+	}
+	if add {
+		r.Errors = append(r.Errors, e)
+	}
+	countErr(e.Type)
+}
+
+func countErr(e StreamError) {
+	if i, ok := monitoringMap[e]; ok {
+		i.Inc()
+	} else {
+		monitoringMap[ServerErrType].Inc()
+	}
 }
