@@ -132,7 +132,7 @@ func init() {
 type InstrumentationConfig struct {
 	Enabled     *bool    `config:"enabled"`
 	Environment *string  `config:"environment"`
-	Hosts       []string `config:"hosts" validate:"maxlen=1"`
+	Hosts       []string `config:"hosts" validate:"nonzero,maxlen=1"`
 	SecretToken string   `config:"secret_token"`
 }
 
