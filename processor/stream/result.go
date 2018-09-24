@@ -57,7 +57,7 @@ var (
 	mAccepted     = monitoring.NewInt(m, "accepted")
 	monitoringMap = map[StreamError]*monitoring.Int{
 		QueueFullErrType:     monitoring.NewInt(m, "errors.queue"),
-		InvalidInputErrType:  monitoring.NewInt(m, "erros.invalid"),
+		InvalidInputErrType:  monitoring.NewInt(m, "errors.invalid"),
 		InputTooLargeErrType: monitoring.NewInt(m, "errors.toolarge"),
 		ShuttingDownErrType:  monitoring.NewInt(m, "errors.server"),
 		ServerErrType:        monitoring.NewInt(m, "errors.closed"),
