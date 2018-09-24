@@ -255,7 +255,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 				return res
 			}
 
-			res.Accepted += len(transformables)
+			res.AddAccepted(len(transformables))
 		}
 
 		if done {

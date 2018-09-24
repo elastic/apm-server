@@ -22,6 +22,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 func TestStreamResponseSimple(t *testing.T) {
@@ -44,4 +46,34 @@ func TestStreamResponseSimple(t *testing.T) {
 
 	expectedStr := `err1 [buf1], transmogrifier error, err2 [buf2], err3 [buf3], err4, err6`
 	assert.Equal(t, expectedStr, sr.String())
+}
+
+func TestMonitoring(t *testing.T) {
+	for _, test := range []struct {
+		counter  *monitoring.Int
+		expected int64
+	}{
+		{monitoringMap[QueueFullErrType], 1},
+		{monitoringMap[InvalidInputErrType], 2},
+		{monitoringMap[InputTooLargeErrType], 1},
+		{monitoringMap[ShuttingDownErrType], 1},
+		{monitoringMap[ServerErrType], 2},
+		{mAccepted, 12},
+	} {
+		// get current value for counter
+		ct := test.counter.Get()
+
+		sr := Result{}
+		sr.AddAccepted(9)
+		sr.AddAccepted(3)
+		sr.LimitedAdd(&Error{Type: QueueFullErrType})
+		sr.LimitedAdd(errors.New("error"))
+		sr.LimitedAdd(&Error{Type: InvalidInputErrType})
+		sr.LimitedAdd(&Error{Type: ShuttingDownErrType})
+		sr.LimitedAdd(&Error{Type: ServerErrType})
+		sr.LimitedAdd(&Error{Type: InputTooLargeErrType, Message: "err3", Document: "buf3"})
+		sr.Add(&Error{Type: InvalidInputErrType})
+
+		assert.Equal(t, ct+test.expected, test.counter.Get())
+	}
 }
