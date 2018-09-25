@@ -28,6 +28,7 @@ https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
 - Require either `message` or `type` for `error.exception` {pull}1354[1354].
 - Require `span.parent_id`, forbid `null` for `span.trace_id`, `transaction.trace_id` {pull}1391[1391]
 - Require `error.id` and changed description to 128 random bits ID {pull}1384[1384]
+- Add rate limit handling per event {pull}1367[1367]
 
 [[release-notes-6.4]]
 == APM Server version 6.4

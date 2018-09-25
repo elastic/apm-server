@@ -21,12 +21,11 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/apm-server/processor/stream"
-
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metric"
 	"github.com/elastic/apm-server/processor/sourcemap"
+	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/publish"
 
@@ -79,16 +78,25 @@ var V1Routes = map[string]v1Route{
 
 var V2Routes = map[string]v2Route{
 	V2BackendURL: v2BackendRoute,
-	V2RumURL:     {rumRouteType},
+	V2RumURL:     v2RumRoute,
 }
 
-var v2BackendRoute = v2Route{
-	routeType{
-		v2backendHandler,
-		systemMetadataDecoder,
-		func(*Config) transform.Config { return transform.Config{} },
-	},
-}
+var (
+	v2BackendRoute = v2Route{
+		routeType{
+			v2backendHandler,
+			systemMetadataDecoder,
+			func(*Config) transform.Config { return transform.Config{} },
+		},
+	}
+	v2RumRoute = v2Route{
+		routeType{
+			v2rumHandler,
+			userMetaDataDecoder,
+			rumTransformConfig,
+		},
+	}
+)
 
 var (
 	backendRouteType = routeType{
@@ -125,6 +133,12 @@ func v2backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
 		requestTimeHandler(
 			authHandler(beaterConfig.SecretToken, h)))
+}
+
+func v2rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
+	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
+		requestTimeHandler(
+			corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))
 }
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
@@ -198,16 +212,24 @@ type v2Route struct {
 	routeType
 }
 
-func (v v2Route) Handler(beaterConfig *Config, report publish.Reporter) http.Handler {
+func (v v2Route) Handler(url string, c *Config, report publish.Reporter) http.Handler {
 	reqDecoder := v.configurableDecoder(
-		beaterConfig,
+		c,
 		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
 	)
 
 	v2Handler := v2Handler{
 		requestDecoder:  reqDecoder,
-		streamProcessor: &stream.StreamProcessor{Tconfig: v.transformConfig(beaterConfig)},
+		streamProcessor: &stream.StreamProcessor{Tconfig: v.transformConfig(c)},
 	}
 
-	return v.wrappingHandler(beaterConfig, v2Handler.Handle(beaterConfig, report))
+	if url == V2RumURL {
+		if rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit); err == nil {
+			v2Handler.rlc = rlc
+		} else {
+			logp.NewLogger("handler").Error(err.Error())
+		}
+	}
+
+	return v.wrappingHandler(c, v2Handler.Handle(c, report))
 }

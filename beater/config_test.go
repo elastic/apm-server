@@ -54,6 +54,10 @@ func TestConfig(t *testing.T) {
 				"rum": {
 					"enabled": true,
 					"rate_limit": 800,
+					"event_rate": {
+						"limit":      8000,
+						"lru_size": 2000,
+					},
 					"allow_origins": ["rum*"],
 					"source_mapping": {
 						"cache": {
@@ -67,6 +71,10 @@ func TestConfig(t *testing.T) {
 				"frontend": {
 					"enabled": true,
 					"rate_limit": 1000,
+					"event_rate": {
+						"limit":      1000,
+						"lru_size": 500,
+					},
 					"allow_origins": ["example*"],
 					"source_mapping": {
 						"cache": {
@@ -97,8 +105,12 @@ func TestConfig(t *testing.T) {
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
 				RumConfig: &rumConfig{
-					Enabled:      &truthy,
-					RateLimit:    800,
+					Enabled:   &truthy,
+					RateLimit: 800,
+					EventRate: &eventRate{
+						Limit:   8000,
+						LruSize: 2000,
+					},
 					AllowOrigins: []string{"rum*"},
 					SourceMapping: &SourceMapping{
 						Cache:        &Cache{Expiration: 1 * time.Minute},
@@ -108,8 +120,12 @@ func TestConfig(t *testing.T) {
 					ExcludeFromGrouping: "group_pattern-rum",
 				},
 				FrontendConfig: &rumConfig{
-					Enabled:      &truthy,
-					RateLimit:    1000,
+					Enabled:   &truthy,
+					RateLimit: 1000,
+					EventRate: &eventRate{
+						Limit:   1000,
+						LruSize: 500,
+					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
 						Cache:        &Cache{Expiration: 10 * time.Minute},
@@ -172,6 +188,7 @@ func TestConfig(t *testing.T) {
 				RumConfig: &rumConfig{
 					Enabled:      nil,
 					RateLimit:    0,
+					EventRate:    nil,
 					AllowOrigins: nil,
 					SourceMapping: &SourceMapping{
 						IndexPattern: "",
@@ -265,7 +282,7 @@ func TestIsRumEnabled(t *testing.T) {
 		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
 		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}, FrontendConfig: &rumConfig{Enabled: &truthy}}, enabled: false},
 	} {
-		td.c.SetRumConfig()
+		td.c.setRumConfig()
 		assert.Equal(t, td.enabled, td.c.RumConfig.isEnabled())
 
 	}
@@ -301,7 +318,7 @@ func TestSetRum(t *testing.T) {
 		{c: &Config{RumConfig: testRumConf, FrontendConfig: testFrontendConf}, rc: testRumConf},
 	}
 	for _, test := range cases {
-		test.c.SetRumConfig()
+		test.c.setRumConfig()
 		assert.Equal(t, test.rc, test.c.RumConfig)
 	}
 }

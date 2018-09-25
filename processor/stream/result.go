@@ -46,6 +46,7 @@ const (
 	ShuttingDownErrType
 	ServerErrType
 	MethodForbiddenErrType
+	RateLimitErrType
 )
 
 const (
