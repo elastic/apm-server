@@ -107,7 +107,7 @@ func TestRequestIntegration(t *testing.T) {
 		{name: "InvalidMetadata2", code: http.StatusBadRequest, path: "invalid-metadata-2.ndjson", counter: validateCounter},
 		{name: "UnrecognizedEvent", code: http.StatusBadRequest, path: "unrecognized-event.ndjson", counter: validateCounter},
 		{name: "Closing", code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrChannelClosed, counter: serverShuttingDownCounter},
-		{name: "FullQueue", code: http.StatusTooManyRequests, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
+		{name: "FullQueue", code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
