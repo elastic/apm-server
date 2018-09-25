@@ -218,7 +218,6 @@ class CorsTest(CorsBaseTest):
 class RateLimitTest(ClientSideBaseTest):
 
     def test_rate_limit(self):
-
         transactions = self.get_transaction_payload()
         threads = []
         codes = defaultdict(int)
@@ -244,7 +243,6 @@ class RateLimitTest(ClientSideBaseTest):
         assert fire() == 202
 
     def test_rate_limit_multiple_ips(self):
-
         transactions = self.get_transaction_payload()
         threads = []
         codes = defaultdict(int)
@@ -272,3 +270,77 @@ class RateLimitTest(ClientSideBaseTest):
         time.sleep(1)
         assert fire(0) == 202
         assert fire(1) == 202
+
+
+class RateLimitV2Test(ClientSideBaseTest):
+
+    def fire_events(self, data_file, iterations, split_ips=False):
+        transactions = self.get_event_v2_payload(name=data_file)
+        headers = {'content-type': 'application/x-ndjson'}
+        threads = []
+        codes = defaultdict(int)
+
+        def fire(x):
+            ip = '10.11.12.13'
+            if split_ips and x % 2:
+                ip = '10.11.12.14'
+            r = requests.post(self.intake_v2_url,
+                              data=transactions,
+                              headers={'content-type': 'application/x-ndjson',
+                                       'X-Forwarded-For': ip})
+            codes[r.status_code] += 1
+            return r.status_code
+
+        # rate limit hit, because every event in request is counted
+        for x in range(iterations):
+            threads.append(threading.Thread(target=fire, args=(x,)))
+
+        for t in threads:
+            t.start()
+            time.sleep(0.01)
+
+        for t in threads:
+            t.join()
+        return codes
+
+    # limit: 16, burst_multiplier: 3, burst: 48
+    def test_rate_limit(self):
+        # all requests from the same ip
+        # 19 events, batch size 10 => 20+1 events per requ
+        codes = self.fire_events("ratelimit.ndjson", 3)
+        assert set(codes.keys()) == set([202]), codes
+
+    def test_rate_limit_hit(self):
+        # all requests from the same ip
+        codes = self.fire_events("ratelimit.ndjson", 5)
+        assert set(codes.keys()) == set([202, 429]), codes
+        assert codes[429] == 2, codes
+        assert codes[202] == 3, codes
+
+    def test_rate_limit_small_hit(self):
+        # all requests from the same ip
+        # 4 events, batch size 10 => 10+1 events per requ
+        codes = self.fire_events("events.ndjson", 8)
+        assert set(codes.keys()) == set([202, 429]), codes
+        assert codes[429] == 3, codes
+        assert codes[202] == 5, codes
+
+    def test_rate_limit_only_metadata(self):
+        # all requests from the same ip
+        # no events, batch size 10 => 10+1 events per requ
+        codes = self.fire_events("only-metadata.ndjson", 8)
+        assert set(codes.keys()) == set([202, 429]), codes
+        assert codes[429] == 3, codes
+        assert codes[202] == 5, codes
+
+    def test_multiple_ips_rate_limit(self):
+        # requests from 2 different ips
+        codes = self.fire_events("ratelimit.ndjson", 6, True)
+        assert set(codes.keys()) == set([202]), codes
+
+    def test_multiple_ips_rate_limit_hit(self):
+        # requests from 2 different ips
+        codes = self.fire_events("ratelimit.ndjson", 10, True)
+        assert set(codes.keys()) == set([202, 429]), codes
+        assert codes[429] == 4, codes
+        assert codes[202] == 6, codes

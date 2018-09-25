@@ -27,6 +27,8 @@ import (
 	"testing/iotest"
 	"time"
 
+	"golang.org/x/time/rate"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
@@ -122,9 +124,9 @@ func TestIntegration(t *testing.T) {
 		{path: "transactions.ndjson", name: "Transactions"},
 		{path: "spans.ndjson", name: "Spans"},
 		{path: "metrics.ndjson", name: "Metrics"},
-		{path: "minimal_process.ndjson", name: "MixedMinimalProcess"},
-		{path: "minimal_service.ndjson", name: "MinimalService"},
-		{path: "metadata_null_values.ndjson", name: "MetadataNullValues"},
+		{path: "events.ndjson", name: "Events"},
+		{path: "minimal-service.ndjson", name: "MinimalService"},
+		{path: "metadata-null-values.ndjson", name: "MetadataNullValues"},
 		{path: "invalid-event.ndjson", name: "InvalidEvent"},
 		{path: "invalid-json-event.ndjson", name: "InvalidJSONEvent"},
 		{path: "invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
@@ -154,5 +156,36 @@ func TestIntegration(t *testing.T) {
 			actualResult := (&StreamProcessor{}).HandleStream(ctx, reqDecoderMeta, reader, report)
 			assertApproveResult(t, actualResult, test.name)
 		})
+	}
+}
+
+func TestRateLimiting(t *testing.T) {
+	report := func(ctx context.Context, p publish.PendingReq) error {
+		for range p.Transformables {
+		}
+		return nil
+	}
+
+	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/ratelimit.ndjson")
+	require.NoError(t, err)
+	for _, test := range []struct {
+		name string
+		lim  *rate.Limiter
+		hit  int
+	}{
+		{name: "NoLimiter"},
+		{name: "LimiterDenyAll", lim: rate.NewLimiter(rate.Limit(0), 2)},
+		{name: "LimiterAllowAll", lim: rate.NewLimiter(rate.Limit(40), 40*5)},
+		{name: "LimiterPartiallyUsedLimitAllow", lim: rate.NewLimiter(rate.Limit(10), 10*2), hit: 10},
+		{name: "LimiterPartiallyUsedLimitDeny", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
+		{name: "LimiterDeny", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
+	} {
+		reader := decoder.NewNDJSONStreamReader(bytes.NewReader(b), 100*1024)
+		if test.hit > 0 {
+			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
+		}
+		ctx := ContextWithRateLimiter(context.Background(), test.lim)
+		actualResult := (&StreamProcessor{}).HandleStream(ctx, map[string]interface{}{}, reader, report)
+		assertApproveResult(t, actualResult, test.name)
 	}
 }

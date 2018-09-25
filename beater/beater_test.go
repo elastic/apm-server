@@ -85,8 +85,12 @@ func TestBeatConfig(t *testing.T) {
 					"url":     "/debug/vars",
 				},
 				"frontend": map[string]interface{}{
-					"enabled":       true,
-					"rate_limit":    1000,
+					"enabled":    true,
+					"rate_limit": 1000,
+					"event_rate": map[string]interface{}{
+						"limit":    7200,
+						"lru_size": 2000,
+					},
 					"allow_origins": []string{"example*"},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
@@ -127,8 +131,12 @@ func TestBeatConfig(t *testing.T) {
 					Url:     "/debug/vars",
 				},
 				FrontendConfig: &rumConfig{
-					Enabled:      &truthy,
-					RateLimit:    1000,
+					Enabled:   &truthy,
+					RateLimit: 1000,
+					EventRate: &eventRate{
+						Limit:   7200,
+						LruSize: 2000,
+					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
 						Cache:        &Cache{Expiration: 8 * time.Minute},
@@ -139,8 +147,12 @@ func TestBeatConfig(t *testing.T) {
 					beatVersion:         "6.2.0",
 				},
 				RumConfig: &rumConfig{
-					Enabled:      &truthy,
-					RateLimit:    1000,
+					Enabled:   &truthy,
+					RateLimit: 1000,
+					EventRate: &eventRate{
+						Limit:   7200,
+						LruSize: 2000,
+					},
 					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
 						Cache:        &Cache{Expiration: 8 * time.Minute},
@@ -181,6 +193,9 @@ func TestBeatConfig(t *testing.T) {
 				"frontend": map[string]interface{}{
 					"enabled":    true,
 					"rate_limit": 890,
+					"event_rate": map[string]interface{}{
+						"lru_size": 200,
+					},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 4,
@@ -223,6 +238,10 @@ func TestBeatConfig(t *testing.T) {
 				FrontendConfig: &rumConfig{
 					Enabled:   &truthy,
 					RateLimit: 890,
+					EventRate: &eventRate{
+						Limit:   300,
+						LruSize: 200,
+					},
 					SourceMapping: &SourceMapping{
 						Cache: &Cache{
 							Expiration: 4 * time.Second,
@@ -235,8 +254,12 @@ func TestBeatConfig(t *testing.T) {
 					beatVersion:         "6.2.0",
 				},
 				RumConfig: &rumConfig{
-					Enabled:      &truthy,
-					RateLimit:    10,
+					Enabled:   &truthy,
+					RateLimit: 10,
+					EventRate: &eventRate{
+						Limit:   300,
+						LruSize: 1000,
+					},
 					AllowOrigins: []string{"*"},
 					SourceMapping: &SourceMapping{
 						Cache: &Cache{

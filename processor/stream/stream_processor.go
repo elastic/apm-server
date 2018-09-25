@@ -21,8 +21,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
+
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/decoder"
 	er "github.com/elastic/apm-server/model/error"
@@ -35,6 +38,19 @@ import (
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
+
+type rateLimiterKey struct{}
+
+func ContextWithRateLimiter(ctx context.Context, limiter *rate.Limiter) context.Context {
+	return context.WithValue(ctx, rateLimiterKey{}, limiter)
+}
+
+func rateLimiterFromContext(ctx context.Context) *rate.Limiter {
+	if lim, ok := ctx.Value(rateLimiterKey{}).(*rate.Limiter); ok {
+		return lim
+	}
+	return nil
+}
 
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
@@ -174,12 +190,29 @@ func (v *StreamProcessor) handleRawModel(rawModel map[string]interface{}) (trans
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (s *StreamProcessor) readBatch(batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
-	var err error
-	var rawModel map[string]interface{}
+func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+	var (
+		err        error
+		rawModel   map[string]interface{}
+		eventables []transform.Transformable
+	)
 
-	var eventables []transform.Transformable
+	if rl != nil {
+		// use provided rate limiter to throttle batch read
+		ctxT, cancel := context.WithTimeout(ctx, time.Second)
+		err = rl.WaitN(ctxT, batchSize)
+		cancel()
+		if err != nil {
+			response.Add(&Error{
+				Type:    RateLimitErrType,
+				Message: "rate limit exceeded",
+			})
+			return eventables, true
+		}
+	}
+
 	for i := 0; i < batchSize && err == nil; i++ {
+
 		rawModel, err = reader.Read()
 		if err != nil && err != io.EOF {
 
@@ -227,9 +260,11 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 		Config:      s.Tconfig,
 		Metadata:    *metadata,
 	}
+	rl := rateLimiterFromContext(ctx)
 
 	for {
-		transformables, done := s.readBatch(batchSize, jsonReader, res)
+
+		transformables, done := s.readBatch(ctx, rl, batchSize, jsonReader, res)
 		if transformables != nil {
 			err := report(ctx, publish.PendingReq{
 				Transformables: transformables,

@@ -18,16 +18,13 @@
 package beater
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-agent-go"
@@ -52,18 +49,11 @@ type beater struct {
 // Creates beater
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	logger := logp.NewLogger("beater")
-	beaterConfig := defaultConfig(b.Info.Version)
-	if err := ucfg.Unpack(beaterConfig); err != nil {
-		return nil, errors.Wrap(err, "Error processing configuration")
+	beaterConfig, err := NewConfig(b.Info.Version, ucfg)
+	if err != nil {
+		return nil, err
 	}
-	beaterConfig.SetRumConfig()
 	if beaterConfig.RumConfig.isEnabled() {
-		if _, err := regexp.Compile(beaterConfig.RumConfig.LibraryPattern); err != nil {
-			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
-		}
-		if _, err := regexp.Compile(beaterConfig.RumConfig.ExcludeFromGrouping); err != nil {
-			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
-		}
 		if b.Config != nil && beaterConfig.RumConfig.SourceMapping.EsConfig == nil {
 			// fall back to elasticsearch output configuration for sourcemap storage if possible
 			if isElasticsearchOutput(b) {

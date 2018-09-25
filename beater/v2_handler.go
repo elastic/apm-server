@@ -25,6 +25,7 @@ import (
 
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/libbeat/logp"
 
@@ -34,6 +35,7 @@ import (
 type v2Handler struct {
 	requestDecoder  decoder.ReqDecoder
 	streamProcessor *stream.StreamProcessor
+	rlc             *rlCache
 }
 
 func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
@@ -58,6 +60,9 @@ func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 		case stream.ShuttingDownErrType:
 			code = http.StatusServiceUnavailable
 			ct = serverShuttingDownCounter
+		case stream.RateLimitErrType:
+			code = http.StatusTooManyRequests
+			ct = rateLimitCounter
 		default:
 			code = http.StatusInternalServerError
 			ct = responseErrorsOthers
@@ -111,12 +116,27 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 			return
 		}
 
+		ctx := r.Context()
+		if v.rlc != nil {
+			rl := v.rlc.getRateLimiter(utility.RemoteAddr(r))
+			if !rl.Allow() {
+				sr := stream.Result{}
+				sr.Add(&stream.Error{
+					Type:    stream.RateLimitErrType,
+					Message: "rate limit exceeded",
+				})
+				v.sendResponse(logger, w, &sr)
+				return
+			}
+			ctx = stream.ContextWithRateLimiter(ctx, rl)
+		}
+
 		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxEventSize)
 		if err != nil {
 			// if we can't set up the ndjsonreader,
 			// we won't be able to make sense of the body
 			sr := stream.Result{}
-			sr.LimitedAdd(&stream.Error{
+			sr.Add(&stream.Error{
 				Type:    stream.InvalidInputErrType,
 				Message: err.Error(),
 			})
@@ -127,12 +147,11 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 		reqMeta, err := v.requestDecoder(r)
 		if err != nil {
 			sr := stream.Result{}
-			sr.LimitedAdd(err)
+			sr.Add(err)
 			v.sendResponse(logger, w, &sr)
 			return
 		}
-
-		res := v.streamProcessor.HandleStream(r.Context(), reqMeta, ndReader, report)
+		res := v.streamProcessor.HandleStream(ctx, reqMeta, ndReader, report)
 
 		v.sendResponse(logger, w, res)
 	})
