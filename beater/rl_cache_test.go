@@ -49,11 +49,11 @@ func TestCacheEviction(t *testing.T) {
 
 	// add new limiter
 	rl_a := rlc.getRateLimiter("a")
-	rl_a.AllowN(time.Now(), 5)
+	rl_a.AllowN(time.Now(), 3)
 
 	// add new limiter
 	rl_b := rlc.getRateLimiter("b")
-	rl_b.AllowN(time.Now(), 4)
+	rl_b.AllowN(time.Now(), 2)
 
 	// reuse evicted limiter rl_a
 	rl_c := rlc.getRateLimiter("c")

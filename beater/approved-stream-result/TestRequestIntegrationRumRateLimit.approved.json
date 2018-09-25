@@ -1,5 +1,5 @@
 {
-    "accepted": 50,
+    "accepted": 30,
     "errors": [
         {
             "message": "rate limit exceeded"

@@ -25,7 +25,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-const burstMultiplier = 5
+const burstMultiplier = 3
 
 // The rlCache is a simple lru cache holding N=size rate limiter entities. Every
 // rate limiter entity allows N=rateLimit hits per key (=IP) per second, and has a

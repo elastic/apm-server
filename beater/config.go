@@ -211,7 +211,7 @@ func defaultRum(beatVersion string) *rumConfig {
 	return &rumConfig{
 		RateLimit: 10,
 		EventRate: &eventRate{
-			Limit:   1000,
+			Limit:   300,
 			LruSize: 1000,
 		},
 		AllowOrigins: []string{"*"},

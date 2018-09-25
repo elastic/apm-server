@@ -303,46 +303,44 @@ class RateLimitV2Test(ClientSideBaseTest):
             t.join()
         return codes
 
-    # limit: 14, burst_multiplier: 5, burst: 70
-    # 14+70=84 can be successfully scheduled
-
+    # limit: 16, burst_multiplier: 3, burst: 48
     def test_rate_limit(self):
         # all requests from the same ip
         # 19 events, batch size 10 => 20+1 events per requ
-        codes = self.fire_events("ratelimit.ndjson", 4)
+        codes = self.fire_events("ratelimit.ndjson", 3)
         assert set(codes.keys()) == set([202]), codes
 
     def test_rate_limit_hit(self):
         # all requests from the same ip
         codes = self.fire_events("ratelimit.ndjson", 5)
         assert set(codes.keys()) == set([202, 429]), codes
-        assert codes[429] == 1, codes
-        assert codes[202] == 4, codes
+        assert codes[429] == 2, codes
+        assert codes[202] == 3, codes
 
     def test_rate_limit_small_hit(self):
         # all requests from the same ip
         # 4 events, batch size 10 => 10+1 events per requ
         codes = self.fire_events("events.ndjson", 8)
         assert set(codes.keys()) == set([202, 429]), codes
-        assert codes[429] == 1, codes
-        assert codes[202] == 7, codes
+        assert codes[429] == 3, codes
+        assert codes[202] == 5, codes
 
     def test_rate_limit_only_metadata(self):
         # all requests from the same ip
         # no events, batch size 10 => 10+1 events per requ
         codes = self.fire_events("only-metadata.ndjson", 8)
         assert set(codes.keys()) == set([202, 429]), codes
-        assert codes[429] == 1, codes
-        assert codes[202] == 7, codes
+        assert codes[429] == 3, codes
+        assert codes[202] == 5, codes
 
     def test_multiple_ips_rate_limit(self):
         # requests from 2 different ips
-        codes = self.fire_events("ratelimit.ndjson", 8, True)
+        codes = self.fire_events("ratelimit.ndjson", 6, True)
         assert set(codes.keys()) == set([202]), codes
 
     def test_multiple_ips_rate_limit_hit(self):
         # requests from 2 different ips
-        codes = self.fire_events("ratelimit.ndjson", 9, True)
+        codes = self.fire_events("ratelimit.ndjson", 10, True)
         assert set(codes.keys()) == set([202, 429]), codes
-        assert codes[429] == 1, codes
-        assert codes[202] == 8, codes
+        assert codes[429] == 4, codes
+        assert codes[202] == 6, codes

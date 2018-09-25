@@ -194,7 +194,6 @@ func TestBeatConfig(t *testing.T) {
 					"enabled":    true,
 					"rate_limit": 890,
 					"event_rate": map[string]interface{}{
-						"limit":    500,
 						"lru_size": 200,
 					},
 					"source_mapping": map[string]interface{}{
@@ -205,9 +204,6 @@ func TestBeatConfig(t *testing.T) {
 				},
 				"rum": map[string]interface{}{
 					"enabled": true,
-					"event_rate": map[string]interface{}{
-						"limit": 7200,
-					},
 					"source_mapping": map[string]interface{}{
 						"cache": map[string]interface{}{
 							"expiration": 7,
@@ -243,7 +239,7 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 890,
 					EventRate: &eventRate{
-						Limit:   500,
+						Limit:   300,
 						LruSize: 200,
 					},
 					SourceMapping: &SourceMapping{
@@ -261,7 +257,7 @@ func TestBeatConfig(t *testing.T) {
 					Enabled:   &truthy,
 					RateLimit: 10,
 					EventRate: &eventRate{
-						Limit:   7200,
+						Limit:   300,
 						LruSize: 1000,
 					},
 					AllowOrigins: []string{"*"},
