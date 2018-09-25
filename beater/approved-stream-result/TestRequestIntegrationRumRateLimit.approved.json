@@ -1,0 +1,8 @@
+{
+    "accepted": 30,
+    "errors": [
+        {
+            "message": "rate limit exceeded"
+        }
+    ]
+}

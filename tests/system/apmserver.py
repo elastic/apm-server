@@ -51,11 +51,11 @@ class BaseTest(TestCase):
     def get_metrics_payload_path(self, name="payload.json"):
         return self.get_payload_path("metric", name)
 
-    def get_transaction_v2_payload(self):
-        with open(self.get_transaction_v2_payload_path()) as f:
+    def get_event_v2_payload(self, name="events.ndjson"):
+        with open(self.get_event_v2_payload_path(name=name)) as f:
             return f.read()
 
-    def get_transaction_v2_payload_path(self, name="transactions.ndjson"):
+    def get_event_v2_payload_path(self, name="events.ndjson"):
         return self._beat_path_join(
             'testdata',
             'intake-v2',
@@ -275,6 +275,8 @@ class ClientSideBaseTest(ServerBaseTest):
     transactions_url = 'http://localhost:8200/v1/rum/transactions'
     errors_url = 'http://localhost:8200/v1/rum/errors'
     sourcemap_url = 'http://localhost:8200/assets/v1/sourcemaps'
+
+    intake_v2_url = 'http://localhost:8200/intake/v2/rum/events'
 
     @classmethod
     def setUpClass(cls):

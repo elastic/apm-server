@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/go-ucfg"
+	"github.com/pkg/errors"
 )
 
 const defaultPort = "8200"
@@ -64,12 +65,18 @@ type ExpvarConfig struct {
 type rumConfig struct {
 	Enabled             *bool          `config:"enabled"`
 	RateLimit           int            `config:"rate_limit"`
+	EventRate           *eventRate     `config:"event_rate"`
 	AllowOrigins        []string       `config:"allow_origins"`
 	LibraryPattern      string         `config:"library_pattern"`
 	ExcludeFromGrouping string         `config:"exclude_from_grouping"`
 	SourceMapping       *SourceMapping `config:"source_mapping"`
 
 	beatVersion string
+}
+
+type eventRate struct {
+	Limit   int `config:"limit"`
+	LruSize int `config:"lru_size"`
 }
 
 type metricsConfig struct {
@@ -136,6 +143,24 @@ type InstrumentationConfig struct {
 	SecretToken string   `config:"secret_token"`
 }
 
+func NewConfig(version string, ucfg *common.Config) (*Config, error) {
+	c := defaultConfig(version)
+	if err := ucfg.Unpack(c); err != nil {
+		return nil, errors.Wrap(err, "Error processing configuration")
+	}
+
+	c.setRumConfig()
+	if c.RumConfig.isEnabled() {
+		if _, err := regexp.Compile(c.RumConfig.LibraryPattern); err != nil {
+			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
+		}
+		if _, err := regexp.Compile(c.RumConfig.ExcludeFromGrouping); err != nil {
+			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
+		}
+	}
+	return c, nil
+}
+
 func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
 	if c != nil && c.RumConfig.isEnabled() && c.RumConfig.SourceMapping != nil {
 		c.RumConfig.SourceMapping.EsConfig = esConfig
@@ -170,7 +195,7 @@ func (c *pipelineConfig) shouldOverwrite() bool {
 	return c != nil && (c.Overwrite != nil && *c.Overwrite)
 }
 
-func (c *Config) SetRumConfig() {
+func (c *Config) setRumConfig() {
 	if c.RumConfig != nil && c.RumConfig.Enabled != nil {
 		return
 	}
@@ -210,7 +235,11 @@ func replaceVersion(pattern, version string) string {
 
 func defaultRum(beatVersion string) *rumConfig {
 	return &rumConfig{
-		RateLimit:    10,
+		RateLimit: 10,
+		EventRate: &eventRate{
+			Limit:   300,
+			LruSize: 1000,
+		},
 		AllowOrigins: []string{"*"},
 		SourceMapping: &SourceMapping{
 			Cache: &Cache{
