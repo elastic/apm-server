@@ -39,25 +39,25 @@ func transactionProcSetup() *tests.ProcessorSetup {
 	}
 }
 
-func transactionPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func transactionPayloadAttrsNotInFields() *tests.Set {
+	return tests.NewSet(
 		tests.Group("transaction.marks."),
 		tests.Group("context.db"),
 		"transaction.span_count.started",
-	))
+	)
 }
 
-func transactionFieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func transactionFieldsNotInPayloadAttrs() *tests.Set {
+	return tests.NewSet(
 		"listening",
 		"context.user.user-agent",
 		"context.user.ip",
 		"context.system.ip",
-	))
+	)
 }
 
-func transactionPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func transactionPayloadAttrsNotInJsonSchema() *tests.Set {
+	return tests.NewSet(
 		"transaction",
 		"transaction.context.request.headers.some-other-header",
 		"transaction.context.request.headers.array",
@@ -67,11 +67,11 @@ func transactionPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 		tests.Group("transaction.context.custom"),
 		tests.Group("transaction.context.tags"),
 		tests.Group("transaction.marks"),
-	))
+	)
 }
 
-func transactionRequiredKeys(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func transactionRequiredKeys() *tests.Set {
+	return tests.NewSet(
 		"transaction",
 		"transaction.span_count",
 		"transaction.span_count.started",
@@ -81,11 +81,11 @@ func transactionRequiredKeys(s *tests.Set) *tests.Set {
 		"transaction.type",
 		"transaction.context.request.method",
 		"transaction.context.request.url",
-	))
+	)
 }
 
-func transactionKeywordExceptionKeys(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func transactionKeywordExceptionKeys() *tests.Set {
+	return tests.NewSet(
 		"processor.event", "processor.name", "listening",
 		"transaction.marks",
 		"context.tags",
@@ -94,29 +94,29 @@ func transactionKeywordExceptionKeys(s *tests.Set) *tests.Set {
 		tests.Group("context.process"),
 		tests.Group("context.service"),
 		tests.Group("context.system"),
-	))
+	)
 }
 
 func TestTransactionPayloadMatchFields(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchFields(t,
-		transactionPayloadAttrsNotInFields(nil),
-		transactionFieldsNotInPayloadAttrs(nil))
+		transactionPayloadAttrsNotInFields(),
+		transactionFieldsNotInPayloadAttrs())
 }
 
 func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchJsonSchema(t,
-		transactionPayloadAttrsNotInJsonSchema(nil),
+		transactionPayloadAttrsNotInJsonSchema(),
 		nil)
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {
-	transactionProcSetup().AttrsPresence(t, transactionRequiredKeys(nil), nil)
+	transactionProcSetup().AttrsPresence(t, transactionRequiredKeys(), nil)
 }
 
 func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 	transactionProcSetup().KeywordLimitation(
 		t,
-		transactionKeywordExceptionKeys(nil),
+		transactionKeywordExceptionKeys(),
 		map[string]string{
 			"transaction.": "",
 			"parent.id":    "parent_id",

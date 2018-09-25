@@ -39,23 +39,24 @@ func errorProcSetup() *tests.ProcessorSetup {
 	}
 }
 
-func errorPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func errorPayloadAttrsNotInFields() *tests.Set {
+	return tests.NewSet(
 		tests.Group("error.exception.attributes"),
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
-	))
+	)
 }
 
-func errorFieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func errorFieldsNotInPayloadAttrs() *tests.Set {
+	return tests.NewSet(
 		"listening", "view errors", "error id icon",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
-	))
+		"error.parent_id", "error.trace_id",
+	)
 }
 
-func errorPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func errorPayloadAttrsNotInJsonSchema() *tests.Set {
+	return tests.NewSet(
 		"error",
 		"error.log.stacktrace.vars.key",
 		"error.exception.stacktrace.vars.key",
@@ -66,11 +67,11 @@ func errorPayloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 		tests.Group("error.context.request.env"),
 		tests.Group("error.context.request.cookies"),
 		tests.Group("error.context.tags"),
-	))
+	)
 }
 
-func errorRequiredKeys(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func errorRequiredKeys() *tests.Set {
+	return tests.NewSet(
 		"error",
 		"error.id",
 		"error.exception.message",
@@ -88,14 +89,14 @@ func errorRequiredKeys(s *tests.Set) *tests.Set {
 		"error.trace_id",
 		"error.transaction_id",
 		"error.parent_id",
-	))
+	)
 }
 
 type val = []interface{}
 type obj = map[string]interface{}
 
-func errorCondRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
-	base := map[string]tests.Condition{
+func errorCondRequiredKeys() map[string]tests.Condition {
+	return map[string]tests.Condition{
 		"error.exception": tests.Condition{Absence: []string{"error.log"}},
 		"error.log":       tests.Condition{Absence: []string{"error.exception"}},
 
@@ -106,42 +107,38 @@ func errorCondRequiredKeys(c map[string]tests.Condition) map[string]tests.Condit
 		"error.transaction_id": tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.trace_id": "abc123"}},
 		"error.parent_id":      tests.Condition{Existence: obj{"error.transaction_id": "abc123", "error.trace_id": "abc123"}},
 	}
-	for k, v := range c {
-		base[k] = v
-	}
-	return base
 }
 
-func errorKeywordExceptionKeys(s *tests.Set) *tests.Set {
-	return tests.Union(s, tests.NewSet(
+func errorKeywordExceptionKeys() *tests.Set {
+	return tests.NewSet(
 		"processor.event", "processor.name", "listening", "error.grouping_key",
 		"context.tags",
 		"view errors", "error id icon",
 		tests.Group("context.service"),
 		tests.Group("context.system"),
 		tests.Group("context.process"),
-	))
+	)
 }
 
 func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchFields(t,
-		errorPayloadAttrsNotInFields(nil),
-		errorFieldsNotInPayloadAttrs(tests.NewSet("error.parent_id", "error.trace_id")))
+		errorPayloadAttrsNotInFields(),
+		errorFieldsNotInPayloadAttrs())
 }
 
 func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
-		errorPayloadAttrsNotInJsonSchema(nil), tests.NewSet(nil))
+		errorPayloadAttrsNotInJsonSchema(), nil)
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {
-	errorProcSetup().AttrsPresence(t, errorRequiredKeys(nil), errorCondRequiredKeys(nil))
+	errorProcSetup().AttrsPresence(t, errorRequiredKeys(), errorCondRequiredKeys())
 }
 
 func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 	errorProcSetup().KeywordLimitation(
 		t,
-		errorKeywordExceptionKeys(nil),
+		errorKeywordExceptionKeys(),
 		map[string]string{
 			"error.":         "",
 			"transaction.id": "transaction_id",
