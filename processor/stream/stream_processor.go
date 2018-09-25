@@ -226,7 +226,7 @@ func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batch
 		}
 
 		if rawModel != nil {
-			tr, err := v.HandleRawModel(rawModel)
+			tr, err := s.HandleRawModel(rawModel)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
