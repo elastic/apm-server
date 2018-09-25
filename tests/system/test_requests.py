@@ -327,6 +327,14 @@ class RateLimitV2Test(ClientSideBaseTest):
         assert codes[429] == 1, codes
         assert codes[202] == 7, codes
 
+    def test_rate_limit_only_metadata(self):
+        # all requests from the same ip
+        # no events, batch size 10 => 10+1 events per requ
+        codes = self.fire_events("only-metadata.ndjson", 8)
+        assert set(codes.keys()) == set([202, 429]), codes
+        assert codes[429] == 1, codes
+        assert codes[202] == 7, codes
+
     def test_multiple_ips_rate_limit(self):
         # requests from 2 different ips
         codes = self.fire_events("ratelimit.ndjson", 8, True)

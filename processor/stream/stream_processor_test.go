@@ -176,9 +176,9 @@ func TestRateLimiting(t *testing.T) {
 		{name: "NoLimiter"},
 		{name: "LimiterDenyAll", lim: rate.NewLimiter(rate.Limit(0), 2)},
 		{name: "LimiterAllowAll", lim: rate.NewLimiter(rate.Limit(40), 40*5)},
-		{name: "LimiterAllowWithWait", lim: rate.NewLimiter(rate.Limit(10), 10*2), hit: 10},
-		{name: "LimiterForbiddenHit", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
-		{name: "LimiterForbidden", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
+		{name: "LimiterPartiallyUsedLimitAllow", lim: rate.NewLimiter(rate.Limit(10), 10*2), hit: 10},
+		{name: "LimiterPartiallyUsedLimitDeny", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
+		{name: "LimiterDeny", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
 	} {
 		reader := decoder.NewNDJSONStreamReader(bytes.NewReader(b), 100*1024)
 		if test.hit > 0 {

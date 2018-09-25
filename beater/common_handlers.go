@@ -163,7 +163,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
 	for path, route := range V2Routes {
 		logger.Infof("Path %s added to request handler", path)
 
-		mux.Handle(path, route.Handler(beaterConfig, report))
+		mux.Handle(path, route.Handler(path, beaterConfig, report))
 	}
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))

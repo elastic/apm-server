@@ -58,9 +58,16 @@ func TestCacheEviction(t *testing.T) {
 	// reuse evicted limiter rl_a
 	rl_c := rlc.getRateLimiter("c")
 	assert.False(t, rl_c.Allow())
+	assert.Equal(t, rl_c, rlc.evictedLimiter)
 
 	// reuse evicted limiter rl_b
-	rl_a = rlc.getRateLimiter("a")
-	assert.True(t, rl_a.Allow())
-	assert.False(t, rl_a.Allow())
+	rl_d := rlc.getRateLimiter("a")
+	assert.True(t, rl_d.Allow())
+	assert.False(t, rl_d.Allow())
+	assert.Equal(t, rl_d, rlc.evictedLimiter)
+	// check that limiter are independent
+	assert.True(t, rl_d != rl_c)
+	rlc.evictedLimiter = nil
+	assert.NotNil(t, rl_d)
+	assert.NotNil(t, rl_c)
 }

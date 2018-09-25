@@ -61,7 +61,6 @@ type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
 	configurableDecoder func(*Config, decoder.ReqDecoder) decoder.ReqDecoder
 	transformConfig     func(*Config) transform.Config
-	rlc                 func(*Config) *rlCache
 }
 
 var V1Routes = map[string]v1Route{
@@ -88,7 +87,6 @@ var (
 			v2backendHandler,
 			systemMetadataDecoder,
 			func(*Config) transform.Config { return transform.Config{} },
-			nilCache,
 		},
 	}
 	v2RumRoute = v2Route{
@@ -96,15 +94,6 @@ var (
 			v2rumHandler,
 			userMetaDataDecoder,
 			rumTransformConfig,
-			func(c *Config) *rlCache {
-				rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize,
-					c.RumConfig.EventRate.Limit)
-				if err != nil {
-					logp.NewLogger("handler").Error(err.Error())
-					return nil
-				}
-				return rlc
-			},
 		},
 	}
 )
@@ -114,25 +103,21 @@ var (
 		backendHandler,
 		systemMetadataDecoder,
 		func(*Config) transform.Config { return transform.Config{} },
-		nilCache,
 	}
 	rumRouteType = routeType{
 		rumHandler,
 		userMetaDataDecoder,
 		rumTransformConfig,
-		nilCache,
 	}
 	metricsRouteType = routeType{
 		metricsHandler,
 		systemMetadataDecoder,
 		func(*Config) transform.Config { return transform.Config{} },
-		nilCache,
 	}
 	sourcemapRouteType = routeType{
 		sourcemapHandler,
 		systemMetadataDecoder,
 		rumTransformConfig,
-		nilCache,
 	}
 
 	v1RequestDecoder = func(beaterConfig *Config) decoder.ReqDecoder {
@@ -144,8 +129,6 @@ var (
 	}
 )
 
-func nilCache(c *Config) *rlCache { return nil }
-
 func v2backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
 		requestTimeHandler(
@@ -155,8 +138,7 @@ func v2backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 func v2rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 		requestTimeHandler(
-			concurrencyLimitHandler(beaterConfig,
-				corsHandler(beaterConfig.RumConfig.AllowOrigins, h))))
+			corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))
 }
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
@@ -230,17 +212,24 @@ type v2Route struct {
 	routeType
 }
 
-func (v v2Route) Handler(beaterConfig *Config, report publish.Reporter) http.Handler {
+func (v v2Route) Handler(url string, c *Config, report publish.Reporter) http.Handler {
 	reqDecoder := v.configurableDecoder(
-		beaterConfig,
+		c,
 		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
 	)
 
 	v2Handler := v2Handler{
 		requestDecoder:  reqDecoder,
-		streamProcessor: &stream.StreamProcessor{Tconfig: v.transformConfig(beaterConfig)},
-		rlc:             v.rlc(beaterConfig),
+		streamProcessor: &stream.StreamProcessor{Tconfig: v.transformConfig(c)},
 	}
 
-	return v.wrappingHandler(beaterConfig, v2Handler.Handle(beaterConfig, report))
+	if url == V2RumURL {
+		if rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit); err == nil {
+			v2Handler.rlc = rlc
+		} else {
+			logp.NewLogger("handler").Error(err.Error())
+		}
+	}
+
+	return v.wrappingHandler(c, v2Handler.Handle(c, report))
 }

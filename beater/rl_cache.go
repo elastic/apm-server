@@ -27,15 +27,15 @@ import (
 
 const burstMultiplier = 5
 
-//The rlCache is a simple lru cache holding N=size rate limiter entities. Every
-//rate limiter entity allows N=rateLimit hits per key (=IP) per second, and has a
-//burst queue of limit*5.
-//As the used lru cache is of a fixed size, cache entries can get evicted, in
-//which case the evicted limiter is reused as the new rate limiter for the
-//current key. This adds a certain random factor to the rate limiting in case the
-//cache is full. The purpose is to avoid bypassing the rate limiting by sending
-//requests from cache_size*2 unique keys, which would lead to evicted keys and
-//the creation of new rate limiter entities with full allowance.
+// The rlCache is a simple lru cache holding N=size rate limiter entities. Every
+// rate limiter entity allows N=rateLimit hits per key (=IP) per second, and has a
+// burst queue of limit*5.
+// As the used lru cache is of a fixed size, cache entries can get evicted, in
+// which case the evicted limiter is reused as the new rate limiter for the
+// current key. This adds a certain random factor to the rate limiting in case the
+// cache is full. The purpose is to avoid bypassing the rate limiting by sending
+// requests from cache_size*2 unique keys, which would lead to evicted keys and
+// the creation of new rate limiter entities with full allowance.
 type rlCache struct {
 	cache *simplelru.LRU
 	limit int
@@ -46,31 +46,31 @@ type rlCache struct {
 
 func NewRlCache(size, rateLimit int) (*rlCache, error) {
 	if size <= 0 || rateLimit < 0 {
-		return nil, errors.New("Cache initialization went wrong.")
+		return nil, errors.New("cache initialization: size and rateLimit must be greater than zero")
 	}
 
 	rlc := rlCache{limit: rateLimit}
 
 	var onEvicted = func(_ interface{}, value interface{}) {
-		rlc.evictedLimiter = (*value.(**rate.Limiter))
+		rlc.evictedLimiter = *value.(**rate.Limiter)
 	}
 
-	if c, err := simplelru.NewLRU(size, simplelru.EvictCallback(onEvicted)); err != nil {
+	c, err := simplelru.NewLRU(size, simplelru.EvictCallback(onEvicted))
+	if err != nil {
 		return nil, err
-	} else {
-		rlc.cache = c
 	}
+	rlc.cache = c
 	return &rlc, nil
 }
 
 func (rlc *rlCache) getRateLimiter(key string) *rate.Limiter {
-	//fetch the rate limiter from the cache, if a cache is given
+	// fetch the rate limiter from the cache, if a cache is given
 	if rlc.cache == nil || rlc.limit == -1 {
 		return nil
 	}
 
-	//lock get and add action for cache to allow proper eviction handling without
-	//race conditions.
+	// lock get and add action for cache to allow proper eviction handling without
+	// race conditions.
 	rlc.mu.Lock()
 	defer rlc.mu.Unlock()
 
