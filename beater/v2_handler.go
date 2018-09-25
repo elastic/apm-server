@@ -53,7 +53,7 @@ func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 			code = http.StatusBadRequest
 			ct = validateCounter
 		case stream.QueueFullErrType:
-			code = http.StatusTooManyRequests
+			code = http.StatusServiceUnavailable
 			ct = fullQueueCounter
 		case stream.ShuttingDownErrType:
 			code = http.StatusServiceUnavailable
