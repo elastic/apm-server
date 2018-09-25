@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 	"github.com/satori/go.uuid"
@@ -46,9 +46,6 @@ import (
 )
 
 const (
-	rateLimitCacheSize       = 1000
-	rateLimitBurstMultiplier = 2
-
 	supportedHeaders = "Content-Type, Content-Encoding, Accept"
 	supportedMethods = "POST, OPTIONS"
 )
@@ -119,10 +116,11 @@ var (
 			counter: validateCounter,
 		}
 	}
+	rateLimitCounter    = counter("response.errors.ratelimit")
 	rateLimitedResponse = serverResponse{
 		err:     errors.New("too many requests"),
 		code:    http.StatusTooManyRequests,
-		counter: counter("response.errors.ratelimit"),
+		counter: rateLimitCounter,
 	}
 	methodNotAllowedCounter  = counter("response.errors.method")
 	methodNotAllowedResponse = serverResponse{
@@ -165,7 +163,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
 	for path, route := range V2Routes {
 		logger.Infof("Path %s added to request handler", path)
 
-		mux.Handle(path, route.Handler(beaterConfig, report))
+		mux.Handle(path, route.Handler(path, beaterConfig, report))
 	}
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
@@ -237,9 +235,11 @@ func rootHandler(secretToken string) http.Handler {
 	return logHandler(handler)
 }
 
-type contextKey string
+type reqLoggerKey struct{}
 
-const reqLoggerContextKey = contextKey("requestLogger")
+func ContextWithReqLogger(ctx context.Context, rl *logp.Logger) context.Context {
+	return context.WithValue(ctx, reqLoggerKey{}, rl)
+}
 
 func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
@@ -257,13 +257,8 @@ func logHandler(h http.Handler) http.Handler {
 			"remote_address", utility.RemoteAddr(r),
 			"user-agent", r.Header.Get("User-Agent"))
 
-		lr := r.WithContext(
-			context.WithValue(r.Context(), reqLoggerContextKey, reqLogger),
-		)
-
 		lw := utility.NewRecordingResponseWriter(w)
-
-		h.ServeHTTP(lw, lr)
+		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
 
 		if lw.Code <= 399 {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
@@ -281,7 +276,7 @@ func requestTimeHandler(h http.Handler) http.Handler {
 // requestLogger is a convenience function to retrieve the logger that was
 // added to the request context by handler `logHandler``
 func requestLogger(r *http.Request) *logp.Logger {
-	logger, ok := r.Context().Value(reqLoggerContextKey).(*logp.Logger)
+	logger, ok := r.Context().Value(reqLoggerKey{}).(*logp.Logger)
 	if !ok {
 		logger = logp.NewLogger("request")
 	}
@@ -297,6 +292,11 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 		}
 	})
 }
+
+const (
+	rateLimitCacheSize       = 1000
+	rateLimitBurstMultiplier = 2
+)
 
 func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
 	cache, _ := lru.New(rateLimitCacheSize)

@@ -49,8 +49,25 @@ apm-server:
     # To enable real user monitoring (RUM) support set this to true.
     #enabled: false
 
+    #-- v1 RUM endpoint
+
     # Rate limit per second and IP address for requests sent to the RUM endpoint.
     #rate_limit: 10
+
+    #-- v2 RUM endpoint
+
+    #event_rate:
+    
+      # Defines the maximum amount of events allowed to be sent to the APM Server v2 RUM
+      # endpoint per ip per second. Defaults to 300.
+      #limit: 300
+      
+      # An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
+      # This setting defines the number of unique IPs that can be tracked in the cache.
+      # Sites with many concurrent clients should consider increasing this limit. Defaults to 1000.
+      #lru_size: 1000
+
+    #-- General RUM settings
 
     # Comma separated list of permitted origins for real user monitoring. 
     # User-agents will send an origin header that will be validated against this list.
@@ -96,6 +113,7 @@ apm-server:
       # If the default index pattern for source maps at 'outputs.elasticsearch.indices'
       # is changed, a matching index pattern needs to be specified here.
       #index_pattern: "apm-*-sourcemap*"
+
 
   # If set to true, APM Server augments data received by the agent with the original IP of the backend server,
   # or the IP and User Agent of the real user (RUM requests). It defaults to true.
