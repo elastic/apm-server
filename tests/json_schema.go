@@ -47,6 +47,8 @@ type ProcessorSetup struct {
 	TemplatePaths []string
 	// json schema string
 	Schema string
+	// prefix schema fields with this
+	SchemaPrefix string
 }
 
 type SchemaTestData struct {
@@ -87,7 +89,7 @@ var (
 // specified in the schema.
 // - schemaAttrsNotInPayload: attributes that are reflected in the json schema but are
 // not part of the payload.
-func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set, schemaPrefix string) {
+func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
 	require.True(t, len(ps.Schema) > 0, "Schema must be set")
 
 	// check payload attrs in json schema
@@ -96,15 +98,15 @@ func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrs
 	payloadAttrs := NewSet()
 	flattenJsonKeys(payload, "", payloadAttrs)
 
-	ps.AttrsMatchJsonSchema(t, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload, schemaPrefix)
+	ps.AttrsMatchJsonSchema(t, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload)
 }
 
-func (ps *ProcessorSetup) AttrsMatchJsonSchema(t *testing.T, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set, schemaPrefix string) {
+func (ps *ProcessorSetup) AttrsMatchJsonSchema(t *testing.T, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
 	schemaKeys := NewSet()
 	schema, err := ParseSchema(ps.Schema)
 	require.NoError(t, err)
 
-	FlattenSchemaNames(schema, schemaPrefix, nil, schemaKeys)
+	FlattenSchemaNames(schema, ps.SchemaPrefix, nil, schemaKeys)
 
 	missing := Difference(payloadAttrs, schemaKeys)
 	missing = differenceWithGroup(missing, payloadAttrsNotInSchema)

@@ -34,14 +34,14 @@ func errorProcSetup() *tests.ProcessorSetup {
 			"../../../model/error/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
 		},
-		Schema: schema.ModelSchema,
+		Schema:       schema.ModelSchema,
+		SchemaPrefix: "error",
 	}
 }
 
 func errorPayloadAttrsNotInFields(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
-		"error.exception.attributes",
-		"error.exception.attributes.foo",
+		tests.Group("error.exception.attributes"),
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
 	))
@@ -99,6 +99,9 @@ func errorCondRequiredKeys(c map[string]tests.Condition) map[string]tests.Condit
 		"error.exception": tests.Condition{Absence: []string{"error.log"}},
 		"error.log":       tests.Condition{Absence: []string{"error.exception"}},
 
+		"error.message": tests.Condition{Absence: []string{"error.type"}},
+		"error.type":    tests.Condition{Absence: []string{"error.message"}},
+
 		"error.trace_id":       tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.transaction_id": "abc123"}},
 		"error.transaction_id": tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.trace_id": "abc123"}},
 		"error.parent_id":      tests.Condition{Existence: obj{"error.transaction_id": "abc123", "error.trace_id": "abc123"}},
@@ -128,7 +131,7 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 
 func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
-		errorPayloadAttrsNotInJsonSchema(nil), tests.NewSet(nil), "error")
+		errorPayloadAttrsNotInJsonSchema(nil), tests.NewSet(nil))
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {

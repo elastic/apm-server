@@ -31,6 +31,7 @@ func spanProcSetup() *tests.ProcessorSetup {
 		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
 		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
 		Schema:          schema.ModelSchema,
+		SchemaPrefix:    "span",
 		TemplatePaths: []string{
 			"../../../model/span/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
@@ -125,7 +126,7 @@ func TestSpanPayloadMatchFields(t *testing.T) {
 func TestSpanPayloadMatchJsonSchema(t *testing.T) {
 	spanProcSetup().PayloadAttrsMatchJsonSchema(t,
 		spanPayloadAttrsNotInJsonSchema(nil),
-		spanJsonSchemaNotInPayloadAttrs(nil), "span")
+		spanJsonSchemaNotInPayloadAttrs(nil))
 }
 
 func TestAttrsPresenceInSpan(t *testing.T) {

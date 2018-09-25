@@ -31,6 +31,7 @@ func transactionProcSetup() *tests.ProcessorSetup {
 		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
 		FullPayloadPath: "../testdata/intake-v2/transactions.ndjson",
 		Schema:          schema.ModelSchema,
+		SchemaPrefix:    "transaction",
 		TemplatePaths: []string{
 			"../../../model/transaction/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
@@ -105,8 +106,7 @@ func TestTransactionPayloadMatchFields(t *testing.T) {
 func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchJsonSchema(t,
 		transactionPayloadAttrsNotInJsonSchema(nil),
-		nil,
-		"transaction")
+		nil)
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {

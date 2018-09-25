@@ -32,8 +32,7 @@ func TestPayloadMatchFields(t *testing.T) {
 func TestPayloadMatchJsonSchema(t *testing.T) {
 	procSetup().PayloadAttrsMatchJsonSchema(t,
 		payloadAttrsNotInJsonSchema(nil),
-		jsonSchemaNotInPayloadAttrs(nil),
-		"")
+		jsonSchemaNotInPayloadAttrs(nil))
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {

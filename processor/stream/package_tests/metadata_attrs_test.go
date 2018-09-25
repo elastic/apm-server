@@ -65,8 +65,7 @@ func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 	metadataProcSetup().AttrsMatchJsonSchema(t,
 		getMetadataEventAttrs(t, ""),
 		nil,
-		nil,
-		"")
+		nil)
 }
 
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
