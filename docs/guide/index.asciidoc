@@ -199,7 +199,8 @@ Then configure the elastic-apm-node module by adding the following lines to the 
 ----------------------------------
 // Add this to the VERY top of the first file loaded in your app
 var apm = require('elastic-apm-node').start({
-  // Set required service name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
+  // Override service name from package.json
+  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
   serviceName: '',
 
   // Use if APM Server requires a token
@@ -212,7 +213,8 @@ var apm = require('elastic-apm-node').start({
 
 The Node.js agent automatically instruments Express,
 hapi,
-and Koa out of the box.
+Koa,
+and Restify out of the box.
 See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more details.
 
 [[python-agent]]
@@ -296,7 +298,7 @@ See the {apm-rum-ref}/index.html[APM RUM JavaScript Agent documentation] for mor
 Changes introduced in 6.4.0 potentially caused an empty APM Kibana UI.
 This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices. 
 To fix this, the APM Kibana UI now falls back to use `apm-*` as default indices to query.
-Users can still leverage separate indices for queries by overwriting the default values described in {kibana-ref}/apm-settings-kb.html[Kibana APM settings].
+Users can still leverage separate indices for queries by overriding the default values described in {kibana-ref}/apm-settings-kb.html[Kibana APM settings].
 
 
 [float]

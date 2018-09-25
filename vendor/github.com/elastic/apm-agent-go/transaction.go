@@ -10,7 +10,15 @@ import (
 
 // StartTransaction returns a new Transaction with the specified
 // name and type, and with the start time set to the current time.
-func (t *Tracer) StartTransaction(name, transactionType string, opts ...TransactionOption) *Transaction {
+// This is equivalent to calling StartTransactionOptions with a
+// zero TransactionOptions.
+func (t *Tracer) StartTransaction(name, transactionType string) *Transaction {
+	return t.StartTransactionOptions(name, transactionType, TransactionOptions{})
+}
+
+// StartTransactionOptions returns a new Transaction with the
+// specified name, type, and options.
+func (t *Tracer) StartTransactionOptions(name, transactionType string, opts TransactionOptions) *Transaction {
 	tx, _ := t.transactionPool.Get().(*Transaction)
 	if tx == nil {
 		tx = &Transaction{
@@ -29,14 +37,26 @@ func (t *Tracer) StartTransaction(name, transactionType string, opts ...Transact
 	tx.Name = name
 	tx.Type = transactionType
 
-	var txOpts transactionOptions
-	for _, o := range opts {
-		o(&txOpts)
+	if tx.tracer.distributedTracing {
+		if opts.TraceContext.Trace.Validate() == nil && opts.TraceContext.Span.Validate() == nil {
+			tx.traceContext.Trace = opts.TraceContext.Trace
+			tx.parentSpan = opts.TraceContext.Span
+		}
+		tx.traceContext.Options = opts.TraceContext.Options
 	}
-
-	// Generate a random transaction ID.
-	binary.LittleEndian.PutUint64(tx.id[:8], tx.rand.Uint64())
-	binary.LittleEndian.PutUint64(tx.id[8:], tx.rand.Uint64())
+	if tx.traceContext.Trace.isZero() {
+		// In any case, we fill out the trace ID; this will be used for
+		// either the transaction's trace ID, or for its UUID in case
+		// distributed tracing is disabled. If distributed tracing is
+		// enabled, we also set the span ID.
+		binary.LittleEndian.PutUint64(tx.traceContext.Trace[:8], tx.rand.Uint64())
+		binary.LittleEndian.PutUint64(tx.traceContext.Trace[8:], tx.rand.Uint64())
+		if tx.tracer.distributedTracing {
+			copy(tx.traceContext.Span[:], tx.traceContext.Trace[:])
+		}
+	} else {
+		binary.LittleEndian.PutUint64(tx.traceContext.Span[:], tx.rand.Uint64())
+	}
 
 	// Take a snapshot of the max spans config to ensure
 	// that once the maximum is reached, all future span
@@ -49,29 +69,39 @@ func (t *Tracer) StartTransaction(name, transactionType string, opts ...Transact
 	tx.spanFramesMinDuration = t.spanFramesMinDuration
 	t.spanFramesMinDurationMu.RUnlock()
 
-	t.samplerMu.RLock()
-	sampler := t.sampler
-	t.samplerMu.RUnlock()
-	tx.sampled = true
-	if sampler != nil && !sampler.Sample(tx) {
-		tx.sampled = false
+	// TODO(axw) make this behaviour configurable. In some cases
+	// it may not be a good idea to honour the sampled flag, as
+	// it may open up the application to DoS by forced sampling.
+	// Even ignoring bad actors, a service that has many feeder
+	// applications may end up being sampled at a very high rate.
+	if !tx.traceContext.Options.Requested() {
+		t.samplerMu.RLock()
+		sampler := t.sampler
+		t.samplerMu.RUnlock()
+		if sampler == nil || sampler.Sample(tx) {
+			o := tx.traceContext.Options.WithRequested(true).WithMaybeRecorded(true)
+			tx.traceContext.Options = o
+		}
 	}
-	tx.Timestamp = time.Now()
+	tx.Timestamp = opts.Start
+	if tx.Timestamp.IsZero() {
+		tx.Timestamp = time.Now()
+	}
 	return tx
 }
 
 // Transaction describes an event occurring in the monitored service.
 type Transaction struct {
-	Name      string
-	Type      string
-	Timestamp time.Time
-	Duration  time.Duration
-	Context   Context
-	Result    string
-	id        [16]byte
+	Name         string
+	Type         string
+	Timestamp    time.Time
+	Duration     time.Duration
+	Context      Context
+	Result       string
+	traceContext TraceContext
+	parentSpan   SpanID
 
 	tracer                *Tracer
-	sampled               bool
 	maxSpans              int
 	spanFramesMinDuration time.Duration
 
@@ -107,7 +137,14 @@ func (tx *Transaction) Discard() {
 
 // Sampled reports whether or not the transaction is sampled.
 func (tx *Transaction) Sampled() bool {
-	return tx.sampled
+	return tx.traceContext.Options.MaybeRecorded()
+}
+
+// TraceContext returns the transaction's TraceContext: its trace ID,
+// span ID, and trace options. The values are undefined if distributed
+// tracing is disabled.
+func (tx *Transaction) TraceContext() TraceContext {
+	return tx.traceContext
 }
 
 // End enqueues tx for sending to the Elastic APM server; tx must not
@@ -138,7 +175,15 @@ func (tx *Transaction) enqueue() {
 	}
 }
 
-// TransactionOption sets options when starting a transaction.
-type TransactionOption func(*transactionOptions)
+// TransactionOptions holds options for Tracer.StartTransactionOptions.
+type TransactionOptions struct {
+	// TraceContext holds the TraceContext for a new transaction. If this is
+	// zero, and distributed tracing is enabled, a new trace will be started.
+	//
+	// TraceContext is ignored if distributed tracing is disabled.
+	TraceContext TraceContext
 
-type transactionOptions struct{}
+	// Start is the start time of the transaction. If this has the
+	// zero value, time.Now() will be used instead.
+	Start time.Time
+}

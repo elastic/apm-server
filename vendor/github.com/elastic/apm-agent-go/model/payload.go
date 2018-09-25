@@ -21,3 +21,14 @@ type ErrorsPayload struct {
 	System  *System  `json:"system,omitempty"`
 	Errors  []*Error `json:"errors"`
 }
+
+// MetricsPayload defines the payload structure expected
+// by the metrics intake API.
+//
+// TODO(axw) link to docs when they exist.
+type MetricsPayload struct {
+	Service *Service   `json:"service,omitempty"`
+	Process *Process   `json:"process,omitempty"`
+	System  *System    `json:"system,omitempty"`
+	Metrics []*Metrics `json:"metrics"`
+}

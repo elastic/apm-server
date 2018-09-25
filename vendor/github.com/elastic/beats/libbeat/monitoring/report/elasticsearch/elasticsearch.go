@@ -55,7 +55,8 @@ type reporter struct {
 	// pipeline
 	pipeline *pipeline.Pipeline
 	client   beat.Client
-	out      outputs.Group
+
+	out []outputs.NetworkClient
 }
 
 const selector = "monitoring"
@@ -74,10 +75,40 @@ func init() {
 	report.RegisterReporterFactory("elasticsearch", makeReporter)
 }
 
-func makeReporter(beat beat.Info, cfg *common.Config) (report.Reporter, error) {
-	log := logp.L().Named(selector)
+func defaultConfig(settings report.Settings) config {
+	c := config{
+		Hosts:            nil,
+		Protocol:         "http",
+		Params:           nil,
+		Headers:          nil,
+		Username:         "beats_system",
+		Password:         "",
+		ProxyURL:         "",
+		CompressionLevel: 0,
+		TLS:              nil,
+		MaxRetries:       3,
+		Timeout:          60 * time.Second,
+		MetricsPeriod:    10 * time.Second,
+		StatePeriod:      1 * time.Minute,
+		BulkMaxSize:      50,
+		BufferSize:       50,
+		Tags:             nil,
+		Backoff: backoff{
+			Init: 1 * time.Second,
+			Max:  60 * time.Second,
+		},
+	}
 
-	config := defaultConfig
+	if settings.DefaultUsername != "" {
+		c.Username = settings.DefaultUsername
+	}
+
+	return c
+}
+
+func makeReporter(beat beat.Info, settings report.Settings, cfg *common.Config) (report.Reporter, error) {
+	log := logp.L().Named(selector)
+	config := defaultConfig(settings)
 	if err := cfg.Unpack(&config); err != nil {
 		return nil, err
 	}
@@ -109,22 +140,21 @@ func makeReporter(beat beat.Info, cfg *common.Config) (report.Reporter, error) {
 		params[k] = v
 	}
 
-	out := outputs.Group{
-		Clients:   nil,
-		BatchSize: windowSize,
-		Retry:     0, // no retry. on error drop events
-	}
-
 	hosts, err := outputs.ReadHostList(cfg)
 	if err != nil {
 		return nil, err
 	}
+	if len(hosts) == 0 {
+		return nil, errors.New("empty hosts list")
+	}
+
+	var clients []outputs.NetworkClient
 	for _, host := range hosts {
 		client, err := makeClient(host, params, proxyURL, tlsConfig, &config)
 		if err != nil {
 			return nil, err
 		}
-		out.Clients = append(out.Clients, client)
+		clients = append(clients, client)
 	}
 
 	queueFactory := func(e queue.Eventer) (queue.Queue, error) {
@@ -137,10 +167,19 @@ func makeReporter(beat beat.Info, cfg *common.Config) (report.Reporter, error) {
 
 	monitoring := monitoring.Default.GetRegistry("xpack.monitoring")
 
+	outClient := outputs.NewFailoverClient(clients)
+	outClient = outputs.WithBackoff(outClient, config.Backoff.Init, config.Backoff.Max)
+
 	pipeline, err := pipeline.New(
 		beat,
 		monitoring,
-		queueFactory, out, pipeline.Settings{
+		queueFactory,
+		outputs.Group{
+			Clients:   []outputs.Client{outClient},
+			BatchSize: windowSize,
+			Retry:     0, // no retry. Drop event on error.
+		},
+		pipeline.Settings{
 			WaitClose:     0,
 			WaitCloseMode: pipeline.NoWaitOnClose,
 		})
@@ -148,7 +187,7 @@ func makeReporter(beat beat.Info, cfg *common.Config) (report.Reporter, error) {
 		return nil, err
 	}
 
-	client, err := pipeline.Connect()
+	pipeConn, err := pipeline.Connect()
 	if err != nil {
 		pipeline.Close()
 		return nil, err
@@ -161,8 +200,8 @@ func makeReporter(beat beat.Info, cfg *common.Config) (report.Reporter, error) {
 		tags:       config.Tags,
 		checkRetry: checkRetry,
 		pipeline:   pipeline,
-		client:     client,
-		out:        out,
+		client:     pipeConn,
+		out:        clients,
 	}
 	go r.initLoop(config)
 	return r, nil
@@ -184,7 +223,7 @@ func (r *reporter) initLoop(c config) {
 
 	for {
 		// Select one configured endpoint by random and check if xpack is available
-		client := r.out.Clients[rand.Intn(len(r.out.Clients))].(outputs.NetworkClient)
+		client := r.out[rand.Intn(len(r.out))]
 		err := client.Connect()
 		if err == nil {
 			closing(log, client)

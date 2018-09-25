@@ -101,8 +101,16 @@ type Process struct {
 
 // Transaction represents a transaction handled by the service.
 type Transaction struct {
-	// ID holds the hex-formatted UUID of the transaction.
-	ID UUID `json:"id"`
+	// ID holds the ID of the transaction: either a 64-bit span ID
+	// (for distributed tracing), or a legacy 128-bit UUID. If the
+	// span ID is defined, TraceID must also be defined.
+	ID TransactionID `json:"id"`
+
+	// TraceID holds the ID of the trace that this transaction is a part of.
+	TraceID TraceID `json:"trace_id,omitempty"`
+
+	// ParentID holds the ID of the transaction's parent span or transaction.
+	ParentID SpanID `json:"parent_id,omitempty"`
 
 	// Name holds the name of the transaction.
 	Name string `json:"name"`
@@ -140,6 +148,16 @@ type Transaction struct {
 	Spans []Span `json:"spans,omitempty"`
 }
 
+// TransactionID holds a tranasction ID: either a 64-bit span ID
+// (for distributed tracing), or a legacy 128-bit UUID.
+type TransactionID struct {
+	// SpanID is a 64-bit distributed tracing span ID.
+	SpanID SpanID
+
+	// UUID is a legacy 128-bit UUID.
+	UUID UUID
+}
+
 // SpanCount holds statistics on spans within a transaction.
 type SpanCount struct {
 	// Dropped holds statistics on dropped spans within a transaction.
@@ -169,12 +187,14 @@ type Span struct {
 	// e.g. "db.postgresql.query".
 	Type string `json:"type"`
 
-	// ID holds an identifier for the span, unique within its
-	// containing transaction.
-	ID *int64 `json:"id,omitempty"`
+	// ID holds the ID of the span.
+	ID SpanID `json:"id,omitempty"`
 
-	// Parent holds the identifier of the parent span, if any.
-	Parent *int64 `json:"parent,omitempty"`
+	// ParentID holds the ID of the span's parent (span or transaction).
+	ParentID SpanID `json:"parent_id,omitempty"`
+
+	// TraceID holds the ID of the trace that this span is a part of.
+	TraceID TraceID `json:"trace_id,omitempty"`
 
 	// Context holds contextual information relating to the span.
 	Context *SpanContext `json:"context,omitempty"`
@@ -188,6 +208,9 @@ type SpanContext struct {
 	// Database holds contextual information for database
 	// operation spans.
 	Database *DatabaseSpanContext `json:"db,omitempty"`
+
+	// HTTP holds contextual information for HTTP client request spans.
+	HTTP *HTTPSpanContext `json:"http,omitempty"`
 }
 
 // DatabaseSpanContext holds contextual information for database
@@ -206,6 +229,12 @@ type DatabaseSpanContext struct {
 
 	// User holds the username used for database access.
 	User string `json:"user,omitempty"`
+}
+
+// HTTPSpanContext holds contextual information for HTTP client request spans.
+type HTTPSpanContext struct {
+	// URL is the request URL.
+	URL *url.URL
 }
 
 // Context holds contextual information relating to a transaction or error.
@@ -236,16 +265,10 @@ type User struct {
 
 	// ID identifies the user, e.g. a primary key. This may be
 	// a string or number.
-	ID UserID `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 
 	// Email holds the email address of the user.
 	Email string `json:"email,omitempty"`
-}
-
-// UserID represents a user ID as either a number or a string.
-type UserID struct {
-	String string
-	Number float64
 }
 
 // Error represents an error occurring in the service.
@@ -254,11 +277,18 @@ type Error struct {
 	Timestamp Time `json:"timestamp"`
 
 	// ID holds a hex-formatted UUID for the error.
-	ID string `json:"id,omitempty"`
+	ID UUID `json:"id,omitempty"`
+
+	// TraceID holds the ID of the trace within which the error occurred.
+	TraceID TraceID `json:"trace_id,omitempty"`
+
+	// ParentID holds the ID of the transaction within which the error
+	// occurred.
+	ParentID SpanID `json:"parent_id,omitempty"`
 
 	// TransactionID holds the UUID of the transaction to which
 	// this error relates, if any.
-	Transaction ErrorTransaction `json:"transaction,omitempty"`
+	Transaction TransactionReference `json:"transaction,omitempty"`
 
 	// Culprit holds the name of the function which
 	// produced the error.
@@ -275,8 +305,8 @@ type Error struct {
 	Log Log `json:"log,omitempty"`
 }
 
-// ErrorTransaction identifies the transaction within which the error occurred.
-type ErrorTransaction struct {
+// TransactionReference identifies a transaction.
+type TransactionReference struct {
 	// ID is the UUID of the transaction.
 	ID UUID `json:"id"`
 }
@@ -438,7 +468,8 @@ type RequestSocket struct {
 	RemoteAddress string `json:"remote_address,omitempty"`
 }
 
-// URL represents a request URL.
+// URL represents a server-side (transaction) request URL,
+// broken down into its constituent parts.
 type URL struct {
 	// Full is the full URL, e.g.
 	// "https://example.com:443/search/?q=elasticsearch#top".
@@ -489,5 +520,32 @@ type ResponseHeaders struct {
 // Time is a timestamp, formatted as "YYYY-MM-DDTHH:mm:ss.sssZ".
 type Time time.Time
 
+// TraceID holds a 128-bit trace ID.
+type TraceID [16]byte
+
+// SpanID holds a 64-bit span ID. Despite its name, this is used for
+// both spans and transactions, but only when distributed tracing is
+// enabled.
+type SpanID [8]byte
+
 // UUID holds a 128-bit UUID.
 type UUID [16]byte
+
+// Metrics holds a set of metric samples, with an optional set of labels.
+type Metrics struct {
+	// Timestamp holds the time at which the metric samples were taken.
+	Timestamp Time `json:"timestamp"`
+
+	// Labels holds a set of labels associated with the metrics.
+	// The labels apply uniformly to all metric samples in the set.
+	Labels StringMap `json:"labels,omitempty"`
+
+	// Samples holds a map of metric samples, keyed by metric name.
+	Samples map[string]Metric `json:"samples"`
+}
+
+// Metric holds metric values.
+type Metric struct {
+	// Value holds the metric value.
+	Value float64 `json:"value"`
+}

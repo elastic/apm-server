@@ -1,3 +1,8 @@
+include::./changelogs/head.asciidoc[]
+include::./changelogs/6.4.asciidoc[]
+include::./changelogs/6.3.asciidoc[]
+include::./changelogs/6.2.asciidoc[]
+include::./changelogs/6.1.asciidoc[]
 [[release-notes-head]]
 == APM Server version HEAD
 

@@ -1,6 +1,7 @@
 package elasticapm
 
 import (
+	"encoding/binary"
 	"sync"
 	"time"
 
@@ -35,11 +36,10 @@ func (tx *Transaction) StartSpan(name, spanType string, parent *Span) *Span {
 	if span == nil {
 		span = &Span{
 			Duration: -1,
-			parent:   -1,
 		}
 	}
 	span.tx = tx
-	span.id = int64(len(tx.spans))
+	binary.LittleEndian.PutUint64(span.id[:], tx.rand.Uint64())
 	tx.spans = append(tx.spans, span)
 	tx.mu.Unlock()
 
@@ -48,6 +48,8 @@ func (tx *Transaction) StartSpan(name, spanType string, parent *Span) *Span {
 	span.Timestamp = time.Now()
 	if parent != nil {
 		span.parent = parent.id
+	} else {
+		span.parent = tx.traceContext.Span
 	}
 	return span
 }
@@ -55,8 +57,8 @@ func (tx *Transaction) StartSpan(name, spanType string, parent *Span) *Span {
 // Span describes an operation within a transaction.
 type Span struct {
 	tx        *Transaction // nil if span is dropped
-	id        int64
-	parent    int64
+	id        SpanID
+	parent    SpanID
 	Name      string
 	Type      string
 	Timestamp time.Time
@@ -79,10 +81,22 @@ func (s *Span) reset() {
 	*s = Span{
 		Context:    s.Context,
 		Duration:   -1,
-		parent:     -1,
 		stacktrace: s.stacktrace[:0],
 	}
 	s.Context.reset()
+}
+
+// TraceContext returns the span's TraceContext: its trace ID, span ID,
+// and trace options. The values are undefined if distributed tracing
+// is disabled. If the span is dropped, the trace ID and options will
+// be zero.
+func (s *Span) TraceContext() TraceContext {
+	traceContext := TraceContext{Span: s.id}
+	if s.tx != nil {
+		traceContext.Trace = s.tx.traceContext.Trace
+		traceContext.Options = s.tx.traceContext.Options
+	}
+	return traceContext
 }
 
 // SetStacktrace sets the stacktrace for the span,
