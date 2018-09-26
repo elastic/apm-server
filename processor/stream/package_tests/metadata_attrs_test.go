@@ -20,6 +20,8 @@ package package_tests
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
@@ -27,7 +29,6 @@ import (
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/validation"
-	"github.com/stretchr/testify/require"
 )
 
 type MetadataProcessor struct {
