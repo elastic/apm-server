@@ -45,7 +45,7 @@ var (
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
 )
 
-var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
+var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
 
 func ModelSchema() *jsonschema.Schema {
 	return cachedModelSchema

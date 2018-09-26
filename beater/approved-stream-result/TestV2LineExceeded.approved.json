@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "document": "{\"metadata\": {\"user\"",
+            "document": "{\"metadata\": {\"servi",
             "message": "event exceeded the permitted size."
         }
     ]

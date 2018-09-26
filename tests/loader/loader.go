@@ -36,6 +36,10 @@ func LoadDataAsBytes(fileName string) ([]byte, error) {
 	return readFile(FindFile(fileName))
 }
 
+func LoadDataAsStream(file string) (io.ReadCloser, error) {
+	return fileReader(FindFile(file))
+}
+
 func LoadValidDataAsBytes(processorName string) ([]byte, error) {
 	return readFile(buildPath(processorName))
 }

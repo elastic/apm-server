@@ -21,21 +21,33 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/elastic/apm-server/processor/metric"
+	"github.com/elastic/apm-server/model/metric/generated/schema"
+
+	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 )
 
-var (
-	procSetup = tests.ProcessorSetup{
-		Proc:            &tests.V1TestProcessor{Processor: metric.Processor},
-		FullPayloadPath: "../testdata/metric/payload.json",
-		TemplatePaths:   []string{"../../../model/metric/_meta/fields.yml", "../../../_meta/fields.common.yml"},
+func metricProcSetup() *tests.ProcessorSetup {
+	return &tests.ProcessorSetup{
+		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
+		FullPayloadPath: "../testdata/intake-v2/metrics.ndjson",
+		TemplatePaths: []string{
+			"../../../model/metric/_meta/fields.yml",
+			"../../../_meta/fields.common.yml",
+		},
+		Schema: schema.ModelSchema,
 	}
-)
+}
 
 func TestAttributesPresenceInMetric(t *testing.T) {
-	requiredKeys := tests.NewSet("service", "metrics", "metrics.samples", "metrics.timestamp", "metrics.samples.+.value")
-	procSetup.AttrsPresence(t, requiredKeys, nil)
+	requiredKeys := tests.NewSet(
+		"service",
+		"metricset",
+		"metricset.samples",
+		"metricset.timestamp",
+		"metricset.samples.+.value",
+	)
+	metricProcSetup().AttrsPresence(t, requiredKeys, nil)
 }
 
 func TestInvalidPayloads(t *testing.T) {
@@ -47,15 +59,12 @@ func TestInvalidPayloads(t *testing.T) {
 	//tsk, ts := "timestamp", "2017-05-30T18:53:42.281Z"
 
 	payloadData := []tests.SchemaTestData{
-		{Key: "metrics", Invalid: []tests.Invalid{
-			{Msg: "metrics/minitems", Values: val{[]interface{}{}}},
-		}},
-		{Key: "metrics.timestamp",
+		{Key: "metricset.timestamp",
 			Valid: val{"2017-05-30T18:53:42.281Z"},
 			Invalid: []tests.Invalid{
 				{Msg: `timestamp/format`, Values: val{"2017-05-30T18:53Z", "2017-05-30T18:53:27.Z", "2017-05-30T18:53:27a123Z"}},
 				{Msg: `timestamp/pattern`, Values: val{"2017-05-30T18:53:27.000+00:20", "2017-05-30T18:53:27ZNOTCORRECT"}}}},
-		{Key: "metrics.tags",
+		{Key: "metricset.tags",
 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
 			Invalid: []tests.Invalid{
 				{Msg: `tags/type`, Values: val{"tags"}},
@@ -63,20 +72,20 @@ func TestInvalidPayloads(t *testing.T) {
 				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
 		},
 		{
-			Key: "metrics.samples",
+			Key: "metricset.samples",
 			Valid: val{
 				obj{"valid-metric": validMetric},
 			},
 			Invalid: []tests.Invalid{
 				{
-					Msg: "properties/metrics/items/properties/samples/additionalproperties",
+					Msg: "/properties/samples/additionalproperties",
 					Values: val{
 						obj{"metric\"key\"_quotes": validMetric},
 						obj{"metric-*-key-star": validMetric},
 					},
 				},
 				{
-					Msg: "properties/metrics/items/properties/samples/patternproperties",
+					Msg: "/properties/samples/patternproperties",
 					Values: val{
 						obj{"nil-value": obj{"value": nil}},
 						obj{"string-value": obj{"value": "foo"}},
@@ -85,5 +94,5 @@ func TestInvalidPayloads(t *testing.T) {
 			},
 		},
 	}
-	procSetup.DataValidation(t, payloadData)
+	metricProcSetup().DataValidation(t, payloadData)
 }

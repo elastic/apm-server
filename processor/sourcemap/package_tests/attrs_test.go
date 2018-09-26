@@ -27,7 +27,7 @@ import (
 
 var (
 	procSetup = tests.ProcessorSetup{
-		Proc:            sourcemap.Processor,
+		Proc:            &tests.V1TestProcessor{Processor: sourcemap.Processor},
 		FullPayloadPath: "../testdata/sourcemap/payload.json",
 		TemplatePaths:   []string{"../../../model/sourcemap/_meta/fields.yml"},
 		Schema:          schema.PayloadSchema,
@@ -35,7 +35,7 @@ var (
 )
 
 func TestPayloadAttrsMatchFields(t *testing.T) {
-	procSetup.PayloadAttrsMatchFields(t, tests.NewSet("sourcemap"), tests.NewSet())
+	procSetup.PayloadAttrsMatchFields(t, tests.NewSet("sourcemap.sourcemap"), tests.NewSet())
 }
 
 func TestPayloadAttrsMatchJsonSchema(t *testing.T) {

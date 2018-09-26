@@ -23,13 +23,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/beat"
-
 	"github.com/stretchr/testify/require"
 
-	pr "github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -44,55 +40,58 @@ import (
 // - fieldsAttrsNotInPayload: attributes that are reflected in the fields.yml but are
 // not part of the payload, e.g. Kibana visualisation attributes.
 func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotInFields, fieldsNotInPayload *Set) {
-	all, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	notInFields := Union(payloadAttrsNotInFields, NewSet(
+		Group("processor"),
+		//dynamically indexed:
+		"context.tags.organization_uuid",
+		"context.tags.span_tag",
+		//known not-indexed fields:
+		Group("context.custom"),
+		Group("context.request.headers"),
+		Group("context.request.cookies"),
+		Group("context.request.socket"),
+		Group("context.request.env"),
+		Group("context.request.body"),
+		Group("context.response.headers"),
+		"context.process.argv",
+	))
+	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
+	ps.EventFieldsInTemplateFields(t, events, notInFields)
+
+	// check ES fields in event
+	events = fetchFields(t, ps.Proc, ps.FullPayloadPath, fieldsNotInPayload)
+	ps.TemplateFieldsInEventFields(t, events, fieldsNotInPayload)
+}
+
+func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields, allowedNotInFields *Set) {
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
 	require.NoError(t, err)
 
 	// check event attributes in ES fields
 	disabled, err := fetchFlattenedFieldNames(ps.TemplatePaths, addOnlyDisabledFields)
 	require.NoError(t, err)
+	allowedNotInFields = Union(disabled, allowedNotInFields)
 
-	notInFields := Union(payloadAttrsNotInFields, NewSet(
-		"processor",
-		//dynamically indexed:
-		"context.tags.organization_uuid",
-		"context.tags.span_tag",
-		//known not-indexed fields:
-		"context.custom",
-		"context.request.headers",
-		"context.request.cookies",
-		"context.request.socket",
-		"context.request.env",
-		"context.request.body",
-		"context.response.headers",
-		"context.process.argv",
-		"context.db*",
-	))
+	missing := Difference(eventFields, allFieldNames)
+	missing = differenceWithGroup(missing, allowedNotInFields)
 
-	notInFields = Union(disabled, notInFields)
-	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
-	missing := Difference(events, all)
-	missing = differenceWithGroup(missing, notInFields)
 	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
+}
 
-	// check ES fields in event
-	events = fetchFields(t, ps.Proc, ps.FullPayloadPath, fieldsNotInPayload)
-	missing = Difference(all, events)
-	missing = differenceWithGroup(missing, fieldsNotInPayload)
+func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields, allowedNotInEvent *Set) {
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	require.NoError(t, err)
+
+	missing := Difference(allFieldNames, eventFields)
+	missing = differenceWithGroup(missing, allowedNotInEvent)
 	assertEmptySet(t, missing, fmt.Sprintf("Documented Fields missing in event: %v", missing))
 }
 
-func fetchFields(t *testing.T, p pr.Processor, path string, blacklisted *Set) *Set {
-	data, err := loader.LoadData(path)
+func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *Set {
+	buf, err := loader.LoadDataAsBytes(path)
 	require.NoError(t, err)
-	err = p.Validate(data)
+	events, err := p.Process(buf)
 	require.NoError(t, err)
-	metadata, transformables, err := p.Decode(data)
-	require.NoError(t, err)
-
-	var events []beat.Event
-	for _, transformable := range transformables {
-		events = append(events, transformable.Transform(&transform.Context{Metadata: *metadata})...)
-	}
 
 	keys := NewSet()
 	for _, event := range events {
@@ -100,13 +99,14 @@ func fetchFields(t *testing.T, p pr.Processor, path string, blacklisted *Set) *S
 			if k == "@timestamp" {
 				continue
 			}
-			flattenMapStr(event.Fields[k], k, blacklisted, keys)
+			FlattenMapStr(event.Fields[k], k, blacklisted, keys)
 		}
 	}
+	t.Logf("Keys in events: %v", keys)
 	return keys
 }
 
-func flattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
+func FlattenMapStr(m interface{}, prefix string, keysBlacklist *Set, flattened *Set) {
 	if commonMapStr, ok := m.(common.MapStr); ok {
 		for k, v := range commonMapStr {
 			flattenMapStrStr(k, v, prefix, keysBlacklist, flattened)
@@ -129,22 +129,23 @@ func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set
 	_, okCommonMapStr := v.(common.MapStr)
 	_, okMapStr := v.(map[string]interface{})
 	if okCommonMapStr || okMapStr {
-		flattenMapStr(v, key, keysBlacklist, flattened)
+		FlattenMapStr(v, key, keysBlacklist, flattened)
 	}
 }
 
 func isBlacklistedKey(keysBlacklist *Set, key string) bool {
 	for _, disabledKey := range keysBlacklist.Array() {
-		disabled, ok := disabledKey.(string)
-		if !ok {
-			if disabledGrp, ok := disabledKey.(group); ok {
-				disabled = disabledGrp.str
-			} else {
-				continue
+		switch k := disabledKey.(type) {
+		case string:
+			if key == k {
+				return true
 			}
-		}
-		if strings.HasPrefix(key, disabled) {
-			return true
+		case group:
+			if strings.HasPrefix(key, k.str) {
+				return true
+			}
+		default:
+			panic("blacklist key must be string or Group")
 		}
 	}
 	return false

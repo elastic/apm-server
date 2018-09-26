@@ -41,7 +41,7 @@ func main() {
 		{"metadata.json", "model/metadata/generated/schema/metadata.go", "ModelSchema"},
 		{"errors/v2_error.json", "model/error/generated/schema/error.go", "ModelSchema"},
 		{"transactions/v2_transaction.json", "model/transaction/generated/schema/transaction.go", "ModelSchema"},
-		{"spans/v2_span.json", "model/span/generated/schema/transaction.go", "ModelSchema"},
+		{"spans/v2_span.json", "model/span/generated/schema/span.go", "ModelSchema"},
 		{"metrics/metricset.json", "model/metric/generated/schema/metricset.go", "ModelSchema"},
 	}
 	for _, schemaInfo := range schemaPaths {

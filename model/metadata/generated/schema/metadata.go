@@ -19,7 +19,7 @@ package schema
 
 const ModelSchema = `{
     "$id": "doc/spec/metadata.json",
-    "title": "Context",
+    "title": "Metadata",
     "description": "Metadata concerning the other objects in the stream.",
     "type": ["object"],
     "properties": {
