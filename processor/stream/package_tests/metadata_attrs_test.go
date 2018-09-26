@@ -65,7 +65,7 @@ func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 	metadataProcSetup().AttrsMatchJsonSchema(t,
 		getMetadataEventAttrs(t, ""),
 		nil,
-		tests.NewSet(tests.Group("user")),
+		nil,
 	)
 }
 
