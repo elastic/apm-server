@@ -73,10 +73,10 @@ func errorRequiredKeys() *tests.Set {
 	return tests.NewSet(
 		"error",
 		"error.id",
-		"error.exception.message",
-		"error.exception",
 		"error.log",
-		"error.log.type",
+		"error.exception",
+		"error.exception.type",
+		"error.exception.message",
 		"error.log.message",
 		"error.exception.stacktrace.filename",
 		"error.exception.stacktrace.lineno",
@@ -96,11 +96,10 @@ type obj = map[string]interface{}
 
 func errorCondRequiredKeys() map[string]tests.Condition {
 	return map[string]tests.Condition{
-		"error.exception": tests.Condition{Absence: []string{"error.log"}},
-		"error.log":       tests.Condition{Absence: []string{"error.exception"}},
-
-		"error.message": tests.Condition{Absence: []string{"error.type"}},
-		"error.type":    tests.Condition{Absence: []string{"error.message"}},
+		"error.exception":         tests.Condition{Absence: []string{"error.log"}},
+		"error.exception.message": tests.Condition{Absence: []string{"error.exception.type"}},
+		"error.exception.type":    tests.Condition{Absence: []string{"error.exception.message"}},
+		"error.log":               tests.Condition{Absence: []string{"error.exception"}},
 
 		"error.trace_id":       tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.transaction_id": "abc123"}},
 		"error.transaction_id": tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.trace_id": "abc123"}},
