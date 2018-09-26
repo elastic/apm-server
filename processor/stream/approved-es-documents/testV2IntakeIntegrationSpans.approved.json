@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-07-30T18:53:42.281Z",
             "context": {
                 "service": {
                     "agent": {
@@ -39,7 +39,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-07-30T18:53:42.281Z",
             "context": {
                 "service": {
                     "agent": {
@@ -85,6 +85,9 @@
                         "version": "3.14.0"
                     },
                     "name": "backendspans"
+                },
+                "tags": {
+                    "tag1": "value1"
                 }
             },
             "parent": {

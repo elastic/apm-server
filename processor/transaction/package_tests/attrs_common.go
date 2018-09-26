@@ -28,7 +28,7 @@ type val = []interface{}
 
 func procSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            transaction.Processor,
+		Proc:            &tests.V1TestProcessor{Processor: transaction.Processor},
 		FullPayloadPath: "../testdata/transaction/payload.json",
 		TemplatePaths: []string{"../../../model/transaction/_meta/fields.yml",
 			"../../../model/span/_meta/fields.yml",
