@@ -20,22 +20,60 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/validation"
+	"github.com/stretchr/testify/require"
 )
+
+type MetadataProcessor struct {
+	V2TestProcessor
+}
+
+func (p *MetadataProcessor) LoadPayload(path string) (interface{}, error) {
+	ndjson, err := p.getReader(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.readEvents(ndjson)
+}
+
+func (p *MetadataProcessor) Validate(data interface{}) error {
+	events := data.([]interface{})
+	for _, e := range events {
+		rawEvent := e.(map[string]interface{})
+		rawMetadata, ok := rawEvent["metadata"].(map[string]interface{})
+		if !ok {
+			return stream.ErrUnrecognizedObject
+		}
+
+		// validate the metadata object against our jsonschema
+		err := validation.Validate(rawMetadata, metadata.ModelSchema())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *MetadataProcessor) Decode(data interface{}) error {
+	return p.Validate(data)
+}
 
 func metadataProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:   &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
+		Proc:   &MetadataProcessor{V2TestProcessor{StreamProcessor: stream.StreamProcessor{}}},
 		Schema: schema.ModelSchema,
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
 		},
+		FullPayloadPath: "../testdata/intake-v2/only-metadata.ndjson",
 	}
 }
 
@@ -83,4 +121,16 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			"context.": "",
 		},
 	)
+}
+
+func TestInvalidPayloadsForMetadata(t *testing.T) {
+	type obj = map[string]interface{}
+	type val = []interface{}
+
+	payloadData := []tests.SchemaTestData{
+		{Key: "metadata.service.name",
+			Valid:   val{"my-service"},
+			Invalid: []tests.Invalid{{Msg: "service/properties/name", Values: val{tests.Str1024Special}}},
+		}}
+	metadataProcSetup().DataValidation(t, payloadData)
 }

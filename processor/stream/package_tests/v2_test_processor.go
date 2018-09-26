@@ -43,20 +43,23 @@ type V2TestProcessor struct {
 	stream.StreamProcessor
 }
 
-func (p *V2TestProcessor) LoadPayload(path string) (interface{}, error) {
+func (v *V2TestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, error) {
 	reader, err := loader.LoadDataAsStream(path)
 	if err != nil {
 		return nil, err
 	}
-	ndjson := decoder.NewNDJSONStreamReader(reader, 100*1024)
+	return decoder.NewNDJSONStreamReader(reader, 100*1024), nil
+}
 
-	// read and discard metadata
-	ndjson.Read()
+func (v *V2TestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]interface{}, error) {
+	var (
+		err    error
+		e      map[string]interface{}
+		events []interface{}
+	)
 
-	var e map[string]interface{}
-	var events []interface{}
 	for err != io.EOF {
-		e, err = ndjson.Read()
+		e, err = reader.Read()
 		if err != nil && err != io.EOF {
 			return events, err
 		}
@@ -65,6 +68,18 @@ func (p *V2TestProcessor) LoadPayload(path string) (interface{}, error) {
 		}
 	}
 	return events, nil
+}
+
+func (p *V2TestProcessor) LoadPayload(path string) (interface{}, error) {
+	ndjson, err := p.getReader(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// read and discard metadata
+	ndjson.Read()
+
+	return p.readEvents(ndjson)
 }
 
 func (p *V2TestProcessor) Decode(data interface{}) error {
