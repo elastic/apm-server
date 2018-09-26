@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"regexp"
 	"strings"
 	"testing"
@@ -29,19 +28,27 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
 
+type TestProcessor interface {
+	LoadPayload(string) (interface{}, error)
+	Process([]byte) ([]beat.Event, error)
+	Validate(interface{}) error
+	Decode(interface{}) error
+}
+
 type ProcessorSetup struct {
-	Proc processor.Processor
+	Proc TestProcessor
 	// path to payload that should be a full and valid example
 	FullPayloadPath string
 	// path to ES template definitions
 	TemplatePaths []string
 	// json schema string
 	Schema string
+	// prefix schema fields with this
+	SchemaPrefix string
 }
 
 type SchemaTestData struct {
@@ -83,20 +90,27 @@ var (
 // - schemaAttrsNotInPayload: attributes that are reflected in the json schema but are
 // not part of the payload.
 func (ps *ProcessorSetup) PayloadAttrsMatchJsonSchema(t *testing.T, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
-	require.NotNil(t, ps.Schema)
+	require.True(t, len(ps.Schema) > 0, "Schema must be set")
 
 	// check payload attrs in json schema
-	payload, err := loader.LoadData(ps.FullPayloadPath)
+	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
 	require.NoError(t, err, fmt.Sprintf("File %s not loaded", ps.FullPayloadPath))
 	payloadAttrs := NewSet()
 	flattenJsonKeys(payload, "", payloadAttrs)
 
-	schemaStruct, _ := schemaStruct(strings.NewReader(ps.Schema))
+	ps.AttrsMatchJsonSchema(t, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload)
+}
+
+func (ps *ProcessorSetup) AttrsMatchJsonSchema(t *testing.T, payloadAttrs, payloadAttrsNotInSchema, schemaAttrsNotInPayload *Set) {
 	schemaKeys := NewSet()
-	flattenSchemaNames(schemaStruct, "", schemaKeys)
+	schema, err := ParseSchema(ps.Schema)
+	require.NoError(t, err)
+
+	FlattenSchemaNames(schema, ps.SchemaPrefix, nil, schemaKeys)
 
 	missing := Difference(payloadAttrs, schemaKeys)
 	missing = differenceWithGroup(missing, payloadAttrsNotInSchema)
+	t.Logf("schemaKeys: %s", schemaKeys)
 	assertEmptySet(t, missing, fmt.Sprintf("Json payload fields missing in schema %v", missing))
 
 	missing = Difference(schemaKeys, payloadAttrs)
@@ -124,7 +138,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		"process.pid",
 	))
 
-	payload, err := loader.LoadData(ps.FullPayloadPath)
+	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
 	require.NoError(t, err)
 
 	payloadKeys := NewSet()
@@ -136,21 +150,26 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 
 		//test sending nil value for key
 		ps.changePayload(t, key, nil, Condition{}, upsertFn,
-			func(k string) (bool, string) {
-				return !required.ContainsStrPattern(k), keyLast
+			func(k string) (bool, []string) {
+				return !required.ContainsStrPattern(k), []string{keyLast}
 			},
 		)
 
 		//test removing key from payload
 		cond, _ := condRequiredKeys[key]
 		ps.changePayload(t, key, nil, cond, deleteFn,
-			func(k string) (bool, string) {
-				if required.ContainsStrPattern(k) {
-					return false, fmt.Sprintf("missing properties: \"%s\"", keyLast)
-				} else if _, ok := condRequiredKeys[k]; ok {
-					return false, fmt.Sprintf("missing properties: \"%s\"", keyLast)
+			func(k string) (bool, []string) {
+				errMsgs := []string{
+					fmt.Sprintf("missing properties: \"%s\"", keyLast),
+					"did not recognize object type",
 				}
-				return true, ""
+
+				if required.ContainsStrPattern(k) {
+					return false, errMsgs
+				} else if _, ok := condRequiredKeys[k]; ok {
+					return false, errMsgs
+				}
+				return true, []string{}
 			},
 		)
 	}
@@ -171,12 +190,22 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, addKeywordFields)
 	assert.NoError(t, err)
 
+	// fetch length restricted field names from json schema
+	maxLengthFilter := func(s *Schema) bool {
+		return s.MaxLength > 0
+	}
+	schemaKeys := NewSet()
+	schema, err := ParseSchema(ps.Schema)
+	require.NoError(t, err)
+	FlattenSchemaNames(schema, "", maxLengthFilter, schemaKeys)
+
+	t.Log("Schema keys:", schemaKeys.Array())
+
+	keywordFields = differenceWithGroup(keywordFields, keywordExceptionKeys)
+
 	for _, k := range keywordFields.Array() {
 		key := k.(string)
 
-		if keywordExceptionKeys.Contains(key) {
-			continue
-		}
 		for from, to := range templateToSchema {
 			if strings.HasPrefix(key, from) {
 				key = strings.Replace(key, from, to, 1)
@@ -184,13 +213,7 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 			}
 		}
 
-		testAttrs := func(val interface{}, valid bool, msg string) {
-			ps.changePayload(t, key, val, Condition{}, upsertFn,
-				func(k string) (bool, string) { return valid, msg })
-		}
-
-		testAttrs(createStr(1025, ""), false, "maxlength")
-		testAttrs(createStr(1024, ""), true, "")
+		assert.True(t, schemaKeys.Contains(key), "Expected <%s> (original: <%s>) to have the MaxLength limit set because it gets indexed as 'keyword'", key, k.(string))
 	}
 }
 
@@ -202,8 +225,8 @@ func (ps *ProcessorSetup) DataValidation(t *testing.T, testData []SchemaTestData
 	for _, d := range testData {
 		testAttrs := func(val interface{}, valid bool, msg string) {
 			ps.changePayload(t, d.Key, val, d.Condition,
-				upsertFn, func(k string) (bool, string) {
-					return valid, msg
+				upsertFn, func(k string) (bool, []string) {
+					return valid, []string{msg}
 				})
 		}
 
@@ -219,7 +242,7 @@ func (ps *ProcessorSetup) DataValidation(t *testing.T, testData []SchemaTestData
 	}
 }
 
-func logPayload(t *testing.T, payload map[string]interface{}) {
+func logPayload(t *testing.T, payload interface{}) {
 	j, _ := json.MarshalIndent(payload, "", " ")
 	t.Log("payload:", string(j))
 }
@@ -230,12 +253,14 @@ func (ps *ProcessorSetup) changePayload(
 	val interface{},
 	condition Condition,
 	changeFn func(interface{}, string, interface{}) interface{},
-	validateFn func(string) (bool, string),
+	validateFn func(string) (bool, []string),
 ) {
-
 	// load payload
-	payload, err := loader.LoadData(ps.FullPayloadPath)
+	payload, err := ps.Proc.LoadPayload(ps.FullPayloadPath)
 	require.NoError(t, err)
+
+	err = ps.Proc.Validate(payload)
+	assert.NoError(t, err, "vanilla payload did not validate")
 
 	// prepare payload according to conditions:
 
@@ -243,20 +268,18 @@ func (ps *ProcessorSetup) changePayload(
 	for k, val := range condition.Existence {
 		fnKey, keyToChange := splitKey(k)
 
-		payload = iterateMap(payload, "", fnKey, keyToChange, val, upsertFn).(obj)
+		payload = iterateMap(payload, "", fnKey, keyToChange, val, upsertFn)
 	}
-	err = ps.Proc.Validate(payload)
-	assert.NoError(t, err)
 
 	// - ensure specified keys being absent
 	for _, k := range condition.Absence {
 		fnKey, keyToChange := splitKey(k)
-		payload = iterateMap(payload, "", fnKey, keyToChange, nil, deleteFn).(obj)
+		payload = iterateMap(payload, "", fnKey, keyToChange, nil, deleteFn)
 	}
 
 	// change payload for key to test
 	fnKey, keyToChange := splitKey(key)
-	payload = iterateMap(payload, "", fnKey, keyToChange, val, changeFn).(obj)
+	payload = iterateMap(payload, "", fnKey, keyToChange, val, changeFn)
 
 	wantLog := false
 	defer func() {
@@ -267,13 +290,19 @@ func (ps *ProcessorSetup) changePayload(
 
 	// run actual validation
 	err = ps.Proc.Validate(payload)
-	if shouldValidate, errMsg := validateFn(key); shouldValidate {
+	if shouldValidate, errMsgs := validateFn(key); shouldValidate {
 		wantLog = !assert.NoError(t, err, fmt.Sprintf("Expected <%v> for key <%s> to be valid", val, key))
-		_, _, err = ps.Proc.Decode(payload)
+		err = ps.Proc.Decode(payload)
 		assert.NoError(t, err)
 	} else {
-		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v> with msg "%s", but received no error.`, key, errMsg)) {
-			wantLog = !assert.Contains(t, strings.ToLower(err.Error()), errMsg)
+		if assert.Error(t, err, fmt.Sprintf(`Expected error for key <%v>, but received no error.`, key)) {
+			for _, errMsg := range errMsgs {
+				if strings.Contains(strings.ToLower(err.Error()), errMsg) {
+					return
+				}
+			}
+			wantLog = true
+			assert.Fail(t, fmt.Sprintf("Expected error to be one of %v, but was %v", errMsgs, err.Error()))
 		} else {
 			wantLog = true
 		}
@@ -334,16 +363,12 @@ func iterateMap(m interface{}, prefix, fnKey, xKey string, val interface{}, fn f
 				ma[k] = fn(ma[k], xKey, val)
 			}
 		}
-		if len(ma) > 0 {
-			return ma
-		}
-		return nil
+		return ma
 	} else if d, ok := m.([]interface{}); ok {
 		var ma []interface{}
 		for _, i := range d {
-			if r := iterateMap(i, prefix, fnKey, xKey, val, fn); r != nil {
-				ma = append(ma, r)
-			}
+			r := iterateMap(i, prefix, fnKey, xKey, val, fn)
+			ma = append(ma, r)
 		}
 		return ma
 	} else {
@@ -354,7 +379,7 @@ func iterateMap(m interface{}, prefix, fnKey, xKey string, val interface{}, fn f
 type Schema struct {
 	Title                string
 	Properties           map[string]*Schema
-	AdditionalProperties obj
+	AdditionalProperties interface{} // bool or object
 	PatternProperties    obj
 	Items                *Schema
 	AllOf                []*Schema
@@ -367,28 +392,32 @@ type Mapping struct {
 	to   string
 }
 
-func schemaStruct(reader io.Reader) (*Schema, error) {
-	decoder := json.NewDecoder(reader)
+func ParseSchema(s string) (*Schema, error) {
+	decoder := json.NewDecoder(bytes.NewBufferString(s))
 	var schema Schema
 	err := decoder.Decode(&schema)
 	return &schema, err
 }
 
-func flattenSchemaNames(s *Schema, prefix string, flattened *Set) {
+func FlattenSchemaNames(s *Schema, prefix string, filter func(*Schema) bool, flattened *Set) {
 	if len(s.Properties) > 0 {
 		for k, v := range s.Properties {
 			key := strConcat(prefix, k, ".")
-			flattened.Add(key)
-			flattenSchemaNames(v, key, flattened)
+			if filter == nil || filter(v) {
+				flattened.Add(key)
+			}
+			FlattenSchemaNames(v, key, filter, flattened)
 		}
-	} else if s.Items != nil {
-		flattenSchemaNames(s.Items, prefix, flattened)
-	} else {
-		for _, schemas := range [][]*Schema{s.AllOf, s.OneOf, s.AnyOf} {
-			if schemas != nil {
-				for _, e := range schemas {
-					flattenSchemaNames(e, prefix, flattened)
-				}
+	}
+
+	if s.Items != nil {
+		FlattenSchemaNames(s.Items, prefix, filter, flattened)
+	}
+
+	for _, schemas := range [][]*Schema{s.AllOf, s.OneOf, s.AnyOf} {
+		if schemas != nil {
+			for _, e := range schemas {
+				FlattenSchemaNames(e, prefix, filter, flattened)
 			}
 		}
 	}

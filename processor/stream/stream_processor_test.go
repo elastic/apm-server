@@ -39,8 +39,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/transform"
 )
 
 func validMetadata() string {
@@ -55,11 +53,9 @@ func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 }
 
 func TestV2HandlerReadStreamError(t *testing.T) {
-	var transformables []transform.Transformable
-	report := func(ctx context.Context, p publish.PendingReq) error {
-		transformables = append(transformables, p.Transformables...)
-		return nil
-	}
+	var pendingReqs []publish.PendingReq
+	report := tests.TestReporter(&pendingReqs)
+
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 	bodyReader := bytes.NewBuffer(b)
@@ -94,7 +90,7 @@ func TestV2HandlerReportingStreamError(t *testing.T) {
 		require.NoError(t, err)
 		bodyReader := bytes.NewBuffer(b)
 
-		reader := decoder.NewNDJSONStreamReader(bodyReader, 1024)
+		reader := decoder.NewNDJSONStreamReader(bodyReader, 100*1024)
 
 		sp := StreamProcessor{}
 		actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, test.report)

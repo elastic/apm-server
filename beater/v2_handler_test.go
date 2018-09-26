@@ -217,12 +217,12 @@ func TestV2LineExceeded(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
 	w := httptest.NewRecorder()
-	report := func(ctx context.Context, p publish.PendingReq) error {
-		return nil
-	}
+
+	nilReport := func(ctx context.Context, p publish.PendingReq) error { return nil }
+
 	c := defaultConfig("7.0.0")
 	assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
-	handler := (&v2BackendRoute).Handler("", c, report)
+	handler := (&v2BackendRoute).Handler("", c, nilReport)
 	handler.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusAccepted, w.Code, w.Body.String())
@@ -230,7 +230,7 @@ func TestV2LineExceeded(t *testing.T) {
 
 	c.MaxEventSize = 20
 	assert.True(t, lineLimitExceededInTestData(c.MaxEventSize))
-	handler = (&v2BackendRoute).Handler("", c, report)
+	handler = (&v2BackendRoute).Handler("", c, nilReport)
 
 	req = httptest.NewRequest("POST", "/v2/intake", bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
