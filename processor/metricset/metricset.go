@@ -15,22 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metric
+package metricset
 
 import (
-	"github.com/elastic/apm-server/model/metric"
+	"github.com/elastic/apm-server/model/metricset"
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 var (
 	Processor = &processor.EventsProcessor{
-		PluralName:    "metrics",
-		EventDecoder:  metric.DecodeMetric,
-		PayloadSchema: metric.PayloadSchema(),
-		DecodingCount: monitoring.NewInt(metric.Metrics, "decoding.count"),
-		DecodingError: monitoring.NewInt(metric.Metrics, "decoding.errors"),
-		ValidateCount: monitoring.NewInt(metric.Metrics, "validation.count"),
-		ValidateError: monitoring.NewInt(metric.Metrics, "validation.errors"),
+		EventName:     "metricset",
+		PayloadKey:    "metrics",
+		EventDecoder:  metricset.DecodeEvent,
+		PayloadSchema: metricset.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(metricset.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(metricset.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(metricset.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(metricset.Metrics, "validation.errors"),
 	}
 )
