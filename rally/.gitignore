@@ -1,0 +1,4 @@
+corpora/
+.venv
+_tools/tmp
+results
