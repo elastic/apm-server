@@ -40,8 +40,6 @@ import (
 // - fieldsAttrsNotInPayload: attributes that are reflected in the fields.yml but are
 // not part of the payload, e.g. Kibana visualisation attributes.
 func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotInFields, fieldsNotInPayload *Set) {
-	// all, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
-	// require.NoError(t, err)
 	notInFields := Union(payloadAttrsNotInFields, NewSet(
 		Group("processor"),
 		//dynamically indexed:

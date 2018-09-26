@@ -40,7 +40,7 @@ func metadataProcSetup() *tests.ProcessorSetup {
 }
 
 func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
-	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/spans.ndjson")
+	payloadStream, err := loader.LoadDataAsStream("../testdata/intake-v2/only-metadata.ndjson")
 	require.NoError(t, err)
 
 	metadata, err := decoder.NewNDJSONStreamReader(payloadStream, 100*1024).Read()
@@ -65,7 +65,8 @@ func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 	metadataProcSetup().AttrsMatchJsonSchema(t,
 		getMetadataEventAttrs(t, ""),
 		nil,
-		nil)
+		tests.NewSet(tests.Group("user")),
+	)
 }
 
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {

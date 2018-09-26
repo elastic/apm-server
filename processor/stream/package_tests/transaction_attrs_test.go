@@ -42,7 +42,6 @@ func transactionProcSetup() *tests.ProcessorSetup {
 func transactionPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("transaction.marks."),
-		tests.Group("context.db"),
 		"transaction.span_count.started",
 	)
 }

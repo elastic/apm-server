@@ -51,7 +51,6 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"listening", "view errors", "error id icon",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
-		"error.parent_id", "error.trace_id",
 	)
 }
 
