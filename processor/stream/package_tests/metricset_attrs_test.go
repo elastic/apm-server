@@ -27,7 +27,7 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
-func metricProcSetup() *tests.ProcessorSetup {
+func metricsetProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
 		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
 		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
@@ -47,7 +47,7 @@ func TestAttributesPresenceInMetric(t *testing.T) {
 		"metricset.timestamp",
 		"metricset.samples.+.value",
 	)
-	metricProcSetup().AttrsPresence(t, requiredKeys, nil)
+	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
 }
 
 func TestInvalidPayloads(t *testing.T) {
@@ -94,5 +94,5 @@ func TestInvalidPayloads(t *testing.T) {
 			},
 		},
 	}
-	metricProcSetup().DataValidation(t, payloadData)
+	metricsetProcSetup().DataValidation(t, payloadData)
 }

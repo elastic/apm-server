@@ -33,7 +33,7 @@ var (
 	}
 )
 
-func TestAttributesPresenceInMetric(t *testing.T) {
+func TestAttributesPresenceInMetricset(t *testing.T) {
 	requiredKeys := tests.NewSet("service", "metrics", "metrics.samples", "metrics.timestamp", "metrics.samples.+.value")
 	procSetup.AttrsPresence(t, requiredKeys, nil)
 }
