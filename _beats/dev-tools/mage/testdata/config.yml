@@ -1,7 +1,0 @@
-brewbeat.modules:
-- module: milling
-- module: mashing
-- module: lautering
-- module: boil
-- module: fermenting
-- module: bottle
