@@ -34,7 +34,7 @@ var (
 	}
 )
 
-func TestMetricProcessorOK(t *testing.T) {
+func TestMetricsetProcessorOK(t *testing.T) {
 	tests.TestProcessRequests(t, metricset.Processor, transform.Context{}, requestInfo, map[string]string{})
 }
 
