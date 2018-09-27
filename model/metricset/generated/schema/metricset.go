@@ -19,7 +19,7 @@ package schema
 
 const ModelSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/metricset.json",
+    "$id": "docs/spec/metricsets/metricset.json",
     "type": "object",
     "description": "Metric data captured by an APM agent",
     "properties": {
@@ -29,7 +29,7 @@ const ModelSchema = `{
             "patternProperties": {
                 "^[^*\"]*$": {
                         "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/sample.json",
+    "$id": "docs/spec/metricsets/sample.json",
     "type": ["object", "null"],
     "description": "A single metric sample.",
     "properties": {

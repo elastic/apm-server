@@ -21,15 +21,15 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/elastic/apm-server/processor/metric"
+	"github.com/elastic/apm-server/processor/metricset"
 	"github.com/elastic/apm-server/tests"
 )
 
 var (
 	procSetup = tests.ProcessorSetup{
-		Proc:            &tests.V1TestProcessor{Processor: metric.Processor},
-		FullPayloadPath: "../testdata/metric/payload.json",
-		TemplatePaths:   []string{"../../../model/metric/_meta/fields.yml", "../../../_meta/fields.common.yml"},
+		Proc:            &tests.V1TestProcessor{Processor: metricset.Processor},
+		FullPayloadPath: "../testdata/metricset/payload.json",
+		TemplatePaths:   []string{"../../../model/metricset/_meta/fields.yml", "../../../_meta/fields.common.yml"},
 	}
 )
 

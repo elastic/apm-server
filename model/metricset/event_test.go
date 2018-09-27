@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metric
+package metricset
 
 import (
 	"encoding/json"
@@ -117,7 +117,7 @@ func TestDecode(t *testing.T) {
 		},
 	} {
 		var err error
-		transformables, err := DecodeMetric(test.input, err)
+		transformables, err := DecodeEvent(test.input, err)
 		if test.err != nil {
 			assert.Error(t, err)
 		}

@@ -20,23 +20,24 @@ package package_tests
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/processor/metric"
+	"github.com/elastic/apm-server/processor/metricset"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 )
 
 var (
 	requestInfo = []tests.RequestInfo{
-		{Name: "TestProcessMetric", Path: "../testdata/metric/payload.json"},
-		{Name: "TestProcessMetricMinimal", Path: "../testdata/metric/minimal.json"},
-		{Name: "TestProcessMetricMultipleSamples", Path: "../testdata/metric/multiple-samples.json"},
+		{Name: "TestProcessMetricset", Path: "../testdata/metricset/payload.json"},
+		{Name: "TestProcessMetricsetMetricbeat", Path: "../testdata/metricset/metricbeat.json"},
+		{Name: "TestProcessMetricsetMinimal", Path: "../testdata/metricset/minimal.json"},
+		{Name: "TestProcessMetricsetMultipleSamples", Path: "../testdata/metricset/multiple-samples.json"},
 	}
 )
 
 func TestMetricProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, metric.Processor, transform.Context{}, requestInfo, map[string]string{})
+	tests.TestProcessRequests(t, metricset.Processor, transform.Context{}, requestInfo, map[string]string{})
 }
 
 func BenchmarkProcessor(b *testing.B) {
-	tests.BenchmarkProcessRequests(b, metric.Processor, transform.Context{}, requestInfo)
+	tests.BenchmarkProcessRequests(b, metricset.Processor, transform.Context{}, requestInfo)
 }

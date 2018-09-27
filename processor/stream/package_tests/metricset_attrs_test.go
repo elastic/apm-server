@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/elastic/apm-server/model/metric/generated/schema"
+	"github.com/elastic/apm-server/model/metricset/generated/schema"
 
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
@@ -30,9 +30,9 @@ import (
 func metricProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
 		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
-		FullPayloadPath: "../testdata/intake-v2/metrics.ndjson",
+		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
 		TemplatePaths: []string{
-			"../../../model/metric/_meta/fields.yml",
+			"../../../model/metricset/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
 		},
 		Schema: schema.ModelSchema,

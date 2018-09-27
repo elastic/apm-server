@@ -19,7 +19,7 @@ package schema
 
 const PayloadSchema = `{
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/payload.json",
+    "$id": "docs/spec/metricsets/payload.json",
     "title": "Metrics payload",
     "description": "Metrics for correlation with other APM data",
     "type": "object",
@@ -28,7 +28,7 @@ const PayloadSchema = `{
             "type": "array",
             "items": {
                     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/metricset.json",
+    "$id": "docs/spec/metricsets/metricset.json",
     "type": "object",
     "description": "Metric data captured by an APM agent",
     "properties": {
@@ -38,7 +38,7 @@ const PayloadSchema = `{
             "patternProperties": {
                 "^[^*\"]*$": {
                         "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/sample.json",
+    "$id": "docs/spec/metricsets/sample.json",
     "type": ["object", "null"],
     "description": "A single metric sample.",
     "properties": {
