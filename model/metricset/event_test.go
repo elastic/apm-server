@@ -32,8 +32,8 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-// assertMetricsMatch is an equality test for a metric as sample order is not important
-func assertMetricsMatch(t *testing.T, expected, actual Metric) bool {
+// assertMetricsMatch is an equality test for a metricset as sample order is not important
+func assertMetricsetsMatch(t *testing.T, expected, actual Metricset) bool {
 	samplesMatch := assert.ElementsMatch(t, expected.Samples, actual.Samples)
 	expected.Samples = nil
 	actual.Samples = nil
@@ -48,15 +48,15 @@ func TestDecode(t *testing.T) {
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 	// ip := "127.0.0.1"
 	for _, test := range []struct {
-		input  map[string]interface{}
-		err    error
-		metric *Metric
+		input     map[string]interface{}
+		err       error
+		metricset *Metricset
 	}{
-		{input: nil, err: nil, metric: nil},
+		{input: nil, err: nil, metricset: nil},
 		{
-			input:  map[string]interface{}{},
-			err:    nil,
-			metric: nil,
+			input:     map[string]interface{}{},
+			err:       nil,
+			metricset: nil,
 		},
 		{
 			input: map[string]interface{}{
@@ -65,7 +65,7 @@ func TestDecode(t *testing.T) {
 			},
 
 			err: nil,
-			metric: &Metric{
+			metricset: &Metricset{
 				Samples:   []*Sample{},
 				Tags:      nil,
 				Timestamp: timestampParsed,
@@ -98,7 +98,7 @@ func TestDecode(t *testing.T) {
 				},
 			},
 			err: nil,
-			metric: &Metric{
+			metricset: &Metricset{
 				Samples: []*Sample{
 					{
 						Name:  "some.gauge",
@@ -122,10 +122,10 @@ func TestDecode(t *testing.T) {
 			assert.Error(t, err)
 		}
 
-		if test.metric != nil {
-			want := test.metric
-			got := transformables.(*Metric)
-			assertMetricsMatch(t, *want, *got)
+		if test.metricset != nil {
+			want := test.metricset
+			got := transformables.(*Metricset)
+			assertMetricsetsMatch(t, *want, *got)
 		}
 	}
 }
@@ -140,17 +140,17 @@ func TestTransform(t *testing.T) {
 	)
 
 	tests := []struct {
-		Metric *Metric
-		Output []common.MapStr
-		Msg    string
+		Metricset *Metricset
+		Output    []common.MapStr
+		Msg       string
 	}{
 		{
-			Metric: nil,
-			Output: nil,
-			Msg:    "Nil metric",
+			Metricset: nil,
+			Output:    nil,
+			Msg:       "Nil metric",
 		},
 		{
-			Metric: &Metric{Timestamp: timestamp},
+			Metricset: &Metricset{Timestamp: timestamp},
 			Output: []common.MapStr{
 				{
 					"context": common.MapStr{
@@ -165,7 +165,7 @@ func TestTransform(t *testing.T) {
 			Msg: "Payload with empty metric.",
 		},
 		{
-			Metric: &Metric{
+			Metricset: &Metricset{
 				Tags:      common.MapStr{"a.tag": "a.tag.value"},
 				Timestamp: timestamp,
 				Samples: []*Sample{
@@ -201,7 +201,7 @@ func TestTransform(t *testing.T) {
 
 	tctx := &transform.Context{Config: transform.Config{}, Metadata: *md}
 	for idx, test := range tests {
-		outputEvents := test.Metric.Transform(tctx)
+		outputEvents := test.Metricset.Transform(tctx)
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
@@ -215,7 +215,7 @@ func TestEventTransformUseReqTime(t *testing.T) {
 	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
 	require.NoError(t, err)
 
-	e := Metric{}
+	e := Metricset{}
 	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
 	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)

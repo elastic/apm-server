@@ -56,13 +56,13 @@ type Sample struct {
 	Value float64
 }
 
-type Metric struct {
+type Metricset struct {
 	Samples   []*Sample
 	Tags      common.MapStr
 	Timestamp time.Time
 }
 
-type metricDecoder struct {
+type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
@@ -78,8 +78,8 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, errors.New("invalid type for metric event")
 	}
 
-	md := metricDecoder{&utility.ManualDecoder{}}
-	metric := Metric{
+	md := metricsetDecoder{&utility.ManualDecoder{}}
+	metricset := Metricset{
 		Samples:   md.decodeSamples(raw["samples"]),
 		Timestamp: md.TimeRFC3339(raw, "timestamp"),
 	}
@@ -89,12 +89,12 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	}
 
 	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
-		metric.Tags = tags
+		metricset.Tags = tags
 	}
-	return &metric, nil
+	return &metricset, nil
 }
 
-func (md *metricDecoder) decodeSamples(input interface{}) []*Sample {
+func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {
 	if input == nil {
 		md.Err = errors.New("no samples for metric event")
 		return nil
@@ -129,7 +129,7 @@ func (md *metricDecoder) decodeSamples(input interface{}) []*Sample {
 	return samples
 }
 
-func (me *Metric) Transform(tctx *transform.Context) []beat.Event {
+func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if me == nil {
 		return nil
