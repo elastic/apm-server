@@ -48,8 +48,8 @@ class BaseTest(TestCase):
     def get_transaction_payload_path(self, name="payload.json"):
         return self.get_payload_path("transaction", name)
 
-    def get_metrics_payload_path(self, name="payload.json"):
-        return self.get_payload_path("metric", name)
+    def get_metricset_payload_path(self, name="payload.json"):
+        return self.get_payload_path("metricset", name)
 
     def get_event_v2_payload(self, name="events.ndjson"):
         with open(self.get_event_v2_payload_path(name=name)) as f:

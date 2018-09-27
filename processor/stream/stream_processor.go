@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	er "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/metric"
+	"github.com/elastic/apm-server/model/metricset"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
@@ -113,8 +113,8 @@ var models = []struct {
 	},
 	{
 		"metricset",
-		metric.ModelSchema(),
-		metric.DecodeMetric,
+		metricset.ModelSchema(),
+		metricset.DecodeEvent,
 	},
 	{
 		"error",

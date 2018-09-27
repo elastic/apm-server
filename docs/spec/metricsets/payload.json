@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/payload.json",
+    "$id": "docs/spec/metricsets/payload.json",
     "title": "Metrics payload",
     "description": "Metrics for correlation with other APM data",
     "type": "object",

@@ -15,12 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metric
+package metricset
 
 import (
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/model/metric/generated/schema"
+	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/validation"
 )
 
