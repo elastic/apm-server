@@ -23,7 +23,7 @@ import (
 
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
-	"github.com/elastic/apm-server/processor/metric"
+	"github.com/elastic/apm-server/processor/metricset"
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/processor/transaction"
@@ -70,7 +70,7 @@ var V1Routes = map[string]v1Route{
 	BackendErrorsURL:                  {backendRouteType, perr.Processor, v1RequestDecoder},
 	ClientSideErrorsURL:               {rumRouteType, perr.Processor, v1RequestDecoder},
 	RumErrorsURL:                      {rumRouteType, perr.Processor, v1RequestDecoder},
-	MetricsURL:                        {metricsRouteType, metric.Processor, v1RequestDecoder},
+	MetricsURL:                        {metricsRouteType, metricset.Processor, v1RequestDecoder},
 	SourcemapsURL:                     {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
 	SourcemapsClientSideURLDeprecated: {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
 	SourcemapsURLDeprecated:           {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},

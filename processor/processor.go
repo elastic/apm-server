@@ -35,7 +35,8 @@ type Processor interface {
 }
 
 type EventsProcessor struct {
-	PluralName    string
+	EventName     string
+	PayloadKey    string
 	EventDecoder  decoder.EventDecoder
 	PayloadSchema *jsonschema.Schema
 	DecodingCount *monitoring.Int
@@ -45,14 +46,14 @@ type EventsProcessor struct {
 }
 
 func (p *EventsProcessor) Name() string {
-	return p.PluralName[:len(p.PluralName)-1]
+	return p.EventName
 }
 
 func (p *EventsProcessor) decodePayload(raw map[string]interface{}) ([]transform.Transformable, error) {
 	var err error
 	decoder := utility.ManualDecoder{}
 
-	rawObjects := decoder.InterfaceArr(raw, p.PluralName)
+	rawObjects := decoder.InterfaceArr(raw, p.PayloadKey)
 
 	events := make([]transform.Transformable, len(rawObjects))
 	for idx, errData := range rawObjects {

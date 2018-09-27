@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metrics/sample.json",
+    "$id": "docs/spec/metricsets/sample.json",
     "type": ["object", "null"],
     "description": "A single metric sample.",
     "properties": {

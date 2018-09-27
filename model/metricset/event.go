@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package metric
+package metricset
 
 import (
 	"errors"
@@ -24,7 +24,7 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/model/metric/generated/schema"
+	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
@@ -66,7 +66,7 @@ type metricDecoder struct {
 	*utility.ManualDecoder
 }
 
-func DecodeMetric(input interface{}, err error) (transform.Transformable, error) {
+func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}

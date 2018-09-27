@@ -119,7 +119,7 @@ func TestIntegration(t *testing.T) {
 		{path: "errors.ndjson", name: "Errors"},
 		{path: "transactions.ndjson", name: "Transactions"},
 		{path: "spans.ndjson", name: "Spans"},
-		{path: "metrics.ndjson", name: "Metrics"},
+		{path: "metricsets.ndjson", name: "Metricsets"},
 		{path: "events.ndjson", name: "Events"},
 		{path: "minimal-service.ndjson", name: "MinimalService"},
 		{path: "metadata-null-values.ndjson", name: "MetadataNullValues"},
