@@ -60,10 +60,9 @@ func TestInvalidPayloads(t *testing.T) {
 
 	payloadData := []tests.SchemaTestData{
 		{Key: "metricset.timestamp",
-			Valid: val{"2017-05-30T18:53:42.281Z"},
+			Valid: val{json.Number("1496170422281000")},
 			Invalid: []tests.Invalid{
-				{Msg: `timestamp/format`, Values: val{"2017-05-30T18:53Z", "2017-05-30T18:53:27.Z", "2017-05-30T18:53:27a123Z"}},
-				{Msg: `timestamp/pattern`, Values: val{"2017-05-30T18:53:27.000+00:20", "2017-05-30T18:53:27ZNOTCORRECT"}}}},
+				{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
 		{Key: "metricset.tags",
 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
 			Invalid: []tests.Invalid{

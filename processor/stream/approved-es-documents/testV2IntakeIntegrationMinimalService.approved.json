@@ -28,6 +28,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1533827045999000
             }
         },
         {

@@ -47,6 +47,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "timestamp": {
+                "us": 1533117600000000
+            },
             "trace": {
                 "id": "0123456789abcdef0123456789abcdef"
             },
@@ -177,6 +180,9 @@
                 "event": "transaction",
                 "name": "transaction"
             },
+            "timestamp": {
+                "us": 1496170407154000
+            },
             "trace": {
                 "id": "0acd456789abcdef0123456789abcdef"
             },
@@ -240,6 +246,9 @@
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
+            },
+            "timestamp": {
+                "us": 1532976822281000
             },
             "trace": {
                 "id": "0acd456789abcdef0123456789abcdef"

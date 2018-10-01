@@ -86,6 +86,8 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
+
 	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "total", "span_count", "dropped")}
 
 	var transformable transform.Transformable
@@ -118,6 +120,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
 	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
 		Started: decoder.IntPtr(raw, "started", "span_count")}
 	e.ParentId = decoder.StringPtr(raw, "parent_id")
@@ -141,15 +144,14 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 	}
 	decoder := utility.ManualDecoder{}
 	e := Event{
-		Id:        decoder.String(raw, "id"),
-		Type:      decoder.String(raw, "type"),
-		Name:      decoder.StringPtr(raw, "name"),
-		Result:    decoder.StringPtr(raw, "result"),
-		Duration:  decoder.Float64(raw, "duration"),
-		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
-		Context:   decoder.MapStr(raw, "context"),
-		Marks:     decoder.MapStr(raw, "marks"),
-		Sampled:   decoder.BoolPtr(raw, "sampled"),
+		Id:       decoder.String(raw, "id"),
+		Type:     decoder.String(raw, "type"),
+		Name:     decoder.StringPtr(raw, "name"),
+		Result:   decoder.StringPtr(raw, "result"),
+		Duration: decoder.Float64(raw, "duration"),
+		Context:  decoder.MapStr(raw, "context"),
+		Marks:    decoder.MapStr(raw, "marks"),
+		Sampled:  decoder.BoolPtr(raw, "sampled"),
 	}
 	return &e, raw, decoder.Err
 }
@@ -197,6 +199,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
+	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
 	spanCounter.Add(int64(len(e.Spans)))

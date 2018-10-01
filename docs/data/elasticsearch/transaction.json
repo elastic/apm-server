@@ -111,6 +111,9 @@
         "event": "transaction",
         "name": "transaction"
     },
+    "timestamp": {
+        "us": 1496170407154000
+    },
     "transaction": {
         "duration": {
             "us": 32592

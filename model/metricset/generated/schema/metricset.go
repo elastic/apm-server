@@ -18,8 +18,13 @@
 package schema
 
 const ModelSchema = `{
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metricsets/metricset.json",
+    "$id": "docs/spec/errors/v2_error.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "allOf": [
+
+        {     "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/common_metricset.json",
     "type": "object",
     "description": "Metric data captured by an APM agent",
     "properties": {
@@ -50,14 +55,19 @@ const ModelSchema = `{
                 }
             },
             "additionalProperties": false
-        },
-        "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the metric, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
-    "required": ["samples", "timestamp"]
+    "required": ["samples"]  }, 
+        {  
+            "properties": {
+               
+                "timestamp": {
+                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+                    "type": "integer"
+                }
+            },
+            "required": ["timestamp"]
+        }
+    ]
 }
 `

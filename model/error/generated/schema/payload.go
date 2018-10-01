@@ -144,7 +144,7 @@ const PayloadSchema = `{
                 "description": "Data captured by an agent representing an event occurring in a monitored service",
                 "allOf": [
 
-                    {     "$id": "docs/spec/errors/error.json",
+                    {     "$id": "docs/spec/errors/common_error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -529,12 +529,6 @@ const PayloadSchema = `{
                 }
             },
             "required": ["message"]
-        },
-        "timestamp": {
-            "type": ["string","null"],
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
     "anyOf": [
@@ -558,6 +552,12 @@ const PayloadSchema = `{
                                         "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
                                     }
                                 }
+                            },
+                            "timestamp": {
+                                "type": ["string","null"],
+                                "format": "date-time",
+                                "pattern": "Z$",
+                                "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
                             }
                         }
                     }

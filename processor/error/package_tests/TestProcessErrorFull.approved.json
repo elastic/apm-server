@@ -250,6 +250,9 @@
                 "event": "error",
                 "name": "error"
             },
+            "timestamp": {
+                "us": 1494342245999999
+            },
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             }
@@ -304,6 +307,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1494342245100000
             }
         },
         {
@@ -355,6 +361,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1494342245000000
             }
         },
         {
@@ -407,6 +416,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1494342245999000
             }
         }
     ]

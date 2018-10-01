@@ -20,6 +20,7 @@ package error
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -28,6 +29,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
 
 	"github.com/stretchr/testify/assert"
@@ -39,6 +41,7 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
+	testhelper "github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -77,14 +80,26 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 	return l
 }
 
-func TestErrorEventDecode(t *testing.T) {
-	id, culprit := "123", "foo()"
-	context := map[string]interface{}{"a": "b"}
+func TestErrorEventV1Decode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+
+	testErrorEventDecode(t, timestamp, timestampParsed, V1DecodeEvent)
+}
+
+func TestErrorEventV2Decode(t *testing.T) {
+	timestamp := json.Number("1496170407154000")
+	timestampParsed, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
+
+	testErrorEventDecode(t, timestamp, timestampParsed, V2DecodeEvent)
+}
+
+func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOutput time.Time, decodeFct decoder.EventDecoder) {
+	id, culprit := "123", "foo()"
+	context := map[string]interface{}{"a": "b"}
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
-	for _, test := range []struct {
+	for idx, test := range []struct {
 		input       interface{}
 		err, inpErr error
 		e           *Event
@@ -99,27 +114,27 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestampInput},
 			err: nil,
 			e: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
 				Context:   context,
-				Timestamp: timestampParsed,
+				Timestamp: timestampOutput,
 			},
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestamp,
+				"timestamp": timestampInput,
 				"exception": map[string]interface{}{},
 				"log":       map[string]interface{}{},
 			},
 			err: nil,
-			e:   &Event{Timestamp: timestampParsed},
+			e:   &Event{Timestamp: timestampOutput},
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestamp,
+				"timestamp": timestampInput,
 				"exception": map[string]interface{}{
 					"message":    "Exception Msg",
 					"stacktrace": "123",
@@ -130,7 +145,7 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestamp,
+				"timestamp": timestampInput,
 				"log": map[string]interface{}{
 					"message":    "Log Msg",
 					"stacktrace": "123",
@@ -141,7 +156,7 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestamp,
+				"timestamp": timestampInput,
 				"exception": map[string]interface{}{
 					"message": "Exception Msg",
 					"code":    code, "module": module, "attributes": attrs,
@@ -165,7 +180,7 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 			err: nil,
 			e: &Event{
-				Timestamp: timestampParsed,
+				Timestamp: timestampOutput,
 				Exception: &Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -189,24 +204,24 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		for idx, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
-			transformable, err := decodeFct(test.input, test.inpErr)
+		transformable, err := decodeFct(test.input, test.inpErr)
 
-			if test.e != nil {
-				event := transformable.(*Event)
-				assert.Equal(t, test.e, event, idx)
-			} else {
-				assert.Nil(t, transformable, idx)
-			}
-
-			assert.Equal(t, test.err, err, idx)
+		if test.e != nil {
+			event := transformable.(*Event)
+			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
+		} else {
+			assert.Nil(t, transformable, fmt.Sprintf("Failed at idx %v", idx))
 		}
+
+		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
+
 	}
 }
 
 func TestVersionedErrorEventDecode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	timestampEpoch := json.Number("1496170407154000")
 	parentId, traceId := "0123456789abcdef", "01234567890123456789abcdefabcdef"
 	transaction, transactionId := "01234", "abcdefabcdef0000"
 	input := map[string]interface{}{
@@ -224,11 +239,13 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 	assert.Equal(t, e, transformable.(*Event))
 
 	// test V2
-	e = &Event{Timestamp: timestampParsed,
+	e = &Event{
+		Timestamp:     timestampParsed,
 		TransactionId: &transactionId,
 		ParentId:      &parentId,
 		TraceId:       &traceId,
 	}
+	input["timestamp"] = timestampEpoch
 	transformable, err = V2DecodeEvent(input, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, e, transformable.(*Event))
@@ -479,8 +496,9 @@ func TestEvents(t *testing.T) {
 		outputEvents := test.Tranformable.Transform(tctx)
 		require.Len(t, outputEvents, 1)
 		outputEvent := outputEvents[0]
-		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		testhelper.AssertEqualExceptTimestamp(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
+		testhelper.AssertEqualMicroTimestamp(t, timestamp, outputEvent.Fields["timestamp"])
 	}
 }
 

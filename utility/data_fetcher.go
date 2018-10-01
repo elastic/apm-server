@@ -213,6 +213,23 @@ func (d *ManualDecoder) TimeRFC3339(base map[string]interface{}, key string, key
 	return time.Time{}
 }
 
+func (d *ManualDecoder) TimeEpochMicro(base map[string]interface{}, key string, keys ...string) time.Time {
+	val := getDeep(base, keys...)[key]
+	if val == nil {
+		return time.Time{}
+	}
+
+	if valNum, ok := val.(json.Number); ok {
+		if t, err := valNum.Int64(); err == nil {
+			sec := t / 1000000
+			microsec := t - (sec * 1000000)
+			return time.Unix(sec, microsec*1000).UTC()
+		}
+	}
+	d.Err = fetchErr
+	return time.Time{}
+}
+
 func getDeep(raw map[string]interface{}, keys ...string) map[string]interface{} {
 	if raw == nil {
 		return nil

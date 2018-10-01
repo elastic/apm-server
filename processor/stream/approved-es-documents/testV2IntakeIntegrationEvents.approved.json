@@ -31,10 +31,13 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1533827045999000
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.001845Z",
             "context": {
                 "service": {
                     "agent": {
@@ -63,6 +66,9 @@
                     "us": 1845
                 },
                 "type": "request"
+            },
+            "timestamp": {
+                "us": 1533117600001845
             },
             "trace": {
                 "id": "0123456789abcdef0123456789abcdef"
@@ -94,6 +100,9 @@
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
+            },
+            "timestamp": {
+                "us": 1535655207154000
             },
             "trace": {
                 "id": "01234567890123456789abcdefabcdef"

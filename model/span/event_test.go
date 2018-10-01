@@ -18,6 +18,7 @@
 package span
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -86,7 +87,7 @@ func TestDecodeSpanV1(t *testing.T) {
 			s: &Event{
 				Name:      name,
 				Type:      spType,
-				Start:     start,
+				Start:     &start,
 				Duration:  duration,
 				Timestamp: spanTime,
 			},
@@ -105,7 +106,7 @@ func TestDecodeSpanV1(t *testing.T) {
 				Id:            &id,
 				Name:          name,
 				Type:          spType,
-				Start:         start,
+				Start:         &start,
 				Duration:      duration,
 				Context:       context,
 				Parent:        &parent,
@@ -127,7 +128,7 @@ func TestDecodeSpanV1(t *testing.T) {
 			s: &Event{
 				Name:      name,
 				Type:      spType,
-				Start:     start,
+				Start:     &start,
 				Duration:  duration,
 				Timestamp: spanTime,
 			},
@@ -145,6 +146,7 @@ func TestDecodeSpanV1(t *testing.T) {
 
 func TestDecodeSpanV2(t *testing.T) {
 	spanTime, _ := time.Parse(time.RFC3339, "2018-05-30T19:53:17.134Z")
+	timestampEpoch := json.Number(fmt.Sprintf("%d", spanTime.UnixNano()/1000))
 	id, parentId, invalidId := "0000000000000000", "FFFFFFFFFFFFFFFF", "invalidId"
 	idInt, parentIdInt := int64(-9223372036854775808), int64(9223372036854775807)
 	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
@@ -164,7 +166,7 @@ func TestDecodeSpanV2(t *testing.T) {
 			// invalid id
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": "2018-05-30T19:53:17.134Z", "id": invalidId, "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": invalidId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: errors.New("strconv.ParseUint: parsing \"invalidId\": invalid syntax"),
 			e:   nil,
@@ -173,7 +175,7 @@ func TestDecodeSpanV2(t *testing.T) {
 			// missing traceId
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": "2018-05-30T19:53:17.134Z", "id": id, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": id, "transaction_id": transactionId,
 			},
 			err: errors.New("Error fetching field"),
 			e:   nil,
@@ -182,7 +184,7 @@ func TestDecodeSpanV2(t *testing.T) {
 			// missing transactionId
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": "2018-05-30T19:53:17.134Z", "id": id, "trace_id": traceId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
 			},
 			err: errors.New("Error fetching field"),
 			e:   nil,
@@ -191,7 +193,7 @@ func TestDecodeSpanV2(t *testing.T) {
 			// missing id
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": "2018-05-30T19:53:17.134Z", "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: errors.New("Error fetching field"),
 			e:   nil,
@@ -200,7 +202,7 @@ func TestDecodeSpanV2(t *testing.T) {
 			// missing parent_id
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration,
-				"timestamp": "2018-05-30T19:53:17.134Z", "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: errors.New("Error fetching field"),
 			e:   nil,
@@ -209,13 +211,13 @@ func TestDecodeSpanV2(t *testing.T) {
 			// minimal payload
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": "2018-05-30T19:53:17.134Z", "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: nil,
 			e: &Event{
 				Name:          name,
 				Type:          spType,
-				Start:         start,
+				Start:         &start,
 				Duration:      duration,
 				Timestamp:     spanTime,
 				Id:            &idInt,
@@ -230,14 +232,14 @@ func TestDecodeSpanV2(t *testing.T) {
 			// full valid payload
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration,
-				"context": context, "timestamp": "2018-05-30T19:53:17.134Z", "stacktrace": stacktrace,
+				"context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: nil,
 			e: &Event{
 				Name:      name,
 				Type:      spType,
-				Start:     start,
+				Start:     &start,
 				Duration:  duration,
 				Context:   context,
 				Timestamp: spanTime,
@@ -268,6 +270,7 @@ func TestDecodeSpanV2(t *testing.T) {
 
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
+	start := 0.65
 	parent, tid := int64(12), int64(1)
 	service := metadata.Service{Name: "myService"}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
@@ -281,7 +284,6 @@ func TestSpanTransform(t *testing.T) {
 			Event: Event{},
 			Output: common.MapStr{
 				"type":     "",
-				"start":    common.MapStr{"us": 0},
 				"duration": common.MapStr{"us": 0},
 				"name":     "",
 			},
@@ -295,7 +297,7 @@ func TestSpanTransform(t *testing.T) {
 				ParentId:   parentId,
 				Name:       "myspan",
 				Type:       "myspantype",
-				Start:      0.65,
+				Start:      &start,
 				Duration:   1.20,
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
 				Context:    common.MapStr{"key": "val"},
@@ -325,7 +327,6 @@ func TestSpanTransform(t *testing.T) {
 			Event: Event{HexId: hexId, ParentId: parentId},
 			Output: common.MapStr{
 				"type":     "",
-				"start":    common.MapStr{"us": 0},
 				"duration": common.MapStr{"us": 0},
 				"name":     "",
 				"hex_id":   hexId,
@@ -349,14 +350,15 @@ func TestSpanTransform(t *testing.T) {
 }
 
 func TestEventTransformUseReqTime(t *testing.T) {
-	reqTimestamp := "2017-05-30T18:53:27.154Z"
-	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
+	reqTimestampParsed, err := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
 	require.NoError(t, err)
-
-	e := Event{}
+	start := 1234.8
+	e := Event{Start: &start}
 	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
-	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
+
+	adjustedParsed, err := time.Parse(time.RFC3339, "2017-05-30T18:53:28.3888Z")
+	assert.Equal(t, adjustedParsed, beatEvent[0].Timestamp)
 }
 
 func TestHexToInt(t *testing.T) {

@@ -36,6 +36,10 @@
                         }
                     },
                     "required": ["started"]
+                },
+                "timestamp": {
+                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+                    "type": ["integer", "null"]
                 }
             },
             "required": ["id", "trace_id", "span_count"]

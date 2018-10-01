@@ -23,7 +23,7 @@ const ModelSchema = `{
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
 
-        {     "$id": "docs/spec/errors/error.json",
+        {     "$id": "docs/spec/errors/common_error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -408,12 +408,6 @@ const ModelSchema = `{
                 }
             },
             "required": ["message"]
-        },
-        "timestamp": {
-            "type": ["string","null"],
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
     "anyOf": [
@@ -441,6 +435,10 @@ const ModelSchema = `{
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.", 
                     "type": ["string", "null"],
                     "maxLength": 1024
+                },
+                "timestamp": {
+                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+                    "type": ["integer", "null"]
                 }
             },
             "allOf": [
@@ -451,7 +449,6 @@ const ModelSchema = `{
                   "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
                 { "if": {"required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}},
                   "then": { "required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}} }
-    
             ]
         }
     ]

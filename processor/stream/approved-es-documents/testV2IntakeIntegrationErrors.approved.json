@@ -250,6 +250,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1494342245999999
             }
         },
         {
@@ -302,6 +305,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1533826745999000
             }
         },
         {
@@ -354,6 +360,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1533826745999000
             }
         },
         {
@@ -410,6 +419,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1533827045999000
             },
             "trace": {
                 "id": "0123456789abcdeffedcba0123456789"

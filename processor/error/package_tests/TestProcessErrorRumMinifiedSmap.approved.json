@@ -313,6 +313,9 @@
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "timestamp": {
+                "us": 1516008037594000
             }
         }
     ]

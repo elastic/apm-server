@@ -27,7 +27,7 @@ var (
 	Processor = &processor.EventsProcessor{
 		EventName:     "metricset",
 		PayloadKey:    "metrics",
-		EventDecoder:  metricset.DecodeEvent,
+		EventDecoder:  metricset.V1DecodeEvent,
 		PayloadSchema: metricset.PayloadSchema(),
 		DecodingCount: monitoring.NewInt(metricset.Metrics, "decoding.count"),
 		DecodingError: monitoring.NewInt(metricset.Metrics, "decoding.errors"),

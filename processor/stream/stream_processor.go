@@ -114,7 +114,7 @@ var models = []struct {
 	{
 		"metricset",
 		metricset.ModelSchema(),
-		metricset.DecodeEvent,
+		metricset.V2DecodeEvent,
 	},
 	{
 		"error",

@@ -57,7 +57,7 @@ func ModelSchema() *jsonschema.Schema {
 type Event struct {
 	Name       string
 	Type       string
-	Start      float64
+	Start      *float64
 	Duration   float64
 	Context    common.MapStr
 	Stacktrace m.Stacktrace
@@ -81,6 +81,7 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
 	e.Id = decoder.Int64Ptr(raw, "id")
 	e.Parent = decoder.Int64Ptr(raw, "parent")
 	if tid := decoder.StringPtr(raw, "transaction_id"); tid != nil {
@@ -95,6 +96,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
 	e.HexId = decoder.String(raw, "id")
 	e.ParentId = decoder.String(raw, "parent_id")
 	e.TraceId = decoder.String(raw, "trace_id")
@@ -145,12 +147,11 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 
 	decoder := utility.ManualDecoder{}
 	event := Event{
-		Name:      decoder.String(raw, "name"),
-		Type:      decoder.String(raw, "type"),
-		Start:     decoder.Float64(raw, "start"),
-		Duration:  decoder.Float64(raw, "duration"),
-		Context:   decoder.MapStr(raw, "context"),
-		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
+		Name:     decoder.String(raw, "name"),
+		Type:     decoder.String(raw, "type"),
+		Start:    decoder.Float64Ptr(raw, "start"),
+		Duration: decoder.Float64(raw, "duration"),
+		Context:  decoder.MapStr(raw, "context"),
 	}
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
@@ -167,8 +168,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		frameCounter.Add(int64(frames))
 	}
 
-	if e.Timestamp.IsZero() {
-		e.Timestamp = tctx.RequestTime
+	if e.Timestamp.IsZero() && e.Start != nil {
+		e.Timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
 	}
 
 	fields := common.MapStr{
@@ -179,6 +180,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "transaction", &e.TransactionId)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
+	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
 		beat.Event{
@@ -203,8 +205,13 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 
 	utility.Add(tr, "name", s.Name)
 	utility.Add(tr, "type", s.Type)
-	utility.Add(tr, "start", utility.MillisAsMicros(s.Start))
+
+	if s.Start != nil {
+		utility.Add(tr, "start", utility.MillisAsMicros(*s.Start))
+	}
+
 	utility.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
+
 	st := s.Stacktrace.Transform(tctx)
 	utility.Add(tr, "stacktrace", st)
 	return tr
