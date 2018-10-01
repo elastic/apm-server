@@ -182,3 +182,8 @@ func prepareIngestPackaging() error {
 	return copy.Execute()
 
 }
+
+// DumpVariables writes the template variables and values to stdout.
+func DumpVariables() error {
+	return mage.DumpVariables()
+}
