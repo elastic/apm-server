@@ -50,7 +50,7 @@ type publisher struct {
 type PendingReq struct {
 	Transformables []transform.Transformable
 	Tcontext       *transform.Context
-	trace          bool
+	Trace          bool
 }
 
 var (
@@ -119,12 +119,6 @@ func (p *publisher) Send(ctx context.Context, req PendingReq) error {
 		return ErrChannelClosed
 	}
 
-	span, ctx := elasticapm.StartSpan(ctx, "Send", "Publisher")
-	if span != nil {
-		defer span.End()
-		req.trace = !span.Dropped()
-	}
-
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -143,7 +137,7 @@ func (p *publisher) run() {
 
 func (p *publisher) processPendingReq(req PendingReq) {
 	var tx *elasticapm.Transaction
-	if req.trace {
+	if req.Trace {
 		tx = p.tracer.StartTransaction("ProcessPending", "Publisher")
 		defer tx.End()
 	}
