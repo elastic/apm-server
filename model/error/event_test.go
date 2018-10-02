@@ -29,7 +29,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
 
 	"github.com/stretchr/testify/assert"
@@ -41,7 +40,6 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/sourcemap"
-	testhelper "github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -84,17 +82,6 @@ func TestErrorEventV1Decode(t *testing.T) {
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 
-	testErrorEventDecode(t, timestamp, timestampParsed, V1DecodeEvent)
-}
-
-func TestErrorEventV2Decode(t *testing.T) {
-	timestamp := json.Number("1496170407154000")
-	timestampParsed, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
-
-	testErrorEventDecode(t, timestamp, timestampParsed, V2DecodeEvent)
-}
-
-func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOutput time.Time, decodeFct decoder.EventDecoder) {
 	id, culprit := "123", "foo()"
 	context := map[string]interface{}{"a": "b"}
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
@@ -114,27 +101,27 @@ func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOut
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": context, "timestamp": timestampInput},
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
 			err: nil,
 			e: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
 				Context:   context,
-				Timestamp: timestampOutput,
+				Timestamp: timestampParsed,
 			},
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestampInput,
+				"timestamp": timestamp,
 				"exception": map[string]interface{}{},
 				"log":       map[string]interface{}{},
 			},
 			err: nil,
-			e:   &Event{Timestamp: timestampOutput},
+			e:   &Event{Timestamp: timestampParsed},
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestampInput,
+				"timestamp": timestamp,
 				"exception": map[string]interface{}{
 					"message":    "Exception Msg",
 					"stacktrace": "123",
@@ -145,7 +132,7 @@ func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOut
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestampInput,
+				"timestamp": timestamp,
 				"log": map[string]interface{}{
 					"message":    "Log Msg",
 					"stacktrace": "123",
@@ -156,7 +143,7 @@ func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOut
 		},
 		{
 			input: map[string]interface{}{
-				"timestamp": timestampInput,
+				"timestamp": timestamp,
 				"exception": map[string]interface{}{
 					"message": "Exception Msg",
 					"code":    code, "module": module, "attributes": attrs,
@@ -180,7 +167,7 @@ func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOut
 			},
 			err: nil,
 			e: &Event{
-				Timestamp: timestampOutput,
+				Timestamp: timestampParsed,
 				Exception: &Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -204,7 +191,7 @@ func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOut
 			},
 		},
 	} {
-		transformable, err := decodeFct(test.input, test.inpErr)
+		transformable, err := V1DecodeEvent(test.input, test.inpErr)
 
 		if test.e != nil {
 			event := transformable.(*Event)
@@ -214,7 +201,132 @@ func testErrorEventDecode(t *testing.T, timestampInput interface{}, timestampOut
 		}
 
 		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
+	}
+}
 
+func TestErrorEventV2Decode(t *testing.T) {
+	timestamp := json.Number("1496170407154000")
+	timestampParsed, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
+
+	id, culprit := "123", "foo()"
+	context := map[string]interface{}{"a": "b"}
+	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
+	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
+	for idx, test := range []struct {
+		input       interface{}
+		err, inpErr error
+		e           *v2Event
+	}{
+		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
+		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		{input: "", err: errors.New("Invalid type for error event"), e: nil},
+		{
+			input: map[string]interface{}{"timestamp": 123},
+			err:   errors.New("Error fetching field"),
+			e:     nil,
+		},
+		{
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
+			err: nil,
+			e: &v2Event{&Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Context:   context,
+				Timestamp: timestampParsed,
+			}},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{},
+				"log":       map[string]interface{}{},
+			},
+			err: nil,
+			e:   &v2Event{&Event{Timestamp: timestampParsed}},
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message":    "Exception Msg",
+					"stacktrace": "123",
+				},
+			},
+			err: errors.New("Invalid type for stacktrace"),
+			e:   nil,
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"log": map[string]interface{}{
+					"message":    "Log Msg",
+					"stacktrace": "123",
+				},
+			},
+			err: errors.New("Invalid type for stacktrace"),
+			e:   nil,
+		},
+		{
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{
+					"message": "Exception Msg",
+					"code":    code, "module": module, "attributes": attrs,
+					"type": exType, "handled": handled,
+					"stacktrace": []interface{}{
+						map[string]interface{}{
+							"filename": "file", "lineno": 1.0,
+						},
+					},
+				},
+				"log": map[string]interface{}{
+					"message":       "Log Msg",
+					"param_message": paramMsg,
+					"level":         level, "logger_name": logger,
+					"stacktrace": []interface{}{
+						map[string]interface{}{
+							"filename": "log file", "lineno": 2.0,
+						},
+					},
+				},
+			},
+			err: nil,
+			e: &v2Event{&Event{
+				Timestamp: timestampParsed,
+				Exception: &Exception{
+					Message:    &exMsg,
+					Code:       code,
+					Type:       &exType,
+					Module:     &module,
+					Attributes: attrs,
+					Handled:    &handled,
+					Stacktrace: m.Stacktrace{
+						&m.StacktraceFrame{Filename: "file", Lineno: 1},
+					},
+				},
+				Log: &Log{
+					Message:      "Log Msg",
+					ParamMessage: &paramMsg,
+					Level:        &level,
+					LoggerName:   &logger,
+					Stacktrace: m.Stacktrace{
+						&m.StacktraceFrame{Filename: "log file", Lineno: 2},
+					},
+				},
+			}},
+		},
+	} {
+		transformable, err := V2DecodeEvent(test.input, test.inpErr)
+
+		if test.e != nil {
+			event := transformable.(*v2Event)
+			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
+		} else {
+			assert.Nil(t, transformable, fmt.Sprintf("Failed at idx %v", idx))
+		}
+
+		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
 	}
 }
 
@@ -239,16 +351,16 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 	assert.Equal(t, e, transformable.(*Event))
 
 	// test V2
-	e = &Event{
+	e2 := &v2Event{&Event{
 		Timestamp:     timestampParsed,
 		TransactionId: &transactionId,
 		ParentId:      &parentId,
 		TraceId:       &traceId,
-	}
+	}}
 	input["timestamp"] = timestampEpoch
 	transformable, err = V2DecodeEvent(input, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, e, transformable.(*Event))
+	assert.Equal(t, e2, transformable.(*v2Event))
 }
 
 func TestEventFields(t *testing.T) {
@@ -496,9 +608,8 @@ func TestEvents(t *testing.T) {
 		outputEvents := test.Tranformable.Transform(tctx)
 		require.Len(t, outputEvents, 1)
 		outputEvent := outputEvents[0]
-		testhelper.AssertEqualExceptTimestamp(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
-		testhelper.AssertEqualMicroTimestamp(t, timestamp, outputEvent.Fields["timestamp"])
 	}
 }
 

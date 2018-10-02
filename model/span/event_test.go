@@ -214,7 +214,7 @@ func TestDecodeSpanV2(t *testing.T) {
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: nil,
-			e: &Event{
+			e: &v2Event{&Event{
 				Name:          name,
 				Type:          spType,
 				Start:         &start,
@@ -226,7 +226,7 @@ func TestDecodeSpanV2(t *testing.T) {
 				HexId:         id,
 				TraceId:       traceId,
 				TransactionId: transactionId,
-			},
+			}},
 		},
 		{
 			// full valid payload
@@ -236,7 +236,7 @@ func TestDecodeSpanV2(t *testing.T) {
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: nil,
-			e: &Event{
+			e: &v2Event{&Event{
 				Name:      name,
 				Type:      spType,
 				Start:     &start,
@@ -252,7 +252,7 @@ func TestDecodeSpanV2(t *testing.T) {
 				ParentId:      parentId,
 				Parent:        &parentIdInt,
 				TransactionId: transactionId,
-			},
+			}},
 		},
 	} {
 		event, err := V2DecodeEvent(test.input, test.inpErr)
@@ -345,15 +345,26 @@ func TestSpanTransform(t *testing.T) {
 		output := test.Event.Transform(tctx)
 		fields := output[0].Fields["span"]
 		assert.Equal(t, test.Output, fields)
-
 	}
 }
 
-func TestEventTransformUseReqTime(t *testing.T) {
+func TestEventV1TransformUseReqTime(t *testing.T) {
+	reqTimestamp := "2017-05-30T18:53:27.154Z"
+	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
+	require.NoError(t, err)
+
+	start := 1234.8
+	e := Event{Start: &start}
+	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
+	require.Len(t, beatEvent, 1)
+	assert.Equal(t, reqTimestampParsed, beatEvent[0].Timestamp)
+}
+
+func TestEventV2TransformUseReqTimePlusStart(t *testing.T) {
 	reqTimestampParsed, err := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
 	require.NoError(t, err)
 	start := 1234.8
-	e := Event{Start: &start}
+	e := v2Event{&Event{Start: &start}}
 	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
 

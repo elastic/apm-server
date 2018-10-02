@@ -20,9 +20,6 @@ package tests
 import (
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -66,16 +63,4 @@ func assertEmptySet(t *testing.T, s *Set, msg string) {
 	if s.Len() > 0 {
 		assert.Fail(t, msg)
 	}
-}
-
-func AssertEqualExceptTimestamp(t *testing.T, a, b common.MapStr, msgAndArgs ...interface{}) {
-	ac := a.Clone()
-	bc := b.Clone()
-	delete(ac, "timestamp")
-	delete(bc, "timestamp")
-	assert.Equal(t, ac, bc, msgAndArgs...)
-}
-
-func AssertEqualMicroTimestamp(t *testing.T, expectedTs time.Time, actual interface{}, msgAndArgs ...interface{}) {
-	assert.Equal(t, expectedTs.UnixNano()/1000, actual.(common.MapStr)["us"], msgAndArgs...)
 }

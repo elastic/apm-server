@@ -120,7 +120,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 
-	return e, decoder.Err
+	return &v2Event{e}, decoder.Err
 }
 
 var shift = uint64(math.Pow(2, 63))
@@ -168,8 +168,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		frameCounter.Add(int64(frames))
 	}
 
-	if e.Timestamp.IsZero() && e.Start != nil {
-		e.Timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
+	if e.Timestamp.IsZero() {
+		e.Timestamp = tctx.RequestTime
 	}
 
 	fields := common.MapStr{
@@ -180,7 +180,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "transaction", &e.TransactionId)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
-	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
 		beat.Event{
@@ -215,4 +214,21 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 	st := s.Stacktrace.Transform(tctx)
 	utility.Add(tr, "stacktrace", st)
 	return tr
+}
+
+type v2Event struct {
+	*Event
+}
+
+func (e *v2Event) Transform(tctx *transform.Context) []beat.Event {
+	// adjust timestamp to be reqTime + start
+	if e.Timestamp.IsZero() && e.Start != nil {
+		e.Timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
+	}
+
+	events := e.Event.Transform(tctx)
+	for _, e := range events {
+		utility.Add(e.Fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	}
+	return events
 }

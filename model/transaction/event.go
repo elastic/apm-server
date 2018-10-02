@@ -128,7 +128,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
-	return e, nil
+	return &v2Event{e}, nil
 }
 
 func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
@@ -199,7 +199,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
-	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
@@ -207,6 +206,18 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	for spIdx := 0; spIdx < len(e.Spans); spIdx++ {
 		events = append(events, e.Spans[spIdx].Transform(tctx)...)
 		e.Spans[spIdx] = nil
+	}
+	return events
+}
+
+type v2Event struct {
+	*Event
+}
+
+func (e *v2Event) Transform(tctx *transform.Context) []beat.Event {
+	events := e.Event.Transform(tctx)
+	for _, e := range events {
+		utility.Add(e.Fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	}
 	return events
 }

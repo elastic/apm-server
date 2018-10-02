@@ -33,8 +33,6 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/beats/libbeat/common"
-
-	testhelper "github.com/elastic/apm-server/tests"
 )
 
 func TestTransactionEventDecodeFailure(t *testing.T) {
@@ -132,7 +130,7 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 	for _, test := range []struct {
 		input interface{}
 		err   error
-		e     *Event
+		e     *v2Event
 	}{
 		// traceId missing
 		{
@@ -146,11 +144,11 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "duration": duration, "timestamp": timestampEpoch,
 				"trace_id": traceId, "span_count": map[string]interface{}{"started": 6.0}},
-			e: &Event{
+			e: &v2Event{&Event{
 				Id: id, Type: trType, TraceId: traceId,
 				Duration: duration, Timestamp: timestampParsed,
 				SpanCount: SpanCount{Started: &started},
-			},
+			}},
 		},
 		// full event, ignoring spans
 		{
@@ -164,19 +162,19 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
 					}},
 				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0}},
-			e: &Event{
+			e: &v2Event{&Event{
 				Id: id, Type: trType, Name: &name, Result: &result,
 				ParentId: &parentId, TraceId: traceId,
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
-			},
+			}},
 		},
 	} {
 		transformable, err := V2DecodeEvent(test.input, nil)
 		assert.Equal(t, test.err, err)
 		if test.e != nil {
-			event := transformable.(*Event)
+			event := transformable.(*v2Event)
 			assert.Equal(t, test.e, event)
 		} else {
 			assert.Nil(t, transformable)
@@ -443,9 +441,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		outputEvents := test.Event.Transform(tctx)
 
 		for j, outputEvent := range outputEvents {
-
-			testhelper.AssertEqualMicroTimestamp(t, timestamp, outputEvent.Fields["timestamp"])
-			testhelper.AssertEqualExceptTimestamp(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
+			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
 			assert.Equal(t, timestamp, outputEvent.Timestamp)
 		}
 	}

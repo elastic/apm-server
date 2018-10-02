@@ -18,9 +18,6 @@
                 "event": "transaction",
                 "name": "transaction"
             },
-            "timestamp": {
-                "us": 1496170407154000
-            },
             "transaction": {
                 "duration": {
                     "us": 32592
@@ -48,9 +45,6 @@
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
-            },
-            "timestamp": {
-                "us": 1496170422000000
             },
             "transaction": {
                 "duration": {
@@ -81,9 +75,6 @@
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
-            },
-            "timestamp": {
-                "us": 1496170422281999
             },
             "transaction": {
                 "duration": {
@@ -128,9 +119,6 @@
                 "event": "transaction",
                 "name": "transaction"
             },
-            "timestamp": {
-                "us": 1496170422281000
-            },
             "transaction": {
                 "duration": {
                     "us": 13980
@@ -164,9 +152,6 @@
                     "us": 0
                 },
                 "type": "request"
-            },
-            "timestamp": {
-                "us": 1496170422281000
             },
             "transaction": {
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
@@ -206,9 +191,6 @@
                 },
                 "type": "db.postgresql.query"
             },
-            "timestamp": {
-                "us": 1496170422281000
-            },
             "transaction": {
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
             }
@@ -237,9 +219,6 @@
                     "us": 0
                 },
                 "type": "request"
-            },
-            "timestamp": {
-                "us": 1496170422281000
             },
             "transaction": {
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
