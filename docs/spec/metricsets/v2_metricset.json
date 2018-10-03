@@ -1,5 +1,5 @@
 {
-    "$id": "docs/spec/metricsets/v1_metricset.json",
+    "$id": "docs/spec/metricsets/v2_metricset.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
