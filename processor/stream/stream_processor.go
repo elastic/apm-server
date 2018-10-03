@@ -263,9 +263,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 	rl := rateLimiterFromContext(ctx)
 
 	sp, ctx := elasticapm.StartSpan(ctx, "Stream", "Reporter")
-	if sp != nil {
-		defer sp.End()
-	}
+	defer sp.End()
 
 	for {
 

@@ -431,10 +431,8 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 	req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
 	ctx := r.Context()
 	span, ctx := elasticapm.StartSpan(ctx, "Send", "Reporter")
-	if span != nil {
-		defer span.End()
-		req.Trace = !span.Dropped()
-	}
+	defer span.End()
+	req.Trace = !span.Dropped()
 
 	if err = report(ctx, req); err != nil {
 		if err == publish.ErrChannelClosed {
