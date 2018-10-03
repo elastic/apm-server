@@ -534,7 +534,19 @@ const PayloadSchema = `{
     "anyOf": [
         { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
         { "required": ["log"], "properties": {"log": { "type": "object" }} }
-    ]  }, 
+    ]  },
+                    {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "type": ["string", "null"],
+            "pattern": "Z$",
+            "format": "date-time",
+            "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
+        }
+    } },
                     {  
                         "properties": {
                             "id": {
@@ -552,12 +564,6 @@ const PayloadSchema = `{
                                         "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
                                     }
                                 }
-                            },
-                            "timestamp": {
-                                "type": ["string","null"],
-                                "format": "date-time",
-                                "pattern": "Z$",
-                                "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
                             }
                         }
                     }

@@ -18,7 +18,7 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/errors/v2_error.json",
+    "$id": "docs/spec/metricsets/v1_metricset.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
@@ -58,16 +58,17 @@ const ModelSchema = `{
         }
     },
     "required": ["samples"]  }, 
-        {  
-            "properties": {
-               
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
-                    "type": "integer"
-                }
-            },
-            "required": ["timestamp"]
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
         }
+    }},
+        {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}}
     ]
 }
 `

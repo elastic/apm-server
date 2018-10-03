@@ -75,7 +75,8 @@ type Event struct {
 	TraceId  *string
 	ParentId *string
 
-	data common.MapStr
+	data    common.MapStr
+	v2Event bool
 }
 
 type Exception struct {
@@ -104,11 +105,7 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	decoder := utility.ManualDecoder{}
 	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
 	e.TransactionId = decoder.StringPtr(raw, "id", "transaction")
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-
-	return e, nil
+	return e, decoder.Err
 }
 
 func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -116,16 +113,14 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	if err != nil {
 		return nil, err
 	}
+	e.v2Event = true
+
 	decoder := utility.ManualDecoder{}
 	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
 	e.TransactionId = decoder.StringPtr(raw, "transaction_id")
 	e.ParentId = decoder.StringPtr(raw, "parent_id")
 	e.TraceId = decoder.StringPtr(raw, "trace_id")
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-
-	return &v2Event{e}, nil
+	return e, decoder.Err
 }
 
 func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
@@ -203,6 +198,10 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "transaction", e.TransactionId)
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", e.TraceId)
+
+	if e.v2Event {
+		utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	}
 
 	return []beat.Event{
 		beat.Event{
@@ -379,16 +378,4 @@ func addStacktraceCounter(st m.Stacktrace) {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
 	}
-}
-
-type v2Event struct {
-	*Event
-}
-
-func (e *v2Event) Transform(tctx *transform.Context) []beat.Event {
-	events := e.Event.Transform(tctx)
-	for _, e := range events {
-		utility.Add(e.Fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	}
-	return events
 }

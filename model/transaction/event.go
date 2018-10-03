@@ -74,6 +74,8 @@ type Event struct {
 
 	// deprecated in V2
 	Spans []*span.Event
+
+	v2Event bool
 }
 type SpanCount struct {
 	Dropped *int
@@ -119,16 +121,14 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	if err != nil {
 		return nil, err
 	}
+	e.v2Event = true
 	decoder := utility.ManualDecoder{}
 	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
 	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
 		Started: decoder.IntPtr(raw, "started", "span_count")}
 	e.ParentId = decoder.StringPtr(raw, "parent_id")
 	e.TraceId = decoder.String(raw, "trace_id")
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-	return &v2Event{e}, nil
+	return e, decoder.Err
 }
 
 func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
@@ -200,24 +200,16 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 
+	if e.v2Event {
+		utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	}
+
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
 	spanCounter.Add(int64(len(e.Spans)))
 	for spIdx := 0; spIdx < len(e.Spans); spIdx++ {
 		events = append(events, e.Spans[spIdx].Transform(tctx)...)
 		e.Spans[spIdx] = nil
-	}
-	return events
-}
-
-type v2Event struct {
-	*Event
-}
-
-func (e *v2Event) Transform(tctx *transform.Context) []beat.Event {
-	events := e.Event.Transform(tctx)
-	for _, e := range events {
-		utility.Add(e.Fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	}
 	return events
 }

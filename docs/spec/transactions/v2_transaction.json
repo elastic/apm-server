@@ -3,7 +3,8 @@
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
-        { "$ref": "common_transaction.json"  }, 
+        { "$ref": "common_transaction.json"  },
+        { "$ref": "../timestamp_epoch.json" },
         {  
             "properties": {
                 "id": {
@@ -36,10 +37,6 @@
                         }
                     },
                     "required": ["started"]
-                },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
-                    "type": ["integer", "null"]
                 }
             },
             "required": ["id", "trace_id", "span_count"]

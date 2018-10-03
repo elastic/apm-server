@@ -73,6 +73,8 @@ type Event struct {
 	// deprecated in v2
 	Id     *int64
 	Parent *int64
+
+	v2Event bool
 }
 
 func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -87,6 +89,7 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	if tid := decoder.StringPtr(raw, "transaction_id"); tid != nil {
 		e.TransactionId = *tid
 	}
+
 	return e, decoder.Err
 }
 
@@ -95,6 +98,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	if err != nil {
 		return nil, err
 	}
+	e.v2Event = true
 	decoder := utility.ManualDecoder{}
 	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
 	e.HexId = decoder.String(raw, "id")
@@ -107,20 +111,20 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 
 	// HexId must be a 64 bit hex encoded string. The id is set to the integer
 	// converted value of the hexId
-	if idInt, err := hexToInt(e.HexId, 64); err == nil {
-		e.Id = &idInt
-	} else {
+	idInt, err := hexToInt(e.HexId, 64)
+	if err != nil {
 		return nil, err
 	}
+	e.Id = &idInt
 
 	// set parent to parentId
-	if id, err := hexToInt(e.ParentId, 64); err == nil {
-		e.Parent = &id
-	} else {
+	id, err := hexToInt(e.ParentId, 64)
+	if err != nil {
 		return nil, err
 	}
+	e.Parent = &id
 
-	return &v2Event{e}, decoder.Err
+	return e, nil
 }
 
 var shift = uint64(math.Pow(2, 63))
@@ -168,10 +172,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		frameCounter.Add(int64(frames))
 	}
 
-	if e.Timestamp.IsZero() {
-		e.Timestamp = tctx.RequestTime
-	}
-
 	fields := common.MapStr{
 		"processor": processorEntry,
 		spanDocType: e.fields(tctx),
@@ -181,10 +181,24 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 
+	timestamp := e.Timestamp
+	if timestamp.IsZero() {
+		timestamp = tctx.RequestTime
+	}
+
+	if e.v2Event {
+		// adjust timestamp to be reqTime + start
+		if e.Timestamp.IsZero() && e.Start != nil {
+			timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
+		}
+
+		utility.Add(fields, "timestamp", utility.TimeAsMicros(timestamp))
+	}
+
 	return []beat.Event{
 		beat.Event{
 			Fields:    fields,
-			Timestamp: e.Timestamp,
+			Timestamp: timestamp,
 		},
 	}
 }
@@ -214,21 +228,4 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 	st := s.Stacktrace.Transform(tctx)
 	utility.Add(tr, "stacktrace", st)
 	return tr
-}
-
-type v2Event struct {
-	*Event
-}
-
-func (e *v2Event) Transform(tctx *transform.Context) []beat.Event {
-	// adjust timestamp to be reqTime + start
-	if e.Timestamp.IsZero() && e.Start != nil {
-		e.Timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
-	}
-
-	events := e.Event.Transform(tctx)
-	for _, e := range events {
-		utility.Add(e.Fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	}
-	return events
 }

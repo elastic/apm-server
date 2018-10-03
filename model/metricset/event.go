@@ -73,10 +73,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	}
 	decoder := utility.ManualDecoder{}
 	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-	return e, nil
+	return e, decoder.Err
 }
 
 func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -86,10 +83,7 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	}
 	decoder := utility.ManualDecoder{}
 	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-	return e, nil
+	return e, decoder.Err
 }
 
 func decodeEvent(input interface{}, err error) (*Metricset, map[string]interface{}, error) {

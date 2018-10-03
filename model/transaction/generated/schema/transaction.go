@@ -251,7 +251,17 @@ const ModelSchema = `{
             "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
         }
     },
-    "required": ["duration", "type"]  }, 
+    "required": ["duration", "type"]  },
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
         {  
             "properties": {
                 "id": {
@@ -284,10 +294,6 @@ const ModelSchema = `{
                         }
                     },
                     "required": ["started"]
-                },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
-                    "type": ["integer", "null"]
                 }
             },
             "required": ["id", "trace_id", "span_count"]

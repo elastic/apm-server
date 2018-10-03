@@ -5,6 +5,7 @@
     "allOf": [
 
         { "$ref": "common_error.json"  }, 
+        { "$ref": "../timestamp_epoch.json" },
         {  
             "properties": {
                 "id": {
@@ -26,10 +27,6 @@
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.", 
                     "type": ["string", "null"],
                     "maxLength": 1024
-                },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
-                    "type": ["integer", "null"]
                 }
             },
             "allOf": [

@@ -395,6 +395,18 @@ const PayloadSchema = `{
         }
     },
     "required": ["duration", "type"]  }, 
+                    {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "type": ["string", "null"],
+            "pattern": "Z$",
+            "format": "date-time",
+            "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
+        }
+    } },
                     {  
                         "properties": {
                             "id": {
@@ -590,12 +602,6 @@ const PayloadSchema = `{
                                         }
                                     }
                                 }
-                            },
-                            "timestamp": {
-                                "type": ["string", "null"],
-                                "pattern": "Z$",
-                                "format": "date-time",
-                                "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
                             }
                         },
                         "required": ["id"]

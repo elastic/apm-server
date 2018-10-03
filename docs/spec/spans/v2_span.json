@@ -3,7 +3,8 @@
     "type": "object",
     "$ref": "common_span.json",
     "allOf": [
-        { "$ref": "common_span.json"  }, 
+        { "$ref": "common_span.json"  },
+        { "$ref": "../timestamp_epoch.json" },
         {  
             "properties": {
                 "id": {
@@ -25,10 +26,6 @@
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
                     "type": "string",
                     "maxLength": 1024
-                },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
-                    "type": ["integer", "null"]
                 },
                 "start": {
                     "type": ["number", "null"],

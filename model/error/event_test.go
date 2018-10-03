@@ -100,6 +100,11 @@ func TestErrorEventV1Decode(t *testing.T) {
 			e:     nil,
 		},
 		{
+			input: map[string]interface{}{"transaction": map[string]interface{}{"id": 123}},
+			err:   errors.New("Error fetching field"),
+			e:     nil,
+		},
+		{
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
 			err: nil,
@@ -196,8 +201,6 @@ func TestErrorEventV1Decode(t *testing.T) {
 		if test.e != nil {
 			event := transformable.(*Event)
 			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
-		} else {
-			assert.Nil(t, transformable, fmt.Sprintf("Failed at idx %v", idx))
 		}
 
 		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
@@ -215,7 +218,7 @@ func TestErrorEventV2Decode(t *testing.T) {
 	for idx, test := range []struct {
 		input       interface{}
 		err, inpErr error
-		e           *v2Event
+		e           *Event
 	}{
 		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
@@ -226,15 +229,47 @@ func TestErrorEventV2Decode(t *testing.T) {
 			e:     nil,
 		},
 		{
+			input: map[string]interface{}{"transaction_id": 123},
+			err:   errors.New("Error fetching field"),
+			e:     nil,
+		},
+		{
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
 			err: nil,
-			e: &v2Event{&Event{
+			e: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
 				Context:   context,
 				Timestamp: timestampParsed,
-			}},
+				v2Event:   true,
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
+				"parent_id": 123},
+			err: errors.New("Error fetching field"),
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Context:   context,
+				Timestamp: timestampParsed,
+				v2Event:   true,
+			},
+		},
+		{
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
+				"trace_id": 123},
+			err: errors.New("Error fetching field"),
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Context:   context,
+				Timestamp: timestampParsed,
+				v2Event:   true,
+			},
 		},
 		{
 			input: map[string]interface{}{
@@ -243,7 +278,10 @@ func TestErrorEventV2Decode(t *testing.T) {
 				"log":       map[string]interface{}{},
 			},
 			err: nil,
-			e:   &v2Event{&Event{Timestamp: timestampParsed}},
+			e: &Event{
+				Timestamp: timestampParsed,
+				v2Event:   true,
+			},
 		},
 		{
 			input: map[string]interface{}{
@@ -292,7 +330,7 @@ func TestErrorEventV2Decode(t *testing.T) {
 				},
 			},
 			err: nil,
-			e: &v2Event{&Event{
+			e: &Event{
 				Timestamp: timestampParsed,
 				Exception: &Exception{
 					Message:    &exMsg,
@@ -314,16 +352,15 @@ func TestErrorEventV2Decode(t *testing.T) {
 						&m.StacktraceFrame{Filename: "log file", Lineno: 2},
 					},
 				},
-			}},
+				v2Event: true,
+			},
 		},
 	} {
 		transformable, err := V2DecodeEvent(test.input, test.inpErr)
 
 		if test.e != nil {
-			event := transformable.(*v2Event)
+			event := transformable.(*Event)
 			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
-		} else {
-			assert.Nil(t, transformable, fmt.Sprintf("Failed at idx %v", idx))
 		}
 
 		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
@@ -351,16 +388,17 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 	assert.Equal(t, e, transformable.(*Event))
 
 	// test V2
-	e2 := &v2Event{&Event{
+	e2 := &Event{
 		Timestamp:     timestampParsed,
 		TransactionId: &transactionId,
 		ParentId:      &parentId,
 		TraceId:       &traceId,
-	}}
+		v2Event:       true,
+	}
 	input["timestamp"] = timestampEpoch
 	transformable, err = V2DecodeEvent(input, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, e2, transformable.(*v2Event))
+	assert.Equal(t, e2, transformable.(*Event))
 }
 
 func TestEventFields(t *testing.T) {

@@ -414,6 +414,16 @@ const ModelSchema = `{
         { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
         { "required": ["log"], "properties": {"log": { "type": "object" }} }
     ]  }, 
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
         {  
             "properties": {
                 "id": {
@@ -435,10 +445,6 @@ const ModelSchema = `{
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.", 
                     "type": ["string", "null"],
                     "maxLength": 1024
-                },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
-                    "type": ["integer", "null"]
                 }
             },
             "allOf": [

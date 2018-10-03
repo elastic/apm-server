@@ -294,7 +294,17 @@ const ModelSchema = `{
             "maxLength": 1024
         }
     },
-    "required": ["duration", "name", "type"]  }, 
+    "required": ["duration", "name", "type"]  },
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
         {  
             "properties": {
                 "id": {
@@ -316,10 +326,6 @@ const ModelSchema = `{
                     "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
                     "type": "string",
                     "maxLength": 1024
-                },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
-                    "type": ["integer", "null"]
                 },
                 "start": {
                     "type": ["number", "null"],
