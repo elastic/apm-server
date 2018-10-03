@@ -65,7 +65,7 @@
                 "name": "GET /api/types",
                 "parent": -9223372036568445000,
                 "start": {
-                    "us": 0
+                    "us": 22000
                 },
                 "type": "request"
             },
