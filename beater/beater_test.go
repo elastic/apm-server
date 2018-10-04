@@ -308,6 +308,7 @@ func DummyPipeline(clients ...outputs.Client) *pipeline.Pipeline {
 	}
 	p, err := pipeline.New(
 		beat.Info{Name: "test-apm-server"},
+		pipeline.Monitors{},
 		nil,
 		func(e queue.Eventer) (queue.Queue, error) {
 			return memqueue.NewBroker(nil, memqueue.Settings{
