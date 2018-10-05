@@ -18,6 +18,8 @@
 package beater
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -59,6 +61,48 @@ func TestServerTracingEnabled(t *testing.T) {
 		case <-time.After(time.Second):
 			return
 		}
+	}
+}
+
+func TestServerTracingExternal(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping server test")
+	}
+
+	os.Setenv("ELASTIC_APM_FLUSH_INTERVAL", "100ms")
+	defer os.Unsetenv("ELASTIC_APM_FLUSH_INTERVAL")
+
+	// start up a fake remote apm-server
+	requests := make(chan *http.Request)
+	remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusAccepted)
+		requests <- r
+	}))
+	defer remote.Close()
+
+	// start a test apm-server
+	ucfg, err := common.NewConfigFrom(m{"instrumentation": m{
+		"enabled": true,
+		"hosts":   "http://" + remote.Listener.Addr().String()}})
+	apm, teardown, err := setupServer(t, ucfg, nil)
+	require.NoError(t, err)
+	defer teardown()
+
+	// make a transaction request
+	baseUrl, client := apm.client(false)
+	req := makeTransactionRequest(t, baseUrl)
+	req.Header.Add("Content-Type", "application/json")
+	res, err := client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
+
+	// ensure the transaction is reported to the remote apm-server
+	select {
+	case r := <-requests:
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/transactions", r.RequestURI)
+	case <-time.After(time.Second):
+		assert.FailNow(t, "timed out waiting for transaction to")
 	}
 }
 
