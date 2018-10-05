@@ -944,26 +944,6 @@ Error fields containing additional info in case of errors.
 
 
 
-*`error.message`*::
-+
---
-type: text
-
-Error message.
-
-
---
-
-*`error.code`*::
-+
---
-type: long
-
-Error code.
-
-
---
-
 *`error.type`*::
 +
 --
@@ -1101,92 +1081,12 @@ Info collected for the host machine.
 
 
 
-*`host.name`*::
-+
---
-type: keyword
-
-Hostname.
-
-
---
-
-*`host.id`*::
-+
---
-type: keyword
-
-Unique host id.
-
-
---
-
-*`host.architecture`*::
-+
---
-type: keyword
-
-Host architecture (e.g. x86_64, arm, ppc, mips).
-
-
---
-
-*`host.os.platform`*::
-+
---
-type: keyword
-
-OS platform (e.g. centos, ubuntu, windows).
-
-
---
-
-*`host.os.version`*::
-+
---
-type: keyword
-
-OS version.
-
-
---
-
-*`host.os.family`*::
-+
---
-type: keyword
-
-OS family (e.g. redhat, debian, freebsd, windows).
-
-
---
-
 *`host.os.kernel`*::
 +
 --
 type: keyword
 
 The operating system's kernel version.
-
-
---
-
-*`host.ip`*::
-+
---
-type: ip
-
-List of IP-addresses.
-
-
---
-
-*`host.mac`*::
-+
---
-type: keyword
-
-List of hardware-addresses, usually MAC-addresses.
 
 
 --

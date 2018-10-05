@@ -17,7 +17,14 @@
 
 package kafka
 
-import "github.com/Shopify/sarama"
+import (
+	"fmt"
+
+	"github.com/Shopify/sarama"
+)
+
+// Version is a kafka version
+type Version string
 
 // TODO: remove me.
 // Compat version overwrite for missing versions in sarama
@@ -31,8 +38,6 @@ var (
 	v1_1_1    = parseKafkaVersion("1.1.1")
 
 	kafkaVersions = map[string]sarama.KafkaVersion{
-		"": sarama.V1_0_0_0,
-
 		"0.8.2.0": sarama.V0_8_2_0,
 		"0.8.2.1": sarama.V0_8_2_1,
 		"0.8.2.2": sarama.V0_8_2_2,
@@ -68,6 +73,10 @@ var (
 		"1.1.1": v1_1_1,
 		"1.1":   v1_1_1,
 		"1":     v1_1_1,
+
+		"2.0.0": sarama.V2_0_0_0,
+		"2.0":   sarama.V2_0_0_0,
+		"2":     sarama.V2_0_0_0,
 	}
 )
 
@@ -77,4 +86,30 @@ func parseKafkaVersion(s string) sarama.KafkaVersion {
 		panic(err)
 	}
 	return v
+}
+
+// Validate that a kafka version is among the possible options
+func (v *Version) Validate() error {
+	if _, ok := kafkaVersions[string(*v)]; !ok {
+		return fmt.Errorf("unknown/unsupported kafka vesion '%v'", *v)
+	}
+
+	return nil
+}
+
+// Unpack a kafka version
+func (v *Version) Unpack(s string) error {
+	tmp := Version(s)
+	if err := tmp.Validate(); err != nil {
+		return err
+	}
+
+	*v = tmp
+	return nil
+}
+
+// Get a sarama kafka version
+func (v Version) Get() (sarama.KafkaVersion, bool) {
+	kv, ok := kafkaVersions[string(v)]
+	return kv, ok
 }
