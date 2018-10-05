@@ -209,6 +209,7 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 	if config.SelfInstrumentation.Hosts != nil {
 		t, err := transport.NewHTTPTransport(config.SelfInstrumentation.Hosts[0], config.SelfInstrumentation.SecretToken)
 		if err != nil {
+			tracer.Close()
 			return nil, nil, err
 		}
 		tracer.Transport = t
