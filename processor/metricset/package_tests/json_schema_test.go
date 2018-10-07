@@ -69,14 +69,14 @@ func TestInvalidPayloads(t *testing.T) {
 			},
 			Invalid: []tests.Invalid{
 				{
-					Msg: "properties/metrics/items/properties/samples/additionalproperties",
+					Msg: "properties/samples/additionalproperties",
 					Values: val{
 						obj{"metric\"key\"_quotes": validMetric},
 						obj{"metric-*-key-star": validMetric},
 					},
 				},
 				{
-					Msg: "properties/metrics/items/properties/samples/patternproperties",
+					Msg: "properties/samples/patternproperties",
 					Values: val{
 						obj{"nil-value": obj{"value": nil}},
 						obj{"string-value": obj{"value": "foo"}},

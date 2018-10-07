@@ -5,6 +5,7 @@
     "allOf": [
 
         { "$ref": "common_error.json"  }, 
+        { "$ref": "../timestamp_epoch.json" },
         {  
             "properties": {
                 "id": {
@@ -36,7 +37,6 @@
                   "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
                 { "if": {"required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}},
                   "then": { "required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}} }
-    
             ]
         }
     ]

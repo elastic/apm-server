@@ -3,7 +3,8 @@
     "type": "object",
     "$ref": "common_span.json",
     "allOf": [
-        { "$ref": "common_span.json"  }, 
+        { "$ref": "common_span.json"  },
+        { "$ref": "../timestamp_epoch.json" },
         {  
             "properties": {
                 "id": {
@@ -26,14 +27,17 @@
                     "type": "string",
                     "maxLength": 1024
                 },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ",
-                    "type": ["string", "null"],
-                    "pattern": "Z$",
-                    "format": "date-time"
+                "start": {
+                    "type": ["number", "null"],
+                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 }
             },
             "required": ["id", "transaction_id", "trace_id", "parent_id"]
+        },
+        { "anyOf":[
+                {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}},
+                {"required": ["start"], "properties": {"start": { "type": "number" }}}
+            ]
         }
     ]
 }

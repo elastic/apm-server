@@ -1,0 +1,12 @@
+{
+    "$id": "docs/spec/metricsets/v1_metricset.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "allOf": [
+
+        { "$ref": "common_metricset.json"  },
+        { "$ref": "../timestamp_rfc3339.json" },
+        {"required": ["timestamp"], "properties": {"timestamp": { "type": "string" }}}
+
+    ]
+}

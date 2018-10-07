@@ -18,6 +18,7 @@
 package package_tests
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/model/error/generated/schema"
@@ -161,10 +162,9 @@ func TestPayloadDataForError(t *testing.T) {
 			{Key: "error.exception.attributes", Valid: val{map[string]interface{}{}},
 				Invalid: []tests.Invalid{{Msg: `exception/properties/attributes/type`, Values: val{123}}}},
 			{Key: "error.timestamp",
-				Valid: val{"2017-05-30T18:53:42.281Z"},
+				Valid: val{json.Number("1496170422281000")},
 				Invalid: []tests.Invalid{
-					{Msg: `timestamp/format`, Values: val{"2017-05-30T18:53Z", "2017-05-30T18:53:27.Z", "2017-05-30T18:53:27a123Z"}},
-					{Msg: `timestamp/pattern`, Values: val{"2017-05-30T18:53:27.000+00:20", "2017-05-30T18:53:27ZNOTCORRECT"}}}},
+					{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
 			{Key: "error.log.stacktrace.post_context",
 				Valid: val{[]interface{}{}, []interface{}{"context"}},
 				Invalid: []tests.Invalid{

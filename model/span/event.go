@@ -55,7 +55,7 @@ func ModelSchema() *jsonschema.Schema {
 type Event struct {
 	Name       string
 	Type       string
-	Start      float64
+	Start      *float64
 	Duration   float64
 	Context    common.MapStr
 	Stacktrace m.Stacktrace
@@ -71,6 +71,8 @@ type Event struct {
 	// deprecated in v2
 	Id     *int64
 	Parent *int64
+
+	v2Event bool
 }
 
 func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -79,11 +81,13 @@ func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
+	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
 	e.Id = decoder.Int64Ptr(raw, "id")
 	e.Parent = decoder.Int64Ptr(raw, "parent")
 	if tid := decoder.StringPtr(raw, "transaction_id"); tid != nil {
 		e.TransactionId = *tid
 	}
+
 	return e, decoder.Err
 }
 
@@ -92,7 +96,9 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	if err != nil {
 		return nil, err
 	}
+	e.v2Event = true
 	decoder := utility.ManualDecoder{}
+	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
 	e.HexId = decoder.String(raw, "id")
 	e.ParentId = decoder.String(raw, "parent_id")
 	e.TraceId = decoder.String(raw, "trace_id")
@@ -103,20 +109,20 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 
 	// HexId must be a 64 bit hex encoded string. The id is set to the integer
 	// converted value of the hexId
-	if idInt, err := hexToInt(e.HexId, 64); err == nil {
-		e.Id = &idInt
-	} else {
+	idInt, err := hexToInt(e.HexId, 64)
+	if err != nil {
 		return nil, err
 	}
+	e.Id = &idInt
 
 	// set parent to parentId
-	if id, err := hexToInt(e.ParentId, 64); err == nil {
-		e.Parent = &id
-	} else {
+	id, err := hexToInt(e.ParentId, 64)
+	if err != nil {
 		return nil, err
 	}
+	e.Parent = &id
 
-	return e, decoder.Err
+	return e, nil
 }
 
 var shift = uint64(math.Pow(2, 63))
@@ -143,12 +149,11 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 
 	decoder := utility.ManualDecoder{}
 	event := Event{
-		Name:      decoder.String(raw, "name"),
-		Type:      decoder.String(raw, "type"),
-		Start:     decoder.Float64(raw, "start"),
-		Duration:  decoder.Float64(raw, "duration"),
-		Context:   decoder.MapStr(raw, "context"),
-		Timestamp: decoder.TimeRFC3339(raw, "timestamp"),
+		Name:     decoder.String(raw, "name"),
+		Type:     decoder.String(raw, "type"),
+		Start:    decoder.Float64Ptr(raw, "start"),
+		Duration: decoder.Float64(raw, "duration"),
+		Context:  decoder.MapStr(raw, "context"),
 	}
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
@@ -165,10 +170,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		frameCounter.Add(int64(frames))
 	}
 
-	if e.Timestamp.IsZero() {
-		e.Timestamp = tctx.RequestTime
-	}
-
 	fields := common.MapStr{
 		"processor": processorEntry,
 		spanDocType: e.fields(tctx),
@@ -178,10 +179,24 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 
+	timestamp := e.Timestamp
+	if timestamp.IsZero() {
+		timestamp = tctx.RequestTime
+	}
+
+	if e.v2Event {
+		// adjust timestamp to be reqTime + start
+		if e.Timestamp.IsZero() && e.Start != nil {
+			timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
+		}
+
+		utility.Add(fields, "timestamp", utility.TimeAsMicros(timestamp))
+	}
+
 	return []beat.Event{
 		beat.Event{
 			Fields:    fields,
-			Timestamp: e.Timestamp,
+			Timestamp: timestamp,
 		},
 	}
 }
@@ -201,8 +216,13 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 
 	utility.Add(tr, "name", s.Name)
 	utility.Add(tr, "type", s.Type)
-	utility.Add(tr, "start", utility.MillisAsMicros(s.Start))
+
+	if s.Start != nil {
+		utility.Add(tr, "start", utility.MillisAsMicros(*s.Start))
+	}
+
 	utility.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
+
 	st := s.Stacktrace.Transform(tctx)
 	utility.Add(tr, "stacktrace", st)
 	return tr

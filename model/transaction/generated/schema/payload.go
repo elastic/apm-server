@@ -366,12 +366,6 @@ const PayloadSchema = `{
             "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
             "maxLength": 1024
         },
-        "timestamp": {
-            "type": ["string", "null"],
-            "pattern": "Z$",
-            "format": "date-time",
-            "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        },
         "type": {
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
@@ -401,6 +395,18 @@ const PayloadSchema = `{
         }
     },
     "required": ["duration", "type"]  }, 
+                    {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "type": ["string", "null"],
+            "pattern": "Z$",
+            "format": "date-time",
+            "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
+        }
+    } },
                     {  
                         "properties": {
                             "id": {
@@ -545,17 +551,13 @@ const PayloadSchema = `{
             },
             "minItems": 0
         },
-        "start": {
-            "type": "number",
-            "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
-        },
         "type": {
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
             "maxLength": 1024
         }
     },
-    "required": ["duration", "name", "start", "type"]  }, 
+    "required": ["duration", "name", "type"]  }, 
         {  
             "properties": {
                 "id": {
@@ -570,8 +572,13 @@ const PayloadSchema = `{
                 "parent": {
                     "type": ["integer", "null"],
                     "description": "The ID of the parent of the span."
+                },
+                "start": {
+                    "type": "number",
+                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 }
             },
+            "required": ["start"],
             "dependencies": {
                 "parent": {
                     "required": ["id"]
