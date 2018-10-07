@@ -18,8 +18,13 @@
                 "parent": {
                     "type": ["integer", "null"],
                     "description": "The ID of the parent of the span."
+                },
+                "start": {
+                    "type": "number",
+                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 }
             },
+            "required": ["start"],
             "dependencies": {
                 "parent": {
                     "required": ["id"]

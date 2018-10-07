@@ -18,6 +18,7 @@
 package package_tests
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
@@ -137,10 +138,9 @@ func TestPayloadDataForTransaction(t *testing.T) {
 				Valid:   []interface{}{12.4},
 				Invalid: []tests.Invalid{{Msg: `duration/type`, Values: val{"123"}}}},
 			{Key: "transaction.timestamp",
-				Valid: val{"2017-05-30T18:53:42.281Z"},
+				Valid: val{json.Number("1496170422281000")},
 				Invalid: []tests.Invalid{
-					{Msg: `timestamp/format`, Values: val{"2017-05-30T18:53Z", "2017-05-30T18:53:27.Z", "2017-05-30T18:53:27a123Z"}},
-					{Msg: `timestamp/pattern`, Values: val{"2017-05-30T18:53:27.000+00:20", "2017-05-30T18:53:27ZNOTCORRECT"}}}},
+					{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
 			{Key: "transaction.marks",
 				Valid: []interface{}{obj{}, obj{tests.Str1024: obj{tests.Str1024: 21.0, "end": -45}}},
 				Invalid: []tests.Invalid{

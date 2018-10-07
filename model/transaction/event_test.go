@@ -18,6 +18,7 @@
 package transaction
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -44,6 +45,7 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
 		{input: "", err: errors.New("Invalid type for transaction event"), e: nil},
 		{
+			// v1 expects a timestamp string and for v2 there's a trace_id missing
 			input: map[string]interface{}{"timestamp": 123},
 			err:   errors.New("Error fetching field"),
 			e:     nil,
@@ -72,6 +74,7 @@ func TestTransactionEventDecodeV1(t *testing.T) {
 	context := map[string]interface{}{"a": "b"}
 	marks := map[string]interface{}{"k": "b"}
 	sampled := true
+	start := 1.2
 
 	for _, test := range []struct {
 		input interface{}
@@ -103,7 +106,7 @@ func TestTransactionEventDecodeV1(t *testing.T) {
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: &dropped},
 				Spans: []*span.Event{
-					&span.Event{Name: "span", Type: "db", Start: 1.2, Duration: 2.3, TransactionId: id, Timestamp: timestampParsed},
+					&span.Event{Name: "span", Type: "db", Start: &start, Duration: 2.3, TransactionId: id, Timestamp: timestampParsed},
 				},
 			},
 		},
@@ -118,6 +121,7 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 	id, trType, name, result := "123", "type", "foo()", "555"
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
 	dropped, started, duration := 12, 6, 1.67
 	context := map[string]interface{}{"a": "b"}
@@ -132,26 +136,27 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 		// traceId missing
 		{
 			input: map[string]interface{}{
-				"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+				"id": id, "type": trType, "duration": duration, "timestamp": timestampEpoch,
 				"span_count": map[string]interface{}{"started": 6.0}},
 			err: errors.New("Error fetching field"),
 		},
 		// minimal event
 		{
 			input: map[string]interface{}{
-				"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
+				"id": id, "type": trType, "duration": duration, "timestamp": timestampEpoch,
 				"trace_id": traceId, "span_count": map[string]interface{}{"started": 6.0}},
 			e: &Event{
 				Id: id, Type: trType, TraceId: traceId,
 				Duration: duration, Timestamp: timestampParsed,
 				SpanCount: SpanCount{Started: &started},
+				v2Event:   true,
 			},
 		},
 		// full event, ignoring spans
 		{
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "result": result,
-				"duration": duration, "timestamp": timestamp,
+				"duration": duration, "timestamp": timestampEpoch,
 				"context": context, "marks": marks, "sampled": sampled,
 				"parent_id": parentId, "trace_id": traceId,
 				"spans": []interface{}{
@@ -159,12 +164,12 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
 					}},
 				"span_count": map[string]interface{}{"dropped": 12.0, "started": 6.0}},
-			e: &Event{
-				Id: id, Type: trType, Name: &name, Result: &result,
+			e: &Event{Id: id, Type: trType, Name: &name, Result: &result,
 				ParentId: &parentId, TraceId: traceId,
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
+				v2Event:   true,
 			},
 		},
 	} {
@@ -173,8 +178,6 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 		if test.e != nil {
 			event := transformable.(*Event)
 			assert.Equal(t, test.e, event)
-		} else {
-			assert.Nil(t, transformable)
 		}
 	}
 }
@@ -383,7 +386,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"span": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"name":     "",
-			"start":    common.MapStr{"us": 0},
 			"type":     "",
 		},
 	}
@@ -440,7 +442,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 		for j, outputEvent := range outputEvents {
 			assert.Equal(t, test.Output[j], outputEvent.Fields, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
-			assert.Equal(t, timestamp, outputEvent.Timestamp)
+			assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Failed at idx %v (j: %v); %s", idx, j, test.Msg))
 		}
 	}
 }

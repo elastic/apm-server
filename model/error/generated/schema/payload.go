@@ -144,7 +144,7 @@ const PayloadSchema = `{
                 "description": "Data captured by an agent representing an event occurring in a monitored service",
                 "allOf": [
 
-                    {     "$id": "docs/spec/errors/error.json",
+                    {     "$id": "docs/spec/errors/common_error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -529,18 +529,24 @@ const PayloadSchema = `{
                 }
             },
             "required": ["message"]
-        },
-        "timestamp": {
-            "type": ["string","null"],
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
     "anyOf": [
         { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
         { "required": ["log"], "properties": {"log": { "type": "object" }} }
-    ]  }, 
+    ]  },
+                    {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "type": ["string", "null"],
+            "pattern": "Z$",
+            "format": "date-time",
+            "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
+        }
+    } },
                     {  
                         "properties": {
                             "id": {

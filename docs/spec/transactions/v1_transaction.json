@@ -20,6 +20,7 @@
                 "description": "Data captured by an agent representing an event occurring in a monitored service",
                 "allOf": [
                     { "$ref": "common_transaction.json"  }, 
+                    { "$ref": "../timestamp_rfc3339.json" },
                     {  
                         "properties": {
                             "id": {

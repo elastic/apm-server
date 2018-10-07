@@ -20,6 +20,7 @@ package utility
 import (
 	"encoding/json"
 	"reflect"
+	"time"
 
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -161,6 +162,16 @@ func MergeAdd(m common.MapStr, key string, val common.MapStr) {
 func MillisAsMicros(ms float64) common.MapStr {
 	m := common.MapStr{}
 	m["us"] = int(ms * 1000)
+	return m
+}
+
+func TimeAsMicros(t time.Time) common.MapStr {
+	if t.IsZero() {
+		return nil
+	}
+
+	m := common.MapStr{}
+	m["us"] = t.UnixNano() / 1000
 	return m
 }
 

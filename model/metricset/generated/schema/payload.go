@@ -27,8 +27,13 @@ const PayloadSchema = `{
         "metrics": {
             "type": "array",
             "items": {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metricsets/metricset.json",
+                    "$id": "docs/spec/metricsets/v1_metricset.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "allOf": [
+
+        {     "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/common_metricset.json",
     "type": "object",
     "description": "Metric data captured by an APM agent",
     "properties": {
@@ -59,15 +64,24 @@ const PayloadSchema = `{
                 }
             },
             "additionalProperties": false
-        },
-        "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the metric, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
-    "required": ["samples", "timestamp"]
+    "required": ["samples"]  },
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "type": ["string", "null"],
+            "pattern": "Z$",
+            "format": "date-time",
+            "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
+        }
+    } },
+        {"required": ["timestamp"], "properties": {"timestamp": { "type": "string" }}}
+
+    ]
             },
             "minItems": 1
         },

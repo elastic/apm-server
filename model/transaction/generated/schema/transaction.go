@@ -223,12 +223,6 @@ const ModelSchema = `{
             "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
             "maxLength": 1024
         },
-        "timestamp": {
-            "type": ["string", "null"],
-            "pattern": "Z$",
-            "format": "date-time",
-            "description": "Recorded time of the transaction, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
-        },
         "type": {
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
@@ -257,7 +251,17 @@ const ModelSchema = `{
             "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
         }
     },
-    "required": ["duration", "type"]  }, 
+    "required": ["duration", "type"]  },
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
         {  
             "properties": {
                 "id": {
