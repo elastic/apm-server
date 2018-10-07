@@ -64,7 +64,7 @@ const ModelSchema = `{
     "type": ["object"],
     "properties": {  
         "timestamp": {
-            "description": "Recorded time of the span, UTC based and formatted as microseconds since Unix epoch",
+            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
             "type": ["integer", "null"]
         }
     }},
