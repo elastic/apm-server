@@ -26,10 +26,10 @@
                 "id": -9175013389437287000,
                 "name": "GET /api/types",
                 "parent": 3156441702022342700,
-                "start": {
-                    "us": 0
-                },
                 "type": "request"
+            },
+            "timestamp": {
+                "us": 1532976822281000
             },
             "trace": {
                 "id": "fdedef0123456789abcdef9876543210"
@@ -65,9 +65,12 @@
                 "name": "GET /api/types",
                 "parent": -9223372036568445000,
                 "start": {
-                    "us": 0
+                    "us": 22000
                 },
                 "type": "request"
+            },
+            "timestamp": {
+                "us": 1532976822281000
             },
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
@@ -77,7 +80,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.001845Z",
             "context": {
                 "service": {
                     "agent": {
@@ -109,6 +112,9 @@
                     "us": 1845
                 },
                 "type": "request"
+            },
+            "timestamp": {
+                "us": 1533117600001845
             },
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
@@ -148,6 +154,9 @@
                 },
                 "type": "request"
             },
+            "timestamp": {
+                "us": 1533117600000000
+            },
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
             },
@@ -156,7 +165,7 @@
             }
         },
         {
-            "@timestamp": "2018-08-01T10:00:00Z",
+            "@timestamp": "2018-08-01T10:00:00.00283092Z",
             "context": {
                 "db": {
                     "instance": "customers",
@@ -242,6 +251,9 @@
                     "us": 2830
                 },
                 "type": "db.postgresql.query"
+            },
+            "timestamp": {
+                "us": 1533117600002830
             },
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"

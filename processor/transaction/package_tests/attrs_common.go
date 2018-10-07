@@ -39,13 +39,15 @@ func procSetup() *tests.ProcessorSetup {
 
 func payloadAttrsNotInFields(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet("span.stacktrace", tests.Group("transaction.marks."), tests.Group("context.db"),
-		"context.http", "context.http.url"))
+		"context.http", "context.http.url"),
+	)
 }
 
 func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"listening", "view spans", "context.user.user-agent",
-		"context.user.ip", "context.system.ip"))
+		"context.user.ip", "context.system.ip",
+		tests.Group("timestamp")))
 }
 
 func payloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {

@@ -60,6 +60,22 @@ Processor event.
 --
 
 [float]
+== timestamp fields
+
+None
+
+
+*`timestamp.us`*::
++
+--
+type: long
+
+Timestamp of the event in microseconds since Unix epoch.
+
+
+--
+
+[float]
 == context fields
 
 Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user.

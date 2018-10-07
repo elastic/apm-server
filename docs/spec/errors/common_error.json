@@ -1,5 +1,5 @@
 {
-    "$id": "docs/spec/errors/error.json",
+    "$id": "docs/spec/errors/common_error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -86,12 +86,6 @@
                 }
             },
             "required": ["message"]
-        },
-        "timestamp": {
-            "type": ["string","null"],
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
     "anyOf": [

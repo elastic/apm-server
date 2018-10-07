@@ -1,0 +1,12 @@
+{
+    "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    }
+}

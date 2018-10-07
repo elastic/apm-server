@@ -150,17 +150,13 @@ const ModelSchema = `{
             },
             "minItems": 0
         },
-        "start": {
-            "type": "number",
-            "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
-        },
         "type": {
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
             "maxLength": 1024
         }
     },
-    "required": ["duration", "name", "start", "type"],
+    "required": ["duration", "name", "type"],
     "allOf": [
         {     "$id": "docs/spec/spans/common_span.json",
     "type": "object",
@@ -292,17 +288,23 @@ const ModelSchema = `{
             },
             "minItems": 0
         },
-        "start": {
-            "type": "number",
-            "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
-        },
         "type": {
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
             "maxLength": 1024
         }
     },
-    "required": ["duration", "name", "start", "type"]  }, 
+    "required": ["duration", "name", "type"]  },
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
         {  
             "properties": {
                 "id": {
@@ -325,14 +327,17 @@ const ModelSchema = `{
                     "type": "string",
                     "maxLength": 1024
                 },
-                "timestamp": {
-                    "description": "Recorded time of the span, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ",
-                    "type": ["string", "null"],
-                    "pattern": "Z$",
-                    "format": "date-time"
+                "start": {
+                    "type": ["number", "null"],
+                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
                 }
             },
             "required": ["id", "transaction_id", "trace_id", "parent_id"]
+        },
+        { "anyOf":[
+                {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}},
+                {"required": ["start"], "properties": {"start": { "type": "number" }}}
+            ]
         }
     ]
 }

@@ -31,6 +31,9 @@
                 },
                 "type": "request"
             },
+            "timestamp": {
+                "us": 1533117600000000
+            },
             "trace": {
                 "id": "fdedef0123456789abcdef9876543210"
             },

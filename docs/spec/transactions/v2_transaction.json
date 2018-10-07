@@ -3,7 +3,8 @@
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
-        { "$ref": "common_transaction.json"  }, 
+        { "$ref": "common_transaction.json"  },
+        { "$ref": "../timestamp_epoch.json" },
         {  
             "properties": {
                 "id": {

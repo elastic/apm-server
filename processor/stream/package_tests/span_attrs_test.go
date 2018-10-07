@@ -18,6 +18,7 @@
 package package_tests
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/elastic/apm-server/model/span/generated/schema"
@@ -87,9 +88,17 @@ func spanRequiredKeys() *tests.Set {
 		"span.duration",
 		"span.type",
 		"span.start",
+		"span.timestamp",
 		"span.stacktrace.filename",
 		"span.stacktrace.lineno",
 	)
+}
+
+func spanCondRequiredKeys() map[string]tests.Condition {
+	return map[string]tests.Condition{
+		"span.start":     tests.Condition{Absence: []string{"span.timestamp"}},
+		"span.timestamp": tests.Condition{Absence: []string{"span.start"}},
+	}
 }
 
 func transactionContext() *tests.Set {
@@ -126,7 +135,7 @@ func TestSpanPayloadMatchJsonSchema(t *testing.T) {
 }
 
 func TestAttrsPresenceInSpan(t *testing.T) {
-	spanProcSetup().AttrsPresence(t, spanRequiredKeys(), nil)
+	spanProcSetup().AttrsPresence(t, spanRequiredKeys(), spanCondRequiredKeys())
 }
 
 func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
@@ -160,6 +169,10 @@ func TestPayloadDataForSpans(t *testing.T) {
 					{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
 					{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}},
 			},
+			{Key: "span.timestamp",
+				Valid: val{json.Number("1496170422281000")},
+				Invalid: []tests.Invalid{
+					{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
 			{Key: "span.stacktrace.pre_context",
 				Valid: val{[]interface{}{}, []interface{}{"context"}},
 				Invalid: []tests.Invalid{

@@ -23,7 +23,7 @@ const ModelSchema = `{
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
 
-        {     "$id": "docs/spec/errors/error.json",
+        {     "$id": "docs/spec/errors/common_error.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "properties": {
@@ -408,18 +408,22 @@ const ModelSchema = `{
                 }
             },
             "required": ["message"]
-        },
-        "timestamp": {
-            "type": ["string","null"],
-            "format": "date-time",
-            "pattern": "Z$",
-            "description": "Recorded time of the error, UTC based and formatted as YYYY-MM-DDTHH:mm:ss.sssZ"
         }
     },
     "anyOf": [
         { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
         { "required": ["log"], "properties": {"log": { "type": "object" }} }
     ]  }, 
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
         {  
             "properties": {
                 "id": {
@@ -451,7 +455,6 @@ const ModelSchema = `{
                   "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
                 { "if": {"required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}},
                   "then": { "required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}} }
-    
             ]
         }
     ]
