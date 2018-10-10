@@ -135,7 +135,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 	if err != nil {
 		return err
 	}
-	defer traceListener.Close()
+	if traceListener != nil {
+		defer traceListener.Close()
+	}
 	defer tracer.Close()
 
 	pub, err := newPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout, tracer)
@@ -165,7 +167,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	g.Go(func() error {
 		return run(bt.server, lis, bt.config)
 	})
-	if bt.config.SelfInstrumentation.isEnabled() {
+	if traceListener != nil {
 		g.Go(func() error {
 			return bt.server.Serve(traceListener)
 		})
@@ -192,11 +194,28 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 	if err != nil {
 		return nil, nil, err
 	}
-	if config.SelfInstrumentation.isEnabled() {
-		if config.SelfInstrumentation.Environment != nil {
-			tracer.Service.Environment = *config.SelfInstrumentation.Environment
+	// tracing disabled, setup complete
+	if !config.SelfInstrumentation.isEnabled() {
+		return tracer, nil, nil
+	}
+
+	if config.SelfInstrumentation.Environment != nil {
+		tracer.Service.Environment = *config.SelfInstrumentation.Environment
+	}
+	tracer.SetLogger(logp.NewLogger("tracing"))
+
+	// tracing destined for external host
+	// only first host used until https://github.com/elastic/apm-agent-go/issues/200
+	if config.SelfInstrumentation.Hosts != nil {
+		t, err := transport.NewHTTPTransport(config.SelfInstrumentation.Hosts[0], config.SelfInstrumentation.SecretToken)
+		if err != nil {
+			tracer.Close()
+			return nil, nil, err
 		}
-		tracer.SetLogger(logp.NewLogger("tracing"))
+		tracer.Transport = t
+		logger.Infof("self instrumentation directed to %s", config.SelfInstrumentation.Hosts[0])
+
+		return tracer, nil, nil
 	}
 
 	// Create an in-process net.Listener for the tracer. This enables us to:

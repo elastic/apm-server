@@ -27,13 +27,6 @@ apm-server:
   # Maximum number of new connections to accept simultaneously (0 means unlimited)
   # max_connections: 0
 
-  # Instrumentation support for the server's HTTP endpoints and event publisher.
-  #instrumentation:
-    # Set to true to enable instrumentation of the APM server itself.
-    #enabled: false
-    # Environment in which the APM Server is running on (eg: staging, production, etc.)
-    #environment: ""
-
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.
   # It is recommended to use an authorization token in combination with SSL enabled,
@@ -108,6 +101,19 @@ apm-server:
 
     # Url to expose expvar
     #url: "/debug/vars"
+
+  # Instrumentation support for the server's HTTP endpoints and event publisher.
+  #instrumentation:
+    # Set to true to enable instrumentation of the APM server itself.
+    #enabled: false
+    # Environment in which the APM Server is running on (eg: staging, production, etc.)
+    #environment: ""
+    # Remote host to report instrumentation results to. Single entry permitted until
+    # https://github.com/elastic/apm-agent-go/issues/200 is resolved.
+    #hosts:
+    #  - http://remote-apm-server:8200
+    # Remote apm-servers' secret_token
+    #secret_token:
 
   # Experimental Metrics endpoint
   #metrics:
