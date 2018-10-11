@@ -32,8 +32,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/tests/loader"
@@ -394,6 +395,8 @@ func (bt *beater) smapElasticsearchHosts() []string {
 }
 
 func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
+	beatId, err := uuid.NewV4()
+	require.NoError(t, err)
 	// create a beat
 	apmBeat := &beat.Beat{
 		Publisher: publisher,
@@ -401,7 +404,7 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, bea
 			Beat:        "test-apm-server",
 			IndexPrefix: "test-apm-server",
 			Version:     version.GetDefaultVersion(),
-			UUID:        uuid.NewV4(),
+			UUID:        beatId,
 		},
 		Config: beatConfig,
 	}
