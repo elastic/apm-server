@@ -1636,6 +1636,14 @@
 			"revisionTime": "2018-01-19T11:52:46Z"
 		},
 		{
+			"checksumSHA1": "RbUAoSnAdAI7T4S+zHV+rWab3l8=",
+			"path": "github.com/gofrs/uuid",
+			"revision": "370558f003bfe29580cd0f698d8640daccdcc45c",
+			"revisionTime": "2018-08-30T19:19:09Z",
+			"version": "v3.1.1",
+			"versionExact": "v3.1.1"
+		},
+		{
 			"checksumSHA1": "kBeNcaKk56FguvPSUCEaH6AxpRc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/golang/protobuf/proto",
 			"path": "github.com/golang/protobuf/proto",
