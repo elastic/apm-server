@@ -21,13 +21,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 var (

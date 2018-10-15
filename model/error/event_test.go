@@ -27,17 +27,14 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/elastic/apm-server/model/metadata"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"time"
 
 	s "github.com/go-sourcemap/sourcemap"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"

@@ -22,9 +22,8 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/processor/transaction"
-	"github.com/elastic/apm-server/transform"
-
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/transform"
 )
 
 var (

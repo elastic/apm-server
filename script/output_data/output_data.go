@@ -24,11 +24,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/elastic/beats/libbeat/beat"
-
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/beats/libbeat/beat"
 )
 
 func main() {

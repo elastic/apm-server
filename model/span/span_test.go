@@ -22,11 +22,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/elastic/apm-server/model/metadata"
-
 	"github.com/stretchr/testify/assert"
 
 	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
