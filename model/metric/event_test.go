@@ -24,10 +24,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/model/metadata"
-
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )

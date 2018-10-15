@@ -21,15 +21,13 @@ import (
 	"errors"
 	"fmt"
 	"testing"
-
-	"github.com/elastic/apm-server/transform"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
-	"time"
-
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/span"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
 

@@ -41,7 +41,6 @@ import (
 	"github.com/elastic/apm-server/processor/sourcemap"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/transform"
-
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
