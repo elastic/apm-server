@@ -33,6 +33,7 @@ import (
 	"github.com/ryanuber/go-glob"
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/publish"
@@ -436,7 +437,13 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 		Metadata:    *metadata,
 	}
 
-	if err = report(r.Context(), publish.PendingReq{Transformables: transformables, Tcontext: tctx}); err != nil {
+	req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
+	ctx := r.Context()
+	span, ctx := elasticapm.StartSpan(ctx, "Send", "Reporter")
+	defer span.End()
+	req.Trace = !span.Dropped()
+
+	if err = report(ctx, req); err != nil {
 		if err == publish.ErrChannelClosed {
 			return serverShuttingDownResponse(err)
 		}
