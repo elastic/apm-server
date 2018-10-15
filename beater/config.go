@@ -26,11 +26,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/go-ucfg"
-	"github.com/pkg/errors"
 )
 
 const defaultPort = "8200"

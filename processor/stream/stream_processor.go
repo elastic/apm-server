@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
-
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/decoder"

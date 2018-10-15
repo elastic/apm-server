@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	perr "github.com/elastic/apm-server/processor/error"
 	"github.com/elastic/apm-server/processor/metricset"
@@ -28,8 +29,6 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/publish"
-
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/logp"
 )
