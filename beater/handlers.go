@@ -28,10 +28,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
-	"github.com/satori/go.uuid"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/decoder"
@@ -102,6 +102,14 @@ var (
 	acceptedResponse = serverResponse{
 		code:    http.StatusAccepted,
 		counter: counter("response.valid.accepted"),
+	}
+	internalErrorCounter  = counter("response.errors.internal")
+	internalErrorResponse = func(err error) serverResponse {
+		return serverResponse{
+			err:     errors.Wrap(err, "internal error"),
+			code:    http.StatusInternalServerError,
+			counter: internalErrorCounter,
+		}
 	}
 	forbiddenCounter  = counter("response.errors.forbidden")
 	forbiddenResponse = func(err error) serverResponse {
@@ -314,9 +322,11 @@ func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		reqID := uuid.NewV4()
-
 		requestCounter.Inc()
+		reqID, err := uuid.NewV4()
+		if err != nil {
+			sendStatus(w, r, internalErrorResponse(err))
+		}
 
 		reqLogger := logger.With(
 			"request_id", reqID,
