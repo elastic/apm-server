@@ -30,7 +30,7 @@ class Downloader(object):
 
     def __init__(self, args, path):
         self.tmp = path
-        self.files = [File(ev, args.url, self.tmp) for ev in args.events]
+        self.files = [File("{}_base".format(ev), args.url, self.tmp) for ev in args.events]
 
     def download(self, f):
         print("Downloading compressed data for {}".format(f.name))
@@ -85,37 +85,25 @@ class Corpora(object):
     def process(self):
         create_dir(self.target_path)
 
-        days_all = 10
-        N = max(self.days, days_all)
-
         for ev in self.events:
-            inp = "{}.json".format(os.path.join(self.inp_path, ev))
+            inp = "{}_base.json".format(os.path.join(self.inp_path, ev))
             if not os.path.exists(inp):
                 print("Warning: input file {} does not exist".format(inp))
                 continue
-            ev_out = "{}.json".format(os.path.join(self.target_path, ev))
-            with open(ev_out, 'w') as w_all:
-                for idx in range(N):
-                    out = "{}-{}.json".format(os.path.join(self.target_path, ev), idx)
-                    print("Processing {}".format(out))
-                    with open(out, 'w') as w:
-                        with open(inp) as r:
-                            for line in r:
-                                doc = json.loads(line)
-                                self.update_id(doc, 'transaction', idx)
-                                self.update_id(doc, 'error', idx)
-                                self.update_id(doc, 'span', idx)
-                                d = datetime.strptime(doc['@timestamp'], self.time_fmt)
-                                doc['@timestamp'] = self.updated_date(d, idx)
-                                json_out = json.dumps(doc)
-
-                                if idx < self.days:
-                                    w.write(json_out)
-                                    w.write("\n")
-
-                                if idx < days_all:
-                                    w_all.write(json_out)
-                                    w_all.write("\n")
+            for idx in range(self.days):
+                out = "{}-{}.json".format(os.path.join(self.target_path, ev), idx)
+                print("Processing {}".format(out))
+                with open(out, 'w') as w:
+                    with open(inp) as r:
+                        for line in r:
+                            doc = json.loads(line)
+                            self.update_id(doc, 'transaction', idx)
+                            self.update_id(doc, 'error', idx)
+                            self.update_id(doc, 'span', idx)
+                            d = datetime.strptime(doc['@timestamp'], self.time_fmt)
+                            doc['@timestamp'] = self.updated_date(d, idx)
+                            w.write(json.dumps(doc))
+                            w.write("\n")
 
 
 def create_dir(path, rm=False):

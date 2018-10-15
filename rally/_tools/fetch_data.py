@@ -17,7 +17,7 @@ def fetch(path, q, service):
         name = ""
         if service != "":
             name = "{}_".format(service)
-        f = os.path.join(path, "{}{}.json".format(name, ev))
+        f = os.path.join(path, "{}{}_base.json".format(name, ev))
         with open(f, 'w') as out:
             for doc in helpers.scan(es, query=q, index=idx, size=batch_size):
                 out.write(json.dumps(doc["_source"]))

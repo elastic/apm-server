@@ -46,24 +46,28 @@
     {
       "name": "apm-events",
       "target-type": "type",
+      "base-url": "http://benchmarks.elasticsearch.org.s3.amazonaws.com/corpora/apm",
       "documents": [
         {
           "target-index": "apm-error",
-          "source-file": "corpora/error.json",
+          "source-file": "error.json.bz2",
           "document-count": 182500,
-          "uncompressed-bytes": 3918751870 
+          "compressed-bytes": 159931147,
+          "uncompressed-bytes": 3919105320 
         },
         {
           "target-index": "apm-transaction",
-          "source-file": "corpora/transaction.json",
-          "document-count": 3834980,
-          "uncompressed-bytes": 5682067160
+          "source-file": "transaction.json.bz2",
+          "document-count": 766996,
+          "compressed-bytes": 52249328,
+          "uncompressed-bytes": 1137180428
         },
         {
           "target-index": "apm-span",
-          "source-file": "corpora/span.json",
-          "document-count": 4857640,
-          "uncompressed-bytes": 44530160320
+          "source-file": "span.json.bz2",
+          "document-count": 1457292,
+          "compressed-bytes": 250706365,
+          "uncompressed-bytes": 13361279823
         }
       ]
     },
