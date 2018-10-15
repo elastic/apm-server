@@ -27,6 +27,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/uuid"
+	lru "github.com/hashicorp/golang-lru"
+	"github.com/pkg/errors"
+	"github.com/ryanuber/go-glob"
+	"golang.org/x/time/rate"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/publish"
@@ -36,11 +42,6 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/version"
-	"github.com/gofrs/uuid"
-	lru "github.com/hashicorp/golang-lru"
-	"github.com/pkg/errors"
-	"github.com/ryanuber/go-glob"
-	"golang.org/x/time/rate"
 )
 
 const (

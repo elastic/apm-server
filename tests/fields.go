@@ -23,9 +23,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/stretchr/testify/require"
 )
 
 // This test checks

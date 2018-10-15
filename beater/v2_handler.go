@@ -21,15 +21,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/elastic/beats/libbeat/monitoring"
-
+	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
-
 	"github.com/elastic/beats/libbeat/logp"
-
-	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 type v2Handler struct {

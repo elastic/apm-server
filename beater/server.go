@@ -23,13 +23,14 @@ import (
 	"net"
 	"net/http"
 
+	"golang.org/x/net/netutil"
+
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-agent-go/module/apmhttp"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/version"
-	"golang.org/x/net/netutil"
 )
 
 func newServer(config *Config, tracer *elasticapm.Tracer, report publish.Reporter) *http.Server {
