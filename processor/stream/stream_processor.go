@@ -26,6 +26,7 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/decoder"
 	er "github.com/elastic/apm-server/model/error"
 	"github.com/elastic/apm-server/model/metadata"
@@ -261,6 +262,9 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 	}
 	rl := rateLimiterFromContext(ctx)
 
+	sp, ctx := elasticapm.StartSpan(ctx, "Stream", "Reporter")
+	defer sp.End()
+
 	for {
 
 		transformables, done := s.readBatch(ctx, rl, batchSize, jsonReader, res)
@@ -268,6 +272,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 			err := report(ctx, publish.PendingReq{
 				Transformables: transformables,
 				Tcontext:       tctx,
+				Trace:          !sp.Dropped(),
 			})
 
 			if err != nil {
