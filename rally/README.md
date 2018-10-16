@@ -35,7 +35,7 @@ is necessary to bring the data into the expected format.
 For preparing the benchmark tests with default data, run 
 ```
 virtualenv -p python3 rally/.venv
-source .venv/bin/activate
+source rally/.venv/bin/activate
 pip install -r rally/_tools/requirements.txt
 python ./rally/_tools/prepare.py
 
