@@ -1,7 +1,6 @@
 {
     "$id": "docs/spec/spans/v2_span.json",
     "type": "object",
-    "$ref": "common_span.json",
     "allOf": [
         { "$ref": "common_span.json"  },
         { "$ref": "../timestamp_epoch.json" },
