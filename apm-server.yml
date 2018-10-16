@@ -197,6 +197,7 @@ setup.template.settings:
     number_of_shards: 1
     codec: best_compression
     #number_of_routing_shards: 30
+    mapping.total_fields.limit: 1000
 
 
 #============================== Template =====================================
