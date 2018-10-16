@@ -102,7 +102,7 @@ class ServerSetUpBaseTest(BaseTest):
         # tests the Beat is confused since it thinks it is running as a service.
         winErr = "ERR Error: The service process could not connect to the service controller."
 
-        suppress = suppress + ["WARN EXPERIMENTAL", "WARN BETA", winErr]
+        suppress = suppress + ["WARN EXPERIMENTAL", "WARN BETA", "WARN.*deprecated", winErr]
         log = self.get_log()
         for s in suppress:
             log = re.sub(s, "", log)
