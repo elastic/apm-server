@@ -63,14 +63,13 @@ var (
 	counter       = func(s string) *monitoring.Int {
 		return monitoring.NewInt(serverMetrics, s)
 	}
-	requestCounter       = counter("request.count")
-	concurrentWait       = counter("concurrent.wait.ms")
-	responseCounter      = counter("response.count")
-	responseErrors       = counter("response.errors.count")
-	responseSuccesses    = counter("response.valid.count")
-	responseOk           = counter("response.valid.ok")
-	responseAccepted     = counter("response.valid.accepted")
-	responseErrorsOthers = counter("response.errors.other")
+	requestCounter    = counter("request.count")
+	concurrentWait    = counter("concurrent.wait.ms")
+	responseCounter   = counter("response.count")
+	responseErrors    = counter("response.errors.count")
+	responseSuccesses = counter("response.valid.count")
+	responseOk        = counter("response.valid.ok")
+	responseAccepted  = counter("response.valid.accepted")
 
 	okResponse = serverResponse{
 		code:    http.StatusOK,

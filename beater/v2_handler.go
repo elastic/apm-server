@@ -62,7 +62,7 @@ func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 			ct = rateLimitCounter
 		default:
 			code = http.StatusInternalServerError
-			ct = responseErrorsOthers
+			ct = internalErrorCounter
 		}
 		if code > highestCode {
 			highestCode = code
