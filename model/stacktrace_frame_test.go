@@ -307,8 +307,9 @@ func TestApplySourcemap(t *testing.T) {
 			}
 		}
 
-		// check that source mapping is applied as excpected
-		output := (&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
+		// check that source mapping is applied as expected
+		output, errMsg := (&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
+		assert.Equal(t, test.smapError, errMsg)
 		assert.Equal(t, test.outFct, output)
 		assert.Equal(t, test.lineno, test.fr.Lineno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
 		assert.Equal(t, test.filename, test.fr.Filename, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
