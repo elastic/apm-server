@@ -199,6 +199,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "trace", e.TraceId)
 
 	if e.v2Event {
+		if e.Timestamp.IsZero() {
+			e.Timestamp = tctx.RequestTime
+		}
 		utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	}
 
