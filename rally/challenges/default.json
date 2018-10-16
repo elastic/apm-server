@@ -65,4 +65,78 @@
           "clients": 1
         } 
       ]
+    },
+    {
+      "name": "query-apm",
+      "default": false,
+      "description": "Measure different APM related queries used from the APM UI. Indexes APM events into multiple indices, each representing one day, as a preparation step for queries.",
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": "create-index"
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": "check-cluster-health"
+        },
+        {% set comma = joiner() %}
+        {% for item in range(index_count) %}
+        {{ comma() }}
+        {
+          "parallel": {
+            "tasks": [
+              {
+                "operation": "index-append-error-{{item}}",
+                "clients": {{bulk_indexing_clients | default(1)}}
+              },
+              {
+                "operation": "index-append-transaction-{{item}}",
+                "clients": {{bulk_indexing_clients | default(3)}}
+              },
+              {
+                "operation": "index-append-span-{{item}}",
+                "clients": {{bulk_indexing_clients | default(6)}}
+              }    
+            ]
+          }
+        }
+        {% endfor %},
+        {
+          "name": "refresh-after-index",
+          "operation": "refresh",
+          "clients": 1
+        },
+        {
+          "operation": "force-merge",
+          "clients": 1
+        },
+        {
+          "name": "refresh-after-force-merge",
+          "operation": "refresh",
+          "clients": 1
+        },
+        {
+          "operation": "query-all-spans",
+          "clients": 1,
+          "warmup-iterations": 500,
+          "iterations": 100,
+          "target-throughput": 10
+        },
+        {
+          "operation": "query-spans-no-time",
+          "clients": 1,
+          "warmup-iterations": 500,
+          "iterations": 100,
+          "target-throughput": 10
+        },
+        {
+          "operation": "query-spans-with-time",
+          "clients": 1,
+          "warmup-iterations": 500,
+          "iterations": 100,
+          "target-throughput": 10
+        }
+      ]
     }

@@ -1,3 +1,7 @@
+{% if index_count is not defined %}
+{% set index_count=1 %}
+{% endif %}
+
 {% import "rally.helpers" as rally with context %}
 {
   "version": 2,
@@ -17,37 +21,81 @@
       "name": "apm-span",
       "body": "index.json",
       "types": [ "type" ]
+    },
+    {% set comma = joiner() %}
+    {% for item in range(index_count) %}
+    {{ comma() }}
+    {
+      "name": "apm-error-{{item}}",
+      "body": "index.json",
+      "types": [ "type" ]
+    },
+    {
+      "name": "apm-transaction-{{item}}",
+      "body": "index.json",
+      "types": [ "type" ]
+    },
+    {
+      "name": "apm-span-{{item}}",
+      "body": "index.json",
+      "types": [ "type" ]
     }
+    {% endfor %}
   ],
   "corpora": [
     {
       "name": "apm-events",
       "target-type": "type",
-      "base-url": "http://benchmarks.elasticsearch.org.s3.amazonaws.com/corpora/apm", 
+      "base-url": "http://benchmarks.elasticsearch.org.s3.amazonaws.com/corpora/apm",
       "documents": [
         {
           "target-index": "apm-error",
           "source-file": "error.json.bz2",
-          "document-count": 224250,
-          "compressed-bytes": 261870880,
-          "uncompressed-bytes": 5366030615
+          "document-count": 182500,
+          "compressed-bytes": 159931147,
+          "uncompressed-bytes": 3919105320 
         },
         {
           "target-index": "apm-transaction",
           "source-file": "transaction.json.bz2",
-          "document-count": 1224774,
-          "compressed-bytes": 112400948,
-          "uncompressed-bytes": 2224034492
+          "document-count": 766996,
+          "compressed-bytes": 52249328,
+          "uncompressed-bytes": 1137180428
         },
         {
           "target-index": "apm-span",
           "source-file": "span.json.bz2",
-          "document-count": 2225454,
-          "compressed-bytes": 274849255,
-          "uncompressed-bytes": 10897616683
+          "document-count": 1457292,
+          "compressed-bytes": 250706365,
+          "uncompressed-bytes": 13361279823
+        }
+      ]
+    },
+    {% set comma = joiner() %}
+    {% for item in range(index_count) %}
+    {{ comma() }}
+    {
+      "name": "apm-events-{{item}}",
+      "target-type": "type",
+      "documents": [
+        {
+          "target-index": "apm-error-{{item}}",
+          "source-file": "corpora/error-{{item}}.json",
+          "document-count": 18250
+        },
+        {
+          "target-index": "apm-transaction-{{item}}",
+          "source-file": "corpora/transaction-{{item}}.json",
+          "document-count": 383498
+        },
+        {
+          "target-index": "apm-span-{{item}}",
+          "source-file": "corpora/span-{{item}}.json",
+          "document-count": 485764
         }
       ]
     }
+    {% endfor %}
   ],
   "operations": [
     {{ rally.collect(parts="operations/*.json") }}
@@ -56,4 +104,3 @@
     {{ rally.collect(parts="challenges/*.json") }}
   ]
 }
-
