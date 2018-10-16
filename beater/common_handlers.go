@@ -393,13 +393,6 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	})
 }
 
-func processRequestHandler(p processor.Processor, config transform.Config, report publish.Reporter, decode decoder.ReqDecoder) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := processRequest(r, p, config, report, decode)
-		sendStatus(w, r, res)
-	})
-}
-
 func processRequest(r *http.Request, p processor.Processor, config transform.Config, report publish.Reporter, decode decoder.ReqDecoder) serverResponse {
 	if r.Method != "POST" {
 		return methodNotAllowedResponse

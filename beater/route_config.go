@@ -199,8 +199,13 @@ type v1Route struct {
 func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report publish.Reporter) http.Handler {
 	decoder := v.configurableDecoder(beaterConfig, v.topLevelRequestDecoder(beaterConfig))
 	tconfig := v.transformConfig(beaterConfig)
+	var warned bool
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !warned {
+			logp.NewLogger("handler").Warn("Apm Server v1 API is deprecated, please update your agent version to switch to the v2 API")
+			warned = true
+		}
 		res := processRequest(r, p, tconfig, report, decoder)
 		sendStatus(w, r, res)
 	})
