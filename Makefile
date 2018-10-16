@@ -84,7 +84,6 @@ apm-docs:  ## @build Builds the APM documents
 	@rm -rf build/html_docs
 	sh script/build_apm_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR}
 
-
 .PHONY: update-beats-docs
 update-beats-docs:
 	@python script/copy-docs.py
@@ -114,3 +113,7 @@ are-kibana-objects-updated: python-env
 .PHONY: register-pipelines
 register-pipelines: update ${BEAT_NAME}
 	${BEAT_GOPATH}/src/${BEAT_PATH}/${BEAT_NAME} setup --pipelines
+
+.PHONY: package-tests
+package-tests: mage
+	mage -v TestPackagesInstall

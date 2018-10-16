@@ -3,4 +3,4 @@ set -euox pipefail
 
 ./_beats/dev-tools/jenkins_release.sh
 
-mage -v TestPackagesInstall
+make package-tests
