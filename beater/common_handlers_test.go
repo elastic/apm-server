@@ -72,6 +72,39 @@ func TestConcurrency(t *testing.T) {
 	assert.True(t, concurrentWait.Get() > 20, strconv.FormatInt(concurrentWait.Get(), 10))
 }
 
+func TestOPTIONS(t *testing.T) {
+	config := defaultConfig("7.0.0")
+	config.ConcurrentRequests = 1
+	config.MaxRequestQueueTime = time.Second
+	enabled := true
+	config.RumConfig.Enabled = &enabled
+
+	requestTaken := make(chan struct{}, 1)
+
+	h := rumHandler(config, http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		requestTaken <- struct{}{}
+		select {
+		case <-time.After(time.Second * 1):
+			return
+		}
+	}))
+
+	// use this to block the single allowed concurrent requests
+	go func() {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("POST", "/", nil)
+		h.ServeHTTP(w, r)
+	}()
+
+	<-requestTaken
+
+	// send a new request which should be allowed through
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("OPTIONS", "/", nil)
+	h.ServeHTTP(w, r)
+	assert.Equal(t, 200, w.Code, w.Body.String())
+}
+
 func TestOkBody(t *testing.T) {
 	req, err := http.NewRequest("POST", "_", nil)
 	assert.Nil(t, err)
