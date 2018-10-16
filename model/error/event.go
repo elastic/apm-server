@@ -28,17 +28,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/santhosh-tekuri/jsonschema"
-
-	"github.com/elastic/beats/libbeat/beat"
-
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/santhosh-tekuri/jsonschema"
 )
 
 var (
@@ -200,6 +198,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "trace", e.TraceId)
 
 	if e.v2Event {
+		if e.Timestamp.IsZero() {
+			e.Timestamp = tctx.RequestTime
+		}
 		utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	}
 
