@@ -80,13 +80,11 @@ func TestOPTIONS(t *testing.T) {
 	config.RumConfig.Enabled = &enabled
 
 	requestTaken := make(chan struct{}, 1)
+	done := make(chan struct{}, 1)
 
 	h := rumHandler(config, http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
 		requestTaken <- struct{}{}
-		select {
-		case <-time.After(time.Second * 1):
-			return
-		}
+		<-done
 	}))
 
 	// use this to block the single allowed concurrent requests
@@ -103,6 +101,7 @@ func TestOPTIONS(t *testing.T) {
 	r := httptest.NewRequest("OPTIONS", "/", nil)
 	h.ServeHTTP(w, r)
 	assert.Equal(t, 200, w.Code, w.Body.String())
+	done <- struct{}{}
 }
 
 func TestOkBody(t *testing.T) {
