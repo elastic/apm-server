@@ -39,7 +39,7 @@ func procSetup() *tests.ProcessorSetup {
 
 func payloadAttrsNotInFields(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet("span.stacktrace", tests.Group("transaction.marks."), tests.Group("context.db"),
-		"context.http", "context.http.url"),
+		"context.http", "context.http.url", "context.http.method"),
 	)
 }
 
@@ -101,7 +101,7 @@ func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 func keywordExceptionKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"processor.event", "processor.name", "listening", "parent.id", "trace.id",
-		"transaction.id", "transaction.marks", "context.tags", "span.hex_id", "context.http.method"))
+		"transaction.id", "transaction.marks", "context.tags", "span.hex_id"))
 }
 
 func templateToSchemaMapping(mapping map[string]string) map[string]string {

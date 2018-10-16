@@ -54,7 +54,6 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"context.system.ip",
 		"context.http",
 		"context.http.status_code",
-		"context.http.method",
 	)
 }
 
@@ -90,7 +89,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
 		"processor.event", "processor.name", "listening",
 		"transaction.marks",
-		"context.tags", "context.http.method",
+		"context.tags",
 
 		// metadata fields
 		tests.Group("context.process"),

@@ -42,15 +42,10 @@
           type: group
           fields:
 
-          - name: method
-            type: keyword
-            description: >
-              The method of the http request.
-
           - name: status_code
             type: long
             description: >
-              The status code of the http request.
+              The status code of the http response.
 
         - name: user
           type: group
