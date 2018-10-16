@@ -85,7 +85,7 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 	logger := logp.NewLogger("stacktrace")
 	for errMsg, _ := range sourcemapErrorSet {
 		if errMsg != "" {
-			logger.Error(errMsg)
+			logger.Warn(errMsg)
 		}
 	}
 
