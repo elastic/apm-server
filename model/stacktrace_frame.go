@@ -26,7 +26,6 @@ import (
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 type StacktraceFrame struct {
@@ -155,22 +154,22 @@ func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.LibraryFrame = &libraryFrame
 }
 
-func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metadata.Service, prevFunction string) string {
+func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metadata.Service, prevFunction string) (string, string) {
 	s.setOriginalSourcemapData()
 
 	if s.Original.Colno == nil {
-		s.updateError("Colno mandatory for sourcemapping.")
-		return prevFunction
+		errMsg := "Colno mandatory for sourcemapping."
+		s.updateError(errMsg)
+		return prevFunction, errMsg
 	}
 	sourcemapId := s.buildSourcemapId(service)
 	mapping, err := mapper.Apply(sourcemapId, s.Original.Lineno, *s.Original.Colno)
 	if err != nil {
-		logp.NewLogger("stacktrace").Errorf("failed to apply sourcemap %s", err.Error())
 		e, isSourcemapError := err.(sourcemap.Error)
 		if !isSourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
 			s.updateError(err.Error())
 		}
-		return prevFunction
+		return prevFunction, err.Error()
 	}
 
 	if mapping.Filename != "" {
@@ -187,9 +186,9 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metad
 	s.PostContext = mapping.PostContext
 
 	if mapping.Function != "" {
-		return mapping.Function
+		return mapping.Function, ""
 	}
-	return "<unknown>"
+	return "<unknown>", ""
 }
 
 func (s *StacktraceFrame) setOriginalSourcemapData() {
@@ -217,7 +216,6 @@ func (s *StacktraceFrame) buildSourcemapId(service *metadata.Service) sourcemap.
 }
 
 func (s *StacktraceFrame) updateError(errMsg string) {
-	logp.NewLogger("stacktrace").Error(errMsg)
 	s.Sourcemap.Error = &errMsg
 	s.updateSmap(false)
 }

@@ -22,6 +22,7 @@ import (
 
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
 )
 
 type Stacktrace []*StacktraceFrame
@@ -70,12 +71,23 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 	frames = make([]common.MapStr, frameCount)
 
 	fct := "<anonymous>"
+	var sourcemapErrorSet = make(map[string]struct{})
+
 	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = (*st)[idx]
 		if tctx.Config.SmapMapper != nil && tctx.Metadata.Service != nil {
-			fct = fr.applySourcemap(tctx.Config.SmapMapper, tctx.Metadata.Service, fct)
+			var errMsg string
+			fct, errMsg = fr.applySourcemap(tctx.Config.SmapMapper, tctx.Metadata.Service, fct)
+			sourcemapErrorSet[errMsg] = struct{}{}
 		}
 		frames[idx] = fr.Transform(tctx)
 	}
+	logger := logp.NewLogger("stacktrace")
+	for errMsg, _ := range sourcemapErrorSet {
+		if errMsg != "" {
+			logger.Warn(errMsg)
+		}
+	}
+
 	return frames
 }
