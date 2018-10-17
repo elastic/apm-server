@@ -23,14 +23,14 @@
       "name": "index-append-transaction-tags",
       "operation-type": "bulk",
       "indices": ["apm-transaction-tags"],
-      "bulk-size": {{bulk_size | default(1000)}},
+      "bulk-size": {{bulk_size | default(50)}},
       "ingest-percentage": {{ingest_percentage | default(100)}}
     },
     {
       "name": "index-append-span-tags",
       "operation-type": "bulk",
       "indices": ["apm-span-tags"],
-      "bulk-size": {{bulk_size | default(1000)}},
+      "bulk-size": {{bulk_size | default(50)}},
       "ingest-percentage": {{ingest_percentage | default(100)}}
     },
     {% set comma = joiner() %}

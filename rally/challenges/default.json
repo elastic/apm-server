@@ -84,7 +84,7 @@
         {
           "name": "index-apm-{{event_type}}-tags",
           "operation": "index-append-{{event_type}}-tags",
-          "warmup-time-period": 120,
+          "warmup-time-period": 240,
           "clients": {{bulk_indexing_clients | default(8)}}
         },
         {
