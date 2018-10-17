@@ -49,8 +49,8 @@ class Proc(object):
             self.proc = subprocess.Popen(
                 self.args,
                 stdin=self.stdin_read,
-                stdout=self.output,
-                stderr=subprocess.STDOUT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 bufsize=0,
                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
         else:
@@ -76,7 +76,11 @@ class Proc(object):
 
     def wait(self):
         try:
-            return self.proc.wait()
+            output, err = self.proc.communicate(None)
+            return 0
+        except Exception as error:
+            print(error)
+            return 1
         finally:
             self.output.close()
 

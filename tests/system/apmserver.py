@@ -89,7 +89,13 @@ class ServerSetUpBaseTest(BaseTest):
 
         self.render_config_template(**self.config())
         self.apmserver_proc = self.start_beat()
-        self.wait_until(lambda: self.log_contains("Starting apm-server"))
+        try:
+            self.wait_until(lambda: self.log_contains("Starting apm-server"))
+        except TimeoutError:
+            logfile = self.beat_name + ".log"
+            with open(os.path.join(self.working_dir, logfile), "r") as f:
+                print f.read()
+            raise
 
     def assert_no_logged_warnings(self, suppress=None):
         """
