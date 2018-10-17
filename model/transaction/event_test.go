@@ -21,10 +21,9 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"time"
 
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/beats/libbeat/common"

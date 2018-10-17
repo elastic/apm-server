@@ -19,17 +19,14 @@ package beater
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"testing"
-
-	"fmt"
-
-	"sync"
-	"time"
-
 	"strconv"
+	"sync"
+	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
