@@ -239,7 +239,7 @@ class RateLimitTest(ClientSideBaseTest):
         assert set(codes.keys()) == set([202, 429]), codes
         assert codes[429] == 4, codes  # considering burst
 
-        time.sleep(1)
+        time.sleep(3)
         assert fire() == 202
 
     def test_rate_limit_multiple_ips(self):
