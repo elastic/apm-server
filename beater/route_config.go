@@ -150,9 +150,9 @@ func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 func rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 		requestTimeHandler(
-			concurrencyLimitHandler(beaterConfig,
-				ipRateLimitHandler(beaterConfig.RumConfig.RateLimit,
-					corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))))
+			corsHandler(beaterConfig.RumConfig.AllowOrigins,
+				concurrencyLimitHandler(beaterConfig,
+					ipRateLimitHandler(beaterConfig.RumConfig.RateLimit, h)))))
 }
 
 func metricsHandler(beaterConfig *Config, h http.Handler) http.Handler {
