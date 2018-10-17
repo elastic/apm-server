@@ -4,7 +4,7 @@ set -euox pipefail
 : "${HOME:?Need to set HOME to a non-empty value.}"
 : "${WORKSPACE:?Need to set WORKSPACE to a non-empty value.}"
 
-source $(dirname "$0")/common.bash
+source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/common.bash
 
 jenkins_setup
 docker_setup
