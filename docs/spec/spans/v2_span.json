@@ -1,7 +1,7 @@
 {
     "$id": "docs/spec/spans/v2_span.json",
     "type": "object",
-    "$ref": "common_span.json",
+    "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
         { "$ref": "common_span.json"  },
         { "$ref": "../timestamp_epoch.json" },

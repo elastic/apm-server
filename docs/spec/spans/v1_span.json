@@ -1,6 +1,7 @@
 {
     "$id": "docs/spec/spans/v1_span.json",
     "type": "object",
+    "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
 
         { "$ref": "common_span.json"  }, 

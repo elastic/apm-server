@@ -20,7 +20,7 @@ package schema
 const ModelSchema = `{
     "$id": "docs/spec/errors/v2_error.json",
     "type": "object",
-    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "description": "An error or a logged error message captured by an agent occurring in a monitored service",
     "allOf": [
 
         {     "$id": "docs/spec/errors/common_error.json",

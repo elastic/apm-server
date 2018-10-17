@@ -419,6 +419,7 @@ const PayloadSchema = `{
                                 "items": {
                                         "$id": "docs/spec/spans/v1_span.json",
     "type": "object",
+    "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
 
         {     "$id": "docs/spec/spans/common_span.json",
