@@ -19,16 +19,14 @@ package beater
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 
 	"golang.org/x/net/netutil"
 
-	"crypto/tls"
-
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-agent-go/module/apmhttp"
-
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/version"

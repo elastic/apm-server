@@ -27,12 +27,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-
 	"time"
 
 	s "github.com/go-sourcemap/sourcemap"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/config"
 	m "github.com/elastic/apm-server/model"

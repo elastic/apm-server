@@ -19,9 +19,8 @@ package sourcemap
 
 import (
 	"fmt"
-	"time"
-
 	"strings"
+	"time"
 
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
