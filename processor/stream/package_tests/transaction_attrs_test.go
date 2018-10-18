@@ -52,6 +52,8 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"context.user.user-agent",
 		"context.user.ip",
 		"context.system.ip",
+		"context.http",
+		"context.http.status_code",
 	)
 }
 

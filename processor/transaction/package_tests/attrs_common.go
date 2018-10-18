@@ -39,7 +39,7 @@ func procSetup() *tests.ProcessorSetup {
 
 func payloadAttrsNotInFields(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet("span.stacktrace", tests.Group("transaction.marks."), tests.Group("context.db"),
-		"context.http", "context.http.url"),
+		"context.http", "context.http.url", "context.http.method"),
 	)
 }
 

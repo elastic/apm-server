@@ -150,6 +150,8 @@
                     "user": "readonly_user"
                 },
                 "http": {
+                    "method": "GET",
+                    "status_code": 200,
                     "url": "http://localhost:8000"
                 },
                 "service": {

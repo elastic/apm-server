@@ -458,6 +458,15 @@ const PayloadSchema = `{
                         "url": {
                             "type": ["string", "null"],
                             "description": "The raw url of the correlating http request."
+                        },
+                        "status_code": {
+                            "type": ["integer", "null"],
+                            "description": "The status code of the http request."
+                        },
+                        "method": {
+                            "type": ["string", "null"],
+                            "maxLength": 1024,
+                            "description": "The method of the http request."
                         }
                     }
                 },

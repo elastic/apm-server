@@ -166,7 +166,9 @@
                             "user": "readonly_user"
                         },
                         "http": {
-                            "url": "http://localhost:8000"
+                            "url": "http://localhost:8000",
+                            "status_code": 200,
+                            "method": "GET"
                         },
                         "tags": {
                             "span_tag": "something"

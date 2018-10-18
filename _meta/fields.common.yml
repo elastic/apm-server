@@ -38,6 +38,15 @@
           description: >
             A flat mapping of user-defined tags with string values.
 
+        - name: http
+          type: group
+          fields:
+
+          - name: status_code
+            type: long
+            description: >
+              The status code of the http response.
+
         - name: user
           type: group
           fields:

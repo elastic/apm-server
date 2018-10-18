@@ -49,6 +49,7 @@ func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"listening", "view errors", "error id icon",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
+		"context.http", "context.http.status_code",
 		tests.Group("timestamp"),
 	))
 }

@@ -199,7 +199,9 @@
                     "statement": "SELECT * FROM product_types WHERE user_id=?"
                 },
                 "http": {
-                    "url": "http://localhost:8000"
+                    "url": "http://localhost:8000",
+                    "status_code": 200,
+                    "method": "GET"
                 },
                 "service": {
                     "name": "1234_service-12a3",

@@ -93,6 +93,17 @@ A flat mapping of user-defined tags with string values.
 --
 
 
+*`context.http.status_code`*::
++
+--
+type: long
+
+The status code of the http response.
+
+
+--
+
+
 *`context.user.username`*::
 +
 --
