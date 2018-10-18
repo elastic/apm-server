@@ -211,6 +211,7 @@ func concurrencyLimitHandler(beaterConfig *Config, h http.Handler) http.Handler 
 func healthCheckHandler() http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logp.NewLogger("handler").Warn("'/healthcheck' endpoint is deprecated, please use '/' instead")
 			sendStatus(w, r, okResponse)
 		}))
 }
@@ -399,13 +400,6 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 		} else {
 			sendStatus(w, r, forbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
 		}
-	})
-}
-
-func processRequestHandler(p processor.Processor, config transform.Config, report publish.Reporter, decode decoder.ReqDecoder) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := processRequest(r, p, config, report, decode)
-		sendStatus(w, r, res)
 	})
 }
 
