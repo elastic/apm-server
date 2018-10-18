@@ -41,7 +41,7 @@
     },
     {
       "name": "ingest-event-type",
-      "description": "Indexes the the error documents from the default corpus using Elasticsearch default settings. Documents don't have ids set, so all index operations are append only.",
+      "description": "Indexes only the defined event documents from the default corpus using Elasticsearch default settings. Documents don't have ids set, so all index operations are append only.",
       "default": false,
       "schedule": [
         {
@@ -58,6 +58,33 @@
           "name": "index-apm-{{event_type}}",
           "operation": "index-append-{{event_type}}",
           "warmup-time-period": 120,
+          "clients": {{bulk_indexing_clients | default(8)}}
+        },
+        {
+          "operation": "force-merge",
+          "clients": 1
+        } 
+      ]
+    },
+    {
+      "name": "ingest-field-explosion",
+      "description": "Indexes either span or transaction documents with a high cardinality of indexed fields (tags). Documents don't have ids set, so all index operations are append only.",
+      "default": false,
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": "create-index"
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": "check-cluster-health"
+        },
+        {
+          "name": "index-apm-{{event_type}}-tags",
+          "operation": "index-append-{{event_type}}-tags",
+          "warmup-time-period": 240,
           "clients": {{bulk_indexing_clients | default(8)}}
         },
         {

@@ -4,6 +4,7 @@ import argparse
 import os
 import bz2
 import json
+import random
 from shutil import rmtree
 from datetime import datetime, timedelta
 
@@ -66,6 +67,9 @@ class Corpora(object):
         self.target_path = target_path
         self.time_fmt = '%Y-%m-%dT%H:%M:%S.%fZ'
         self.start_day = datetime.strptime(args.start_date, DATE_PATTERN)
+        self.tags = args.tags
+        self.skip_daily = args.skip_daily
+        self.skip_tags = args.skip_tags
 
     def exists(self, inp, keys):
         for k in keys:
@@ -90,18 +94,34 @@ class Corpora(object):
             if not os.path.exists(inp):
                 print("Warning: input file {} does not exist".format(inp))
                 continue
-            for idx in range(self.days):
-                out = "{}-{}.json".format(os.path.join(self.target_path, ev), idx)
+            if not self.skip_daily:
+                for idx in range(self.days):
+                    out = "{}-{}.json".format(os.path.join(self.target_path, ev), idx)
+                    print("Processing {}".format(out))
+                    with open(out, 'w') as w:
+                        with open(inp) as r:
+                            for line in r:
+                                doc = json.loads(line)
+                                self.update_id(doc, 'transaction', idx)
+                                self.update_id(doc, 'error', idx)
+                                self.update_id(doc, 'span', idx)
+                                d = datetime.strptime(doc['@timestamp'], self.time_fmt)
+                                doc['@timestamp'] = self.updated_date(d, idx)
+                                w.write(json.dumps(doc))
+                                w.write("\n")
+            if not self.skip_tags and ev != "error":
+                out = "{}-tags.json".format(os.path.join(self.target_path, ev))
                 print("Processing {}".format(out))
                 with open(out, 'w') as w:
                     with open(inp) as r:
                         for line in r:
                             doc = json.loads(line)
-                            self.update_id(doc, 'transaction', idx)
-                            self.update_id(doc, 'error', idx)
-                            self.update_id(doc, 'span', idx)
                             d = datetime.strptime(doc['@timestamp'], self.time_fmt)
-                            doc['@timestamp'] = self.updated_date(d, idx)
+                            doc['@timestamp'] = self.updated_date(d, 0)
+                            ctx = doc['context']
+                            if "tags" not in ctx:
+                                ctx["tags"] = {}
+                            ctx["tags"]["{}".format(random.randint(1, self.tags))] = "abc"
                             w.write(json.dumps(doc))
                             w.write("\n")
 
@@ -127,20 +147,32 @@ class Args(object):
         parser.add_argument('--days',
                             type=int,
                             default=10,
-                            help='number of days the corpora should be created for')
+                            help='number of days the corpora should be created for (ignored if --skip-daily is set)')
         parser.add_argument('--start-date',
                             dest='start_date',
                             default=datetime.today().strftime(DATE_PATTERN),
                             help='must be in format YY-mm-dd, data will be created backwards from the start_date')
-        parser.add_argument('--skip-download',
-                            dest='skip_download',
-                            action='store_true',
-                            help='skip download and extracting of corpora')
         parser.add_argument('--es-data',
                             dest='es_data',
                             help='path to data directory, only used when skip-download is set')
         parser.add_argument('--corpora',
                             help='path to corpora directory')
+        parser.add_argument('--tags',
+                            type=int,
+                            default=500,
+                            help='number of tags that should be added (ignored if --skip-tags is set)')
+        parser.add_argument('--skip-download',
+                            dest='skip_download',
+                            action='store_true',
+                            help='skip download and extracting of corpora')
+        parser.add_argument('--skip-daily',
+                            dest='skip_daily',
+                            action='store_true',
+                            help='skip creating daily index corpora')
+        parser.add_argument('--skip-tags',
+                            dest='skip_tags',
+                            action='store_true',
+                            help='skip creating corpora with extra tags')
         self.p = parser
 
     def setup(self):

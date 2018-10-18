@@ -7,7 +7,7 @@ repos.
 
 ## Starting a Race
 
-Currently APM track offers three different challenges. 
+Currently APM track offers four different challenges. 
 If you want to store results to a file, preserve temporary Elasticsearch, use a running Elasticsearch instance, etc. 
 please refer to rally's [command_line_reference](https://esrally.readthedocs.io/en/stable/command_line_reference.html#command-line-flags).
 
@@ -27,6 +27,34 @@ If you want to test only a dedicated event type, you can use the second challeng
 ```esrally --track-path=<local-path-to-apm-track> --track-params="event_type:'<event_type>'" --challenge=ingest-event-type```
 
 The same test data as for the default challenge are used.
+
+### High Field cardinality challenge
+
+With this challenge you can test for field explosion created by high cardinality of `tags` in `spans` or `transactions`.
+
+A preparation step is necessary to bring the data into the expected format.
+
+For preparing the benchmark tests with default data, run 
+```
+virtualenv -p python3 rally/.venv
+source rally/.venv/bin/activate
+pip install -r rally/_tools/requirements.txt
+python ./rally/_tools/prepare.py --skip-daily
+
+```
+
+By default 500 random tags are created. You can change that by applying cmd line options when starting the 
+preparation step. Use `python ./rally/_tools/prepare.py --help` for more information about available options.
+
+Base data used for this track are dumped from example Opbeans applications, instrumented with different agents. The dump was 
+created in October 2018. The base data are stored in a s3 bucket and consist of [error](`http://benchmarks.elasticsearch.org.s3.amazonaws.com/corpora/apm/error_base.json.bzip2`), 
+[span](`http://benchmarks.elasticsearch.org.s3.amazonaws.com/corpora/apm/span_base.json.bzip2`) and 
+[transaction](`http://benchmarks.elasticsearch.org.s3.amazonaws.com/corpora/apm/transaction_base.json.bzip2`) data.
+
+After preparing the test data, run: 
+
+```esrally --track-path=<local-path-to-apm-track> --track-params="event_type:'<span|transaction>'" --challenge=ingest-field-explosion```
+
 
 ### Test Query performance
 For testing query performance it can be important to have data split up into multiple daily indices. A preparation step 

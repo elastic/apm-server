@@ -22,6 +22,16 @@
       "body": "index.json",
       "types": [ "type" ]
     },
+    {
+      "name": "apm-transaction-tags",
+      "body": "index.json",
+      "types": [ "type" ]
+    },
+    {
+      "name": "apm-span-tags",
+      "body": "index.json",
+      "types": [ "type" ]
+    },
     {% set comma = joiner() %}
     {% for item in range(index_count) %}
     {{ comma() }}
@@ -68,6 +78,22 @@
           "document-count": 1457292,
           "compressed-bytes": 250706365,
           "uncompressed-bytes": 13361279823
+        }
+      ]
+    },
+    {
+      "name": "apm-events-with-tags",
+      "target-type": "type",
+      "documents": [
+        {
+          "target-index": "apm-transaction-tags",
+          "source-file": "corpora/transaction-tags.json",
+          "document-count": 383498
+        },
+        {
+          "target-index": "apm-span-tags",
+          "source-file": "corpora/span-tags.json",
+          "document-count": 485764
         }
       ]
     },
