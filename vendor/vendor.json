@@ -583,12 +583,6 @@
 			"versionExact": "6.4"
 		},
 		{
-			"path": "github.com/elastic/beats/libbeat/common/kafka",
-			"revision": "6.4",
-			"version": "6.4",
-			"versionExact": "6.4"
-		},
-		{
 			"checksumSHA1": "1dLYXgcFynpncg5WCArJl6w2aqg=",
 			"path": "github.com/elastic/beats/libbeat/common/kubernetes",
 			"revision": "151c55e3ced102b4056e2a3f62acc82e288d8368",
@@ -601,12 +595,6 @@
 			"path": "github.com/elastic/beats/libbeat/common/match",
 			"revision": "151c55e3ced102b4056e2a3f62acc82e288d8368",
 			"revisionTime": "2018-10-17T14:53:47Z",
-			"version": "6.4",
-			"versionExact": "6.4"
-		},
-		{
-			"path": "github.com/elastic/beats/libbeat/common/reload",
-			"revision": "6.4",
 			"version": "6.4",
 			"versionExact": "6.4"
 		},
@@ -727,12 +715,6 @@
 			"path": "github.com/elastic/beats/libbeat/logp/configure",
 			"revision": "151c55e3ced102b4056e2a3f62acc82e288d8368",
 			"revisionTime": "2018-10-17T14:53:47Z",
-			"version": "6.4",
-			"versionExact": "6.4"
-		},
-		{
-			"path": "github.com/elastic/beats/libbeat/management",
-			"revision": "6.4",
 			"version": "6.4",
 			"versionExact": "6.4"
 		},
@@ -985,22 +967,10 @@
 			"versionExact": "6.4"
 		},
 		{
-			"path": "github.com/elastic/beats/libbeat/processors/add_process_metadata",
-			"revision": "6.4",
-			"version": "6.4",
-			"versionExact": "6.4"
-		},
-		{
 			"checksumSHA1": "vKkAm3Mz4r2bcYahkyK/DkxT6sM=",
 			"path": "github.com/elastic/beats/libbeat/processors/dissect",
 			"revision": "151c55e3ced102b4056e2a3f62acc82e288d8368",
 			"revisionTime": "2018-10-17T14:53:47Z",
-			"version": "6.4",
-			"versionExact": "6.4"
-		},
-		{
-			"path": "github.com/elastic/beats/libbeat/processors/dns",
-			"revision": "6.4",
 			"version": "6.4",
 			"versionExact": "6.4"
 		},
