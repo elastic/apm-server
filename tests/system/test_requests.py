@@ -2,8 +2,10 @@ from collections import defaultdict
 import gzip
 import json
 import requests
+import sys
 import threading
 import time
+import unittest
 import zlib
 
 from nose.tools import raises
@@ -217,6 +219,7 @@ class CorsTest(CorsBaseTest):
 
 class RateLimitTest(ClientSideBaseTest):
 
+    @unittest.skipIf(sys.platform.startswith("win"), "broken on Windows")
     def test_rate_limit(self):
         transactions = self.get_transaction_payload()
         threads = []
@@ -242,6 +245,7 @@ class RateLimitTest(ClientSideBaseTest):
         time.sleep(3)
         assert fire() == 202
 
+    @unittest.skipIf(sys.platform.startswith("win"), "broken on Windows")
     def test_rate_limit_multiple_ips(self):
         transactions = self.get_transaction_payload()
         threads = []
