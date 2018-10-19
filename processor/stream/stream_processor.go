@@ -190,7 +190,7 @@ func (v *StreamProcessor) HandleRawModel(rawModel map[string]interface{}) (trans
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+func (s *StreamProcessor) readBatch(rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
 	var (
 		err        error
 		rawModel   map[string]interface{}
@@ -199,7 +199,7 @@ func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batch
 
 	if rl != nil {
 		// use provided rate limiter to throttle batch read
-		ctxT, cancel := context.WithTimeout(ctx, time.Second)
+		ctxT, cancel := context.WithTimeout(context.Background(), time.Second)
 		err = rl.WaitN(ctxT, batchSize)
 		cancel()
 		if err != nil {
@@ -267,7 +267,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 
 	for {
 
-		transformables, done := s.readBatch(ctx, rl, batchSize, jsonReader, res)
+		transformables, done := s.readBatch(rl, batchSize, jsonReader, res)
 		if transformables != nil {
 			err := report(ctx, publish.PendingReq{
 				Transformables: transformables,
