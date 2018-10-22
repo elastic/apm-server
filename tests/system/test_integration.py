@@ -27,6 +27,19 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_template(self):
+        """
+        This test starts the beat and checks that the template has been loaded to ES
+        """
+        self.wait_until(lambda: self.es.indices.exists(self.index_name))
+        self.es.indices.refresh(index=self.index_name)
+        templates = self.es.indices.get_template(self.index_name)
+        assert len(templates) == 1
+        t = templates[self.index_name]
+        total_fields_limit = t['settings']['index']['mapping']['total_fields']['limit']
+        assert total_fields_limit == "2000", total_fields_limit
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_transaction(self):
         """
         This test starts the beat with a loaded template and sends transaction data to elasticsearch.
