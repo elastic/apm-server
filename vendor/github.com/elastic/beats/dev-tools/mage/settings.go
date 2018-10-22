@@ -65,12 +65,9 @@ var (
 
 	Snapshot bool
 
-	versionQualified bool
-	versionQualifier string
-
 	FuncMap = map[string]interface{}{
 		"beat_doc_branch":   BeatDocBranch,
-		"beat_version":      BeatQualifiedVersion,
+		"beat_version":      BeatVersion,
 		"commit":            CommitHash,
 		"date":              BuildDate,
 		"elastic_beats_dir": ElasticBeatsDir,
@@ -101,8 +98,6 @@ func init() {
 	if err != nil {
 		panic(errors.Errorf("failed to parse SNAPSHOT env value", err))
 	}
-
-	versionQualifier, versionQualified = os.LookupEnv("BEAT_VERSION_QUALIFIER")
 }
 
 // EnvMap returns map containing the common settings variables and all variables
@@ -135,7 +130,6 @@ func varMap(args ...map[string]interface{}) map[string]interface{} {
 		"BeatLicense":     BeatLicense,
 		"BeatURL":         BeatURL,
 		"Snapshot":        Snapshot,
-		"Qualifier":       versionQualifier,
 	}
 
 	// Add the extra args to the map.
@@ -151,19 +145,18 @@ func varMap(args ...map[string]interface{}) map[string]interface{} {
 func dumpVariables() (string, error) {
 	var dumpTemplate = `## Variables
 
-GOOS             = {{.GOOS}}
-GOARCH           = {{.GOARCH}}
-GOARM            = {{.GOARM}}
-Platform         = {{.Platform}}
-BinaryExt        = {{.BinaryExt}}
-BeatName         = {{.BeatName}}
-BeatServiceName  = {{.BeatServiceName}}
-BeatIndexPrefix  = {{.BeatIndexPrefix}}
-BeatDescription  = {{.BeatDescription}}
-BeatVendor       = {{.BeatVendor}}
-BeatLicense      = {{.BeatLicense}}
-BeatURL          = {{.BeatURL}}
-VersionQualifier = {{.Qualifier}}
+GOOS            = {{.GOOS}}
+GOARCH          = {{.GOARCH}}
+GOARM           = {{.GOARM}}
+Platform        = {{.Platform}}
+BinaryExt       = {{.BinaryExt}}
+BeatName        = {{.BeatName}}
+BeatServiceName = {{.BeatServiceName}}
+BeatIndexPrefix = {{.BeatIndexPrefix}}
+BeatDescription = {{.BeatDescription}}
+BeatVendor      = {{.BeatVendor}}
+BeatLicense     = {{.BeatLicense}}
+BeatURL         = {{.BeatURL}}
 
 ## Functions
 
@@ -317,23 +310,9 @@ var (
 	beatVersionOnce  sync.Once
 )
 
-// BeatQualifiedVersion returns the Beat's qualified version.  The value can be overwritten by
-// setting BEAT_VERSION_QUALIFIER in the environment.
-func BeatQualifiedVersion() (string, error) {
-	version, err := beatVersion()
-	if err != nil {
-		return "", err
-	}
-	// version qualifier can intentionally be set to "" to override build time var
-	if !versionQualified || versionQualifier == "" {
-		return version, nil
-	}
-	return version + "-" + versionQualifier, nil
-}
-
 // BeatVersion returns the Beat's version. The value can be overridden by
 // setting BEAT_VERSION in the environment.
-func beatVersion() (string, error) {
+func BeatVersion() (string, error) {
 	beatVersionOnce.Do(func() {
 		beatVersionValue = os.Getenv("BEAT_VERSION")
 		if beatVersionValue != "" {

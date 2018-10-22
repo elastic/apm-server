@@ -261,25 +261,6 @@ func checkModulesOwner(t *testing.T, p *packageFile) {
 	})
 }
 
-// Verify that the systemd unit file has a mode of 0644. It should not be
-// executable.
-func checkSystemdUnitPermissions(t *testing.T, p *packageFile) {
-	const expectedMode = os.FileMode(0644)
-	t.Run(p.Name+" systemd unit file permissions", func(t *testing.T) {
-		for _, entry := range p.Contents {
-			if systemdUnitFilePattern.MatchString(entry.File) {
-				mode := entry.Mode.Perm()
-				if expectedMode != mode {
-					t.Errorf("file %v has wrong permissions: expected=%v actual=%v",
-						entry.File, expectedMode, mode)
-				}
-				return
-			}
-		}
-		t.Errorf("no systemd unit file found matching %v", configFilePattern)
-	})
-}
-
 // Verify that modules folder is present and has module files in
 func checkModulesPresent(t *testing.T, prefix string, p *packageFile) {
 	if *modules {
@@ -308,6 +289,25 @@ func checkModules(t *testing.T, name, prefix string, r *regexp.Regexp, p *packag
 			t.Errorf("not enough modules found under %s: actual=%d, expected>=%d",
 				name, total, minExpectedModules)
 		}
+	})
+}
+
+// Verify that the systemd unit file has a mode of 0644. It should not be
+// executable.
+func checkSystemdUnitPermissions(t *testing.T, p *packageFile) {
+	const expectedMode = os.FileMode(0644)
+	t.Run(p.Name+" systemd unit file permissions", func(t *testing.T) {
+		for _, entry := range p.Contents {
+			if systemdUnitFilePattern.MatchString(entry.File) {
+				mode := entry.Mode.Perm()
+				if expectedMode != mode {
+					t.Errorf("file %v has wrong permissions: expected=%v actual=%v",
+						entry.File, expectedMode, mode)
+				}
+				return
+			}
+		}
+		t.Errorf("no systemd unit file found matching %v", configFilePattern)
 	})
 }
 

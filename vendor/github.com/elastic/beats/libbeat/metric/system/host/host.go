@@ -34,7 +34,6 @@ func MapHostInfo(info types.HostInfo) common.MapStr {
 				"platform": info.OS.Platform,
 				"version":  info.OS.Version,
 				"family":   info.OS.Family,
-				"kernel":   info.KernelVersion,
 			},
 		},
 	}
@@ -73,7 +72,6 @@ func ReportInfo(_ monitoring.Mode, V monitoring.Visitor) {
 		monitoring.ReportString(V, "platform", info.OS.Platform)
 		monitoring.ReportString(V, "version", info.OS.Version)
 		monitoring.ReportString(V, "family", info.OS.Family)
-		monitoring.ReportString(V, "kernel", info.KernelVersion)
 
 		if info.OS.Codename != "" {
 			monitoring.ReportString(V, "codename", info.OS.Codename)

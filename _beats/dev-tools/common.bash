@@ -83,14 +83,10 @@ jenkins_setup() {
   : "${HOME:?Need to set HOME to a non-empty value.}"
   : "${WORKSPACE:?Need to set WORKSPACE to a non-empty value.}"
 
-  if [ -z ${GO_VERSION:-} ]; then
-    get_go_version
-  fi
-
   # Setup Go.
   export GOPATH=${WORKSPACE}
   export PATH=${GOPATH}/bin:${PATH}
-  eval "$(gvm ${GO_VERSION})"
+  eval "$(gvm $(cat .go-version))"
 
   # Workaround for Python virtualenv path being too long.
   export TEMP_PYTHON_ENV=$(mktemp -d)

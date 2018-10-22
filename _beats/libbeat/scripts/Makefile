@@ -1,7 +1,6 @@
 ### VARIABLE SETUP ###
 ### Application using libbeat may override the following variables in their Makefile
 BEAT_NAME?=libbeat## @packaging Name of the binary
-LICENSE?=ASL2
 BEAT_TITLE?=${BEAT_NAME}## @packaging Title of the application
 BEAT_PATH?=github.com/elastic/beats/${BEAT_NAME}
 BEAT_PACKAGE_NAME?=${BEAT_NAME}
@@ -31,10 +30,10 @@ comma:=,
 ARCH?=$(shell uname -m)
 # Hidden directory to install dependencies for jenkins
 export PATH := ./bin:$(PATH)
-GOFILES = $(shell find . -type f -name '*.go' 2>/dev/null)
-GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "*/vendor/*" 2>/dev/null)
-GOFILES_ALL = $(GOFILES) $(shell find $(ES_BEATS) -type f -name '*.go' 2>/dev/null)
-GOPACKAGES_STRESSTESTS=$(shell find . -name '*.go' 2>/dev/null | xargs awk 'FNR>1 {nextfile} /\+build.*stresstest/ {print FILENAME; nextfile}' | xargs dirname | uniq)
+GOFILES = $(shell find . -type f -name '*.go')
+GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "*/vendor/*")
+GOFILES_ALL = $(GOFILES) $(shell find $(ES_BEATS) -type f -name '*.go')
+GOPACKAGES_STRESSTESTS=$(shell find . -name '*.go' | xargs awk 'FNR>1 {nextfile} /\+build.*stresstest/ {print FILENAME; nextfile}' | xargs dirname | uniq)
 SHELL=bash
 ES_HOST?="elasticsearch"
 PWD=$(shell pwd)
@@ -48,7 +47,7 @@ TESTIFY_TOOL_REPO?=github.com/elastic/beats/vendor/github.com/stretchr/testify/a
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GOBUILD_FLAGS?=-i -ldflags "-X github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 GOIMPORTS=goimports
-GOIMPORTS_REPO?=golang.org/x/tools/cmd/goimports
+GOIMPORTS_REPO?=github.com/elastic/beats/vendor/golang.org/x/tools/cmd/goimports
 GOIMPORTS_LOCAL_PREFIX?=github.com/elastic
 GOLINT=golint
 GOLINT_REPO?=github.com/golang/lint/golint
@@ -57,7 +56,7 @@ REVIEWDOG_OPTIONS?=-diff "git diff master"
 REVIEWDOG_REPO?=github.com/haya14busa/reviewdog/cmd/reviewdog
 PROCESSES?= 4
 TIMEOUT?= 90
-PYTHON_TEST_FILES?=$(shell find . -type f -name 'test_*.py' -not -path "*/build/*" -not -path "*/vendor/*" 2>/dev/null)
+PYTHON_TEST_FILES?=$(shell find . -type f -name 'test_*.py' -not -path "*/build/*" -not -path "*/vendor/*")
 NOSETESTS_OPTIONS?=--process-timeout=$(TIMEOUT) --with-timer -v --with-xunit --xunit-file=${BUILD_DIR}/TEST-system.xml ## @testing the options to pass when calling nosetests
 TEST_ENVIRONMENT?=false ## @testing if true, "make testsuite" runs integration tests and system tests in a dockerized test environment
 SYSTEM_TESTS?=false ## @testing if true, "make test" and "make testsuite" run unit tests and system tests
@@ -122,15 +121,15 @@ check: check-headers python-env prepare-tests ## @build Checks project and sourc
 .PHONY: check-headers
 check-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@go get -u github.com/elastic/go-licenser
-	@go-licenser -d -license ${LICENSE}
+	@go get github.com/elastic/go-licenser
+	@go-licenser -d
 endif
 
 .PHONY: add-headers
 add-headers:
 ifndef CHECK_HEADERS_DISABLED
 	@go get github.com/elastic/go-licenser
-	@go-licenser -license ${LICENSE}
+	@go-licenser
 endif
 
 .PHONY: fmt
@@ -330,14 +329,12 @@ endif
 
 ifneq ($(shell [[ $(BEAT_NAME) == libbeat || $(BEAT_NAME) == metricbeat ]] && echo true ),true)
 	mkdir -p include
-	go run  ${ES_BEATS}/dev-tools/cmd/asset/asset.go -pkg include -in fields.yml -out include/fields.go $(BEAT_NAME)
+	go run  ${ES_BEATS}/dev-tools/cmd/asset/asset.go -pkg include -in fields.yml -out include/fields.go $(BEAT_NAME) 
 endif
 
-ifneq ($(shell [[ $(BEAT_NAME) == libbeat ]] && echo true ),true)
 	@# Update docs
 	@mkdir -p docs
 	@${PYTHON_ENV}/bin/python ${ES_BEATS}/libbeat/scripts/generate_fields_docs.py $(PWD) ${BEAT_TITLE} ${ES_BEATS}
-endif
 
 	@mkdir -p $(PWD)/_meta/kibana.generated
 	@# Generate Kibana index pattern and copy dashboard files
@@ -447,6 +444,6 @@ endif
 release: mage
 	@mage package
 
-.PHONY: snapshot
+.PHONY: package
 snapshot: mage
 	@SNAPSHOT=true mage package

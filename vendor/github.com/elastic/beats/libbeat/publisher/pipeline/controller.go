@@ -33,6 +33,7 @@ import (
 type outputController struct {
 	beat     beat.Info
 	monitors Monitors
+
 	logger   *logp.Logger
 	observer outputObserver
 

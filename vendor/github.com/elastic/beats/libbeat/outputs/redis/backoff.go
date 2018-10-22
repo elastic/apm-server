@@ -112,7 +112,3 @@ func (b *backoffClient) resetFail() {
 	b.reason = failNone
 	b.backoff.Reset()
 }
-
-func (b *backoffClient) String() string {
-	return b.client.String()
-}

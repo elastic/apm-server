@@ -30,7 +30,6 @@ type Observer interface {
 	WriteBytes(int)   // report number of bytes being written
 	ReadError(error)  // report an I/O error on read
 	ReadBytes(int)    // report number of bytes being read
-	ErrTooMany(int)   // report too many requests response
 }
 
 type emptyObserver struct{}
@@ -52,4 +51,3 @@ func (*emptyObserver) WriteError(error) {}
 func (*emptyObserver) WriteBytes(int)   {}
 func (*emptyObserver) ReadError(error)  {}
 func (*emptyObserver) ReadBytes(int)    {}
-func (*emptyObserver) ErrTooMany(int)   {}

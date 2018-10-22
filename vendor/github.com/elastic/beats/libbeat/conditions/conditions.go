@@ -24,8 +24,6 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-const logName = "conditions"
-
 // Config represents a configuration for a condition, as you would find it in the config files.
 type Config struct {
 	Equals    *Fields  `config:"equals"`
@@ -92,7 +90,7 @@ func NewCondition(config *Config) (Condition, error) {
 		return nil, err
 	}
 
-	logp.L().Named(logName).Debugf("New condition %v", condition)
+	logp.Debug("processors", "New condition %s", condition)
 	return condition, nil
 }
 

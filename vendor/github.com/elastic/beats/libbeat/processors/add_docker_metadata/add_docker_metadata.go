@@ -85,7 +85,7 @@ func buildDockerMetadataProcessor(cfg *common.Config, watcherConstructor docker.
 	if config.MatchSource {
 		var procConf, _ = common.NewConfigFrom(map[string]interface{}{
 			"field":     "source",
-			"separator": string(os.PathSeparator),
+			"separator": "/",
 			"index":     config.SourceIndex,
 			"target":    "docker.container.id",
 		})
