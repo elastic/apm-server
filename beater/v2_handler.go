@@ -114,8 +114,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 		}
 
 		ctx := r.Context()
-		if v.rlc != nil {
-			rl := v.rlc.getRateLimiter(utility.RemoteAddr(r))
+		if rl, ok := v.rlc.getRateLimiter(utility.RemoteAddr(r)); ok {
 			if !rl.Allow() {
 				sr := stream.Result{}
 				sr.Add(&stream.Error{
