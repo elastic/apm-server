@@ -35,8 +35,8 @@ import (
 	"github.com/elastic/beats/libbeat/paths"
 	"github.com/elastic/beats/libbeat/publisher/pipeline/stress"
 	_ "github.com/elastic/beats/libbeat/publisher/queue/memqueue"
-	_ "github.com/elastic/beats/libbeat/publisher/queue/spool" // import outputs
-	"github.com/elastic/beats/libbeat/service"                 // import queue types
+	_ "github.com/elastic/beats/libbeat/publisher/queue/spool"
+	"github.com/elastic/beats/libbeat/service"
 )
 
 var (
