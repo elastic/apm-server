@@ -1,7 +1,7 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
+https://github.com/elastic/apm-server/compare/6.4\...6.x[View commits]
 
 [float]
 === Added

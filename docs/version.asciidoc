@@ -1,5 +1,5 @@
-:stack-version: 7.0.0-alpha1
-:doc-branch: master
+:stack-version: 6.5.0
+:doc-branch: 6.x
 :branch: {doc-branch}
 :go-version: 1.10.3
 :release-state: unreleased
