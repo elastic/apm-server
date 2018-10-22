@@ -63,10 +63,10 @@ func NewRlCache(size, rateLimit int) (*rlCache, error) {
 	return &rlc, nil
 }
 
-func (rlc *rlCache) getRateLimiter(key string) *rate.Limiter {
+func (rlc *rlCache) getRateLimiter(key string) (*rate.Limiter, bool) {
 	// fetch the rate limiter from the cache, if a cache is given
-	if rlc.cache == nil || rlc.limit == -1 {
-		return nil
+	if rlc == nil || rlc.cache == nil || rlc.limit == -1 {
+		return nil, false
 	}
 
 	// lock get and add action for cache to allow proper eviction handling without
@@ -75,7 +75,7 @@ func (rlc *rlCache) getRateLimiter(key string) *rate.Limiter {
 	defer rlc.mu.Unlock()
 
 	if l, ok := rlc.cache.Get(key); ok {
-		return *l.(**rate.Limiter)
+		return *l.(**rate.Limiter), true
 	}
 
 	var limiter *rate.Limiter
@@ -84,5 +84,5 @@ func (rlc *rlCache) getRateLimiter(key string) *rate.Limiter {
 	} else {
 		limiter = rate.NewLimiter(rate.Limit(rlc.limit), rlc.limit*burstMultiplier)
 	}
-	return limiter
+	return limiter, true
 }

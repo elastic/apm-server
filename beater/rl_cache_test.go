@@ -48,20 +48,20 @@ func TestCacheEviction(t *testing.T) {
 	require.NoError(t, err)
 
 	// add new limiter
-	rl_a := rlc.getRateLimiter("a")
+	rl_a, _ := rlc.getRateLimiter("a")
 	rl_a.AllowN(time.Now(), 3)
 
 	// add new limiter
-	rl_b := rlc.getRateLimiter("b")
+	rl_b, _ := rlc.getRateLimiter("b")
 	rl_b.AllowN(time.Now(), 2)
 
 	// reuse evicted limiter rl_a
-	rl_c := rlc.getRateLimiter("c")
+	rl_c, _ := rlc.getRateLimiter("c")
 	assert.False(t, rl_c.Allow())
 	assert.Equal(t, rl_c, rlc.evictedLimiter)
 
 	// reuse evicted limiter rl_b
-	rl_d := rlc.getRateLimiter("a")
+	rl_d, _ := rlc.getRateLimiter("a")
 	assert.True(t, rl_d.Allow())
 	assert.False(t, rl_d.Allow())
 	assert.Equal(t, rl_d, rlc.evictedLimiter)
@@ -70,4 +70,30 @@ func TestCacheEviction(t *testing.T) {
 	rlc.evictedLimiter = nil
 	assert.NotNil(t, rl_d)
 	assert.NotNil(t, rl_c)
+}
+
+func TestCacheOk(t *testing.T) {
+	var rlc *rlCache
+	_, ok := rlc.getRateLimiter("a")
+	assert.False(t, ok)
+
+	var cache = func() *rlCache {
+		rlc, err := NewRlCache(1, 1)
+		require.NoError(t, err)
+		return rlc
+	}
+
+	rlc = cache()
+	rlc.limit = -1
+	_, ok = rlc.getRateLimiter("a")
+	assert.False(t, ok)
+
+	rlc = cache()
+	rlc.cache = nil
+	_, ok = rlc.getRateLimiter("a")
+	assert.False(t, ok)
+
+	rlc = cache()
+	_, ok = rlc.getRateLimiter("a")
+	assert.True(t, ok)
 }
