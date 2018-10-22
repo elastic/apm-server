@@ -6,23 +6,35 @@ apm-server:
   # Defines the host and port the server is listening on.  use "unix:/path/to.sock" to listen on a unix domain socket.
   host: "localhost:8200"
 
-  # Maximum permitted size in bytes of an unzipped request accepted by the server to be processed.
-  #max_unzipped_size: 31457280
   # Maximum permitted size in bytes of a request's header accepted by the server to be processed.
   #max_header_size: 1048576
 
-  # Maximum duration request will be queued before being read.
-  #max_request_queue_time: 2s
   # Maximum permitted duration for reading an entire request.
   #read_timeout: 30s
+
   # Maximum permitted duration for writing a response.
   #write_timeout: 30s
 
   # Maximum duration in seconds before releasing resources when shutting down the server.
   #shutdown_timeout: 5s
 
+  #-- v1 Intake API (deprecated)
+
+  # Maximum permitted size in bytes of an unzipped request accepted by the server to be processed.
+  #max_unzipped_size: 31457280
+
+  # Maximum duration request will be queued before being read.
+  #max_request_queue_time: 2s
+
   # Maximum number of requests permitted to be sent to the server concurrently.
   #concurrent_requests: 5
+
+  #-- v2 Intake API
+
+  # Maximum allowed size in bytes of a single event
+  #max_event_size: 307200
+
+  #--
 
   # Maximum number of new connections to accept simultaneously (0 means unlimited)
   # max_connections: 0
@@ -42,7 +54,7 @@ apm-server:
     # To enable real user monitoring (RUM) support set this to true.
     #enabled: false
 
-    #-- v1 RUM endpoint
+    #-- v1 RUM endpoint (deprecated)
 
     # Rate limit per second and IP address for requests sent to the RUM endpoint.
     #rate_limit: 10
@@ -50,11 +62,11 @@ apm-server:
     #-- v2 RUM endpoint
 
     #event_rate:
-    
+
       # Defines the maximum amount of events allowed to be sent to the APM Server v2 RUM
       # endpoint per ip per second. Defaults to 300.
       #limit: 300
-      
+
       # An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
       # This setting defines the number of unique IPs that can be tracked in the cache.
       # Sites with many concurrent clients should consider increasing this limit. Defaults to 1000.
@@ -62,7 +74,7 @@ apm-server:
 
     #-- General RUM settings
 
-    # Comma separated list of permitted origins for real user monitoring. 
+    # Comma separated list of permitted origins for real user monitoring.
     # User-agents will send an origin header that will be validated against this list.
     # An origin is made of a protocol scheme, host and port, without the url path.
     # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)
@@ -145,18 +157,18 @@ apm-server:
   #
   # You can manually register pipelines, or use this configuration option to ensure
   # pipelines are loaded and registered at the configured Elasticsearch instances.
-  # Automatic pipeline registration requires 
+  # Automatic pipeline registration requires
   # * `output.elasticsearch` to be enabled and configured.
-  # * having the required Elasticsearch Processor Plugins installed. 
-  #   APM Server default pipelines require you to have the `Ingest User Agent Plugin` installed. 
+  # * having the required Elasticsearch Processor Plugins installed.
+  #   APM Server default pipelines require you to have the `Ingest User Agent Plugin` installed.
   #   Find the default pipeline configuration at `ingest/pipeline/definition.json`.
   #
   #register.ingest.pipeline:
     # Registers pipeline definitions in Elasticsearch on APM Server startup. Defaults to false.
-    #enabled: false 
+    #enabled: false
 
     # Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
-    #overwrite: true 
+    #overwrite: true
 
 #================================ General ======================================
 
@@ -288,7 +300,7 @@ setup.template.settings:
 
 #============================== Deprecated: Kibana =====================================
 
-# Deprecated: Starting with APM Server version 6.4, loading dashboards and index pattern 
+# Deprecated: Starting with APM Server version 6.4, loading dashboards and index pattern
 #             from the APM Server into Kibana is deprecated.
 #             We suggest to use the Kibana UI to load APM Server dashboards and index pattern instead.
 #
