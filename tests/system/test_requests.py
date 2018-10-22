@@ -240,7 +240,7 @@ class RateLimitTest(ClientSideBaseTest):
             t.join()
 
         assert set(codes.keys()) == set([202, 429]), codes
-        assert codes[429] == 1, codes  # considering burst
+        assert codes[429] == 4, codes  # considering burst
 
         time.sleep(3)
         assert fire() == 202
@@ -258,7 +258,7 @@ class RateLimitTest(ClientSideBaseTest):
             codes[r.status_code] += 1
             return r.status_code
 
-        for x in range(20):
+        for x in range(14):
             threads.append(threading.Thread(target=fire, args=(x,)))
 
         for t in threads:

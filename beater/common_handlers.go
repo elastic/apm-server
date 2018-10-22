@@ -302,11 +302,12 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 }
 
 const (
-	rateLimitCacheSize = 1000
+	rateLimitCacheSize       = 1000
+	rateLimitBurstMultiplier = 2
 )
 
 func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
-	rlc, _ := NewRlCache(rateLimitCacheSize, rateLimit)
+	rlc, _ := NewRlCache(rateLimitCacheSize, rateLimit, rateLimitBurstMultiplier)
 
 	var deny = func(ip string) bool {
 		rl, ok := rlc.getRateLimiter(ip)
