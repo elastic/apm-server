@@ -535,11 +535,11 @@ const PayloadSchema = `{
         { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
         { "required": ["log"], "properties": {"log": { "type": "object" }} }
     ]  },
-                    {     "$id": "doc/spec/timestamp_epoch.json",
-    "title": "Timestamp Epoch",
-    "description": "Object with 'timestamp' property.",
+                    {     "$id": "doc/spec/timestamp_rfc3339.json",
+    "title": "Timestamp",
+    "description": "Used for '@timestamp' property.",
     "type": ["object"],
-    "properties": {  
+    "properties": {
         "timestamp": {
             "type": ["string", "null"],
             "pattern": "Z$",
