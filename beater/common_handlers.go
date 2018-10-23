@@ -28,10 +28,8 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/decoder"
@@ -309,14 +307,11 @@ const (
 )
 
 func ipRateLimitHandler(rateLimit int, h http.Handler) http.Handler {
-	cache, _ := lru.New(rateLimitCacheSize)
+	rlc, _ := NewRlCache(rateLimitCacheSize, rateLimit, rateLimitBurstMultiplier)
 
 	var deny = func(ip string) bool {
-		if !cache.Contains(ip) {
-			cache.Add(ip, rate.NewLimiter(rate.Limit(rateLimit), rateLimit*rateLimitBurstMultiplier))
-		}
-		var limiter, _ = cache.Get(ip)
-		return !limiter.(*rate.Limiter).Allow()
+		rl, ok := rlc.getRateLimiter(ip)
+		return !ok || !rl.Allow()
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
