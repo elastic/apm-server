@@ -25,8 +25,6 @@ import (
 	"golang.org/x/time/rate"
 )
 
-const burstMultiplier = 3
-
 // The rlCache is a simple lru cache holding N=size rate limiter entities. Every
 // rate limiter entity allows N=rateLimit hits per key (=IP) per second, and has a
 // burst queue of limit*5.
@@ -37,19 +35,19 @@ const burstMultiplier = 3
 // requests from cache_size*2 unique keys, which would lead to evicted keys and
 // the creation of new rate limiter entities with full allowance.
 type rlCache struct {
-	cache *simplelru.LRU
-	limit int
-
+	cache          *simplelru.LRU
+	limit          int
+	burstFactor    int
 	mu             sync.Mutex //guards limiter in cache
 	evictedLimiter *rate.Limiter
 }
 
-func NewRlCache(size, rateLimit int) (*rlCache, error) {
+func NewRlCache(size, rateLimit, burstFactor int) (*rlCache, error) {
 	if size <= 0 || rateLimit < 0 {
 		return nil, errors.New("cache initialization: size and rateLimit must be greater than zero")
 	}
 
-	rlc := rlCache{limit: rateLimit}
+	rlc := rlCache{limit: rateLimit, burstFactor: burstFactor}
 
 	var onEvicted = func(_ interface{}, value interface{}) {
 		rlc.evictedLimiter = *value.(**rate.Limiter)
@@ -82,7 +80,7 @@ func (rlc *rlCache) getRateLimiter(key string) (*rate.Limiter, bool) {
 	if evicted := rlc.cache.Add(key, &limiter); evicted {
 		limiter = rlc.evictedLimiter
 	} else {
-		limiter = rate.NewLimiter(rate.Limit(rlc.limit), rlc.limit*burstMultiplier)
+		limiter = rate.NewLimiter(rate.Limit(rlc.limit), rlc.limit*rlc.burstFactor)
 	}
 	return limiter, true
 }
