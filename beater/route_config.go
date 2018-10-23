@@ -56,6 +56,8 @@ var (
 	HealthCheckURL                    = "/healthcheck"
 )
 
+const v2BurstMultiplier = 3
+
 type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
 	configurableDecoder func(*Config, decoder.ReqDecoder) decoder.ReqDecoder
@@ -228,7 +230,7 @@ func (v v2Route) Handler(url string, c *Config, report publish.Reporter) http.Ha
 	}
 
 	if url == V2RumURL {
-		if rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit); err == nil {
+		if rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit, v2BurstMultiplier); err == nil {
 			v2Handler.rlc = rlc
 		} else {
 			logp.NewLogger("handler").Error(err.Error())
