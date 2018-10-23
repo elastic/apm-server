@@ -24,6 +24,7 @@ import (
 	_ "github.com/elastic/apm-server/include"
 	"github.com/elastic/beats/libbeat/cmd"
 	"github.com/elastic/beats/libbeat/cmd/instance"
+	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring/report"
 )
 
@@ -37,12 +38,29 @@ const IdxPattern = "apm"
 var RootCmd *cmd.BeatsRootCmd
 
 func init() {
+	overrides, _ := common.NewConfigFrom(map[string]interface{}{
+		"setup": map[string]interface{}{
+			"template": map[string]interface{}{
+				"settings": map[string]interface{}{
+					"index": map[string]interface{}{
+						"mapping": map[string]interface{}{
+							"total_fields": map[string]int{
+								"limit": 2000,
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
 	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
 	RootCmd = cmd.GenRootCmdWithSettings(beater.New, instance.Settings{
-		Name:        Name,
-		IndexPrefix: IdxPattern,
-		Version:     "",
-		RunFlags:    runFlags,
+		ConfigOverrides: overrides,
+		Name:            Name,
+		IndexPrefix:     IdxPattern,
+		Version:         "",
+		RunFlags:        runFlags,
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",
 		},
