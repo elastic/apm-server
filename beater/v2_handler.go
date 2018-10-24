@@ -19,7 +19,12 @@ package beater
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"strings"
+
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"
@@ -99,46 +104,79 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 	}
 }
 
+func (v *v2Handler) sendError(logger *logp.Logger, w http.ResponseWriter, err *stream.Error) {
+	sr := stream.Result{}
+	sr.Add(&stream.Error{
+		Type:    stream.MethodForbiddenErrType,
+		Message: "only POST requests are supported",
+	})
+	v.sendResponse(logger, w, &sr)
+	return
+}
+
+func (v *v2Handler) validateRequest(r *http.Request) *stream.Error {
+	if r.Method != "POST" {
+		return &stream.Error{
+			Type:    stream.MethodForbiddenErrType,
+			Message: "only POST requests are supported",
+		}
+	}
+
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/x-ndjson") {
+		return &stream.Error{
+			Type:    stream.InvalidInputErrType,
+			Message: fmt.Sprintf("invalid content type: '%s'", r.Header.Get("Content-Type")),
+		}
+	}
+	return nil
+}
+
+func (v *v2Handler) rateLimit(r *http.Request) (*rate.Limiter, *stream.Error) {
+	if rl, ok := v.rlc.getRateLimiter(utility.RemoteAddr(r)); ok {
+		if !rl.Allow() {
+			return nil, &stream.Error{
+				Type:    stream.RateLimitErrType,
+				Message: "rate limit exceeded",
+			}
+		}
+		return rl, nil
+	}
+	return nil, nil
+}
+
+func (v *v2Handler) bodyReader(r *http.Request) (io.ReadCloser, *stream.Error) {
+	reader, err := decoder.CompressedRequestReader(r)
+	if err != nil {
+		return nil, &stream.Error{
+			Type:    stream.InvalidInputErrType,
+			Message: err.Error(),
+		}
+	}
+	return reader, nil
+}
+
 func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := requestLogger(r)
 
-		if r.Method != "POST" {
-			sr := stream.Result{}
-			sr.Add(&stream.Error{
-				Type:    stream.MethodForbiddenErrType,
-				Message: "only POST requests are supported",
-			})
-			v.sendResponse(logger, w, &sr)
+		serr := v.validateRequest(r)
+		if serr != nil {
+			v.sendError(logger, w, serr)
 			return
 		}
 
-		ctx := r.Context()
-		if rl, ok := v.rlc.getRateLimiter(utility.RemoteAddr(r)); ok {
-			if !rl.Allow() {
-				sr := stream.Result{}
-				sr.Add(&stream.Error{
-					Type:    stream.RateLimitErrType,
-					Message: "rate limit exceeded",
-				})
-				v.sendResponse(logger, w, &sr)
-				return
-			}
-			ctx = stream.ContextWithRateLimiter(ctx, rl)
-		}
-
-		ndReader, err := decoder.NDJSONStreamDecodeCompressedWithLimit(r, beaterConfig.MaxEventSize)
-		if err != nil {
-			// if we can't set up the ndjsonreader,
-			// we won't be able to make sense of the body
-			sr := stream.Result{}
-			sr.Add(&stream.Error{
-				Type:    stream.InvalidInputErrType,
-				Message: err.Error(),
-			})
-			v.sendResponse(logger, w, &sr)
+		rl, serr := v.rateLimit(r)
+		if serr != nil {
+			v.sendError(logger, w, serr)
 			return
 		}
+
+		reader, serr := v.bodyReader(r)
+		if serr != nil {
+			v.sendError(logger, w, serr)
+			return
+		}
+
 		// extract metadata information from the request, like user-agent or remote address
 		reqMeta, err := v.requestDecoder(r)
 		if err != nil {
@@ -147,7 +185,7 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 			v.sendResponse(logger, w, &sr)
 			return
 		}
-		res := v.streamProcessor.HandleStream(ctx, reqMeta, ndReader, report)
+		res := v.streamProcessor.HandleStream(r.Context(), rl, reqMeta, reader, report)
 
 		v.sendResponse(logger, w, res)
 	})

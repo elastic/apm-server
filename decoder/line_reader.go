@@ -28,16 +28,14 @@ var ErrLineTooLong = errors.New("Line exceeded permitted length")
 
 // LineReader reads length-limited lines from streams using a limited amount of memory.
 type LineReader struct {
-	reader        io.Reader
 	br            *bufio.Reader
 	maxLineLength int
 	skip          bool
 }
 
-func NewLineReader(reader io.Reader, maxLineLength int) *LineReader {
+func NewLineReader(reader *bufio.Reader, maxLineLength int) *LineReader {
 	return &LineReader{
-		reader:        reader,
-		br:            bufio.NewReaderSize(reader, maxLineLength),
+		br:            reader,
 		maxLineLength: maxLineLength,
 	}
 }

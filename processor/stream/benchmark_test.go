@@ -29,7 +29,6 @@ import (
 
 	r "golang.org/x/time/rate"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
 )
@@ -48,8 +47,8 @@ func BenchmarkStreamProcessor(b *testing.B) {
 		b.Error(err)
 	}
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
-	ctx := ContextWithRateLimiter(context.Background(), r.NewLimiter(r.Limit(math.MaxFloat64-1), math.MaxInt32))
-	sp := &StreamProcessor{}
+	rl := r.NewLimiter(r.Limit(math.MaxFloat64-1), math.MaxInt32)
+	sp := &StreamProcessor{MaxEventSize: 100000}
 	for _, f := range files {
 		b.Run(f.Name(), func(b *testing.B) {
 			data, err := loader.LoadDataAsBytes(filepath.Join(dir, f.Name()))
@@ -63,9 +62,8 @@ func BenchmarkStreamProcessor(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				r.Reset(data)
-				reader := decoder.NewNDJSONStreamReader(r, 100000)
 				b.StartTimer()
-				sp.HandleStream(ctx, map[string]interface{}{}, reader, report)
+				sp.HandleStream(context.Background(), rl, map[string]interface{}{}, ioutil.NopCloser(r), report)
 			}
 		})
 	}
