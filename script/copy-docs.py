@@ -24,6 +24,7 @@ def main():
             target = os.path.join(root, fname)
             source = os.path.join(args.source_dir, os.path.join(root[start::], fname))
             try:
+                print("Copying {} to {}".format(source, target))
                 shutil.copyfile(source, target)
             except:
                 print("File doesn't exist: {}".format(source))
