@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 library identifier: 'apm@master', 
 retriever: modernSCM(
   [$class: 'GitSCMSource', 
