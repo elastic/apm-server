@@ -377,7 +377,7 @@ pipeline {
           agent { label 'linux' }
           steps {
             build(
-              job: 'apm-server-ci/apm-integration-testing-pipeline', 
+              job: 'apm-server-ci/apm-integration-test-pipeline', 
               parameters: [
                 string(name: 'JOB_INTEGRATION_TEST_BRANCH_SPEC', value: "${JOB_INTEGRATION_TEST_BRANCH_SPEC}"), 
                 string(name: 'ELASTIC_STACK_VERSION', value: "${ELASTIC_STACK_VERSION}"), 
