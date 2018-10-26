@@ -26,6 +26,8 @@ pipeline {
     timestamps()
     preserveStashes()
     ansiColor('xterm')
+    disableResume()
+    durabilityHint('PERFORMANCE_OPTIMIZED')]
   }
   parameters {
     string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (<branchName>, <tagName>, <commitId>, etc.)")
@@ -220,6 +222,7 @@ pipeline {
                 sh """#!/bin/bash
                 ./script/jenkins/linux-test.sh
                 """
+                codecov('apm-server')
               }
             }
           }
@@ -323,19 +326,11 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){  
-                copyArtifacts filter: 'bench-last.txt', fingerprintArtifacts: true, optional: true, projectName: "${JOB_NAME}", selector: lastCompleted()
                 sh """#!/bin/bash
                 go get -u golang.org/x/tools/cmd/benchcmp
-                make bench | tee bench-new.txt
-                [ -f bench-new.txt ] && cat bench-new.txt
-                [ -f bench-last.txt ] && benchcmp bench-last.txt bench-new.txt | tee bench-diff.txt 
-                [ -f bench-last.txt ] && mv bench-last.txt bench-old.txt
-                mv bench-new.txt bench-last.txt
+                make bench | tee bench.out
                 """
-                /** TODO send the benchmarks to ES */
-                archiveArtifacts allowEmptyArchive: true, artifacts: "bench-last.txt", onlyIfSuccessful: false
-                archiveArtifacts allowEmptyArchive: true, artifacts: "bench-old.txt", onlyIfSuccessful: false
-                archiveArtifacts allowEmptyArchive: true, artifacts: "bench-diff.txt", onlyIfSuccessful: false
+                sendBenchmarks()
               }
             }
           }
@@ -524,33 +519,49 @@ pipeline {
     }
     success { 
       echo 'Success Post Actions'
-      updateGithubCommitStatus(
-        repoUrl: "${JOB_GIT_URL}",
-        commitSha: "${JOB_GIT_COMMIT}",
-        message: "## :green_heart: Build Succeeded\n [${JOB_NAME}](${BUILD_URL})",
-      )
+      script {
+        if(env?.CHANGE_ID){
+          updateGithubCommitStatus(
+            repoUrl: "${JOB_GIT_URL}",
+            commitSha: "${JOB_GIT_COMMIT}",
+            message: "## :green_heart: Build Succeeded\n [${JOB_NAME}](${BUILD_URL})",
+          )
+        }
+      }
     }
     aborted { 
       echo 'Aborted Post Actions'
-      setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
-        commitSha: "${JOB_GIT_COMMIT}",
-        message: "## :broken_heart: Build Aborted\n [${JOB_NAME}](${BUILD_URL})",
-        state: "error")
+      script {
+        if(env?.CHANGE_ID){
+          setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
+            commitSha: "${JOB_GIT_COMMIT}",
+            message: "## :broken_heart: Build Aborted\n [${JOB_NAME}](${BUILD_URL})",
+            state: "error")
+        }
+      }
     }
     failure { 
       echo 'Failure Post Actions'
       //step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
-      setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
-        commitSha: "${JOB_GIT_COMMIT}",
-        message: "## :broken_heart: Build Failed\n [${JOB_NAME}](${BUILD_URL})",
-        state: "failure")
+      script {
+        if(env?.CHANGE_ID){
+          setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
+            commitSha: "${JOB_GIT_COMMIT}",
+            message: "## :broken_heart: Build Failed\n [${JOB_NAME}](${BUILD_URL})",
+            state: "failure")
+        }
+      }
     }
     unstable { 
       echo 'Unstable Post Actions'
-      setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
-        commitSha: "${JOB_GIT_COMMIT}",
-        message: "## ::yellow_heart: Build Unstable\n [${JOB_NAME}](${BUILD_URL})",
-        state: "error")
+      script {
+        if(env?.CHANGE_ID){
+          setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
+            commitSha: "${JOB_GIT_COMMIT}",
+            message: "## ::yellow_heart: Build Unstable\n [${JOB_NAME}](${BUILD_URL})",
+            state: "error")
+        }
+      }
     }
   }
 }
