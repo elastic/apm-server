@@ -28,12 +28,6 @@ pipeline {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
     string(name: 'APM_SERVER_BRANCH', defaultValue: "master", description: "APM Server Git branch/tag to use")
     
-    string(name: 'APM_AGENT_NODEJS_PKG', defaultValue: "release;latest", description: "APM Agent NodeJS package to use, it can be a release version (release;VERSION) or build from a github branch (github;BRANCH)")
-    string(name: 'APM_AGENT_PYTHON_PKG', defaultValue: "release;latest", description: "APM Agent Python package to use, it can be a release version (release;VERSION) or build from a github branch (github;RANCH)")
-    string(name: 'APM_AGENT_RUBY_PKG', defaultValue: "release;latest", description: "APM Agent Ruby package to use, it can be a release version (release;VERSION) or build from a github branch (github;RANCH)")
-    string(name: 'APM_AGENT_JAVA_PKG', defaultValue: "master", description: "APM Agent Java package to use, it is build from a github branch (RANCH)")
-    string(name: 'APM_AGENT_GO_PKG', defaultValue: "master", description: "APM Agent Go package to use, it is build from a github branch (RANCH)")
-
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
 
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
