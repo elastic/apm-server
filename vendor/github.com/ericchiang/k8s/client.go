@@ -40,9 +40,8 @@ import (
 	"strconv"
 	"time"
 
-	"golang.org/x/net/http2"
-
 	metav1 "github.com/ericchiang/k8s/apis/meta/v1"
+	"golang.org/x/net/http2"
 )
 
 const (
