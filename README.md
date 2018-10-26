@@ -1,3 +1,6 @@
+[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/master)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp//job/master/)
+[![codecov.io](https://codecov.io/github/elastic/apm-server/coverage.svg?branch=master)](https://codecov.io/github/elastic/apm-server?branch=master)
+
 # APM Server
 
 The APM Server receives data from the Elastic APM agents and stores the data into Elasticsearch.
