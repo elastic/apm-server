@@ -13,7 +13,8 @@ class SubCommandTest(ServerSetUpBaseTest):
         log = self.get_log()
         pos = -1
         for _ in range(2):
-            pos = log[:pos].rfind(os.linesep)
+            # export always uses \n, not os.linesep
+            pos = log[:pos].rfind("\n")
         self.command_output = log[:pos]
         for trimmed in log[pos:].strip().splitlines():
             # ensure only skipping expected lines
