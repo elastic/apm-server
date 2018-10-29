@@ -94,17 +94,7 @@ pipeline {
                   on_pull_request {
                     echo "build cause PR"
                   }
-                  
-                  /** TODO enable create tag
-                  https://jenkins.io/doc/pipeline/examples/#push-git-repo
-                  */
-                  sh("git tag -a '${BUILD_TAG}' -m 'Jenkins TAG ${RUN_DISPLAY_URL}'")
-                  sh("git push git@github.com:${ORG_NAME}/${REPO_NAME}.git --tags")
-                  /*
-                  withCredentials([usernamePassword(credentialsId: 'dca1b5a0-edbc-4d0e-bc0c-c38857c83a80', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                    sh("git tag -a '${BUILD_TAG}' -m 'Jenkins TAG ${RUN_DISPLAY_URL}'")
-                    sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/${ORG_NAME}/${REPO_NAME}.git --tags')
-                  }*/
+                  gitCreateTag()
                 }
               }
               stash allowEmpty: true, name: 'source'
@@ -228,29 +218,7 @@ pipeline {
           }
           post { 
             always {
-              publishHTML(target: [
-                  allowMissing: true, 
-                  keepAll: true,
-                  reportDir: "${BASE_DIR}/build", 
-                  reportFiles: 'coverage-*-report.html', 
-                  reportName: 'coverage HTML v2', 
-                  reportTitles: 'Coverage'])
-              publishCoverage(adapters: [
-                coberturaAdapter("${BASE_DIR}/build/coverage-*-report.xml")], 
-                sourceFileResolver: sourceFiles('STORE_ALL_BUILD'))
-              cobertura(autoUpdateHealth: false, 
-                autoUpdateStability: false, 
-                coberturaReportFile: "${BASE_DIR}/build/coverage-*-report.xml", 
-                conditionalCoverageTargets: '70, 0, 0', 
-                failNoReports: false, 
-                failUnhealthy: false, 
-                failUnstable: false, 
-                lineCoverageTargets: '80, 0, 0', 
-                maxNumberOfBuilds: 0, 
-                methodCoverageTargets: '80, 0, 0', 
-                onlyStable: false, 
-                sourceEncoding: 'ASCII', 
-                zoomCoverageChart: false)
+              coverageReport("${BASE_DIR}/build")
               junit(allowEmptyResults: true, 
                 keepLongStdio: true, 
                 testResults: "${BASE_DIR}/build/junit-*.xml,${BASE_DIR}/build/TEST-*.xml")
@@ -496,15 +464,7 @@ pipeline {
   post { 
     always { 
       echo 'Post Actions'
-      dir('cleanTags'){
-        unstash 'source'
-        sh("""
-        git fetch --tags
-        git tag -d '${BUILD_TAG}'
-        git push git@github.com:${ORG_NAME}/${REPO_NAME}.git --tags
-        """)
-        deleteDir()
-      }
+      gitDeleteTag()
     }
     success { 
       echo 'Success Post Actions'
