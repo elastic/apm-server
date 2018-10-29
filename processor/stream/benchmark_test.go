@@ -22,12 +22,14 @@ import (
 	"context"
 	"errors"
 	"io/ioutil"
+	"math"
 	"path/filepath"
 	"runtime"
 	"testing"
 
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
+	"golang.org/x/time/rate"
 )
 
 func BenchmarkStreamProcessor(b *testing.B) {
@@ -44,11 +46,12 @@ func BenchmarkStreamProcessor(b *testing.B) {
 		b.Error(err)
 	}
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
-	// rl := r.NewLimiter(r.Limit(math.MaxFloat64-1), math.MaxInt32)
+	rl := rate.NewLimiter(rate.Limit(math.MaxFloat64-1), math.MaxInt32)
 	sp := &StreamProcessor{MaxEventSize: 300 * 1024}
-	for _, f := range files {
-		b.Run(f.Name(), func(b *testing.B) {
-			data, err := loader.LoadDataAsBytes(filepath.Join(dir, f.Name()))
+
+	benchmark := func(filename string, rl *rate.Limiter) func(b *testing.B) {
+		return func(b *testing.B) {
+			data, err := loader.LoadDataAsBytes(filepath.Join(dir, filename))
 			if err != nil {
 				b.Error(err)
 			}
@@ -60,8 +63,15 @@ func BenchmarkStreamProcessor(b *testing.B) {
 				b.StopTimer()
 				r.Reset(data)
 				b.StartTimer()
-				sp.HandleStream(context.Background(), nil, map[string]interface{}{}, r, report)
+				sp.HandleStream(context.Background(), rl, map[string]interface{}{}, r, report)
 			}
+		}
+	}
+
+	for _, f := range files {
+		b.Run(f.Name(), func(b *testing.B) {
+			b.Run("NoRateLimit", benchmark(f.Name(), nil))
+			b.Run("WithRateLimit", benchmark(f.Name(), rl))
 		})
 	}
 }
