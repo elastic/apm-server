@@ -39,15 +39,22 @@ var RootCmd *cmd.BeatsRootCmd
 
 func init() {
 	overrides, _ := common.NewConfigFrom(map[string]interface{}{
+		"logging": map[string]interface{}{
+			"metrics": map[string]interface{}{
+				"enabled": false,
+			},
+		},
 		"setup": map[string]interface{}{
 			"template": map[string]interface{}{
 				"settings": map[string]interface{}{
 					"index": map[string]interface{}{
+						"codec": "best_compression",
 						"mapping": map[string]interface{}{
 							"total_fields": map[string]int{
 								"limit": 2000,
 							},
 						},
+						"number_of_shards": 1,
 					},
 				},
 			},
