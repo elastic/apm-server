@@ -227,15 +227,7 @@ pipeline {
             }
           }
           post { 
-            always { 
-              /*
-              publishHTML(target: [
-                allowMissing: true, 
-                keepAll: true,
-                reportDir: "${BASE_DIR}/build/coverage", 
-                reportFiles: 'full.html', 
-                reportName: 'coverage HTML v1', 
-                reportTitles: 'Coverage'])*/
+            always {
               publishHTML(target: [
                   allowMissing: true, 
                   keepAll: true,
@@ -259,9 +251,6 @@ pipeline {
                 onlyStable: false, 
                 sourceEncoding: 'ASCII', 
                 zoomCoverageChart: false)
-              archiveArtifacts(allowEmptyArchive: true, 
-                artifacts: "${BASE_DIR}/build/TEST-*.out,${BASE_DIR}/build/TEST-*.xml,${BASE_DIR}/build/junit-*.xml", 
-                onlyIfSuccessful: false)
               junit(allowEmptyResults: true, 
                 keepLongStdio: true, 
                 testResults: "${BASE_DIR}/build/junit-*.xml,${BASE_DIR}/build/TEST-*.xml")
@@ -519,49 +508,16 @@ pipeline {
     }
     success { 
       echo 'Success Post Actions'
-      script {
-        if(env?.CHANGE_ID){
-          updateGithubCommitStatus(
-            repoUrl: "${JOB_GIT_URL}",
-            commitSha: "${JOB_GIT_COMMIT}",
-            message: "## :green_heart: Build Succeeded\n [${JOB_NAME}](${BUILD_URL})",
-          )
-        }
-      }
     }
     aborted { 
       echo 'Aborted Post Actions'
-      script {
-        if(env?.CHANGE_ID){
-          setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
-            commitSha: "${JOB_GIT_COMMIT}",
-            message: "## :broken_heart: Build Aborted\n [${JOB_NAME}](${BUILD_URL})",
-            state: "error")
-        }
-      }
     }
     failure { 
       echo 'Failure Post Actions'
       //step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
-      script {
-        if(env?.CHANGE_ID){
-          setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
-            commitSha: "${JOB_GIT_COMMIT}",
-            message: "## :broken_heart: Build Failed\n [${JOB_NAME}](${BUILD_URL})",
-            state: "failure")
-        }
-      }
     }
     unstable { 
       echo 'Unstable Post Actions'
-      script {
-        if(env?.CHANGE_ID){
-          setGithubCommitStatus(repoUrl: "${JOB_GIT_URL}",
-            commitSha: "${JOB_GIT_COMMIT}",
-            message: "## ::yellow_heart: Build Unstable\n [${JOB_NAME}](${BUILD_URL})",
-            state: "error")
-        }
-      }
     }
   }
 }
