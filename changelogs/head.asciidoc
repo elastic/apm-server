@@ -5,3 +5,5 @@ https://github.com/elastic/apm-server/compare/6.5\...master[View commits]
 
 [float]
 === Added
+
+- Set some configuration defaults (setup.template.settings.index.*, logging.metrics.enabled) in code {pull}1494[1494].
