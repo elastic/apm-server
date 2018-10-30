@@ -41,7 +41,7 @@ pipeline {
     booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'integration_test_ci', defaultValue: true, description: 'Enable run integgration test')
+    booleanParam(name: 'integration_test_ci', defaultValue: true, description: 'Enable run integration test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
   }
