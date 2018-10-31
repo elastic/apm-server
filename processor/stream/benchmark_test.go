@@ -27,9 +27,10 @@ import (
 	"runtime"
 	"testing"
 
+	"golang.org/x/time/rate"
+
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
-	"golang.org/x/time/rate"
 )
 
 func BenchmarkStreamProcessor(b *testing.B) {
