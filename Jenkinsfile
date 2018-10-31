@@ -150,7 +150,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){    
                 sh """#!/bin/bash
-                ./script/jenkins/linux-build.sh
+                ./script/jenkins/build.sh
                 """
               }
             }
@@ -210,7 +210,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){
                 sh """#!/bin/bash
-                ./script/jenkins/linux-test.sh
+                ./script/jenkins/test.sh
                 """
                 codecov('apm-server')
               }
@@ -218,7 +218,7 @@ pipeline {
           }
           post { 
             always {
-              coverageReport("${BASE_DIR}/build")
+              coverageReport("${BASE_DIR}/build/coverage")
               junit(allowEmptyResults: true, 
                 keepLongStdio: true, 
                 testResults: "${BASE_DIR}/build/junit-*.xml,${BASE_DIR}/build/TEST-*.xml")
