@@ -264,7 +264,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.x
-Revision: 416ab2b11fcebdc6fe4c8e03cf6323b1d93ec727
+Revision: c5c30105abefc0157a333a0b053b3c564aed43c3
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------

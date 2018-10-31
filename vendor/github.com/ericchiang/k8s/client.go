@@ -35,13 +35,13 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
 
-	"golang.org/x/net/http2"
-
 	metav1 "github.com/ericchiang/k8s/apis/meta/v1"
+	"golang.org/x/net/http2"
 )
 
 const (
@@ -248,8 +248,12 @@ func NewInClusterClient() (*Client, error) {
 		return nil, err
 	}
 
+	server := url.URL{
+		Scheme: "https",
+		Host:   net.JoinHostPort(host, port),
+	}
 	cluster := Cluster{
-		Server:               "https://" + host + ":" + port,
+		Server:               server.String(),
 		CertificateAuthority: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
 	}
 	user := AuthInfo{TokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"}
