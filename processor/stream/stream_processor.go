@@ -43,7 +43,6 @@ import (
 
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
-	bufferPool            sync.Pool
 )
 
 type StreamReader interface {
@@ -83,6 +82,7 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 type StreamProcessor struct {
 	Tconfig      transform.Config
 	MaxEventSize int
+	bufferPool   sync.Pool
 }
 
 const batchSize = 10
@@ -236,7 +236,7 @@ func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batch
 func (s *StreamProcessor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
-	buf, ok := bufferPool.Get().(*bufio.Reader)
+	buf, ok := s.bufferPool.Get().(*bufio.Reader)
 	if !ok {
 		buf = bufio.NewReaderSize(reader, s.MaxEventSize)
 	} else {
@@ -244,7 +244,7 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, rl *rate.Limiter, me
 	}
 	defer func() {
 		buf.Reset(nil)
-		bufferPool.Put(buf)
+		s.bufferPool.Put(buf)
 	}()
 
 	lineReader := decoder.NewLineReader(buf, s.MaxEventSize)
