@@ -106,10 +106,7 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr 
 
 func (v *v2Handler) sendError(logger *logp.Logger, w http.ResponseWriter, err *stream.Error) {
 	sr := stream.Result{}
-	sr.Add(&stream.Error{
-		Type:    stream.MethodForbiddenErrType,
-		Message: "only POST requests are supported",
-	})
+	sr.Add(err)
 	v.sendResponse(logger, w, &sr)
 	return
 }
