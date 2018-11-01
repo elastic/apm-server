@@ -31,7 +31,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
@@ -59,10 +58,8 @@ func TestV2HandlerReadStreamError(t *testing.T) {
 	bodyReader := bytes.NewBuffer(b)
 	timeoutReader := iotest.TimeoutReader(bodyReader)
 
-	reader := decoder.NewNDJSONStreamReader(timeoutReader, 100*1024)
-	sp := StreamProcessor{}
-
-	actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, report)
+	sp := StreamProcessor{MaxEventSize: 100 * 1024}
+	actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, timeoutReader, report)
 	assertApproveResult(t, actualResult, "ReadError")
 }
 
@@ -88,10 +85,8 @@ func TestV2HandlerReportingStreamError(t *testing.T) {
 		require.NoError(t, err)
 		bodyReader := bytes.NewBuffer(b)
 
-		reader := decoder.NewNDJSONStreamReader(bodyReader, 100*1024)
-
-		sp := StreamProcessor{}
-		actualResult := sp.HandleStream(context.Background(), map[string]interface{}{}, reader, test.report)
+		sp := StreamProcessor{MaxEventSize: 100 * 1024}
+		actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, bodyReader, test.report)
 		assertApproveResult(t, actualResult, test.name)
 	}
 }
@@ -139,15 +134,13 @@ func TestIntegration(t *testing.T) {
 			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
 			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
 
-			reader := decoder.NewNDJSONStreamReader(bodyReader, 100*1024)
-
 			reqDecoderMeta := map[string]interface{}{
 				"system": map[string]interface{}{
 					"ip": "192.0.0.1",
 				},
 			}
 
-			actualResult := (&StreamProcessor{}).HandleStream(ctx, reqDecoderMeta, reader, report)
+			actualResult := (&StreamProcessor{MaxEventSize: 100 * 1024}).HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -155,8 +148,6 @@ func TestIntegration(t *testing.T) {
 
 func TestRateLimiting(t *testing.T) {
 	report := func(ctx context.Context, p publish.PendingReq) error {
-		for range p.Transformables {
-		}
 		return nil
 	}
 
@@ -174,12 +165,12 @@ func TestRateLimiting(t *testing.T) {
 		{name: "LimiterPartiallyUsedLimitDeny", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
 		{name: "LimiterDeny", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
 	} {
-		reader := decoder.NewNDJSONStreamReader(bytes.NewReader(b), 100*1024)
 		if test.hit > 0 {
 			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
 		}
-		ctx := ContextWithRateLimiter(context.Background(), test.lim)
-		actualResult := (&StreamProcessor{}).HandleStream(ctx, map[string]interface{}{}, reader, report)
+
+		actualResult := (&StreamProcessor{MaxEventSize: 100 * 1024}).HandleStream(
+			context.Background(), test.lim, map[string]interface{}{}, bytes.NewReader(b), report)
 		assertApproveResult(t, actualResult, test.name)
 	}
 }
