@@ -6,7 +6,7 @@
     "properties": {
         "samples": {
             "type": ["object"],
-            "description": "Sampled application metrics collected from the agent",
+            "description": "Sampled application metrics collected from the agent.",
             "patternProperties": {
                 "^[^*\"]*$": {
                     "$ref": "sample.json"
@@ -16,7 +16,7 @@
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of user-defined tags with string values",
+            "description": "A flat mapping of user-defined tags with string values.",
             "patternProperties": {
                 "^[^*\"]*$": {
                     "type": ["string", "null"],
