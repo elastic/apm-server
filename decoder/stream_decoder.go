@@ -19,29 +19,12 @@ package decoder
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
-	"strings"
 )
 
-func NDJSONStreamDecodeCompressedWithLimit(req *http.Request, lineLimit int) (*NDJSONStreamReader, error) {
-	contentType := req.Header.Get("Content-Type")
-	if !strings.Contains(contentType, "application/x-ndjson") {
-		return nil, fmt.Errorf("invalid content type: '%s'", req.Header.Get("Content-Type"))
-	}
-
-	reader, err := CompressedRequestReader(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewNDJSONStreamReader(reader, lineLimit), nil
-}
-
-func NewNDJSONStreamReader(reader io.Reader, lineLimit int) *NDJSONStreamReader {
-	return &NDJSONStreamReader{reader: NewLineReader(reader, lineLimit)}
+func NewNDJSONStreamReader(reader *LineReader) *NDJSONStreamReader {
+	return &NDJSONStreamReader{reader: reader}
 }
 
 type NDJSONStreamReader struct {

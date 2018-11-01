@@ -18,6 +18,7 @@
 package stream
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"io"
@@ -38,19 +39,6 @@ import (
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 )
-
-type rateLimiterKey struct{}
-
-func ContextWithRateLimiter(ctx context.Context, limiter *rate.Limiter) context.Context {
-	return context.WithValue(ctx, rateLimiterKey{}, limiter)
-}
-
-func rateLimiterFromContext(ctx context.Context) *rate.Limiter {
-	if lim, ok := ctx.Value(rateLimiterKey{}).(*rate.Limiter); ok {
-		return lim
-	}
-	return nil
-}
 
 var (
 	ErrUnrecognizedObject = errors.New("did not recognize object type")
@@ -91,7 +79,8 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 }
 
 type StreamProcessor struct {
-	Tconfig transform.Config
+	Tconfig      transform.Config
+	MaxEventSize int
 }
 
 const batchSize = 10
@@ -242,11 +231,15 @@ func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batch
 	return eventables, reader.IsEOF()
 }
 
-func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]interface{}, jsonReader StreamReader, report publish.Reporter) *Result {
+func (s *StreamProcessor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
+	buf := bufio.NewReaderSize(reader, s.MaxEventSize)
+	lineReader := decoder.NewLineReader(buf, s.MaxEventSize)
+	ndReader := decoder.NewNDJSONStreamReader(lineReader)
+
 	// our own wrapper converts jsonreader errors to errors that are useful to us
-	jsonReader = &srErrorWrapper{jsonReader}
+	jsonReader := &srErrorWrapper{ndReader}
 
 	metadata, err := s.readMetadata(meta, jsonReader)
 	// no point in continuing if we couldn't read the metadata
@@ -260,7 +253,6 @@ func (s *StreamProcessor) HandleStream(ctx context.Context, meta map[string]inte
 		Config:      s.Tconfig,
 		Metadata:    *metadata,
 	}
-	rl := rateLimiterFromContext(ctx)
 
 	sp, ctx := elasticapm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()

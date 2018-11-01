@@ -28,7 +28,7 @@ import (
 
 func transactionProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
+		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{MaxEventSize: lrSize}},
 		FullPayloadPath: "../testdata/intake-v2/transactions.ndjson",
 		Schema:          schema.ModelSchema,
 		SchemaPrefix:    "transaction",
