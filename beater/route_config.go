@@ -225,8 +225,11 @@ func (v v2Route) Handler(url string, c *Config, report publish.Reporter) http.Ha
 	)
 
 	v2Handler := v2Handler{
-		requestDecoder:  reqDecoder,
-		streamProcessor: &stream.StreamProcessor{Tconfig: v.transformConfig(c)},
+		requestDecoder: reqDecoder,
+		streamProcessor: &stream.StreamProcessor{
+			Tconfig:      v.transformConfig(c),
+			MaxEventSize: c.MaxEventSize,
+		},
 	}
 
 	if url == V2RumURL {

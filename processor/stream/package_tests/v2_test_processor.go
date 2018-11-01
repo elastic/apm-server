@@ -18,6 +18,7 @@
 package package_tests
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -43,12 +44,15 @@ type V2TestProcessor struct {
 	stream.StreamProcessor
 }
 
+const lrSize = 100 * 1024
+
 func (v *V2TestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, error) {
 	reader, err := loader.LoadDataAsStream(path)
 	if err != nil {
 		return nil, err
 	}
-	return decoder.NewNDJSONStreamReader(reader, 100*1024), nil
+	lr := decoder.NewLineReader(bufio.NewReaderSize(reader, lrSize), lrSize)
+	return decoder.NewNDJSONStreamReader(lr), nil
 }
 
 func (v *V2TestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]interface{}, error) {
@@ -99,12 +103,10 @@ func (p *V2TestProcessor) Validate(data interface{}) error {
 }
 
 func (p *V2TestProcessor) Process(buf []byte) ([]beat.Event, error) {
-	ndjsonreader := decoder.NewNDJSONStreamReader(bytes.NewBuffer(buf), 100*1024)
-
 	var reqs []publish.PendingReq
 	report := tests.TestReporter(&reqs)
 
-	result := p.HandleStream(context.TODO(), nil, ndjsonreader, report)
+	result := p.HandleStream(context.TODO(), nil, nil, bytes.NewBuffer(buf), report)
 	var events []beat.Event
 	for _, req := range reqs {
 		if req.Transformables != nil {
