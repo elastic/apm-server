@@ -39,7 +39,7 @@ const PayloadSchema = `{
     "properties": {
         "samples": {
             "type": ["object"],
-            "description": "Sampled application metrics collected from the agent",
+            "description": "Sampled application metrics collected from the agent.",
             "patternProperties": {
                 "^[^*\"]*$": {
                         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -56,7 +56,7 @@ const PayloadSchema = `{
         },
         "tags": {
             "type": ["object", "null"],
-            "description": "A flat mapping of user-defined tags with string values",
+            "description": "A flat mapping of user-defined tags with string values.",
             "patternProperties": {
                 "^[^*\"]*$": {
                     "type": ["string", "null"],
