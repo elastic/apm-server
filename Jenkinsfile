@@ -41,7 +41,8 @@ pipeline {
     booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'integration_test_ci', defaultValue: true, description: 'Enable run integration test')
+    booleanParam(name: 'integration_test_ci', defaultValue: false, description: 'Enable run integration test')
+    booleanParam(name: 'hey_apm_ci', defaultValue: false, description: 'Enable run integration test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
   }
@@ -94,7 +95,6 @@ pipeline {
                   on_pull_request {
                     echo "build cause PR"
                   }
-                  gitCreateTag()
                 }
               }
               stash allowEmpty: true, name: 'source'
@@ -321,17 +321,16 @@ pipeline {
 
     stage('Integration Tests') {
       failFast true
-      when { 
-        beforeAgent true
-        environment name: 'integration_test_ci', value: 'true' 
-      }
-      
       parallel {
         /**
          run all integration test with the commit version.
         */
         stage('Integration test') { 
           agent { label 'linux' }
+          when { 
+            beforeAgent true
+            environment name: 'integration_test_ci', value: 'true' 
+          }
           steps {
             build(
               job: 'apm-server-ci/apm-integration-test-pipeline', 
@@ -357,6 +356,10 @@ pipeline {
         */
         stage('Hey APM test') { 
           agent { label 'linux' }
+          when { 
+            beforeAgent true
+            environment name: 'hey_apm_ci', value: 'true' 
+          }
           steps {
             withEnvWrapper() {
               unstash 'source'
@@ -464,7 +467,6 @@ pipeline {
   post { 
     always { 
       echo 'Post Actions'
-      gitDeleteTag()
     }
     success { 
       echo 'Success Post Actions'
