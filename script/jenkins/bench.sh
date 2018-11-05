@@ -7,3 +7,4 @@ jenkins_setup
 
 go get -u golang.org/x/tools/cmd/benchcmp
 make bench | tee bench.out
+exit 0
