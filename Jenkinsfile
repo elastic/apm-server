@@ -31,6 +31,7 @@ pipeline {
   }
   parameters {
     string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (<branchName>, <tagName>, <commitId>, etc.)")
+    string(name: 'GO_VERSION', defaultValue: "1.10.3", description: "Go version to use.")
     string(name: 'JOB_INTEGRATION_TEST_BRANCH_SPEC', defaultValue: "refs/heads/pipeline", description: "The integrations test Git branch to use")
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
     string(name: 'JOB_HEY_APM_TEST_BRANCH_SPEC', defaultValue: "refs/heads/master", description: "The Hey APM test Git branch/tag to use")
@@ -63,7 +64,7 @@ pipeline {
           withEnvWrapper() {
               dir("${BASE_DIR}"){
                 script{
-                  if(!branch_specifier){
+                  if(!env?.branch_specifier){
                     echo "Checkout SCM ${GIT_BRANCH} - ${GIT_COMMIT}"
                     checkout scm
                   } else {
