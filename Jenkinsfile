@@ -115,7 +115,7 @@ pipeline {
         Validate that all updates were committed.
         */
         stage('Intake') { 
-          agent { label 'linux' }
+          agent { label 'linux && immutable' }
           
           when { 
             beforeAgent true
@@ -140,7 +140,7 @@ pipeline {
         Build on a linux environment.
         */
         stage('linux build') { 
-          agent { label 'linux' }
+          agent { label 'linux && immutable' }
           
           when { 
             beforeAgent true
@@ -196,7 +196,7 @@ pipeline {
         Finally archive the results.
         */
         stage('Linux test') { 
-          agent { label 'linux' }
+          agent { label 'linux && immutable' }
           environment {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
@@ -270,7 +270,7 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux' }
+          agent { label 'linux && immutable' }
           environment {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
@@ -285,8 +285,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){  
                 sh """#!/bin/bash
-                go get -u golang.org/x/tools/cmd/benchcmp
-                make bench | tee bench.out
+                ./script/jenkins/bench.sh
                 """
                 sendBenchmarks()
               }
@@ -327,7 +326,7 @@ pipeline {
          run all integration test with the commit version.
         */
         stage('Integration test') { 
-          agent { label 'linux' }
+          agent { label 'linux && immutable' }
           when { 
             beforeAgent true
             environment name: 'integration_test_ci', value: 'true' 
@@ -356,7 +355,7 @@ pipeline {
           Unit tests and apm-server stress testing.
         */
         stage('Hey APM test') { 
-          agent { label 'linux' }
+          agent { label 'linux && immutable' }
           when { 
             beforeAgent true
             environment name: 'hey_apm_ci', value: 'true' 
@@ -390,7 +389,7 @@ pipeline {
     Finally archive the results.
     */
     stage('Documentation') { 
-      agent { label 'linux' }
+      agent { label 'linux && immutable' }
       environment {
         PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
@@ -418,7 +417,7 @@ pipeline {
     }
     
     stage('Release') { 
-      agent { label 'linux' }
+      agent { label 'linux && immutable' }
       
       when { 
         beforeAgent true
@@ -447,7 +446,7 @@ pipeline {
     Checks if kibana objects are updated.
     */
     stage('Check kibana Obj. Updated') { 
-      agent { label 'linux' }
+      agent { label 'linux && immutable' }
       
       when { 
         beforeAgent true
