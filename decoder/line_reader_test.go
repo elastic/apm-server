@@ -18,6 +18,7 @@
 package decoder
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"testing"
@@ -28,7 +29,7 @@ import (
 
 func TestLineReaderEmpty(t *testing.T) {
 	readBuf := bytes.NewBufferString("")
-	lr := NewLineReader(readBuf, 10)
+	lr := NewLineReader(bufio.NewReaderSize(readBuf, 10), 10)
 
 	buf, err := lr.ReadLine()
 	assert.Equal(t, io.EOF, err)
@@ -43,7 +44,7 @@ func TestLineReader(t *testing.T) {
 		iotest.DataErrReader,
 	} {
 		readBuf := bytes.NewBufferString("line1\nline2\n01234567890123456789\nline4\nline5")
-		lr := NewLineReader(r(readBuf), 10)
+		lr := NewLineReader(bufio.NewReaderSize(r(readBuf), 10), 10)
 
 		buf, err := lr.ReadLine()
 		assert.NoError(t, err)
@@ -76,7 +77,7 @@ func TestLineReaderEndWithNewline(t *testing.T) {
 		iotest.DataErrReader,
 	} {
 		readBuf := bytes.NewBufferString("line1\nline2\n01234567890123456789\nline4\nline5\n")
-		lr := NewLineReader(r(readBuf), 10)
+		lr := NewLineReader(bufio.NewReaderSize(r(readBuf), 10), 10)
 
 		buf, err := lr.ReadLine()
 		assert.NoError(t, err)
@@ -112,7 +113,7 @@ func TestLineReaderTwoLongLines(t *testing.T) {
 		iotest.DataErrReader,
 	} {
 		readBuf := bytes.NewBufferString("line1\nlong-string-with-no-newlines-at-all\nanother-long-string-with-no-newlines-at-all\nline2")
-		lr := NewLineReader(r(readBuf), 10)
+		lr := NewLineReader(bufio.NewReaderSize(r(readBuf), 10), 10)
 
 		buf, err := lr.ReadLine()
 		assert.NoError(t, err)
@@ -140,7 +141,7 @@ func TestLineReaderNoLines(t *testing.T) {
 		iotest.DataErrReader,
 	} {
 		readBuf := bytes.NewBufferString("line1\nlong-string-with-no-newlines-at-all\nanother-long-string-with-no-newlines-at-all")
-		lr := NewLineReader(r(readBuf), 10)
+		lr := NewLineReader(bufio.NewReaderSize(r(readBuf), 10), 10)
 
 		buf, err := lr.ReadLine()
 		assert.NoError(t, err)
@@ -179,7 +180,7 @@ func TestLineReaderDeadline(t *testing.T) {
 	readBuf := bytes.NewBufferString("line1\nline2\nlong-string-with-no-newlines-at-all")
 	reader := DeadlineReader(readBuf)
 
-	lr := NewLineReader(reader, 10)
+	lr := NewLineReader(bufio.NewReaderSize(reader, 10), 10)
 
 	buf, err := lr.ReadLine()
 	assert.NoError(t, err)
@@ -201,7 +202,7 @@ func TestLineReaderDeadline(t *testing.T) {
 func TestLineReaderShort(t *testing.T) {
 	readBuf := bytes.NewBufferString("line1\nline2")
 
-	lr := NewLineReader(readBuf, 1024)
+	lr := NewLineReader(bufio.NewReaderSize(readBuf, 1024), 1024)
 
 	buf, err := lr.ReadLine()
 	assert.NoError(t, err)
