@@ -1,4 +1,7 @@
-set -e
+#!/usr/bin/env bash
+
+set -eo pipefail
+
 export GOPATH=$WORKSPACE
 export PATH=$PATH:$GOPATH/bin
 eval "$(gvm 1.10.3)"
