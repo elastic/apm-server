@@ -15,6 +15,8 @@ To get started with APM please see our [Getting Started Guide](https://www.elast
 ### Requirements
 
 * [Golang](https://golang.org/dl/) 1.10.3
+* Python 2 (accessible via `python` not only via `python2`)
+* The Python virtualenv package (e.g. `pip install virtualenv')
 
 ### Install
 
