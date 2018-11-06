@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -exuo pipefail
 
 export GOPATH=$WORKSPACE
 export PATH=$PATH:$GOPATH/bin

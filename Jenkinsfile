@@ -288,7 +288,7 @@ pipeline {
                 sh """#!/bin/bash
                 ./script/jenkins/bench.sh
                 """
-                sendBenchmarks()
+                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
               }
             }
           }
@@ -373,11 +373,9 @@ pipeline {
                   url: "https://github.com/elastic/hey-apm.git"]]])
               }
               dir("${BASE_DIR}"){
-                withEnvBenchmarksData {
-                  sh """#!/bin/bash
-                  ./script/jenkins/hey-apm-test.sh
-                  """
-                }
+                sh """#!/bin/bash
+                ./script/jenkins/hey-apm-test.sh
+                """
               }
             }  
           }
