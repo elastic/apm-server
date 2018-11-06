@@ -66,7 +66,7 @@ pipeline {
               dir("${BASE_DIR}"){
                 script{
                   if(!env?.branch_specifier){
-                    echo "Checkout SCM ${GIT_BRANCH} - ${GIT_COMMIT}"
+                    echo "Checkout SCM"
                     checkout scm
                   } else {
                     echo "Checkout ${branch_specifier}"
@@ -99,7 +99,7 @@ pipeline {
                   }
                 }
               }
-              stash allowEmpty: true, name: 'source'
+              stash allowEmpty: true, name: 'source', useDefaultExcludes: false
           }
       }
     }
