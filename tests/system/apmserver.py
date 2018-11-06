@@ -14,6 +14,7 @@ from beat.beat import TestCase, TimeoutError
 
 
 class BaseTest(TestCase):
+    maxDiff = None
 
     @classmethod
     def setUpClass(cls):
