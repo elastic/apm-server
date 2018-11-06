@@ -36,11 +36,11 @@ import (
 	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
 
-	"github.com/elastic/go-sysinfo"
-	"github.com/elastic/go-sysinfo/types"
-
 	"github.com/elastic/beats/libbeat/api"
 	"github.com/elastic/beats/libbeat/asset"
+	_ "github.com/elastic/beats/libbeat/autodiscover/providers/docker"
+	_ "github.com/elastic/beats/libbeat/autodiscover/providers/jolokia"
+	_ "github.com/elastic/beats/libbeat/autodiscover/providers/kubernetes"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/cloudid"
@@ -57,19 +57,11 @@ import (
 	"github.com/elastic/beats/libbeat/metric/system/host"
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/monitoring/report"
+	_ "github.com/elastic/beats/libbeat/monitoring/report/elasticsearch"
 	"github.com/elastic/beats/libbeat/monitoring/report/log"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/libbeat/paths"
 	"github.com/elastic/beats/libbeat/plugin"
-	"github.com/elastic/beats/libbeat/publisher/pipeline"
-	svc "github.com/elastic/beats/libbeat/service"
-	"github.com/elastic/beats/libbeat/template"
-	"github.com/elastic/beats/libbeat/version"
-
-	// Register publisher pipeline modules
-	_ "github.com/elastic/beats/libbeat/publisher/includes"
-
-	// Register default processors.
 	_ "github.com/elastic/beats/libbeat/processors/actions"
 	_ "github.com/elastic/beats/libbeat/processors/add_cloud_metadata"
 	_ "github.com/elastic/beats/libbeat/processors/add_docker_metadata"
@@ -79,14 +71,14 @@ import (
 	_ "github.com/elastic/beats/libbeat/processors/add_process_metadata"
 	_ "github.com/elastic/beats/libbeat/processors/dissect"
 	_ "github.com/elastic/beats/libbeat/processors/dns"
-
-	// Register autodiscover providers
-	_ "github.com/elastic/beats/libbeat/autodiscover/providers/docker"
-	_ "github.com/elastic/beats/libbeat/autodiscover/providers/jolokia"
-	_ "github.com/elastic/beats/libbeat/autodiscover/providers/kubernetes"
-
-	// Register default monitoring reporting
-	_ "github.com/elastic/beats/libbeat/monitoring/report/elasticsearch"
+	_ "github.com/elastic/beats/libbeat/publisher/includes"
+	"github.com/elastic/beats/libbeat/publisher/pipeline"
+	svc "github.com/elastic/beats/libbeat/service"
+	"github.com/elastic/beats/libbeat/template"
+	"github.com/elastic/beats/libbeat/version"
+	"github.com/elastic/go-sysinfo"
+	"github.com/elastic/go-sysinfo/types"
+	ucfg "github.com/elastic/go-ucfg"
 )
 
 // Beat provides the runnable and configurable instance of a beat.
@@ -149,12 +141,13 @@ func init() {
 // CryptGenRandom is used.
 func initRand() {
 	n, err := cryptRand.Int(cryptRand.Reader, big.NewInt(math.MaxInt64))
-	seed := n.Int64()
+	var seed int64
 	if err != nil {
 		// fallback to current timestamp
 		seed = time.Now().UnixNano()
+	} else {
+		seed = n.Int64()
 	}
-
 	rand.Seed(seed)
 }
 
@@ -563,8 +556,13 @@ func (b *Beat) configure(settings Settings) error {
 		return fmt.Errorf("could not initialize the keystore: %v", err)
 	}
 
-	// TODO: Allow the options to be more flexible for dynamic changes
-	common.OverwriteConfigOpts(keystore.ConfigOpts(store))
+	if settings.DisableConfigResolver {
+		common.OverwriteConfigOpts(obfuscateConfigOpts())
+	} else {
+		// TODO: Allow the options to be more flexible for dynamic changes
+		common.OverwriteConfigOpts(configOpts(store))
+	}
+
 	b.keystore = store
 	err = cloudid.OverwriteSettings(cfg)
 	if err != nil {
@@ -878,5 +876,25 @@ func logSystemInfo(info beat.Info) {
 		if len(process) > 0 {
 			log.Infow("Process info", "process", process)
 		}
+	}
+}
+
+// configOpts returns ucfg config options with a resolver linked to the current keystore.
+// TODO: Refactor to allow insert into the config option array without having to redefine everything
+func configOpts(store keystore.Keystore) []ucfg.Option {
+	return []ucfg.Option{
+		ucfg.PathSep("."),
+		ucfg.Resolve(keystore.ResolverWrap(store)),
+		ucfg.ResolveEnv,
+		ucfg.VarExp,
+	}
+}
+
+// obfuscateConfigOpts disables any resolvers in the configuration, instead we return the field
+// reference string directly.
+func obfuscateConfigOpts() []ucfg.Option {
+	return []ucfg.Option{
+		ucfg.PathSep("."),
+		ucfg.ResolveNOOP,
 	}
 }
