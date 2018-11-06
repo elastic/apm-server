@@ -1,0 +1,70 @@
+[[agent-server-compatibility]]
+== Agent/Server Compatibility
+
+When instrumenting an APM Agent within your codebase, it's important to use a compatible version of APM Server. Below is a chart that outlines the compatibility between agents and server versions.
+
+[float]
+[[nodejs-compatibility]]
+==== Node.js Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |6.2.0-6.5.0
+|2.x |6.5.0+
+|=======================================================================
+
+[float]
+[[python-compatibility]]
+==== Python Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |6.2.0-6.5.0
+|2.x |6.5.0+
+|=======================================================================
+
+[float]
+[[ruby-compatibility]]
+==== Ruby Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |6.2.0-6.5.0
+|2.x |6.5.0+
+|=======================================================================
+
+[float]
+[[java-compatibility]]
+==== Java Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |6.2.0-6.5.0
+|2.x |6.5.0+
+|=======================================================================
+
+[float]
+[[go-compatibility]]
+==== Go Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |6.2.0-6.5.0
+|2.x |6.5.0+
+|=======================================================================
+
+[float]
+[[rum-compatibility]]
+==== RUM Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |6.2.0-6.5.0
+|2.x |6.5.0+
+|=======================================================================

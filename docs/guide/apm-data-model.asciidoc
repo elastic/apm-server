@@ -1,0 +1,79 @@
+[[apm-data-model]]
+== Data Model
+
+Elastic APM agents capture different types of information from within their instrumented applications - namely `transactions`, `spans`, and `errors`. 
+
+* <<transactions,Transaction>>
+* <<transaction-spans,Spans>>
+* <<errors,Errors>>
+
+[[transactions]]
+=== Transactions
+
+A transaction describes an event captured by an Elastic APM agent instrumenting a service. Some examples of a transaction might be:
+
+* An HTTP request
+* An asynchronous background job
+
+A transaction contains:
+
+* The timestamp and duration of the event
+* A unique id, type, and name
+* A result (e.g. a response code)
+* Some contextual data (see below for details)
+* Other relevant information depending on the agent. Example: The JavaScript RUM captures transaction marks,
+which are points in time relative to the start of the transaction with some label.
+
+[[transactions-context]]
+include::../context.asciidoc[]
+
+Agents decide whether to sample transactions or not,
+and provide settings to control sampling behavior.
+If sampled,
+the {apm-server-ref}/transaction-spans[spans] of a transaction are sent and stored as separate documents. Within one transaction there can be several, or no spans captured. 
+
+Transactions are stored in {apm-server-ref}/transaction-indices[transaction indices].
+
+[[transaction-spans]]
+=== Spans
+Transactions can have 0, 1, or many spans. Spans have a `transaction.id` attribute that refer to their parent transaction.
+
+Agents typically automatically instrument a variety of of libraries,
+but also provide an API for ad hoc instrumentation of specific code paths. 
+A span contains information about a specific code path that has been executed as part of a transaction.
+This information includes:
+
+* start time
+* duration
+* name
+* type
+* `stack trace` (optional).
+
+As an example, if a database query happens within a sampled transaction,
+a span describing the database query will be created.
+The name of this span will contain information about the query itself,
+and the type of this span will contain information about the database type.
+
+Spans are stored in {apm-server-ref}/span-indices[span indices]. Note that these indices are separate from {apm-server-ref}/transaction-indices[transaction indices] by default.
+
+[[errors]]
+=== Errors
+
+Errors are identified by a unique ID.
+An error event contains at least
+information about the original `exception` that occured
+or about a `log` created when the exception occured.
+
+Both the captured `exception` and the captured `log` of an error can contain a `stack trace`,
+helpful for debugging.
+
+The `culprit` of an error indicates where is originated.
+
+An error might relate to the <<transactions,transaction>> during which it happened,
+via the `transaction.id`.
+
+Errors also have some contextual data.
+
+include::../context.asciidoc[]
+
+Errors are stored in {apm-server-ref}/error-indices[error indices].
