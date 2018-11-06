@@ -29,6 +29,8 @@ include::../context.asciidoc[]
 
 Agents decide whether to sample transactions or not,
 and provide settings to control sampling behavior.
+If sampled,
+the {apm-server-ref}/transaction-spans[spans] of a transaction are sent and stored as separate documents. Within one transaction there can be several, or no spans captured. 
 
 Transactions are stored in {apm-server-ref}/transaction-indices[transaction indices].
 
