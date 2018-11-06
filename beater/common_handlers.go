@@ -443,11 +443,7 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 }
 
 func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
-	contentType := "text/plain; charset=utf-8"
-	if acceptsJSON(r) {
-		contentType = "application/json"
-	}
-	w.Header().Set("Content-Type", contentType)
+	setContentType(w, r)
 	w.WriteHeader(res.code)
 
 	responseCounter.Inc()
@@ -476,6 +472,14 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	} else {
 		sendPlain(w, fmt.Sprintf("%s", msg))
 	}
+}
+
+func setContentType(w http.ResponseWriter, r *http.Request) {
+	contentType := "text/plain; charset=utf-8"
+	if acceptsJSON(r) {
+		contentType = "application/json"
+	}
+	w.Header().Set("Content-Type", contentType)
 }
 
 func acceptsJSON(r *http.Request) bool {

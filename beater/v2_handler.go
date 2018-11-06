@@ -77,37 +77,48 @@ func (v *v2Handler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 	return highestCode, monitoringCt
 }
 
-func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, sr *stream.Result) {
+func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, r *http.Request, sr *stream.Result) {
 	statusCode, counter := v.statusCode(sr)
 	responseCounter.Inc()
 	counter.Inc()
 
-	w.WriteHeader(statusCode)
 	if statusCode != http.StatusAccepted {
 		responseErrors.Inc()
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
-		w.Header().Add("Content-Type", "application/json")
-		buf, err := json.Marshal(sr)
-		if err != nil {
-			logger.Errorw("error sending response", "error", err)
+		setContentType(w, r)
+		w.WriteHeader(statusCode)
+
+		var err error
+		var buf []byte
+		if acceptsJSON(r) {
+			buf, err = json.Marshal(sr)
+			if err != nil {
+				logger.Errorw("error sending response", "error", err)
+			}
+		} else {
+			buf = []byte(sr.String())
 		}
-		_, err = w.Write(buf)
-		if err != nil {
-			logger.Errorw("error sending response", "error", err)
+
+		if buf != nil {
+			_, err = w.Write(buf)
+			if err != nil {
+				logger.Errorw("error sending response", "error", err)
+			}
 		}
 		logger.Infow("error handling request", "error", sr.String())
 	} else {
+		w.WriteHeader(statusCode)
 		responseSuccesses.Inc()
 	}
 }
 
-func (v *v2Handler) sendError(logger *logp.Logger, w http.ResponseWriter, err *stream.Error) {
+func (v *v2Handler) sendError(logger *logp.Logger, w http.ResponseWriter, r *http.Request, err *stream.Error) {
 	sr := stream.Result{}
 	sr.Add(err)
-	v.sendResponse(logger, w, &sr)
+	v.sendResponse(logger, w, r, &sr)
 	return
 }
 
@@ -158,19 +169,19 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 
 		serr := v.validateRequest(r)
 		if serr != nil {
-			v.sendError(logger, w, serr)
+			v.sendError(logger, w, r, serr)
 			return
 		}
 
 		rl, serr := v.rateLimit(r)
 		if serr != nil {
-			v.sendError(logger, w, serr)
+			v.sendError(logger, w, r, serr)
 			return
 		}
 
 		reader, serr := v.bodyReader(r)
 		if serr != nil {
-			v.sendError(logger, w, serr)
+			v.sendError(logger, w, r, serr)
 			return
 		}
 
@@ -179,11 +190,11 @@ func (v *v2Handler) Handle(beaterConfig *Config, report publish.Reporter) http.H
 		if err != nil {
 			sr := stream.Result{}
 			sr.Add(err)
-			v.sendResponse(logger, w, &sr)
+			v.sendResponse(logger, w, r, &sr)
 			return
 		}
 		res := v.streamProcessor.HandleStream(r.Context(), rl, reqMeta, reader, report)
 
-		v.sendResponse(logger, w, res)
+		v.sendResponse(logger, w, r, res)
 	})
 }
