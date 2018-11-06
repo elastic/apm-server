@@ -1,6 +1,7 @@
 #!/usr/bin/env groovy
 
-library identifier: 'apm@master', 
+library identifier: 'apm@master',
+changelog: false,
 retriever: modernSCM(
   [$class: 'GitSCMSource', 
   credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba', 

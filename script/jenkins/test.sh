@@ -16,7 +16,6 @@ make testsuite
 make coverage-report
 
 go get -v -u github.com/jstemmer/go-junit-report
-go get -v -u code.google.com/p/go.tools/cmd/cover
 go get -v -u github.com/t-yuki/gocover-cobertura
 
 export COV_DIR="build/coverage"
