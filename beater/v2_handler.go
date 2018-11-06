@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -88,25 +87,11 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, r *
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
-		setContentType(w, r)
-		w.WriteHeader(statusCode)
 
-		var err error
-		var buf []byte
 		if acceptsJSON(r) {
-			buf, err = json.Marshal(sr)
-			if err != nil {
-				logger.Errorw("error sending response", "error", err)
-			}
+			sendJSON(w, sr, statusCode)
 		} else {
-			buf = []byte(sr.String())
-		}
-
-		if buf != nil {
-			_, err = w.Write(buf)
-			if err != nil {
-				logger.Errorw("error sending response", "error", err)
-			}
+			sendPlain(w, sr.String(), statusCode)
 		}
 		logger.Infow("error handling request", "error", sr.String())
 	} else {
