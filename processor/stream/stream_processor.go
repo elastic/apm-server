@@ -22,6 +22,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -81,6 +82,7 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 type StreamProcessor struct {
 	Tconfig      transform.Config
 	MaxEventSize int
+	bufferPool   sync.Pool
 }
 
 const batchSize = 10
@@ -234,7 +236,17 @@ func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batch
 func (s *StreamProcessor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
-	buf := bufio.NewReaderSize(reader, s.MaxEventSize)
+	buf, ok := s.bufferPool.Get().(*bufio.Reader)
+	if !ok {
+		buf = bufio.NewReaderSize(reader, s.MaxEventSize)
+	} else {
+		buf.Reset(reader)
+	}
+	defer func() {
+		buf.Reset(nil)
+		s.bufferPool.Put(buf)
+	}()
+
 	lineReader := decoder.NewLineReader(buf, s.MaxEventSize)
 	ndReader := decoder.NewNDJSONStreamReader(lineReader)
 
