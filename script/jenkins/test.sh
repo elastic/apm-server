@@ -22,7 +22,7 @@ export COV_DIR="build/coverage"
 export OUT_FILE="build/test-report.out"
 mkdir -p build
 
-go test -race ./... -v 2>&1 | tee ${OUT_FILE}
+(go test -race ./... -v 2>&1 | tee ${OUT_FILE}) || echo -e "\033[31;49mTests FAILED\033[0m"
 cat ${OUT_FILE} | go-junit-report > build/junit-apm-server-report.xml
 for i in "full.cov" "integration.cov" "system.cov" "unit.cov"
 do
