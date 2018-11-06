@@ -48,6 +48,8 @@ func TestInvalidContentType(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Equal(t, "invalid content type: ''", w.Body.String())
+	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
 }
 
 func TestEmptyRequest(t *testing.T) {
@@ -173,6 +175,7 @@ func sendReq(c *Config, route *v2Route, url string, p string, repErr error) (*ht
 	}
 	req := httptest.NewRequest("POST", url, bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
+	req.Header.Add("Accept", "application/json")
 
 	report := func(context.Context, publish.PendingReq) error {
 		return repErr
@@ -233,6 +236,7 @@ func TestV2LineExceeded(t *testing.T) {
 
 	req = httptest.NewRequest("POST", "/v2/intake", bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
+	req.Header.Add("Accept", "*/*")
 	w = httptest.NewRecorder()
 
 	ct := requestTooLargeCounter.Get()
