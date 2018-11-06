@@ -61,13 +61,13 @@ Spans are stored in {apm-server-ref}/span-indices[span indices]. Note that these
 
 Errors are identified by a unique ID.
 An error event contains at least
-information about the original `exception` that occured
-or about a `log` created when the exception occured.
+information about the original `exception` that occurred
+or about a `log` created when the exception occurred.
 
 Both the captured `exception` and the captured `log` of an error can contain a `stack trace`,
 helpful for debugging.
 
-The `culprit` of an error indicates where is originated.
+The `culprit` of an error indicates where it originated.
 
 An error might relate to the <<transactions,transaction>> during which it happened,
 via the `transaction.id`.
