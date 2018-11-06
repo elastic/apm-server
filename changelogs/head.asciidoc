@@ -1,14 +1,9 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
-https://github.com/elastic/apm-server/compare/6.4\...master[View commits]
+https://github.com/elastic/apm-server/compare/6.5\...master[View commits]
 
 [float]
 === Added
 
-- Provide basic server information at `/` {pull}1197[1197].
-- Add pipeline registration and pipeline usage {pull}1258[1258],{pull}1296[1296].
-- Allow sending `tags` for `spans`, that get indexed in ES {pull}1156[1156].
-- Add apm-server monitoring {pull}1382[1382].
-- Enable sending instrumentation to a remote APM Server with `instrumentation.hosts` {pull}1389[1389].
-- Added Intake Protocol v2 with distributed tracing support {pull}1237[1237], {pull}1390[1390].
+- Set some configuration defaults (setup.template.settings.index.*, logging.metrics.enabled) in code {pull}1494[1494].

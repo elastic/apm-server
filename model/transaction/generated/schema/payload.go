@@ -571,12 +571,12 @@ const PayloadSchema = `{
         {  
             "properties": {
                 "id": {
-                    "description": "ID od the span.",
+                    "description": "ID of the span.",
                     "type": ["integer", "null"]
                 },
                 "transaction_id": {
                     "type": "string",
-                    "description": "UUID for the parent transaction",
+                    "description": "UUID of the enclosing transaction.",
                     "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
                 },       
                 "parent": {
@@ -585,7 +585,7 @@ const PayloadSchema = `{
                 },
                 "start": {
                     "type": "number",
-                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
+                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds."
                 }
             },
             "required": ["start"],

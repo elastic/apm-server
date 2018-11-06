@@ -14,6 +14,7 @@ from beat.beat import TestCase, TimeoutError
 
 
 class BaseTest(TestCase):
+    maxDiff = None
 
     @classmethod
     def setUpClass(cls):
@@ -88,7 +89,13 @@ class ServerSetUpBaseTest(BaseTest):
         shutil.copy(self._beat_path_join(pipeline_def), target_dir)
 
         self.render_config_template(**self.config())
-        self.apmserver_proc = self.start_beat()
+        self.apmserver_proc = self.start_beat(**self.start_args())
+        self.wait_until_started()
+
+    def start_args(self):
+        return {}
+
+    def wait_until_started(self):
         self.wait_until(lambda: self.log_contains("Starting apm-server"))
 
     def assert_no_logged_warnings(self, suppress=None):
