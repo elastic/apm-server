@@ -272,8 +272,6 @@ to a new name.
 match.
 
 *`when`*:: A condition that must succeed in order to execute the current rule.
-All the <<conditions,conditions>> supported by processors are also supported
-here. 
 
 The following example sets the index based on whether the `message` field
 contains the specified string:
@@ -377,8 +375,6 @@ it to a new name.
 match.
 
 *`when`*:: A condition that must succeed in order to execute the current rule.
-All the <<conditions,conditions>> supported by processors are also supported
-here. 
 
 The following example sends events to a specific pipeline based on whether the
 `message` field contains the specified string:
@@ -866,8 +862,6 @@ to a new name.
 match.
 
 *`when`*:: A condition that must succeed in order to execute the current rule.
-All the <<conditions,conditions>> supported by processors are also supported
-here. 
 
 
 ===== `key`
@@ -1096,8 +1090,6 @@ a new name.
 *`default`*:: The default string value to use if `mappings` does not find a match.
 
 *`when`*:: A condition that must succeed in order to execute the current rule.
-All the <<conditions,conditions>> supported by processors are also supported
-here. 
 
 Example `keys` settings:
 
