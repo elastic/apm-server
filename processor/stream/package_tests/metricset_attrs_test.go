@@ -28,7 +28,7 @@ import (
 
 func metricsetProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{}},
+		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{MaxEventSize: lrSize}},
 		FullPayloadPath: "../testdata/intake-v2/metricsets.ndjson",
 		TemplatePaths: []string{
 			"../../../model/metricset/_meta/fields.yml",
