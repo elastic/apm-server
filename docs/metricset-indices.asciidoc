@@ -1,0 +1,13 @@
+[[metricset-indices]]
+== Metricset Indices
+
+Metricsets are by default stored to indices of the format `apm-[version]-metric-[date]`.
+
+[[metricset-example]]
+[float]
+=== Example Document
+See an example metricset indexed in Elasticsearch:
+[source,json]
+----
+include::./data/elasticsearch/metric.json[]
+----

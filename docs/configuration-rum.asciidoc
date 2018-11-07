@@ -34,25 +34,25 @@ Default value is set to 10.
 
 [float]
 ==== `allow_origins`
-Comma separated list of permitted origins for RUM supprt.
+Comma separated list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
 This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
-An origin is made of a protocol scheme, host and port, without the url path.
+An origin is made of a protocol scheme, host and port, without the URL path.
 Default value is set to `['*']`, which allows everything.
 
 [float]
 ==== `library_pattern`
-Regexp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
-If the regexp matches, the stacktrace frame is considered to be a library frame.
-When source mapping is applied the `error.culprit` is set to reflect the _function_ and the _filename_
-of the first not library frame.
+RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
+If the RegExp matches, the stacktrace frame is considered to be a library frame.
+When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
+of the first non library frame.
 This aims to provide an entry point for identifying issues.
 Default value is `"node_modules|bower_components|~"`.
 
 [float]
 ==== `exclude_from_grouping`
-Regexp to be matched against a stacktrace frame's `file_name`.
-If the regexp matches, the stacktrace frame is excluded from being used for calculating error groups.
+RegExp to be matched against a stacktrace frame's `file_name`.
+If the RegExp matches, the stacktrace frame is excluded from being used for calculating error groups.
 The default pattern excludes stacktrace frames that have a filename starting with `/webpack`.
 
 [[rum-sourcemap-cache]]
@@ -69,10 +69,10 @@ Default value is 5 minutes.
 ==== `source_mapping.elasticsearch`
 Configure the Elasticsearch source map retrieval location, taking the same options as <<elasticsearch-output,output.elasticsearch>>.
 This must be set when using an output other than Elasticsearch, and that output is writing to Elasticsearch.
-Othewise leave this section empty.
+Otherwise leave this section empty.
 
 [float]
 ==== `source_mapping.index_pattern`
-Source maps are stored in a seperate index `apm-%{[beat.version]}-sourcemap` by default.
+Source maps are stored in a separate index `apm-%{[beat.version]}-sourcemap` by default.
 If changed, a matching index pattern needs to be specified here.
 

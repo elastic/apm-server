@@ -1,0 +1,7 @@
+[[metric-schema]]
+=== Metricsets
+
+[source,json]
+----
+include::./spec/metricsets/v2_metricset.json[]
+----

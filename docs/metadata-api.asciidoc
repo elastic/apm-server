@@ -1,0 +1,15 @@
+[[metadata-schema]]
+=== Metadata
+
+Every new connection to the APM Server starts with a `metadata` stanza. This provides general metadata concerning the other objects in the stream.
+
+Rather then send this metadata stanza multiple times, the APM Server hangs on to this information and reuses it to apply to every document that goes into elasticsearch.
+
+The specification for metadata is outlined below:
+
+[source,json]
+----
+include::./spec/metadata.json[]
+----
+
+NOTE: Metadata is stored under `context` when viewing documents in Elasticsearch. 

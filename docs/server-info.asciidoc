@@ -1,8 +1,7 @@
 [[server-info]]
 == Server Information
 
-The APM Server exposes an API endpoint to query some server information.
-
+The APM Server exposes an API endpoint to query general server information.
 This lightweight endpoint is useful as a server up/down healthcheck.
 
 [[server-info-endpoint]]

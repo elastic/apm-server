@@ -9,9 +9,9 @@ To use it you need to <<rum-enable,enable RUM support>> in the APM Server.
 
 [[sourcemaps]]
 == Source Maps
-It is common practice to minify JavaScript code, for example to reduce network latency.
-While improving performance, minified code is also hard to debug.
-A source map library helps by mapping the minified files back the the original source code.
+For a number of reasons, it is common practice to minify JavaScript code, for example to reduce network latency.
+While improving performance, minified code can be hard to debug.
+A source map library helps by mapping the minified files back to the the original source code.
 
 APM Server provides a <<sourcemap-api,Source Map API>> for uploading source maps.
 

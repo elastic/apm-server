@@ -56,6 +56,22 @@ and the type of this span will contain information about the database type.
 
 Spans are stored in {apm-server-ref}/span-indices[span indices]. Note that these indices are separate from {apm-server-ref}/transaction-indices[transaction indices] by default.
 
+[float]
+[[dropped-spans]]
+==== Dropped Spans
+
+For performance reasons, APM agents can choose to purposefully omit spans. One example of this might be for long running transactions with over 100 transactions. These edge cases can overload both the agent and the APM Server. To avoid this, Agents can drop spans. When they do this, they notify the server of exactly how many spans were dropped. This note is then passed on to the user in the UI.
+
+Settings affecting dropped spans, and more details on why they might occur, are available in the relevant {apm-agents-ref}/index.html[APM Agent] documentation.
+
+[float]
+[[missing-spans]]
+==== Missing Spans
+
+Similarly to dropped spans, transactions may be missing spans. An agent informs the server of how many spans it has "started", but sometimes, not all of the spans make it to the server. This could be because
+
+Because spans are sent to the APM Server separately from their transaction, it may happen that we lose a transaction, but have spans belonging that transaction stored in Elasticsearch. The reverse can also happen, a transaction is successfully sent and stored in Elasticsearch, but one or more of it's spans are lost.
+
 [[errors]]
 === Errors
 
