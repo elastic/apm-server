@@ -18,6 +18,7 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 * <<configuration-path>>
 --
 
+
 include::./configuration-process.asciidoc[]
 
 :no-redis-output:
@@ -34,6 +35,8 @@ include::./copied-from-beats/loggingconfig.asciidoc[]
 include::./copied-from-beats/shared-kibana-config.asciidoc[]
 
 include::./copied-from-beats/dashboardsconfig.asciidoc[]
+
+include::./copied-from-beats/step-test-config.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
 
