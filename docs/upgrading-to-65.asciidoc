@@ -131,40 +131,46 @@ you must be using an updated `apm-server.yml` file.
 [[es-schema-changes-65]]
 ==== Elasticsearch Schema Changes
 
-//todo: ADD LINKS TO sample docs created by the APM server
-
 The Elasticsearch schema defines how APM data is stored in Elasticsearch.
 There have been a number of changes to the Elasticsearch schema for 6.5.
+
+An important change to note is the addition of the `trace` and `parent` keys,
+which have been added to errors, transactions, and spans.
+Both only hold a field `id`.
+These new keys are essential to taking advantage of APM's new {apm-get-started-ref}/distributed-tracing.html[distributed tracing] feature.
 
 [float]
 [[es-error-changes-65]]
 ===== Error
 
-The Elasticsearch error schema adds two new properties.
-The full schema is available here. 
+The Elasticsearch error schema adds two new keys:
 
-* _add_ `error.parent_id`
-* _add_ `error.trace_id`
+* _add_ `trace.id`
+* _add_ `parent.id`
+
+View the sample Elasticsearch <<error-indices,error document>> for more information. 
 
 [float]
 [[es-transaction-changes-65]]
 ===== Transaction
 
-The Elasticsearch transaction schema adds two new properties.
-The full schema is available here. 
+The Elasticsearch transaction schema adds two new keys:
 
-* _add_ `transaction.parent_id`
-* _add_ `transaction.trace_id`
+* _add_ `trace.id`
+* _add_ `parent.id`
+
+View the sample Elasticsearch <<transaction-indices,transaction document>> for more information. 
 
 [float]
 [[es-span-changes-65]]
 ===== Span
 
-The Elasticsearch span schema adds two new properties.
-The full schema is available here. 
+The Elasticsearch span schema adds three new keys, and deprecates two:
 
-* _add_ `span.parent_id`
-* _add_ `span.trace_id`
-* _add_ `span.hex_id`
-* _deprecate_ `span.id`
-* _deprecate_ `span.parent`
+* _add_ `trace.id`
+* _add_ `parent.id`
+* _add_ `hex_id`
+* _deprecate_ `parent` long
+* _deprecate_ `id` long
+
+View the sample Elasticsearch <<span-indices,span document>> for more information. 

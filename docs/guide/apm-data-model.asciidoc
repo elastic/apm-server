@@ -30,9 +30,9 @@ include::../context.asciidoc[]
 Agents decide whether to sample transactions or not,
 and provide settings to control sampling behavior.
 If sampled,
-the {apm-server-ref}/transaction-spans[spans] of a transaction are sent and stored as separate documents. Within one transaction there can be several, or no spans captured. 
+the {apm-server-ref}/transaction-spans.html[spans] of a transaction are sent and stored as separate documents. Within one transaction there can be several, or no spans captured. 
 
-Transactions are stored in {apm-server-ref}/transaction-indices[transaction indices].
+Transactions are stored in {apm-server-ref}/transaction-indices.html[transaction indices].
 
 [[transaction-spans]]
 === Spans
@@ -54,22 +54,25 @@ a span describing the database query will be created.
 The name of this span will contain information about the query itself,
 and the type of this span will contain information about the database type.
 
-Spans are stored in {apm-server-ref}/span-indices[span indices].
-Note that these indices are separate from {apm-server-ref}/transaction-indices[transaction indices] by default.
+Spans are stored in {apm-server-ref}/span-indices.html[span indices].
+Note that these indices are separate from {apm-server-ref}/transaction-indices.html[transaction indices] by default.
 
 [float]
 [[dropped-spans]]
 ==== Dropped Spans
 
-For performance reasons, APM agents can choose to purposefully sample or omit spans.
+For performance reasons, some APM agents can choose to purposefully sample or omit spans.
 One example of this might be for long running transactions with over 100 spans.
 These edge cases can overload both the agent and the APM Server.
-To avoid this, Agents can drop spans. When they do this,
-they notify the server of exactly how many spans were dropped,
-this note is then passed on to the user in the UI.
+To avoid this, Agents will drop spans. When they do this,
+they notify the server of exactly how many spans were dropped.
+This note is then passed on to the user in the UI.
 
 Settings affecting dropped spans, and more details on why they might occur,
-are available in the relevant {apm-agents-ref}/index.html[APM Agent] documentation.
+are available in the relevant agent documentation:
+
+* {apm-node-ref}/agent-api.html#transaction-max-spans[Node.js Agent max spans]
+* {apm-agents-ref}/configuration.html#config-transaction-max-spans[Python Agent max spans]
 
 [float]
 [[missing-spans]]
@@ -101,4 +104,4 @@ Errors also have some contextual data.
 
 include::../context.asciidoc[]
 
-Errors are stored in {apm-server-ref}/error-indices[error indices].
+Errors are stored in {apm-server-ref}/error-indices.html[error indices].
