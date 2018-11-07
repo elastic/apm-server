@@ -1,11 +1,20 @@
 [[upgrading-to-65]]
 === Upgrading to APM Server v6.5
 
-If you're using an Elastic APM Agent, upgrading to version 6.5 of the APM Server is easy - just ensure you're using the most recent version of your applicable APM agent. Check the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for details.
+If you're using an Elastic APM Agent, upgrading to version 6.5 of the APM Server is easy,
+just ensure you're using the most recent version of your applicable APM agent.
+Check the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for details.
 
-If you're an advanced user, are implementing a custom agent, or provide custom data to Elasticsearch, there are some changes in 6.5 that you should be aware of.
+If you're an advanced user, are implementing a custom agent,
+or provide custom data to Elasticsearch,
+there are some changes in 6.5 that you should be aware of.
 
-NOTE: None of the changes outlined below are breaking changes. APM Server 6.5 should still work with your currently implemented agent. To take advantage of new features, it's recommended you read about the changes below and update accordingly.
+NOTE: None of the changes outlined below are breaking changes.
+APM Server 6.5 should still work with your currently implemented agent.
+To take advantage of new features,
+it's recommended you read about the changes below and update accordingly.
+If you'd like to continue using the deprecated Intake API and Elasticsearch Schema,
+you can view https://www.elastic.co/guide/en/apm/server/6.4/overview.html[previous documentation].  
 
 [float]
 [[intake-api-changes-65]]
@@ -14,49 +23,72 @@ NOTE: None of the changes outlined below are breaking changes. APM Server 6.5 sh
 The Intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
 This API has been redesigned in 6.5 to increase the memory efficiency and predictability of the APM Server and APM agents.
 
-There have been a number of changes to the Intake API for 6.5. Notably, the endpoint itself has changed to `intake/v2/events`. Full documentation of this change is in the <<events-api,Events API>>.
+Notably, most of the endpoints associated with this API have been deprecated,
+and replaced with a new endpoint: `intake/v2/events`.
+Details about these changes,
+and the information you can send to the new endpoint,
+is available in the <<events-api,Events API>> documentation.
+
+[float]
+[[metadata-api-changes-65]]
+===== Metadata
+
+Metadata is now sent only once from the agent to the server. APM Server will retain this information and apply it to the applicable documents when it writes to Elasticsearch. 
+
+Metadata should be sent to the new `intake/v2/events` endpoint.
+See the <<metadata-api, metadata documentation>> for more information.
 
 [float]
 [[error-api-changes-65]]
 ===== Error
 
-The error schema adds three new properties, and removes two others. The full schema is available here.
+The error schema adds three new properties, and deprecates two others.
 
-* _remove_ pattern of `error.id`, change format to hex encoded 64 random bits
-* _remove_ `transaction.id`
-* _add_ `transaction_id` referring to transaction
-* _add_ `parent_id`
-* _add_ `trace_id`
+* _deprecate_ pattern of `error.id`, change format to hex encoded 64 random bits
+* _deprecate_ `transaction.id`
+* _add_ `transaction_id` (required, hex encoded 64 random bits)
+* _add_ `parent_id` (optional, hex encoded 64 random bits)
+* _add_ `trace_id` (optional, hex encoded 128 random bits)
+
+Error events should be sent to the new `intake/v2/events` endpoint.
+See the <<error-schema, error schema documentation>> for more information.
 
 [float]
 [[transaction-api-changes-65]]
 ===== Transaction
 
-The transaction schema adds two new properties, and removes two others. The full schema is available here.
+The transaction schema adds two new properties, and deprecates two others.
 
-* _remove_ pattern of `transaction.id`, change format to hex encoded 64 random bits
-* _remove_ spans (don't forbid them, just don't process them)
-* _add_ `parent_id`
-* _add_ `trace_id` (required attribute)
+* _deprecate_ pattern of `transaction.id`, change format to hex encoded 64 random bits
+* _deprecate_ spans (don't forbid them, just don't process them)
+* _add_ `parent_id` (optional, hex encoded 64 random bits string)
+* _add_ `trace_id` (required, hex encoded 128 random bits)
+
+Transaction events should be sent to the new `intake/v2/events` endpoint.
+See the <<transaction-schema, transaction schema documentation>> for more information.
 
 [float]
 [[span-api-changes-65]]
 ===== Span
 
-The span schema adds three new properties, removes two, and changes one. The full schema is available here.
+The span schema adds three new properties, removes two, and changes one.
 
-* _change_ pattern of `id` from long to string, format to hex encoded 64 random bits
-* _remove_ pattern of `transaction_id`
-* _remove_ parent referring to long id
-* _add_ `parent_id` referring to transaction or span
-* _add_ timestamp
-* _add_ `trace_id` (required attribute)
+* _change_ pattern of `id` to hex encoded 64 random bits
+* _deprecate_ pattern of `transaction_id`
+* _deprecate_ use of `parent`
+* _add_ `parent_id` (required, hex encoded 64 random bits)
+* _add_ `trace_id` (required, hex encoded 128 random bits)
+* _add_ `timestamp`
+
+Span events should be sent to the new `intake/v2/events` endpoint.
+See the <<transaction-span-schema, span schema documentation>> for more information.
 
 [float]
 [[healthcheck-api-changes-65]]
 ===== Healthcheck Endpoint
 
-The Healthcheck endpoint, previously `/healthcheck`, has been deprecated. The <<server-info,server information>> api has replaced it. 
+The Healthcheck endpoint, previously `/healthcheck`, has been deprecated.
+The <<server-info,server information>> api has replaced it. 
 
 [float]
 [[assets-api-changes-65]]
@@ -68,7 +100,10 @@ The assets endpoint, `/assets/v1/sourcemaps`, remains unchanged.
 [[metrics-api-changes-65]]
 ===== Metricsets Endpoint
 
-The Metricsets endpoint, previously `/v1/metrics`, has also integrated with the new intake endpoint at `/intake/v2/events`. In terms of functionality, the only change relates to timestamps. More information is available here. 
+The Metricsets endpoint, previously `/v1/metrics`,
+has also integrated with the new intake endpoint at `/intake/v2/events`.
+In terms of functionality, the only change relates to timestamps.
+See the <<metricset-api, metricset documentation>> for more information.
 
 [float]
 [[server-config-changes-65]]
@@ -78,11 +113,19 @@ On the server there are some configuration options that are worth mentioning:
 
 `max_unzipped_size`, `max_request_queue_time`, and `concurrent_requests` have all been deprecated with 6.4. 
 
-New with 6.5 is `max_event_size` which has a default value of `307200` bytes. You'll notice this value is much smaller than the previous `max_unzipped_size` value. This is because in APM Server 6.5, an event is much smaller than an event in 6.4. Instead of getting the whole payload at once, and event is just a single line of data. 
+New with 6.5 is `max_event_size` which has a default value of `307200` bytes.
+You'll notice this value is much smaller than the previous `max_unzipped_size` value.
+This is because in APM Server 6.5, an event is much smaller than an event in 6.4.
+Instead of getting the whole payload at once, and event is just a single line of data. 
 
-`read_timeout` and `write_timeout` remain at 30 seconds, but if you have a load balancer in front of the APM server you may notice connections are a little bit longer lived than they used to be.
+`read_timeout` and `write_timeout` remain at 30 seconds,
+but if you have a load balancer in front of the APM server you may notice connections are a little bit longer lived than they used to be.
 
-NOTE: If you are updating APM Server from version 6.3 or earlier, you may not be using an updated `apm-server.yml` file. How APM Server stores data in Elasticsearch has changed overtime, and in order to take advantage of new features, you must be using an update `apm-server.yml` file. 
+NOTE: If you are updating APM Server from version 6.3 or earlier,
+you may not be using an updated `apm-server.yml` file.
+How APM Server stores data in Elasticsearch has changed overtime,
+and in order to take advantage of new features,
+you must be using an updated `apm-server.yml` file. 
 
 [float]
 [[es-schema-changes-65]]
@@ -97,7 +140,8 @@ There have been a number of changes to the Elasticsearch schema for 6.5.
 [[es-error-changes-65]]
 ===== Error
 
-The Elasticsearch error schema adds two new properties. The full schema is available here. 
+The Elasticsearch error schema adds two new properties.
+The full schema is available here. 
 
 * _add_ `error.parent_id`
 * _add_ `error.trace_id`
@@ -106,7 +150,8 @@ The Elasticsearch error schema adds two new properties. The full schema is avail
 [[es-transaction-changes-65]]
 ===== Transaction
 
-The Elasticsearch transaction schema adds two new properties. The full schema is available here. 
+The Elasticsearch transaction schema adds two new properties.
+The full schema is available here. 
 
 * _add_ `transaction.parent_id`
 * _add_ `transaction.trace_id`
@@ -115,7 +160,8 @@ The Elasticsearch transaction schema adds two new properties. The full schema is
 [[es-span-changes-65]]
 ===== Span
 
-The Elasticsearch span schema adds two new properties. The full schema is available here. 
+The Elasticsearch span schema adds two new properties.
+The full schema is available here. 
 
 * _add_ `span.parent_id`
 * _add_ `span.trace_id`

@@ -1,7 +1,11 @@
 [[agent-server-compatibility]]
 == Agent/Server Compatibility
 
-When instrumenting an APM Agent within your codebase, it's important to use a compatible version of APM Server. Below is a chart that outlines the compatibility between agents and server versions.
+Below is a chart that outlines the compatibility between different versions of the APM agents and the APM Server. 
+
+NOTE: APM Server version 6.5 introduced a new way for APM agents to communicate with the APM Server.
+To take advantage of new features,
+it is recommended that you update to the newest version of the applicable agent.
 
 [float]
 [[nodejs-compatibility]]

@@ -29,8 +29,6 @@ include::../context.asciidoc[]
 
 Agents decide whether to sample transactions or not,
 and provide settings to control sampling behavior.
-If sampled,
-the {apm-server-ref}/transaction-spans[spans] of a transaction are sent and stored as separate documents. Within one transaction there can be several, or no spans captured. 
 
 Transactions are stored in {apm-server-ref}/transaction-indices[transaction indices].
 
@@ -54,23 +52,32 @@ a span describing the database query will be created.
 The name of this span will contain information about the query itself,
 and the type of this span will contain information about the database type.
 
-Spans are stored in {apm-server-ref}/span-indices[span indices]. Note that these indices are separate from {apm-server-ref}/transaction-indices[transaction indices] by default.
+Spans are stored in {apm-server-ref}/span-indices[span indices].
+Note that these indices are separate from {apm-server-ref}/transaction-indices[transaction indices] by default.
 
 [float]
 [[dropped-spans]]
 ==== Dropped Spans
 
-For performance reasons, APM agents can choose to purposefully omit spans. One example of this might be for long running transactions with over 100 transactions. These edge cases can overload both the agent and the APM Server. To avoid this, Agents can drop spans. When they do this, they notify the server of exactly how many spans were dropped. This note is then passed on to the user in the UI.
+For performance reasons, APM agents can choose to purposefully sample or omit spans.
+One example of this might be for long running transactions with over 100 spans.
+These edge cases can overload both the agent and the APM Server.
+To avoid this, Agents can drop spans. When they do this,
+they notify the server of exactly how many spans were dropped,
+this note is then passed on to the user in the UI.
 
-Settings affecting dropped spans, and more details on why they might occur, are available in the relevant {apm-agents-ref}/index.html[APM Agent] documentation.
+Settings affecting dropped spans, and more details on why they might occur,
+are available in the relevant {apm-agents-ref}/index.html[APM Agent] documentation.
 
 [float]
 [[missing-spans]]
 ==== Missing Spans
 
-Similarly to dropped spans, transactions may be missing spans. An agent informs the server of how many spans it has "started", but sometimes, not all of the spans make it to the server. This could be because
-
-Because spans are sent to the APM Server separately from their transaction, it may happen that we lose a transaction, but have spans belonging that transaction stored in Elasticsearch. The reverse can also happen, a transaction is successfully sent and stored in Elasticsearch, but one or more of it's spans are lost.
+Similarly to dropped spans, transactions may have missing spans.
+This can happen because spans are streamed from the APM Agent to the APM Server separately from their transaction.
+Unforseen errors may cause spans to go missing.
+Because the agent notifies the server about how many spans their should be,
+we're able to easily determine if a span has gone missing. 
 
 [[errors]]
 === Errors

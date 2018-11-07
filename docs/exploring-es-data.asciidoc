@@ -3,12 +3,23 @@
 
 [partintro]
 --
-By default Elastic APM data is stored in separated indices following the format:
-`apm-%{[version]}-{type}-%{+yyyy.MM.dd}`.
 
-NOTE: If you are updating APM Server from version 6.3 or earlier, you may still be using an outdated `apm-server.yml` file. You must update your `apm-server.yml` file in order to take advantage of the new format of indices.
+NOTE: Templates describing how the APM Server stores data in Elasticsearch have changed in v6.5.
+Read the <<upgrading-to-65,upgrading to 6.5 guide>> for more information.
 
-Data types are described {apm-get-started-ref}/apm-data-model.html[here].
+By default, Elastic APM data is stored in separated indices in the following formats:
+------------------------------------------------------------
+apm-%{[version]}-sourcemap
+apm-%{[version]}-error-%{+yyyy.MM.dd}
+apm-%{[version]}-transaction-%{+yyyy.MM.dd}
+apm-%{[version]}-span-%{+yyyy.MM.dd}
+apm-%{[version]}-metric-%{+yyyy.MM.dd}
+apm-%{[version]}-onboarding-%{+yyyy.MM.dd}
+------------------------------------------------------------
+
+If you're unfamiliar with the data types shown above, they are described in the {apm-get-started-ref}/apm-data-model.html[APM data model].
+
+TIP: If your APM data is being stored in a different format, you may be using an outdated `apm-server.yml` file. You must update your `apm-server.yml` file in order to take advantage of the new format of indices.
 
 To get an overview of existing indices you can run:
 ["source","sh"]

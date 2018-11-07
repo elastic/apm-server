@@ -1,14 +1,9 @@
 [[events-api]]
 == Events API
 
-The following section contains information about:
-
-* <<events-api-endpoint>>
-* <<events-api-response>>
-* <<events-api-errors>>
-* <<events-api-schema-definition>>
-
-Agents capture different types of information, known as events. These events are sent to a single endpoint which then sorts and processes the events. Events can be:
+Agents capture different types of information, known as events.
+These events are sent to a single endpoint which then sorts and processes the events.
+Events can be:
 
 * Transactions
 * Spans
@@ -38,26 +33,39 @@ http(s)://{hostname}:{port}/intake/v2/rum/events
 [float]
 === Response
 
-On success, the server will respond with a 202 Accepted status code.
+On success, the server will respond with a 202 Accepted status code and no body.
 
 [[events-api-errors]]
 [float]
 === Errors
 
-Events are processed one after the either. If an error is encountered while processing an event, the error encountered, as well as the document causing the error are added to an internal array. The server will wait to encounter up to five errors before sending a response to the agent. If there are multiple errors, the highest status code is returned. 
+Events are processed one after the either.
+If an error is encountered while processing an event,
+the error encountered as well as the document causing the error are added to an internal array.
+The server will wait to encounter up to five errors before sending a response to the agent.
+If there are multiple errors, the highest status code is returned. 
 
-As an example, here's the error response for invalid JSON:
+Here's an example response:
 
 [source,json]
 ------------------------------------------------------------
 {
-    "accepted": 1,
-    "errors": [
-        {
-            "document": "{ \"invalid-json\" }",
-            "message": "data read error: invalid character '}' after object key"
-        }
-    ]
+  "errors": [
+    {
+      "message": "queue is full"
+    },{
+      "message": "timeout while waiting to process"
+    },{
+      "message": "<json-schema-err>",
+      "document": "<ndjson-obj>"
+    },{
+      "message": "<json-decoding-err>",
+      "document": "<ndjson-obj>"
+    },{
+      "message": "invalid content-type: 'html/text'"
+    }
+  ],
+  "accepted": 2320
 }
 ------------------------------------------------------------
 
@@ -68,22 +76,16 @@ it is added to the internal array and immediately returned.
 
 If you're developing an agent, these errors can be useful for debugging your agent while building it. 
 
-// todo: check troubleshooting section
-The queue is full error is interesting, and can indicate that you probably want to reduce your sampling rate, get a bigger APM Server or elasticsearch - depending on where your bottlenecks are.
-
-// todo: what errors are unrecoverable?
-NOTE: If the APM Server runs into certain errors, it may not consume the whole body from the agent. The server just stops reading if the error is unrecoverable. Agents should be able to handle these situations
-
 [[events-api-schema-definition]]
 [float]
-=== Event Schema
+=== Event API Schemas
 
-The APM Server uses a JSON Schema for validating requests:
+The APM Server uses a collection of JSON Schemas for validating requests to the intake API:
 
-* <<metadata-api,Metadata>>
-* <<transaction-api,Transactions and Spans>>
-* <<error-api,Errors>>
-* <<metricset-api,Metricsets>>
+* <<metadata-api, Metadata>>
+* <<transaction-api, Transactions and Spans>>
+* <<error-api, Errors>>
+* <<metricset-api, Metricsets>>
 
 include::./metadata-api.asciidoc[]
 include::./transaction-api.asciidoc[]

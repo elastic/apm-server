@@ -1,6 +1,14 @@
 [[distributed-tracing]]
 == Distributed tracing
 
-Elastic APM supports distributed tracing to enable you to analyze performance through your microservices architecture by tracing all the requests from the initial web request to your front-end service, to queries made to your back-end services all in one view. This makes finding possible bottlenecks through-out your application much easier and faster. No additional configuration is needed to get distributed tracing, but please see the supported technologies for the agent in use to get the most out of the integration.
+Elastic APM supports distributed tracing to enable you to analyze performance through your microservices architecture by tracing all the requests from the initial web request to your front-end service,
+to queries made to your back-end services all in one view.
+This makes finding possible bottlenecks through-out your application much easier and faster.
+There's no additional configuration needed for distributed tracing,
+but please ensure you are using the latest version of the agent.
 
-The APM UI in Kibana also supports displaying traces and an updated Timeline visualization has been redesigned to show all the transactions from individual services that are connected in a trace. As we're still working on enhancing the distributed tracing experience in the UI, we're flagging the feature beta in the UI. Should you still encounter any bug or issues, please reach out in our https://discuss.elastic.co/c/apm[discussion forum].
+The APM UI in Kibana also supports displaying traces and an updated Timeline visualization has been redesigned to show all the transactions from individual services that are connected in a trace.
+As we're still working on enhancing the distributed tracing experience in the UI,
+we're flagging the feature beta in the UI.
+Should you still encounter any bug or issues,
+please reach out in our https://discuss.elastic.co/c/apm[discussion forum].

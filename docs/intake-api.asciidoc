@@ -2,11 +2,16 @@
 = Intake API
 [partintro]
 --
-NOTE: Most users will not need to interact directly with the intake API. Therefor, unless you are implementing an agent, you don't need to know about the specifics of this API. 
+NOTE: Most users will not need to interact directly with the intake API unless they are implementing an agent.
 
-The Intake API is what we call the internal protocol that APM agents use to talk to the APM Server. This API has been redesigned in 6.5. Read the <<upgrading-to-65,upgrading to 6.5 guide>> for more information.
+The Intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
+This API has been redesigned in 6.5.
+Read the <<upgrading-to-65,upgrading to 6.5 guide>> for more information.
 
-APM Agents communicate with the APM server by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. This is known as http://ndjson.org[newline delimited JSON (NDJSON)]. The request body looks roughly like this:
+APM Agents communicate with the APM server by sending events in an HTTP request.
+Each event is sent as its own line in the HTTP request body.
+This is known as http://ndjson.org[newline delimited JSON (NDJSON)].
+The request body looks roughly like this:
 
 [source,bash]
 ------------------------------------------------------------
@@ -16,7 +21,8 @@ APM Agents communicate with the APM server by sending events in an HTTP request.
 {"transaction": {"name": "GET /index", "id": "A"}}
 ------------------------------------------------------------
 
-With NDJSON, agents can open an HTTP POST request and use chunked encoding to stream events to the APM Server as soon as they are recorded in the agent. This makes it simple for agents to serialize each event to a stream of newline delimited JSON.
+With NDJSON, agents can open an HTTP POST request and use chunked encoding to stream events to the APM Server as soon as they are recorded in the agent.
+This makes it simple for agents to serialize each event to a stream of newline delimited JSON.
 
 The APM Server also treats the HTTP body as a compressed stream and thus reads and handles each event independently.
 

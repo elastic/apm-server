@@ -223,9 +223,13 @@ See the {apm-java-ref}/index.html[APM Java Agent documentation] for more details
 [float]
 ==== Install the Go Agent
 
-At present, Go applications must be instrumented manually at the source code level. Where possible, you should use the {apm-go-ref}/instrumenting-source.html#builtin-modules[built-in instrumentation modules] to report transactions served by web and RPC frameworks in your application. If the built-in modules are not suitable, please refer to {apm-go-ref}/instrumenting-source.html#custom-instrumentation[Custom Instrumentation].
+At present, Go applications must be instrumented manually at the source code level.
+Where possible, you should use the {apm-go-ref}/instrumenting-source.html#builtin-modules[built-in instrumentation modules] to report transactions served by web and RPC frameworks in your application.
+If the built-in modules are not suitable,
+please refer to {apm-go-ref}/instrumenting-source.html#custom-instrumentation[Custom Instrumentation].
 
-The Go agent automatically instruments Gorilla and Gin, as well as support for Go's built-in net/http and database/sql drivers.
+The Go agent automatically instruments Gorilla and Gin,
+as well as support for Go's built-in net/http and database/sql drivers.
 See the {apm-go-ref}/index.html[APM Go Agent documentation] for more details.
 
 [[rum-agent]]

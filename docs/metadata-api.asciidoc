@@ -1,15 +1,63 @@
-[[metadata-schema]]
+[[metadata-api]]
 === Metadata
 
-Every new connection to the APM Server starts with a `metadata` stanza. This provides general metadata concerning the other objects in the stream.
+Every new connection to the APM Server starts with a `metadata` stanza.
+This provides general metadata concerning the other objects in the stream.
 
-Rather then send this metadata stanza multiple times, the APM Server hangs on to this information and reuses it to apply to every document that goes into elasticsearch.
+Rather then send this metadata information from the agent multiple times,
+the APM Server hangs on to this information and applies it to other objects in the stream as necessary.
+
+[[metadata-schema-definition]]
+[float]
+==== Schema Definition
 
 The specification for metadata is outlined below:
 
+* <<metadata-schema>>
+* <<metadata-service-schema>>
+* <<metadata-process-schema>>
+* <<metadata-system-schema>>
+* <<metadata-user-schema>>
+
+[[metadata-schema]]
+[float]
+===== Metadata
 [source,json]
 ----
 include::./spec/metadata.json[]
 ----
 
-NOTE: Metadata is stored under `context` when viewing documents in Elasticsearch. 
+[[metadata-service-schema]]
+[float]
+===== Service
+[source,json]
+----
+include::./spec/service.json[]
+----
+
+[[metadata-process-schema]]
+[float]
+===== Process
+[source,json]
+----
+include::./spec/process.json[]
+----
+
+[[metadata-system-schema]]
+[float]
+===== System
+[source,json]
+----
+include::./spec/system.json[]
+----
+
+[[metadata-user-schema]]
+[float]
+===== User
+[source,json]
+----
+include::./spec/user.json[]
+----
+
+
+TIP: Metadata is stored under `context` when viewing documents in Elasticsearch. 
