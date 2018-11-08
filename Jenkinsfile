@@ -205,11 +205,7 @@ pipeline {
           unstash 'source'
           dir("${BASE_DIR}"){
             sh """#!/bin/bash
-            TEST_ENVIRONMENT=false
-            SYSTEM_TESTS=false
-            STRESS_TESTS=false
-
-            ./script/jenkins/test.sh
+            ./script/jenkins/unit-test.sh
             """
           }
         }

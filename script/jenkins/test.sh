@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -exuo pipefail
 
 source ./_beats/dev-tools/common.bash
 
@@ -13,15 +13,10 @@ jenkins_setup
 
 make testsuite
 
-go get -v -u github.com/jstemmer/go-junit-report
 go get -v -u github.com/t-yuki/gocover-cobertura
 
 export COV_DIR="build/coverage"
-export OUT_FILE="build/test-report.out"
-mkdir -p build
 
-(go test -race ./... -v 2>&1 | tee ${OUT_FILE}) || echo -e "\033[31;49mTests FAILED\033[0m"
-cat ${OUT_FILE} | go-junit-report > build/junit-apm-server-report.xml
 for i in "full.cov" "integration.cov" "system.cov" "unit.cov"
 do
   name=$(basename ${i} .cov)
