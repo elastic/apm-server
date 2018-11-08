@@ -14,7 +14,6 @@ apm-%{[version]}-error-%{+yyyy.MM.dd}
 apm-%{[version]}-transaction-%{+yyyy.MM.dd}
 apm-%{[version]}-span-%{+yyyy.MM.dd}
 apm-%{[version]}-metric-%{+yyyy.MM.dd}
-apm-%{[version]}-onboarding-%{+yyyy.MM.dd}
 ------------------------------------------------------------
 
 If you're unfamiliar with the data types shown above, they are described in the {apm-get-started-ref}/apm-data-model.html[APM data model].

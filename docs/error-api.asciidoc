@@ -5,7 +5,6 @@ The following section contains information about:
 
 * <<error-schema-definition>>
 * <<error-schema>>
-* <<error-api-examples>>
 
 [[error-schema-definition]]
 [float]
@@ -19,56 +18,10 @@ The APM Server uses JSON Schema for validating requests. The specification for e
 
 [source,json]
 ----
-include::./spec/errors/common_error.json[]
-----
-
-[source,json]
-----
 include::./spec/errors/v2_error.json[]
 ----
 
-[[error-api-examples]]
-[float]
-==== Examples
-
-Request example:
-
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curl http://localhost:8200/intake/v2/events \
-  --header "Content-Type: application/json" \
-  --data @docs/data/intake-api/generated/error/payload.json
-------------------------------------------------------------
-
-Example error requests:
-
-* <<payload-with-error>>
-* <<payload-with-minimal-exception>>
-* <<payload-with-minimal-log>>
-
-[[payload-with-error]]
-[float]
-===== Payload with an Error
-
 [source,json]
 ----
-include::./data/intake-api/generated/error/payload.json[]
-----
-
-[[payload-with-minimal-exception]]
-[float]
-===== Payload with an Error with minimal Exception Information
-
-[source,json]
-----
-include::./data/intake-api/generated/error/minimal_payload_exception.json[]
-----
-
-[[payload-with-minimal-log]]
-[float]
-===== Payload with an Error with minimal Log Information
-
-[source,json]
-----
-include::./data/intake-api/generated/error/minimal_payload_log.json[]
+include::./spec/errors/common_error.json[]
 ----

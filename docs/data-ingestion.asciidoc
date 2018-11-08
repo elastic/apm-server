@@ -50,7 +50,7 @@ Increasing `queue.mem.events` can significantly affect APM Server memory usage.
 [float]
 === Adjust concurrent requests
 APM Server has a limit to how many requests can be processed concurrently.
-This limit is determined by the `apm-server.concurrent_requests` setting.
+This limit is determined by the `apm-server.concurrent_requests` setting deprecated[6.5].
 Increasing this value will improve throughput, but it can significantly affect APM Server memory usage.
 
 [[add-apm-server-instances]]

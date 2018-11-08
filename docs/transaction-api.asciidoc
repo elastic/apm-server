@@ -1,18 +1,16 @@
 [[transaction-api]]
-=== Transactions and Spans
+=== Transactions Schema
 
 The following section contains information about:
 
 * <<transaction-schema-definition>>
 * <<transaction-schema>>
-* <<transaction-span-schema>>
-* <<transaction-api-examples>>
 
 [[transaction-schema-definition]]
 [float]
 ==== Schema Definition
 
-The APM Server uses JSON Schema for validating requests. The specification for transactions and spans is defined below:
+The APM Server uses JSON Schema for validating requests. The specification for transactions is defined below:
 
 [float]
 [[transaction-schema]]
@@ -26,64 +24,4 @@ include::./spec/transactions/common_transaction.json[]
 [source,json]
 ----
 include::./spec/transactions/v2_transaction.json[]
-----
-
-[float]
-[[transaction-span-schema]]
-===== Span Schema
-
-[source,json]
-----
-include::./spec/spans/common_span.json[]
-----
-
-[source,json]
-----
-include::./spec/spans/v2_span.json[]
-----
-
-[[transaction-api-examples]]
-[float]
-==== Examples
-
-Request example:
-
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curl http://localhost:8200/intake/v2/events \
-  --header "Content-Type: application/json" \
-  --data @docs/data/intake-api/generated/transaction/payload.json
-------------------------------------------------------------
-
-Example transaction requests:
-
-* <<payload-with-transactions>>
-* <<payload-with-minimal-transaction>>
-* <<payload-with-minimal-span>>
-
-[[payload-with-transactions]]
-[float]
-===== Payload with several Transactions
-
-[source,json]
-----
-include::./data/intake-api/generated/transaction/payload.json[]
-----
-
-[[payload-with-minimal-transaction]]
-[float]
-===== Payload with a minimal Transaction
-
-[source,json]
-----
-include::./data/intake-api/generated/transaction/minimal_payload.json[]
-----
-
-[[payload-with-minimal-span]]
-[float]
-===== Payload with a Transaction with a minimal Span
-
-[source,json]
-----
-include::./data/intake-api/generated/transaction/minimal_span.json[]
 ----

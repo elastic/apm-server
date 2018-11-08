@@ -36,26 +36,41 @@ http(s)://{hostname}:{port}/intake/v2/rum/events
 
 On success, the server will respond with a 202 Accepted status code and no body.
 
+Keep in mind that events can succeed and fail independently of each other. Only if all events succeed does the server respond with a 202. 
+
 [[events-api-errors]]
 [float]
 === Errors
 
-Events are processed one after the either.
+There are two types of errors that the APM Server may return to an agent:
+
+* Event related errors (typically validation errors)
+* Non-event related errors
+
+The APM Server process events one after the other.
 If an error is encountered while processing an event,
 the error encountered as well as the document causing the error are added to an internal array.
-The server will wait to encounter up to five errors before sending a response to the agent.
-If there are multiple errors, the highest status code is returned. 
+The APM Server will only process and save 5 event related errors.
+If it encounters more than 5 event related errors,
+the additional errors will not be returned to agent.
+Once all events have been processed,
+the error response is sent. 
 
-Here's an example response:
+Some errors, not relating to specific events,
+may terminate the request immediately.
+For example: queue is full, IP rate limit reached, wrong metadata, etc.
+If at any point one of these errors is encountered,
+it is added to the internal array and immediately returned. 
+
+An example error response might look something like this:
 
 [source,json]
 ------------------------------------------------------------
 {
   "errors": [
     {
-      "message": "queue is full"
-    },{
-      "message": "timeout while waiting to process"
+      "message": "<json-schema-err>", <1>
+      "document": "<ndjson-obj>" <2>
     },{
       "message": "<json-schema-err>",
       "document": "<ndjson-obj>"
@@ -63,17 +78,17 @@ Here's an example response:
       "message": "<json-decoding-err>",
       "document": "<ndjson-obj>"
     },{
-      "message": "invalid content-type: 'html/text'"
-    }
+      "message": "queue is full" <3>
+    },
   ],
-  "accepted": 2320
+  "accepted": 2320 <4>
 }
 ------------------------------------------------------------
 
-Some errors, not relating to specific events, may be immediately returnable.
-For example: Request limit reached, bad header, or internal queue full.
-If at any point one of these errors is encountered,
-it is added to the internal array and immediately returned. 
+<1> An event related error
+<2> The document causing the error
+<3> An immediately returning non-event related error
+<4> The number of accepted events
 
 If you're developing an agent, these errors can be useful for debugging your agent while building it. 
 
@@ -84,11 +99,13 @@ If you're developing an agent, these errors can be useful for debugging your age
 The APM Server uses a collection of JSON Schemas for validating requests to the intake API:
 
 * <<metadata-api, Metadata>>
-* <<transaction-api, Transactions and Spans>>
+* <<transaction-api, Transactions>>
+* <<span-api, Spans>>
 * <<error-api, Errors>>
 * <<metricset-api, Metricsets>>
 
 include::./metadata-api.asciidoc[]
 include::./transaction-api.asciidoc[]
+include::./span-api.asciidoc[]
 include::./error-api.asciidoc[]
 include::./metricset-api.asciidoc[]

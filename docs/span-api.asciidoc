@@ -1,0 +1,27 @@
+[[span-api]]
+=== Spans Schema
+
+The following section contains information about:
+
+* <<span-schema-definition>>
+* <<transaction-span-schema>>
+
+[[span-schema-definition]]
+[float]
+==== Schema Definition
+
+The APM Server uses JSON Schema for validating requests. The specification for spans is defined below:
+
+[float]
+[[transaction-span-schema]]
+===== Span Schema
+
+[source,json]
+----
+include::./spec/spans/v2_span.json[]
+----
+
+[source,json]
+----
+include::./spec/spans/common_span.json[]
+----

@@ -36,7 +36,7 @@ Transactions are stored in {apm-server-ref}/transaction-indices.html[transaction
 
 [[transaction-spans]]
 === Spans
-Transactions can have 0, 1, or many spans. Spans have a `transaction.id` attribute that refer to their parent transaction.
+Transactions can have 0, 1, or many spans. Spans have a `transaction.id` attribute that refers to their parent transaction. They also have a `parent.id` attribute that refers to the parent span, or their transaction.
 
 Agents typically automatically instrument a variety of of libraries,
 but also provide an API for ad hoc instrumentation of specific code paths. 
@@ -47,12 +47,12 @@ This information includes:
 * duration
 * name
 * type
-* `stack trace` (optional).
+* `stack trace` (optional)
 
 As an example, if a database query happens within a sampled transaction,
 a span describing the database query will be created.
 The name of this span will contain information about the query itself,
-and the type of this span will contain information about the database type.
+and the type of this span will contain information about the database.
 
 Spans are stored in {apm-server-ref}/span-indices.html[span indices].
 Note that these indices are separate from {apm-server-ref}/transaction-indices.html[transaction indices] by default.
@@ -64,7 +64,7 @@ Note that these indices are separate from {apm-server-ref}/transaction-indices.h
 For performance reasons, some APM agents can choose to purposefully sample or omit spans.
 One example of this might be for long running transactions with over 100 spans.
 These edge cases can overload both the agent and the APM Server.
-To avoid this, Agents will drop spans. When they do this,
+To avoid this, agents will drop spans. When they do this,
 they notify the server of exactly how many spans were dropped.
 This note is then passed on to the user in the UI.
 
@@ -81,13 +81,13 @@ are available in the relevant agent documentation:
 Similarly to dropped spans, transactions may have missing spans.
 This can happen because spans are streamed from the APM Agent to the APM Server separately from their transaction.
 Unforseen errors may cause spans to go missing.
-Because the agent notifies the server about how many spans their should be,
-we're able to easily determine if a span has gone missing. 
+Because the agent notifies the server about how many spans there should be,
+the number of missing spans is able to be calculated and shown in the UI.
 
 [[errors]]
 === Errors
 
-Errors are identified by a unique ID.
+Errors are represented by a unique ID.
 An error event contains at least
 information about the original `exception` that occurred
 or about a `log` created when the exception occurred.

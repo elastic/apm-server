@@ -4,8 +4,10 @@
 Every new connection to the APM Server starts with a `metadata` stanza.
 This provides general metadata concerning the other objects in the stream.
 
-Rather then send this metadata information from the agent multiple times,
+Rather than send this metadata information from the agent multiple times,
 the APM Server hangs on to this information and applies it to other objects in the stream as necessary.
+
+TIP: Metadata is stored under `context` when viewing documents in Elasticsearch. 
 
 [[metadata-schema-definition]]
 [float]
@@ -58,6 +60,3 @@ include::./spec/system.json[]
 ----
 include::./spec/user.json[]
 ----
-
-
-TIP: Metadata is stored under `context` when viewing documents in Elasticsearch. 

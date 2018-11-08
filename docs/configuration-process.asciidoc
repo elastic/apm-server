@@ -28,9 +28,15 @@ Defaults to 'localhost:8200'.
 
 [[max_unzipped_size]]
 [float]
-==== `max_unzipped_size`
+==== `max_unzipped_size` deprecated[6.5]
 Maximum permitted size of an unzipped request accepted by the server to be processed (in Bytes).
 Defaults to 31457280 Bytes (30 MB).
+
+[[max_event_size]]
+[float]
+==== `max_event_size added[6.5]
+Maximum permitted size of an event accepted by the server to be processed (in Bytes).
+Defaults to 307200 Bytes.
 
 [[max_header_size]]
 [float]
@@ -40,7 +46,7 @@ Defaults to 1048576 Bytes (1 MB).
 
 [[max_request_queue_time]]
 [float]
-==== `max_request_queue_time`
+==== `max_request_queue_time` deprecated[6.5]
 Maximum duration a request will be queued before being read.
 Defaults to 2 seconds.
 
@@ -64,7 +70,7 @@ Defaults to 5 seconds.
 
 [[concurrent_requests]]
 [float]
-==== `concurrent_request`
+==== `concurrent_request` deprecated[6.5]
 Maximum number of requests the server can process concurrently.
 Read more about how to tune data ingestion by <<adjust-concurrent-requests, adjusting concurrent_requests>>.
 Default value is 5.

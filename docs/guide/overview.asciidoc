@@ -34,14 +34,6 @@ You install them into your service as you would install any other library.
 They instrument your code and collect performance data and errors at runtime.
 This data is buffered for a short period and sent on to APM Server.
 
-Out of the box,
-APM automatically instruments web frameworks,
-database drivers,
-calls to caching servers,
-and HTTP libraries for requests to external services.
-Additionally,
-agents provide an API to manually instrument anything else you find interesting.
-
 *APM Server* is an open source application written in Go which typically runs on dedicated servers.
 It listens on port 8200 by default and receives data from agents through a JSON HTTP API.
 Then it creates documents from that data and stores them in Elasticsearch.

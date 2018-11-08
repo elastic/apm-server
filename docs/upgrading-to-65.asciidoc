@@ -1,20 +1,29 @@
 [[upgrading-to-65]]
 === Upgrading to APM Server v6.5
 
-If you're using an Elastic APM Agent, upgrading to version 6.5 of the APM Server is easy,
-just ensure you're using the most recent version of your applicable APM agent.
-Check the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for details.
-
 If you're an advanced user, are implementing a custom agent,
 or provide custom data to Elasticsearch,
-there are some changes in 6.5 that you should be aware of.
+there are some changes in APM Server version 6.5 that you should be aware of.
 
-NOTE: None of the changes outlined below are breaking changes.
-APM Server 6.5 should still work with your currently implemented agent.
-To take advantage of new features,
+None of the changes in APM Server v6.5 are breaking changes,
+and the APM Server is still compatible with your currently implemented agents.
+However, to take advantage of new features,
 it's recommended you read about the changes below and update accordingly.
 If you'd like to continue using the deprecated Intake API and Elasticsearch Schema,
-you can view https://www.elastic.co/guide/en/apm/server/6.4/overview.html[previous documentation].  
+you can view https://www.elastic.co/guide/en/apm/server/6.4/overview.html[previous documentation].
+
+[[upgrade-steps-65]]
+==== Upgrade Steps
+
+. Upgrade the Elastic Stack: {ref}/setup-upgrade.html[Elasticsearch],
+{kibana-ref}/upgrade.html[Kibana],
+and APM Server.
+. Upgrade your {apm-agents-ref}/index.html[APM Agent].
+
+Check the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for more details on which APM agents are compatible with APM Server version 6.5.
+
+IMPORTANT: You must upgrade the APM Server before upgrading your APM Agent.
+New agents do not support APM Server <6.5 and will not work if you upgrade in the wrong order.
 
 [float]
 [[intake-api-changes-65]]
@@ -25,6 +34,10 @@ This API has been redesigned in 6.5 to increase the memory efficiency and predic
 
 Notably, most of the endpoints associated with this API have been deprecated,
 and replaced with a new endpoint: `intake/v2/events`.
+
+Similarly,
+the <<rum, RUM>> endpoint has been deprecated and replaced with a new endpoint: `intake/v2/rum/events`.
+
 Details about these changes,
 and the information you can send to the new endpoint,
 is available in the <<events-api,Events API>> documentation.
@@ -33,7 +46,8 @@ is available in the <<events-api,Events API>> documentation.
 [[metadata-api-changes-65]]
 ===== Metadata
 
-Metadata is now sent only once from the agent to the server. APM Server will retain this information and apply it to the applicable documents when it writes to Elasticsearch. 
+Metadata is now sent to the APM Server only once per request.
+APM Server will retain this information and apply it to the applicable documents when it writes to Elasticsearch. 
 
 Metadata should be sent to the new `intake/v2/events` endpoint.
 See the <<metadata-api, metadata documentation>> for more information.
@@ -94,7 +108,9 @@ The <<server-info,server information>> api has replaced it.
 [[assets-api-changes-65]]
 ===== Assets Endpoint
 
-The assets endpoint, `/assets/v1/sourcemaps`, remains unchanged.
+The assets endpoint, `/v1/rum/sourcemaps` has been deprecated,
+and replaced with the endpoint: `/assets/v1/sourcemaps`.
+The data format remains unchanged.
 
 [float]
 [[metrics-api-changes-65]]
@@ -109,23 +125,26 @@ See the <<metricset-api, metricset documentation>> for more information.
 [[server-config-changes-65]]
 ==== Server Configuration Changes
 
-On the server there are some configuration options that are worth mentioning:
+There are some configuration changes that are worth mentioning.
 
-`max_unzipped_size`, `max_request_queue_time`, and `concurrent_requests` have all been deprecated with 6.4. 
+Deprecated configuration options:
 
-New with 6.5 is `max_event_size` which has a default value of `307200` bytes.
-You'll notice this value is much smaller than the previous `max_unzipped_size` value.
-This is because in APM Server 6.5, an event is much smaller than an event in 6.4.
-Instead of getting the whole payload at once, and event is just a single line of data. 
+* <<max_unzipped_size,`max_unzipped_size`>>
+* <<max_request_queue_time,`max_request_queue_time`>>
+* <<concurrent_requests,`concurrent_requests`>>
 
-`read_timeout` and `write_timeout` remain at 30 seconds,
+New configuration options:
+
+* <<max_event_size,`max_event_size`>> with a default value: `307200` bytes. You may notice this default value is much smaller than the deprecated <<max_unzipped_size,`max_unzipped_size`>> default value. This is because `max_unzipped_size` referred to the whole request, while `max_event_size` only refers to a single event within the request.
+
+Notable options:
+
+* <<read_timeout,`read_timeout`>> and <<write_timeout,`write_timeout`>> remain at 30 seconds,
 but if you have a load balancer in front of the APM server you may notice connections are a little bit longer lived than they used to be.
 
-NOTE: If you are updating APM Server from version 6.3 or earlier,
-you may not be using an updated `apm-server.yml` file.
-How APM Server stores data in Elasticsearch has changed overtime,
-and in order to take advantage of new features,
-you must be using an updated `apm-server.yml` file. 
+TIP: If you are updating APM Server from version 6.3 or earlier,
+you may not be using an updated `apm-server.yml` configuration file. Update your `apm-server.yml` configuration file to take advantage of new configuration options.
+
 
 [float]
 [[es-schema-changes-65]]
