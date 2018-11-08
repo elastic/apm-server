@@ -11,9 +11,7 @@ jenkins_setup
 #}
 #trap cleanup EXIT
 
-make
 make testsuite
-make coverage-report
 
 go get -v -u github.com/jstemmer/go-junit-report
 go get -v -u github.com/t-yuki/gocover-cobertura

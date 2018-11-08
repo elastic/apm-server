@@ -31,7 +31,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (<branchName>, <tagName>, <commitId>, etc.)")
+    string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (branchName, tagName, commitId, etc.)")
     string(name: 'GO_VERSION', defaultValue: "1.10.3", description: "Go version to use.")
     string(name: 'JOB_INTEGRATION_TEST_BRANCH_SPEC', defaultValue: "refs/heads/pipeline", description: "The integrations test Git branch to use")
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
@@ -43,6 +43,7 @@ pipeline {
     booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
+    booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'integration_test_ci', defaultValue: false, description: 'Enable run integration test')
     booleanParam(name: 'hey_apm_ci', defaultValue: false, description: 'Enable run integration test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
@@ -187,7 +188,42 @@ pipeline {
         }
       } 
     }
+    
+    stage('Test') {
+      agent { label 'linux && immutable' }
+      environment {
+        PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
+        GOPATH = "${env.WORKSPACE}"
+      }
       
+      when { 
+        beforeAgent true
+        environment name: 'test_ci', value: 'true' 
+      }
+      steps {
+        withEnvWrapper() {
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh """#!/bin/bash
+            TEST_ENVIRONMENT=false
+            SYSTEM_TESTS=false
+            STRESS_TESTS=false
+
+            ./script/jenkins/test.sh
+            """
+          }
+        }
+      }
+      post { 
+        always {
+          junit(allowEmptyResults: true, 
+            keepLongStdio: true, 
+            testResults: "${BASE_DIR}/build/junit-*.xml,${BASE_DIR}/build/TEST-*.xml")
+          tar(file: "build.tgz", archive: true, dir: "build", pathPrefix: "${BASE_DIR}")
+        }
+      }
+    }
+    
     stage('Parallel Tests') {
       failFast true
       parallel {
@@ -196,7 +232,7 @@ pipeline {
         Runs unit test, then generate coverage and unit test reports.
         Finally archive the results.
         */
-        stage('Linux test') { 
+        stage('System and Environment Tests') { 
           agent { label 'linux && immutable' }
           environment {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
@@ -205,7 +241,7 @@ pipeline {
           
           when { 
             beforeAgent true
-            environment name: 'test_ci', value: 'true' 
+            environment name: 'test_sys_env_ci', value: 'true' 
           }
           steps {
             withEnvWrapper() {
