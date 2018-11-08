@@ -12,6 +12,7 @@ The following section contains information about:
 ==== Schema Definition
 
 The APM Server uses JSON Schema for validating requests. The specification for errors is defined below:
+
 [float]
 [[error-schema]]
 ===== Error

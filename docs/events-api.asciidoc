@@ -15,6 +15,7 @@ You can learn more about events in the {apm-get-started-ref}/apm-data-model.html
 [[events-api-endpoint]]
 [float]
 === Endpoint
+
 Send an `HTTP POST` request to the APM Server `intake/v2/events` endpoint:
 
 [source,bash]

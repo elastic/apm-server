@@ -13,7 +13,7 @@ Elastic APM agents capture different types of information from within their inst
 A transaction describes an event captured by an Elastic APM agent instrumenting a service. Some examples of a transaction might be:
 
 * An HTTP request
-* An asynchronous background job
+* A background job
 
 A transaction contains:
 
