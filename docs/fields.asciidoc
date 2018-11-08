@@ -525,6 +525,254 @@ The ID of the parent event.
 
 --
 
+
+*`context.service.agent.name`*::
++
+--
+type: alias
+
+--
+
+*`context.service.agent.version`*::
++
+--
+type: alias
+
+--
+
+
+*`context.system.architecture`*::
++
+--
+type: alias
+
+--
+
+*`context.system.ip`*::
++
+--
+type: alias
+
+--
+
+*`context.system.hostname`*::
++
+--
+type: alias
+
+--
+
+
+*`context.system.platform`*::
++
+--
+type: alias
+
+--
+
+
+*`context.request.method`*::
++
+--
+type: alias
+
+--
+
+*`context.request.http_version`*::
++
+--
+type: alias
+
+--
+
+*`labels`*::
++
+--
+type: object
+
+A flat mapping of user-defined labels with string values.
+
+
+--
+
+
+*`context.process.pid`*::
++
+--
+type: alias
+
+--
+
+*`context.process.ppid`*::
++
+--
+type: alias
+
+--
+
+*`context.process.title`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.environment`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.framework.name`*::
++
+--
+type: alias
+
+--
+
+*`context.service.framework.version`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.language.name`*::
++
+--
+type: alias
+
+--
+
+*`context.service.language.version`*::
++
+--
+type: alias
+
+--
+
+*`context.service.name`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.runtime.name`*::
++
+--
+type: alias
+
+--
+
+*`context.service.runtime.version`*::
++
+--
+type: alias
+
+--
+
+*`context.service.version`*::
++
+--
+type: alias
+
+--
+
+
+
+*`context.request.url.raw`*::
++
+--
+type: alias
+
+--
+
+
+*`context.request.url.hostname`*::
++
+--
+type: alias
+
+--
+
+*`context.request.url.hash`*::
++
+--
+type: alias
+
+--
+
+*`context.request.url.full`*::
++
+--
+type: alias
+
+--
+
+
+*`context.request.url.pathname`*::
++
+--
+type: alias
+
+--
+
+*`url.port`*::
++
+--
+type: long
+
+The port of the request, e.g. 443.
+
+
+--
+
+
+*`context.request.url.search`*::
++
+--
+type: alias
+
+--
+
+*`url.scheme`*::
++
+--
+type: keyword
+
+The scheme of the request, e.g. "https".
+
+
+--
+
+
+*`context.user.email`*::
++
+--
+type: alias
+
+--
+
+*`context.user.id`*::
++
+--
+type: alias
+
+--
+
+*`context.user.username`*::
++
+--
+type: alias
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
