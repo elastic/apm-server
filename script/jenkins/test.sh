@@ -28,8 +28,8 @@ for i in "full.cov" "integration.cov" "system.cov" "unit.cov"
 do
   name=$(basename ${i} .cov)
   if [ -f "${COV_DIR}/${i}" ]; then 
-    go tool cover -html="${COV_DIR}/${i}" -o build/coverage-${name}-report.html
-    gocover-cobertura < "${COV_DIR}/${i}" > build/coverage-${name}-report.xml
+    go tool cover -html="${COV_DIR}/${i}" -o "${COV_DIR}/coverage-${name}-report.html"
+    gocover-cobertura < "${COV_DIR}/${i}" > "${COV_DIR}/coverage-${name}-report.xml"
   fi
 done
 exit 0
