@@ -49,9 +49,7 @@ pipeline {
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
   }
-  
   stages {
-    
     /**
      Checkout the code and stash it, to use it on other stages.
     */
@@ -61,7 +59,6 @@ pipeline {
         PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
       }
-      
       steps {
           withEnvWrapper() {
               dir("${BASE_DIR}"){
@@ -104,11 +101,9 @@ pipeline {
           }
       }
     }
-    
     stage('Parallel Builds'){
       failFast true
       parallel {
-        
         /**
         Updating generated files for Beat.
         Checks the GO environment.
@@ -137,7 +132,6 @@ pipeline {
             }
           }
         }
-        
         /**
         Build on a linux environment.
         */
@@ -159,13 +153,11 @@ pipeline {
             }
           }
         }
-        
         /**
         Build a windows environment.
         */
         stage('windows build') { 
           agent { label 'windows' }
-          
           when { 
             beforeAgent true
             environment name: 'windows_ci', value: 'true' 
@@ -188,14 +180,15 @@ pipeline {
         }
       } 
     }
-    
+    /**
+      Run unit test and report junit results.
+    */
     stage('Test') {
       agent { label 'linux && immutable' }
       environment {
         PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
       }
-      
       when { 
         beforeAgent true
         environment name: 'test_ci', value: 'true' 
@@ -218,11 +211,9 @@ pipeline {
         }
       }
     }
-    
     stage('Parallel Tests') {
       failFast true
       parallel {
-        
         /**
         Runs unit test, then generate coverage and unit test reports.
         Finally archive the results.
@@ -233,7 +224,6 @@ pipeline {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
           }
-          
           when { 
             beforeAgent true
             environment name: 'test_sys_env_ci', value: 'true' 
@@ -262,14 +252,12 @@ pipeline {
             }
           }
         }
-        
         /**
         Build and run tests on a windows environment.
         Finally archive the results.
         */
         stage('windows test') { 
           agent { label 'windows' }
-          
           when { 
             beforeAgent true
             environment name: 'windows_ci', value: 'true' 
@@ -296,7 +284,6 @@ pipeline {
             }
           }
         }
-        
         /**
         Runs benchmarks on the current version and compare it with the previous ones.
         Finally archive the results.
@@ -307,7 +294,6 @@ pipeline {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
           }
-          
           when { 
             beforeAgent true
             environment name: 'bench_ci', value: 'true' 
@@ -324,7 +310,6 @@ pipeline {
             }
           }
         }
-        
         /**
         updates beats updates the framework part and go parts of beats. 
         Then build and test.
@@ -350,7 +335,6 @@ pipeline {
         }*/
       }
     }
-
     stage('Integration Tests') {
       failFast true
       parallel {
@@ -382,7 +366,6 @@ pipeline {
               propagate: true)
           }
         }
-
         /**
           Unit tests and apm-server stress testing.
         */
@@ -413,7 +396,6 @@ pipeline {
         }
       }
     }
-    
     /**
     Build the documentation and archive it.
     Finally archive the results.
@@ -424,7 +406,6 @@ pipeline {
         PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
       }
-      
       when { 
         beforeAgent true
         environment name: 'doc_ci', value: 'true' 
@@ -445,10 +426,8 @@ pipeline {
         }
       }
     }
-    
     stage('Release') { 
       agent { label 'linux && immutable' }
-      
       when { 
         beforeAgent true
         environment name: 'releaser_ci', value: 'true' 
@@ -471,13 +450,11 @@ pipeline {
         }
       }
     }
-
     /**
     Checks if kibana objects are updated.
     */
     stage('Check kibana Obj. Updated') { 
       agent { label 'linux && immutable' }
-      
       when { 
         beforeAgent true
         branch 'master' 
