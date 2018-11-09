@@ -1,20 +1,13 @@
 [[error-api]]
-=== Error API
+=== Errors
 
-The following section contains information about:
-
-* <<error-schema-definition>>
-* <<error-schema>>
-
-[[error-schema-definition]]
-[float]
-==== Schema Definition
-
-The APM Server uses JSON Schema for validating requests. The specification for errors is defined below:
+An error or a logged error message captured by an agent occurring in a monitored service.
 
 [float]
 [[error-schema]]
-===== Error
+==== Error Schema
+
+The APM Server uses JSON Schema for validating requests. The specification for errors is defined below:
 
 [source,json]
 ----

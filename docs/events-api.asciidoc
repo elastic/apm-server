@@ -40,17 +40,17 @@ Keep in mind that events can succeed and fail independently of each other. Only 
 
 [[events-api-errors]]
 [float]
-=== Errors
+==== Errors
 
 There are two types of errors that the APM Server may return to an agent:
 
 * Event related errors (typically validation errors)
 * Non-event related errors
 
-The APM Server process events one after the other.
+The APM Server processes events one after the other.
 If an error is encountered while processing an event,
 the error encountered as well as the document causing the error are added to an internal array.
-The APM Server will only process and save 5 event related errors.
+The APM Server will only save 5 event related errors.
 If it encounters more than 5 event related errors,
 the additional errors will not be returned to agent.
 Once all events have been processed,

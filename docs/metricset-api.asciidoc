@@ -3,9 +3,9 @@
 
 Metricsets contain application metric data captured by an APM agent. 
 
-[[metricset-schema-definition]]
+[[metricset-schema]]
 [float]
-==== Schema Definition
+==== Metricset Schema
 
 The APM Server uses JSON Schema for validating requests. The specification for metricsets is defined below:
 

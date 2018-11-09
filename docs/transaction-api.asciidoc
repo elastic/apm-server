@@ -1,20 +1,13 @@
 [[transaction-api]]
-=== Transactions Schema
+=== Transactions
 
-The following section contains information about:
+Transactions are events corresponding to an incoming request or similar task occurring in a monitored service. 
 
-* <<transaction-schema-definition>>
-* <<transaction-schema>>
-
-[[transaction-schema-definition]]
+[[transaction-schema]]
 [float]
-==== Schema Definition
+==== Transaction Schema
 
 The APM Server uses JSON Schema for validating requests. The specification for transactions is defined below:
-
-[float]
-[[transaction-schema]]
-===== Transaction Schema
 
 [source,json]
 ----

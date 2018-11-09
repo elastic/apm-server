@@ -95,7 +95,7 @@ The span schema adds three new properties, removes two, and changes one.
 * _add_ `timestamp`
 
 Span events should be sent to the new `intake/v2/events` endpoint.
-See the <<transaction-span-schema, span schema documentation>> for more information.
+See the <<span-schema, span schema documentation>> for more information.
 
 [float]
 [[healthcheck-api-changes-65]]

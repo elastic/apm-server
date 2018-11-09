@@ -9,12 +9,6 @@ the APM Server hangs on to this information and applies it to other objects in t
 
 TIP: Metadata is stored under `context` when viewing documents in Elasticsearch. 
 
-[[metadata-schema-definition]]
-[float]
-==== Schema Definition
-
-The specification for metadata is outlined below:
-
 * <<metadata-schema>>
 * <<metadata-service-schema>>
 * <<metadata-process-schema>>
@@ -23,7 +17,10 @@ The specification for metadata is outlined below:
 
 [[metadata-schema]]
 [float]
-===== Metadata
+==== Metadata Schema
+
+The APM Server uses JSON Schema for validating requests. The specification for metadata is defined below:
+
 [source,json]
 ----
 include::./spec/metadata.json[]
@@ -31,7 +28,8 @@ include::./spec/metadata.json[]
 
 [[metadata-service-schema]]
 [float]
-===== Service
+===== Service Schema
+
 [source,json]
 ----
 include::./spec/service.json[]
@@ -39,7 +37,8 @@ include::./spec/service.json[]
 
 [[metadata-process-schema]]
 [float]
-===== Process
+===== Process Schema
+
 [source,json]
 ----
 include::./spec/process.json[]
@@ -47,7 +46,8 @@ include::./spec/process.json[]
 
 [[metadata-system-schema]]
 [float]
-===== System
+===== System Schema
+
 [source,json]
 ----
 include::./spec/system.json[]
@@ -55,7 +55,8 @@ include::./spec/system.json[]
 
 [[metadata-user-schema]]
 [float]
-===== User
+===== User Schema
+
 [source,json]
 ----
 include::./spec/user.json[]
