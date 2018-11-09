@@ -426,6 +426,9 @@ pipeline {
         }
       }
     }
+    /**
+      build release packages.
+    */
     stage('Release') { 
       agent { label 'linux && immutable' }
       when { 
