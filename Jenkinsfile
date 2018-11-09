@@ -45,8 +45,6 @@ pipeline {
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
-    booleanParam(name: 'integration_test_ci', defaultValue: false, description: 'Enable run integration test')
-    booleanParam(name: 'hey_apm_ci', defaultValue: false, description: 'Enable run integration test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
   }
