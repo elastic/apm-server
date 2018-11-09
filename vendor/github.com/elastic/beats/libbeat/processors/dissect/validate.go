@@ -15,22 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package instance
+package dissect
 
 import (
-	"github.com/spf13/pflag"
-
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring/report"
+	"fmt"
 )
 
-// Settings contains basic settings for any beat to pass into GenRootCmd
-type Settings struct {
-	Name                  string
-	IndexPrefix           string
-	Version               string
-	Monitoring            report.Settings
-	RunFlags              *pflag.FlagSet
-	ConfigOverrides       *common.Config
-	DisableConfigResolver bool
+func validate(p *parser) error {
+	indirectFields := filterFieldsWith(p.fields, isIndirectField)
+
+	for _, field := range indirectFields {
+		found := false
+		for _, reference := range p.referenceFields {
+			if reference.Key() == field.Key() {
+				found = true
+				break
+			}
+		}
+
+		if found == false {
+			return fmt.Errorf("missing reference for key '%s'", field.Key())
+		}
+	}
+
+	return nil
 }
