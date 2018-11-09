@@ -38,6 +38,7 @@ pipeline {
     string(name: 'JOB_HEY_APM_TEST_BRANCH_SPEC', defaultValue: "refs/heads/master", description: "The Hey APM test Git branch/tag to use")
 
     booleanParam(name: 'SNAPSHOT', defaultValue: false, description: 'Build snapshot packages (defaults to true)')
+    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
 
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
@@ -116,10 +117,7 @@ pipeline {
           
           when { 
             beforeAgent true
-            allOf { 
-              branch 'master';
-              environment name: 'intake_ci', value: 'true' 
-            }
+            environment name: 'intake_ci', value: 'true' 
           }
           steps {
             withEnvWrapper() {
@@ -296,7 +294,13 @@ pipeline {
           }
           when { 
             beforeAgent true
-            environment name: 'bench_ci', value: 'true' 
+            allOf {
+              anyOf {
+                branch 'master'
+                environment name: 'Run_As_Master_Branch', value: 'true'
+              }
+              environment name: 'bench_ci', value: 'true'
+            }
           }
           steps {
             withEnvWrapper() {
@@ -335,67 +339,6 @@ pipeline {
         }*/
       }
     }
-    stage('Integration Tests') {
-      failFast true
-      parallel {
-        /**
-         run all integration test with the commit version.
-        */
-        stage('Integration test') { 
-          agent { label 'linux && immutable' }
-          when { 
-            beforeAgent true
-            environment name: 'integration_test_ci', value: 'true' 
-          }
-          steps {
-            build(
-              job: 'apm-server-ci/apm-integration-test-pipeline', 
-              parameters: [
-                string(name: 'JOB_INTEGRATION_TEST_BRANCH_SPEC', value: "${JOB_INTEGRATION_TEST_BRANCH_SPEC}"), 
-                string(name: 'ELASTIC_STACK_VERSION', value: "${ELASTIC_STACK_VERSION}"), 
-                string(name: 'APM_SERVER_BRANCH', value: "${BUILD_TAG}"),
-                string(name: 'BUILD_DESCRIPTION', value: "${BUILD_TAG}-INTEST"),
-                booleanParam(name: "go_Test", value: true),
-                booleanParam(name: "java_Test", value: true),
-                booleanParam(name: "ruby_Test", value: true),
-                booleanParam(name: "python_Test", value: true),
-                booleanParam(name: "nodejs_Test", value: true),
-                booleanParam(name: "kibana_Test", value: true),
-                booleanParam(name: "server_Test", value: true)],
-              wait: true,
-              propagate: true)
-          }
-        }
-        /**
-          Unit tests and apm-server stress testing.
-        */
-        stage('Hey APM test') { 
-          agent { label 'linux && immutable' }
-          when { 
-            beforeAgent true
-            environment name: 'hey_apm_ci', value: 'true' 
-          }
-          steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${HEY_APM_TEST_BASE_DIR}"){
-                checkout([$class: 'GitSCM', branches: [[name: "${JOB_HEY_APM_TEST_BRANCH_SPEC}"]], 
-                  doGenerateSubmoduleConfigurations: false, 
-                  extensions: [], 
-                  submoduleCfg: [], 
-                  userRemoteConfigs: [[credentialsId: "${JOB_GIT_CREDENTIALS}", 
-                  url: "https://github.com/elastic/hey-apm.git"]]])
-              }
-              dir("${BASE_DIR}"){
-                sh """#!/bin/bash
-                ./script/jenkins/hey-apm-test.sh
-                """
-              }
-            }  
-          }
-        }
-      }
-    }
     /**
     Build the documentation and archive it.
     Finally archive the results.
@@ -408,7 +351,13 @@ pipeline {
       }
       when { 
         beforeAgent true
-        environment name: 'doc_ci', value: 'true' 
+        allOf {
+          anyOf {
+            branch 'master'
+            environment name: 'Run_As_Master_Branch', value: 'true'
+          }
+          environment name: 'doc_ci', value: 'true' 
+        }
       }
       steps {
         withEnvWrapper() {
@@ -433,7 +382,13 @@ pipeline {
       agent { label 'linux && immutable' }
       when { 
         beforeAgent true
-        environment name: 'releaser_ci', value: 'true' 
+        allOf {
+          anyOf {
+            branch 'master'
+            environment name: 'Run_As_Master_Branch', value: 'true'
+          }
+          environment name: 'releaser_ci', value: 'true' 
+        }
       }
       steps {
         withEnvWrapper() {
@@ -460,7 +415,10 @@ pipeline {
       agent { label 'linux && immutable' }
       when { 
         beforeAgent true
-        branch 'master' 
+        anyOf {
+          branch 'master'
+          environment name: 'Run_As_Master_Branch', value: 'true'
+        } 
       }
       steps {
       withEnvWrapper() {
