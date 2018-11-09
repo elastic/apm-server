@@ -44,7 +44,7 @@ type publisher struct {
 	tracer          *elasticapm.Tracer
 	client          beat.Client
 	m               sync.RWMutex
-	stopped         bool
+	stopped         chan bool
 }
 
 type PendingReq struct {
@@ -79,8 +79,9 @@ func NewPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, 
 	}
 
 	p := &publisher{
-		tracer: tracer,
-		client: client,
+		tracer:  tracer,
+		client:  client,
+		stopped: make(chan bool, 1),
 
 		// Set channel size to N - 1. One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
@@ -102,9 +103,7 @@ func (p *publisher) Client() beat.Client {
 // The worker will drain the queue on shutdown, but no more pending requests
 // will be published.
 func (p *publisher) Stop() {
-	p.m.Lock()
-	p.stopped = true
-	p.m.Unlock()
+	p.stopped <- true
 	close(p.pendingRequests)
 	p.client.Close()
 }
@@ -113,15 +112,11 @@ func (p *publisher) Stop() {
 // an error is returned.
 // Calling send after Stop will return an error.
 func (p *publisher) Send(ctx context.Context, req PendingReq) error {
-	p.m.RLock()
-	defer p.m.RUnlock()
-	if p.stopped {
-		return ErrChannelClosed
-	}
-
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
+	case <-p.stopped:
+		return ErrChannelClosed
 	case p.pendingRequests <- req:
 		return nil
 	case <-time.After(time.Second * 1): // this forces the go scheduler to try something else for a while
