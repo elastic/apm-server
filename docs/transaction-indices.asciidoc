@@ -5,12 +5,12 @@ Transactions are by default stored to indices of the format `apm-[version]-trans
 
 [[transaction-example]]
 [float]
-=== Example Document
+=== Example Documents
 
-See an example transaction indexed in Elasticsearch:
+See how transaction documents can look like when indexed in Elasticsearch:
 
 [source,json]
 ----
-include::./data/elasticsearch/transaction.json[]
+include::./data/elasticsearch/generated/transactions.json[]
 ----
 
