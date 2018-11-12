@@ -46,8 +46,6 @@ include::./copied-from-beats/shared-securing-beat.asciidoc[]
 
 include::./copied-from-beats/monitoring/monitoring-beats.asciidoc[]
 
-include::./event-types.asciidoc[]
-
 include::./rum.asciidoc[]
 
 include::./data-ingestion.asciidoc[]
@@ -63,3 +61,5 @@ include::./fields.asciidoc[]
 include::./troubleshooting.asciidoc[]
 
 include::./release-notes.asciidoc[]
+
+include::./redirects.asciidoc[]
