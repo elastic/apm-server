@@ -23,7 +23,7 @@ This page has moved. Please see {apm-get-started-ref}/transactions.html[Transact
 [role="exclude",id="transactions-spans"]
 === Spans
 
-This page has moved. Please see {apm-get-started-ref}/transactions-spans.html[Spans].
+This page has moved. Please see {apm-get-started-ref}/transaction-spans.html[Spans].
 
 // Error API
 
