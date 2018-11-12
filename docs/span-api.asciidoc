@@ -1,0 +1,20 @@
+[[span-api]]
+=== Spans
+
+Spans are events captured by an agent occurring in a monitored service. 
+
+[[span-schema]]
+[float]
+==== Span Schema
+
+The APM Server uses JSON Schema for validating requests. The specification for spans is defined below:
+
+[source,json]
+----
+include::./spec/spans/v2_span.json[]
+----
+
+[source,json]
+----
+include::./spec/spans/common_span.json[]
+----

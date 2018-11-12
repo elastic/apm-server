@@ -26,7 +26,7 @@ Automatic pipeline registration requires `output.elasticsearch` to be enabled an
 as well as having the required Elasticsearch plugins installed.
 
 APM Server default pipelines require you to have the Ingest user agent plugin installed.
-If pipelines are enabeld but required plugins are missing, 
+If pipelines are enabled but required plugins are missing, 
 the APM Server will not be able to properly connect to the Elasticsearch output.
 Find the default pipeline configuration at `ingest/pipeline/definition.json` of your APM Server
 installation's home directory.
