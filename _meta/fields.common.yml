@@ -446,19 +446,9 @@
       type: group
       dynamic: false
       fields:
-        - name: href
-          type: group
-          fields:
-            - name: original
-              type: alias
-              path: context.request.url.raw
-
-        - name: host
-          type: group
-          fields:
-            - name: name
-              type: alias
-              path: context.request.url.hostname
+        - name: domain
+          type: alias
+          path: context.request.url.hostname
 
         - name: fragment
           type: alias
@@ -469,12 +459,8 @@
           path: context.request.url.full
 
         - name: path
-          type: group
-          fields:
-            - name: original
-              type: alias
-              path: context.request.url.pathname
-              # TODO: multifield original.text
+          type: alias
+          path: context.request.url.pathname
 
         # context.request.url.port keyword -> long
         - name: port
@@ -483,12 +469,9 @@
             The port of the request, e.g. 443.
 
         - name: query
-          type: group
-          fields:
-            - name: query
-              type: alias
-              path: context.request.url.search
-              # TODO: multifield original.text
+          type: alias
+          path: context.request.url.search
+          # TODO: multifield original.text
 
         # context.request.url.protocol minus the ":"
         - name: scheme

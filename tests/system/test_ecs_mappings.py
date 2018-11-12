@@ -34,10 +34,9 @@ class ECSTest(SubCommandTest):
         all_fields = set()
         alias_fields = set()
         for f, a in flatmap(yaml.load(self.command_output)["mappings"]["doc"]["properties"]):
+            all_fields.add(f)
             if a.get("type") == "alias":
                 alias_fields.add(a["path"])
-            else:
-                all_fields.add(f)
 
         # fields with special exception, due to mapping type changes, etc
         # no comment means unchanged
@@ -68,6 +67,16 @@ class ECSTest(SubCommandTest):
         should_not_be_aliased = alias_fields - all_fields
         self.assertFalse(should_not_be_aliased, json.dumps(sorted(should_not_be_aliased)))
 
+        # check the migration log too
+        with open(self._beat_path_join("_meta", "ecs-migration.yml")) as f:
+            for m in yaml.load(f):
+                if m.get("alias", True):
+                    self.assertIn(m["from"], alias_fields)
+                elif m.get("copy_to", False):
+                    self.assertIn(m["from"], all_fields)
+                self.assertIn(m["to"], all_fields)
+
+        # check that all fields are accounted for
         not_aliased = all_fields - alias_fields - exception_fields
         self.assertFalse(not_aliased,
                          "\nall fields ({:d}):\n{}\n\naliased ({:d}):\n{}\n\nunaccounted for ({:d}):\n{}".format(

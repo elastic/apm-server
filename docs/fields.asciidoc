@@ -685,15 +685,6 @@ type: alias
 --
 
 
-
-*`context.request.url.raw`*::
-+
---
-type: alias
-
---
-
-
 *`context.request.url.hostname`*::
 +
 --
@@ -715,7 +706,6 @@ type: alias
 
 --
 
-
 *`context.request.url.pathname`*::
 +
 --
@@ -732,7 +722,6 @@ The port of the request, e.g. 443.
 
 
 --
-
 
 *`context.request.url.search`*::
 +
