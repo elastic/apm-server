@@ -1,158 +1,20 @@
 [[transaction-api]]
-== Transaction API
+=== Transactions
 
-The following section contains information about:
+Transactions are events corresponding to an incoming request or similar task occurring in a monitored service. 
 
-* <<transaction-endpoint>>
-* <<transaction-schema-definition>>
-* <<transaction-api-examples>>
-
-[[transaction-endpoint]]
+[[transaction-schema]]
 [float]
-=== Endpoint
-Send a `HTTP POST` request to the APM Server `transactions` endpoint:
+==== Transaction Schema
 
-[source,bash]
-------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/transactions
-------------------------------------------------------------
-
-For <<rum, RUM>> send a `HTTP POST` request to the APM Server `rum transactions` endpoint instead:
-
-[source,bash]
-------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/rum/transactions
-------------------------------------------------------------
-
-[[transaction-schema-definition]]
-[float]
-=== Schema Definition
-
-The APM Server uses JSON Schema for validating requests. The specification for transactions is defined bellow:
-
-* <<transaction-payload-schema>>
-* <<transaction-span-schema>>
-* <<transaction-service-schema>>
-* <<transaction-system-schema>>
-* <<transaction-context-schema>>
-* <<transaction-stacktraceframe-schema>>
-* <<transaction-request-schema>>
-* <<transaction-user-schema>>
-
-[[transaction-payload-schema]]
-[float]
-==== Payload
+The APM Server uses JSON Schema for validating requests. The specification for transactions is defined below:
 
 [source,json]
 ----
-include::./spec/transactions/v1_transaction.json[]
+include::./spec/transactions/common_transaction.json[]
 ----
-
-[[transaction-span-schema]]
-[float]
-==== Span
 
 [source,json]
 ----
-include::./spec/spans/v1_span.json[]
-----
-
-[[transaction-service-schema]]
-[float]
-==== Service
-
-[source,json]
-----
-include::./spec/service.json[]
-----
-
-[[transaction-system-schema]]
-[float]
-==== System
-
-[source,json]
-----
-include::./spec/system.json[]
-----
-
-[[transaction-context-schema]]
-[float]
-==== Context
-
-[source,json]
-----
-include::./spec/context.json[]
-----
-
-[[transaction-stacktraceframe-schema]]
-[float]
-==== Stacktrace Frame
-
-[source,json]
-----
-include::./spec/stacktrace_frame.json[]
-----
-
-[[transaction-request-schema]]
-[float]
-==== Request
-
-[source,json]
-----
-include::./spec/request.json[]
-----
-
-[[transaction-user-schema]]
-[float]
-==== User
-
-[source,json]
-----
-include::./spec/user.json[]
-----
-
-[[transaction-api-examples]]
-[float]
-=== Examples
-
-Request example:
-
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curl http://localhost:8200/v1/transactions \
-  --header "Content-Type: application/json" \
-  --data @docs/data/intake-api/generated/transaction/payload.json
-------------------------------------------------------------
-
-Example transaction requests:
-
-* <<payload-with-transactions>>
-* <<payload-with-minimal-transaction>>
-* <<payload-with-minimal-span>>
-
-[[payload-with-transactions]]
-[float]
-==== Payload with several Transactions
-
-[source,json]
-----
-include::./data/intake-api/generated/transaction/payload.json[]
-----
-
-[[payload-with-minimal-transaction]]
-[float]
-==== Payload with a minimal Transaction
-
-[source,json]
-----
-include::./data/intake-api/generated/transaction/minimal_payload.json[]
-----
-
-[[payload-with-minimal-span]]
-[float]
-==== Payload with a Transaction with a minimal Span
-
-[source,json]
-----
-include::./data/intake-api/generated/transaction/minimal_span.json[]
+include::./spec/transactions/v2_transaction.json[]
 ----

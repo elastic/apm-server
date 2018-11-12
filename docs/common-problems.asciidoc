@@ -36,8 +36,8 @@ Particularly, if you are using Docker, ensure to bind to the right interface (fo
 
 
 
-If you see requests coming trough the APM Server but they are not accepted (response code other than `202`), consider
-the response code to narrow down the possible causes (see sections bellow).
+If you see requests coming through the APM Server but they are not accepted (response code other than `202`), consider
+the response code to narrow down the possible causes (see sections below).
 
 Another reason for data not showing up is that the agent is not auto-instrumenting something you were expecting, check
 the {apm-agents-ref}/index.html[agent documentation] for details on what is automatically instrumented.
@@ -46,7 +46,7 @@ the {apm-agents-ref}/index.html[agent documentation] for details on what is auto
 [float]
 === HTTP 400: Data decoding error / Data validation error
 
-The most likely cause for this is that you are using non compatible versions of agent and APM Server.
+The most likely cause for this is that you are using incompatible versions of agent and APM Server.
 For instance, APM Server 6.2.0 changed the Intake API spec and requires a minimum version of each agent.
 
 [[unauthorized]]
@@ -103,7 +103,7 @@ You have a few options to solve this problem:
 === HTTP 503: Request timed out waiting to be processed
 
 This happens when APM Server exceeds the maximum number of requests that it can process concurrently.
-This limit is determined by the `apm-server.concurrent_requests` configuration parameter.
+This limit is determined by the `apm-server.concurrent_requests` configuration parameter deprecated[6.5].
 
 To alleviate this problem,
 you can try to:
@@ -157,20 +157,20 @@ To resolve this problem, try one of these solutions:
 * Create a DNS entry for the hostname mapping it to the server's IP.
 * Create an entry in `/etc/hosts` for the hostname. Or on Windows add an entry to
 `C:\Windows\System32\drivers\etc\hosts`.
-* Re-create the server certificate and add a SubjectAltName (SAN) for the IP address of the server. This make the
+* Re-create the server certificate and add a SubjectAltName (SAN) for the IP address of the server. This makes the
 server's certificate valid for both the hostname and the IP address.
 
 [float]
 [[getsockopt-no-route-to-host]]
 ===== getsockopt: no route to host
 
-This is not a SSL problem. It's a networking problem. Make sure the two hosts can communicate.
+This is not an SSL problem. It's a networking problem. Make sure the two hosts can communicate.
 
 [float]
 [[getsockopt-connection-refused]]
 ===== getsockopt: connection refused
 
-This is not a SSL problem. Make sure that Logstash is running and that there is no firewall blocking the traffic.
+This is not an SSL problem. Make sure that Logstash is running and that there is no firewall blocking the traffic.
 
 [float]
 [[target-machine-refused-connection]]

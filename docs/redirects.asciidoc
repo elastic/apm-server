@@ -1,0 +1,155 @@
+["appendix",role="exclude",id="redirects"]
+= Deleted pages
+
+The following pages have moved or been deleted.
+
+// Event Types
+
+[role="exclude",id="event-types"]
+=== Event types
+
+This page has moved. Please see {apm-get-started-ref}/apm-data-model.html[APM data model].
+
+[role="exclude",id="errors"]
+=== Errors
+
+This page has moved. Please see {apm-get-started-ref}/errors.html[Errors].
+
+[role="exclude",id="transactions"]
+=== Transactions
+
+This page has moved. Please see {apm-get-started-ref}/transactions.html[Transactions].
+
+[role="exclude",id="transactions-spans"]
+=== Spans
+
+This page has moved. Please see {apm-get-started-ref}/transactions-spans.html[Spans].
+
+// Error API
+
+[role="exclude",id="error-endpoint"]
+=== Error endpoint
+
+The error endpoint has been deprecated. Instead, see <<events-api>>.
+
+[role="exclude",id="error-schema-definition"]
+=== Error schema definition
+
+The error schema has moved. Please see <<error-schema>>.
+
+[role="exclude",id="error-api-examples"]
+=== Error API examples
+
+The error API examples have moved. Please see <<events-api>>.
+
+[role="exclude",id="error-payload-schema"]
+=== Error payload schema
+
+This schema has changed. Please see <<error-api>>.
+
+[role="exclude",id="error-service-schema"]
+=== Error service schema
+
+This schema has changed. Please see <<error-api>>.
+
+[role="exclude",id="error-system-schema"]
+=== Error system schema
+
+This schema has changed. Please see <<error-api>>.
+
+[role="exclude",id="error-context-schema"]
+=== Error context schema
+
+This schema has changed. Please see <<error-api>>.
+
+[role="exclude",id="error-stacktraceframe-schema"]
+=== Error stacktrace frame schema
+
+This schema has changed. Please see <<error-api>>.
+
+[role="exclude",id="payload-with-error"]
+=== Payload with error
+
+This is no longer helpful. Please see <<error-api>>.
+
+[role="exclude",id="payload-with-minimal-exception"]
+=== Payload with minimal exception
+
+This is no longer helpful. Please see <<error-api>>.
+
+[role="exclude",id="payload-with-minimal-log"]
+=== Payload with minimal log
+
+This is no longer helpful. Please see <<error-api>>.
+
+// Transaction API
+
+[role="exclude",id="transaction-endpoint"]
+=== Transaction endpoint
+
+The transaction endpoint has been deprecated. Instead, see <<events-api>>.
+
+[role="exclude",id="transaction-schema-definition"]
+=== Transaction schema definition
+
+The transaction schema has moved. Please see <<transaction-schema>>.
+
+[role="exclude",id="transaction-api-examples"]
+=== Transaction API examples
+
+The transaction API examples have moved. Please see <<events-api>>.
+
+[role="exclude",id="transaction-span-schema"]
+=== Transaction span schema
+
+This schema has changed. Please see <<span-api>>.
+
+[role="exclude",id="transaction-payload-schema"]
+=== Transaction payload schema
+
+This schema has changed. Please see <<transaction-api>>.
+
+[role="exclude",id="transaction-service-schema"]
+=== Transaction service schema
+
+This schema has changed. Please see <<transaction-api>>.
+
+[role="exclude",id="transaction-system-schema"]
+=== Transaction system schema
+
+This schema has changed. Please see <<transaction-api>>.
+
+[role="exclude",id="transaction-context-schema"]
+=== Transaction context schema
+
+This schema has changed. Please see <<transaction-api>>.
+
+[role="exclude",id="transaction-stacktraceframe-schema"]
+=== Transaction stacktrace frame schema
+
+This schema has changed. Please see <<transaction-api>>.
+
+[role="exclude",id="transaction-request-schema"]
+=== Transaction request schema
+
+This schema has changed. Please see <<transaction-api>>.
+
+[role="exclude",id="transaction-user-schema"]
+=== Transaction user schema
+
+This schema has changed. Please see <<transaction-api>>.
+
+[role="exclude",id="payload-with-transactions"]
+=== Payload with transactions
+
+This is no longer helpful. Please see <<transaction-api>>.
+
+[role="exclude",id="payload-with-minimal-transaction"]
+=== Payload with minimal transaction
+
+This is no longer helpful. Please see <<transaction-api>>.
+
+[role="exclude",id="payload-with-minimal-span"]
+=== Payload with minimal span
+
+This is no longer helpful. Please see <<span-api>>.

@@ -24,4 +24,4 @@ fields: {project: "myproject", instance-id: "574734885120952459"}
 ------------------------------------------------------------------------------
 
 To store the custom fields as top-level fields, set the `fields_under_root` option to true.
-This is not recommended as backwards compatibility can not be ensured as new fields are added to APM documents.
+This is not recommended as when new fields are added to APM documents backward compatibility cannot be ensured.

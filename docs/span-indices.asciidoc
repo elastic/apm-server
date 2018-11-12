@@ -6,10 +6,12 @@ Conceptually, spans are part of transactions.
 
 [[span-example]]
 [float]
-=== Example document
+=== Example documents
+
+See how span documents can look like when indexed in Elasticsearch:
 
 [source,json]
 ----
-include::./data/elasticsearch/span.json[]
+include::./data/elasticsearch/generated/spans.json[]
 ----
 

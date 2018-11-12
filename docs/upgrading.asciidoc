@@ -1,7 +1,7 @@
 [[upgrading]]
 == Upgrading APM Server
 
-We do our best to keep APM Server backwards compatible between minor releases.
+We do our best to keep APM Server backward compatible between minor releases.
 However, check out the <<breaking-changes, breaking changes>> section for exceptions.
 
 Before upgrading:
@@ -31,25 +31,25 @@ and applies the correct template automatically.
 [[breaking-changes]]
 === Breaking Changes
 APM Server is built on top of {beats-ref}/index.html[libbeat].
-As such any breaking change in libbeat is also considered to be a breaking change in APM Server.
+As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
 ==== HEAD 
-no breaking changes in APM Server
-
-https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[breaking changes in libbeat]
+* There are no breaking changes in APM Server.
+* Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
+* https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[Breaking changes in libbeat]
 
 [float]
 ==== 6.4
-Indexing the `onboarding` document in it's own index by default.
-
+* Indexing the `onboarding` document in it's own index by default.
 
 [float]
 ==== 6.3
-Indexing events in separate indices by default.
-
-https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[breaking changes in libbeat]
+* Indexing events in separate indices by default.
+* https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[Breaking changes in libbeat]
 
 [float]
 ==== 6.2
-APM Server GA
+* APM Server GA
+
+include::./upgrading-to-65.asciidoc[]
