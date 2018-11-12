@@ -30,7 +30,7 @@ include::../context.asciidoc[]
 Agents decide whether to sample transactions or not,
 and provide settings to control sampling behavior.
 If sampled,
-the {apm-server-ref}/transaction-spans.html[spans] of a transaction are sent and stored as separate documents. Within one transaction there can be several, or no spans captured. 
+the <<transaction-spans,spans>> of a transaction are sent and stored as separate documents. Within one transaction there can be several, or no spans captured. 
 
 Transactions are stored in {apm-server-ref}/transaction-indices.html[transaction indices].
 
@@ -72,7 +72,7 @@ Settings affecting dropped spans, and more details on why they might occur,
 are available in the relevant agent documentation:
 
 * {apm-node-ref}/agent-api.html#transaction-max-spans[Node.js Agent max spans]
-* {apm-agents-ref}/configuration.html#config-transaction-max-spans[Python Agent max spans]
+* {apm-py-ref}/configuration.html[Python Agent max spans]
 
 [float]
 [[missing-spans]]
