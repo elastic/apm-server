@@ -103,7 +103,7 @@ func (bt *beater) listen() (net.Listener, error) {
 		if _, _, err := net.SplitHostPort(path); err != nil {
 			// tack on a port if SplitHostPort fails on what should be a tcp network address
 			// if there were already too many colons, one more won't hurt
-			path = net.JoinHostPort(path, defaultPort)
+			path = net.JoinHostPort(path, DefaultPort)
 		}
 	}
 	lis, err := net.Listen(network, path)
