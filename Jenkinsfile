@@ -383,16 +383,13 @@ pipeline {
         beforeAgent true
         allOf {
           anyOf {
-            anyOf {
-              not {
-                changeRequest()
-              }
-              branch 'master'
-              branch "\\d+\\.\\d+"
-              branch "v\\d?"
-              tag "v\\d+\\.\\d+\\.\\d+*"
-              environment name: 'Run_As_Master_Branch', value: 'true'
+            not {
+              changeRequest()
             }
+            branch 'master'
+            branch "\\d+\\.\\d+"
+            branch "v\\d?"
+            tag "v\\d+\\.\\d+\\.\\d+*"
             environment name: 'Run_As_Master_Branch', value: 'true'
           }
           environment name: 'releaser_ci', value: 'true' 
