@@ -3,6 +3,28 @@
 == Release notes
 
 [float]
+==== APM version 6.5.0
+
+[float]
+===== New features
+
+APM now supports {apm-get-started-ref}/distributed-tracing.html[distributed tracing].
+
+*APM Server*
+* Allow to register and apply pipelines when ingesting documents.
+* Add apm-server monitoring.
+* Add Intake Protocol v2 with distributed tracing support
+
+*APM UI*
+
+
+*APM agents*
+
+* Java is now GA
+* Go is now GA
+
+
+[float]
 ==== APM version 6.4.1
 
 [float]
