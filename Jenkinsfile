@@ -12,9 +12,6 @@ pipeline {
   environment {
     HOME = "${env.HUDSON_HOME}"
     BASE_DIR="src/github.com/elastic/apm-server"
-    JOB_GIT_INTEGRATION_URL="git@github.com:elastic/apm-integration-testing.git"
-    INTEGRATION_TEST_BASE_DIR = "src/github.com/elastic/apm-integration-testing"
-    HEY_APM_TEST_BASE_DIR = "src/github.com/elastic/hey-apm"
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
   }
   triggers {
@@ -33,9 +30,7 @@ pipeline {
   parameters {
     string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (branchName, tagName, commitId, etc.)")
     string(name: 'GO_VERSION', defaultValue: "1.10.3", description: "Go version to use.")
-    string(name: 'JOB_INTEGRATION_TEST_BRANCH_SPEC', defaultValue: "refs/heads/pipeline", description: "The integrations test Git branch to use")
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'JOB_HEY_APM_TEST_BRANCH_SPEC', defaultValue: "refs/heads/master", description: "The Hey APM test Git branch/tag to use")
 
     booleanParam(name: 'SNAPSHOT', defaultValue: false, description: 'Build snapshot packages (defaults to true)')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -294,7 +289,13 @@ pipeline {
             beforeAgent true
             allOf {
               anyOf {
+                not {
+                  changeRequest()
+                }
                 branch 'master'
+                branch "\\d+\\.\\d+"
+                branch "v\\d?"
+                tag "v\\d+\\.\\d+\\.\\d+*"
                 environment name: 'Run_As_Master_Branch', value: 'true'
               }
               environment name: 'bench_ci', value: 'true'
@@ -382,7 +383,16 @@ pipeline {
         beforeAgent true
         allOf {
           anyOf {
-            branch 'master'
+            anyOf {
+              not {
+                changeRequest()
+              }
+              branch 'master'
+              branch "\\d+\\.\\d+"
+              branch "v\\d?"
+              tag "v\\d+\\.\\d+\\.\\d+*"
+              environment name: 'Run_As_Master_Branch', value: 'true'
+            }
             environment name: 'Run_As_Master_Branch', value: 'true'
           }
           environment name: 'releaser_ci', value: 'true' 
