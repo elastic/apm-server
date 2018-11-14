@@ -140,15 +140,14 @@ const PayloadSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
                     "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name"]
+            }
         },
         "language": {
             "description": "Name and version of the programming language used",
