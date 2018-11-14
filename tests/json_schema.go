@@ -134,7 +134,6 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		"service.runtime.name",
 		"service.runtime.version",
 		"service.framework.name",
-		"service.framework.version",
 		"process.pid",
 	))
 

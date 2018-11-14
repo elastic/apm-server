@@ -11,6 +11,9 @@
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
+                    "framework": {
+                        "name": "emac"
+                    },
                     "language": {
                         "name": "ecmascript"
                     },
@@ -88,6 +91,9 @@
                         "name": "elastic-node",
                         "version": "3.14.0"
                     },
+                    "framework": {
+                        "name": "emac"
+                    },
                     "language": {
                         "name": "ecmascript"
                     },
@@ -130,6 +136,9 @@
                     "agent": {
                         "name": "elastic-node",
                         "version": "3.14.0"
+                    },
+                    "framework": {
+                        "name": "emac"
                     },
                     "language": {
                         "name": "ecmascript"

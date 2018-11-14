@@ -54,11 +54,11 @@ const PayloadSchema = `{
                     "maxLength": 1024
                 },
                 "version": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
             },
-            "required": ["name", "version"]
+            "required": ["name"]
         },
         "language": {
             "description": "Name and version of the programming language used",
