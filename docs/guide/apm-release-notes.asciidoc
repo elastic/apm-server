@@ -8,18 +8,22 @@
 [float]
 ===== New features
 
-APM now supports {apm-get-started-ref}/distributed-tracing.html[distributed tracing].
+Elastic APM now enables {apm-get-started-ref}/distributed-tracing.html[distributed tracing].
 
 *APM Server*
-* Allow to register and apply pipelines when ingesting documents.
-* Add apm-server monitoring.
-* Add Intake Protocol v2 with distributed tracing support
+
+* Intake protocol v2 with distributed tracing support
+* Ingest node pipeline registration and use when ingesting documents
+* apm-server monitoring
 
 *APM UI*
 
+* Distributed tracing UI
+* Monitoring UI for apm-server
 
 *APM agents*
 
+* Intake protocol v2 with distributed tracing support in all Elastic agents
 * Java is now GA
 * Go is now GA
 
@@ -93,7 +97,7 @@ output.elasticsearch:
 
 * Query bar
 * Machine Learning integration: Anomaly detection on service response times
-* Kibana objects (index pattern, dashboards, etc.) can now be imported via the Kibana setup instuctions
+* Kibana objects (index pattern, dashboards, etc.) can now be imported via the Kibana setup instructions
 
 
 *APM agents*
