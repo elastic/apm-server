@@ -813,6 +813,16 @@ Duration of the span, in microseconds.
 
 --
 
+*`span.sync`*::
++
+--
+type: boolean
+
+Indicates whether the span was executed synchronously or asynchronously.
+
+
+--
+
 *`span.parent`*::
 +
 --
