@@ -26,7 +26,8 @@ Elastic APM now enables {apm-get-started-ref}/distributed-tracing.html[distribut
 * Intake protocol v2 with distributed tracing support in all Elastic agents
 * Java is now GA
 * Go is now GA
-
+* Python switched to contextvars instead of thread locals for context tracking in Python 3.7
+* Node added support for Restify Framework, dropped support for Node.js 4 and 9
 
 [float]
 ==== APM version 6.4.1
