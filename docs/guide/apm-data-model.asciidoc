@@ -71,7 +71,7 @@ This note is then passed on to the user in the UI.
 Settings affecting dropped spans, and more details on why they might occur,
 are available in the relevant agent documentation:
 
-* {apm-node-ref}/agent-api.html#transaction-max-spans[Node.js Agent max spans]
+* {apm-node-ref}/configuration.html#transaction-max-spans[Node.js Agent max spans]
 * {apm-py-ref}/configuration.html[Python Agent max spans]
 
 [float]
