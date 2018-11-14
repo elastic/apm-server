@@ -79,7 +79,7 @@ Large payloads coming from agents may result in a server timeout.
 You can reduce the payload size by decreasing the `max_queue_size` in the agents.
 This will result in agents sending smaller payloads to the APM Server,
 but the requests will be more frequent.
-See the documentation for the {apm-py-ref}/configuration.html#config-max-queue-size[Python] and {apm-node-ref}/agent-api.html#max-queue-size[Node.js] agents for more information.
+See the documentation for the {apm-py-ref-3x}/configuration.html#config-max-queue-size[Python] and {apm-node-ref-1x}/agent-api.html#max-queue-size[Node.js] agents for more information.
 
 Optionally you can also <<reduce-sample-rate, reduce the sample rate>> or <<reduce-stacktrace, reduce the amount of stacktraces 
 collected>>,

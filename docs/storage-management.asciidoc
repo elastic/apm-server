@@ -36,7 +36,7 @@ In case you are monitoring high traffic services you might want to decrease the 
 The transaction sample rate directly influences the number of documents to be indexed
 and therefore is the most obvious way to reduce storage. 
 
-The transaction sample rate is controlled in the configuration of agents (for example for {apm-py-ref}/configuration.html#config-transaction-sample-rate[Python] and {apm-node-ref}/agent-api.html#transaction-sample-rate[Node.js]).
+The transaction sample rate is controlled in the configuration of agents (for example for {apm-py-ref-3x}/configuration.html#config-transaction-sample-rate[Python] and {apm-node-ref-1x}/agent-api.html#transaction-sample-rate[Node.js]).
 
 Reducing the transaction sample rate does not affect the collection of metrics such as _Transactions Per Second_.
 
