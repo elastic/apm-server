@@ -3,6 +3,33 @@
 == Release notes
 
 [float]
+==== APM version 6.5.0
+
+[float]
+===== New features
+
+Elastic APM now enables {apm-get-started-ref}/distributed-tracing.html[distributed tracing].
+
+*APM Server*
+
+* Intake protocol v2 with distributed tracing support
+* Ingest node pipeline registration and use when ingesting documents
+* apm-server monitoring
+
+*APM UI*
+
+* Distributed tracing UI
+* Monitoring UI for apm-server
+
+*APM agents*
+
+* Intake protocol v2 with distributed tracing support in all Elastic agents
+* Java is now GA
+* Go is now GA
+* Python switched to contextvars instead of thread locals for context tracking in Python 3.7
+* Node added support for Restify Framework, dropped support for Node.js 4 and 9
+
+[float]
 ==== APM version 6.4.1
 
 [float]
@@ -71,7 +98,7 @@ output.elasticsearch:
 
 * Query bar
 * Machine Learning integration: Anomaly detection on service response times
-* Kibana objects (index pattern, dashboards, etc.) can now be imported via the Kibana setup instuctions
+* Kibana objects (index pattern, dashboards, etc.) can now be imported via the Kibana setup instructions
 
 
 *APM agents*
