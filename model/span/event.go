@@ -63,6 +63,7 @@ type Event struct {
 
 	Timestamp     time.Time
 	TransactionId string
+	Sync          *bool
 
 	// new in v2
 	HexId    string
@@ -155,6 +156,7 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 		Start:    decoder.Float64Ptr(raw, "start"),
 		Duration: decoder.Float64(raw, "duration"),
 		Context:  decoder.MapStr(raw, "context"),
+		Sync:     decoder.BoolPtr(raw, "sync"),
 	}
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
@@ -217,6 +219,7 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 
 	utility.Add(tr, "name", s.Name)
 	utility.Add(tr, "type", s.Type)
+	utility.Add(tr, "sync", s.Sync)
 
 	if s.Start != nil {
 		utility.Add(tr, "start", utility.MillisAsMicros(*s.Start))

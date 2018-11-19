@@ -214,6 +214,7 @@
                 "start": {
                     "us": 2830
                 },
+                "sync": false,
                 "type": "db.postgresql.query"
             },
             "transaction": {

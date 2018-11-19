@@ -176,6 +176,7 @@
                     }
                 ],
                 "name": "SELECT FROM product_types",
+                "sync": false,
                 "start": {
                     "us": 2830
                 },
