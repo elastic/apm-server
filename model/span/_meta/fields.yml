@@ -58,6 +58,12 @@
               output_format: asMilliseconds
               output_precision: 0
 
+        - name: sync 
+          type: boolean
+          description: >
+            Indicates whether the span was executed synchronously or asynchronously.
+
+
         - name: parent
           type: long
           description: >
