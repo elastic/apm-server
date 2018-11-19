@@ -19,6 +19,9 @@ package tests
 
 import (
 	"fmt"
+	"github.com/elastic/apm-server/cmd"
+	"github.com/elastic/beats/libbeat/asset"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,10 +78,10 @@ func commonMapStr() common.MapStr {
 }
 
 func TestLoadFields(t *testing.T) {
-	_, err := loadFields("non-existing")
+	_, err := loadFieldsFile("non-existing")
 	assert.NotNil(t, err)
 
-	fields, err := loadFields("./_meta/fields.yml")
+	fields, err := loadFieldsFile("./_meta/fields.yml")
 	assert.Nil(t, err)
 	expected := NewSet("transaction", "transaction.id", "transaction.context", "exception", "exception.http", "exception.http.url", "exception.http.meta", "exception.stacktrace")
 	flattened := NewSet()
@@ -87,8 +90,7 @@ func TestLoadFields(t *testing.T) {
 }
 
 func TestFlattenFieldNames(t *testing.T) {
-
-	fields, _ := loadFields("./_meta/fields.yml")
+	fields, _ := loadFieldsFile("./_meta/fields.yml")
 
 	expected := NewSet("transaction", "transaction.id", "transaction.context", "exception", "exception.http", "exception.http.url", "exception.http.meta", "exception.stacktrace")
 
@@ -100,4 +102,14 @@ func TestFlattenFieldNames(t *testing.T) {
 	flattenFieldNames(fields, "", addOnlyDisabledFields, flattened)
 	expected = NewSet("transaction.context", "exception.stacktrace")
 	assert.Equal(t, expected, flattened)
+}
+
+
+// TestECSPresence ensures that fields moved to ECS and relied on by apm-server are present
+func TestECSPresence(t *testing.T) {
+	yaml, err := asset.GetFields(cmd.Name)
+	require.NoError(t, err)
+	fields, err := loadFields(yaml)
+	require.NoError(t, err)
+	assert.Contains(t, fields.GetKeys(), "error.id")
 }

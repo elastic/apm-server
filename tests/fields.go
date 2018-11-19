@@ -55,6 +55,8 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		Group("context.request.body"),
 		Group("context.response.headers"),
 		"context.process.argv",
+		//ecs provided fields
+		"error.id",
 	))
 	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
 	ps.EventFieldsInTemplateFields(t, events, notInFields)
@@ -160,7 +162,7 @@ func isBlacklistedKey(keysBlacklist *Set, key string) bool {
 func fetchFlattenedFieldNames(paths []string, fn func(common.Field) bool) (*Set, error) {
 	fields := NewSet()
 	for _, path := range paths {
-		f, err := loadFields(path)
+		f, err := loadFieldsFile(path)
 		if err != nil {
 			return nil, err
 		}
@@ -179,13 +181,16 @@ func flattenFieldNames(fields []common.Field, prefix string, fn func(common.Fiel
 	}
 }
 
-func loadFields(yamlPath string) ([]common.Field, error) {
-	fields := []common.Field{}
-
+func loadFieldsFile(yamlPath string) (common.Fields, error) {
 	yaml, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
 		return nil, err
 	}
+	return loadFields(yaml)
+}
+
+func loadFields(yaml []byte) (common.Fields, error){
+	var fields []common.Field
 	cfg, err := common.NewConfigWithYAML(yaml, "")
 	if err != nil {
 		return nil, err
