@@ -36,6 +36,7 @@ rsync -crpv --delete \
     --include="libbeat/magefile.go" \
     --include="libbeat/_meta/" \
     --include="libbeat/_meta/fields.common.yml" \
+    --include="libbeat/_meta/fields.ecs.yml" \
     --include="libbeat/docs/" \
     --include=libbeat/docs/version.asciidoc \
     --include="libbeat/processors/" \
