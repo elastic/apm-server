@@ -152,6 +152,7 @@
                 "start": {
                     "us": 0
                 },
+                "sync": false,
                 "type": "request"
             },
             "timestamp": {
@@ -252,6 +253,7 @@
                 "start": {
                     "us": 2830
                 },
+                "sync": true,
                 "type": "db.postgresql.query"
             },
             "timestamp": {
