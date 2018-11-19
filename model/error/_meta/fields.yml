@@ -29,12 +29,6 @@
       dynamic: false
       fields:
 
-        - name: id
-          type: keyword
-          count: 4
-          description: >
-            The ID of the error.
-
         - name: culprit
           type: text
           count: 2
