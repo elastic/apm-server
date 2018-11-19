@@ -189,7 +189,7 @@ func loadFieldsFile(yamlPath string) (common.Fields, error) {
 	return loadFields(yaml)
 }
 
-func loadFields(yaml []byte) (common.Fields, error){
+func loadFields(yaml []byte) (common.Fields, error) {
 	var fields []common.Field
 	cfg, err := common.NewConfigWithYAML(yaml, "")
 	if err != nil {

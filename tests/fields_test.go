@@ -19,13 +19,13 @@ package tests
 
 import (
 	"fmt"
-	"github.com/elastic/apm-server/cmd"
-	"github.com/elastic/beats/libbeat/asset"
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/cmd"
+	"github.com/elastic/beats/libbeat/asset"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -103,7 +103,6 @@ func TestFlattenFieldNames(t *testing.T) {
 	expected = NewSet("transaction.context", "exception.stacktrace")
 	assert.Equal(t, expected, flattened)
 }
-
 
 // TestECSPresence ensures that fields moved to ECS and relied on by apm-server are present
 func TestECSPresence(t *testing.T) {
