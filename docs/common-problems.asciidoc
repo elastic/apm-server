@@ -47,7 +47,9 @@ the {apm-agents-ref}/index.html[agent documentation] for details on what is auto
 === HTTP 400: Data decoding error / Data validation error
 
 The most likely cause for this is that you are using incompatible versions of agent and APM Server.
-For instance, APM Server 6.2.0 changed the Intake API spec and requires a minimum version of each agent.
+For instance, APM Server 6.5 redesigned the Intake API and requires a minimum version of each agent.
+
+View the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
 
 [[unauthorized]]
 [float]
@@ -66,7 +68,7 @@ is coming from an origin not whitelisted in `apm-server.rum.allow_origins`. See 
 [float]
 === HTTP 413: Request body too large
 
-The agent is collecting too much data and sending it all at once. Consider increasing the `apm-server.max_unzipped_size`
+The agent is collecting too much data and sending it all at once. Consider increasing the <<configuration-v1-api,`apm-server.max_unzipped_size`>>
 setting in the APM Server, and adjust relevant settings in the agent.
 
 [[queue-full]]
@@ -75,14 +77,15 @@ setting in the APM Server, and adjust relevant settings in the agent.
 
 APM Server has an internal queue that helps to:
 
-* buffer data temporarily if Elasticsearch is intermittently unavailable
-* handle sudden large spikes of data
-* send documents to Elasticsearch in bulk, instead of individually
+* Buffer data temporarily if Elasticsearch is intermittently unavailable
+* Handle sudden large spikes of data
+* Send documents to Elasticsearch in bulk, instead of individually
 
 When the queue has reached the maximum size,
 APM Server returns an HTTP 503 status with the message "Queue is full".
 
-A full queue generally means that the agents collect more data than APM server is able to process.
+In <<intake-api-changes-65,v1>> of the intake API,
+a full queue generally means that the agents collect more data than APM server is able to process.
 This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster,
 or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
 
@@ -103,7 +106,7 @@ You have a few options to solve this problem:
 === HTTP 503: Request timed out waiting to be processed
 
 This happens when APM Server exceeds the maximum number of requests that it can process concurrently.
-This limit is determined by the `apm-server.concurrent_requests` configuration parameter deprecated[6.5].
+This limit is determined by the <<concurrent_requests,`apm-server.concurrent_requests`>> configuration parameter deprecated[6.5].
 
 To alleviate this problem,
 you can try to:
