@@ -164,7 +164,7 @@ pipeline {
                   ".\\script\\jenkins\\windows-build.ps1"'''
                   */
                   bat 'dir "C:\\Program Files\\java'
-                  powershell '".\\script\\jenkins\\windows-build.ps1"'
+                  powershell(script: '.\\script\\jenkins\\windows-build.ps1')
               }
             }
           }
@@ -263,7 +263,7 @@ pipeline {
                   --args "-NonInteractive -ExecutionPolicy ByPass -File" `
                   ".\\script\\jenkins\\windows-test.ps1"'''
                   */
-                powershell '".\\script\\jenkins\\windows-test.ps1"'
+                powershell(script: '.\\script\\jenkins\\windows-test.ps1')
               }
             }
           }
