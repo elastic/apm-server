@@ -163,7 +163,6 @@ pipeline {
                   --args "-NonInteractive -ExecutionPolicy ByPass -File" `
                   ".\\script\\jenkins\\windows-build.ps1"'''
                   */
-                  bat 'dir "C:\\Program Files\\java'
                   powershell(script: '.\\script\\jenkins\\windows-build.ps1')
               }
             }
