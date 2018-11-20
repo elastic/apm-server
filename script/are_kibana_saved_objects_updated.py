@@ -81,8 +81,10 @@ def iterate(val_id, key, v1, v2):
             for item1, item2 in zip(v1, v2):
                 ret_val = max(ret_val, iterate(val_id, key, *json_val(item1, item2)))
     else:
-        d = jsondiff.diff(*json_val(v1, v2))
+        d = jsondiff.JsonDiffer(syntax='symmetric').diff(*json_val(v1, v2))
         if d:
+            if key == "attributes.title":
+                return ret_val
             ret_val = 2
             print("Difference for id '{}' for key '{}'".format(val_id, key))
             try:
@@ -126,6 +128,9 @@ def main():
     exit_val = max(exit_val, iterate(k["id"], "", s, k))
     if exit_val == 0:
         print("up-to-date")
+    if "title" in k["attributes"]:
+        print("`title` need to be set dynamically, remove it from the index-pattern!")
+        exit_val = 3
 
     return exit_val
 
