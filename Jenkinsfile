@@ -389,13 +389,6 @@ pipeline {
     */
     stage('Check kibana Obj. Updated') { 
       agent { label 'linux && immutable' }
-      when { 
-        beforeAgent true
-        anyOf {
-          branch 'master'
-          environment name: 'Run_As_Master_Branch', value: 'true'
-        } 
-      }
       steps {
       withEnvWrapper() {
           unstash 'source'
