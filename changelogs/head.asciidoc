@@ -12,3 +12,5 @@ https://github.com/elastic/apm-server/compare/6.5\...6.x[View commits]
 
 [float]
 ==== Bug fixes
+
+- Fix index pattern bundled with Kibana to be in sync with ES template pull{1571}[1571].
