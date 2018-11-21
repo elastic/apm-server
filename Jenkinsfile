@@ -73,22 +73,6 @@ pipeline {
                   env.JOB_GIT_URL = "${GIT_URL}"
                   
                   github_enterprise_constructor()
-                  
-                  on_change{
-                    echo "build cause a change (commit or PR)"
-                  }
-                  
-                  on_commit {
-                    echo "build cause a commit"
-                  }
-                  
-                  on_merge {
-                    echo "build cause a merge"
-                  }
-                  
-                  on_pull_request {
-                    echo "build cause PR"
-                  }
                 }
               }
               stash allowEmpty: true, name: 'source', useDefaultExcludes: false
@@ -157,12 +141,6 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){  
-                /*
-                powershell '''java -jar "C:\\Program Files\\infra\\bin\\runbld" `
-                  --program powershell.exe `
-                  --args "-NonInteractive -ExecutionPolicy ByPass -File" `
-                  ".\\script\\jenkins\\windows-build.ps1"'''
-                  */
                   powershell(script: '.\\script\\jenkins\\windows-build.ps1')
               }
             }
@@ -170,40 +148,40 @@ pipeline {
         }
       } 
     }
-    /**
-      Run unit test and report junit results.
-    */
-    stage('Test') {
-      agent { label 'linux && immutable' }
-      environment {
-        PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when { 
-        beforeAgent true
-        environment name: 'test_ci', value: 'true' 
-      }
-      steps {
-        withEnvWrapper() {
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            sh """#!/bin/bash
-            ./script/jenkins/unit-test.sh
-            """
-          }
-        }
-      }
-      post { 
-        always {
-          junit(allowEmptyResults: true, 
-            keepLongStdio: true, 
-            testResults: "${BASE_DIR}/build/junit-*.xml")
-        }
-      }
-    }
     stage('Parallel Tests') {
       failFast true
       parallel {
+        /**
+          Run unit test and report junit results.
+        */
+        stage('Unit Test') {
+          agent { label 'linux && immutable' }
+          environment {
+            PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
+            GOPATH = "${env.WORKSPACE}"
+          }
+          when { 
+            beforeAgent true
+            environment name: 'test_ci', value: 'true' 
+          }
+          steps {
+            withEnvWrapper() {
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh """#!/bin/bash
+                ./script/jenkins/unit-test.sh
+                """
+              }
+            }
+          }
+          post { 
+            always {
+              junit(allowEmptyResults: true, 
+                keepLongStdio: true, 
+                testResults: "${BASE_DIR}/build/junit-*.xml")
+            }
+          }
+        }
         /**
         Runs unit test, then generate coverage and unit test reports.
         Finally archive the results.
@@ -256,12 +234,6 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){  
-                /*
-                powershell '''java -jar "C:\\Program Files\\infra\\bin\\runbld" `
-                  --program powershell.exe `
-                  --args "-NonInteractive -ExecutionPolicy ByPass -File" `
-                  ".\\script\\jenkins\\windows-test.ps1"'''
-                  */
                 powershell(script: '.\\script\\jenkins\\windows-test.ps1')
               }
             }
