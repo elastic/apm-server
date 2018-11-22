@@ -26,7 +26,6 @@ pipeline {
     //ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
-    skipDefaultCheckout()
   }
   parameters {
     string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (branchName, tagName, commitId, etc.)")
@@ -54,6 +53,7 @@ pipeline {
         PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
       }
+      options { skipDefaultCheckout() }
       steps {
           withEnvWrapper() {
               dir("${BASE_DIR}"){
@@ -72,7 +72,6 @@ pipeline {
                   }
                   env.JOB_GIT_COMMIT = getGitCommitSha()
                   env.JOB_GIT_URL = "${GIT_URL}"
-                  
                   github_enterprise_constructor()
                 }
               }
@@ -92,7 +91,7 @@ pipeline {
         */
         stage('Intake') { 
           agent { label 'linux && immutable' }
-          
+          options { skipDefaultCheckout() }
           when { 
             beforeAgent true
             environment name: 'intake_ci', value: 'true' 
@@ -113,7 +112,7 @@ pipeline {
         */
         stage('linux build') { 
           agent { label 'linux && immutable' }
-          
+          options { skipDefaultCheckout() }
           when { 
             beforeAgent true
             environment name: 'linux_ci', value: 'true' 
@@ -134,6 +133,7 @@ pipeline {
         */
         stage('windows build') { 
           agent { label 'windows' }
+          options { skipDefaultCheckout() }
           when { 
             beforeAgent true
             environment name: 'windows_ci', value: 'true' 
@@ -157,6 +157,7 @@ pipeline {
         */
         stage('Unit Test') {
           agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
@@ -189,6 +190,7 @@ pipeline {
         */
         stage('System and Environment Tests') { 
           agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
@@ -227,6 +229,7 @@ pipeline {
         */
         stage('windows test') { 
           agent { label 'windows' }
+          options { skipDefaultCheckout() }
           when { 
             beforeAgent true
             environment name: 'windows_ci', value: 'true' 
@@ -253,6 +256,7 @@ pipeline {
         */
         stage('Benchmarking') {
           agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
@@ -316,6 +320,7 @@ pipeline {
     */
     stage('Documentation') { 
       agent { label 'linux && immutable' }
+      options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
@@ -351,6 +356,7 @@ pipeline {
     */
     stage('Release') { 
       agent { label 'linux && immutable' }
+      options { skipDefaultCheckout() }
       when { 
         beforeAgent true
         allOf {
@@ -390,8 +396,9 @@ pipeline {
     */
     stage('Check kibana Obj. Updated') { 
       agent { label 'linux && immutable' }
+      options { skipDefaultCheckout() }
       steps {
-      withEnvWrapper() {
+        withEnvWrapper() {
           unstash 'source'
           dir("${BASE_DIR}"){  
             sh """#!/bin/bash 
