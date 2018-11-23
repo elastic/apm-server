@@ -206,7 +206,6 @@ pipeline {
                 sh """#!/bin/bash
                 ./script/jenkins/test.sh
                 """
-                codecov('apm-server')
               }
             }
           }
@@ -220,6 +219,7 @@ pipeline {
               //googleStorageUpload bucket: "gs://${JOB_GCS_BUCKET}/${JOB_NAME}/${BUILD_NUMBER}", credentialsId: "${JOB_GCS_CREDENTIALS}", pathPrefix: "${BASE_DIR}", pattern: '**/build/TEST-*.out', sharedPublicly: true, showInline: true
               tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
+              codecov(repo: 'apm-server', basedir: "${BASE_DIR}")
             }
           }
         }
