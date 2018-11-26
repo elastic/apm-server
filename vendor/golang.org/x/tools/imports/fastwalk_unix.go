@@ -5,9 +5,10 @@
 // +build linux darwin freebsd openbsd netbsd
 // +build !appengine
 
-package fastwalk
+package imports
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"syscall"
@@ -23,7 +24,7 @@ const unknownFileMode os.FileMode = os.ModeNamedPipe | os.ModeSocket | os.ModeDe
 func readDir(dirName string, fn func(dirName, entName string, typ os.FileMode) error) error {
 	fd, err := syscall.Open(dirName, 0, 0)
 	if err != nil {
-		return &os.PathError{Op: "open", Path: dirName, Err: err}
+		return err
 	}
 	defer syscall.Close(fd)
 
@@ -31,7 +32,6 @@ func readDir(dirName string, fn func(dirName, entName string, typ os.FileMode) e
 	buf := make([]byte, blockSize) // stack-allocated; doesn't escape
 	bufp := 0                      // starting read position in buf
 	nbuf := 0                      // end valid data in buf
-	skipFiles := false
 	for {
 		if bufp >= nbuf {
 			bufp = 0
@@ -62,14 +62,7 @@ func readDir(dirName string, fn func(dirName, entName string, typ os.FileMode) e
 			}
 			typ = fi.Mode() & os.ModeType
 		}
-		if skipFiles && typ.IsRegular() {
-			continue
-		}
 		if err := fn(dirName, name, typ); err != nil {
-			if err == SkipFiles {
-				skipFiles = true
-				continue
-			}
 			return err
 		}
 	}
@@ -113,7 +106,10 @@ func parseDirEnt(buf []byte) (consumed int, name string, typ os.FileMode) {
 	}
 
 	nameBuf := (*[unsafe.Sizeof(dirent.Name)]byte)(unsafe.Pointer(&dirent.Name[0]))
-	nameLen := direntNamlen(dirent)
+	nameLen := bytes.IndexByte(nameBuf[:], 0)
+	if nameLen < 0 {
+		panic("failed to find terminating 0 byte in dirent")
+	}
 
 	// Special cases for common things:
 	if nameLen == 1 && nameBuf[0] == '.' {
