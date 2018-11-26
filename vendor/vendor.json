@@ -1864,6 +1864,12 @@
 			"revisionTime": "2018-11-16T14:52:53Z"
 		},
 		{
+			"checksumSHA1": "e6T/9bM7ah7mQJVVIaTuCw/63Uo=",
+			"path": "github.com/pierrre/gotestcover",
+			"revision": "924dca7d15f052db629b3fd04b0844e26eff49a6",
+			"revisionTime": "2016-05-17T10:18:06Z"
+		},
+		{
 			"checksumSHA1": "PdQm3s8DoVJ17Vk8n7o5iPa7PK0=",
 			"origin": "github.com/elastic/beats/vendor/github.com/pkg/errors",
 			"path": "github.com/pkg/errors",
@@ -2286,10 +2292,42 @@
 			"revisionTime": "2018-11-16T14:52:53Z"
 		},
 		{
+			"checksumSHA1": "V4M/6A62nVBzPFxPbN+EAatCrVs=",
+			"path": "golang.org/x/tools/cmd/goimports",
+			"revision": "156d532d4f67148ceab07c3b59ed7fa13bdbf00c",
+			"revisionTime": "2018-08-25T23:28:30Z",
+			"version": "release-branch.go1.10",
+			"versionExact": "release-branch.go1.10"
+		},
+		{
+			"checksumSHA1": "LHHkpIoYHpQiBc7y0JaTmf3VbVQ=",
+			"path": "golang.org/x/tools/go/ast/astutil",
+			"revision": "04b5d21e00f1f47bd824a6ade581e7189bacde87",
+			"revisionTime": "2018-11-21T22:04:10Z"
+		},
+		{
 			"checksumSHA1": "iF6AIRhNvnaONazwHIJkBVG6kXU=",
 			"path": "golang.org/x/tools/go/vcs",
 			"revision": "1c99e1239a0c8b0e59c34000995c4e319b7702ca",
 			"revisionTime": "2018-06-27T20:58:43Z"
+		},
+		{
+			"checksumSHA1": "DQrgF3tDARQfrqqFA28sD16gPgg=",
+			"path": "golang.org/x/tools/imports",
+			"revision": "04b5d21e00f1f47bd824a6ade581e7189bacde87",
+			"revisionTime": "2018-11-21T22:04:10Z"
+		},
+		{
+			"checksumSHA1": "dC7MpahR/U0T8CRcTypgrwO1Lg0=",
+			"path": "golang.org/x/tools/internal/fastwalk",
+			"revision": "04b5d21e00f1f47bd824a6ade581e7189bacde87",
+			"revisionTime": "2018-11-21T22:04:10Z"
+		},
+		{
+			"checksumSHA1": "J+dCOMCPxRcqDPJtA3c1om9K8Q8=",
+			"path": "golang.org/x/tools/internal/gopathwalk",
+			"revision": "04b5d21e00f1f47bd824a6ade581e7189bacde87",
+			"revisionTime": "2018-11-21T22:04:10Z"
 		},
 		{
 			"checksumSHA1": "fALlQNY1fM99NesfLJ50KguWsio=",
