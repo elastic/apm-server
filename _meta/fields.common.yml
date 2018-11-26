@@ -1,5 +1,5 @@
 - key: apm
-  title: General APM fields
+  title: General APM
   description:
   fields:
     - name: listening

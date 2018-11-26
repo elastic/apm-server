@@ -26,7 +26,7 @@ grouped in the following categories:
 
 --
 [[exported-fields-apm]]
-== General APM fields fields
+== General APM fields
 
 None
 
