@@ -34,6 +34,7 @@
           count: 4
           description: >
             The ID of the error.
+          overwrite: true
 
         - name: culprit
           type: text
