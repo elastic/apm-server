@@ -219,7 +219,8 @@ the APM server and Elasticsearch log a warning like this:
 
 I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
 especially when using a load balancer.
-The following error may appear in the client command line:
+
+You may see an error like the one below in the agent logs, and/or a similar error on the APM Server side:
 
 ----------------------------------------------------------------------
 [ElasticAPM] APM Server responded with an error:
@@ -229,9 +230,12 @@ The following error may appear in the client command line:
 To fix this, ensure timeouts are incrementing from the {apm-agents-ref}[APM Agent],
 through your load balancer, to the <<read_timeout,APM Server>>.
 
+By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 30 seconds.
+Your load balancer should be set somewhere between these numbers.
+
 For example:
 
 ----------------------------------------------------------------------
-APM Agent --> ELB  --> APM Server 
-   10s        15s         30s
+APM Agent --> Load Balancer  --> APM Server 
+   10s            15s               30s
 ----------------------------------------------------------------------
