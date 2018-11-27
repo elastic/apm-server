@@ -264,7 +264,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 122fb9364c9fc9d1d6508a864e132396180f9c38
+Revision: 675f2b000b067ad9fb2ee2fbe2bb3d98ecfab30c
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -2378,7 +2378,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/tools
-Version: release-branch.go1.10
+Version: release-branch.go1.11
 Revision: release-branch.go1.10
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/tools/LICENSE:
