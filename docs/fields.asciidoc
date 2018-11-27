@@ -27,9 +27,10 @@ grouped in the following categories:
 
 --
 [[exported-fields-apm]]
-== General APM fields fields
+== General APM fields
 
-None
+Fields common to various APM events.
+
 
 
 *`listening`*::
@@ -59,11 +60,6 @@ type: keyword
 Processor event.
 
 --
-
-[float]
-== timestamp fields
-
-None
 
 
 *`timestamp.us`*::
@@ -780,11 +776,6 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 
 --
 
-[float]
-== start fields
-
-None
-
 
 *`span.start.us`*::
 +
@@ -795,11 +786,6 @@ Offset relative to the transaction's timestamp identifying the start of the span
 
 
 --
-
-[float]
-== duration fields
-
-None
 
 
 *`span.duration.us`*::
