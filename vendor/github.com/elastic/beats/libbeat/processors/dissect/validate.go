@@ -15,18 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package includes
+package dissect
 
 import (
-	// import queue types
-	_ "github.com/elastic/beats/libbeat/outputs/codec/format"
-	_ "github.com/elastic/beats/libbeat/outputs/codec/json"
-	_ "github.com/elastic/beats/libbeat/outputs/console"
-	_ "github.com/elastic/beats/libbeat/outputs/elasticsearch"
-	_ "github.com/elastic/beats/libbeat/outputs/fileout"
-	_ "github.com/elastic/beats/libbeat/outputs/kafka"
-	_ "github.com/elastic/beats/libbeat/outputs/logstash"
-	_ "github.com/elastic/beats/libbeat/outputs/redis"
-	_ "github.com/elastic/beats/libbeat/publisher/queue/memqueue"
-	_ "github.com/elastic/beats/libbeat/publisher/queue/spool"
+	"fmt"
 )
+
+func validate(p *parser) error {
+	indirectFields := filterFieldsWith(p.fields, isIndirectField)
+
+	for _, field := range indirectFields {
+		found := false
+		for _, reference := range p.referenceFields {
+			if reference.Key() == field.Key() {
+				found = true
+				break
+			}
+		}
+
+		if found == false {
+			return fmt.Errorf("missing reference for key '%s'", field.Key())
+		}
+	}
+
+	return nil
+}
