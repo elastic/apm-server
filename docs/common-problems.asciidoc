@@ -12,6 +12,7 @@ This section describes common problems you might encounter with APM Server.
 * <<request-timed-out>>
 * <<ssl-client-fails>>
 * <<field-limit-exceeded>>
+* <<io-timeout>>
 
 [[no-data-indexed]]
 [float]
@@ -212,3 +213,25 @@ the APM server and Elasticsearch log a warning like this:
 {\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in index [apm-7.0.0-transaction-2017.05.30] has been exceeded\"}
 ----
 
+[[io-timeout]]
+[float]
+=== I/O Timeout
+
+I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
+especially when using a load balancer.
+The following error may appear in the client command line:
+
+----------------------------------------------------------------------
+[ElasticAPM] APM Server responded with an error:
+"read tcp 123.34.22.313:8200->123.34.22.40:41602: i/o timeout"
+----------------------------------------------------------------------
+
+To fix this, ensure timeouts are incrementing from the {apm-agents-ref}[APM Agent],
+through your load balancer, to the <<read_timeout,APM Server>>.
+
+For example:
+
+----------------------------------------------------------------------
+APM Agent --> ELB  --> APM Server 
+   10s        15s         30s
+----------------------------------------------------------------------
