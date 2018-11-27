@@ -1614,6 +1614,16 @@ These fields can represent errors of any kind. Use them for errors that happen w
 
 
 
+*`error.id`*::
++
+--
+type: keyword
+
+Unique identifier for the error.
+
+
+--
+
 *`error.message`*::
 +
 --
