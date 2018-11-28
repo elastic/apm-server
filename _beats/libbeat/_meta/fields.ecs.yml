@@ -317,6 +317,11 @@
     
       type: group
       fields:
+        - name: id
+          type: keyword
+          description: >
+            Unique identifier for the error.
+    
         - name: message
           type: text
           description: >
