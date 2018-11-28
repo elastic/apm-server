@@ -20,7 +20,6 @@ grouped in the following categories:
 * <<exported-fields-beat>>
 * <<exported-fields-cloud>>
 * <<exported-fields-docker-processor>>
-* <<exported-fields-host-processor>>
 * <<exported-fields-kubernetes-processor>>
 * <<exported-fields-system>>
 
@@ -518,6 +517,300 @@ type: keyword
 
 The ID of the parent event.
 
+
+--
+
+
+*`context.service.agent.name`*::
++
+--
+type: alias
+
+--
+
+
+*`beat.hostname`*::
++
+--
+type: alias
+
+--
+
+*`beat.name`*::
++
+--
+type: alias
+
+--
+
+*`beat.version`*::
++
+--
+type: alias
+
+--
+
+*`context.service.agent.version`*::
++
+--
+type: alias
+
+--
+
+
+*`docker.container.id`*::
++
+--
+type: alias
+
+--
+
+*`docker.container.image`*::
++
+--
+type: alias
+
+--
+
+*`container.labels`*::
++
+--
+type: object
+
+Image labels.
+
+
+--
+
+*`docker.container.name`*::
++
+--
+type: alias
+
+--
+
+
+*`context.system.architecture`*::
++
+--
+type: alias
+
+--
+
+*`context.system.ip`*::
++
+--
+type: alias
+
+--
+
+*`host.name`*::
++
+--
+type: keyword
+
+Hostname.
+
+
+--
+
+
+*`context.system.platform`*::
++
+--
+type: alias
+
+--
+
+
+*`context.request.method`*::
++
+--
+type: alias
+
+--
+
+*`context.request.http_version`*::
++
+--
+type: alias
+
+--
+
+*`labels`*::
++
+--
+type: object
+
+A flat mapping of user-defined labels with string values.
+
+
+--
+
+
+*`context.process.pid`*::
++
+--
+type: alias
+
+--
+
+*`context.process.ppid`*::
++
+--
+type: alias
+
+--
+
+*`context.process.title`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.environment`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.framework.name`*::
++
+--
+type: alias
+
+--
+
+*`context.service.framework.version`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.language.name`*::
++
+--
+type: alias
+
+--
+
+*`context.service.language.version`*::
++
+--
+type: alias
+
+--
+
+*`context.service.name`*::
++
+--
+type: alias
+
+--
+
+
+*`context.service.runtime.name`*::
++
+--
+type: alias
+
+--
+
+*`context.service.runtime.version`*::
++
+--
+type: alias
+
+--
+
+*`context.service.version`*::
++
+--
+type: alias
+
+--
+
+
+*`context.request.url.hostname`*::
++
+--
+type: alias
+
+--
+
+*`context.request.url.hash`*::
++
+--
+type: alias
+
+--
+
+*`context.request.url.full`*::
++
+--
+type: alias
+
+--
+
+*`context.request.url.pathname`*::
++
+--
+type: alias
+
+--
+
+*`url.port`*::
++
+--
+type: long
+
+The port of the request, e.g. 443.
+
+
+--
+
+*`context.request.url.search`*::
++
+--
+type: alias
+
+--
+
+*`url.scheme`*::
++
+--
+type: keyword
+
+The scheme of the request, e.g. "https".
+
+
+--
+
+
+*`context.user.email`*::
++
+--
+type: alias
+
+--
+
+*`context.user.id`*::
++
+--
+type: alias
+
+--
+
+*`context.user.username`*::
++
+--
+type: alias
 
 --
 
@@ -1144,94 +1437,6 @@ Container name.
 type: object
 
 Image labels.
-
-
---
-
-[[exported-fields-host-processor]]
-== Host fields
-
-Info collected for the host machine.
-
-
-
-
-*`host.name`*::
-+
---
-type: keyword
-
-Hostname.
-
-
---
-
-*`host.id`*::
-+
---
-type: keyword
-
-Unique host id.
-
-
---
-
-*`host.architecture`*::
-+
---
-type: keyword
-
-Host architecture (e.g. x86_64, arm, ppc, mips).
-
-
---
-
-*`host.os.platform`*::
-+
---
-type: keyword
-
-OS platform (e.g. centos, ubuntu, windows).
-
-
---
-
-*`host.os.version`*::
-+
---
-type: keyword
-
-OS version.
-
-
---
-
-*`host.os.family`*::
-+
---
-type: keyword
-
-OS family (e.g. redhat, debian, freebsd, windows).
-
-
---
-
-*`host.ip`*::
-+
---
-type: ip
-
-List of IP-addresses.
-
-
---
-
-*`host.mac`*::
-+
---
-type: keyword
-
-List of hardware-addresses, usually MAC-addresses.
 
 
 --

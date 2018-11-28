@@ -56,11 +56,16 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			"listening",
 			"view spans",
 			"span.parent", // from v1
+			// ECS field copies
+			tests.Group("container"),
+			tests.Group("host"),
+			"url",
+			"url.port",
+			"url.scheme",
 		),
 		// not valid for the span context
 		transactionContext(),
 	)
-
 }
 
 func spanPayloadAttrsNotInJsonSchema() *tests.Set {
@@ -114,8 +119,8 @@ func transactionContext() *tests.Set {
 
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
-		"processor.event", "processor.name", "listening",
-		"context.tags",
+		"host.name", "processor.event", "processor.name", "listening", "url.scheme",
+		"context.tags", "labels",
 	),
 		transactionContext(),
 	)

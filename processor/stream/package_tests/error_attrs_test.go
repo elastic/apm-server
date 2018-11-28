@@ -52,6 +52,8 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		"listening", "view errors", "error id icon",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
 		"context.http", "context.http.status_code",
+		tests.Group("container"),
+		tests.Group("host"),
 	)
 }
 
@@ -110,8 +112,8 @@ func errorCondRequiredKeys() map[string]tests.Condition {
 
 func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
-		"processor.event", "processor.name", "listening", "error.grouping_key",
-		"context.tags",
+		"host.name", "processor.event", "processor.name", "listening", "error.grouping_key", "url.scheme",
+		"context.tags", "labels",
 		"view errors", "error id icon",
 		tests.Group("context.service"),
 		tests.Group("context.system"),

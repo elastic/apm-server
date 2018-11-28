@@ -47,6 +47,8 @@ func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"listening", "view spans", "context.user.user-agent",
 		"context.user.ip", "context.system.ip",
+		tests.Group("container"),
+		tests.Group("host"),
 		tests.Group("timestamp")))
 }
 
@@ -100,8 +102,8 @@ func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 
 func keywordExceptionKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
-		"processor.event", "processor.name", "listening", "parent.id", "trace.id",
-		"transaction.id", "transaction.marks", "context.tags", "span.hex_id"))
+		"host.name", "processor.event", "processor.name", "listening", "parent.id", "trace.id",
+		"transaction.id", "transaction.marks", "context.tags", "labels", "span.hex_id", "url.scheme"))
 }
 
 func templateToSchemaMapping(mapping map[string]string) map[string]string {

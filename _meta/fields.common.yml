@@ -316,3 +316,221 @@
           type: keyword
           description: >
              The ID of the parent event.
+
+    # ECS
+    - name: agent
+      type: group
+      dynamic: false
+      fields:
+        - name: name
+          type: alias
+          path: context.service.agent.name
+
+        - name: server
+          type: group
+          fields:
+            - name: host.name
+              type: alias
+              path: beat.hostname
+
+            - name: type
+              type: alias
+              path: beat.name
+
+            - name: version
+              type: alias
+              path: beat.version
+
+        - name: version
+          type: alias
+          path: context.service.agent.version
+
+    - name: container
+      type: group
+      dynamic: false
+      fields:
+        - name: id
+          type: alias
+          path: docker.container.id
+
+        - name: image.name
+          type: alias
+          path: docker.container.image
+
+        # docker.container.labels copied here (can't alias objects)
+        - name: labels
+          type: object
+          object_type: keyword
+          dynamic: true
+          description: >
+            Image labels.
+
+        - name: name
+          type: alias
+          path: docker.container.name
+
+    - name: host
+      type: group
+      dynamic: false
+      fields:
+        - name: architecture
+          type: alias
+          path: context.system.architecture
+
+        - name: ip
+          type: alias
+          path: context.system.ip
+
+        - name: name
+          type: keyword
+          description: >
+            Hostname.
+
+        - name: os
+          type: group
+          fields:
+            - name: platform
+              type: alias
+              path: context.system.platform
+
+    - name: http
+      type: group
+      dynamic: false
+      fields:
+        - name: method
+          type: alias
+          path: context.request.method
+
+        - name: version
+          type: alias
+          path: context.request.http_version
+
+    # context.tags copied here (can't alias objects)
+    - name: labels
+      type: object
+      object_type: keyword
+      dynamic: true
+      description: >
+        A flat mapping of user-defined labels with string values.
+
+    - name: process
+      type: group
+      dynamic: false
+      fields:
+        - name: pid
+          type: alias
+          path: context.process.pid
+
+        - name: ppid
+          type: alias
+          path: context.process.ppid
+
+        - name: title
+          type: alias
+          path: context.process.title
+
+    - name: service
+      type: group
+      dynamic: false
+      fields:
+        # not in ECS
+        - name: environment
+          type: alias
+          path: context.service.environment
+
+        # not in ECS
+        - name: framework
+          type: group
+          fields:
+            - name: name
+              type: alias
+              path: context.service.framework.name
+
+            - name: version
+              type: alias
+              path: context.service.framework.version
+
+        # not in ECS
+        - name: language
+          type: group
+          fields:
+            - name: name
+              type: alias
+              path: context.service.language.name
+
+            - name: version
+              type: alias
+              path: context.service.language.version
+
+        - name: name
+          type: alias
+          path: context.service.name
+
+        # not in ECS
+        - name: runtime
+          type: group
+          fields:
+            - name: name
+              type: alias
+              path: context.service.runtime.name
+
+            - name: version
+              type: alias
+              path: context.service.runtime.version
+
+        - name: version
+          type: alias
+          path: context.service.version
+
+    - name: url
+      type: group
+      dynamic: false
+      fields:
+        - name: domain
+          type: alias
+          path: context.request.url.hostname
+
+        - name: fragment
+          type: alias
+          path: context.request.url.hash
+
+        - name: original
+          type: alias
+          path: context.request.url.full
+
+        - name: path
+          type: alias
+          path: context.request.url.pathname
+
+        # context.request.url.port keyword -> long
+        - name: port
+          type: long
+          description: >
+            The port of the request, e.g. 443.
+
+        - name: query
+          type: alias
+          path: context.request.url.search
+          # TODO: multifield original.text
+
+        # context.request.url.protocol minus the ":"
+        - name: scheme
+          type: keyword
+          description: >
+            The scheme of the request, e.g. "https".
+
+    - name: user
+      type: group
+      dynamic: false
+      fields:
+        - name: email
+          type: alias
+          path: context.user.email
+
+        - name: id
+          type: alias
+          path: context.user.id
+
+        - name: name
+          type: alias
+          path: context.user.username
