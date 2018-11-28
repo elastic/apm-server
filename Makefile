@@ -5,6 +5,9 @@ BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
 BEAT_URL=https://${BEAT_PATH}
 BEAT_DOC_URL=https://www.elastic.co/guide/en/apm/server/
 BEAT_REF_YAML=false
+COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gotestcover
+GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
+TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
 SYSTEM_TESTS=true
 TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
@@ -46,16 +49,14 @@ go-generate:
 
 .PHONY: create-docs
 create-docs:
-	@mkdir -p docs/data/intake-api/generated/{error,transaction,metricset,sourcemap}
-	@cp testdata/error/payload.json docs/data/intake-api/generated/error/
-	@cp testdata/error/rum.json docs/data/intake-api/generated/error/
-	@cp testdata/error/minimal_payload_exception.json docs/data/intake-api/generated/error/
-	@cp testdata/error/minimal_payload_log.json docs/data/intake-api/generated/error/
-	@cp testdata/metricset/payload.json docs/data/intake-api/generated/metricset/
-	@cp testdata/transaction/payload.json docs/data/intake-api/generated/transaction/
-	@cp testdata/transaction/minimal_payload.json docs/data/intake-api/generated/transaction/
-	@cp testdata/transaction/minimal_span.json docs/data/intake-api/generated/transaction/
+	@mkdir -p docs/data/intake-api/generated/sourcemap
+	@cp testdata/intake-v2/events.ndjson docs/data/intake-api/generated/
 	@cp testdata/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
+	@mkdir -p docs/data/elasticsearch/generated/
+	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationErrors.approved.json docs/data/elasticsearch/generated/errors.json
+	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationTransactions.approved.json docs/data/elasticsearch/generated/transactions.json
+	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationSpans.approved.json docs/data/elasticsearch/generated/spans.json
+	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationMetricsets.approved.json docs/data/elasticsearch/generated/metricsets.json
 
 # Start manual testing environment with agents
 start-env:

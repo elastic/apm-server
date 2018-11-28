@@ -15,7 +15,10 @@
         "environment": null,
         "argv": null,
         "runtime": null,
-        "framework": null
+        "framework": {
+          "name": null,
+          "version": null
+        }
     },
     "system": {
         "hostname": null,

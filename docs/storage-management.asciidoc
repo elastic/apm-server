@@ -3,11 +3,11 @@
 
 [partintro]
 --
-In the following section you can learn how to
+In the following section you can learn how to:
 
-* <<manage-indices-kibana, manage APM indices via Kibana>>
-* <<reduce-storage, reduce storage usage>>
-* <<update-existing-data, update existing data>>
+* <<manage-indices-kibana, Manage APM indices via Kibana>>
+* <<reduce-storage, Reduce storage usage>>
+* <<update-existing-data, Update existing data>>
 --
 
 [[manage-indices-kibana]]
@@ -15,7 +15,7 @@ In the following section you can learn how to
 The Kibana UI for managing indices allows you to
 view indices, index settings, mappings, docs count, used storage per index and much more.
 You can perform management operations,
-for example deleting indices directly via the Kibana UI.
+for example, deleting indices directly via the Kibana UI.
 The UI also supports applying bulk operations on several indices at once.
 Check out the {kibana-ref}/managing-indices.html[Kibana Managing Indices] documentation for more details.
 
@@ -140,7 +140,7 @@ Follow the {kibana-ref}/managing-indices.html[Kibana Index Management] documenta
 You might want to update documents already indexed,
 for example if you your service name was set incorrectly.
 
-For this you can use the {ref}/docs-update-by-query.html[Update By Query API].
+For this, you can use the {ref}/docs-update-by-query.html[Update By Query API].
 
 [[update-data-rename-a-service]]
 [float]

@@ -1,6 +1,7 @@
 - key: apm
-  title: General APM fields
-  description:
+  title: General APM
+  description: >
+    Fields common to various APM events.
   fields:
     - name: listening
       type: keyword
@@ -16,7 +17,6 @@
 
     - name: timestamp
       type: group
-      description:
       fields:
         - name: us
           type: long

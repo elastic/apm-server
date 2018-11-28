@@ -20,6 +20,7 @@ package tests
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"testing"
 
@@ -102,7 +103,12 @@ func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *
 			FlattenMapStr(event.Fields[k], k, blacklisted, keys)
 		}
 	}
-	t.Logf("Keys in events: %v", keys)
+	sortedKeys := make([]string, keys.Len())
+	for i, v := range keys.Array() {
+		sortedKeys[i] = v.(string)
+	}
+	sort.Strings(sortedKeys)
+	t.Logf("Keys in events: %v", sortedKeys)
 	return keys
 }
 

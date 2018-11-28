@@ -1,148 +1,20 @@
 [[error-api]]
-== Error API
+=== Errors
 
-The following section contains information about:
+An error or a logged error message captured by an agent occurring in a monitored service.
 
-* <<error-endpoint>>
-* <<error-schema-definition>>
-* <<error-api-examples>>
-
-[[error-endpoint]]
 [float]
-=== Endpoint
+[[error-schema]]
+==== Error Schema
 
-Send a `HTTP POST` request to the APM Server `errors` endpoint:
-[source,bash]
-------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/errors
-------------------------------------------------------------
-
-For <<rum, RUM>> send a `HTTP POST` request to the `rum errors` endpoint instead:
-
-[source,bash]
-------------------------------------------------------------
-http(s)://{hostname}:{port}/v1/rum/errors
-------------------------------------------------------------
-
-[[error-schema-definition]]
-[float]
-=== Schema Definition
-
-The APM Server uses JSON Schema for validating requests. The specification for errors is defined bellow:
-* <<error-payload-schema>>
-* <<error-service-schema>>
-* <<error-system-schema>>
-* <<error-context-schema>>
-* <<error-stacktraceframe-schema>>
-* <<error-request-schema>>
-* <<error-user-schema>>
-
-
-[[error-payload-schema]]
-[float]
-==== Payload
+The APM Server uses JSON Schema for validating requests. The specification for errors is defined below:
 
 [source,json]
 ----
-include::./spec/errors/v1_error.json[]
+include::./spec/errors/v2_error.json[]
 ----
-
-[[error-service-schema]]
-[float]
-==== Service
 
 [source,json]
 ----
-include::./spec/service.json[]
-----
-
-[[error-system-schema]]
-[float]
-==== System
-
-[source,json]
-----
-include::./spec/system.json[]
-----
-
-[[error-context-schema]]
-[float]
-==== Context
-
-[source,json]
-----
-include::./spec/context.json[]
-----
-
-[[error-stacktraceframe-schema]]
-[float]
-==== Stacktrace Frame
-
-[source,json]
-----
-include::./spec/stacktrace_frame.json[]
-----
-
-[[error-request-schema]]
-[float]
-==== Request
-
-[source,json]
-----
-include::./spec/request.json[]
-----
-
-[[error-user-schema]]
-[float]
-==== User
-
-[source,json]
-----
-include::./spec/user.json[]
-----
-
-[[error-api-examples]]
-[float]
-=== Examples
-
-Request example:
-
-["source","sh",subs="attributes"]
-------------------------------------------------------------
-curl http://localhost:8200/v1/errors \
-  --header "Content-Type: application/json" \
-  --data @docs/data/intake-api/generated/error/payload.json
-------------------------------------------------------------
-
-Example error requests:
-
-* <<payload-with-error>>
-* <<payload-with-minimal-exception>>
-* <<payload-with-minimal-log>>
-
-[[payload-with-error]]
-[float]
-==== Payload with an Error
-
-[source,json]
-----
-include::./data/intake-api/generated/error/payload.json[]
-----
-
-[[payload-with-minimal-exception]]
-[float]
-==== Payload with an Error with minimal Exception Information
-
-[source,json]
-----
-include::./data/intake-api/generated/error/minimal_payload_exception.json[]
-----
-
-[[payload-with-minimal-log]]
-[float]
-==== Payload with an Error with minimal Log Information
-
-[source,json]
-----
-include::./data/intake-api/generated/error/minimal_payload_log.json[]
+include::./spec/errors/common_error.json[]
 ----

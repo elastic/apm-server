@@ -177,10 +177,10 @@ func TestServerRootWithToken(t *testing.T) {
 
 func TestServerTcpNoPort(t *testing.T) {
 	// possibly flaky but worth it
-	// try to connect to localhost:defaultPort
+	// try to connect to localhost:DefaultPort
 	// if connection succeeds, port is in use and skip test
 	// if it fails, make sure it is because connection refused
-	if conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", defaultPort), 2*time.Second); err == nil {
+	if conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", DefaultPort), 2*time.Second); err == nil {
 		conn.Close()
 		t.Skipf("default port is in use")
 	} else {
@@ -368,7 +368,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			expected: []string{"localhost:5200"},
 			config: m{
 				"frontend": m{
-					"enabled": "true",
+					"enabled":                            "true",
 					"source_mapping.elasticsearch.hosts": []string{"localhost:5200"},
 				},
 			},

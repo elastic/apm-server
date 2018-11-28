@@ -50,15 +50,14 @@ const PayloadSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name", "version"]
+            }
         },
         "language": {
             "description": "Name and version of the programming language used",
@@ -565,6 +564,10 @@ const PayloadSchema = `{
             "type": "string",
             "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
             "maxLength": 1024
+        },
+        "sync": {
+            "type": ["boolean", "null"],
+            "description": "Indicates whether the span was executed synchronously or asynchronously."
         }
     },
     "required": ["duration", "name", "type"]  }, 
