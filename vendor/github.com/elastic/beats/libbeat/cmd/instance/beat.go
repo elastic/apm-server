@@ -34,13 +34,11 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	errw "github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/elastic/beats/libbeat/api"
 	"github.com/elastic/beats/libbeat/asset"
-	_ "github.com/elastic/beats/libbeat/autodiscover/providers/docker"
-	_ "github.com/elastic/beats/libbeat/autodiscover/providers/jolokia"
-	_ "github.com/elastic/beats/libbeat/autodiscover/providers/kubernetes"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/cloudid"
@@ -57,21 +55,10 @@ import (
 	"github.com/elastic/beats/libbeat/metric/system/host"
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/monitoring/report"
-	_ "github.com/elastic/beats/libbeat/monitoring/report/elasticsearch"
 	"github.com/elastic/beats/libbeat/monitoring/report/log"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/libbeat/paths"
 	"github.com/elastic/beats/libbeat/plugin"
-	_ "github.com/elastic/beats/libbeat/processors/actions"
-	_ "github.com/elastic/beats/libbeat/processors/add_cloud_metadata"
-	_ "github.com/elastic/beats/libbeat/processors/add_docker_metadata"
-	_ "github.com/elastic/beats/libbeat/processors/add_host_metadata"
-	_ "github.com/elastic/beats/libbeat/processors/add_kubernetes_metadata"
-	_ "github.com/elastic/beats/libbeat/processors/add_locale"
-	_ "github.com/elastic/beats/libbeat/processors/add_process_metadata"
-	_ "github.com/elastic/beats/libbeat/processors/dissect"
-	_ "github.com/elastic/beats/libbeat/processors/dns"
-	_ "github.com/elastic/beats/libbeat/publisher/includes"
 	"github.com/elastic/beats/libbeat/publisher/pipeline"
 	svc "github.com/elastic/beats/libbeat/service"
 	"github.com/elastic/beats/libbeat/template"
@@ -443,7 +430,7 @@ func (b *Beat) TestConfig(bt beat.Creator) error {
 }
 
 // Setup registers ES index template, kibana dashboards, ml jobs and pipelines.
-func (b *Beat) Setup(bt beat.Creator, template, dashboards, machineLearning, pipelines bool) error {
+func (b *Beat) Setup(bt beat.Creator, template, setupDashboards, machineLearning, pipelines bool) error {
 	return handleError(func() error {
 		err := b.Init()
 		if err != nil {
@@ -488,14 +475,20 @@ func (b *Beat) Setup(bt beat.Creator, template, dashboards, machineLearning, pip
 			fmt.Println("Loaded index template")
 		}
 
-		if dashboards {
+		if setupDashboards {
 			fmt.Println("Loading dashboards (Kibana must be running and reachable)")
 			err = b.loadDashboards(context.Background(), true)
-			if err != nil {
-				return err
-			}
 
-			fmt.Println("Loaded dashboards")
+			if err != nil {
+				switch err := errw.Cause(err).(type) {
+				case *dashboards.ErrNotFound:
+					fmt.Printf("Skipping loading dashboards, %+v\n", err)
+				default:
+					return err
+				}
+			} else {
+				fmt.Println("Loaded dashboards")
+			}
 		}
 
 		if machineLearning && b.SetupMLCallback != nil {
@@ -719,7 +712,7 @@ func (b *Beat) loadDashboards(ctx context.Context, force bool) error {
 		err := dashboards.ImportDashboards(ctx, b.Info.Beat, b.Info.Hostname, paths.Resolve(paths.Home, ""),
 			b.Config.Kibana, esConfig, b.Config.Dashboards, nil)
 		if err != nil {
-			return fmt.Errorf("Error importing Kibana dashboards: %v", err)
+			return errw.Wrap(err, "Error importing Kibana dashboards")
 		}
 		logp.Info("Kibana dashboards successfully loaded.")
 	}
