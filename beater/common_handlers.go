@@ -443,9 +443,6 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 }
 
 func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
-	setContentType(w, r)
-	w.WriteHeader(res.code)
-
 	responseCounter.Inc()
 	res.counter.Inc()
 
@@ -454,6 +451,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	if res.err == nil {
 		responseSuccesses.Inc()
 		if res.body == nil {
+			w.WriteHeader(res.code)
 			return
 		}
 		msgKey = "ok"
@@ -468,18 +466,10 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	}
 
 	if acceptsJSON(r) {
-		sendJSON(w, map[string]interface{}{msgKey: msg})
-	} else {
-		sendPlain(w, fmt.Sprintf("%s", msg))
+		sendJSON(w, map[string]interface{}{msgKey: msg}, res.code)
+		return
 	}
-}
-
-func setContentType(w http.ResponseWriter, r *http.Request) {
-	contentType := "text/plain; charset=utf-8"
-	if acceptsJSON(r) {
-		contentType = "application/json"
-	}
-	w.Header().Set("Content-Type", contentType)
+	sendPlain(w, fmt.Sprintf("%s", msg), res.code)
 }
 
 func acceptsJSON(r *http.Request) bool {
@@ -487,7 +477,9 @@ func acceptsJSON(r *http.Request) bool {
 	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
 }
 
-func sendJSON(w http.ResponseWriter, msg map[string]interface{}) {
+func sendJSON(w http.ResponseWriter, msg interface{}, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 	buf, err := json.Marshal(msg)
 	if err != nil {
 		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
@@ -497,6 +489,8 @@ func sendJSON(w http.ResponseWriter, msg map[string]interface{}) {
 	w.Write(buf)
 }
 
-func sendPlain(w http.ResponseWriter, msg string) {
+func sendPlain(w http.ResponseWriter, msg string, statusCode int) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(statusCode)
 	w.Write([]byte(msg))
 }
