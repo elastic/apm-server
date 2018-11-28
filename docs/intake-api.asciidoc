@@ -8,7 +8,7 @@ The Intake API is what we call the internal protocol that APM agents use to talk
 This API has been redesigned in 6.5.
 Read the <<upgrading-to-65,upgrading to 6.5 guide>> for more information.
 
-APM Agents communicate with the APM server by sending events in an HTTP request.
+APM agents communicate with the APM server by sending events in an HTTP request.
 Each event is sent as its own line in the HTTP request body.
 This is known as http://ndjson.org[newline delimited JSON (NDJSON)].
 The request body looks roughly like this:
