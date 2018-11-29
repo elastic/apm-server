@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/6.5\...master[View commits]
 - Set some configuration defaults (setup.template.settings.index.*, logging.metrics.enabled) in code {pull}1494[1494].
 - Add `span.sync` property to intake json spec and index field in ES. {pull}1548[1548].
 - Make `service.framework` properties optional and nullable {pull}1546[1546].
+- Update Go to 1.11.2 {pull}1605[1605].
 
 [float]
 ==== Bug fixes
