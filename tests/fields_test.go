@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -76,28 +77,27 @@ func commonMapStr() common.MapStr {
 
 func TestLoadFields(t *testing.T) {
 	_, err := loadFields("non-existing")
-	assert.NotNil(t, err)
-
-	fields, err := loadFields("./_meta/fields.yml")
-	assert.Nil(t, err)
-	expected := NewSet("transaction", "transaction.id", "transaction.context", "exception", "exception.http", "exception.http.url", "exception.http.meta", "exception.stacktrace")
-	flattened := NewSet()
-	flattenFieldNames(fields, "", addAllFields, flattened)
-	assert.Equal(t, expected, flattened)
+	assert.Error(t, err)
 }
 
 func TestFlattenFieldNames(t *testing.T) {
+	fields, err := loadFields("./_meta/fields.yml")
+	require.NoError(t, err)
 
-	fields, _ := loadFields("./_meta/fields.yml")
+	expectAll := NewSet("transaction", "transaction.id", "transaction.context", "exception", "exception.http",
+		"exception.http.url", "exception.http.meta", "exception.stacktrace")
+	expectDisabled := NewSet("transaction.context", "exception.stacktrace")
+	expectEnabled := SymmDifference(expectAll, expectDisabled)
 
-	expected := NewSet("transaction", "transaction.id", "transaction.context", "exception", "exception.http", "exception.http.url", "exception.http.meta", "exception.stacktrace")
+	allFields := NewSet()
+	flattenFieldNames(fields, "", allFields, hasName)
+	assert.Equal(t, expectAll, allFields)
 
-	flattened := NewSet()
-	flattenFieldNames(fields, "", addAllFields, flattened)
-	assert.Equal(t, expected, flattened)
+	enabledFields := NewSet()
+	flattenFieldNames(fields, "", enabledFields, hasName, isEnabled)
+	assert.Equal(t, expectEnabled, enabledFields)
 
-	flattened = NewSet()
-	flattenFieldNames(fields, "", addOnlyDisabledFields, flattened)
-	expected = NewSet("transaction.context", "exception.stacktrace")
-	assert.Equal(t, expected, flattened)
+	disabledFields := NewSet()
+	flattenFieldNames(fields, "", disabledFields, hasName, isDisabled)
+	assert.Equal(t, expectDisabled, disabledFields)
 }
