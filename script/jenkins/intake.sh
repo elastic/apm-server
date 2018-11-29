@@ -10,7 +10,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-go get -u golang.org/x/tools/cmd/goimports
-go get -v -t ./...
- 
+go get -u -v github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
+
 make check-full
