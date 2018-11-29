@@ -11,5 +11,6 @@ cleanup() {
 trap cleanup EXIT
 
 go get -u golang.org/x/tools/cmd/goimports
-
+go get -v -t ./...
+ 
 make check-full
