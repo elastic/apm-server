@@ -91,7 +91,6 @@ pipeline {
               dir("${BASE_DIR}"){
                 sh """#!/bin/bash
                 set -euxo pipefail
-                go get -u golang.org/x/tools/cmd/goimports
                 ./script/jenkins/intake.sh
                 """
               }

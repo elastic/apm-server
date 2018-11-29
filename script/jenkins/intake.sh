@@ -10,4 +10,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
+go get -u golang.org/x/tools/cmd/goimports
+
 make check-full
