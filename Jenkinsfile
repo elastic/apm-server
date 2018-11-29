@@ -90,6 +90,8 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){
                 sh """#!/bin/bash
+                set -euxo pipefail
+                go get -u golang.org/x/tools/cmd/goimports
                 ./script/jenkins/intake.sh
                 """
               }
@@ -111,6 +113,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){    
                 sh """#!/bin/bash
+                set -euxo pipefail
                 ./script/jenkins/build.sh
                 """
               }
@@ -160,6 +163,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){
                 sh """#!/bin/bash
+                set -euxo pipefail
                 ./script/jenkins/unit-test.sh
                 """
               }
@@ -193,6 +197,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){
                 sh """#!/bin/bash
+                set -euxo pipefail
                 ./script/jenkins/test.sh
                 """
               }
@@ -271,6 +276,7 @@ pipeline {
               unstash 'source'
               dir("${BASE_DIR}"){  
                 sh """#!/bin/bash
+                set -euxo pipefail
                 ./script/jenkins/bench.sh
                 """
                 sendBenchmarks(file: 'bench.out', index: "benchmark-server")
@@ -329,6 +335,7 @@ pipeline {
           unstash 'source'
           dir("${BASE_DIR}"){  
             sh """#!/bin/bash
+            set -euxo pipefail
             make docs
             """
           }
@@ -367,6 +374,7 @@ pipeline {
           unstash 'source'
           dir("${BASE_DIR}"){
             sh """#!/bin/bash
+            set -euxo pipefail
             ./script/jenkins/package.sh
             """
           }
@@ -390,7 +398,8 @@ pipeline {
         withEnvWrapper() {
           unstash 'source'
           dir("${BASE_DIR}"){  
-            sh """#!/bin/bash 
+            sh """#!/bin/bash
+            set -euxo pipefail
             ./script/jenkins/sync.sh
             """
           }
