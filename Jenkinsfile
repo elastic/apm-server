@@ -18,12 +18,9 @@ pipeline {
   }
   parameters {
     string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (branchName, tagName, commitId, etc.)")
-    string(name: 'GO_VERSION', defaultValue: "1.10.3", description: "Go version to use.")
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
-
-    booleanParam(name: 'SNAPSHOT', defaultValue: false, description: 'Build snapshot packages (defaults to true)')
+    booleanParam(name: 'SNAPSHOT', defaultValue: false, description: 'Build snapshot packages (defaults to false)')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
-
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
@@ -62,6 +59,9 @@ pipeline {
                   env.JOB_GIT_COMMIT = getGitCommitSha()
                   env.JOB_GIT_URL = "${GIT_URL}"
                   github_enterprise_constructor()
+                }
+                script {
+                  env.GO_VERSION = readFile('.go-version')
                 }
               }
               stash allowEmpty: true, name: 'source', useDefaultExcludes: false
