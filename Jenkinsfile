@@ -68,7 +68,7 @@ pipeline {
           }
       }
     }
-    stage('Parallel Builds'){
+    stage('Build'){
       failFast true
       parallel {
         /**
@@ -141,7 +141,7 @@ pipeline {
         }
       } 
     }
-    stage('Parallel Tests') {
+    stage('Test') {
       failFast true
       parallel {
         /**
