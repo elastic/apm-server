@@ -47,6 +47,7 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 		"context.http.url",
 		"context.http.method",
 		"context.tags.tag1",
+		"labels.tag1",
 	)
 }
 

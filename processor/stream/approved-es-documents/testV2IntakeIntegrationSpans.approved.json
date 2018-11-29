@@ -93,6 +93,9 @@
                     "tag1": "value1"
                 }
             },
+            "labels": {
+                "tag1": "value1"
+            },
             "parent": {
                 "id": "abcdefabcdef7890"
             },

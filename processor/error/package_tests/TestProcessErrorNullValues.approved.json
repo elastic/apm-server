@@ -64,6 +64,9 @@
                 },
                 "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11"
             },
+            "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+            },
             "processor": {
                 "event": "error",
                 "name": "error"

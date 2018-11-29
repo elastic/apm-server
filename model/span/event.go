@@ -182,6 +182,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 
+	m.CopyECS(fields)
+
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {
 		timestamp = tctx.RequestTime

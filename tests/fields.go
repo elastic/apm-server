@@ -46,6 +46,8 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		//dynamically indexed:
 		"context.tags.organization_uuid",
 		"context.tags.span_tag",
+		"labels.organization_uuid",
+		"labels.span_tag",
 		//known not-indexed fields:
 		Group("context.custom"),
 		Group("context.request.headers"),
