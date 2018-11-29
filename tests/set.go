@@ -110,7 +110,7 @@ func Difference(s1, s2 *Set) *Set {
 	if s1 == nil {
 		return s
 	}
-	for k, _ := range s1.entries {
+	for k := range s1.entries {
 		if !s2.Contains(k) {
 			s.Add(k)
 		}
