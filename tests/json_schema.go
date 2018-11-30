@@ -435,16 +435,3 @@ func flattenJsonKeys(data interface{}, prefix string, flattened *Set) {
 		}
 	}
 }
-
-func addKeywordFields(f common.Field) bool {
-	if f.Type == "keyword" || f.ObjectType == "keyword" {
-		return true
-	} else if len(f.MultiFields) > 0 {
-		for _, mf := range f.MultiFields {
-			if mf.Type == "keyword" {
-				return true
-			}
-		}
-	}
-	return false
-}

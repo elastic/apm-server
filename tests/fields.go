@@ -65,7 +65,7 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 }
 
 func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields, allowedNotInFields *Set) {
-	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled, isNotAlias)
 	require.NoError(t, err)
 
 	missing := Difference(eventFields, allFieldNames)
@@ -75,7 +75,7 @@ func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields,
 }
 
 func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields, allowedNotInEvent *Set) {
-	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled, isNotAlias)
 	require.NoError(t, err)
 
 	missing := Difference(allFieldNames, eventFields)
@@ -209,4 +209,20 @@ func isEnabled(f common.Field) bool {
 
 func isDisabled(f common.Field) bool {
 	return f.Enabled != nil && !*f.Enabled
+}
+
+func isNotAlias(f common.Field) bool {
+	if f.Type == "alias" {
+		return false
+	}
+
+	if f.Type == "group" {
+		onlyAliases := true
+		for _, child := range f.Fields {
+			onlyAliases = onlyAliases && !isNotAlias(child)
+		}
+		return !onlyAliases
+	}
+
+	return true
 }
