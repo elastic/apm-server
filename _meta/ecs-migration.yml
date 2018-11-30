@@ -87,7 +87,7 @@
   to: service.runtime.version
 
 - from: context.request.url.full
-  to: url.original
+  to: url.full
 
 - from: context.request.url.hash
   to: url.fragment
@@ -102,6 +102,9 @@
   to: url.port
   alias: false
   copy_to: true
+
+- from: context.request.url.raw
+  to: url.original
 
 - from: context.request.url.search
   to: url.query

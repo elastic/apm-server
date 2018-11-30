@@ -755,6 +755,13 @@ type: alias
 
 --
 
+*`context.request.url.raw`*::
++
+--
+type: alias
+
+--
+
 *`context.request.url.pathname`*::
 +
 --

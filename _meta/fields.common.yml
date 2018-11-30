@@ -493,9 +493,13 @@
           type: alias
           path: context.request.url.hash
 
-        - name: original
+        - name: full
           type: alias
           path: context.request.url.full
+
+        - name: original
+          type: alias
+          path: context.request.url.raw
 
         - name: path
           type: alias
