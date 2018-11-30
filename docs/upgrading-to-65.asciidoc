@@ -145,6 +145,10 @@ but if you have a load balancer in front of the APM server you may notice connec
 TIP: If you are updating APM Server from version 6.3 or earlier,
 you may not be using an updated `apm-server.yml` configuration file. Update your `apm-server.yml` configuration file to take advantage of new configuration options.
 
+RUM configuration changes:
+
+* <<event_rate.limit,`event_rate.limit`>> has replaced the deprecated <<rate_limit_v1,`rate_limit`>>. In v1 of the intake API, the RUM rate limiter was bound to the number of _requests_ per second, per IP. In v2, the rate limiter has changed to be bound to the number of _events_ sent per second, per IP. 
+
 
 [float]
 [[es-schema-changes-65]]
