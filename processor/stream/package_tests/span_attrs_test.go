@@ -59,7 +59,6 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			"span.parent", // from v1
 			// ECS field copies
 			tests.Group("container"),
-			tests.Group("host"),
 			"url",
 			"url.port",
 			"url.scheme",
@@ -120,7 +119,7 @@ func transactionContext() *tests.Set {
 
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
-		"host.name", "processor.event", "processor.name", "listening", "url.scheme",
+		"processor.event", "processor.name", "listening", "url.scheme",
 		"context.tags", "labels",
 	),
 		transactionContext(),

@@ -604,13 +604,10 @@ type: alias
 
 --
 
-*`host.name`*::
+*`context.system.hostname`*::
 +
 --
-type: keyword
-
-Hostname.
-
+type: alias
 
 --
 

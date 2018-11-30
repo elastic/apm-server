@@ -382,9 +382,8 @@
           path: context.system.ip
 
         - name: name
-          type: keyword
-          description: >
-            Hostname.
+          type: alias
+          path: context.system.hostname
 
         - name: os
           type: group
