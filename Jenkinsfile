@@ -9,7 +9,7 @@ pipeline {
   }
   options {
     timeout(time: 1, unit: 'HOURS') 
-    buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '2', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '2', daysToKeepStr: '30'))
     timestamps()
     preserveStashes()
     ansiColor('xterm')
