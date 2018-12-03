@@ -58,6 +58,11 @@ pipeline {
         stage('Intake') { 
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+          }
           when { 
             beforeAgent true
             environment name: 'intake_ci', value: 'true' 
@@ -77,6 +82,11 @@ pipeline {
         stage('linux build') { 
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+          }
           when { 
             beforeAgent true
             environment name: 'linux_ci', value: 'true' 
