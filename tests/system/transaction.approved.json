@@ -2,7 +2,7 @@
     {
         "_id": "XkTYCmIBWUGW2FxI4_kt",
         "_score": 0.6931472,
-        "_type": "doc",
+        "_type": "_doc",
         "_source": {
             "beat": {
                 "name": "ed7e2cf02cd9",
@@ -154,7 +154,7 @@
     {
         "_id": "ZUTYCmIBWUGW2FxI4_kt",
         "_score": 0.6931472,
-        "_type": "doc",
+        "_type": "_doc",
         "_source": {
             "beat": {
                 "name": "ed7e2cf02cd9",
@@ -225,7 +225,7 @@
     {
         "_id": "ZETYCmIBWUGW2FxI4_kt",
         "_score": 0.6931472,
-        "_type": "doc",
+        "_type": "_doc",
         "_source": {
             "processor": {
                 "name": "transaction",
@@ -291,7 +291,7 @@
     {
         "_id": "Y0TYCmIBWUGW2FxI4_kt",
         "_score": 0.2876821,
-        "_type": "doc",
+        "_type": "_doc",
         "_source": {
             "beat": {
                 "name": "ed7e2cf02cd9",
