@@ -1,23 +1,20 @@
 #!/usr/bin/env groovy
 
 pipeline {
-  agent any
+  agent none
   environment {
     HOME = "${env.HUDSON_HOME}"
     BASE_DIR="src/github.com/elastic/apm-server"
-    JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
   }
   options {
     timeout(time: 1, unit: 'HOURS') 
-    buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
     timestamps()
-    preserveStashes()
     ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (branchName, tagName, commitId, etc.)")
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
     booleanParam(name: 'SNAPSHOT', defaultValue: false, description: 'Build snapshot packages (defaults to false)')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -36,36 +33,16 @@ pipeline {
     stage('Checkout') {
       agent { label 'linux && immutable' }
       environment {
-        PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
       steps {
-          withEnvWrapper() {
-              dir("${BASE_DIR}"){
-                script{
-                  if(!env?.branch_specifier){
-                    echo "Checkout SCM"
-                    checkout scm
-                  } else {
-                    echo "Checkout ${branch_specifier}"
-                    checkout([$class: 'GitSCM', branches: [[name: "${branch_specifier}"]], 
-                      doGenerateSubmoduleConfigurations: false, 
-                      extensions: [], 
-                      submoduleCfg: [], 
-                      userRemoteConfigs: [[credentialsId: "${JOB_GIT_CREDENTIALS}", 
-                      url: "${GIT_URL}"]]])
-                  }
-                  env.JOB_GIT_COMMIT = getGitCommitSha()
-                  env.JOB_GIT_URL = "${GIT_URL}"
-                  github_enterprise_constructor()
-                }
-                script {
-                  env.GO_VERSION = readFile('.go-version')
-                }
-              }
-              stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-          }
+        gitCheckout(basedir: "${BASE_DIR}")
+        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+        script {
+          env.GO_VERSION = readFile('.go-version')
+        }
       }
     }
     stage('Build'){
@@ -89,10 +66,7 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh """#!/bin/bash
-                set -euxo pipefail
-                ./script/jenkins/intake.sh
-                """
+                sh './script/jenkins/intake.sh'
               }
             }
           }
@@ -111,16 +85,13 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){    
-                sh """#!/bin/bash
-                set -euxo pipefail
-                ./script/jenkins/build.sh
-                """
+                sh './script/jenkins/build.sh'
               }
             }
           }
         }
         /**
-        Build a windows environment.
+        Build on a windows environment.
         */
         stage('windows build') { 
           agent { label 'windows' }
@@ -133,7 +104,7 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){  
-                  powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+                powershell(script: '.\\script\\jenkins\\windows-build.ps1')
               }
             }
           }
@@ -144,13 +115,13 @@ pipeline {
       failFast true
       parallel {
         /**
-          Run unit test and report junit results.
+          Run unit tests and report junit results.
         */
         stage('Unit Test') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
-            PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
           }
           when { 
@@ -161,10 +132,7 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh """#!/bin/bash
-                set -euxo pipefail
-                ./script/jenkins/unit-test.sh
-                """
+                sh './script/jenkins/unit-test.sh'
               }
             }
           }
@@ -177,14 +145,14 @@ pipeline {
           }
         }
         /**
-        Runs unit test, then generate coverage and unit test reports.
+        Runs System and Environment Tests, then generate coverage and unit test reports.
         Finally archive the results.
         */
         stage('System and Environment Tests') { 
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
-            PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
           }
           when { 
@@ -195,10 +163,7 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh """#!/bin/bash
-                set -euxo pipefail
-                ./script/jenkins/test.sh
-                """
+                sh './script/jenkins/test.sh'
               }
             }
           }
@@ -217,7 +182,7 @@ pipeline {
           }
         }
         /**
-        Build and run tests on a windows environment.
+        Run tests on a windows environment.
         Finally archive the results.
         */
         stage('windows test') { 
@@ -251,7 +216,7 @@ pipeline {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
-            PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
             GOPATH = "${env.WORKSPACE}"
           }
           when { 
@@ -274,10 +239,7 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){  
-                sh """#!/bin/bash
-                set -euxo pipefail
-                ./script/jenkins/bench.sh
-                """
+                sh './script/jenkins/bench.sh'
                 sendBenchmarks(file: 'bench.out', index: "benchmark-server")
               }
             }
@@ -316,7 +278,7 @@ pipeline {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
-        PATH = "${env.PATH}:${env.HUDSON_HOME}/go/bin/:${env.WORKSPACE}/bin"
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         GOPATH = "${env.WORKSPACE}"
       }
       when { 
@@ -372,10 +334,7 @@ pipeline {
         withEnvWrapper() {
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh """#!/bin/bash
-            set -euxo pipefail
-            ./script/jenkins/package.sh
-            """
+            sh './script/jenkins/package.sh'
           }
         }  
       }
@@ -397,10 +356,7 @@ pipeline {
         withEnvWrapper() {
           unstash 'source'
           dir("${BASE_DIR}"){  
-            sh """#!/bin/bash
-            set -euxo pipefail
-            ./script/jenkins/sync.sh
-            """
+            sh './script/jenkins/sync.sh'
           }
         }
       }
