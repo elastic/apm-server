@@ -11,10 +11,10 @@ and as such it leverages its functionality.
 To get an overview of the whole Elastic APM system,
  also have a look at:
 
-* {apm-node-ref}/index.html[APM Node.js Agent]
-* {apm-py-ref}/index.html[APM Python Agent]
-* {apm-ruby-ref}/index.html[APM Ruby Agent]
-* {apm-rum-ref}/index.html[APM RUM JavaScript Agent]
+* {apm-node-ref-v}/index.html[APM Node.js Agent]
+* {apm-py-ref-v}/index.html[APM Python Agent]
+* {apm-ruby-ref-v}/index.html[APM Ruby Agent]
+* {apm-rum-ref-v}/index.html[APM RUM JavaScript Agent]
 * {ref}/index.html[Elasticsearch]
 
 

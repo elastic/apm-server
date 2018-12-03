@@ -6,3 +6,10 @@
 :python: 2.7.9
 :docker: 1.12
 :docker-compose: 1.11
+
+// APM Agent versions
+:server-branch: {doc-branch}
+:rum-branch: 1.x
+:node-branch: 1.x
+:py-branch: 3.x
+:ruby-branch: 1.x
