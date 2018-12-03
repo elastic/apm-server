@@ -41,7 +41,7 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          env.GO_VERSION = readFile('.go-version')
+          env.GO_VERSION = readFile("${BASE_DIR}/.go-version")
         }
       }
     }
