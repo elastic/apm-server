@@ -3,7 +3,6 @@
 pipeline {
   agent none
   environment {
-    HOME = "${env.HUDSON_HOME}"
     BASE_DIR="src/github.com/elastic/apm-server"
   }
   options {
@@ -34,6 +33,7 @@ pipeline {
       agent { label 'linux && immutable' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
@@ -122,6 +122,7 @@ pipeline {
           options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
             GOPATH = "${env.WORKSPACE}"
           }
           when { 
@@ -153,6 +154,7 @@ pipeline {
           options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
             GOPATH = "${env.WORKSPACE}"
           }
           when { 
@@ -217,6 +219,7 @@ pipeline {
           options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
             GOPATH = "${env.WORKSPACE}"
           }
           when { 
@@ -279,6 +282,7 @@ pipeline {
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
       }
       when { 
