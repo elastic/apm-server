@@ -11,7 +11,7 @@
 :server-branch: {doc-branch}
 :go-branch: 1.x
 :java-branch: 1.x
-:js-base-branch: 2.x
+:rum-branch: 2.x
 :node-branch: 2.x
-:python-branch: 4.x
+:py-branch: 4.x
 :ruby-branch: 2.x
