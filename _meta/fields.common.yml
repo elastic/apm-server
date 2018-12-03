@@ -345,6 +345,38 @@
           type: alias
           path: context.service.agent.version
 
+    - name: cloud
+      type: group
+      dynamic: false
+      fields:
+        - name: availability_zone
+          type: alias
+          path: meta.cloud.availability_zone
+
+        - name: instance.id
+          type: alias
+          path: meta.cloud.instance_id
+
+        - name: instance.name
+          type: alias
+          path: meta.cloud.instance_name
+
+        - name: machine.type
+          type: alias
+          path: meta.cloud.machine_type
+
+        - name: project.id
+          type: alias
+          path: meta.cloud.project_id
+
+        - name: provider
+          type: alias
+          path: meta.cloud.provider
+
+        - name: region
+          type: alias
+          path: meta.cloud.region
+
     - name: container
       type: group
       dynamic: false

@@ -20,6 +20,27 @@
 - from: beat.version
   to: agent.server.version
 
+- from: meta.cloud.availability_zone
+  to: cloud.availability_zone
+
+- from: meta.cloud.instance_id
+  to: cloud.instance.id
+
+- from: meta.cloud.instance_name
+  to: cloud.instance.name
+
+- from: meta.cloud.machine_type
+  to: cloud.machine.type
+
+- from: meta.cloud.project_id
+  to: cloud.project.id
+
+- from: meta.cloud.provider
+  to: cloud.provider
+
+- from: meta.cloud.region
+  to: cloud.region
+
 - from: context.service.agent.name
   to: agent.name
 

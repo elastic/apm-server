@@ -558,6 +558,56 @@ type: alias
 --
 
 
+*`meta.cloud.availability_zone`*::
++
+--
+type: alias
+
+--
+
+*`meta.cloud.instance_id`*::
++
+--
+type: alias
+
+--
+
+*`meta.cloud.instance_name`*::
++
+--
+type: alias
+
+--
+
+*`meta.cloud.machine_type`*::
++
+--
+type: alias
+
+--
+
+*`meta.cloud.project_id`*::
++
+--
+type: alias
+
+--
+
+*`meta.cloud.provider`*::
++
+--
+type: alias
+
+--
+
+*`meta.cloud.region`*::
++
+--
+type: alias
+
+--
+
+
 *`docker.container.id`*::
 +
 --

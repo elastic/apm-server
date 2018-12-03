@@ -57,8 +57,6 @@ class ECSTest(SubCommandTest):
             "listening",
             "kubernetes.annotations", "kubernetes.container.image", "kubernetes.container.name", "kubernetes.labels",
             "kubernetes.namespace", "kubernetes.node.name", "kubernetes.pod.name", "kubernetes.pod.uid",
-            "meta.cloud.availability_zone", "meta.cloud.instance_id", "meta.cloud.instance_name",
-            "meta.cloud.machine_type", "meta.cloud.project_id", "meta.cloud.provider", "meta.cloud.region",
             "parent.id",
             "processor.event", "processor.name",
             "sourcemap.bundle_filepath", "sourcemap.service.name", "sourcemap.service.version",
