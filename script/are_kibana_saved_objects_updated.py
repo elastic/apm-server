@@ -101,10 +101,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('branch')
     parser.add_argument('-D', '--dashboards', type=str,
-                        default='src/core_plugins/kibana/server/tutorials/apm/saved_objects/saved_objects.json',
+                        default='src/legacy/core_plugins/kibana/server/tutorials/apm/saved_objects/saved_objects.json',
                         help='dashboards file path')
     parser.add_argument('-I', '--index-pattern', type=str,
-                        default='src/core_plugins/kibana/server/tutorials/apm/saved_objects/index_pattern.json',
+                        default='src/legacy/core_plugins/kibana/server/tutorials/apm/saved_objects/index_pattern.json',
                         help='index-pattern file path')
     parser.add_argument('-P', '--repo-path', type=str,
                         default='https://raw.githubusercontent.com/elastic/kibana',
