@@ -50,7 +50,7 @@ the {apm-agents-ref}/index.html[agent documentation] for details on what is auto
 The most likely cause for this is that you are using incompatible versions of agent and APM Server.
 For instance, APM Server 6.2.0 changed the Intake API spec and requires a minimum version of each agent.
 
-View the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
+View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
 
 [[event-too-large]]
 [float]
