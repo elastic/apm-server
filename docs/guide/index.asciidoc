@@ -30,7 +30,7 @@ Elastic APM consists of four components:
 
 * {ref}/index.html[Elasticsearch]
 * {apm-agents-ref}/index.html[APM agents]
-* {apm-server-ref}/index.html[APM Server]
+* {apm-server-ref-v}/index.html[APM Server]
 * {kibana-ref}/xpack-apm.html[Kibana APM UI]
 
 image::apm-architecture.png[Architecture of Elastic APM]
@@ -131,7 +131,7 @@ output.elasticsearch:
 If you change the listen address from `localhost` to something that is accessible from outside of the machine,
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively,
-you can use a {apm-server-ref}/securing-apm-server.html[secret token and TLS].
+you can use a {apm-server-ref-v}/securing-apm-server.html[secret token and TLS].
 
 If you have APM Server running on the same host as your service, you can configure it to listen on a Unix domain socket.
 
@@ -151,7 +151,7 @@ image::kibana-dashboard.png[Screenshot of a Kibana Dashboard]
 === More information
 For detailed instructions on how to install and secure APM Server in your server environment,
 including details on how to run APM Server in a highly available environment,
-please see {apm-server-ref}/index.html[APM Server documentation].
+please see {apm-server-ref-v}/index.html[APM Server documentation].
 
 Once APM Server is up and running,
 you need to install an agent in your service.
@@ -215,7 +215,7 @@ The Node.js agent automatically instruments Express,
 hapi,
 Koa,
 and Restify out of the box.
-See the {apm-node-ref}/index.html[APM Node.js Agent documentation] for more details.
+See the {apm-node-ref-v}/index.html[APM Node.js Agent documentation] for more details.
 
 [[python-agent]]
 [float]
@@ -229,7 +229,7 @@ pip install elastic-apm
 ----------------------------------
 
 The Python agent automatically instruments Django and Flask out of the box.
-See the {apm-py-ref}/index.html[APM Python Agent documentation] for more details.
+See the {apm-py-ref-v}/index.html[APM Python Agent documentation] for more details.
 
 [[ruby-agent]]
 [float]
@@ -251,7 +251,7 @@ secret_token: ''
 ----------------------------------
 
 The Ruby agent automatically instruments Rails out of the box.
-See the {apm-ruby-ref}/index.html[APM Ruby Agent documentation] for more details.
+See the {apm-ruby-ref-v}/index.html[APM Ruby Agent documentation] for more details.
 
 
 [[rum-agent]]
@@ -283,7 +283,7 @@ var apm = initApm({
 })
 ----------------------------------
 
-See the {apm-rum-ref}/index.html[APM RUM JavaScript Agent documentation] for more details.
+See the {apm-rum-ref-v}/index.html[APM RUM JavaScript Agent documentation] for more details.
 
 
 [[kibana]]
