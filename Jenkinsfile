@@ -20,7 +20,7 @@ pipeline {
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
+    booleanParam(name: 'test_ci', defaultValue: false, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
@@ -45,37 +45,37 @@ pipeline {
         }
       }
     }
+    /**
+    Updating generated files for Beat.
+    Checks the GO environment.
+    Checks the Python environment.
+    Checks YAML files are generated. 
+    Validate that all updates were committed.
+    */
+    stage('Intake') { 
+      agent { label 'linux && immutable' }
+      options { skipDefaultCheckout() }
+      environment {
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
+        GOPATH = "${env.WORKSPACE}"
+      }
+      when { 
+        beforeAgent true
+        environment name: 'intake_ci', value: 'true' 
+      }
+      steps {
+        withEnvWrapper() {
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh './script/jenkins/intake.sh'
+          }
+        }
+      }
+    }
     stage('Build'){
       failFast true
       parallel {
-        /**
-        Updating generated files for Beat.
-        Checks the GO environment.
-        Checks the Python environment.
-        Checks YAML files are generated. 
-        Validate that all updates were committed.
-        */
-        stage('Intake') { 
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
-          when { 
-            beforeAgent true
-            environment name: 'intake_ci', value: 'true' 
-          }
-          steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                sh './script/jenkins/intake.sh'
-              }
-            }
-          }
-        }
         /**
         Build on a linux environment.
         */
@@ -175,7 +175,7 @@ pipeline {
             withEnvWrapper() {
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh './script/jenkins/test.sh'
+                sh './script/jenkins/linux-test.sh'
               }
             }
           }
@@ -323,6 +323,26 @@ pipeline {
       }
     }
     /**
+    Checks if kibana objects are updated.
+    */
+    stage('Check kibana Obj. Updated') { 
+      agent { label 'linux && immutable' }
+      options { skipDefaultCheckout() }
+      environment {
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
+        GOPATH = "${env.WORKSPACE}"
+      }
+      steps {
+        withEnvWrapper() {
+          unstash 'source'
+          dir("${BASE_DIR}"){  
+            sh './script/jenkins/sync.sh'
+          }
+        }
+      }
+    }
+    /**
       build release packages.
     */
     stage('Release') { 
@@ -357,26 +377,6 @@ pipeline {
           echo "Archive packages"
           /** TODO check if it is better storing in snapshots */
           //googleStorageUpload bucket: "gs://${JOB_GCS_BUCKET}/${JOB_NAME}/${BUILD_NUMBER}", credentialsId: "${JOB_GCS_CREDENTIALS}", pathPrefix: "${BASE_DIR}/build/distributions/", pattern: '${BASE_DIR}/build/distributions//**/*', sharedPublicly: true, showInline: true
-        }
-      }
-    }
-    /**
-    Checks if kibana objects are updated.
-    */
-    stage('Check kibana Obj. Updated') { 
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      steps {
-        withEnvWrapper() {
-          unstash 'source'
-          dir("${BASE_DIR}"){  
-            sh './script/jenkins/sync.sh'
-          }
         }
       }
     }
