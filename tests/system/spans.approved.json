@@ -1,7 +1,7 @@
 [
     {
         "_score": 0.9808292,
-        "_type": "doc",
+        "_type": "_doc",
         "_id": "IkU4C2IBWUGW2FxIExjw",
         "_source": {
             "transaction": {
@@ -43,7 +43,7 @@
     },
     {
         "_score": 0.6931472,
-        "_type": "doc",
+        "_type": "_doc",
         "_id": "J0U4C2IBWUGW2FxIExjw",
         "_source": {
             "transaction": {
@@ -90,7 +90,7 @@
     },
     {
         "_score": 0.2876821,
-        "_type": "doc",
+        "_type": "_doc",
         "_id": "I0U4C2IBWUGW2FxIExjw",
         "_source": {
             "transaction": {
@@ -132,7 +132,7 @@
     },
     {
         "_score": 0.18232156,
-        "_type": "doc",
+        "_type": "_doc",
         "_id": "IEU4C2IBWUGW2FxIExjw",
         "_source": {
             "transaction": {
@@ -224,7 +224,7 @@
     },
     {
         "_score": 0.18232156,
-        "_type": "doc",
+        "_type": "_doc",
         "_id": "IUU4C2IBWUGW2FxIExjw",
         "_source": {
             "transaction": {
