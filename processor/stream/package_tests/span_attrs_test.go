@@ -154,6 +154,8 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			"span.hex_id":    "id",
 			"span.name":      "name",
 			"span.type":      "type",
+			"span.subtype":   "subtype",
+			"span.action":    "action",
 		},
 	)
 }
