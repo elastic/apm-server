@@ -111,7 +111,7 @@ func errorCondRequiredKeys() map[string]tests.Condition {
 
 func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
-		"processor.event", "processor.name", "listening", "error.grouping_key", "url.scheme",
+		"process.args", "processor.event", "processor.name", "listening", "error.grouping_key", "url.scheme",
 		"context.tags", "labels",
 		"view errors", "error id icon",
 		tests.Group("context.service"),

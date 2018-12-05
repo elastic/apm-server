@@ -695,6 +695,18 @@ A flat mapping of user-defined labels with string values.
 --
 
 
+*`process.args`*::
++
+--
+type: keyword
+
+Process arguments.  May be filtered to protect sensitive information.
+
+
+Field is not indexed.
+
+--
+
 *`context.process.pid`*::
 +
 --

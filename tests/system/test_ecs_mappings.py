@@ -101,12 +101,15 @@ class ECSTest(SubCommandTest):
     def test_ecs_migration_log(self):
         aliases = {}
         all_fields = set()
+        not_indexed = set()
         for f, a in flatmap(yaml.load(self.command_output)["mappings"]["doc"]["properties"]):
             self.assertNotIn(f, all_fields)
             self.assertNotIn(f, aliases)
             all_fields.add(f)
             if a.get("type") == "alias":
                 aliases[f] = a["path"]
+            if not a.get("index", True):
+                not_indexed.add(f)
 
         aliases_logged = {}
         with open(self._beat_path_join("_meta", "ecs-migration.yml")) as f:
@@ -114,7 +117,8 @@ class ECSTest(SubCommandTest):
                 if m.get("alias", True):
                     aliases_logged[m["to"]] = m["from"]
                 elif m.get("copy_to", False):
-                    self.assertIn(m["from"], all_fields)
+                    if m["from"] not in not_indexed and m["to"] not in not_indexed:
+                        self.assertIn(m["from"], all_fields)
                 else:
                     self.fail(m)
                 self.assertIn(m["to"], all_fields)

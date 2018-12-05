@@ -29,6 +29,17 @@ func CopyECS(fields common.MapStr) {
 	// context.tags -> labels
 	utility.Add(fields, "labels", fields["context"].(common.MapStr)["tags"])
 
+	// context.process.argv -> process.args
+	if argv, err := fields.GetValue("context.process.argv"); err == nil {
+		if argvStrings, ok := argv.([]string); ok {
+			args := strings.Join(argvStrings, " ")
+			if len(args) > 1024 {
+				args = args[:1024]
+			}
+			utility.MergeAdd(fields, "process", common.MapStr{"args": strings.TrimSuffix(args, ":")})
+		}
+	}
+
 	// context.request.url.protocol -> url.scheme (minus trailing colon)
 	if scheme, err := fields.GetValue("context.request.url.protocol"); err == nil {
 		if schemeStr, ok := scheme.(string); ok {

@@ -114,6 +114,7 @@ func transactionContext() *tests.Set {
 		tests.Group("context.response"),
 		tests.Group("context.request"),
 		tests.Group("context.system"),
+		tests.Group("process"),
 	)
 }
 

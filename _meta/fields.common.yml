@@ -448,6 +448,12 @@
       type: group
       dynamic: false
       fields:
+        - name: args
+          type: keyword
+          index: false
+          description: >
+            Process arguments.  May be filtered to protect sensitive information.
+
         - name: pid
           type: alias
           path: context.process.pid

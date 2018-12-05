@@ -45,6 +45,9 @@
                     "username": "john"
                 }
             },
+            "process": {
+                "args": "node server.js"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
