@@ -61,7 +61,7 @@ class ECSTest(SubCommandTest):
             "processor.event", "processor.name",
             "sourcemap.bundle_filepath", "sourcemap.service.name", "sourcemap.service.version",
             "span.duration.us", "span.hex_id", "span.id", "span.name", "span.parent", "span.start.us", "span.sync",
-            "span.type",
+            "span.action", "span.subtype", "span.type",
             "system.cpu.total.norm.pct", "system.memory.actual.free", "system.memory.total",
             "system.process.cpu.total.norm.pct", "system.process.memory.rss.bytes", "system.process.memory.size",
             "tags",
