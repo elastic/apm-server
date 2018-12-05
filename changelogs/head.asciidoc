@@ -12,6 +12,7 @@ https://github.com/elastic/apm-server/compare/6.5\...master[View commits]
 - Update Go to 1.11.2 {pull}1605[1605].
 - Use _doc as document type for Elasticsearch >= 7.0.0 {pull}XXX[XXX].
 - Automatically cap signed integers to 63bits {pull}XXX[XXX].
+- Add optional `span.subtype` and `span.action` properties. {pull}1618[1618].
 
 [float]
 ==== Bug fixes
