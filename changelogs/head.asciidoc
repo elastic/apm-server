@@ -10,8 +10,9 @@ https://github.com/elastic/apm-server/compare/6.5\...master[View commits]
 - Add `span.sync` property to intake json spec and index field in ES. {pull}1548[1548].
 - Make `service.framework` properties optional and nullable {pull}1546[1546].
 - Update Go to 1.11.2 {pull}1605[1605].
-- Use _doc as document type for Elasticsearch >= 7.0.0 {pull}XXX[XXX].
-- Automatically cap signed integers to 63bits {pull}XXX[XXX].
+- Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
+- Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
+- Add optional `span.subtype` and `span.action` properties. {pull}1618[1618].
 
 [float]
 ==== Bug fixes
