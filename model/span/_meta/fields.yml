@@ -33,6 +33,18 @@
           description: >
             Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
 
+        - name: subtype
+          type: keyword
+          count: 1
+          description: >
+            A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+        - name: action
+          type: keyword
+          count: 1
+          description: >
+            The specific kind of event within the sub-type represented by the span (e.g. query, connect)
+
         - name: start
           type: group
           fields:

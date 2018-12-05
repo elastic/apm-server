@@ -775,6 +775,26 @@ Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query'
 
 --
 
+*`span.subtype`*::
++
+--
+type: keyword
+
+A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+
+--
+
+*`span.action`*::
++
+--
+type: keyword
+
+The specific kind of event within the sub-type represented by the span (e.g. query, connect)
+
+
+--
+
 
 *`span.start.us`*::
 +
