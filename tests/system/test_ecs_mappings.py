@@ -87,16 +87,6 @@ class ECSTest(SubCommandTest):
         should_not_be_aliased = alias_target_fields - all_fields
         self.assertFalse(should_not_be_aliased, json.dumps(sorted(should_not_be_aliased)))
 
-        # check the migration log too
-        with open(self._beat_path_join("_meta", "ecs-migration.yml")) as f:
-            for m in yaml.load(f):
-                if m.get("alias", True):
-                    self.assertIn(m["to"], alias_source_fields)
-                    self.assertIn(m["from"], alias_target_fields)
-                elif m.get("copy_to", False):
-                    self.assertIn(m["from"], all_fields)
-                self.assertIn(m["to"], all_fields)
-
         # check that all fields are accounted for
         not_aliased = all_fields - alias_target_fields - alias_source_fields - exception_fields
         fmt = "\nall fields ({:d}):\n{}\n\naliased ({:d}):\n{}\n\naliases ({:d}):\n{}\n\nunaccounted for ({:d}):\n{}"
@@ -107,3 +97,27 @@ class ECSTest(SubCommandTest):
                              len(alias_source_fields), json.dumps(sorted(alias_source_fields)),
                              len(not_aliased), json.dumps(sorted(not_aliased)),
                          ))
+
+    def test_ecs_migration_log(self):
+        aliases = {}
+        all_fields = set()
+        for f, a in flatmap(yaml.load(self.command_output)["mappings"]["doc"]["properties"]):
+            self.assertNotIn(f, all_fields)
+            self.assertNotIn(f, aliases)
+            all_fields.add(f)
+            if a.get("type") == "alias":
+                aliases[f] = a["path"]
+
+        aliases_logged = {}
+        with open(self._beat_path_join("_meta", "ecs-migration.yml")) as f:
+            for m in yaml.load(f):
+                if m.get("alias", True):
+                    aliases_logged[m["to"]] = m["from"]
+                elif m.get("copy_to", False):
+                    self.assertIn(m["from"], all_fields)
+                else:
+                    self.fail(m)
+                self.assertIn(m["to"], all_fields)
+
+            # false if ecs-migration.yml log does not match fields.yml
+            self.assertEqual(aliases, aliases_logged)

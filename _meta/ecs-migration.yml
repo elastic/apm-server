@@ -53,6 +53,9 @@
 - from: context.system.ip
   to: host.ip
 
+- from: context.system.hostname
+  to: host.name
+
 - from: context.system.platform
   to: host.os.platform
 
@@ -106,6 +109,9 @@
   # not in ECS
 - from: context.service.runtime.version
   to: service.runtime.version
+
+- from: context.service.version
+  to: service.version
 
 - from: context.request.url.full
   to: url.full
