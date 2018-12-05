@@ -142,6 +142,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "call",
                 "duration": {
                     "us": 13980
                 },
@@ -152,6 +153,7 @@
                 "start": {
                     "us": 0
                 },
+                "subtype": "http",
                 "sync": false,
                 "type": "request"
             },
@@ -195,6 +197,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "query",
                 "duration": {
                     "us": 3781
                 },
@@ -253,8 +256,9 @@
                 "start": {
                     "us": 2830
                 },
+                "subtype": "postgresql",
                 "sync": true,
-                "type": "db.postgresql.query"
+                "type": "db"
             },
             "timestamp": {
                 "us": 1533117600002830

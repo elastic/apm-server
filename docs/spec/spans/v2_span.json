@@ -30,6 +30,16 @@
                 "start": {
                     "type": ["number", "null"],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
+                },
+                "subtype": {
+                    "type": ["string", "null"],
+                    "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+                    "maxLength": 1024
+                },
+                "action": {
+                    "type": ["string", "null"],
+                    "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
+                    "maxLength": 1024
                 }
             },
             "required": ["id", "transaction_id", "trace_id", "parent_id"]

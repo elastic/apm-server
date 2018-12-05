@@ -24,7 +24,7 @@ Elastic APM consists of four components:
 
 * {ref}/index.html[Elasticsearch]
 * {apm-agents-ref}/index.html[APM agents]
-* {apm-server-ref}/index.html[APM Server]
+* {apm-server-ref-v}/index.html[APM Server]
 * {kibana-ref}/xpack-apm.html[Kibana APM UI]
 
 image::apm-architecture.png[Architecture of Elastic APM]

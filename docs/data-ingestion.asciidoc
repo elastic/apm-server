@@ -107,7 +107,7 @@ For example, if you have a v1.x Node.js agent, and a v4.x Python agent, the Node
 
 In this instance, you'll need to adjust both the deprecated, and newly introduced <<configuration-process,configuration options>>. 
 
-TIP: Check the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
+TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
 
 [[tune-es]]
 == Tune Elasticsearch
