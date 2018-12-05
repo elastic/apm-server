@@ -70,6 +70,9 @@ type Event struct {
 	ParentId string
 	TraceId  string
 
+	Subtype *string
+	Action  *string
+
 	// deprecated in v2
 	Id     *int64
 	Parent *int64
@@ -105,6 +108,8 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	e.ParentId = decoder.String(raw, "parent_id")
 	e.TraceId = decoder.String(raw, "trace_id")
 	e.TransactionId = decoder.String(raw, "transaction_id")
+	e.Subtype = decoder.StringPtr(raw, "subtype")
+	e.Action = decoder.StringPtr(raw, "action")
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
@@ -216,7 +221,10 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 	if s.HexId != "" {
 		utility.Add(tr, "hex_id", s.HexId)
 	}
+	utility.Add(tr, "subtype", s.Subtype)
+	utility.Add(tr, "action", s.Action)
 
+	// common
 	utility.Add(tr, "name", s.Name)
 	utility.Add(tr, "type", s.Type)
 	utility.Add(tr, "sync", s.Sync)
