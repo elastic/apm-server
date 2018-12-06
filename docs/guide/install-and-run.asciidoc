@@ -6,10 +6,10 @@ you need to have:
 
 * {apm-agents-ref}/index.html[APM agents] installed in your services
 * {apm-server-ref-v}/index.html[APM Server]
-* An {ref}/index.html[Elasticsearch] cluster (version 6.2+)
-* {kibana-ref}[Kibana] (version 6.2+)
+* {ref}/index.html[Elasticsearch]
+* {kibana-ref}[Kibana]
 
-TIP: For best results, ensure you're using the same version of Elasticsearch, Kibana, and APM Server. 
+IMPORTANT: For best results, ensure you're using the same version of Elasticsearch, Kibana, and APM Server.
 
 First, you'll need to install and start an Elasticsearch cluster and Kibana. Information on how to do this can be found in the {stack-gs}/get-started-elastic-stack.html[Elastic Stack getting started guide]. Specifically, the {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[install Elasticsearch], and {stack-gs}/get-started-elastic-stack.html#install-kibana[install Kibana] sections.
 
