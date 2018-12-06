@@ -4,14 +4,14 @@
 To get started using Elastic APM,
 you need to have:
 
-* an Elasticsearch cluster and Kibana (version 5.6 or above)
-* APM Server
-* APM agents installed in your services
+* {apm-agents-ref}/index.html[APM agents] installed in your services
+* {apm-server-ref-v}/index.html[APM Server]
+* An {ref}/index.html[Elasticsearch] cluster (version 5.6+)
+* {kibana-ref}[Kibana] (version 5.6+)
 
 TIP: For best results, ensure you're using the same version of Elasticsearch, Kibana, and APM Server. 
 
-For information about setting up an Elasticsearch cluster,
-see the Elasticsearch {ref}/getting-started.html[Getting Started].
+First, you'll need to install and start an Elasticsearch cluster and Kibana. Information on how to do this can be found in the {stack-gs}/get-started-elastic-stack.html[Elastic Stack getting started guide]. Specifically, the {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[install Elasticsearch], and {stack-gs}/get-started-elastic-stack.html#install-kibana[install Kibana] sections.
 
 The following sections show how to get started quickly with Elastic APM on a local machine.
 
