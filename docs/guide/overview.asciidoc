@@ -54,30 +54,30 @@ Kibana dashboards that can be loaded directly via the {kibana-ref}/apm-getting-s
 ==== Events
 APM agents capture different types of information from within their instrumented applications, known as events.
 Events can be <<errors,`Errors`>>, <<transaction-spans,`Spans`>>, or <<transactions,`Transactions`>>.
-These events are then streamed to a single endpoint in the APM Server which sorts and processes the events. 
+These events are then streamed to the APM Server which validates and processes the events. 
 
-*<<errors,`Errors`>>* contain information about the original exception that occurred,
-or about a log created when the exception occurred.
+*<<errors,`Errors`>>* contain information about the error or exception that was captured.
 
 *<<transaction-spans,`Spans`>>* contain information about a specific code path that has been executed.
-They measure from the start to end of _something_,
+They measure from the start to end of an activity,
 and they can have a parent/child relationship with other spans. 
 
 *<<transactions,`Transactions`>>* are a special kind of span that have metadata associated with them.
 You can think of transactions as the highest level of work you're measuring within a service.
-E.g., serving an HTTP request or running a specific background job.
+For example, serving an HTTP request or running a specific background job.
 
 View the APM <<apm-data-model>> documentation for more information on Events. 
 
 [float]
 ==== Component communication
 The APM Server is a {apm-server-ref}/why-separate-component.html[separate component by design] - it helps keep the agents light,
-prevents certain security risks, and improves compatibility across the Elastic and APM Stack.  
+prevents certain security risks,
+and improves compatibility across the Elastic and APM Stack.  
 
 The {apm-server-ref}/intake-api.html[Intake API] is what we call the internal protocol that APM agents use to talk to the APM Server. 
-After the APM Server has sorted and processed events from the APM agents (via the intake API),
+After the APM Server has validated and processed events from the APM agents (via the intake API),
 the server transforms the data into Elasticsearch documents and stores them in corresponding {apm-server-ref}/exploring-es-data.html[Elasticsearch indices].
-In a matter of minutes you can start viewing your application performance data in Kibana.
+In a matter of seconds you can start viewing your application performance data in Kibana.
 
 [float]
 ==== Real User Monitoring (RUM)
