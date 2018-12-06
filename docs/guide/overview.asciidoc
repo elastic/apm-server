@@ -94,6 +94,9 @@ and `domComplete` which helps you discover performance issues within your client
 
 [float]
 ==== Distributed Tracing
+Together, transactions and spans form a `Trace`.
+Traces are not events, but group together events that have a common root.
+
 All of our APM agents support <<distributed-tracing,distributed tracing>> out of the box.
 Distributed tracing enables you to analyze performance throughout your microservices architecture all in one view.
 
