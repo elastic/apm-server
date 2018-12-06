@@ -58,6 +58,7 @@ class ECSTest(SubCommandTest):
             "kubernetes.annotations", "kubernetes.container.image", "kubernetes.container.name", "kubernetes.labels",
             "kubernetes.namespace", "kubernetes.node.name", "kubernetes.pod.name", "kubernetes.pod.uid",
             "parent.id",
+            "process.args",
             "processor.event", "processor.name",
             "sourcemap.bundle_filepath", "sourcemap.service.name", "sourcemap.service.version",
             "span.duration.us", "span.hex_id", "span.id", "span.name", "span.parent", "span.start.us", "span.sync",
