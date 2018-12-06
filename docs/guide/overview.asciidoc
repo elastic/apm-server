@@ -12,7 +12,7 @@ Elastic APM also automatically collects unhandled errors and exceptions.
 Errors are grouped based primarily on the stacktrace,
 so you can identify new errors as they appear and keep an eye on how many times specific errors happen. 
 
-NOTE: This guide will indiscriminately use the word service for both services and applications.
+NOTE: This guide will indiscriminately use the word "service" for both services and applications.
 
 [[components]]
 [float]
