@@ -6,8 +6,8 @@ you need to have:
 
 * {apm-agents-ref}/index.html[APM agents] installed in your services
 * {apm-server-ref-v}/index.html[APM Server]
-* An {ref}/index.html[Elasticsearch] cluster (version 5.6+)
-* {kibana-ref}[Kibana] (version 5.6+)
+* An {ref}/index.html[Elasticsearch] cluster (version 6.2+)
+* {kibana-ref}[Kibana] (version 6.2+)
 
 TIP: For best results, ensure you're using the same version of Elasticsearch, Kibana, and APM Server. 
 
