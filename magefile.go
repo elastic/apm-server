@@ -34,7 +34,11 @@ import (
 )
 
 func init() {
-	mage.SetElasticBeatsDir("./_beats")
+	if err := mage.SetElasticBeatsDir("./_beats"); err != nil {
+		if err := mage.SetElasticBeatsDir("../../_beats"); err != nil {
+			panic(err)
+		}
+	}
 
 	mage.SetBuildVariableSources(&mage.BuildVariableSources{
 		BeatVersion: "vendor/github.com/elastic/beats/libbeat/version/version.go",
@@ -68,6 +72,11 @@ func CrossBuild() error {
 	return mage.CrossBuild()
 }
 
+// CrossBuildXPack cross-builds the beat with XPack for all target platforms.
+func CrossBuildXPack() error {
+	return mage.CrossBuildXPack()
+}
+
 // CrossBuildGoDaemon cross-builds the go-daemon binary using Docker.
 func CrossBuildGoDaemon() error {
 	return mage.CrossBuildGoDaemon()
@@ -85,11 +94,11 @@ func Package() {
 	start := time.Now()
 	defer func() { fmt.Println("package ran for", time.Since(start)) }()
 
-	mage.UseElasticBeatWithoutXPackPackaging()
+	mage.UseElasticBeatPackaging()
 	customizePackaging()
 
 	mg.Deps(Update, prepareIngestPackaging)
-	mg.Deps(CrossBuild, CrossBuildGoDaemon)
+	mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
 	mg.SerialDeps(mage.Package, TestPackages)
 }
 
