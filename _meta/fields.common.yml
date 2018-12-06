@@ -413,7 +413,7 @@
           type: alias
           path: context.system.ip
 
-        - name: name
+        - name: hostname
           type: alias
           path: context.system.hostname
 

@@ -88,7 +88,7 @@ func transactionRequiredKeys() *tests.Set {
 
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
-		"processor.event", "processor.name", "listening",
+		"host.name", "processor.event", "processor.name", "listening",
 		"transaction.marks",
 		"context.tags",
 		"labels",

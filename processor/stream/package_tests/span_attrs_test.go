@@ -59,6 +59,7 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			"span.parent", // from v1
 			// ECS field copies
 			tests.Group("container"),
+
 			"url",
 			"url.port",
 			"url.scheme",

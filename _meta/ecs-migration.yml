@@ -54,7 +54,7 @@
   to: host.ip
 
 - from: context.system.hostname
-  to: host.name
+  to: host.hostname
 
 - from: context.system.platform
   to: host.os.platform

@@ -48,6 +48,7 @@ func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 		"listening", "view spans", "context.user.user-agent",
 		"context.user.ip", "context.system.ip",
 		tests.Group("container"),
+
 		tests.Group("timestamp")))
 }
 
