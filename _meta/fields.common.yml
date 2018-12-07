@@ -401,6 +401,14 @@
           type: alias
           path: docker.container.name
 
+    - name: event
+      type: group
+      dynamic: false
+      fields:
+        - name: timezone
+          type: alias
+          path: beat.timezone
+
     - name: host
       type: group
       dynamic: false

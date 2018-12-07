@@ -640,6 +640,14 @@ type: alias
 --
 
 
+*`beat.timezone`*::
++
+--
+type: alias
+
+--
+
+
 *`context.system.architecture`*::
 +
 --

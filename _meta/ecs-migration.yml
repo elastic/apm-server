@@ -17,6 +17,9 @@
 - from: beat.name
   to: agent.server.type
 
+- from: beat.timezone
+  to: event.timezone
+
 - from: beat.version
   to: agent.server.version
 

@@ -81,7 +81,7 @@ class ECSTest(SubCommandTest):
 
         # TBD
         exception_fields.update({
-            "beat.timezone", "context.http.status_code", "context.response.finished",
+            "context.http.status_code", "context.response.finished",
             "context.response.status_code", "context.user.ip", "context.user.user-agent",
         })
 
