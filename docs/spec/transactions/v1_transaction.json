@@ -11,7 +11,7 @@
             "$ref": "../process.json"
         },
         "system": {
-            "$ref": "../system.json"
+            "$ref": "../v1_system.json"
         },
         "transactions": {
             "type": "array",

@@ -45,7 +45,7 @@
             "minItems": 1
         },
         "system": {
-            "$ref": "../system.json"
+            "$ref": "../v1_system.json"
         }
     },
     "required": ["service", "errors"]
