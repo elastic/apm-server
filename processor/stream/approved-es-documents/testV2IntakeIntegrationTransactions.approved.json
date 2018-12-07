@@ -40,6 +40,21 @@
                     "platform": "darwin"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "parent": {
                 "id": "abcdefabcdef01234567"
             },
@@ -176,6 +191,21 @@
                     "username": "foo"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -241,6 +271,21 @@
                     "hostname": "prod1.example.com",
                     "ip": "192.0.0.1",
                     "platform": "darwin"
+                }
+            },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "processor": {

@@ -632,7 +632,7 @@ func TestEvents(t *testing.T) {
 	}
 
 	me := metadata.NewMetadata(
-		&service, nil, nil, nil,
+		&service, nil, nil, nil, nil, nil,
 	)
 	tctx := &transform.Context{
 		Metadata: *me,

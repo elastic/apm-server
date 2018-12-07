@@ -35,15 +35,20 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Metadata struct {
-	Service *Service
-	Process *Process
-	System  *System
-	User    *User
+	Service    *Service
+	Process    *Process
+	System     *System
+	User       *User
+	Kubernetes *Kubernetes
+	Container  *Container
 
 	serviceFields common.MapStr
 	processFields common.MapStr
 	systemFields  common.MapStr
 	userFields    common.MapStr
+
+	kubernetesFields common.MapStr
+	containerFields  common.MapStr
 
 	minimalServiceFields common.MapStr
 }
@@ -60,31 +65,48 @@ func DecodeMetadata(input interface{}) (*Metadata, error) {
 	var err error
 	var service *Service
 	var system *System
+	var kubernetes *Kubernetes
+	var container *Container
 	var process *Process
 	var user *User
+
 	service, err = DecodeService(raw["service"], err)
+
 	system, err = DecodeSystem(raw["system"], err)
+
+	if s, ok := raw["system"]; ok {
+		if smap, ok := s.(map[string]interface{}); ok {
+			kubernetes, err = DecodeKubernetes(smap["kubernetes"], err)
+			container, err = DecodeContainer(smap["container"], err)
+		}
+	}
+
 	process, err = DecodeProcess(raw["process"], err)
 	user, err = DecodeUser(raw["user"], err)
 
 	if err != nil {
 		return nil, err
 	}
-	return NewMetadata(service, system, process, user), nil
+	return NewMetadata(service, system, process, user, kubernetes, container), nil
 }
 
-func NewMetadata(service *Service, system *System, process *Process, user *User) *Metadata {
+func NewMetadata(service *Service, system *System, process *Process, user *User, kubernetes *Kubernetes, container *Container) *Metadata {
 	m := Metadata{
-		Service: service,
-		System:  system,
-		Process: process,
-		User:    user,
+		Service:    service,
+		System:     system,
+		Process:    process,
+		User:       user,
+		Kubernetes: kubernetes,
+		Container:  container,
 	}
 
 	m.serviceFields = m.Service.fields()
 	m.systemFields = m.System.fields()
 	m.processFields = m.Process.fields()
 	m.userFields = m.User.fields()
+	m.kubernetesFields = m.Kubernetes.fields()
+	m.containerFields = m.Container.fields()
+
 	m.minimalServiceFields = m.Service.minimalFields()
 	return &m
 }
@@ -101,15 +123,23 @@ func (m *Metadata) normalizeContext(eventContext common.MapStr) common.MapStr {
 	}
 }
 
-func (m *Metadata) Merge(eventContext common.MapStr) common.MapStr {
-	eventContext = m.normalizeContext(eventContext)
+func (m *Metadata) Merge(event common.MapStr) common.MapStr {
+	eventContext, ok := event["context"].(common.MapStr)
+	if ok {
+		eventContext = m.normalizeContext(eventContext)
 
-	utility.Add(eventContext, "system", m.systemFields)
-	utility.Add(eventContext, "process", m.processFields)
-	utility.MergeAdd(eventContext, "user", m.userFields)
-	utility.MergeAdd(eventContext, "service", m.serviceFields)
+		utility.Add(eventContext, "system", m.systemFields)
+		utility.Add(eventContext, "process", m.processFields)
+		utility.MergeAdd(eventContext, "user", m.userFields)
+		utility.MergeAdd(eventContext, "service", m.serviceFields)
+		event["context"] = eventContext
+	}
 
-	return eventContext
+	// add these at the root
+	utility.Add(event, "kubernetes", m.kubernetesFields)
+	utility.Add(event, "docker", common.MapStr{"container": m.containerFields})
+
+	return event
 }
 
 func (m *Metadata) MergeMinimal(eventContext common.MapStr) common.MapStr {

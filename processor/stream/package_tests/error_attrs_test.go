@@ -33,6 +33,8 @@ func errorProcSetup() *tests.ProcessorSetup {
 		TemplatePaths: []string{
 			"../../../model/error/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
+			"../../../_beats/libbeat/processors/add_kubernetes_metadata/_meta/fields.yml",
+			"../../../_beats/libbeat/processors/add_docker_metadata/_meta/fields.yml",
 		},
 		Schema:       schema.ModelSchema,
 		SchemaPrefix: "error",
@@ -44,6 +46,14 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("error.exception.attributes"),
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
+
+		// these object fields are not picked up from fields.yml because
+		// they are defined as "pod.name" etc. there is no actual field called
+		// "kubernetes.pod", only "kubernetes.pod.name" but our tooling generates
+		// those fields anyway.
+		"kubernetes.pod",
+		"kubernetes.node",
+		"docker.container",
 	)
 }
 
@@ -52,6 +62,15 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		"listening", "view errors", "error id icon",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
 		"context.http", "context.http.status_code",
+
+		// we don't support these yet
+		"kubernetes.labels",
+		"kubernetes.annotations",
+		"kubernetes.container.name",
+		"kubernetes.container.image",
+		"docker.container.labels",
+		"docker.container.name",
+		"docker.container.image",
 	)
 }
 
@@ -113,9 +132,13 @@ func errorKeywordExceptionKeys() *tests.Set {
 		"processor.event", "processor.name", "listening", "error.grouping_key",
 		"context.tags",
 		"view errors", "error id icon",
+
+		// metadata fields - tested in metadata tests
+		tests.Group("context.process"),
 		tests.Group("context.service"),
 		tests.Group("context.system"),
-		tests.Group("context.process"),
+		tests.Group("docker"),
+		tests.Group("kubernetes"),
 	)
 }
 

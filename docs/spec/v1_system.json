@@ -1,0 +1,8 @@
+{
+    "$id": "doc/spec/v1_system.json",
+    "title": "System",
+    "type": ["object", "null"],
+    "allOf": [
+        { "$ref": "common_system.json"  }
+    ]
+}
