@@ -65,13 +65,8 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 }
 
 func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields, allowedNotInFields *Set) {
-	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
 	require.NoError(t, err)
-
-	// check event attributes in ES fields
-	disabled, err := fetchFlattenedFieldNames(ps.TemplatePaths, addOnlyDisabledFields)
-	require.NoError(t, err)
-	allowedNotInFields = Union(disabled, allowedNotInFields)
 
 	missing := Difference(eventFields, allFieldNames)
 	missing = differenceWithGroup(missing, allowedNotInFields)
@@ -80,7 +75,7 @@ func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields,
 }
 
 func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields, allowedNotInEvent *Set) {
-	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, addAllFields)
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
 	require.NoError(t, err)
 
 	missing := Difference(allFieldNames, eventFields)
@@ -157,25 +152,29 @@ func isBlacklistedKey(keysBlacklist *Set, key string) bool {
 	return false
 }
 
-func fetchFlattenedFieldNames(paths []string, fn func(common.Field) bool) (*Set, error) {
+func fetchFlattenedFieldNames(paths []string, filters ...filter) (*Set, error) {
 	fields := NewSet()
 	for _, path := range paths {
 		f, err := loadFields(path)
 		if err != nil {
 			return nil, err
 		}
-		flattenFieldNames(f, "", fn, fields)
+		flattenFieldNames(f, "", fields, filters...)
 	}
 	return fields, nil
 }
 
-func flattenFieldNames(fields []common.Field, prefix string, fn func(common.Field) bool, flattened *Set) {
+func flattenFieldNames(fields []common.Field, prefix string, flattened *Set, filters ...filter) {
 	for _, f := range fields {
 		key := strConcat(prefix, f.Name, ".")
-		if fn(f) {
+		add := true
+		for i := 0; i < len(filters) && add; i++ {
+			add = filters[i](f)
+		}
+		if add {
 			flattened.Add(key)
 		}
-		flattenFieldNames(f.Fields, key, fn, flattened)
+		flattenFieldNames(f.Fields, key, flattened, filters...)
 	}
 }
 
@@ -197,23 +196,17 @@ func loadFields(yamlPath string) ([]common.Field, error) {
 	return fields, err
 }
 
-func addAllFields(f common.Field) bool {
-	return shouldAddField(f, false)
+// false to exclude field
+type filter func(common.Field) bool
+
+func hasName(f common.Field) bool {
+	return f.Name != ""
 }
 
-func addOnlyDisabledFields(f common.Field) bool {
-	return shouldAddField(f, true)
+func isEnabled(f common.Field) bool {
+	return f.Enabled == nil || *f.Enabled
 }
 
-func shouldAddField(f common.Field, onlyDisabled bool) bool {
-	if f.Name == "" {
-		return false
-	}
-	if !onlyDisabled {
-		return true
-	}
-	if f.Enabled != nil && *f.Enabled == false {
-		return true
-	}
-	return false
+func isDisabled(f common.Field) bool {
+	return f.Enabled != nil && !*f.Enabled
 }

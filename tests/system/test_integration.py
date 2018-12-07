@@ -74,7 +74,7 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="transaction.marks.*")
         found_other = False
-        for name, metric in mappings[self.index_name]["mappings"]["doc"].items():
+        for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
                 if name.startswith("transaction.marks.navigationTiming."):
@@ -531,7 +531,7 @@ class MetricsIntegrationTest(ElasticTest):
         self.load_docs_with_template(self.get_metricset_payload_path(), self.metrics_url, 'metric', 1)
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"
-        actual_type = mappings[self.index_name]["mappings"]["doc"]["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
+        actual_type = mappings[self.index_name]["mappings"]["_doc"]["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
 

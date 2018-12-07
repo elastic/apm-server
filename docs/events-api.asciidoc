@@ -10,7 +10,7 @@ Events can be:
 * Errors
 * Metricsets
 
-You can learn more about events in the {apm-get-started-ref}/apm-data-model.html[APM Data Model] documentation. 
+You can learn more about events in the {apm-overview-ref-v}/apm-data-model.html[APM Data Model] documentation. 
 
 [[events-api-endpoint]]
 [float]

@@ -185,8 +185,9 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *Set, templateToSchema map[string]string) {
 
 	// fetch keyword restricted field names from ES template
-	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, addKeywordFields)
-	assert.NoError(t, err)
+	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName,
+		func(f common.Field) bool { return f.Type == "keyword" })
+	require.NoError(t, err)
 
 	// fetch length restricted field names from json schema
 	maxLengthFilter := func(s *Schema) bool {

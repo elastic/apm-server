@@ -20,7 +20,7 @@ you can view https://www.elastic.co/guide/en/apm/server/6.4/overview.html[previo
 and APM Server.
 . Upgrade your {apm-agents-ref}/index.html[APM Agent].
 
-Check the {apm-get-started-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for more details on which APM agents are compatible with APM Server version 6.5.
+Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more details on which APM agents are compatible with APM Server version 6.5.
 
 IMPORTANT: You must upgrade the APM Server before upgrading your APM Agent.
 New agents do not support APM Server <6.5 and will not work if you upgrade in the wrong order.
@@ -145,6 +145,10 @@ but if you have a load balancer in front of the APM server you may notice connec
 TIP: If you are updating APM Server from version 6.3 or earlier,
 you may not be using an updated `apm-server.yml` configuration file. Update your `apm-server.yml` configuration file to take advantage of new configuration options.
 
+RUM configuration changes:
+
+* <<event_rate.limit,`event_rate.limit`>> has replaced the deprecated <<rate_limit_v1,`rate_limit`>>. In v1 of the intake API, the RUM rate limiter was bound to the number of _requests_ per second, per IP. In v2, the rate limiter has changed to be bound to the number of _events_ sent per second, per IP. 
+
 
 [float]
 [[es-schema-changes-65]]
@@ -156,7 +160,7 @@ There have been a number of changes to the Elasticsearch schema for 6.5.
 An important change to note is the addition of the `trace` and `parent` keys,
 which have been added to errors, transactions, and spans.
 Both only hold a field `id`.
-These new keys are essential to taking advantage of APM's new {apm-get-started-ref}/distributed-tracing.html[distributed tracing] feature.
+These new keys are essential to taking advantage of APM's new {apm-overview-ref-v}/distributed-tracing.html[distributed tracing] feature.
 
 [float]
 [[es-error-changes-65]]

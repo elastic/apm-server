@@ -1,3 +1,6 @@
+[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/master)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp/view/change-requests/job/master/)
+[![codecov.io](https://codecov.io/github/elastic/apm-server/coverage.svg?branch=master)](https://codecov.io/github/elastic/apm-server?branch=master)
+
 # APM Server
 
 The APM Server receives data from the Elastic APM agents and stores the data into Elasticsearch.
@@ -14,7 +17,7 @@ To get started with APM please see our [Getting Started Guide](https://www.elast
 
 ### Requirements
 
-* [Golang](https://golang.org/dl/) 1.10.3
+* [Golang](https://golang.org/dl/) 1.11.2
 
 ### Install
 

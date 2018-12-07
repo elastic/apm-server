@@ -137,6 +137,8 @@ func TestDecodeSpanV2(t *testing.T) {
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	context := map[string]interface{}{"a": "b"}
+	subtype := "postgresql"
+	action := "query"
 	stacktrace := []interface{}{map[string]interface{}{
 		"filename": "file", "lineno": 1.0,
 	}}
@@ -225,13 +227,15 @@ func TestDecodeSpanV2(t *testing.T) {
 		{
 			// full valid payload
 			input: map[string]interface{}{
-				"name": name, "type": spType, "start": start, "duration": duration,
-				"context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
+				"name": name, "type": spType, "subtype": subtype, "action": action, "start": start,
+				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			e: &Event{
 				Name:      name,
 				Type:      spType,
+				Subtype:   &subtype,
+				Action:    &action,
 				Start:     &start,
 				Duration:  duration,
 				Context:   context,
@@ -264,6 +268,8 @@ func TestSpanTransform(t *testing.T) {
 	parent, tid := int64(12), int64(1)
 	service := metadata.Service{Name: "myService"}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
+	subtype := "myspansubtype"
+	action := "myspanquery"
 
 	tests := []struct {
 		Event  Event
@@ -287,6 +293,8 @@ func TestSpanTransform(t *testing.T) {
 				ParentId:   parentId,
 				Name:       "myspan",
 				Type:       "myspantype",
+				Subtype:    &subtype,
+				Action:     &action,
 				Start:      &start,
 				Duration:   1.20,
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
@@ -301,6 +309,8 @@ func TestSpanTransform(t *testing.T) {
 				"name":     "myspan",
 				"start":    common.MapStr{"us": 650},
 				"type":     "myspantype",
+				"subtype":  subtype,
+				"action":   action,
 				"stacktrace": []common.MapStr{{
 					"exclude_from_grouping": false,
 					"abs_path":              path,

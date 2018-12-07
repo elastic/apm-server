@@ -21,7 +21,7 @@ NOTE: This guide will indiscriminately use the word "service" for both services 
 Elastic APM consists of four components:
 
 * {apm-agents-ref}/index.html[APM agents]
-* {apm-server-ref}/index.html[APM Server]
+* {apm-server-ref-v}/index.html[APM Server]
 * {ref}/index.html[Elasticsearch]
 * {kibana-ref}/xpack-apm.html[Kibana APM UI]
 
@@ -70,20 +70,20 @@ View the APM <<apm-data-model>> documentation for more information on Events.
 
 [float]
 ==== Component communication
-The APM Server is a {apm-server-ref}/why-separate-component.html[separate component by design] - it helps keep the agents light,
+The APM Server is a {apm-server-ref-v}/why-separate-component.html[separate component by design] - it helps keep the agents light,
 prevents certain security risks,
 and improves compatibility across the Elastic and APM Stack.  
 
-The {apm-server-ref}/intake-api.html[Intake API] is what we call the internal protocol that APM agents use to talk to the APM Server. 
+The {apm-server-ref-v}/intake-api.html[Intake API] is what we call the internal protocol that APM agents use to talk to the APM Server. 
 After the APM Server has validated and processed events from the APM agents (via the intake API),
-the server transforms the data into Elasticsearch documents and stores them in corresponding {apm-server-ref}/exploring-es-data.html[Elasticsearch indices].
+the server transforms the data into Elasticsearch documents and stores them in corresponding {apm-server-ref-v}/exploring-es-data.html[Elasticsearch indices].
 In a matter of seconds you can start viewing your application performance data in Kibana.
 
 [float]
 ==== Real User Monitoring (RUM)
 Real User Monitoring captures user interaction with clients such as web browsers.
-The {apm-rum-ref}[JavaScript Agent] is Elastic’s RUM Agent.
-To use it you need to {apm-server-ref}/rum.html[enable RUM support] in the APM Server.
+The {apm-rum-ref-v}[JavaScript Agent] is Elastic’s RUM Agent.
+To use it you need to {apm-server-ref-v}/rum.html[enable RUM support] in the APM Server.
 
 Unlike Elastic APM backend agents which monitor requests and responses,
 the RUM JavaScript agent monitors the real user experience and interaction within your client-side application.

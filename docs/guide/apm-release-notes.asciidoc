@@ -8,7 +8,7 @@
 [float]
 ===== New features
 
-Elastic APM now enables {apm-get-started-ref}/distributed-tracing.html[distributed tracing].
+Elastic APM now enables {apm-overview-ref-v}/distributed-tracing.html[distributed tracing].
 
 *APM Server*
 

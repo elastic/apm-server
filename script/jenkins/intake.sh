@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euox pipefail
+set -euxo pipefail
 
 source ./_beats/dev-tools/common.bash
 

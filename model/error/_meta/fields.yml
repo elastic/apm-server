@@ -17,7 +17,7 @@
 
     - name: error id icon
       type: keyword
-      script: "doc['error.grouping_key'].value"
+      script: "doc['error.grouping_key'].size() == 0 ? null : doc['error.grouping_key'].value"
       language: painless
       format: url
       label_template: "-"
@@ -34,6 +34,7 @@
           count: 4
           description: >
             The ID of the error.
+          overwrite: true
 
         - name: culprit
           type: text

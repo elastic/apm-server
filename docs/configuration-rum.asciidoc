@@ -1,7 +1,7 @@
 [[configuration-rum]]
 == Set up Real User Monitoring (RUM) support
 
-The {apm-rum-ref}/index.html[JavaScript RUM Agent] offers <<rum, real user monitoring (RUM)>> support.
+The {apm-rum-ref-v}/index.html[JavaScript RUM Agent] offers <<rum, real user monitoring (RUM)>> support.
 
 Example config with RUM enabled:
 
@@ -34,6 +34,7 @@ Version 6.5 of the APM Server introduced a new intake API. You can learn more ab
 If you do not upgrade your APM Agent, you'll continue to use the deprecated v1 RUM intake API endpoint, and thus, the following configuration options.
 
 [float]
+[[rate_limit_v1]]
 ==== `rate_limit` deprecated[6.5]
 Rate limit per second and IP address for requests sent to the RUM endpoint.
 If the rate limit is hit, the APM Server will return an HTTP status code `429`.
@@ -49,6 +50,7 @@ Version 6.5 of the APM Server introduced a new intake API. You can learn more ab
 The following configuration options only affect users that have upgraded their agent to take advantage of the new v2 intake API. 
 
 [float]
+[[event_rate.limit]]
 ==== `event_rate.limit`
 Defines the maximum amount of events allowed to be sent to the APM Server v2 RUM endpoint per ip per second.
 Defaults to 300.
