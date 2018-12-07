@@ -74,6 +74,8 @@ func metadataProcSetup() *tests.ProcessorSetup {
 		Schema: schema.ModelSchema,
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
+			"../../../_beats/libbeat/processors/add_kubernetes_metadata/_meta/fields.yml",
+			"../../../_beats/libbeat/processors/add_docker_metadata/_meta/fields.yml",
 		},
 		FullPayloadPath: "../testdata/intake-v2/only-metadata.ndjson",
 	}
@@ -95,11 +97,30 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 	return eventFields
 }
 
+var fieldMapping = map[string]string{
+	"context.":          "",
+	"kubernetes.":       "system.kubernetes.",
+	"docker.container.": "system.container.",
+}
+
 func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
 	eventFields := getMetadataEventAttrs(t, "context")
-	allowedNotInFields := tests.NewSet("context.process.argv")
-	setup.EventFieldsInTemplateFields(t, eventFields, allowedNotInFields)
+	allowedNotInFields := tests.NewSet(
+		"context.process.argv",
+
+		// these are fields with children
+		// children are correctly checked
+		"context.system.kubernetes",
+		"context.system.kubernetes.pod",
+		"context.system.kubernetes.node",
+		"context.system.container",
+	)
+	setup.EventFieldsInTemplateFields(t, eventFields, allowedNotInFields,
+		map[string]string{
+			"kubernetes.":       "context.system.kubernetes.",
+			"docker.container.": "context.system.container.",
+		})
 }
 
 func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
@@ -119,10 +140,17 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("transaction"),
 			tests.Group("parent"),
 			tests.Group("trace"),
+
+			// we don't support these yet
+			"kubernetes.labels",
+			"kubernetes.annotations",
+			"kubernetes.container.name",
+			"kubernetes.container.image",
+			"docker.container.labels",
+			"docker.container.name",
+			"docker.container.image",
 		),
-		map[string]string{
-			"context.": "",
-		},
+		fieldMapping,
 	)
 }
 

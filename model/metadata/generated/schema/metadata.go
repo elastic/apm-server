@@ -137,7 +137,11 @@ const ModelSchema = `{
   "required": ["pid"]
         },
         "system": {
-                "$id": "doc/spec/system.json",
+                "$id": "doc/spec/v2_system.json",
+    "title": "System",
+    "type": ["object", "null"],
+    "allOf": [
+        {     "$id": "doc/spec/common_system.json",
     "title": "System",
     "type": ["object", "null"],
     "properties": {
@@ -156,7 +160,54 @@ const ModelSchema = `{
             "type": ["string", "null"],
             "maxLength": 1024
         }
-    }
+    }  },
+        {  
+            "properties": {
+                "kubernetes": {
+                    "properties": {
+                        "namespace": {
+                            "description": "Kubernetes namespace",
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+                        },
+                        "pod":{
+                            "properties": {
+                                "name": {
+                                    "description": "Kubernetes pod name",
+                                    "type": ["string", "null"],
+                                    "maxLength": 1024
+                                },
+                                "uid": {
+                                    "description": "Kubernetes pod uid",
+                                    "type": ["string", "null"],
+                                    "maxLength": 1024
+                                }
+                            }
+                        },
+                        "node":{
+                            "properties": {
+                                "name": {
+                                    "description": "Kubernetes node name",
+                                    "type": ["string", "null"],
+                                    "maxLength": 1024
+                                }
+                            }
+                        }
+                    }
+                },
+                "container": {
+                    "properties": {
+                        "id" : {
+                            "description": "Container ID",
+                            "type": ["string"],
+                            "maxLength": 1024
+                        }
+                    },
+                    "required": ["id"]
+                }
+            }
+        }
+    ]
         },
         "user": {
                 "$id": "docs/spec/user.json",

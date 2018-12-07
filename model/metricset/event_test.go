@@ -151,6 +151,8 @@ func TestTransform(t *testing.T) {
 		nil,
 		nil,
 		nil,
+		nil,
+		nil,
 	)
 
 	tests := []struct {

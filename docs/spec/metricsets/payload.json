@@ -19,7 +19,7 @@
             "$ref": "../service.json"
         },
         "system": {
-            "$ref": "../system.json"
+            "$ref": "../v1_system.json"
         }
     },
     "required": ["service", "metrics"]

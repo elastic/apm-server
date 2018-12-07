@@ -101,3 +101,53 @@ func TestInsertInMap(t *testing.T) {
 			fmt.Sprintf("At (%v): Expected %s, got %s", idx, test.result, test.data))
 	}
 }
+
+func TestMergeMaps(t *testing.T) {
+	dest := map[string]interface{}{
+		"a": "1",
+		"b": map[string]interface{}{
+			"c": map[string]interface{}{
+				"d": 2,
+			},
+		},
+		"e": map[string]interface{}{
+			"f": map[string]interface{}{},
+		},
+	}
+
+	source := map[string]interface{}{
+		"a": "2", // dest should not be overwritten
+		"b": map[string]interface{}{
+			"c": map[string]interface{}{
+				"new-val": 4, // should be merged in
+			},
+		},
+		"e": map[string]interface{}{
+			"f": "new-val-2", // different type
+			"new-key": map[string]interface{}{ // should be merged in
+				"nested-new-val": 3,
+			},
+		},
+		"new-top-level-key": 5,
+	}
+
+	expected := map[string]interface{}{
+		"a": "1",
+		"b": map[string]interface{}{
+			"c": map[string]interface{}{
+				"d":       2,
+				"new-val": 4, // merged in
+			},
+		},
+		"e": map[string]interface{}{
+			"f": map[string]interface{}{},
+			"new-key": map[string]interface{}{ // should be merged in
+				"nested-new-val": 3,
+			},
+		},
+		"new-top-level-key": 5,
+	}
+
+	MergeMaps(dest, source)
+	assert.Equal(t, expected, dest)
+}
