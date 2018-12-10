@@ -41,7 +41,7 @@ func newFieldsTransformer(version *common.Version, fields common.Fields) (*field
 		version:                   version,
 		transformedFields:         []common.MapStr{},
 		transformedFieldFormatMap: common.MapStr{},
-		keys: common.MapStr{},
+		keys:                      common.MapStr{},
 	}, nil
 }
 
@@ -135,6 +135,10 @@ func transformField(version *common.Version, f common.Field) (common.MapStr, com
 		field["doc_values"] = getVal(f.DocValues, false)
 		field["indexed"] = false
 		field["searchable"] = false
+	}
+
+	if f.Type == "object" && f.Enabled != nil {
+		field["enabled"] = getVal(f.Enabled, true)
 	}
 
 	if f.Type == "text" {
