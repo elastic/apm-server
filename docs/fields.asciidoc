@@ -521,104 +521,132 @@ The ID of the parent event.
 --
 
 
-*`context.service.agent.name`*::
+*`agent.name`*::
 +
 --
 type: alias
 
+alias to: context.service.agent.name
+
 --
 
 
-*`beat.hostname`*::
+*`agent.server.host.name`*::
 +
 --
 type: alias
 
+alias to: beat.hostname
+
 --
 
-*`beat.name`*::
+*`agent.server.type`*::
 +
 --
 type: alias
 
+alias to: beat.name
+
 --
 
-*`beat.version`*::
+*`agent.server.version`*::
 +
 --
 type: alias
 
+alias to: beat.version
+
 --
 
-*`context.service.agent.version`*::
+*`agent.version`*::
 +
 --
 type: alias
 
+alias to: context.service.agent.version
+
 --
 
 
-*`meta.cloud.availability_zone`*::
+*`cloud.availability_zone`*::
 +
 --
 type: alias
 
+alias to: meta.cloud.availability_zone
+
 --
 
-*`meta.cloud.instance_id`*::
+*`cloud.instance.id`*::
 +
 --
 type: alias
 
+alias to: meta.cloud.instance_id
+
 --
 
-*`meta.cloud.instance_name`*::
+*`cloud.instance.name`*::
 +
 --
 type: alias
 
+alias to: meta.cloud.instance_name
+
 --
 
-*`meta.cloud.machine_type`*::
+*`cloud.machine.type`*::
 +
 --
 type: alias
 
+alias to: meta.cloud.machine_type
+
 --
 
-*`meta.cloud.project_id`*::
+*`cloud.project.id`*::
 +
 --
 type: alias
 
+alias to: meta.cloud.project_id
+
 --
 
-*`meta.cloud.provider`*::
+*`cloud.provider`*::
 +
 --
 type: alias
 
+alias to: meta.cloud.provider
+
 --
 
-*`meta.cloud.region`*::
+*`cloud.region`*::
 +
 --
 type: alias
 
+alias to: meta.cloud.region
+
 --
 
 
-*`docker.container.id`*::
+*`container.id`*::
 +
 --
 type: alias
 
+alias to: docker.container.id
+
 --
 
-*`docker.container.image`*::
+*`container.image.name`*::
 +
 --
 type: alias
+
+alias to: docker.container.image
 
 --
 
@@ -632,63 +660,79 @@ Image labels.
 
 --
 
-*`docker.container.name`*::
+*`container.name`*::
 +
 --
 type: alias
 
+alias to: docker.container.name
+
 --
 
 
-*`beat.timezone`*::
+*`event.timezone`*::
 +
 --
 type: alias
 
+alias to: beat.timezone
+
 --
 
 
-*`context.system.architecture`*::
+*`host.architecture`*::
 +
 --
 type: alias
 
+alias to: context.system.architecture
+
 --
 
-*`context.system.ip`*::
+*`host.ip`*::
 +
 --
 type: alias
 
+alias to: context.system.ip
+
 --
 
-*`context.system.hostname`*::
+*`host.hostname`*::
 +
 --
 type: alias
 
+alias to: context.system.hostname
+
 --
 
 
-*`context.system.platform`*::
+*`host.os.platform`*::
 +
 --
 type: alias
 
+alias to: context.system.platform
+
 --
 
 
-*`context.request.method`*::
+*`http.method`*::
 +
 --
 type: alias
 
+alias to: context.request.method
+
 --
 
-*`context.request.http_version`*::
+*`http.version`*::
 +
 --
 type: alias
+
+alias to: context.request.http_version
 
 --
 
@@ -715,127 +759,161 @@ Field is not indexed.
 
 --
 
-*`context.process.pid`*::
+*`process.pid`*::
 +
 --
 type: alias
 
+alias to: context.process.pid
+
 --
 
-*`context.process.ppid`*::
+*`process.ppid`*::
 +
 --
 type: alias
 
+alias to: context.process.ppid
+
 --
 
-*`context.process.title`*::
+*`process.title`*::
 +
 --
 type: alias
 
+alias to: context.process.title
+
 --
 
 
-*`context.service.environment`*::
+*`service.environment`*::
 +
 --
 type: alias
 
+alias to: context.service.environment
+
 --
 
 
-*`context.service.framework.name`*::
+*`service.framework.name`*::
 +
 --
 type: alias
 
+alias to: context.service.framework.name
+
 --
 
-*`context.service.framework.version`*::
+*`service.framework.version`*::
 +
 --
 type: alias
 
+alias to: context.service.framework.version
+
 --
 
 
-*`context.service.language.name`*::
+*`service.language.name`*::
 +
 --
 type: alias
 
+alias to: context.service.language.name
+
 --
 
-*`context.service.language.version`*::
+*`service.language.version`*::
 +
 --
 type: alias
 
+alias to: context.service.language.version
+
 --
 
-*`context.service.name`*::
+*`service.name`*::
 +
 --
 type: alias
 
+alias to: context.service.name
+
 --
 
 
-*`context.service.runtime.name`*::
+*`service.runtime.name`*::
 +
 --
 type: alias
 
+alias to: context.service.runtime.name
+
 --
 
-*`context.service.runtime.version`*::
+*`service.runtime.version`*::
 +
 --
 type: alias
 
+alias to: context.service.runtime.version
+
 --
 
-*`context.service.version`*::
+*`service.version`*::
 +
 --
 type: alias
 
+alias to: context.service.version
+
 --
 
 
-*`context.request.url.hostname`*::
+*`url.domain`*::
 +
 --
 type: alias
 
+alias to: context.request.url.hostname
+
 --
 
-*`context.request.url.hash`*::
+*`url.fragment`*::
 +
 --
 type: alias
 
+alias to: context.request.url.hash
+
 --
 
-*`context.request.url.full`*::
+*`url.full`*::
 +
 --
 type: alias
 
+alias to: context.request.url.full
+
 --
 
-*`context.request.url.raw`*::
+*`url.original`*::
 +
 --
 type: alias
 
+alias to: context.request.url.raw
+
 --
 
-*`context.request.url.pathname`*::
+*`url.path`*::
 +
 --
 type: alias
+
+alias to: context.request.url.pathname
 
 --
 
@@ -849,10 +927,12 @@ The port of the request, e.g. 443.
 
 --
 
-*`context.request.url.search`*::
+*`url.query`*::
 +
 --
 type: alias
+
+alias to: context.request.url.search
 
 --
 
@@ -867,24 +947,30 @@ The scheme of the request, e.g. "https".
 --
 
 
-*`context.user.email`*::
+*`user.email`*::
 +
 --
 type: alias
 
+alias to: context.user.email
+
 --
 
-*`context.user.id`*::
+*`user.id`*::
 +
 --
 type: alias
 
+alias to: context.user.id
+
 --
 
-*`context.user.username`*::
+*`user.name`*::
 +
 --
 type: alias
+
+alias to: context.user.username
 
 --
 
