@@ -14,7 +14,7 @@
 To send events to {ls}, you also need to create a {ls} configuration pipeline
 that listens for incoming Beats connections and indexes the received events into
 {es}. For more information, see the section about
-{stack-ov}/get-started-elastic-stack.html#logstash-setup[configuring {ls}] in
+{stack-gs}/get-started-elastic-stack.html#logstash-setup[configuring {ls}] in
 the {stack} getting started tutorial. Also see the documentation for the
 {logstash-ref}/plugins-inputs-beats.html[{beats} input] and
 {logstash-ref}/plugins-outputs-elasticsearch.html[{es} output] plugins.
@@ -39,16 +39,16 @@ Beats connections.
 For this configuration, you must <<load-template-manually,load the index template into Elasticsearch manually>>
 because the options for auto loading the template are only available for the Elasticsearch output.
 
-ifdef::allplatforms[]
+ifndef::win-only[]
 
 include::../../libbeat/docs/step-test-config.asciidoc[]
 
-endif::allplatforms[]
+endif::win-only[]
 
-ifdef::win[]
+ifdef::win-only[]
 
 TIP: To test your configuration file, change to the directory where the {beatname_uc}
 binary is installed, and run {beatname_uc} in the foreground with the following
 options specified: +.\winlogbeat.exe test config -c .\winlogbeat.yml -e+.
 
-endif::win[]
+endif::win-only[]
