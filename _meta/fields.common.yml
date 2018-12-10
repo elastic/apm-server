@@ -30,6 +30,31 @@
         Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user.
       dynamic: false
       fields:
+        - name: custom
+          type: object
+          enabled: false
+          indexed: false
+          analyzed: false
+          searchable: false
+          aggregatable: false
+
+        - name: http
+          type: group
+          dynamic: false
+          fields:
+            - name: method
+              type: keyword
+              index: false
+              aggregatable: false
+              searchable: false
+              doc_values: false
+
+            - name: url
+              type: keyword
+              index: false
+              aggregatable: false
+              searchable: false
+              doc_values: false
 
         - name: tags
           type: object
@@ -81,6 +106,27 @@
         - name: request
           type: group
           fields:
+
+          - name: cookies
+            type: object
+            enabled: false
+            indexed: false
+            analyzed: false
+            searchable: false
+            aggregatable: false
+
+          - name: env
+            type: object
+            enabled: false
+            indexed: false
+            analyzed: false
+            searchable: false
+            aggregatable: false
+
+          - name: socket
+            type: keyword
+            index: false
+            aggregatable: false
 
           - name: url
             type: group
@@ -142,6 +188,22 @@
           type: group
           fields:
 
+          - name: headers
+            type: group
+            fields:
+              - name: content-type
+                index: false
+                aggregatable: false
+
+              - name: user-agent
+                index: false
+                aggregatable: false
+
+          - name: headers_sent
+            type: boolean
+            index: false
+            aggregatable: false
+
           - name: status_code
             type: long
             description: >
@@ -183,6 +245,14 @@
           description: >
             Information pertaining to the running process where the data was collected
           fields:
+            - name: argv
+              type: object
+              enabled: false
+              indexed: false
+              analyzed: false
+              searchable: false
+              aggregatable: false
+
             - name: pid
               type: long
               description: >
@@ -459,6 +529,7 @@
         - name: args
           type: keyword
           index: false
+          aggregatable: false
           description: >
             Process arguments.  May be filtered to protect sensitive information.
 

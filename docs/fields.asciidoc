@@ -77,6 +77,34 @@ Any arbitrary contextual information regarding the event, captured by the agent,
 
 
 
+*`context.custom`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+
+*`context.http.method`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.http.url`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
 *`context.tags`*::
 +
 --
@@ -149,6 +177,33 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 --
 
+
+*`context.request.cookies`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.request.env`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.request.socket`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
 
 [float]
 == url fields
@@ -258,6 +313,30 @@ The http method of the request leading to this event.
 --
 
 
+
+*`context.response.headers.content-type`*::
++
+--
+Field is not indexed.
+
+--
+
+*`context.response.headers.user-agent`*::
++
+--
+Field is not indexed.
+
+--
+
+*`context.response.headers_sent`*::
++
+--
+type: boolean
+
+Field is not indexed.
+
+--
+
 *`context.response.status_code`*::
 +
 --
@@ -331,6 +410,15 @@ IP of the host that records the event.
 Information pertaining to the running process where the data was collected
 
 
+
+*`context.process.argv`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
 
 *`context.process.pid`*::
 +

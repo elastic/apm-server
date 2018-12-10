@@ -57,6 +57,7 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		Group("context.request.body"),
 		Group("context.response.headers"),
 		"context.process.argv",
+		"process.args",
 	))
 	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
 	ps.EventFieldsInTemplateFields(t, events, notInFields)
@@ -211,6 +212,10 @@ func isEnabled(f common.Field) bool {
 
 func isDisabled(f common.Field) bool {
 	return f.Enabled != nil && !*f.Enabled
+}
+
+func isIndexed(f common.Field) bool {
+	return f.Index == nil || *f.Index
 }
 
 func isNotAlias(f common.Field) bool {

@@ -45,7 +45,7 @@ func payloadAttrsNotInFields(s *tests.Set) *tests.Set {
 
 func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
-		"listening", "view spans", "context.user.user-agent",
+		"listening", "view spans", "context.response.headers.user-agent", "context.user.user-agent",
 		"context.user.ip", "context.system.ip",
 		tests.Group("container"),
 

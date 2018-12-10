@@ -185,7 +185,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *Set, templateToSchema map[string]string) {
 
 	// fetch keyword restricted field names from ES template
-	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName,
+	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isIndexed,
 		func(f common.Field) bool { return f.Type == "keyword" })
 	require.NoError(t, err)
 
