@@ -34,7 +34,7 @@ import (
 	"github.com/elastic/go-ucfg"
 )
 
-const defaultPort = "8200"
+const DefaultPort = "8200"
 
 type Config struct {
 	Host                string                 `config:"host"`
@@ -258,7 +258,7 @@ func defaultConfig(beatVersion string) *Config {
 	metricsEnabled := true
 	pipelineEnabled, pipelineOverwrite := false, true
 	return &Config{
-		Host:                net.JoinHostPort("localhost", defaultPort),
+		Host:                net.JoinHostPort("localhost", DefaultPort),
 		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
 		MaxHeaderSize:       1 * 1024 * 1024,  // 1mb
 		ConcurrentRequests:  5,
