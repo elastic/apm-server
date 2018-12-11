@@ -29,11 +29,11 @@
 - from: context.system.architecture
   to: host.architecture
 
-- from: context.system.ip
-  to: host.ip
-
 - from: context.system.hostname
   to: host.hostname
+
+- from: context.system.ip
+  to: host.ip
 
 - from: context.system.platform
   to: host.os.platform
