@@ -53,6 +53,7 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
 		"context.http", "context.http.method", "context.http.status_code", "context.http.url",
 		tests.Group("container"),
+		tests.Group("context.db"),
 	)
 }
 

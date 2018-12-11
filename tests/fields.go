@@ -50,6 +50,7 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		"labels.span_tag",
 		//known not-indexed fields:
 		Group("context.custom"),
+		Group("context.db"),
 		Group("context.request.headers"),
 		Group("context.request.cookies"),
 		Group("context.request.socket"),

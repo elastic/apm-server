@@ -38,6 +38,37 @@
           searchable: false
           aggregatable: false
 
+        - name: db
+          type: group
+          fields:
+            - name: instance
+              type: keyword
+              index: false
+              analyzed: false
+              searchable: false
+              aggregatable: false
+
+            - name: statement
+              type: keyword
+              index: false
+              analyzed: false
+              searchable: false
+              aggregatable: false
+
+            - name: type
+              type: keyword
+              index: false
+              analyzed: false
+              searchable: false
+              aggregatable: false
+
+            - name: user
+              type: keyword
+              index: false
+              analyzed: false
+              searchable: false
+              aggregatable: false
+
         - name: http
           type: group
           dynamic: false
@@ -103,6 +134,14 @@
           type: group
           fields:
 
+          - name: body
+            type: object
+            enabled: false
+            indexed: false
+            analyzed: false
+            searchable: false
+            aggregatable: false
+
           - name: cookies
             type: object
             enabled: false
@@ -110,6 +149,22 @@
             analyzed: false
             searchable: false
             aggregatable: false
+
+          - name: headers
+            type: object
+            enabled: false
+            indexed: false
+            analyzed: false
+            searchable: false
+            aggregatable: false
+            # intake enforces:
+            # fields:
+            # - name: content-type
+            #   type: keyword
+            # - name: cookie
+            #   type: keyword
+            # - name: user-agent
+            #   type: keyword
 
           - name: env
             type: object
@@ -120,9 +175,18 @@
             aggregatable: false
 
           - name: socket
-            type: keyword
-            index: false
+            type: object
+            enabled: false
+            indexed: false
+            analyzed: false
+            searchable: false
             aggregatable: false
+            # intake enforces:
+            # fields:
+            # - name: socket.encrypted
+            #   type: boolean
+            # - name: socket.remote_address
+            #   type: keyword
 
           - name: url
             type: group
@@ -185,15 +249,18 @@
           fields:
 
           - name: headers
-            type: group
-            fields:
-              - name: content-type
-                index: false
-                aggregatable: false
-
-              - name: user-agent
-                index: false
-                aggregatable: false
+            type: object
+            enabled: false
+            indexed: false
+            analyzed: false
+            searchable: false
+            aggregatable: false
+            # intake enforces:
+            # fields:
+            # - name: content-type
+            #   type: keyword
+            # - name: user-agent
+            #   type: keyword
 
           - name: headers_sent
             type: boolean
@@ -564,7 +631,6 @@
         - name: query
           type: alias
           path: context.request.url.search
-          # TODO: multifield original.text
 
         # context.request.url.protocol minus the ":"
         - name: scheme

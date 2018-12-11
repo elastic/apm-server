@@ -87,6 +87,43 @@ Object is not enabled.
 --
 
 
+*`context.db.instance`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.db.statement`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.db.type`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.db.user`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+
 *`context.http.method`*::
 +
 --
@@ -177,7 +214,25 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 --
 
 
+*`context.request.body`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
 *`context.request.cookies`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.request.headers`*::
 +
 --
 type: object
@@ -198,9 +253,9 @@ Object is not enabled.
 *`context.request.socket`*::
 +
 --
-type: keyword
+type: object
 
-Field is not indexed.
+Object is not enabled.
 
 --
 
@@ -312,18 +367,12 @@ The http method of the request leading to this event.
 --
 
 
-
-*`context.response.headers.content-type`*::
+*`context.response.headers`*::
 +
 --
-Field is not indexed.
+type: object
 
---
-
-*`context.response.headers.user-agent`*::
-+
---
-Field is not indexed.
+Object is not enabled.
 
 --
 
