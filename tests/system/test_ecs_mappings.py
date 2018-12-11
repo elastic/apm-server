@@ -34,7 +34,12 @@ class ECSTest(SubCommandTest):
         all_fields = set()
         alias_source_fields = set()
         alias_target_fields = set()
+        exception_fields = set()
         for f, a in flatmap(yaml.load(self.command_output)["mappings"]["doc"]["properties"]):
+            if a.get("type") == "object" and not a.get("enabled", True):
+                exception_fields.add(f)
+            if not a.get("index", True):
+                exception_fields.add(f)
             all_fields.add(f)
             if a.get("type") == "alias":
                 alias_source_fields.add(f)
@@ -42,7 +47,7 @@ class ECSTest(SubCommandTest):
 
         # fields with special exception, due to mapping type changes, etc
         # no comment means unchanged
-        exception_fields = {
+        exception_fields.update({
             "@timestamp",
             "container.labels",  # target for docker.container.labels copy
             "context.request.url.port",  # field copy to url.port, keyword -> int
@@ -77,7 +82,7 @@ class ECSTest(SubCommandTest):
             "error id icon",
             "view errors",
             "view spans",
-        }
+        })
 
         # TBD
         exception_fields.update({
