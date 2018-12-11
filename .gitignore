@@ -20,3 +20,5 @@
 /vendor/github.com/elastic/beats/libbeat/fields.yml
 /docs/elastic/
 html_docs
+/x-pack/apm-server/apm-server
+/x-pack/apm-server/build
