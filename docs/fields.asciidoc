@@ -96,6 +96,16 @@ Field is not indexed.
 
 --
 
+*`context.http.status_code`*::
++
+--
+type: long
+
+The status code of the http response.
+
+
+--
+
 *`context.http.url`*::
 +
 --
@@ -111,17 +121,6 @@ Field is not indexed.
 type: object
 
 A flat mapping of user-defined tags with string values.
-
-
---
-
-
-*`context.http.status_code`*::
-+
---
-type: long
-
-The status code of the http response.
 
 
 --
