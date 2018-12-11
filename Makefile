@@ -34,6 +34,28 @@ update-beats:
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
 
 
+.PHONY: ${BEAT_NAME}.x-pack
+${BEAT_NAME}.x-pack: $(GOFILES_ALL) ## @build build the x-pack enabled version
+	go build -o ./x-pack/${BEAT_NAME}/${BEAT_NAME} $(GOBUILD_FLAGS) ./x-pack/${BEAT_NAME}
+
+
+.PHONY: check-headers
+check-headers:
+ifndef CHECK_HEADERS_DISABLED
+	@go get -u github.com/elastic/go-licenser
+	@go-licenser -d -exclude x-pack
+	@go-licenser -d -license Elastic x-pack
+endif
+
+.PHONY: add-headers
+add-headers:
+ifndef CHECK_HEADERS_DISABLED
+	@go get github.com/elastic/go-licenser
+	@go-licenser -exclude x-pack
+	@go-licenser -license Elastic x-pack
+endif
+
+
 .PHONY: is-beats-updated
 is-beats-updated: python-env
 	@$(PYTHON_ENV)/bin/python ./script/is_beats_updated.py ${BEATS_VERSION}
