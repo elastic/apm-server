@@ -14,8 +14,6 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
-    booleanParam(name: 'SNAPSHOT', defaultValue: false, description: 'Build snapshot packages (defaults to false)')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
@@ -62,7 +60,7 @@ pipeline {
       }
       when { 
         beforeAgent true
-        environment name: 'intake_ci', value: 'true' 
+        expression { return params.intake_ci }
       }
       steps {
         withEnvWrapper() {
@@ -89,7 +87,7 @@ pipeline {
           }
           when { 
             beforeAgent true
-            environment name: 'linux_ci', value: 'true' 
+            expression { return params.linux_ci }
           }
           steps {
             withEnvWrapper() {
@@ -108,7 +106,7 @@ pipeline {
           options { skipDefaultCheckout() }
           when { 
             beforeAgent true
-            environment name: 'windows_ci', value: 'true' 
+            expression { return params.windows_ci }
           }
           steps {
             withEnvWrapper() {
@@ -137,7 +135,7 @@ pipeline {
           }
           when { 
             beforeAgent true
-            environment name: 'test_ci', value: 'true' 
+            expression { return params.test_ci }
           }
           steps {
             withEnvWrapper() {
@@ -169,7 +167,7 @@ pipeline {
           }
           when { 
             beforeAgent true
-            environment name: 'test_sys_env_ci', value: 'true' 
+            expression { return params.test_sys_env_ci }
           }
           steps {
             withEnvWrapper() {
@@ -202,7 +200,7 @@ pipeline {
           options { skipDefaultCheckout() }
           when { 
             beforeAgent true
-            environment name: 'windows_ci', value: 'true' 
+            expression { return params.windows_ci }
           }
           steps {
             withEnvWrapper() {
@@ -243,9 +241,9 @@ pipeline {
                 branch "\\d+\\.\\d+"
                 branch "v\\d?"
                 tag "v\\d+\\.\\d+\\.\\d+*"
-                environment name: 'Run_As_Master_Branch', value: 'true'
+                expression { return params.Run_As_Master_Branch }
               }
-              environment name: 'bench_ci', value: 'true'
+              expression { return params.bench_ci }
             }
           }
           steps {
@@ -300,9 +298,9 @@ pipeline {
         allOf {
           anyOf {
             branch 'master'
-            environment name: 'Run_As_Master_Branch', value: 'true'
+            expression { return params.Run_As_Master_Branch }
           }
-          environment name: 'doc_ci', value: 'true' 
+          expression { return params.doc_ci }
         }
       }
       steps {
@@ -359,9 +357,9 @@ pipeline {
             branch "\\d+\\.\\d+"
             branch "v\\d?"
             tag "v\\d+\\.\\d+\\.\\d+*"
-            environment name: 'Run_As_Master_Branch', value: 'true'
+            expression { return params.Run_As_Master_Branch }
           }
-          environment name: 'releaser_ci', value: 'true' 
+          expression { return params.releaser_ci }
         }
       }
       steps {
