@@ -55,11 +55,4 @@ func CopyECS(fields common.MapStr) {
 			}
 		}
 	}
-
-	// docker.container.labels -> container.labels
-	if containerLabels, err := fields.GetValue("docker.container.labels"); err == nil {
-		if containerLabelsMap, ok := containerLabels.(common.MapStr); ok {
-			utility.MergeAdd(fields, "container", common.MapStr{"labels": containerLabelsMap})
-		}
-	}
 }

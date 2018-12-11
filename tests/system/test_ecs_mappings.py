@@ -88,6 +88,11 @@ class ECSTest(SubCommandTest):
         exception_fields.update({
             "context.http.status_code", "context.response.finished",
             "context.response.status_code", "context.user.ip", "context.user.user-agent",
+            "beat.timezone",
+            # from to be removed processors
+            "docker.container.id", "docker.container.image", "docker.container.name",
+            "meta.cloud.availability_zone", "meta.cloud.instance_id", "meta.cloud.instance_name",
+            "meta.cloud.machine_type", "meta.cloud.project_id", "meta.cloud.provider", "meta.cloud.region"
         })
 
         should_not_be_aliased = alias_target_fields - all_fields
