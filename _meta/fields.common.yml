@@ -396,24 +396,25 @@
           type: alias
           path: context.service.agent.name
 
-        - name: server
-          type: group
-          fields:
-            - name: host.name
-              type: alias
-              path: beat.hostname
-
-            - name: type
-              type: alias
-              path: beat.name
-
-            - name: version
-              type: alias
-              path: beat.version
-
         - name: version
           type: alias
           path: context.service.agent.version
+
+    - name: observer
+      type: group
+      dynamic: false
+      fields:
+        - name: hostname
+          type: alias
+          path: beat.hostname
+
+        - name: type
+          type: alias
+          path: beat.name
+
+        - name: version
+          type: alias
+          path: beat.version
 
     - name: cloud
       type: group
@@ -506,7 +507,7 @@
       type: group
       dynamic: false
       fields:
-        - name: method
+        - name: request.method
           type: alias
           path: context.request.method
 

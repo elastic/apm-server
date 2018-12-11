@@ -618,8 +618,17 @@ alias to: context.service.agent.name
 
 --
 
+*`agent.version`*::
++
+--
+type: alias
 
-*`agent.server.host.name`*::
+alias to: context.service.agent.version
+
+--
+
+
+*`observer.hostname`*::
 +
 --
 type: alias
@@ -628,7 +637,7 @@ alias to: beat.hostname
 
 --
 
-*`agent.server.type`*::
+*`observer.type`*::
 +
 --
 type: alias
@@ -637,21 +646,12 @@ alias to: beat.name
 
 --
 
-*`agent.server.version`*::
+*`observer.version`*::
 +
 --
 type: alias
 
 alias to: beat.version
-
---
-
-*`agent.version`*::
-+
---
-type: alias
-
-alias to: context.service.agent.version
 
 --
 
@@ -806,7 +806,7 @@ alias to: context.system.platform
 --
 
 
-*`http.method`*::
+*`http.request.method`*::
 +
 --
 type: alias

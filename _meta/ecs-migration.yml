@@ -12,16 +12,16 @@
 #   copy_to: true-if-field-should-be-copied-to-target-in-6x (default is false)
 
 - from: beat.hostname
-  to: agent.server.host.name
+  to: observer.hostname
 
 - from: beat.name
-  to: agent.server.type
+  to: observer.type
 
 - from: beat.timezone
   to: event.timezone
 
 - from: beat.version
-  to: agent.server.version
+  to: observer.version
 
 - from: meta.cloud.availability_zone
   to: cloud.availability_zone
@@ -63,7 +63,7 @@
   to: host.os.platform
 
 - from: context.request.method
-  to: http.method
+  to: http.request.method
 
 - from: context.request.http_version
   to: http.version
