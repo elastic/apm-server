@@ -59,7 +59,6 @@ class ECSTest(SubCommandTest):
             "error.log.logger_name", "error.log.message", "error.log.param_message", "error.message", "error.type",
             "fields",
             "labels",  # target for context.tags copy
-            "listening",
             "kubernetes.annotations", "kubernetes.container.image", "kubernetes.container.name", "kubernetes.labels",
             "kubernetes.namespace", "kubernetes.node.name", "kubernetes.pod.name", "kubernetes.pod.uid",
             "parent.id",

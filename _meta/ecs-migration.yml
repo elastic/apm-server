@@ -139,3 +139,6 @@
 
 - from: context.user.user-agent
   to: user_agent.original.text
+
+- from: listening
+  to: observer.listening

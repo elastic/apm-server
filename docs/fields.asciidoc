@@ -685,6 +685,15 @@ alias to: beat.hostname
 
 --
 
+*`observer.listening`*::
++
+--
+type: alias
+
+alias to: listening
+
+--
+
 *`observer.type`*::
 +
 --
