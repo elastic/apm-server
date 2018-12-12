@@ -650,6 +650,14 @@
           type: alias
           path: context.user.id
 
+        - name: ip
+          type: alias
+          path: context.user.ip
+
         - name: name
           type: alias
           path: context.user.username
+
+    - name: user_agent.original.text
+      type: alias
+      path: context.user.user-agent

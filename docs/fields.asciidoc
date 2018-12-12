@@ -989,12 +989,30 @@ alias to: context.user.id
 
 --
 
+*`user.ip`*::
++
+--
+type: alias
+
+alias to: context.user.ip
+
+--
+
 *`user.name`*::
 +
 --
 type: alias
 
 alias to: context.user.username
+
+--
+
+*`user_agent.original.text`*::
++
+--
+type: alias
+
+alias to: context.user.user-agent
 
 --
 

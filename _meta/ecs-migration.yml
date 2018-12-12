@@ -133,3 +133,9 @@
 
 - from: context.user.username
   to: user.name
+
+- from: context.user.ip
+  to: user.ip
+
+- from: context.user.user-agent
+  to: user_agent.original.text
