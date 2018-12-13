@@ -547,11 +547,8 @@
       dynamic: false
       fields:
         - name: args
-          type: keyword
-          index: false
-          aggregatable: false
-          description: >
-            Process arguments.  May be filtered to protect sensitive information.
+          type: alias
+          path: context.process.argv
 
         - name: pid
           type: alias

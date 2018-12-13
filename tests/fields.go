@@ -58,7 +58,6 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		Group("context.request.body"),
 		Group("context.response.headers"),
 		"context.process.argv",
-		"process.args",
 	))
 	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
 	ps.EventFieldsInTemplateFields(t, events, notInFields)

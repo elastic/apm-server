@@ -249,9 +249,6 @@
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
-            "process": {
-                "args": "node server.js"
-            },
             "processor": {
                 "event": "error",
                 "name": "error"
@@ -311,9 +308,6 @@
                 "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
                 "id": "8f0e9d68-c185-4d21-a6f4-4673ed561ec8"
             },
-            "process": {
-                "args": "node server.js"
-            },
             "processor": {
                 "event": "error",
                 "name": "error"
@@ -364,9 +358,6 @@
                 },
                 "grouping_key": "18f82051862e494727fa20e0adc15711",
                 "id": "7f0e9d68-c185-4d21-a6f4-4673ed561ec8"
-            },
-            "process": {
-                "args": "node server.js"
             },
             "processor": {
                 "event": "error",
@@ -419,9 +410,6 @@
                     "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"
                 }
-            },
-            "process": {
-                "args": "node server.js"
             },
             "processor": {
                 "event": "error",

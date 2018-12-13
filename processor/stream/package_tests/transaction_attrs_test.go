@@ -96,8 +96,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		"transaction.marks",
 		"context.tags",
 		"labels",
-		"process.args", // length limited in code only for now
-		"url.scheme",   // length always <= context.request.url.protocol
+		"url.scheme", // length always <= context.request.url.protocol
 
 		// metadata fields
 		tests.Group("context.process"),

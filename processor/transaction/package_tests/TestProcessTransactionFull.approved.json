@@ -113,9 +113,6 @@
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
-            "process": {
-                "args": "node server.js"
-            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -366,9 +363,6 @@
                     "platform": "darwin"
                 }
             },
-            "process": {
-                "args": "node server.js"
-            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -423,9 +417,6 @@
                     "platform": "darwin"
                 }
             },
-            "process": {
-                "args": "node server.js"
-            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -479,9 +470,6 @@
                     "hostname": "prod1.example.com",
                     "platform": "darwin"
                 }
-            },
-            "process": {
-                "args": "node server.js"
             },
             "processor": {
                 "event": "transaction",

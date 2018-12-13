@@ -43,9 +43,6 @@
             "parent": {
                 "id": "abcdefabcdef01234567"
             },
-            "process": {
-                "args": "node server.js"
-            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -182,9 +179,6 @@
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
-            "process": {
-                "args": "node server.js"
-            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -255,9 +249,6 @@
                     "ip": "192.0.0.1",
                     "platform": "darwin"
                 }
-            },
-            "process": {
-                "args": "node server.js"
             },
             "processor": {
                 "event": "transaction",

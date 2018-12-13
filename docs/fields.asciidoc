@@ -919,12 +919,9 @@ A flat mapping of user-defined labels with string values.
 *`process.args`*::
 +
 --
-type: keyword
+type: alias
 
-Process arguments.  May be filtered to protect sensitive information.
-
-
-Field is not indexed.
+alias to: context.process.argv
 
 --
 
