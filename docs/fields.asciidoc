@@ -878,6 +878,15 @@ alias to: context.request.method
 
 --
 
+*`http.response.finished`*::
++
+--
+type: alias
+
+alias to: context.response.finished
+
+--
+
 *`http.response.status_code`*::
 +
 --
