@@ -784,6 +784,16 @@ alias to: context.service.agent.version
 --
 
 
+*`client.ip`*::
++
+--
+type: alias
+
+alias to: context.user.ip
+
+--
+
+
 *`observer.hostname`*::
 +
 --
@@ -1103,15 +1113,6 @@ alias to: context.user.email
 type: alias
 
 alias to: context.user.id
-
---
-
-*`user.ip`*::
-+
---
-type: alias
-
-alias to: context.user.ip
 
 --
 

@@ -135,7 +135,7 @@
   to: user.name
 
 - from: context.user.ip
-  to: user.ip
+  to: client.ip
 
 - from: context.user.user-agent
   to: user_agent.original.text

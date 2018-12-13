@@ -463,6 +463,14 @@
           type: alias
           path: context.service.agent.version
 
+    - name: client
+      type: group
+      dynamic: false
+      fields:
+        - name: ip
+          type: alias
+          path: context.user.ip
+
     - name: observer
       type: group
       dynamic: false
@@ -653,10 +661,6 @@
         - name: id
           type: alias
           path: context.user.id
-
-        - name: ip
-          type: alias
-          path: context.user.ip
 
         - name: name
           type: alias
