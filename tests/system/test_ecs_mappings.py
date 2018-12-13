@@ -50,6 +50,7 @@ class ECSTest(SubCommandTest):
         exception_fields.update({
             "@timestamp",
             "container.labels",  # target for docker.container.labels copy
+            "context.http.status_code",  # staying put, like other context.http.* (and context.db.*)
             "context.request.url.port",  # field copy to url.port, keyword -> int
             "context.request.url.protocol",  # field copy to url.scheme, drop trailing ":"
             "context.tags",  # field copy, can't alias objects
@@ -84,11 +85,6 @@ class ECSTest(SubCommandTest):
 
             # host processor fields, already ECS compliant
             "host.id", "host.mac", "host.name", "host.os.family", "host.os.version"
-        })
-
-        # TBD
-        exception_fields.update({
-            "context.http.status_code", "context.user.user-agent",
         })
 
         should_not_be_aliased = alias_target_fields - all_fields
