@@ -1,0 +1,29 @@
+- key: host
+  title: Host
+  description: >
+    Info collected for the host machine.
+  anchor: host-processor
+  fields:
+    - name: host
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: >
+            Hostname.
+        - name: id
+          type: keyword
+          description: >
+            Unique host id.
+        - name: os.version
+          type: keyword
+          description: >
+            OS version.
+        - name: os.family
+          type: keyword
+          description: >
+            OS family (e.g. redhat, debian, freebsd, windows).
+        - name: mac
+          type: keyword
+          description: >
+            List of hardware-addresses, usually MAC-addresses.
