@@ -88,8 +88,7 @@ class ECSTest(SubCommandTest):
 
         # TBD
         exception_fields.update({
-            "context.http.status_code", "context.response.finished",
-            "context.response.status_code", "context.user.user-agent",
+            "context.http.status_code", "context.response.finished", "context.user.user-agent",
         })
 
         should_not_be_aliased = alias_target_fields - all_fields

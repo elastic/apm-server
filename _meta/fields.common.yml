@@ -522,6 +522,10 @@
           type: alias
           path: context.request.method
 
+        - name: response.status_code
+          type: alias
+          path: context.response.status_code
+
         - name: version
           type: alias
           path: context.request.http_version
