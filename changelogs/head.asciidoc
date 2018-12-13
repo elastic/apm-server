@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/6.5\...master[View commits]
 - Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
 - Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
 - Add optional `span.subtype` and `span.action` properties. {pull}1618[1618].
+- Build default distribution under the Elastic License. {pull}1645[1645].
 
 [float]
 ==== Bug fixes
