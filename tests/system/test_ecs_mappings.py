@@ -81,17 +81,15 @@ class ECSTest(SubCommandTest):
             "error id icon",
             "view errors",
             "view spans",
+
+            # host processor fields, already ECS compliant
+            "host.id", "host.mac", "host.name", "host.os.family", "host.os.version"
         })
 
         # TBD
         exception_fields.update({
             "context.http.status_code", "context.response.finished",
-            "context.response.status_code", "context.user.ip", "context.user.user-agent",
-            "beat.timezone",
-            # from to be removed processors
-            "docker.container.id", "docker.container.image", "docker.container.name",
-            "meta.cloud.availability_zone", "meta.cloud.instance_id", "meta.cloud.instance_name",
-            "meta.cloud.machine_type", "meta.cloud.project_id", "meta.cloud.provider", "meta.cloud.region"
+            "context.response.status_code", "context.user.user-agent",
         })
 
         should_not_be_aliased = alias_target_fields - all_fields
@@ -122,16 +120,21 @@ class ECSTest(SubCommandTest):
                 not_indexed.add(f)
 
         aliases_logged = {}
-        with open(self._beat_path_join("_meta", "ecs-migration.yml")) as f:
-            for m in yaml.load(f):
-                if m.get("alias", True):
-                    aliases_logged[m["to"]] = m["from"]
-                elif m.get("copy_to", False):
-                    if m["from"] not in not_indexed and m["to"] not in not_indexed:
-                        self.assertIn(m["from"], all_fields)
-                else:
-                    self.fail(m)
-                self.assertIn(m["to"], all_fields)
+        for migration_log in self._beat_path_join("_meta", "ecs-migration.yml"), \
+                             self._beat_path_join("_beats", "dev-tools", "ecs-migration.yml"):
+            with open(migration_log) as f:
+                for m in yaml.load(f):
+                    if m.get("index", "apm-server") != "apm-server":
+                        continue
+                    if m.get("alias", True):
+                        self.assertNotIn(m["to"], aliases_logged, "duplicate log entry for: {}".format(m["to"]))
+                        aliases_logged[m["to"]] = m["from"]
+                    elif m.get("copy_to", False):
+                        if m["from"] not in not_indexed and m["to"] not in not_indexed:
+                            self.assertIn(m["from"], all_fields)
+                    else:
+                        self.fail(m)
+                    self.assertIn(m["to"], all_fields)
 
-            # false if ecs-migration.yml log does not match fields.yml
-            self.assertEqual(aliases, aliases_logged)
+        # false if ecs-migration.yml log does not match fields.yml
+        self.assertEqual(aliases, aliases_logged)
