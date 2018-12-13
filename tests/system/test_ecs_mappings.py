@@ -116,7 +116,7 @@ class ECSTest(SubCommandTest):
 
         aliases_logged = {}
         for migration_log in self._beat_path_join("_meta", "ecs-migration.yml"), \
-                             self._beat_path_join("_beats", "dev-tools", "ecs-migration.yml"):
+                self._beat_path_join("_beats", "dev-tools", "ecs-migration.yml"):
             with open(migration_log) as f:
                 for m in yaml.load(f):
                     if m.get("index", "apm-server") != "apm-server":
