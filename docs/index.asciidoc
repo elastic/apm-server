@@ -23,6 +23,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :deprecate_dashboard_loading: 6.4.0
 :no-processors:
 :no-indices-rules:
+:requires-sudo: no
 :apm-server:
 :deb_os:
 :rpm_os:
