@@ -8,6 +8,7 @@
 :docker-compose: 1.11
 
 // Agent versions
+:server-branch: {doc-branch}
 :go-branch: 1.x
 :java-branch: 1.x
 :rum-branch: 2.x
