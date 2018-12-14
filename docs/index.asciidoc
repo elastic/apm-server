@@ -22,6 +22,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :securitydoc: https://www.elastic.co/guide/en/elastic-stack-overview/{doc-branch}
 :deprecate_dashboard_loading: 6.4.0
 :no-processors:
+:no-indices-rules:
 :apm-server:
 :deb_os:
 :rpm_os:

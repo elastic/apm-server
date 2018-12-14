@@ -244,8 +244,12 @@ index named +normal-{version}-{localdate}+, and all events with
 TIP: To learn how to add custom fields to events, see the
 <<libbeat-configuration-fields,`fields`>> option.  
 
+ifndef::no-indices-rules[]
+
 See the <<indices-option-es,`indices`>> setting for other ways to set the index
 dynamically.
+
+endif::no-indices-rules[]
 
 
 ifdef::deprecate_dashboard_loading[]
@@ -253,6 +257,8 @@ ifdef::deprecate_dashboard_loading[]
 deprecated[{deprecate_dashboard_loading}]
 
 endif::[]
+
+ifndef::no-indices-rules[]
 
 [[indices-option-es]]
 ===== `indices`
@@ -321,6 +327,8 @@ This configuration results in indices named `sev1`, `sev2`, and `sev3`.
 
 The `mappings` setting simplifies the configuration, but is limited to string
 values. You cannot specify format strings within the mapping pairs.
+
+endif::no-indices-rules[]
 
 ifndef::no-pipeline[]
 [[pipeline-option-es]]
