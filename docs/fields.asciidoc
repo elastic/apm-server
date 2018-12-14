@@ -916,15 +916,6 @@ A flat mapping of user-defined labels with string values.
 --
 
 
-*`process.args`*::
-+
---
-type: alias
-
-alias to: context.process.argv
-
---
-
 *`process.pid`*::
 +
 --

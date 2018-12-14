@@ -49,9 +49,6 @@
   alias: false
   copy_to: true
 
-- from: context.process.argv
-  to: process.args
-
 - from: context.process.pid
   to: process.pid
 

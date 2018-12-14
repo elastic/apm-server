@@ -546,10 +546,6 @@
       type: group
       dynamic: false
       fields:
-        - name: args
-          type: alias
-          path: context.process.argv
-
         - name: pid
           type: alias
           path: context.process.pid
