@@ -33,6 +33,8 @@ func TestDecodeMetadata(t *testing.T) {
 	uid := "12321"
 	mail := "user@email.com"
 	agentName := "elastic-node"
+	namespace := "namespace"
+	containerid := "232"
 
 	for _, test := range []struct {
 		input       interface{}
@@ -81,6 +83,12 @@ func TestDecodeMetadata(t *testing.T) {
 				},
 				"system": map[string]interface{}{
 					"hostname": host,
+					"kubernetes": map[string]interface{}{
+						"namespace": namespace,
+					},
+					"container": map[string]interface{}{
+						"id": containerid,
+					},
 				},
 				"user": map[string]interface{}{
 					"id": uid, "email": mail,
@@ -96,6 +104,8 @@ func TestDecodeMetadata(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
+				&Kubernetes{Namespace: &namespace},
+				&Container{ID: containerid},
 			),
 		},
 	} {
@@ -113,6 +123,8 @@ func TestMetadataMerge(t *testing.T) {
 	uid := "12321"
 	mail := "user@email.com"
 	agentName := "elastic-node"
+	namespace := "namespace"
+	containerid := "232"
 
 	for _, test := range []struct {
 		input        *Metadata
@@ -131,15 +143,21 @@ func TestMetadataMerge(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
+				&Kubernetes{Namespace: &namespace},
+				&Container{ID: containerid},
 			),
 			output: common.MapStr{
-				"service": common.MapStr{
-					"name":  "myservice",
-					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"context": common.MapStr{
+					"service": common.MapStr{
+						"name":  "myservice",
+						"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+					},
+					"system":  common.MapStr{"hostname": host},
+					"process": common.MapStr{"pid": pid},
+					"user":    common.MapStr{"id": "12321", "email": "user@email.com"},
 				},
-				"system":  common.MapStr{"hostname": host},
-				"process": common.MapStr{"pid": pid},
-				"user":    common.MapStr{"id": "12321", "email": "user@email.com"},
+				"kubernetes": common.MapStr{"namespace": "namespace"},
+				"docker":     common.MapStr{"container": common.MapStr{"id": "232"}},
 			},
 		},
 		{
@@ -154,6 +172,8 @@ func TestMetadataMerge(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid},
+				&Kubernetes{Namespace: &namespace},
+				&Container{ID: containerid},
 			),
 			mergeContext: common.MapStr{
 				"foo": "bar",
@@ -162,18 +182,23 @@ func TestMetadataMerge(t *testing.T) {
 				},
 			},
 			output: common.MapStr{
-				"foo": "bar",
-				"service": common.MapStr{
-					"name":  "myservice",
-					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"context": common.MapStr{
+					"foo": "bar",
+					"service": common.MapStr{
+						"name":  "myservice",
+						"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+					},
+					"system":  common.MapStr{"hostname": host},
+					"process": common.MapStr{"pid": pid},
+					"user":    common.MapStr{"id": "12321", "email": "override@email.com"},
 				},
-				"system":  common.MapStr{"hostname": host},
-				"process": common.MapStr{"pid": pid},
-				"user":    common.MapStr{"id": "12321", "email": "override@email.com"},
+				"kubernetes": common.MapStr{"namespace": "namespace"},
+				"docker":     common.MapStr{"container": common.MapStr{"id": "232"}},
 			},
 		},
 	} {
-		assert.Equal(t, test.output, test.input.Merge(test.mergeContext))
+		fullEvent := common.MapStr{"context": test.mergeContext}
+		assert.Equal(t, test.output, test.input.Merge(fullEvent))
 	}
 }
 
@@ -184,6 +209,8 @@ func TestMetadataMergeMinimal(t *testing.T) {
 	uid := "12321"
 	mail := "user@email.com"
 	agentName := "elastic-node"
+	namespace := "namespace"
+	containerid := "232"
 
 	for _, test := range []struct {
 		input        *Metadata
@@ -202,6 +229,8 @@ func TestMetadataMergeMinimal(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
+				&Kubernetes{Namespace: &namespace},
+				&Container{ID: containerid},
 			),
 			output: common.MapStr{
 				"service": common.MapStr{
@@ -222,6 +251,8 @@ func TestMetadataMergeMinimal(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid},
+				&Kubernetes{Namespace: &namespace},
+				&Container{ID: containerid},
 			),
 			mergeContext: common.MapStr{
 				"foo": "bar",

@@ -396,16 +396,18 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}{
 		{
 			Metadata: metadata.NewMetadata(
-				&service,
-				nil, nil, nil,
+				&service, nil,
+				nil, nil,
+				nil, nil,
 			),
 			Event:  &txValid,
 			Output: []common.MapStr{txValidEs},
 			Msg:    "Payload with multiple Events",
 		}, {
 			Metadata: metadata.NewMetadata(
-				&service,
-				nil, nil, nil,
+				&service, nil,
+				nil, nil,
+				nil, nil,
 			),
 			Event:  &txValidWithSpan,
 			Output: []common.MapStr{txValidEs, spanEs},
@@ -416,6 +418,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Metadata: metadata.NewMetadata(
 				&service, system,
 				nil, nil,
+				nil, nil,
 			),
 			Event:  &txValid,
 			Output: []common.MapStr{txValidWithSystem},
@@ -424,6 +427,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		{
 			Metadata: metadata.NewMetadata(
 				&service, system,
+				nil, nil,
 				nil, nil,
 			),
 			Event:  &txWithContext,

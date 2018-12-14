@@ -23,12 +23,27 @@
                     "ip": "192.0.0.1"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
                 "log": {
                     "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "processor": {
@@ -103,6 +118,21 @@
                     "ip": "192.0.0.1"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -149,6 +179,11 @@
                     "ip": "192.0.0.1"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
             "go": {
                 "memstats": {
                     "heap": {
@@ -156,6 +191,16 @@
                             "bytes": 61235
                         }
                     }
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "processor": {

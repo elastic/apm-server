@@ -50,3 +50,20 @@ func InsertInMap(data map[string]interface{}, key string, values map[string]inte
 	}
 
 }
+func MergeMaps(dest map[string]interface{}, source map[string]interface{}) {
+	if dest == nil || source == nil {
+		return
+	}
+
+	for key, sVal := range source {
+		if dVal, ok := dest[key]; ok {
+			if dMap, ok := dVal.(map[string]interface{}); ok {
+				if sMap, ok := sVal.(map[string]interface{}); ok {
+					MergeMaps(dMap, sMap)
+				}
+			}
+			continue
+		}
+		dest[key] = sVal
+	}
+}

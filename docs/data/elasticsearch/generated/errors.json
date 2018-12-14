@@ -104,6 +104,11 @@
                     "username": "foo"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
             "error": {
                 "culprit": "my.module.function_name",
                 "exception": {
@@ -247,6 +252,16 @@
                     ]
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "processor": {
                 "event": "error",
                 "name": "error"
@@ -295,12 +310,27 @@
                     "platform": "darwin"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
             "error": {
                 "exception": {
                     "message": "Cannot read property 'baz' no defined"
                 },
                 "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
                 "id": "cdefab0123456789"
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
             },
             "processor": {
                 "event": "error",
@@ -350,12 +380,27 @@
                     "platform": "darwin"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
             "error": {
                 "exception": {
                     "type": "DbError"
                 },
                 "grouping_key": "c3868d6704b923014eaffea034e70a3d",
                 "id": "cdefab0123456789"
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
             },
             "processor": {
                 "event": "error",
@@ -405,12 +450,27 @@
                     "platform": "darwin"
                 }
             },
+            "docker": {
+                "container": {
+                    "id": "container-id"
+                }
+            },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
                 "log": {
                     "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "parent": {

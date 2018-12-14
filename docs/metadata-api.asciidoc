@@ -50,7 +50,7 @@ include::./spec/process.json[]
 
 [source,json]
 ----
-include::./spec/system.json[]
+include::./spec/v2_system.json[]
 ----
 
 [[metadata-user-schema]]

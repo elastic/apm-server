@@ -199,7 +199,11 @@ const PayloadSchema = `{
     "required": ["agent", "name"]
         },
         "system": {
-                "$id": "doc/spec/system.json",
+                "$id": "doc/spec/v1_system.json",
+    "title": "System",
+    "type": ["object", "null"],
+    "allOf": [
+        {     "$id": "doc/spec/common_system.json",
     "title": "System",
     "type": ["object", "null"],
     "properties": {
@@ -218,7 +222,8 @@ const PayloadSchema = `{
             "type": ["string", "null"],
             "maxLength": 1024
         }
-    }
+    }  }
+    ]
         }
     },
     "required": ["service", "metrics"]
