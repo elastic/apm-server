@@ -24,47 +24,29 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type System struct {
-	Hostname     *string
-	Architecture *string
-	Platform     *string
-	IP           *string
+type Container struct {
+	ID string
 }
 
-func DecodeSystem(input interface{}, err error) (*System, error) {
+func DecodeContainer(input interface{}, err error) (*Container, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for system")
+		return nil, errors.New("Invalid type for container")
 	}
 	decoder := utility.ManualDecoder{}
-	system := System{
-		Hostname:     decoder.StringPtr(raw, "hostname"),
-		Platform:     decoder.StringPtr(raw, "platform"),
-		Architecture: decoder.StringPtr(raw, "architecture"),
-		IP:           decoder.StringPtr(raw, "ip"),
-	}
-	if decoder.Err != nil {
-		return &system, decoder.Err
-	}
-
-	return &system, err
+	return &Container{
+		ID: decoder.String(raw, "id"),
+	}, decoder.Err
 }
 
-func (s *System) fields() common.MapStr {
-	if s == nil {
+func (k *Container) fields() common.MapStr {
+	if k == nil {
 		return nil
 	}
-
-	system := common.MapStr{}
-	utility.Add(system, "hostname", s.Hostname)
-	utility.Add(system, "architecture", s.Architecture)
-	utility.Add(system, "platform", s.Platform)
-	if s.IP != nil && *s.IP != "" {
-		utility.Add(system, "ip", s.IP)
-	}
-
-	return system
+	container := common.MapStr{}
+	utility.Add(container, "id", k.ID)
+	return container
 }

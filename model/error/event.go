@@ -191,9 +191,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	fields := common.MapStr{
 		"error":     e.fields(tctx),
-		"context":   tctx.Metadata.Merge(e.Context),
+		"context":   e.Context,
 		"processor": processorEntry,
 	}
+	tctx.Metadata.Merge(fields)
+
 	utility.AddId(fields, "transaction", e.TransactionId)
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", e.TraceId)

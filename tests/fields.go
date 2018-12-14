@@ -60,18 +60,29 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		"context.process.argv",
 	))
 	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
-	ps.EventFieldsInTemplateFields(t, events, notInFields)
+	ps.EventFieldsInTemplateFields(t, events, notInFields, nil)
 
 	// check ES fields in event
 	events = fetchFields(t, ps.Proc, ps.FullPayloadPath, fieldsNotInPayload)
 	ps.TemplateFieldsInEventFields(t, events, fieldsNotInPayload)
 }
 
-func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields, allowedNotInFields *Set) {
+func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields, allowedNotInFields *Set, fieldMapping map[string]string) {
 	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled, isNotAlias)
+
 	require.NoError(t, err)
 
-	missing := Difference(eventFields, allFieldNames)
+	t.Log("Old Field names: ", allFieldNames.Array())
+
+	newFieldNamesSet := NewSet()
+	for k, _ := range MapFields(fieldMapping, allFieldNames.Array()) {
+		newFieldNamesSet.Add(k)
+	}
+
+	t.Log("Field names: ", newFieldNamesSet.Array())
+	t.Log("Event names: ", eventFields.Array())
+
+	missing := Difference(eventFields, newFieldNamesSet)
 	missing = differenceWithGroup(missing, allowedNotInFields)
 
 	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))

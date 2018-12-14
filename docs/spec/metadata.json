@@ -11,7 +11,7 @@
             "$ref": "process.json"
         },
         "system": {
-            "$ref": "system.json"
+            "$ref": "v2_system.json"
         },
         "user": {
             "$ref": "user.json"

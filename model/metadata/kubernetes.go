@@ -24,47 +24,46 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-type System struct {
-	Hostname     *string
-	Architecture *string
-	Platform     *string
-	IP           *string
+type Kubernetes struct {
+	Namespace *string
+	NodeName  *string
+	PodName   *string
+	PodUID    *string
 }
 
-func DecodeSystem(input interface{}, err error) (*System, error) {
+func DecodeKubernetes(input interface{}, err error) (*Kubernetes, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for system")
+		return nil, errors.New("Invalid type for kubernetes")
 	}
 	decoder := utility.ManualDecoder{}
-	system := System{
-		Hostname:     decoder.StringPtr(raw, "hostname"),
-		Platform:     decoder.StringPtr(raw, "platform"),
-		Architecture: decoder.StringPtr(raw, "architecture"),
-		IP:           decoder.StringPtr(raw, "ip"),
-	}
-	if decoder.Err != nil {
-		return &system, decoder.Err
-	}
-
-	return &system, err
+	return &Kubernetes{
+		Namespace: decoder.StringPtr(raw, "namespace"),
+		NodeName:  decoder.StringPtr(raw, "name", "node"),
+		PodName:   decoder.StringPtr(raw, "name", "pod"),
+		PodUID:    decoder.StringPtr(raw, "uid", "pod"),
+	}, decoder.Err
 }
 
-func (s *System) fields() common.MapStr {
-	if s == nil {
+func (k *Kubernetes) fields() common.MapStr {
+	if k == nil {
 		return nil
 	}
+	kubernetes := common.MapStr{}
+	utility.Add(kubernetes, "namespace", k.Namespace)
 
-	system := common.MapStr{}
-	utility.Add(system, "hostname", s.Hostname)
-	utility.Add(system, "architecture", s.Architecture)
-	utility.Add(system, "platform", s.Platform)
-	if s.IP != nil && *s.IP != "" {
-		utility.Add(system, "ip", s.IP)
-	}
+	node := common.MapStr{}
+	utility.Add(node, "name", k.NodeName)
 
-	return system
+	pod := common.MapStr{}
+	utility.Add(pod, "name", k.PodName)
+	utility.Add(pod, "uid", k.PodUID)
+
+	utility.Add(kubernetes, "node", node)
+	utility.Add(kubernetes, "pod", pod)
+
+	return kubernetes
 }

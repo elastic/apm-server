@@ -182,7 +182,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 //   patterns defining a more specific restriction,
 // templateToSchema: mapping for fields that are nested or named different on
 //   ES level than on intake API
-func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *Set, templateToSchema map[string]string) {
+func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *Set, fieldMapping map[string]string) {
 
 	// fetch keyword restricted field names from ES template
 	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isIndexed,
@@ -202,17 +202,9 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 
 	keywordFields = differenceWithGroup(keywordFields, keywordExceptionKeys)
 
-	for _, k := range keywordFields.Array() {
-		key := k.(string)
-
-		for from, to := range templateToSchema {
-			if strings.HasPrefix(key, from) {
-				key = strings.Replace(key, from, to, 1)
-				break
-			}
-		}
-
-		assert.True(t, schemaKeys.Contains(key), "Expected <%s> (original: <%s>) to have the MaxLength limit set because it gets indexed as 'keyword'", key, k.(string))
+	mappedFields := MapFields(fieldMapping, keywordFields.Array())
+	for newKey, originalKey := range mappedFields {
+		assert.True(t, schemaKeys.Contains(newKey), "Expected <%s> (original: <%s>) to have the MaxLength limit set because it gets indexed as 'keyword'", newKey, originalKey)
 	}
 }
 
@@ -398,6 +390,24 @@ func ParseSchema(s string) (*Schema, error) {
 	return &schema, err
 }
 
+// MapFields uses `mapping` to map `keys` to new strings returning
+// a map that uses the new mapped strings as keys and the old strings as values
+func MapFields(mapping map[string]string, keys []interface{}) map[string]string {
+	newKeys := map[string]string{}
+	for _, k := range keys {
+		key := k.(string)
+		newKey := k.(string)
+		for from, to := range mapping {
+			if strings.HasPrefix(key, from) {
+				newKey = strings.Replace(key, from, to, 1)
+				break
+			}
+		}
+		newKeys[newKey] = key
+	}
+	return newKeys
+}
+
 func FlattenSchemaNames(s *Schema, prefix string, filter func(*Schema) bool, flattened *Set) {
 	if len(s.Properties) > 0 {
 		for k, v := range s.Properties {
@@ -434,4 +444,17 @@ func flattenJsonKeys(data interface{}, prefix string, flattened *Set) {
 			flattenJsonKeys(v, prefix, flattened)
 		}
 	}
+}
+
+func addKeywordFields(f common.Field) bool {
+	if f.Type == "keyword" || f.ObjectType == "keyword" {
+		return true
+	} else if len(f.MultiFields) > 0 {
+		for _, mf := range f.MultiFields {
+			if mf.Type == "keyword" {
+				return true
+			}
+		}
+	}
+	return false
 }
