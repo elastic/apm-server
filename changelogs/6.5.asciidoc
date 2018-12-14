@@ -8,6 +8,18 @@ https://github.com/elastic/apm-server/compare/6.4\...6.5[View commits]
 * <<release-notes-6.5.1>>
 * <<release-notes-6.5.0>>
 
+////
+[[release-notes-6.5.4]]
+=== APM Server version 6.5.4
+
+https://github.com/elastic/apm-server/compare/v6.5.3\...v6.5.4[View commits]
+
+[float]
+==== Added
+
+- Update Go to 1.10.6 {pull}1656[1656].
+////
+
 [[release-notes-6.5.3]]
 === APM Server version 6.5.3
 
