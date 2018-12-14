@@ -45,7 +45,7 @@ endif::[]
 Running {beatname_uc} with the setup command will create the index pattern and
 load visualizations, dashboards, and machine learning jobs.  Run this command:
 
-ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat") or ("{beatname_lc}"=="heartbeat")]
+ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat") or ("{beatname_lc}"=="heartbeat") or ("{beatname_lc}"=="apm-server")]
 ["source", "sh", subs="attributes"]
 --------------------------------------------
 docker run \
@@ -76,12 +76,13 @@ docker run \
   setup -E setup.kibana.host=kibana:5601 \
   -E output.elasticsearch.hosts=["elasticsearch:9200"] <1> <2>
 --------------------------------------------
+endif::[]
 
 <1> Substitute your Kibana and Elasticsearch hosts and ports.
 <2> If you are using the hosted Elasticsearch Service in Elastic Cloud, replace
 the `-E output.elasticsearch.hosts` line with the Cloud ID and elastic password
 using this syntax:
-endif::[]
+
 
 [source,shell]
 --------------------------------------------
@@ -172,7 +173,7 @@ docker run -d \
 --------------------------------------------
 endif::[]
 
-ifeval::["{beatname_lc}"=="heartbeat"]
+ifeval::[("{beatname_lc}"=="heartbeat") or ("{beatname_lc}"=="apm-server")]
 ["source", "sh", subs="attributes"]
 --------------------------------------------
 docker run -d \
@@ -183,12 +184,12 @@ docker run -d \
   --strict.perms=false -e \
   -E output.elasticsearch.hosts=["elasticsearch:9200"] <1> <2>
 --------------------------------------------
+endif::[]
 
 <1> Substitute your Elasticsearch hosts and ports.
 <2> If you are using the hosted Elasticsearch Service in Elastic Cloud, replace
 the `-E output.elasticsearch.hosts` line with the Cloud ID and elastic password
 using the syntax shown earlier.
-endif::[]
 
 ===== Customize your configuration
 
