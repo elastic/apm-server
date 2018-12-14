@@ -195,12 +195,12 @@ func TestEventTransform(t *testing.T) {
 	}{
 		{
 			Event: Event{},
-			Output: common.MapStr{
+			Output: common.MapStr{"transaction": common.MapStr{
 				"id":       "",
 				"type":     "",
 				"duration": common.MapStr{"us": 0},
 				"sampled":  true,
-			},
+			}},
 			Msg: "Empty Event",
 		},
 		{
@@ -209,12 +209,12 @@ func TestEventTransform(t *testing.T) {
 				Type:     "tx",
 				Duration: 65.98,
 			},
-			Output: common.MapStr{
+			Output: common.MapStr{"transaction": common.MapStr{
 				"id":       id,
 				"type":     "tx",
 				"duration": common.MapStr{"us": 65980},
 				"sampled":  true,
-			},
+			}},
 			Msg: "SpanCount empty",
 		},
 		{
@@ -224,13 +224,13 @@ func TestEventTransform(t *testing.T) {
 				Duration:  65.98,
 				SpanCount: SpanCount{Started: &startedSpans},
 			},
-			Output: common.MapStr{
+			Output: common.MapStr{"transaction": common.MapStr{
 				"id":         id,
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14},
 				"sampled":    true,
-			},
+			}},
 			Msg: "SpanCount only contains `started`",
 		},
 		{
@@ -240,14 +240,82 @@ func TestEventTransform(t *testing.T) {
 				Duration:  65.98,
 				SpanCount: SpanCount{Dropped: &dropped},
 			},
-			Output: common.MapStr{
+			Output: common.MapStr{"transaction": common.MapStr{
 				"id":         id,
 				"type":       "tx",
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"dropped": common.MapStr{"total": 5}},
 				"sampled":    true,
-			},
+			}},
 			Msg: "SpanCount only contains `dropped`",
+		},
+		// duplicates some integration tests
+		{
+			Event: Event{
+				Context: common.MapStr{
+					"request": common.MapStr{
+						"url": common.MapStr{
+							"port":     "80",
+							"protocol": "http:",
+						},
+					},
+				},
+			},
+			Output: common.MapStr{
+				"context": common.MapStr{
+					"request": common.MapStr{
+						"url": common.MapStr{
+							"port":     "80",
+							"protocol": "http:",
+						},
+					},
+				},
+				"transaction": common.MapStr{
+					"id":       "",
+					"type":     "",
+					"duration": common.MapStr{"us": 0},
+					"sampled":  true,
+				},
+				"url": common.MapStr{
+					"port":   80,
+					"scheme": "http",
+				},
+			},
+			Msg: "ECS transform numeric request port and protocol with trailing colon",
+		},
+		{
+			Event: Event{
+				Context: common.MapStr{
+					"request": common.MapStr{
+						"url": common.MapStr{
+							"port": "notanumber",
+							// protocol present so that output url.* is populated
+							// as tests do not check missing entries
+							"protocol": "http:",
+						},
+					},
+				},
+			},
+			Output: common.MapStr{
+				"context": common.MapStr{
+					"request": common.MapStr{
+						"url": common.MapStr{
+							"port":     "notanumber",
+							"protocol": "http:",
+						},
+					},
+				},
+				"transaction": common.MapStr{
+					"id":       "",
+					"type":     "",
+					"duration": common.MapStr{"us": 0},
+					"sampled":  true,
+				},
+				"url": common.MapStr{
+					"scheme": "http",
+				},
+			},
+			Msg: "ECS transform non-numeric request port",
 		},
 		{
 			Event: Event{
@@ -262,7 +330,7 @@ func TestEventTransform(t *testing.T) {
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
-			Output: common.MapStr{
+			Output: common.MapStr{"transaction": common.MapStr{
 				"id":         id,
 				"name":       "mytransaction",
 				"type":       "tx",
@@ -270,7 +338,7 @@ func TestEventTransform(t *testing.T) {
 				"duration":   common.MapStr{"us": 65980},
 				"span_count": common.MapStr{"started": 14, "dropped": common.MapStr{"total": 5}},
 				"sampled":    false,
-			},
+			}},
 			Msg: "Full Event",
 		},
 	}
@@ -279,7 +347,9 @@ func TestEventTransform(t *testing.T) {
 
 	for idx, test := range tests {
 		output := test.Event.Transform(tctx)
-		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		for key, expected := range test.Output {
+			assert.Equal(t, expected, output[0].Fields[key], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		}
 	}
 }
 
