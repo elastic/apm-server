@@ -44,11 +44,6 @@
 - from: context.request.http_version
   to: http.version
 
-- from: context.tags
-  to: labels
-  alias: false
-  copy_to: true
-
 - from: context.process.pid
   to: process.pid
 

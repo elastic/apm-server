@@ -534,14 +534,6 @@
           type: alias
           path: context.request.http_version
 
-    # context.tags copied here (can't alias objects)
-    - name: labels
-      type: object
-      object_type: keyword
-      dynamic: true
-      description: >
-        A flat mapping of user-defined labels with string values.
-
     - name: process
       type: group
       dynamic: false

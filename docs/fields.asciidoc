@@ -905,16 +905,6 @@ alias to: context.request.http_version
 
 --
 
-*`labels`*::
-+
---
-type: object
-
-A flat mapping of user-defined labels with string values.
-
-
---
-
 
 *`process.pid`*::
 +

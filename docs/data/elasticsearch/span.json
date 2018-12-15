@@ -22,9 +22,6 @@
             "span_tag": "something"
         }
     },
-    "labels": {
-        "span_tag": "something"
-    },
     "processor": {
         "event": "span",
         "name": "transaction"

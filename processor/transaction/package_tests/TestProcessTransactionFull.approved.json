@@ -110,9 +110,6 @@
                     "username": "foo"
                 }
             },
-            "labels": {
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
@@ -171,9 +168,6 @@
                 "tags": {
                     "span_tag": "something"
                 }
-            },
-            "labels": {
-                "span_tag": "something"
             },
             "processor": {
                 "event": "span",

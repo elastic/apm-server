@@ -26,9 +26,6 @@ import (
 )
 
 func CopyECS(fields common.MapStr) {
-	// context.tags -> labels
-	utility.Add(fields, "labels", fields["context"].(common.MapStr)["tags"])
-
 	// context.request.url.protocol -> url.scheme (minus trailing colon)
 	if scheme, err := fields.GetValue("context.request.url.protocol"); err == nil {
 		if schemeStr, ok := scheme.(string); ok {
