@@ -136,7 +136,7 @@ func Add(m common.MapStr, key string, val interface{}) {
 	}
 }
 
-// MergeAdd modifies `m` *in place*, inserting `valu` at the given `key`.
+// MergeAdd modifies `m` *in place*, inserting `val` at the given `key`.
 // If `key` doesn't exist in m(at the top level), it gets created.
 // If the value under `key` is not a map, MergeAdd does nothing.
 func MergeAdd(m common.MapStr, key string, val common.MapStr) {

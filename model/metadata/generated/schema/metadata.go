@@ -161,7 +161,7 @@ const ModelSchema = `{
             "maxLength": 1024
         }
     }  },
-        {  
+        {
             "properties": {
                 "kubernetes": {
                     "properties": {

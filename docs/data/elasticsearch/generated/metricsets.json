@@ -30,6 +30,10 @@
             "double_gauge": 3.141592653589793,
             "float_gauge": 9.16,
             "integer_gauge": 42767,
+            "labels": {
+                "code": "200",
+                "some.other.code": "abc"
+            },
             "long_gauge": 3147483648,
             "negative": {
                 "d": {

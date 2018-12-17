@@ -1,6 +1,8 @@
-import yaml
-import os
 import argparse
+from collections import OrderedDict
+import os
+
+import yaml
 
 
 def document_fields(output, section, sections, path):
@@ -66,8 +68,8 @@ def document_field(output, field, field_path):
         if not field["index"]:
             output.write("{}\n\n".format("Field is not indexed."))
 
-    if "enable" in field:
-        if not field["enable"]:
+    if "enabled" in field:
+        if not field["enabled"]:
             output.write("{}\n\n".format("Object is not enabled."))
 
     if "multi_fields" in field:
@@ -102,6 +104,21 @@ grouped in the following categories:
     if docs is None:
         print("fields.yml file is empty. fields.asciidoc cannot be generated.")
         return
+
+    # deduplicate fields, last one wins
+    for section in docs:
+        if not section.get("fields"):
+            continue
+        fields = OrderedDict()
+        for field in section["fields"]:
+            name = field["name"]
+            if name in fields:
+                assert field["type"] == fields[name]["type"], 'field "{}" redefined with different type "{}"'.format(
+                    name, field["type"])
+                fields[name].update(field)
+            else:
+                fields[name] = field
+        section["fields"] = list(fields.values())
 
     # Create sections from available fields
     sections = {}

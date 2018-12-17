@@ -62,8 +62,13 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"context.user.user-agent",
 		"context.user.ip",
 		"context.system.ip",
+		tests.Group("context.db"),
 		"context.http",
+		"context.http.url",
+		"context.http.method",
 		"context.http.status_code",
+		"context.response.headers.user-agent",
+		tests.Group("container"),
 
 		// we don't support these yet
 		"kubernetes.labels",
@@ -106,9 +111,11 @@ func transactionRequiredKeys() *tests.Set {
 
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
-		"processor.event", "processor.name", "listening",
+		"host.name", "processor.event", "processor.name", "listening",
 		"transaction.marks",
 		"context.tags",
+		"labels",
+		"url.scheme", // length always <= context.request.url.protocol
 
 		// metadata fields - tested in metadata tests
 		tests.Group("context.process"),

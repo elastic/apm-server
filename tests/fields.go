@@ -46,8 +46,11 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		//dynamically indexed:
 		"context.tags.organization_uuid",
 		"context.tags.span_tag",
+		"labels.organization_uuid",
+		"labels.span_tag",
 		//known not-indexed fields:
 		Group("context.custom"),
+		Group("context.db"),
 		Group("context.request.headers"),
 		Group("context.request.cookies"),
 		Group("context.request.socket"),
@@ -65,7 +68,8 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 }
 
 func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields, allowedNotInFields *Set, fieldMapping map[string]string) {
-	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled, isNotAlias)
+
 	require.NoError(t, err)
 
 	t.Log("Old Field names: ", allFieldNames.Array())
@@ -85,7 +89,7 @@ func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields,
 }
 
 func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields, allowedNotInEvent *Set) {
-	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled, isNotAlias)
 	require.NoError(t, err)
 
 	missing := Difference(allFieldNames, eventFields)
@@ -219,4 +223,24 @@ func isEnabled(f common.Field) bool {
 
 func isDisabled(f common.Field) bool {
 	return f.Enabled != nil && !*f.Enabled
+}
+
+func isIndexed(f common.Field) bool {
+	return f.Index == nil || *f.Index
+}
+
+func isNotAlias(f common.Field) bool {
+	if f.Type == "alias" {
+		return false
+	}
+
+	if f.Type == "group" {
+		onlyAliases := true
+		for _, child := range f.Fields {
+			onlyAliases = onlyAliases && !isNotAlias(child)
+		}
+		return !onlyAliases
+	}
+
+	return true
 }

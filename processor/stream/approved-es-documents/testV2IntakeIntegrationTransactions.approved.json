@@ -228,6 +228,10 @@
                     "started": 17
                 },
                 "type": "request"
+            },
+            "url": {
+                "port": 8080,
+                "scheme": "https"
             }
         },
         {

@@ -134,7 +134,7 @@ func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	metadataProcSetup().KeywordLimitation(
 		t,
-		tests.NewSet("processor.event", "processor.name", "listening",
+		tests.NewSet("processor.event", "processor.name", "listening", "labels", "url.scheme",
 			tests.Group("context.request"),
 			tests.Group("context.tags"),
 			tests.Group("transaction"),
@@ -142,13 +142,13 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("trace"),
 
 			// we don't support these yet
-			"kubernetes.labels",
 			"kubernetes.annotations",
-			"kubernetes.container.name",
 			"kubernetes.container.image",
+			"kubernetes.container.name",
+			"kubernetes.labels",
+			"docker.container.image",
 			"docker.container.labels",
 			"docker.container.name",
-			"docker.container.image",
 		),
 		fieldMapping,
 	)

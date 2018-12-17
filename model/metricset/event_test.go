@@ -209,6 +209,9 @@ func TestTransform(t *testing.T) {
 					"a":         common.MapStr{"counter": float64(612)},
 					"some":      common.MapStr{"gauge": float64(9.16)},
 					"processor": common.MapStr{"event": "metric", "name": "metric"},
+					"labels": common.MapStr{
+						"a.tag": "a.tag.value",
+					},
 				},
 			},
 			Msg: "Payload with valid metric.",

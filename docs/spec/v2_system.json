@@ -4,7 +4,7 @@
     "type": ["object", "null"],
     "allOf": [
         { "$ref": "common_system.json"  },
-        {  
+        {
             "properties": {
                 "kubernetes": {
                     "properties": {

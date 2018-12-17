@@ -33,15 +33,6 @@ Alias fields for compatibility with 7.x.
 
 
 
-*`host.hostname`*::
-+
---
-type: alias
-
-alias to: beat.hostname
-
---
-
 *`event.timezone`*::
 +
 --
@@ -194,16 +185,61 @@ Any arbitrary contextual information regarding the event, captured by the agent,
 
 
 
-*`context.tags`*::
+*`context.custom`*::
 +
 --
 type: object
 
-A flat mapping of user-defined tags with string values.
-
+Object is not enabled.
 
 --
 
+
+*`context.db.instance`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.db.statement`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.db.type`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.db.user`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+
+*`context.http.method`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
 
 *`context.http.status_code`*::
 +
@@ -211,6 +247,25 @@ A flat mapping of user-defined tags with string values.
 type: long
 
 The status code of the http response.
+
+
+--
+
+*`context.http.url`*::
++
+--
+type: keyword
+
+Field is not indexed.
+
+--
+
+*`context.tags`*::
++
+--
+type: object
+
+A flat mapping of user-defined tags with string values.
 
 
 --
@@ -266,6 +321,51 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 --
 
+
+*`context.request.body`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.request.cookies`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.request.headers`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.request.env`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.request.socket`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
 
 [float]
 == url fields
@@ -375,6 +475,24 @@ The http method of the request leading to this event.
 --
 
 
+*`context.response.headers`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
+
+*`context.response.headers_sent`*::
++
+--
+type: boolean
+
+Field is not indexed.
+
+--
+
 *`context.response.status_code`*::
 +
 --
@@ -448,6 +566,15 @@ IP of the host that records the event.
 Information pertaining to the running process where the data was collected
 
 
+
+*`context.process.argv`*::
++
+--
+type: object
+
+Object is not enabled.
+
+--
 
 *`context.process.pid`*::
 +
@@ -634,6 +761,372 @@ type: keyword
 
 The ID of the parent event.
 
+
+--
+
+
+*`agent.name`*::
++
+--
+type: alias
+
+alias to: context.service.agent.name
+
+--
+
+*`agent.version`*::
++
+--
+type: alias
+
+alias to: context.service.agent.version
+
+--
+
+
+*`client.ip`*::
++
+--
+type: alias
+
+alias to: context.user.ip
+
+--
+
+
+*`observer.hostname`*::
++
+--
+type: alias
+
+alias to: beat.hostname
+
+--
+
+*`observer.listening`*::
++
+--
+type: alias
+
+alias to: listening
+
+--
+
+*`observer.type`*::
++
+--
+type: alias
+
+alias to: beat.name
+
+--
+
+*`observer.version`*::
++
+--
+type: alias
+
+alias to: beat.version
+
+--
+
+
+*`host.architecture`*::
++
+--
+type: alias
+
+alias to: context.system.architecture
+
+--
+
+*`host.ip`*::
++
+--
+type: alias
+
+alias to: context.system.ip
+
+--
+
+*`host.hostname`*::
++
+--
+type: alias
+
+alias to: context.system.hostname
+
+--
+
+
+*`host.os.platform`*::
++
+--
+type: alias
+
+alias to: context.system.platform
+
+--
+
+
+*`http.request.method`*::
++
+--
+type: alias
+
+alias to: context.request.method
+
+--
+
+*`http.response.finished`*::
++
+--
+type: alias
+
+alias to: context.response.finished
+
+--
+
+*`http.response.status_code`*::
++
+--
+type: alias
+
+alias to: context.response.status_code
+
+--
+
+*`http.version`*::
++
+--
+type: alias
+
+alias to: context.request.http_version
+
+--
+
+
+*`process.pid`*::
++
+--
+type: alias
+
+alias to: context.process.pid
+
+--
+
+*`process.ppid`*::
++
+--
+type: alias
+
+alias to: context.process.ppid
+
+--
+
+*`process.title`*::
++
+--
+type: alias
+
+alias to: context.process.title
+
+--
+
+
+*`service.environment`*::
++
+--
+type: alias
+
+alias to: context.service.environment
+
+--
+
+
+*`service.framework.name`*::
++
+--
+type: alias
+
+alias to: context.service.framework.name
+
+--
+
+*`service.framework.version`*::
++
+--
+type: alias
+
+alias to: context.service.framework.version
+
+--
+
+
+*`service.language.name`*::
++
+--
+type: alias
+
+alias to: context.service.language.name
+
+--
+
+*`service.language.version`*::
++
+--
+type: alias
+
+alias to: context.service.language.version
+
+--
+
+*`service.name`*::
++
+--
+type: alias
+
+alias to: context.service.name
+
+--
+
+
+*`service.runtime.name`*::
++
+--
+type: alias
+
+alias to: context.service.runtime.name
+
+--
+
+*`service.runtime.version`*::
++
+--
+type: alias
+
+alias to: context.service.runtime.version
+
+--
+
+*`service.version`*::
++
+--
+type: alias
+
+alias to: context.service.version
+
+--
+
+
+*`url.domain`*::
++
+--
+type: alias
+
+alias to: context.request.url.hostname
+
+--
+
+*`url.fragment`*::
++
+--
+type: alias
+
+alias to: context.request.url.hash
+
+--
+
+*`url.full`*::
++
+--
+type: alias
+
+alias to: context.request.url.full
+
+--
+
+*`url.original`*::
++
+--
+type: alias
+
+alias to: context.request.url.raw
+
+--
+
+*`url.path`*::
++
+--
+type: alias
+
+alias to: context.request.url.pathname
+
+--
+
+*`url.port`*::
++
+--
+type: long
+
+The port of the request, e.g. 443.
+
+
+--
+
+*`url.query`*::
++
+--
+type: alias
+
+alias to: context.request.url.search
+
+--
+
+*`url.scheme`*::
++
+--
+type: keyword
+
+The scheme of the request, e.g. "https".
+
+
+--
+
+
+*`user.email`*::
++
+--
+type: alias
+
+alias to: context.user.email
+
+--
+
+*`user.id`*::
++
+--
+type: alias
+
+alias to: context.user.id
+
+--
+
+*`user.name`*::
++
+--
+type: alias
+
+alias to: context.user.username
+
+--
+
+*`user_agent.original.text`*::
++
+--
+type: alias
+
+alias to: context.user.user-agent
 
 --
 
@@ -1312,26 +1805,6 @@ Unique host id.
 
 --
 
-*`host.architecture`*::
-+
---
-type: keyword
-
-Host architecture (e.g. x86_64, arm, ppc, mips).
-
-
---
-
-*`host.os.platform`*::
-+
---
-type: keyword
-
-OS platform (e.g. centos, ubuntu, windows).
-
-
---
-
 *`host.os.version`*::
 +
 --
@@ -1348,16 +1821,6 @@ OS version.
 type: keyword
 
 OS family (e.g. redhat, debian, freebsd, windows).
-
-
---
-
-*`host.ip`*::
-+
---
-type: ip
-
-List of IP-addresses.
 
 
 --

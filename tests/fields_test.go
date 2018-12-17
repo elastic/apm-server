@@ -101,3 +101,34 @@ func TestFlattenFieldNames(t *testing.T) {
 	flattenFieldNames(fields, "", disabledFields, hasName, isDisabled)
 	assert.Equal(t, expectDisabled, disabledFields)
 }
+
+func TestNotAlias(t *testing.T) {
+	fields := common.Fields{
+		{Name: "mixed", Type: "group", Fields: common.Fields{
+			{Name: "a_keyword", Type: "keyword"},
+			{Name: "an_alias", Type: "alias"},
+		}},
+		{Name: "just_aliases", Type: "group", Fields: common.Fields{
+			{Name: "an_alias", Type: "alias"},
+			{Name: "another_alias", Type: "alias"},
+			{Name: "more_just_aliases", Type: "group", Fields: common.Fields{
+				{Name: "one_more_alias", Type: "alias"},
+			}},
+		}},
+		{Name: "also", Type: "group", Fields: common.Fields{
+			{Name: "an_alias", Type: "alias"},
+			{Name: "another_alias", Type: "alias"},
+			{Name: "mixed", Type: "group", Fields: common.Fields{
+				{Name: "one_more_alias", Type: "alias"},
+				{Name: "not_an_alias", Type: "Keyword"},
+			}},
+		}},
+		{Name: "top_level_alias", Type: "alias"},
+		{Name: "top_level_keyword", Type: "keyword"},
+	}
+	expected := NewSet(
+		"mixed", "mixed.a_keyword", "also", "also.mixed", "also.mixed.not_an_alias", "top_level_keyword")
+	flat := NewSet()
+	flattenFieldNames(fields, "", flat, isNotAlias)
+	assert.Equal(t, expected, flat)
+}
