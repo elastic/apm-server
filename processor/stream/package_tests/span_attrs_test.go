@@ -56,6 +56,7 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			"listening",
 			"view spans",
 			"span.parent", // from v1
+			"transaction.sampled",
 		),
 		// not valid for the span context
 		transactionContext(),
