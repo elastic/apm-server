@@ -51,10 +51,6 @@
           scaling_factor: 1000000
           dynamic: true
 
-        - name: sampled
-          type: boolean
-          description: >
-            Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
 
         - name: span_count
           type: group

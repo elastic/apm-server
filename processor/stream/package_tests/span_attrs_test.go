@@ -57,6 +57,7 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			"listening",
 			"view spans",
 			"span.parent", // from v1
+			"transaction.sampled",
 			// ECS field copies
 			tests.Group("container"),
 
