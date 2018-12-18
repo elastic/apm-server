@@ -33,10 +33,6 @@
         - name: custom
           type: object
           enabled: false
-          indexed: false
-          analyzed: false
-          searchable: false
-          aggregatable: false
 
         - name: db
           type: group
@@ -137,26 +133,14 @@
           - name: body
             type: object
             enabled: false
-            indexed: false
-            analyzed: false
-            searchable: false
-            aggregatable: false
 
           - name: cookies
             type: object
             enabled: false
-            indexed: false
-            analyzed: false
-            searchable: false
-            aggregatable: false
 
           - name: headers
             type: object
             enabled: false
-            indexed: false
-            analyzed: false
-            searchable: false
-            aggregatable: false
             # intake enforces:
             # fields:
             # - name: content-type
@@ -169,18 +153,10 @@
           - name: env
             type: object
             enabled: false
-            indexed: false
-            analyzed: false
-            searchable: false
-            aggregatable: false
 
           - name: socket
             type: object
             enabled: false
-            indexed: false
-            analyzed: false
-            searchable: false
-            aggregatable: false
             # intake enforces:
             # fields:
             # - name: socket.encrypted
@@ -251,10 +227,6 @@
           - name: headers
             type: object
             enabled: false
-            indexed: false
-            analyzed: false
-            searchable: false
-            aggregatable: false
             # intake enforces:
             # fields:
             # - name: content-type
@@ -311,10 +283,6 @@
             - name: argv
               type: object
               enabled: false
-              indexed: false
-              analyzed: false
-              searchable: false
-              aggregatable: false
 
             - name: pid
               type: long
