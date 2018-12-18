@@ -26,7 +26,7 @@ import (
 func TestPayloadAttrsMatchFields(t *testing.T) {
 	procSetup().PayloadAttrsMatchFields(t,
 		payloadAttrsNotInFields(nil),
-		fieldsNotInPayloadAttrs(tests.NewSet("parent", "parent.id", "trace", "trace.id")))
+		fieldsNotInPayloadAttrs(tests.NewSet("parent", "parent.id", "trace", "trace.id", "transaction.sampled")))
 }
 
 func TestPayloadAttrsMatchJsonSchema(t *testing.T) {

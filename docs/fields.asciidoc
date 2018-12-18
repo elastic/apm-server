@@ -742,6 +742,16 @@ The transaction ID.
 
 --
 
+*`transaction.sampled`*::
++
+--
+type: boolean
+
+Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+
+
+--
+
 
 *`trace.id`*::
 +
@@ -1524,16 +1534,6 @@ A user-defined mapping of groups of marks in milliseconds.
 +
 --
 type: object
-
---
-
-*`transaction.sampled`*::
-+
---
-type: boolean
-
-Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context. Defaults to true.
-
 
 --
 
