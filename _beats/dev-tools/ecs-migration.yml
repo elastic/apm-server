@@ -29,7 +29,9 @@
   alias: true
 
 - from: source
-  to: ["log.file.path", "log.source.ip"]
+  to:
+  - log.file.path
+  - log.source.address
   alias: false
 
 - from: beat.name
@@ -47,9 +49,55 @@
   alias6: true
   alias: true
 
+- from: beat.timezone
+  to: event.timezone
+  alias6: true
+  alias: true
+
 # Filebeat modules
 
 ## Suricata module
+
+# Processor fields
+
+# Cloud
+- form: meta.cloud.provider
+  to: cloud.provider
+  alias: true
+  alias6: true
+
+- form: meta.cloud.instance_id
+  to: cloud.instance.id
+  alias: true
+  alias6: true
+
+- form: meta.cloud.instance_name
+  to: cloud.instance.name
+  alias: true
+  alias6: true
+
+- form: meta.cloud.machine_type
+  to: cloud.machine.type
+  alias: true
+  alias6: true
+
+- form: meta.cloud.availability_zone
+  to: cloud.availability_zone
+  alias: true
+  alias6: true
+
+- form: meta.cloud.project_id
+  to: cloud.project.id
+  alias: true
+  alias6: true
+
+- form: meta.cloud.region
+  to: cloud.region
+  alias: true
+  alias6: true
+
+
+# Suricata module
 
 - from: source_ecs.ip
   to: source.ip
@@ -316,7 +364,7 @@
   to: user_agent.original
   alias: true
 
- # Note: `http` is not officially in ECS yet
+# Note: `http` is not officially in ECS yet
 
 - from: nginx.access.response_code
   to: http.response.status_code
@@ -329,7 +377,6 @@
 - from: nginx.access.method
   to: http.request.method
   alias: true
-  copy_to: false
 
 - from: nginx.access.http_version
   to: http.version
@@ -367,3 +414,29 @@
 - from: source.hostname
   to: source.domain
   alias: true
+
+# Metricbeat base fields
+- from: metricset.name
+  to: event.dataset
+  alias: false
+  comment: Data structure of field changed, old field will stay around
+  breaking: true
+
+- from: metricset.module
+  to: event.module
+  alias: true
+
+- from: metricset.rrt
+  to: event.duration
+  alias: false
+  comment: Unit changed, old field will stay around if needed
+  breaking: true
+
+- from: metricset.host
+  to: service.address
+  alias: true
+
+- from: metricset.namespace
+  to: event.dataset
+  alias: false
+  comment: No alias mapping as field did not always exist
