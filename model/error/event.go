@@ -74,6 +74,8 @@ type Event struct {
 	TraceId  *string
 	ParentId *string
 
+	TransactionSampled *bool
+
 	data    common.MapStr
 	v2Event bool
 }
@@ -119,6 +121,7 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	e.TransactionId = decoder.StringPtr(raw, "transaction_id")
 	e.ParentId = decoder.StringPtr(raw, "parent_id")
 	e.TraceId = decoder.StringPtr(raw, "trace_id")
+	e.TransactionSampled = decoder.BoolPtr(raw, "sampled", "transaction")
 	return e, decoder.Err
 }
 
@@ -194,7 +197,14 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"context":   tctx.Metadata.Merge(e.Context),
 		"processor": processorEntry,
 	}
-	utility.AddId(fields, "transaction", e.TransactionId)
+
+	if e.TransactionSampled != nil || (e.TransactionId != nil && *e.TransactionId != "") {
+		transaction := common.MapStr{}
+		utility.Add(transaction, "id", e.TransactionId)
+		utility.Add(transaction, "sampled", e.TransactionSampled)
+		utility.Add(fields, "transaction", transaction)
+	}
+
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", e.TraceId)
 

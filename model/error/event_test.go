@@ -370,10 +370,11 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 	timestampEpoch := json.Number("1496170407154000")
 	parentId, traceId := "0123456789abcdef", "01234567890123456789abcdefabcdef"
 	transaction, transactionId := "01234", "abcdefabcdef0000"
+	sampled := true
 	input := map[string]interface{}{
 		"timestamp":      timestamp,
 		"transaction_id": "abcdefabcdef0000",
-		"transaction":    map[string]interface{}{"id": "01234"},
+		"transaction":    map[string]interface{}{"id": "01234", "sampled": true},
 		"parent_id":      parentId,
 		"trace_id":       traceId,
 	}
@@ -386,11 +387,12 @@ func TestVersionedErrorEventDecode(t *testing.T) {
 
 	// test V2
 	e2 := &Event{
-		Timestamp:     timestampParsed,
-		TransactionId: &transactionId,
-		ParentId:      &parentId,
-		TraceId:       &traceId,
-		v2Event:       true,
+		Timestamp:          timestampParsed,
+		TransactionId:      &transactionId,
+		TransactionSampled: &sampled,
+		ParentId:           &parentId,
+		TraceId:            &traceId,
+		v2Event:            true,
 	}
 	input["timestamp"] = timestampEpoch
 	transformable, err = V2DecodeEvent(input, nil)
@@ -566,6 +568,7 @@ func TestEvents(t *testing.T) {
 	}
 	exMsg := "exception message"
 	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+	sampledTrue, sampledFalse := true, false
 
 	tests := []struct {
 		Tranformable transform.Transformable
@@ -589,6 +592,23 @@ func TestEvents(t *testing.T) {
 			Msg: "Payload with valid Event.",
 		},
 		{
+			Tranformable: &Event{Timestamp: timestamp, TransactionSampled: &sampledFalse},
+			Output: common.MapStr{
+				"transaction": common.MapStr{"sampled": false},
+				"context": common.MapStr{
+					"service": common.MapStr{
+						"agent": common.MapStr{"name": "", "version": ""},
+						"name":  "myservice",
+					},
+				},
+				"error": common.MapStr{
+					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+				},
+				"processor": common.MapStr{"event": "error", "name": "error"},
+			},
+			Msg: "Payload with valid Event.",
+		},
+		{
 			Tranformable: &Event{
 				Timestamp: timestamp,
 				Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
@@ -597,7 +617,8 @@ func TestEvents(t *testing.T) {
 					Message:    &exMsg,
 					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
 				},
-				TransactionId: &trId,
+				TransactionId:      &trId,
+				TransactionSampled: &sampledTrue,
 			},
 
 			Output: common.MapStr{
@@ -625,7 +646,7 @@ func TestEvents(t *testing.T) {
 					},
 				},
 				"processor":   common.MapStr{"event": "error", "name": "error"},
-				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"},
+				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79", "sampled": true},
 			},
 			Msg: "Payload with Event with Context.",
 		},
