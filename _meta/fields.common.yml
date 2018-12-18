@@ -238,6 +238,8 @@
             type: boolean
             index: false
             aggregatable: false
+            analyzed: false
+            searchable: false
 
           - name: status_code
             type: long
