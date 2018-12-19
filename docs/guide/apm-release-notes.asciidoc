@@ -3,6 +3,21 @@
 == Release notes
 
 [float]
+==== APM version 7.0.0-alpha2
+
+No significant changes.
+
+[float]
+==== APM version 7.0.0-alpha1
+
+No significant changes.
+
+////
+[float]
+==== APM version 6.6.0
+////
+
+[float]
 ==== APM version 6.5.0
 
 [float]
