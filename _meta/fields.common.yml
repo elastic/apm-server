@@ -33,10 +33,11 @@
         - name: custom
           type: object
           enabled: false
-          indexed: false
+          index: false
           analyzed: false
           searchable: false
           aggregatable: false
+          doc_values: false
 
         - name: db
           type: group
@@ -137,26 +138,29 @@
           - name: body
             type: object
             enabled: false
-            indexed: false
+            index: false
             analyzed: false
             searchable: false
             aggregatable: false
+            doc_values: false
 
           - name: cookies
             type: object
             enabled: false
-            indexed: false
+            index: false
             analyzed: false
             searchable: false
             aggregatable: false
+            doc_values: false
 
           - name: headers
             type: object
             enabled: false
-            indexed: false
+            index: false
             analyzed: false
             searchable: false
             aggregatable: false
+            doc_values: false
             # intake enforces:
             # fields:
             # - name: content-type
@@ -169,18 +173,20 @@
           - name: env
             type: object
             enabled: false
-            indexed: false
+            index: false
             analyzed: false
             searchable: false
             aggregatable: false
+            doc_values: false
 
           - name: socket
             type: object
             enabled: false
-            indexed: false
+            index: false
             analyzed: false
             searchable: false
             aggregatable: false
+            doc_values: false
             # intake enforces:
             # fields:
             # - name: socket.encrypted
@@ -251,10 +257,11 @@
           - name: headers
             type: object
             enabled: false
-            indexed: false
+            index: false
             analyzed: false
             searchable: false
             aggregatable: false
+            doc_values: false
             # intake enforces:
             # fields:
             # - name: content-type
@@ -266,6 +273,7 @@
             type: boolean
             index: false
             aggregatable: false
+            searchable: false
 
           - name: status_code
             type: long
@@ -311,10 +319,11 @@
             - name: argv
               type: object
               enabled: false
-              indexed: false
+              index: false
               analyzed: false
               searchable: false
               aggregatable: false
+              doc_values: false
 
             - name: pid
               type: long

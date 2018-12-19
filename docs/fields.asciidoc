@@ -190,6 +190,8 @@ Any arbitrary contextual information regarding the event, captured by the agent,
 --
 type: object
 
+Field is not indexed.
+
 Object is not enabled.
 
 --
@@ -327,6 +329,8 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 --
 type: object
 
+Field is not indexed.
+
 Object is not enabled.
 
 --
@@ -335,6 +339,8 @@ Object is not enabled.
 +
 --
 type: object
+
+Field is not indexed.
 
 Object is not enabled.
 
@@ -345,6 +351,8 @@ Object is not enabled.
 --
 type: object
 
+Field is not indexed.
+
 Object is not enabled.
 
 --
@@ -354,6 +362,8 @@ Object is not enabled.
 --
 type: object
 
+Field is not indexed.
+
 Object is not enabled.
 
 --
@@ -362,6 +372,8 @@ Object is not enabled.
 +
 --
 type: object
+
+Field is not indexed.
 
 Object is not enabled.
 
@@ -480,6 +492,8 @@ The http method of the request leading to this event.
 --
 type: object
 
+Field is not indexed.
+
 Object is not enabled.
 
 --
@@ -571,6 +585,8 @@ Information pertaining to the running process where the data was collected
 +
 --
 type: object
+
+Field is not indexed.
 
 Object is not enabled.
 
