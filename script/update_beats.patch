@@ -1,0 +1,62 @@
+diff --git dev-tools/ecs-migration.yml dev-tools/ecs-migration.yml
+index ea3268a0..3ec8dfde 100644
+--- dev-tools/ecs-migration.yml
++++ dev-tools/ecs-migration.yml
+@@ -15,11 +15,6 @@
+
+ # Beat fields
+
+-- from: beat.hostname
+-  to: host.hostname
+-  alias6: true
+-  alias: true
+-
+ - from: beat.timezone
+   to: event.timezone
+   alias6: true
+diff --git libbeat/_meta/fields.common.yml libbeat/_meta/fields.common.yml
+index 4866b0462..d9401b8c1 100644
+--- libbeat/_meta/fields.common.yml
++++ libbeat/_meta/fields.common.yml
+@@ -66,9 +66,6 @@
+     Alias fields for compatibility with 7.x.
+   fields:
+     # Common Beats fields
+-    - name: host.hostname
+-      type: alias
+-      path: beat.hostname
+     - name: event.timezone
+       type: alias
+       path: beat.timezone
+diff --git libbeat/processors/add_host_metadata/_meta/fields.yml libbeat/processors/add_host_metadata/_meta/fields.yml
+index b579df3b2..770ca050f 100644
+--- libbeat/processors/add_host_metadata/_meta/fields.yml
++++ libbeat/processors/add_host_metadata/_meta/fields.yml
+@@ -15,14 +15,6 @@
+           type: keyword
+           description: >
+             Unique host id.
+-        - name: architecture
+-          type: keyword
+-          description: >
+-            Host architecture (e.g. x86_64, arm, ppc, mips).
+-        - name: os.platform
+-          type: keyword
+-          description: >
+-            OS platform (e.g. centos, ubuntu, windows).
+         - name: os.version
+           type: keyword
+           description: >
+@@ -31,12 +23,7 @@
+           type: keyword
+           description: >
+             OS family (e.g. redhat, debian, freebsd, windows).
+-        - name: ip
+-          type: ip
+-          description: >
+-            List of IP-addresses.
+         - name: mac
+           type: keyword
+           description: >
+             List of hardware-addresses, usually MAC-addresses.
+-
