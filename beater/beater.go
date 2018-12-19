@@ -25,10 +25,10 @@ import (
 	"sync"
 	"time"
 
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/transport"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-agent-go"
-	"github.com/elastic/apm-agent-go/transport"
 	"github.com/elastic/apm-server/ingest/pipeline"
 	"github.com/elastic/apm-server/pipelistener"
 	"github.com/elastic/apm-server/publish"
@@ -170,9 +170,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 	return nil
 }
 
-// initTracer configures and returns an elasticapm.Tracer for tracing
+// initTracer configures and returns an apm.Tracer for tracing
 // the APM server's own execution.
-func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticapm.Tracer, net.Listener, error) {
+func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*apm.Tracer, net.Listener, error) {
 	if !config.SelfInstrumentation.isEnabled() {
 		os.Setenv("ELASTIC_APM_ACTIVE", "false")
 		logger.Infof("self instrumentation is disabled")
@@ -181,7 +181,7 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 		logger.Infof("self instrumentation is enabled")
 	}
 
-	tracer, err := elasticapm.NewTracer(info.Beat, info.Version)
+	tracer, err := apm.NewTracer(info.Beat, info.Version)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -196,13 +196,23 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 	tracer.SetLogger(logp.NewLogger("tracing"))
 
 	// tracing destined for external host
-	// only first host used until https://github.com/elastic/apm-agent-go/issues/200
 	if config.SelfInstrumentation.Hosts != nil {
-		t, err := transport.NewHTTPTransport(config.SelfInstrumentation.Hosts[0], config.SelfInstrumentation.SecretToken)
+		t, err := transport.NewHTTPTransport()
 		if err != nil {
 			tracer.Close()
 			return nil, nil, err
 		}
+		urls := make([]*url.URL, len(config.SelfInstrumentation.Hosts))
+		for i, host := range config.SelfInstrumentation.Hosts {
+			if u, err := url.Parse(host); err != nil {
+				tracer.Close()
+				return nil, nil, err
+			} else {
+				urls[i] = u
+			}
+		}
+		t.SetServerURL(urls...)
+		t.SetSecretToken(config.SelfInstrumentation.SecretToken)
 		tracer.Transport = t
 		logger.Infof("self instrumentation directed to %s", config.SelfInstrumentation.Hosts[0])
 
@@ -215,18 +225,20 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticap
 	// - skip tracing when the requests come from the in-process transport
 	//   (i.e. to avoid recursive/repeated tracing.)
 	lis := pipelistener.New()
-	transport, err := transport.NewHTTPTransport("http://localhost", config.SecretToken)
+	selfTransport, err := transport.NewHTTPTransport()
+	selfTransport.SetServerURL(&url.URL{Scheme: "http", Host: "localhost"})
+	selfTransport.SetSecretToken(config.SecretToken)
 	if err != nil {
 		tracer.Close()
 		lis.Close()
 		return nil, nil, err
 	}
-	transport.Client.Transport = &http.Transport{
+	selfTransport.Client.Transport = &http.Transport{
 		DialContext:     lis.DialContext,
 		MaxIdleConns:    100,
 		IdleConnTimeout: 90 * time.Second,
 	}
-	tracer.Transport = transport
+	tracer.Transport = selfTransport
 	return tracer, lis, nil
 }
 

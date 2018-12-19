@@ -209,59 +209,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
-Dependency: github.com/elastic/apm-agent-go
-Version: v0.5.1
-Revision: a23d41b19d5d148ab96034ae27a52a9314014490
-License type (autodetected): Apache-2.0
-./vendor/github.com/elastic/apm-agent-go/LICENSE:
---------------------------------------------------------------------
-Apache License 2.0
-
-
---------------------------------------------------------------------
-Dependency: github.com/elastic/apm-agent-go/internal/fastjson
-Version: v0.5.1
-Revision: a23d41b19d5d148ab96034ae27a52a9314014490
-License type (autodetected): MIT
-./vendor/github.com/elastic/apm-agent-go/internal/fastjson/LICENSE.easyjson.txt:
---------------------------------------------------------------------
-Copyright (c) 2016 Mail.Ru Group
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
---------------------------------------------------------------------
-Dependency: github.com/elastic/apm-agent-go/internal/radix
-Version: v0.5.1
-Revision: a23d41b19d5d148ab96034ae27a52a9314014490
-License type (autodetected): MIT
-./vendor/github.com/elastic/apm-agent-go/internal/radix/LICENSE.goradix.txt:
---------------------------------------------------------------------
-The MIT License (MIT)
-
-Copyright (c) 2014 Armon Dadgar
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
---------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
 Revision: ded3b7652939f13e7c26fd99356c454b45169090
@@ -1577,6 +1524,34 @@ are those of the authors and should not be interpreted as representing
 official policies, either expressed or implied, of Richard Crowley.
 
 --------------------------------------------------------------------
+Dependency: github.com/rs/zerolog
+Revision: c482b206231df1662b9e1895a9ba17a88b11220c
+License type (autodetected): MIT
+./vendor/github.com/rs/zerolog/LICENSE:
+--------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2017 Olivier Poitrey
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------
 Dependency: github.com/ryanuber/go-glob
 Revision: 256dc444b735e061061cf46c809487313d5b0065
 License type (autodetected): MIT
@@ -2094,6 +2069,53 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+--------------------------------------------------------------------
+Dependency: go.elastic.co/apm
+Version: v1.1.1
+Revision: 69736506625fe7b07410587a5f993669f018b821
+License type (autodetected): Apache-2.0
+./vendor/go.elastic.co/apm/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
+Dependency: go.elastic.co/apm/internal/radix
+Version: v1.1.1
+Revision: 69736506625fe7b07410587a5f993669f018b821
+License type (autodetected): MIT
+./vendor/go.elastic.co/apm/internal/radix/LICENSE.goradix.txt:
+--------------------------------------------------------------------
+The MIT License (MIT)
+
+Copyright (c) 2014 Armon Dadgar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------
+Dependency: go.elastic.co/fastjson
+Revision: 676cec79bd027a8a4618de0991f27cfe632978f1
+License type (autodetected): Apache-2.0
+./vendor/go.elastic.co/fastjson/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
 --------------------------------------------------------------------
 Dependency: go.uber.org/atomic
 Revision: 8474b86a5a6f79c443ce4b2992817ff32cf208b8

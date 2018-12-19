@@ -27,9 +27,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	publishertesting "github.com/elastic/beats/libbeat/publisher/testing"
+)
+
+// transactions from testdata/intake-v2/transactions.ndjson used to trigger tracing
+var testTransactionIds = tests.NewSet(
+	"945254c567a5417e",
+	"4340a8e0df1906ecbfa9",
+	"cdef4340a8e0df19",
 )
 
 func TestServerTracingEnabled(t *testing.T) {
@@ -41,16 +49,15 @@ func TestServerTracingEnabled(t *testing.T) {
 	for len(selfTransactions) < 2 {
 		select {
 		case e := <-txEvents:
-			name := eventTransactionName(e)
-			if name == "GET /api/types" {
+			if testTransactionIds.Contains(eventTransactionId(e)) {
 				continue
 			}
-			selfTransactions = append(selfTransactions, name)
+			selfTransactions = append(selfTransactions, eventTransactionName(e))
 		case <-time.After(5 * time.Second):
 			assert.FailNow(t, "timed out waiting for transaction")
 		}
 	}
-	assert.Contains(t, selfTransactions, "POST "+BackendTransactionsURL)
+	assert.Contains(t, selfTransactions, "POST "+V2BackendURL)
 	assert.Contains(t, selfTransactions, "ProcessPending")
 
 	// We expect no more events, i.e. no recursive self-tracing.
@@ -69,8 +76,8 @@ func TestServerTracingExternal(t *testing.T) {
 		t.Skip("skipping server test")
 	}
 
-	os.Setenv("ELASTIC_APM_FLUSH_INTERVAL", "100ms")
-	defer os.Unsetenv("ELASTIC_APM_FLUSH_INTERVAL")
+	os.Setenv("ELASTIC_APM_API_REQUEST_TIME", "100ms")
+	defer os.Unsetenv("ELASTIC_APM_API_REQUEST_TIME")
 
 	// start up a fake remote apm-server
 	requests := make(chan *http.Request)
@@ -90,8 +97,8 @@ func TestServerTracingExternal(t *testing.T) {
 
 	// make a transaction request
 	baseUrl, client := apm.client(false)
-	req := makeTransactionRequest(t, baseUrl)
-	req.Header.Add("Content-Type", "application/json")
+	req := makeTransactionV2Request(t, baseUrl)
+	req.Header.Add("Content-Type", "application/x-ndjson")
 	res, err := client.Do(req)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
@@ -100,7 +107,7 @@ func TestServerTracingExternal(t *testing.T) {
 	select {
 	case r := <-requests:
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "/v1/transactions", r.RequestURI)
+		assert.Equal(t, V2BackendURL, r.RequestURI)
 	case <-time.After(time.Second):
 		assert.FailNow(t, "timed out waiting for transaction to")
 	}
@@ -114,11 +121,16 @@ func TestServerTracingDisabled(t *testing.T) {
 	for {
 		select {
 		case e := <-txEvents:
-			assert.Equal(t, "GET /api/types", eventTransactionName(e))
+			assert.True(t, testTransactionIds.Contains(eventTransactionId(e)))
 		case <-time.After(time.Second):
 			return
 		}
 	}
+}
+
+func eventTransactionId(event beat.Event) string {
+	transaction := event.Fields["transaction"].(common.MapStr)
+	return transaction["id"].(string)
 }
 
 func eventTransactionName(event beat.Event) string {
@@ -149,8 +161,8 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 		t.Skip("skipping server test")
 	}
 
-	os.Setenv("ELASTIC_APM_FLUSH_INTERVAL", "100ms")
-	defer os.Unsetenv("ELASTIC_APM_FLUSH_INTERVAL")
+	os.Setenv("ELASTIC_APM_API_REQUEST_TIME", "100ms")
+	defer os.Unsetenv("ELASTIC_APM_API_REQUEST_TIME")
 
 	events := make(chan beat.Event, 10)
 	pubClient := publishertesting.NewChanClientWith(events)
@@ -170,8 +182,8 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 
 	// Send a transaction request so we have something to trace.
 	baseUrl, client := beater.client(false)
-	req := makeTransactionRequest(t, baseUrl)
-	req.Header.Add("Content-Type", "application/json")
+	req := makeTransactionV2Request(t, baseUrl)
+	req.Header.Add("Content-Type", "application/x-ndjson")
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
 	resp.Body.Close()

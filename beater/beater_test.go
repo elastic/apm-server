@@ -35,8 +35,8 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
@@ -467,7 +467,7 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, bea
 
 func SetupServer(b *testing.B) *http.ServeMux {
 	pip := DummyPipeline()
-	pub, err := publish.NewPublisher(pip, 1, time.Duration(0), elasticapm.DefaultTracer)
+	pub, err := publish.NewPublisher(pip, 1, time.Duration(0), apm.DefaultTracer)
 	if err != nil {
 		b.Fatal("error initializing publisher", err)
 	}
