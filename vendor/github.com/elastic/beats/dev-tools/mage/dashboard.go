@@ -15,32 +15,39 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build !windows
-
-package file
+package mage
 
 import (
-	"errors"
-	"os"
-	"syscall"
+	"fmt"
+	"path/filepath"
+
+	"github.com/magefile/mage/sh"
 )
 
-func stat(name string, statFunc func(name string) (os.FileInfo, error)) (FileInfo, error) {
-	info, err := statFunc(name)
+// ExportDashboard exports a dashboard from Kibana and writes it into the given module.
+func ExportDashboard() error {
+	module := EnvOr("MODULE", "")
+	if module == "" {
+		return fmt.Errorf("MODULE must be specified")
+	}
+
+	id := EnvOr("ID", "")
+	if id == "" {
+		return fmt.Errorf("Dashboad ID must be specified")
+	}
+
+	beatsDir, err := ElasticBeatsDir()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return wrap(info)
-}
+	// TODO: This is currently hardcoded for KB 6, we need to figure out what we do for KB 7
+	file := CWD("module", module, "_meta/kibana/6/dashboard", id+".json")
 
-func wrap(info os.FileInfo) (FileInfo, error) {
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		return nil, errors.New("failed to get uid/gid")
-	}
+	dashboardCmd := sh.RunCmd("go", "run",
+		filepath.Join(beatsDir, "dev-tools/cmd/dashboards/export_dashboards.go"),
+		"-output", file, "-dashboard", id,
+	)
 
-	uid := int(stat.Uid)
-	gid := int(stat.Gid)
-	return fileInfo{FileInfo: info, uid: &uid, gid: &gid}, nil
+	return dashboardCmd()
 }

@@ -1,8 +1,6 @@
-import argparse
-from collections import OrderedDict
-import os
-
 import yaml
+import os
+import argparse
 
 
 def document_fields(output, section, sections, path):
@@ -68,8 +66,8 @@ def document_field(output, field, field_path):
         if not field["index"]:
             output.write("{}\n\n".format("Field is not indexed."))
 
-    if "enabled" in field:
-        if not field["enabled"]:
+    if "enable" in field:
+        if not field["enable"]:
             output.write("{}\n\n".format("Object is not enabled."))
 
     if "multi_fields" in field:
@@ -105,21 +103,6 @@ grouped in the following categories:
         print("fields.yml file is empty. fields.asciidoc cannot be generated.")
         return
 
-    # deduplicate fields, last one wins
-    for section in docs:
-        if not section.get("fields"):
-            continue
-        fields = OrderedDict()
-        for field in section["fields"]:
-            name = field["name"]
-            if name in fields:
-                assert field["type"] == fields[name]["type"], 'field "{}" redefined with different type "{}"'.format(
-                    name, field["type"])
-                fields[name].update(field)
-            else:
-                fields[name] = field
-        section["fields"] = list(fields.values())
-
     # Create sections from available fields
     sections = {}
     for v in docs:
@@ -147,11 +130,12 @@ if __name__ == "__main__":
     parser.add_argument("path", help="Path to the beat folder")
     parser.add_argument("beattitle", help="The beat title")
     parser.add_argument("es_beats", help="The path to the general beats folder")
+    parser.add_argument("--output_path", default="", dest="output_path", help="Output path, if different from path")
 
     args = parser.parse_args()
 
     beat_path = args.path
-    beat_title = args.beattitle
+    beat_title = args.beattitle.title()
     es_beats = args.es_beats
 
     fields_yml = beat_path + "/fields.yml"
@@ -160,7 +144,10 @@ if __name__ == "__main__":
     with open(fields_yml) as f:
         fields = f.read()
 
-    output = open(beat_path + "/docs/fields.asciidoc", 'w')
+    if args.output_path is not "":
+        output = open(os.path.join(args.output_path, "docs/fields.asciidoc"), 'w')
+    else:
+        output = open(os.path.join(beat_path, "docs/fields.asciidoc"), 'w')
 
     try:
         fields_to_asciidoc(fields, output, beat_title)
