@@ -65,7 +65,8 @@ func (e *smapElasticsearch) runESQuery(body map[string]interface{}) (*es.SearchR
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for _, client := range e.clients {
-		_, result, err = client.Connection.SearchURIWithBody(e.index, "", nil, body)
+		_, result, err = client.Connection.SearchURIWithBody(e.index, "",
+			map[string]string{"rest_total_hits_as_int": "true"}, body)
 		if err == nil {
 			return result, nil
 		}
