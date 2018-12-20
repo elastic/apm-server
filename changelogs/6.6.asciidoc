@@ -1,0 +1,24 @@
+[[release-notes-6.6]]
+== APM Server version 6.6
+
+https://github.com/elastic/apm-server/compare/6.5\...6.6[View commits]
+
+* <<release-notes-6.6.0>>
+
+[[release-notes-6.6.0]]
+=== APM Server version 6.6.0
+
+https://github.com/elastic/apm-server/compare/v6.5.4\...v6.6.0[View commits]
+
+[float]
+==== Added
+
+- Add `span.sync` property to intake json spec and index field in ES. {pull}1548[1548].
+- Make `service.framework` properties optional and nullable {pull}1546[1546].
+- Add optional `span.subtype` and `span.action` properties. {pull}1618[1618].
+- Add `transaction.sampled` to errors {pull}1662[1662].
+
+[float]
+==== Bug fixes
+
+- Fix index pattern bundled with Kibana to be in sync with ES template pull{1571}[1571].

@@ -1,0 +1,21 @@
+[[release-notes-7.0]]
+== APM Server version 7.0 alpha
+
+* <<release-notes-7.0.0-alpha2>>
+* <<release-notes-7.0.0-alpha1>>
+
+[[release-notes-7.0.0-alpha2]]
+=== APM Server version 7.0.0-alpha2
+
+[float]
+==== Added
+
+- Update Go to 1.11.2 {pull}1605[1605].
+- Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
+- Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
+- Build default distribution under the Elastic License. {pull}1645[1645].
+
+[[release-notes-7.0.0-alpha1]]
+=== APM Server version 7.0.0-alpha1
+
+No significant changes.
