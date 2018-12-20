@@ -53,7 +53,8 @@ var (
 	ClientSideErrorsURL               = "/v1/client-side/errors"
 	RumErrorsURL                      = "/v1/rum/errors"
 	MetricsURL                        = "/v1/metrics"
-	HealthCheckURL                    = "/healthcheck"
+	HealthCheckURL                    = "/"
+	DeprecatedHealthCheckURL          = "/healthcheck"
 )
 
 const v2BurstMultiplier = 3

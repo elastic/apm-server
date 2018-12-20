@@ -172,7 +172,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
 	}
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
-	mux.Handle(HealthCheckURL, healthCheckHandler())
+	mux.Handle(DeprecatedHealthCheckURL, healthCheckHandler())
 
 	if beaterConfig.Expvar.isEnabled() {
 		path := beaterConfig.Expvar.Url
