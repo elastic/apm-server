@@ -347,7 +347,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "span"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
-            rs['hits']['total'], count)
+            rs['hits']['total'], {u'relation': u'eq', u'value': count})
         for doc in rs['hits']['hits']:
             span = doc["_source"]["span"]
             self.check_smap(span, updated, expected_err)
