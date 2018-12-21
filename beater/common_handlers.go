@@ -162,7 +162,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
 	for path, route := range V1Routes {
 		logger.Infof("Path %s added to request handler", path)
 
-		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
+		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report, path != SourcemapsURL))
 	}
 
 	for path, route := range V2Routes {
@@ -172,7 +172,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
 	}
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
-	mux.Handle(HealthCheckURL, healthCheckHandler())
+	mux.Handle(DeprecatedHealthCheckURL, healthCheckHandler())
 
 	if beaterConfig.Expvar.isEnabled() {
 		path := beaterConfig.Expvar.Url
