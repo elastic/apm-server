@@ -83,7 +83,7 @@ def iterate(val_id, key, v1, v2):
     else:
         d = jsondiff.JsonDiffer(syntax='symmetric').diff(*json_val(v1, v2))
         if d:
-            if key == "attributes.title":
+            if key == "attributes.title" or key == "attributes.fields.name=transaction.marks.*.*":
                 return ret_val
             ret_val = 2
             print("Difference for id '{}' for key '{}'".format(val_id, key))

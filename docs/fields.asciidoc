@@ -922,7 +922,7 @@ A user-defined mapping of groups of marks in milliseconds.
 
 --
 
-*`transaction.marks.navigationTiming`*::
+*`transaction.marks.*.*`*::
 +
 --
 type: object
