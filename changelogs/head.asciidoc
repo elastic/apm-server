@@ -1,4 +1,9 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
+[float]
+==== Added
+
+-- Update Go version to 1.11.4 {pull}1700[1700].
+
 https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...master[View commits]
