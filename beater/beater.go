@@ -202,16 +202,7 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*apm.Trace
 			tracer.Close()
 			return nil, nil, err
 		}
-		urls := make([]*url.URL, len(config.SelfInstrumentation.Hosts))
-		for i, host := range config.SelfInstrumentation.Hosts {
-			if u, err := url.Parse(host); err != nil {
-				tracer.Close()
-				return nil, nil, err
-			} else {
-				urls[i] = u
-			}
-		}
-		t.SetServerURL(urls...)
+		t.SetServerURL(config.SelfInstrumentation.Hosts...)
 		t.SetSecretToken(config.SelfInstrumentation.SecretToken)
 		tracer.Transport = t
 		logger.Infof("self instrumentation directed to %s", config.SelfInstrumentation.Hosts[0])

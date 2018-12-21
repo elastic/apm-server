@@ -90,7 +90,7 @@ func TestServerTracingExternal(t *testing.T) {
 	// start a test apm-server
 	ucfg, err := common.NewConfigFrom(m{"instrumentation": m{
 		"enabled": true,
-		"hosts":   "http://" + remote.Listener.Addr().String()}})
+		"hosts":   []string{"http://" + remote.Listener.Addr().String()}}})
 	apm, teardown, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer teardown()
