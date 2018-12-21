@@ -75,7 +75,7 @@ class Test(ServerBaseTest):
         assert r.status_code == 403, r.status_code
 
     def test_healthcheck(self):
-        healtcheck_url = 'http://localhost:8200/healthcheck'
+        healtcheck_url = 'http://localhost:8200/'
         r = requests.get(healtcheck_url)
         assert r.status_code == 200, r.status_code
 

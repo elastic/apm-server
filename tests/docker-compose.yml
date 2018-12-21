@@ -52,7 +52,7 @@ services:
       kibana:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f" ,"http://apm-server:8200/healthcheck"]
+      test: ["CMD", "curl", "-f" ,"http://apm-server:8200/"]
     labels:
       - "co.elatic.apm.stack-version=${STACK_VERSION}"
 
