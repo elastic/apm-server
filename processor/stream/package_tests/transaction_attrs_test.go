@@ -78,6 +78,8 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"docker.container.labels",
 		"docker.container.name",
 		"docker.container.image",
+
+		"transaction.marks.*.*",
 	)
 }
 
