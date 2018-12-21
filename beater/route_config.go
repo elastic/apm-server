@@ -53,7 +53,8 @@ var (
 	ClientSideErrorsURL               = "/v1/client-side/errors"
 	RumErrorsURL                      = "/v1/rum/errors"
 	MetricsURL                        = "/v1/metrics"
-	HealthCheckURL                    = "/healthcheck"
+	HealthCheckURL                    = "/"
+	DeprecatedHealthCheckURL          = "/healthcheck"
 )
 
 const v2BurstMultiplier = 3
@@ -197,19 +198,29 @@ type v1Route struct {
 	topLevelRequestDecoder func(*Config) decoder.ReqDecoder
 }
 
-func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report publish.Reporter) http.Handler {
-	decoder := v.configurableDecoder(beaterConfig, v.topLevelRequestDecoder(beaterConfig))
-	tconfig := v.transformConfig(beaterConfig)
+func deprecationHandler(h http.Handler) http.HandlerFunc {
 	var warned bool
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !warned {
 			logp.NewLogger("handler").Warn("Apm Server v1 API is deprecated, please update your agent version to switch to the v2 API")
 		}
 		warned = true
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report publish.Reporter, deprecated bool) http.Handler {
+	decoder := v.configurableDecoder(beaterConfig, v.topLevelRequestDecoder(beaterConfig))
+	tconfig := v.transformConfig(beaterConfig)
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res := processRequest(r, p, tconfig, report, decoder)
 		sendStatus(w, r, res)
 	})
+
+	if deprecated {
+		handler = deprecationHandler(handler)
+	}
 
 	return v.wrappingHandler(beaterConfig, handler)
 }
