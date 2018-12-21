@@ -252,7 +252,7 @@ class ElasticTest(ServerBaseTest):
         )
 
     def check_backend_error_sourcemap(self, count=1):
-        rs = self.es.search(index=self.index_name, body={
+        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "error"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
@@ -264,7 +264,7 @@ class ElasticTest(ServerBaseTest):
                 self.check_for_no_smap(err["log"])
 
     def check_backend_transaction_sourcemap(self, count=1):
-        rs = self.es.search(index=self.index_name, body={
+        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "span"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
@@ -332,7 +332,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
         )
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_name, body={
+        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "error"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
@@ -344,7 +344,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
                 self.check_smap(err["log"], updated, expected_err)
 
     def check_rum_transaction_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_name, body={
+        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "span"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)

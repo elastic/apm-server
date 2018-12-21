@@ -51,7 +51,7 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
-        rs = self.es.search(index=self.index_name, body={
+        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "transaction"}}})
         assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'transaction.approved.json')) as f:
@@ -59,7 +59,7 @@ class Test(ElasticTest):
         self.check_docs(approved, rs['hits']['hits'], 'transaction')
 
         # compare existing ES documents for spans with new ones
-        rs = self.es.search(index=self.index_name, body={
+        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "span"}}})
         assert rs['hits']['total'] == 5, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'spans.approved.json')) as f:
@@ -96,7 +96,7 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for errors with new ones
-        rs = self.es.search(index=self.index_name, body={
+        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "error"}}})
         assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'error.approved.json')) as f:
@@ -522,10 +522,6 @@ class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
 
 
 class MetricsIntegrationTest(ElasticTest):
-    def all_metrics_docs(self):
-        return self.es.search(index=self.index_name,
-                              body={"query": {"term": {"processor.event": "metric"}}})
-
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_metric_doc(self):
         self.load_docs_with_template(self.get_metricset_payload_path(), self.metrics_url, 'metric', 1)
