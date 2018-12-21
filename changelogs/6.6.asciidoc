@@ -22,3 +22,4 @@ https://github.com/elastic/apm-server/compare/v6.5.4\...v6.6.0[View commits]
 ==== Bug fixes
 
 - Fix index pattern bundled with Kibana to be in sync with ES template pull{1571}[1571].
+- Ensure all `transaction.marks.*.*` values are stored as scaled floats. pull{1704}[1704]
