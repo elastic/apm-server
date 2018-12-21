@@ -9,6 +9,19 @@ https://github.com/elastic/apm-server/compare/6.4\...6.5[View commits]
 * <<release-notes-6.5.1>>
 * <<release-notes-6.5.0>>
 
+////
+[[release-notes-6.5.5]]
+=== APM Server version 6.5.5
+
+https://github.com/elastic/apm-server/compare/v6.5.4\...v6.5.5[View commits]
+
+[float]
+==== Bug fixes
+
+- remove deprecation warning uploading sourcemaps to /assets/v1/sourcemaps {pull}1703[1703].
+- use updated healthcheck to avoid deprecation warnings on startup {pull}1703[1703].
+////
+
 [[release-notes-6.5.4]]
 === APM Server version 6.5.4
 
