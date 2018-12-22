@@ -138,7 +138,7 @@ apm-server:
     #enabled: false
     # Environment in which the APM Server is running on (eg: staging, production, etc.)
     #environment: ""
-    # Remote host to report instrumentation results to.
+    # Remote hosts to report instrumentation results to.
     #hosts:
     #  - http://remote-apm-server:8200
     # Remote apm-servers' secret_token

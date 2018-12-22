@@ -5,5 +5,6 @@
 ==== Added
 
 -- Update Go version to 1.11.4 {pull}1700[1700].
+-- Update Elastic APM Go agent to v1.1.1 {pull}1711[1711].
 
 https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...master[View commits]
