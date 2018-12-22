@@ -1848,18 +1848,21 @@
 		},
 		{
 			"checksumSHA1": "epQZICCcThx99PQo7m/HuWN5kpQ=",
+			"origin": "go.elastic.co/apm/vendor/github.com/rs/zerolog",
 			"path": "github.com/rs/zerolog",
 			"revision": "c482b206231df1662b9e1895a9ba17a88b11220c",
 			"revisionTime": "2018-12-07T17:59:01Z"
 		},
 		{
 			"checksumSHA1": "73NzoKIiJU6h4v6hg9eM4t7V/zw=",
+			"origin": "go.elastic.co/apm/vendor/github.com/rs/zerolog/internal/cbor",
 			"path": "github.com/rs/zerolog/internal/cbor",
 			"revision": "c482b206231df1662b9e1895a9ba17a88b11220c",
 			"revisionTime": "2018-12-07T17:59:01Z"
 		},
 		{
 			"checksumSHA1": "e0b96rsdqg3fNtCDQOdZA4M+MNo=",
+			"origin": "go.elastic.co/apm/vendor/github.com/rs/zerolog/internal/json",
 			"path": "github.com/rs/zerolog/internal/json",
 			"revision": "c482b206231df1662b9e1895a9ba17a88b11220c",
 			"revisionTime": "2018-12-07T17:59:01Z"
@@ -2103,6 +2106,7 @@
 		},
 		{
 			"checksumSHA1": "ou8/GMlWF1EShL3NuomgkrmDwb0=",
+			"origin": "go.elastic.co/apm/vendor/go.elastic.co/fastjson",
 			"path": "go.elastic.co/fastjson",
 			"revision": "676cec79bd027a8a4618de0991f27cfe632978f1",
 			"revisionTime": "2018-10-24T10:24:09Z"
