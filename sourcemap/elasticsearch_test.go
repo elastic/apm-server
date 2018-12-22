@@ -63,7 +63,7 @@ func TestParseResultParseError(t *testing.T) {
 			Hits: []json.RawMessage{
 				{},
 			},
-			Total: 1,
+			Total: es.Total{Value: 1},
 		},
 	}
 	c, err := parseResult(result, id)
@@ -76,7 +76,7 @@ func TestParseResultParseError(t *testing.T) {
 			Hits: []json.RawMessage{
 				[]byte(`{"_id": "1","_source": {"sourcemap": {"sourcemap": "map"}}}`),
 			},
-			Total: 1,
+			Total: es.Total{Value: 1},
 		},
 	}
 	c, err = parseResult(result, id)
