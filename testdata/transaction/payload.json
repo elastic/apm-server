@@ -108,7 +108,14 @@
                     "email": "foo@example.com"
                 },
                 "tags": {
-                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                    "keyword1": "abcda",
+                    "keyword2": "1234",
+                    "keyword3": "true",
+                    "number1": 123,
+                    "number2": 123.890,
+                    "bool1": true,
+                    "bool2": false
                 },
                 "custom": {
                     "my_key": 1,

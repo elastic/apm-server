@@ -178,7 +178,7 @@ const ModelSchema = `{
     "description": "A flat mapping of user-defined tags with string values.",
     "patternProperties": {
         "^[^.*\"]*$": {
-            "type": ["string", "null"],
+            "type": ["string", "boolean", "number", "null"],
             "maxLength": 1024
         }
     },

@@ -49,7 +49,7 @@ func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"listening", "view errors", "error id icon",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
-		"context.http", "context.http.status_code",
+		"context.http", "context.http.status_code", "context.tags.*",
 		tests.Group("timestamp"),
 	))
 }
@@ -184,7 +184,7 @@ func schemaTestData(td []tests.SchemaTestData) []tests.SchemaTestData {
 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
 			Invalid: []tests.Invalid{
 				{Msg: `context/properties/tags/type`, Values: val{"tags"}},
-				{Msg: `context/properties/tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
+				{Msg: `context/properties/tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
 				{Msg: `context/properties/tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
 		{Key: "errors.context.user.id", Valid: val{123, tests.Str1024Special},
 			Invalid: []tests.Invalid{

@@ -46,7 +46,6 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 		"context.http",
 		"context.http.url",
 		"context.http.method",
-		"context.tags.tag1",
 	)
 }
 
@@ -57,6 +56,7 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			"view spans",
 			"span.parent", // from v1
 			"transaction.sampled",
+			"context.tags.*",
 		),
 		// not valid for the span context
 		transactionContext(),
@@ -68,7 +68,7 @@ func spanPayloadAttrsNotInJsonSchema() *tests.Set {
 	return tests.NewSet(
 		"span",
 		"span.stacktrace.vars.key",
-		"span.context.tags.tag1",
+		tests.Group("span.context.tags.tag"),
 	)
 }
 
@@ -166,10 +166,10 @@ func TestPayloadDataForSpans(t *testing.T) {
 	spanProcSetup().DataValidation(t,
 		[]tests.SchemaTestData{
 			{Key: "span.context.tags",
-				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
+				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 				Invalid: []tests.Invalid{
 					{Msg: `tags/type`, Values: val{"tags"}},
-					{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
+					{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
 					{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}},
 			},
 			{Key: "span.timestamp",
