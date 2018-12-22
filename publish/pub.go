@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/beat"
 )
@@ -41,7 +41,7 @@ type Reporter func(context.Context, PendingReq) error
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
 type publisher struct {
 	pendingRequests chan PendingReq
-	tracer          *elasticapm.Tracer
+	tracer          *apm.Tracer
 	client          beat.Client
 	m               sync.RWMutex
 	stopped         bool
@@ -62,7 +62,7 @@ var (
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, tracer *elasticapm.Tracer) (*publisher, error) {
+func NewPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, tracer *apm.Tracer) (*publisher, error) {
 	if N <= 0 {
 		return nil, ErrInvalidBufferSize
 	}
@@ -136,7 +136,7 @@ func (p *publisher) run() {
 }
 
 func (p *publisher) processPendingReq(req PendingReq) {
-	var tx *elasticapm.Transaction
+	var tx *apm.Transaction
 	if req.Trace {
 		tx = p.tracer.StartTransaction("ProcessPending", "Publisher")
 		defer tx.End()

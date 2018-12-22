@@ -21,9 +21,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
-	"reflect"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -31,7 +29,6 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
-	"github.com/elastic/go-ucfg"
 )
 
 const DefaultPort = "8200"
@@ -115,33 +112,11 @@ type SSLConfig struct {
 	Certificate outputs.CertificateConfig `config:",inline"`
 }
 
-func init() {
-	if err := ucfg.RegisterValidator("maxlen", func(v interface{}, param string) error {
-		if v == nil {
-			return nil
-		}
-		switch v := reflect.ValueOf(v); v.Kind() {
-		case reflect.Array, reflect.Map, reflect.Slice:
-			maxlen, err := strconv.ParseInt(param, 0, 64)
-			if err != nil {
-				return err
-			}
-
-			if length := int64(v.Len()); length > maxlen {
-				return fmt.Errorf("requires length (%d) <= %v", length, param)
-			}
-		}
-		return nil
-	}); err != nil {
-		panic(err)
-	}
-}
-
 type InstrumentationConfig struct {
-	Enabled     *bool    `config:"enabled"`
-	Environment *string  `config:"environment"`
-	Hosts       []string `config:"hosts" validate:"nonzero,maxlen=1"`
-	SecretToken string   `config:"secret_token"`
+	Enabled     *bool   `config:"enabled"`
+	Environment *string `config:"environment"`
+	Hosts       urls    `config:"hosts" validate:"nonzero"`
+	SecretToken string  `config:"secret_token"`
 }
 
 func NewConfig(version string, ucfg *common.Config) (*Config, error) {

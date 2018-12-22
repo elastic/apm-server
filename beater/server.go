@@ -23,17 +23,17 @@ import (
 	"net"
 	"net/http"
 
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
-	"github.com/elastic/apm-agent-go"
-	"github.com/elastic/apm-agent-go/module/apmhttp"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/version"
 )
 
-func newServer(config *Config, tracer *elasticapm.Tracer, report publish.Reporter) *http.Server {
+func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) *http.Server {
 	mux := newMuxer(config, report)
 
 	return &http.Server{

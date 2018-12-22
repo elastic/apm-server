@@ -30,8 +30,8 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
+	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor"
 	"github.com/elastic/apm-server/publish"
@@ -428,7 +428,7 @@ func processRequest(r *http.Request, p processor.Processor, config transform.Con
 
 	req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
 	ctx := r.Context()
-	span, ctx := elasticapm.StartSpan(ctx, "Send", "Reporter")
+	span, ctx := apm.StartSpan(ctx, "Send", "Reporter")
 	defer span.End()
 	req.Trace = !span.Dropped()
 

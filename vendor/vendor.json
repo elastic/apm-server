@@ -255,119 +255,7 @@
 			"revisionTime": "2018-12-21T15:23:10Z"
 		},
 		{
-			"checksumSHA1": "Gzuf7VIvfGHNJjz3F75GhGOEvP0=",
-			"path": "github.com/elastic/apm-agent-go",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "Gg6BXoNFnvhdUPJvoxdllZqnNlQ=",
-			"path": "github.com/elastic/apm-agent-go/internal/apmconfig",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "oCqBwFulgX7XDIyO07faoDP6QmM=",
-			"path": "github.com/elastic/apm-agent-go/internal/apmdebug",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "7dJYXMln/aY2uE4kcet8ELcJVCo=",
-			"path": "github.com/elastic/apm-agent-go/internal/apmhttputil",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "fGTF1F4OiooQPZB3h+tQY1nvA7E=",
-			"path": "github.com/elastic/apm-agent-go/internal/apmschema",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "V51r1XndkriNAkSEMQvmOZ6QEcw=",
-			"path": "github.com/elastic/apm-agent-go/internal/apmstrings",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "2FGOw1HeQLBVHCH3gHUkAo0QB+g=",
-			"path": "github.com/elastic/apm-agent-go/internal/fastjson",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "1NiCEYGuDSVQWFu2DqMSosoGHRo=",
-			"path": "github.com/elastic/apm-agent-go/internal/krtext",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "NkjOdCL/WD8wTejMHFTBrWz9vEE=",
-			"path": "github.com/elastic/apm-agent-go/internal/pretty",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "Ftir4VbNGnS1/O0fnMohEe3jPIQ=",
-			"path": "github.com/elastic/apm-agent-go/internal/radix",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "CRAUAJE573bwoPKyH/D7U6TqdQE=",
-			"path": "github.com/elastic/apm-agent-go/model",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "JiT4XuEu0VCn0E9GGXDKwj8bWgg=",
-			"path": "github.com/elastic/apm-agent-go/module/apmhttp",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "iiQRdvFJ2bW4881SzBPXbW3UVH0=",
-			"path": "github.com/elastic/apm-agent-go/stacktrace",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "Y+CLB50syO6rS40vF/3nHEkWMPo=",
-			"path": "github.com/elastic/apm-agent-go/transport",
-			"revision": "a23d41b19d5d148ab96034ae27a52a9314014490",
-			"revisionTime": "2018-09-05T10:56:13Z",
-			"version": "v0.5.1",
-			"versionExact": "v0.5.1"
-		},
-		{
-			"checksumSHA1": "Xs4OvA/+q/dkdj5dEIJ+Cmf8h8c=",
+			"checksumSHA1": "bQiBO3c5swoq58cmyGWJCzeRFB0=",
 			"path": "github.com/elastic/beats/dev-tools/mage",
 			"revision": "1b83f5e6334c46ae3bb459e73d548ae10f067ff4",
 			"revisionTime": "2018-12-21T15:23:10Z",
@@ -1959,6 +1847,27 @@
 			"revisionTime": "2018-12-21T15:23:10Z"
 		},
 		{
+			"checksumSHA1": "epQZICCcThx99PQo7m/HuWN5kpQ=",
+			"origin": "go.elastic.co/apm/vendor/github.com/rs/zerolog",
+			"path": "github.com/rs/zerolog",
+			"revision": "c482b206231df1662b9e1895a9ba17a88b11220c",
+			"revisionTime": "2018-12-07T17:59:01Z"
+		},
+		{
+			"checksumSHA1": "73NzoKIiJU6h4v6hg9eM4t7V/zw=",
+			"origin": "go.elastic.co/apm/vendor/github.com/rs/zerolog/internal/cbor",
+			"path": "github.com/rs/zerolog/internal/cbor",
+			"revision": "c482b206231df1662b9e1895a9ba17a88b11220c",
+			"revisionTime": "2018-12-07T17:59:01Z"
+		},
+		{
+			"checksumSHA1": "e0b96rsdqg3fNtCDQOdZA4M+MNo=",
+			"origin": "go.elastic.co/apm/vendor/github.com/rs/zerolog/internal/json",
+			"path": "github.com/rs/zerolog/internal/json",
+			"revision": "c482b206231df1662b9e1895a9ba17a88b11220c",
+			"revisionTime": "2018-12-07T17:59:01Z"
+		},
+		{
 			"checksumSHA1": "6JP37UqrI0H80Gpk0Y2P+KXgn5M=",
 			"path": "github.com/ryanuber/go-glob",
 			"revision": "256dc444b735e061061cf46c809487313d5b0065",
@@ -2066,6 +1975,141 @@
 			"path": "github.com/yudai/golcs",
 			"revision": "081cda2ee95045a2c26da52c2ba80860838549de",
 			"revisionTime": "2017-06-26T13:12:58Z"
+		},
+		{
+			"checksumSHA1": "0LlQvcxp1L/yXNSV9ehn99Cly+E=",
+			"path": "go.elastic.co/apm",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "LtEsnsQ9KsIFzuSh7RChXKVP6kw=",
+			"path": "go.elastic.co/apm/internal/apmconfig",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "uLC1vDQnVuK/HXwIQ8GoL98rylg=",
+			"path": "go.elastic.co/apm/internal/apmcontext",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "pbXuN24ylhPL5h02eJFhpAxbrl4=",
+			"path": "go.elastic.co/apm/internal/apmhostutil",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "QS2vPrpZv7E55DQxmLcF5X0sIy4=",
+			"path": "go.elastic.co/apm/internal/apmhttputil",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "LOCcwNVZdrTb9Qr2z8qOle4b8Rs=",
+			"path": "go.elastic.co/apm/internal/apmlog",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "jyJHgSRm/2ahkVvk1k/oJOUzwSs=",
+			"path": "go.elastic.co/apm/internal/apmschema",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "XSoU5dwRILhiekV5z14rR7+AtaM=",
+			"path": "go.elastic.co/apm/internal/apmstrings",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "ha/lUFc0OQz0bdIbOVyzjwpuVD4=",
+			"path": "go.elastic.co/apm/internal/iochan",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "F3J0rky8CLcyEl18/lVc9wNvLRw=",
+			"path": "go.elastic.co/apm/internal/radix",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "ymDI3ffN6UBKgJ6pydRqKTL2dZE=",
+			"path": "go.elastic.co/apm/internal/ringbuffer",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "4C9JC8A3zeVWk05Z1ZLQBctrS90=",
+			"path": "go.elastic.co/apm/internal/wildcard",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "1lbJHa9EntU+87nLm65uSUKjdL0=",
+			"path": "go.elastic.co/apm/model",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "FCMaFXsNJLCTHHnvLqCfI2W51kQ=",
+			"path": "go.elastic.co/apm/module/apmhttp",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "dfR4rjh7Jupul8AEZcks+IMaIWQ=",
+			"path": "go.elastic.co/apm/stacktrace",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "ZxFX6eC/Hxgqo7dy0K+JUQ9wOPo=",
+			"path": "go.elastic.co/apm/transport",
+			"revision": "69736506625fe7b07410587a5f993669f018b821",
+			"revisionTime": "2018-12-14T01:43:48Z",
+			"version": "v1.1.1",
+			"versionExact": "v1.1.1"
+		},
+		{
+			"checksumSHA1": "ou8/GMlWF1EShL3NuomgkrmDwb0=",
+			"origin": "go.elastic.co/apm/vendor/go.elastic.co/fastjson",
+			"path": "go.elastic.co/fastjson",
+			"revision": "676cec79bd027a8a4618de0991f27cfe632978f1",
+			"revisionTime": "2018-10-24T10:24:09Z"
 		},
 		{
 			"checksumSHA1": "HedK9m8E8iyib4bIBtIX7xprOgo=",

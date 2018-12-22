@@ -138,8 +138,7 @@ apm-server:
     #enabled: false
     # Environment in which the APM Server is running on (eg: staging, production, etc.)
     #environment: ""
-    # Remote host to report instrumentation results to. Single entry permitted until
-    # https://github.com/elastic/apm-agent-go/issues/200 is resolved.
+    # Remote hosts to report instrumentation results to.
     #hosts:
     #  - http://remote-apm-server:8200
     # Remote apm-servers' secret_token
