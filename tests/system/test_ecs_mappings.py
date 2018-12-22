@@ -72,7 +72,7 @@ class ECSTest(SubCommandTest):
             "tags",
             "timestamp.us",
             "trace.id",
-            "transaction.duration.us", "transaction.id", "transaction.marks.navigationTiming", "transaction.name",
+            "transaction.duration.us", "transaction.id", "transaction.marks.*.*", "transaction.name",
             "transaction.result", "transaction.sampled", "transaction.span_count.dropped.total", "transaction.type",
             "url.port",  # field copy from context.request.url.port
             "url.scheme",  # field copy from context.request.url.protocol
@@ -83,7 +83,7 @@ class ECSTest(SubCommandTest):
             "view spans",
 
             # host processor fields, already ECS compliant
-            "host.id", "host.mac", "host.name", "host.os.family", "host.os.version"
+            "host.id", "host.mac", "host.name", "host.os.family", "host.os.version",
         })
 
         should_not_be_aliased = alias_target_fields - all_fields
