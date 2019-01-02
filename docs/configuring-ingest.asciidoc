@@ -32,7 +32,7 @@ Find the default pipeline configuration at `ingest/pipeline/definition.json` of 
 installation's home directory.
 In case you want to add, change or remove pipelines in Elasticsearch,
 you can simply change the definitions in this file
-and restart your APM Server or run `apm-server setup --pipeline`
+and restart your APM Server or run `apm-server setup --pipelines`
 
 By default pipeline registration is disabled.
 See how to <<register.ingest.pipeline.enabled,configure pipeline registration>>.
