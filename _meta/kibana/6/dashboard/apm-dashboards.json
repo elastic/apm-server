@@ -29,7 +29,7 @@
               "schema": "metric",
               "params": {
                 "field": "transaction.duration.us",
-                "customLabel": "Avg. Trans. Time"
+                "customLabel": "Avg. Trans. Time (us)"
               }
             },
             {
@@ -42,7 +42,7 @@
                 "percents": [
                   95
                 ],
-                "customLabel": "Trans. Time"
+                "customLabel": "Trans. Time (us)"
               }
             },
             {
@@ -737,7 +737,7 @@
               "enabled": true,
               "id": "1",
               "params": {
-                "customLabel": "Avg. Resp Time (ms)",
+                "customLabel": "Avg. Trans. Time (us)",
                 "field": "transaction.duration.us"
               },
               "schema": "metric",
@@ -747,7 +747,7 @@
               "enabled": true,
               "id": "3",
               "params": {
-                "customLabel": "Resp Time (ms)",
+                "customLabel": "Trans. Time (us)",
                 "field": "transaction.duration.us",
                 "percents": [
                   95
