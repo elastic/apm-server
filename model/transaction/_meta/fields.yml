@@ -28,10 +28,6 @@
               type: long
               description: >
                 Total duration of this transaction, in microseconds.
-              format: duration
-              input_format: microseconds
-              output_format: asMilliseconds
-              output_precision: 0
 
         - name: result
           type: keyword
