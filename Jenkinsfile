@@ -3,10 +3,12 @@
 pipeline {
   agent none
   environment {
-    BASE_DIR="src/github.com/elastic/apm-server"
+    BASE_DIR = "src/github.com/elastic/apm-server"
+    NOTIFY_TO = credentials('notify-to')
+    JOB_GCS_BUCKET = credentials('gcs-bucket')
   }
   options {
-    timeout(time: 1, unit: 'HOURS') 
+    timeout(time: 1, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
@@ -36,6 +38,7 @@ pipeline {
       }
       options { skipDefaultCheckout() }
       steps {
+        deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
@@ -47,10 +50,10 @@ pipeline {
     Updating generated files for Beat.
     Checks the GO environment.
     Checks the Python environment.
-    Checks YAML files are generated. 
+    Checks YAML files are generated.
     Validate that all updates were committed.
     */
-    stage('Intake') { 
+    stage('Intake') {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
@@ -58,16 +61,15 @@ pipeline {
         HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
       }
-      when { 
+      when {
         beforeAgent true
         expression { return params.intake_ci }
       }
       steps {
-        withEnvWrapper() {
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            sh './script/jenkins/intake.sh'
-          }
+        deleteDir()
+        unstash 'source'
+        dir("${BASE_DIR}"){
+          sh './script/jenkins/intake.sh'
         }
       }
     }
@@ -77,7 +79,7 @@ pipeline {
         /**
         Build on a linux environment.
         */
-        stage('linux build') { 
+        stage('linux build') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
@@ -85,39 +87,37 @@ pipeline {
             HOME = "${env.WORKSPACE}"
             GOPATH = "${env.WORKSPACE}"
           }
-          when { 
+          when {
             beforeAgent true
             expression { return params.linux_ci }
           }
           steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${BASE_DIR}"){    
-                sh './script/jenkins/build.sh'
-              }
+            deleteDir()
+            unstash 'source'
+            dir("${BASE_DIR}"){
+              sh './script/jenkins/build.sh'
             }
           }
         }
         /**
         Build on a windows environment.
         */
-        stage('windows build') { 
+        stage('windows build') {
           agent { label 'windows' }
           options { skipDefaultCheckout() }
-          when { 
+          when {
             beforeAgent true
             expression { return params.windows_ci }
           }
           steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${BASE_DIR}"){  
-                powershell(script: '.\\script\\jenkins\\windows-build.ps1')
-              }
+            deleteDir()
+            unstash 'source'
+            dir("${BASE_DIR}"){
+              powershell(script: '.\\script\\jenkins\\windows-build.ps1')
             }
           }
         }
-      } 
+      }
     }
     stage('Test') {
       failFast true
@@ -133,22 +133,21 @@ pipeline {
             HOME = "${env.WORKSPACE}"
             GOPATH = "${env.WORKSPACE}"
           }
-          when { 
+          when {
             beforeAgent true
             expression { return params.test_ci }
           }
           steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                sh './script/jenkins/unit-test.sh'
-              }
+            deleteDir()
+            unstash 'source'
+            dir("${BASE_DIR}"){
+              sh './script/jenkins/unit-test.sh'
             }
           }
-          post { 
+          post {
             always {
-              junit(allowEmptyResults: true, 
-                keepLongStdio: true, 
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/junit-*.xml")
             }
           }
@@ -157,7 +156,7 @@ pipeline {
         Runs System and Environment Tests, then generate coverage and unit test reports.
         Finally archive the results.
         */
-        stage('System and Environment Tests') { 
+        stage('System and Environment Tests') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
@@ -165,23 +164,22 @@ pipeline {
             HOME = "${env.WORKSPACE}"
             GOPATH = "${env.WORKSPACE}"
           }
-          when { 
+          when {
             beforeAgent true
             expression { return params.test_sys_env_ci }
           }
           steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                sh './script/jenkins/linux-test.sh'
-              }
+            deleteDir()
+            unstash 'source'
+            dir("${BASE_DIR}"){
+              sh './script/jenkins/linux-test.sh'
             }
           }
-          post { 
+          post {
             always {
               coverageReport("${BASE_DIR}/build/coverage")
-              junit(allowEmptyResults: true, 
-                keepLongStdio: true, 
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/junit-*.xml,${BASE_DIR}/build/TEST-*.xml")
               //googleStorageUpload bucket: "gs://${JOB_GCS_BUCKET}/${JOB_NAME}/${BUILD_NUMBER}", credentialsId: "${JOB_GCS_CREDENTIALS}", pathPrefix: "${BASE_DIR}", pattern: '**/build/system-tests/run/**/*', sharedPublicly: true, showInline: true
               //googleStorageUpload bucket: "gs://${JOB_GCS_BUCKET}/${JOB_NAME}/${BUILD_NUMBER}", credentialsId: "${JOB_GCS_CREDENTIALS}", pathPrefix: "${BASE_DIR}", pattern: '**/build/TEST-*.out', sharedPublicly: true, showInline: true
@@ -195,25 +193,24 @@ pipeline {
         Run tests on a windows environment.
         Finally archive the results.
         */
-        stage('windows test') { 
+        stage('windows test') {
           agent { label 'windows' }
           options { skipDefaultCheckout() }
-          when { 
+          when {
             beforeAgent true
             expression { return params.windows_ci }
           }
           steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${BASE_DIR}"){  
-                powershell(script: '.\\script\\jenkins\\windows-test.ps1')
-              }
+            deleteDir()
+            unstash 'source'
+            dir("${BASE_DIR}"){
+              powershell(script: '.\\script\\jenkins\\windows-test.ps1')
             }
           }
           post {
             always {
-              junit(allowEmptyResults: true, 
-                keepLongStdio: true, 
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/junit-report.xml,${BASE_DIR}/build/TEST-*.xml")
             }
           }
@@ -230,7 +227,7 @@ pipeline {
             HOME = "${env.WORKSPACE}"
             GOPATH = "${env.WORKSPACE}"
           }
-          when { 
+          when {
             beforeAgent true
             allOf {
               anyOf {
@@ -247,24 +244,23 @@ pipeline {
             }
           }
           steps {
-            withEnvWrapper() {
-              unstash 'source'
-              dir("${BASE_DIR}"){  
-                sh './script/jenkins/bench.sh'
-                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
-              }
+            deleteDir()
+            unstash 'source'
+            dir("${BASE_DIR}"){
+              sh './script/jenkins/bench.sh'
+              sendBenchmarks(file: 'bench.out', index: "benchmark-server")
             }
           }
         }
         /**
-        updates beats updates the framework part and go parts of beats. 
+        updates beats updates the framework part and go parts of beats.
         Then build and test.
         Finally archive the results.
         */
         /*
-        stage('Update Beats') { 
+        stage('Update Beats') {
             agent { label 'linux' }
-            
+
             steps {
               ansiColor('xterm') {
                   deleteDir()
@@ -285,7 +281,7 @@ pipeline {
     Build the documentation and archive it.
     Finally archive the results.
     */
-    stage('Documentation') { 
+    stage('Documentation') {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
@@ -293,7 +289,7 @@ pipeline {
         HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
       }
-      when { 
+      when {
         beforeAgent true
         allOf {
           anyOf {
@@ -304,14 +300,13 @@ pipeline {
         }
       }
       steps {
-        withEnvWrapper() {
-          unstash 'source'
-          dir("${BASE_DIR}"){  
-            sh """#!/bin/bash
-            set -euxo pipefail
-            make docs
-            """
-          }
+        deleteDir()
+        unstash 'source'
+        dir("${BASE_DIR}"){
+          sh """#!/bin/bash
+          set -euxo pipefail
+          make docs
+          """
         }
       }
       post{
@@ -323,7 +318,7 @@ pipeline {
     /**
     Checks if kibana objects are updated.
     */
-    stage('Check kibana Obj. Updated') { 
+    stage('Check kibana Obj. Updated') {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
@@ -332,21 +327,20 @@ pipeline {
         GOPATH = "${env.WORKSPACE}"
       }
       steps {
-        withEnvWrapper() {
-          unstash 'source'
-          dir("${BASE_DIR}"){  
-            sh './script/jenkins/sync.sh'
-          }
+        deleteDir()
+        unstash 'source'
+        dir("${BASE_DIR}"){
+          sh './script/jenkins/sync.sh'
         }
       }
     }
     /**
       build release packages.
     */
-    stage('Release') { 
+    stage('Release') {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
-      when { 
+      when {
         beforeAgent true
         allOf {
           anyOf {
@@ -363,12 +357,11 @@ pipeline {
         }
       }
       steps {
-        withEnvWrapper() {
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            sh './script/jenkins/package.sh'
-          }
-        }  
+        deleteDir()
+        unstash 'source'
+        dir("${BASE_DIR}"){
+          sh './script/jenkins/package.sh'
+        }
       }
       post {
         success {
@@ -386,9 +379,9 @@ pipeline {
     aborted {
       echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
     }
-    failure { 
+    failure {
       echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      //step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
     }
     unstable {
       echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
