@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 pipeline {
-  agent none
+  agent any
   environment {
     BASE_DIR = "src/github.com/elastic/apm-server"
     NOTIFY_TO = credentials('notify-to')
