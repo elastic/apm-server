@@ -63,10 +63,6 @@
               count: 1
               description: >
                 Duration of the span, in microseconds.
-              format: duration
-              input_format: microseconds
-              output_format: asMilliseconds
-              output_precision: 0
 
         - name: sync 
           type: boolean

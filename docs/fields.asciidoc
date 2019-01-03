@@ -823,8 +823,6 @@ Offset relative to the transaction's timestamp identifying the start of the span
 --
 type: long
 
-format: duration
-
 Duration of the span, in microseconds.
 
 
@@ -894,8 +892,6 @@ None
 +
 --
 type: long
-
-format: duration
 
 Total duration of this transaction, in microseconds.
 
