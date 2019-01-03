@@ -7,7 +7,7 @@
 With the Elasticsearch output you can configure the APM Server to use
 {elasticsearch}/ingest.html[ingest node] to pre-process documents before indexing them.
 A pipeline defines processors that operate on your data.
-For example, you can register a pipeline that defines one processor that removes a field and another that renames other field.
+For example, a pipeline can define one processor to remove a field and another to rename a field.
 
 Using pipelines involves two steps.
 First you need to <<register-pipelines,register a pipeline>> in Elasticsearch.
@@ -32,7 +32,7 @@ Find the default pipeline configuration at `ingest/pipeline/definition.json` of 
 installation's home directory.
 In case you want to add, change or remove pipelines in Elasticsearch,
 you can simply change the definitions in this file
-and restart your APM Server or run `apm-server setup --pipeline`
+and restart your APM Server or run `apm-server setup --pipelines`
 
 By default pipeline registration is disabled.
 See how to <<register.ingest.pipeline.enabled,configure pipeline registration>>.
