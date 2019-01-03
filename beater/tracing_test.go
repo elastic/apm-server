@@ -111,6 +111,7 @@ func TestServerTracingExternal(t *testing.T) {
 	case <-time.After(time.Second):
 		assert.FailNow(t, "timed out waiting for transaction to")
 	}
+	assert.True(t, apm.tracer.Active())
 }
 
 func TestServerTracingDisabled(t *testing.T) {

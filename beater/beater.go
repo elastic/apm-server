@@ -44,6 +44,7 @@ type beater struct {
 	server  *http.Server
 	stopped bool
 	logger  *logp.Logger
+	tracer  *apm.Tracer
 }
 
 // Creates beater
@@ -130,6 +131,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		defer traceListener.Close()
 	}
 	defer tracer.Close()
+	bt.tracer = tracer
 
 	pub, err := publish.NewPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout, tracer)
 	if err != nil {
