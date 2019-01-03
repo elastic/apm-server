@@ -41,10 +41,10 @@ func TestCacheInitFails(t *testing.T) {
 }
 
 func TestCacheEviction(t *testing.T) {
-	cache_size := 2
+	cacheSize := 2
 	limit := 1 //multiplied times v2BurstMultiplier 3
 
-	rlc, err := NewRlCache(cache_size, limit, 3)
+	rlc, err := NewRlCache(cacheSize, limit, 3)
 	require.NoError(t, err)
 
 	// add new limiter

@@ -57,7 +57,7 @@ func TestServerTracingEnabled(t *testing.T) {
 			assert.FailNow(t, "timed out waiting for transaction")
 		}
 	}
-	assert.Contains(t, selfTransactions, "POST "+V2BackendURL)
+	assert.Contains(t, selfTransactions, "POST "+BackendURL)
 	assert.Contains(t, selfTransactions, "ProcessPending")
 
 	// We expect no more events, i.e. no recursive self-tracing.
@@ -97,7 +97,7 @@ func TestServerTracingExternal(t *testing.T) {
 
 	// make a transaction request
 	baseUrl, client := apm.client(false)
-	req := makeTransactionV2Request(t, baseUrl)
+	req := makeTransactionRequest(t, baseUrl)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	res, err := client.Do(req)
 	assert.NoError(t, err)
@@ -107,7 +107,7 @@ func TestServerTracingExternal(t *testing.T) {
 	select {
 	case r := <-requests:
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, V2BackendURL, r.RequestURI)
+		assert.Equal(t, BackendURL, r.RequestURI)
 	case <-time.After(time.Second):
 		assert.FailNow(t, "timed out waiting for transaction to")
 	}
@@ -182,7 +182,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 
 	// Send a transaction request so we have something to trace.
 	baseUrl, client := beater.client(false)
-	req := makeTransactionV2Request(t, baseUrl)
+	req := makeTransactionRequest(t, baseUrl)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	resp, err := client.Do(req)
 	assert.NoError(t, err)

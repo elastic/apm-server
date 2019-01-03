@@ -70,20 +70,6 @@ func TestServerOk(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 	req := makeTransactionRequest(t, baseUrl)
-	req.Header.Add("Content-Type", "application/json")
-	res, err := client.Do(req)
-	assert.NoError(t, err)
-
-	assert.Equal(t, http.StatusAccepted, res.StatusCode, body(t, res))
-}
-
-func TestServerOkV2(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil)
-	require.NoError(t, err)
-	defer teardown()
-
-	baseUrl, client := apm.client(false)
-	req := makeTransactionV2Request(t, baseUrl)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	res, err := client.Do(req)
 	assert.NoError(t, err)
@@ -198,7 +184,7 @@ func TestServerTcpNoPort(t *testing.T) {
 	defer teardown()
 
 	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + HealthCheckURL)
+	rsp, err := client.Get(baseUrl + rootURL)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rsp.StatusCode)
 }
@@ -225,7 +211,7 @@ func TestServerOkUnix(t *testing.T) {
 	defer stop()
 
 	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + HealthCheckURL)
+	rsp, err := client.Get(baseUrl + rootURL)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rsp.StatusCode)
 }
@@ -236,7 +222,7 @@ func TestServerHealth(t *testing.T) {
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest("GET", baseUrl+HealthCheckURL, nil)
+	req, err := http.NewRequest("GET", baseUrl+rootURL, nil)
 	assert.NoError(t, err)
 	res, err := client.Do(req)
 	assert.Equal(t, http.StatusOK, res.StatusCode, body(t, res))
@@ -251,15 +237,11 @@ func TestServerRumSwitch(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 
-	for _, url := range []string{
-		RumTransactionsURL,
-		V2RumURL,
-	} {
-		req, err := http.NewRequest("POST", baseUrl+url, bytes.NewReader(testData))
-		assert.NoError(t, err)
-		res, err := client.Do(req)
-		assert.NotEqual(t, http.StatusForbidden, res.StatusCode, body(t, res))
-	}
+	req, err := http.NewRequest("POST", baseUrl+RumURL, bytes.NewReader(testData))
+	assert.NoError(t, err)
+	res, err := client.Do(req)
+	assert.NotEqual(t, http.StatusForbidden, res.StatusCode, body(t, res))
+
 }
 
 func TestServerCORS(t *testing.T) {
@@ -311,20 +293,13 @@ func TestServerCORS(t *testing.T) {
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 
-		for _, endpoint := range []struct {
-			url, contentType string
-			testData         []byte
-		}{
-			{RumTransactionsURL, "application/json", testData},
-			{V2RumURL, "application/x-ndjson", testDataV2},
-		} {
-			req, err := http.NewRequest("POST", baseUrl+endpoint.url, bytes.NewReader(endpoint.testData))
-			req.Header.Set("Origin", test.origin)
-			req.Header.Set("Content-Type", endpoint.contentType)
-			assert.NoError(t, err)
-			res, err := client.Do(req)
-			assert.Equal(t, test.expectedStatus, res.StatusCode, fmt.Sprintf("Failed at idx %v; %s", idx, body(t, res)))
-		}
+		req, err := http.NewRequest("POST", baseUrl+RumURL, bytes.NewReader(testData))
+		req.Header.Set("Origin", test.origin)
+		req.Header.Set("Content-Type", "application/x-ndjson")
+		assert.NoError(t, err)
+		res, err := client.Do(req)
+		assert.Equal(t, test.expectedStatus, res.StatusCode, fmt.Sprintf("Failed at idx %v; %s", idx, body(t, res)))
+
 		teardown()
 	}
 }
@@ -336,20 +311,8 @@ func TestServerNoContentType(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 	req := makeTransactionRequest(t, baseUrl)
-	res, error := client.Do(req)
-	assert.NoError(t, error)
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode, body(t, res))
-}
-
-func TestServerNoContentTypeV2(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil)
-	require.NoError(t, err)
-	defer teardown()
-
-	baseUrl, client := apm.client(false)
-	req := makeTransactionV2Request(t, baseUrl)
-	res, error := client.Do(req)
-	assert.NoError(t, error)
+	res, err := client.Do(req)
+	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode, body(t, res))
 }
 
@@ -476,7 +439,7 @@ func TestServerSSL(t *testing.T) {
 			baseUrl = strings.Replace(baseUrl, "https", "http", 1)
 		}
 		req := makeTransactionRequest(t, baseUrl)
-		req.Header.Add("Content-Type", "application/json")
+		req.Header.Add("Content-Type", "application/x-ndjson")
 		res, err := client.Do(req)
 
 		if len(test.expectedMsgs) > 0 {
@@ -489,7 +452,7 @@ func TestServerSSL(t *testing.T) {
 		}
 
 		if test.statusCode != 0 {
-			assert.Equal(t, res.StatusCode, test.statusCode,
+			assert.Equal(t, test.statusCode, res.StatusCode,
 				fmt.Sprintf("wrong code at idx %d (%s)", idx, test.label))
 		}
 		teardown()
@@ -537,14 +500,6 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig) 
 }
 
 var testData = func() []byte {
-	d, err := loader.LoadValidDataAsBytes("transaction")
-	if err != nil {
-		panic(err)
-	}
-	return d
-}()
-
-var testDataV2 = func() []byte {
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
 		panic(err)
@@ -569,16 +524,7 @@ func withSSL(t *testing.T, domain, passphrase string) *common.Config {
 }
 
 func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest("POST", baseUrl+BackendTransactionsURL, bytes.NewReader(testData))
-	if err != nil {
-		t.Fatalf("Failed to create test request object: %v", err)
-	}
-
-	return req
-}
-
-func makeTransactionV2Request(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest("POST", baseUrl+V2BackendURL, bytes.NewReader(testDataV2))
+	req, err := http.NewRequest("POST", baseUrl+BackendURL, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
@@ -590,7 +536,7 @@ func waitForServer(url string, client *http.Client, c chan error) {
 	var check = func() int {
 		var res *http.Response
 		var err error
-		res, err = client.Get(url + HealthCheckURL)
+		res, err = client.Get(url + rootURL)
 		if err != nil {
 			return http.StatusInternalServerError
 		}

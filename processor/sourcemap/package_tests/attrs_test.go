@@ -27,7 +27,7 @@ import (
 
 var (
 	procSetup = tests.ProcessorSetup{
-		Proc:            &tests.V1TestProcessor{Processor: sourcemap.Processor},
+		Proc:            &tests.AssetTestProcessor{Processor: sourcemap.Processor},
 		FullPayloadPath: "../testdata/sourcemap/payload.json",
 		TemplatePaths:   []string{"../../../model/sourcemap/_meta/fields.yml"},
 		Schema:          schema.PayloadSchema,

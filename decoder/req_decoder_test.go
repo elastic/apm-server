@@ -20,6 +20,7 @@ package decoder_test
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -33,13 +34,13 @@ import (
 	"github.com/elastic/apm-server/tests/loader"
 )
 
+var input = []byte(`{"id":"85925e55b43f4342","system": {"hostname":"prod1.example.com"}}`)
+
 func TestDecode(t *testing.T) {
-	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-	assert.Nil(t, err)
-	data, err := decoder.DecodeJSONData(ioutil.NopCloser(bytes.NewReader(transactionBytes)))
+	data, err := decoder.DecodeJSONData(ioutil.NopCloser(bytes.NewReader(input)))
 	assert.Nil(t, err)
 
-	req, err := http.NewRequest("POST", "_", bytes.NewReader(transactionBytes))
+	req, err := http.NewRequest("POST", "_", bytes.NewReader(input))
 	req.Header.Add("Content-Type", "application/json")
 	assert.Nil(t, err)
 
@@ -49,12 +50,10 @@ func TestDecode(t *testing.T) {
 }
 
 func TestDecodeContentType(t *testing.T) {
-	transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-	assert.Nil(t, err)
-	data, err := decoder.DecodeJSONData(ioutil.NopCloser(bytes.NewReader(transactionBytes)))
+	data, err := decoder.DecodeJSONData(ioutil.NopCloser(bytes.NewReader(input)))
 	assert.Nil(t, err)
 
-	req, err := http.NewRequest("POST", "_", bytes.NewReader(transactionBytes))
+	req, err := http.NewRequest("POST", "_", bytes.NewReader(input))
 	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	assert.Nil(t, err)
 
@@ -180,9 +179,7 @@ func TestDecodeSystemData(t *testing.T) {
 
 	for _, test := range tests {
 
-		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-		assert.Nil(t, err)
-		buffer := bytes.NewReader(transactionBytes)
+		buffer := bytes.NewReader(input)
 
 		req, err := http.NewRequest("POST", "_", buffer)
 		req.Header.Add("Content-Type", "application/json")
@@ -192,6 +189,7 @@ func TestDecodeSystemData(t *testing.T) {
 		body, err := decoder.DecodeSystemData(decoder.DecodeLimitJSONData(1024*1024), test.augment)(req)
 		assert.Nil(t, err)
 
+		fmt.Println(body)
 		system, hasSystem := body["system"].(map[string]interface{})
 		assert.True(t, hasSystem)
 
@@ -220,9 +218,7 @@ func TestDecodeUserData(t *testing.T) {
 
 	for _, test := range tests {
 
-		transactionBytes, err := loader.LoadValidDataAsBytes("transaction")
-		assert.Nil(t, err)
-		buffer := bytes.NewReader(transactionBytes)
+		buffer := bytes.NewReader(input)
 
 		req, err := http.NewRequest("POST", "_", buffer)
 		req.Header.Add("Content-Type", "application/json")

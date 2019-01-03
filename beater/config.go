@@ -35,7 +35,6 @@ const DefaultPort = "8200"
 
 type Config struct {
 	Host                string                 `config:"host"`
-	MaxUnzippedSize     int64                  `config:"max_unzipped_size"`
 	MaxHeaderSize       int                    `config:"max_header_size"`
 	ReadTimeout         time.Duration          `config:"read_timeout"`
 	WriteTimeout        time.Duration          `config:"write_timeout"`
@@ -45,7 +44,6 @@ type Config struct {
 	SSL                 *SSLConfig             `config:"ssl"`
 	ConcurrentRequests  int                    `config:"concurrent_requests" validate:"min=1"`
 	MaxConnections      int                    `config:"max_connections"`
-	MaxRequestQueueTime time.Duration          `config:"max_request_queue_time"`
 	Expvar              *ExpvarConfig          `config:"expvar"`
 	Metrics             *metricsConfig         `config:"metrics"`
 	AugmentEnabled      bool                   `config:"capture_personal_data"`
@@ -62,7 +60,6 @@ type ExpvarConfig struct {
 
 type rumConfig struct {
 	Enabled             *bool          `config:"enabled"`
-	RateLimit           int            `config:"rate_limit"`
 	EventRate           *eventRate     `config:"event_rate"`
 	AllowOrigins        []string       `config:"allow_origins"`
 	LibraryPattern      string         `config:"library_pattern"`
@@ -211,7 +208,6 @@ func replaceVersion(pattern, version string) string {
 
 func defaultRum(beatVersion string) *rumConfig {
 	return &rumConfig{
-		RateLimit: 10,
 		EventRate: &eventRate{
 			Limit:   300,
 			LruSize: 1000,
@@ -233,18 +229,16 @@ func defaultConfig(beatVersion string) *Config {
 	metricsEnabled := true
 	pipelineEnabled, pipelineOverwrite := false, true
 	return &Config{
-		Host:                net.JoinHostPort("localhost", DefaultPort),
-		MaxUnzippedSize:     30 * 1024 * 1024, // 30mb
-		MaxHeaderSize:       1 * 1024 * 1024,  // 1mb
-		ConcurrentRequests:  5,
-		MaxConnections:      0, // unlimited
-		MaxRequestQueueTime: 2 * time.Second,
-		ReadTimeout:         30 * time.Second,
-		WriteTimeout:        30 * time.Second,
-		MaxEventSize:        300 * 1024, // 300 kb
-		ShutdownTimeout:     5 * time.Second,
-		SecretToken:         "",
-		AugmentEnabled:      true,
+		Host:               net.JoinHostPort("localhost", DefaultPort),
+		MaxHeaderSize:      1 * 1024 * 1024, // 1mb
+		ConcurrentRequests: 5,
+		MaxConnections:     0, // unlimited
+		ReadTimeout:        30 * time.Second,
+		WriteTimeout:       30 * time.Second,
+		MaxEventSize:       300 * 1024, // 300 kb
+		ShutdownTimeout:    5 * time.Second,
+		SecretToken:        "",
+		AugmentEnabled:     true,
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
 			Url:     "/debug/vars",

@@ -33,16 +33,12 @@ func main() {
 	schemaPaths := []struct {
 		path, schemaOut, varName string
 	}{
-		{"errors/v1_error.json", "model/error/generated/schema/payload.go", "PayloadSchema"},
-		{"transactions/v1_transaction.json", "model/transaction/generated/schema/payload.go", "PayloadSchema"},
-		{"metricsets/payload.json", "model/metricset/generated/schema/payload.go", "PayloadSchema"},
 		{"sourcemaps/payload.json", "model/sourcemap/generated/schema/payload.go", "PayloadSchema"},
-
 		{"metadata.json", "model/metadata/generated/schema/metadata.go", "ModelSchema"},
-		{"errors/v2_error.json", "model/error/generated/schema/error.go", "ModelSchema"},
-		{"transactions/v2_transaction.json", "model/transaction/generated/schema/transaction.go", "ModelSchema"},
-		{"spans/v2_span.json", "model/span/generated/schema/span.go", "ModelSchema"},
-		{"metricsets/v2_metricset.json", "model/metricset/generated/schema/metricset.go", "ModelSchema"},
+		{"errors/error.json", "model/error/generated/schema/error.go", "ModelSchema"},
+		{"transactions/transaction.json", "model/transaction/generated/schema/transaction.go", "ModelSchema"},
+		{"spans/span.json", "model/span/generated/schema/span.go", "ModelSchema"},
+		{"metricsets/metricset.json", "model/metricset/generated/schema/metricset.go", "ModelSchema"},
 	}
 	for _, schemaInfo := range schemaPaths {
 		file := filepath.Join(filepath.Dir(basePath), schemaInfo.path)

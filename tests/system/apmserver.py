@@ -29,44 +29,31 @@ class BaseTest(TestCase):
     def _beat_path_join(cls, *paths):
         return os.path.abspath(os.path.join(cls.beat_path, *paths))
 
-    def get_payload_path(self, processor, name):
-        return self._beat_path_join(
-            'testdata',
-            processor,
-            name)
-
-    def get_error_payload(self):
-        with open(self.get_error_payload_path()) as f:
-            return json.load(f)
-
-    def get_error_payload_path(self, name="payload.json"):
-        return self.get_payload_path("error", name)
-
-    def get_transaction_payload(self):
-        with open(self.get_transaction_payload_path()) as f:
-            return json.load(f)
-
-    def get_transaction_payload_path(self, name="payload.json"):
-        return self.get_payload_path("transaction", name)
-
-    def get_metricset_payload_path(self, name="payload.json"):
-        return self.get_payload_path("metricset", name)
-
-    def get_event_v2_payload(self, name="events.ndjson"):
-        with open(self.get_event_v2_payload_path(name=name)) as f:
-            return f.read()
-
-    def get_event_v2_payload_path(self, name="events.ndjson"):
+    def get_payload_path(self, name):
         return self._beat_path_join(
             'testdata',
             'intake-v2',
             name)
 
+    def get_payload(self, name):
+        with open(self.get_payload_path(name)) as f:
+            return f.read()
+
+    def get_error_payload(self):
+        return self.get_payload_path("errors.ndjson")
+
+    def get_transaction_payload_path(self):
+        return self.get_payload_path("transactions.ndjson")
+
+    def get_metricset_payload(self, name="metricset.ndjson"):
+        return self.get_payload(name)
+
+    def get_event_payload(self, name="events.ndjson"):
+        return self.get_payload(name)
+
 
 class ServerSetUpBaseTest(BaseTest):
-    transactions_url = 'http://localhost:8200/v1/transactions'
-    errors_url = 'http://localhost:8200/v1/errors'
-    metrics_url = 'http://localhost:8200/v1/metrics'
+    intake_url = 'http://localhost:8200/intake/v2/events'
     expvar_url = 'http://localhost:8200/debug/vars'
 
     def config(self):
@@ -114,6 +101,13 @@ class ServerSetUpBaseTest(BaseTest):
         for s in suppress:
             log = re.sub(s, "", log)
         self.assertNotRegexpMatches(log, "ERR|WARN")
+
+    def request_intake(self, data="", url="", headers={'content-type': 'application/x-ndjson'}):
+        if url == "":
+            url = self.intake_url
+        if data == "":
+            data = self.get_event_payload()
+        return requests.post(url, data=data, headers=headers)
 
 
 class ServerBaseTest(ServerSetUpBaseTest):
@@ -230,9 +224,11 @@ class ElasticTest(ServerBaseTest):
         if query_index is None:
             query_index = self.index_name
 
-        payload = json.loads(open(data_path).read())
-        r = requests.post(url, json=payload)
-        assert r.status_code == 202
+        with open(data_path) as f:
+            r = requests.post(url,
+                              data=f,
+                              headers={'content-type': 'application/x-ndjson'})
+        assert r.status_code == 202, r.status_code
 
         # make sure template is loaded
         self.wait_until(
@@ -279,11 +275,8 @@ class ElasticTest(ServerBaseTest):
 
 
 class ClientSideBaseTest(ServerBaseTest):
-    transactions_url = 'http://localhost:8200/v1/rum/transactions'
-    errors_url = 'http://localhost:8200/v1/rum/errors'
     sourcemap_url = 'http://localhost:8200/assets/v1/sourcemaps'
-
-    intake_v2_url = 'http://localhost:8200/intake/v2/rum/events'
+    intake_url = 'http://localhost:8200/intake/v2/rum/events'
 
     @classmethod
     def setUpClass(cls):
@@ -298,10 +291,10 @@ class ClientSideBaseTest(ServerBaseTest):
         return cfg
 
     def get_transaction_payload_path(self, name='rum.json'):
-        return super(ClientSideBaseTest, self).get_transaction_payload_path(name)
+        return super(ClientSideBaseTest, self).get_payload_path(name)
 
     def get_error_payload_path(self, name='rum.json'):
-        return super(ClientSideBaseTest, self).get_error_payload_path(name)
+        return super(ClientSideBaseTest, self).get_payload_path(name)
 
     def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',
                          service_name='apm-agent-js',

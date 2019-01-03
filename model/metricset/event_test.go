@@ -27,7 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
@@ -44,7 +43,10 @@ func assertMetricsetsMatch(t *testing.T, expected, actual Metricset) bool {
 		fmt.Sprintf("metrics mismatch\nexpected:%#v\n   actual:%#v", expected, actual))
 }
 
-func testDecode(t *testing.T, tsFormat func(time.Time) interface{}, decoder decoder.EventDecoder) {
+func TestDecode(t *testing.T) {
+	tsFormat := func(ts time.Time) interface{} {
+		return json.Number(fmt.Sprintf("%d", ts.UnixNano()/1000))
+	}
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
 
@@ -118,7 +120,7 @@ func testDecode(t *testing.T, tsFormat func(time.Time) interface{}, decoder deco
 		},
 	} {
 		var err error
-		transformables, err := decoder(test.input, err)
+		transformables, err := DecodeEvent(test.input, err)
 		if test.err != nil {
 			assert.Error(t, err)
 		}
@@ -129,19 +131,6 @@ func testDecode(t *testing.T, tsFormat func(time.Time) interface{}, decoder deco
 			assertMetricsetsMatch(t, *want, *got)
 		}
 	}
-}
-func TestDecodeV1(t *testing.T) {
-	timestampEpoch := func(ts time.Time) interface{} {
-		return ts.Format(time.RFC3339Nano)
-	}
-	testDecode(t, timestampEpoch, V1DecodeEvent)
-}
-
-func TestDecodeV2(t *testing.T) {
-	timestampEpoch := func(ts time.Time) interface{} {
-		return json.Number(fmt.Sprintf("%d", ts.UnixNano()/1000))
-	}
-	testDecode(t, timestampEpoch, V2DecodeEvent)
 }
 
 func TestTransform(t *testing.T) {

@@ -18,15 +18,11 @@
 package beater
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"path/filepath"
 	"testing"
@@ -38,7 +34,6 @@ import (
 	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
@@ -116,24 +111,21 @@ func TestBeatConfig(t *testing.T) {
 				},
 			},
 			beaterConf: &Config{
-				Host:                "localhost:3000",
-				MaxUnzippedSize:     64,
-				MaxRequestQueueTime: 9 * time.Second,
-				MaxHeaderSize:       8,
-				MaxEventSize:        100,
-				ReadTimeout:         3000000000,
-				WriteTimeout:        4000000000,
-				ShutdownTimeout:     9000000000,
-				SecretToken:         "1234random",
-				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
-				AugmentEnabled:      true,
+				Host:            "localhost:3000",
+				MaxHeaderSize:   8,
+				MaxEventSize:    100,
+				ReadTimeout:     3000000000,
+				WriteTimeout:    4000000000,
+				ShutdownTimeout: 9000000000,
+				SecretToken:     "1234random",
+				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
+				AugmentEnabled:  true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
 				FrontendConfig: &rumConfig{
-					Enabled:   &truthy,
-					RateLimit: 1000,
+					Enabled: &truthy,
 					EventRate: &eventRate{
 						Limit:   7200,
 						LruSize: 2000,
@@ -148,8 +140,7 @@ func TestBeatConfig(t *testing.T) {
 					beatVersion:         "6.2.0",
 				},
 				RumConfig: &rumConfig{
-					Enabled:   &truthy,
-					RateLimit: 1000,
+					Enabled: &truthy,
 					EventRate: &eventRate{
 						Limit:   7200,
 						LruSize: 2000,
@@ -221,24 +212,21 @@ func TestBeatConfig(t *testing.T) {
 				},
 			},
 			beaterConf: &Config{
-				Host:                "localhost:3000",
-				MaxUnzippedSize:     64,
-				MaxRequestQueueTime: 2 * time.Second,
-				MaxHeaderSize:       1048576,
-				MaxEventSize:        307200,
-				ReadTimeout:         30000000000,
-				WriteTimeout:        30000000000,
-				ShutdownTimeout:     5000000000,
-				SecretToken:         "1234random",
-				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
-				AugmentEnabled:      true,
+				Host:            "localhost:3000",
+				MaxHeaderSize:   1048576,
+				MaxEventSize:    307200,
+				ReadTimeout:     30000000000,
+				WriteTimeout:    30000000000,
+				ShutdownTimeout: 5000000000,
+				SecretToken:     "1234random",
+				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
+				AugmentEnabled:  true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
 				FrontendConfig: &rumConfig{
-					Enabled:   &truthy,
-					RateLimit: 890,
+					Enabled: &truthy,
 					EventRate: &eventRate{
 						Limit:   300,
 						LruSize: 200,
@@ -255,8 +243,7 @@ func TestBeatConfig(t *testing.T) {
 					beatVersion:         "6.2.0",
 				},
 				RumConfig: &rumConfig{
-					Enabled:   &truthy,
-					RateLimit: 10,
+					Enabled: &truthy,
 					EventRate: &eventRate{
 						Limit:   300,
 						LruSize: 1000,
@@ -478,59 +465,53 @@ func pluralize(entity string) string {
 	return entity + "s"
 }
 
-func createPayload(entityType string, numEntities int) []byte {
-	data, err := loader.LoadValidData(entityType)
-	if err != nil {
-		panic(err)
-	}
-	var entityList []interface{}
-	testEntities := data[pluralize(entityType)].([]interface{})
-
-	for i := 0; i < numEntities; i++ {
-		entityList = append(entityList, testEntities[i%len(testEntities)])
-	}
-	data[pluralize(entityType)] = entityList
-	out, err := json.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
-	return out
-}
-
-func benchmarkVariableSizePayload(b *testing.B, entitytype string, entries int) {
-	url := "/v1/" + pluralize(entitytype)
-	mux := SetupServer(b)
-	data := createPayload(entitytype, entries)
-	b.Logf("Using payload size: %d", len(data))
-	b.ResetTimer()
-	b.SetBytes(int64(len(data)))
-	for i := 0; i < b.N; i++ {
-		req, err := http.NewRequest("POST", url, bytes.NewReader(data))
-		req.Header.Add("Content-Type", "application/json")
-		if err != nil {
-			b.Error(err)
-		}
-
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-
-		if w.Code != 202 {
-			b.Fatal(w.Body.String())
-		}
-	}
-}
-
-func BenchmarkServer(b *testing.B) {
-	entityTypes := []string{"transaction", "error"}
-	sizes := []int{100, 1000, 10000}
-
-	for _, et := range entityTypes {
-		b.Run(et, func(b *testing.B) {
-			for _, sz := range sizes {
-				b.Run(fmt.Sprintf("size=%v", sz), func(b *testing.B) {
-					benchmarkVariableSizePayload(b, et, sz)
-				})
-			}
-		})
-	}
-}
+//func createPayload(numEntities int) []byte {
+//	data, err := loader.LoadDataAsBytes("../testdata/intake-v2/events.ndjson")
+//	if err != nil {
+//		panic(err)
+//	}
+//	var entityList []interface{}
+//	testEntities := data[pluralize(entityType)].([]interface{})
+//
+//	for i := 0; i < numEntities; i++ {
+//		""
+//		entityList = append(entityList, testEntities[i%len(testEntities)])
+//	}
+//	data[pluralize(entityType)] = entityList
+//	out, err := json.Marshal(data)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return out
+//}
+//
+//func benchmarkVariableSizePayload(b *testing.B, n int) {
+//	url := "/intake/v2/events"
+//	mux := SetupServer(b)
+//	data := createPayload(n)
+//	b.Logf("Sending %d events", len(data))
+//	b.ResetTimer()
+//	b.SetBytes(int64(len(data)))
+//	for i := 0; i < b.N; i++ {
+//		req, err := http.NewRequest("POST", url, bytes.NewReader(data))
+//		if err != nil {
+//			b.Error(err)
+//		}
+//
+//		req.Header.Add("Content-Type", "application/x-ndjson")
+//		w := httptest.NewRecorder()
+//		mux.ServeHTTP(w, req)
+//
+//		if w.Code != 202 {
+//			b.Fatal(w.Body.String())
+//		}
+//	}
+//}
+//
+//func BenchmarkServer(b *testing.B) {
+//	for _, sz := range []int{100, 1000, 10000} {
+//		b.Run(fmt.Sprintf("Benchmark intake API, %v events per event type", sz), func(b *testing.B) {
+//			benchmarkVariableSizePayload(b, sz)
+//		})
+//	}
+//}

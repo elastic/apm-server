@@ -36,7 +36,7 @@ func getStr(data common.MapStr, key string) string {
 }
 
 func TestDecode(t *testing.T) {
-	data, err := loader.LoadValidData("sourcemap")
+	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
 	assert.NoError(t, err)
 
 	sourcemap, err := DecodeSourcemap(data)
@@ -93,7 +93,7 @@ func TestParseSourcemaps(t *testing.T) {
 }
 
 func TestInvalidateCache(t *testing.T) {
-	data, err := loader.LoadValidData("sourcemap")
+	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
 	assert.NoError(t, err)
 
 	smapId := sourcemap.Id{Path: "/tmp"}

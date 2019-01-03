@@ -1,37 +1,9 @@
-// Licensed to Elasticsearch B.V. under one or more contributor
-// license agreements. See the NOTICE file distributed with
-// this work for additional information regarding copyright
-// ownership. Elasticsearch B.V. licenses this file to you under
-// the Apache License, Version 2.0 (the "License"); you may
-// not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-package schema
-
-const ModelSchema = `{
+{
     "$id": "docs/spec/spans/v2_span.json",
     "type": "object",
     "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
-        {     "$id": "doc/spec/timestamp_epoch.json",
-    "title": "Timestamp Epoch",
-    "description": "Object with 'timestamp' property.",
-    "type": ["object"],
-    "properties": {  
-        "timestamp": {
-            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
-            "type": ["integer", "null"]
-        }
-    } },
+        { "$ref": "../timestamp_epoch.json" },
         {  
             "properties": {
                 "id": {
@@ -114,17 +86,7 @@ const ModelSchema = `{
                             }
                         },
                         "tags": {
-                                "$id": "doc/spec/tags.json",
-    "title": "Tags",
-    "type": ["object", "null"],
-    "description": "A flat mapping of user-defined tags with string values.",
-    "patternProperties": {
-        "^[^.*\"]*$": {
-            "type": ["string", "null"],
-            "maxLength": 1024
-        }
-    },
-    "additionalProperties": false
+                            "$ref": "../tags.json"
                         }
                     }
                 },
@@ -141,66 +103,7 @@ const ModelSchema = `{
                     "type": ["array", "null"],
                     "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
                     "items": {
-                            "$id": "docs/spec/stacktrace_frame.json",
-    "title": "Stacktrace",
-    "type": "object",
-    "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
-    "properties": {
-        "abs_path": {
-            "description": "The absolute path of the file involved in the stack frame",
-            "type": ["string", "null"]
-        },
-        "colno": {
-            "description": "Column number",
-            "type": ["integer", "null"]
-        },
-        "context_line": {
-            "description": "The line of code part of the stack frame",
-            "type": ["string", "null"]
-        },
-        "filename": {
-            "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
-            "type": "string"
-        },
-        "function": {
-            "description": "The function involved in the stack frame",
-            "type": ["string", "null"]
-        },
-        "library_frame": {
-            "description": "A boolean, indicating if this frame is from a library or user code",
-            "type": ["boolean", "null"]
-        },
-        "lineno": {
-            "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "integer"
-        },
-        "module": {
-            "description": "The module to which frame belongs to",
-            "type": ["string", "null"]
-        },
-        "post_context": {
-            "description": "The lines of code after the stack frame",
-            "type": ["array", "null"],
-            "minItems": 0,
-            "items": {
-                "type": "string"
-            }
-        },
-        "pre_context": {
-            "description": "The lines of code before the stack frame",
-            "type": ["array", "null"],
-            "minItems": 0,
-            "items": {
-                "type": "string"
-            }
-        },
-        "vars": {
-            "description": "Local variables for this stack frame",
-            "type": ["object", "null"],
-            "properties": {}
-        }
-    },
-    "required": ["filename", "lineno"]
+                        "$ref": "../stacktrace_frame.json"
                     },
                     "minItems": 0
                 },
@@ -223,4 +126,3 @@ const ModelSchema = `{
         }
     ]
 }
-`

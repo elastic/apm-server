@@ -96,22 +96,22 @@ var models = []struct {
 	{
 		"transaction",
 		transaction.ModelSchema(),
-		transaction.V2DecodeEvent,
+		transaction.DecodeEvent,
 	},
 	{
 		"span",
 		span.ModelSchema(),
-		span.V2DecodeEvent,
+		span.DecodeEvent,
 	},
 	{
 		"metricset",
 		metricset.ModelSchema(),
-		metricset.V2DecodeEvent,
+		metricset.DecodeEvent,
 	},
 	{
 		"error",
 		er.ModelSchema(),
-		er.V2DecodeEvent,
+		er.DecodeEvent,
 	},
 }
 

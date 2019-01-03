@@ -15,18 +15,39 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
-
-//go:generate go run script/inline_schemas/inline_schemas.go
+package beater
 
 import (
-	"os"
+	"net/http"
+	"time"
 
-	"github.com/elastic/apm-server/cmd"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/version"
 )
 
-func main() {
-	if err := cmd.RootCmd.Execute(); err != nil {
-		os.Exit(1)
+func rootHandler(secretToken string) http.Handler {
+	serverInfo := common.MapStr{
+		"build_date": version.BuildTime().Format(time.RFC3339),
+		"build_sha":  version.Commit(),
+		"version":    version.GetDefaultVersion(),
 	}
+	detailedOkResponse := serverResponse{
+		code:    http.StatusOK,
+		counter: responseOk,
+		body:    serverInfo,
+	}
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		if isAuthorized(r, secretToken) {
+			sendStatus(w, r, detailedOkResponse)
+			return
+		}
+		sendStatus(w, r, okResponse)
+	})
+	return logHandler(handler)
 }

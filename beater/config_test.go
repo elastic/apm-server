@@ -97,7 +97,6 @@ func TestConfig(t *testing.T) {
       }`),
 			expectedConfig: Config{
 				Host:            "localhost:3000",
-				MaxUnzippedSize: 64,
 				MaxHeaderSize:   8,
 				ReadTimeout:     3000000000,
 				WriteTimeout:    4000000000,
@@ -105,8 +104,7 @@ func TestConfig(t *testing.T) {
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
 				RumConfig: &rumConfig{
-					Enabled:   &truthy,
-					RateLimit: 800,
+					Enabled: &truthy,
 					EventRate: &eventRate{
 						Limit:   8000,
 						LruSize: 2000,
@@ -120,8 +118,7 @@ func TestConfig(t *testing.T) {
 					ExcludeFromGrouping: "group_pattern-rum",
 				},
 				FrontendConfig: &rumConfig{
-					Enabled:   &truthy,
-					RateLimit: 1000,
+					Enabled: &truthy,
 					EventRate: &eventRate{
 						Limit:   1000,
 						LruSize: 500,
@@ -169,7 +166,6 @@ func TestConfig(t *testing.T) {
       }`),
 			expectedConfig: Config{
 				Host:               "localhost:8200",
-				MaxUnzippedSize:    64,
 				MaxHeaderSize:      8,
 				ReadTimeout:        3000000000,
 				WriteTimeout:       2000000000,
@@ -179,7 +175,6 @@ func TestConfig(t *testing.T) {
 				ConcurrentRequests: 20,
 				FrontendConfig: &rumConfig{
 					Enabled:      nil,
-					RateLimit:    0,
 					AllowOrigins: nil,
 					SourceMapping: &SourceMapping{
 						IndexPattern: "",
@@ -187,7 +182,6 @@ func TestConfig(t *testing.T) {
 				},
 				RumConfig: &rumConfig{
 					Enabled:      nil,
-					RateLimit:    0,
 					EventRate:    nil,
 					AllowOrigins: nil,
 					SourceMapping: &SourceMapping{
@@ -203,7 +197,6 @@ func TestConfig(t *testing.T) {
 			config: []byte(`{ }`),
 			expectedConfig: Config{
 				Host:               "",
-				MaxUnzippedSize:    0,
 				MaxHeaderSize:      0,
 				ReadTimeout:        0,
 				WriteTimeout:       0,
@@ -297,12 +290,10 @@ func TestDefaultRum(t *testing.T) {
 func TestSetRum(t *testing.T) {
 	testRumConf := &rumConfig{
 		Enabled:      new(bool),
-		RateLimit:    22,
 		AllowOrigins: []string{"test*"},
 	}
 	testFrontendConf := &rumConfig{
 		Enabled:      new(bool),
-		RateLimit:    8,
 		AllowOrigins: []string{"frontend*"},
 	}
 

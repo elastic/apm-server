@@ -75,143 +75,16 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 	return l
 }
 
-func TestErrorEventV1Decode(t *testing.T) {
-	timestamp := "2017-05-30T18:53:27.154Z"
-	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
-
-	id, culprit := "123", "foo()"
-	context := map[string]interface{}{"a": "b"}
-	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
-	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
-	for idx, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		e           *Event
-	}{
-		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		{input: "", err: errors.New("Invalid type for error event"), e: nil},
-		{
-			input: map[string]interface{}{"timestamp": 123},
-			err:   errors.New("Error fetching field"),
-			e:     nil,
-		},
-		{
-			input: map[string]interface{}{"transaction": map[string]interface{}{"id": 123}},
-			err:   errors.New("Error fetching field"),
-			e:     nil,
-		},
-		{
-			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
-			err: nil,
-			e: &Event{
-				Id:        &id,
-				Culprit:   &culprit,
-				Context:   context,
-				Timestamp: timestampParsed,
-			},
-		},
-		{
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"exception": map[string]interface{}{},
-				"log":       map[string]interface{}{},
-			},
-			err: nil,
-			e:   &Event{Timestamp: timestampParsed},
-		},
-		{
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"exception": map[string]interface{}{
-					"message":    "Exception Msg",
-					"stacktrace": "123",
-				},
-			},
-			err: errors.New("Invalid type for stacktrace"),
-			e:   nil,
-		},
-		{
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"log": map[string]interface{}{
-					"message":    "Log Msg",
-					"stacktrace": "123",
-				},
-			},
-			err: errors.New("Invalid type for stacktrace"),
-			e:   nil,
-		},
-		{
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"exception": map[string]interface{}{
-					"message": "Exception Msg",
-					"code":    code, "module": module, "attributes": attrs,
-					"type": exType, "handled": handled,
-					"stacktrace": []interface{}{
-						map[string]interface{}{
-							"filename": "file", "lineno": 1.0,
-						},
-					},
-				},
-				"log": map[string]interface{}{
-					"message":       "Log Msg",
-					"param_message": paramMsg,
-					"level":         level, "logger_name": logger,
-					"stacktrace": []interface{}{
-						map[string]interface{}{
-							"filename": "log file", "lineno": 2.0,
-						},
-					},
-				},
-			},
-			err: nil,
-			e: &Event{
-				Timestamp: timestampParsed,
-				Exception: &Exception{
-					Message:    &exMsg,
-					Code:       code,
-					Type:       &exType,
-					Module:     &module,
-					Attributes: attrs,
-					Handled:    &handled,
-					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{Filename: "file", Lineno: 1},
-					},
-				},
-				Log: &Log{
-					Message:      "Log Msg",
-					ParamMessage: &paramMsg,
-					Level:        &level,
-					LoggerName:   &logger,
-					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{Filename: "log file", Lineno: 2},
-					},
-				},
-			},
-		},
-	} {
-		transformable, err := V1DecodeEvent(test.input, test.inpErr)
-
-		if test.e != nil {
-			event := transformable.(*Event)
-			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
-		}
-
-		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
-	}
-}
-
-func TestErrorEventV2Decode(t *testing.T) {
+func TestErrorEventDecode(t *testing.T) {
 	timestamp := json.Number("1496170407154000")
 	timestampParsed, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
 
 	id, culprit := "123", "foo()"
+	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
 	context := map[string]interface{}{"a": "b"}
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
+	sampled := true
 	for idx, test := range []struct {
 		input       interface{}
 		err, inpErr error
@@ -239,7 +112,6 @@ func TestErrorEventV2Decode(t *testing.T) {
 				Culprit:   &culprit,
 				Context:   context,
 				Timestamp: timestampParsed,
-				v2Event:   true,
 			},
 		},
 		{
@@ -247,26 +119,14 @@ func TestErrorEventV2Decode(t *testing.T) {
 				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
 				"parent_id": 123},
 			err: errors.New("Error fetching field"),
-			e: &Event{
-				Id:        &id,
-				Culprit:   &culprit,
-				Context:   context,
-				Timestamp: timestampParsed,
-				v2Event:   true,
-			},
+			e:   nil,
 		},
 		{
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
 				"trace_id": 123},
 			err: errors.New("Error fetching field"),
-			e: &Event{
-				Id:        &id,
-				Culprit:   &culprit,
-				Context:   context,
-				Timestamp: timestampParsed,
-				v2Event:   true,
-			},
+			e:   nil,
 		},
 		{
 			input: map[string]interface{}{
@@ -277,7 +137,6 @@ func TestErrorEventV2Decode(t *testing.T) {
 			err: nil,
 			e: &Event{
 				Timestamp: timestampParsed,
-				v2Event:   true,
 			},
 		},
 		{
@@ -325,6 +184,10 @@ func TestErrorEventV2Decode(t *testing.T) {
 						},
 					},
 				},
+				"transaction_id": transactionId,
+				"parent_id":      parentId,
+				"trace_id":       traceId,
+				"transaction":    map[string]interface{}{"sampled": sampled},
 			},
 			err: nil,
 			e: &Event{
@@ -349,12 +212,16 @@ func TestErrorEventV2Decode(t *testing.T) {
 						&m.StacktraceFrame{Filename: "log file", Lineno: 2},
 					},
 				},
-				v2Event: true,
+				TransactionId:      &transactionId,
+				TransactionSampled: &sampled,
+				ParentId:           &parentId,
+				TraceId:            &traceId,
 			},
 		},
 	} {
-		transformable, err := V2DecodeEvent(test.input, test.inpErr)
+		transformable, err := DecodeEvent(test.input, test.inpErr)
 
+		fmt.Println(err)
 		if test.e != nil {
 			event := transformable.(*Event)
 			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
@@ -362,42 +229,6 @@ func TestErrorEventV2Decode(t *testing.T) {
 
 		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
 	}
-}
-
-func TestVersionedErrorEventDecode(t *testing.T) {
-	timestamp := "2017-05-30T18:53:27.154Z"
-	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
-	timestampEpoch := json.Number("1496170407154000")
-	parentId, traceId := "0123456789abcdef", "01234567890123456789abcdefabcdef"
-	transaction, transactionId := "01234", "abcdefabcdef0000"
-	sampled := true
-	input := map[string]interface{}{
-		"timestamp":      timestamp,
-		"transaction_id": "abcdefabcdef0000",
-		"transaction":    map[string]interface{}{"id": "01234", "sampled": true},
-		"parent_id":      parentId,
-		"trace_id":       traceId,
-	}
-
-	// test V1
-	e := &Event{Timestamp: timestampParsed, TransactionId: &transaction}
-	transformable, err := V1DecodeEvent(input, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, e, transformable.(*Event))
-
-	// test V2
-	e2 := &Event{
-		Timestamp:          timestampParsed,
-		TransactionId:      &transactionId,
-		TransactionSampled: &sampled,
-		ParentId:           &parentId,
-		TraceId:            &traceId,
-		v2Event:            true,
-	}
-	input["timestamp"] = timestampEpoch
-	transformable, err = V2DecodeEvent(input, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, e2, transformable.(*Event))
 }
 
 func TestEventFields(t *testing.T) {
@@ -562,7 +393,9 @@ func TestEventFields(t *testing.T) {
 }
 
 func TestEvents(t *testing.T) {
-	timestamp := time.Now()
+
+	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
+	timestampUs := timestamp.UnixNano() / 1000
 	service := metadata.Service{
 		Name: "myservice",
 	}
@@ -571,12 +404,12 @@ func TestEvents(t *testing.T) {
 	sampledTrue, sampledFalse := true, false
 
 	tests := []struct {
-		Tranformable transform.Transformable
-		Output       common.MapStr
-		Msg          string
+		Transformable transform.Transformable
+		Output        common.MapStr
+		Msg           string
 	}{
 		{
-			Tranformable: &Event{Timestamp: timestamp},
+			Transformable: &Event{Timestamp: timestamp},
 			Output: common.MapStr{
 				"context": common.MapStr{
 					"service": common.MapStr{
@@ -588,11 +421,12 @@ func TestEvents(t *testing.T) {
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
 				"processor": common.MapStr{"event": "error", "name": "error"},
+				"timestamp": common.MapStr{"us": timestampUs},
 			},
 			Msg: "Payload with valid Event.",
 		},
 		{
-			Tranformable: &Event{Timestamp: timestamp, TransactionSampled: &sampledFalse},
+			Transformable: &Event{Timestamp: timestamp, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
 				"transaction": common.MapStr{"sampled": false},
 				"context": common.MapStr{
@@ -605,11 +439,12 @@ func TestEvents(t *testing.T) {
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
 				},
 				"processor": common.MapStr{"event": "error", "name": "error"},
+				"timestamp": common.MapStr{"us": timestampUs},
 			},
 			Msg: "Payload with valid Event.",
 		},
 		{
-			Tranformable: &Event{
+			Transformable: &Event{
 				Timestamp: timestamp,
 				Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "m@m.com"}},
 				Log:       baseLog(),
@@ -647,6 +482,7 @@ func TestEvents(t *testing.T) {
 				},
 				"processor":   common.MapStr{"event": "error", "name": "error"},
 				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79", "sampled": true},
+				"timestamp":   common.MapStr{"us": timestampUs},
 			},
 			Msg: "Payload with Event with Context.",
 		},
@@ -656,15 +492,16 @@ func TestEvents(t *testing.T) {
 		&service, nil, nil, nil,
 	)
 	tctx := &transform.Context{
-		Metadata: *me,
-		Config:   transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Metadata:    *me,
+		Config:      transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		RequestTime: timestamp,
 	}
 
 	for idx, test := range tests {
-		outputEvents := test.Tranformable.Transform(tctx)
+		outputEvents := test.Transformable.Transform(tctx)
 		require.Len(t, outputEvents, 1)
 		outputEvent := outputEvents[0]
-		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, test.Output["timestamp"], outputEvent.Fields["timestamp"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 	}
 }

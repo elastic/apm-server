@@ -28,7 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -42,80 +41,20 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
 		{input: "", err: errors.New("Invalid type for transaction event"), e: nil},
-		{
-			// v1 expects a timestamp string and for v2 there's a trace_id missing
-			input: map[string]interface{}{"timestamp": 123},
-			err:   errors.New("Error fetching field"),
-			e:     nil,
-		},
+		{input: map[string]interface{}{}, err: errors.New("Error fetching field"), e: nil},
 	} {
-		for _, decodeFct := range []func(interface{}, error) (transform.Transformable, error){V1DecodeEvent, V2DecodeEvent} {
-			transformable, err := decodeFct(test.input, test.inpErr)
-			assert.Equal(t, test.err, err)
-			if test.e != nil {
-				event := transformable.(*Event)
-				assert.Equal(t, test.e, event)
-			} else {
-				assert.Nil(t, transformable)
-			}
+		transformable, err := DecodeEvent(test.input, test.inpErr)
+		assert.Equal(t, test.err, err)
+		if test.e != nil {
+			event := transformable.(*Event)
+			assert.Equal(t, test.e, event)
+		} else {
+			assert.Nil(t, transformable)
 		}
-
 	}
 }
 
-func TestTransactionEventDecodeV1(t *testing.T) {
-	id, trType, name, result := "123", "type", "foo()", "555"
-	timestamp := "2017-05-30T18:53:27.154Z"
-	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
-	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
-	dropped, duration := 12, 1.67
-	context := map[string]interface{}{"a": "b"}
-	marks := map[string]interface{}{"k": "b"}
-	sampled := true
-	start := 1.2
-
-	for _, test := range []struct {
-		input interface{}
-		e     *Event
-	}{
-		// minimal event
-		{input: map[string]interface{}{
-			"id": id, "type": trType, "duration": duration, "timestamp": timestamp,
-		},
-			e: &Event{
-				Id: id, Type: trType, Duration: duration, Timestamp: timestampParsed,
-			},
-		},
-		// full event, ignoring v2 attrs
-		{
-			input: map[string]interface{}{
-				"id": id, "type": trType, "name": name, "result": result,
-				"duration": duration, "timestamp": timestamp,
-				"context": context, "marks": marks, "sampled": sampled,
-				"parent_id": parentId, "trace_id": traceId,
-				"spans": []interface{}{
-					map[string]interface{}{
-						"name": "span", "type": "db", "start": 1.2, "duration": 2.3,
-					}},
-				"span_count": map[string]interface{}{"dropped": map[string]interface{}{"total": 12.0}}},
-			e: &Event{
-				Id: id, Type: trType, Name: &name, Result: &result,
-				Duration: duration, Timestamp: timestampParsed,
-				Context: context, Marks: marks, Sampled: &sampled,
-				SpanCount: SpanCount{Dropped: &dropped},
-				Spans: []*span.Event{
-					&span.Event{Name: "span", Type: "db", Start: &start, Duration: 2.3, TransactionId: id, Timestamp: timestampParsed},
-				},
-			},
-		},
-	} {
-		transformable, err := V1DecodeEvent(test.input, nil)
-		assert.NoError(t, err)
-		assert.Equal(t, test.e, transformable.(*Event))
-	}
-}
-
-func TestTransactionEventDecodeV2(t *testing.T) {
+func TestTransactionEventDecode(t *testing.T) {
 	id, trType, name, result := "123", "type", "foo()", "555"
 	timestamp := "2017-05-30T18:53:27.154Z"
 	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
@@ -147,7 +86,6 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 				Id: id, Type: trType, TraceId: traceId,
 				Duration: duration, Timestamp: timestampParsed,
 				SpanCount: SpanCount{Started: &started},
-				v2Event:   true,
 			},
 		},
 		// full event, ignoring spans
@@ -167,11 +105,10 @@ func TestTransactionEventDecodeV2(t *testing.T) {
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
-				v2Event:   true,
 			},
 		},
 	} {
-		transformable, err := V2DecodeEvent(test.input, nil)
+		transformable, err := DecodeEvent(test.input, nil)
 		assert.Equal(t, test.err, err)
 		if test.e != nil {
 			event := transformable.(*Event)
@@ -258,7 +195,6 @@ func TestEventTransform(t *testing.T) {
 				Timestamp: time.Now(),
 				Duration:  65.98,
 				Context:   common.MapStr{"foo": "bar"},
-				Spans:     []*span.Event{},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
@@ -287,7 +223,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
 	platform := "x64"
-	timestamp := time.Now()
+	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
+	timestampUs := timestamp.UnixNano() / 1000
 
 	service := metadata.Service{Name: "myservice"}
 	system := &metadata.System{
@@ -314,6 +251,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"type":     "",
 			"sampled":  true,
 		},
+		"timestamp": common.MapStr{"us": timestampUs},
 	}
 
 	txValidWithSystem := common.MapStr{
@@ -338,6 +276,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 				"agent": common.MapStr{"name": "", "version": ""},
 			},
 		},
+		"timestamp": common.MapStr{"us": timestampUs},
 	}
 	txWithContext := Event{Timestamp: timestamp, Context: common.MapStr{"foo": "bar", "user": common.MapStr{"id": "55"}}}
 	txWithContextEs := common.MapStr{
@@ -363,13 +302,10 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 				"platform":     "x64",
 			},
 		},
+		"timestamp": common.MapStr{"us": timestampUs},
 	}
 
-	spans := []*span.Event{{
-		Timestamp: timestamp,
-	}}
-
-	txValidWithSpan := Event{Timestamp: timestamp, Spans: spans}
+	txValidWithSpan := Event{Timestamp: timestamp}
 	spanEs := common.MapStr{
 		"context": common.MapStr{
 			"service": common.MapStr{
@@ -386,6 +322,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"name":     "",
 			"type":     "",
 		},
+		"timestamp": common.MapStr{"us": timestampUs},
 	}
 
 	tests := []struct {
@@ -434,7 +371,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	for idx, test := range tests {
 		tctx := &transform.Context{
-			Metadata: *test.Metadata,
+			Metadata:    *test.Metadata,
+			RequestTime: timestamp,
 		}
 		outputEvents := test.Event.Transform(tctx)
 
