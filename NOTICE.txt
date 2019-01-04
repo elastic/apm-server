@@ -2071,8 +2071,8 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm
-Version: v1.1.1
-Revision: 69736506625fe7b07410587a5f993669f018b821
+Version: v1.1.2
+Revision: 9f89e36c6e534fd548810428cad1bd55cd57a5d2
 License type (autodetected): Apache-2.0
 ./vendor/go.elastic.co/apm/LICENSE:
 --------------------------------------------------------------------
@@ -2081,8 +2081,8 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm/internal/radix
-Version: v1.1.1
-Revision: 69736506625fe7b07410587a5f993669f018b821
+Version: v1.1.2
+Revision: 9f89e36c6e534fd548810428cad1bd55cd57a5d2
 License type (autodetected): MIT
 ./vendor/go.elastic.co/apm/internal/radix/LICENSE.goradix.txt:
 --------------------------------------------------------------------
