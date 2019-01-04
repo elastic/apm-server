@@ -1977,132 +1977,132 @@
 			"revisionTime": "2017-06-26T13:12:58Z"
 		},
 		{
-			"checksumSHA1": "0LlQvcxp1L/yXNSV9ehn99Cly+E=",
+			"checksumSHA1": "agpf3Bp8dI8VPg/zFGipN/tFJ5c=",
 			"path": "go.elastic.co/apm",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "LtEsnsQ9KsIFzuSh7RChXKVP6kw=",
 			"path": "go.elastic.co/apm/internal/apmconfig",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "uLC1vDQnVuK/HXwIQ8GoL98rylg=",
 			"path": "go.elastic.co/apm/internal/apmcontext",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "pbXuN24ylhPL5h02eJFhpAxbrl4=",
 			"path": "go.elastic.co/apm/internal/apmhostutil",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "QS2vPrpZv7E55DQxmLcF5X0sIy4=",
 			"path": "go.elastic.co/apm/internal/apmhttputil",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "LOCcwNVZdrTb9Qr2z8qOle4b8Rs=",
 			"path": "go.elastic.co/apm/internal/apmlog",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "jyJHgSRm/2ahkVvk1k/oJOUzwSs=",
 			"path": "go.elastic.co/apm/internal/apmschema",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "XSoU5dwRILhiekV5z14rR7+AtaM=",
 			"path": "go.elastic.co/apm/internal/apmstrings",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "ha/lUFc0OQz0bdIbOVyzjwpuVD4=",
 			"path": "go.elastic.co/apm/internal/iochan",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "F3J0rky8CLcyEl18/lVc9wNvLRw=",
 			"path": "go.elastic.co/apm/internal/radix",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "ymDI3ffN6UBKgJ6pydRqKTL2dZE=",
 			"path": "go.elastic.co/apm/internal/ringbuffer",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "4C9JC8A3zeVWk05Z1ZLQBctrS90=",
 			"path": "go.elastic.co/apm/internal/wildcard",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "1lbJHa9EntU+87nLm65uSUKjdL0=",
 			"path": "go.elastic.co/apm/model",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "FCMaFXsNJLCTHHnvLqCfI2W51kQ=",
 			"path": "go.elastic.co/apm/module/apmhttp",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "dfR4rjh7Jupul8AEZcks+IMaIWQ=",
 			"path": "go.elastic.co/apm/stacktrace",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "ZxFX6eC/Hxgqo7dy0K+JUQ9wOPo=",
 			"path": "go.elastic.co/apm/transport",
-			"revision": "69736506625fe7b07410587a5f993669f018b821",
-			"revisionTime": "2018-12-14T01:43:48Z",
-			"version": "v1.1.1",
-			"versionExact": "v1.1.1"
+			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
+			"revisionTime": "2019-01-04T03:47:35Z",
+			"version": "v1.1.2",
+			"versionExact": "v1.1.2"
 		},
 		{
 			"checksumSHA1": "ou8/GMlWF1EShL3NuomgkrmDwb0=",

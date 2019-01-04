@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"go.elastic.co/apm/internal/apmconfig"
@@ -180,7 +181,7 @@ type Tracer struct {
 	process *model.Process
 	system  *model.System
 
-	active            bool
+	active            int32
 	bufferSize        int
 	metricsBufferSize int
 	closing           chan struct{}
@@ -247,11 +248,11 @@ func newTracer(opts options) *Tracer {
 		transactions:          make(chan *TransactionData, transactionsChannelCap),
 		spans:                 make(chan *SpanData, spansChannelCap),
 		errors:                make(chan *ErrorData, errorsChannelCap),
+		active:                1,
 		maxSpans:              opts.maxSpans,
 		sampler:               opts.sampler,
 		captureBody:           opts.captureBody,
 		spanFramesMinDuration: opts.spanFramesMinDuration,
-		active:                opts.active,
 		bufferSize:            opts.bufferSize,
 		metricsBufferSize:     opts.metricsBufferSize,
 	}
@@ -259,7 +260,8 @@ func newTracer(opts options) *Tracer {
 	t.Service.Version = opts.serviceVersion
 	t.Service.Environment = opts.serviceEnvironment
 
-	if !t.active {
+	if !opts.active {
+		t.active = 0
 		close(t.closed)
 		return t
 	}
@@ -325,7 +327,7 @@ func (t *Tracer) Flush(abort <-chan struct{}) {
 // Active reports whether the tracer is active. If the tracer is inactive,
 // no transactions or errors will be sent to the Elastic APM server.
 func (t *Tracer) Active() bool {
-	return t.active
+	return atomic.LoadInt32(&t.active) == 1
 }
 
 // SetRequestDuration sets the maximum amount of time to keep a request open
@@ -481,7 +483,7 @@ func (t *Tracer) loop() {
 	ctx, cancelContext := context.WithCancel(context.Background())
 	defer cancelContext()
 	defer close(t.closed)
-	defer func() { t.active = false }()
+	defer atomic.StoreInt32(&t.active, 0)
 
 	var req iochan.ReadRequest
 	var requestBuf bytes.Buffer
