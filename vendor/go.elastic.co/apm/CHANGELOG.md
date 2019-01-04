@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased](https://github.com/elastic/apm-agent-go/compare/v1.1.1...master)
+## [Unreleased](https://github.com/elastic/apm-agent-go/compare/v1.1.2...master)
+
+## [v1.1.2](https://github.com/elastic/apm-agent-go/releases/tag/v1.1.2)
+
+ - Fix data race between Tracer.Active and Tracer.loop (#406)
 
 ## [v1.1.1](https://github.com/elastic/apm-agent-go/releases/tag/v1.1.1)
 
