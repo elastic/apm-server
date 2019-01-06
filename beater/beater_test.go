@@ -31,9 +31,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm"
 
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
@@ -60,16 +58,14 @@ func TestBeatConfig(t *testing.T) {
 		},
 		{
 			conf: map[string]interface{}{
-				"host":                   "localhost:3000",
-				"max_unzipped_size":      64,
-				"max_request_queue_time": 9 * time.Second,
-				"max_header_size":        8,
-				"max_event_size":         100,
-				"read_timeout":           3 * time.Second,
-				"write_timeout":          4 * time.Second,
-				"shutdown_timeout":       9 * time.Second,
-				"capture_personal_data":  true,
-				"secret_token":           "1234random",
+				"host":                  "localhost:3000",
+				"max_header_size":       8,
+				"max_event_size":        100,
+				"read_timeout":          3 * time.Second,
+				"write_timeout":         4 * time.Second,
+				"shutdown_timeout":      9 * time.Second,
+				"capture_personal_data": true,
+				"secret_token":          "1234random",
 				"ssl": map[string]interface{}{
 					"enabled":     true,
 					"key":         "1234key",
@@ -81,8 +77,7 @@ func TestBeatConfig(t *testing.T) {
 					"url":     "/debug/vars",
 				},
 				"frontend": map[string]interface{}{
-					"enabled":    true,
-					"rate_limit": 1000,
+					"enabled": true,
 					"event_rate": map[string]interface{}{
 						"limit":    7200,
 						"lru_size": 2000,
@@ -172,9 +167,8 @@ func TestBeatConfig(t *testing.T) {
 		},
 		{
 			conf: map[string]interface{}{
-				"host":              "localhost:3000",
-				"max_unzipped_size": 64,
-				"secret_token":      "1234random",
+				"host":         "localhost:3000",
+				"secret_token": "1234random",
 				"ssl": map[string]interface{}{
 					"enabled": true,
 				},
@@ -183,8 +177,7 @@ func TestBeatConfig(t *testing.T) {
 					"url":     "/debug/vars",
 				},
 				"frontend": map[string]interface{}{
-					"enabled":    true,
-					"rate_limit": 890,
+					"enabled": true,
 					"event_rate": map[string]interface{}{
 						"lru_size": 200,
 					},
@@ -451,67 +444,3 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, bea
 		return nil, nil, errors.New("timeout waiting for server start")
 	}
 }
-
-func SetupServer(b *testing.B) *http.ServeMux {
-	pip := DummyPipeline()
-	pub, err := publish.NewPublisher(pip, 1, time.Duration(0), apm.DefaultTracer)
-	if err != nil {
-		b.Fatal("error initializing publisher", err)
-	}
-	return newMuxer(defaultConfig("7.0.0"), pub.Send)
-}
-
-func pluralize(entity string) string {
-	return entity + "s"
-}
-
-//func createPayload(numEntities int) []byte {
-//	data, err := loader.LoadDataAsBytes("../testdata/intake-v2/events.ndjson")
-//	if err != nil {
-//		panic(err)
-//	}
-//	var entityList []interface{}
-//	testEntities := data[pluralize(entityType)].([]interface{})
-//
-//	for i := 0; i < numEntities; i++ {
-//		""
-//		entityList = append(entityList, testEntities[i%len(testEntities)])
-//	}
-//	data[pluralize(entityType)] = entityList
-//	out, err := json.Marshal(data)
-//	if err != nil {
-//		panic(err)
-//	}
-//	return out
-//}
-//
-//func benchmarkVariableSizePayload(b *testing.B, n int) {
-//	url := "/intake/v2/events"
-//	mux := SetupServer(b)
-//	data := createPayload(n)
-//	b.Logf("Sending %d events", len(data))
-//	b.ResetTimer()
-//	b.SetBytes(int64(len(data)))
-//	for i := 0; i < b.N; i++ {
-//		req, err := http.NewRequest("POST", url, bytes.NewReader(data))
-//		if err != nil {
-//			b.Error(err)
-//		}
-//
-//		req.Header.Add("Content-Type", "application/x-ndjson")
-//		w := httptest.NewRecorder()
-//		mux.ServeHTTP(w, req)
-//
-//		if w.Code != 202 {
-//			b.Fatal(w.Body.String())
-//		}
-//	}
-//}
-//
-//func BenchmarkServer(b *testing.B) {
-//	for _, sz := range []int{100, 1000, 10000} {
-//		b.Run(fmt.Sprintf("Benchmark intake API, %v events per event type", sz), func(b *testing.B) {
-//			benchmarkVariableSizePayload(b, sz)
-//		})
-//	}
-//}

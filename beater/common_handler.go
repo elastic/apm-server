@@ -21,7 +21,6 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/json"
-	"expvar"
 	"fmt"
 	"net/http"
 	"strings"
@@ -31,7 +30,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -147,31 +145,6 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
-	mux := http.NewServeMux()
-	logger := logp.NewLogger("handler")
-
-	for path, route := range AssetRoutes {
-		logger.Infof("Path %s added to request handler", path)
-
-		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
-	}
-	for path, route := range IntakeRoutes {
-		logger.Infof("Path %s added to request handler", path)
-
-		mux.Handle(path, route.Handler(path, beaterConfig, report))
-	}
-
-	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
-
-	if beaterConfig.Expvar.isEnabled() {
-		path := beaterConfig.Expvar.Url
-		logger.Infof("Path %s added to request handler", path)
-		mux.Handle(path, expvar.Handler())
-	}
-	return mux
-}
-
 type reqLoggerKey struct{}
 
 func ContextWithReqLogger(ctx context.Context, rl *logp.Logger) context.Context {
@@ -210,16 +183,6 @@ func requestTimeHandler(h http.Handler) http.Handler {
 		r = r.WithContext(utility.ContextWithRequestTime(r.Context(), time.Now()))
 		h.ServeHTTP(w, r)
 	})
-}
-
-// requestLogger is a convenience function to retrieve the logger that was
-// added to the request context by handler `logHandler``
-func requestLogger(r *http.Request) *logp.Logger {
-	logger, ok := r.Context().Value(reqLoggerKey{}).(*logp.Logger)
-	if !ok {
-		logger = logp.NewLogger("request")
-	}
-	return logger
 }
 
 func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
@@ -335,6 +298,16 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 		return
 	}
 	sendPlain(w, fmt.Sprintf("%s", msg), res.code)
+}
+
+// requestLogger is a convenience function to retrieve the logger that was
+// added to the request context by handler `logHandler``
+func requestLogger(r *http.Request) *logp.Logger {
+	logger, ok := r.Context().Value(reqLoggerKey{}).(*logp.Logger)
+	if !ok {
+		logger = logp.NewLogger("request")
+	}
+	return logger
 }
 
 func acceptsJSON(r *http.Request) bool {

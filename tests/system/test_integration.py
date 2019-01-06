@@ -65,8 +65,6 @@ class Test(ElasticTest):
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'span')
 
-        self.check_backend_transaction_sourcemap(count=5)
-
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_mark_navigation_timing(self):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
@@ -127,14 +125,16 @@ class Test(ElasticTest):
         return json.dumps(data, indent=4, separators=(',', ': '))
 
 
-class RumEnabledIntegrationTest(ClientSideElasticTest):
-    # @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    # def test_backend_error(self):
-    #     self.load_docs_with_template(self.get_error_payload_path(),
-    #                                  self.backend_intake_url,
-    #                                  'error',
-    #                                  4)
-    #     self.check_library_frames({"true": 1, "false": 1, "empty": 2}, "error")
+class EnrichEventIntegrationTest(ClientSideElasticTest):
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_backend_error(self):
+        # for backend events librar_frame information should not be changed,
+        # as no regex pattern is defined.
+        self.load_docs_with_template(self.get_backend_error_payload_path(),
+                                     self.backend_intake_url,
+                                     'error',
+                                     4)
+        self.check_library_frames({"true": 1, "false": 1, "empty": 2}, "error")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error(self):
@@ -144,13 +144,15 @@ class RumEnabledIntegrationTest(ClientSideElasticTest):
                                      1)
         self.check_library_frames({"true": 5, "false": 1, "empty": 0}, "error")
 
-    # @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    # def test_backend_transaction(self):
-    #     self.load_docs_with_template(self.get_transaction_payload_path(),
-    #                                  self.backend_intake_url,
-    #                                  'transaction',
-    #                                  9)
-    #     self.check_library_frames({"true": 1, "false": 0, "empty": 1}, "span")
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_backend_transaction(self):
+        # for backend events librar_frame information should not be changed,
+        # as no regex pattern is defined.
+        self.load_docs_with_template(self.get_backend_transaction_payload_path(),
+                                     self.backend_intake_url,
+                                     'transaction',
+                                     9)
+        self.check_library_frames({"true": 1, "false": 0, "empty": 1}, "span")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction(self):
@@ -274,20 +276,24 @@ class SplitIndicesIntegrationTest(SplitIndicesTest):
 
 
 class SourcemappingIntegrationTest(ClientSideElasticTest):
-    # @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    # def test_backend_error(self):
-    #     path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
-    #     r = self.upload_sourcemap(
-    #         file_name='bundle.js.map', bundle_filepath=path)
-    #     assert r.status_code == 202, r.status_code
-    #     self.wait_for_sourcemaps()
-    #
-    #     self.load_docs_with_template(self.get_backend_error_payload_path(),
-    #                                  self.backend_intake_url,
-    #                                  'error',
-    #                                  1)
-    #     self.assert_no_logged_warnings()
-    #     self.check_backend_error_sourcemap()
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_backend_error(self):
+        # ensure source mapping is not applied to backend events
+        # load event for which a sourcemap would be applied when sent to rum endpoint,
+        # and send against backend endpoint.
+
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(
+            file_name='bundle.js.map', bundle_filepath=path)
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.backend_intake_url,
+                                     'error',
+                                     1)
+        self.assert_no_logged_warnings()
+        self.check_backend_error_sourcemap()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_duplicated_sourcemap_warning(self):
@@ -325,21 +331,25 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_rum_error_sourcemap(True)
 
-    # @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    # def test_backend_transaction(self):
-    #     path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
-    #     r = self.upload_sourcemap(file_name='bundle.js.map',
-    #                               bundle_filepath=path,
-    #                               service_version='1.0.0')
-    #     assert r.status_code == 202, r.status_code
-    #     self.wait_for_sourcemaps()
-    #
-    #     self.load_docs_with_template(self.get_backend_transaction_payload_path(),
-    #                                  self.backend_intake_url,
-    #                                  'transaction',
-    #                                  2)
-    #     self.assert_no_logged_warnings()
-    #     self.check_backend_transaction_sourcemap()
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_backend_span(self):
+        # ensure source mapping is not applied to backend events
+        # load event for which a sourcemap would be applied when sent to rum endpoint,
+        # and send against backend endpoint.
+
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map',
+                                  bundle_filepath=path,
+                                  service_version='1.0.0')
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        self.load_docs_with_template(self.get_transaction_payload_path(),
+                                     self.backend_intake_url,
+                                     'transaction',
+                                     2)
+        self.assert_no_logged_warnings()
+        self.check_backend_span_sourcemap()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction(self):
@@ -524,7 +534,7 @@ class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
 class MetricsIntegrationTest(ElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_metric_doc(self):
-        self.load_docs_with_template(self.get_payload_path("metricsets.ndjson"), self.intake_url, 'metric', 2)
+        self.load_docs_with_template(self.get_metricset_payload_payload_path(), self.intake_url, 'metric', 2)
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"
         doc = mappings[self.index_name]["mappings"]["_doc"]

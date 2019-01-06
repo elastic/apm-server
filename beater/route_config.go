@@ -18,13 +18,13 @@
 package beater
 
 import (
+	"expvar"
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/processor/sourcemap"
-
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/processor/asset"
+	"github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
@@ -35,11 +35,11 @@ var (
 	rootURL = "/"
 
 	// intake v2
-	BackendURL = "/intake/v2/events"
-	RumURL     = "/intake/v2/rum/events"
+	backendURL = "/intake/v2/events"
+	rumURL     = "/intake/v2/rum/events"
 
 	// assets
-	SourcemapsURL = "/assets/v1/sourcemaps"
+	sourcemapsURL = "/assets/v1/sourcemaps"
 )
 
 const burstMultiplier = 3
@@ -51,12 +51,12 @@ type routeType struct {
 }
 
 var IntakeRoutes = map[string]intakeRoute{
-	BackendURL: backendRoute,
-	RumURL:     rumRoute,
+	backendURL: backendRoute,
+	rumURL:     rumRoute,
 }
 
 var AssetRoutes = map[string]assetRoute{
-	SourcemapsURL: {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
+	sourcemapsURL: {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
 }
 
 var (
@@ -85,6 +85,31 @@ var (
 		return decoder.DecodeSourcemapFormData
 	}
 )
+
+func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
+	mux := http.NewServeMux()
+	logger := logp.NewLogger("handler")
+
+	for path, route := range AssetRoutes {
+		logger.Infof("Path %s added to request handler", path)
+
+		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
+	}
+	for path, route := range IntakeRoutes {
+		logger.Infof("Path %s added to request handler", path)
+
+		mux.Handle(path, route.Handler(path, beaterConfig, report))
+	}
+
+	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
+
+	if beaterConfig.Expvar.isEnabled() {
+		path := beaterConfig.Expvar.Url
+		logger.Infof("Path %s added to request handler", path)
+		mux.Handle(path, expvar.Handler())
+	}
+	return mux
+}
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
@@ -127,11 +152,11 @@ func rumTransformConfig(beaterConfig *Config) transform.Config {
 
 type assetRoute struct {
 	routeType
-	processor.Processor
+	asset.Processor
 	topLevelRequestDecoder func(*Config) decoder.ReqDecoder
 }
 
-func (r *assetRoute) Handler(p processor.Processor, beaterConfig *Config, report publish.Reporter) http.Handler {
+func (r *assetRoute) Handler(p asset.Processor, beaterConfig *Config, report publish.Reporter) http.Handler {
 	handler := assetHandler{
 		requestDecoder: r.configurableDecoder(beaterConfig, r.topLevelRequestDecoder(beaterConfig)),
 		processor:      p,
@@ -150,18 +175,17 @@ func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) htt
 		c,
 		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
 	)
-
 	handler := intakeHandler{
 		requestDecoder: reqDecoder,
-		streamProcessor: &stream.StreamProcessor{
+		streamProcessor: &stream.Processor{
 			Tconfig:      r.transformConfig(c),
 			MaxEventSize: c.MaxEventSize,
 		},
 	}
 
-	if url == RumURL {
-		if rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit, burstMultiplier); err == nil {
-			handler.rlc = rlc
+	if url == rumURL {
+		if c, err := newRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit, burstMultiplier); err == nil {
+			handler.rlc = c
 		} else {
 			logp.NewLogger("handler").Error(err.Error())
 		}

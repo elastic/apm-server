@@ -15,27 +15,38 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package processor
+package sourcemap
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	"github.com/elastic/apm-server/decoder"
+
+	parser "github.com/go-sourcemap/sourcemap"
+
 	"github.com/elastic/apm-server/model/metadata"
+	sm "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
 	"github.com/elastic/beats/libbeat/monitoring"
 )
 
-type Processor interface {
-	Validate(map[string]interface{}) error
-	Decode(map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error)
-	Name() string
-}
+const eventName = "sourcemap"
 
-type EventsProcessor struct {
-	EventName     string
+var (
+	Processor = &sourcemapProcessor{
+		PayloadSchema: sm.PayloadSchema(),
+		DecodingCount: monitoring.NewInt(sm.Metrics, "decoding.count"),
+		DecodingError: monitoring.NewInt(sm.Metrics, "decoding.errors"),
+		ValidateCount: monitoring.NewInt(sm.Metrics, "validation.count"),
+		ValidateError: monitoring.NewInt(sm.Metrics, "validation.errors"),
+	}
+)
+
+type sourcemapProcessor struct {
 	PayloadKey    string
 	EventDecoder  decoder.EventDecoder
 	PayloadSchema *jsonschema.Schema
@@ -45,43 +56,39 @@ type EventsProcessor struct {
 	ValidateError *monitoring.Int
 }
 
-func (p *EventsProcessor) Name() string {
-	return p.EventName
+func (p *sourcemapProcessor) Name() string {
+	return eventName
 }
 
-func (p *EventsProcessor) decodePayload(raw map[string]interface{}) ([]transform.Transformable, error) {
-	var err error
-	decoder := utility.ManualDecoder{}
-
-	rawObjects := decoder.InterfaceArr(raw, p.PayloadKey)
-
-	events := make([]transform.Transformable, len(rawObjects))
-	for idx, errData := range rawObjects {
-		events[idx], err = p.EventDecoder(errData, err)
-	}
-	return events, err
-}
-
-func (p *EventsProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error) {
+func (p *sourcemapProcessor) Decode(raw map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error) {
 	p.DecodingCount.Inc()
-	payload, err := p.decodePayload(raw)
+	transformable, err := sm.DecodeSourcemap(raw)
 	if err != nil {
 		p.DecodingError.Inc()
 		return nil, nil, err
 	}
 
-	metadata, err := metadata.DecodeMetadata(raw)
-	if err != nil {
-		p.DecodingError.Inc()
-		return nil, nil, err
-	}
-
-	return metadata, payload, err
+	return &metadata.Metadata{}, []transform.Transformable{transformable}, err
 }
 
-func (p *EventsProcessor) Validate(raw map[string]interface{}) error {
+func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {
 	p.ValidateCount.Inc()
-	err := validation.Validate(raw, p.PayloadSchema)
+
+	smap, ok := raw["sourcemap"].(string)
+	if !ok {
+		if s, _ := raw["sourcemap"]; s == nil {
+			return errors.New(`missing properties: "sourcemap", expected sourcemap to be sent as string, but got null`)
+		} else {
+			return errors.New("sourcemap not in expected format")
+		}
+	}
+
+	_, err := parser.Parse("", []byte(smap))
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error validating sourcemap: %v", err))
+	}
+
+	err = validation.Validate(raw, p.PayloadSchema)
 	if err != nil {
 		p.ValidateError.Inc()
 	}

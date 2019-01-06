@@ -48,7 +48,7 @@ func BenchmarkStreamProcessor(b *testing.B) {
 	}
 	//ensure to not hit rate limit as blocking wait would be measured otherwise
 	rl := rate.NewLimiter(rate.Limit(math.MaxFloat64-1), math.MaxInt32)
-	sp := &StreamProcessor{MaxEventSize: 300 * 1024}
+	sp := &Processor{MaxEventSize: 300 * 1024}
 
 	benchmark := func(filename string, rl *rate.Limiter) func(b *testing.B) {
 		return func(b *testing.B) {

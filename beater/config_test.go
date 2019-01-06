@@ -39,7 +39,6 @@ func TestConfig(t *testing.T) {
 		{
 			config: []byte(`{
         "host": "localhost:3000",
-        "max_unzipped_size": 64,
         "max_header_size": 8,
         "read_timeout": 3s,
         "write_timeout": 4s,
@@ -53,7 +52,6 @@ func TestConfig(t *testing.T) {
         "concurrent_requests": 15,
 				"rum": {
 					"enabled": true,
-					"rate_limit": 800,
 					"event_rate": {
 						"limit":      8000,
 						"lru_size": 2000,
@@ -70,7 +68,6 @@ func TestConfig(t *testing.T) {
 				},
 				"frontend": {
 					"enabled": true,
-					"rate_limit": 1000,
 					"event_rate": {
 						"limit":      1000,
 						"lru_size": 500,
@@ -146,7 +143,6 @@ func TestConfig(t *testing.T) {
 		{
 			config: []byte(`{
         "host": "localhost:8200",
-        "max_unzipped_size": 64,
         "max_header_size": 8,
         "read_timeout": 3s,
         "write_timeout": 2s,

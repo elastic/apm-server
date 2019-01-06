@@ -35,7 +35,7 @@ import (
 
 type intakeHandler struct {
 	requestDecoder  decoder.ReqDecoder
-	streamProcessor *stream.StreamProcessor
+	streamProcessor *stream.Processor
 	rlc             *rlCache
 }
 

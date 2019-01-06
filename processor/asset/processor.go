@@ -15,21 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package package_tests
+package asset
 
 import (
-	"testing"
-
-	sm "github.com/elastic/apm-server/processor/sourcemap"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 )
 
-// ensure all valid documents pass through the whole validation and transformation process
-func TestSourcemapProcessorOK(t *testing.T) {
-	requestInfo := []tests.RequestInfo{
-		{Name: "TestProcessSourcemapFull", Path: "../testdata/sourcemap/payload.json"},
-		{Name: "TestProcessSourcemapMinimalPayload", Path: "../testdata/sourcemap/minimal_payload.json"},
-	}
-	tests.TestProcessRequests(t, sm.Processor, transform.Context{}, requestInfo, map[string]string{"@timestamp": "***IGNORED***"})
+type Processor interface {
+	Validate(map[string]interface{}) error
+	Decode(map[string]interface{}) (*metadata.Metadata, []transform.Transformable, error)
+	Name() string
 }

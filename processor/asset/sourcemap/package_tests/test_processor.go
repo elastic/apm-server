@@ -15,35 +15,35 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package tests
+package package_tests
 
 import (
 	"encoding/json"
 
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/beat"
 )
 
-type AssetTestProcessor struct {
-	processor.Processor
+type TestProcessor struct {
+	asset.Processor
 }
 
-func (p *AssetTestProcessor) LoadPayload(path string) (interface{}, error) {
+func (p *TestProcessor) LoadPayload(path string) (interface{}, error) {
 	return loader.LoadData(path)
 }
 
-func (p *AssetTestProcessor) Decode(input interface{}) error {
+func (p *TestProcessor) Decode(input interface{}) error {
 	_, _, err := p.Processor.Decode(input.(map[string]interface{}))
 	return err
 }
 
-func (p *AssetTestProcessor) Validate(input interface{}) error {
+func (p *TestProcessor) Validate(input interface{}) error {
 	return p.Processor.Validate(input.(map[string]interface{}))
 }
 
-func (p *AssetTestProcessor) Process(buf []byte) ([]beat.Event, error) {
+func (p *TestProcessor) Process(buf []byte) ([]beat.Event, error) {
 	var pl map[string]interface{}
 	err := json.Unmarshal(buf, &pl)
 	if err != nil {

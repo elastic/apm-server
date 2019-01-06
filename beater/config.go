@@ -116,7 +116,7 @@ type InstrumentationConfig struct {
 	SecretToken string  `config:"secret_token"`
 }
 
-func NewConfig(version string, ucfg *common.Config) (*Config, error) {
+func newConfig(version string, ucfg *common.Config) (*Config, error) {
 	c := defaultConfig(version)
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")

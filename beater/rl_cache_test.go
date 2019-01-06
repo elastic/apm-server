@@ -34,7 +34,7 @@ func TestCacheInitFails(t *testing.T) {
 		{0, 1},
 		{1, -1},
 	} {
-		c, err := NewRlCache(test.size, test.limit, 3)
+		c, err := newRlCache(test.size, test.limit, 3)
 		assert.Error(t, err)
 		assert.Nil(t, c)
 	}
@@ -42,9 +42,9 @@ func TestCacheInitFails(t *testing.T) {
 
 func TestCacheEviction(t *testing.T) {
 	cacheSize := 2
-	limit := 1 //multiplied times v2BurstMultiplier 3
+	limit := 1 //multiplied times BurstMultiplier 3
 
-	rlc, err := NewRlCache(cacheSize, limit, 3)
+	rlc, err := newRlCache(cacheSize, limit, 3)
 	require.NoError(t, err)
 
 	// add new limiter
@@ -78,7 +78,7 @@ func TestCacheOk(t *testing.T) {
 	assert.False(t, ok)
 
 	var cache = func() *rlCache {
-		rlc, err := NewRlCache(1, 1, 1)
+		rlc, err := newRlCache(1, 1, 1)
 		require.NoError(t, err)
 		return rlc
 	}

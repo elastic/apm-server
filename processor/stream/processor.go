@@ -80,7 +80,7 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 	return v, err
 }
 
-type StreamProcessor struct {
+type Processor struct {
 	Tconfig      transform.Config
 	MaxEventSize int
 	bufferPool   sync.Pool
@@ -115,7 +115,7 @@ var models = []struct {
 	},
 }
 
-func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
+func (v *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
 	// first item is the metadata object
 	rawModel, err := reader.Read()
 	if err != nil {
@@ -162,7 +162,7 @@ func (v *StreamProcessor) readMetadata(reqMeta map[string]interface{}, reader St
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (v *StreamProcessor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
+func (v *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
 	for _, model := range models {
 		if entry, ok := rawModel[model.key]; ok {
 			err := validation.Validate(entry, model.schema)
@@ -182,7 +182,7 @@ func (v *StreamProcessor) HandleRawModel(rawModel map[string]interface{}) (trans
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+func (s *Processor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
 	var (
 		err        error
 		rawModel   map[string]interface{}
@@ -234,7 +234,7 @@ func (s *StreamProcessor) readBatch(ctx context.Context, rl *rate.Limiter, batch
 	return eventables, reader.IsEOF()
 }
 
-func (s *StreamProcessor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
+func (s *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
 	buf, ok := s.bufferPool.Get().(*bufio.Reader)

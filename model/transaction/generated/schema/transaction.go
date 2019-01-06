@@ -18,7 +18,7 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/transactions/v2_transaction.json",
+    "$id": "docs/spec/transactions/transaction.json",
     "type": "object",
     "description": "An event corresponding to an incoming request or similar task occurring in a monitored service",
     "allOf": [

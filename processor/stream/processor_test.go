@@ -49,7 +49,7 @@ func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 	tests.AssertApproveResult(t, resultName, resultJSON)
 }
 
-func TestV2HandlerReadStreamError(t *testing.T) {
+func TestHandlerReadStreamError(t *testing.T) {
 	var pendingReqs []publish.PendingReq
 	report := tests.TestReporter(&pendingReqs)
 
@@ -58,12 +58,12 @@ func TestV2HandlerReadStreamError(t *testing.T) {
 	bodyReader := bytes.NewBuffer(b)
 	timeoutReader := iotest.TimeoutReader(bodyReader)
 
-	sp := StreamProcessor{MaxEventSize: 100 * 1024}
+	sp := Processor{MaxEventSize: 100 * 1024}
 	actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, timeoutReader, report)
 	assertApproveResult(t, actualResult, "ReadError")
 }
 
-func TestV2HandlerReportingStreamError(t *testing.T) {
+func TestHandlerReportingStreamError(t *testing.T) {
 	for _, test := range []struct {
 		name   string
 		report func(ctx context.Context, p publish.PendingReq) error
@@ -85,7 +85,7 @@ func TestV2HandlerReportingStreamError(t *testing.T) {
 		require.NoError(t, err)
 		bodyReader := bytes.NewBuffer(b)
 
-		sp := StreamProcessor{MaxEventSize: 100 * 1024}
+		sp := Processor{MaxEventSize: 100 * 1024}
 		actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, bodyReader, test.report)
 		assertApproveResult(t, actualResult, test.name)
 	}
@@ -129,7 +129,7 @@ func TestIntegration(t *testing.T) {
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
-			name := fmt.Sprintf("approved-es-documents/testV2IntakeIntegration%s", test.name)
+			name := fmt.Sprintf("approved-es-documents/testIntakeIntegration%s", test.name)
 			ctx := context.WithValue(context.Background(), "name", name)
 			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
 			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
@@ -140,7 +140,7 @@ func TestIntegration(t *testing.T) {
 				},
 			}
 
-			actualResult := (&StreamProcessor{MaxEventSize: 100 * 1024}).HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
+			actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
 			assertApproveResult(t, actualResult, test.name)
 		})
 	}
@@ -169,7 +169,7 @@ func TestRateLimiting(t *testing.T) {
 			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
 		}
 
-		actualResult := (&StreamProcessor{MaxEventSize: 100 * 1024}).HandleStream(
+		actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(
 			context.Background(), test.lim, map[string]interface{}{}, bytes.NewReader(b), report)
 		assertApproveResult(t, actualResult, test.name)
 	}

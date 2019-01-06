@@ -18,7 +18,7 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/spans/v2_span.json",
+    "$id": "docs/spec/spans/span.json",
     "type": "object",
     "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [

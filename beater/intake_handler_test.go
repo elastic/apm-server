@@ -39,7 +39,7 @@ import (
 )
 
 func TestInvalidContentType(t *testing.T) {
-	req := httptest.NewRequest("POST", BackendURL, nil)
+	req := httptest.NewRequest("POST", backendURL, nil)
 	w := httptest.NewRecorder()
 
 	c := defaultConfig("7.0.0")
@@ -53,7 +53,7 @@ func TestInvalidContentType(t *testing.T) {
 }
 
 func TestEmptyRequest(t *testing.T) {
-	req := httptest.NewRequest("POST", BackendURL, nil)
+	req := httptest.NewRequest("POST", backendURL, nil)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
 	w := httptest.NewRecorder()
@@ -67,7 +67,7 @@ func TestEmptyRequest(t *testing.T) {
 }
 
 func TestRequestDecoderError(t *testing.T) {
-	req := httptest.NewRequest("POST", BackendURL, bytes.NewBufferString(`asdasd`))
+	req := httptest.NewRequest("POST", backendURL, bytes.NewBufferString(`asdasd`))
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
 	w := httptest.NewRecorder()
@@ -117,7 +117,7 @@ func TestRequestIntegration(t *testing.T) {
 
 			w, err := sendReq(defaultConfig("7.0.0"),
 				&backendRoute,
-				BackendURL,
+				backendURL,
 				filepath.Join("../testdata/intake-v2/", test.path),
 				test.reportingErr)
 			require.NoError(t, err)
@@ -142,6 +142,8 @@ func TestRequestIntegration(t *testing.T) {
 }
 
 func TestRequestIntegrationRUM(t *testing.T) {
+	type m map[string]interface{}
+
 	for _, test := range []struct {
 		name string
 		code int
@@ -154,9 +156,9 @@ func TestRequestIntegrationRUM(t *testing.T) {
 
 			ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "event_rate": m{"limit": 9}}})
 			require.NoError(t, err)
-			c, err := NewConfig("7.0.0", ucfg)
+			c, err := newConfig("7.0.0", ucfg)
 			require.NoError(t, err)
-			w, err := sendReq(c, &rumRoute, RumURL, test.path, nil)
+			w, err := sendReq(c, &rumRoute, rumURL, test.path, nil)
 			require.NoError(t, err)
 
 			require.Equal(t, test.code, w.Code, w.Body.String())
@@ -187,7 +189,7 @@ func sendReq(c *Config, route *intakeRoute, url string, p string, repErr error) 
 	return w, nil
 }
 
-func TestV2WrongMethod(t *testing.T) {
+func TestWrongMethod(t *testing.T) {
 	req := httptest.NewRequest("GET", "/intake/v2/events", nil)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	w := httptest.NewRecorder()
@@ -200,7 +202,7 @@ func TestV2WrongMethod(t *testing.T) {
 	assert.Equal(t, ct+1, methodNotAllowedCounter.Get())
 }
 
-func TestV2LineExceeded(t *testing.T) {
+func TestLineExceeded(t *testing.T) {
 	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 
@@ -215,7 +217,7 @@ func TestV2LineExceeded(t *testing.T) {
 		return limitExceeded
 	}
 
-	req := httptest.NewRequest("POST", "/v2/intake", bytes.NewBuffer(b))
+	req := httptest.NewRequest("POST", "/intake/v2/events", bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
 	w := httptest.NewRecorder()
@@ -234,7 +236,7 @@ func TestV2LineExceeded(t *testing.T) {
 	assert.True(t, lineLimitExceededInTestData(c.MaxEventSize))
 	handler = (&backendRoute).Handler("", c, nilReport)
 
-	req = httptest.NewRequest("POST", "/v2/intake", bytes.NewBuffer(b))
+	req = httptest.NewRequest("POST", "/intake/v2/events", bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	req.Header.Add("Accept", "*/*")
 	w = httptest.NewRecorder()
@@ -243,5 +245,5 @@ func TestV2LineExceeded(t *testing.T) {
 	handler.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 	assert.Equal(t, ct+1, requestTooLargeCounter.Get())
-	tests.AssertApproveResult(t, "approved-stream-result/TestV2LineExceeded", w.Body.Bytes())
+	tests.AssertApproveResult(t, "approved-stream-result/TestLineExceeded", w.Body.Bytes())
 }

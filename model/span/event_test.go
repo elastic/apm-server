@@ -218,7 +218,7 @@ func TestSpanTransform(t *testing.T) {
 				"name":     "",
 				"hex_id":   hexId,
 			},
-			Msg: "V2 Span without a Stacktrace",
+			Msg: "Span without a Stacktrace",
 		},
 	}
 

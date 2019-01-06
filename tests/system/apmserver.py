@@ -45,8 +45,8 @@ class BaseTest(TestCase):
     def get_transaction_payload_path(self):
         return self.get_payload_path("transactions.ndjson")
 
-    def get_metricset_payload(self, name="metricset.ndjson"):
-        return self.get_payload(name)
+    def get_metricset_payload_payload_path(self):
+        return self.get_payload_path("metricsets.ndjson")
 
     def get_event_payload(self, name="events.ndjson"):
         return self.get_payload(name)
@@ -259,7 +259,7 @@ class ElasticTest(ServerBaseTest):
             if "log" in err:
                 self.check_for_no_smap(err["log"])
 
-    def check_backend_transaction_sourcemap(self, count=1):
+    def check_backend_span_sourcemap(self, count=1):
         rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
             "query": {"term": {"processor.event": "span"}}})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
@@ -300,7 +300,7 @@ class ClientSideBaseTest(ServerBaseTest):
     def get_error_payload_path(self, name="errors_rum.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
 
-    def get_transaction_payload_path(self, name="transactions_rum.ndjson"):
+    def get_transaction_payload_path(self, name="transactions_spans_rum.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
 
     def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',

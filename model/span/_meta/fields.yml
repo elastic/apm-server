@@ -14,7 +14,7 @@
         - name: hex_id
           type: keyword 
           description: >
-            The ID of the span, introduced (>= 6.5).
+            The ID of the span stored as hex encoded string.
 
         - name: name
           type: keyword

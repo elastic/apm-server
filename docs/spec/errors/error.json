@@ -1,5 +1,5 @@
 {
-    "$id": "docs/spec/errors/v2_error.json",
+    "$id": "docs/spec/errors/error.json",
     "type": "object",
     "description": "An error or a logged error message captured by an agent occurring in a monitored service",
     "allOf": [

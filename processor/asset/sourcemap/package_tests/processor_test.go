@@ -18,21 +18,66 @@
 package package_tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
-	"github.com/elastic/apm-server/processor/sourcemap"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/beats/libbeat/beat"
+
+	"github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/transform"
 )
 
 var (
 	procSetup = tests.ProcessorSetup{
-		Proc:            &tests.AssetTestProcessor{Processor: sourcemap.Processor},
+		Proc:            &TestProcessor{Processor: sourcemap.Processor},
 		FullPayloadPath: "../testdata/sourcemap/payload.json",
-		TemplatePaths:   []string{"../../../model/sourcemap/_meta/fields.yml"},
+		TemplatePaths:   []string{"../../../../model/sourcemap/_meta/fields.yml"},
 		Schema:          schema.PayloadSchema,
 	}
 )
+
+// ensure all valid documents pass through the whole validation and transformation process
+func TestSourcemapProcessorOK(t *testing.T) {
+	data := []struct {
+		Name string
+		Path string
+	}{
+		{Name: "TestProcessSourcemapFull", Path: "../testdata/sourcemap/payload.json"},
+		{Name: "TestProcessSourcemapMinimalPayload", Path: "../testdata/sourcemap/minimal_payload.json"},
+	}
+
+	for _, info := range data {
+		p := sourcemap.Processor
+		tctx := transform.Context{}
+		ignored := map[string]string{"@timestamp": "***IGNORED***"}
+
+		data, err := loader.LoadData(info.Path)
+		require.NoError(t, err)
+
+		err = p.Validate(data)
+		require.NoError(t, err)
+
+		metadata, payload, err := p.Decode(data)
+		require.NoError(t, err)
+
+		tctx.Metadata = *metadata
+		var events []beat.Event
+		for _, transformable := range payload {
+			events = append(events, transformable.Transform(&tctx)...)
+		}
+		verifyErr := tests.ApproveEvents(events, info.Name, ignored)
+		if verifyErr != nil {
+			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
+		}
+	}
+}
 
 func TestPayloadAttrsMatchFields(t *testing.T) {
 	procSetup.PayloadAttrsMatchFields(t, tests.NewSet("sourcemap.sourcemap"), tests.NewSet())

@@ -46,7 +46,7 @@ apm-server:
 
     #event_rate:
 
-      # Defines the maximum amount of events allowed to be sent to the APM Server v2 RUM
+      # Defines the maximum amount of events allowed to be sent to the APM Server RUM
       # endpoint per ip per second. Defaults to 300.
       #limit: 300
 

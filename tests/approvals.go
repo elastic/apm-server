@@ -30,9 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/yudai/gojsondiff"
 
-	"github.com/elastic/apm-server/processor"
-	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -131,32 +128,4 @@ func Compare(path string, ignored map[string]string) (map[string]interface{}, []
 	differ := gojsondiff.New()
 	d, err := differ.Compare(approved, received)
 	return data, approved, d, err
-}
-
-type RequestInfo struct {
-	Name string
-	Path string
-}
-
-func TestProcessRequests(t *testing.T, p processor.Processor, tctx transform.Context, requestInfo []RequestInfo, ignored map[string]string) {
-	for _, info := range requestInfo {
-		data, err := loader.LoadData(info.Path)
-		require.NoError(t, err)
-
-		err = p.Validate(data)
-		require.NoError(t, err)
-
-		metadata, payload, err := p.Decode(data)
-		require.NoError(t, err)
-
-		tctx.Metadata = *metadata
-		var events []beat.Event
-		for _, transformable := range payload {
-			events = append(events, transformable.Transform(&tctx)...)
-		}
-		verifyErr := ApproveEvents(events, info.Name, ignored)
-		if verifyErr != nil {
-			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
-		}
-	}
 }

@@ -40,13 +40,13 @@ type TestSetup struct {
 	Schema        *jsonschema.Schema
 }
 
-type V2TestProcessor struct {
-	stream.StreamProcessor
+type intakeTestProcessor struct {
+	stream.Processor
 }
 
 const lrSize = 100 * 1024
 
-func (v *V2TestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, error) {
+func (v *intakeTestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, error) {
 	reader, err := loader.LoadDataAsStream(path)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (v *V2TestProcessor) getReader(path string) (*decoder.NDJSONStreamReader, e
 	return decoder.NewNDJSONStreamReader(lr), nil
 }
 
-func (v *V2TestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]interface{}, error) {
+func (v *intakeTestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]interface{}, error) {
 	var (
 		err    error
 		e      map[string]interface{}
@@ -74,7 +74,7 @@ func (v *V2TestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]inte
 	return events, nil
 }
 
-func (p *V2TestProcessor) LoadPayload(path string) (interface{}, error) {
+func (p *intakeTestProcessor) LoadPayload(path string) (interface{}, error) {
 	ndjson, err := p.getReader(path)
 	if err != nil {
 		return nil, err
@@ -86,10 +86,10 @@ func (p *V2TestProcessor) LoadPayload(path string) (interface{}, error) {
 	return p.readEvents(ndjson)
 }
 
-func (p *V2TestProcessor) Decode(data interface{}) error {
+func (p *intakeTestProcessor) Decode(data interface{}) error {
 	events := data.([]interface{})
 	for _, e := range events {
-		_, err := p.StreamProcessor.HandleRawModel(e.(map[string]interface{}))
+		_, err := p.Processor.HandleRawModel(e.(map[string]interface{}))
 		if err != nil {
 			return err
 		}
@@ -98,11 +98,11 @@ func (p *V2TestProcessor) Decode(data interface{}) error {
 	return nil
 }
 
-func (p *V2TestProcessor) Validate(data interface{}) error {
+func (p *intakeTestProcessor) Validate(data interface{}) error {
 	return p.Decode(data)
 }
 
-func (p *V2TestProcessor) Process(buf []byte) ([]beat.Event, error) {
+func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 	var reqs []publish.PendingReq
 	report := tests.TestReporter(&reqs)
 

@@ -24,7 +24,7 @@ import (
 	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/processor"
+	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -32,7 +32,7 @@ import (
 
 type assetHandler struct {
 	requestDecoder decoder.ReqDecoder
-	processor      processor.Processor
+	processor      asset.Processor
 	tconfig        transform.Config
 }
 

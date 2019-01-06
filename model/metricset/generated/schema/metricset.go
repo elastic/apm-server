@@ -18,7 +18,7 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/metricsets/v2_metricset.json",
+    "$id": "docs/spec/metricsets/metricset.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [

@@ -237,7 +237,7 @@ func TestServerRumSwitch(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 
-	req, err := http.NewRequest("POST", baseUrl+RumURL, bytes.NewReader(testData))
+	req, err := http.NewRequest("POST", baseUrl+rumURL, bytes.NewReader(testData))
 	assert.NoError(t, err)
 	res, err := client.Do(req)
 	assert.NotEqual(t, http.StatusForbidden, res.StatusCode, body(t, res))
@@ -293,7 +293,7 @@ func TestServerCORS(t *testing.T) {
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 
-		req, err := http.NewRequest("POST", baseUrl+RumURL, bytes.NewReader(testData))
+		req, err := http.NewRequest("POST", baseUrl+rumURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/x-ndjson")
 		assert.NoError(t, err)
@@ -524,7 +524,7 @@ func withSSL(t *testing.T, domain, passphrase string) *common.Config {
 }
 
 func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest("POST", baseUrl+BackendURL, bytes.NewReader(testData))
+	req, err := http.NewRequest("POST", baseUrl+backendURL, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
