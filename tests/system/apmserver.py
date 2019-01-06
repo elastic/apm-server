@@ -39,8 +39,8 @@ class BaseTest(TestCase):
         with open(self.get_payload_path(name)) as f:
             return f.read()
 
-    def get_error_payload(self):
-        return self.get_payload_path("errors.ndjson")
+    def get_error_payload_path(self):
+        return self.get_payload_path("errors_2.ndjson")
 
     def get_transaction_payload_path(self):
         return self.get_payload_path("transactions.ndjson")
@@ -271,12 +271,13 @@ class ElasticTest(ServerBaseTest):
         if "stacktrace" not in doc:
             return
         for frame in doc["stacktrace"]:
-            assert "sourcemap" not in frame
+            assert "sourcemap" not in frame, frame
 
 
 class ClientSideBaseTest(ServerBaseTest):
     sourcemap_url = 'http://localhost:8200/assets/v1/sourcemaps'
     intake_url = 'http://localhost:8200/intake/v2/rum/events'
+    backend_intake_url = 'http://localhost:8200/intake/v2/events'
 
     @classmethod
     def setUpClass(cls):
@@ -290,10 +291,16 @@ class ClientSideBaseTest(ServerBaseTest):
                     "smap_cache_expiration": "200"})
         return cfg
 
-    def get_transaction_payload_path(self, name='rum.json'):
+    def get_backend_error_payload_path(self, name="errors_2.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
 
-    def get_error_payload_path(self, name='rum.json'):
+    def get_backend_transaction_payload_path(self, name="transactions_spans.ndjson"):
+        return super(ClientSideBaseTest, self).get_payload_path(name)
+
+    def get_error_payload_path(self, name="errors_rum.ndjson"):
+        return super(ClientSideBaseTest, self).get_payload_path(name)
+
+    def get_transaction_payload_path(self, name="transactions_rum.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
 
     def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',

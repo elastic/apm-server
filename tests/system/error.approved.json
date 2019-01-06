@@ -2,20 +2,80 @@
     {
         "_score": 0.2876821,
         "_type": "_doc",
-        "_id": "VZNFGWgBMON7Bqa8KBQ6",
+        "_id": "YEUQC2IBWUGW2FxIuwuv",
         "_source": {
-            "timestamp": {
-                "us": 1494342245999999
+            "beat": {
+                "hostname": "5d8dc22ccf3b",
+                "name": "5d8dc22ccf3b",
+                "version": "7.0.0-alpha1"
+            },
+            "@timestamp": "2017-05-09T15:04:05.000Z",
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "context": {
+                "process": {
+                    "ppid": 7788,
+                    "pid": 1234,
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "title": "node"
+                },
+                "system": {
+                    "platform": "darwin",
+                    "hostname": "prod1.example.com",
+                    "architecture": "x64",
+                    "ip": "127.0.0.1"
+                },
+                "service": {
+                    "name": "1234_service-12a3",
+                    "language": {
+                        "version": "8",
+                        "name": "ecmascript"
+                    },
+                    "agent": {
+                        "version": "3.14.0",
+                        "name": "elastic-node"
+                    },
+                    "environment": "staging",
+                    "framework": {
+                        "version": "1.2.3",
+                        "name": "Express"
+                    },
+                    "version": "5.1.3",
+                    "runtime": {
+                        "version": "8.0.0",
+                        "name": "node"
+                    }
+                }
+            },
+            "error": {
+                "exception": {
+                    "type": "connection error"
+                },
+                "grouping_key": "18f82051862e494727fa20e0adc15711",
+                "id": "7f0e9d68c1854d21a6f44673ed561ec8"
+            }
+        },
+        "_index": "test-apm-12-12-2017"
+    },
+    {
+        "_score": 0.13353139,
+        "_type": "_doc",
+        "_id": "XkUQC2IBWUGW2FxIuwuv",
+        "_source": {
+            "transaction": {
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+            },
+            "beat": {
+                "hostname": "5d8dc22ccf3b",
+                "name": "5d8dc22ccf3b",
+                "version": "7.0.0-alpha1"
             },
             "@timestamp": "2017-05-09T15:04:05.999Z",
-            "agent": {
-                "hostname": "silmac",
-                "type": "apm-server",
-                "version": "7.0.0"
-            },
-            "host": {
-                "name": "silmac"
-            },
             "context": {
                 "service": {
                     "name": "1234_service-12a3",
@@ -42,7 +102,7 @@
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 },
                 "process": {
-                    "ppid": 6789,
+                    "ppid": 7788,
                     "pid": 1234,
                     "argv": [
                         "node",
@@ -63,23 +123,23 @@
                     "url": {
                         "search": "?query=string",
                         "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                        "hash": "#hash",
+                        "protocol": "https:",
                         "hostname": "www.example.com",
                         "raw": "/p/a/t/h?query=string#hash",
                         "pathname": "/p/a/t/h",
-                        "protocol": "https:",
+                        "hash": "#hash",
                         "port": "8080"
                     },
                     "http_version": "1.1",
                     "headers": {
                         "some-other-header": "foo",
-                        "cookie": "c1=v1; c2=v2",
+                        "content-type": "text/html",
                         "array": [
                             "foo",
                             "bar",
                             "baz"
                         ],
-                        "content-type": "text/html",
+                        "cookie": "c1=v1; c2=v2",
                         "user-agent": "Mozilla Chrome Edge"
                     },
                     "env": {
@@ -106,16 +166,16 @@
                 },
                 "user": {
                     "username": "foo",
-                    "email": "foo@example.com",
-                    "id": 99
+                    "id": 99,
+                    "email": "foo@example.com"
                 },
                 "response": {
                     "headers": {
                         "content-type": "application/json"
                     },
                     "finished": true,
-                    "status_code": 200,
-                    "headers_sent": true
+                    "headers_sent": true,
+                    "status_code": 200
                 }
             },
             "error": {
@@ -124,13 +184,13 @@
                         {
                             "function": "foo",
                             "abs_path": "/real/file/name.py",
-                            "library_frame": true,
                             "vars": {
                                 "key": "value"
                             },
+                            "exclude_from_grouping": false,
                             "module": "App::MyModule",
                             "filename": "file/name.py",
-                            "exclude_from_grouping": false,
+                            "library_frame": true,
                             "context": {
                                 "pre": [
                                     "line1",
@@ -191,20 +251,20 @@
                     "type": "DbError"
                 },
                 "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
-                "id": "0123456789012345",
+                "id": "5f0e9d64c1854d21a6f44673ed561ec8",
                 "culprit": "my.module.function_name",
                 "log": {
                     "stacktrace": [
                         {
                             "function": "foo",
                             "abs_path": "/real/file/name.py",
-                            "library_frame": false,
                             "vars": {
                                 "key": "value"
                             },
                             "exclude_from_grouping": false,
-                            "filename": "/webpack/file/name.py",
                             "module": "App::MyModule",
+                            "filename": "/webpack/file/name.py",
+                            "library_frame": false,
                             "context": {
                                 "pre": [
                                     "line1",
@@ -269,25 +329,23 @@
         "_index": "test-apm-12-12-2017"
     },
     {
-        "_score": 0.2876821,
+        "_score": 0.13353139,
         "_type": "_doc",
-        "_id": "VpNFGWgBMON7Bqa8KBQ6",
+        "_id": "X0UQC2IBWUGW2FxIuwuv",
         "_source": {
-            "timestamp": {
-                "us": 1533826745999000
+            "beat": {
+                "hostname": "5d8dc22ccf3b",
+                "name": "5d8dc22ccf3b",
+                "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2018-08-09T14:59:05.999Z",
-            "agent": {
-                "hostname": "silmac",
-                "type": "apm-server",
-                "version": "7.0.0"
-            },
-            "host": {
-                "name": "silmac"
+            "@timestamp": "2017-05-09T15:04:05.100Z",
+            "processor": {
+                "name": "error",
+                "event": "error"
             },
             "context": {
                 "process": {
-                    "ppid": 6789,
+                    "ppid": 7788,
                     "pid": 1234,
                     "argv": [
                         "node",
@@ -325,117 +383,33 @@
             },
             "error": {
                 "exception": {
-                    "message": "Cannot read property 'baz' no defined"
+                    "message": "foo is not defined",
+                    "code": "35"
                 },
-                "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
-                "id": "cdefab0123456789"
-            },
-            "processor": {
-                "name": "error",
-                "event": "error"
+                "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
+                "id": "8f0e9d68c1854d21a6f44673ed561ec8"
             }
         },
         "_index": "test-apm-12-12-2017"
     },
     {
-        "_score": 0.2876821,
+        "_score": 0.13353139,
         "_type": "_doc",
-        "_id": "V5NFGWgBMON7Bqa8KBQ6",
+        "_id": "YUUQC2IBWUGW2FxIuwuv",
         "_source": {
-            "timestamp": {
-                "us": 1546612188285636
+            "beat": {
+                "version": "7.0.0-alpha1",
+                "name": "5d8dc22ccf3b",
+                "hostname": "5d8dc22ccf3b"
             },
-            "@timestamp": "2019-01-04T14:29:48.285Z",
-            "agent": {
-                "hostname": "silmac",
-                "type": "apm-server",
-                "version": "7.0.0"
-            },
-            "host": {
-                "name": "silmac"
-            },
-            "context": {
-                "process": {
-                    "ppid": 6789,
-                    "pid": 1234,
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "title": "node"
-                },
-                "system": {
-                    "platform": "darwin",
-                    "hostname": "prod1.example.com",
-                    "architecture": "x64",
-                    "ip": "127.0.0.1"
-                },
-                "service": {
-                    "name": "1234_service-12a3",
-                    "language": {
-                        "version": "8",
-                        "name": "ecmascript"
-                    },
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "version": "1.2.3",
-                        "name": "Express"
-                    },
-                    "version": "5.1.3",
-                    "runtime": {
-                        "version": "8.0.0",
-                        "name": "node"
-                    }
-                }
-            },
-            "error": {
-                "exception": {
-                    "type": "DbError"
-                },
-                "grouping_key": "c3868d6704b923014eaffea034e70a3d",
-                "id": "cdefab0123456780"
-            },
+            "@timestamp": "2017-05-09T15:04:05.999Z",
             "processor": {
                 "name": "error",
                 "event": "error"
-            }
-        },
-        "_index": "test-apm-12-12-2017"
-    },
-    {
-        "_score": 0.2876821,
-        "_type": "_doc",
-        "_id": "WJNFGWgBMON7Bqa8KBQ6",
-        "_source": {
-            "transaction": {
-                "sampled": true,
-                "id": "1234567890987654"
-            },
-            "parent": {
-                "id": "9632587410abcdef"
-            },
-            "trace": {
-                "id": "0123456789abcdeffedcba0123456789"
-            },
-            "timestamp": {
-                "us": 1533827045999000
-            },
-            "@timestamp": "2018-08-09T15:04:05.999Z",
-            "agent": {
-                "hostname": "silmac",
-                "type": "apm-server",
-                "version": "7.0.0"
-            },
-            "host": {
-                "name": "silmac"
             },
             "context": {
                 "process": {
-                    "ppid": 6789,
+                    "ppid": 7788,
                     "pid": 1234,
                     "argv": [
                         "node",
@@ -473,15 +447,11 @@
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
-                "id": "abcdef0123456789",
+                "id": "0f0e9d67c1854d21a6f44673ed561ec8",
                 "log": {
                     "message": "Cannot read property 'baz' of undefined",
                     "level": "custom log level"
                 }
-            },
-            "processor": {
-                "name": "error",
-                "event": "error"
             }
         },
         "_index": "test-apm-12-12-2017"
