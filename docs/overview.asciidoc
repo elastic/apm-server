@@ -2,22 +2,13 @@
 == Overview
 
 The APM Server receives data from APM agents and transforms them into Elasticsearch documents.
+It does this by exposing an HTTP server endpoint to which agents stream the APM data they collect.
+After the APM Server has validated and processed events from the APM agents,
+the server transforms the data into Elasticsearch documents and stores them in corresponding Elasticsearch indices.
 
-It works by exposing an HTTP server to which agents post the APM data they collect.
+The APM Server works in conjunction with {apm-agents-ref}/index.html[APM agents], {ref}/index.html[Elasticsearch], and {kibana-ref}/index.html[Kibana]. Please view the {apm-overview-ref-v}/index.html[APM Overview] for details on how these components work together.
 
-APM Server is built with the Beats framework,
-and as such it leverages its functionality.
-
-To get an overview of the whole Elastic APM system,
- also have a look at:
-
-* {apm-node-ref}/index.html[APM Node.js Agent]
-* {apm-py-ref}/index.html[APM Python Agent]
-* {apm-ruby-ref}/index.html[APM Ruby Agent]
-* {apm-go-ref}/index.html[APM Go Agent]
-* {apm-java-ref}/index.html[APM Java Agent]
-* {apm-rum-ref}/index.html[APM RUM JavaScript Agent]
-* {ref}/index.html[Elasticsearch]
+NOTE: APM Server is built with the {beats-ref}[Beats] framework and leverages its functionality.
 
 
 [[why-separate-component]]
@@ -25,11 +16,12 @@ To get an overview of the whole Elastic APM system,
 
 The APM Server is a separate component for the following reasons:
 
-* It helps to keep the agents as light as possible and since the APM Server is a stateless separate component,
-it can be scaled independently.
-* For Real User monitoring data is collected in browsers.
-  APM Server prevents browsers from interacting directly with Elasticsearch (which poses a security risk) and controls the amount of data flowing into Elasticsearch.
+* It helps to keep the agents as light as possible.
+* Since the APM Server is a stateless separate component, it can be scaled independently.
+* Data is collected in browsers for Real User Monitoring.
+  APM Server prevents these browsers from interacting directly with Elasticsearch (which poses a security risk).
+* APM Server controls the amount of data flowing into Elasticsearch.
 * In cases where Elasticsearch becomes unresponsive,
 APM Server can buffer data temporarily without adding overhead to the agents.
-* Acts as a middleware for source mapping for javascript in the browser.
-* Provides a JSON API for agents to use thereby improving compatibility across different versions of agents and the Elastic Stack.
+* Acts as a middleware for source mapping for JavaScript in the browser.
+* Provides a JSON API for agents to use and thereby improves compatibility across different versions of agents and the Elastic Stack.
