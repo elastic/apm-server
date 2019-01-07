@@ -7,7 +7,6 @@ This section describes common problems you might encounter with APM Server.
 * <<bad-request>>
 * <<unauthorized>>
 * <<forbidden>>
-* <<request-too-large>>
 * <<queue-full>>
 * <<request-timed-out>>
 * <<ssl-client-fails>>
@@ -56,8 +55,6 @@ View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compa
 [float]
 === HTTP 400: Event too large
 
-NOTE: Version 6.5 of the APM Server introduced a new intake API (v2). This error only applies to users using **v2** of the intake API. You can learn more about this change in the <<intake-api-changes-65, intake API changes>> documentation. 
-
 APM Agents communicate with the APM server by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. If events are too large, you should consider increasing the <<max_event_size,`max_event_size`>>
 setting in the APM Server, and adjusting relevant settings in the agent.
 
@@ -74,15 +71,6 @@ The <<secret-token, secret token>> in the request header doesn't match the confi
 Either you are sending requests to a <<rum, RUM>> endpoint without RUM enabled, or a request
 is coming from an origin not whitelisted in `apm-server.rum.allow_origins`. See the <<configuration-rum, RUM configuration>>.
 
-[[request-too-large]]
-[float]
-=== HTTP 413: Request body too large
-
-NOTE: Version 6.5 of the APM Server introduced a new intake API (v2). This error only applies to users using **v1** of the intake API. You can learn more about this change in the <<intake-api-changes-65, intake API changes>> documentation. 
-
-The agent is collecting too much data and sending it all at once. Consider increasing the <<configuration-v1-api,`apm-server.max_unzipped_size`>>
-setting in the APM Server, and adjusting relevant settings in the agent.
-
 [[queue-full]]
 [float]
 === HTTP 503: Queue is full
@@ -96,8 +84,7 @@ APM Server has an internal queue that helps to:
 When the queue has reached the maximum size,
 APM Server returns an HTTP 503 status with the message "Queue is full".
 
-In <<intake-api-changes-65,v1>> of the intake API,
-a full queue generally means that the agents collect more data than APM server is able to process.
+A full queue generally means that the agents collect more data than APM server is able to process.
 This might happen when APM Server is not configured properly for the size of your Elasticsearch cluster,
 or because your Elasticsearch cluster is underpowered or not configured properly for the given workload.
 
@@ -118,7 +105,7 @@ You have a few options to solve this problem:
 === HTTP 503: Request timed out waiting to be processed
 
 This happens when APM Server exceeds the maximum number of requests that it can process concurrently.
-This limit is determined by the <<concurrent_requests,`apm-server.concurrent_requests`>> configuration parameter deprecated[6.5].
+This limit is determined by the <<concurrent_requests,`apm-server.concurrent_requests`>> configuration parameter.
 
 To alleviate this problem,
 you can try to:

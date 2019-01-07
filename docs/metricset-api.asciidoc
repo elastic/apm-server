@@ -11,10 +11,5 @@ The APM Server uses JSON Schema for validating requests. The specification for m
 
 [source,json]
 ----
-include::./spec/metricsets/common_metricset.json[]
-----
-
-[source,json]
-----
-include::./spec/metricsets/v2_metricset.json[]
+include::./spec/metricsets/metricset.json[]
 ----

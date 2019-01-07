@@ -751,7 +751,7 @@ format: url
 --
 type: keyword
 
-The ID of the span, introduced (>= 6.5).
+The ID of the span stored as hex encoded string.
 
 
 --

@@ -1,4 +1,4 @@
-[[example-intakev2-events]]
+[[example-intake-events]]
 === Example Request Body
 
 See a request body example containing one event for all currently supported event types. 
