@@ -1,8 +1,8 @@
 [[installing]]
 == Installing APM Server
 
-https://www.elastic.co/downloads/apm/apm-server[Download APM Server] for your operating system and extract the package.
-Then follow the instructions on <<setting-up-and-running>>
+https://www.elastic.co/downloads/apm[Download APM Server] for your operating system and extract the package.
+Then follow the instructions on <<setting-up-and-running,Setting up and running APM Server>>.
 
 You can also install APM Server from our repositories or install as a service on Windows:
 
