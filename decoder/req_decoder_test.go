@@ -20,7 +20,6 @@ package decoder_test
 import (
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -189,7 +188,6 @@ func TestDecodeSystemData(t *testing.T) {
 		body, err := decoder.DecodeSystemData(decoder.DecodeLimitJSONData(1024*1024), test.augment)(req)
 		assert.Nil(t, err)
 
-		fmt.Println(body)
 		system, hasSystem := body["system"].(map[string]interface{})
 		assert.True(t, hasSystem)
 

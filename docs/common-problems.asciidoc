@@ -113,7 +113,6 @@ you can try to:
 * <<reduce-sample-rate>>
 * <<reduce-stacktrace>>
 * <<reduce-payload-size>>
-* <<adjust-concurrent-requests>>
 * <<add-apm-server-instances>>
 
 [float]

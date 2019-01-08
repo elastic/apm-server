@@ -135,7 +135,7 @@ func TestRequestIntegration(t *testing.T) {
 				assert.Equal(t, ctFailure+1, responseErrors.Get())
 
 				body := w.Body.Bytes()
-				tests.AssertApproveResult(t, "approved-stream-result/TestRequestIntegration"+test.name, body)
+				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+test.name, body)
 			}
 		})
 	}
@@ -164,7 +164,7 @@ func TestRequestIntegrationRUM(t *testing.T) {
 			require.Equal(t, test.code, w.Code, w.Body.String())
 			if test.code != http.StatusAccepted {
 				body := w.Body.Bytes()
-				tests.AssertApproveResult(t, "approved-stream-result/TestRequestIntegrationRum"+test.name, body)
+				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegrationRum"+test.name, body)
 			}
 		})
 	}
@@ -245,5 +245,5 @@ func TestLineExceeded(t *testing.T) {
 	handler.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 	assert.Equal(t, ct+1, requestTooLargeCounter.Get())
-	tests.AssertApproveResult(t, "approved-stream-result/TestLineExceeded", w.Body.Bytes())
+	tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
 }

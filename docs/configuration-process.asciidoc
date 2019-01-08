@@ -55,7 +55,6 @@ Defaults to 5 seconds.
 [float]
 ==== `concurrent_request`
 Maximum number of requests the server can process concurrently.
-Read more about how to tune data ingestion by <<adjust-concurrent-requests, adjusting concurrent_requests>>.
 Default value is 5.
 
 [[max_event_size]]

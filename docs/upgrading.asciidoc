@@ -35,7 +35,8 @@ As such, any breaking change in libbeat is also considered to be a breaking chan
 
 [float]
 ==== HEAD
-* Support for v1 (deprecated in 6.5) has been removed.
+* Support for v1 (deprecated in 6.5) has been removed. Before upgrading, ensure all agents are upgraded to at least a
+version that requires APM Server >= 6.5. View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
 
 [float]
 ==== 6.5

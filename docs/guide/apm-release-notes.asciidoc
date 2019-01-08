@@ -5,7 +5,11 @@
 [float]
 ==== APM version 7.0.0
 
+[float]
+===== Breaking Changes
+
 *APM Server*
+
 * Removal of deprecated Intake v1 API endpoints.
 
 [float]

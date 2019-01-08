@@ -17,10 +17,12 @@ Tuning topics:
 
 * <<tune-output-config>>
 * <<adjust-queue-size>>
-* <<adjust-concurrent-requests>>
 * <<add-apm-server-instances>>
 * <<reduce-payload-size>>
 * <<adjust-event-rate>>
+
+TIP: APM Server version 7.0 introduces breaking changes with older versions of APM agents.
+Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
 
 [[tune-output-config]]
 [float]
@@ -47,14 +49,6 @@ A larger queue can retain more data if Elasticsearch is unavailable for longer p
 and it alleviates problems that might result from sudden spikes of traffic.
 You can adjust the queue size by overriding <<mem.events,`queue.mem.events`>>.
 Increasing <<mem.events,`queue.mem.events`>> can significantly affect APM Server memory usage.
-
-[[adjust-concurrent-requests]]
-[float]
-=== Adjust concurrent requests deprecated
-
-APM Server has a limit to how many requests can be processed concurrently.
-This limit is determined by the <<concurrent_requests,`apm-server.concurrent_requests`>> setting.
-Increasing this value will improve throughput, but it can significantly affect APM Server memory usage.
 
 [[add-apm-server-instances]]
 [float]

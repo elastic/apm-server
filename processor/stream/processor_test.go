@@ -43,7 +43,7 @@ func validMetadata() string {
 }
 
 func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
-	resultName := fmt.Sprintf("approved-stream-result/testIntegrationResult%s", name)
+	resultName := fmt.Sprintf("test_approved_stream_result/testIntegrationResult%s", name)
 	resultJSON, err := json.Marshal(actualResponse)
 	require.NoError(t, err)
 	tests.AssertApproveResult(t, resultName, resultJSON)
@@ -129,7 +129,7 @@ func TestIntegration(t *testing.T) {
 			require.NoError(t, err)
 			bodyReader := bytes.NewBuffer(b)
 
-			name := fmt.Sprintf("approved-es-documents/testIntakeIntegration%s", test.name)
+			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			ctx := context.WithValue(context.Background(), "name", name)
 			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
 			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
