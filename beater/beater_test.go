@@ -411,7 +411,7 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, bea
 			Beat:        "test-apm-server",
 			IndexPrefix: "test-apm-server",
 			Version:     version.GetDefaultVersion(),
-			UUID:        beatId,
+			ID:          beatId,
 		},
 		Config: beatConfig,
 	}

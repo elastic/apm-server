@@ -211,7 +211,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 1b83f5e6334c46ae3bb459e73d548ae10f067ff4
+Revision: 3a517205a5370d88c3e1dea7305a00de51790d93
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/magefile/mage
-Revision: 5e51f9ad1ed0886c5d06a8c46a09703cfc4d9034
+Revision: aedfce64c122eef47009b7f80c9771044753215d
 License type (autodetected): Apache-2.0
 ./vendor/github.com/magefile/mage/LICENSE:
 --------------------------------------------------------------------
