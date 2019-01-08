@@ -50,13 +50,6 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		"context.tags.tag2",
 		"context.tags.tag3",
 		"context.tags.tag4",
-		"context.tags.keyword1",
-		"context.tags.keyword2",
-		"context.tags.keyword3",
-		"context.tags.bool1",
-		"context.tags.bool2",
-		"context.tags.number1",
-		"context.tags.number2",
 		//known not-indexed fields:
 		Group("context.custom"),
 		Group("context.request.headers"),

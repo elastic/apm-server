@@ -55,7 +55,6 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"context.http",
 		"context.http.status_code",
 		"transaction.marks.*.*",
-		"context.tags.*",
 	)
 }
 

@@ -106,13 +106,8 @@
                     }
                 },
                 "tags": {
-                    "bool1": true,
-                    "bool2": false,
-                    "keyword1": "abcda",
-                    "keyword2": "1234",
-                    "keyword3": "true",
-                    "number1": 123,
-                    "number2": 123.89,
+                    "number_code": 2,
+                    "bool_error": false,
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 },
                 "response": {

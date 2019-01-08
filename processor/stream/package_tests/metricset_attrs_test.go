@@ -63,7 +63,7 @@ func TestInvalidPayloads(t *testing.T) {
 			Invalid: []tests.Invalid{
 				{Msg: `timestamp/type`, Values: val{"1496170422281000"}}}},
 		{Key: "metricset.tags",
-			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
+			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 			Invalid: []tests.Invalid{
 				{Msg: `tags/type`, Values: val{"tags"}},
 				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
