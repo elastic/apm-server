@@ -173,6 +173,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 // initTracer configures and returns an elasticapm.Tracer for tracing
 // the APM server's own execution.
 func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*elasticapm.Tracer, net.Listener, error) {
+	elasticapm.DefaultTracer.Close()
 	if !config.SelfInstrumentation.isEnabled() {
 		os.Setenv("ELASTIC_APM_ACTIVE", "false")
 		logger.Infof("self instrumentation is disabled")
