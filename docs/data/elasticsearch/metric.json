@@ -31,8 +31,9 @@
             "platform": "darwin"
         },
         "tags": {
-            "code": "200",
-            "some.other.code": "abc"
+            "code": 404,
+            "key": "200",
+            "valid": true
         }
     },
     "dotted": {

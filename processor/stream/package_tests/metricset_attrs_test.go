@@ -66,7 +66,7 @@ func TestInvalidPayloads(t *testing.T) {
 			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
 			Invalid: []tests.Invalid{
 				{Msg: `tags/type`, Values: val{"tags"}},
-				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
+				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
 				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}}}},
 		},
 		{

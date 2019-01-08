@@ -18,8 +18,9 @@
                     "name": "1234_service-12a3"
                 },
                 "tags": {
-                    "code": "200",
-                    "some.other.code": "abc"
+                    "code": 200,
+                    "some": "abc",
+                    "success": true
                 }
             },
             "dotted": {
