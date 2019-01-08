@@ -42,7 +42,7 @@ type rlCache struct {
 	evictedLimiter *rate.Limiter
 }
 
-func NewRlCache(size, rateLimit, burstFactor int) (*rlCache, error) {
+func newRlCache(size, rateLimit, burstFactor int) (*rlCache, error) {
 	if size <= 0 || rateLimit < 0 {
 		return nil, errors.New("cache initialization: size and rateLimit must be greater than zero")
 	}

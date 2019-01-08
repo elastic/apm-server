@@ -66,51 +66,33 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	e, raw, err := decodeEvent(input, err)
+func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
-	}
-	decoder := utility.ManualDecoder{}
-	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
-	return e, decoder.Err
-}
-
-func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	e, raw, err := decodeEvent(input, err)
-	if err != nil {
-		return nil, err
-	}
-	decoder := utility.ManualDecoder{}
-	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
-	return e, decoder.Err
-}
-
-func decodeEvent(input interface{}, err error) (*Metricset, map[string]interface{}, error) {
-	if err != nil {
-		return nil, nil, err
 	}
 	if input == nil {
-		return nil, nil, errors.New("no data for metric event")
+		return nil, errors.New("no data for metric event")
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, nil, errors.New("invalid type for metric event")
+		return nil, errors.New("invalid type for metric event")
 	}
 
 	md := metricsetDecoder{&utility.ManualDecoder{}}
-	metricset := Metricset{
-		Samples: md.decodeSamples(raw["samples"]),
+	e := Metricset{
+		Samples:   md.decodeSamples(raw["samples"]),
+		Timestamp: md.TimeEpochMicro(raw, "timestamp"),
 	}
 
 	if md.Err != nil {
-		return nil, nil, md.Err
+		return nil, md.Err
 	}
 
 	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
-		metricset.Tags = tags
+		e.Tags = tags
 	}
-	return &metricset, raw, nil
+
+	return &e, nil
 }
 
 func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {

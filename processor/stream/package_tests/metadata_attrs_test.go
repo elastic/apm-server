@@ -33,7 +33,7 @@ import (
 )
 
 type MetadataProcessor struct {
-	V2TestProcessor
+	intakeTestProcessor
 }
 
 func (p *MetadataProcessor) LoadPayload(path string) (interface{}, error) {
@@ -70,7 +70,7 @@ func (p *MetadataProcessor) Decode(data interface{}) error {
 
 func metadataProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:   &MetadataProcessor{V2TestProcessor{StreamProcessor: stream.StreamProcessor{}}},
+		Proc:   &MetadataProcessor{intakeTestProcessor{Processor: stream.Processor{}}},
 		Schema: schema.ModelSchema,
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",

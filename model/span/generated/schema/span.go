@@ -18,60 +18,103 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/spans/v2_span.json",
+    "$id": "docs/spec/spans/span.json",
     "type": "object",
     "description": "An event captured by an agent occurring in a monitored service",
     "allOf": [
-        {     "$id": "docs/spec/spans/common_span.json",
-    "type": "object",
-    "properties": {
-        "context": {
-            "type": ["object", "null"],
-            "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
+        {  
             "properties": {
-                "db": {
-                    "type": ["object", "null"],
-                    "description": "An object containing contextual data for database spans",
-                    "properties": {
-                        "instance": {
-                           "type": ["string", "null"],
-                           "description": "Database instance name"
-                        },
-                        "statement": {
-                           "type": ["string", "null"],
-                           "description": "A database statement (e.g. query) for the given database type"
-                        },
-                        "type": {
-                           "type": ["string", "null"],
-                           "description": "Database type. For any SQL database, \"sql\". For others, the lower-case database category, e.g. \"cassandra\", \"hbase\", or \"redis\""
-                        },
-                        "user": {
-                           "type": ["string", "null"],
-                           "description": "Username for accessing database"
-                        }
-                    }
+                "id": {
+                    "description": "Hex encoded 64 random bits ID of the span.",
+                    "type": "string",
+                    "maxLength": 1024
                 },
-                "http": {
-                    "type": ["object", "null"],
-                    "description": "An object containing contextual data of the related http request.",
-                    "properties": {
-                        "url": {
-                            "type": ["string", "null"],
-                            "description": "The raw url of the correlating http request."
-                        },
-                        "status_code": {
-                            "type": ["integer", "null"],
-                            "description": "The status code of the http request."
-                        },
-                        "method": {
-                            "type": ["string", "null"],
-                            "maxLength": 1024,
-                            "description": "The method of the http request."
-                        }
-                    }
+                "transaction_id": {
+                    "type": "string",
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction.", 
+                    "maxLength": 1024
                 },
-                "tags": {
-                        "$id": "doc/spec/tags.json",
+                "trace_id": {
+                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "parent_id": {
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "start": {
+                    "type": ["number", "null"],
+                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
+                },
+                "subtype": {
+                    "type": ["string", "null"],
+                    "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+                    "maxLength": 1024
+                },
+                "action": {
+                    "type": ["string", "null"],
+                    "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
+                    "maxLength": 1024
+                },
+                "context": {
+                    "type": ["object", "null"],
+                    "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
+                    "properties": {
+                        "db": {
+                            "type": ["object", "null"],
+                            "description": "An object containing contextual data for database spans",
+                            "properties": {
+                                "instance": {
+                                    "type": ["string", "null"],
+                                    "description": "Database instance name"
+                                },
+                                "statement": {
+                                    "type": ["string", "null"],
+                                    "description": "A database statement (e.g. query) for the given database type"
+                                },
+                                "type": {
+                                    "type": ["string", "null"],
+                                    "description": "Database type. For any SQL database, \"sql\". For others, the lower-case database category, e.g. \"cassandra\", \"hbase\", or \"redis\""
+                                },
+                                "user": {
+                                    "type": ["string", "null"],
+                                    "description": "Username for accessing database"
+                                }
+                            }
+                        },
+                        "http": {
+                            "type": ["object", "null"],
+                            "description": "An object containing contextual data of the related http request.",
+                            "properties": {
+                                "url": {
+                                    "type": ["string", "null"],
+                                    "description": "The raw url of the correlating http request."
+                                },
+                                "status_code": {
+                                    "type": ["integer", "null"],
+                                    "description": "The status code of the http request."
+                                },
+                                "method": {
+                                    "type": ["string", "null"],
+                                    "maxLength": 1024,
+                                    "description": "The method of the http request."
+                                }
+                            }
+                        },
+                        "tags": {
+                                "$id": "doc/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
     "description": "A flat mapping of user-defined tags with string values.",
@@ -82,23 +125,23 @@ const ModelSchema = `{
         }
     },
     "additionalProperties": false
-                }
-            }
-        },
-        "duration": {
-            "type": "number",
-            "description": "Duration of the span in milliseconds"
-        },
-        "name": {
-            "type": "string",
-            "description": "Generic designation of a span in the scope of a transaction",
-            "maxLength": 1024
-        },
-        "stacktrace": {
-            "type": ["array", "null"],
-            "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
-            "items": {
-                    "$id": "docs/spec/stacktrace_frame.json",
+                        }
+                    }
+                },
+                "duration": {
+                    "type": "number",
+                    "description": "Duration of the span in milliseconds"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Generic designation of a span in the scope of a transaction",
+                    "maxLength": 1024
+                },
+                "stacktrace": {
+                    "type": ["array", "null"],
+                    "description": "List of stack frames with variable attributes (eg: lineno, filename, etc)",
+                    "items": {
+                            "$id": "docs/spec/stacktrace_frame.json",
     "title": "Stacktrace",
     "type": "object",
     "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
@@ -158,68 +201,20 @@ const ModelSchema = `{
         }
     },
     "required": ["filename", "lineno"]
-            },
-            "minItems": 0
-        },
-        "type": {
-            "type": "string",
-            "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
-            "maxLength": 1024
-        },
-        "sync": {
-            "type": ["boolean", "null"],
-            "description": "Indicates whether the span was executed synchronously or asynchronously."
-        }
-    },
-    "required": ["duration", "name", "type"]  },
-        {     "$id": "doc/spec/timestamp_epoch.json",
-    "title": "Timestamp Epoch",
-    "description": "Object with 'timestamp' property.",
-    "type": ["object"],
-    "properties": {  
-        "timestamp": {
-            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
-            "type": ["integer", "null"]
-        }
-    } },
-        {  
-            "properties": {
-                "id": {
-                    "description": "Hex encoded 64 random bits ID of the span.",
+                    },
+                    "minItems": 0
+                },
+                "type": {
                     "type": "string",
+                    "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
                     "maxLength": 1024
                 },
-                "transaction_id": {
-                    "type": "string",
-                    "description": "Hex encoded 64 random bits ID of the correlated transaction.", 
-                    "maxLength": 1024
-                },
-                "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "start": {
-                    "type": ["number", "null"],
-                    "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
-                },
-                "subtype": {
-                    "type": ["string", "null"],
-                    "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
-                    "maxLength": 1024
-                },
-                "action": {
-                    "type": ["string", "null"],
-                    "description": "The specific kind of event within the sub-type represented by the span (e.g. query, connect)",
-                    "maxLength": 1024
+                "sync": {
+                    "type": ["boolean", "null"],
+                    "description": "Indicates whether the span was executed synchronously or asynchronously."
                 }
             },
-            "required": ["id", "transaction_id", "trace_id", "parent_id"]
+            "required": ["duration", "name", "type", "id", "transaction_id", "trace_id", "parent_id"]
         },
         { "anyOf":[
                 {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}},

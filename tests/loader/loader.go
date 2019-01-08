@@ -18,7 +18,6 @@
 package loader
 
 import (
-	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -38,14 +37,6 @@ func LoadDataAsBytes(fileName string) ([]byte, error) {
 
 func LoadDataAsStream(file string) (io.ReadCloser, error) {
 	return fileReader(FindFile(file))
-}
-
-func LoadValidDataAsBytes(processorName string) ([]byte, error) {
-	return readFile(buildPath(processorName))
-}
-
-func LoadValidData(processorName string) (map[string]interface{}, error) {
-	return unmarshalData(buildPath(processorName))
 }
 
 func FindFile(fileInfo ...string) (string, error) {
@@ -71,15 +62,6 @@ func readFile(filePath string, err error) ([]byte, error) {
 		return nil, err
 	}
 	return ioutil.ReadAll(f)
-}
-
-func buildPath(processorName string) (string, error) {
-	switch processorName {
-	case "error", "transaction", "sourcemap":
-		return FindFile(filepath.Join("..", "testdata", processorName, "payload.json"))
-	default:
-		return "", errors.New("unknown data type")
-	}
 }
 
 func unmarshalData(filePath string, err error) (map[string]interface{}, error) {

@@ -26,33 +26,9 @@ For enabling RUM support, set the `apm-server.rum.enabled` to `true`.
 By default this is disabled.
 
 [float]
-[[configuration-rum-v1]]
-=== Configuration options: v1 RUM endpoint deprecated[6.5]
-
-Version 6.5 of the APM Server introduced a new intake API. You can learn more about this change in the <<intake-api-changes-65, intake API changes>> documentation. 
-
-If you do not upgrade your APM Agent, you'll continue to use the deprecated v1 RUM intake API endpoint, and thus, the following configuration options.
-
-[float]
-[[rate_limit_v1]]
-==== `rate_limit` deprecated[6.5]
-Rate limit per second and IP address for requests sent to the RUM endpoint.
-If the rate limit is hit, the APM Server will return an HTTP status code `429`.
-The rate limit cannot be disabled. Ensure to have it set to a number suiting your requirements.
-Default value is set to 10.
-
-[float]
-[[configuration-rum-v2]]
-=== Configuration options: v2 RUM endpoint
-
-Version 6.5 of the APM Server introduced a new intake API. You can learn more about this change in the <<intake-api-changes-65, intake API changes>> documentation. 
-
-The following configuration options only affect users that have upgraded their agent to take advantage of the new v2 intake API. 
-
-[float]
 [[event_rate.limit]]
 ==== `event_rate.limit`
-Defines the maximum amount of events allowed to be sent to the APM Server v2 RUM endpoint per ip per second.
+Defines the maximum amount of events allowed to be sent to the APM Server RUM endpoint per ip per second.
 Defaults to 300.
 
 [float]
@@ -61,10 +37,6 @@ An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
 This setting defines the number of unique IPs that can be tracked in the cache.
 Sites with many concurrent clients should consider increasing this limit.
 Defaults to 1000.
-
-[float]
-[[configuration-rum-general]]
-=== Configuration options: general
 
 [float]
 ==== `allow_origins`

@@ -34,7 +34,12 @@ APM Server is built on top of {beats-ref}/index.html[libbeat].
 As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.
 
 [float]
-==== HEAD 
+==== HEAD
+* Support for v1 (deprecated in 6.5) has been removed. Before upgrading, ensure all agents are upgraded to at least a
+version that requires APM Server >= 6.5. View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for more information.
+
+[float]
+==== 6.5
 * There are no breaking changes in APM Server.
 * Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
 * https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[Breaking changes in libbeat]

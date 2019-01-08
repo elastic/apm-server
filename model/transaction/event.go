@@ -23,7 +23,6 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
-	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -39,12 +38,9 @@ const (
 )
 
 var (
-	Metrics = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
-
-	spanCounter     = monitoring.NewInt(Metrics, "spans")
+	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
 	transformations = monitoring.NewInt(Metrics, "transformations")
-
-	processorEntry = common.MapStr{"name": processorName, "event": transactionDocType}
+	processorEntry  = common.MapStr{"name": processorName, "event": transactionDocType}
 )
 
 var (
@@ -67,92 +63,50 @@ type Event struct {
 	Sampled   *bool
 	SpanCount SpanCount
 
-	//v2
 	ParentId *string
 	TraceId  string
-
-	// deprecated in V2
-	Spans []*span.Event
-
-	v2Event bool
 }
+
 type SpanCount struct {
 	Dropped *int
 	Started *int
 }
 
-func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	e, raw, err := decodeEvent(input, err)
+func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
-	}
-	decoder := utility.ManualDecoder{}
-	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
-
-	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "total", "span_count", "dropped")}
-
-	var transformable transform.Transformable
-	spans := decoder.InterfaceArr(raw, "spans")
-	if len(spans) > 0 {
-		e.Spans = make([]*span.Event, len(spans))
-	}
-	err = decoder.Err
-	for idx, rawSpan := range spans {
-		transformable, err = span.V1DecodeEvent(rawSpan, err)
-		sp, ok := transformable.(*span.Event)
-		if ok {
-			if sp.Timestamp.IsZero() {
-				sp.Timestamp = e.Timestamp
-			}
-
-			if sp.TransactionId == "" {
-				sp.TransactionId = e.Id
-			}
-		}
-
-		e.Spans[idx] = sp
-	}
-	return e, err
-}
-
-func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	e, raw, err := decodeEvent(input, err)
-	if err != nil {
-		return nil, err
-	}
-	e.v2Event = true
-	decoder := utility.ManualDecoder{}
-	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
-	e.SpanCount = SpanCount{Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
-		Started: decoder.IntPtr(raw, "started", "span_count")}
-	e.ParentId = decoder.StringPtr(raw, "parent_id")
-	e.TraceId = decoder.String(raw, "trace_id")
-	return e, decoder.Err
-}
-
-func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
-	if err != nil {
-		return nil, nil, err
 	}
 	if input == nil {
-		return nil, nil, errors.New("Input missing for decoding Event")
+		return nil, errors.New("Input missing for decoding Event")
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, nil, errors.New("Invalid type for transaction event")
+		return nil, errors.New("Invalid type for transaction event")
 	}
+
 	decoder := utility.ManualDecoder{}
 	e := Event{
-		Id:       decoder.String(raw, "id"),
-		Type:     decoder.String(raw, "type"),
-		Name:     decoder.StringPtr(raw, "name"),
-		Result:   decoder.StringPtr(raw, "result"),
-		Duration: decoder.Float64(raw, "duration"),
-		Context:  decoder.MapStr(raw, "context"),
-		Marks:    decoder.MapStr(raw, "marks"),
-		Sampled:  decoder.BoolPtr(raw, "sampled"),
+		Id:        decoder.String(raw, "id"),
+		Type:      decoder.String(raw, "type"),
+		Name:      decoder.StringPtr(raw, "name"),
+		Result:    decoder.StringPtr(raw, "result"),
+		Duration:  decoder.Float64(raw, "duration"),
+		Context:   decoder.MapStr(raw, "context"),
+		Marks:     decoder.MapStr(raw, "marks"),
+		Sampled:   decoder.BoolPtr(raw, "sampled"),
+		Timestamp: decoder.TimeEpochMicro(raw, "timestamp"),
+		SpanCount: SpanCount{
+			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
+			Started: decoder.IntPtr(raw, "started", "span_count")},
+		ParentId: decoder.StringPtr(raw, "parent_id"),
+		TraceId:  decoder.String(raw, "trace_id"),
 	}
-	return &e, raw, decoder.Err
+
+	if decoder.Err != nil {
+		return nil, decoder.Err
+	}
+
+	return &e, nil
 }
 
 func (t *Event) fields(tctx *transform.Context) common.MapStr {
@@ -198,17 +152,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
-
-	if e.v2Event {
-		utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	}
+	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
-	spanCounter.Add(int64(len(e.Spans)))
-	for spIdx := 0; spIdx < len(e.Spans); spIdx++ {
-		events = append(events, e.Spans[spIdx].Transform(tctx)...)
-		e.Spans[spIdx] = nil
-	}
 	return events
 }

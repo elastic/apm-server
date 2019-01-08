@@ -51,40 +51,11 @@ Defaults to 30 seconds.
 Maximum duration in seconds before releasing resources when shutting down the server.
 Defaults to 5 seconds.
 
-[float]
-[[configuration-v1-api]]
-=== Configuration options: v1 Intake API deprecated[6.5]
-
-Version 6.5 of the APM Server introduced a new intake API. You can learn more about this change in the <<intake-api-changes-65, intake API changes>> documentation. 
-
-If you do not upgrade your APM Agent, you'll continue to use the deprecated v1 intake API endpoint, and thus, the following configuration options.
-
-[[max_unzipped_size]]
-[float]
-==== `max_unzipped_size` deprecated[6.5]
-Maximum permitted size of an unzipped request accepted by the server to be processed (in Bytes).
-Defaults to 31457280 Bytes (30 MB).
-
-[[max_request_queue_time]]
-[float]
-==== `max_request_queue_time` deprecated[6.5]
-Maximum duration a request will be queued before being read.
-Defaults to 2 seconds.
-
 [[concurrent_requests]]
 [float]
-==== `concurrent_request` deprecated[6.5]
+==== `concurrent_request`
 Maximum number of requests the server can process concurrently.
-Read more about how to tune data ingestion by <<adjust-concurrent-requests, adjusting concurrent_requests>>.
 Default value is 5.
-
-[float]
-[[configuration-v2-api]]
-=== Configuration options: v2 Intake API
-
-Version 6.5 of the APM Server introduced a new intake API. You can learn more about this change in the <<intake-api-changes-65, intake API changes>> documentation. 
-
-The following configuration options only affect users that have upgraded their agent to take advantage of the new v2 intake API. 
 
 [[max_event_size]]
 [float]
@@ -141,7 +112,7 @@ Disabled by default.
 [[metrics.enabled]]
 [float]
 ==== `metrics`
-Experimental Metrics endpoint for collecting application metrics.
+Metrics endpoint for collecting application metrics.
 Enabled by default.
 
 [[register.ingest.pipeline.enabled]]

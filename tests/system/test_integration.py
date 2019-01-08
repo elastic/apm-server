@@ -1,12 +1,11 @@
 import os
+import json
 import unittest
 
 from apmserver import ElasticTest, ExpvarBaseTest
 from apmserver import ClientSideElasticTest, SmapIndexBaseTest, SmapCacheBaseTest
 from apmserver import SplitIndicesTest
 from beat.beat import INTEGRATION_TESTS
-import json
-import time
 
 
 class Test(ElasticTest):
@@ -46,8 +45,8 @@ class Test(ElasticTest):
         It verifies that all data make it into ES, means data is compatible with the template
         and data are in expected format.
         """
-        self.load_docs_with_template(self.get_transaction_payload_path(),
-                                     self.transactions_url, 'transaction', 9)
+        self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
+                                     self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
@@ -66,11 +65,10 @@ class Test(ElasticTest):
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'span')
 
-        self.check_backend_transaction_sourcemap(count=5)
-
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_tags_type(self):
-        self.load_docs_with_template(self.get_transaction_payload_path(), self.transactions_url, 'transaction', 9)
+        self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
+                                     self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="context.tags.*")
         for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
@@ -86,7 +84,8 @@ class Test(ElasticTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_mark_type(self):
-        self.load_docs_with_template(self.get_transaction_payload_path(), self.transactions_url, 'transaction', 9)
+        self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
+                                     self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="transaction.marks.*")
         for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
@@ -101,7 +100,7 @@ class Test(ElasticTest):
         It verifies that all data make it into ES means data is compatible with the template.
         """
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url, 'error', 4)
+                                     self.intake_url, 'error', 4)
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for errors with new ones
@@ -118,16 +117,23 @@ class Test(ElasticTest):
         for rec_entry in received:
             checked = False
             rec = rec_entry['_source']
-            rec_id = rec[doc_type]['id']
+            rec_id = self.get_id(rec[doc_type])
+
             for appr_entry in approved:
                 appr = appr_entry['_source']
-                if rec_id == appr[doc_type]['id']:
+                if rec_id == self.get_id(appr[doc_type]):
                     checked = True
                     self.assert_docs(rec[doc_type], appr[doc_type])
                     self.assert_docs(rec['context'], appr['context'])
-                    self.assert_docs(rec['@timestamp'], appr['@timestamp'])
                     self.assert_docs(rec['processor'], appr['processor'])
-            assert checked == True, "New entry with id {}".format(rec_id)
+            assert checked, "New entry with id {}".format(rec_id)
+
+    @staticmethod
+    def get_id(doc):
+        if 'id' in doc:
+            return doc['id']
+        else:
+            return doc['hex_id']
 
     def assert_docs(self, received, approved):
         assert approved == received, "expected:\n{}\nreceived:\n{}".format(self.dump(approved), self.dump(received))
@@ -136,11 +142,13 @@ class Test(ElasticTest):
         return json.dumps(data, indent=4, separators=(',', ': '))
 
 
-class RumEnabledIntegrationTest(ClientSideElasticTest):
+class EnrichEventIntegrationTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
-        self.load_docs_with_template(self.get_error_payload_path(name="payload.json"),
-                                     'http://localhost:8200/v1/errors',
+        # for backend events librar_frame information should not be changed,
+        # as no regex pattern is defined.
+        self.load_docs_with_template(self.get_backend_error_payload_path(),
+                                     self.backend_intake_url,
                                      'error',
                                      4)
         self.check_library_frames({"true": 1, "false": 1, "empty": 2}, "error")
@@ -148,15 +156,17 @@ class RumEnabledIntegrationTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error(self):
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.check_library_frames({"true": 5, "false": 1, "empty": 0}, "error")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_transaction(self):
-        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
-                                     'http://localhost:8200/v1/transactions',
+        # for backend events librar_frame information should not be changed,
+        # as no regex pattern is defined.
+        self.load_docs_with_template(self.get_backend_transaction_payload_path(),
+                                     self.backend_intake_url,
                                      'transaction',
                                      9)
         self.check_library_frames({"true": 1, "false": 0, "empty": 1}, "span")
@@ -164,15 +174,15 @@ class RumEnabledIntegrationTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction(self):
         self.load_docs_with_template(self.get_transaction_payload_path(),
-                                     self.transactions_url,
+                                     self.intake_url,
                                      'transaction',
                                      2)
         self.check_library_frames({"true": 1, "false": 1, "empty": 0}, "span")
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_enrich_backend_event(self):
-        self.load_docs_with_template(self.get_transaction_payload_path(name="payload.json"),
-                                     'http://localhost:8200/v1/transactions', 'transaction', 9)
+        self.load_docs_with_template(self.get_backend_transaction_payload_path(),
+                                     self.backend_intake_url, 'transaction', 9)
 
         rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "transaction"}}})
@@ -182,7 +192,7 @@ class RumEnabledIntegrationTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_enrich_rum_event(self):
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
 
@@ -200,11 +210,11 @@ class RumEnabledIntegrationTest(ClientSideElasticTest):
         # check they don't have the same grouping key, as the
         # `rum.exclude_from_grouping` should only be applied to the rum error.
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     'http://localhost:8200/v1/errors',
+                                     self.intake_url,
                                      'error',
                                      1)
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.backend_intake_url,
                                      'error',
                                      2)
         rs = self.es.search(index=self.index_name, body={
@@ -231,28 +241,30 @@ class RumEnabledIntegrationTest(ClientSideElasticTest):
         assert l_frames == library_frames, "found {}, expected {}".format(
             l_frames, library_frames)
 
-    def count_library_frames(self, doc, lf):
+    @staticmethod
+    def count_library_frames(doc, lf):
         if "stacktrace" not in doc:
             return
         for frame in doc["stacktrace"]:
             if frame.has_key("library_frame"):
-                k = "true" if frame["library_frame"] == True else "false"
+                k = "true" if frame["library_frame"] else "false"
                 lf[k] += 1
             else:
                 lf["empty"] += 1
 
 
 class SplitIndicesIntegrationTest(SplitIndicesTest):
+    @unittest.skip
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_split_docs_into_separate_indices(self):
         # load error and transaction document to ES
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      4,
                                      query_index="test-apm*")
         self.load_docs_with_template(self.get_transaction_payload_path(),
-                                     self.transactions_url,
+                                     self.intake_url,
                                      'transaction',
                                      9,
                                      query_index="test-apm*")
@@ -281,9 +293,12 @@ class SplitIndicesIntegrationTest(SplitIndicesTest):
 
 
 class SourcemappingIntegrationTest(ClientSideElasticTest):
-
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
+        # ensure source mapping is not applied to backend events
+        # load event for which a sourcemap would be applied when sent to rum endpoint,
+        # and send against backend endpoint.
+
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(
             file_name='bundle.js.map', bundle_filepath=path)
@@ -291,7 +306,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.wait_for_sourcemaps()
 
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     'http://localhost:8200/v1/errors',
+                                     self.backend_intake_url,
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
@@ -311,8 +326,8 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
 
         self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
         self.wait_for_sourcemaps(3)
-        assert self.log_contains(
-            "Multiple sourcemaps found"), "the 3rd fetch should query ES and find that there are 2 sourcemaps with the same caching key"
+        assert self.log_contains("Multiple sourcemaps found"), \
+            "the 3rd fetch should query ES and find that there are 2 sourcemaps with the same caching key"
 
         self.assert_no_logged_warnings(
             ["WARN.*Overriding sourcemap", "WARN.*Multiple sourcemaps"])
@@ -327,14 +342,18 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.wait_for_sourcemaps()
 
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
         self.check_rum_error_sourcemap(True)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_backend_transaction(self):
+    def test_backend_span(self):
+        # ensure source mapping is not applied to backend events
+        # load event for which a sourcemap would be applied when sent to rum endpoint,
+        # and send against backend endpoint.
+
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(file_name='bundle.js.map',
                                   bundle_filepath=path,
@@ -343,11 +362,11 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.wait_for_sourcemaps()
 
         self.load_docs_with_template(self.get_transaction_payload_path(),
-                                     'http://localhost:8200/v1/transactions',
+                                     self.backend_intake_url,
                                      'transaction',
                                      2)
         self.assert_no_logged_warnings()
-        self.check_backend_transaction_sourcemap()
+        self.check_backend_span_sourcemap()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction(self):
@@ -359,7 +378,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.wait_for_sourcemaps()
 
         self.load_docs_with_template(self.get_transaction_payload_path(),
-                                     self.transactions_url,
+                                     self.intake_url,
                                      'transaction',
                                      2)
         self.assert_no_logged_warnings()
@@ -368,7 +387,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_sourcemap(self):
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.check_rum_error_sourcemap(
@@ -391,7 +410,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps()
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.check_rum_error_sourcemap(
@@ -415,7 +434,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         assert r.status_code == 202, r.status_code
         self.wait_for_sourcemaps(expected_ct=2)
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.check_rum_error_sourcemap(True, count=1)
@@ -430,7 +449,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
 
         # insert document, which also leads to caching the sourcemap
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
@@ -443,7 +462,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         # insert document,
         # fetching sourcemap without errors, so it must be fetched from cache
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
@@ -451,7 +470,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
 
 
 class SourcemappingIntegrationChangedConfigTest(SmapIndexBaseTest):
-
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error_changed_index(self):
         # use an uncleaned path to test that path is cleaned in upload
@@ -462,7 +480,7 @@ class SourcemappingIntegrationChangedConfigTest(SmapIndexBaseTest):
         self.wait_for_sourcemaps()
 
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
@@ -480,7 +498,7 @@ class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
 
         # insert document, which also leads to caching the sourcemap
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
@@ -492,7 +510,7 @@ class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
 
         # after cache expiration no sourcemap should be found any more
         self.load_docs_with_template(self.get_error_payload_path(),
-                                     self.errors_url,
+                                     self.intake_url,
                                      'error',
                                      1)
         self.check_rum_error_sourcemap(
@@ -533,10 +551,11 @@ class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
 class MetricsIntegrationTest(ElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_metric_doc(self):
-        self.load_docs_with_template(self.get_metricset_payload_path(), self.metrics_url, 'metric', 1)
+        self.load_docs_with_template(self.get_metricset_payload_payload_path(), self.intake_url, 'metric', 2)
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"
-        actual_type = mappings[self.index_name]["mappings"]["_doc"]["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
+        doc = mappings[self.index_name]["mappings"]["_doc"]
+        actual_type = doc["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
 

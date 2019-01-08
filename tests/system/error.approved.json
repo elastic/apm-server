@@ -57,7 +57,7 @@
                     "type": "connection error"
                 },
                 "grouping_key": "18f82051862e494727fa20e0adc15711",
-                "id": "7f0e9d68-c185-4d21-a6f4-4673ed561ec8"
+                "id": "7f0e9d68c1854d21a6f44673ed561ec8"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -251,7 +251,7 @@
                     "type": "DbError"
                 },
                 "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
-                "id": "5f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "id": "5f0e9d64c1854d21a6f44673ed561ec8",
                 "culprit": "my.module.function_name",
                 "log": {
                     "stacktrace": [
@@ -387,7 +387,7 @@
                     "code": "35"
                 },
                 "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
-                "id": "8f0e9d68-c185-4d21-a6f4-4673ed561ec8"
+                "id": "8f0e9d68c1854d21a6f44673ed561ec8"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -447,7 +447,7 @@
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
-                "id": "0f0e9d67-c185-4d21-a6f4-4673ed561ec8",
+                "id": "0f0e9d67c1854d21a6f44673ed561ec8",
                 "log": {
                     "message": "Cannot read property 'baz' of undefined",
                     "level": "custom log level"

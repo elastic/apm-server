@@ -28,7 +28,7 @@ import (
 
 func errorProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{MaxEventSize: lrSize}},
+		Proc:            &intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}},
 		FullPayloadPath: "../testdata/intake-v2/errors.ndjson",
 		TemplatePaths: []string{
 			"../../../model/error/_meta/fields.yml",

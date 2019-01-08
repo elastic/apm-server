@@ -18,7 +18,6 @@
 package main
 
 //go:generate go run script/inline_schemas/inline_schemas.go
-//go:generate go run script/output_data/output_data.go
 
 import (
 	"os"

@@ -18,18 +18,8 @@ apm-server:
   # Maximum duration in seconds before releasing resources when shutting down the server.
   #shutdown_timeout: 5s
 
-  #-- v1 Intake API (deprecated)
-
-  # Maximum permitted size in bytes of an unzipped request accepted by the server to be processed.
-  #max_unzipped_size: 31457280
-
-  # Maximum duration request will be queued before being read.
-  #max_request_queue_time: 2s
-
   # Maximum number of requests permitted to be sent to the server concurrently.
   #concurrent_requests: 5
-
-  #-- v2 Intake API
 
   # Maximum allowed size in bytes of a single event
   #max_event_size: 307200
@@ -54,16 +44,9 @@ apm-server:
     # To enable real user monitoring (RUM) support set this to true.
     #enabled: false
 
-    #-- v1 RUM endpoint (deprecated)
-
-    # Rate limit per second and IP address for requests sent to the RUM endpoint.
-    #rate_limit: 10
-
-    #-- v2 RUM endpoint
-
     #event_rate:
 
-      # Defines the maximum amount of events allowed to be sent to the APM Server v2 RUM
+      # Defines the maximum amount of events allowed to be sent to the APM Server RUM
       # endpoint per ip per second. Defaults to 300.
       #limit: 300
 
@@ -144,7 +127,7 @@ apm-server:
     # Remote apm-servers' secret_token
     #secret_token:
 
-  # Experimental Metrics endpoint
+  # Metrics endpoint
   #metrics:
     # Set to false to disable the metrics endpoint
     #enabled: true

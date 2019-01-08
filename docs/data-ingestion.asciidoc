@@ -13,17 +13,16 @@ This section explains how to adapt data ingestion according to your needs.
 [[tune-apm-server]]
 == Tune APM Server
 
-Version 6.5 of the APM Server introduced a new <<intake-api,intake API>>. If you have not upgraded your APM Agent, you'll continue to use the deprecated v1 intake API endpoint. If you have upgraded your agent, you'll use the new v2 intake API endpoint. Understanding which endpoint your APM Agents use to communicate with your APM Server is vital to correctly tuning your data ingestion. Read the <<intake-api-changes-65, intake API changes>> documentation to learn more.
-
 Tuning topics:
 
 * <<tune-output-config>>
 * <<adjust-queue-size>>
-* <<adjust-concurrent-requests>>
 * <<add-apm-server-instances>>
 * <<reduce-payload-size>>
 * <<adjust-event-rate>>
-* <<use-v1-and-v2>>
+
+TIP: APM Server version 7.0 introduces breaking changes with older versions of APM agents.
+Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
 
 [[tune-output-config]]
 [float]
@@ -50,16 +49,6 @@ A larger queue can retain more data if Elasticsearch is unavailable for longer p
 and it alleviates problems that might result from sudden spikes of traffic.
 You can adjust the queue size by overriding <<mem.events,`queue.mem.events`>>.
 Increasing <<mem.events,`queue.mem.events`>> can significantly affect APM Server memory usage.
-
-[[adjust-concurrent-requests]]
-[float]
-=== Adjust concurrent requests deprecated[6.5]
-
-IMPORTANT: This setting only impacts agents using **v1** of the APM Server <<intake-api,intake API>>.
-
-APM Server has a limit to how many requests can be processed concurrently.
-This limit is determined by the <<concurrent_requests,`apm-server.concurrent_requests`>> setting.
-Increasing this value will improve throughput, but it can significantly affect APM Server memory usage.
 
 [[add-apm-server-instances]]
 [float]
@@ -89,25 +78,11 @@ Read more in the {apm-agents-ref}/index.html[agents documentation].
 [float]
 === Adjust RUM event rate limit
 
-IMPORTANT: This setting impacts agents using **v2** of the APM Server <<intake-api,intake API>>. If you're using an agent that supports v1, see the <<server-config-changes-65, server configuration changes>> documentation.
-
 Agents make use of long running requests and flush as many events over a single request as possible. Thus, the rate limiter for RUM is bound to the number of _events_ sent per second, per IP. 
 
 If the rate limit is hit while events on an established request are sent, the request is not immediately terminated. The intake of events is only throttled to <<event_rate.limit,`event_rate.limit`>>, which means that events are queued and processed slower. Only when the allowed buffer queue is also full, does the request get terminated with a `429 - rate limit exceeded` HTTP response. If an agent tries to establish a new request, but the rate limit is already hit, a `429` will be sent immediately.
 
 Increasing the <<event_rate.limit,`event_rate.limit`>> default value will help avoid `rate limit exceeded` errors.
-
-[[use-v1-and-v2]]
-[float]
-=== Tuning APM Server using both v1 and v2 intake API
-
-Depending on your agent versions, it is possible that the APM Server may need to communicate with the agents by using both of the intake API versions. 
-
-For example, if you have a v1.x Node.js agent, and a v4.x Python agent, the Node.js agent will communicate via the v1 endpoint, and the Python agent will communicate via the v2 endpoint. 
-
-In this instance, you'll need to adjust both the deprecated, and newly introduced <<configuration-process,configuration options>>. 
-
-TIP: Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
 
 [[tune-es]]
 == Tune Elasticsearch

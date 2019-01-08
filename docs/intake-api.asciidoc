@@ -5,8 +5,6 @@
 NOTE: Most users will not need to interact directly with the intake API unless they are implementing an agent.
 
 The Intake API is what we call the internal protocol that APM agents use to talk to the APM Server.
-This API has been redesigned in 6.5.
-Read the <<upgrading-to-65,upgrading to 6.5 guide>> for more information.
 
 APM agents communicate with the APM server by sending events in an HTTP request.
 Each event is sent as its own line in the HTTP request body.

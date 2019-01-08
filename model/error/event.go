@@ -60,7 +60,11 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Event struct {
-	Id        *string
+	Id            *string
+	TransactionId *string
+	TraceId       *string
+	ParentId      *string
+
 	Culprit   *string
 	Context   common.MapStr
 	Timestamp time.Time
@@ -68,16 +72,9 @@ type Event struct {
 	Exception *Exception
 	Log       *Log
 
-	TransactionId *string
-
-	//v2
-	TraceId  *string
-	ParentId *string
-
 	TransactionSampled *bool
 
-	data    common.MapStr
-	v2Event bool
+	data common.MapStr
 }
 
 type Exception struct {
@@ -98,49 +95,29 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func V1DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	e, raw, err := decodeEvent(input, err)
+func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
-	}
-	decoder := utility.ManualDecoder{}
-	e.Timestamp = decoder.TimeRFC3339(raw, "timestamp")
-	e.TransactionId = decoder.StringPtr(raw, "id", "transaction")
-	return e, decoder.Err
-}
-
-func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
-	e, raw, err := decodeEvent(input, err)
-	if err != nil {
-		return nil, err
-	}
-	e.v2Event = true
-
-	decoder := utility.ManualDecoder{}
-	e.Timestamp = decoder.TimeEpochMicro(raw, "timestamp")
-	e.TransactionId = decoder.StringPtr(raw, "transaction_id")
-	e.ParentId = decoder.StringPtr(raw, "parent_id")
-	e.TraceId = decoder.StringPtr(raw, "trace_id")
-	e.TransactionSampled = decoder.BoolPtr(raw, "sampled", "transaction")
-	return e, decoder.Err
-}
-
-func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, error) {
-	if err != nil {
-		return nil, nil, err
 	}
 	if input == nil {
-		return nil, nil, errors.New("Input missing for decoding Event")
+		return nil, errors.New("Input missing for decoding Event")
 	}
+
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, nil, errors.New("Invalid type for error event")
+		return nil, errors.New("Invalid type for error event")
 	}
+
 	decoder := utility.ManualDecoder{}
 	e := Event{
-		Id:      decoder.StringPtr(raw, "id"),
-		Culprit: decoder.StringPtr(raw, "culprit"),
-		Context: decoder.MapStr(raw, "context"),
+		Id:                 decoder.StringPtr(raw, "id"),
+		Culprit:            decoder.StringPtr(raw, "culprit"),
+		Context:            decoder.MapStr(raw, "context"),
+		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
+		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
+		ParentId:           decoder.StringPtr(raw, "parent_id"),
+		TraceId:            decoder.StringPtr(raw, "trace_id"),
+		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
 	}
 
 	var stacktr *m.Stacktrace
@@ -179,7 +156,12 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 			e.Log.Stacktrace = *stacktr
 		}
 	}
-	return &e, raw, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &e, nil
 }
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
@@ -208,12 +190,10 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", e.TraceId)
 
-	if e.v2Event {
-		if e.Timestamp.IsZero() {
-			e.Timestamp = tctx.RequestTime
-		}
-		utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	if e.Timestamp.IsZero() {
+		e.Timestamp = tctx.RequestTime
 	}
+	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
 		beat.Event{

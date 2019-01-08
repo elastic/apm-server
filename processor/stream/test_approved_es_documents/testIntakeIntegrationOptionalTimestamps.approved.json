@@ -1,0 +1,162 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "context": {
+                "process": {
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "pid": 1234,
+                    "ppid": 6789,
+                    "title": "node"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "environment": "staging",
+                    "framework": {
+                        "name": "Express",
+                        "version": "1.2.3"
+                    },
+                    "language": {
+                        "name": "ecmascript",
+                        "version": "8"
+                    },
+                    "name": "backendspans",
+                    "runtime": {
+                        "name": "node",
+                        "version": "8.0.0"
+                    },
+                    "version": "5.1.3"
+                },
+                "system": {
+                    "architecture": "x64",
+                    "hostname": "prod1.example.com",
+                    "ip": "192.0.0.1",
+                    "platform": "darwin"
+                },
+                "user": {
+                    "email": "s@test.com",
+                    "id": "123",
+                    "username": "john"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "timestamp": {
+                "us": 1533117600000000
+            },
+            "trace": {
+                "id": "abcdefabcdef01234567890123456789"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 12000
+                },
+                "id": "1111222233334444",
+                "name": "tx1",
+                "sampled": true,
+                "span_count": {
+                    "started": 14
+                },
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00.01Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "parent": {
+                "id": "012345654321123"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 20000
+                },
+                "hex_id": "0147258369abcdef",
+                "name": "sp1",
+                "start": {
+                    "us": 10000
+                },
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1533117600010000
+            },
+            "trace": {
+                "id": "abcdefabcdef01234567890123456789"
+            },
+            "transaction": {
+                "id": "fedcba0123456789"
+            }
+        },
+        {
+            "@timestamp": "2018-01-01T11:00:00Z",
+            "context": {
+                "process": {
+                    "argv": [
+                        "node",
+                        "server.js"
+                    ],
+                    "pid": 1234,
+                    "ppid": 6789,
+                    "title": "node"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "environment": "staging",
+                    "framework": {
+                        "name": "Express",
+                        "version": "1.2.3"
+                    },
+                    "language": {
+                        "name": "ecmascript",
+                        "version": "8"
+                    },
+                    "name": "backendspans",
+                    "runtime": {
+                        "name": "node",
+                        "version": "8.0.0"
+                    },
+                    "version": "5.1.3"
+                },
+                "system": {
+                    "architecture": "x64",
+                    "hostname": "prod1.example.com",
+                    "ip": "192.0.0.1",
+                    "platform": "darwin"
+                },
+                "user": {
+                    "email": "s@test.com",
+                    "id": "123",
+                    "username": "john"
+                }
+            },
+            "my-metric": 99,
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            }
+        }
+    ]
+}

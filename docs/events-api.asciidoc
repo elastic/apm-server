@@ -103,11 +103,11 @@ The APM Server uses a collection of JSON Schemas for validating requests to the 
 * <<span-api, Spans>>
 * <<error-api, Errors>>
 * <<metricset-api, Metricsets>>
-* <<example-intakev2-events, Example Request Body>>
+* <<example-intake-events, Example Request Body>>
 
 include::./metadata-api.asciidoc[]
 include::./transaction-api.asciidoc[]
 include::./span-api.asciidoc[]
 include::./error-api.asciidoc[]
 include::./metricset-api.asciidoc[]
-include::./example-intakev2-events.asciidoc[]
+include::./example-intake-events.asciidoc[]
