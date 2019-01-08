@@ -47,7 +47,7 @@ is available in the <<events-api,Events API>> documentation.
 ===== Metadata
 
 Metadata is now sent to the APM Server only once per request.
-APM Server will retain this information and apply it to the applicable documents when it writes to Elasticsearch. 
+APM Server will retain this information and apply it to the applicable documents when it writes to Elasticsearch.
 
 Metadata should be sent to the new `intake/v2/events` endpoint.
 See the <<metadata-api, metadata documentation>> for more information.
@@ -102,7 +102,7 @@ See the <<span-schema, span schema documentation>> for more information.
 ===== Healthcheck Endpoint
 
 The Healthcheck endpoint, previously `/healthcheck`, has been deprecated.
-The <<server-info,server information>> api has replaced it. 
+The <<server-info,server information>> api has replaced it.
 
 [float]
 [[assets-api-changes-65]]
@@ -129,13 +129,12 @@ There are some configuration changes that are worth mentioning.
 
 Deprecated configuration options:
 
-* <<max_unzipped_size,`max_unzipped_size`>>
-* <<max_request_queue_time,`max_request_queue_time`>>
-* <<concurrent_requests,`concurrent_requests`>>
+* `max_unzipped_size`
+* `max_request_queue_time`
 
 New configuration options:
 
-* <<max_event_size,`max_event_size`>> with a default value: `307200` bytes. You may notice this default value is much smaller than the deprecated <<max_unzipped_size,`max_unzipped_size`>> default value. This is because `max_unzipped_size` referred to the whole request, while `max_event_size` only refers to a single event within the request.
+* <<max_event_size,`max_event_size`>> with a default value: `307200` bytes. You may notice this default value is much smaller than the deprecated `max_unzipped_size` default value. This is because `max_unzipped_size` referred to the whole request, while `max_event_size` only refers to a single event within the request.
 
 Notable options:
 
@@ -147,7 +146,7 @@ you may not be using an updated `apm-server.yml` configuration file. Update your
 
 RUM configuration changes:
 
-* <<event_rate.limit,`event_rate.limit`>> has replaced the deprecated <<rate_limit_v1,`rate_limit`>>. In v1 of the intake API, the RUM rate limiter was bound to the number of _requests_ per second, per IP. In v2, the rate limiter has changed to be bound to the number of _events_ sent per second, per IP. 
+* <<event_rate.limit,`event_rate.limit`>> has replaced the deprecated `rate_limit`. In v1 of the intake API, the RUM rate limiter was bound to the number of _requests_ per second, per IP. In v2, the rate limiter has changed to be bound to the number of _events_ sent per second, per IP.
 
 
 [float]
@@ -171,7 +170,7 @@ The Elasticsearch error schema adds two new keys:
 * _add_ `trace.id`
 * _add_ `parent.id`
 
-View the sample Elasticsearch <<error-indices,error document>> for more information. 
+View the sample Elasticsearch <<error-indices,error document>> for more information.
 
 [float]
 [[es-transaction-changes-65]]
@@ -182,7 +181,7 @@ The Elasticsearch transaction schema adds two new keys:
 * _add_ `trace.id`
 * _add_ `parent.id`
 
-View the sample Elasticsearch <<transaction-indices,transaction document>> for more information. 
+View the sample Elasticsearch <<transaction-indices,transaction document>> for more information.
 
 [float]
 [[es-span-changes-65]]
@@ -196,4 +195,4 @@ The Elasticsearch span schema adds three new keys, and deprecates two:
 * _deprecate_ `parent` long
 * _deprecate_ `id` long
 
-View the sample Elasticsearch <<span-indices,span document>> for more information. 
+View the sample Elasticsearch <<span-indices,span document>> for more information.

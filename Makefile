@@ -75,10 +75,10 @@ create-docs:
 	@cp testdata/intake-v2/events.ndjson docs/data/intake-api/generated/
 	@cp testdata/sourcemap/bundle.js.map docs/data/intake-api/generated/sourcemap/
 	@mkdir -p docs/data/elasticsearch/generated/
-	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationErrors.approved.json docs/data/elasticsearch/generated/errors.json
-	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationTransactions.approved.json docs/data/elasticsearch/generated/transactions.json
-	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationSpans.approved.json docs/data/elasticsearch/generated/spans.json
-	@cp processor/stream/approved-es-documents/testV2IntakeIntegrationMetricsets.approved.json docs/data/elasticsearch/generated/metricsets.json
+	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationErrors.approved.json docs/data/elasticsearch/generated/errors.json
+	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationTransactions.approved.json docs/data/elasticsearch/generated/transactions.json
+	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationSpans.approved.json docs/data/elasticsearch/generated/spans.json
+	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationMetricsets.approved.json docs/data/elasticsearch/generated/metricsets.json
 
 # Start manual testing environment with agents
 start-env:

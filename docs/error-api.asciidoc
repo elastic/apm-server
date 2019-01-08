@@ -11,10 +11,5 @@ The APM Server uses JSON Schema for validating requests. The specification for e
 
 [source,json]
 ----
-include::./spec/errors/v2_error.json[]
-----
-
-[source,json]
-----
-include::./spec/errors/common_error.json[]
+include::./spec/errors/error.json[]
 ----

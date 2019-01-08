@@ -18,16 +18,14 @@
 package beater
 
 import (
+	"expvar"
 	"net/http"
 	"regexp"
 
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/processor"
-	perr "github.com/elastic/apm-server/processor/error"
-	"github.com/elastic/apm-server/processor/metricset"
-	"github.com/elastic/apm-server/processor/sourcemap"
+	"github.com/elastic/apm-server/processor/asset"
+	"github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
-	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/logp"
@@ -37,27 +35,14 @@ var (
 	rootURL = "/"
 
 	// intake v2
-	V2BackendURL = "/intake/v2/events"
-	V2RumURL     = "/intake/v2/rum/events"
+	backendURL = "/intake/v2/events"
+	rumURL     = "/intake/v2/rum/events"
 
 	// assets
-	SourcemapsURL = "/assets/v1/sourcemaps"
-
-	// deprecated
-	SourcemapsClientSideURLDeprecated = "/v1/client-side/sourcemaps"
-	SourcemapsURLDeprecated           = "/v1/rum/sourcemaps"
-	BackendTransactionsURL            = "/v1/transactions"
-	ClientSideTransactionsURL         = "/v1/client-side/transactions"
-	RumTransactionsURL                = "/v1/rum/transactions"
-	BackendErrorsURL                  = "/v1/errors"
-	ClientSideErrorsURL               = "/v1/client-side/errors"
-	RumErrorsURL                      = "/v1/rum/errors"
-	MetricsURL                        = "/v1/metrics"
-	HealthCheckURL                    = "/"
-	DeprecatedHealthCheckURL          = "/healthcheck"
+	sourcemapsURL = "/assets/v1/sourcemaps"
 )
 
-const v2BurstMultiplier = 3
+const burstMultiplier = 3
 
 type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
@@ -65,65 +50,35 @@ type routeType struct {
 	transformConfig     func(*Config) transform.Config
 }
 
-var V1Routes = map[string]v1Route{
-	BackendTransactionsURL:            {backendRouteType, transaction.Processor, v1RequestDecoder},
-	ClientSideTransactionsURL:         {rumRouteType, transaction.Processor, v1RequestDecoder},
-	RumTransactionsURL:                {rumRouteType, transaction.Processor, v1RequestDecoder},
-	BackendErrorsURL:                  {backendRouteType, perr.Processor, v1RequestDecoder},
-	ClientSideErrorsURL:               {rumRouteType, perr.Processor, v1RequestDecoder},
-	RumErrorsURL:                      {rumRouteType, perr.Processor, v1RequestDecoder},
-	MetricsURL:                        {metricsRouteType, metricset.Processor, v1RequestDecoder},
-	SourcemapsURL:                     {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
-	SourcemapsClientSideURLDeprecated: {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
-	SourcemapsURLDeprecated:           {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
+var IntakeRoutes = map[string]intakeRoute{
+	backendURL: backendRoute,
+	rumURL:     rumRoute,
 }
 
-var V2Routes = map[string]v2Route{
-	V2BackendURL: v2BackendRoute,
-	V2RumURL:     v2RumRoute,
+var AssetRoutes = map[string]assetRoute{
+	sourcemapsURL: {sourcemapRouteType, sourcemap.Processor, sourcemapUploadDecoder},
 }
 
 var (
-	v2BackendRoute = v2Route{
+	backendRoute = intakeRoute{
 		routeType{
-			v2backendHandler,
+			backendHandler,
 			systemMetadataDecoder,
 			func(*Config) transform.Config { return transform.Config{} },
 		},
 	}
-	v2RumRoute = v2Route{
+	rumRoute = intakeRoute{
 		routeType{
-			v2rumHandler,
+			rumHandler,
 			userMetaDataDecoder,
 			rumTransformConfig,
 		},
 	}
-)
 
-var (
-	backendRouteType = routeType{
-		backendHandler,
-		systemMetadataDecoder,
-		func(*Config) transform.Config { return transform.Config{} },
-	}
-	rumRouteType = routeType{
-		rumHandler,
-		userMetaDataDecoder,
-		rumTransformConfig,
-	}
-	metricsRouteType = routeType{
-		metricsHandler,
-		systemMetadataDecoder,
-		func(*Config) transform.Config { return transform.Config{} },
-	}
 	sourcemapRouteType = routeType{
 		sourcemapHandler,
 		systemMetadataDecoder,
 		rumTransformConfig,
-	}
-
-	v1RequestDecoder = func(beaterConfig *Config) decoder.ReqDecoder {
-		return decoder.DecodeLimitJSONData(beaterConfig.MaxUnzippedSize)
 	}
 
 	sourcemapUploadDecoder = func(beaterConfig *Config) decoder.ReqDecoder {
@@ -131,38 +86,41 @@ var (
 	}
 )
 
-func v2backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
-		requestTimeHandler(
-			authHandler(beaterConfig.SecretToken, h)))
-}
+func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
+	mux := http.NewServeMux()
+	logger := logp.NewLogger("handler")
 
-func v2rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-		requestTimeHandler(
-			corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))
+	for path, route := range AssetRoutes {
+		logger.Infof("Path %s added to request handler", path)
+
+		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
+	}
+	for path, route := range IntakeRoutes {
+		logger.Infof("Path %s added to request handler", path)
+
+		mux.Handle(path, route.Handler(path, beaterConfig, report))
+	}
+
+	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
+
+	if beaterConfig.Expvar.isEnabled() {
+		path := beaterConfig.Expvar.Url
+		logger.Infof("Path %s added to request handler", path)
+		mux.Handle(path, expvar.Handler())
+	}
+	return mux
 }
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
 		requestTimeHandler(
-			concurrencyLimitHandler(beaterConfig,
-				authHandler(beaterConfig.SecretToken, h))))
+			authHandler(beaterConfig.SecretToken, h)))
 }
 
 func rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 		requestTimeHandler(
-			corsHandler(beaterConfig.RumConfig.AllowOrigins,
-				concurrencyLimitHandler(beaterConfig,
-					ipRateLimitHandler(beaterConfig.RumConfig.RateLimit, h)))))
-}
-
-func metricsHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
-		requestTimeHandler(
-			killSwitchHandler(beaterConfig.Metrics.isEnabled(),
-				authHandler(beaterConfig.SecretToken, h))))
+			corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))
 }
 
 func sourcemapHandler(beaterConfig *Config, h http.Handler) http.Handler {
@@ -192,64 +150,46 @@ func rumTransformConfig(beaterConfig *Config) transform.Config {
 	return config
 }
 
-type v1Route struct {
+type assetRoute struct {
 	routeType
-	processor.Processor
+	asset.Processor
 	topLevelRequestDecoder func(*Config) decoder.ReqDecoder
 }
 
-func deprecationHandler(h http.Handler) http.HandlerFunc {
-	var warned bool
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !warned {
-			logp.NewLogger("handler").Warn("Apm Server v1 API is deprecated, please update your agent version to switch to the v2 API")
-		}
-		warned = true
-		h.ServeHTTP(w, r)
-	})
-}
-
-func (v *v1Route) Handler(p processor.Processor, beaterConfig *Config, report publish.Reporter, deprecated bool) http.Handler {
-	decoder := v.configurableDecoder(beaterConfig, v.topLevelRequestDecoder(beaterConfig))
-	tconfig := v.transformConfig(beaterConfig)
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := processRequest(r, p, tconfig, report, decoder)
-		sendStatus(w, r, res)
-	})
-
-	if deprecated {
-		handler = deprecationHandler(handler)
+func (r *assetRoute) Handler(p asset.Processor, beaterConfig *Config, report publish.Reporter) http.Handler {
+	handler := assetHandler{
+		requestDecoder: r.configurableDecoder(beaterConfig, r.topLevelRequestDecoder(beaterConfig)),
+		processor:      p,
+		tconfig:        r.transformConfig(beaterConfig),
 	}
 
-	return v.wrappingHandler(beaterConfig, handler)
+	return r.wrappingHandler(beaterConfig, handler.Handle(beaterConfig, report))
 }
 
-type v2Route struct {
+type intakeRoute struct {
 	routeType
 }
 
-func (v v2Route) Handler(url string, c *Config, report publish.Reporter) http.Handler {
-	reqDecoder := v.configurableDecoder(
+func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) http.Handler {
+	reqDecoder := r.configurableDecoder(
 		c,
 		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
 	)
-
-	v2Handler := v2Handler{
+	handler := intakeHandler{
 		requestDecoder: reqDecoder,
-		streamProcessor: &stream.StreamProcessor{
-			Tconfig:      v.transformConfig(c),
+		streamProcessor: &stream.Processor{
+			Tconfig:      r.transformConfig(c),
 			MaxEventSize: c.MaxEventSize,
 		},
 	}
 
-	if url == V2RumURL {
-		if rlc, err := NewRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit, v2BurstMultiplier); err == nil {
-			v2Handler.rlc = rlc
+	if url == rumURL {
+		if c, err := newRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit, burstMultiplier); err == nil {
+			handler.rlc = c
 		} else {
 			logp.NewLogger("handler").Error(err.Error())
 		}
 	}
 
-	return v.wrappingHandler(c, v2Handler.Handle(c, report))
+	return r.wrappingHandler(c, handler.Handle(c, report))
 }

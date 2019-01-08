@@ -1,0 +1,176 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package stream
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"path/filepath"
+	"testing"
+	"testing/iotest"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/time/rate"
+
+	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/loader"
+	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/beat"
+)
+
+func validMetadata() string {
+	return `{"metadata": {"service": {"name": "myservice", "agent": {"name": "test", "version": "1.0"}}}}`
+}
+
+func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
+	resultName := fmt.Sprintf("test_approved_stream_result/testIntegrationResult%s", name)
+	resultJSON, err := json.Marshal(actualResponse)
+	require.NoError(t, err)
+	tests.AssertApproveResult(t, resultName, resultJSON)
+}
+
+func TestHandlerReadStreamError(t *testing.T) {
+	var pendingReqs []publish.PendingReq
+	report := tests.TestReporter(&pendingReqs)
+
+	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+	require.NoError(t, err)
+	bodyReader := bytes.NewBuffer(b)
+	timeoutReader := iotest.TimeoutReader(bodyReader)
+
+	sp := Processor{MaxEventSize: 100 * 1024}
+	actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, timeoutReader, report)
+	assertApproveResult(t, actualResult, "ReadError")
+}
+
+func TestHandlerReportingStreamError(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		report func(ctx context.Context, p publish.PendingReq) error
+	}{
+		{
+			name: "ShuttingDown",
+			report: func(ctx context.Context, p publish.PendingReq) error {
+				return publish.ErrChannelClosed
+			},
+		}, {
+			name: "QueueFull",
+			report: func(ctx context.Context, p publish.PendingReq) error {
+				return publish.ErrFull
+			},
+		},
+	} {
+
+		b, err := loader.LoadDataAsBytes("../testdata/intake-v2/transactions.ndjson")
+		require.NoError(t, err)
+		bodyReader := bytes.NewBuffer(b)
+
+		sp := Processor{MaxEventSize: 100 * 1024}
+		actualResult := sp.HandleStream(context.Background(), nil, map[string]interface{}{}, bodyReader, test.report)
+		assertApproveResult(t, actualResult, test.name)
+	}
+}
+
+func TestIntegration(t *testing.T) {
+	report := func(ctx context.Context, p publish.PendingReq) error {
+		var events []beat.Event
+		for _, transformable := range p.Transformables {
+			events = append(events, transformable.Transform(p.Tcontext)...)
+		}
+		name := ctx.Value("name").(string)
+		verifyErr := tests.ApproveEvents(events, name, nil)
+		if verifyErr != nil {
+			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+		}
+		return nil
+	}
+
+	for _, test := range []struct {
+		path string
+		name string
+	}{
+		{path: "errors.ndjson", name: "Errors"},
+		{path: "transactions.ndjson", name: "Transactions"},
+		{path: "spans.ndjson", name: "Spans"},
+		{path: "metricsets.ndjson", name: "Metricsets"},
+		{path: "events.ndjson", name: "Events"},
+		{path: "minimal-service.ndjson", name: "MinimalService"},
+		{path: "metadata-null-values.ndjson", name: "MetadataNullValues"},
+		{path: "invalid-event.ndjson", name: "InvalidEvent"},
+		{path: "invalid-json-event.ndjson", name: "InvalidJSONEvent"},
+		{path: "invalid-json-metadata.ndjson", name: "InvalidJSONMetadata"},
+		{path: "invalid-metadata.ndjson", name: "InvalidMetadata"},
+		{path: "invalid-metadata-2.ndjson", name: "InvalidMetadata2"},
+		{path: "unrecognized-event.ndjson", name: "UnrecognizedEvent"},
+		{path: "optional-timestamps.ndjson", name: "OptionalTimestamps"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
+			require.NoError(t, err)
+			bodyReader := bytes.NewBuffer(b)
+
+			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
+			ctx := context.WithValue(context.Background(), "name", name)
+			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
+			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
+
+			reqDecoderMeta := map[string]interface{}{
+				"system": map[string]interface{}{
+					"ip": "192.0.0.1",
+				},
+			}
+
+			actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
+			assertApproveResult(t, actualResult, test.name)
+		})
+	}
+}
+
+func TestRateLimiting(t *testing.T) {
+	report := func(ctx context.Context, p publish.PendingReq) error {
+		return nil
+	}
+
+	b, err := loader.LoadDataAsBytes("../testdata/intake-v2/ratelimit.ndjson")
+	require.NoError(t, err)
+	for _, test := range []struct {
+		name string
+		lim  *rate.Limiter
+		hit  int
+	}{
+		{name: "NoLimiter"},
+		{name: "LimiterDenyAll", lim: rate.NewLimiter(rate.Limit(0), 2)},
+		{name: "LimiterAllowAll", lim: rate.NewLimiter(rate.Limit(40), 40*5)},
+		{name: "LimiterPartiallyUsedLimitAllow", lim: rate.NewLimiter(rate.Limit(10), 10*2), hit: 10},
+		{name: "LimiterPartiallyUsedLimitDeny", lim: rate.NewLimiter(rate.Limit(7), 7*2), hit: 10},
+		{name: "LimiterDeny", lim: rate.NewLimiter(rate.Limit(6), 6*2)},
+	} {
+		if test.hit > 0 {
+			assert.True(t, test.lim.AllowN(time.Now(), test.hit))
+		}
+
+		actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(
+			context.Background(), test.lim, map[string]interface{}{}, bytes.NewReader(b), report)
+		assertApproveResult(t, actualResult, test.name)
+	}
+}

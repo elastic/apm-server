@@ -5,7 +5,12 @@
 ==== Added
 
 - Update Go version to 1.11.4 {pull}1700[1700].
-- Remove formatting of `duration.us` to milliseconds in index pattern pull{1717}[1717].
 - Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].
+
+[float]
+==== Removed
+
+- Remove formatting of `duration.us` to milliseconds in index pattern pull{1717}[1717].
+- Remove support for deprecated Intake v1 endpoints {pull}1731[1731].
 
 https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...master[View commits]

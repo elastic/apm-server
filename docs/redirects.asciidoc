@@ -153,3 +153,58 @@ This is no longer helpful. Please see <<transaction-api>>.
 === Payload with minimal span
 
 This is no longer helpful. Please see <<span-api>>.
+
+[role="exclude",id="example-intakev2-events"]
+=== Example Request Body
+
+This page has moved. Please see <<example-intake-events>>.
+
+[role="exclude",id="request-too-large"]
+=== HTTP 413: Request body too large
+
+This error can no longer occur. Please see <<common-problems>> for an updated overview of potential issues.
+
+[role="exclude",id="configuration-v1-api"]
+=== Configuration options: v1 Intake API
+
+Intake API v1 is no longer supported. Please see <<configuration-apm-server>> for current configuration options.
+
+[role="exclude",id="max_unzipped_size"]
+=== `max_unzipped_size`
+
+This configuration option is no longer supported. Please see <<configuration-apm-server>> for current configuration options.
+
+[role="exclude",id="max_request_queue_time"]
+=== `max_request_queue_time`
+
+This configuration option is no longer supported. Please see <<configuration-apm-server>> for current configuration options.
+
+[role="exclude",id="configuration-v2-api"]
+=== Configuration options: v2 Intake API
+
+This section has moved. Please see <<configuration-apm-server>> for current configuration options.
+
+[role="exclude",id="configuration-rum-v1"]
+=== `configuration-rum-v1`
+
+This configuration option is no longer supported. Please see <<configuration-rum>> for current configuration options.
+
+[role="exclude",id="rate_limit_v1"]
+=== `rate_limit_v1`
+
+This configuration option is no longer supported. Please see <<configuration-rum>> for current configuration options.
+
+[role="exclude",id="configuration-rum-v2"]
+=== `configuration-rum-v2`
+
+This section has moved. Please see <<configuration-rum>> for current configuration options.
+
+[role="exclude",id="configuration-rum-general"]
+=== Configuration options: general
+
+This section has moved. Please see <<configuration-rum>> for current configuration options.
+
+[role="exclude",id="use-v1-and-v2"]
+=== Tuning APM Server using both v1 and v2 intake API
+
+This section has moved. Please see <<tune-apm-server>> for how to tune APM Server.

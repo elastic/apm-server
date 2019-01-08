@@ -18,46 +18,10 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/metricsets/v2_metricset.json",
+    "$id": "docs/spec/metricsets/metricset.json",
     "type": "object",
     "description": "Data captured by an agent representing an event occurring in a monitored service",
     "allOf": [
-
-        {     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metricsets/common_metricset.json",
-    "type": "object",
-    "description": "Metric data captured by an APM agent",
-    "properties": {
-        "samples": {
-            "type": ["object"],
-            "description": "Sampled application metrics collected from the agent.",
-            "patternProperties": {
-                "^[^*\"]*$": {
-                        "$schema": "http://json-schema.org/draft-04/schema#",
-    "$id": "docs/spec/metricsets/sample.json",
-    "type": ["object", "null"],
-    "description": "A single metric sample.",
-    "properties": {
-        "value": {"type": "number"}
-    },
-    "required": ["value"]
-                }
-            },
-            "additionalProperties": false
-        },
-        "tags": {
-            "type": ["object", "null"],
-            "description": "A flat mapping of user-defined tags with string values.",
-            "patternProperties": {
-                "^[^*\"]*$": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                }
-            },
-            "additionalProperties": false
-        }
-    },
-    "required": ["samples"]  }, 
         {     "$id": "doc/spec/timestamp_epoch.json",
     "title": "Timestamp Epoch",
     "description": "Object with 'timestamp' property.",
@@ -68,6 +32,47 @@ const ModelSchema = `{
             "type": ["integer", "null"]
         }
     }},
+        {
+            "properties": {
+                "samples": {
+                    "type": [
+                        "object"
+                    ],
+                    "description": "Sampled application metrics collected from the agent.",
+                    "patternProperties": {
+                        "^[^*\"]*$": {
+                                "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "docs/spec/metricsets/sample.json",
+    "type": ["object", "null"],
+    "description": "A single metric sample.",
+    "properties": {
+        "value": {"type": "number"}
+    },
+    "required": ["value"]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "tags": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "description": "A flat mapping of user-defined tags with string values.",
+                    "patternProperties": {
+                        "^[^*\"]*$": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": ["samples"]
+        },
         {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}}
     ]
 }

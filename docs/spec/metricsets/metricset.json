@@ -1,0 +1,43 @@
+{
+    "$id": "docs/spec/metricsets/metricset.json",
+    "type": "object",
+    "description": "Data captured by an agent representing an event occurring in a monitored service",
+    "allOf": [
+        { "$ref": "../timestamp_epoch.json"},
+        {
+            "properties": {
+                "samples": {
+                    "type": [
+                        "object"
+                    ],
+                    "description": "Sampled application metrics collected from the agent.",
+                    "patternProperties": {
+                        "^[^*\"]*$": {
+                            "$ref": "sample.json"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "tags": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "description": "A flat mapping of user-defined tags with string values.",
+                    "patternProperties": {
+                        "^[^*\"]*$": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 1024
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": ["samples"]
+        },
+        {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}}
+    ]
+}

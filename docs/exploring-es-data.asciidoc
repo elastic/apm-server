@@ -4,9 +4,6 @@
 [partintro]
 --
 
-NOTE: Templates describing how the APM Server stores data in Elasticsearch have changed in v6.5.
-Read the <<upgrading-to-65,upgrading to 6.5 guide>> for more information.
-
 By default, Elastic APM data is stored in separated indices in the following formats:
 ------------------------------------------------------------
 apm-%{[version]}-sourcemap

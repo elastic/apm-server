@@ -28,7 +28,7 @@ import (
 
 func spanProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:            &V2TestProcessor{StreamProcessor: stream.StreamProcessor{MaxEventSize: lrSize}},
+		Proc:            &intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}},
 		FullPayloadPath: "../testdata/intake-v2/spans.ndjson",
 		Schema:          schema.ModelSchema,
 		SchemaPrefix:    "span",
@@ -55,7 +55,6 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 		tests.NewSet(
 			"listening",
 			"view spans",
-			"span.parent", // from v1
 			"transaction.sampled",
 		),
 		// not valid for the span context

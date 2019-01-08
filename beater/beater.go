@@ -49,7 +49,7 @@ type beater struct {
 // Creates beater
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	logger := logp.NewLogger("beater")
-	beaterConfig, err := NewConfig(b.Info.Version, ucfg)
+	beaterConfig, err := newConfig(b.Info.Version, ucfg)
 	if err != nil {
 		return nil, err
 	}

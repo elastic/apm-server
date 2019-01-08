@@ -11,10 +11,5 @@ The APM Server uses JSON Schema for validating requests. The specification for t
 
 [source,json]
 ----
-include::./spec/transactions/common_transaction.json[]
-----
-
-[source,json]
-----
-include::./spec/transactions/v2_transaction.json[]
+include::./spec/transactions/transaction.json[]
 ----

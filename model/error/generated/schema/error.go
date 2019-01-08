@@ -18,17 +18,54 @@
 package schema
 
 const ModelSchema = `{
-    "$id": "docs/spec/errors/v2_error.json",
+    "$id": "docs/spec/errors/error.json",
     "type": "object",
     "description": "An error or a logged error message captured by an agent occurring in a monitored service",
     "allOf": [
-
-        {     "$id": "docs/spec/errors/common_error.json",
-    "type": "object",
-    "description": "Data captured by an agent representing an event occurring in a monitored service",
-    "properties": {
-        "context": {
-                "$id": "doc/spec/context.json",
+        {     "$id": "doc/spec/timestamp_epoch.json",
+    "title": "Timestamp Epoch",
+    "description": "Object with 'timestamp' property.",
+    "type": ["object"],
+    "properties": {  
+        "timestamp": {
+            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+            "type": ["integer", "null"]
+        }
+    } },
+        {  
+            "properties": {
+                "id": {
+                    "type": ["string"],
+                    "description": "Hex encoded 128 random bits ID of the error.",
+                    "maxLength": 1024
+                },
+                "trace_id": {
+                    "description": "Hex encoded 128 random bits ID of the correlated trace. Must be present if transaction_id and parent_id are set.", 
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "transaction_id": {
+                    "type": ["string", "null"],
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction. Must be present if trace_id and parent_id are set.",
+                    "maxLength": 1024
+                },
+                "parent_id": {
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.", 
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "transaction": {
+                    "type": ["object", "null"],
+                    "description": "Data for correlating errors with transactions",
+                    "properties": {
+                        "sampled": {
+                            "type": ["boolean", "null"],
+                            "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+                        }
+                    }
+                },
+                "context": {
+                        "$id": "doc/spec/context.json",
     "title": "Context",
     "description": "Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user",
     "type": ["object", "null"],
@@ -209,252 +246,205 @@ const ModelSchema = `{
     }
         }
     }
-        },
-        "culprit": {
-            "description": "Function call which was the primary perpetrator of this event.",
-            "type": ["string", "null"]
-        },
-        "exception": {
-            "description": "Information about the originally thrown error.",
-            "type": ["object", "null"],
-            "properties": {
-                "code": {
-                    "type": ["string", "integer", "null"],
-                    "maxLength": 1024,
-                    "description": "The error code set when the error happened, e.g. database error code."
                 },
-                "message": {
-                   "description": "The original error message.",
-                   "type": ["string", "null"]
+                "culprit": {
+                    "description": "Function call which was the primary perpetrator of this event.",
+                    "type": ["string", "null"]
                 },
-                "module": {
-                    "description": "Describes the exception type's module namespace.",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "attributes": {
-                    "type": ["object", "null"]
-                },
-                "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                            "$id": "docs/spec/stacktrace_frame.json",
-    "title": "Stacktrace",
-    "type": "object",
-    "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
-    "properties": {
-        "abs_path": {
-            "description": "The absolute path of the file involved in the stack frame",
-            "type": ["string", "null"]
-        },
-        "colno": {
-            "description": "Column number",
-            "type": ["integer", "null"]
-        },
-        "context_line": {
-            "description": "The line of code part of the stack frame",
-            "type": ["string", "null"]
-        },
-        "filename": {
-            "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
-            "type": "string"
-        },
-        "function": {
-            "description": "The function involved in the stack frame",
-            "type": ["string", "null"]
-        },
-        "library_frame": {
-            "description": "A boolean, indicating if this frame is from a library or user code",
-            "type": ["boolean", "null"]
-        },
-        "lineno": {
-            "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "integer"
-        },
-        "module": {
-            "description": "The module to which frame belongs to",
-            "type": ["string", "null"]
-        },
-        "post_context": {
-            "description": "The lines of code after the stack frame",
-            "type": ["array", "null"],
-            "minItems": 0,
-            "items": {
-                "type": "string"
-            }
-        },
-        "pre_context": {
-            "description": "The lines of code before the stack frame",
-            "type": ["array", "null"],
-            "minItems": 0,
-            "items": {
-                "type": "string"
-            }
-        },
-        "vars": {
-            "description": "Local variables for this stack frame",
-            "type": ["object", "null"],
-            "properties": {}
-        }
-    },
-    "required": ["filename", "lineno"]
-                    },
-                    "minItems": 0
-                },
-                "type": {
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "handled": {
-                    "type": ["boolean", "null"],
-                    "description": "Indicator whether the error was caught somewhere in the code or not."
-                }
-            },
-            "anyOf": [
-                {"required": ["message"], "properties": {"message": {"type": "string"}}},
-                {"required": ["type"], "properties": {"type": {"type": "string"}}}
-            ]
-        },
-        "log": {
-            "type": ["object", "null"],
-            "description": "Additional information added when logging the error.",
-            "properties": {
-                "level": {
-                    "description": "The severity of the record.",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "logger_name": {
-                    "description": "The name of the logger instance used.",
-                    "type": ["string", "null"],
-                    "default": "default",
-                    "maxLength": 1024
-                },
-                "message": {
-                    "description": "The additionally logged error message.",
-                    "type": "string"
-                },
-                "param_message": {
-                    "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-
-                },
-                "stacktrace": {
-                    "type": ["array", "null"],
-                    "items": {
-                            "$id": "docs/spec/stacktrace_frame.json",
-    "title": "Stacktrace",
-    "type": "object",
-    "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
-    "properties": {
-        "abs_path": {
-            "description": "The absolute path of the file involved in the stack frame",
-            "type": ["string", "null"]
-        },
-        "colno": {
-            "description": "Column number",
-            "type": ["integer", "null"]
-        },
-        "context_line": {
-            "description": "The line of code part of the stack frame",
-            "type": ["string", "null"]
-        },
-        "filename": {
-            "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
-            "type": "string"
-        },
-        "function": {
-            "description": "The function involved in the stack frame",
-            "type": ["string", "null"]
-        },
-        "library_frame": {
-            "description": "A boolean, indicating if this frame is from a library or user code",
-            "type": ["boolean", "null"]
-        },
-        "lineno": {
-            "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "integer"
-        },
-        "module": {
-            "description": "The module to which frame belongs to",
-            "type": ["string", "null"]
-        },
-        "post_context": {
-            "description": "The lines of code after the stack frame",
-            "type": ["array", "null"],
-            "minItems": 0,
-            "items": {
-                "type": "string"
-            }
-        },
-        "pre_context": {
-            "description": "The lines of code before the stack frame",
-            "type": ["array", "null"],
-            "minItems": 0,
-            "items": {
-                "type": "string"
-            }
-        },
-        "vars": {
-            "description": "Local variables for this stack frame",
-            "type": ["object", "null"],
-            "properties": {}
-        }
-    },
-    "required": ["filename", "lineno"]
-                    },
-                    "minItems": 0
-                }
-            },
-            "required": ["message"]
-        }
-    },
-    "anyOf": [
-        { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
-        { "required": ["log"], "properties": {"log": { "type": "object" }} }
-    ]  }, 
-        {     "$id": "doc/spec/timestamp_epoch.json",
-    "title": "Timestamp Epoch",
-    "description": "Object with 'timestamp' property.",
-    "type": ["object"],
-    "properties": {  
-        "timestamp": {
-            "description": "Recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
-            "type": ["integer", "null"]
-        }
-    } },
-        {  
-            "properties": {
-                "id": {
-                    "type": ["string"],
-                    "description": "Hex encoded 128 random bits ID of the error.",
-                    "maxLength": 1024
-                },
-                "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace. Must be present if transaction_id and parent_id are set.", 
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "transaction_id": {
-                    "type": ["string", "null"],
-                    "description": "Hex encoded 64 random bits ID of the correlated transaction. Must be present if trace_id and parent_id are set.",
-                    "maxLength": 1024
-                },
-                "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.", 
-                    "type": ["string", "null"],
-                    "maxLength": 1024
-                },
-                "transaction": {
+                "exception": {
+                    "description": "Information about the originally thrown error.",
                     "type": ["object", "null"],
-                    "description": "Data for correlating errors with transactions",
                     "properties": {
-                        "sampled": {
+                        "code": {
+                            "type": ["string", "integer", "null"],
+                            "maxLength": 1024,
+                            "description": "The error code set when the error happened, e.g. database error code."
+                        },
+                        "message": {
+                            "description": "The original error message.",
+                            "type": ["string", "null"]
+                        },
+                        "module": {
+                            "description": "Describes the exception type's module namespace.",
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+                        },
+                        "attributes": {
+                            "type": ["object", "null"]
+                        },
+                        "stacktrace": {
+                            "type": ["array", "null"],
+                            "items": {
+                                    "$id": "docs/spec/stacktrace_frame.json",
+    "title": "Stacktrace",
+    "type": "object",
+    "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
+    "properties": {
+        "abs_path": {
+            "description": "The absolute path of the file involved in the stack frame",
+            "type": ["string", "null"]
+        },
+        "colno": {
+            "description": "Column number",
+            "type": ["integer", "null"]
+        },
+        "context_line": {
+            "description": "The line of code part of the stack frame",
+            "type": ["string", "null"]
+        },
+        "filename": {
+            "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
+            "type": "string"
+        },
+        "function": {
+            "description": "The function involved in the stack frame",
+            "type": ["string", "null"]
+        },
+        "library_frame": {
+            "description": "A boolean, indicating if this frame is from a library or user code",
+            "type": ["boolean", "null"]
+        },
+        "lineno": {
+            "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
+            "type": "integer"
+        },
+        "module": {
+            "description": "The module to which frame belongs to",
+            "type": ["string", "null"]
+        },
+        "post_context": {
+            "description": "The lines of code after the stack frame",
+            "type": ["array", "null"],
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
+        },
+        "pre_context": {
+            "description": "The lines of code before the stack frame",
+            "type": ["array", "null"],
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
+        },
+        "vars": {
+            "description": "Local variables for this stack frame",
+            "type": ["object", "null"],
+            "properties": {}
+        }
+    },
+    "required": ["filename", "lineno"]
+                            },
+                            "minItems": 0
+                        },
+                        "type": {
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+                        },
+                        "handled": {
                             "type": ["boolean", "null"],
-                            "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+                            "description": "Indicator whether the error was caught somewhere in the code or not."
                         }
-                    }
+                    },
+                    "anyOf": [
+                        {"required": ["message"], "properties": {"message": {"type": "string"}}},
+                        {"required": ["type"], "properties": {"type": {"type": "string"}}}
+                    ]
+                },
+                "log": {
+                    "type": ["object", "null"],
+                    "description": "Additional information added when logging the error.",
+                    "properties": {
+                        "level": {
+                            "description": "The severity of the record.",
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+                        },
+                        "logger_name": {
+                            "description": "The name of the logger instance used.",
+                            "type": ["string", "null"],
+                            "default": "default",
+                            "maxLength": 1024
+                        },
+                        "message": {
+                            "description": "The additionally logged error message.",
+                            "type": "string"
+                        },
+                        "param_message": {
+                            "description": "A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together. The string is not interpreted, so feel free to use whichever placeholders makes sense in the client languange.",
+                            "type": ["string", "null"],
+                            "maxLength": 1024
+
+                        },
+                        "stacktrace": {
+                            "type": ["array", "null"],
+                            "items": {
+                                    "$id": "docs/spec/stacktrace_frame.json",
+    "title": "Stacktrace",
+    "type": "object",
+    "description": "A stacktrace frame, contains various bits (most optional) describing the context of the frame",
+    "properties": {
+        "abs_path": {
+            "description": "The absolute path of the file involved in the stack frame",
+            "type": ["string", "null"]
+        },
+        "colno": {
+            "description": "Column number",
+            "type": ["integer", "null"]
+        },
+        "context_line": {
+            "description": "The line of code part of the stack frame",
+            "type": ["string", "null"]
+        },
+        "filename": {
+            "description": "The relative filename of the code involved in the stack frame, used e.g. to do error checksumming",
+            "type": "string"
+        },
+        "function": {
+            "description": "The function involved in the stack frame",
+            "type": ["string", "null"]
+        },
+        "library_frame": {
+            "description": "A boolean, indicating if this frame is from a library or user code",
+            "type": ["boolean", "null"]
+        },
+        "lineno": {
+            "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
+            "type": "integer"
+        },
+        "module": {
+            "description": "The module to which frame belongs to",
+            "type": ["string", "null"]
+        },
+        "post_context": {
+            "description": "The lines of code after the stack frame",
+            "type": ["array", "null"],
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
+        },
+        "pre_context": {
+            "description": "The lines of code before the stack frame",
+            "type": ["array", "null"],
+            "minItems": 0,
+            "items": {
+                "type": "string"
+            }
+        },
+        "vars": {
+            "description": "Local variables for this stack frame",
+            "type": ["object", "null"],
+            "properties": {}
+        }
+    },
+    "required": ["filename", "lineno"]
+                            },
+                            "minItems": 0
+                        }
+                    },
+                    "required": ["message"]
                 }
             },
             "allOf": [
@@ -465,6 +455,10 @@ const ModelSchema = `{
                   "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
                 { "if": {"required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}},
                   "then": { "required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}} }
+            ],
+            "anyOf": [
+                { "required": ["exception"], "properties": {"exception": { "type": "object" }} },
+                { "required": ["log"], "properties": {"log": { "type": "object" }} }
             ]
         }
     ]
