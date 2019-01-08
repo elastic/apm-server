@@ -112,7 +112,7 @@ Disabled by default.
 [[metrics.enabled]]
 [float]
 ==== `metrics`
-Experimental Metrics endpoint for collecting application metrics.
+Metrics endpoint for collecting application metrics.
 Enabled by default.
 
 [[register.ingest.pipeline.enabled]]
