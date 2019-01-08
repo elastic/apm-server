@@ -1,5 +1,5 @@
 Apm Server
-Copyright 2014-2018 Elasticsearch BV
+Copyright 2014-2019 Elasticsearch BV
 
 This product includes software developed by The Apache Software 
 Foundation (http://www.apache.org/).
@@ -211,7 +211,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 1b83f5e6334c46ae3bb459e73d548ae10f067ff4
+Revision: 3a517205a5370d88c3e1dea7305a00de51790d93
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/magefile/mage
-Revision: 5e51f9ad1ed0886c5d06a8c46a09703cfc4d9034
+Revision: aedfce64c122eef47009b7f80c9771044753215d
 License type (autodetected): Apache-2.0
 ./vendor/github.com/magefile/mage/LICENSE:
 --------------------------------------------------------------------
@@ -2071,8 +2071,8 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm
-Version: v1.1.1
-Revision: 69736506625fe7b07410587a5f993669f018b821
+Version: v1.1.2
+Revision: 9f89e36c6e534fd548810428cad1bd55cd57a5d2
 License type (autodetected): Apache-2.0
 ./vendor/go.elastic.co/apm/LICENSE:
 --------------------------------------------------------------------
@@ -2081,8 +2081,8 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: go.elastic.co/apm/internal/radix
-Version: v1.1.1
-Revision: 69736506625fe7b07410587a5f993669f018b821
+Version: v1.1.2
+Revision: 9f89e36c6e534fd548810428cad1bd55cd57a5d2
 License type (autodetected): MIT
 ./vendor/go.elastic.co/apm/internal/radix/LICENSE.goradix.txt:
 --------------------------------------------------------------------
