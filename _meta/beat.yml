@@ -144,7 +144,7 @@ apm-server:
     # Remote apm-servers' secret_token
     #secret_token:
 
-  # Experimental Metrics endpoint
+  # Metrics endpoint
   #metrics:
     # Set to false to disable the metrics endpoint
     #enabled: true
