@@ -43,8 +43,8 @@ func TestIncCounter(t *testing.T) {
 			assert.Equal(t, int64(i), res.counter.Get())
 		}
 	}
-	assert.Equal(t, int64(60), responseCounter.Get())
-	assert.Equal(t, int64(50), responseErrors.Get())
+	assert.Equal(t, int64(55), responseCounter.Get())
+	assert.Equal(t, int64(45), responseErrors.Get())
 }
 
 func TestOPTIONS(t *testing.T) {
