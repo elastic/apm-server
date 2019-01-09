@@ -18,9 +18,6 @@ apm-server:
   # Maximum duration in seconds before releasing resources when shutting down the server.
   #shutdown_timeout: 5s
 
-  # Maximum number of requests permitted to be sent to the server concurrently.
-  #concurrent_requests: 5
-
   # Maximum allowed size in bytes of a single event
   #max_event_size: 307200
 

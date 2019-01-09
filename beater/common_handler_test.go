@@ -36,20 +36,19 @@ func TestIncCounter(t *testing.T) {
 
 	for i := 1; i <= 5; i++ {
 		for _, res := range []serverResponse{acceptedResponse, okResponse, forbiddenResponse(errors.New("")), unauthorizedResponse,
-			requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse, tooManyConcurrentRequestsResponse,
+			requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse,
 			cannotValidateResponse(errors.New("")), cannotDecodeResponse(errors.New("")),
 			fullQueueResponse(errors.New("")), serverShuttingDownResponse(errors.New(""))} {
 			sendStatus(w, req, res)
 			assert.Equal(t, int64(i), res.counter.Get())
 		}
 	}
-	assert.Equal(t, int64(60), responseCounter.Get())
-	assert.Equal(t, int64(50), responseErrors.Get())
+	assert.Equal(t, int64(55), responseCounter.Get())
+	assert.Equal(t, int64(45), responseErrors.Get())
 }
 
 func TestOPTIONS(t *testing.T) {
 	config := defaultConfig("7.0.0")
-	config.ConcurrentRequests = 1
 	enabled := true
 	config.RumConfig.Enabled = &enabled
 
