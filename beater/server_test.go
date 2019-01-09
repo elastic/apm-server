@@ -20,7 +20,6 @@ package beater
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -98,13 +97,12 @@ func TestServerRoot(t *testing.T) {
 
 	checkResponse := func(hasOk bool) func(t *testing.T, res *http.Response) {
 		return func(t *testing.T, res *http.Response) {
-			var rsp map[string]interface{}
 			b, err := ioutil.ReadAll(res.Body)
 			require.NoError(t, err)
-			if err := json.Unmarshal(b, &rsp); err != nil {
-				t.Fatal(err, b)
-			}
-			assert.Equal(t, hasOk, rsp["ok"] != nil, string(b))
+			rsp := string(b)
+			assert.Contains(t, rsp, "build_date")
+			assert.Contains(t, rsp, "build_sha")
+			assert.Contains(t, rsp, "version")
 		}
 	}
 

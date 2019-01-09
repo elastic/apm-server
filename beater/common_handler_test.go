@@ -84,11 +84,11 @@ func TestOkBody(t *testing.T) {
 	sendStatus(w, req, serverResponse{
 		code:    http.StatusNonAuthoritativeInfo,
 		counter: requestCounter,
-		body:    "some body",
+		body:    map[string]interface{}{"some": "body"},
 	})
 	rsp := w.Result()
 	got := body(t, rsp)
-	assert.Equal(t, "some body", string(got))
+	assert.Equal(t, "some:\"body\"\n", string(got))
 	assert.Equal(t, "text/plain; charset=utf-8", rsp.Header.Get("Content-Type"))
 }
 
@@ -100,20 +100,31 @@ func TestOkBodyJson(t *testing.T) {
 	sendStatus(w, req, serverResponse{
 		code:    http.StatusNonAuthoritativeInfo,
 		counter: requestCounter,
-		body:    "some body",
+		body:    map[string]interface{}{"version": "1.0"},
 	})
 	rsp := w.Result()
 	got := body(t, rsp)
-	assert.Equal(t, "{\"ok\":\"some body\"}", string(got))
+	assert.Equal(t,
+		`{
+  "version": "1.0"
+}
+`, string(got))
 	assert.Equal(t, "application/json", rsp.Header.Get("Content-Type"))
 }
 
 func TestAccept(t *testing.T) {
+	expectedErrorJson :=
+		`{
+  "error": "data validation error: error message"
+}
+`
+	expectedErrorText := "error:\"data validation error: error message\"\n"
+
 	for idx, test := range []struct{ accept, expectedError, expectedContentType string }{
-		{"application/json", "{\"error\":\"data validation error: error message\"}", "application/json"},
-		{"*/*", "{\"error\":\"data validation error: error message\"}", "application/json"},
-		{"text/html", "data validation error: error message", "text/plain; charset=utf-8"},
-		{"", "data validation error: error message", "text/plain; charset=utf-8"},
+		{"application/json", expectedErrorJson, "application/json"},
+		{"*/*", expectedErrorJson, "application/json"},
+		{"text/html", expectedErrorText, "text/plain; charset=utf-8"},
+		{"", expectedErrorText, "text/plain; charset=utf-8"},
 	} {
 		req, err := http.NewRequest(http.MethodPost, "_", nil)
 		require.NoError(t, err)

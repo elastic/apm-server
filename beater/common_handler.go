@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"bytes"
 	"context"
 	"crypto/subtle"
 	"encoding/json"
@@ -44,7 +45,7 @@ type serverResponse struct {
 	err     error
 	code    int
 	counter *monitoring.Int
-	body    interface{}
+	body    map[string]interface{}
 }
 
 var (
@@ -269,30 +270,26 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 	responseCounter.Inc()
 	res.counter.Inc()
 
-	var msgKey string
-	var msg interface{}
+	body := res.body
 	if res.err == nil {
 		responseSuccesses.Inc()
 		if res.body == nil {
 			w.WriteHeader(res.code)
 			return
 		}
-		msgKey = "ok"
-		msg = res.body
 	} else {
 		responseErrors.Inc()
 
 		logger := requestLogger(r)
-		msgKey = "error"
-		msg = res.err.Error()
-		logger.Errorw("error handling request", "response_code", res.code, "error", msg)
+		body = map[string]interface{}{"error": res.err.Error()}
+		logger.Errorw("error handling request", "response_code", res.code, "error", body)
 	}
 
 	if acceptsJSON(r) {
-		sendJSON(w, map[string]interface{}{msgKey: msg}, res.code)
+		sendJSON(w, body, res.code)
 		return
 	}
-	sendPlain(w, fmt.Sprintf("%s", msg), res.code)
+	sendPlain(w, mapToString(body), res.code)
 }
 
 // requestLogger is a convenience function to retrieve the logger that was
@@ -310,20 +307,29 @@ func acceptsJSON(r *http.Request) bool {
 	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
 }
 
-func sendJSON(w http.ResponseWriter, msg interface{}, statusCode int) {
+func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	buf, err := json.Marshal(msg)
+	buf, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
 		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
 		return
 	}
 
 	w.Write(buf)
+	w.Write([]byte("\n"))
 }
 
-func sendPlain(w http.ResponseWriter, msg string, statusCode int) {
+func sendPlain(w http.ResponseWriter, body string, statusCode int) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
-	w.Write([]byte(msg))
+	w.Write([]byte(body))
+}
+
+func mapToString(m map[string]interface{}) string {
+	b := new(bytes.Buffer)
+	for k, v := range m {
+		fmt.Fprintf(b, "%s:\"%s\"\n", k, v)
+	}
+	return b.String()
 }
