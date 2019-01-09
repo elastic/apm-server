@@ -185,8 +185,9 @@ func TestServerTcpNoPort(t *testing.T) {
 
 	baseUrl, client := btr.client(false)
 	rsp, err := client.Get(baseUrl + rootURL)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rsp.StatusCode)
+	if assert.NoError(t, err) {
+		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
+	}
 }
 
 func tmpTestUnix(t *testing.T) string {
@@ -540,6 +541,7 @@ func waitForServer(url string, client *http.Client, c chan error) {
 		if err != nil {
 			return http.StatusInternalServerError
 		}
+		res.Body.Close()
 		return res.StatusCode
 	}
 
@@ -553,7 +555,8 @@ func waitForServer(url string, client *http.Client, c chan error) {
 
 func body(t *testing.T, response *http.Response) string {
 	body, err := ioutil.ReadAll(response.Body)
-	assert.NoError(t, err)
+	response.Body.Close()
+	require.NoError(t, err)
 	return string(body)
 }
 
