@@ -13,5 +13,6 @@
 - Remove formatting of `duration.us` to milliseconds in index pattern pull{1717}[1717].
 - Remove support for deprecated Intake v1 endpoints {pull}1731[1731].
 - Remove `concurrent_requests` setting and use number of CPUs instead {pull}1749[1749].
+- Remove `frontend` setting {pull}1751[1751].
 
 https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...master[View commits]
