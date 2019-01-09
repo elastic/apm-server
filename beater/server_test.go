@@ -54,7 +54,9 @@ func TestMain(m *testing.M) {
 	}
 
 	tmpCertPath = filepath.Join(current, "test_certs")
-	os.Mkdir(tmpCertPath, os.ModePerm)
+	if err := os.MkdirAll(tmpCertPath, os.ModePerm); err != nil {
+		panic(err)
+	}
 
 	code := m.Run()
 	if code == 0 {
@@ -185,8 +187,9 @@ func TestServerTcpNoPort(t *testing.T) {
 
 	baseUrl, client := btr.client(false)
 	rsp, err := client.Get(baseUrl + rootURL)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rsp.StatusCode)
+	if assert.NoError(t, err) {
+		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
+	}
 }
 
 func tmpTestUnix(t *testing.T) string {
@@ -213,7 +216,9 @@ func TestServerOkUnix(t *testing.T) {
 	baseUrl, client := btr.client(false)
 	rsp, err := client.Get(baseUrl + rootURL)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rsp.StatusCode)
+	if assert.NoError(t, err) {
+		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
+	}
 }
 
 func TestServerHealth(t *testing.T) {
@@ -222,10 +227,12 @@ func TestServerHealth(t *testing.T) {
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest("GET", baseUrl+rootURL, nil)
-	assert.NoError(t, err)
-	res, err := client.Do(req)
-	assert.Equal(t, http.StatusOK, res.StatusCode, body(t, res))
+	req, err := http.NewRequest(http.MethodGet, baseUrl+rootURL, nil)
+	require.NoError(t, err)
+	rsp, err := client.Do(req)
+	if assert.NoError(t, err) {
+		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
+	}
 }
 
 func TestServerRumSwitch(t *testing.T) {
@@ -237,11 +244,12 @@ func TestServerRumSwitch(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 
-	req, err := http.NewRequest("POST", baseUrl+rumURL, bytes.NewReader(testData))
-	assert.NoError(t, err)
-	res, err := client.Do(req)
-	assert.NotEqual(t, http.StatusForbidden, res.StatusCode, body(t, res))
-
+	req, err := http.NewRequest(http.MethodPost, baseUrl+rumURL, bytes.NewReader(testData))
+	require.NoError(t, err)
+	rsp, err := client.Do(req)
+	if assert.NoError(t, err) {
+		assert.NotEqual(t, http.StatusForbidden, rsp.StatusCode, body(t, rsp))
+	}
 }
 
 func TestServerCORS(t *testing.T) {
@@ -293,12 +301,15 @@ func TestServerCORS(t *testing.T) {
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 
-		req, err := http.NewRequest("POST", baseUrl+rumURL, bytes.NewReader(testData))
+		req, err := http.NewRequest(http.MethodPost, baseUrl+rumURL, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/x-ndjson")
 		assert.NoError(t, err)
-		res, err := client.Do(req)
-		assert.Equal(t, test.expectedStatus, res.StatusCode, fmt.Sprintf("Failed at idx %v; %s", idx, body(t, res)))
+		rsp, err := client.Do(req)
+		if assert.NoError(t, err) {
+			assert.Equal(t, test.expectedStatus, rsp.StatusCode, fmt.Sprintf("Failed at idx %v; %s", idx,
+				body(t, rsp)))
+		}
 
 		teardown()
 	}
@@ -311,9 +322,10 @@ func TestServerNoContentType(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 	req := makeTransactionRequest(t, baseUrl)
-	res, err := client.Do(req)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode, body(t, res))
+	rsp, err := client.Do(req)
+	if assert.NoError(t, err) {
+		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode, body(t, rsp))
+	}
 }
 
 func TestServerSourcemapElasticsearch(t *testing.T) {
@@ -443,6 +455,7 @@ func TestServerSSL(t *testing.T) {
 		res, err := client.Do(req)
 
 		if len(test.expectedMsgs) > 0 {
+			require.Error(t, err)
 			var containsErrMsg bool
 			for _, msg := range test.expectedMsgs {
 				containsErrMsg = containsErrMsg || strings.Contains(err.Error(), msg)
@@ -469,14 +482,13 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 			"key_passphrase": "bar",
 		},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, _, err = setupServer(t, cfg, nil)
 	if assert.Error(t, err) {
 		b := strings.Contains(err.Error(), "no PEM blocks") ||
 			strings.Contains(err.Error(), "failed to parse private key")
 		assert.True(t, b, err.Error())
 	}
-
 }
 
 func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
@@ -484,14 +496,13 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig) 
 		t.Skip("skipping server test")
 	}
 
-	baseConfig, err := common.NewConfigFrom(map[string]interface{}{
+	baseConfig := common.MustNewConfigFrom(map[string]interface{}{
 		"host": "localhost:0",
 	})
-	assert.NoError(t, err)
 	if cfg != nil {
-		err = cfg.Unpack(baseConfig)
+		err := cfg.Unpack(baseConfig)
+		require.NoError(t, err)
 	}
-	assert.NoError(t, err)
 	btr, stop, err := setupBeater(t, DummyPipeline(), baseConfig, beatConfig)
 	if err == nil {
 		assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
@@ -519,12 +530,12 @@ func withSSL(t *testing.T, domain, passphrase string) *common.Config {
 			"key_passphrase": passphrase,
 		},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return cfg
 }
 
 func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest("POST", baseUrl+backendURL, bytes.NewReader(testData))
+	req, err := http.NewRequest(http.MethodPost, baseUrl+backendURL, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
@@ -540,6 +551,7 @@ func waitForServer(url string, client *http.Client, c chan error) {
 		if err != nil {
 			return http.StatusInternalServerError
 		}
+		res.Body.Close()
 		return res.StatusCode
 	}
 
@@ -553,7 +565,8 @@ func waitForServer(url string, client *http.Client, c chan error) {
 
 func body(t *testing.T, response *http.Response) string {
 	body, err := ioutil.ReadAll(response.Body)
-	assert.NoError(t, err)
+	response.Body.Close()
+	require.NoError(t, err)
 	return string(body)
 }
 

@@ -20,17 +20,17 @@ package beater
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIncCounter(t *testing.T) {
-	req, err := http.NewRequest("POST", "_", nil)
-	assert.Nil(t, err)
+	req, err := http.NewRequest(http.MethodPost, "_", nil)
+	require.NoError(t, err)
 	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
 
@@ -63,7 +63,7 @@ func TestOPTIONS(t *testing.T) {
 	// use this to block the single allowed concurrent requests
 	go func() {
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest("POST", "/", nil)
+		r := httptest.NewRequest(http.MethodPost, "/", nil)
 		h.ServeHTTP(w, r)
 	}()
 
@@ -78,7 +78,7 @@ func TestOPTIONS(t *testing.T) {
 }
 
 func TestOkBody(t *testing.T) {
-	req, err := http.NewRequest("POST", "_", nil)
+	req, err := http.NewRequest(http.MethodPost, "_", nil)
 	assert.Nil(t, err)
 	w := httptest.NewRecorder()
 	sendStatus(w, req, serverResponse{
@@ -86,14 +86,14 @@ func TestOkBody(t *testing.T) {
 		counter: requestCounter,
 		body:    "some body",
 	})
-	resp := w.Result()
-	got, _ := ioutil.ReadAll(resp.Body)
+	rsp := w.Result()
+	got := body(t, rsp)
 	assert.Equal(t, "some body", string(got))
-	assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
+	assert.Equal(t, "text/plain; charset=utf-8", rsp.Header.Get("Content-Type"))
 }
 
 func TestOkBodyJson(t *testing.T) {
-	req, err := http.NewRequest("POST", "_", nil)
+	req, err := http.NewRequest(http.MethodPost, "_", nil)
 	req.Header.Set("Accept", "application/json")
 	assert.Nil(t, err)
 	w := httptest.NewRecorder()
@@ -102,10 +102,10 @@ func TestOkBodyJson(t *testing.T) {
 		counter: requestCounter,
 		body:    "some body",
 	})
-	resp := w.Result()
-	got, _ := ioutil.ReadAll(resp.Body)
+	rsp := w.Result()
+	got := body(t, rsp)
 	assert.Equal(t, "{\"ok\":\"some body\"}", string(got))
-	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	assert.Equal(t, "application/json", rsp.Header.Get("Content-Type"))
 }
 
 func TestAccept(t *testing.T) {
@@ -115,8 +115,8 @@ func TestAccept(t *testing.T) {
 		{"text/html", "data validation error: error message", "text/plain; charset=utf-8"},
 		{"", "data validation error: error message", "text/plain; charset=utf-8"},
 	} {
-		req, err := http.NewRequest("POST", "_", nil)
-		assert.Nil(t, err)
+		req, err := http.NewRequest(http.MethodPost, "_", nil)
+		require.NoError(t, err)
 		if test.accept != "" {
 			req.Header.Set("Accept", test.accept)
 		} else {
@@ -124,24 +124,24 @@ func TestAccept(t *testing.T) {
 		}
 		w := httptest.NewRecorder()
 		sendStatus(w, req, cannotValidateResponse(errors.New("error message")))
-		resp := w.Result()
-		body, _ := ioutil.ReadAll(resp.Body)
+		rsp := w.Result()
+		got := body(t, rsp)
 		assert.Equal(t, 400, w.Code)
-		assert.Equal(t, test.expectedError, string(body), fmt.Sprintf("at index %d", idx))
-		assert.Equal(t, test.expectedContentType, resp.Header.Get("Content-Type"), fmt.Sprintf("at index %d", idx))
+		assert.Equal(t, test.expectedError, got, fmt.Sprintf("at index %d", idx))
+		assert.Equal(t, test.expectedContentType, rsp.Header.Get("Content-Type"), fmt.Sprintf("at index %d", idx))
 	}
 }
 
 func TestIsAuthorized(t *testing.T) {
 	reqAuth := func(auth string) *http.Request {
-		req, err := http.NewRequest("POST", "_", nil)
+		req, err := http.NewRequest(http.MethodPost, "_", nil)
 		assert.Nil(t, err)
 		req.Header.Add("Authorization", auth)
 		return req
 	}
 
-	reqNoAuth, err := http.NewRequest("POST", "_", nil)
-	assert.Nil(t, err)
+	reqNoAuth, err := http.NewRequest(http.MethodPost, "_", nil)
+	require.NoError(t, err)
 
 	// Successes
 	assert.True(t, isAuthorized(reqNoAuth, ""))
