@@ -54,7 +54,9 @@ func TestMain(m *testing.M) {
 	}
 
 	tmpCertPath = filepath.Join(current, "test_certs")
-	os.Mkdir(tmpCertPath, os.ModePerm)
+	if err := os.MkdirAll(tmpCertPath, os.ModePerm); err != nil {
+		panic(err)
+	}
 
 	code := m.Run()
 	if code == 0 {
