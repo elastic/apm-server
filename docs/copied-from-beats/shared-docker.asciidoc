@@ -85,7 +85,6 @@ endif::[]
 the `-E output.elasticsearch.hosts` line with the Cloud ID and elastic password
 using this syntax:
 
-
 [source,shell]
 --------------------------------------------
 -E cloud.id=<Cloud ID from Elasticsearch Service> \
@@ -105,23 +104,10 @@ configuration included.
 
 Download this example configuration file as a starting point:
 
-ifndef::apm-server[]
-
 ["source","sh",subs="attributes,callouts"]
 ------------------------------------------------
-curl -L -O https://raw.githubusercontent.com/elastic/beats/deploy/docker/{beatname_lc}.docker.yml
+curl -L -O {dockerconfig}
 ------------------------------------------------
-
-endif::apm-server[]
-
-ifdef::apm-server[]
-
-["source","sh",subs="attributes,callouts"]
-------------------------------------------------
-curl -L -O https://raw.githubusercontent.com/elastic/apm-server/{branch}/apm-server.docker.yml
-------------------------------------------------
-
-endif::apm-server[]
 
 ===== Volume-mounted configuration
 
