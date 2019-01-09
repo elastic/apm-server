@@ -48,7 +48,6 @@ type Config struct {
 	AugmentEnabled      bool                   `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
 	RumConfig           *rumConfig             `config:"rum"`
-	FrontendConfig      *rumConfig             `config:"frontend"`
 	Register            *registerConfig        `config:"register"`
 }
 
@@ -121,7 +120,6 @@ func newConfig(version string, ucfg *common.Config) (*Config, error) {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
-	c.setRumConfig()
 	if c.RumConfig.isEnabled() {
 		if _, err := regexp.Compile(c.RumConfig.LibraryPattern); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
@@ -165,13 +163,6 @@ func (c *pipelineConfig) isEnabled() bool {
 
 func (c *pipelineConfig) shouldOverwrite() bool {
 	return c != nil && (c.Overwrite != nil && *c.Overwrite)
-}
-
-func (c *Config) setRumConfig() {
-	if c.RumConfig != nil && c.RumConfig.Enabled != nil {
-		return
-	}
-	c.RumConfig = c.FrontendConfig
 }
 
 func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
@@ -244,8 +235,22 @@ func defaultConfig(beatVersion string) *Config {
 		Metrics: &metricsConfig{
 			Enabled: &metricsEnabled,
 		},
-		FrontendConfig: defaultRum(beatVersion),
-		RumConfig:      defaultRum(beatVersion),
+		RumConfig: &rumConfig{
+			EventRate: &eventRate{
+				Limit:   300,
+				LruSize: 1000,
+			},
+			AllowOrigins: []string{"*"},
+			SourceMapping: &SourceMapping{
+				Cache: &Cache{
+					Expiration: 5 * time.Minute,
+				},
+				IndexPattern: "apm-*-sourcemap*",
+			},
+			LibraryPattern:      "node_modules|bower_components|~",
+			ExcludeFromGrouping: "^/webpack",
+			beatVersion:         beatVersion,
+		},
 		Register: &registerConfig{
 			Ingest: &ingestConfig{
 				Pipeline: &pipelineConfig{
