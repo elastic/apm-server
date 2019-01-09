@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	publishertesting "github.com/elastic/beats/libbeat/publisher/testing"
 )
 
 // transactions from testdata/intake-v2/transactions.ndjson used to trigger tracing
@@ -91,7 +90,7 @@ func TestServerTracingExternal(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"instrumentation": m{
 		"enabled": true,
 		"hosts":   []string{"http://" + remote.Listener.Addr().String()}}})
-	apm, teardown, err := setupServer(t, ucfg, nil)
+	apm, teardown, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -165,16 +164,12 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 	defer os.Unsetenv("ELASTIC_APM_API_REQUEST_TIME")
 
 	events := make(chan beat.Event, 10)
-	pubClient := publishertesting.NewChanClientWith(events)
-	pub := publishertesting.PublisherWithClient(pubClient)
 
-	cfg, err := common.NewConfigFrom(m{
+	cfg := common.MustNewConfigFrom(m{
 		"instrumentation": m{"enabled": enabled},
 		"host":            "localhost:0",
 	})
-	assert.NoError(t, err)
-	beater, teardown, err := setupBeater(t, pub, cfg, nil)
-	require.NoError(t, err)
+	beater, teardown, err := setupServer(t, cfg, nil, events)
 
 	// onboarding event
 	e := <-events

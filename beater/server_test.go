@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs/transport/transptest"
+	publishertesting "github.com/elastic/beats/libbeat/publisher/testing"
 )
 
 var tmpCertPath string
@@ -66,7 +67,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerOk(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil)
+	apm, teardown, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -80,7 +81,7 @@ func TestServerOk(t *testing.T) {
 }
 
 func TestServerRoot(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil)
+	apm, teardown, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -137,7 +138,7 @@ func TestServerRootWithToken(t *testing.T) {
 	badToken := "Verysecret"
 	ucfg, err := common.NewConfigFrom(map[string]interface{}{"secret_token": token})
 	assert.NoError(t, err)
-	apm, teardown, err := setupServer(t, ucfg, nil)
+	apm, teardown, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 	baseUrl, client := apm.client(false)
@@ -181,7 +182,7 @@ func TestServerTcpNoPort(t *testing.T) {
 		"host": "localhost",
 	})
 	assert.NoError(t, err)
-	btr, teardown, err := setupServer(t, ucfg, nil)
+	btr, teardown, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -209,7 +210,7 @@ func TestServerOkUnix(t *testing.T) {
 	addr := tmpTestUnix(t)
 	ucfg, err := common.NewConfigFrom(m{"host": "unix:" + addr})
 	assert.NoError(t, err)
-	btr, stop, err := setupServer(t, ucfg, nil)
+	btr, stop, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer stop()
 
@@ -222,7 +223,7 @@ func TestServerOkUnix(t *testing.T) {
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil)
+	apm, teardown, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -238,7 +239,7 @@ func TestServerHealth(t *testing.T) {
 func TestServerRumSwitch(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": []string{"*"}}})
 	assert.NoError(t, err)
-	apm, teardown, err := setupServer(t, ucfg, nil)
+	apm, teardown, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -297,7 +298,7 @@ func TestServerCORS(t *testing.T) {
 		ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
 		assert.NoError(t, err)
 		var apm *beater
-		apm, teardown, err = setupServer(t, ucfg, nil)
+		apm, teardown, err = setupServer(t, ucfg, nil, nil)
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 
@@ -316,7 +317,7 @@ func TestServerCORS(t *testing.T) {
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, teardown, err := setupServer(t, nil, nil)
+	apm, teardown, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
 
@@ -391,7 +392,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			continue
 		}
 		beatConfig.Output.Unpack(ocfg)
-		apm, teardown, err := setupServer(t, ucfg, &beatConfig)
+		apm, teardown, err := setupServer(t, ucfg, &beatConfig, nil)
 		if assert.NoError(t, err) {
 			assert.Equal(t, testCase.expected, apm.smapElasticsearchHosts())
 		}
@@ -444,7 +445,7 @@ func TestServerSSL(t *testing.T) {
 	for idx, test := range tests {
 		var apm *beater
 		var err error
-		apm, teardown, err = setupServer(t, withSSL(t, test.domain, test.passphrase), nil)
+		apm, teardown, err = setupServer(t, withSSL(t, test.domain, test.passphrase), nil, nil)
 		require.NoError(t, err)
 		baseUrl, client := apm.client(test.insecure)
 		if test.overrideProtocol {
@@ -483,7 +484,7 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	_, _, err = setupServer(t, cfg, nil)
+	_, _, err = setupServer(t, cfg, nil, nil)
 	if assert.Error(t, err) {
 		b := strings.Contains(err.Error(), "no PEM blocks") ||
 			strings.Contains(err.Error(), "failed to parse private key")
@@ -491,7 +492,7 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 	}
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
+func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beater, func(), error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -503,7 +504,18 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig) 
 		err := cfg.Unpack(baseConfig)
 		require.NoError(t, err)
 	}
-	btr, stop, err := setupBeater(t, DummyPipeline(), baseConfig, beatConfig)
+
+	var pub beat.Pipeline
+	if events != nil {
+		// capture events
+		pubClient := publishertesting.NewChanClientWith(events)
+		pub = publishertesting.PublisherWithClient(pubClient)
+	} else {
+		// don't capture events
+		pub = DummyPipeline()
+	}
+
+	btr, stop, err := setupBeater(t, pub, baseConfig, beatConfig)
 	if err == nil {
 		assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
 	}
