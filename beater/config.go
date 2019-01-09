@@ -42,7 +42,6 @@ type Config struct {
 	ShutdownTimeout     time.Duration          `config:"shutdown_timeout"`
 	SecretToken         string                 `config:"secret_token"`
 	SSL                 *SSLConfig             `config:"ssl"`
-	ConcurrentRequests  int                    `config:"concurrent_requests" validate:"min=1"`
 	MaxConnections      int                    `config:"max_connections"`
 	Expvar              *ExpvarConfig          `config:"expvar"`
 	Metrics             *metricsConfig         `config:"metrics"`
@@ -229,16 +228,15 @@ func defaultConfig(beatVersion string) *Config {
 	metricsEnabled := true
 	pipelineEnabled, pipelineOverwrite := false, true
 	return &Config{
-		Host:               net.JoinHostPort("localhost", DefaultPort),
-		MaxHeaderSize:      1 * 1024 * 1024, // 1mb
-		ConcurrentRequests: 5,
-		MaxConnections:     0, // unlimited
-		ReadTimeout:        30 * time.Second,
-		WriteTimeout:       30 * time.Second,
-		MaxEventSize:       300 * 1024, // 300 kb
-		ShutdownTimeout:    5 * time.Second,
-		SecretToken:        "",
-		AugmentEnabled:     true,
+		Host:            net.JoinHostPort("localhost", DefaultPort),
+		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
+		MaxConnections:  0,               // unlimited
+		ReadTimeout:     30 * time.Second,
+		WriteTimeout:    30 * time.Second,
+		MaxEventSize:    300 * 1024, // 300 kb
+		ShutdownTimeout: 5 * time.Second,
+		SecretToken:     "",
+		AugmentEnabled:  true,
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
 			Url:     "/debug/vars",

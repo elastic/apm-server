@@ -131,7 +131,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	defer tracer.Close()
 
-	pub, err := publish.NewPublisher(b.Publisher, bt.config.ConcurrentRequests, bt.config.ShutdownTimeout, tracer)
+	pub, err := publish.NewPublisher(b.Publisher, bt.config.ShutdownTimeout, tracer)
 	if err != nil {
 		return err
 	}

@@ -105,10 +105,8 @@ You have a few options to solve this problem:
 === HTTP 503: Request timed out waiting to be processed
 
 This happens when APM Server exceeds the maximum number of requests that it can process concurrently.
-This limit is determined by the <<concurrent_requests,`apm-server.concurrent_requests`>> configuration parameter.
 
-To alleviate this problem,
-you can try to:
+To alleviate this problem, you can try to:
 
 * <<reduce-sample-rate>>
 * <<reduce-stacktrace>>

@@ -36,7 +36,7 @@ func TestIncCounter(t *testing.T) {
 
 	for i := 1; i <= 5; i++ {
 		for _, res := range []serverResponse{acceptedResponse, okResponse, forbiddenResponse(errors.New("")), unauthorizedResponse,
-			requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse, tooManyConcurrentRequestsResponse,
+			requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse,
 			cannotValidateResponse(errors.New("")), cannotDecodeResponse(errors.New("")),
 			fullQueueResponse(errors.New("")), serverShuttingDownResponse(errors.New(""))} {
 			sendStatus(w, req, res)
@@ -49,7 +49,6 @@ func TestIncCounter(t *testing.T) {
 
 func TestOPTIONS(t *testing.T) {
 	config := defaultConfig("7.0.0")
-	config.ConcurrentRequests = 1
 	enabled := true
 	config.RumConfig.Enabled = &enabled
 

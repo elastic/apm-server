@@ -71,7 +71,6 @@ func TestBeatConfig(t *testing.T) {
 					"key":         "1234key",
 					"certificate": "1234cert",
 				},
-				"concurrent_requests": 15,
 				"expvar": map[string]interface{}{
 					"enabled": true,
 					"url":     "/debug/vars",
@@ -152,7 +151,6 @@ func TestBeatConfig(t *testing.T) {
 				Metrics: &metricsConfig{
 					Enabled: &falsy,
 				},
-				ConcurrentRequests: 15,
 				Register: &registerConfig{
 					Ingest: &ingestConfig{
 						Pipeline: &pipelineConfig{
@@ -255,7 +253,6 @@ func TestBeatConfig(t *testing.T) {
 				Metrics: &metricsConfig{
 					Enabled: &truthy,
 				},
-				ConcurrentRequests: 5,
 				Register: &registerConfig{
 					Ingest: &ingestConfig{
 						Pipeline: &pipelineConfig{

@@ -122,11 +122,6 @@ var (
 		code:    http.StatusMethodNotAllowed,
 		counter: methodNotAllowedCounter,
 	}
-	tooManyConcurrentRequestsResponse = serverResponse{
-		err:     errors.New("timeout waiting to be processed"),
-		code:    http.StatusServiceUnavailable,
-		counter: counter("response.errors.concurrency"),
-	}
 	fullQueueCounter  = counter("response.errors.queue")
 	fullQueueResponse = func(err error) serverResponse {
 		return serverResponse{

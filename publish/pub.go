@@ -54,19 +54,14 @@ type PendingReq struct {
 }
 
 var (
-	ErrFull              = errors.New("queue is full")
-	ErrInvalidBufferSize = errors.New("request buffer must be > 0")
-	ErrChannelClosed     = errors.New("can't send batch, publisher is being stopped")
+	ErrFull          = errors.New("queue is full")
+	ErrChannelClosed = errors.New("can't send batch, publisher is being stopped")
 )
 
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, tracer *apm.Tracer) (*publisher, error) {
-	if N <= 0 {
-		return nil, ErrInvalidBufferSize
-	}
-
+func NewPublisher(pipeline beat.Pipeline, shutdownTimeout time.Duration, tracer *apm.Tracer) (*publisher, error) {
 	client, err := pipeline.ConnectWith(beat.ClientConfig{
 		PublishMode: beat.GuaranteedSend,
 
@@ -82,9 +77,9 @@ func NewPublisher(pipeline beat.Pipeline, N int, shutdownTimeout time.Duration, 
 		tracer: tracer,
 		client: client,
 
-		// Set channel size to N - 1. One request will be actively processed by the
+		// One request will be actively processed by the
 		// worker, while the other concurrent requests will be buffered in the queue.
-		pendingRequests: make(chan PendingReq, N-1),
+		pendingRequests: make(chan PendingReq, runtime.GOMAXPROCS(0)),
 	}
 
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {

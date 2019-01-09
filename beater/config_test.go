@@ -49,7 +49,6 @@ func TestConfig(t *testing.T) {
 					"key": "1234key",
 					"certificate": "1234cert",
 				},
-        "concurrent_requests": 15,
 				"rum": {
 					"enabled": true,
 					"event_rate": {
@@ -128,7 +127,6 @@ func TestConfig(t *testing.T) {
 					LibraryPattern:      "pattern",
 					ExcludeFromGrouping: "group_pattern",
 				},
-				ConcurrentRequests: 15,
 				Register: &registerConfig{
 					Ingest: &ingestConfig{
 						Pipeline: &pipelineConfig{
@@ -148,7 +146,6 @@ func TestConfig(t *testing.T) {
         "write_timeout": 2s,
         "shutdown_timeout": 5s,
 				"secret_token": "1234random",
-        "concurrent_requests": 20,
 				"ssl": {},
 				"frontend": {
 					"source_mapping": {
@@ -161,14 +158,13 @@ func TestConfig(t *testing.T) {
 				"register": {},
       }`),
 			expectedConfig: Config{
-				Host:               "localhost:8200",
-				MaxHeaderSize:      8,
-				ReadTimeout:        3000000000,
-				WriteTimeout:       2000000000,
-				ShutdownTimeout:    5000000000,
-				SecretToken:        "1234random",
-				SSL:                &SSLConfig{Enabled: nil, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
-				ConcurrentRequests: 20,
+				Host:            "localhost:8200",
+				MaxHeaderSize:   8,
+				ReadTimeout:     3000000000,
+				WriteTimeout:    2000000000,
+				ShutdownTimeout: 5000000000,
+				SecretToken:     "1234random",
+				SSL:             &SSLConfig{Enabled: nil, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
 				FrontendConfig: &rumConfig{
 					Enabled:      nil,
 					AllowOrigins: nil,
@@ -192,16 +188,15 @@ func TestConfig(t *testing.T) {
 		{
 			config: []byte(`{ }`),
 			expectedConfig: Config{
-				Host:               "",
-				MaxHeaderSize:      0,
-				ReadTimeout:        0,
-				WriteTimeout:       0,
-				ShutdownTimeout:    0,
-				SecretToken:        "",
-				SSL:                nil,
-				ConcurrentRequests: 0,
-				FrontendConfig:     nil,
-				RumConfig:          nil,
+				Host:            "",
+				MaxHeaderSize:   0,
+				ReadTimeout:     0,
+				WriteTimeout:    0,
+				ShutdownTimeout: 0,
+				SecretToken:     "",
+				SSL:             nil,
+				FrontendConfig:  nil,
+				RumConfig:       nil,
 			},
 		},
 	}
