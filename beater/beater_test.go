@@ -75,7 +75,7 @@ func TestBeatConfig(t *testing.T) {
 					"enabled": true,
 					"url":     "/debug/vars",
 				},
-				"frontend": map[string]interface{}{
+				"rum": map[string]interface{}{
 					"enabled": true,
 					"event_rate": map[string]interface{}{
 						"limit":    7200,
@@ -118,21 +118,6 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
-				FrontendConfig: &rumConfig{
-					Enabled: &truthy,
-					EventRate: &eventRate{
-						Limit:   7200,
-						LruSize: 2000,
-					},
-					AllowOrigins: []string{"example*"},
-					SourceMapping: &SourceMapping{
-						Cache:        &Cache{Expiration: 8 * time.Minute},
-						IndexPattern: "apm-test*",
-					},
-					LibraryPattern:      "^custom",
-					ExcludeFromGrouping: "^grouping",
-					beatVersion:         "6.2.0",
-				},
 				RumConfig: &rumConfig{
 					Enabled: &truthy,
 					EventRate: &eventRate{
@@ -174,17 +159,6 @@ func TestBeatConfig(t *testing.T) {
 					"enabled": true,
 					"url":     "/debug/vars",
 				},
-				"frontend": map[string]interface{}{
-					"enabled": true,
-					"event_rate": map[string]interface{}{
-						"lru_size": 200,
-					},
-					"source_mapping": map[string]interface{}{
-						"cache": map[string]interface{}{
-							"expiration": 4,
-						},
-					},
-				},
 				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
@@ -215,23 +189,6 @@ func TestBeatConfig(t *testing.T) {
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
-				},
-				FrontendConfig: &rumConfig{
-					Enabled: &truthy,
-					EventRate: &eventRate{
-						Limit:   300,
-						LruSize: 200,
-					},
-					SourceMapping: &SourceMapping{
-						Cache: &Cache{
-							Expiration: 4 * time.Second,
-						},
-						IndexPattern: "apm-*-sourcemap*",
-					},
-					AllowOrigins:        []string{"*"},
-					LibraryPattern:      "node_modules|bower_components|~",
-					ExcludeFromGrouping: "^/webpack",
-					beatVersion:         "6.2.0",
 				},
 				RumConfig: &rumConfig{
 					Enabled: &truthy,

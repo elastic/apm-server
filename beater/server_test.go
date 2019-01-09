@@ -330,7 +330,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			// source_mapping.elasticsearch.hosts set
 			expected: []string{"localhost:5200"},
 			config: m{
-				"frontend": m{
+				"rum": m{
 					"enabled":                            "true",
 					"source_mapping.elasticsearch.hosts": []string{"localhost:5200"},
 				},
@@ -340,7 +340,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = true
 			expected: []string{"localhost:5201"},
 			config: m{
-				"frontend": m{
+				"rum": m{
 					"enabled": "true",
 				},
 			},
@@ -355,7 +355,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = false
 			expected: nil,
 			config: m{
-				"frontend": m{
+				"rum": m{
 					"enabled": "true",
 				},
 			},

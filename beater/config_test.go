@@ -65,22 +65,6 @@ func TestConfig(t *testing.T) {
 					"library_pattern": "pattern-rum",
 					"exclude_from_grouping": "group_pattern-rum",
 				},
-				"frontend": {
-					"enabled": true,
-					"event_rate": {
-						"limit":      1000,
-						"lru_size": 500,
-					},
-					"allow_origins": ["example*"],
-					"source_mapping": {
-						"cache": {
-							"expiration": 10m,
-						},
-						"index_pattern": "apm-test*"
-					},
-					"library_pattern": "pattern",
-					"exclude_from_grouping": "group_pattern",
-				},
 				"register": {
 					"ingest": { 
 						"pipeline": {
@@ -113,20 +97,6 @@ func TestConfig(t *testing.T) {
 					LibraryPattern:      "pattern-rum",
 					ExcludeFromGrouping: "group_pattern-rum",
 				},
-				FrontendConfig: &rumConfig{
-					Enabled: &truthy,
-					EventRate: &eventRate{
-						Limit:   1000,
-						LruSize: 500,
-					},
-					AllowOrigins: []string{"example*"},
-					SourceMapping: &SourceMapping{
-						Cache:        &Cache{Expiration: 10 * time.Minute},
-						IndexPattern: "apm-test*",
-					},
-					LibraryPattern:      "pattern",
-					ExcludeFromGrouping: "group_pattern",
-				},
 				Register: &registerConfig{
 					Ingest: &ingestConfig{
 						Pipeline: &pipelineConfig{
@@ -145,17 +115,12 @@ func TestConfig(t *testing.T) {
         "read_timeout": 3s,
         "write_timeout": 2s,
         "shutdown_timeout": 5s,
-				"secret_token": "1234random",
-				"ssl": {},
-				"frontend": {
-					"source_mapping": {
-					}
-				},
-				"rum": {
-					"source_mapping": {
-					}
-				},
-				"register": {},
+		"secret_token": "1234random",
+		"ssl": {},
+		"rum": {
+			"source_mapping": {}
+		},
+		"register": {},
       }`),
 			expectedConfig: Config{
 				Host:            "localhost:8200",
@@ -165,13 +130,6 @@ func TestConfig(t *testing.T) {
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
 				SSL:             &SSLConfig{Enabled: nil, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
-				FrontendConfig: &rumConfig{
-					Enabled:      nil,
-					AllowOrigins: nil,
-					SourceMapping: &SourceMapping{
-						IndexPattern: "",
-					},
-				},
 				RumConfig: &rumConfig{
 					Enabled:      nil,
 					EventRate:    nil,
@@ -195,7 +153,6 @@ func TestConfig(t *testing.T) {
 				ShutdownTimeout: 0,
 				SecretToken:     "",
 				SSL:             nil,
-				FrontendConfig:  nil,
 				RumConfig:       nil,
 			},
 		},
@@ -260,13 +217,9 @@ func TestIsRumEnabled(t *testing.T) {
 		c       *Config
 		enabled bool
 	}{
-		{c: &Config{FrontendConfig: &rumConfig{Enabled: new(bool)}}, enabled: false},
-		{c: &Config{FrontendConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
 		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}}, enabled: false},
 		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
-		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}, FrontendConfig: &rumConfig{Enabled: &truthy}}, enabled: false},
 	} {
-		td.c.setRumConfig()
 		assert.Equal(t, td.enabled, td.c.RumConfig.isEnabled())
 
 	}
@@ -274,35 +227,7 @@ func TestIsRumEnabled(t *testing.T) {
 
 func TestDefaultRum(t *testing.T) {
 	c := defaultConfig("7.0.0")
-	assert.Equal(t, c.FrontendConfig, defaultRum("7.0.0"))
 	assert.Equal(t, c.RumConfig, defaultRum("7.0.0"))
-}
-
-func TestSetRum(t *testing.T) {
-	testRumConf := &rumConfig{
-		Enabled:      new(bool),
-		AllowOrigins: []string{"test*"},
-	}
-	testFrontendConf := &rumConfig{
-		Enabled:      new(bool),
-		AllowOrigins: []string{"frontend*"},
-	}
-
-	cases := []struct {
-		c  *Config
-		rc *rumConfig
-	}{
-		{c: &Config{}, rc: nil},
-		{c: &Config{RumConfig: &rumConfig{}}, rc: nil},
-		{c: &Config{RumConfig: testRumConf}, rc: testRumConf},
-		{c: &Config{FrontendConfig: testFrontendConf}, rc: testFrontendConf},
-		{c: &Config{RumConfig: &rumConfig{}, FrontendConfig: testFrontendConf}, rc: testFrontendConf},
-		{c: &Config{RumConfig: testRumConf, FrontendConfig: testFrontendConf}, rc: testRumConf},
-	}
-	for _, test := range cases {
-		test.c.setRumConfig()
-		assert.Equal(t, test.rc, test.c.RumConfig)
-	}
 }
 
 func TestMemoizedSmapMapper(t *testing.T) {
