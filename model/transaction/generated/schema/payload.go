@@ -322,10 +322,10 @@ const PayloadSchema = `{
                 "$id": "doc/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
-    "description": "A flat mapping of user-defined tags with string values.",
+    "description": "A flat mapping of user-defined tags with string, boolean or number values.",
     "patternProperties": {
         "^[^.*\"]*$": {
-            "type": ["string", "null"],
+            "type": ["string", "boolean", "number", "null"],
             "maxLength": 1024
         }
     },
@@ -478,10 +478,10 @@ const PayloadSchema = `{
                         "$id": "doc/spec/tags.json",
     "title": "Tags",
     "type": ["object", "null"],
-    "description": "A flat mapping of user-defined tags with string values.",
+    "description": "A flat mapping of user-defined tags with string, boolean or number values.",
     "patternProperties": {
         "^[^.*\"]*$": {
-            "type": ["string", "null"],
+            "type": ["string", "boolean", "number", "null"],
             "maxLength": 1024
         }
     },

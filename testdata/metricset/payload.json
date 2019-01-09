@@ -54,8 +54,9 @@
             }
         },
         "tags": {
-            "code": "200",
-            "some.other.code": "abc"
+            "code": 200,
+            "key": "value",
+            "success": true
         },
         "timestamp": "2017-05-30T18:53:42.281Z"
     }]

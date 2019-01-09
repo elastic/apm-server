@@ -11,6 +11,11 @@ https://github.com/elastic/apm-server/compare/6.5\...6.x[View commits]
 - Make `service.framework` properties optional and nullable {pull}1546[1546].
 - Add `transaction.sampled` to errors {pull}1662[1662].
 - Remove formatting of `duration.us` to milliseconds in index pattern pull{1717}[1717].
+- Allow numbers and boolean values for `transaction.tags`, `span.tags`, `metricset.tags` {pull}1712[1712].
+
+[float]
+==== Removed
+- Remove support for using dots in tags for experimental metricset endpoint {pull}1712[1712].
 
 [float]
 ==== Bug fixes

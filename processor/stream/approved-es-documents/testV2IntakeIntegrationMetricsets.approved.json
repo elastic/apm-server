@@ -18,8 +18,9 @@
                     "name": "1234_service-12a3"
                 },
                 "tags": {
-                    "code": "200",
-                    "some.other.code": "abc"
+                    "code": 200,
+                    "some": "abc",
+                    "success": true
                 }
             },
             "dotted": {
@@ -31,8 +32,9 @@
             "float_gauge": 9.16,
             "integer_gauge": 42767,
             "labels": {
-                "code": "200",
-                "some.other.code": "abc"
+                "code": 200,
+                "some": "abc",
+                "success": true
             },
             "long_gauge": 3147483648,
             "negative": {
