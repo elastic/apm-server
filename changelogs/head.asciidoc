@@ -6,6 +6,11 @@
 
 - Update Go version to 1.11.4 {pull}1700[1700].
 - Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].
+- Allow numbers and boolean values for `transaction.tags`, `span.tags`, `metricset.tags` {pull}1712[1712].
+
+[float]
+==== Removed
+- Remove support for using dots in tags for experimental metricset endpoint {pull}1712[1712].
 
 [float]
 ==== Removed
