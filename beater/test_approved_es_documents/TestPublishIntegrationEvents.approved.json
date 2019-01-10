@@ -1,0 +1,213 @@
+{
+    "events": [
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2018-08-09T15:04:05.999Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "framework": {
+                        "name": "emac"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "system": {
+                    "ip": "127.0.0.1"
+                }
+            },
+            "error": {
+                "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+                "id": "abcdef0123456789",
+                "log": {
+                    "level": "custom log level",
+                    "message": "Cannot read property 'baz' of undefined"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "timestamp": {
+                "us": 1533827045999000
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2019-01-09T21:40:53.000Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "1234_service-12a3"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "parent": {
+                "id": "ab23456a89012345"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "hex_id": "0123456a89012345",
+                "name": "GET /api/types",
+                "start": {
+                    "us": 1845
+                },
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1547070053000000
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            },
+            "transaction": {
+                "id": "ab23456a89012345"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2018-08-30T18:53:27.154Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "framework": {
+                        "name": "emac"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "system": {
+                    "ip": "127.0.0.1"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "timestamp": {
+                "us": 1535655207154000
+            },
+            "trace": {
+                "id": "01234567890123456789abcdefabcdef"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "abcdef1478523690",
+                "result": "200",
+                "sampled": true,
+                "span_count": {
+                    "started": 0
+                },
+                "type": "request"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "context": {
+                "process": {
+                    "pid": 1234
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "framework": {
+                        "name": "emac"
+                    },
+                    "language": {
+                        "name": "ecmascript"
+                    },
+                    "name": "1234_service-12a3"
+                },
+                "system": {
+                    "ip": "127.0.0.1"
+                }
+            },
+            "go": {
+                "memstats": {
+                    "heap": {
+                        "sys": {
+                            "bytes": 61235
+                        }
+                    }
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            }
+        }
+    ]
+}

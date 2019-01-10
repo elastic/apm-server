@@ -43,7 +43,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 
 	notifyListening(config, publisher)
 
-	listening := saved.Fields["listening"].(string)
+	listening := saved.Fields["observer"].(common.MapStr)["listening"]
 	assert.Equal(t, config.Host, listening)
 
 	processor := saved.Fields["processor"].(common.MapStr)
