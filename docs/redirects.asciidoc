@@ -179,6 +179,11 @@ This configuration option is no longer supported. Please see <<configuration-apm
 
 This configuration option is no longer supported. Please see <<configuration-apm-server>> for current configuration options.
 
+[role="exclude",id="metrics.enabled"]
+=== `metrics.enabled`
+
+This configuration option is no longer supported. Please see <<configuration-apm-server>> for current configuration options.
+
 [role="exclude",id="max_request_queue_time"]
 === `max_request_queue_time`
 
