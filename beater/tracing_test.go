@@ -173,7 +173,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 
 	// onboarding event
 	e := <-events
-	assert.Contains(t, e.Fields, "listening")
+	assert.Equal(t, "onboarding", e.Fields["processor"].(common.MapStr)["name"])
 
 	// Send a transaction request so we have something to trace.
 	baseUrl, client := beater.client(false)

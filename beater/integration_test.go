@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
 	jsonoutput "github.com/elastic/beats/libbeat/outputs/codec/json"
 	"github.com/elastic/beats/libbeat/version"
 )
@@ -39,9 +40,7 @@ import (
 func consumeOnboarding(t *testing.T, events <-chan beat.Event) *beat.Event {
 	select {
 	case e := <-events:
-		processor, err := e.Fields.GetValue("processor.name")
-		require.NoError(t, err, "missing processor.name")
-		require.Equal(t, "onboarding", processor)
+		assert.Equal(t, "onboarding", e.Fields["processor"].(common.MapStr)["name"])
 		return &e
 	case <-time.After(time.Second):
 		assert.Fail(t, "no events received")
