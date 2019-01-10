@@ -44,7 +44,6 @@ type Config struct {
 	SSL                 *SSLConfig             `config:"ssl"`
 	MaxConnections      int                    `config:"max_connections"`
 	Expvar              *ExpvarConfig          `config:"expvar"`
-	Metrics             *metricsConfig         `config:"metrics"`
 	AugmentEnabled      bool                   `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
 	RumConfig           *rumConfig             `config:"rum"`
@@ -70,10 +69,6 @@ type rumConfig struct {
 type eventRate struct {
 	Limit   int `config:"limit"`
 	LruSize int `config:"lru_size"`
-}
-
-type metricsConfig struct {
-	Enabled *bool `config:"enabled"`
 }
 
 type registerConfig struct {
@@ -149,10 +144,6 @@ func (c *rumConfig) isEnabled() bool {
 	return c != nil && (c.Enabled != nil && *c.Enabled)
 }
 
-func (c *metricsConfig) isEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
-}
-
 func (s *SourceMapping) isSetup() bool {
 	return s != nil && (s.EsConfig != nil)
 }
@@ -216,7 +207,6 @@ func defaultRum(beatVersion string) *rumConfig {
 }
 
 func defaultConfig(beatVersion string) *Config {
-	metricsEnabled := true
 	pipelineEnabled, pipelineOverwrite := false, true
 	return &Config{
 		Host:            net.JoinHostPort("localhost", DefaultPort),
@@ -231,9 +221,6 @@ func defaultConfig(beatVersion string) *Config {
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
 			Url:     "/debug/vars",
-		},
-		Metrics: &metricsConfig{
-			Enabled: &metricsEnabled,
 		},
 		RumConfig: &rumConfig{
 			EventRate: &eventRate{

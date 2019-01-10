@@ -91,9 +91,6 @@ func TestBeatConfig(t *testing.T) {
 					"library_pattern":       "^custom",
 					"exclude_from_grouping": "^grouping",
 				},
-				"metrics": map[string]interface{}{
-					"enabled": false,
-				},
 				"register": map[string]interface{}{
 					"ingest": map[string]interface{}{
 						"pipeline": map[string]interface{}{
@@ -132,9 +129,6 @@ func TestBeatConfig(t *testing.T) {
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
 					beatVersion:         "6.2.0",
-				},
-				Metrics: &metricsConfig{
-					Enabled: &falsy,
 				},
 				Register: &registerConfig{
 					Ingest: &ingestConfig{
@@ -206,9 +200,6 @@ func TestBeatConfig(t *testing.T) {
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
 					beatVersion:         "6.2.0",
-				},
-				Metrics: &metricsConfig{
-					Enabled: &truthy,
 				},
 				Register: &registerConfig{
 					Ingest: &ingestConfig{

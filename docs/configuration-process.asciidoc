@@ -102,12 +102,6 @@ Defaults to `debug/vars`.
 Enables self instrumentation of the APM Server itself.
 Disabled by default.
 
-[[metrics.enabled]]
-[float]
-==== `metrics`
-Metrics endpoint for collecting application metrics.
-Enabled by default.
-
 [[register.ingest.pipeline.enabled]]
 [float]
 ==== `register.ingest.pipeline.enabled`
