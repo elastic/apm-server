@@ -1,5 +1,5 @@
 [[apm-data-model]]
-== Data Model
+== APM Data model
 
 Elastic APM agents capture different types of information from within their instrumented applications - namely `transactions`, `spans`, and `errors`. 
 
