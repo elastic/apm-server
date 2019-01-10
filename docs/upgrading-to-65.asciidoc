@@ -118,8 +118,13 @@ The data format remains unchanged.
 
 The Metricsets endpoint, previously `/v1/metrics`,
 has also integrated with the new intake endpoint at `/intake/v2/events`.
-In terms of functionality, the only change relates to timestamps.
-See the <<metricset-api, metricset documentation>> for more information.
+There are two changes to be aware of:
+
+* Timestamps are now UTC based and formatted as microseconds since Unix epoch.
+* The `metrics.enabled` setting has been deprecated and only applies to `v1/metrics`.
+Metricsets can't be disabled in v2.
+
+See the <<metricset-api, metricset schema>> for more information.
 
 [float]
 [[server-config-changes-65]]
