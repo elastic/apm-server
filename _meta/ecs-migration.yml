@@ -52,6 +52,36 @@
   to: http.version
   index: true
 
+- from: context.request.body
+  to: http.request.body.content
+  index: false
+
+# Not in ECS
+- from: context.request.cookies
+  to: http.request.headers.cookies.parsed
+  index: false
+
+# Not in ECS
+- from: context.request.headers.cookie
+  to: http.request.headers.cookies.raw
+  index: false
+
+- from: context.request.headers.user-agent
+  to: http.request.headers.user-agent
+  index: false
+
+- from: context.request.headers.content-type
+  to: http.request.headers.content-type
+  index: false
+
+- from: context.request.env
+  to: http.request.env
+  index: false
+
+- from: context.request.socket
+  to: http.request.socket
+  index: false
+
 - from: context.process.pid
   to: process.pid
   index: true
@@ -63,6 +93,10 @@
 - from: context.process.title
   to: process.title
   index: true
+
+- from: context.process.argv
+  to: process.args
+  index: false
 
   # not in ECS
 - from: context.service.environment
@@ -129,7 +163,7 @@
 
 - from: context.request.url.raw
   to: url.original
-  index:
+  index: false
 
 - from: context.request.url.search
   to: url.query
@@ -146,6 +180,39 @@
 - from: context.response.status_code
   to: http.response.status_code
   index: true
+
+- from: context.response.headers.content-type
+  to: http.response.headers.content-type
+  index: false
+
+- from: context.response.headers_sent
+  to: http.response.headers.sent
+  index: false
+
+  # not in ECS
+- from: context.custom
+  to: context.custom
+  index: false
+
+  # not in ECS
+- from: context.db.instance
+  to: context.db.instance
+  index: false
+
+  # not in ECS
+- from: context.db.statement
+  to: context.db.statement
+  index: false
+
+  # not in ECS
+- from: context.db.content
+  to: context.db.content
+  index: false
+
+  # not in ECS
+- from: context.db.user
+  to: context.db.user
+  index: false
 
 - from: context.user.email
   to: user.email
