@@ -4,7 +4,7 @@
   fields:
     - name: view errors
       type: keyword
-      script: "doc['context.service.name'].value"
+      script: "doc['service.name'].size() > 0 ? doc['service.name'].value : doc['context.service.name'].size() > 0 ? doc['context.service.name'].value : null"
       language: painless
       format: url
       label_template: "View Errors"
