@@ -1,5 +1,5 @@
 Elastic Beats
-Copyright 2014-2018 Elasticsearch BV
+Copyright 2014-2019 Elasticsearch BV
 
 This product includes software developed by The Apache Software 
 Foundation (http://www.apache.org/).
@@ -541,7 +541,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-sysinfo
-Revision: 7b021494a9562d0c3f0422d49b9980709c5650e9
+Revision: 59ef8c0eae46c0929e3b219ac86368d4b5934f91
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-sysinfo/LICENSE.txt:
 --------------------------------------------------------------------
