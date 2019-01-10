@@ -159,6 +159,8 @@ This is no longer helpful. Please see <<span-api>>.
 
 This page has moved. Please see <<example-intake-events>>.
 
+// V1 intake API
+
 [role="exclude",id="request-too-large"]
 === HTTP 413: Request body too large
 
@@ -213,3 +215,40 @@ This section has moved. Please see <<configuration-rum>> for current configurati
 === Tuning APM Server using both v1 and v2 intake API
 
 This section has moved. Please see <<tune-apm-server>> for how to tune APM Server.
+
+// Dashboards
+
+[role="exclude",id="load-dashboards-logstash"]
+=== Tuning APM Server using both v1 and v2 intake API
+
+Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
+
+[role="exclude",id="url-option"]
+=== setup.dashboards.url
+
+Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
+
+[role="exclude",id="file-option"]
+=== setup.dashboards.file
+
+Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
+
+[role="exclude",id="setup-kibana-endpoint"]
+=== Set up the Kibana endpoint
+
+Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
+
+[role="exclude",id="kibana-protocol-option"]
+=== setup.kibana.protocol
+
+Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
+
+[role="exclude",id="kibana-path-option"]
+=== setup.kibana.path
+
+Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
+
+[role="exclude",id="load-kibana-dashboards"]
+=== Dashboards
+
+Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
