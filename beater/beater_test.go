@@ -254,6 +254,44 @@ To get a memory profile, use this:
 
 */
 
+type ChanClient struct {
+	done    chan struct{}
+	Channel chan beat.Event
+}
+
+func NewChanClientWith(ch chan beat.Event) *ChanClient {
+	if ch == nil {
+		ch = make(chan beat.Event, 1)
+	}
+	c := &ChanClient{
+		done:    make(chan struct{}),
+		Channel: ch,
+	}
+	return c
+}
+
+func (c *ChanClient) Close() error {
+	close(c.done)
+	return nil
+}
+
+// Publish will publish every event in the batch on the channel. Options will be ignored.
+// Always returns without error.
+func (c *ChanClient) Publish(batch pubs.Batch) error {
+	for _, event := range batch.Events() {
+		select {
+		case <-c.done:
+		case c.Channel <- event.Content:
+		}
+	}
+	batch.ACK()
+	return nil
+}
+
+func (c *ChanClient) String() string {
+	return "event capturing test client"
+}
+
 type DummyOutputClient struct {
 }
 
@@ -356,7 +394,7 @@ func (bt *beater) smapElasticsearchHosts() []string {
 }
 
 func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
-	beatId, err := uuid.NewV4()
+	beatId, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
 	require.NoError(t, err)
 	// create a beat
 	apmBeat := &beat.Beat{

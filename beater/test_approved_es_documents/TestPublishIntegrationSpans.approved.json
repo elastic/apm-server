@@ -1,0 +1,327 @@
+{
+    "events": [
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 141581
+                },
+                "hex_id": "abcdef01234567",
+                "name": "GET /api/types",
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "fdedef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "parent": {
+                "id": "0000000011111111"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 32592
+                },
+                "hex_id": "1234abcdef567895",
+                "name": "GET /api/types",
+                "start": {
+                    "us": 22000
+                },
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "ab45781d265894fe"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2019-01-09T21:40:53.000Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                },
+                "tags": {
+                    "tag1": "value1",
+                    "tag2": 123,
+                    "tag3": 12.34,
+                    "tag4": true
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "parent": {
+                "id": "abcdefabcdef7890"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "hex_id": "0123456a89012345",
+                "name": "GET /api/types",
+                "start": {
+                    "us": 1845
+                },
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1547070053000000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "ab23456a89012345"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2019-01-09T21:40:53.000Z",
+            "context": {
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "parent": {
+                "id": "ababcdcdefefabde"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "action": "call",
+                "duration": {
+                    "us": 13980
+                },
+                "hex_id": "abcde56a89012345",
+                "name": "get /api/types",
+                "start": {
+                    "us": 0
+                },
+                "subtype": "http",
+                "sync": false,
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1547070053000000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "bed3456a89012345"
+            }
+        },
+        {
+            "@metadata": {
+                "beat": "apm-test",
+                "type": "_doc",
+                "version": "7.0.0"
+            },
+            "@timestamp": "2019-01-09T21:40:53.000Z",
+            "context": {
+                "db": {
+                    "instance": "customers",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": "readonly_user"
+                },
+                "http": {
+                    "method": "GET",
+                    "status_code": 200,
+                    "url": "http://localhost:8000"
+                },
+                "service": {
+                    "agent": {
+                        "name": "elastic-node",
+                        "version": "3.14.0"
+                    },
+                    "name": "backendspans"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "hostname": "",
+                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "type": "test-apm-server",
+                "version": "7.0.0"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "span": {
+                "action": "query",
+                "duration": {
+                    "us": 3781
+                },
+                "hex_id": "1234567890aaaade",
+                "name": "SELECT FROM product_types",
+                "stacktrace": [
+                    {
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "line": {
+                            "number": 547
+                        }
+                    },
+                    {
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "}"
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "file2.js",
+                        "line": {
+                            "number": 12
+                        }
+                    },
+                    {
+                        "abs_path": "net.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "function": "onread",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 547
+                        },
+                        "module": "some module",
+                        "vars": {
+                            "key": "value"
+                        }
+                    }
+                ],
+                "start": {
+                    "us": 2830
+                },
+                "subtype": "postgresql",
+                "sync": true,
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1547070053000000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "aff4567890aaaade"
+            }
+        }
+    ]
+}

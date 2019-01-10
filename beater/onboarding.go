@@ -39,7 +39,7 @@ func notifyListening(config *Config, pubFct func(beat.Event)) {
 			Timestamp: time.Now(),
 			Fields: common.MapStr{
 				"processor": common.MapStr{"name": "onboarding", "event": "onboarding"},
-				"listening": config.Host,
+				"observer":  common.MapStr{"listening": config.Host},
 			},
 		}
 		pubFct(event)

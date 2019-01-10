@@ -41,7 +41,6 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs/transport/transptest"
-	publishertesting "github.com/elastic/beats/libbeat/publisher/testing"
 )
 
 var tmpCertPath string
@@ -492,7 +491,8 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 	}
 }
 
-func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, events chan beat.Event) (*beater, func(), error) {
+func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
+	events chan beat.Event) (*beater, func(), error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
@@ -508,8 +508,8 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig, 
 	var pub beat.Pipeline
 	if events != nil {
 		// capture events
-		pubClient := publishertesting.NewChanClientWith(events)
-		pub = publishertesting.PublisherWithClient(pubClient)
+		pubClient := NewChanClientWith(events)
+		pub = DummyPipeline(pubClient)
 	} else {
 		// don't capture events
 		pub = DummyPipeline()

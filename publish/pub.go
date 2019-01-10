@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
 )
 
 type Reporter func(context.Context, PendingReq) error
@@ -61,12 +62,22 @@ var (
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, shutdownTimeout time.Duration, tracer *apm.Tracer) (*publisher, error) {
+func NewPublisher(info beat.Info, pipeline beat.Pipeline, shutdownTimeout time.Duration, tracer *apm.Tracer) (*publisher, error) {
 	client, err := pipeline.ConnectWith(beat.ClientConfig{
 		PublishMode: beat.GuaranteedSend,
 
 		//       If set >0 `Close` will block for the duration or until pipeline is empty
-		WaitClose:         shutdownTimeout,
+		WaitClose: shutdownTimeout,
+		Fields: common.MapStr{
+			"observer": common.MapStr{
+				"type":         info.Beat,
+				"hostname":     info.Hostname,
+				"version":      info.Version,
+				"id":           info.ID.String(),
+				"ephemeral_id": info.EphemeralID.String(),
+			},
+		},
+		SkipAgentMetadata: true,
 		SkipNormalization: true,
 	})
 	if err != nil {
