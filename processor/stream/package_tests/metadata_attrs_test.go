@@ -97,15 +97,18 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 	return eventFields
 }
 
-func metadataFieldsNotInPayloadAttrs() *tests.Set {
-	return tests.NewSet("context.process.args")
-}
-
 func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
-	t.Skip("temporarily disabled")
 	setup := metadataProcSetup()
-	eventFields := getMetadataEventAttrs(t, "context")
-	setup.EventFieldsInTemplateFields(t, eventFields, metadataFieldsNotInPayloadAttrs())
+	eventFields := getMetadataEventAttrs(t, "")
+	var mappingFields = map[string]string{
+		//"system.platform": "host.os.platform",
+		"system":        "host",
+		"service.agent": "agent",
+		"user.username": "context.user.username",
+		"user":          "context.user",
+		"process.argv":  "process.args",
+	}
+	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
 
 func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
