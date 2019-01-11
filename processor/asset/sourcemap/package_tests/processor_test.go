@@ -96,10 +96,10 @@ func TestAttributesPresenceRequirementInSourcemap(t *testing.T) {
 }
 
 func TestKeywordLimitationOnSourcemapAttributes(t *testing.T) {
-	mapping := map[string]string{
-		"sourcemap.service.name":    "service_name",
-		"sourcemap.service.version": "service_version",
-		"sourcemap.bundle_filepath": "bundle_filepath",
+	mapping := []tests.FieldTemplateMapping{
+		{Template: "sourcemap.service.name", Mapping: "service_name"},
+		{Template: "sourcemap.service.version", Mapping: "service_version"},
+		{Template: "sourcemap.bundle_filepath", Mapping: "bundle_filepath"},
 	}
 
 	procSetup.KeywordLimitation(t, tests.NewSet(), mapping)

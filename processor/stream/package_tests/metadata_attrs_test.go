@@ -24,11 +24,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/tests/loader"
+
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/tests"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/validation"
 )
 
@@ -70,7 +71,8 @@ func (p *MetadataProcessor) Decode(data interface{}) error {
 
 func metadataProcSetup() *tests.ProcessorSetup {
 	return &tests.ProcessorSetup{
-		Proc:   &MetadataProcessor{intakeTestProcessor{Processor: stream.Processor{}}},
+		Proc: &MetadataProcessor{
+			intakeTestProcessor{Processor: stream.Processor{MaxEventSize: lrSize}}},
 		Schema: schema.ModelSchema,
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
@@ -97,9 +99,16 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 
 func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
-	eventFields := getMetadataEventAttrs(t, "context")
-	allowedNotInFields := tests.NewSet("context.process.argv")
-	setup.EventFieldsInTemplateFields(t, eventFields, allowedNotInFields)
+	eventFields := getMetadataEventAttrs(t, "")
+	var mappingFields = []tests.FieldTemplateMapping{
+		{Template: "system.platform", Mapping: "host.os.platform"},
+		{Template: "system", Mapping: "host"},
+		{Template: "service.agent", Mapping: "agent"},
+		{Template: "user.username", Mapping: "context.user.username"},
+		{Template: "user", Mapping: "context.user"},
+		{Template: "process.argv", Mapping: "process.args"},
+	}
+	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
 
 func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
@@ -113,15 +122,19 @@ func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 	metadataProcSetup().KeywordLimitation(
 		t,
-		tests.NewSet("processor.event", "processor.name", "listening",
+		tests.NewSet("processor.event", "processor.name", "observer.listening",
+			"process.args",
 			tests.Group("context.request"),
 			tests.Group("context.tags"),
 			tests.Group("transaction"),
 			tests.Group("parent"),
 			tests.Group("trace"),
 		),
-		map[string]string{
-			"context.": "",
+		[]tests.FieldTemplateMapping{
+			{Template: "agent", Mapping: "service.agent"},
+			{Template: "host.os.platform", Mapping: "system.platform"},
+			{Template: "host", Mapping: "system"},
+			{Template: "context.user", Mapping: "user"},
 		},
 	)
 }

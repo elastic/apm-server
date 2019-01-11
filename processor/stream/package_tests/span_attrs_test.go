@@ -52,9 +52,12 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 func spanFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.Union(
 		tests.NewSet(
-			"listening",
 			"view spans",
 			"transaction.sampled",
+			tests.Group("host"),
+			tests.Group("observer"),
+			tests.Group("process"),
+			tests.Group("service"),
 		),
 		// not valid for the span context
 		transactionContext(),
@@ -102,19 +105,22 @@ func spanCondRequiredKeys() map[string]tests.Condition {
 
 func transactionContext() *tests.Set {
 	return tests.NewSet(
-		tests.Group("context.service"),
 		tests.Group("context.user"),
-		tests.Group("context.process"),
 		tests.Group("context.response"),
 		tests.Group("context.request"),
-		tests.Group("context.system"),
 	)
 }
 
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
-		"processor.event", "processor.name", "listening",
+		"processor.event", "processor.name", "observer.listening",
 		"context.tags",
+
+		// metadata fields
+		tests.Group("agent"),
+		tests.Group("host"),
+		tests.Group("process"),
+		tests.Group("service"),
 	),
 		transactionContext(),
 	)
@@ -141,15 +147,12 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 	spanProcSetup().KeywordLimitation(
 		t,
 		spanKeywordExceptionKeys(),
-		map[string]string{
-			"transaction.id": "transaction_id",
-			"parent.id":      "parent_id",
-			"trace.id":       "trace_id",
-			"span.hex_id":    "id",
-			"span.name":      "name",
-			"span.type":      "type",
-			"span.subtype":   "subtype",
-			"span.action":    "action",
+		[]tests.FieldTemplateMapping{
+			{Template: "transaction.id", Mapping: "transaction_id"},
+			{Template: "parent.id", Mapping: "parent_id"},
+			{Template: "trace.id", Mapping: "trace_id"},
+			{Template: "span.hex_id", Mapping: "id"},
+			{Template: "span.", Mapping: ""},
 		},
 	)
 }

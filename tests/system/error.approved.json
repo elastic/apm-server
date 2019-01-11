@@ -4,52 +4,50 @@
         "_type": "_doc",
         "_id": "YEUQC2IBWUGW2FxIuwuv",
         "_source": {
-            "beat": {
+            "@timestamp": "2017-05-09T15:04:05.000Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "host": {
+                "platform": "darwin",
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
+            "observer": {
                 "hostname": "5d8dc22ccf3b",
                 "name": "5d8dc22ccf3b",
                 "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2017-05-09T15:04:05.000Z",
             "processor": {
                 "event": "error",
                 "name": "error"
             },
-            "context": {
-                "process": {
-                    "ppid": 7788,
-                    "pid": 1234,
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "title": "node"
+            "process": {
+                "ppid": 7788,
+                "pid": 1234,
+                "argv": [
+                    "node",
+                    "server.js"
+                ],
+                "title": "node"
+            },
+            "service": {
+                "name": "1234_service-12a3",
+                "language": {
+                    "version": "8",
+                    "name": "ecmascript"
                 },
-                "system": {
-                    "platform": "darwin",
-                    "hostname": "prod1.example.com",
-                    "architecture": "x64",
-                    "ip": "127.0.0.1"
+                "environment": "staging",
+                "framework": {
+                    "version": "1.2.3",
+                    "name": "Express"
                 },
-                "service": {
-                    "name": "1234_service-12a3",
-                    "language": {
-                        "version": "8",
-                        "name": "ecmascript"
-                    },
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "version": "1.2.3",
-                        "name": "Express"
-                    },
-                    "version": "5.1.3",
-                    "runtime": {
-                        "version": "8.0.0",
-                        "name": "node"
-                    }
+                "version": "5.1.3",
+                "runtime": {
+                    "version": "8.0.0",
+                    "name": "node"
                 }
             },
             "error": {
@@ -67,48 +65,54 @@
         "_type": "_doc",
         "_id": "XkUQC2IBWUGW2FxIuwuv",
         "_source": {
-            "transaction": {
-                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+            "@timestamp": "2017-05-09T15:04:05.999Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
             },
-            "beat": {
+            "host": {
+                "platform": "darwin",
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
+            "observer": {
                 "hostname": "5d8dc22ccf3b",
                 "name": "5d8dc22ccf3b",
                 "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2017-05-09T15:04:05.999Z",
-            "context": {
-                "service": {
-                    "name": "1234_service-12a3",
-                    "language": {
-                        "version": "8",
-                        "name": "ecmascript"
-                    },
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "version": "1.2.3",
-                        "name": "Express"
-                    },
-                    "version": "5.1.3",
-                    "runtime": {
-                        "version": "8.0.0",
-                        "name": "node"
-                    }
+            "process": {
+                "ppid": 7788,
+                "pid": 1234,
+                "argv": [
+                    "node",
+                    "server.js"
+                ],
+                "title": "node"
+            },
+            "service": {
+                "name": "1234_service-12a3",
+                "language": {
+                    "version": "8",
+                    "name": "ecmascript"
                 },
+                "environment": "staging",
+                "framework": {
+                    "version": "1.2.3",
+                    "name": "Express"
+                },
+                "version": "5.1.3",
+                "runtime": {
+                    "version": "8.0.0",
+                    "name": "node"
+                }
+            },
+            "transaction": {
+                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
+            },
+            "context": {
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-                },
-                "process": {
-                    "ppid": 7788,
-                    "pid": 1234,
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "title": "node"
                 },
                 "request": {
                     "body": "Hello World",
@@ -147,12 +151,6 @@
                         "GATEWAY_INTERFACE": "CGI/1.1"
                     },
                     "method": "POST"
-                },
-                "system": {
-                    "platform": "darwin",
-                    "hostname": "prod1.example.com",
-                    "architecture": "x64",
-                    "ip": "127.0.0.1"
                 },
                 "custom": {
                     "and_objects": {
@@ -333,52 +331,50 @@
         "_type": "_doc",
         "_id": "X0UQC2IBWUGW2FxIuwuv",
         "_source": {
-            "beat": {
+            "@timestamp": "2017-05-09T15:04:05.100Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "host": {
+                "platform": "darwin",
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
+            "observer": {
                 "hostname": "5d8dc22ccf3b",
                 "name": "5d8dc22ccf3b",
                 "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2017-05-09T15:04:05.100Z",
             "processor": {
                 "name": "error",
                 "event": "error"
             },
-            "context": {
-                "process": {
-                    "ppid": 7788,
-                    "pid": 1234,
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "title": "node"
+            "process": {
+                "ppid": 7788,
+                "pid": 1234,
+                "argv": [
+                    "node",
+                    "server.js"
+                ],
+                "title": "node"
+            },
+            "service": {
+                "name": "1234_service-12a3",
+                "language": {
+                    "version": "8",
+                    "name": "ecmascript"
                 },
-                "system": {
-                    "platform": "darwin",
-                    "hostname": "prod1.example.com",
-                    "architecture": "x64",
-                    "ip": "127.0.0.1"
+                "environment": "staging",
+                "framework": {
+                    "version": "1.2.3",
+                    "name": "Express"
                 },
-                "service": {
-                    "name": "1234_service-12a3",
-                    "language": {
-                        "version": "8",
-                        "name": "ecmascript"
-                    },
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "version": "1.2.3",
-                        "name": "Express"
-                    },
-                    "version": "5.1.3",
-                    "runtime": {
-                        "version": "8.0.0",
-                        "name": "node"
-                    }
+                "version": "5.1.3",
+                "runtime": {
+                    "version": "8.0.0",
+                    "name": "node"
                 }
             },
             "error": {
@@ -397,52 +393,50 @@
         "_type": "_doc",
         "_id": "YUUQC2IBWUGW2FxIuwuv",
         "_source": {
-            "beat": {
+            "@timestamp": "2017-05-09T15:04:05.999Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "host": {
+                "platform": "darwin",
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
+            "observer": {
                 "version": "7.0.0-alpha1",
                 "name": "5d8dc22ccf3b",
                 "hostname": "5d8dc22ccf3b"
             },
-            "@timestamp": "2017-05-09T15:04:05.999Z",
             "processor": {
                 "name": "error",
                 "event": "error"
             },
-            "context": {
-                "process": {
-                    "ppid": 7788,
-                    "pid": 1234,
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "title": "node"
+            "process": {
+                "ppid": 7788,
+                "pid": 1234,
+                "argv": [
+                    "node",
+                    "server.js"
+                ],
+                "title": "node"
+            },
+            "service": {
+                "name": "1234_service-12a3",
+                "language": {
+                    "version": "8",
+                    "name": "ecmascript"
                 },
-                "system": {
-                    "platform": "darwin",
-                    "hostname": "prod1.example.com",
-                    "architecture": "x64",
-                    "ip": "127.0.0.1"
+                "environment": "staging",
+                "framework": {
+                    "version": "1.2.3",
+                    "name": "Express"
                 },
-                "service": {
-                    "name": "1234_service-12a3",
-                    "language": {
-                        "version": "8",
-                        "name": "ecmascript"
-                    },
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "version": "1.2.3",
-                        "name": "Express"
-                    },
-                    "version": "5.1.3",
-                    "runtime": {
-                        "version": "8.0.0",
-                        "name": "node"
-                    }
+                "version": "5.1.3",
+                "runtime": {
+                    "version": "8.0.0",
+                    "name": "node"
                 }
             },
             "error": {

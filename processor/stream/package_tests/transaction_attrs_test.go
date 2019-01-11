@@ -48,13 +48,13 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 
 func transactionFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
-		"listening",
 		"context.user.user-agent",
 		"context.user.ip",
-		"context.system.ip",
 		"context.http",
 		"context.http.status_code",
+		"host.ip",
 		"transaction.marks.*.*",
+		tests.Group("observer"),
 	)
 }
 
@@ -88,14 +88,15 @@ func transactionRequiredKeys() *tests.Set {
 
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
-		"processor.event", "processor.name", "listening",
+		"processor.event", "processor.name", "observer.listening",
 		"transaction.marks",
 		"context.tags",
 
 		// metadata fields
-		tests.Group("context.process"),
-		tests.Group("context.service"),
-		tests.Group("context.system"),
+		tests.Group("agent"),
+		tests.Group("host"),
+		tests.Group("process"),
+		tests.Group("service"),
 	)
 }
 
@@ -119,10 +120,10 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 	transactionProcSetup().KeywordLimitation(
 		t,
 		transactionKeywordExceptionKeys(),
-		map[string]string{
-			"transaction.": "",
-			"parent.id":    "parent_id",
-			"trace.id":     "trace_id",
+		[]tests.FieldTemplateMapping{
+			{Template: "transaction."},
+			{Template: "parent.id", Mapping: "parent_id"},
+			{Template: "trace.id", Mapping: "trace_id"},
 		},
 	)
 }

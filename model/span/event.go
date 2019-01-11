@@ -123,11 +123,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	fields := common.MapStr{
 		"processor": processorEntry,
 		spanDocType: e.fields(tctx),
-		"context":   tctx.Metadata.MergeMinimal(e.Context),
 	}
-	utility.AddId(fields, "transaction", &e.TransactionId)
+	utility.Add(fields, "context", e.Context)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
+	utility.AddId(fields, "transaction", &e.TransactionId)
+	tctx.Metadata.MergeMinimal(fields)
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {
@@ -142,7 +143,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(timestamp))
 
 	return []beat.Event{
-		beat.Event{
+		{
 			Fields:    fields,
 			Timestamp: timestamp,
 		},

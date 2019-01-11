@@ -39,13 +39,6 @@ type Metadata struct {
 	Process *Process
 	System  *System
 	User    *User
-
-	serviceFields common.MapStr
-	processFields common.MapStr
-	systemFields  common.MapStr
-	userFields    common.MapStr
-
-	minimalServiceFields common.MapStr
 }
 
 func DecodeMetadata(input interface{}) (*Metadata, error) {
@@ -74,47 +67,25 @@ func DecodeMetadata(input interface{}) (*Metadata, error) {
 }
 
 func NewMetadata(service *Service, system *System, process *Process, user *User) *Metadata {
-	m := Metadata{
+	return &Metadata{
 		Service: service,
 		System:  system,
 		Process: process,
 		User:    user,
 	}
-
-	m.serviceFields = m.Service.fields()
-	m.systemFields = m.System.fields()
-	m.processFields = m.Process.fields()
-	m.userFields = m.User.fields()
-	m.minimalServiceFields = m.Service.minimalFields()
-	return &m
 }
 
-func (m *Metadata) normalizeContext(eventContext common.MapStr) common.MapStr {
-	if eventContext == nil {
-		return common.MapStr{}
-	} else {
-		for k, v := range eventContext {
-			// normalize map entries by calling utility.Add
-			utility.Add(eventContext, k, v)
-		}
-		return eventContext
-	}
+func (m *Metadata) Merge(fields common.MapStr) common.MapStr {
+	utility.MergeAdd(fields, "agent", m.Service.agentFields())
+	utility.Add(fields, "host", m.System.fields())
+	utility.Add(fields, "process", m.Process.fields())
+	utility.MergeAdd(fields, "service", m.Service.fields())
+	utility.MergeAdd(fields, "user", m.User.fields())
+	return fields
 }
 
-func (m *Metadata) Merge(eventContext common.MapStr) common.MapStr {
-	eventContext = m.normalizeContext(eventContext)
-
-	utility.Add(eventContext, "system", m.systemFields)
-	utility.Add(eventContext, "process", m.processFields)
-	utility.MergeAdd(eventContext, "user", m.userFields)
-	utility.MergeAdd(eventContext, "service", m.serviceFields)
-
-	return eventContext
-}
-
-func (m *Metadata) MergeMinimal(eventContext common.MapStr) common.MapStr {
-	eventContext = m.normalizeContext(eventContext)
-
-	utility.MergeAdd(eventContext, "service", m.minimalServiceFields)
-	return eventContext
+func (m *Metadata) MergeMinimal(fields common.MapStr) common.MapStr {
+	utility.MergeAdd(fields, "agent", m.Service.agentFields())
+	utility.MergeAdd(fields, "service", m.Service.minimalFields())
+	return fields
 }

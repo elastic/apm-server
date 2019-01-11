@@ -2,14 +2,9 @@
     "events": [
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
-            "context": {
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "name": "backendspans"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -17,6 +12,9 @@
             "processor": {
                 "event": "span",
                 "name": "transaction"
+            },
+            "service": {
+                "name": "backendspans"
             },
             "span": {
                 "duration": {
@@ -38,14 +36,9 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
-            "context": {
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "name": "backendspans"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "parent": {
                 "id": "0000000011111111"
@@ -53,6 +46,9 @@
             "processor": {
                 "event": "span",
                 "name": "transaction"
+            },
+            "service": {
+                "name": "backendspans"
             },
             "span": {
                 "duration": {
@@ -77,14 +73,11 @@
         },
         {
             "@timestamp": "2018-08-01T10:00:00.001845Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
             "context": {
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "name": "backendspans"
-                },
                 "tags": {
                     "tag1": "value1",
                     "tag2": 123,
@@ -98,6 +91,9 @@
             "processor": {
                 "event": "span",
                 "name": "transaction"
+            },
+            "service": {
+                "name": "backendspans"
             },
             "span": {
                 "duration": {
@@ -122,14 +118,9 @@
         },
         {
             "@timestamp": "2018-08-01T10:00:00Z",
-            "context": {
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "name": "backendspans"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "parent": {
                 "id": "ababcdcdefefabde"
@@ -137,6 +128,9 @@
             "processor": {
                 "event": "span",
                 "name": "transaction"
+            },
+            "service": {
+                "name": "backendspans"
             },
             "span": {
                 "action": "call",
@@ -164,6 +158,10 @@
         },
         {
             "@timestamp": "2018-08-01T10:00:00.00283092Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
             "context": {
                 "db": {
                     "instance": "customers",
@@ -175,13 +173,6 @@
                     "method": "GET",
                     "status_code": 200,
                     "url": "http://localhost:8000"
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "name": "backendspans"
                 }
             },
             "parent": {
@@ -190,6 +181,9 @@
             "processor": {
                 "event": "span",
                 "name": "transaction"
+            },
+            "service": {
+                "name": "backendspans"
             },
             "span": {
                 "action": "query",

@@ -182,7 +182,8 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 //   patterns defining a more specific restriction,
 // templateToSchema: mapping for fields that are nested or named different on
 //   ES level than on intake API
-func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *Set, templateToSchema map[string]string) {
+func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *Set,
+	templateToSchema []FieldTemplateMapping) {
 
 	// fetch keyword restricted field names from ES template
 	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName,
@@ -205,9 +206,9 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 	for _, k := range keywordFields.Array() {
 		key := k.(string)
 
-		for from, to := range templateToSchema {
-			if strings.HasPrefix(key, from) {
-				key = strings.Replace(key, from, to, 1)
+		for _, ts := range templateToSchema {
+			if strings.HasPrefix(key, ts.Template) {
+				key = strings.Replace(key, ts.Template, ts.Mapping, 1)
 				break
 			}
 		}

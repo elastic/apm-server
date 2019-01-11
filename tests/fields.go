@@ -58,7 +58,6 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		Group("context.request.env"),
 		Group("context.request.body"),
 		Group("context.response.headers"),
-		"context.process.argv",
 	))
 	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
 	ps.EventFieldsInTemplateFields(t, events, notInFields)
@@ -75,6 +74,27 @@ func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields,
 	missing := Difference(eventFields, allFieldNames)
 	missing = differenceWithGroup(missing, allowedNotInFields)
 
+	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
+}
+
+type FieldTemplateMapping struct{ Template, Mapping string }
+
+func (ps *ProcessorSetup) EventFieldsMappedToTemplateFields(t *testing.T, eventFields *Set,
+	mappings []FieldTemplateMapping) {
+	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
+	require.NoError(t, err)
+
+	var eventFieldsMapped = NewSet()
+	for _, val := range eventFields.Array() {
+		var f = val.(string)
+		for _, m := range mappings {
+			if strings.HasPrefix(f, m.Template) {
+				f = strings.Replace(f, m.Template, m.Mapping, -1)
+			}
+		}
+		eventFieldsMapped.Add(f)
+	}
+	missing := Difference(eventFieldsMapped, allFieldNames)
 	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
 }
 

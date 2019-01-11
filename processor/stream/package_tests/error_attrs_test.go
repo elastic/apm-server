@@ -49,9 +49,11 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 
 func errorFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
-		"listening", "view errors", "error id icon",
-		"context.user.user-agent", "context.user.ip", "context.system.ip",
+		"view errors", "error id icon",
+		"context.user.user-agent", "context.user.ip",
 		"context.http", "context.http.status_code",
+		"host.ip",
+		tests.Group("observer"),
 	)
 }
 
@@ -110,12 +112,14 @@ func errorCondRequiredKeys() map[string]tests.Condition {
 
 func errorKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
-		"processor.event", "processor.name", "listening", "error.grouping_key",
+		"processor.event", "processor.name", "error.grouping_key",
 		"context.tags",
 		"view errors", "error id icon",
-		tests.Group("context.service"),
-		tests.Group("context.system"),
-		tests.Group("context.process"),
+		tests.Group("agent"),
+		tests.Group("host"),
+		tests.Group("observer"),
+		tests.Group("process"),
+		tests.Group("service"),
 	)
 }
 
@@ -138,11 +142,11 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 	errorProcSetup().KeywordLimitation(
 		t,
 		errorKeywordExceptionKeys(),
-		map[string]string{
-			"error.":         "",
-			"transaction.id": "transaction_id",
-			"parent.id":      "parent_id",
-			"trace.id":       "trace_id",
+		[]tests.FieldTemplateMapping{
+			{Template: "error."},
+			{Template: "transaction.id", Mapping: "transaction_id"},
+			{Template: "parent.id", Mapping: "parent_id"},
+			{Template: "trace.id", Mapping: "trace_id"},
 		},
 	)
 }

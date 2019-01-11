@@ -51,7 +51,7 @@ func TestProcessTransform(t *testing.T) {
 			Output: common.MapStr{
 				"pid":   pid,
 				"title": processTitle,
-				"argv":  argv,
+				"args":  argv,
 			},
 		},
 	}

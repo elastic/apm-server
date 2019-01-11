@@ -7,41 +7,15 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2019-01-09T21:40:53.000Z",
-            "context": {
-                "process": {
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "pid": 1234,
-                    "ppid": 6789,
-                    "title": "node"
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
-                "system": {
-                    "architecture": "x64",
-                    "hostname": "prod1.example.com",
-                    "ip": "127.0.0.1",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "127.0.0.1",
+                "os": {
                     "platform": "darwin"
                 }
             },
@@ -55,9 +29,35 @@
             "parent": {
                 "id": "abcdefabcdef01234567"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "timestamp": {
                 "us": 1547070053000000
@@ -84,6 +84,10 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
             "context": {
                 "custom": {
                     "(": "not a valid regex and that is fine",
@@ -95,15 +99,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "process": {
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "pid": 1234,
-                    "ppid": 6789,
-                    "title": "node"
                 },
                 "request": {
                     "body": {
@@ -157,33 +152,6 @@
                     "headers_sent": true,
                     "status_code": 200
                 },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
-                "system": {
-                    "architecture": "x64",
-                    "hostname": "prod1.example.com",
-                    "ip": "127.0.0.1",
-                    "platform": "darwin"
-                },
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                     "tag2": 12,
@@ -196,6 +164,14 @@
                     "username": "foo"
                 }
             },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "127.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -203,9 +179,35 @@
                 "type": "test-apm-server",
                 "version": "7.0.0"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "timestamp": {
                 "us": 1496170407154000
@@ -234,44 +236,20 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
             "context": {
-                "process": {
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "pid": 1234,
-                    "ppid": 6789,
-                    "title": "node"
-                },
                 "request": {
                     "method": "POST"
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
-                "system": {
-                    "architecture": "x64",
-                    "hostname": "prod1.example.com",
-                    "ip": "127.0.0.1",
+                }
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "127.0.0.1",
+                "os": {
                     "platform": "darwin"
                 }
             },
@@ -282,9 +260,35 @@
                 "type": "test-apm-server",
                 "version": "7.0.0"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "timestamp": {
                 "us": 1532976822281000

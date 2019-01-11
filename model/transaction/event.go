@@ -139,7 +139,7 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 
 func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
-	events := []beat.Event{}
+	var events []beat.Event
 
 	if e.Timestamp.IsZero() {
 		e.Timestamp = tctx.RequestTime
@@ -148,11 +148,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	fields := common.MapStr{
 		"processor":        processorEntry,
 		transactionDocType: e.fields(tctx),
-		"context":          tctx.Metadata.Merge(e.Context),
 	}
+	utility.Add(fields, "context", e.Context)
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	tctx.Metadata.Merge(fields)
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

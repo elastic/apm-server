@@ -176,9 +176,10 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	fields := common.MapStr{
 		"error":     e.fields(tctx),
-		"context":   tctx.Metadata.Merge(e.Context),
 		"processor": processorEntry,
 	}
+	tctx.Metadata.Merge(fields)
+	utility.Add(fields, "context", e.Context)
 
 	if e.TransactionSampled != nil || (e.TransactionId != nil && *e.TransactionId != "") {
 		transaction := common.MapStr{}
@@ -196,7 +197,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
-		beat.Event{
+		{
 			Fields:    fields,
 			Timestamp: e.Timestamp,
 		},

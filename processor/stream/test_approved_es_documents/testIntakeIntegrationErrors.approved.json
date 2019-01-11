@@ -2,6 +2,10 @@
     "events": [
         {
             "@timestamp": "2017-05-09T15:04:05.999999Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
             "context": {
                 "custom": {
                     "and_objects": {
@@ -12,15 +16,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "process": {
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "pid": 1234,
-                    "ppid": 6789,
-                    "title": "node"
                 },
                 "request": {
                     "body": "Hello World",
@@ -67,33 +62,6 @@
                     },
                     "headers_sent": true,
                     "status_code": 200
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
-                "system": {
-                    "architecture": "x64",
-                    "hostname": "prod1.example.com",
-                    "ip": "192.0.0.1",
-                    "platform": "darwin"
                 },
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
@@ -247,9 +215,43 @@
                     ]
                 }
             },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "timestamp": {
                 "us": 1494342245999999
@@ -257,43 +259,9 @@
         },
         {
             "@timestamp": "2018-08-09T14:59:05.999Z",
-            "context": {
-                "process": {
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "pid": 1234,
-                    "ppid": 6789,
-                    "title": "node"
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
-                "system": {
-                    "architecture": "x64",
-                    "hostname": "prod1.example.com",
-                    "ip": "192.0.0.1",
-                    "platform": "darwin"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "error": {
                 "exception": {
@@ -302,9 +270,43 @@
                 "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
                 "id": "cdefab0123456789"
             },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "timestamp": {
                 "us": 1533826745999000
@@ -312,43 +314,9 @@
         },
         {
             "@timestamp": "2018-08-01T10:00:00Z",
-            "context": {
-                "process": {
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "pid": 1234,
-                    "ppid": 6789,
-                    "title": "node"
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
-                "system": {
-                    "architecture": "x64",
-                    "hostname": "prod1.example.com",
-                    "ip": "192.0.0.1",
-                    "platform": "darwin"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "error": {
                 "exception": {
@@ -357,9 +325,43 @@
                 "grouping_key": "c3868d6704b923014eaffea034e70a3d",
                 "id": "cdefab0123456780"
             },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "timestamp": {
                 "us": 1533117600000000
@@ -367,43 +369,9 @@
         },
         {
             "@timestamp": "2018-08-09T15:04:05.999Z",
-            "context": {
-                "process": {
-                    "argv": [
-                        "node",
-                        "server.js"
-                    ],
-                    "pid": 1234,
-                    "ppid": 6789,
-                    "title": "node"
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "environment": "staging",
-                    "framework": {
-                        "name": "Express",
-                        "version": "1.2.3"
-                    },
-                    "language": {
-                        "name": "ecmascript",
-                        "version": "8"
-                    },
-                    "name": "1234_service-12a3",
-                    "runtime": {
-                        "name": "node",
-                        "version": "8.0.0"
-                    },
-                    "version": "5.1.3"
-                },
-                "system": {
-                    "architecture": "x64",
-                    "hostname": "prod1.example.com",
-                    "ip": "192.0.0.1",
-                    "platform": "darwin"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -413,12 +381,46 @@
                     "message": "Cannot read property 'baz' of undefined"
                 }
             },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
             "parent": {
                 "id": "9632587410abcdef"
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
             },
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
             },
             "timestamp": {
                 "us": 1533827045999000

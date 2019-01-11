@@ -156,13 +156,11 @@ func TestTransform(t *testing.T) {
 			Metricset: &Metricset{Timestamp: timestamp},
 			Output: []common.MapStr{
 				{
-					"context": common.MapStr{
-						"service": common.MapStr{
-							"agent": common.MapStr{"name": "", "version": ""},
-							"name":  "myservice",
-						},
-					},
+					"agent":     common.MapStr{"name": "", "version": ""},
 					"processor": common.MapStr{"event": "metric", "name": "metric"},
+					"service": common.MapStr{
+						"name": "myservice",
+					},
 				},
 			},
 			Msg: "Payload with empty metric.",
@@ -184,15 +182,16 @@ func TestTransform(t *testing.T) {
 			},
 			Output: []common.MapStr{
 				{
+					"agent": common.MapStr{"name": "", "version": ""},
 					"context": common.MapStr{
-						"service": common.MapStr{
-							"name":  "myservice",
-							"agent": common.MapStr{"name": "", "version": ""},
-						},
 						"tags": common.MapStr{
 							"a.tag": "a.tag.value",
 						},
 					},
+					"service": common.MapStr{
+						"name": "myservice",
+					},
+
 					"a":         common.MapStr{"counter": float64(612)},
 					"some":      common.MapStr{"gauge": float64(9.16)},
 					"processor": common.MapStr{"event": "metric", "name": "metric"},
