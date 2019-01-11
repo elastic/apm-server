@@ -124,7 +124,7 @@ class Test(ElasticTest):
                 if rec_id == self.get_id(appr[doc_type]):
                     checked = True
                     self.assert_docs(rec[doc_type], appr[doc_type])
-                    self.assert_docs(rec['context'], appr['context'])
+                    self.assert_docs(rec.get('context'), appr.get('context'))
                     self.assert_docs(rec['processor'], appr['processor'])
             assert checked, "New entry with id {}".format(rec_id)
 

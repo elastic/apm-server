@@ -4,8 +4,22 @@
         "_type": "_doc",
         "_id": "IkU4C2IBWUGW2FxIExjw",
         "_source": {
-            "transaction": {
-                "id": "945254c567a5417e"
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "observer": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             },
             "span": {
                 "hex_id": "2aaaaaaaaaaaaaaa",
@@ -18,24 +32,8 @@
                 },
                 "type": "request"
             },
-            "beat": {
-                "hostname": "40c010b36edc",
-                "name": "40c010b36edc",
-                "version": "7.0.0-alpha1"
-            },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
-            "context": {
-                "service": {
-                    "name": "1234_service-12a3",
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    }
-                }
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
+            "transaction": {
+                "id": "945254c567a5417e"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -45,8 +43,15 @@
         "_type": "_doc",
         "_id": "J0U4C2IBWUGW2FxIExjw",
         "_source": {
-            "transaction": {
-                "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9"
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "observer": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
             },
             "span": {
                 "hex_id": "15aaaaaaaaaaaaaa",
@@ -59,25 +64,18 @@
                 "type": "db.postgresql.query",
                 "name": "SELECT FROM product_types"
             },
-            "beat": {
-                "hostname": "40c010b36edc",
-                "name": "40c010b36edc",
-                "version": "7.0.0-alpha1"
+            "service": {
+                "name": "1234_service-12a3"
             },
-            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "transaction": {
+                "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9"
+            },
             "context": {
                 "db": {
                     "instance": "customers",
                     "type": "sql",
                     "user": "readonly_user",
                     "statement": "SELECT * FROM product_types WHERE user_id=?"
-                },
-                "service": {
-                    "name": "1234_service-12a3",
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    }
                 }
             },
             "processor": {
@@ -92,8 +90,22 @@
         "_type": "_doc",
         "_id": "I0U4C2IBWUGW2FxIExjw",
         "_source": {
-            "transaction": {
-                "id": "945254c567a5417e"
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "observer": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             },
             "span": {
                 "hex_id": "3aaaaaaaaaaaaaaa",
@@ -106,24 +118,8 @@
                 },
                 "type": "request"
             },
-            "beat": {
-                "hostname": "40c010b36edc",
-                "name": "40c010b36edc",
-                "version": "7.0.0-alpha1"
-            },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
-            "context": {
-                "service": {
-                    "name": "1234_service-12a3",
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    }
-                }
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
+            "transaction": {
+                "id": "945254c567a5417e"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -133,8 +129,22 @@
         "_type": "_doc",
         "_id": "IEU4C2IBWUGW2FxIExjw",
         "_source": {
-            "transaction": {
-                "id": "945254c567a5417e"
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "observer": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             },
             "span": {
                 "hex_id": "0aaaaaaaaaaaaaaa",
@@ -184,12 +194,9 @@
                 },
                 "type": "db.postgresql.query"
             },
-            "beat": {
-                "hostname": "40c010b36edc",
-                "name": "40c010b36edc",
-                "version": "7.0.0-alpha1"
+            "transaction": {
+                "id": "945254c567a5417e"
             },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
                 "db": {
                     "instance": "customers",
@@ -202,20 +209,9 @@
                     "status_code": 200,
                     "method": "GET"
                 },
-                "service": {
-                    "name": "1234_service-12a3",
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    }
-                },
                 "tags": {
                     "span_tag": "something"
                 }
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -225,8 +221,22 @@
         "_type": "_doc",
         "_id": "IUU4C2IBWUGW2FxIExjw",
         "_source": {
-            "transaction": {
-                "id": "945254c567a5417e"
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
+            },
+            "observer": {
+                "hostname": "40c010b36edc",
+                "name": "40c010b36edc",
+                "version": "7.0.0-alpha1"
+            },
+            "processor": {
+                "name": "transaction",
+                "event": "span"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             },
             "span": {
                 "hex_id": "1aaaaaaaaaaaaaaa",
@@ -239,24 +249,8 @@
                 },
                 "type": "request"
             },
-            "beat": {
-                "hostname": "40c010b36edc",
-                "name": "40c010b36edc",
-                "version": "7.0.0-alpha1"
-            },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
-            "context": {
-                "service": {
-                    "name": "1234_service-12a3",
-                    "agent": {
-                        "version": "3.14.0",
-                        "name": "elastic-node"
-                    }
-                }
-            },
-            "processor": {
-                "name": "transaction",
-                "event": "span"
+            "transaction": {
+                "id": "945254c567a5417e"
             }
         },
         "_index": "test-apm-12-12-2017"
