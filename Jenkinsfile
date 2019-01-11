@@ -18,12 +18,13 @@ pipeline {
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
-    booleanParam(name: 'windows_cI', defaultValue: true, description: 'Enable Windows CI')
+    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_ci', defaultValue: false, description: 'Enable test')
+    booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
+    booleanParam(name: 'releaser_ci', defaultValue: true, description: 'Enable build the release packages')
   }
   stages {
     /**
@@ -42,7 +43,13 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          env.GO_VERSION = readFile("${BASE_DIR}/.go-version")
+          dir("${BASE_DIR}"){
+            env.GO_VERSION = readFile(".go-version")
+            if(env.CHANGE_TARGET){
+              env.BEATS_UPDATED = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA}|grep '^_beats'|wc -l",
+                returnStdout: true)?.trim() == "0"
+            }
+          }
         }
       }
     }
@@ -340,6 +347,11 @@ pipeline {
     stage('Release') {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
+      environment {
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
+        GOPATH = "${env.WORKSPACE}"
+      }
       when {
         beforeAgent true
         allOf {
@@ -352,6 +364,7 @@ pipeline {
             branch "v\\d?"
             tag "v\\d+\\.\\d+\\.\\d+*"
             expression { return params.Run_As_Master_Branch }
+            expression { return env.BEATS_UPDATED }
           }
           expression { return params.releaser_ci }
         }
