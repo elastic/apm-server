@@ -144,20 +144,21 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 		}
 	}
 
-	context := common.MapStr{}
-	if me.Tags != nil {
-		context["tags"] = me.Tags
-	}
-
-	fields["context"] = tctx.Metadata.Merge(context)
 	fields["processor"] = processorEntry
+	if me.Tags != nil {
+		tags := common.MapStr{}
+		// normalize map entries by calling utility.Add
+		utility.Add(tags, "tags", me.Tags)
+		fields.Put("context", tags)
+	}
+	tctx.Metadata.MergeMinimal(fields)
 
 	if me.Timestamp.IsZero() {
 		me.Timestamp = tctx.RequestTime
 	}
 
 	return []beat.Event{
-		beat.Event{
+		{
 			Fields:    fields,
 			Timestamp: me.Timestamp,
 		},

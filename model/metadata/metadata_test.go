@@ -115,9 +115,9 @@ func TestMetadataMerge(t *testing.T) {
 	agentName := "elastic-node"
 
 	for _, test := range []struct {
-		input        *Metadata
-		mergeContext common.MapStr
-		output       common.MapStr
+		input  *Metadata
+		fields common.MapStr
+		output common.MapStr
 	}{
 		{
 			input: NewMetadata(
@@ -132,14 +132,15 @@ func TestMetadataMerge(t *testing.T) {
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
 			),
+			fields: common.MapStr{},
 			output: common.MapStr{
-				"service": common.MapStr{
-					"name":  "myservice",
-					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-				},
-				"system":  common.MapStr{"hostname": host},
+				"agent":   common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"host":    common.MapStr{"hostname": host},
 				"process": common.MapStr{"pid": pid},
-				"user":    common.MapStr{"id": "12321", "email": "user@email.com"},
+				"service": common.MapStr{
+					"name": "myservice",
+				},
+				"user": common.MapStr{"id": "12321", "email": "user@email.com"},
 			},
 		},
 		{
@@ -155,25 +156,25 @@ func TestMetadataMerge(t *testing.T) {
 				&Process{Pid: pid},
 				&User{Id: &uid},
 			),
-			mergeContext: common.MapStr{
+			fields: common.MapStr{
 				"foo": "bar",
 				"user": common.MapStr{
 					"email": "override@email.com",
 				},
 			},
 			output: common.MapStr{
-				"foo": "bar",
+				"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"foo":   "bar",
+				"host":  common.MapStr{"hostname": host},
 				"service": common.MapStr{
-					"name":  "myservice",
-					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+					"name": "myservice",
 				},
-				"system":  common.MapStr{"hostname": host},
 				"process": common.MapStr{"pid": pid},
 				"user":    common.MapStr{"id": "12321", "email": "override@email.com"},
 			},
 		},
 	} {
-		assert.Equal(t, test.output, test.input.Merge(test.mergeContext))
+		assert.Equal(t, test.output, test.input.Merge(test.fields))
 	}
 }
 
@@ -186,9 +187,9 @@ func TestMetadataMergeMinimal(t *testing.T) {
 	agentName := "elastic-node"
 
 	for _, test := range []struct {
-		input        *Metadata
-		mergeContext common.MapStr
-		output       common.MapStr
+		input  *Metadata
+		fields common.MapStr
+		output common.MapStr
 	}{
 		{
 			input: NewMetadata(
@@ -203,10 +204,11 @@ func TestMetadataMergeMinimal(t *testing.T) {
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
 			),
+			fields: common.MapStr{},
 			output: common.MapStr{
+				"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
 				"service": common.MapStr{
-					"name":  "myservice",
-					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+					"name": "myservice",
 				},
 			},
 		},
@@ -223,18 +225,18 @@ func TestMetadataMergeMinimal(t *testing.T) {
 				&Process{Pid: pid},
 				&User{Id: &uid},
 			),
-			mergeContext: common.MapStr{
+			fields: common.MapStr{
 				"foo": "bar",
 			},
 			output: common.MapStr{
-				"foo": "bar",
+				"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"foo":   "bar",
 				"service": common.MapStr{
-					"name":  "myservice",
-					"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+					"name": "myservice",
 				},
 			},
 		},
 	} {
-		assert.Equal(t, test.output, test.input.MergeMinimal(test.mergeContext))
+		assert.Equal(t, test.output, test.input.MergeMinimal(test.fields))
 	}
 }

@@ -3,10 +3,6 @@
   description: >
     Fields common to various APM events.
   fields:
-    - name: listening
-      type: keyword
-      description: >
-        Address the server is listening on.
     - name: processor.name
       type: keyword
       description: Processor name.
@@ -156,135 +152,77 @@
             description: >
               A boolean indicating whether the response was finished or not.
 
-        - name: system
-          type: group
+    - name: service
+      type: group
+      description: >
+        Service fields.
+      fields:
+        - name: name
+          type: keyword
           description: >
-            Optional system fields.
+            Immutable unique name of the service emitting this event.
+          format: url
+          label_template: "{{value}}"
+          open_link_in_current_tab: true
+          url_template:
+            - min_version: "5.0.0"
+              value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(query_string:(analyze_wildcard:!t,query:'context.service.name:%22{{value}}%22')))"
+            - min_version: "6.0.0-alpha1"
+              value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(language:lucene,query:'context.service.name:\"{{value}}\"'))"
+          overwrite: true
+
+        - name: version
+          type: keyword
+          description: >
+            Version of the service emitting this event.
+          overwrite: true
+
+        - name: environment
+          type: keyword
+          description: >
+            Service environment.
+
+        - name: language
+          type: group
           fields:
 
-            - name: hostname
-              type: keyword
-              description: >
-                The hostname of the system the event was recorded on.
+          - name: name
+            type: keyword
+            description: >
+              Name of the programming language used.
 
-            - name: architecture
-              type: keyword
-              description: >
-                The architecture of the system the event was recorded on.
+          - name: version
+            type: keyword
+            description: >
+              Version of the programming language used.
 
-            - name: platform
-              type: keyword
-              description: >
-                The platform of the system the event was recorded on.
-
-            - name: ip
-              type: ip
-              description: >
-                IP of the host that records the event.
-
-        - name: process
+        - name: runtime
           type: group
-          description: >
-            Information pertaining to the running process where the data was collected
           fields:
-            - name: pid
-              type: long
-              description: >
-                Numeric process ID of the service process.
 
-            - name: ppid
-              type: long
-              description: >
-                Numeric ID of the service's parent process.
+          - name: name
+            type: keyword
+            description: >
+              Name of the runtime used.
 
-            - name: title
-              type: keyword
-              description: >
-                Service process title.
+          - name: version
+            type: keyword
+            description: >
+              Version of the runtime used.
 
-        - name: service
+        - name: framework
           type: group
-          description: >
-            Service fields.
           fields:
-            - name: name
-              type: keyword
-              description: >
-                Immutable unique name of the service emitting this event.
-              format: url
-              label_template: "{{value}}"
-              open_link_in_current_tab: true
-              url_template:
-                - min_version: "5.0.0"
-                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(query_string:(analyze_wildcard:!t,query:'context.service.name:%22{{value}}%22')))"
-                - min_version: "6.0.0-alpha1"
-                  value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(language:lucene,query:'context.service.name:\"{{value}}\"'))"
 
-            - name: version
-              type: keyword
-              description: >
-                Version of the service emitting this event.
+          - name: name
+            type: keyword
+            description: >
+              Name of the framework used.
 
-            - name: environment
-              type: keyword
-              description: >
-                Service environment.
-
-            - name: language
-              type: group
-              fields:
-
-              - name: name
-                type: keyword
-                description: >
-                  Name of the programming language used.
-
-              - name: version
-                type: keyword
-                description: >
-                  Version of the programming language used.
-
-            - name: runtime
-              type: group
-              fields:
-
-              - name: name
-                type: keyword
-                description: >
-                  Name of the runtime used.
-
-              - name: version
-                type: keyword
-                description: >
-                  Version of the runtime used.
-
-            - name: framework
-              type: group
-              fields:
-
-              - name: name
-                type: keyword
-                description: >
-                  Name of the framework used.
-
-              - name: version
-                type: keyword
-                description: >
-                  Version of the framework used.
-
-            - name: agent
-              type: group
-              fields:
-
-              - name: name
-                type: keyword
-                description: >
-                  Name of the agent used.
-
-              - name: version
-                type: keyword
-                description: >
-                  Version of the agent used.
+          - name: version
+            type: keyword
+            description: >
+              Version of the framework used.
 
     - name: transaction
       type: group
@@ -324,3 +262,89 @@
           type: keyword
           description: >
              The ID of the parent event.
+
+    - name: agent
+      type: group
+      fields:
+
+        - name: name
+          type: keyword
+          description: >
+            Name of the agent used.
+          overwrite: true
+
+        - name: version
+          type: keyword
+          description: >
+            Version of the agent used.
+          overwrite: true
+
+    - name: host
+      type: group
+      description: >
+        Optional system fields.
+      fields:
+
+        - name: hostname
+          type: keyword
+          description: >
+            The hostname of the system the event was recorded on.
+          overwrite: true
+
+        - name: architecture
+          type: keyword
+          description: >
+            The architecture of the system the event was recorded on.
+          overwrite: true
+
+        - name: platform
+          type: keyword
+          description: >
+            The platform of the system the event was recorded on.
+          overwrite: true
+
+        - name: ip
+          type: ip
+          description: >
+            IP of the host that records the event.
+          overwrite: true
+
+    - name: process
+      type: group
+      description: >
+        Information pertaining to the running process where the data was collected
+      fields:
+        - name: args
+          level: extended
+          type: keyword
+          description: >
+            Process arguments.
+
+            May be filtered to protect sensitive information.
+          overwrite: true
+
+        - name: pid
+          type: long
+          description: >
+            Numeric process ID of the service process.
+          overwrite: true
+
+        - name: ppid
+          type: long
+          description: >
+            Numeric ID of the service's parent process.
+          overwrite: true
+
+        - name: title
+          type: keyword
+          description: >
+            Service process title.
+          overwrite: true
+
+    - name: observer
+      type: group
+      fields:
+        - name: listening
+          type: keyword
+          description: >
+            Address the server is listening on.

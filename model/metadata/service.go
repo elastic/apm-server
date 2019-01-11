@@ -88,12 +88,7 @@ func (s *Service) minimalFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	svc := common.MapStr{"name": s.Name}
-	agent := common.MapStr{}
-	utility.Add(agent, "name", s.Agent.Name)
-	utility.Add(agent, "version", s.Agent.Version)
-	utility.Add(svc, "agent", agent)
-	return svc
+	return common.MapStr{"name": s.Name}
 }
 
 func (s *Service) fields() common.MapStr {
@@ -120,4 +115,21 @@ func (s *Service) fields() common.MapStr {
 	utility.Add(svc, "framework", framework)
 
 	return svc
+}
+
+func (s *Service) agentFields() common.MapStr {
+	if s == nil {
+		return nil
+	}
+	return s.Agent.fields()
+}
+
+func (a *Agent) fields() common.MapStr {
+	if a == nil {
+		return nil
+	}
+	agent := common.MapStr{}
+	utility.Add(agent, "name", a.Name)
+	utility.Add(agent, "version", a.Version)
+	return agent
 }

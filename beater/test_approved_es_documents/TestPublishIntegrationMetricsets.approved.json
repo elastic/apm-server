@@ -7,21 +7,12 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2017-05-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
             "byte_counter": 1,
             "context": {
-                "process": {
-                    "pid": 1234
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "language": {
-                        "name": "ecmascript"
-                    },
-                    "name": "1234_service-12a3"
-                },
                 "tags": {
                     "code": 200,
                     "some": "abc",
@@ -61,6 +52,9 @@
                 "event": "metric",
                 "name": "metric"
             },
+            "service": {
+                "name": "1234_service-12a3"
+            },
             "short_counter": 227
         },
         {
@@ -70,20 +64,9 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2017-05-30T18:53:42.281Z",
-            "context": {
-                "process": {
-                    "pid": 1234
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "language": {
-                        "name": "ecmascript"
-                    },
-                    "name": "1234_service-12a3"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "go": {
                 "memstats": {
@@ -104,6 +87,9 @@
             "processor": {
                 "event": "metric",
                 "name": "metric"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             }
         }
     ]

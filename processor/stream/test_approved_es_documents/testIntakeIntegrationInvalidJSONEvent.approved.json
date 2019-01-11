@@ -2,14 +2,9 @@
     "events": [
         {
             "@timestamp": "2018-08-01T10:00:00Z",
-            "context": {
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "name": "1234_service-12a3"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -17,6 +12,9 @@
             "processor": {
                 "event": "span",
                 "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             },
             "span": {
                 "duration": {

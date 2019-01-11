@@ -7,26 +7,9 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2018-08-09T15:04:05.999Z",
-            "context": {
-                "process": {
-                    "pid": 1234
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "framework": {
-                        "name": "emac"
-                    },
-                    "language": {
-                        "name": "ecmascript"
-                    },
-                    "name": "1234_service-12a3"
-                },
-                "system": {
-                    "ip": "127.0.0.1"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -36,6 +19,9 @@
                     "message": "Cannot read property 'baz' of undefined"
                 }
             },
+            "host": {
+                "ip": "127.0.0.1"
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -43,9 +29,21 @@
                 "type": "test-apm-server",
                 "version": "7.0.0"
             },
+            "process": {
+                "pid": 1234
+            },
             "processor": {
                 "event": "error",
                 "name": "error"
+            },
+            "service": {
+                "framework": {
+                    "name": "emac"
+                },
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3"
             },
             "timestamp": {
                 "us": 1533827045999000
@@ -58,14 +56,9 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2019-01-09T21:40:53.000Z",
-            "context": {
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "name": "1234_service-12a3"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -80,6 +73,9 @@
             "processor": {
                 "event": "span",
                 "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             },
             "span": {
                 "duration": {
@@ -109,26 +105,12 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2018-08-30T18:53:27.154Z",
-            "context": {
-                "process": {
-                    "pid": 1234
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "framework": {
-                        "name": "emac"
-                    },
-                    "language": {
-                        "name": "ecmascript"
-                    },
-                    "name": "1234_service-12a3"
-                },
-                "system": {
-                    "ip": "127.0.0.1"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "host": {
+                "ip": "127.0.0.1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -137,9 +119,21 @@
                 "type": "test-apm-server",
                 "version": "7.0.0"
             },
+            "process": {
+                "pid": 1234
+            },
             "processor": {
                 "event": "transaction",
                 "name": "transaction"
+            },
+            "service": {
+                "framework": {
+                    "name": "emac"
+                },
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3"
             },
             "timestamp": {
                 "us": 1535655207154000
@@ -167,26 +161,9 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2017-05-30T18:53:42.281Z",
-            "context": {
-                "process": {
-                    "pid": 1234
-                },
-                "service": {
-                    "agent": {
-                        "name": "elastic-node",
-                        "version": "3.14.0"
-                    },
-                    "framework": {
-                        "name": "emac"
-                    },
-                    "language": {
-                        "name": "ecmascript"
-                    },
-                    "name": "1234_service-12a3"
-                },
-                "system": {
-                    "ip": "127.0.0.1"
-                }
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "go": {
                 "memstats": {
@@ -207,6 +184,9 @@
             "processor": {
                 "event": "metric",
                 "name": "metric"
+            },
+            "service": {
+                "name": "1234_service-12a3"
             }
         }
     ]

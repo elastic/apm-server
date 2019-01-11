@@ -59,7 +59,7 @@ func (p *Process) fields() common.MapStr {
 	utility.Add(svc, "pid", p.Pid)
 	utility.Add(svc, "ppid", p.Ppid)
 	utility.Add(svc, "title", p.Title)
-	utility.Add(svc, "argv", p.Argv)
+	utility.Add(svc, "args", p.Argv)
 
 	return svc
 }

@@ -33,16 +33,6 @@ Fields common to various APM events.
 
 
 
-*`listening`*::
-+
---
-type: keyword
-
-Address the server is listening on.
-
-
---
-
 *`processor.name`*::
 +
 --
@@ -281,97 +271,13 @@ A boolean indicating whether the response was finished or not.
 --
 
 [float]
-== system fields
-
-Optional system fields.
-
-
-
-*`context.system.hostname`*::
-+
---
-type: keyword
-
-The hostname of the system the event was recorded on.
-
-
---
-
-*`context.system.architecture`*::
-+
---
-type: keyword
-
-The architecture of the system the event was recorded on.
-
-
---
-
-*`context.system.platform`*::
-+
---
-type: keyword
-
-The platform of the system the event was recorded on.
-
-
---
-
-*`context.system.ip`*::
-+
---
-type: ip
-
-IP of the host that records the event.
-
-
---
-
-[float]
-== process fields
-
-Information pertaining to the running process where the data was collected
-
-
-
-*`context.process.pid`*::
-+
---
-type: long
-
-Numeric process ID of the service process.
-
-
---
-
-*`context.process.ppid`*::
-+
---
-type: long
-
-Numeric ID of the service's parent process.
-
-
---
-
-*`context.process.title`*::
-+
---
-type: keyword
-
-Service process title.
-
-
---
-
-[float]
 == service fields
 
 Service fields.
 
 
 
-*`context.service.name`*::
+*`service.name`*::
 +
 --
 type: keyword
@@ -383,7 +289,7 @@ Immutable unique name of the service emitting this event.
 
 --
 
-*`context.service.version`*::
+*`service.version`*::
 +
 --
 type: keyword
@@ -393,7 +299,7 @@ Version of the service emitting this event.
 
 --
 
-*`context.service.environment`*::
+*`service.environment`*::
 +
 --
 type: keyword
@@ -404,7 +310,7 @@ Service environment.
 --
 
 
-*`context.service.language.name`*::
+*`service.language.name`*::
 +
 --
 type: keyword
@@ -414,7 +320,7 @@ Name of the programming language used.
 
 --
 
-*`context.service.language.version`*::
+*`service.language.version`*::
 +
 --
 type: keyword
@@ -425,7 +331,7 @@ Version of the programming language used.
 --
 
 
-*`context.service.runtime.name`*::
+*`service.runtime.name`*::
 +
 --
 type: keyword
@@ -435,7 +341,7 @@ Name of the runtime used.
 
 --
 
-*`context.service.runtime.version`*::
+*`service.runtime.version`*::
 +
 --
 type: keyword
@@ -446,7 +352,7 @@ Version of the runtime used.
 --
 
 
-*`context.service.framework.name`*::
+*`service.framework.name`*::
 +
 --
 type: keyword
@@ -456,33 +362,12 @@ Name of the framework used.
 
 --
 
-*`context.service.framework.version`*::
+*`service.framework.version`*::
 +
 --
 type: keyword
 
 Version of the framework used.
-
-
---
-
-
-*`context.service.agent.name`*::
-+
---
-type: keyword
-
-Name of the agent used.
-
-
---
-
-*`context.service.agent.version`*::
-+
---
-type: keyword
-
-Version of the agent used.
 
 
 --
@@ -528,6 +413,133 @@ The ID of the trace to which the event belongs to.
 type: keyword
 
 The ID of the parent event.
+
+
+--
+
+
+*`agent.name`*::
++
+--
+type: keyword
+
+Name of the agent used.
+
+
+--
+
+*`agent.version`*::
++
+--
+type: keyword
+
+Version of the agent used.
+
+
+--
+
+[float]
+== host fields
+
+Optional system fields.
+
+
+
+*`host.hostname`*::
++
+--
+type: keyword
+
+The hostname of the system the event was recorded on.
+
+
+--
+
+*`host.architecture`*::
++
+--
+type: keyword
+
+The architecture of the system the event was recorded on.
+
+
+--
+
+*`host.platform`*::
++
+--
+type: keyword
+
+The platform of the system the event was recorded on.
+
+
+--
+
+*`host.ip`*::
++
+--
+type: ip
+
+IP of the host that records the event.
+
+
+--
+
+[float]
+== process fields
+
+Information pertaining to the running process where the data was collected
+
+
+
+*`process.args`*::
++
+--
+type: keyword
+
+Process arguments.
+May be filtered to protect sensitive information.
+
+
+--
+
+*`process.pid`*::
++
+--
+type: long
+
+Numeric process ID of the service process.
+
+
+--
+
+*`process.ppid`*::
++
+--
+type: long
+
+Numeric ID of the service's parent process.
+
+
+--
+
+*`process.title`*::
++
+--
+type: keyword
+
+Service process title.
+
+
+--
+
+
+*`observer.listening`*::
++
+--
+type: keyword
+
+Address the server is listening on.
 
 
 --

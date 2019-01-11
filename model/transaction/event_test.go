@@ -235,15 +235,13 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	txValid := Event{Timestamp: timestamp}
 	txValidEs := common.MapStr{
-		"context": common.MapStr{
-			"service": common.MapStr{
-				"name":  "myservice",
-				"agent": common.MapStr{"name": "", "version": ""},
-			},
-		},
+		"agent": common.MapStr{"name": "", "version": ""},
 		"processor": common.MapStr{
 			"event": "transaction",
 			"name":  "transaction",
+		},
+		"service": common.MapStr{
+			"name": "myservice",
 		},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
@@ -255,67 +253,64 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}
 
 	txValidWithSystem := common.MapStr{
+		"agent": common.MapStr{"name": "", "version": ""},
+		"host": common.MapStr{
+			"hostname":     hostname,
+			"architecture": architecture,
+			"platform":     platform,
+		},
 		"processor": common.MapStr{
 			"event": "transaction",
 			"name":  "transaction",
 		},
+		"service": common.MapStr{
+			"name": "myservice",
+		},
+		"timestamp": common.MapStr{"us": timestampUs},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"id":       "",
 			"type":     "",
 			"sampled":  true,
 		},
-		"context": common.MapStr{
-			"system": common.MapStr{
-				"hostname":     hostname,
-				"architecture": architecture,
-				"platform":     platform,
-			},
-			"service": common.MapStr{
-				"name":  "myservice",
-				"agent": common.MapStr{"name": "", "version": ""},
-			},
-		},
-		"timestamp": common.MapStr{"us": timestampUs},
 	}
 	txWithContext := Event{Timestamp: timestamp, Context: common.MapStr{"foo": "bar", "user": common.MapStr{"id": "55"}}}
 	txWithContextEs := common.MapStr{
+		"agent": common.MapStr{"name": "", "version": ""},
+		"context": common.MapStr{
+			"foo":  "bar",
+			"user": common.MapStr{"id": "55"},
+		},
+		"host": common.MapStr{
+			"hostname":     "a.b.c",
+			"architecture": "darwin",
+			"platform":     "x64",
+		},
 		"processor": common.MapStr{
 			"event": "transaction",
 			"name":  "transaction",
 		},
+		"service": common.MapStr{
+			"name": "myservice",
+		},
+		"timestamp": common.MapStr{"us": timestampUs},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
 			"id":       "",
 			"type":     "",
 			"sampled":  true,
 		},
-		"context": common.MapStr{
-			"foo": "bar", "user": common.MapStr{"id": "55"},
-			"service": common.MapStr{
-				"name":  "myservice",
-				"agent": common.MapStr{"name": "", "version": ""},
-			},
-			"system": common.MapStr{
-				"hostname":     "a.b.c",
-				"architecture": "darwin",
-				"platform":     "x64",
-			},
-		},
-		"timestamp": common.MapStr{"us": timestampUs},
 	}
 
 	txValidWithSpan := Event{Timestamp: timestamp}
 	spanEs := common.MapStr{
-		"context": common.MapStr{
-			"service": common.MapStr{
-				"name":  "myservice",
-				"agent": common.MapStr{"name": "", "version": ""},
-			},
-		},
+		"agent": common.MapStr{"name": "", "version": ""},
 		"processor": common.MapStr{
 			"event": "span",
 			"name":  "transaction",
+		},
+		"service": common.MapStr{
+			"name": "myservice",
 		},
 		"span": common.MapStr{
 			"duration": common.MapStr{"us": 0},

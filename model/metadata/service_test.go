@@ -37,16 +37,17 @@ var (
 func TestServiceTransform(t *testing.T) {
 
 	tests := []struct {
-		Service Service
-		Output  common.MapStr
+		Service     Service
+		Fields      common.MapStr
+		AgentFields common.MapStr
 	}{
 		{
 			Service: Service{},
-			Output: common.MapStr{
-				"agent": common.MapStr{
-					"name":    "",
-					"version": "",
-				},
+			AgentFields: common.MapStr{
+				"name":    "",
+				"version": "",
+			},
+			Fields: common.MapStr{
 				"name": "",
 			},
 		},
@@ -72,7 +73,11 @@ func TestServiceTransform(t *testing.T) {
 					Version: agentVersion,
 				},
 			},
-			Output: common.MapStr{
+			AgentFields: common.MapStr{
+				"name":    "elastic-node",
+				"version": "1.0.0",
+			},
+			Fields: common.MapStr{
 				"name":        "myService",
 				"version":     "5.1.3",
 				"environment": "staging",
@@ -88,17 +93,13 @@ func TestServiceTransform(t *testing.T) {
 					"name":    "Express",
 					"version": "1.2.3",
 				},
-				"agent": common.MapStr{
-					"name":    "elastic-node",
-					"version": "1.0.0",
-				},
 			},
 		},
 	}
 
 	for _, test := range tests {
-		output := test.Service.fields()
-		assert.Equal(t, test.Output, output)
+		assert.Equal(t, test.Fields, test.Service.fields())
+		assert.Equal(t, test.AgentFields, test.Service.agentFields())
 	}
 }
 
