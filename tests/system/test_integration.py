@@ -190,6 +190,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
         assert "ip" in rs['hits']['hits'][0]["_source"]["host"], rs['hits']
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    @unittest.skip("WIP")
     def test_enrich_rum_event(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
