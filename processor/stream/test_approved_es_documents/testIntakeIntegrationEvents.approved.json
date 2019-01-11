@@ -133,11 +133,23 @@
                     }
                 }
             },
+            "host": {
+                "ip": "192.0.0.1"
+            },
+            "process": {
+                "pid": 1234
+            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
             },
             "service": {
+                "framework": {
+                    "name": "emac"
+                },
+                "language": {
+                    "name": "ecmascript"
+                },
                 "name": "1234_service-12a3"
             }
         }

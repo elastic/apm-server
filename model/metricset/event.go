@@ -151,7 +151,7 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 		utility.Add(tags, "tags", me.Tags)
 		fields.Put("context", tags)
 	}
-	tctx.Metadata.MergeMinimal(fields)
+	tctx.Metadata.Merge(fields)
 
 	if me.Timestamp.IsZero() {
 		me.Timestamp = tctx.RequestTime

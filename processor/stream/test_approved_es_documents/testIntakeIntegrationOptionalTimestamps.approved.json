@@ -111,13 +111,49 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "host": {
+                "architecture": "x64",
+                "hostname": "prod1.example.com",
+                "ip": "192.0.0.1",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
             "my-metric": 99,
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "pid": 1234,
+                "ppid": 6789,
+                "title": "node"
+            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
             },
             "service": {
-                "name": "backendspans"
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "backendspans",
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "user": {
+                "email": "s@test.com",
+                "id": "123",
+                "username": "john"
             }
         }
     ]
