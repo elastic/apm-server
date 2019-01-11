@@ -47,7 +47,7 @@ pipeline {
             env.GO_VERSION = readFile(".go-version")
             if(env.CHANGE_TARGET){
               env.BEATS_UPDATED = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA}|grep '^_beats'|wc -l",
-                returnStdout: true)?.trim() == "0"
+                returnStdout: true)?.trim() != "0"
             }
           }
         }
