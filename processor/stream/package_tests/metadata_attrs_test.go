@@ -101,12 +101,12 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
 	eventFields := getMetadataEventAttrs(t, "")
 	var mappingFields = []tests.FieldTemplateMapping{
-		{"system.platform", "host.os.platform"},
-		{"system", "host"},
-		{"service.agent", "agent"},
-		{"user.username", "context.user.username"},
-		{"user", "context.user"},
-		{"process.argv", "process.args"},
+		{Template: "system.platform", Mapping: "host.os.platform"},
+		{Template: "system", Mapping: "host"},
+		{Template: "service.agent", Mapping: "agent"},
+		{Template: "user.username", Mapping: "context.user.username"},
+		{Template: "user", Mapping: "context.user"},
+		{Template: "process.argv", Mapping: "process.args"},
 	}
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
