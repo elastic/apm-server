@@ -81,6 +81,8 @@ func (m *Metadata) Merge(fields common.MapStr) common.MapStr {
 	utility.Add(fields, "process", m.Process.fields())
 	utility.MergeAdd(fields, "service", m.Service.fields())
 	utility.MergeAdd(fields, "user", m.User.fields())
+	utility.Add(fields, "docker", common.MapStr{"container": m.System.containerFields()})
+	utility.Add(fields, "kubernetes", m.System.kubernetesFields())
 	return fields
 }
 

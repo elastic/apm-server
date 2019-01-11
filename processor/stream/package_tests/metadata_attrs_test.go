@@ -76,6 +76,8 @@ func metadataProcSetup() *tests.ProcessorSetup {
 		Schema: schema.ModelSchema,
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
+			"../../../_beats/libbeat/processors/add_docker_metadata/_meta/fields.yml",
+			"../../../_beats/libbeat/processors/add_kubernetes_metadata/_meta/fields.yml",
 		},
 		FullPayloadPath: "../testdata/intake-v2/only-metadata.ndjson",
 	}
@@ -101,6 +103,14 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
 	eventFields := getMetadataEventAttrs(t, "")
 	var mappingFields = []tests.FieldTemplateMapping{
+		{Template: "system.container.", Mapping: "docker.container."},      // move system.container.*
+		{Template: "system.container", Mapping: ""},                        // delete system.container
+		{Template: "system.kubernetes.node.", Mapping: "kubernetes.node."}, // move system.kubernetes.node.*
+		{Template: "system.kubernetes.node", Mapping: ""},                  // delete system.kubernetes.node
+		{Template: "system.kubernetes.pod.", Mapping: "kubernetes.pod."},   // move system.kubernetes.pod.*
+		{Template: "system.kubernetes.pod", Mapping: ""},                   // delete system.kubernetes.pod
+		{Template: "system.kubernetes.", Mapping: "kubernetes."},           // move system.kubernetes.*
+		{Template: "system.kubernetes", Mapping: ""},                       // delete system.kubernetes
 		{Template: "system.platform", Mapping: "host.os.platform"},
 		{Template: "system", Mapping: "host"},
 		{Template: "service.agent", Mapping: "agent"},
@@ -129,8 +139,12 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("transaction"),
 			tests.Group("parent"),
 			tests.Group("trace"),
+			// we don't support these yet
+			"kubernetes.container.image",
+			"kubernetes.container.name",
 		),
 		[]tests.FieldTemplateMapping{
+			{Template: "kubernetes", Mapping: "system.kubernetes"},
 			{Template: "agent", Mapping: "service.agent"},
 			{Template: "host.os.platform", Mapping: "system.platform"},
 			{Template: "host", Mapping: "system"},
