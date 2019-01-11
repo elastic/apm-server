@@ -59,6 +59,12 @@ Version 6.5 of the APM Server introduced a new intake API. You can learn more ab
 
 If you do not upgrade your APM Agent, you'll continue to use the deprecated v1 intake API endpoint, and thus, the following configuration options.
 
+[[metrics.enabled]]
+[float]
+==== `metrics` deprecated[6.5]
+Metrics endpoint for collecting application metrics.
+Enabled by default.
+
 [[max_unzipped_size]]
 [float]
 ==== `max_unzipped_size` deprecated[6.5]
@@ -137,12 +143,6 @@ Defaults to `debug/vars`.
 ==== `instrumentation.enabled`
 Enables self instrumentation of the APM Server itself.
 Disabled by default.
-
-[[metrics.enabled]]
-[float]
-==== `metrics`
-Experimental Metrics endpoint for collecting application metrics.
-Enabled by default.
 
 [[register.ingest.pipeline.enabled]]
 [float]
