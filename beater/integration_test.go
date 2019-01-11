@@ -37,17 +37,6 @@ import (
 	"github.com/elastic/beats/libbeat/version"
 )
 
-func consumeOnboarding(t *testing.T, events <-chan beat.Event) *beat.Event {
-	select {
-	case e := <-events:
-		assert.Equal(t, "onboarding", e.Fields["processor"].(common.MapStr)["name"])
-		return &e
-	case <-time.After(time.Second):
-		assert.Fail(t, "no events received")
-	}
-	return nil
-}
-
 func collectEvents(events <-chan beat.Event, timeout time.Duration) []beat.Event {
 	var collected []beat.Event
 	for {
@@ -82,11 +71,14 @@ func testPublish(t *testing.T, apm *beater, events <-chan beat.Event, url string
 	got := body(t, rsp)
 	assert.Equal(t, http.StatusAccepted, rsp.StatusCode, got)
 
-	consumeOnboarding(t, events)
+	onboarded := false
 	var docs []map[string]interface{}
 	enc := jsonoutput.New(version.GetDefaultVersion(), jsonoutput.Config{Pretty: true})
 	for _, e := range collectEvents(events, time.Second) {
-		require.NoError(t, err)
+		if e.Fields["processor"].(common.MapStr)["name"] == "onboarding" {
+			onboarded = true
+			continue
+		}
 		adjustMissingTimestamp(&e)
 		doc, err := enc.Encode("apm-test", &e)
 		require.NoError(t, err)
@@ -97,6 +89,7 @@ func testPublish(t *testing.T, apm *beater, events <-chan beat.Event, url string
 	}
 	ret, err := json.Marshal(map[string]interface{}{"events": docs})
 	require.NoError(t, err)
+	assert.True(t, onboarded)
 	return ret
 }
 
@@ -144,7 +137,9 @@ func TestPublishIntegrationOnboarding(t *testing.T) {
 	require.NoError(t, err)
 	defer teardown()
 
-	event := consumeOnboarding(t, events)
+	allEvents := collectEvents(events, time.Second)
+	require.Equal(t, 1, len(allEvents))
+	event := allEvents[0]
 	otype, err := event.Fields.GetValue("observer.type")
 	require.NoError(t, err)
 	assert.Equal(t, "test-apm-server", otype.(string))
