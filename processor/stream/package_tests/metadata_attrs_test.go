@@ -131,10 +131,10 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("trace"),
 		),
 		[]tests.FieldTemplateMapping{
-			{"agent", "service.agent"},
-			{"host.os.platform", "system.platform"},
-			{"host", "system"},
-			{"context.user", "user"},
+			{Template: "agent", Mapping: "service.agent"},
+			{Template: "host.os.platform", Mapping: "system.platform"},
+			{Template: "host", Mapping: "system"},
+			{Template: "context.user", Mapping: "user"},
 		},
 	)
 }

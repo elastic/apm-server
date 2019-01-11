@@ -143,10 +143,10 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 		t,
 		errorKeywordExceptionKeys(),
 		[]tests.FieldTemplateMapping{
-			{"error.", ""},
-			{"transaction.id", "transaction_id"},
-			{"parent.id", "parent_id"},
-			{"trace.id", "trace_id"},
+			{Template: "error."},
+			{Template: "transaction.id", Mapping: "transaction_id"},
+			{Template: "parent.id", Mapping: "parent_id"},
+			{Template: "trace.id", Mapping: "trace_id"},
 		},
 	)
 }
