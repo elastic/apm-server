@@ -219,7 +219,9 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "platform": "darwin"
+                "os": {
+                    "platform": "darwin"
+                }
             },
             "process": {
                 "args": [
@@ -272,7 +274,9 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "platform": "darwin"
+                "os": {
+                    "platform": "darwin"
+                }
             },
             "process": {
                 "args": [
@@ -325,7 +329,9 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "platform": "darwin"
+                "os": {
+                    "platform": "darwin"
+                }
             },
             "process": {
                 "args": [
@@ -379,7 +385,9 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
-                "platform": "darwin"
+                "os": {
+                    "platform": "darwin"
+                }
             },
             "parent": {
                 "id": "9632587410abcdef"
