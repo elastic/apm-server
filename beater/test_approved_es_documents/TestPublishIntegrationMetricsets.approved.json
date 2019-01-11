@@ -48,11 +48,17 @@
                 "type": "test-apm-server",
                 "version": "7.0.0"
             },
+            "process": {
+                "pid": 1234
+            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
                 "name": "1234_service-12a3"
             },
             "short_counter": 227
@@ -84,11 +90,17 @@
                 "type": "test-apm-server",
                 "version": "7.0.0"
             },
+            "process": {
+                "pid": 1234
+            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
                 "name": "1234_service-12a3"
             }
         }
