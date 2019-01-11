@@ -120,10 +120,10 @@ func TestKeywordLimitationOnTransactionAttrs(t *testing.T) {
 	transactionProcSetup().KeywordLimitation(
 		t,
 		transactionKeywordExceptionKeys(),
-		map[string]string{
-			"transaction.": "",
-			"parent.id":    "parent_id",
-			"trace.id":     "trace_id",
+		[]tests.FieldTemplateMapping{
+			{"transaction.", ""},
+			{"parent.id", "parent_id"},
+			{"trace.id", "trace_id"},
 		},
 	)
 }

@@ -15,7 +15,9 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "127.0.0.1",
-                "platform": "darwin"
+                "os": {
+                    "platform": "darwin"
+                }
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -166,7 +168,9 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "127.0.0.1",
-                "platform": "darwin"
+                "os": {
+                    "platform": "darwin"
+                }
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -245,7 +249,9 @@
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "127.0.0.1",
-                "platform": "darwin"
+                "os": {
+                    "platform": "darwin"
+                }
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

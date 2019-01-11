@@ -441,36 +441,26 @@ Version of the agent used.
 [float]
 == host fields
 
-Optional system fields.
+Optional host fields.
 
 
-
-*`host.hostname`*::
-+
---
-type: keyword
-
-The hostname of the system the event was recorded on.
-
-
---
 
 *`host.architecture`*::
 +
 --
 type: keyword
 
-The architecture of the system the event was recorded on.
+The architecture of the host the event was recorded on.
 
 
 --
 
-*`host.platform`*::
+*`host.hostname`*::
 +
 --
 type: keyword
 
-The platform of the system the event was recorded on.
+The hostname of the host the event was recorded on.
 
 
 --
@@ -481,6 +471,23 @@ The platform of the system the event was recorded on.
 type: ip
 
 IP of the host that records the event.
+
+
+--
+
+[float]
+== os fields
+
+The OS fields contain information about the operating system.
+
+
+
+*`host.os.platform`*::
++
+--
+type: keyword
+
+The platform of the host the event was recorded on.
 
 
 --

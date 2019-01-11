@@ -255,9 +255,11 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	txValidWithSystem := common.MapStr{
 		"agent": common.MapStr{"name": "", "version": ""},
 		"host": common.MapStr{
-			"hostname":     hostname,
 			"architecture": architecture,
-			"platform":     platform,
+			"hostname":     hostname,
+			"os": common.MapStr{
+				"platform": platform,
+			},
 		},
 		"processor": common.MapStr{
 			"event": "transaction",
@@ -282,9 +284,11 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"user": common.MapStr{"id": "55"},
 		},
 		"host": common.MapStr{
-			"hostname":     "a.b.c",
 			"architecture": "darwin",
-			"platform":     "x64",
+			"hostname":     "a.b.c",
+			"os": common.MapStr{
+				"platform": "x64",
+			},
 		},
 		"processor": common.MapStr{
 			"event": "transaction",

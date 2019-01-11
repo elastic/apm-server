@@ -100,13 +100,13 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
 	eventFields := getMetadataEventAttrs(t, "")
-	var mappingFields = map[string]string{
-		//"system.platform": "host.os.platform",
-		"system":        "host",
-		"service.agent": "agent",
-		"user.username": "context.user.username",
-		"user":          "context.user",
-		"process.argv":  "process.args",
+	var mappingFields = []tests.FieldTemplateMapping{
+		{"system.platform", "host.os.platform"},
+		{"system", "host"},
+		{"service.agent", "agent"},
+		{"user.username", "context.user.username"},
+		{"user", "context.user"},
+		{"process.argv", "process.args"},
 	}
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
@@ -130,10 +130,11 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("parent"),
 			tests.Group("trace"),
 		),
-		map[string]string{
-			"agent":        "service.agent",
-			"host":         "system",
-			"context.user": "user",
+		[]tests.FieldTemplateMapping{
+			{"agent", "service.agent"},
+			{"host.os.platform", "system.platform"},
+			{"host", "system"},
+			{"context.user", "user"},
 		},
 	)
 }

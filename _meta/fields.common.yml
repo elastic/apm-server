@@ -282,25 +282,19 @@
     - name: host
       type: group
       description: >
-        Optional system fields.
+        Optional host fields.
       fields:
-
-        - name: hostname
-          type: keyword
-          description: >
-            The hostname of the system the event was recorded on.
-          overwrite: true
 
         - name: architecture
           type: keyword
           description: >
-            The architecture of the system the event was recorded on.
+            The architecture of the host the event was recorded on.
           overwrite: true
 
-        - name: platform
+        - name: hostname
           type: keyword
           description: >
-            The platform of the system the event was recorded on.
+            The hostname of the host the event was recorded on.
           overwrite: true
 
         - name: ip
@@ -308,6 +302,19 @@
           description: >
             IP of the host that records the event.
           overwrite: true
+
+        - name: os
+          title: Operating System
+          group: 2
+          description: >
+            The OS fields contain information about the operating system.
+          type: group
+          fields:
+            - name: platform
+              type: keyword
+              description: >
+                The platform of the host the event was recorded on.
+              overwrite: true
 
     - name: process
       type: group

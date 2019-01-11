@@ -77,17 +77,19 @@ func (ps *ProcessorSetup) EventFieldsInTemplateFields(t *testing.T, eventFields,
 	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
 }
 
-func (ps *ProcessorSetup) EventFieldsMappedToTemplateFields(t *testing.T, eventFields *Set, mapping map[string]string) {
+type FieldTemplateMapping struct{ Template, Mapping string }
+
+func (ps *ProcessorSetup) EventFieldsMappedToTemplateFields(t *testing.T, eventFields *Set,
+	mappings []FieldTemplateMapping) {
 	allFieldNames, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName, isEnabled)
 	require.NoError(t, err)
 
 	var eventFieldsMapped = NewSet()
 	for _, val := range eventFields.Array() {
 		var f = val.(string)
-		for k, v := range mapping {
-			if strings.HasPrefix(f, k) {
-				f = strings.Replace(f, k, v, -1)
-				continue
+		for _, m := range mappings {
+			if strings.HasPrefix(f, m.Template) {
+				f = strings.Replace(f, m.Template, m.Mapping, -1)
 			}
 		}
 		eventFieldsMapped.Add(f)
