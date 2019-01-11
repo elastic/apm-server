@@ -106,6 +106,12 @@ func subSlice(from, to int, content []string) []string {
 	if from < 0 {
 		from = 0
 	}
+	if to < 0 {
+		to = 0
+	}
+	if from > len(content) {
+		from = len(content)
+	}
 	if to > len(content) {
 		to = len(content)
 	}
