@@ -15,4 +15,5 @@ https://github.com/elastic/apm-server/compare/6.5\...6.x[View commits]
 ==== Bug fixes
 
 - Fix index pattern bundled with Kibana to be in sync with ES template pull{1571}[1571].
-- Ensure all `transaction.marks.*.*` values are stored as scaled floats. pull{1704}[1704]
+- Ensure all `transaction.marks.*.*` values are stored as scaled floats. pull{1704}[1704].
+- Prevent slice out of bounds panic when sourcemap line numbers are off {pull}1764[1764].
