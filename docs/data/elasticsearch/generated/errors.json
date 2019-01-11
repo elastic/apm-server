@@ -222,7 +222,7 @@
                 "platform": "darwin"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -275,7 +275,7 @@
                 "platform": "darwin"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -328,7 +328,7 @@
                 "platform": "darwin"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -385,7 +385,7 @@
                 "id": "9632587410abcdef"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
