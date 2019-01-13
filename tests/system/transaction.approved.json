@@ -50,6 +50,11 @@
                 "environment": "staging",
                 "name": "1234_service-12a3"
             },
+            "user": {
+                "id": "99",
+                "username": "foo",
+                "email": "foo@example.com"
+            },
             "context": {
                 "custom": {
                     "some_other_value": "foo bar",
@@ -61,11 +66,6 @@
                     },
                     "my_key": 1,
                     "(": "not a valid regex and that is fine"
-                },
-                "user": {
-                    "id": "99",
-                    "username": "foo",
-                    "email": "foo@example.com"
                 },
                 "request": {
                     "cookies": {

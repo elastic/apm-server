@@ -151,7 +151,6 @@ func DecodeSourcemapFormData(req *http.Request) (map[string]interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-
 	payload := map[string]interface{}{
 		"sourcemap":       string(sourcemapBytes),
 		"service_name":    req.FormValue("service_name"),

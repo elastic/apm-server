@@ -43,18 +43,19 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("transaction.marks."),
 		"transaction.span_count.started",
+		tests.Group("context.user"),
 	)
 }
 
 func transactionFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
-		"context.user.user-agent",
-		"context.user.ip",
 		"context.http",
 		"context.http.status_code",
 		"host.ip",
 		"transaction.marks.*.*",
 		tests.Group("observer"),
+		tests.Group("user"),
+		tests.Group("client"),
 	)
 }
 
@@ -97,6 +98,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		tests.Group("host"),
 		tests.Group("process"),
 		tests.Group("service"),
+		tests.Group("user"),
 	)
 }
 

@@ -28,6 +28,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/elastic/apm-server/model/metadata"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	m "github.com/elastic/apm-server/model"
@@ -73,6 +75,8 @@ type Event struct {
 	Log       *Log
 
 	TransactionSampled *bool
+
+	User *metadata.User
 
 	data common.MapStr
 }
@@ -161,6 +165,14 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, err
 	}
 
+	if ok, _ := e.Context.HasKey("user"); ok {
+		user, err := e.Context.GetValue("user")
+		e.User, err = metadata.DecodeUser(user, err)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &e, nil
 }
 
@@ -178,8 +190,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"error":     e.fields(tctx),
 		"processor": processorEntry,
 	}
-	tctx.Metadata.Merge(fields)
+	delete(e.Context, "user")
 	utility.Add(fields, "context", e.Context)
+	utility.Add(fields, "user", e.User.Fields())
+	utility.Add(fields, "client", e.User.ClientFields())
+	utility.Add(fields, "user_agent", e.User.UserAgentFields())
+	tctx.Metadata.Merge(fields)
 
 	if e.TransactionSampled != nil || (e.TransactionId != nil && *e.TransactionId != "") {
 		transaction := common.MapStr{}
@@ -207,6 +223,10 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
+
+	if tctx.Metadata.User != nil {
+		e.add("user_agent.original", tctx.Metadata.User.UserAgent)
+	}
 
 	e.addException(tctx)
 	e.addLog(tctx)

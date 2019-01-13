@@ -80,7 +80,10 @@ func (m *Metadata) Merge(fields common.MapStr) common.MapStr {
 	utility.Add(fields, "host", m.System.fields())
 	utility.Add(fields, "process", m.Process.fields())
 	utility.MergeAdd(fields, "service", m.Service.fields())
-	utility.MergeAdd(fields, "user", m.User.fields())
+	utility.AddIfNil(fields, "user", m.User.Fields())
+	utility.AddIfNil(fields, "client", m.User.ClientFields())
+	utility.AddIfNil(fields, "user_agent", m.User.UserAgentFields())
+
 	return fields
 }
 

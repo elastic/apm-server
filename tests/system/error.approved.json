@@ -110,6 +110,11 @@
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             },
+            "user": {
+                "username": "foo",
+                "id": 99,
+                "email": "foo@example.com"
+            },
             "context": {
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
@@ -161,11 +166,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "user": {
-                    "username": "foo",
-                    "id": 99,
-                    "email": "foo@example.com"
                 },
                 "response": {
                     "headers": {

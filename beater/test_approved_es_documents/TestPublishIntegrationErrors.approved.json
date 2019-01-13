@@ -70,11 +70,6 @@
                 },
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-                },
-                "user": {
-                    "email": "foo@example.com",
-                    "id": 99,
-                    "username": "foo"
                 }
             },
             "error": {
@@ -267,6 +262,11 @@
             },
             "timestamp": {
                 "us": 1494342245999999
+            },
+            "user": {
+                "email": "foo@example.com",
+                "id": "99",
+                "name": "foo"
             }
         },
         {

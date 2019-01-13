@@ -61,7 +61,9 @@ func TestTransactionEventDecode(t *testing.T) {
 	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
 	dropped, started, duration := 12, 6, 1.67
-	context := map[string]interface{}{"a": "b"}
+	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
+	context := map[string]interface{}{"a": "b", "user": map[string]interface{}{
+		"username": name, "email": email, "ip": userIp, "id": userId}}
 	marks := map[string]interface{}{"k": "b"}
 	sampled := true
 
@@ -70,24 +72,6 @@ func TestTransactionEventDecode(t *testing.T) {
 		err   error
 		e     *Event
 	}{
-		// traceId missing
-		{
-			input: map[string]interface{}{
-				"id": id, "type": trType, "duration": duration, "timestamp": timestampEpoch,
-				"span_count": map[string]interface{}{"started": 6.0}},
-			err: errors.New("Error fetching field"),
-		},
-		// minimal event
-		{
-			input: map[string]interface{}{
-				"id": id, "type": trType, "duration": duration, "timestamp": timestampEpoch,
-				"trace_id": traceId, "span_count": map[string]interface{}{"started": 6.0}},
-			e: &Event{
-				Id: id, Type: trType, TraceId: traceId,
-				Duration: duration, Timestamp: timestampParsed,
-				SpanCount: SpanCount{Started: &started},
-			},
-		},
 		// full event, ignoring spans
 		{
 			input: map[string]interface{}{
@@ -105,6 +89,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Duration: duration, Timestamp: timestampParsed,
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
+				User:      &metadata.User{Id: &userId, Name: &name, IP: &userIp, Email: &email},
 			},
 		},
 	} {
@@ -194,7 +179,7 @@ func TestEventTransform(t *testing.T) {
 				Result:    &result,
 				Timestamp: time.Now(),
 				Duration:  65.98,
-				Context:   common.MapStr{"foo": "bar"},
+				Context:   map[string]interface{}{"foo": "bar"},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
@@ -225,6 +210,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	platform := "x64"
 	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
 	timestampUs := timestamp.UnixNano() / 1000
+	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
+	user := metadata.User{Id: &id, Name: &name, IP: &ip, UserAgent: &userAgent}
 
 	service := metadata.Service{Name: "myservice"}
 	system := &metadata.System{
@@ -276,13 +263,15 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"sampled":  true,
 		},
 	}
-	txWithContext := Event{Timestamp: timestamp, Context: common.MapStr{"foo": "bar", "user": common.MapStr{"id": "55"}}}
+	txWithContext := Event{Timestamp: timestamp, Context: common.MapStr{"foo": "bar"}, User: &user}
 	txWithContextEs := common.MapStr{
 		"agent": common.MapStr{"name": "", "version": ""},
 		"context": common.MapStr{
-			"foo":  "bar",
-			"user": common.MapStr{"id": "55"},
+			"foo": "bar",
 		},
+		"user":       common.MapStr{"id": "123", "name": "jane"},
+		"client":     common.MapStr{"ip": "63.23.123.4"},
+		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",
 			"hostname":     "a.b.c",

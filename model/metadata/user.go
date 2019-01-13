@@ -18,7 +18,9 @@
 package metadata
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -27,7 +29,7 @@ import (
 type User struct {
 	Id        *string
 	Email     *string
-	Username  *string
+	Name      *string
 	IP        *string
 	UserAgent *string
 }
@@ -42,24 +44,49 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 	}
 	decoder := utility.ManualDecoder{}
 	user := User{
-		Id:        decoder.StringPtr(raw, "id"),
-		Email:     decoder.StringPtr(raw, "email"),
-		Username:  decoder.StringPtr(raw, "username"),
-		IP:        decoder.StringPtr(raw, "ip"),
 		UserAgent: decoder.StringPtr(raw, "user-agent"),
+		IP:        decoder.StringPtr(raw, "ip"),
+		Name:      decoder.StringPtr(raw, "username"),
+		Email:     decoder.StringPtr(raw, "email"),
+	}
+
+	//id can be string or int
+	tmp := decoder.Interface(raw, "id")
+	fmt.Println(tmp)
+	if tmp != nil {
+		if t, ok := tmp.(json.Number); ok {
+			id := t.String()
+			user.Id = &id
+		} else if t, ok := tmp.(string); ok && t != "" {
+			user.Id = &t
+		}
 	}
 	return &user, decoder.Err
 }
 
-func (u *User) fields() common.MapStr {
+func (u *User) Fields() common.MapStr {
 	if u == nil {
 		return nil
 	}
 	user := common.MapStr{}
 	utility.Add(user, "id", u.Id)
 	utility.Add(user, "email", u.Email)
-	utility.Add(user, "username", u.Username)
-	utility.Add(user, "ip", u.IP)
-	utility.Add(user, "user-agent", u.UserAgent)
+	utility.Add(user, "name", u.Name)
 	return user
+}
+
+func (u *User) ClientFields() common.MapStr {
+	if u == nil {
+		return nil
+	}
+	user := common.MapStr{}
+	utility.Add(user, "ip", u.IP)
+	return user
+}
+
+func (u *User) UserAgentFields() common.MapStr {
+	if u == nil || u.UserAgent == nil {
+		return nil
+	}
+	return common.MapStr{"original": *u.UserAgent}
 }
