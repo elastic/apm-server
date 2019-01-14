@@ -78,14 +78,15 @@ class Test(ElasticTest):
                 mtype = mapping["type"]
                 assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_tags_type(self):
-        self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
-                                     self.intake_url, 'transaction', 9)
+        self.load_docs_with_template(self.get_transaction_payload_path(), self.transactions_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="context.tags.*")
-        for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
+        for name, metric in mappings[self.index_name]["mappings"]["doc"].items():
             fullname = metric["full_name"]
             for mapping in metric["mapping"].values():
+                print(fullname)
                 mtype = mapping["type"]
                 if fullname.startswith("context.tags.bool"):
                     assert mtype == "boolean", name + " mapped as " + mtype + ", not boolean"
