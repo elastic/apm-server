@@ -61,6 +61,11 @@ const ModelSchema = `{
                         "sampled": {
                             "type": ["boolean", "null"],
                             "description": "Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have 'spans' or 'context'. Defaults to true."
+                        },
+                        "type": {
+                            "type": ["string", "null"],
+                            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
+                            "maxLength": 1024
                         }
                     }
                 },

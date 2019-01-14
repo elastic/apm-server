@@ -395,6 +395,16 @@ Transactions that are 'sampled' will include all available information. Transact
 
 --
 
+*`transaction.type`*::
++
+--
+type: keyword
+
+Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
+
+--
+
 
 *`trace.id`*::
 +
@@ -868,16 +878,6 @@ Generic designation of a transaction in the scope of a single service (eg. 'GET 
 type: keyword
 
 --
-
---
-
-*`transaction.type`*::
-+
---
-type: keyword
-
-Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
-
 
 --
 
