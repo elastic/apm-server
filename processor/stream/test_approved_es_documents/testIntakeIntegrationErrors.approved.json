@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "context": {
                 "custom": {
                     "and_objects": {
@@ -70,11 +73,6 @@
                     "email": "foo@example.com",
                     "id": 99,
                     "username": "foo"
-                }
-            },
-            "docker": {
-                "container": {
-                    "id": "container-id"
                 }
             },
             "error": {
@@ -278,10 +276,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "error": {
                 "exception": {
@@ -348,10 +344,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "error": {
                 "exception": {
@@ -418,10 +412,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

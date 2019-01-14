@@ -76,8 +76,6 @@ func metadataProcSetup() *tests.ProcessorSetup {
 		Schema: schema.ModelSchema,
 		TemplatePaths: []string{
 			"../../../_meta/fields.common.yml",
-			"../../../_beats/libbeat/processors/add_docker_metadata/_meta/fields.yml",
-			"../../../_beats/libbeat/processors/add_kubernetes_metadata/_meta/fields.yml",
 		},
 		FullPayloadPath: "../testdata/intake-v2/only-metadata.ndjson",
 	}
@@ -103,7 +101,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
 	eventFields := getMetadataEventAttrs(t, "")
 	var mappingFields = []tests.FieldTemplateMapping{
-		{Template: "system.container.", Mapping: "docker.container."},      // move system.container.*
+		{Template: "system.container.", Mapping: "container."},             // move system.container.*
 		{Template: "system.container", Mapping: ""},                        // delete system.container
 		{Template: "system.kubernetes.node.", Mapping: "kubernetes.node."}, // move system.kubernetes.node.*
 		{Template: "system.kubernetes.node", Mapping: ""},                  // delete system.kubernetes.node
@@ -139,15 +137,13 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("transaction"),
 			tests.Group("parent"),
 			tests.Group("trace"),
-			// we don't support these yet
-			"kubernetes.container.image",
-			"kubernetes.container.name",
 		),
 		[]tests.FieldTemplateMapping{
-			{Template: "kubernetes", Mapping: "system.kubernetes"},
-			{Template: "agent", Mapping: "service.agent"},
+			{Template: "agent.", Mapping: "service.agent."},
+			{Template: "container.", Mapping: "system.container."},
+			{Template: "kubernetes.", Mapping: "system.kubernetes."},
 			{Template: "host.os.platform", Mapping: "system.platform"},
-			{Template: "host", Mapping: "system"},
+			{Template: "host.", Mapping: "system."},
 			{Template: "context.user", Mapping: "user"},
 		},
 	)

@@ -11,10 +11,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "host": {
                 "architecture": "x64",
@@ -103,6 +101,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "context": {
                 "custom": {
                     "(": "not a valid regex and that is fine",
@@ -177,11 +178,6 @@
                     "email": "foo@example.com",
                     "id": "99",
                     "username": "foo"
-                }
-            },
-            "docker": {
-                "container": {
-                    "id": "container-id"
                 }
             },
             "host": {
@@ -270,14 +266,12 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "context": {
                 "request": {
                     "method": "POST"
-                }
-            },
-            "docker": {
-                "container": {
-                    "id": "container-id"
                 }
             },
             "host": {

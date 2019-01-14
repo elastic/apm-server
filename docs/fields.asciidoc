@@ -439,6 +439,72 @@ Version of the agent used.
 --
 
 [float]
+== container fields
+
+Container fields are used for meta information about the specific container that is the source of information. These fields help correlate data based containers from any runtime.
+
+
+
+*`container.id`*::
++
+--
+type: keyword
+
+Unique container id.
+
+
+--
+
+[float]
+== kubernetes fields
+
+Kubernetes metadata added by the kubernetes processor
+
+
+
+*`kubernetes.namespace`*::
++
+--
+type: keyword
+
+Kubernetes namespace
+
+
+--
+
+
+*`kubernetes.node.name`*::
++
+--
+type: keyword
+
+Kubernetes node name
+
+
+--
+
+
+*`kubernetes.pod.name`*::
++
+--
+type: keyword
+
+Kubernetes pod name
+
+
+--
+
+*`kubernetes.pod.uid`*::
++
+--
+type: keyword
+
+Kubernetes Pod UID
+
+
+--
+
+[float]
 == host fields
 
 Optional host fields.

@@ -279,6 +279,59 @@
             Version of the agent used.
           overwrite: true
 
+    - name: container
+      type: group
+      title: Container
+      description: >
+        Container fields are used for meta information about the specific container
+        that is the source of information. These fields help correlate data based
+        containers from any runtime.
+      fields:
+
+        - name: id
+          type: keyword
+          description: >
+            Unique container id.
+          overwrite: true
+
+    - name: kubernetes
+      type: group
+      title: Kubernetes
+      description: >
+        Kubernetes metadata added by the kubernetes processor
+      fields:
+
+        - name: namespace
+          type: keyword
+          description: >
+            Kubernetes namespace
+          overwrite: true
+
+        - name: node
+          type: group
+          fields:
+            - name: name
+              type: keyword
+              description: >
+                Kubernetes node name
+              overwrite: true
+
+        - name: pod
+          type: group
+          fields:
+
+            - name: name
+              type: keyword
+              description: >
+                Kubernetes pod name
+              overwrite: true
+
+            - name: uid
+              type: keyword
+              description: >
+                Kubernetes Pod UID
+              overwrite: true
+
     - name: host
       type: group
       description: >

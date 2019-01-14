@@ -35,8 +35,6 @@ func transactionProcSetup() *tests.ProcessorSetup {
 		TemplatePaths: []string{
 			"../../../model/transaction/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
-			"../../../_beats/libbeat/processors/add_docker_metadata/_meta/fields.yml",
-			"../../../_beats/libbeat/processors/add_kubernetes_metadata/_meta/fields.yml",
 		},
 	}
 }
@@ -45,14 +43,6 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("transaction.marks."),
 		"transaction.span_count.started",
-
-		// these object fields are not picked up from fields.yml because
-		// they are defined as "pod.name" etc. there is no actual field called
-		// "kubernetes.pod", only "kubernetes.pod.name" but our tooling generates
-		// those fields anyway.
-		"docker.container",
-		"kubernetes.node",
-		"kubernetes.pod",
 	)
 }
 
@@ -65,15 +55,6 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"host.ip",
 		"transaction.marks.*.*",
 		tests.Group("observer"),
-
-		// we don't support these yet
-		"docker.container.image",
-		"docker.container.labels",
-		"docker.container.name",
-		"kubernetes.annotations",
-		"kubernetes.container.image",
-		"kubernetes.container.name",
-		"kubernetes.labels",
 	)
 }
 
@@ -113,7 +94,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 
 		// metadata fields
 		tests.Group("agent"),
-		tests.Group("docker"),
+		tests.Group("container"),
 		tests.Group("host"),
 		tests.Group("kubernetes"),
 		tests.Group("process"),

@@ -6,10 +6,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "host": {
                 "architecture": "x64",
@@ -85,6 +83,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "container": {
+                "id": "container-id"
             },
             "context": {
                 "custom": {
@@ -162,11 +163,6 @@
                     "username": "foo"
                 }
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
-            },
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
@@ -241,14 +237,12 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "context": {
                 "request": {
                     "method": "POST"
-                }
-            },
-            "docker": {
-                "container": {
-                    "id": "container-id"
                 }
             },
             "host": {

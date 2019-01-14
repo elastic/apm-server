@@ -33,8 +33,6 @@ func errorProcSetup() *tests.ProcessorSetup {
 		TemplatePaths: []string{
 			"../../../model/error/_meta/fields.yml",
 			"../../../_meta/fields.common.yml",
-			"../../../_beats/libbeat/processors/add_docker_metadata/_meta/fields.yml",
-			"../../../_beats/libbeat/processors/add_kubernetes_metadata/_meta/fields.yml",
 		},
 		Schema:       schema.ModelSchema,
 		SchemaPrefix: "error",
@@ -46,14 +44,6 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("error.exception.attributes"),
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
-
-		// these object fields are not picked up from fields.yml because
-		// they are defined as "pod.name" etc. there is no actual field called
-		// "kubernetes.pod", only "kubernetes.pod.name" but our tooling generates
-		// those fields anyway.
-		"docker.container",
-		"kubernetes.node",
-		"kubernetes.pod",
 	)
 }
 
@@ -64,15 +54,6 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		"context.http", "context.http.status_code",
 		"host.ip",
 		tests.Group("observer"),
-
-		// we don't support these yet
-		"docker.container.image",
-		"docker.container.labels",
-		"docker.container.name",
-		"kubernetes.annotations",
-		"kubernetes.container.image",
-		"kubernetes.container.name",
-		"kubernetes.labels",
 	)
 }
 
@@ -137,7 +118,7 @@ func errorKeywordExceptionKeys() *tests.Set {
 
 		// metadata fields
 		tests.Group("agent"),
-		tests.Group("docker"),
+		tests.Group("container"),
 		tests.Group("host"),
 		tests.Group("kubernetes"),
 		tests.Group("observer"),
@@ -167,7 +148,6 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 		errorKeywordExceptionKeys(),
 		[]tests.FieldTemplateMapping{
 			{Template: "error."},
-			{Template: "kubernetes.", Mapping: "system.kubernetes."},
 			{Template: "transaction.id", Mapping: "transaction_id"},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},

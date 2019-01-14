@@ -6,10 +6,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -95,10 +93,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "host": {
                 "ip": "192.0.0.1"
@@ -154,10 +150,8 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "docker": {
-                "container": {
-                    "id": "container-id"
-                }
+            "container": {
+                "id": "container-id"
             },
             "go": {
                 "memstats": {
