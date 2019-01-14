@@ -90,7 +90,10 @@
                     "name": "backendspans"
                 },
                 "tags": {
-                    "tag1": "value1"
+                    "tag1": "value1",
+                    "tag2": 123,
+                    "tag3": 12.34,
+                    "tag4": true
                 }
             },
             "parent": {

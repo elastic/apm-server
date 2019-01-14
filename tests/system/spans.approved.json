@@ -212,7 +212,9 @@
                     }
                 },
                 "tags": {
-                    "span_tag": "something"
+                    "span_tag": "something",
+                    "number_code": 200,
+                    "bool_error": false
                 }
             },
             "processor": {

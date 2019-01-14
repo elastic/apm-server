@@ -48,6 +48,7 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		"context.tags.span_tag",
 		"labels.organization_uuid",
 		"labels.span_tag",
+		Group("context.tags."),
 		//known not-indexed fields:
 		Group("context.custom"),
 		Group("context.db"),

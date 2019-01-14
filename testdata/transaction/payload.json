@@ -108,7 +108,9 @@
                     "email": "foo@example.com"
                 },
                 "tags": {
-                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                    "number_code": 2,
+                    "bool_error": false
                 },
                 "custom": {
                     "my_key": 1,
@@ -172,7 +174,9 @@
                             "method": "GET"
                         },
                         "tags": {
-                            "span_tag": "something"
+                            "span_tag": "something",
+                            "number_code": 200,
+                            "bool_error": false
                         }
                     }
                 },

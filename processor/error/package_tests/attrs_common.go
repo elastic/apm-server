@@ -183,11 +183,11 @@ func schemaTestData(td []tests.SchemaTestData) []tests.SchemaTestData {
 		{Key: "errors.context.request.cookies", Valid: val{obj{}},
 			Invalid: []tests.Invalid{{Msg: `/context/properties/request/properties/cookies/type`, Values: val{102, "a"}}}},
 		{Key: "errors.context.tags",
-			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}},
+			Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 			Invalid: []tests.Invalid{
-				{Msg: `context/properties/tags/type`, Values: val{"tags"}},
-				{Msg: `context/properties/tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: 123}, obj{tests.Str1024: obj{}}}},
-				{Msg: `context/properties/tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
+				{Msg: `tags/type`, Values: val{"tags"}},
+				{Msg: `tags/patternproperties`, Values: val{obj{"invalid": tests.Str1025}, obj{tests.Str1024: obj{}}}},
+				{Msg: `tags/additionalproperties`, Values: val{obj{"invali*d": "hello"}, obj{"invali\"d": "hello"}, obj{"invali.d": "hello"}}}}},
 		{Key: "errors.context.user.id", Valid: val{123, tests.Str1024Special},
 			Invalid: []tests.Invalid{
 				{Msg: `context/properties/user/properties/id/type`, Values: val{obj{}}},

@@ -31,8 +31,9 @@
             "platform": "darwin"
         },
         "tags": {
-            "code": "200",
-            "some.other.code": "abc"
+            "code": 200,
+            "key": "value",
+            "success": true
         }
     },
     "dotted": {
@@ -44,8 +45,9 @@
     "float_gauge": 9.16,
     "integer_gauge": 42767,
     "labels": {
-        "code": "200",
-        "some.other.code": "abc"
+        "code": 200,
+        "key": "value",
+        "success": true
     },
     "long_gauge": 3147483648,
     "negative": {

@@ -19,6 +19,8 @@
             "name": "1234_service-12a3"
         },
         "tags": {
+            "bool_error": false,
+            "number_code": 200,
             "span_tag": "something"
         }
     },
