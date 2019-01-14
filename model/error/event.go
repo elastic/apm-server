@@ -183,7 +183,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	tctx.Metadata.Merge(fields)
 	utility.Add(fields, "context", e.Context)
 
-	// sampled is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
+	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
 	if e.TransactionSampled != nil || e.TransactionType != nil || (e.TransactionId != nil && *e.TransactionId != "") {
 		transaction := common.MapStr{}

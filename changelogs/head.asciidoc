@@ -8,6 +8,7 @@
 - Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].
 - Allow numbers and boolean values for `transaction.tags`, `span.tags`, `metricset.tags` {pull}1712[1712].
 - Update response format of the healthcheck handler and prettyfy all JSON responses {pull}1748[1748].
+- Add transaction.type to error data {pull}1781[1781].
 
 [float]
 ==== Removed
