@@ -101,8 +101,7 @@
                             }
                         }
                     ]
-                },
-                "user_agent.original": "rum-2.0"
+                }
             },
             "processor": {
                 "event": "error",

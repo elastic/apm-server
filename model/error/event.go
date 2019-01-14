@@ -224,10 +224,6 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
 
-	if tctx.Metadata.User != nil {
-		e.add("user_agent.original", tctx.Metadata.User.UserAgent)
-	}
-
 	e.addException(tctx)
 	e.addLog(tctx)
 

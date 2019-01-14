@@ -58,8 +58,7 @@
                 "span_count": {
                     "started": 1
                 },
-                "type": "page-load",
-                "user_agent.original": "rum-2.0"
+                "type": "page-load"
             },
             "user_agent": {
                 "original": "rum-2.0"

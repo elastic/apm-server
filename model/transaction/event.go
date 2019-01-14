@@ -128,10 +128,6 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tx, "result", t.Result)
 	utility.Add(tx, "marks", t.Marks)
 
-	if tctx.Metadata.User != nil {
-		utility.Add(tx, "user_agent.original", tctx.Metadata.User.UserAgent)
-	}
-
 	if t.Sampled == nil {
 		utility.Add(tx, "sampled", true)
 	} else {
