@@ -85,7 +85,7 @@
               "type": "terms",
               "schema": "bucket",
               "params": {
-                "field": "service.name",
+                "field": "context.service.name",
                 "size": 1000,
                 "order": "desc",
                 "orderBy": "1"
@@ -149,7 +149,7 @@
                 "point_size": 1,
                 "fill": "0",
                 "stacked": "none",
-                "terms_field": "service.name",
+                "terms_field": "context.service.name",
                 "value_template": "{{value}} ms",
                 "split_color_mode": "gradient",
                 "terms_order_by": "61ca57f2-469d-11e7-af02-69e470af7417"
@@ -226,7 +226,7 @@
                 "point_size": 1,
                 "fill": "0",
                 "stacked": "none",
-                "terms_field": "service.name",
+                "terms_field": "context.service.name",
                 "terms_order_by": "_count",
                 "value_template": "{{value}} tpm"
               }
@@ -394,7 +394,7 @@
           "error.exception.message",
           "error.log.message",
           "error.exception.handled",
-          "service.name"
+          "context.service.name"
         ],
         "sort": [
           "@timestamp",
@@ -468,7 +468,7 @@
               "error.exception.message",
               "error.log.message",
               "error.exception.handled",
-              "service.name"
+              "context.service.name"
             ],
             "id": "ceefd050-7c6a-11e7-aa55-3b0d52c71c60",
             "panelIndex": 2,
@@ -592,7 +592,7 @@
               "type": "top_hits",
               "schema": "metric",
               "params": {
-                "field": "service.name",
+                "field": "context.service.name",
                 "aggregate": "concat",
                 "size": 1,
                 "sortField": "@timestamp",
