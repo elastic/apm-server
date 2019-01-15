@@ -10,47 +10,36 @@
 
 #- from: beat.hostname
 #  to: observer.hostname
-#  index: true
 #
 #- from: beat.name
 #  to: observer.type
-#  index: true
 #
 #- from: beat.version
 #  to: observer.version
-#  index: true
 #
 #- from: context.service.agent.name
 #  to: agent.name
-#  index: true
 #
 #- from: context.service.agent.version
 #  to: agent.version
-#  index: true
 #
 #- from: context.system.architecture
 #  to: host.architecture
-#  index: true
 #
 #- from: context.system.hostname
 #  to: host.hostname
-#  index: true
 #
 #- from: context.system.ip
 #  to: host.ip
-#  index: true
 #
 #- from: context.system.platform
 #  to: host.os.platform
-#  index: true
 #
 #- from: context.request.method
 #  to: http.request.method
-#  index: true
 #
 #- from: context.request.http_version
 #  to: http.version
-#  index: true
 #
 #- from: context.request.body
 #  to: http.request.body
@@ -84,82 +73,82 @@
 #
 #- from: context.process.pid
 #  to: process.pid
-#  index: true
+
 #
 #- from: context.process.ppid
 #  to: process.ppid
-#  index: true
+
 #
 #- from: context.process.title
 #  to: process.title
-#  index: true
+
 #
 #- from: context.process.argv
 #  to: process.args
-#  index: true
+
 #
 #  # not in ECS
 #- from: context.service.environment
 #  to: service.environment
-#  index: true
+
 #
 #  # not in ECS
 #- from: context.service.framework.name
 #  to: service.framework.name
-#  index: true
+
 #
 #  # not in ECS
 #- from: context.service.framework.version
 #  to: service.framework.version
-#  index: true
+
 #
 #  # not in ECS
 #- from: context.service.language.name
 #  to: service.language.name
-#  index: true
+
 #
 #  # not in ECS
 #- from: context.service.language.version
 #  to: service.language.version
-#  index: true
+
 #
 #- from: context.service.name
 #  to: service.name
-#  index: true
+
 #
 #  # not in ECS
 #- from: context.service.runtime.name
 #  to: service.runtime.name
-#  index: true
+
 #
 #  # not in ECS
 #- from: context.service.runtime.version
 #  to: service.runtime.version
-#  index: true
+
 #
 #- from: context.service.version
 #  to: service.version
-#  index: true
+
 #
 #- from: context.request.url.full
 #  to: url.full
-#  index: true
+
 #
 #- from: context.request.url.hash
 #  to: url.fragment
-#  index: true
+
 #
 #- from: context.request.url.hostname
 #  to: url.domain
-#  index: true
+
 #
 #- from: context.request.url.pathname
 #  to: url.path
-#  index: true
+
 #
 #- from: context.request.url.port
 #  to: url.port
-#  index: true
+
 #
 #- from: context.request.url.raw
 #  to: url.original
@@ -167,19 +156,19 @@
 #
 #- from: context.request.url.search
 #  to: url.query
-#  index: true
+
 #
 #- from: context.request.url.protocol
 #  to: url.scheme
-#  index: true
+
 #
 #- from: context.response.finished
 #  to: http.response.finished
-#  index: true
+
 #
 #- from: context.response.status_code
 #  to: http.response.status_code
-#  index: true
+
 #
 #- from: context.response.headers.content-type
 #  to: http.response.headers.content-type
@@ -216,24 +205,23 @@
 #
 #- from: context.user.email
 #  to: user.email
-#  index: true
+
 #
 #- from: context.user.id
 #  to: user.id
-#  index: true
+
 #
 #- from: context.user.username
 #  to: user.name
-#  index: true
+
 #
 #- from: context.user.ip
 #  to: client.ip
-#  index: true
+
 #
 #- from: context.user.user-agent
 #  to: user_agent.original.text
-#  index: true
+
 #
 - from: listening
   to: observer.listening
-  index: true

@@ -31,7 +31,7 @@ func TestECSMapping(t *testing.T) {
 
 	type ECSFieldMigration struct {
 		From, To string
-		Index    bool
+		Index    *bool
 	}
 
 	var ecsMigration []ECSFieldMigration
@@ -42,7 +42,7 @@ func TestECSMapping(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, field := range ecsMigration {
-		if field.Index {
+		if field.Index == nil || *field.Index {
 			assert.True(t, fieldNames.Contains(field.To), "ECS field was expected in template: "+field.To)
 			assert.False(t, fieldNames.Contains(field.From), "6.x field was not expected in template: "+field.From)
 		} else {
