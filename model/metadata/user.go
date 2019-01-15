@@ -20,7 +20,6 @@ package metadata
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -52,7 +51,6 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 
 	//id can be string or int
 	tmp := decoder.Interface(raw, "id")
-	fmt.Println(tmp)
 	if tmp != nil {
 		if t, ok := tmp.(json.Number); ok {
 			id := t.String()
