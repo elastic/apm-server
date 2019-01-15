@@ -19,8 +19,4 @@
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
 
-[float]
-==== Bug fixes
-- Prevent slice out of bounds panic when sourcemap line numbers are off {pull}1764[1764].
-
 https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...master[View commits]
