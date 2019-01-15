@@ -71,7 +71,7 @@ class Test(ElasticTest):
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="context.tags.*")
-        for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
+        for name, metric in mappings[self.index_name]["mappings"].items():
             fullname = metric["full_name"]
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
@@ -88,7 +88,7 @@ class Test(ElasticTest):
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="transaction.marks.*")
-        for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
+        for name, metric in mappings[self.index_name]["mappings"].items():
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
                 assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
@@ -555,7 +555,7 @@ class MetricsIntegrationTest(ElasticTest):
         self.load_docs_with_template(self.get_metricset_payload_payload_path(), self.intake_url, 'metric', 2)
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"
-        doc = mappings[self.index_name]["mappings"]["_doc"]
+        doc = mappings[self.index_name]["mappings"]
         actual_type = doc["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
