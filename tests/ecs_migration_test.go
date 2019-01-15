@@ -18,11 +18,13 @@
 package tests
 
 import (
-	"github.com/elastic/apm-server/tests/loader"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
-	"testing"
+
+	"github.com/elastic/apm-server/tests/loader"
 )
 
 func TestECSMapping(t *testing.T) {
