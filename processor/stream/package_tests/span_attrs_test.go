@@ -49,11 +49,13 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 	)
 }
 
+// fields in _meta/fields.common.yml that are shared between several data types, but not with spans
 func spanFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.Union(
 		tests.NewSet(
 			"view spans",
 			"transaction.sampled",
+			"transaction.type",
 			tests.Group("host"),
 			tests.Group("observer"),
 			tests.Group("process"),
@@ -114,7 +116,7 @@ func transactionContext() *tests.Set {
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
 		"processor.event", "processor.name", "observer.listening",
-		"context.tags",
+		"context.tags", "transaction.type",
 
 		// metadata fields
 		tests.Group("agent"),

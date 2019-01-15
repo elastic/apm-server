@@ -73,6 +73,7 @@ type Event struct {
 	Log       *Log
 
 	TransactionSampled *bool
+	TransactionType    *string
 
 	data common.MapStr
 }
@@ -118,6 +119,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
 		TraceId:            decoder.StringPtr(raw, "trace_id"),
 		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
+		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
 	}
 
 	var stacktr *m.Stacktrace
@@ -181,9 +183,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	tctx.Metadata.Merge(fields)
 	utility.Add(fields, "context", e.Context)
 
-	if e.TransactionSampled != nil || (e.TransactionId != nil && *e.TransactionId != "") {
+	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
+	// agents must send semantically correct data
+	if e.TransactionSampled != nil || e.TransactionType != nil || (e.TransactionId != nil && *e.TransactionId != "") {
 		transaction := common.MapStr{}
 		utility.Add(transaction, "id", e.TransactionId)
+		utility.Add(transaction, "type", e.TransactionType)
 		utility.Add(transaction, "sampled", e.TransactionSampled)
 		utility.Add(fields, "transaction", transaction)
 	}
