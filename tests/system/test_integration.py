@@ -50,17 +50,17 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
+        rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "transaction"}}})
-        assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
+        assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'transaction.approved.json')) as f:
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'transaction')
 
         # compare existing ES documents for spans with new ones
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
+        rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "span"}}})
-        assert rs['hits']['total'] == 5, "found {} documents".format(rs['count'])
+        assert rs['hits']['total']['value'] == 5, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'spans.approved.json')) as f:
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'span')
@@ -104,9 +104,9 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for errors with new ones
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
+        rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "error"}}})
-        assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
+        assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'error.approved.json')) as f:
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'error')
