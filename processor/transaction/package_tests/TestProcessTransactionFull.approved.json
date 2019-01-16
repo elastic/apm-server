@@ -138,10 +138,6 @@
                     }
                 },
                 "type": "request"
-            },
-            "url": {
-                "port": 8080,
-                "scheme": "https"
             }
         },
         {
