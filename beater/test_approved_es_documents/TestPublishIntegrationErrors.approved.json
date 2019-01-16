@@ -478,7 +478,8 @@
             },
             "transaction": {
                 "id": "1234567890987654",
-                "sampled": true
+                "sampled": true,
+                "type": "request"
             }
         }
     ]

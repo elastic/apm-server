@@ -14,11 +14,6 @@
           description: >
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
-        - name: type
-          type: keyword
-          description: >
-            Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
-
         - name: duration
           type: group
           description:

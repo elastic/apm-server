@@ -213,6 +213,11 @@
           type: boolean
           description: >
             Transactions that are 'sampled' will include all available information. Transactions that are not sampled will not have spans or context.
+        - name: type
+          type: keyword
+          description: >
+            Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+
 
     - name: trace 
       type: group

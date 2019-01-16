@@ -86,7 +86,9 @@ func TestErrorEventDecode(t *testing.T) {
 		"username": name, "email": email, "ip": userIp, "id": userId}}
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
-	sampled := true
+	transactionSampled := true
+	transactionType := "request"
+
 	for idx, test := range []struct {
 		input       interface{}
 		err, inpErr error
@@ -190,7 +192,7 @@ func TestErrorEventDecode(t *testing.T) {
 				"transaction_id": transactionId,
 				"parent_id":      parentId,
 				"trace_id":       traceId,
-				"transaction":    map[string]interface{}{"sampled": sampled},
+				"transaction":    map[string]interface{}{"sampled": transactionSampled, "type": transactionType},
 			},
 			err: nil,
 			e: &Event{
@@ -216,7 +218,8 @@ func TestErrorEventDecode(t *testing.T) {
 					},
 				},
 				TransactionId:      &transactionId,
-				TransactionSampled: &sampled,
+				TransactionSampled: &transactionSampled,
+				TransactionType:    &transactionType,
 				ParentId:           &parentId,
 				TraceId:            &traceId,
 			},
@@ -404,6 +407,7 @@ func TestEvents(t *testing.T) {
 	exMsg := "exception message"
 	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 	sampledTrue, sampledFalse := true, false
+	transactionType := "request"
 
 	email, userIp, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
@@ -438,6 +442,21 @@ func TestEvents(t *testing.T) {
 				},
 				"user":      common.MapStr{"id": uid},
 				"processor": common.MapStr{"event": "error", "name": "error"},
+				"timestamp": common.MapStr{"us": timestampUs},
+			},
+			Msg: "Payload with valid Event.",
+		},
+		{
+			Transformable: &Event{Timestamp: timestamp, TransactionType: &transactionType},
+			Output: common.MapStr{
+				"transaction": common.MapStr{"type": "request"},
+				"error": common.MapStr{
+					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
+				},
+				"processor": common.MapStr{"event": "error", "name": "error"},
+				"service":   common.MapStr{"name": "myservice"},
+				"user":      common.MapStr{"id": uid},
+				"agent":     common.MapStr{"name": "", "version": ""},
 				"timestamp": common.MapStr{"us": timestampUs},
 			},
 			Msg: "Payload with valid Event.",
@@ -502,6 +521,10 @@ func TestEvents(t *testing.T) {
 		outputEvent := outputEvents[0]
 		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 		assert.Equal(t, test.Output["timestamp"], outputEvent.Fields["timestamp"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, test.Output["transaction"], outputEvent.Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, test.Output["exception"], outputEvent.Fields["exception"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, test.Output["log"], outputEvent.Fields["log"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		assert.Equal(t, test.Output["grouping_key"], outputEvent.Fields["grouping_key"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 	}
 }
