@@ -226,11 +226,13 @@ class ElasticTest(ServerBaseTest):
         )
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count, query_index=None):
+        payload = json.loads(open(data_path).read())
+        return self.load_payload_with_template(payload, url, endpoint, expected_events_count, query_index)
 
+    def load_payload_with_template(self, payload, url, endpoint, expected_events_count, query_index=None):
         if query_index is None:
             query_index = self.index_name
 
-        payload = json.loads(open(data_path).read())
         r = requests.post(url, json=payload)
         assert r.status_code == 202
 

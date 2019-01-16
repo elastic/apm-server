@@ -350,6 +350,27 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.check_rum_transaction_sourcemap(True)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_rum_transaction_different_subdomain(self):
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map',
+                                  bundle_filepath=path,
+                                  service_version='1.0.0')
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        payload = json.loads(open(self.get_transaction_payload_path()).read())
+        for idx, stacktrace in enumerate(payload['transactions'][0]['spans'][0]['stacktrace']):
+            stacktrace['abs_path'] = stacktrace['abs_path'].replace("localhost", "subdomain.localhost")
+            payload['transactions'][0]['spans'][0]['stacktrace'][idx] = stacktrace
+
+        self.load_payload_with_template(payload,
+                                        self.transactions_url,
+                                        'transaction',
+                                        2)
+        self.assert_no_logged_warnings()
+        self.check_rum_transaction_sourcemap(True)
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_sourcemap(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.errors_url,
