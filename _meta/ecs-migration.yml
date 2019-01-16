@@ -17,24 +17,24 @@
 #- from: beat.version
 #  to: observer.version
 #
-#- from: context.service.agent.name
-#  to: agent.name
+- from: context.service.agent.name
+  to: agent.name
 #
-#- from: context.service.agent.version
-#  to: agent.version
-#
-#- from: context.system.architecture
-#  to: host.architecture
-#
-#- from: context.system.hostname
-#  to: host.hostname
-#
-#- from: context.system.ip
-#  to: host.ip
-#
-#- from: context.system.platform
-#  to: host.os.platform
-#
+- from: context.service.agent.version
+  to: agent.version
+
+- from: context.system.architecture
+  to: host.architecture
+
+- from: context.system.hostname
+  to: host.hostname
+
+- from: context.system.ip
+  to: host.ip
+
+- from: context.system.platform
+  to: host.os.platform
+
 #- from: context.request.method
 #  to: http.request.method
 #
@@ -71,65 +71,52 @@
 #  to: http.request.socket
 #  index: false
 #
-#- from: context.process.pid
-#  to: process.pid
+- from: context.process.pid
+  to: process.pid
 
-#
-#- from: context.process.ppid
-#  to: process.ppid
+- from: context.process.ppid
+  to: process.ppid
 
-#
-#- from: context.process.title
-#  to: process.title
+- from: context.process.title
+  to: process.title
 
-#
-#- from: context.process.argv
-#  to: process.args
+- from: context.process.argv
+  to: process.args
 
-#
-#  # not in ECS
-#- from: context.service.environment
-#  to: service.environment
+  # not in ECS
+- from: context.service.environment
+  to: service.environment
 
-#
-#  # not in ECS
-#- from: context.service.framework.name
-#  to: service.framework.name
+  # not in ECS
+- from: context.service.framework.name
+  to: service.framework.name
 
-#
-#  # not in ECS
-#- from: context.service.framework.version
-#  to: service.framework.version
+  # not in ECS
+- from: context.service.framework.version
+  to: service.framework.version
 
-#
-#  # not in ECS
-#- from: context.service.language.name
-#  to: service.language.name
+  # not in ECS
+- from: context.service.language.name
+  to: service.language.name
 
-#
-#  # not in ECS
-#- from: context.service.language.version
-#  to: service.language.version
+  # not in ECS
+- from: context.service.language.version
+  to: service.language.version
 
-#
-#- from: context.service.name
-#  to: service.name
+- from: context.service.name
+  to: service.name
 
-#
-#  # not in ECS
-#- from: context.service.runtime.name
-#  to: service.runtime.name
+  # not in ECS
+- from: context.service.runtime.name
+  to: service.runtime.name
 
-#
-#  # not in ECS
-#- from: context.service.runtime.version
-#  to: service.runtime.version
+  # not in ECS
+- from: context.service.runtime.version
+  to: service.runtime.version
 
-#
-#- from: context.service.version
-#  to: service.version
+- from: context.service.version
+  to: service.version
 
-#
 #- from: context.request.url.full
 #  to: url.full
 
