@@ -17,6 +17,7 @@ https://github.com/elastic/apm-server/compare/v6.5.4\...v6.6.0[View commits]
 - Make `service.framework` properties optional and nullable {pull}1546[1546].
 - Add optional `span.subtype` and `span.action` properties. {pull}1618[1618].
 - Add `transaction.sampled` to errors {pull}1662[1662].
+- Lookup sourcemaps by full URL and URL path only {pull}1661[1661].
 
 [float]
 ==== Bug fixes
