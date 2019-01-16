@@ -39,9 +39,6 @@
             "http": {
                 "requests": 1
             },
-            "labels": {
-                "url": "/foo"
-            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
@@ -86,9 +83,6 @@
             "http": {
                 "requests": 6
             },
-            "labels": {
-                "url": "/bar"
-            },
             "processor": {
                 "event": "metric",
                 "name": "metric"
@@ -132,9 +126,6 @@
             },
             "http": {
                 "requests": 2
-            },
-            "labels": {
-                "url": "/foo"
             },
             "processor": {
                 "event": "metric",

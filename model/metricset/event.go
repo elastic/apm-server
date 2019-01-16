@@ -165,7 +165,6 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	context := common.MapStr{}
 	if me.Tags != nil {
 		context["tags"] = me.Tags
-		fields["labels"] = context["tags"]
 	}
 
 	fields["context"] = context
