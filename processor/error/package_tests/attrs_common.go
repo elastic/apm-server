@@ -50,7 +50,6 @@ func fieldsNotInPayloadAttrs(s *tests.Set) *tests.Set {
 		"listening", "view errors", "error id icon", "context.response.headers.user-agent",
 		"context.user.user-agent", "context.user.ip", "context.system.ip",
 		"context.http", "context.http.method", "context.http.status_code", "context.http.url",
-		tests.Group("container"),
 		tests.Group("context.db"),
 		tests.Group("timestamp"),
 	))
@@ -103,7 +102,7 @@ func condRequiredKeys(c map[string]tests.Condition) map[string]tests.Condition {
 func keywordExceptionKeys(s *tests.Set) *tests.Set {
 	return tests.Union(s, tests.NewSet(
 		"processor.event", "processor.name", "listening", "error.grouping_key",
-		"error.id", "transaction.id", "context.tags", "labels", "parent.id", "trace.id", "url.scheme",
+		"error.id", "transaction.id", "context.tags", "parent.id", "trace.id",
 		"view errors", "error id icon"))
 }
 

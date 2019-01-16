@@ -23,7 +23,6 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
-	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/span"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -201,8 +200,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
-
-	m.CopyECS(fields)
 
 	if e.v2Event {
 		utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
