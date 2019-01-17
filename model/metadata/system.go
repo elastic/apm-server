@@ -29,6 +29,9 @@ type System struct {
 	Architecture *string
 	Platform     *string
 	IP           *string
+
+	Container  *Container
+	Kubernetes *Kubernetes
 }
 
 func DecodeSystem(input interface{}, err error) (*System, error) {
@@ -45,6 +48,12 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 		Platform:     decoder.StringPtr(raw, "platform"),
 		Architecture: decoder.StringPtr(raw, "architecture"),
 		IP:           decoder.StringPtr(raw, "ip"),
+	}
+	if system.Container, err = DecodeContainer(raw["container"], err); err != nil {
+		return nil, err
+	}
+	if system.Kubernetes, err = DecodeKubernetes(raw["kubernetes"], err); err != nil {
+		return nil, err
 	}
 	return &system, decoder.Err
 }
@@ -63,4 +72,18 @@ func (s *System) fields() common.MapStr {
 		utility.Add(system, "ip", s.IP)
 	}
 	return system
+}
+
+func (s *System) containerFields() common.MapStr {
+	if s == nil {
+		return nil
+	}
+	return s.Container.fields()
+}
+
+func (s *System) kubernetesFields() common.MapStr {
+	if s == nil {
+		return nil
+	}
+	return s.Kubernetes.fields()
 }

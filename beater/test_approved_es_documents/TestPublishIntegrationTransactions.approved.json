@@ -11,12 +11,25 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "127.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "observer": {
@@ -92,6 +105,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "container": {
+                "id": "container-id"
             },
             "context": {
                 "custom": {
@@ -172,6 +188,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -244,6 +270,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "context": {
                 "request": {
                     "method": "POST"
@@ -255,6 +284,16 @@
                 "ip": "127.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "observer": {

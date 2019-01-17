@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "context": {
                 "custom": {
                     "and_objects": {
@@ -218,6 +221,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "process": {
                 "args": [
                     "node",
@@ -262,6 +275,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "error": {
                 "exception": {
                     "message": "Cannot read property 'baz' no defined"
@@ -275,6 +291,16 @@
                 "ip": "192.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "process": {
@@ -322,6 +348,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "error": {
                 "exception": {
                     "type": "DbError"
@@ -335,6 +364,16 @@
                 "ip": "192.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "process": {
@@ -382,6 +421,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
@@ -396,6 +438,16 @@
                 "ip": "192.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "parent": {

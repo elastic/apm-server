@@ -101,6 +101,14 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
 	eventFields := getMetadataEventAttrs(t, "")
 	var mappingFields = []tests.FieldTemplateMapping{
+		{Template: "system.container.", Mapping: "container."},             // move system.container.*
+		{Template: "system.container", Mapping: ""},                        // delete system.container
+		{Template: "system.kubernetes.node.", Mapping: "kubernetes.node."}, // move system.kubernetes.node.*
+		{Template: "system.kubernetes.node", Mapping: ""},                  // delete system.kubernetes.node
+		{Template: "system.kubernetes.pod.", Mapping: "kubernetes.pod."},   // move system.kubernetes.pod.*
+		{Template: "system.kubernetes.pod", Mapping: ""},                   // delete system.kubernetes.pod
+		{Template: "system.kubernetes.", Mapping: "kubernetes."},           // move system.kubernetes.*
+		{Template: "system.kubernetes", Mapping: ""},                       // delete system.kubernetes
 		{Template: "system.platform", Mapping: "host.os.platform"},
 		{Template: "system", Mapping: "host"},
 		{Template: "service.agent", Mapping: "agent"},
@@ -131,9 +139,11 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			"user_agent.original",
 		),
 		[]tests.FieldTemplateMapping{
-			{Template: "agent", Mapping: "service.agent"},
+			{Template: "agent.", Mapping: "service.agent."},
+			{Template: "container.", Mapping: "system.container."},
+			{Template: "kubernetes.", Mapping: "system.kubernetes."},
 			{Template: "host.os.platform", Mapping: "system.platform"},
-			{Template: "host", Mapping: "system"},
+			{Template: "host.", Mapping: "system."},
 			{Template: "user.name", Mapping: "user.username"},
 		},
 	)

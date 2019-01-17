@@ -117,8 +117,12 @@ func errorKeywordExceptionKeys() *tests.Set {
 		"processor.event", "processor.name", "error.grouping_key",
 		"context.tags",
 		"view errors", "error id icon",
+
+		// metadata fields
 		tests.Group("agent"),
+		tests.Group("container"),
 		tests.Group("host"),
+		tests.Group("kubernetes"),
 		tests.Group("observer"),
 		tests.Group("process"),
 		tests.Group("service"),

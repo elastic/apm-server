@@ -92,7 +92,9 @@ func (ps *ProcessorSetup) EventFieldsMappedToTemplateFields(t *testing.T, eventF
 				f = strings.Replace(f, m.Template, m.Mapping, -1)
 			}
 		}
-		eventFieldsMapped.Add(f)
+		if f != "" {
+			eventFieldsMapped.Add(f)
+		}
 	}
 	missing := Difference(eventFieldsMapped, allFieldNames)
 	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))

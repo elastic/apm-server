@@ -83,7 +83,8 @@ func (m *Metadata) Merge(fields common.MapStr) common.MapStr {
 	utility.AddIfNil(fields, "user", m.User.Fields())
 	utility.AddIfNil(fields, "client", m.User.ClientFields())
 	utility.AddIfNil(fields, "user_agent", m.User.UserAgentFields())
-
+	utility.Add(fields, "container", m.System.containerFields())
+	utility.Add(fields, "kubernetes", m.System.kubernetesFields())
 	return fields
 }
 

@@ -6,12 +6,25 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "ip": "192.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "parent": {
@@ -75,6 +88,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "container": {
+                "id": "container-id"
             },
             "context": {
                 "custom": {
@@ -155,6 +171,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "process": {
                 "args": [
                     "node",
@@ -215,6 +241,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "container": {
+                "id": "container-id"
+            },
             "context": {
                 "request": {
                     "method": "POST"
@@ -226,6 +255,16 @@
                 "ip": "192.0.0.1",
                 "os": {
                     "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
                 }
             },
             "process": {
