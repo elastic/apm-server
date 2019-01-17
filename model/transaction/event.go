@@ -137,7 +137,7 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 		spanCount := common.MapStr{}
 
 		if t.SpanCount.Dropped != nil {
-			utility.Add(spanCount, "dropped", common.MapStr{"total": *t.SpanCount.Dropped})
+			utility.Add(spanCount, "dropped", *t.SpanCount.Dropped)
 		}
 		if t.SpanCount.Started != nil {
 			utility.Add(spanCount, "started", *t.SpanCount.Started)

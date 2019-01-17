@@ -127,10 +127,8 @@
             "transaction": {
                 "type": "request",
                 "span_count": {
-                    "started": 4,
-                    "dropped": {
-                        "total": 2
-                    }
+                    "dropped": 2,
+                    "started": 4
                 },
                 "marks": {
                     "another_mark": {
@@ -207,9 +205,7 @@
             "transaction": {
                 "type": "request",
                 "span_count": {
-                    "dropped": {
-                        "total": 258
-                    },
+                    "dropped": 258,
                     "started": 1
                 },
                 "id": "85925e55b43f4342",

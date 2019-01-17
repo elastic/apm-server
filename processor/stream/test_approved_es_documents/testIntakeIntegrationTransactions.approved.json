@@ -320,9 +320,7 @@
                 },
                 "sampled": true,
                 "span_count": {
-                    "dropped": {
-                        "total": 55
-                    },
+                    "dropped": 55,
                     "started": 436
                 },
                 "type": "request"
