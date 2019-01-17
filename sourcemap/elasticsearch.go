@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/go-sourcemap/sourcemap"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -104,14 +106,28 @@ func query(id Id) map[string]interface{} {
 			"bool": map[string]interface{}{
 				"must": []map[string]interface{}{
 					{"term": map[string]interface{}{"processor.name": "sourcemap"}},
-					{"term": map[string]interface{}{"sourcemap.bundle_filepath": id.Path}},
 					{"term": map[string]interface{}{"sourcemap.service.name": id.ServiceName}},
 					{"term": map[string]interface{}{"sourcemap.service.version": id.ServiceVersion}},
+					{"bool": map[string]interface{}{
+						"should": []map[string]interface{}{
+							{"term": map[string]interface{}{"sourcemap.bundle_filepath": map[string]interface{}{
+								"value": id.Path,
+								// prefer full url match
+								"boost": 2.0,
+							}}},
+							{"term": map[string]interface{}{"sourcemap.bundle_filepath": utility.UrlPath(id.Path)}},
+						},
+					}},
 				},
 			},
 		},
 		"size": 1,
 		"sort": []map[string]interface{}{
+			{
+				"_score": map[string]interface{}{
+					"order": "desc",
+				},
+			},
 			{
 				"@timestamp": map[string]interface{}{
 					"order": "desc",
