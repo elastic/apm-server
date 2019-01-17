@@ -156,7 +156,7 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 	}
 	tr := common.MapStr{}
 	if s.HexId != "" {
-		utility.Add(tr, "hex_id", s.HexId)
+		utility.Add(tr, "id", s.HexId)
 	}
 	utility.Add(tr, "subtype", s.Subtype)
 	utility.Add(tr, "action", s.Action)

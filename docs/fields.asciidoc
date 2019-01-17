@@ -861,7 +861,7 @@ format: url
 --
 
 
-*`span.hex_id`*::
+*`span.id`*::
 +
 --
 type: keyword

@@ -191,7 +191,7 @@ func TestSpanTransform(t *testing.T) {
 				Context:    common.MapStr{"key": "val"},
 			},
 			Output: common.MapStr{
-				"hex_id":   hexId,
+				"id":       hexId,
 				"duration": common.MapStr{"us": 1200},
 				"name":     "myspan",
 				"start":    common.MapStr{"us": 650},
@@ -216,7 +216,7 @@ func TestSpanTransform(t *testing.T) {
 				"type":     "",
 				"duration": common.MapStr{"us": 0},
 				"name":     "",
-				"hex_id":   hexId,
+				"id":       hexId,
 			},
 			Msg: "Span without a Stacktrace",
 		},
