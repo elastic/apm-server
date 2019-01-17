@@ -414,7 +414,9 @@ func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, bea
 	}()
 
 	btr := beatBeater.(*beater)
-	btr.wait()
+	if err := btr.wait(); err != nil {
+		return nil, nil, err
+	}
 
 	url, client := btr.client(true)
 	go func() {
