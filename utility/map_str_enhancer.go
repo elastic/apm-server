@@ -159,6 +159,16 @@ func MergeAdd(m common.MapStr, key string, val common.MapStr) {
 	}
 }
 
+func AddIfNil(m common.MapStr, key string, val common.MapStr) {
+	if m == nil || val == nil || len(val) == 0 {
+		return
+	}
+	if _, ok := m[key]; ok {
+		return
+	}
+	Add(m, key, val)
+}
+
 func MillisAsMicros(ms float64) common.MapStr {
 	m := common.MapStr{}
 	m["us"] = int(ms * 1000)

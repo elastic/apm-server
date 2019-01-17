@@ -47,37 +47,6 @@
             description: >
               The status code of the http response.
 
-        - name: user
-          type: group
-          fields:
-
-          - name: username
-            type: keyword
-            description: >
-              The username of the logged in user.
-
-          - name: id
-            type: keyword
-            description: >
-              Identifier of the logged in user.
-
-          - name: email
-            type: keyword
-            description: >
-              Email of the logged in user.
-
-          - name: ip
-            type: ip
-            description: >
-              IP of the user where the event is recorded, typically a web browser.
-              This is obtained from the X-Forwarded-For header, of which the first entry is the IP of the original client.
-              This value however might not be necessarily trusted, as it can be forged by a malicious user.
-
-          - name: user-agent
-            type: text
-            description: >
-              Software agent acting in behalf of a user, eg. a web browser / OS combination.
-
         - name: request
           type: group
           fields:
@@ -360,3 +329,61 @@
           type: keyword
           description: >
             Address the server is listening on.
+
+    - name: user
+      type: group
+      fields:
+
+      - name: name
+        type: keyword
+        description: >
+          The username of the logged in user.
+        overwrite: true
+
+      - name: id
+        type: keyword
+        description: >
+          Identifier of the logged in user.
+        overwrite: true
+
+      - name: email
+        type: keyword
+        description: >
+          Email of the logged in user.
+        overwrite: true
+
+    - name: client
+      type: group
+      fields:
+
+      - name: ip
+        type: ip
+        description: >
+          IP of the user where the event is recorded, typically a web browser.
+          This is obtained from the X-Forwarded-For header, of which the first entry is the IP of the original client.
+          This value however might not be necessarily trusted, as it can be forged by a malicious user.
+        overwrite: true
+
+    - name: user_agent
+      title: User agent
+      description: >
+        The user_agent fields normally come from a browser request. They often
+        show up in web service logs coming from the parsed user agent string.
+      type: group
+      overwrite: true
+      fields:
+
+      - name: original
+        type: keyword
+        description: >
+          Unparsed version of the user_agent.
+        example: "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1"
+        overwrite: true
+
+        multi_fields:
+        - name: text
+          type: text
+          description: >
+            Software agent acting in behalf of a user, eg. a web browser / OS combination.
+          overwrite: true
+

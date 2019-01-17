@@ -65,11 +65,6 @@
                 },
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-                },
-                "user": {
-                    "email": "foo@example.com",
-                    "id": 99,
-                    "username": "foo"
                 }
             },
             "error": {
@@ -255,6 +250,10 @@
             },
             "timestamp": {
                 "us": 1494342245999999
+            },
+            "user": {
+                "id": "99",
+                "name": "foo"
             }
         },
         {
@@ -310,6 +309,11 @@
             },
             "timestamp": {
                 "us": 1533826745999000
+            },
+            "user": {
+                "email": "bar@example.com",
+                "id": "123",
+                "name": "bar"
             }
         },
         {
@@ -365,6 +369,11 @@
             },
             "timestamp": {
                 "us": 1533117600000000
+            },
+            "user": {
+                "email": "bar@example.com",
+                "id": "123",
+                "name": "bar"
             }
         },
         {
@@ -432,6 +441,11 @@
                 "id": "1234567890987654",
                 "sampled": true,
                 "type": "request"
+            },
+            "user": {
+                "email": "bar@example.com",
+                "id": "123",
+                "name": "bar"
             }
         }
     ]

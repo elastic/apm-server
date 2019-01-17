@@ -12,8 +12,8 @@
       },
       {
         "user_agent" : {
-          "field": "context.user.user-agent",
-          "target_field": "context.user.user_agent",
+          "field": "user_agent.original",
+          "target_field": "user_agent_parsed",
           "ignore_missing": true
         }
       }

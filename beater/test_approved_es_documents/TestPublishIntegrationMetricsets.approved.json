@@ -61,7 +61,12 @@
                 },
                 "name": "1234_service-12a3"
             },
-            "short_counter": 227
+            "short_counter": 227,
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
         },
         {
             "@metadata": {
@@ -102,6 +107,11 @@
                     "name": "ecmascript"
                 },
                 "name": "1234_service-12a3"
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
             }
         }
     ]

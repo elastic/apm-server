@@ -170,7 +170,7 @@ func TestMetadataMerge(t *testing.T) {
 					"name": "myservice",
 				},
 				"process": common.MapStr{"pid": pid},
-				"user":    common.MapStr{"id": "12321", "email": "override@email.com"},
+				"user":    common.MapStr{"email": "override@email.com"},
 			},
 		},
 	} {

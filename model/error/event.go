@@ -32,6 +32,7 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
@@ -74,6 +75,8 @@ type Event struct {
 
 	TransactionSampled *bool
 	TransactionType    *string
+
+	User *metadata.User
 
 	data common.MapStr
 }
@@ -163,6 +166,14 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, err
 	}
 
+	if ok, _ := e.Context.HasKey("user"); ok {
+		user, err := e.Context.GetValue("user")
+		e.User, err = metadata.DecodeUser(user, err)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &e, nil
 }
 
@@ -180,8 +191,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"error":     e.fields(tctx),
 		"processor": processorEntry,
 	}
-	tctx.Metadata.Merge(fields)
+	delete(e.Context, "user")
 	utility.Add(fields, "context", e.Context)
+	utility.Add(fields, "user", e.User.Fields())
+	utility.Add(fields, "client", e.User.ClientFields())
+	utility.Add(fields, "user_agent", e.User.UserAgentFields())
+	tctx.Metadata.Merge(fields)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data

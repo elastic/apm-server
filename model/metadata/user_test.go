@@ -18,6 +18,7 @@
 package metadata
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -26,11 +27,11 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestUserTransform(t *testing.T) {
+func TestUserFields(t *testing.T) {
 	id := "1234"
 	ip := "127.0.0.1"
 	email := "test@mail.co"
-	username := "user123"
+	name := "user123"
 	userAgent := "rum-1.0"
 
 	tests := []struct {
@@ -46,21 +47,87 @@ func TestUserTransform(t *testing.T) {
 				Id:        &id,
 				IP:        &ip,
 				Email:     &email,
-				Username:  &username,
+				Name:      &name,
 				UserAgent: &userAgent,
 			},
 			Output: common.MapStr{
-				"ip":         "127.0.0.1",
-				"id":         "1234",
-				"email":      "test@mail.co",
-				"username":   "user123",
-				"user-agent": "rum-1.0",
+				"id":    "1234",
+				"email": "test@mail.co",
+				"name":  "user123",
 			},
 		},
 	}
 
 	for _, test := range tests {
-		output := test.User.fields()
+		output := test.User.Fields()
+		assert.Equal(t, test.Output, output)
+	}
+}
+
+func TestUserClientFields(t *testing.T) {
+	id := "1234"
+	ip := "127.0.0.1"
+	email := "test@mail.co"
+	name := "user123"
+	userAgent := "rum-1.0"
+
+	tests := []struct {
+		User   User
+		Output common.MapStr
+	}{
+		{
+			User:   User{},
+			Output: common.MapStr{},
+		},
+		{
+			User: User{
+				Id:        &id,
+				IP:        &ip,
+				Email:     &email,
+				Name:      &name,
+				UserAgent: &userAgent,
+			},
+			Output: common.MapStr{
+				"ip": "127.0.0.1",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		output := test.User.ClientFields()
+		assert.Equal(t, test.Output, output)
+	}
+}
+
+func TestUserAgentFields(t *testing.T) {
+	id := "1234"
+	ip := "127.0.0.1"
+	email := "test@mail.co"
+	name := "user123"
+	userAgent := "rum-1.0"
+
+	tests := []struct {
+		User   User
+		Output common.MapStr
+	}{
+		{
+			User:   User{},
+			Output: nil,
+		},
+		{
+			User: User{
+				Id:        &id,
+				IP:        &ip,
+				Email:     &email,
+				Name:      &name,
+				UserAgent: &userAgent,
+			},
+			Output: common.MapStr{"original": "rum-1.0"},
+		},
+	}
+
+	for _, test := range tests {
+		output := test.User.UserAgentFields()
 		assert.Equal(t, test.Output, output)
 	}
 }
@@ -77,19 +144,14 @@ func TestUserDecode(t *testing.T) {
 		{input: nil, inputErr: nil, err: nil, u: nil},
 		{input: nil, inputErr: inpErr, err: inpErr, u: nil},
 		{input: "", err: errors.New("Invalid type for user"), u: nil},
-		{
-			input: map[string]interface{}{"id": 1},
-			err:   errors.New("Error fetching field"),
-			u:     &User{Id: nil, Email: nil, Username: nil, IP: nil, UserAgent: nil},
-		},
+		{input: map[string]interface{}{"id": json.Number("12")}, inputErr: nil, err: nil, u: &User{Id: &id}},
 		{
 			input: map[string]interface{}{
-				"id": id, "email": mail, "username": name,
-				"ip": ip, "user-agent": agent,
+				"id": id, "email": mail, "username": name, "ip": ip, "user-agent": agent,
 			},
 			err: nil,
 			u: &User{
-				Id: &id, Email: &mail, Username: &name, IP: &ip, UserAgent: &agent,
+				Id: &id, Email: &mail, Name: &name, IP: &ip, UserAgent: &agent,
 			},
 		},
 	} {

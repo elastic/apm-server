@@ -46,6 +46,7 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 		"context.http",
 		"context.http.url",
 		"context.http.method",
+		tests.Group("context.user"),
 	)
 }
 
@@ -60,6 +61,8 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			tests.Group("observer"),
 			tests.Group("process"),
 			tests.Group("service"),
+			tests.Group("user"),
+			tests.Group("client"),
 		),
 		// not valid for the span context
 		transactionContext(),
@@ -123,6 +126,7 @@ func spanKeywordExceptionKeys() *tests.Set {
 		tests.Group("host"),
 		tests.Group("process"),
 		tests.Group("service"),
+		tests.Group("user"),
 	),
 		transactionContext(),
 	)

@@ -104,8 +104,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 		{Template: "system.platform", Mapping: "host.os.platform"},
 		{Template: "system", Mapping: "host"},
 		{Template: "service.agent", Mapping: "agent"},
-		{Template: "user.username", Mapping: "context.user.username"},
-		{Template: "user", Mapping: "context.user"},
+		{Template: "user.username", Mapping: "user.name"},
 		{Template: "process.argv", Mapping: "process.args"},
 	}
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
@@ -129,12 +128,13 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("transaction"),
 			tests.Group("parent"),
 			tests.Group("trace"),
+			"user_agent.original",
 		),
 		[]tests.FieldTemplateMapping{
 			{Template: "agent", Mapping: "service.agent"},
 			{Template: "host.os.platform", Mapping: "system.platform"},
 			{Template: "host", Mapping: "system"},
-			{Template: "context.user", Mapping: "user"},
+			{Template: "user.name", Mapping: "user.username"},
 		},
 	)
 }
