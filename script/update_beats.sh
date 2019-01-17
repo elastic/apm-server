@@ -63,8 +63,6 @@ mkdir -p $LICENSEDIR
 rsync -crpv --delete \
   ${GIT_CLONE}/licenses/*.txt ./../licenses
 
-# apply any patches to _beats files
-patch -s -F0 -p0 -i ../script/update_beats.patch
 
 popd
 
