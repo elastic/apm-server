@@ -46,20 +46,25 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 		"context.http",
 		"context.http.url",
 		"context.http.method",
+		tests.Group("context.user"),
 	)
 }
 
+// fields in _meta/fields.common.yml that are shared between several data types, but not with spans
 func spanFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.Union(
 		tests.NewSet(
 			"view spans",
 			"transaction.sampled",
+			"transaction.type",
 			tests.Group("container"),
 			tests.Group("host"),
 			tests.Group("kubernetes"),
 			tests.Group("observer"),
 			tests.Group("process"),
 			tests.Group("service"),
+			tests.Group("user"),
+			tests.Group("client"),
 		),
 		// not valid for the span context
 		transactionContext(),
@@ -116,7 +121,7 @@ func transactionContext() *tests.Set {
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
 		"processor.event", "processor.name", "observer.listening",
-		"context.tags",
+		"context.tags", "transaction.type",
 
 		// metadata fields
 		tests.Group("agent"),
@@ -125,6 +130,7 @@ func spanKeywordExceptionKeys() *tests.Set {
 		tests.Group("kubernetes"),
 		tests.Group("process"),
 		tests.Group("service"),
+		tests.Group("user"),
 	),
 		transactionContext(),
 	)

@@ -76,6 +76,11 @@
                     "started": 43
                 },
                 "type": "request"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
             }
         },
         {
@@ -156,11 +161,6 @@
                     "tag2": 12,
                     "tag3": 12.45,
                     "tag4": false
-                },
-                "user": {
-                    "email": "foo@example.com",
-                    "id": "99",
-                    "username": "foo"
                 }
             },
             "host": {
@@ -229,6 +229,10 @@
                     "started": 17
                 },
                 "type": "request"
+            },
+            "user": {
+                "id": "99",
+                "name": "foo"
             }
         },
         {
@@ -322,6 +326,11 @@
                     "started": 436
                 },
                 "type": "request"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
             }
         }
     ]

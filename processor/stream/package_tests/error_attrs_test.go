@@ -44,16 +44,18 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("error.exception.attributes"),
 		"error.exception.stacktrace",
 		"error.log.stacktrace",
+		tests.Group("context.user"),
 	)
 }
 
 func errorFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"view errors", "error id icon",
-		"context.user.user-agent", "context.user.ip",
 		"context.http", "context.http.status_code",
 		"host.ip",
 		tests.Group("observer"),
+		tests.Group("user"),
+		tests.Group("client"),
 	)
 }
 
@@ -124,6 +126,7 @@ func errorKeywordExceptionKeys() *tests.Set {
 		tests.Group("observer"),
 		tests.Group("process"),
 		tests.Group("service"),
+		tests.Group("user"),
 	)
 }
 
@@ -135,7 +138,8 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 
 func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
-		errorPayloadAttrsNotInJsonSchema(), nil)
+		errorPayloadAttrsNotInJsonSchema(),
+		tests.NewSet("error.context.user.email"))
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {

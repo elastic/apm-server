@@ -1,0 +1,132 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "apm-js",
+                "version": "0.0.0"
+            },
+            "client": {
+                "ip": "192.0.0.1"
+            },
+            "context": {
+                "_metrics": {
+                    "connectEnd": 14,
+                    "connectStart": 14,
+                    "domComplete": 645,
+                    "domContentLoadedEventEnd": 613,
+                    "domContentLoadedEventStart": 610,
+                    "domInteractive": 610,
+                    "domLoading": 43,
+                    "domainLookupEnd": 14,
+                    "domainLookupStart": 14,
+                    "fetchStart": 5,
+                    "loadEventEnd": 648,
+                    "loadEventStart": 645,
+                    "navigationStart": 0,
+                    "requestStart": 14,
+                    "responseEnd": 32,
+                    "responseStart": 27,
+                    "timeToComplete": 643,
+                    "unloadEventEnd": 32,
+                    "unloadEventStart": 32
+                },
+                "url": {
+                    "location": "http://localhost:8000/test/e2e/general-usecase/"
+                }
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "apm-agent-js",
+                "version": "1.0.0"
+            },
+            "timestamp": {
+                "us": 1533117600000000
+            },
+            "trace": {
+                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 643000
+                },
+                "id": "611f4fa950f04631",
+                "sampled": true,
+                "span_count": {
+                    "started": 1
+                },
+                "type": "page-load"
+            },
+            "user_agent": {
+                "original": "rum-2.0"
+            }
+        },
+        {
+            "@timestamp": "2018-08-01T10:00:00Z",
+            "agent": {
+                "name": "apm-js",
+                "version": "0.0.0"
+            },
+            "context": {
+                "http": {
+                    "url": "http://localhost:8000/test/e2e/general-usecase/span"
+                }
+            },
+            "parent": {
+                "id": "611f4fa950f04631"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "apm-agent-js"
+            },
+            "span": {
+                "duration": {
+                    "us": 643000
+                },
+                "hex_id": "aaaaaaaaaaaaaaaa",
+                "name": "transaction",
+                "stacktrace": [
+                    {
+                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                        "exclude_from_grouping": false,
+                        "filename": "test/e2e/general-usecase/bundle.js.map",
+                        "function": "\u003canonymous\u003e",
+                        "line": {
+                            "column": 18,
+                            "number": 1
+                        }
+                    },
+                    {
+                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                        "exclude_from_grouping": false,
+                        "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                        "function": "\u003canonymous\u003e",
+                        "line": {
+                            "column": 18,
+                            "number": 1
+                        }
+                    }
+                ],
+                "start": {
+                    "us": 0
+                },
+                "type": "transaction"
+            },
+            "timestamp": {
+                "us": 1533117600000000
+            },
+            "trace": {
+                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
+            },
+            "transaction": {
+                "id": "611f4fa950f04631"
+            }
+        }
+    ]
+}

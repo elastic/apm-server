@@ -50,17 +50,17 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for transactions with new ones
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
+        rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "transaction"}}})
-        assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
+        assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'transaction.approved.json')) as f:
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'transaction')
 
         # compare existing ES documents for spans with new ones
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
+        rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "span"}}})
-        assert rs['hits']['total'] == 5, "found {} documents".format(rs['count'])
+        assert rs['hits']['total']['value'] == 5, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'spans.approved.json')) as f:
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'span')
@@ -71,7 +71,7 @@ class Test(ElasticTest):
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="context.tags.*")
-        for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
+        for name, metric in mappings[self.index_name]["mappings"].items():
             fullname = metric["full_name"]
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
@@ -88,7 +88,7 @@ class Test(ElasticTest):
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="transaction.marks.*")
-        for name, metric in mappings[self.index_name]["mappings"]["_doc"].items():
+        for name, metric in mappings[self.index_name]["mappings"].items():
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
                 assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
@@ -104,9 +104,9 @@ class Test(ElasticTest):
         self.assert_no_logged_warnings()
 
         # compare existing ES documents for errors with new ones
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
+        rs = self.es.search(index=self.index_name, body={
             "query": {"term": {"processor.event": "error"}}})
-        assert rs['hits']['total'] == 4, "found {} documents".format(rs['count'])
+        assert rs['hits']['total']['value'] == 4, "found {} documents".format(rs['count'])
         with open(self._beat_path_join(os.path.dirname(__file__), 'error.approved.json')) as f:
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'error')
@@ -190,20 +190,19 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
         assert "ip" in rs['hits']['hits'][0]["_source"]["host"], rs['hits']
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @unittest.skip("WIP")
     def test_enrich_rum_event(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
                                      'error',
                                      1)
 
-        rs = self.es.search(index=self.index_name, body={
-            "query": {"term": {"processor.event": "error"}}})
+        rs = self.es.search(index=self.index_name, body={"query": {"term": {"processor.event": "error"}}})
 
         hits = rs['hits']['hits']
         for hit in hits:
-            assert "ip" in hit["_source"]["context"]["user"], rs['hits']
-            assert "user-agent" in hit["_source"]["context"]["user"], rs['hits']
+            assert "user_agent" in hit["_source"], rs['hits']
+            assert "original" in hit["_source"]["user_agent"], rs['hits']
+            assert "ip" in hit["_source"]["client"], rs['hits']
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_grouping_key_for_error(self):
@@ -386,6 +385,22 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.check_rum_transaction_sourcemap(True)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_rum_transaction_different_subdomain(self):
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map',
+                                  bundle_filepath=path,
+                                  service_version='1.0.0')
+        assert r.status_code == 202, r.status_code
+        self.wait_for_sourcemaps()
+
+        self.load_docs_with_template(self.get_payload_path('transactions_spans_rum_2.ndjson'),
+                                     self.intake_url,
+                                     'transaction',
+                                     2)
+        self.assert_no_logged_warnings()
+        self.check_rum_transaction_sourcemap(True)
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_sourcemap(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
@@ -555,7 +570,7 @@ class MetricsIntegrationTest(ElasticTest):
         self.load_docs_with_template(self.get_metricset_payload_payload_path(), self.intake_url, 'metric', 2)
         mappings = self.es.indices.get_field_mapping(index=self.index_name, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"
-        doc = mappings[self.index_name]["mappings"]["_doc"]
+        doc = mappings[self.index_name]["mappings"]
         actual_type = doc["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 

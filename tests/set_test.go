@@ -23,8 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type mapInterface = map[interface{}]interface{}
-
 func TestNewSet(t *testing.T) {
 	for _, d := range []struct {
 		init []interface{}

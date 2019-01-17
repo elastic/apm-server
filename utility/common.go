@@ -22,6 +22,14 @@ import (
 	"path"
 )
 
+func UrlPath(p string) string {
+	url, err := url.Parse(p)
+	if err != nil {
+		return p
+	}
+	return url.Path
+}
+
 func CleanUrlPath(p string) string {
 	url, err := url.Parse(p)
 	if err != nil {

@@ -56,6 +56,11 @@
                 },
                 "grouping_key": "18f82051862e494727fa20e0adc15711",
                 "id": "7f0e9d68c1854d21a6f44673ed561ec8"
+            },
+            "user": {
+                "username": "bar",
+                "id": 123,
+                "email": "bar@example.com"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -110,6 +115,11 @@
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             },
+            "user": {
+                "username": "foo",
+                "id": 99,
+                "email": "foo@example.com"
+            },
             "context": {
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
@@ -161,11 +171,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "user": {
-                    "username": "foo",
-                    "id": 99,
-                    "email": "foo@example.com"
                 },
                 "response": {
                     "headers": {
@@ -322,6 +327,11 @@
             "processor": {
                 "name": "error",
                 "event": "error"
+            },
+            "user": {
+                "username": "bar",
+                "id": 123,
+                "email": "bar@example.com"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -384,6 +394,11 @@
                 },
                 "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
                 "id": "8f0e9d68c1854d21a6f44673ed561ec8"
+            },
+            "user": {
+                "username": "bar",
+                "id": 123,
+                "email": "bar@example.com"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -446,6 +461,11 @@
                     "message": "Cannot read property 'baz' of undefined",
                     "level": "custom log level"
                 }
+            },
+            "user": {
+                "username": "bar",
+                "id": 123,
+                "email": "bar@example.com"
             }
         },
         "_index": "test-apm-12-12-2017"

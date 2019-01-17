@@ -146,6 +146,50 @@ func TestIntegration(t *testing.T) {
 	}
 }
 
+func TestIntegrationRum(t *testing.T) {
+	report := func(ctx context.Context, p publish.PendingReq) error {
+		var events []beat.Event
+		for _, transformable := range p.Transformables {
+			events = append(events, transformable.Transform(p.Tcontext)...)
+		}
+		name := ctx.Value("name").(string)
+		verifyErr := tests.ApproveEvents(events, name, nil)
+		if verifyErr != nil {
+			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
+		}
+		return nil
+	}
+
+	for _, test := range []struct {
+		path string
+		name string
+	}{
+		{path: "errors_rum.ndjson", name: "RumErrors"},
+		{path: "transactions_spans_rum.ndjson", name: "RumTransactions"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", test.path))
+			require.NoError(t, err)
+			bodyReader := bytes.NewBuffer(b)
+
+			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
+			ctx := context.WithValue(context.Background(), "name", name)
+			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
+			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
+
+			reqDecoderMeta := map[string]interface{}{
+				"user": map[string]interface{}{
+					"user-agent": "rum-2.0",
+					"ip":         "192.0.0.1",
+				},
+			}
+
+			actualResult := (&Processor{MaxEventSize: 100 * 1024}).HandleStream(ctx, nil, reqDecoderMeta, bodyReader, report)
+			assertApproveResult(t, actualResult, test.name)
+		})
+	}
+}
+
 func TestRateLimiting(t *testing.T) {
 	report := func(ctx context.Context, p publish.PendingReq) error {
 		return nil
