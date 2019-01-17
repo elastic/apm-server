@@ -47,8 +47,5 @@
           type: group
           fields:
             - name: dropped
-              type: group
-              fields:
-                - name: total
-                  type: long
-                  description: The total amount of dropped spans for this transaction.
+              type: long
+              description: The total amount of dropped spans for this transaction.
