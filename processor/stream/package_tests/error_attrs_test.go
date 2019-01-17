@@ -134,7 +134,8 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 
 func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
-		errorPayloadAttrsNotInJsonSchema(), nil)
+		errorPayloadAttrsNotInJsonSchema(),
+		tests.NewSet("error.context.user.email"))
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {

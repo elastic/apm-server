@@ -65,7 +65,9 @@
                 "type": "request"
             },
             "user": {
-                "id": "123user"
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
             }
         },
         {
@@ -203,7 +205,6 @@
                 "type": "request"
             },
             "user": {
-                "email": "foo@example.com",
                 "id": "99",
                 "name": "foo"
             }
@@ -288,7 +289,9 @@
                 "type": "request"
             },
             "user": {
-                "id": "123user"
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
             }
         }
     ]
