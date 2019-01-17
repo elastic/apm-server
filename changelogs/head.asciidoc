@@ -9,7 +9,7 @@
 - Allow numbers and boolean values for `transaction.tags`, `span.tags`, `metricset.tags` {pull}1712[1712].
 - Update response format of the healthcheck handler and prettyfy all JSON responses {pull}1748[1748].
 - Add transaction.type to error data {pull}1781[1781].
-- Rename transaction.span_count.dropped.total to transaction.span_count.dropped {pull}XXX[XXX].
+- Rename transaction.span_count.dropped.total to transaction.span_count.dropped {pull}1809[1809].
 
 [float]
 ==== Removed
