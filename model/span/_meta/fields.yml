@@ -11,7 +11,7 @@
       dynamic: false
       fields:
 
-        - name: hex_id
+        - name: id
           type: keyword 
           description: >
             The ID of the span stored as hex encoded string.

@@ -32,7 +32,7 @@
                 "duration": {
                     "us": 141581
                 },
-                "hex_id": "abcdef01234567",
+                "id": "abcdef01234567",
                 "name": "GET /api/types",
                 "type": "request"
             },
@@ -78,7 +78,7 @@
                 "duration": {
                     "us": 32592
                 },
-                "hex_id": "1234abcdef567895",
+                "id": "1234abcdef567895",
                 "name": "GET /api/types",
                 "start": {
                     "us": 22000
@@ -135,7 +135,7 @@
                 "duration": {
                     "us": 3564
                 },
-                "hex_id": "0123456a89012345",
+                "id": "0123456a89012345",
                 "name": "GET /api/types",
                 "start": {
                     "us": 1845
@@ -185,7 +185,7 @@
                 "duration": {
                     "us": 13980
                 },
-                "hex_id": "abcde56a89012345",
+                "id": "abcde56a89012345",
                 "name": "get /api/types",
                 "start": {
                     "us": 0
@@ -250,7 +250,7 @@
                 "duration": {
                     "us": 3781
                 },
-                "hex_id": "1234567890aaaade",
+                "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
                 "stacktrace": [
                     {

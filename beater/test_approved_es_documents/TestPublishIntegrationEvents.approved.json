@@ -94,7 +94,7 @@
                 "duration": {
                     "us": 3564
                 },
-                "hex_id": "0123456a89012345",
+                "id": "0123456a89012345",
                 "name": "GET /api/types",
                 "start": {
                     "us": 1845

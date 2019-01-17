@@ -161,7 +161,7 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "transaction.id", Mapping: "transaction_id"},
 			{Template: "parent.id", Mapping: "parent_id"},
 			{Template: "trace.id", Mapping: "trace_id"},
-			{Template: "span.hex_id", Mapping: "id"},
+			{Template: "span.id", Mapping: "id"},
 			{Template: "span.", Mapping: ""},
 		},
 	)

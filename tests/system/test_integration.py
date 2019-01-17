@@ -117,23 +117,16 @@ class Test(ElasticTest):
         for rec_entry in received:
             checked = False
             rec = rec_entry['_source']
-            rec_id = self.get_id(rec[doc_type])
+            rec_id = rec[doc_type]['id']
 
             for appr_entry in approved:
                 appr = appr_entry['_source']
-                if rec_id == self.get_id(appr[doc_type]):
+                if rec_id == appr[doc_type]['id']:
                     checked = True
                     self.assert_docs(rec[doc_type], appr[doc_type])
                     self.assert_docs(rec.get('context'), appr.get('context'))
                     self.assert_docs(rec['processor'], appr['processor'])
             assert checked, "New entry with id {}".format(rec_id)
-
-    @staticmethod
-    def get_id(doc):
-        if 'id' in doc:
-            return doc['id']
-        else:
-            return doc['hex_id']
 
     def assert_docs(self, received, approved):
         assert approved == received, "expected:\n{}\nreceived:\n{}".format(self.dump(approved), self.dump(received))

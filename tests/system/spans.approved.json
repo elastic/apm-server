@@ -22,7 +22,7 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "hex_id": "2aaaaaaaaaaaaaaa",
+                "id": "2aaaaaaaaaaaaaaa",
                 "name": "GET /api/types",
                 "start": {
                     "us": 1845
@@ -54,7 +54,7 @@
                 "version": "7.0.0-alpha1"
             },
             "span": {
-                "hex_id": "15aaaaaaaaaaaaaa",
+                "id": "15aaaaaaaaaaaaaa",
                 "duration": {
                     "us": 3781
                 },
@@ -108,7 +108,7 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "hex_id": "3aaaaaaaaaaaaaaa",
+                "id": "3aaaaaaaaaaaaaaa",
                 "name": "GET /api/types",
                 "start": {
                     "us": 0
@@ -147,7 +147,7 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "hex_id": "0aaaaaaaaaaaaaaa",
+                "id": "0aaaaaaaaaaaaaaa",
                 "stacktrace": [
                     {
                         "function": "onread",
@@ -239,7 +239,7 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "hex_id": "1aaaaaaaaaaaaaaa",
+                "id": "1aaaaaaaaaaaaaaa",
                 "name": "GET /api/types",
                 "start": {
                     "us": 0

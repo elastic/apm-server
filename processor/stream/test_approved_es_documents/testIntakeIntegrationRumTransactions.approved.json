@@ -89,7 +89,7 @@
                 "duration": {
                     "us": 643000
                 },
-                "hex_id": "aaaaaaaaaaaaaaaa",
+                "id": "aaaaaaaaaaaaaaaa",
                 "name": "transaction",
                 "stacktrace": [
                     {
