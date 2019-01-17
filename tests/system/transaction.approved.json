@@ -6,17 +6,17 @@
         "_source": {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
-                "name": "elastic-node",
+                "name": "1elastic-node",
                 "version": "3.14.0"
             },
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
                 "platform": "darwin",
-                "ip": "127.0.0.1"
+                "ip": "1127.0.0.1"
             },
             "observer": {
-                "name": "ed7e2cf02cd9",
+                "name": "123",
                 "version": "7.0.0-alpha1",
                 "hostname": "ed7e2cf02cd9"
             },
@@ -29,13 +29,13 @@
                     "node",
                     "server.js"
                 ],
-                "pid": 1234,
+                "pid": 11234,
                 "title": "node",
                 "ppid": 6789
             },
             "service": {
                 "runtime": {
-                    "name": "node",
+                    "name": "1node",
                     "version": "8.0.0"
                 },
                 "framework": {
@@ -51,8 +51,7 @@
                 "name": "1234_service-12a3"
             },
             "user": {
-                "id": "99",
-                "username": "foo",
+                "id": "199",
                 "email": "foo@example.com"
             },
             "context": {
@@ -220,6 +219,11 @@
                     "us": 13980
                 },
                 "result": "200"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -287,6 +291,11 @@
                     "us": 13980
                 },
                 "result": "200"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -354,6 +363,11 @@
                 },
                 "name": "GET /api/types",
                 "result": "failure"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
             }
         },
         "_index": "test-apm-12-12-2017"
