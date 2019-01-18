@@ -11,8 +11,6 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 * <<configuration-ssl>>
 * <<configuration-template>>
 * <<configuration-logging>>
-* <<setup-kibana-endpoint>>
-* <<configuration-dashboards>>
 * <<configuration-rum>>
 * <<using-environ-vars>>
 * <<configuration-path>>
@@ -30,10 +28,6 @@ include::./copied-from-beats/shared-ssl-config.asciidoc[]
 include::./template-config.asciidoc[]
 
 include::./copied-from-beats/loggingconfig.asciidoc[]
-
-include::./copied-from-beats/shared-kibana-config.asciidoc[]
-
-include::./copied-from-beats/dashboardsconfig.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
 
