@@ -131,7 +131,8 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 		t,
 		tests.NewSet("processor.event", "processor.name", "observer.listening",
 			"process.args",
-			tests.Group("context.request"),
+			tests.Group("http"),
+			tests.Group("url"),
 			tests.Group("context.tags"),
 			tests.Group("transaction"),
 			tests.Group("parent"),
@@ -145,6 +146,7 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			{Template: "host.os.platform", Mapping: "system.platform"},
 			{Template: "host.", Mapping: "system."},
 			{Template: "user.name", Mapping: "user.username"},
+			//{Template: "url.", Mapping:"context.request.url."},
 		},
 	)
 }

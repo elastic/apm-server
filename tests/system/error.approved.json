@@ -112,6 +112,54 @@
                     "name": "node"
                 }
             },
+            "http": {
+                "version": "1.1",
+                "request": {
+                    "body": {
+                        "original":"Hello World"
+                    },
+                    "env": {
+                        "GATEWAY_INTERFACE": "CGI/1.1",
+                        "SERVER_SOFTWARE": "nginx"
+                    },
+                    "headers": {
+                        "content-type": "text/html",
+                        "cookies": {
+                            "original": "c1=v1; c2=v2",
+                            "parsed": {
+                                "c1": "v1",
+                                "c2": "v2"
+                            }
+                        },
+                        "user-agent": {
+                            "original": "Mozilla Chrome Edge"
+                        }
+                    },
+                    "method": "post",
+                    "socket": {
+                        "encrypted": true,
+                        "remote_address": "12.53.12.1"
+                    }
+                },
+                "response": {
+                    "finished": true,
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "headers_sent": true,
+                    "status_code": 200
+                }
+            },
+            "url": {
+                "domain": "www.example.com",
+                "fragment": "#hash",
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                "original": "/p/a/t/h?query=string#hash",
+                "path": "/p/a/t/h",
+                "port": 8080,
+                "query": "?query=string",
+                "scheme": "https:"
+            },
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             },
@@ -124,44 +172,6 @@
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 },
-                "request": {
-                    "body": "Hello World",
-                    "cookies": {
-                        "c2": "v2",
-                        "c1": "v1"
-                    },
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1"
-                    },
-                    "url": {
-                        "search": "?query=string",
-                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                        "protocol": "https:",
-                        "hostname": "www.example.com",
-                        "raw": "/p/a/t/h?query=string#hash",
-                        "pathname": "/p/a/t/h",
-                        "hash": "#hash",
-                        "port": "8080"
-                    },
-                    "http_version": "1.1",
-                    "headers": {
-                        "some-other-header": "foo",
-                        "content-type": "text/html",
-                        "array": [
-                            "foo",
-                            "bar",
-                            "baz"
-                        ],
-                        "cookie": "c1=v1; c2=v2",
-                        "user-agent": "Mozilla Chrome Edge"
-                    },
-                    "env": {
-                        "SERVER_SOFTWARE": "nginx",
-                        "GATEWAY_INTERFACE": "CGI/1.1"
-                    },
-                    "method": "POST"
-                },
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -171,14 +181,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "response": {
-                    "headers": {
-                        "content-type": "application/json"
-                    },
-                    "finished": true,
-                    "headers_sent": true,
-                    "status_code": 200
                 }
             },
             "error": {

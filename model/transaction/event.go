@@ -23,6 +23,7 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -161,7 +162,6 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		transactionDocType: e.fields(tctx),
 	}
 	delete(e.Context, "user")
-	utility.Add(fields, "context", e.Context)
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
@@ -169,6 +169,13 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
 	tctx.Metadata.Merge(fields)
+
+	utility.Add(fields, "http", m.HttpFields(e.Context))
+	utility.Add(fields, "url", m.UrlFields(e.Context))
+	delete(e.Context, "request")
+	delete(e.Context, "response")
+
+	utility.Add(fields, "context", e.Context)
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

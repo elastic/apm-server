@@ -25,52 +25,6 @@
                     "my_key": 1,
                     "some_other_value": "foo bar"
                 },
-                "request": {
-                    "body": "Hello World",
-                    "cookies": {
-                        "c1": "v1",
-                        "c2": "v2"
-                    },
-                    "env": {
-                        "GATEWAY_INTERFACE": "CGI/1.1",
-                        "SERVER_SOFTWARE": "nginx"
-                    },
-                    "headers": {
-                        "array": [
-                            "foo",
-                            "bar",
-                            "baz"
-                        ],
-                        "content-type": "text/html",
-                        "cookie": "c1=v1; c2=v2",
-                        "some-other-header": "foo",
-                        "user-agent": "Mozilla Chrome Edge"
-                    },
-                    "http_version": "1.1",
-                    "method": "POST",
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1"
-                    },
-                    "url": {
-                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                        "hash": "#hash",
-                        "hostname": "www.example.com",
-                        "pathname": "/p/a/t/h",
-                        "port": "8080",
-                        "protocol": "https:",
-                        "raw": "/p/a/t/h?query=string#hash",
-                        "search": "?query=string"
-                    }
-                },
-                "response": {
-                    "finished": true,
-                    "headers": {
-                        "content-type": "application/json"
-                    },
-                    "headers_sent": true,
-                    "status_code": 200
-                },
                 "tags": {
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 }
@@ -228,6 +182,44 @@
                     "platform": "darwin"
                 }
             },
+            "http": {
+                "request": {
+                    "body": {
+                        "original": "Hello World"
+                    },
+                    "env": {
+                        "GATEWAY_INTERFACE": "CGI/1.1",
+                        "SERVER_SOFTWARE": "nginx"
+                    },
+                    "headers": {
+                        "content-type": "text/html",
+                        "cookies": {
+                            "original": "c1=v1; c2=v2",
+                            "parsed": {
+                                "c1": "v1",
+                                "c2": "v2"
+                            }
+                        },
+                        "user-agent": {
+                            "original": "Mozilla Chrome Edge"
+                        }
+                    },
+                    "method": "post",
+                    "socket": {
+                        "encrypted": true,
+                        "remote_address": "12.53.12.1"
+                    }
+                },
+                "response": {
+                    "finished": true,
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "headers_sent": true,
+                    "status_code": 200
+                },
+                "version": "1.1"
+            },
             "kubernetes": {
                 "namespace": "namespace1",
                 "node": {
@@ -277,6 +269,16 @@
             },
             "timestamp": {
                 "us": 1494342245999999
+            },
+            "url": {
+                "domain": "www.example.com",
+                "fragment": "#hash",
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                "original": "/p/a/t/h?query=string#hash",
+                "path": "/p/a/t/h",
+                "port": 8080,
+                "query": "?query=string",
+                "scheme": "https:"
             },
             "user": {
                 "id": "99",

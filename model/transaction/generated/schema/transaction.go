@@ -182,7 +182,7 @@ const ModelSchema = `{
                     "maxLength": 1024
                 },
                 "port": {
-                    "type": ["string", "null"],
+                    "type": ["string", "integer","null"],
                     "description": "The port of the request, e.g. '443'",
                     "maxLength": 1024
                 },
