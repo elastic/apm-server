@@ -232,8 +232,6 @@ Service fields.
 --
 type: keyword
 
-format: url
-
 Immutable unique name of the service emitting this event.
 
 
@@ -327,8 +325,6 @@ Version of the framework used.
 +
 --
 type: keyword
-
-format: url
 
 The transaction ID.
 
@@ -654,24 +650,6 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 Error-specific data for APM
 
 
-*`view errors`*::
-+
---
-type: keyword
-
-format: url
-
---
-
-*`error id icon`*::
-+
---
-type: keyword
-
-format: url
-
---
-
 [float]
 == error fields
 
@@ -702,8 +680,6 @@ Function call which was the primary perpetrator of this event.
 +
 --
 type: keyword
-
-format: url
 
 GroupingKey of the logged error for use in grouping.
 

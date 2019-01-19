@@ -2,26 +2,6 @@
   title: APM Error
   description: Error-specific data for APM
   fields:
-    - name: view errors
-      type: keyword
-      script: "doc['service.name'].size() > 0 ? doc['service.name'].value : doc['context.service.name'].size() > 0 ? doc['context.service.name'].value : null"
-      language: painless
-      format: url
-      label_template: "View Errors"
-      open_link_in_current_tab: true
-      url_template:
-        - min_version: 5.0.0
-          value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(query_string:(analyze_wildcard:!t,query:'context.service.name:%22{{value}}%22')))"
-        - min_version: 6.0.0-alpha1
-          value: "../app/kibana#/dashboard/37f6fac0-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(language:lucene,query:'context.service.name:\"{{value}}\"'))"
-
-    - name: error id icon
-      type: keyword
-      script: "doc['error.grouping_key'].size() == 0 ? null : doc['error.grouping_key'].value"
-      language: painless
-      format: url
-      label_template: "-"
-
     - name: error
       type: group
       description: >
@@ -45,14 +25,6 @@
           type: keyword
           description: >
             GroupingKey of the logged error for use in grouping.
-          format: url
-          label_template: "View Error Details"
-          open_link_in_current_tab: true
-          url_template:
-            - min_version: 5.0.0
-              value: "../app/kibana#/dashboard/5f08a870-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(query_string:(analyze_wildcard:!t,query:'error.grouping_key:%22{{value}}%22')))"
-            - min_version: 6.0.0-alpha1
-              value: "../app/kibana#/dashboard/5f08a870-7c6a-11e7-aa55-3b0d52c71c60?_a=(query:(language:lucene,query:'error.grouping_key:{{value}}'))"
 
         - name: exception
           type: group

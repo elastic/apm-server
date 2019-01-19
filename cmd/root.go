@@ -72,4 +72,15 @@ func init() {
 			DefaultUsername: "apm_system",
 		},
 	})
+	// remove dashboard from export commands
+	for _, cmd := range RootCmd.ExportCmd.Commands() {
+		if cmd.Name() == "dashboard" {
+			RootCmd.ExportCmd.RemoveCommand(cmd)
+		}
+	}
+	// remove dashboards and ml-jobs from setup commands
+	setup := RootCmd.SetupCmd
+	setup.ResetFlags()
+	setup.Flags().Bool("template", false, "Setup index template")
+	setup.Flags().Bool("pipelines", false, "Setup Ingest pipelines")
 }
