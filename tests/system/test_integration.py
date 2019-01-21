@@ -247,7 +247,6 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
 
 
 class SplitIndicesIntegrationTest(SplitIndicesTest):
-    @unittest.skip
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_split_docs_into_separate_indices(self):
         # load error and transaction document to ES
@@ -256,7 +255,7 @@ class SplitIndicesIntegrationTest(SplitIndicesTest):
                                      'error',
                                      4,
                                      query_index="test-apm*")
-        self.load_docs_with_template(self.get_transaction_payload_path(),
+        self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
                                      self.intake_url,
                                      'transaction',
                                      9,
