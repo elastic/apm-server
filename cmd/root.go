@@ -78,8 +78,14 @@ func init() {
 			RootCmd.ExportCmd.RemoveCommand(cmd)
 		}
 	}
-	// remove dashboards and ml-jobs from setup commands
+	// only add defined flags to setup command
 	setup := RootCmd.SetupCmd
+	setup.Short = "Setup Elasticsearch index template and pipelines"
+	setup.Long = `This command does initial setup of the environment:
+
+ * Index mapping template in Elasticsearch to ensure fields are mapped.
+ * Ingest pipelines
+`
 	setup.ResetFlags()
 	setup.Flags().Bool("template", false, "Setup index template")
 	setup.Flags().Bool("pipelines", false, "Setup Ingest pipelines")
