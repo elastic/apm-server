@@ -10,7 +10,8 @@
 - Update response format of the healthcheck handler and prettyfy all JSON responses {pull}1748[1748].
 - Add transaction.type to error data {pull}1781[1781].
 - Rename transaction.span_count.dropped.total to transaction.span_count.dropped {pull}1809[1809].
-- Rename span.hex_id to span.id {pull}XXX[XXX].
+- Rename span.hex_id to span.id {pull}1811[1811].
+- Index error.exception as array of objects {pull}1825[1825]
 
 [float]
 ==== Removed
