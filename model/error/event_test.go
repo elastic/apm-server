@@ -302,7 +302,7 @@ func TestEventFields(t *testing.T) {
 		{
 			Event: Event{Exception: baseException(), Log: baseLog()},
 			Output: common.MapStr{
-				"exception":    common.MapStr{"message": "exception message"},
+				"exception":    []common.MapStr{{"message": "exception message"}},
 				"log":          common.MapStr{"message": "error log message"},
 				"grouping_key": baseExceptionGroupingKey,
 			},
@@ -311,7 +311,7 @@ func TestEventFields(t *testing.T) {
 		{
 			Event: Event{Exception: baseException()},
 			Output: common.MapStr{
-				"exception":    common.MapStr{"message": "exception message"},
+				"exception":    []common.MapStr{{"message": "exception message"}},
 				"grouping_key": baseExceptionGroupingKey,
 			},
 			Msg: "Minimal Event with exception",
@@ -319,7 +319,7 @@ func TestEventFields(t *testing.T) {
 		{
 			Event: Event{Exception: baseException().withCode("13")},
 			Output: common.MapStr{
-				"exception":    common.MapStr{"message": "exception message", "code": "13"},
+				"exception":    []common.MapStr{{"message": "exception message", "code": "13"}},
 				"grouping_key": baseExceptionGroupingKey,
 			},
 			Msg: "Minimal Event with exception and string code",
@@ -327,7 +327,7 @@ func TestEventFields(t *testing.T) {
 		{
 			Event: Event{Exception: baseException().withCode(13)},
 			Output: common.MapStr{
-				"exception":    common.MapStr{"message": "exception message", "code": "13"},
+				"exception":    []common.MapStr{{"message": "exception message", "code": "13"}},
 				"grouping_key": baseExceptionGroupingKey,
 			},
 			Msg: "Minimal Event wth exception and int code",
@@ -335,7 +335,7 @@ func TestEventFields(t *testing.T) {
 		{
 			Event: Event{Exception: baseException().withCode(13.0)},
 			Output: common.MapStr{
-				"exception":    common.MapStr{"message": "exception message", "code": "13"},
+				"exception":    []common.MapStr{{"message": "exception message", "code": "13"}},
 				"grouping_key": baseExceptionGroupingKey,
 			},
 			Msg: "Minimal Event wth exception and float code",
@@ -353,7 +353,7 @@ func TestEventFields(t *testing.T) {
 			Output: common.MapStr{
 				"id":      "45678",
 				"culprit": "some trigger",
-				"exception": common.MapStr{
+				"exception": []common.MapStr{{
 					"stacktrace": []common.MapStr{{
 						"filename":              "st file",
 						"line":                  common.MapStr{"number": 0},
@@ -369,7 +369,7 @@ func TestEventFields(t *testing.T) {
 					"attributes": common.MapStr{"k1": "val1"},
 					"type":       "error type",
 					"handled":    false,
-				},
+				}},
 				"log": common.MapStr{
 					"message":       "error log message",
 					"param_message": "param message",
@@ -487,7 +487,7 @@ func TestEvents(t *testing.T) {
 				"error": common.MapStr{
 					"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
 					"log":          common.MapStr{"message": "error log message"},
-					"exception": common.MapStr{
+					"exception": []common.MapStr{{
 						"message": "exception message",
 						"stacktrace": []common.MapStr{{
 							"exclude_from_grouping": false,
@@ -498,7 +498,7 @@ func TestEvents(t *testing.T) {
 								"updated": false,
 							},
 						}},
-					},
+					}},
 				},
 				"processor":   common.MapStr{"event": "error", "name": "error"},
 				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79", "sampled": true},

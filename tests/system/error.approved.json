@@ -51,9 +51,9 @@
                 }
             },
             "error": {
-                "exception": {
+                "exception": [{
                     "type": "connection error"
-                },
+                }],
                 "grouping_key": "18f82051862e494727fa20e0adc15711",
                 "id": "7f0e9d68c1854d21a6f44673ed561ec8"
             },
@@ -182,7 +182,7 @@
                 }
             },
             "error": {
-                "exception": {
+                "exception": [{
                     "stacktrace": [
                         {
                             "function": "foo",
@@ -252,7 +252,7 @@
                     },
                     "message": "The username root is unknown",
                     "type": "DbError"
-                },
+                }],
                 "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
                 "id": "5f0e9d64c1854d21a6f44673ed561ec8",
                 "culprit": "my.module.function_name",
@@ -388,10 +388,10 @@
                 }
             },
             "error": {
-                "exception": {
+                "exception": [{
                     "message": "foo is not defined",
                     "code": "35"
-                },
+                }],
                 "grouping_key": "f6b5a2877d9b00d5b32b44c9db039f11",
                 "id": "8f0e9d68c1854d21a6f44673ed561ec8"
             },
