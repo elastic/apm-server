@@ -41,7 +41,7 @@ func spanProcSetup() *tests.ProcessorSetup {
 
 func spanPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
-		"span.stacktrace",
+		tests.Group("span.stacktrace"),
 		tests.Group("context.db"),
 		"context.http",
 		"context.http.url",

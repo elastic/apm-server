@@ -153,10 +153,15 @@ func flattenMapStrStr(k string, v interface{}, prefix string, keysBlacklist *Set
 	if !isBlacklistedKey(keysBlacklist, key) {
 		flattened.Add(key)
 	}
-	_, okCommonMapStr := v.(common.MapStr)
-	_, okMapStr := v.(map[string]interface{})
-	if okCommonMapStr || okMapStr {
+	switch v := v.(type) {
+	case common.MapStr:
 		FlattenMapStr(v, key, keysBlacklist, flattened)
+	case map[string]interface{}:
+		FlattenMapStr(v, key, keysBlacklist, flattened)
+	case []common.MapStr:
+		for _, v := range v {
+			FlattenMapStr(v, key, keysBlacklist, flattened)
+		}
 	}
 }
 

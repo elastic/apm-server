@@ -42,8 +42,8 @@ func errorProcSetup() *tests.ProcessorSetup {
 func errorPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("error.exception.attributes"),
-		"error.exception.stacktrace",
-		"error.log.stacktrace",
+		tests.Group("error.exception.stacktrace"),
+		tests.Group("error.log.stacktrace"),
 		tests.Group("context.user"),
 	)
 }

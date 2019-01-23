@@ -77,77 +77,79 @@
             },
             "error": {
                 "culprit": "my.module.function_name",
-                "exception": {
-                    "attributes": {
-                        "foo": "bar"
-                    },
-                    "code": "42",
-                    "handled": false,
-                    "message": "The username root is unknown",
-                    "module": "__builtins__",
-                    "stacktrace": [
-                        {
-                            "abs_path": "/real/file/name.py",
-                            "context": {
-                                "post": [
-                                    "line4",
-                                    "line5"
-                                ],
-                                "pre": [
-                                    "line1",
-                                    "line2"
-                                ]
-                            },
-                            "exclude_from_grouping": false,
-                            "filename": "file/name.py",
-                            "function": "foo",
-                            "library_frame": true,
-                            "line": {
-                                "column": 4,
-                                "context": "line3",
-                                "number": 3
-                            },
-                            "module": "App::MyModule",
-                            "vars": {
-                                "key": "value"
-                            }
+                "exception": [
+                    {
+                        "attributes": {
+                            "foo": "bar"
                         },
-                        {
-                            "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
-                            "context": {
-                                "post": [
-                                    "    ins.currentTransaction = prev",
-                                    "    return result",
-                                    "}",
-                                    "}",
-                                    "",
-                                    "Instrumentation.prototype._recoverTransaction = function (trans) {",
-                                    "  if (this.currentTransaction === trans) return"
-                                ],
-                                "pre": [
-                                    "  var trans = this.currentTransaction",
-                                    "",
-                                    "  return instrumented",
-                                    "",
-                                    "  function instrumented () {",
-                                    "    var prev = ins.currentTransaction",
-                                    "    ins.currentTransaction = trans"
-                                ]
+                        "code": "42",
+                        "handled": false,
+                        "message": "The username root is unknown",
+                        "module": "__builtins__",
+                        "stacktrace": [
+                            {
+                                "abs_path": "/real/file/name.py",
+                                "context": {
+                                    "post": [
+                                        "line4",
+                                        "line5"
+                                    ],
+                                    "pre": [
+                                        "line1",
+                                        "line2"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "file/name.py",
+                                "function": "foo",
+                                "library_frame": true,
+                                "line": {
+                                    "column": 4,
+                                    "context": "line3",
+                                    "number": 3
+                                },
+                                "module": "App::MyModule",
+                                "vars": {
+                                    "key": "value"
+                                }
                             },
-                            "exclude_from_grouping": false,
-                            "filename": "lib/instrumentation/index.js",
-                            "function": "instrumented",
-                            "line": {
-                                "context": "    var result = original.apply(this, arguments)",
-                                "number": 102
-                            },
-                            "vars": {
-                                "key": "value"
+                            {
+                                "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
+                                "context": {
+                                    "post": [
+                                        "    ins.currentTransaction = prev",
+                                        "    return result",
+                                        "}",
+                                        "}",
+                                        "",
+                                        "Instrumentation.prototype._recoverTransaction = function (trans) {",
+                                        "  if (this.currentTransaction === trans) return"
+                                    ],
+                                    "pre": [
+                                        "  var trans = this.currentTransaction",
+                                        "",
+                                        "  return instrumented",
+                                        "",
+                                        "  function instrumented () {",
+                                        "    var prev = ins.currentTransaction",
+                                        "    ins.currentTransaction = trans"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "lib/instrumentation/index.js",
+                                "function": "instrumented",
+                                "line": {
+                                    "context": "    var result = original.apply(this, arguments)",
+                                    "number": 102
+                                },
+                                "vars": {
+                                    "key": "value"
+                                }
                             }
-                        }
-                    ],
-                    "type": "DbError"
-                },
+                        ],
+                        "type": "DbError"
+                    }
+                ],
                 "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
                 "id": "0123456789012345",
                 "log": {
@@ -296,9 +298,11 @@
                 "id": "container-id"
             },
             "error": {
-                "exception": {
-                    "message": "Cannot read property 'baz' no defined"
-                },
+                "exception": [
+                    {
+                        "message": "Cannot read property 'baz' no defined"
+                    }
+                ],
                 "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
                 "id": "cdefab0123456789"
             },
@@ -381,9 +385,11 @@
                 "id": "container-id"
             },
             "error": {
-                "exception": {
-                    "type": "DbError"
-                },
+                "exception": [
+                    {
+                        "type": "DbError"
+                    }
+                ],
                 "grouping_key": "c3868d6704b923014eaffea034e70a3d",
                 "id": "cdefab0123456780"
             },

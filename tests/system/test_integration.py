@@ -224,8 +224,8 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
         for doc in rs['hits']['hits']:
             if "error" in doc["_source"]:
                 err = doc["_source"]["error"]
-                if "exception" in err:
-                    self.count_library_frames(err["exception"], l_frames)
+                for exception in err.get("exception", []):
+                    self.count_library_frames(exception, l_frames)
                 if "log" in err:
                     self.count_library_frames(err["log"], l_frames)
             elif "span" in doc["_source"]:

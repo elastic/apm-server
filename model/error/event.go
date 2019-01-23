@@ -294,7 +294,12 @@ func (e *Event) addException(tctx *transform.Context) {
 	st := e.Exception.Stacktrace.Transform(tctx)
 	utility.Add(ex, "stacktrace", st)
 
-	e.add("exception", ex)
+	// NOTE(axw) error.exception is an array of objects.
+	// For now, the array holds just one exception. Later,
+	// the array will hold each of the elements of a chained
+	// exception, starting with the outermost exception and
+	// ending with the root cause.
+	e.add("exception", []common.MapStr{ex})
 }
 
 func (e *Event) addLog(tctx *transform.Context) {

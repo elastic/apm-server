@@ -254,8 +254,8 @@ class ElasticTest(ServerBaseTest):
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
             err = doc["_source"]["error"]
-            if "exception" in err:
-                self.check_for_no_smap(err["exception"])
+            for exception in err.get("exception", []):
+                self.check_for_no_smap(exception)
             if "log" in err:
                 self.check_for_no_smap(err["log"])
 
@@ -338,8 +338,8 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
             err = doc["_source"]["error"]
-            if "exception" in err:
-                self.check_smap(err["exception"], updated, expected_err)
+            for exception in err.get("exception", []):
+                self.check_smap(exception, updated, expected_err)
             if "log" in err:
                 self.check_smap(err["log"], updated, expected_err)
 
