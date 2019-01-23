@@ -22,6 +22,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -45,6 +46,7 @@ func init() {
 	mage.BeatURL = "https://www.elastic.co/solutions/apm"
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
+	mage.BeatUser = "apm-server"
 }
 
 // Build builds the Beat binary.
@@ -162,9 +164,14 @@ func GoTestIntegration(ctx context.Context) error {
 // - apm-server.reference.yml is not included in packages.
 // - ingest .json files are included in packaging
 
+var emptyDir = filepath.Clean("build/empty")
 var ingestDirGenerated = filepath.Clean("build/packaging/ingest")
 
 func customizePackaging() {
+	if err := os.MkdirAll(emptyDir, 0750); err != nil {
+		panic(errors.Wrapf(err, "failed to create dir %v", emptyDir))
+	}
+
 	var (
 		readmeTemplate = mage.PackageFile{
 			Mode:     0644,
@@ -177,7 +184,7 @@ func customizePackaging() {
 		}
 	)
 	for idx := len(mage.Packages) - 1; idx >= 0; idx-- {
-		args := mage.Packages[idx]
+		args := &mage.Packages[idx]
 		pkgType := args.Types[0]
 		switch pkgType {
 
@@ -200,6 +207,15 @@ func customizePackaging() {
 			delete(args.Spec.Files, "/etc/{{.BeatName}}/{{.BeatName}}.reference.yml")
 			args.Spec.ReplaceFile("/usr/share/{{.BeatName}}/README.md", readmeTemplate)
 			args.Spec.Files["/usr/share/{{.BeatName}}/"+ingestTarget] = ingest
+
+			// update config file Owner
+			pf := args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"]
+			pf.Owner = mage.BeatUser
+			args.Spec.Files["/etc/{{.BeatName}}/{{.BeatName}}.yml"] = pf
+
+			args.Spec.Files["/var/lib/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
+			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
+			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"
 
 		case mage.DMG:
 			mage.Packages = append(mage.Packages[:idx], mage.Packages[idx+1:]...)
