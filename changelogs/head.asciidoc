@@ -10,6 +10,7 @@ https://github.com/elastic/apm-server/compare/6.5\...6.x[View commits]
 - Add `span.sync` property to intake json spec and index field in ES. {pull}1548[1548].
 - Make `service.framework` properties optional and nullable {pull}1546[1546].
 - Add `transaction.sampled` to errors {pull}1662[1662].
+- Update Go to 1.10.8 {pull}XXX[XXX].
 
 [float]
 ==== Bug fixes
