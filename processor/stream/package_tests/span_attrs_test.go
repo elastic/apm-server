@@ -43,6 +43,8 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("span.stacktrace"),
 		tests.Group("context"),
+		tests.Group("span.db"),
+		tests.Group("span.http"),
 	)
 }
 

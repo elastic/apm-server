@@ -182,22 +182,37 @@
 
   # not in ECS
 - from: context.db.instance
-  to: context.db.instance
+  to: span.db.instance
   index: false
 
   # not in ECS
 - from: context.db.statement
-  to: context.db.statement
+  to: span.db.statement
   index: false
 
   # not in ECS
-- from: context.db.content
-  to: context.db.content
+- from: context.db.type
+  to: span.db.type
   index: false
 
   # not in ECS
 - from: context.db.user
-  to: context.db.user
+  to: span.db.user.name
+  index: false
+
+  # not in ECS
+- from: context.http.url
+  to: span.http.url.original
+  index: false
+
+  # not in ECS
+- from: context.http.status_code
+  to: span.http.response.status_code
+  index: false
+
+  # not in ECS
+- from: context.http.method
+  to: span.http.method
   index: false
 
 - from: context.user.email
