@@ -158,7 +158,7 @@
                 "path": "/p/a/t/h",
                 "port": 8080,
                 "query": "?query=string",
-                "scheme": "https:"
+                "scheme": "https"
             },
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"

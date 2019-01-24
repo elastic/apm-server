@@ -44,7 +44,6 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 	notInFields := Union(payloadAttrsNotInFields, NewSet(
 		Group("processor"),
 		//dynamically indexed:
-		Group("context.tags"),
 		Group("labels"),
 		//known not-indexed fields:
 		Group("context.custom"),

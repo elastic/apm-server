@@ -230,7 +230,7 @@
                 "path": "/p/a/t/h",
                 "port": 8080,
                 "query": "?query=string",
-                "scheme": "https:"
+                "scheme": "https"
             },
             "user": {
                 "id": "99",
