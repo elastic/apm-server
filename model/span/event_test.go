@@ -42,7 +42,7 @@ func TestDecodeSpan(t *testing.T) {
 	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
-	context := map[string]interface{}{"a": "b"}
+	context := map[string]interface{}{"a": "b", "tags": map[string]interface{}{"a": "tag", "tag.key": 17}}
 	subtype := "postgresql"
 	action := "query"
 	stacktrace := []interface{}{map[string]interface{}{
@@ -113,7 +113,7 @@ func TestDecodeSpan(t *testing.T) {
 				Duration:      duration,
 				Timestamp:     spanTime,
 				ParentId:      parentId,
-				HexId:         id,
+				Id:            id,
 				TraceId:       traceId,
 				TransactionId: transactionId,
 			},
@@ -132,12 +132,13 @@ func TestDecodeSpan(t *testing.T) {
 				Action:    &action,
 				Start:     &start,
 				Duration:  duration,
-				Context:   context,
+				Context:   map[string]interface{}{"a": "b"},
 				Timestamp: spanTime,
 				Stacktrace: m.Stacktrace{
 					&m.StacktraceFrame{Filename: "file", Lineno: 1},
 				},
-				HexId:         id,
+				Labels:        common.MapStr{"a": "tag", "tag.key": 17},
+				Id:            id,
 				TraceId:       traceId,
 				ParentId:      parentId,
 				TransactionId: transactionId,
@@ -161,6 +162,7 @@ func TestSpanTransform(t *testing.T) {
 	subtype := "myspansubtype"
 	action := "myspanquery"
 	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
+	timestampUs := timestamp.UnixNano() / 1000
 
 	tests := []struct {
 		Event  Event
@@ -170,15 +172,21 @@ func TestSpanTransform(t *testing.T) {
 		{
 			Event: Event{Timestamp: timestamp},
 			Output: common.MapStr{
-				"type":     "",
-				"duration": common.MapStr{"us": 0},
-				"name":     "",
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"service":   common.MapStr{"name": "myService"},
+				"span": common.MapStr{
+					"duration": common.MapStr{"us": 0},
+					"name":     "",
+					"type":     "",
+				},
+				"timestamp": common.MapStr{"us": timestampUs},
+				"agent":     common.MapStr{"name": "", "version": ""},
 			},
 			Msg: "Span without a Stacktrace",
 		},
 		{
 			Event: Event{
-				HexId:      hexId,
+				Id:         hexId,
 				TraceId:    traceId,
 				ParentId:   parentId,
 				Name:       "myspan",
@@ -189,36 +197,37 @@ func TestSpanTransform(t *testing.T) {
 				Duration:   1.20,
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
 				Context:    common.MapStr{"key": "val"},
+				Labels:     common.MapStr{"label.a": 12},
 			},
 			Output: common.MapStr{
-				"id":       hexId,
-				"duration": common.MapStr{"us": 1200},
-				"name":     "myspan",
-				"start":    common.MapStr{"us": 650},
-				"type":     "myspantype",
-				"subtype":  subtype,
-				"action":   action,
-				"stacktrace": []common.MapStr{{
-					"exclude_from_grouping": false,
-					"abs_path":              path,
-					"filename":              "",
-					"line":                  common.MapStr{"number": 0},
-					"sourcemap": common.MapStr{
-						"error":   "Colno mandatory for sourcemapping.",
-						"updated": false,
-					}}},
+				"span": common.MapStr{
+					"id":       hexId,
+					"duration": common.MapStr{"us": 1200},
+					"name":     "myspan",
+					"start":    common.MapStr{"us": 650},
+					"type":     "myspantype",
+					"subtype":  subtype,
+					"action":   action,
+					"stacktrace": []common.MapStr{{
+						"exclude_from_grouping": false,
+						"abs_path":              path,
+						"filename":              "",
+						"line":                  common.MapStr{"number": 0},
+						"sourcemap": common.MapStr{
+							"error":   "Colno mandatory for sourcemapping.",
+							"updated": false,
+						}}},
+				},
+				"context":   common.MapStr{"key": "val"},
+				"labels":    common.MapStr{"label.a": 12},
+				"processor": common.MapStr{"event": "span", "name": "transaction"},
+				"service":   common.MapStr{"name": "myService"},
+				"timestamp": common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
+				"trace":     common.MapStr{"id": traceId},
+				"parent":    common.MapStr{"id": parentId},
+				"agent":     common.MapStr{"name": "", "version": ""},
 			},
 			Msg: "Full Span",
-		},
-		{
-			Event: Event{HexId: hexId, ParentId: parentId},
-			Output: common.MapStr{
-				"type":     "",
-				"duration": common.MapStr{"us": 0},
-				"name":     "",
-				"id":       hexId,
-			},
-			Msg: "Span without a Stacktrace",
 		},
 	}
 
@@ -227,10 +236,11 @@ func TestSpanTransform(t *testing.T) {
 		Metadata: metadata.Metadata{
 			Service: &service,
 		},
+		RequestTime: timestamp,
 	}
 	for _, test := range tests {
 		output := test.Event.Transform(tctx)
-		fields := output[0].Fields["span"]
+		fields := output[0].Fields
 		assert.Equal(t, test.Output, fields)
 	}
 }

@@ -77,13 +77,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "context": {
-                "tags": {
-                    "tag1": "value1",
-                    "tag2": 123,
-                    "tag3": 12.34,
-                    "tag4": true
-                }
+            "labels": {
+                "tag1": "value1",
+                "tag2": 123,
+                "tag3": 12.34,
+                "tag4": true
             },
             "parent": {
                 "id": "abcdefabcdef7890"

@@ -66,17 +66,18 @@ type Event struct {
 	TraceId       *string
 	ParentId      *string
 
-	Culprit   *string
-	Context   common.MapStr
 	Timestamp time.Time
+
+	Context common.MapStr
+	Culprit *string
+	User    *metadata.User
+	Labels  common.MapStr
 
 	Exception *Exception
 	Log       *Log
 
 	TransactionSampled *bool
 	TransactionType    *string
-
-	User *metadata.User
 
 	data common.MapStr
 }
@@ -123,6 +124,11 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		TraceId:            decoder.StringPtr(raw, "trace_id"),
 		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
 		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
+	}
+
+	if labels, ok := e.Context["tags"].(map[string]interface{}); ok {
+		delete(e.Context, "tags")
+		e.Labels = labels
 	}
 
 	var stacktr *m.Stacktrace
@@ -195,6 +201,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
+	utility.Add(fields, "labels", e.Labels)
 	tctx.Metadata.Merge(fields)
 
 	utility.Add(fields, "http", m.HttpFields(e.Context))

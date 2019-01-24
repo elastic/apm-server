@@ -19,9 +19,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "tags": {
-                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 }
             },
             "error": {
@@ -225,6 +222,9 @@
                     "uid": "pod-uid"
                 }
             },
+            "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+            },
             "process": {
                 "args": [
                     "node",
@@ -266,7 +266,7 @@
                 "path": "/p/a/t/h",
                 "port": 8080,
                 "query": "?query=string",
-                "scheme": "https:"
+                "scheme": "https"
             },
             "user": {
                 "id": "99",

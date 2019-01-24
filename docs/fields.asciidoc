@@ -183,19 +183,12 @@ Used by the Node agent to indicate when in the response life cycle an error has 
 
 --
 
-[float]
-== context fields
-
-Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user.
-
-
-
-*`context.tags`*::
+*`labels`*::
 +
 --
 type: object
 
-A flat mapping of user-defined tags with string values.
+A flat mapping of user-defined labels with string, boolean or number values.
 
 
 --

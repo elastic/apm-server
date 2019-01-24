@@ -26,6 +26,10 @@
 - from: context.service.agent.version
   to: agent.version
 
+  # field in ECS, but allowed type is extended
+- from: context.tags
+  to: labels
+
 - from: context.system.architecture
   to: host.architecture
 

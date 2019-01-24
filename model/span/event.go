@@ -52,21 +52,22 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Event struct {
+	Id            string
+	TransactionId string
+	ParentId      string
+	TraceId       string
+
+	Timestamp time.Time
+
 	Name       string
-	Type       string
 	Start      *float64
 	Duration   float64
 	Context    common.MapStr
 	Stacktrace m.Stacktrace
+	Sync       *bool
+	Labels     common.MapStr
 
-	Timestamp     time.Time
-	TransactionId string
-	Sync          *bool
-
-	HexId    string
-	ParentId string
-	TraceId  string
-
+	Type    string
 	Subtype *string
 	Action  *string
 }
@@ -92,12 +93,17 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Context:       decoder.MapStr(raw, "context"),
 		Sync:          decoder.BoolPtr(raw, "sync"),
 		Timestamp:     decoder.TimeEpochMicro(raw, "timestamp"),
-		HexId:         decoder.String(raw, "id"),
+		Id:            decoder.String(raw, "id"),
 		ParentId:      decoder.String(raw, "parent_id"),
 		TraceId:       decoder.String(raw, "trace_id"),
 		TransactionId: decoder.String(raw, "transaction_id"),
 		Subtype:       decoder.StringPtr(raw, "subtype"),
 		Action:        decoder.StringPtr(raw, "action"),
+	}
+
+	if labels, ok := event.Context["tags"].(map[string]interface{}); ok {
+		delete(event.Context, "tags")
+		event.Labels = labels
 	}
 
 	var stacktr *m.Stacktrace
@@ -124,6 +130,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor": processorEntry,
 		spanDocType: e.fields(tctx),
 	}
+	utility.Add(fields, "labels", e.Labels)
 	utility.Add(fields, "context", e.Context)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
@@ -155,8 +162,8 @@ func (s *Event) fields(tctx *transform.Context) common.MapStr {
 		return nil
 	}
 	tr := common.MapStr{}
-	if s.HexId != "" {
-		utility.Add(tr, "id", s.HexId)
+	if s.Id != "" {
+		utility.Add(tr, "id", s.Id)
 	}
 	utility.Add(tr, "subtype", s.Subtype)
 	utility.Add(tr, "action", s.Action)

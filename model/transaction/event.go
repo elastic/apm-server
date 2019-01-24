@@ -54,20 +54,23 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Event struct {
-	Id        string
+	Id       string
+	ParentId *string
+	TraceId  string
+
+	Timestamp time.Time
+
+	Context common.MapStr
+
 	Type      string
 	Name      *string
 	Result    *string
 	Duration  float64
-	Timestamp time.Time
-	Context   common.MapStr
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
 	User      *metadata.User
-
-	ParentId *string
-	TraceId  string
+	Labels    common.MapStr
 }
 
 type SpanCount struct {
@@ -107,6 +110,11 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+
+	if labels, ok := e.Context["tags"].(map[string]interface{}); ok {
+		delete(e.Context, "tags")
+		e.Labels = labels
 	}
 
 	if ok, _ := e.Context.HasKey("user"); ok {
@@ -168,6 +176,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
+	utility.Add(fields, "labels", e.Labels)
 	tctx.Metadata.Merge(fields)
 
 	utility.Add(fields, "http", m.HttpFields(e.Context))

@@ -42,9 +42,7 @@ func spanProcSetup() *tests.ProcessorSetup {
 func spanPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("span.stacktrace"),
-		tests.Group("context.db"),
-		tests.Group("context.http"),
-		tests.Group("context.user"),
+		tests.Group("context"),
 	)
 }
 
@@ -76,7 +74,7 @@ func spanPayloadAttrsNotInJsonSchema() *tests.Set {
 	return tests.NewSet(
 		"span",
 		"span.stacktrace.vars.key",
-		tests.Group("span.context.tags.tag"),
+		tests.Group("span.context.tags"),
 	)
 }
 
