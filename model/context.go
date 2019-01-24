@@ -75,7 +75,9 @@ func UrlFields(fields common.MapStr) common.MapStr {
 	}
 	utility.Add(destination, "port", portInt)
 	utility.Add(destination, "original", source("request.url.raw"))
-	utility.Add(destination, "scheme", source("request.url.protocol"))
+	if scheme, ok := source("request.url.protocol").(string); ok {
+		utility.Add(destination, "scheme", strings.TrimSuffix(scheme, ":"))
+	}
 	utility.Add(destination, "query", source("request.url.search"))
 
 	return destination
