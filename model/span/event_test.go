@@ -42,13 +42,20 @@ func TestDecodeSpan(t *testing.T) {
 	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
-	context := map[string]interface{}{"a": "b", "tags": map[string]interface{}{"a": "tag", "tag.key": 17}}
+	method, statusCode, url := "get", 200, "http://localhost"
+	instance, statement, dbType, user := "db01", "select *", "sql", "joe"
+	context := map[string]interface{}{
+		"a":    "b",
+		"tags": map[string]interface{}{"a": "tag", "tag.key": 17},
+		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
+		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user},
+	}
 	subtype := "postgresql"
 	action := "query"
 	stacktrace := []interface{}{map[string]interface{}{
 		"filename": "file", "lineno": 1.0,
 	}}
-	for idx, test := range []struct {
+	testdata := []struct {
 		input interface{}
 		// we don't use a regular `error.New` here, because some errors are of a different type
 		err    string
@@ -132,7 +139,7 @@ func TestDecodeSpan(t *testing.T) {
 				Action:    &action,
 				Start:     &start,
 				Duration:  duration,
-				Context:   map[string]interface{}{"a": "b"},
+				Context:   context,
 				Timestamp: spanTime,
 				Stacktrace: m.Stacktrace{
 					&m.StacktraceFrame{Filename: "file", Lineno: 1},
@@ -142,14 +149,17 @@ func TestDecodeSpan(t *testing.T) {
 				TraceId:       traceId,
 				ParentId:      parentId,
 				TransactionId: transactionId,
+				Http:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
+				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
 			},
 		},
-	} {
+	}
+	for idx, test := range testdata {
 		span, err := DecodeEvent(test.input, test.inpErr)
 		if test.err == "" {
-			assert.Equal(t, test.e, span, fmt.Sprintf("Idx <%x>", idx))
+			assert.Equal(t, test.e, span, fmt.Sprintf("Idx <%v>", idx))
 		} else {
-			assert.EqualError(t, err, test.err, fmt.Sprintf("Idx <%x>", idx))
+			assert.EqualError(t, err, test.err, fmt.Sprintf("Idx <%v>", idx))
 		}
 	}
 }
@@ -163,6 +173,8 @@ func TestSpanTransform(t *testing.T) {
 	action := "myspanquery"
 	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
 	timestampUs := timestamp.UnixNano() / 1000
+	method, statusCode, url := "get", 200, "http://localhost"
+	instance, statement, dbType, user := "db01", "select *", "sql", "jane"
 
 	tests := []struct {
 		Event  Event
@@ -198,6 +210,8 @@ func TestSpanTransform(t *testing.T) {
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
 				Context:    common.MapStr{"key": "val"},
 				Labels:     common.MapStr{"label.a": 12},
+				Http:       &http{Method: &method, StatusCode: &statusCode, Url: &url},
+				Db:         &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -217,6 +231,17 @@ func TestSpanTransform(t *testing.T) {
 							"error":   "Colno mandatory for sourcemapping.",
 							"updated": false,
 						}}},
+					"db": common.MapStr{
+						"instance":  instance,
+						"statement": statement,
+						"type":      dbType,
+						"user":      common.MapStr{"name": user},
+					},
+					"http": common.MapStr{
+						"url":      common.MapStr{"original": url},
+						"response": common.MapStr{"status_code": statusCode},
+						"method":   "get",
+					},
 				},
 				"context":   common.MapStr{"key": "val"},
 				"labels":    common.MapStr{"label.a": 12},

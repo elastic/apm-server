@@ -62,21 +62,21 @@
                     "us": 2830
                 },
                 "type": "db.postgresql.query",
-                "name": "SELECT FROM product_types"
+                "name": "SELECT FROM product_types",
+                "db": {
+                    "instance": "customers",
+                    "type": "sql",
+                    "user": {
+                        "name": "readonly_user"
+                    },
+                    "statement": "SELECT * FROM product_types WHERE user_id=?"
+                }
             },
             "service": {
                 "name": "1234_service-12a3"
             },
             "transaction": {
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9"
-            },
-            "context": {
-                "db": {
-                    "instance": "customers",
-                    "type": "sql",
-                    "user": "readonly_user",
-                    "statement": "SELECT * FROM product_types WHERE user_id=?"
-                }
             },
             "processor": {
                 "name": "transaction",
@@ -192,23 +192,27 @@
                 "duration": {
                     "us": 3781
                 },
-                "type": "db.postgresql.query"
-            },
-            "transaction": {
-                "id": "945254c567a5417e"
-            },
-            "context": {
+                "type": "db.postgresql.query",
                 "db": {
                     "instance": "customers",
                     "type": "sql",
-                    "user": "readonly_user",
+                    "user": {
+                        "name": "readonly_user"
+                    },
                     "statement": "SELECT * FROM product_types WHERE user_id=?"
                 },
                 "http": {
-                    "url": "http://localhost:8000",
-                    "status_code": 200,
-                    "method": "GET"
+                    "url": {
+                        "original": "http://localhost:8000"
+                    },
+                    "response": {
+                        "status_code": 200
+                    },
+                    "method": "get"
                 }
+            },
+            "transaction": {
+                "id": "945254c567a5417e"
             },
             "labels": {
                 "span_tag": "something"
