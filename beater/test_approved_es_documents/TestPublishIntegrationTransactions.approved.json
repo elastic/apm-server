@@ -120,12 +120,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "tags": {
-                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                    "tag2": 12,
-                    "tag3": 12.45,
-                    "tag4": false
                 }
             },
             "host": {
@@ -189,6 +183,12 @@
                     "name": "pod-name",
                     "uid": "pod-uid"
                 }
+            },
+            "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "tag2": 12,
+                "tag3": 12.45,
+                "tag4": false
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

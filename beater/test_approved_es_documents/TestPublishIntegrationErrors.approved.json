@@ -24,9 +24,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "tags": {
-                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
                 }
             },
             "error": {
@@ -229,6 +226,9 @@
                     "name": "pod-name",
                     "uid": "pod-uid"
                 }
+            },
+            "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

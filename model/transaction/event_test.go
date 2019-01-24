@@ -64,6 +64,8 @@ func TestTransactionEventDecode(t *testing.T) {
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
 	context := map[string]interface{}{"a": "b", "user": map[string]interface{}{
 		"username": name, "email": email, "ip": userIp, "id": userId}}
+	origContext := map[string]interface{}{"a": "b", "user": map[string]interface{}{
+		"username": name, "email": email, "ip": userIp, "id": userId}, "tags": map[string]interface{}{"foo": "bar"}}
 	marks := map[string]interface{}{"k": "b"}
 	sampled := true
 
@@ -72,12 +74,13 @@ func TestTransactionEventDecode(t *testing.T) {
 		err   error
 		e     *Event
 	}{
+
 		// full event, ignoring spans
 		{
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "result": result,
 				"duration": duration, "timestamp": timestampEpoch,
-				"context": context, "marks": marks, "sampled": sampled,
+				"context": origContext, "marks": marks, "sampled": sampled,
 				"parent_id": parentId, "trace_id": traceId,
 				"spans": []interface{}{
 					map[string]interface{}{
@@ -90,12 +93,13 @@ func TestTransactionEventDecode(t *testing.T) {
 				Context: context, Marks: marks, Sampled: &sampled,
 				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 				User:      &metadata.User{Id: &userId, Name: &name, IP: &userIp, Email: &email},
+				Labels:    common.MapStr{"foo": "bar"},
 			},
 		},
 	} {
 		transformable, err := DecodeEvent(test.input, nil)
 		assert.Equal(t, test.err, err)
-		if test.e != nil {
+		if test.e != nil && assert.NotNil(t, transformable) {
 			event := transformable.(*Event)
 			assert.Equal(t, test.e, event)
 		}
@@ -306,7 +310,12 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"sampled":  true,
 		},
 	}
-	txWithContext := Event{Timestamp: timestamp, Context: common.MapStr{"foo": "bar"}, User: &user}
+	txWithContext := Event{
+		Timestamp: timestamp,
+		Context:   common.MapStr{"foo": "bar"},
+		User:      &user,
+		Labels:    common.MapStr{"a": "b"},
+	}
 	txWithContextEs := common.MapStr{
 		"agent": common.MapStr{"name": "", "version": ""},
 		"context": common.MapStr{
@@ -336,6 +345,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"type":     "",
 			"sampled":  true,
 		},
+		"labels": common.MapStr{"a": "b"},
 	}
 
 	txValidWithSpan := Event{Timestamp: timestamp}

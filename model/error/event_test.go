@@ -84,6 +84,9 @@ func TestErrorEventDecode(t *testing.T) {
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
 	context := map[string]interface{}{"a": "b", "user": map[string]interface{}{
 		"username": name, "email": email, "ip": userIp, "id": userId}}
+	origContext := map[string]interface{}{"a": "b", "user": map[string]interface{}{
+		"username": name, "email": email, "ip": userIp, "id": userId}, "tags": map[string]interface{}{"ab": "c"}}
+
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
 	transactionSampled := true
@@ -109,7 +112,7 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp},
+				"id": id, "culprit": culprit, "context": origContext, "timestamp": timestamp},
 			err: nil,
 			e: &Event{
 				Id:        &id,
@@ -117,18 +120,19 @@ func TestErrorEventDecode(t *testing.T) {
 				Context:   context,
 				Timestamp: timestampParsed,
 				User:      &metadata.User{Id: &userId, Name: &name, IP: &userIp, Email: &email},
+				Labels:    common.MapStr{"ab": "c"},
 			},
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
+				"id": id, "culprit": culprit, "context": origContext, "timestamp": timestamp,
 				"parent_id": 123},
 			err: errors.New("Error fetching field"),
 			e:   nil,
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": context, "timestamp": timestamp,
+				"id": id, "culprit": culprit, "context": origContext, "timestamp": timestamp,
 				"trace_id": 123},
 			err: errors.New("Error fetching field"),
 			e:   nil,
@@ -169,6 +173,7 @@ func TestErrorEventDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{
 				"timestamp": timestamp,
+				"context":   map[string]interface{}{"tags": map[string]interface{}{"a": "foo"}},
 				"exception": map[string]interface{}{
 					"message": "Exception Msg",
 					"code":    code, "module": module, "attributes": attrs,
@@ -197,6 +202,8 @@ func TestErrorEventDecode(t *testing.T) {
 			err: nil,
 			e: &Event{
 				Timestamp: timestampParsed,
+				Labels:    common.MapStr{"a": "foo"},
+				Context:   common.MapStr{},
 				Exception: &Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -226,8 +233,7 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 	} {
 		transformable, err := DecodeEvent(test.input, test.inpErr)
-
-		if test.e != nil {
+		if test.e != nil && assert.NotNil(t, transformable) {
 			event := transformable.(*Event)
 			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
 		}
@@ -402,7 +408,7 @@ func TestEvents(t *testing.T) {
 	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
 	timestampUs := timestamp.UnixNano() / 1000
 	service := metadata.Service{
-		Name: "myservice",
+		Name: "myservice", Agent: metadata.Agent{Name: "go", Version: "1.0"},
 	}
 	exMsg := "exception message"
 	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
@@ -420,7 +426,7 @@ func TestEvents(t *testing.T) {
 		{
 			Transformable: &Event{Timestamp: timestamp},
 			Output: common.MapStr{
-				"agent":   common.MapStr{"name": "", "version": ""},
+				"agent":   common.MapStr{"name": "go", "version": "1.0"},
 				"service": common.MapStr{"name": "myservice"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
@@ -435,7 +441,7 @@ func TestEvents(t *testing.T) {
 			Transformable: &Event{Timestamp: timestamp, TransactionSampled: &sampledFalse},
 			Output: common.MapStr{
 				"transaction": common.MapStr{"sampled": false},
-				"agent":       common.MapStr{"name": "", "version": ""},
+				"agent":       common.MapStr{"name": "go", "version": "1.0"},
 				"service":     common.MapStr{"name": "myservice"},
 				"error": common.MapStr{
 					"grouping_key": "d41d8cd98f00b204e9800998ecf8427e",
@@ -456,8 +462,8 @@ func TestEvents(t *testing.T) {
 				"processor": common.MapStr{"event": "error", "name": "error"},
 				"service":   common.MapStr{"name": "myservice"},
 				"user":      common.MapStr{"id": uid},
-				"agent":     common.MapStr{"name": "", "version": ""},
 				"timestamp": common.MapStr{"us": timestampUs},
+				"agent":     common.MapStr{"name": "go", "version": "1.0"},
 			},
 			Msg: "Payload with valid Event.",
 		},
@@ -473,14 +479,16 @@ func TestEvents(t *testing.T) {
 				TransactionId:      &trId,
 				TransactionSampled: &sampledTrue,
 				User:               &metadata.User{Email: &email, IP: &userIp, UserAgent: &userAgent},
+				Labels:             common.MapStr{"key": true},
 			},
 
 			Output: common.MapStr{
 				"context": common.MapStr{
 					"foo": "bar",
 				},
+				"labels":     common.MapStr{"key": true},
 				"service":    common.MapStr{"name": "myservice"},
-				"agent":      common.MapStr{"name": "", "version": ""},
+				"agent":      common.MapStr{"name": "go", "version": "1.0"},
 				"user":       common.MapStr{"email": email},
 				"client":     common.MapStr{"ip": userIp},
 				"user_agent": common.MapStr{"original": userAgent},

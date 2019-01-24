@@ -208,10 +208,10 @@
                     "url": "http://localhost:8000",
                     "status_code": 200,
                     "method": "GET"
-                },
-                "tags": {
-                    "span_tag": "something"
                 }
+            },
+            "labels": {
+                "span_tag": "something"
             }
         },
         "_index": "test-apm-12-12-2017"

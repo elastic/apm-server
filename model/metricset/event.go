@@ -58,7 +58,7 @@ type Sample struct {
 
 type Metricset struct {
 	Samples   []*Sample
-	Tags      common.MapStr
+	Labels    common.MapStr
 	Timestamp time.Time
 }
 
@@ -89,7 +89,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	}
 
 	if tags := utility.Prune(md.MapStr(raw, "tags")); len(tags) > 0 {
-		e.Tags = tags
+		e.Labels = tags
 	}
 
 	return &e, nil
@@ -145,11 +145,9 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	fields["processor"] = processorEntry
-	if me.Tags != nil {
-		tags := common.MapStr{}
+	if me.Labels != nil {
 		// normalize map entries by calling utility.Add
-		utility.Add(tags, "tags", me.Tags)
-		fields.Put("context", tags)
+		utility.Add(fields, "labels", me.Labels)
 	}
 	tctx.Metadata.Merge(fields)
 

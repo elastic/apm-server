@@ -168,10 +168,10 @@
                 "id": 99,
                 "email": "foo@example.com"
             },
+            "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+            },
             "context": {
-                "tags": {
-                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-                },
                 "custom": {
                     "and_objects": {
                         "foo": [
