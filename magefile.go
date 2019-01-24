@@ -216,6 +216,9 @@ func customizePackaging() {
 			args.Spec.Files["/var/lib/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
 			args.Spec.Files["/var/log/{{.BeatName}}"] = mage.PackageFile{Mode: 0750, Source: emptyDir, Owner: mage.BeatUser}
 			args.Spec.PreInstallScript = "packaging/files/linux/pre-install.sh.tmpl"
+			if pkgType == mage.Deb {
+				args.Spec.PostInstallScript = "packaging/files/linux/deb-post-install.sh.tmpl"
+			}
 
 		case mage.DMG:
 			mage.Packages = append(mage.Packages[:idx], mage.Packages[idx+1:]...)
