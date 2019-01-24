@@ -118,13 +118,15 @@ class Test(ElasticTest):
             checked = False
             rec = rec_entry['_source']
             rec_id = rec[doc_type]['id']
-
+            print approved
             for appr_entry in approved:
                 appr = appr_entry['_source']
                 if rec_id == appr[doc_type]['id']:
                     checked = True
                     self.assert_docs(rec[doc_type], appr[doc_type])
                     self.assert_docs(rec.get('context'), appr.get('context'))
+                    self.assert_docs(rec.get('http'), appr.get('http'))
+                    self.assert_docs(rec.get('url'), appr.get('url'))
                     self.assert_docs(rec['processor'], appr['processor'])
             assert checked, "New entry with id {}".format(rec_id)
 

@@ -43,9 +43,7 @@ func spanPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("span.stacktrace"),
 		tests.Group("context.db"),
-		"context.http",
-		"context.http.url",
-		"context.http.method",
+		tests.Group("context.http"),
 		tests.Group("context.user"),
 	)
 }
@@ -65,6 +63,8 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			tests.Group("service"),
 			tests.Group("user"),
 			tests.Group("client"),
+			tests.Group("http"),
+			tests.Group("url"),
 		),
 		// not valid for the span context
 		transactionContext(),
@@ -131,6 +131,8 @@ func spanKeywordExceptionKeys() *tests.Set {
 		tests.Group("process"),
 		tests.Group("service"),
 		tests.Group("user"),
+		tests.Group("url"),
+		tests.Group("http"),
 	),
 		transactionContext(),
 	)

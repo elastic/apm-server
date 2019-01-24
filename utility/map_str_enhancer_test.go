@@ -216,6 +216,38 @@ func TestAddEnsureCopy(t *testing.T) {
 	}
 }
 
+func TestDeepAdd(t *testing.T) {
+	type M = common.MapStr
+	m := M{}
+	DeepAdd(m, "a.b.c", 1)
+	DeepAdd(m, "a.b.d", 2)
+	DeepAdd(m, "a.b.d.3", 3)
+	DeepAdd(m, "a.b.d.4", 4)
+	DeepAdd(m, "a.x.y", 5)
+	DeepAdd(m, "a.x.z.nil", nil)
+	DeepAdd(m, "a.nil", nil)
+
+	assert.Equal(t, M{
+		"a": M{
+			"b": M{
+				"c": 1,
+				"d": M{
+					"3": 3,
+					"4": 4,
+				},
+			},
+			"x": M{
+				"y": 5,
+			},
+		},
+	}, m)
+
+	m = M{}
+	DeepAdd(m, "a", 1)
+	DeepAdd(m, "", 2)
+	assert.Equal(t, M{"a": 1}, m)
+}
+
 func TestMergeAddCommonMapStr(t *testing.T) {
 	type M = common.MapStr
 	testData := []struct {

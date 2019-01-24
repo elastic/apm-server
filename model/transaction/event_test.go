@@ -204,6 +204,49 @@ func TestEventTransform(t *testing.T) {
 	}
 }
 
+func TestEventMoveContext(t *testing.T) {
+
+	event := Event{
+		Context: map[string]interface{}{
+			"db": map[string]interface{}{"type": "sql"},
+			"request": map[string]interface{}{
+				"method": "GET",
+				"url":    map[string]interface{}{"raw": "http://www.elastic.co"},
+			},
+			"response": map[string]interface{}{"status_code": 200},
+		},
+	}
+
+	result := event.Transform(&transform.Context{})
+
+	assert.Equal(t, common.MapStr{
+		"request":  common.MapStr{"method": "get"},
+		"response": common.MapStr{"status_code": 200},
+	}, result[0].Fields["http"])
+	assert.Equal(t, common.MapStr{"original": "http://www.elastic.co"}, result[0].Fields["url"])
+	assert.Nil(t, event.Context["request"])
+	assert.Nil(t, event.Context["response"])
+	assert.NotNil(t, event.Context["db"])
+
+	portMapping := []struct {
+		port   interface{}
+		result interface{}
+	}{
+		{json.Number("3000"), common.MapStr{"port": 3000}},
+		{"8080", common.MapStr{"port": 8080}},
+		{"NaN", nil},
+	}
+	for _, pm := range portMapping {
+		event := Event{Context: map[string]interface{}{
+			"request": map[string]interface{}{
+				"url": map[string]interface{}{
+					"port": pm.port}}}}
+		result := event.Transform(&transform.Context{})
+		assert.Equal(t, pm.result, result[0].Fields["url"])
+	}
+
+}
+
 func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"

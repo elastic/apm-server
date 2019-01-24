@@ -20,10 +20,38 @@ package utility
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
 )
+
+func Get(m common.MapStr, key string) interface{} {
+	ret, _ := m.GetValue(key)
+	return ret
+}
+
+func DeepAdd(m common.MapStr, dottedKeys string, val interface{}) {
+	keys := strings.Split(dottedKeys, ".")
+	if len(keys) == 0 {
+		return
+	}
+	reverse(keys)
+	v := val
+	for _, k := range keys {
+		subMap := common.MapStr{}
+		Add(subMap, k, v)
+		v = subMap
+	}
+	m.DeepUpdate(v.(common.MapStr))
+}
+
+func reverse(slice []string) {
+	size := len(slice)
+	for i := 0; i < len(slice)/2; i++ {
+		slice[i], slice[size-i-1] = slice[size-i-1], slice[i]
+	}
+}
 
 func Add(m common.MapStr, key string, val interface{}) {
 	if m == nil || key == "" {

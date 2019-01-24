@@ -20,6 +20,90 @@
           description: >
             Timestamp of the event in microseconds since Unix epoch.
 
+    - name: url
+      type: group
+      description: >
+        A complete Url, with scheme, host and path.
+      fields:
+
+       - name: scheme
+         type: keyword
+         description: >
+           The protocol of the request, e.g. "https:".
+         overwrite: true
+
+       - name: full
+         type: keyword
+         description: >
+           The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
+         overwrite: true
+
+       - name: domain
+         type: keyword
+         description: >
+           The hostname of the request, e.g. "example.com".
+         overwrite: true
+
+       - name: port
+         type: long
+         description: >
+           The port of the request, e.g. 443.
+         overwrite: true
+
+       - name: path
+         type: keyword
+         description: >
+           The path of the request, e.g. "/search".
+         overwrite: true
+
+       - name: query
+         type: keyword
+         description: >
+           The query string of the request, e.g. "q=elasticsearch".
+         overwrite: true
+
+       - name: fragment
+         type: keyword
+         description: >
+            A fragment specifying a location in a web page , e.g. "top".
+         overwrite: true
+
+    - name: http
+      type: group
+      fields:
+
+       - name: version
+         type: keyword
+         description: >
+           The http version of the request leading to this event.
+         overwrite: true
+
+       - name: request
+         type: group
+         fields:
+
+          - name: method
+            type: keyword
+            description: >
+              The http method of the request leading to this event.
+            overwrite: true
+
+       - name: response
+         type: group
+         fields:
+
+         - name: status_code
+           type: long
+           description: >
+             The status code of the HTTP response.
+           overwrite: true
+
+         - name: finished
+           type: boolean
+           description: >
+             Used by the Node agent to indicate when in the response life cycle an error has occurred.
+           overwrite: true
+
     - name: context
       type: group
       description: >
@@ -37,89 +121,6 @@
           dynamic: true
           description: >
             A flat mapping of user-defined tags with string values.
-
-        - name: http
-          type: group
-          fields:
-
-          - name: status_code
-            type: long
-            description: >
-              The status code of the http response.
-
-        - name: request
-          type: group
-          fields:
-
-          - name: url
-            type: group
-            description: >
-              A complete Url, with scheme, host and path.
-            fields:
-
-              - name: raw
-                type: keyword
-                description: >
-                  The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
-
-              - name: protocol
-                type: keyword
-                description: >
-                  The protocol of the request, e.g. "https:".
-
-              - name: full
-                type: keyword
-                description: >
-                  The full, possibly agent-assembled URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
-
-              - name: hostname
-                type: keyword
-                description: >
-                  The hostname of the request, e.g. "example.com".
-
-              - name: port
-                type: keyword
-                description: >
-                  The port of the request, e.g. 443.
-
-              - name: pathname
-                type: keyword
-                description: >
-                  The path of the request, e.g. "/search".
-
-              - name: search
-                type: keyword
-                description: >
-                  The search describes the query string of the request, e.g. "q=elasticsearch".
-
-              - name: hash
-                type: keyword
-                description: >
-                  The hash of the request URL, e.g. "top".
-
-          - name: http_version
-            type: keyword
-            description: >
-              The http version of the request leading to this event.
-
-          - name: method
-            type: keyword
-            description: >
-              The http method of the request leading to this event.
-
-        - name: response
-          type: group
-          fields:
-
-          - name: status_code
-            type: long
-            description: >
-              The http status code of the response, eg. '200'.
-
-          - name: finished
-            type: boolean
-            description: >
-              A boolean indicating whether the response was finished or not.
 
     - name: service
       type: group
@@ -219,7 +220,7 @@
             Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 
 
-    - name: trace 
+    - name: trace
       type: group
       dynamic: false
       fields:
@@ -228,7 +229,7 @@
           description: >
              The ID of the trace to which the event belongs to.
 
-    - name: parent 
+    - name: parent
       type: group
       dynamic: false
       fields:

@@ -54,6 +54,60 @@
                 "id": "199",
                 "email": "foo@example.com"
             },
+            "url": {
+                "domain": "www.example.com",
+                "fragment": "#hash",
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                "original": "/p/a/t/h?query=string#hash",
+                "path": "/p/a/t/h",
+                "port": 8080,
+                "query": "?query=string",
+                "scheme": "https:"
+            },
+            "http": {
+                "request": {
+                    "body": {
+                        "original": {
+                            "additional": {
+                                "bar": 123,
+                                "req": "additional information"
+                            },
+                            "str": "hello world"
+                        }
+                    },
+                    "env": {
+                        "GATEWAY_INTERFACE": "CGI/1.1",
+                        "SERVER_SOFTWARE": "nginx"
+                    },
+                    "headers": {
+                        "content-type": "text/html",
+                        "cookies": {
+                            "original": "c1=v1; c2=v2",
+                            "parsed": {
+                                "c1": "v1",
+                                "c2": "v2"
+                            }
+                        },
+                        "user-agent": {
+                            "original": "Mozilla Chrome Edge"
+                        }
+                    },
+                    "method": "post",
+                    "socket": {
+                        "encrypted": true,
+                        "remote_address": "12.53.12.1"
+                    }
+                },
+                "response": {
+                    "finished": true,
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "headers_sent": true,
+                    "status_code": 200
+                },
+                "version": "1.1"
+            },
             "context": {
                 "custom": {
                     "some_other_value": "foo bar",
@@ -66,62 +120,10 @@
                     "my_key": 1,
                     "(": "not a valid regex and that is fine"
                 },
-                "request": {
-                    "cookies": {
-                        "c2": "v2",
-                        "c1": "v1"
-                    },
-                    "url": {
-                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                        "protocol": "https:",
-                        "pathname": "/p/a/t/h",
-                        "raw": "/p/a/t/h?query=string#hash",
-                        "search": "?query=string",
-                        "port": "8080",
-                        "hash": "#hash",
-                        "hostname": "www.example.com"
-                    },
-                    "http_version": "1.1",
-                    "headers": {
-                        "content-type": "text/html",
-                        "array": [
-                            "foo",
-                            "bar",
-                            "baz"
-                        ],
-                        "cookie": "c1=v1; c2=v2",
-                        "user-agent": "Mozilla Chrome Edge",
-                        "some-other-header": "foo"
-                    },
-                    "method": "POST",
-                    "socket": {
-                        "remote_address": "12.53.12.1",
-                        "encrypted": true
-                    },
-                    "body": {
-                        "additional": {
-                            "req": "additional information",
-                            "bar": 123
-                        },
-                        "str": "hello world"
-                    },
-                    "env": {
-                        "GATEWAY_INTERFACE": "CGI/1.1",
-                        "SERVER_SOFTWARE": "nginx"
-                    }
-                },
                 "tags": {
                     "number_code": 2,
                     "bool_error": false,
                     "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-                },
-                "response": {
-                    "headers": {
-                        "content-type": "application/json"
-                    },
-                    "headers_sent": true,
-                    "finished": true,
-                    "status_code": 200
                 }
             },
             "transaction": {
