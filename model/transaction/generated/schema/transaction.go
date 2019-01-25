@@ -245,6 +245,20 @@ const ModelSchema = `{
             "maxLength": 1024
         }
     }
+        },
+        "page": {
+            "description": "",
+            "type": ["object", "null"],
+            "properties": {
+                "referer": {
+                    "description": "RUM specific field that stores the URL of the page that 'linked' to the current page.",
+                    "type": ["string", "null"]
+                },
+                "url": {
+                    "description": "RUM specific field that stores the URL of the current page",
+                    "type": ["string", "null"]
+                }
+            }
         }
     }
                 },

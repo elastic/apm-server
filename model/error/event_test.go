@@ -82,11 +82,7 @@ func TestErrorEventDecode(t *testing.T) {
 	id, culprit := "123", "foo()"
 	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
-	context := map[string]interface{}{"a": "b", "user": map[string]interface{}{
-		"username": name, "email": email, "ip": userIp, "id": userId}}
-	origContext := map[string]interface{}{"a": "b", "user": map[string]interface{}{
-		"username": name, "email": email, "ip": userIp, "id": userId}, "tags": map[string]interface{}{"ab": "c"}}
-
+	url, referer := "https://mypage.com", "http:mypage.com"
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
 	transactionSampled := true
@@ -112,27 +108,25 @@ func TestErrorEventDecode(t *testing.T) {
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": origContext, "timestamp": timestamp},
+				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp},
 			err: nil,
 			e: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
-				Context:   context,
+				Context:   common.MapStr{},
 				Timestamp: timestampParsed,
-				User:      &metadata.User{Id: &userId, Name: &name, IP: &userIp, Email: &email},
-				Labels:    common.MapStr{"ab": "c"},
 			},
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": origContext, "timestamp": timestamp,
+				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
 				"parent_id": 123},
 			err: errors.New("Error fetching field"),
 			e:   nil,
 		},
 		{
 			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": origContext, "timestamp": timestamp,
+				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
 				"trace_id": 123},
 			err: errors.New("Error fetching field"),
 			e:   nil,
@@ -173,7 +167,10 @@ func TestErrorEventDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{
 				"timestamp": timestamp,
-				"context":   map[string]interface{}{"tags": map[string]interface{}{"a": "foo"}},
+				"context": map[string]interface{}{"a": "b", "user": map[string]interface{}{
+					"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags": map[string]interface{}{"ab": "c"},
+					"page": map[string]interface{}{"url": url, "referer": referer}},
 				"exception": map[string]interface{}{
 					"message": "Exception Msg",
 					"code":    code, "module": module, "attributes": attrs,
@@ -202,8 +199,12 @@ func TestErrorEventDecode(t *testing.T) {
 			err: nil,
 			e: &Event{
 				Timestamp: timestampParsed,
-				Labels:    common.MapStr{"a": "foo"},
-				Context:   common.MapStr{},
+				Labels:    common.MapStr{"ab": "c"},
+				User:      &metadata.User{Id: &userId, Name: &name, IP: &userIp, Email: &email},
+				Page:      &m.Page{Url: &url, Referer: &referer},
+				Context: map[string]interface{}{"a": "b", "user": map[string]interface{}{
+					"username": name, "email": email, "ip": userIp, "id": userId},
+					"page": map[string]interface{}{"url": url, "referer": referer}},
 				Exception: &Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -417,6 +418,7 @@ func TestEvents(t *testing.T) {
 
 	email, userIp, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
+	url, referer := "https://localhost", "http://localhost"
 
 	tests := []struct {
 		Transformable transform.Transformable
@@ -480,6 +482,7 @@ func TestEvents(t *testing.T) {
 				TransactionSampled: &sampledTrue,
 				User:               &metadata.User{Email: &email, IP: &userIp, UserAgent: &userAgent},
 				Labels:             common.MapStr{"key": true},
+				Page:               &m.Page{Url: &url, Referer: &referer},
 			},
 
 			Output: common.MapStr{
@@ -507,6 +510,7 @@ func TestEvents(t *testing.T) {
 							},
 						}},
 					}},
+					"page": common.MapStr{"url": url, "referer": referer},
 				},
 				"processor":   common.MapStr{"event": "error", "name": "error"},
 				"transaction": common.MapStr{"id": "945254c5-67a5-417e-8a4e-aa29efcbfb79", "sampled": true},

@@ -71,6 +71,7 @@ type Event struct {
 	SpanCount SpanCount
 	User      *metadata.User
 	Labels    common.MapStr
+	Page      *m.Page
 }
 
 type SpanCount struct {
@@ -117,6 +118,12 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		e.Labels = labels
 	}
 
+	page, err := m.DecodePage(e.Context, decoder.Err)
+	if err != nil {
+		return nil, err
+	}
+	e.Page = page
+
 	if ok, _ := e.Context.HasKey("user"); ok {
 		user, err := e.Context.GetValue("user")
 		e.User, err = metadata.DecodeUser(user, err)
@@ -135,6 +142,7 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tx, "type", t.Type)
 	utility.Add(tx, "result", t.Result)
 	utility.Add(tx, "marks", t.Marks)
+	utility.Add(tx, "page", t.Page.Fields())
 
 	if t.Sampled == nil {
 		utility.Add(tx, "sampled", true)
@@ -170,10 +178,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		transactionDocType: e.fields(tctx),
 	}
 	delete(e.Context, "user")
+	utility.Add(fields, "user", e.User.Fields())
+	delete(e.Context, "page")
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
 	utility.Add(fields, "labels", e.Labels)
