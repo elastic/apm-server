@@ -56,6 +56,8 @@ func payloadAttrsNotInJsonSchema(s *tests.Set) *tests.Set {
 		"transactions.context.request.headers.some-other-header",
 		"transactions.context.request.headers.array",
 		"transactions.spans.stacktrace.vars.key",
+		tests.Group("transactions.spans.action"),
+		tests.Group("transactions.spans.subtype"),
 		tests.Group("transactions.spans.context.tags"),
 		tests.Group("transactions.context.request.env."),
 		tests.Group("transactions.context.request.body"),

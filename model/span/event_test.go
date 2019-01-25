@@ -138,7 +138,7 @@ func TestDecodeSpanV2(t *testing.T) {
 	start, duration := 1.2, 3.4
 	context := map[string]interface{}{"a": "b"}
 	subtype := "postgresql"
-	action := "query"
+	action, action2 := "query", "query.custom"
 	stacktrace := []interface{}{map[string]interface{}{
 		"filename": "file", "lineno": 1.0,
 	}}
@@ -206,12 +206,14 @@ func TestDecodeSpanV2(t *testing.T) {
 		{
 			// minimal payload
 			input: map[string]interface{}{
-				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			e: &Event{
 				Name:          name,
-				Type:          spType,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
 				Start:         &start,
 				Duration:      duration,
 				Timestamp:     spanTime,
@@ -227,13 +229,13 @@ func TestDecodeSpanV2(t *testing.T) {
 		{
 			// full valid payload
 			input: map[string]interface{}{
-				"name": name, "type": spType, "subtype": subtype, "action": action, "start": start,
+				"name": name, "type": "external.request", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
 				"id": id, "parent_id": parentId, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			e: &Event{
 				Name:      name,
-				Type:      spType,
+				Type:      "external.request",
 				Subtype:   &subtype,
 				Action:    &action,
 				Start:     &start,

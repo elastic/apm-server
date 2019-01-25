@@ -19,6 +19,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "query.custom",
                 "duration": {
                     "us": 141581
                 },
@@ -26,7 +27,8 @@
                 "id": -9175013389437287000,
                 "name": "GET /api/types",
                 "parent": 3156441702022342700,
-                "type": "request"
+                "subtype": "postgresql",
+                "type": "db"
             },
             "timestamp": {
                 "us": 1532976822281000
@@ -114,6 +116,7 @@
                 "start": {
                     "us": 1845
                 },
+                "subtype": "http",
                 "type": "request"
             },
             "timestamp": {
