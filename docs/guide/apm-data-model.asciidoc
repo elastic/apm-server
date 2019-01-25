@@ -1,11 +1,17 @@
 [[apm-data-model]]
-== APM Data model
+== Data Model
 
 Elastic APM agents capture different types of information from within their instrumented applications - namely `transactions`, `spans`, and `errors`. 
 
-* <<transactions,Transaction>>
-* <<transaction-spans,Spans>>
-* <<errors,Errors>>
+*<<errors,`Errors`>>* contain information about the error or exception that was captured.
+
+*<<transaction-spans,`Spans`>>* contain information about a specific code path that has been executed.
+They measure from the start to end of an activity,
+and they can have a parent/child relationship with other spans. 
+
+*<<transactions,`Transactions`>>* are a special kind of span that have extra metadata associated with them.
+You can think of transactions as the highest level of work you're measuring within a service.
+For example, serving an HTTP request or running a specific background job.
 
 [[transactions]]
 === Transactions

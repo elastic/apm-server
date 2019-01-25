@@ -1,0 +1,63 @@
+[[doc-directory]]
+== Documentation directory
+
+This following sections are designed to guide you through the available Elastic APM documentation.
+
+[float]
+=== APM Overview
+
+You're here!
+The APM Overview is your launchpad for getting started with APM.
+We recommend reading all sections in this book to gain a deeper understanding of the Elastic APM ecosystem.
+
+* <<overview>>
+* <<install-and-run>>
+* <<apm-data-model>>
+* <<distributed-tracing>>
+* <<agent-server-compatibility>>
+
+TIP: Ready to install Elastic APM?
+Simply use an existing cluster or grab a fresh installation of the Elastic Stack,
+spin up an APM Server, and add a bit of code to instrument your app with agents.
+Full details are available on the <<install-and-run,install and run>> page.
+
+[float]
+=== APM Server
+
+The {apm-server-ref-v}/index.html[APM Server reference] provides everything you need when it comes to working with the server. Here you can learn about {apm-server-ref-v}/installing.html[installation], {apm-server-ref-v}/configuring-howto-apm-server.html[configuration], {apm-server-ref-v}/securing-apm-server.html[security], {apm-server-ref-v}/monitoring.html[monitoring], and more.
+
+[float]
+=== APM Agents
+
+For agent specific documentation, visit the relevant agent reference:
+
+* {apm-go-ref}/introduction.html[Go agent]
+* {apm-java-ref}/intro.html[Java agent]
+* {apm-node-ref}/intro.html[Node.js agent]
+* {apm-py-ref}/getting-started.html[Python agent]
+* {apm-ruby-ref}/introduction.html[Ruby agent]
+* {apm-rum-ref}/intro.html[JavaScript Real User Monitoring (RUM) agent]
+
+[float]
+=== APM Kibana UI
+
+Application performance monitoring is all about visualizing data and bottlenecks, so it's crucial you understand how to use the {kibana-ref}/xpack-apm.html[Kibana APM UI]. The following sections will help you get started:
+
+* {kibana-ref}/apm-getting-started.html[Getting Started]
+* {kibana-ref}/apm-bottlenecks.html[Visualizing application bottlenecks]
+* {kibana-ref}/apm-ui.html[Using the APM UI]
+
+In addition, the Kibana UI documentation includes information on {kibana-ref}/machine-learning-integration.html[Machine Learning integration], {kibana-ref}/errors.html#errors-alerts-with-watcher[Watcher alerts], and other useful tips and tricks.
+
+TIP: If you'd like to dive deeper into Kibana, the general {kibana-ref}/index.html[Kibana documentation] is also helpful.
+
+[float]
+=== Discussion forum
+
+For questions and feature requests,
+visit our https://discuss.elastic.co/c/apm[discussion forum].
+
+[float]
+=== GitHub repositories
+
+Elastic APM is open source! Our https://github.com/elastic?utf8=%E2%9C%93&q=apm[GitHub repositories] have a plethora of knowledge available in the form of code, issues, and PRs.

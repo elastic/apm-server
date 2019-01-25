@@ -14,9 +14,9 @@ so you can identify new errors as they appear and keep an eye on how many times 
 
 NOTE: This guide will indiscriminately use the word "service" for both services and applications.
 
-[[components]]
 [float]
-=== APM Components
+[[components]]
+== APM Components
 
 Elastic APM consists of four components:
 
@@ -42,7 +42,45 @@ Kibana dashboards that can be loaded directly via the {kibana-ref}/apm-getting-s
 image::apm-architecture.png[Architecture of Elastic APM]
 
 [float]
-=== Get Started
-To get started, simply use an existing cluster or grab a fresh installation of the Elastic Stack,
-spin up an APM Server, and add a bit of code to instrument your app with agents.
-Full details are available on the <<install-and-run,install and run>> page.
+[[concepts]]
+== APM Concepts
+
+[float]
+=== Events
+APM agents capture different types of information from within their instrumented applications, known as events.
+Events can be <<errors,`Errors`>>, <<transaction-spans,`Spans`>>, or <<transactions,`Transactions`>>.
+These events are then streamed to the APM Server which validates and processes the events. 
+
+View the APM <<apm-data-model,data model>> for more information on events. 
+
+[float]
+=== Component communication
+The APM Server is a {apm-server-ref-v}/why-separate-component.html[separate component by design] - it helps keep the agents light,
+prevents certain security risks,
+and improves compatibility across the Elastic and APM Stack.  
+
+The {apm-server-ref-v}/intake-api.html[Intake API] is what we call the internal protocol that APM agents use to talk to the APM Server. 
+After the APM Server has validated and processed events from the APM agents (via the intake API),
+the server transforms the data into Elasticsearch documents and stores them in corresponding {apm-server-ref-v}/exploring-es-data.html[Elasticsearch indices].
+In a matter of seconds you can start viewing your application performance data in Kibana.
+
+[float]
+=== Real User Monitoring (RUM)
+Real User Monitoring captures user interaction with clients such as web browsers.
+The {apm-rum-ref-v}[JavaScript Agent] is Elastic’s RUM Agent.
+To use it you need to {apm-server-ref-v}/rum.html[enable RUM support] in the APM Server.
+
+Unlike Elastic APM backend agents which monitor requests and responses,
+the RUM JavaScript agent monitors the real user experience and interaction within your client-side application.
+The RUM JavaScript agent is also framework-agnostic, which means it can be used with any frontend JavaScript application.
+
+You will be able to measure metrics such as "Time to First Byte", `domInteractive`,
+and `domComplete` which helps you discover performance issues within your client-side application as well as issues that relate to the latency of your server-side application.
+
+[float]
+=== Distributed Tracing
+Together, transactions and spans form a `Trace`.
+Traces are not events, but group together events that have a common root.
+
+All of our APM agents support <<distributed-tracing,distributed tracing>> out of the box.
+Distributed tracing enables you to analyze performance throughout your microservices architecture all in one view.

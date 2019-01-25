@@ -1,17 +1,19 @@
 [[install-and-run]]
-== Install and run Elastic APM
+== Install and run
 
-This page is designed to make it easy to install and run the components of Elastic APM:
-
-* <<install-elasticsearch>>
-* <<install-kibana>>
-* <<apm-server>>
-* <<agents>>
-
+This page is designed to make it easy to install and run the components of Elastic APM.
 Simply follow the step-by-step links below, and you'll be up and running in no time.
 Let's get started.
 
+* <<before-installation>>
+* <<install-elasticsearch>>
+* <<install-kibana>>
+* <<apm-server>>
+* <<kibana-dashboards>>
+* <<agents>>
+
 [float]
+[[before-installation]]
 === Before you begin
 
 * See the https://www.elastic.co/support/matrix[Elastic Support
@@ -31,7 +33,7 @@ NOTE: The following links assume you're using the current version of the Elastic
 You'll need to install an Elasticsearch cluster, and make sure it's up and running:
 
 * {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[Install Elasticsearch]
-* {stack-gs}/get-started-elastic-stack.html#iget-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running]
+* {stack-gs}/get-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running]
 
 [float]
 [[install-kibana]]
@@ -57,6 +59,7 @@ Use the config file if you need to change the default configuration that APM Ser
 ** {apm-server-ref-v}/configuration-process.html[General configuration options]
 ** {apm-server-ref-v}/elasticsearch-output.html[Configure the Elasticsearch output]
 
+[[secure-api-access]]
 If you do change the listen address from `localhost` to something that is accessible from outside of the machine,
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively,
@@ -64,6 +67,7 @@ you can use a {apm-server-ref-v}/securing-apm-server.html[secret token and TLS].
 
 If you have APM Server running on the same host as your service, you can configure it to listen on a Unix domain socket.
 
+[[more-information]]
 TIP: For detailed instructions on how to install and secure APM Server in your server environment,
 including details on how to run APM Server in a highly available environment,
 please see the full {apm-server-ref-v}/index.html[APM Server documentation].
@@ -131,8 +135,8 @@ NOTE: Be sure to check the <<agent-server-compatibility,Agent/Server compatibili
 
 [[choose-service-name]]
 [float]
-=== Choose a service name
-// todo: determine best location for this section
+==== Choose a service name
+
 The service name is used by Elastic APM to differentiate between data coming from different services.
 
 Elastic APM includes the service name field on every document that it saves in Elasticsearch.
@@ -146,12 +150,4 @@ spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 [float]
 === Next steps
 
-Just like that, you're up and running with Elastic APM. Check out the <<doc-directory,documentation directory>> for ideas on where to go from here. 
-
-
-// todo: REMOVED IDs
-// [[more-information]] -> FWD to apm-server
-// [[secure-api-access]] -> FWD to apm-server
-
-// todo: is kibana ss necessary?
-// image::kibana-dashboard.png[Screenshot of a Kibana Dashboard]
+Just like that, you're up and running with Elastic APM! Don't forget to check out the <<concepts>> and <<apm-data-model>> documentation to gain a deeper understanding of how Elastic APM works. 
