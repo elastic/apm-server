@@ -111,7 +111,7 @@ def main():
 
     print("---- Comparing Index Pattern:")
     k = fetch_kibana_file(args.repo_path, args.branch, args.index_pattern)
-    with open(os.path.abspath(os.path.join('_meta', 'kibana.generated', '6', 'index-pattern', 'apmserver.json'))) as f:
+    with open(os.path.abspath(os.path.join('_meta', 'kibana.generated', '7', 'index-pattern', 'apmserver.json'))) as f:
         s = json.load(f)["objects"][0]
     exit_val = max(exit_val, iterate(k["id"], "", s, k))
     if exit_val == 0:
