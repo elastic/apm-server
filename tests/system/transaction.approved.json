@@ -5,37 +5,57 @@
         "_type": "_doc",
         "_source": {
             "@timestamp": "2017-05-30T18:53:27.154Z",
-            "agent": {
-                "name": "1elastic-node",
-                "version": "3.14.0"
+            "timestamp":{
+                "us": 1496170407154000
             },
-            "host": {
-                "architecture": "x64",
-                "hostname": "prod1.example.com",
-                "platform": "darwin",
-                "ip": "1127.0.0.1"
+            "ecs": {
+                "version": "1.0.0-beta2"
             },
             "observer": {
-                "name": "123",
-                "version": "7.0.0-alpha1",
-                "hostname": "ed7e2cf02cd9"
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes":{
+                "namespace":"namespace1",
+                "pod":{
+                    "uid":"pod-uid",
+                    "name":"pod-name"
+                }
+            },
+            "host": {
+                "os": {
+                    "platform": "darwin"
+                },
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
             },
             "processor": {
                 "name": "transaction",
                 "event": "transaction"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
-                "pid": 11234,
+                "pid": 1234,
                 "title": "node",
                 "ppid": 6789
             },
             "service": {
                 "runtime": {
-                    "name": "1node",
+                    "name": "node",
                     "version": "8.0.0"
                 },
                 "framework": {
@@ -51,7 +71,7 @@
                 "name": "1234_service-12a3"
             },
             "user": {
-                "id": "199",
+                "id": "99",
                 "email": "foo@example.com"
             },
             "url": {
@@ -149,6 +169,9 @@
                     "us": 32592
                 },
                 "result": "success"
+            },
+            "trace": {
+                "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -159,27 +182,47 @@
         "_type": "_doc",
         "_source": {
             "@timestamp": "2017-05-30T18:53:42.281Z",
+            "timestamp":{
+                "us": 1496170422281999
+            },
+            "ecs": {
+                "version": "1.0.0-beta2"
+            },
+            "observer": {
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes":{
+                "namespace":"namespace1",
+                "pod":{
+                    "uid":"pod-uid",
+                    "name":"pod-name"
+                }
+            },
+            "host": {
+                "os": {
+                    "platform": "darwin"
+                },
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
-            },
-            "host": {
-                "architecture": "x64",
-                "hostname": "prod1.example.com",
-                "platform": "darwin",
-                "ip": "127.0.0.1"
-            },
-            "observer": {
-                "name": "ed7e2cf02cd9",
-                "version": "7.0.0-alpha1",
-                "hostname": "ed7e2cf02cd9"
             },
             "processor": {
                 "name": "transaction",
                 "event": "transaction"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -218,10 +261,13 @@
                 },
                 "result": "200"
             },
+            "trace": {
+                "id": "85925e55b43f4342aaaaaaaaaaaaaaaa"
+            },
             "user": {
-                "email": "bar@user.com",
+                "email": "foo@bar.com",
                 "id": "123user",
-                "name": "bar"
+                "name": "foo"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -232,27 +278,47 @@
         "_type": "_doc",
         "_source": {
             "@timestamp": "2017-05-30T18:53:42.000Z",
+            "timestamp":{
+                "us": 1496170422000000
+            },
+            "ecs": {
+                "version": "1.0.0-beta2"
+            },
+            "observer": {
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes":{
+                "namespace":"namespace1",
+                "pod":{
+                    "uid":"pod-uid",
+                    "name":"pod-name"
+                }
+            },
+            "host": {
+                "os": {
+                    "platform": "darwin"
+                },
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
-            },
-            "host": {
-                "architecture": "x64",
-                "ip": "127.0.0.1",
-                "hostname": "prod1.example.com",
-                "platform": "darwin"
-            },
-            "observer": {
-                "name": "ed7e2cf02cd9",
-                "version": "7.0.0-alpha1",
-                "hostname": "ed7e2cf02cd9"
             },
             "processor": {
                 "name": "transaction",
                 "event": "transaction"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -290,10 +356,13 @@
                 },
                 "result": "200"
             },
+            "trace": {
+                "id": "85925e55b43f4341aaaaaaaaaaaaaaaa"
+            },
             "user": {
-                "email": "bar@user.com",
+                "email": "foo@bar.com",
                 "id": "123user",
-                "name": "bar"
+                "name": "foo"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -304,27 +373,47 @@
         "_type": "_doc",
         "_source": {
             "@timestamp": "2017-05-30T18:53:42.281Z",
+            "timestamp":{
+                "us": 1496170422281000
+            },
+            "ecs": {
+                "version": "1.0.0-beta2"
+            },
+            "observer": {
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes":{
+                "namespace":"namespace1",
+                "pod":{
+                    "uid":"pod-uid",
+                    "name":"pod-name"
+                }
+            },
+            "host": {
+                "os": {
+                    "platform": "darwin"
+                },
+                "hostname": "prod1.example.com",
+                "architecture": "x64",
+                "ip": "127.0.0.1"
+            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
-            },
-            "host": {
-                "architecture": "x64",
-                "hostname": "prod1.example.com",
-                "platform": "darwin",
-                "ip": "127.0.0.1"
-            },
-            "observer": {
-                "name": "ed7e2cf02cd9",
-                "version": "7.0.0-alpha1",
-                "hostname": "ed7e2cf02cd9"
             },
             "processor": {
                 "name": "transaction",
                 "event": "transaction"
             },
             "process": {
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -362,10 +451,13 @@
                 "name": "GET /api/types",
                 "result": "failure"
             },
+            "trace": {
+                "id": "85925e55b43f4340aaaaaaaaaaaaaaaa"
+            },
             "user": {
-                "email": "bar@user.com",
+                "email": "foo@bar.com",
                 "id": "123user",
-                "name": "bar"
+                "name": "foo"
             }
         },
         "_index": "test-apm-12-12-2017"
