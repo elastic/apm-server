@@ -67,6 +67,7 @@
                 "name": "1234_service-12a3"
             },
             "span": {
+                "action": "get",
                 "duration": {
                     "us": 3564
                 },
@@ -75,7 +76,7 @@
                 "start": {
                     "us": 1845
                 },
-                "type": "request"
+                "type": "request.external"
             },
             "timestamp": {
                 "us": 1533117600001845

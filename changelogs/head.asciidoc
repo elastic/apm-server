@@ -12,6 +12,7 @@
 - Rename span.hex_id to span.id {pull}1811[1811].
 - Index error.exception as array of objects {pull}1825[1825]
 - Update Go version to 1.11.5 {pull}1840[1840].
+- Retrieve `span.subtype` and `span.action` from `span.type` if not given {pull}1843[1843].
 
 [float]
 ==== Removed
