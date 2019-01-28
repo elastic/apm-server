@@ -24,7 +24,8 @@ https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {
 
 IMPORTANT: For best results, ensure you’re using the same version of Elasticsearch, Kibana, and APM Server.
 
-NOTE: The following links assume you're using the current version of the Elasticstack. If you're not, it's easy to adjust the version of the documentation after you land on each page.
+NOTE: The following links assume you're using the current version of the Elasticstack.
+If you're not, it's easy to adjust the version of the documentation after you land on each page.
 
 [float]
 [[install-elasticsearch]]
@@ -53,7 +54,8 @@ You've made it to the fun part - Let's get APM Server up and running:
 * {apm-server-ref-v}/installing.html[Install APM Server]
 * {apm-server-ref-v}/setting-up-and-running.html[Set up and Run APM Server]
 
-Use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch, or if you need to specify credentials:
+Use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
+or if you need to specify credentials:
 
 * {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
 ** {apm-server-ref-v}/configuration-process.html[General configuration options]
@@ -65,7 +67,8 @@ we recommend setting up firewall rules to ensure that only your own systems can 
 Alternatively,
 you can use a {apm-server-ref-v}/securing-apm-server.html[secret token and TLS].
 
-If you have APM Server running on the same host as your service, you can configure it to listen on a Unix domain socket.
+If you have APM Server running on the same host as your service,
+you can configure it to listen on a Unix domain socket.
 
 [[more-information]]
 TIP: For detailed instructions on how to install and secure APM Server in your server environment,
@@ -150,4 +153,5 @@ spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 [float]
 === Next steps
 
-Just like that, you're up and running with Elastic APM! Don't forget to check out the <<concepts>> and <<apm-data-model>> documentation to gain a deeper understanding of how Elastic APM works. 
+Just like that, you're up and running with Elastic APM!
+Don't forget to check out the <<concepts>> and <<apm-data-model>> documentation to gain a deeper understanding of how Elastic APM works. 

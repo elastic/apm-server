@@ -16,7 +16,7 @@ We recommend reading all sections in this book to gain a deeper understanding of
 * <<distributed-tracing>>
 * <<agent-server-compatibility>>
 
-TIP: Ready to install Elastic APM?
+TIP: Want to skip straight to installation?
 Simply use an existing cluster or grab a fresh installation of the Elastic Stack,
 spin up an APM Server, and add a bit of code to instrument your app with agents.
 Full details are available on the <<install-and-run,install and run>> page.
@@ -24,7 +24,11 @@ Full details are available on the <<install-and-run,install and run>> page.
 [float]
 === APM Server
 
-The {apm-server-ref-v}/index.html[APM Server reference] provides everything you need when it comes to working with the server. Here you can learn about {apm-server-ref-v}/installing.html[installation], {apm-server-ref-v}/configuring-howto-apm-server.html[configuration], {apm-server-ref-v}/securing-apm-server.html[security], {apm-server-ref-v}/monitoring.html[monitoring], and more.
+The {apm-server-ref-v}/index.html[APM Server reference] provides everything you need when it comes to working with the server.
+Here you can learn about {apm-server-ref-v}/installing.html[installation],
+{apm-server-ref-v}/configuring-howto-apm-server.html[configuration],
+{apm-server-ref-v}/securing-apm-server.html[security],
+{apm-server-ref-v}/monitoring.html[monitoring], and more.
 
 [float]
 === APM Agents
@@ -47,7 +51,7 @@ Application performance monitoring is all about visualizing data and bottlenecks
 * {kibana-ref}/apm-bottlenecks.html[Visualizing application bottlenecks]
 * {kibana-ref}/apm-ui.html[Using the APM UI]
 
-In addition, the Kibana UI documentation includes information on {kibana-ref}/machine-learning-integration.html[Machine Learning integration], {kibana-ref}/errors.html#errors-alerts-with-watcher[Watcher alerts], and other useful tips and tricks.
+APM also has built-in integrations with Machine Learning. To learn more about this feature, refer to the Kibana UI documentation for {kibana-ref}/machine-learning-integration.html[Machine learning integration].
 
 TIP: If you'd like to dive deeper into Kibana, the general {kibana-ref}/index.html[Kibana documentation] is also helpful.
 
