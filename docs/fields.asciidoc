@@ -575,8 +575,6 @@ APM Server version.
 --
 type: keyword
 
-example: firewall
-
 The type will be set to `apm-server`.
 
 
