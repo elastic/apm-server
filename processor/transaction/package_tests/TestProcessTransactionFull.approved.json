@@ -174,6 +174,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "query",
                 "duration": {
                     "us": 3781
                 },
@@ -218,8 +219,9 @@
                 "start": {
                     "us": 2830
                 },
+                "subtype": "postgresql",
                 "sync": false,
-                "type": "db.postgresql.query"
+                "type": "db"
             },
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
@@ -272,6 +274,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "custom",
                 "duration": {
                     "us": 3564
                 },
@@ -281,7 +284,7 @@
                 "start": {
                     "us": 1845
                 },
-                "type": "request"
+                "type": "external.request"
             },
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
@@ -303,6 +306,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "get",
                 "duration": {
                     "us": 13980
                 },
@@ -312,6 +316,7 @@
                 "start": {
                     "us": 0
                 },
+                "subtype": "http",
                 "type": "request"
             },
             "transaction": {
@@ -507,6 +512,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "query.custom",
                 "duration": {
                     "us": 3781
                 },
@@ -515,7 +521,8 @@
                 "start": {
                     "us": 2830
                 },
-                "type": "db.postgresql.query"
+                "subtype": "postgresql",
+                "type": "db"
             },
             "transaction": {
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbfa9"

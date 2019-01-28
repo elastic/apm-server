@@ -21,6 +21,7 @@ import (
 	"errors"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -55,7 +56,6 @@ func ModelSchema() *jsonschema.Schema {
 
 type Event struct {
 	Name       string
-	Type       string
 	Start      *float64
 	Duration   float64
 	Context    common.MapStr
@@ -70,6 +70,7 @@ type Event struct {
 	ParentId string
 	TraceId  string
 
+	Type    string
 	Subtype *string
 	Action  *string
 
@@ -108,8 +109,6 @@ func V2DecodeEvent(input interface{}, err error) (transform.Transformable, error
 	e.ParentId = decoder.String(raw, "parent_id")
 	e.TraceId = decoder.String(raw, "trace_id")
 	e.TransactionId = decoder.String(raw, "transaction_id")
-	e.Subtype = decoder.StringPtr(raw, "subtype")
-	e.Action = decoder.StringPtr(raw, "action")
 	if decoder.Err != nil {
 		return nil, decoder.Err
 	}
@@ -158,11 +157,28 @@ func decodeEvent(input interface{}, err error) (*Event, map[string]interface{}, 
 	event := Event{
 		Name:     decoder.String(raw, "name"),
 		Type:     decoder.String(raw, "type"),
+		Subtype:  decoder.StringPtr(raw, "subtype"),
+		Action:   decoder.StringPtr(raw, "action"),
 		Start:    decoder.Float64Ptr(raw, "start"),
 		Duration: decoder.Float64(raw, "duration"),
 		Context:  decoder.MapStr(raw, "context"),
 		Sync:     decoder.BoolPtr(raw, "sync"),
 	}
+
+	//for backwards compatibility split type into subtype and action if not already done
+	if event.Subtype == nil && event.Action == nil {
+		sep := "."
+		t := strings.Split(event.Type, sep)
+		event.Type = t[0]
+		if len(t) > 1 {
+			event.Subtype = &t[1]
+		}
+		if len(t) > 2 {
+			action := strings.Join(t[2:], sep)
+			event.Action = &action
+		}
+	}
+
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
 	if stacktr != nil {

@@ -16,7 +16,8 @@
                 "duration": {
                     "us": 3564
                 },
-                "type": "request",
+                "type": "external.request",
+                "action": "custom",
                 "id": 2
             },
             "beat": {
@@ -56,7 +57,9 @@
                 "start": {
                     "us": 2830
                 },
-                "type": "db.postgresql.query",
+                "type": "db",
+                "subtype": "postgresql",
+                "action": "query.custom",
                 "id": 15,
                 "name": "SELECT FROM product_types"
             },
@@ -106,6 +109,8 @@
                     "us": 13980
                 },
                 "type": "request",
+                "subtype": "http",
+                "action": "get",
                 "id": 3
             },
             "beat": {
@@ -183,7 +188,9 @@
                 "duration": {
                     "us": 3781
                 },
-                "type": "db.postgresql.query",
+                "type": "db",
+                "subtype": "postgresql",
+                "action": "query",
                 "id": 0
             },
             "beat": {

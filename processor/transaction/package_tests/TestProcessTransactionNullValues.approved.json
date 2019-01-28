@@ -173,6 +173,7 @@
                 "name": "transaction"
             },
             "span": {
+                "action": "query",
                 "duration": {
                     "us": 3781
                 },
@@ -189,7 +190,8 @@
                 "start": {
                     "us": 2830
                 },
-                "type": "db.postgresql.query"
+                "subtype": "postgresql",
+                "type": "db"
             },
             "transaction": {
                 "id": "85925e55-b43f-4340-a8e0-df1906ecbf7a"
