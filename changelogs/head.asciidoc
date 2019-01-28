@@ -4,7 +4,6 @@
 [float]
 ==== Added
 
-- Update Go version to 1.11.4 {pull}1700[1700].
 - Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].
 - Allow numbers and boolean values for `transaction.tags`, `span.tags`, `metricset.tags` {pull}1712[1712].
 - Update response format of the healthcheck handler and prettyfy all JSON responses {pull}1748[1748].
@@ -12,6 +11,7 @@
 - Rename transaction.span_count.dropped.total to transaction.span_count.dropped {pull}1809[1809].
 - Rename span.hex_id to span.id {pull}1811[1811].
 - Index error.exception as array of objects {pull}1825[1825]
+- Update Go version to 1.11.5 {pull}1840[1840].
 - Change ownership to apm-server user/group for deb/rpm installs {pull}1833[1833].
 
 [float]

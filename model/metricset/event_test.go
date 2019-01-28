@@ -70,7 +70,7 @@ func TestDecode(t *testing.T) {
 			err: nil,
 			metricset: &Metricset{
 				Samples:   []*Sample{},
-				Tags:      nil,
+				Labels:    nil,
 				Timestamp: timestampParsed,
 			},
 		},
@@ -88,7 +88,7 @@ func TestDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{
 				"tags": map[string]interface{}{
-					"a.tag": "a.tag.value",
+					"atag": true,
 				},
 				"timestamp": tsFormat(timestampParsed),
 				"samples": map[string]interface{}{
@@ -112,8 +112,8 @@ func TestDecode(t *testing.T) {
 						Value: 612,
 					},
 				},
-				Tags: common.MapStr{
-					"a.tag": "a.tag.value",
+				Labels: common.MapStr{
+					"atag": true,
 				},
 				Timestamp: timestampParsed,
 			},
@@ -167,7 +167,7 @@ func TestTransform(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Tags:      common.MapStr{"a.tag": "a.tag.value"},
+				Labels:    common.MapStr{"a.b": "a.b.value"},
 				Timestamp: timestamp,
 				Samples: []*Sample{
 					{
@@ -183,10 +183,8 @@ func TestTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"agent": common.MapStr{"name": "", "version": ""},
-					"context": common.MapStr{
-						"tags": common.MapStr{
-							"a.tag": "a.tag.value",
-						},
+					"labels": common.MapStr{
+						"a.b": "a.b.value",
 					},
 					"service": common.MapStr{
 						"name": "myservice",

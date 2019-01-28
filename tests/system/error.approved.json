@@ -5,20 +5,40 @@
         "_id": "YEUQC2IBWUGW2FxIuwuv",
         "_source": {
             "@timestamp": "2017-05-09T15:04:05.000Z",
-            "agent": {
-                "version": "3.14.0",
-                "name": "elastic-node"
+            "timestamp":{
+                "us": 1494342245000000
+            },
+            "ecs": {
+                "version": "1.0.0-beta2"
+            },
+            "observer": {
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes":{
+                "namespace":"namespace1",
+                "pod":{
+                    "uid":"pod-uid",
+                    "name":"pod-name"
+                }
             },
             "host": {
-                "platform": "darwin",
+                "os": {
+                    "platform": "darwin"
+                },
                 "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
             },
-            "observer": {
-                "hostname": "5d8dc22ccf3b",
-                "name": "5d8dc22ccf3b",
-                "version": "7.0.0-alpha1"
+            "agent": {
+                "version": "3.14.0",
+                "name": "elastic-node"
             },
             "processor": {
                 "event": "error",
@@ -27,7 +47,7 @@
             "process": {
                 "ppid": 7788,
                 "pid": 1234,
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -58,7 +78,7 @@
                 "id": "7f0e9d68c1854d21a6f44673ed561ec8"
             },
             "user": {
-                "username": "bar",
+                "name": "bar",
                 "id": 123,
                 "email": "bar@example.com"
             }
@@ -71,25 +91,45 @@
         "_id": "XkUQC2IBWUGW2FxIuwuv",
         "_source": {
             "@timestamp": "2017-05-09T15:04:05.999Z",
+            "timestamp":{
+                "us": 1494342245999999
+            },
+            "ecs":{
+                "version":"1.0.0-beta2"
+            },
+            "observer": {
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes":{
+                "namespace":"namespace1",
+                "pod":{
+                    "name":"pod-name",
+                    "uid":"pod-uid"
+                }
+            },
             "agent": {
                 "version": "3.14.0",
                 "name": "elastic-node"
             },
             "host": {
-                "platform": "darwin",
+                "os": {
+                    "platform": "darwin"
+                },
                 "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
             },
-            "observer": {
-                "hostname": "5d8dc22ccf3b",
-                "name": "5d8dc22ccf3b",
-                "version": "7.0.0-alpha1"
-            },
             "process": {
                 "ppid": 7788,
                 "pid": 1234,
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -112,56 +152,66 @@
                     "name": "node"
                 }
             },
+            "http": {
+                "version": "1.1",
+                "request": {
+                    "body": {
+                        "original":"Hello World"
+                    },
+                    "env": {
+                        "GATEWAY_INTERFACE": "CGI/1.1",
+                        "SERVER_SOFTWARE": "nginx"
+                    },
+                    "headers": {
+                        "content-type": "text/html",
+                        "cookies": {
+                            "original": "c1=v1; c2=v2",
+                            "parsed": {
+                                "c1": "v1",
+                                "c2": "v2"
+                            }
+                        },
+                        "user-agent": {
+                            "original": "Mozilla Chrome Edge"
+                        }
+                    },
+                    "method": "post",
+                    "socket": {
+                        "encrypted": true,
+                        "remote_address": "12.53.12.1"
+                    }
+                },
+                "response": {
+                    "finished": true,
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "headers_sent": true,
+                    "status_code": 200
+                }
+            },
+            "url": {
+                "domain": "www.example.com",
+                "fragment": "#hash",
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                "original": "/p/a/t/h?query=string#hash",
+                "path": "/p/a/t/h",
+                "port": 8080,
+                "query": "?query=string",
+                "scheme": "https"
+            },
             "transaction": {
                 "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79"
             },
             "user": {
-                "username": "foo",
+                "name": "foo",
                 "id": 99,
                 "email": "foo@example.com"
             },
+            "labels": {
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+            },
             "context": {
-                "tags": {
-                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-                },
-                "request": {
-                    "body": "Hello World",
-                    "cookies": {
-                        "c2": "v2",
-                        "c1": "v1"
-                    },
-                    "socket": {
-                        "encrypted": true,
-                        "remote_address": "12.53.12.1"
-                    },
-                    "url": {
-                        "search": "?query=string",
-                        "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                        "protocol": "https:",
-                        "hostname": "www.example.com",
-                        "raw": "/p/a/t/h?query=string#hash",
-                        "pathname": "/p/a/t/h",
-                        "hash": "#hash",
-                        "port": "8080"
-                    },
-                    "http_version": "1.1",
-                    "headers": {
-                        "some-other-header": "foo",
-                        "content-type": "text/html",
-                        "array": [
-                            "foo",
-                            "bar",
-                            "baz"
-                        ],
-                        "cookie": "c1=v1; c2=v2",
-                        "user-agent": "Mozilla Chrome Edge"
-                    },
-                    "env": {
-                        "SERVER_SOFTWARE": "nginx",
-                        "GATEWAY_INTERFACE": "CGI/1.1"
-                    },
-                    "method": "POST"
-                },
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -171,17 +221,13 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                },
-                "response": {
-                    "headers": {
-                        "content-type": "application/json"
-                    },
-                    "finished": true,
-                    "headers_sent": true,
-                    "status_code": 200
                 }
             },
             "error": {
+                "page": {
+                    "referer": "http://localhost:8000/test/e2e/",
+                    "url": "http://localhost:8000/test/e2e/general-usecase/"
+                },
                 "exception": [{
                     "stacktrace": [
                         {
@@ -329,9 +375,9 @@
                 "event": "error"
             },
             "user": {
-                "username": "bar",
-                "id": 123,
-                "email": "bar@example.com"
+                "name": "foo",
+                "id": "99",
+                "email": "foo@example.com"
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -341,21 +387,41 @@
         "_type": "_doc",
         "_id": "X0UQC2IBWUGW2FxIuwuv",
         "_source": {
-            "@timestamp": "2017-05-09T15:04:05.100Z",
+            "@timestamp": "2017-05-09T15:04:05.000Z",
+            "timestamp":{
+                "us": 1494342245000000
+            },
+            "ecs":{
+                "version":"1.0.0-beta2"
+            },
+            "observer": {
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes":{
+                "namespace":"namespace1",
+                "pod":{
+                    "uid":"pod-uid",
+                    "name":"pod-name"
+                }
+            },
             "agent": {
                 "version": "3.14.0",
                 "name": "elastic-node"
             },
             "host": {
-                "platform": "darwin",
+                "os": {
+                    "platform": "darwin"
+                },
                 "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
-            },
-            "observer": {
-                "hostname": "5d8dc22ccf3b",
-                "name": "5d8dc22ccf3b",
-                "version": "7.0.0-alpha1"
             },
             "processor": {
                 "name": "error",
@@ -364,7 +430,7 @@
             "process": {
                 "ppid": 7788,
                 "pid": 1234,
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -396,7 +462,7 @@
                 "id": "8f0e9d68c1854d21a6f44673ed561ec8"
             },
             "user": {
-                "username": "bar",
+                "name": "bar",
                 "id": 123,
                 "email": "bar@example.com"
             }
@@ -409,20 +475,40 @@
         "_id": "YUUQC2IBWUGW2FxIuwuv",
         "_source": {
             "@timestamp": "2017-05-09T15:04:05.999Z",
+            "timestamp":{
+                "us": 1494342245999000
+            },
+            "ecs":{
+                "version":"1.0.0-beta2"
+            },
+            "observer": {
+                "type": "apm-server",
+                "ephemeral_id": "xxx",
+                "hostname": "xxx",
+                "version": "xxx",
+                "id": "xxx"
+            },
+            "container":{
+                "id":"container-id"
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "pod":{
+                    "uid":"pod-uid",
+                    "name":"pod-name"
+                }
+            },
             "agent": {
                 "version": "3.14.0",
                 "name": "elastic-node"
             },
             "host": {
-                "platform": "darwin",
+                "os": {
+                    "platform": "darwin"
+                },
                 "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
-            },
-            "observer": {
-                "version": "7.0.0-alpha1",
-                "name": "5d8dc22ccf3b",
-                "hostname": "5d8dc22ccf3b"
             },
             "processor": {
                 "name": "error",
@@ -431,7 +517,7 @@
             "process": {
                 "ppid": 7788,
                 "pid": 1234,
-                "argv": [
+                "args": [
                     "node",
                     "server.js"
                 ],
@@ -463,7 +549,7 @@
                 }
             },
             "user": {
-                "username": "bar",
+                "name": "bar",
                 "id": 123,
                 "email": "bar@example.com"
             }

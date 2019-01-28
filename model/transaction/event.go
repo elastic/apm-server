@@ -23,6 +23,7 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
@@ -53,20 +54,24 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Event struct {
-	Id        string
+	Id       string
+	ParentId *string
+	TraceId  string
+
+	Timestamp time.Time
+
+	Context common.MapStr
+
 	Type      string
 	Name      *string
 	Result    *string
 	Duration  float64
-	Timestamp time.Time
-	Context   common.MapStr
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
 	User      *metadata.User
-
-	ParentId *string
-	TraceId  string
+	Labels    common.MapStr
+	Page      *m.Page
 }
 
 type SpanCount struct {
@@ -108,6 +113,17 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, decoder.Err
 	}
 
+	if labels, ok := e.Context["tags"].(map[string]interface{}); ok {
+		delete(e.Context, "tags")
+		e.Labels = labels
+	}
+
+	page, err := m.DecodePage(e.Context, decoder.Err)
+	if err != nil {
+		return nil, err
+	}
+	e.Page = page
+
 	if ok, _ := e.Context.HasKey("user"); ok {
 		user, err := e.Context.GetValue("user")
 		e.User, err = metadata.DecodeUser(user, err)
@@ -126,6 +142,7 @@ func (t *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tx, "type", t.Type)
 	utility.Add(tx, "result", t.Result)
 	utility.Add(tx, "marks", t.Marks)
+	utility.Add(tx, "page", t.Page.Fields())
 
 	if t.Sampled == nil {
 		utility.Add(tx, "sampled", true)
@@ -161,14 +178,22 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		transactionDocType: e.fields(tctx),
 	}
 	delete(e.Context, "user")
-	utility.Add(fields, "context", e.Context)
+	utility.Add(fields, "user", e.User.Fields())
+	delete(e.Context, "page")
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
+	utility.Add(fields, "labels", e.Labels)
 	tctx.Metadata.Merge(fields)
+
+	utility.Add(fields, "http", m.HttpFields(e.Context))
+	utility.Add(fields, "url", m.UrlFields(e.Context))
+	delete(e.Context, "request")
+	delete(e.Context, "response")
+
+	utility.Add(fields, "context", e.Context)
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

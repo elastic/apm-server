@@ -44,18 +44,20 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("error.exception.attributes"),
 		tests.Group("error.exception.stacktrace"),
 		tests.Group("error.log.stacktrace"),
-		tests.Group("context.user"),
+		tests.Group("context"),
+		tests.Group("error.page"),
 	)
 }
 
 func errorFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"view errors", "error id icon",
-		"context.http", "context.http.status_code",
 		"host.ip",
 		tests.Group("observer"),
 		tests.Group("user"),
 		tests.Group("client"),
+		tests.Group("http"),
+		tests.Group("url"),
 	)
 }
 
@@ -101,14 +103,14 @@ type obj = map[string]interface{}
 
 func errorCondRequiredKeys() map[string]tests.Condition {
 	return map[string]tests.Condition{
-		"error.exception":         tests.Condition{Absence: []string{"error.log"}},
-		"error.exception.message": tests.Condition{Absence: []string{"error.exception.type"}},
-		"error.exception.type":    tests.Condition{Absence: []string{"error.exception.message"}},
-		"error.log":               tests.Condition{Absence: []string{"error.exception"}},
+		"error.exception":         {Absence: []string{"error.log"}},
+		"error.exception.message": {Absence: []string{"error.exception.type"}},
+		"error.exception.type":    {Absence: []string{"error.exception.message"}},
+		"error.log":               {Absence: []string{"error.exception"}},
 
-		"error.trace_id":       tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.transaction_id": "abc123"}},
-		"error.transaction_id": tests.Condition{Existence: obj{"error.parent_id": "abc123", "error.trace_id": "abc123"}},
-		"error.parent_id":      tests.Condition{Existence: obj{"error.transaction_id": "abc123", "error.trace_id": "abc123"}},
+		"error.trace_id":       {Existence: obj{"error.parent_id": "abc123", "error.transaction_id": "abc123"}},
+		"error.transaction_id": {Existence: obj{"error.parent_id": "abc123", "error.trace_id": "abc123"}},
+		"error.parent_id":      {Existence: obj{"error.transaction_id": "abc123", "error.trace_id": "abc123"}},
 	}
 }
 
@@ -117,7 +119,8 @@ func errorKeywordExceptionKeys() *tests.Set {
 		"processor.event", "processor.name", "error.grouping_key",
 		"context.tags",
 		"view errors", "error id icon",
-
+		tests.Group("url"),
+		tests.Group("http"),
 		// metadata fields
 		tests.Group("agent"),
 		tests.Group("container"),

@@ -106,13 +106,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "context": {
-                "tags": {
-                    "tag1": "value1",
-                    "tag2": 123,
-                    "tag3": 12.34,
-                    "tag4": true
-                }
+            "labels": {
+                "tag1": "value1",
+                "tag2": 123,
+                "tag3": 12.34,
+                "tag4": true
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -215,19 +213,6 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "context": {
-                "db": {
-                    "instance": "customers",
-                    "statement": "SELECT * FROM product_types WHERE user_id=?",
-                    "type": "sql",
-                    "user": "readonly_user"
-                },
-                "http": {
-                    "method": "GET",
-                    "status_code": 200,
-                    "url": "http://localhost:8000"
-                }
-            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -247,8 +232,25 @@
             },
             "span": {
                 "action": "query",
+                "db": {
+                    "instance": "customers",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": {
+                        "name": "readonly_user"
+                    }
+                },
                 "duration": {
                     "us": 3781
+                },
+                "http": {
+                    "method": "get",
+                    "response": {
+                        "status_code": 200
+                    },
+                    "url": {
+                        "original": "http://localhost:8000"
+                    }
                 },
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",

@@ -6,6 +6,7 @@ from apmserver import ElasticTest, ExpvarBaseTest
 from apmserver import ClientSideElasticTest, SmapIndexBaseTest, SmapCacheBaseTest
 from apmserver import SplitIndicesTest
 from beat.beat import INTEGRATION_TESTS
+from sets import Set
 
 
 class Test(ElasticTest):
@@ -114,18 +115,27 @@ class Test(ElasticTest):
         self.check_backend_error_sourcemap(count=4)
 
     def check_docs(self, approved, received, doc_type):
+        assert len(received) == len(approved)
         for rec_entry in received:
             checked = False
             rec = rec_entry['_source']
             rec_id = rec[doc_type]['id']
-
             for appr_entry in approved:
                 appr = appr_entry['_source']
                 if rec_id == appr[doc_type]['id']:
                     checked = True
-                    self.assert_docs(rec[doc_type], appr[doc_type])
-                    self.assert_docs(rec.get('context'), appr.get('context'))
-                    self.assert_docs(rec['processor'], appr['processor'])
+                    for k, v in rec.items():
+                        if k == "host":
+                            # TODO: fix https://github.com/elastic/apm-server/issues/1846
+                            #  then remove this exception handling and treat as other keys
+                            continue
+                        if k == "observer":
+                            expected = Set(["hostname", "version", "id", "ephemeral_id", "type"])
+                            rec_keys = Set(v.keys())
+                            assert len(expected.symmetric_difference(rec_keys)) == 0
+                            continue
+
+                        self.assert_docs(v, appr[k])
             assert checked, "New entry with id {}".format(rec_id)
 
     def assert_docs(self, received, approved):
