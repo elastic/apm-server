@@ -45,6 +45,7 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("error.exception.stacktrace"),
 		tests.Group("error.log.stacktrace"),
 		tests.Group("context"),
+		tests.Group("error.page"),
 	)
 }
 
