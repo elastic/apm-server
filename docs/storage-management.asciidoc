@@ -63,7 +63,7 @@ or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
 To delete data periodically you can use {curator-ref-current}[Curator] and set up a cron job to run it.
 
-By default APM indices have the pattern `apm-%{[beat.version]}-{type}-%{+yyyy.MM.dd}`.
+By default APM indices have the pattern `apm-%{[observer.version]}-{type}-%{+yyyy.MM.dd}`.
 With the curator command line interface you can, for instance, see all your existing indices:
 
 ["source","sh",subs="attributes"]

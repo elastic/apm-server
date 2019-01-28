@@ -180,14 +180,14 @@ apm-server:
 # Set to false to disable template loading.
 #setup.template.enabled: true
 
-# Template name. By default the template name is "apm-%{[beat.version]}"
+# Template name. By default the template name is "apm-%{[observer.version]}"
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-#setup.template.name: "apm-%{[beat.version]}"
+#setup.template.name: "apm-%{[observer.version]}"
 
-# Template pattern. By default the template pattern is "apm-%{[beat.version]}-*" to apply to the default index settings.
+# Template pattern. By default the template pattern is "apm-%{[observer.version]}-*" to apply to the default index settings.
 # The first part is the version of the beat and then -* is used to match all daily indices.
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
-#setup.template.pattern: "apm-%{[beat.version]}-*"
+#setup.template.pattern: "apm-%{[observer.version]}-*"
 
 # Path to fields.yml file to generate the template
 #setup.template.fields: "${path.config}/fields.yml"
@@ -263,7 +263,7 @@ output.elasticsearch:
   # - span
   # - sourcemap
   #
-  # The indices are all prefixed with `apm-%{[beat.version]}`.
+  # The indices are all prefixed with `apm-%{[observer.version]}`.
   # To allow managing indices based on their age, all indices (except for sourcemaps)
   # end with the information of the day they got indexed.
   # e.g. "apm-6.3.0-transaction-2018.03.20"
@@ -273,7 +273,7 @@ output.elasticsearch:
   # as they need to be aligned:
   # * `setup.template.name`
   # * `setup.template.pattern`
-  #index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
+  #index: "apm-%{[observer.version]}-%{+yyyy.MM.dd}"
   indices:
     - index: "apm-%{[observer.version]}-sourcemap"
       when.contains:

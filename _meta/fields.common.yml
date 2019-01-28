@@ -373,10 +373,33 @@
     - name: observer
       type: group
       fields:
+
         - name: listening
           type: keyword
           description: >
             Address the server is listening on.
+
+        - name: hostname
+          level: core
+          type: keyword
+          overwrite: true
+          description: >
+            Hostname of the APM Server.
+
+        - name: version
+          level: core
+          type: keyword
+          overwrite: true
+          description: >
+            APM Server version.
+
+        - name: type
+          level: core
+          type: keyword
+          overwrite: true
+          description: >
+            The type will be set to `apm-server`.
+          example: firewall
 
     - name: user
       type: group
