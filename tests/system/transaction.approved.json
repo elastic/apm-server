@@ -128,19 +128,6 @@
                 },
                 "version": "1.1"
             },
-            "context": {
-                "custom": {
-                    "some_other_value": "foo bar",
-                    "and_objects": {
-                        "foo": [
-                            "bar",
-                            "baz"
-                        ]
-                    },
-                    "my_key": 1,
-                    "(": "not a valid regex and that is fine"
-                }
-            },
             "labels": {
                 "number_code": 2,
                 "bool_error": false,
@@ -161,6 +148,17 @@
                         "navigationStart": -21,
                         "appBeforeBootstrap": 608.9300000000001
                     }
+                },
+                "custom": {
+                    "some_other_value": "foo bar",
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "(": "not a valid regex and that is fine"
                 },
                 "id": "945254c567a5417e",
                 "name": "GET /api/types",

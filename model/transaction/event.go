@@ -135,29 +135,34 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	return &e, nil
 }
 
-func (t *Event) fields(tctx *transform.Context) common.MapStr {
-	tx := common.MapStr{"id": t.Id}
-	utility.Add(tx, "name", t.Name)
-	utility.Add(tx, "duration", utility.MillisAsMicros(t.Duration))
-	utility.Add(tx, "type", t.Type)
-	utility.Add(tx, "result", t.Result)
-	utility.Add(tx, "marks", t.Marks)
-	utility.Add(tx, "page", t.Page.Fields())
+func (e *Event) fields(tctx *transform.Context) common.MapStr {
+	tx := common.MapStr{"id": e.Id}
+	utility.Add(tx, "name", e.Name)
+	utility.Add(tx, "duration", utility.MillisAsMicros(e.Duration))
+	utility.Add(tx, "type", e.Type)
+	utility.Add(tx, "result", e.Result)
+	utility.Add(tx, "marks", e.Marks)
+	utility.Add(tx, "page", e.Page.Fields())
 
-	if t.Sampled == nil {
-		utility.Add(tx, "sampled", true)
-	} else {
-		utility.Add(tx, "sampled", t.Sampled)
+	custom, err := e.Context.GetValue("custom")
+	if err == nil && custom != nil {
+		utility.Add(tx, "custom", custom)
 	}
 
-	if t.SpanCount.Dropped != nil || t.SpanCount.Started != nil {
+	if e.Sampled == nil {
+		utility.Add(tx, "sampled", true)
+	} else {
+		utility.Add(tx, "sampled", e.Sampled)
+	}
+
+	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
 		spanCount := common.MapStr{}
 
-		if t.SpanCount.Dropped != nil {
-			utility.Add(spanCount, "dropped", *t.SpanCount.Dropped)
+		if e.SpanCount.Dropped != nil {
+			utility.Add(spanCount, "dropped", *e.SpanCount.Dropped)
 		}
-		if t.SpanCount.Started != nil {
-			utility.Add(spanCount, "started", *t.SpanCount.Started)
+		if e.SpanCount.Started != nil {
+			utility.Add(spanCount, "started", *e.SpanCount.Started)
 		}
 		utility.Add(tx, "span_count", spanCount)
 	}
@@ -177,6 +182,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor":        processorEntry,
 		transactionDocType: e.fields(tctx),
 	}
+	delete(e.Context, "custom")
 	delete(e.Context, "user")
 	utility.Add(fields, "user", e.User.Fields())
 	delete(e.Context, "page")
