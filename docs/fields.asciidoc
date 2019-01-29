@@ -33,6 +33,15 @@ Alias fields for compatibility with 7.x.
 
 
 
+*`host.hostname`*::
++
+--
+type: alias
+
+alias to: beat.hostname
+
+--
+
 *`event.timezone`*::
 +
 --
@@ -1423,6 +1432,26 @@ Unique host id.
 
 --
 
+*`host.architecture`*::
++
+--
+type: keyword
+
+Host architecture (e.g. x86_64, arm, ppc, mips).
+
+
+--
+
+*`host.os.platform`*::
++
+--
+type: keyword
+
+OS platform (e.g. centos, ubuntu, windows).
+
+
+--
+
 *`host.os.version`*::
 +
 --
@@ -1439,6 +1468,16 @@ OS version.
 type: keyword
 
 OS family (e.g. redhat, debian, freebsd, windows).
+
+
+--
+
+*`host.ip`*::
++
+--
+type: ip
+
+List of IP-addresses.
 
 
 --
