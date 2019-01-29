@@ -15,28 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package autodiscover
+package backoff
 
-import (
-	"github.com/elastic/beats/libbeat/common"
-)
-
-// Config settings for Autodiscover
-type Config struct {
-	Providers []*common.Config `config:"providers"`
+// Backoff defines the interface for backoff strategies.
+type Backoff interface {
+	Wait() bool
+	Reset()
 }
 
-// ProviderConfig settings
-type ProviderConfig struct {
-	Type string `config:"type"`
-}
-
-// BuilderConfig settings
-type BuilderConfig struct {
-	Type string `config:"type"`
-}
-
-// AppenderConfig settings
-type AppenderConfig struct {
-	Type string `config:"type"`
+// WaitOnError is a convenience method, if an error is received it will block, if not errors is
+// received, the backoff will be resetted.
+func WaitOnError(b Backoff, err error) bool {
+	if err == nil {
+		b.Reset()
+		return true
+	}
+	return b.Wait()
 }
