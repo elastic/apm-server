@@ -87,6 +87,6 @@ func init() {
  * Ingest pipelines
 `
 	setup.ResetFlags()
-	setup.Flags().Bool("template", false, "Setup index template")
-	setup.Flags().Bool("pipelines", false, "Setup Ingest pipelines")
+	setup.Flags().Bool(cmd.TemplateKey, false, "Setup index template")
+	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
 }
