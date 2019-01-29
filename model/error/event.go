@@ -204,6 +204,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor": processorEntry,
 	}
 	delete(e.Context, "page")
+	delete(e.Context, "custom")
 	delete(e.Context, "user")
 	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
@@ -254,6 +255,11 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 	e.updateCulprit(tctx)
 	e.add("culprit", e.Culprit)
+
+	custom, err := e.Context.GetValue("custom")
+	if err == nil && custom != nil {
+		e.add("custom", custom)
+	}
 
 	e.addGroupingKey()
 

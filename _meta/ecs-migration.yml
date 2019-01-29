@@ -177,9 +177,14 @@
   to: http.response.headers_sent
   index: false
 
-  # not in ECS
+  # not in ECS, defined for two target fields
 - from: context.custom
-  to: context.custom
+  to: transaction.custom
+  index: false
+
+# not in ECS, defined for two target fields
+- from: context.custom
+  to: error.custom
   index: false
 
   # not in ECS
