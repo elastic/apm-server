@@ -357,10 +357,29 @@
     - name: observer
       type: group
       fields:
+
         - name: listening
           type: keyword
           description: >
             Address the server is listening on.
+
+        - name: hostname
+          type: keyword
+          overwrite: true
+          description: >
+            Hostname of the APM Server.
+
+        - name: version
+          type: keyword
+          overwrite: true
+          description: >
+            APM Server version.
+
+        - name: type
+          type: keyword
+          overwrite: true
+          description: >
+            The type will be set to `apm-server`.
 
     - name: user
       type: group

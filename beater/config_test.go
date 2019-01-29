@@ -202,7 +202,7 @@ func TestReplaceBeatVersion(t *testing.T) {
 		replaced     string
 	}{
 		{version: "", indexPattern: "", replaced: ""},
-		{version: "6.2.0", indexPattern: "apm-%{[beat.version]}", replaced: "apm-6.2.0"},
+		{version: "6.2.0", indexPattern: "apm-%{[observer.version]}", replaced: "apm-6.2.0"},
 		{version: "6.2.0", indexPattern: "apm-smap", replaced: "apm-smap"},
 	}
 	for _, test := range cases {

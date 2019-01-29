@@ -183,7 +183,7 @@ func (c *InstrumentationConfig) isEnabled() bool {
 }
 
 func replaceVersion(pattern, version string) string {
-	re := regexp.MustCompile("%.*{.*beat.version.?}")
+	re := regexp.MustCompile("%.*{.*observer.version.?}")
 	return re.ReplaceAllLiteralString(pattern, version)
 }
 
