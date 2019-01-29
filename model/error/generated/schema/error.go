@@ -268,7 +268,8 @@ const ModelSchema = `{
                 },
                 "culprit": {
                     "description": "Function call which was the primary perpetrator of this event.",
-                    "type": ["string", "null"]
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 },
                 "exception": {
                     "description": "Information about the originally thrown error.",
