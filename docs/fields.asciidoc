@@ -957,15 +957,15 @@ Transaction-specific data for APM
 *`transaction.name`*::
 +
 --
-type: text
+type: keyword
 
 Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
 
-*`transaction.name.keyword`*::
+*`transaction.name.text`*::
 +
 --
-type: keyword
+type: text
 
 --
 

@@ -7,10 +7,10 @@
       dynamic: false
       fields:
         - name: name
-          type: text
+          type: keyword
           multi_fields:
-            - name: keyword
-              type: keyword
+            - name: text
+              type: text
           description: >
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 

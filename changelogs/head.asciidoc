@@ -13,6 +13,7 @@
 - Index error.exception as array of objects {pull}1825[1825]
 - Update Go version to 1.11.5 {pull}1840[1840].
 - Change ownership to apm-server user/group for deb/rpm installs {pull}1833[1833].
+- Change transaction.name to keyword, add transaction.name.text {pull}XXX[XXX].
 
 [float]
 ==== Removed
