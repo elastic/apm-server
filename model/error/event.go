@@ -66,17 +66,19 @@ type Event struct {
 	TraceId       *string
 	ParentId      *string
 
-	Culprit   *string
-	Context   common.MapStr
 	Timestamp time.Time
+
+	Context common.MapStr
+	Culprit *string
+	User    *metadata.User
+	Labels  common.MapStr
+	Page    *m.Page
 
 	Exception *Exception
 	Log       *Log
 
 	TransactionSampled *bool
 	TransactionType    *string
-
-	User *metadata.User
 
 	data common.MapStr
 }
@@ -125,8 +127,18 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
 	}
 
+	if labels, ok := e.Context["tags"].(map[string]interface{}); ok {
+		delete(e.Context, "tags")
+		e.Labels = labels
+	}
+
+	page, err := m.DecodePage(e.Context, decoder.Err)
+	if err != nil {
+		return nil, err
+	}
+	e.Page = page
+
 	var stacktr *m.Stacktrace
-	err = decoder.Err
 	ex := decoder.MapStr(raw, "exception")
 	exMsg := decoder.StringPtr(ex, "message")
 	exType := decoder.StringPtr(ex, "type")
@@ -140,7 +152,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 			Handled:    decoder.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
-		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], err)
+		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], nil)
 		if stacktr != nil {
 			e.Exception.Stacktrace = *stacktr
 		}
@@ -191,12 +203,20 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"error":     e.fields(tctx),
 		"processor": processorEntry,
 	}
+	delete(e.Context, "page")
 	delete(e.Context, "user")
-	utility.Add(fields, "context", e.Context)
 	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
+	utility.Add(fields, "labels", e.Labels)
 	tctx.Metadata.Merge(fields)
+
+	utility.Add(fields, "http", m.HttpFields(e.Context))
+	utility.Add(fields, "url", m.UrlFields(e.Context))
+	delete(e.Context, "request")
+	delete(e.Context, "response")
+
+	utility.Add(fields, "context", e.Context)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
@@ -227,6 +247,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
+	e.add("page", e.Page.Fields())
 
 	e.addException(tctx)
 	e.addLog(tctx)

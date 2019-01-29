@@ -17,11 +17,18 @@
 #- from: beat.version
 #  to: observer.version
 #
+
+  # field in ECS, but with a different meaning
 - from: context.service.agent.name
   to: agent.name
-#
+
+  # field in ECS, but with a different meaning
 - from: context.service.agent.version
   to: agent.version
+
+  # field in ECS, but allowed type is extended
+- from: context.tags
+  to: labels
 
 - from: context.system.architecture
   to: host.architecture
@@ -35,42 +42,50 @@
 - from: context.system.platform
   to: host.os.platform
 
-#- from: context.request.method
-#  to: http.request.method
-#
-#- from: context.request.http_version
-#  to: http.version
-#
-#- from: context.request.body
-#  to: http.request.body
-#  index: false
-#
-## Not in ECS
-#- from: context.request.cookies
-#  to: http.request.headers.cookies.parsed
-#  index: false
-#
-## Not in ECS
-#- from: context.request.headers.cookie
-#  to: http.request.headers.cookies.original
-#  index: false
-#
-#- from: context.request.headers.user-agent
-#  to: http.request.headers.user-agent
-#  index: false
-#
-#- from: context.request.headers.content-type
-#  to: http.request.headers.content-type
-#  index: false
-#
-#- from: context.request.env
-#  to: http.request.env
-#  index: false
-#
-#- from: context.request.socket
-#  to: http.request.socket
-#  index: false
-#
+  # from upper case to lower case
+- from: context.request.method
+  to: http.request.method
+
+- from: context.request.http_version
+  to: http.version
+
+  # conflicts with ECS, we can't align on name because we don't index it
+- from: context.request.body
+  to: http.request.body.original
+  index: false
+
+  # not in ECS
+- from: context.request.cookies
+  to: http.request.headers.cookies.parsed
+  index: false
+
+  # not in ECS
+- from: context.request.headers.cookie
+  to: http.request.headers.cookies.original
+  index: false
+
+  # not in ECS
+  # `original` for consistency with root user_agent
+  # dashed for consistency with other headers
+- from: context.request.headers.user-agent
+  to: http.request.headers.user-agent.original
+  index: false
+
+  # not in ECS
+- from: context.request.headers.content-type
+  to: http.request.headers.content-type
+  index: false
+
+  # not in ECS
+- from: context.request.env
+  to: http.request.env
+  index: false
+
+  # not in ECS
+- from: context.request.socket
+  to: http.request.socket
+  index: false
+
 - from: context.process.pid
   to: process.pid
 
@@ -117,53 +132,48 @@
 - from: context.service.version
   to: service.version
 
-#- from: context.request.url.full
-#  to: url.full
+- from: context.request.url.full
+  to: url.full
 
-#
-#- from: context.request.url.hash
-#  to: url.fragment
+- from: context.request.url.hash
+  to: url.fragment
 
-#
-#- from: context.request.url.hostname
-#  to: url.domain
+- from: context.request.url.hostname
+  to: url.domain
 
-#
-#- from: context.request.url.pathname
-#  to: url.path
+- from: context.request.url.pathname
+  to: url.path
 
-#
-#- from: context.request.url.port
-#  to: url.port
+  # from string or number to number
+- from: context.request.url.port
+  to: url.port
 
-#
-#- from: context.request.url.raw
-#  to: url.original
-#  index: false
-#
-#- from: context.request.url.search
-#  to: url.query
+- from: context.request.url.raw
+  to: url.original
+  index: false
 
-#
-#- from: context.request.url.protocol
-#  to: url.scheme
+- from: context.request.url.search
+  to: url.query
 
-#
-#- from: context.response.finished
-#  to: http.response.finished
+- from: context.request.url.protocol
+  to: url.scheme
 
-#
-#- from: context.response.status_code
-#  to: http.response.status_code
+  # not in ECS
+- from: context.response.finished
+  to: http.response.finished
 
-#
-#- from: context.response.headers.content-type
-#  to: http.response.headers.content-type
-#  index: false
-#
-#- from: context.response.headers_sent
-#  to: http.response.headers.sent
-#  index: false
+- from: context.response.status_code
+  to: http.response.status_code
+
+  # not in ECS
+- from: context.response.headers.content-type
+  to: http.response.headers.content-type
+  index: false
+
+  # not in ECS
+- from: context.response.headers_sent
+  to: http.response.headers_sent
+  index: false
 
   # not in ECS
 - from: context.custom
@@ -172,43 +182,53 @@
 
   # not in ECS
 - from: context.db.instance
-  to: context.db.instance
+  to: span.db.instance
   index: false
 
   # not in ECS
 - from: context.db.statement
-  to: context.db.statement
+  to: span.db.statement
   index: false
 
   # not in ECS
-- from: context.db.content
-  to: context.db.content
+- from: context.db.type
+  to: span.db.type
   index: false
 
-#  # not in ECS
-#- from: context.db.user
-#  to: context.db.user
-#  index: false
-#
-#- from: context.user.email
-#  to: user.email
+  # not in ECS
+- from: context.db.user
+  to: span.db.user.name
+  index: false
 
-#
-#- from: context.user.id
-#  to: user.id
+  # not in ECS
+- from: context.http.url
+  to: span.http.url.original
+  index: false
 
-#
-#- from: context.user.username
-#  to: user.name
+  # not in ECS
+- from: context.http.status_code
+  to: span.http.response.status_code
+  index: false
 
-#
-#- from: context.user.ip
-#  to: client.ip
+  # not in ECS
+- from: context.http.method
+  to: span.http.method
+  index: false
 
-#
-#- from: context.user.user-agent
-#  to: user_agent.original.text
+- from: context.user.email
+  to: user.email
 
-#
+- from: context.user.id
+  to: user.id
+
+- from: context.user.username
+  to: user.name
+
+- from: context.user.ip
+  to: client.ip
+
+- from: context.user.user-agent
+  to: user_agent.original
+
 - from: listening
   to: observer.listening

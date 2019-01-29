@@ -182,7 +182,7 @@ const ModelSchema = `{
                     "maxLength": 1024
                 },
                 "port": {
-                    "type": ["string", "null"],
+                    "type": ["string", "integer","null"],
                     "description": "The port of the request, e.g. '443'",
                     "maxLength": 1024
                 },
@@ -245,6 +245,20 @@ const ModelSchema = `{
             "maxLength": 1024
         }
     }
+        },
+        "page": {
+            "description": "",
+            "type": ["object", "null"],
+            "properties": {
+                "referer": {
+                    "description": "RUM specific field that stores the URL of the page that 'linked' to the current page.",
+                    "type": ["string", "null"]
+                },
+                "url": {
+                    "description": "RUM specific field that stores the URL of the current page",
+                    "type": ["string", "null"]
+                }
+            }
         }
     }
                 },

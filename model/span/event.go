@@ -19,6 +19,7 @@ package span
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -52,23 +53,115 @@ func ModelSchema() *jsonschema.Schema {
 }
 
 type Event struct {
+	Id            string
+	TransactionId string
+	ParentId      string
+	TraceId       string
+
+	Timestamp time.Time
+
 	Name       string
-	Type       string
 	Start      *float64
 	Duration   float64
 	Context    common.MapStr
 	Stacktrace m.Stacktrace
+	Sync       *bool
+	Labels     common.MapStr
 
-	Timestamp     time.Time
-	TransactionId string
-	Sync          *bool
-
-	HexId    string
-	ParentId string
-	TraceId  string
-
+	Type    string
 	Subtype *string
 	Action  *string
+
+	Db   *db
+	Http *http
+}
+type db struct {
+	Instance  *string
+	Statement *string
+	Type      *string
+	UserName  *string
+}
+
+func DecodeDb(input interface{}, err error) (*db, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(common.MapStr)
+	if !ok {
+		return nil, errors.New("Invalid type for db")
+	}
+	decoder := utility.ManualDecoder{}
+	dbInput := decoder.MapStr(raw, "db")
+	if decoder.Err != nil || dbInput == nil {
+		return nil, decoder.Err
+	}
+	db := db{
+		decoder.StringPtr(dbInput, "instance"),
+		decoder.StringPtr(dbInput, "statement"),
+		decoder.StringPtr(dbInput, "type"),
+		decoder.StringPtr(dbInput, "user"),
+	}
+	return &db, decoder.Err
+}
+
+func (db *db) fields() common.MapStr {
+	if db == nil {
+		return nil
+	}
+	var fields = common.MapStr{}
+	utility.Add(fields, "instance", db.Instance)
+	utility.Add(fields, "statement", db.Statement)
+	utility.Add(fields, "type", db.Type)
+	if db.UserName != nil {
+		utility.Add(fields, "user", common.MapStr{"name": db.UserName})
+	}
+	return fields
+}
+
+type http struct {
+	Url        *string
+	StatusCode *int
+	Method     *string
+}
+
+func DecodeHttp(input interface{}, err error) (*http, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(common.MapStr)
+	if !ok {
+		return nil, errors.New("Invalid type for http")
+	}
+	decoder := utility.ManualDecoder{}
+	httpInput := decoder.MapStr(raw, "http")
+	if decoder.Err != nil || httpInput == nil {
+		return nil, decoder.Err
+	}
+	method := decoder.StringPtr(httpInput, "method")
+	if method != nil {
+		*method = strings.ToLower(*method)
+	}
+	http := http{
+		decoder.StringPtr(httpInput, "url"),
+		decoder.IntPtr(httpInput, "status_code"),
+		method,
+	}
+	return &http, decoder.Err
+}
+
+func (http *http) fields() common.MapStr {
+	if http == nil {
+		return nil
+	}
+	var fields = common.MapStr{}
+	if http.Url != nil {
+		utility.Add(fields, "url", common.MapStr{"original": http.Url})
+	}
+	if http.StatusCode != nil {
+		utility.Add(fields, "response", common.MapStr{"status_code": http.StatusCode})
+	}
+	utility.Add(fields, "method", http.Method)
+	return fields
 }
 
 func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
@@ -92,7 +185,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Context:       decoder.MapStr(raw, "context"),
 		Sync:          decoder.BoolPtr(raw, "sync"),
 		Timestamp:     decoder.TimeEpochMicro(raw, "timestamp"),
-		HexId:         decoder.String(raw, "id"),
+		Id:            decoder.String(raw, "id"),
 		ParentId:      decoder.String(raw, "parent_id"),
 		TraceId:       decoder.String(raw, "trace_id"),
 		TransactionId: decoder.String(raw, "transaction_id"),
@@ -100,8 +193,25 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Action:        decoder.StringPtr(raw, "action"),
 	}
 
+	if labels, ok := event.Context["tags"].(map[string]interface{}); ok {
+		delete(event.Context, "tags")
+		event.Labels = labels
+	}
+
+	db, err := DecodeDb(event.Context, decoder.Err)
+	if err != nil {
+		return nil, err
+	}
+	event.Db = db
+
+	http, err := DecodeHttp(event.Context, nil)
+	if err != nil {
+		return nil, err
+	}
+	event.Http = http
+
 	var stacktr *m.Stacktrace
-	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
+	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], nil)
 	if stacktr != nil {
 		event.Stacktrace = *stacktr
 	}
@@ -124,6 +234,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor": processorEntry,
 		spanDocType: e.fields(tctx),
 	}
+	delete(e.Context, "http")
+	delete(e.Context, "db")
+	utility.Add(fields, "labels", e.Labels)
 	utility.Add(fields, "context", e.Context)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
@@ -150,29 +263,32 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	}
 }
 
-func (s *Event) fields(tctx *transform.Context) common.MapStr {
-	if s == nil {
+func (e *Event) fields(tctx *transform.Context) common.MapStr {
+	if e == nil {
 		return nil
 	}
 	tr := common.MapStr{}
-	if s.HexId != "" {
-		utility.Add(tr, "id", s.HexId)
+	if e.Id != "" {
+		utility.Add(tr, "id", e.Id)
 	}
-	utility.Add(tr, "subtype", s.Subtype)
-	utility.Add(tr, "action", s.Action)
+	utility.Add(tr, "subtype", e.Subtype)
+	utility.Add(tr, "action", e.Action)
 
 	// common
-	utility.Add(tr, "name", s.Name)
-	utility.Add(tr, "type", s.Type)
-	utility.Add(tr, "sync", s.Sync)
+	utility.Add(tr, "name", e.Name)
+	utility.Add(tr, "type", e.Type)
+	utility.Add(tr, "sync", e.Sync)
 
-	if s.Start != nil {
-		utility.Add(tr, "start", utility.MillisAsMicros(*s.Start))
+	if e.Start != nil {
+		utility.Add(tr, "start", utility.MillisAsMicros(*e.Start))
 	}
 
-	utility.Add(tr, "duration", utility.MillisAsMicros(s.Duration))
+	utility.Add(tr, "duration", utility.MillisAsMicros(e.Duration))
 
-	st := s.Stacktrace.Transform(tctx)
+	utility.Add(tr, "db", e.Db.fields())
+	utility.Add(tr, "http", e.Http.fields())
+
+	st := e.Stacktrace.Transform(tctx)
 	utility.Add(tr, "stacktrace", st)
 	return tr
 }

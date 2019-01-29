@@ -44,20 +44,15 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 	notInFields := Union(payloadAttrsNotInFields, NewSet(
 		Group("processor"),
 		//dynamically indexed:
-		"context.tags.organization_uuid",
-		"context.tags.span_tag",
-		"context.tags.tag1",
-		"context.tags.tag2",
-		"context.tags.tag3",
-		"context.tags.tag4",
+		Group("labels"),
 		//known not-indexed fields:
 		Group("context.custom"),
-		Group("context.request.headers"),
-		Group("context.request.cookies"),
-		Group("context.request.socket"),
-		Group("context.request.env"),
-		Group("context.request.body"),
-		Group("context.response.headers"),
+		"url.original",
+		Group("http.request.socket"),
+		Group("http.request.env"),
+		Group("http.request.body"),
+		Group("http.request.headers"),
+		Group("http.response.headers"),
 	))
 	events := fetchFields(t, ps.Proc, ps.FullPayloadPath, notInFields)
 	ps.EventFieldsInTemplateFields(t, events, notInFields)

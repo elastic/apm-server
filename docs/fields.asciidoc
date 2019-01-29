@@ -64,52 +64,13 @@ Timestamp of the event in microseconds since Unix epoch.
 --
 
 [float]
-== context fields
-
-Any arbitrary contextual information regarding the event, captured by the agent, optionally provided by the user.
-
-
-
-*`context.tags`*::
-+
---
-type: object
-
-A flat mapping of user-defined tags with string values.
-
-
---
-
-
-*`context.http.status_code`*::
-+
---
-type: long
-
-The status code of the http response.
-
-
---
-
-
-[float]
 == url fields
 
 A complete Url, with scheme, host and path.
 
 
 
-*`context.request.url.raw`*::
-+
---
-type: keyword
-
-The raw, unparsed URL of the request, e.g https://example.com:443/search?q=elasticsearch#top.
-
-
---
-
-*`context.request.url.protocol`*::
+*`url.scheme`*::
 +
 --
 type: keyword
@@ -119,7 +80,7 @@ The protocol of the request, e.g. "https:".
 
 --
 
-*`context.request.url.full`*::
+*`url.full`*::
 +
 --
 type: keyword
@@ -129,7 +90,7 @@ The full, possibly agent-assembled URL of the request, e.g https://example.com:4
 
 --
 
-*`context.request.url.hostname`*::
+*`url.domain`*::
 +
 --
 type: keyword
@@ -139,17 +100,17 @@ The hostname of the request, e.g. "example.com".
 
 --
 
-*`context.request.url.port`*::
+*`url.port`*::
 +
 --
-type: keyword
+type: long
 
 The port of the request, e.g. 443.
 
 
 --
 
-*`context.request.url.pathname`*::
+*`url.path`*::
 +
 --
 type: keyword
@@ -159,27 +120,28 @@ The path of the request, e.g. "/search".
 
 --
 
-*`context.request.url.search`*::
+*`url.query`*::
 +
 --
 type: keyword
 
-The search describes the query string of the request, e.g. "q=elasticsearch".
+The query string of the request, e.g. "q=elasticsearch".
 
 
 --
 
-*`context.request.url.hash`*::
+*`url.fragment`*::
 +
 --
 type: keyword
 
-The hash of the request URL, e.g. "top".
+A fragment specifying a location in a web page , e.g. "top".
 
 
 --
 
-*`context.request.http_version`*::
+
+*`http.version`*::
 +
 --
 type: keyword
@@ -189,7 +151,8 @@ The http version of the request leading to this event.
 
 --
 
-*`context.request.method`*::
+
+*`http.request.method`*::
 +
 --
 type: keyword
@@ -200,22 +163,32 @@ The http method of the request leading to this event.
 --
 
 
-*`context.response.status_code`*::
+*`http.response.status_code`*::
 +
 --
 type: long
 
-The http status code of the response, eg. '200'.
+The status code of the HTTP response.
 
 
 --
 
-*`context.response.finished`*::
+*`http.response.finished`*::
 +
 --
 type: boolean
 
-A boolean indicating whether the response was finished or not.
+Used by the Node agent to indicate when in the response life cycle an error has occurred.
+
+
+--
+
+*`labels`*::
++
+--
+type: object
+
+A flat mapping of user-defined labels with string, boolean or number values.
 
 
 --

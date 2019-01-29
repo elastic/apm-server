@@ -118,7 +118,7 @@ apm-server:
     #enabled: false
     # Environment in which the APM Server is running on (eg: staging, production, etc.)
     #environment: ""
-    # Remote host to report instrumentation results to.
+    # Remote hosts to report instrumentation results to.
     #hosts:
     #  - http://remote-apm-server:8200
     # Remote apm-servers' secret_token
@@ -265,33 +265,33 @@ output.elasticsearch:
   # e.g. "apm-6.3.0-transaction-2018.03.20"
   #
   # Be aware that you can only specify one Elasticsearch template.
-  # In case you modify the index pattern you must also update those configurations accordingly,
+  # In case you modify the index patterns you must also update those configurations accordingly,
   # as they need to be aligned:
   # * `setup.template.name`
   # * `setup.template.pattern`
   #index: "apm-%{[beat.version]}-%{+yyyy.MM.dd}"
   indices:
-    - index: "apm-%{[beat.version]}-sourcemap"
+    - index: "apm-%{[observer.version]}-sourcemap"
       when.contains:
         processor.event: "sourcemap"
 
-    - index: "apm-%{[beat.version]}-error-%{+yyyy.MM.dd}"
+    - index: "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}"
       when.contains:
         processor.event: "error"
 
-    - index: "apm-%{[beat.version]}-transaction-%{+yyyy.MM.dd}"
+    - index: "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}"
       when.contains:
         processor.event: "transaction"
 
-    - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
+    - index: "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}"
       when.contains:
         processor.event: "span"
 
-    - index: "apm-%{[beat.version]}-metric-%{+yyyy.MM.dd}"
+    - index: "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}"
       when.contains:
         processor.event: "metric"
 
-    - index: "apm-%{[beat.version]}-onboarding-%{+yyyy.MM.dd}"
+    - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
       when.contains:
         processor.event: "onboarding"
 

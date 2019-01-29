@@ -42,11 +42,9 @@ func spanProcSetup() *tests.ProcessorSetup {
 func spanPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("span.stacktrace"),
-		tests.Group("context.db"),
-		"context.http",
-		"context.http.url",
-		"context.http.method",
-		tests.Group("context.user"),
+		tests.Group("context"),
+		tests.Group("span.db"),
+		tests.Group("span.http"),
 	)
 }
 
@@ -65,6 +63,8 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			tests.Group("service"),
 			tests.Group("user"),
 			tests.Group("client"),
+			tests.Group("http"),
+			tests.Group("url"),
 		),
 		// not valid for the span context
 		transactionContext(),
@@ -76,7 +76,7 @@ func spanPayloadAttrsNotInJsonSchema() *tests.Set {
 	return tests.NewSet(
 		"span",
 		"span.stacktrace.vars.key",
-		tests.Group("span.context.tags.tag"),
+		tests.Group("span.context.tags"),
 	)
 }
 
@@ -131,6 +131,8 @@ func spanKeywordExceptionKeys() *tests.Set {
 		tests.Group("process"),
 		tests.Group("service"),
 		tests.Group("user"),
+		tests.Group("url"),
+		tests.Group("http"),
 	),
 		transactionContext(),
 	)
