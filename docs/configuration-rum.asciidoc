@@ -79,5 +79,5 @@ Default value is 5 minutes.
 
 [float]
 ==== `source_mapping.index_pattern`
-Source maps are stored in a separate index `apm-%{[beat.version]}-sourcemap` by default.
+Source maps are stored in a separate index `apm-%{[observer.version]}-sourcemap` by default.
 If changed, a matching index pattern needs to be specified here.

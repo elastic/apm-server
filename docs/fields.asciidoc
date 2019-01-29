@@ -550,6 +550,36 @@ Address the server is listening on.
 
 --
 
+*`observer.hostname`*::
++
+--
+type: keyword
+
+Hostname of the APM Server.
+
+
+--
+
+*`observer.version`*::
++
+--
+type: keyword
+
+APM Server version.
+
+
+--
+
+*`observer.type`*::
++
+--
+type: keyword
+
+The type will be set to `apm-server`.
+
+
+--
+
 
 *`user.name`*::
 +

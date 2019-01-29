@@ -120,8 +120,9 @@ func transactionContext() *tests.Set {
 
 func spanKeywordExceptionKeys() *tests.Set {
 	return tests.Union(tests.NewSet(
-		"processor.event", "processor.name", "observer.listening",
+		"processor.event", "processor.name",
 		"context.tags", "transaction.type",
+		tests.Group("observer"),
 
 		// metadata fields
 		tests.Group("agent"),

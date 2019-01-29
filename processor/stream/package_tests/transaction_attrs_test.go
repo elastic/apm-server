@@ -92,9 +92,10 @@ func transactionRequiredKeys() *tests.Set {
 
 func transactionKeywordExceptionKeys() *tests.Set {
 	return tests.NewSet(
-		"processor.event", "processor.name", "observer.listening",
+		"processor.event", "processor.name",
 		"transaction.marks",
 		"context.tags",
+		tests.Group("observer"),
 
 		// metadata fields
 		tests.Group("agent"),
