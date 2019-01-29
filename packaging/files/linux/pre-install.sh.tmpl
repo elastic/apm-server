@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# create {{.BeatName}} group
+if ! getent group {{.BeatName}} >/dev/null; then
+  groupadd -r {{.BeatName}}
+fi
+
+# create {{.BeatName}} user
+if ! getent passwd {{.BeatName}} >/dev/null; then
+  useradd -r -g {{.BeatName}} -d /var/lib/{{.BeatName}} -c "{{.BeatName}}" {{.BeatName}}
+fi

@@ -19,8 +19,11 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"strings"
+
+	errorw "github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
@@ -81,4 +84,38 @@ func UrlFields(fields common.MapStr) common.MapStr {
 	utility.Add(destination, "query", source("request.url.search"))
 
 	return destination
+}
+
+type Page struct {
+	Url     *string
+	Referer *string
+}
+
+func DecodePage(input interface{}, err error) (*Page, error) {
+	if input == nil || err != nil {
+		return nil, err
+	}
+	raw, ok := input.(common.MapStr)
+	if !ok {
+		return nil, errors.New("Invalid type for fetching Page")
+	}
+	decoder := utility.ManualDecoder{}
+	pageInput := decoder.MapStr(raw, "page")
+	if decoder.Err != nil || pageInput == nil {
+		return nil, errorw.Wrapf(decoder.Err, "fetching Page")
+	}
+	return &Page{
+		Url:     decoder.StringPtr(pageInput, "url"),
+		Referer: decoder.StringPtr(pageInput, "referer"),
+	}, decoder.Err
+}
+
+func (page *Page) Fields() common.MapStr {
+	if page == nil {
+		return nil
+	}
+	var fields = common.MapStr{}
+	utility.Add(fields, "url", page.Url)
+	utility.Add(fields, "referer", page.Referer)
+	return fields
 }

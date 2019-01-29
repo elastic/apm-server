@@ -44,6 +44,7 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("transaction.marks."),
 		"transaction.span_count.started",
 		tests.Group("context"),
+		tests.Group("transaction.page"),
 	)
 }
 

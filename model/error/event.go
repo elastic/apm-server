@@ -72,6 +72,7 @@ type Event struct {
 	Culprit *string
 	User    *metadata.User
 	Labels  common.MapStr
+	Page    *m.Page
 
 	Exception *Exception
 	Log       *Log
@@ -131,8 +132,13 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		e.Labels = labels
 	}
 
+	page, err := m.DecodePage(e.Context, decoder.Err)
+	if err != nil {
+		return nil, err
+	}
+	e.Page = page
+
 	var stacktr *m.Stacktrace
-	err = decoder.Err
 	ex := decoder.MapStr(raw, "exception")
 	exMsg := decoder.StringPtr(ex, "message")
 	exType := decoder.StringPtr(ex, "type")
@@ -146,7 +152,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 			Handled:    decoder.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
-		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], err)
+		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], nil)
 		if stacktr != nil {
 			e.Exception.Stacktrace = *stacktr
 		}
@@ -197,6 +203,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"error":     e.fields(tctx),
 		"processor": processorEntry,
 	}
+	delete(e.Context, "page")
 	delete(e.Context, "user")
 	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
@@ -240,6 +247,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.data = common.MapStr{}
 	e.add("id", e.Id)
+	e.add("page", e.Page.Fields())
 
 	e.addException(tctx)
 	e.addLog(tctx)
