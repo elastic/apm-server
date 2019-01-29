@@ -391,6 +391,11 @@
           description: >
             APM Server version.
 
+        - name: version_major
+          type: byte
+          description: >
+            Major version number of the observer
+
         - name: type
           type: keyword
           overwrite: true
