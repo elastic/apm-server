@@ -35,10 +35,10 @@ apm-server:
 
 ############################# Setup ##########################################
 
-{% if index_name %}
+{% if override_template %}
 
-setup.template.name: {{ index_name }}
-setup.template.pattern: {{ index_name }}*
+setup.template.name: {{ override_template }}
+setup.template.pattern: {{ override_template }}*
 setup.template.settings:
   index.number_of_shards: 1
   index.number_of_replicas: 0
@@ -70,33 +70,8 @@ output.file:
 output.elasticsearch:
   hosts: ["{{ elasticsearch_host }}"]
 
-  index: {{ index_name }}
-  {% if smap_index or index_name_transaction or index_name_span or index_name_error %}
-  indices:
-  {% endif %}
-
-  {% if smap_index %}
-    - index: {{ smap_index }}
-      when.contains:
-        processor.event: "sourcemap"
-  {% endif %}
-
-  {% if index_name_transaction %}
-    - index: {{ index_name_transaction }}
-      when.contains:
-        processor.event: "transaction"
-  {% endif %}
-
-  {% if index_name_span %}
-    - index: {{ index_name_span }}
-      when.contains:
-        processor.event: "span"
-  {% endif %}
-
-  {% if index_name_error %}
-    - index: {{ index_name_error }}
-      when.contains:
-        processor.event: "error"
+  {% if override_index %}
+  index: {{ override_index }}
   {% endif %}
 
 {% endif %}

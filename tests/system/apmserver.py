@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
 from beat.beat import TestCase, TimeoutError
+from time import gmtime, strftime
 
 
 class BaseTest(TestCase):
@@ -18,11 +19,26 @@ class BaseTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.apm_version = "7.0.0"
+        cls.day = strftime("%Y.%m.%d", gmtime())
         cls.beat_name = "apm-server"
         cls.beat_path = os.path.abspath(os.path.join(
             os.path.dirname(__file__), "..", ".."))
         cls.build_path = cls._beat_path_join("build", "system-tests")
-        cls.index_name = "test-apm-12-12-2017"
+
+        cls.index_name = "apm-{}".format(cls.apm_version)
+        cls.index_name_pattern = "apm-*"
+
+        cls.index_onboarding = "apm-{}-onboarding-{}".format(cls.apm_version, cls.day)
+        cls.index_error = "apm-{}-error-2017.05.09".format(cls.apm_version)
+        cls.index_rum_error = "apm-{}-error-2017.12.08".format(cls.apm_version)
+        cls.index_transaction = "apm-{}-transaction-2017.05.30".format(cls.apm_version)
+        cls.index_span = "apm-{}-span-2017.05.30".format(cls.apm_version)
+        cls.index_rum_span = "apm-{}-span-2017.12.08".format(cls.apm_version)
+        cls.index_metric = "apm-{}-metric-2017.05.30".format(cls.apm_version)
+        cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
+        cls.indices = [cls.index_onboarding, cls.index_error,
+                       cls.index_transaction, cls.index_span, cls.index_metric, cls.index_smap]
         super(BaseTest, cls).setUpClass()
 
     @classmethod
@@ -164,7 +180,6 @@ class ElasticTest(ServerBaseTest):
         cfg.update({
             "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
-            "index_name": self.index_name,
         })
         cfg.update(self.config_overrides)
         return cfg
@@ -192,12 +207,12 @@ class ElasticTest(ServerBaseTest):
 
         # Cleanup index and template first
         self.es.indices.delete(index="*", ignore=[400, 404])
-        self.wait_until(lambda: not self.es.indices.exists(self.index_name))
+        for idx in self.indices:
+            self.wait_until(lambda: not self.es.indices.exists(idx))
 
-        self.es.indices.delete_template(
-            name="*", ignore=[400, 404])
-        self.wait_until(
-            lambda: not self.es.indices.exists_template(self.index_name))
+        self.es.indices.delete_template(name="*", ignore=[400, 404])
+        for idx in self.indices:
+            self.wait_until(lambda: not self.es.indices.exists_template(idx))
 
         # Cleanup pipelines
         self.es.ingest.delete_pipeline(id="*")
@@ -222,7 +237,7 @@ class ElasticTest(ServerBaseTest):
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count, query_index=None):
 
         if query_index is None:
-            query_index = self.index_name
+            query_index = self.index_name_pattern
 
         with open(data_path) as f:
             r = requests.post(url,
@@ -232,8 +247,7 @@ class ElasticTest(ServerBaseTest):
 
         # make sure template is loaded
         self.wait_until(
-            lambda: self.log_contains(
-                "Elasticsearch template with name \'{}\' loaded".format(self.index_name)),
+            lambda: self.log_contains("Elasticsearch template"),
             max_timeout=20)
         self.wait_until(lambda: self.es.indices.exists(query_index))
         # Quick wait to give documents some time to be sent to the index
@@ -247,9 +261,8 @@ class ElasticTest(ServerBaseTest):
             )['count'] == expected_events_count)
         )
 
-    def check_backend_error_sourcemap(self, count=1):
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
-            "query": {"term": {"processor.event": "error"}}})
+    def check_backend_error_sourcemap(self, index, count=1):
+        rs = self.es.search(index=index, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -260,8 +273,7 @@ class ElasticTest(ServerBaseTest):
                 self.check_for_no_smap(err["log"])
 
     def check_backend_span_sourcemap(self, count=1):
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
-            "query": {"term": {"processor.event": "span"}}})
+        rs = self.es.search(index=self.index_rum_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -282,12 +294,10 @@ class ClientSideBaseTest(ServerBaseTest):
     @classmethod
     def setUpClass(cls):
         super(ClientSideBaseTest, cls).setUpClass()
-        cls.smap_index_pattern = "test-apm*"
 
     def config(self):
         cfg = super(ClientSideBaseTest, self).config()
         cfg.update({"enable_rum": "true",
-                    "smap_index_pattern": self.smap_index_pattern,
                     "smap_cache_expiration": "200"})
         return cfg
 
@@ -300,7 +310,7 @@ class ClientSideBaseTest(ServerBaseTest):
     def get_error_payload_path(self, name="errors_rum.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
 
-    def get_transaction_payload_path(self, name="transactions_spans_rum.ndjson"):
+    def get_transaction_payload_path(self, name="transactions_spans_rum_2.ndjson"):
         return super(ClientSideBaseTest, self).get_payload_path(name)
 
     def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',
@@ -324,7 +334,7 @@ class ClientSideBaseTest(ServerBaseTest):
 
 class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
     def wait_for_sourcemaps(self, expected_ct=1):
-        idx = self.smap_index_pattern
+        idx = self.index_smap
         self.wait_until(
             lambda: (self.es.count(index=idx, body={
                 "query": {"term": {"processor.name": 'sourcemap'}}}
@@ -332,8 +342,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
         )
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
-            "query": {"term": {"processor.event": "error"}}})
+        rs = self.es.search(index=self.index_rum_error, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -344,8 +353,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
                 self.check_smap(err["log"], updated, expected_err)
 
     def check_rum_transaction_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_name, params={"rest_total_hits_as_int": "true"}, body={
-            "query": {"term": {"processor.event": "span"}}})
+        rs = self.es.search(index=self.index_rum_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -365,21 +373,27 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
             assert smap["updated"] == updated
 
 
-class SplitIndicesTest(ElasticTest):
-
-    @classmethod
-    def setUpClass(cls):
-        super(SplitIndicesTest, cls).setUpClass()
-        cls.index_name_transaction = "test-apm-transaction-12-12-2017"
-        cls.index_name_span = "test-apm-span-12-12-2017"
-        cls.index_name_error = "test-apm-error-12-12-2017"
+class OverrideIndicesTest(ElasticTest):
 
     def config(self):
-        cfg = super(SplitIndicesTest, self).config()
-        cfg.update({"index_name_transaction": self.index_name_transaction,
-                    "index_name_span": self.index_name_span,
-                    "index_name_error": self.index_name_error})
+        cfg = super(OverrideIndicesTest, self).config()
+        cfg.update({"override_index": self.index_name,
+                    "override_template": self.index_name})
         return cfg
+
+
+class OverrideIndicesFailureTest(ElasticTest):
+
+    def config(self):
+        cfg = super(OverrideIndicesFailureTest, self).config()
+        cfg.update({"override_index": self.index_name, })
+        return cfg
+
+    def wait_until(self, cond, max_timeout=10, poll_interval=0.1, name="cond"):
+        return
+
+    def tearDown(self):
+        return
 
 
 class CorsBaseTest(ClientSideBaseTest):
@@ -394,22 +408,6 @@ class SmapCacheBaseTest(ClientSideElasticTest):
     def config(self):
         cfg = super(SmapCacheBaseTest, self).config()
         cfg.update({"smap_cache_expiration": "1"})
-        return cfg
-
-
-class SmapIndexBaseTest(ClientSideElasticTest):
-    @classmethod
-    def setUpClass(cls):
-        super(SmapIndexBaseTest, cls).setUpClass()
-        cls.index_name = "apm-test"
-        cls.smap_index_pattern = "apm-*-sourcemap*"
-        cls.smap_index = "apm-test-sourcemap"
-
-    def config(self):
-        cfg = super(SmapIndexBaseTest, self).config()
-        cfg.update({"index_name": "apm-test",
-                    "smap_index_pattern": "apm-*-sourcemap*",
-                    "smap_index": "apm-test-sourcemap"})
         return cfg
 
 
