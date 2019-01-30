@@ -570,6 +570,16 @@ APM Server version.
 
 --
 
+*`observer.version_major`*::
++
+--
+type: byte
+
+Major version number of the observer
+
+
+--
+
 *`observer.type`*::
 +
 --

@@ -130,9 +130,10 @@ class Test(ElasticTest):
                             #  then remove this exception handling and treat as other keys
                             continue
                         if k == "observer":
-                            expected = Set(["hostname", "version", "id", "ephemeral_id", "type"])
+                            expected = Set(["hostname", "version", "id", "ephemeral_id", "type", "version_major"])
                             rec_keys = Set(v.keys())
                             assert len(expected.symmetric_difference(rec_keys)) == 0
+                            assert v["version"].startswith(str(v["version_major"]) + ".")
                             continue
 
                         self.assert_docs(v, appr[k])
