@@ -14,6 +14,7 @@
 - Update Go version to 1.11.5 {pull}1840[1840].
 - Change ownership to apm-server user/group for deb/rpm installs {pull}1833[1833].
 - Retrieve `span.subtype` and `span.action` from `span.type` if not given {pull}1843[1843].
+- Add observer.version_major {pull}1857[1857].
 
 [float]
 ==== Removed

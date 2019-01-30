@@ -472,8 +472,10 @@ func TestEvents(t *testing.T) {
 		{
 			Transformable: &Event{
 				Timestamp: timestamp,
-				Context:   common.MapStr{"foo": "bar", "user": common.MapStr{"email": "test@m.com"}},
-				Log:       baseLog(),
+				Context: common.MapStr{
+					"custom": common.MapStr{"foo": "bar"},
+					"user":   common.MapStr{"email": "test@m.com"}},
+				Log: baseLog(),
 				Exception: &Exception{
 					Message:    &exMsg,
 					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
@@ -486,9 +488,6 @@ func TestEvents(t *testing.T) {
 			},
 
 			Output: common.MapStr{
-				"context": common.MapStr{
-					"foo": "bar",
-				},
 				"labels":     common.MapStr{"key": true},
 				"service":    common.MapStr{"name": "myservice"},
 				"agent":      common.MapStr{"name": "go", "version": "1.0"},
@@ -496,6 +495,9 @@ func TestEvents(t *testing.T) {
 				"client":     common.MapStr{"ip": userIp},
 				"user_agent": common.MapStr{"original": userAgent},
 				"error": common.MapStr{
+					"custom": common.MapStr{
+						"foo": "bar",
+					},
 					"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
 					"log":          common.MapStr{"message": "error log message"},
 					"exception": []common.MapStr{{
@@ -532,11 +534,6 @@ func TestEvents(t *testing.T) {
 		require.Len(t, outputEvents, 1)
 		outputEvent := outputEvents[0]
 		assert.Equal(t, test.Output, outputEvent.Fields, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-		assert.Equal(t, test.Output["timestamp"], outputEvent.Fields["timestamp"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-		assert.Equal(t, test.Output["transaction"], outputEvent.Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-		assert.Equal(t, test.Output["exception"], outputEvent.Fields["exception"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-		assert.Equal(t, test.Output["log"], outputEvent.Fields["log"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
-		assert.Equal(t, test.Output["grouping_key"], outputEvent.Fields["grouping_key"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 		assert.Equal(t, timestamp, outputEvent.Timestamp, fmt.Sprintf("Bad timestamp at idx %v; %s", idx, test.Msg))
 	}
 }

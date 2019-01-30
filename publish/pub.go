@@ -70,11 +70,12 @@ func NewPublisher(info beat.Info, pipeline beat.Pipeline, shutdownTimeout time.D
 		WaitClose: shutdownTimeout,
 		Fields: common.MapStr{
 			"observer": common.MapStr{
-				"type":         info.Beat,
-				"hostname":     info.Hostname,
-				"version":      info.Version,
-				"id":           info.ID.String(),
-				"ephemeral_id": info.EphemeralID.String(),
+				"type":          info.Beat,
+				"hostname":      info.Hostname,
+				"version":       info.Version,
+				"version_major": 7,
+				"id":            info.ID.String(),
+				"ephemeral_id":  info.EphemeralID.String(),
 			},
 		},
 		SkipAgentMetadata: true,

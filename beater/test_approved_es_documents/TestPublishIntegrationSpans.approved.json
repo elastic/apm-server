@@ -16,7 +16,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -64,7 +65,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "parent": {
                 "id": "0000000011111111"
@@ -119,7 +121,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "parent": {
                 "id": "abcdefabcdef7890"
@@ -169,7 +172,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "parent": {
                 "id": "ababcdcdefefabde"
@@ -221,7 +225,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "parent": {
                 "id": "abcdef0123456789"
