@@ -9,13 +9,15 @@ endif::[]
 [[gettting-started]]
 = APM Overview
 
+include::./apm-doc-directory.asciidoc[]
+
 include::./overview.asciidoc[]
+
+include::./install-and-run.asciidoc[]
 
 include::./apm-data-model.asciidoc[]
 
 include::./distributed-tracing.asciidoc[]
-
-include::./install-and-run.asciidoc[]
 
 include::./agent-server-compatibility.asciidoc[]
 
