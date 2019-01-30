@@ -17,6 +17,7 @@
 - Add observer.version_major {pull}1857[1857].
 - Change transaction.name to keyword, add transaction.name.text {pull}1859[1859].
 - Change error.culprit to keyword, limit length on intake {pull}1859[1859].
+- Move default index configuration to code {pull}1865[1865].
 
 [float]
 ==== Removed

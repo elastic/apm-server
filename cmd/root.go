@@ -20,6 +20,9 @@ package cmd
 import (
 	"github.com/spf13/pflag"
 
+	"github.com/elastic/apm-server/idxmgmt"
+	"github.com/elastic/apm-server/idxmgmt/ilm"
+
 	"github.com/elastic/apm-server/beater"
 	_ "github.com/elastic/apm-server/include"
 	"github.com/elastic/beats/libbeat/cmd"
@@ -71,6 +74,8 @@ func init() {
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",
 		},
+		ILM:             ilm.MakeDefaultSupporter,
+		IndexManagement: idxmgmt.MakeDefaultSupporter,
 	})
 	// remove dashboard from export commands
 	for _, cmd := range RootCmd.ExportCmd.Commands() {
