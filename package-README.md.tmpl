@@ -10,7 +10,7 @@ localhost first. After that, start APM Server with:
      ./{{.BeatName}} -c {{.BeatName}}.yml -e
 
 This will start APM Server and send the data to your Elasticsearch instance. To
-load the dashboards for APM Server into Kibana, run:
+load the Elasticsearch template and pipelines for APM Server into Kibana, run:
 
     ./{{.BeatName}} setup -e
 

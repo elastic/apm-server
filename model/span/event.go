@@ -179,7 +179,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	decoder := utility.ManualDecoder{}
 	event := Event{
 		Name:          decoder.String(raw, "name"),
-		Type:          decoder.String(raw, "type"),
 		Start:         decoder.Float64Ptr(raw, "start"),
 		Duration:      decoder.Float64(raw, "duration"),
 		Context:       decoder.MapStr(raw, "context"),
@@ -189,6 +188,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		ParentId:      decoder.String(raw, "parent_id"),
 		TraceId:       decoder.String(raw, "trace_id"),
 		TransactionId: decoder.String(raw, "transaction_id"),
+		Type:          decoder.String(raw, "type"),
 		Subtype:       decoder.StringPtr(raw, "subtype"),
 		Action:        decoder.StringPtr(raw, "action"),
 	}
@@ -218,6 +218,19 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+
+	if event.Subtype == nil && event.Action == nil {
+		sep := "."
+		t := strings.Split(event.Type, sep)
+		event.Type = t[0]
+		if len(t) > 1 {
+			event.Subtype = &t[1]
+		}
+		if len(t) > 2 {
+			action := strings.Join(t[2:], sep)
+			event.Action = &action
+		}
 	}
 
 	return &event, nil

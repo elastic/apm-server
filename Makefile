@@ -139,3 +139,7 @@ are-kibana-objects-updated: python-env
 .PHONY: register-pipelines
 register-pipelines: update ${BEAT_NAME}
 	${BEAT_GOPATH}/src/${BEAT_PATH}/${BEAT_NAME} setup --pipelines
+
+.PHONY: import-dashboards
+import-dashboards:
+	echo "APM loads dashboards via Kibana, not the APM Server"

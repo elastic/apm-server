@@ -56,7 +56,9 @@
                 "duration": {
                     "us": 3564
                 },
-                "type": "request"
+                "type": "request",
+                "subtype": "http",
+                "action": "post"
             },
             "transaction": {
                 "id": "945254c567a5417e"
@@ -120,6 +122,8 @@
                     "us": 2830
                 },
                 "type": "db.postgresql.query",
+                "subtype": "postgresql",
+                "action": "query.custom",
                 "name": "SELECT FROM product_types",
                 "db": {
                     "instance": "customers",
@@ -314,7 +318,9 @@
                 "duration": {
                     "us": 3781
                 },
-                "type": "db.postgresql.query",
+                "type": "db",
+                "subtype": "postgresql",
+                "action": "query",
                 "db": {
                     "instance": "customers",
                     "type": "sql",
@@ -405,7 +411,8 @@
                 "duration": {
                     "us": 32592
                 },
-                "type": "request"
+                "type": "request",
+                "subtype": "external"
             },
             "transaction": {
                 "id": "945254c567a5417e"
