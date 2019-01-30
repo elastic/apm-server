@@ -11,8 +11,9 @@ import jsondiff
 import sys
 
 
-def fetch_kibana_file(repo_path, branch, file_name):
-    path = "{}/{}/{}".format(repo_path, branch, file_name)
+def fetch_kibana_file(repo_path, ref, file_name):
+    path = "{}/{}/{}".format(repo_path, ref, file_name)
+    print("---- Comparing Index Pattern with " + path)
     rsp = requests.get(path)
     if rsp.status_code != 200:
         print("failed to query '{}'".format(path))
@@ -97,6 +98,26 @@ def iterate(val_id, key, v1, v2):
     return ret_val
 
 
+def get_kibana_commit(branch):
+    """
+    Looks up an open PR in Kibana against `branch`, and with 'apm', 'update', and 'index pattern' in the title (case insensitive).
+    If found, it is assumed to be a PR updating the Kibana index pattern - so this tests compares the content against
+    the one in that PR
+    Limitations:
+        - `index_pattern.json` must be found in HEAD (so in case of being amended, it needs to be force-pushed)
+        - returns the last PR open against a given branch, which might be wrong if there are several updated at a time.
+    """
+    rsp = requests.get("https://api.github.com/repos/elastic/kibana/pulls")
+    if rsp.status_code == 200:
+        for pr in rsp.json():
+            matches_branch = pr['base']['ref'] == branch
+            matches_index_pattern_update = all(
+                token in pr['title'].lower() for token in ['apm', 'update', 'index pattern'])
+            if matches_branch and matches_index_pattern_update:
+                return pr['head']['sha']
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('branch')
@@ -106,11 +127,21 @@ def main():
     parser.add_argument('-P', '--repo-path', type=str,
                         default='https://raw.githubusercontent.com/elastic/kibana',
                         help='base repository path')
+    parser.add_argument('-C', '--commit', type=str, help='Commit sha to get the index-pattern from')
     args = parser.parse_args()
     exit_val = 0
 
-    print("---- Comparing Index Pattern:")
-    k = fetch_kibana_file(args.repo_path, args.branch, args.index_pattern)
+    ref = args.commit
+    if ref is None:
+        ref = get_kibana_commit(args.branch)
+    if ref is None:
+        ref = args.branch
+
+    k = fetch_kibana_file(args.repo_path, ref, args.index_pattern)
+    if k == 1:
+        print("Kibana file containing index pattern not found")
+        return 1
+
     with open(os.path.abspath(os.path.join('_meta', 'kibana.generated', '7', 'index-pattern', 'apmserver.json'))) as f:
         s = json.load(f)["objects"][0]
     exit_val = max(exit_val, iterate(k["id"], "", s, k))
