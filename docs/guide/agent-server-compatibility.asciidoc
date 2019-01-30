@@ -1,7 +1,27 @@
 [[agent-server-compatibility]]
 == Agent/Server Compatibility
 
-Below is a chart that outlines the compatibility between different versions of the APM agents and the APM Server. 
+Below is a chart that outlines the compatibility between different versions of the APM agents and the APM Server.
+
+[float]
+[[go-compatibility]]
+==== Go Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |>= 6.5
+|=======================================================================
+
+[float]
+[[java-compatibility]]
+==== Java Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.x |>= 6.5
+|=======================================================================
 
 [float]
 [[nodejs-compatibility]]
@@ -21,7 +41,7 @@ Below is a chart that outlines the compatibility between different versions of t
 [options="header"]
 |=======================================================================
 |Agent Version |APM Server Version
-|2.x/3.x |6.2-6.x
+|2.x, 3.x |6.2-6.x
 |4.x |>= 6.5
 |=======================================================================
 
@@ -37,26 +57,6 @@ Below is a chart that outlines the compatibility between different versions of t
 |=======================================================================
 
 [float]
-[[java-compatibility]]
-==== Java Agent Compatibility
-
-[options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|1.x |>= 6.5
-|=======================================================================
-
-[float]
-[[go-compatibility]]
-==== Go Agent Compatibility
-
-[options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|1.x |>= 6.5
-|=======================================================================
-
-[float]
 [[rum-compatibility]]
 ==== RUM Agent Compatibility
 
@@ -65,5 +65,5 @@ Below is a chart that outlines the compatibility between different versions of t
 |Agent Version |APM Server Version
 |0.x |6.3-6.4
 |1.x |6.4
-|2.x |>= 6.5
+|2.x, 3.x |>= 6.5
 |=======================================================================
