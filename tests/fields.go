@@ -46,7 +46,8 @@ func (ps *ProcessorSetup) PayloadAttrsMatchFields(t *testing.T, payloadAttrsNotI
 		//dynamically indexed:
 		Group("labels"),
 		//known not-indexed fields:
-		Group("context.custom"),
+		Group("transaction.custom"),
+		Group("error.custom"),
 		"url.original",
 		Group("http.request.socket"),
 		Group("http.request.env"),

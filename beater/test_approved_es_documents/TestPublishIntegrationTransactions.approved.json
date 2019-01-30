@@ -37,7 +37,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "parent": {
                 "id": "abcdefabcdef01234567"
@@ -108,19 +109,6 @@
             },
             "container": {
                 "id": "container-id"
-            },
-            "context": {
-                "custom": {
-                    "(": "not a valid regex and that is fine",
-                    "and_objects": {
-                        "foo": [
-                            "bar",
-                            "baz"
-                        ]
-                    },
-                    "my_key": 1,
-                    "some_other_value": "foo bar"
-                }
             },
             "host": {
                 "architecture": "x64",
@@ -195,7 +183,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "process": {
                 "args": [
@@ -234,6 +223,17 @@
                 "id": "0acd456789abcdef0123456789abcdef"
             },
             "transaction": {
+                "custom": {
+                    "(": "not a valid regex and that is fine",
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "some_other_value": "foo bar"
+                },
                 "duration": {
                     "us": 32592
                 },
@@ -307,7 +307,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "process": {
                 "args": [

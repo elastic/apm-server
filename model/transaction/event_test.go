@@ -326,16 +326,14 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}
 	txWithContext := Event{
 		Timestamp: timestamp,
-		Context:   common.MapStr{"foo": "bar"},
+		Context:   common.MapStr{"custom": common.MapStr{"foo": "bar"}},
 		User:      &user,
 		Labels:    common.MapStr{"a": "b"},
 		Page:      &model.Page{Url: &url, Referer: &referer},
 	}
 	txWithContextEs := common.MapStr{
 		"agent": common.MapStr{"name": "", "version": ""},
-		"context": common.MapStr{
-			"foo": "bar",
-		},
+
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": "63.23.123.4"},
 		"user_agent": common.MapStr{"original": userAgent},
@@ -360,6 +358,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"type":     "",
 			"sampled":  true,
 			"page":     common.MapStr{"url": url, "referer": referer},
+			"custom": common.MapStr{
+				"foo": "bar",
+			},
 		},
 		"labels": common.MapStr{"a": "b"},
 	}

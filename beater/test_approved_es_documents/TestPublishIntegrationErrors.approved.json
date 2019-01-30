@@ -14,7 +14,8 @@
             "container": {
                 "id": "container-id"
             },
-            "context": {
+            "error": {
+                "culprit": "my.module.function_name",
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -24,10 +25,7 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                }
-            },
-            "error": {
-                "culprit": "my.module.function_name",
+                },
                 "exception": [
                     {
                         "attributes": {
@@ -239,7 +237,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "process": {
                 "args": [
@@ -335,7 +334,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "process": {
                 "args": [
@@ -422,7 +422,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "process": {
                 "args": [
@@ -508,7 +509,8 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0"
+                "version": "7.0.0",
+                "version_major": 7
             },
             "parent": {
                 "id": "9632587410abcdef"

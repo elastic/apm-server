@@ -211,7 +211,11 @@
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
-            "context": {
+            "error": {
+                "page": {
+                    "referer": "http://localhost:8000/test/e2e/",
+                    "url": "http://localhost:8000/test/e2e/general-usecase/"
+                },
                 "custom": {
                     "and_objects": {
                         "foo": [
@@ -221,12 +225,6 @@
                     },
                     "my_key": 1,
                     "some_other_value": "foo bar"
-                }
-            },
-            "error": {
-                "page": {
-                    "referer": "http://localhost:8000/test/e2e/",
-                    "url": "http://localhost:8000/test/e2e/general-usecase/"
                 },
                 "exception": [{
                     "stacktrace": [
