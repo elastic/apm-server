@@ -30,12 +30,14 @@
                 "name": "backendspans"
             },
             "span": {
+                "action": "query.custom",
                 "duration": {
                     "us": 141581
                 },
                 "id": "abcdef01234567",
                 "name": "GET /api/types",
-                "type": "request"
+                "subtype": "postgresql",
+                "type": "db"
             },
             "timestamp": {
                 "us": 1532976822281000
@@ -141,6 +143,7 @@
                 "start": {
                     "us": 1845
                 },
+                "subtype": "http",
                 "type": "request"
             },
             "timestamp": {
