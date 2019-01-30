@@ -115,7 +115,7 @@ NOTE: Be sure to check the <<agent-server-compatibility,Agent/Server compatibili
 3+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
 |{apm-node-ref}/intro.html[Introduction]
 |{apm-node-ref}/supported-technologies.html[Supported technologies]
-|{apm-node-ref}advanced-setup.html#configuring-the-agent[Config]
+|{apm-node-ref}/advanced-setup.html#configuring-the-agent[Config]
 
 .2+|Python
 3+|The Python agent automatically instruments Django and Flask out of the box.
