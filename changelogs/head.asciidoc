@@ -15,6 +15,8 @@
 - Change ownership to apm-server user/group for deb/rpm installs {pull}1833[1833].
 - Retrieve `span.subtype` and `span.action` from `span.type` if not given {pull}1843[1843].
 - Add observer.version_major {pull}1857[1857].
+- Change transaction.name to keyword, add transaction.name.text {pull}1859[1859].
+- Change error.culprit to keyword, limit length on intake {pull}1859[1859].
 
 [float]
 ==== Removed

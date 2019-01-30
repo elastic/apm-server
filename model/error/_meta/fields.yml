@@ -17,7 +17,7 @@
           overwrite: true
 
         - name: culprit
-          type: text
+          type: keyword
           count: 2
           description: Function call which was the primary perpetrator of this event.
 
