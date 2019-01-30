@@ -72,4 +72,21 @@ func init() {
 			DefaultUsername: "apm_system",
 		},
 	})
+	// remove dashboard from export commands
+	for _, cmd := range RootCmd.ExportCmd.Commands() {
+		if cmd.Name() == "dashboard" {
+			RootCmd.ExportCmd.RemoveCommand(cmd)
+		}
+	}
+	// only add defined flags to setup command
+	setup := RootCmd.SetupCmd
+	setup.Short = "Setup Elasticsearch index template and pipelines"
+	setup.Long = `This command does initial setup of the environment:
+
+ * Index mapping template in Elasticsearch to ensure fields are mapped.
+ * Ingest pipelines
+`
+	setup.ResetFlags()
+	setup.Flags().Bool(cmd.TemplateKey, false, "Setup index template")
+	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
 }

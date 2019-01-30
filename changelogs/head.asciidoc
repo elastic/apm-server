@@ -24,5 +24,6 @@
 - Remove `concurrent_requests` setting and use number of CPUs instead {pull}1749[1749].
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
+- Remove dashboards from being shipped with APM Server and all logic around them {pull}[1815].
 
 https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...master[View commits]

@@ -125,14 +125,6 @@
           type: keyword
           description: >
             Immutable unique name of the service emitting this event.
-          format: url
-          label_template: "{{value}}"
-          open_link_in_current_tab: true
-          url_template:
-            - min_version: "5.0.0"
-              value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(query_string:(analyze_wildcard:!t,query:'context.service.name:%22{{value}}%22')))"
-            - min_version: "6.0.0-alpha1"
-              value: "../app/kibana#/dashboard/41b5d920-7821-11e7-8c47-65b845b5cfb3?_a=(query:(language:lucene,query:'context.service.name:\"{{value}}\"'))"
           overwrite: true
 
         - name: version
@@ -196,14 +188,6 @@
           type: keyword
           description: >
             The transaction ID.
-          format: url
-          label_template: "View Spans"
-          open_link_in_current_tab: true
-          url_template:
-            - min_version: 5.0.0
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(query_string:(analyze_wildcard:!t,query:'transaction.id:%22{{value}}%22')))"
-            - min_version: 6.0.0-alpha1
-              value: "../app/kibana#/dashboard/3e3de700-7de0-11e7-b115-df9c90da2df1?_a=(query:(language:lucene,query:'transaction.id:{{value}}'))"
         - name: sampled
           type: boolean
           description: >
