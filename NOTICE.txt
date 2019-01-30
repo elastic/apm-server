@@ -245,7 +245,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 5e5482e32f97213b54bfb21f818d23defac2eb24
+Revision: d5fb4fa35bd967cfd1a94f5ee5e91f97b45952a6
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -1523,7 +1523,7 @@ SoundCloud Ltd. (http://soundcloud.com/).
 
 --------------------------------------------------------------------
 Dependency: github.com/rcrowley/go-metrics
-Revision: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
+Revision: 3113b8401b8a98917cde58f8bbd42a1b1c03b1fd
 License type (autodetected): BSD-2-Clause
 ./vendor/github.com/rcrowley/go-metrics/LICENSE:
 --------------------------------------------------------------------
