@@ -61,7 +61,7 @@ the number of missing spans is able to be calculated and shown in the UI.
 [[transactions]]
 === Transactions
 
-*Transactions* are a special kind of <<transaction-spans,span>> that have extra metadata associated with them.
+*Transactions* are a special kind of <<transaction-spans,span>> that have additional attributes associated with them.
 They describe an event captured by an Elastic APM agent instrumenting a service.
 You can think of transactions as the highest level of work you’re measuring within a service.
 As an example, a transaction might be a:
