@@ -219,7 +219,7 @@ for more information about the environment variables.
 
 ifndef::apm-server[]
 The index name to write events to. The default is
-+"{beatname_lc}-%\{[beat.version]\}-%\{+yyyy.MM.dd\}"+ (for example,
++"{beatname_lc}-%\{[{beat_version_key}]\}-%\{+yyyy.MM.dd\}"+ (for example,
 +"{beatname_lc}-{version}-{localdate}"+). If you change this setting, you also
 need to configure the `setup.template.name` and `setup.template.pattern` options
 (see <<configuration-template>>).
@@ -227,7 +227,7 @@ endif::apm-server[]
 
 ifdef::apm-server[]
 The index name to write events to. The default is
-+"apm-%{[{beat_version_key}]}-{type\}-%\{+yyyy.MM.dd\}"+ (for example,
++"apm-%\{[{beat_version_key}]\}-{type\}-%\{+yyyy.MM.dd\}"+ (for example,
 +"apm-{version}-transaction-{localdate}"+). See
 <<exploring-es-data,Exploring data in Elasticsearch>> for more information on
 default index configuration.
@@ -255,7 +255,7 @@ to set the index:
 ------------------------------------------------------------------------------
 output.elasticsearch:
   hosts: ["http://localhost:9200"]
-  index: "%\{[fields.log_type]\}-%{[{beat_version_key}]}-%\{+yyyy.MM.dd}\" <1>
+  index: "%\{[fields.log_type]\}-%\{[{beat_version_key}]\}-%\{+yyyy.MM.dd}\" <1>
 ------------------------------------------------------------------------------
 
 <1> We recommend including +{beat_version_key}+ in the name to avoid mapping issues
