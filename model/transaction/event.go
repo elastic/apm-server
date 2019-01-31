@@ -114,7 +114,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	}
 
 	if labels, ok := e.Context["tags"].(map[string]interface{}); ok {
-		delete(e.Context, "tags")
 		e.Labels = labels
 	}
 
@@ -182,24 +181,17 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor":        processorEntry,
 		transactionDocType: e.fields(tctx),
 	}
-	delete(e.Context, "custom")
-	delete(e.Context, "user")
 	utility.Add(fields, "user", e.User.Fields())
-	delete(e.Context, "page")
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
 	utility.Add(fields, "labels", e.Labels)
-	tctx.Metadata.Merge(fields)
-
 	utility.Add(fields, "http", m.HttpFields(e.Context))
 	utility.Add(fields, "url", m.UrlFields(e.Context))
-	delete(e.Context, "request")
-	delete(e.Context, "response")
 
-	utility.Add(fields, "context", e.Context)
+	tctx.Metadata.Merge(fields)
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

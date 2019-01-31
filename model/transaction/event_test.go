@@ -80,7 +80,8 @@ func TestTransactionEventDecode(t *testing.T) {
 				"id": id, "type": trType, "name": name, "result": result,
 				"duration": duration, "timestamp": timestampEpoch,
 				"context": map[string]interface{}{"a": "b", "user": map[string]interface{}{
-					"username": name, "email": email, "ip": userIp, "id": userId}, "tags": map[string]interface{}{"foo": "bar"},
+					"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags": map[string]interface{}{"foo": "bar"},
 					"page": map[string]interface{}{"url": url, "referer": referer}},
 				"marks": marks, "sampled": sampled,
 				"parent_id": parentId, "trace_id": traceId,
@@ -106,6 +107,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Page:      &model.Page{Url: &url, Referer: &referer},
 				Context: map[string]interface{}{"a": "b", "user": map[string]interface{}{
 					"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags": map[string]interface{}{"foo": "bar"},
 					"page": map[string]interface{}{"url": url, "referer": referer}},
 			},
 		},
@@ -241,8 +243,6 @@ func TestEventMoveContext(t *testing.T) {
 		"response": common.MapStr{"status_code": 200},
 	}, result[0].Fields["http"])
 	assert.Equal(t, common.MapStr{"original": "http://www.elastic.co"}, result[0].Fields["url"])
-	assert.Nil(t, event.Context["request"])
-	assert.Nil(t, event.Context["response"])
 	assert.NotNil(t, event.Context["db"])
 
 	portMapping := []struct {
@@ -326,7 +326,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}
 	txWithContext := Event{
 		Timestamp: timestamp,
-		Context:   common.MapStr{"custom": common.MapStr{"foo": "bar"}},
+		Context:   common.MapStr{"foo": "bar", "custom": common.MapStr{"foo": "bar"}},
 		User:      &user,
 		Labels:    common.MapStr{"a": "b"},
 		Page:      &model.Page{Url: &url, Referer: &referer},

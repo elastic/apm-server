@@ -9,17 +9,6 @@
             "client": {
                 "ip": "192.0.0.1"
             },
-            "context": {
-                "environment": {
-                    "browserHeight": 726,
-                    "browserWidth": 150,
-                    "language": "en-US",
-                    "platform": "MacIntel",
-                    "screenHeight": 800,
-                    "screenWidth": 1280,
-                    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
-                }
-            },
             "error": {
                 "culprit": "test/e2e/general-usecase/bundle.js.map",
                 "exception": [

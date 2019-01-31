@@ -204,6 +204,7 @@ func TestErrorEventDecode(t *testing.T) {
 				Page:      &m.Page{Url: &url, Referer: &referer},
 				Context: map[string]interface{}{"a": "b", "user": map[string]interface{}{
 					"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags": map[string]interface{}{"ab": "c"},
 					"page": map[string]interface{}{"url": url, "referer": referer}},
 				Exception: &Exception{
 					Message:    &exMsg,
@@ -274,7 +275,7 @@ func TestEventFields(t *testing.T) {
 		LoggerName:   &loggerName,
 	}
 
-	context := common.MapStr{"user": common.MapStr{"id": "888"}, "c1": "val"}
+	context := common.MapStr{"a": "b", "user": common.MapStr{"id": "888"}, "c1": "val"}
 
 	baseExceptionHash := md5.New()
 	io.WriteString(baseExceptionHash, *baseException().Message)

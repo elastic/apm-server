@@ -194,7 +194,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	}
 
 	if labels, ok := event.Context["tags"].(map[string]interface{}); ok {
-		delete(event.Context, "tags")
 		event.Labels = labels
 	}
 
@@ -247,10 +246,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor": processorEntry,
 		spanDocType: e.fields(tctx),
 	}
-	delete(e.Context, "http")
-	delete(e.Context, "db")
 	utility.Add(fields, "labels", e.Labels)
-	utility.Add(fields, "context", e.Context)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.AddId(fields, "transaction", &e.TransactionId)
