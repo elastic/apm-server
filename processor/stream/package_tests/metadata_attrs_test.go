@@ -138,7 +138,7 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			tests.Group("transaction"),
 			tests.Group("parent"),
 			tests.Group("trace"),
-			"user_agent.original",
+			tests.Group("user_agent"),
 		),
 		[]tests.FieldTemplateMapping{
 			{Template: "agent.", Mapping: "service.agent."},

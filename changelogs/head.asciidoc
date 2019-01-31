@@ -17,6 +17,7 @@
 - Add observer.version_major {pull}1857[1857].
 - Change transaction.name to keyword, add transaction.name.text {pull}1859[1859].
 - Change error.culprit to keyword, limit length on intake {pull}1859[1859].
+- Change default user-agent pipeline to index information under root key `user_agent` {pull}[].
 
 [float]
 ==== Removed
