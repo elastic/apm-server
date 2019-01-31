@@ -1,13 +1,13 @@
 [[metricset-api]]
-=== Metricsets
+=== Metrics
 
-Metricsets contain application metric data captured by an APM agent. 
+Metrics contain application metric data captured by an APM agent. 
 
 [[metricset-schema]]
 [float]
-==== Metricset Schema
+==== Metric Schema
 
-The APM Server uses JSON Schema for validating requests. The specification for metricsets is defined below:
+The APM Server uses JSON Schema for validating requests. The specification for metrics is defined below:
 
 [source,json]
 ----
