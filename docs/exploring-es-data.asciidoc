@@ -9,11 +9,11 @@ Read the <<upgrading-to-65,upgrading to 6.5 guide>> for more information.
 
 By default, Elastic APM data is stored in separated indices in the following formats:
 ------------------------------------------------------------
-apm-%{[version]}-sourcemap
-apm-%{[version]}-error-%{+yyyy.MM.dd}
 apm-%{[version]}-transaction-%{+yyyy.MM.dd}
 apm-%{[version]}-span-%{+yyyy.MM.dd}
+apm-%{[version]}-error-%{+yyyy.MM.dd}
 apm-%{[version]}-metric-%{+yyyy.MM.dd}
+apm-%{[version]}-sourcemap
 ------------------------------------------------------------
 
 If you're unfamiliar with the data types shown above, they are described in the {apm-get-started-ref}/apm-data-model.html[APM data model].
@@ -29,10 +29,10 @@ GET _cat/indices/apm*
 
 Default APM `template` and `indices`:
 
-//* <<fields>>
 * <<transaction-indices>>
 * <<span-indices>>
 * <<error-indices>>
+* <<metricset-indices>>
 * <<sourcemap-indices>>
 
 
