@@ -34,21 +34,30 @@ func HttpFields(fields common.MapStr) common.MapStr {
 		return utility.Get(fields, dottedKeys)
 	}
 
+	var caseInsensitive = func(prfx, key string) interface{} {
+		val := source(prfx + key)
+		if val != nil {
+			return val
+		}
+		return source(prfx + strings.Title(key))
+	}
+
 	destination := common.MapStr{}
 	utility.Add(destination, "version", source("request.http_version"))
 	if method, ok := source("request.method").(string); ok {
 		utility.DeepAdd(destination, "request.method", strings.ToLower(method))
 	}
 	utility.DeepAdd(destination, "request.body.original", source("request.body"))
-	utility.DeepAdd(destination, "request.headers.cookies.parsed", source("request.cookies"))
-	utility.DeepAdd(destination, "request.headers.cookies.original", source("request.headers.cookie"))
-	utility.DeepAdd(destination, "request.headers.user-agent.original", source("request.headers.user-agent"))
-	utility.DeepAdd(destination, "request.headers.content-type", source("request.headers.content-type"))
 	utility.DeepAdd(destination, "request.env", source("request.env"))
 	utility.DeepAdd(destination, "request.socket", source("request.socket"))
+	utility.DeepAdd(destination, "request.headers.cookies.parsed", caseInsensitive("request.", "cookies"))
+	utility.DeepAdd(destination, "request.headers.cookies.original", caseInsensitive("request.headers.", "cookie"))
+	utility.DeepAdd(destination, "request.headers.user-agent.original", caseInsensitive("request.headers.", "user-agent"))
+	utility.DeepAdd(destination, "request.headers.content-type", caseInsensitive("request.headers.", "content-type"))
+
 	utility.DeepAdd(destination, "response.finished", source("response.finished"))
 	utility.DeepAdd(destination, "response.status_code", source("response.status_code"))
-	utility.DeepAdd(destination, "response.headers.content-type", source("response.headers.content-type"))
+	utility.DeepAdd(destination, "response.headers.content-type", caseInsensitive("response.headers.", "content-type"))
 	utility.DeepAdd(destination, "response.headers_sent", source("response.headers_sent"))
 
 	return destination
