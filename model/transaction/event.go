@@ -60,8 +60,6 @@ type Event struct {
 
 	Timestamp time.Time
 
-	Context common.MapStr
-
 	Type      string
 	Name      *string
 	Result    *string
@@ -69,9 +67,13 @@ type Event struct {
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
+	Context   *m.Context
 	User      *metadata.User
-	Labels    common.MapStr
 	Page      *m.Page
+	Http      *m.Http
+	Url       *m.Url
+	Label     *m.Label
+	Custom    *m.Custom
 }
 
 type SpanCount struct {
@@ -91,6 +93,10 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, errors.New("Invalid type for transaction event")
 	}
 
+	ctx, err := m.DecodeContext(raw, nil)
+	if err != nil {
+		return nil, err
+	}
 	decoder := utility.ManualDecoder{}
 	e := Event{
 		Id:        decoder.String(raw, "id"),
@@ -98,7 +104,13 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Name:      decoder.StringPtr(raw, "name"),
 		Result:    decoder.StringPtr(raw, "result"),
 		Duration:  decoder.Float64(raw, "duration"),
-		Context:   decoder.MapStr(raw, "context"),
+		Context:   ctx,
+		Label:     ctx.Label,
+		Page:      ctx.Page,
+		Http:      ctx.Http,
+		Url:       ctx.Url,
+		Custom:    ctx.Custom,
+		User:      ctx.User,
 		Marks:     decoder.MapStr(raw, "marks"),
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
 		Timestamp: decoder.TimeEpochMicro(raw, "timestamp"),
@@ -113,24 +125,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, decoder.Err
 	}
 
-	if labels, ok := e.Context["tags"].(map[string]interface{}); ok {
-		e.Labels = labels
-	}
-
-	page, err := m.DecodePage(e.Context, decoder.Err)
-	if err != nil {
-		return nil, err
-	}
-	e.Page = page
-
-	if ok, _ := e.Context.HasKey("user"); ok {
-		user, err := e.Context.GetValue("user")
-		e.User, err = metadata.DecodeUser(user, err)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return &e, nil
 }
 
@@ -142,11 +136,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	utility.Add(tx, "result", e.Result)
 	utility.Add(tx, "marks", e.Marks)
 	utility.Add(tx, "page", e.Page.Fields())
-
-	custom, err := e.Context.GetValue("custom")
-	if err == nil && custom != nil {
-		utility.Add(tx, "custom", custom)
-	}
+	utility.Add(tx, "custom", e.Custom.Fields())
 
 	if e.Sampled == nil {
 		utility.Add(tx, "sampled", true)
@@ -187,9 +177,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
-	utility.Add(fields, "labels", e.Labels)
-	utility.Add(fields, "http", m.HttpFields(e.Context))
-	utility.Add(fields, "url", m.UrlFields(e.Context))
+	utility.Add(fields, "labels", e.Label.Fields())
+	utility.Add(fields, "http", e.Http.Fields())
+	utility.Add(fields, "url", e.Url.Fields())
 
 	tctx.Metadata.Merge(fields)
 

@@ -82,11 +82,21 @@ func TestErrorEventDecode(t *testing.T) {
 	id, culprit := "123", "foo()"
 	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
-	url, referer := "https://mypage.com", "http:mypage.com"
+	pUrl, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
 	code, module, attrs, exType, handled := "200", "a", "attr", "errorEx", false
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
 	transactionSampled := true
 	transactionType := "request"
+	contentType := "text/html"
+	label := m.Label{"ab": "c"}
+	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
+	page := m.Page{Url: &pUrl, Referer: &referer}
+	custom := m.Custom{"a": "b"}
+	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: &m.Headers{}}
+	response := m.Resp{Finished: new(bool), Headers: &m.Headers{ContentType: &contentType}}
+	http := m.Http{Request: &request, Response: &response}
+	ctxUrl := m.Url{Original: &origUrl}
+	context := m.Context{User: &user, Label: &label, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
 
 	for idx, test := range []struct {
 		input       interface{}
@@ -113,7 +123,7 @@ func TestErrorEventDecode(t *testing.T) {
 			e: &Event{
 				Id:        &id,
 				Culprit:   &culprit,
-				Context:   common.MapStr{},
+				Context:   &m.Context{},
 				Timestamp: timestampParsed,
 			},
 		},
@@ -140,6 +150,7 @@ func TestErrorEventDecode(t *testing.T) {
 			err: nil,
 			e: &Event{
 				Timestamp: timestampParsed,
+				Context:   &m.Context{},
 			},
 		},
 		{
@@ -167,10 +178,15 @@ func TestErrorEventDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{
 				"timestamp": timestamp,
-				"context": map[string]interface{}{"a": "b", "user": map[string]interface{}{
-					"username": name, "email": email, "ip": userIp, "id": userId},
-					"tags": map[string]interface{}{"ab": "c"},
-					"page": map[string]interface{}{"url": url, "referer": referer}},
+				"context": map[string]interface{}{
+					"a":        "b",
+					"user":     map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags":     map[string]interface{}{"ab": "c"},
+					"page":     map[string]interface{}{"url": pUrl, "referer": referer},
+					"custom":   map[string]interface{}{"a": "b"},
+					"request":  map[string]interface{}{"method": "POST", "url": map[string]interface{}{"raw": "127.0.0.1"}},
+					"response": map[string]interface{}{"finished": false, "headers": map[string]interface{}{"Content-Type": "text/html"}},
+				},
 				"exception": map[string]interface{}{
 					"message": "Exception Msg",
 					"code":    code, "module": module, "attributes": attrs,
@@ -199,13 +215,13 @@ func TestErrorEventDecode(t *testing.T) {
 			err: nil,
 			e: &Event{
 				Timestamp: timestampParsed,
-				Labels:    common.MapStr{"ab": "c"},
-				User:      &metadata.User{Id: &userId, Name: &name, IP: &userIp, Email: &email},
-				Page:      &m.Page{Url: &url, Referer: &referer},
-				Context: map[string]interface{}{"a": "b", "user": map[string]interface{}{
-					"username": name, "email": email, "ip": userIp, "id": userId},
-					"tags": map[string]interface{}{"ab": "c"},
-					"page": map[string]interface{}{"url": url, "referer": referer}},
+				User:      &user,
+				Label:     &label,
+				Page:      &page,
+				Custom:    &custom,
+				Http:      &http,
+				Url:       &ctxUrl,
+				Context:   &context,
 				Exception: &Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -275,7 +291,8 @@ func TestEventFields(t *testing.T) {
 		LoggerName:   &loggerName,
 	}
 
-	context := common.MapStr{"a": "b", "user": common.MapStr{"id": "888"}, "c1": "val"}
+	user := metadata.User{Id: &id}
+	context := m.Context{User: &user}
 
 	baseExceptionHash := md5.New()
 	io.WriteString(baseExceptionHash, *baseException().Message)
@@ -353,7 +370,7 @@ func TestEventFields(t *testing.T) {
 				Id:            &id,
 				Timestamp:     time.Now(),
 				Culprit:       &culprit,
-				Context:       context,
+				Context:       &context,
 				Exception:     &exception,
 				Log:           &log,
 				TransactionId: &trId,
@@ -386,7 +403,7 @@ func TestEventFields(t *testing.T) {
 				},
 				"grouping_key": "d47ca09e1cfd512804f5d55cecd34262",
 			},
-			Msg: "Full Event with frames",
+			Msg: "Event with frames",
 		},
 	}
 
@@ -420,6 +437,11 @@ func TestEvents(t *testing.T) {
 	email, userIp, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
 	url, referer := "https://localhost", "http://localhost"
+	label := m.Label(common.MapStr{"key": true})
+	user := metadata.User{Email: &email, IP: &userIp}
+	page := m.Page{Url: &url, Referer: &referer}
+	custom := m.Custom(common.MapStr{"foo": "bar"})
+	context := m.Context{User: &user, Label: &label, Page: &page, Custom: &custom}
 
 	tests := []struct {
 		Transformable transform.Transformable
@@ -473,10 +495,8 @@ func TestEvents(t *testing.T) {
 		{
 			Transformable: &Event{
 				Timestamp: timestamp,
-				Context: common.MapStr{
-					"custom": common.MapStr{"foo": "bar"},
-					"user":   common.MapStr{"email": "test@m.com"}},
-				Log: baseLog(),
+				Context:   &context,
+				Log:       baseLog(),
 				Exception: &Exception{
 					Message:    &exMsg,
 					Stacktrace: m.Stacktrace{&m.StacktraceFrame{Filename: "myFile"}},
@@ -484,8 +504,9 @@ func TestEvents(t *testing.T) {
 				TransactionId:      &trId,
 				TransactionSampled: &sampledTrue,
 				User:               &metadata.User{Email: &email, IP: &userIp, UserAgent: &userAgent},
-				Labels:             common.MapStr{"key": true},
+				Label:              &label,
 				Page:               &m.Page{Url: &url, Referer: &referer},
+				Custom:             &custom,
 			},
 
 			Output: common.MapStr{

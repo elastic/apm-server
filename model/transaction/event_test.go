@@ -64,9 +64,18 @@ func TestTransactionEventDecode(t *testing.T) {
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
 	dropped, started, duration := 12, 6, 1.67
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
-	url, referer := "https://mypage.com", "http:mypage.com"
+	url, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
 	marks := map[string]interface{}{"k": "b"}
-	sampled := true
+	sampled, contentType := true, "text/html"
+	label := model.Label{"foo": "bar"}
+	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
+	page := model.Page{Url: &url, Referer: &referer}
+	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{}}
+	response := model.Resp{Finished: new(bool), Headers: &model.Headers{ContentType: &contentType}}
+	http := model.Http{Request: &request, Response: &response}
+	ctxUrl := model.Url{Original: &origUrl}
+	custom := model.Custom{"abc": 1}
+	context := model.Context{User: &user, Label: &label, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
 
 	for _, test := range []struct {
 		input interface{}
@@ -79,10 +88,15 @@ func TestTransactionEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "result": result,
 				"duration": duration, "timestamp": timestampEpoch,
-				"context": map[string]interface{}{"a": "b", "user": map[string]interface{}{
-					"username": name, "email": email, "ip": userIp, "id": userId},
-					"tags": map[string]interface{}{"foo": "bar"},
-					"page": map[string]interface{}{"url": url, "referer": referer}},
+				"context": map[string]interface{}{
+					"a":        "b",
+					"custom":   map[string]interface{}{"abc": 1},
+					"user":     map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags":     map[string]interface{}{"foo": "bar"},
+					"page":     map[string]interface{}{"url": url, "referer": referer},
+					"request":  map[string]interface{}{"method": "POST", "url": map[string]interface{}{"raw": "127.0.0.1"}},
+					"response": map[string]interface{}{"finished": false, "headers": map[string]interface{}{"Content-Type": "text/html"}},
+				},
 				"marks": marks, "sampled": sampled,
 				"parent_id": parentId, "trace_id": traceId,
 				"spans": []interface{}{
@@ -102,13 +116,13 @@ func TestTransactionEventDecode(t *testing.T) {
 				Marks:     marks,
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
-				User:      &metadata.User{Id: &userId, Name: &name, IP: &userIp, Email: &email},
-				Labels:    common.MapStr{"foo": "bar"},
-				Page:      &model.Page{Url: &url, Referer: &referer},
-				Context: map[string]interface{}{"a": "b", "user": map[string]interface{}{
-					"username": name, "email": email, "ip": userIp, "id": userId},
-					"tags": map[string]interface{}{"foo": "bar"},
-					"page": map[string]interface{}{"url": url, "referer": referer}},
+				User:      &user,
+				Label:     &label,
+				Page:      &page,
+				Custom:    &custom,
+				Http:      &http,
+				Url:       &ctxUrl,
+				Context:   &context,
 			},
 		},
 	} {
@@ -198,7 +212,7 @@ func TestEventTransform(t *testing.T) {
 				Result:    &result,
 				Timestamp: time.Now(),
 				Duration:  65.98,
-				Context:   map[string]interface{}{"foo": "bar"},
+				Context:   &model.Context{},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
@@ -221,47 +235,6 @@ func TestEventTransform(t *testing.T) {
 		output := test.Event.Transform(tctx)
 		assert.Equal(t, test.Output, output[0].Fields["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
-}
-
-func TestEventMoveContext(t *testing.T) {
-
-	event := Event{
-		Context: map[string]interface{}{
-			"db": map[string]interface{}{"type": "sql"},
-			"request": map[string]interface{}{
-				"method": "GET",
-				"url":    map[string]interface{}{"raw": "http://www.elastic.co"},
-			},
-			"response": map[string]interface{}{"status_code": 200},
-		},
-	}
-
-	result := event.Transform(&transform.Context{})
-
-	assert.Equal(t, common.MapStr{
-		"request":  common.MapStr{"method": "get"},
-		"response": common.MapStr{"status_code": 200},
-	}, result[0].Fields["http"])
-	assert.Equal(t, common.MapStr{"original": "http://www.elastic.co"}, result[0].Fields["url"])
-	assert.NotNil(t, event.Context["db"])
-
-	portMapping := []struct {
-		port   interface{}
-		result interface{}
-	}{
-		{json.Number("3000"), common.MapStr{"port": 3000}},
-		{"8080", common.MapStr{"port": 8080}},
-		{"NaN", nil},
-	}
-	for _, pm := range portMapping {
-		event := Event{Context: map[string]interface{}{
-			"request": map[string]interface{}{
-				"url": map[string]interface{}{
-					"port": pm.port}}}}
-		result := event.Transform(&transform.Context{})
-		assert.Equal(t, pm.result, result[0].Fields["url"])
-	}
-
 }
 
 func TestEventsTransformWithMetadata(t *testing.T) {
@@ -324,16 +297,22 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"sampled":  true,
 		},
 	}
+
+	ct := "text/html"
+	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{}}
+	response := model.Resp{Finished: new(bool), Headers: &model.Headers{ContentType: &ct}}
 	txWithContext := Event{
 		Timestamp: timestamp,
-		Context:   common.MapStr{"foo": "bar", "custom": common.MapStr{"foo": "bar"}},
+		Context:   &model.Context{User: &user},
 		User:      &user,
-		Labels:    common.MapStr{"a": "b"},
+		Label:     &model.Label{"a": "b"},
 		Page:      &model.Page{Url: &url, Referer: &referer},
+		Http:      &model.Http{Request: &request, Response: &response},
+		Url:       &model.Url{Original: &url},
+		Custom:    &model.Custom{"foo": "bar"},
 	}
 	txWithContextEs := common.MapStr{
-		"agent": common.MapStr{"name": "", "version": ""},
-
+		"agent":      common.MapStr{"name": "", "version": ""},
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": "63.23.123.4"},
 		"user_agent": common.MapStr{"original": userAgent},
@@ -363,6 +342,10 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			},
 		},
 		"labels": common.MapStr{"a": "b"},
+		"url":    common.MapStr{"original": url},
+		"http": common.MapStr{
+			"request":  common.MapStr{"method": "post"},
+			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": "text/html"}}},
 	}
 
 	txValidWithSpan := Event{Timestamp: timestamp}

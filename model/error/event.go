@@ -68,11 +68,14 @@ type Event struct {
 
 	Timestamp time.Time
 
-	Context common.MapStr
 	Culprit *string
 	User    *metadata.User
-	Labels  common.MapStr
+	Context *m.Context
+	Label   *m.Label
 	Page    *m.Page
+	Http    *m.Http
+	Url     *m.Url
+	Custom  *m.Custom
 
 	Exception *Exception
 	Log       *Log
@@ -114,11 +117,21 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, errors.New("Invalid type for error event")
 	}
 
+	ctx, err := m.DecodeContext(raw, nil)
+	if err != nil {
+		return nil, err
+	}
 	decoder := utility.ManualDecoder{}
 	e := Event{
 		Id:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, "culprit"),
-		Context:            decoder.MapStr(raw, "context"),
+		Context:            ctx,
+		Label:              ctx.Label,
+		Page:               ctx.Page,
+		Http:               ctx.Http,
+		Url:                ctx.Url,
+		Custom:             ctx.Custom,
+		User:               ctx.User,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
@@ -126,16 +139,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
 		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
 	}
-
-	if labels, ok := e.Context["tags"].(map[string]interface{}); ok {
-		e.Labels = labels
-	}
-
-	page, err := m.DecodePage(e.Context, decoder.Err)
-	if err != nil {
-		return nil, err
-	}
-	e.Page = page
 
 	var stacktr *m.Stacktrace
 	ex := decoder.MapStr(raw, "exception")
@@ -151,7 +154,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 			Handled:    decoder.BoolPtr(ex, "handled"),
 			Stacktrace: m.Stacktrace{},
 		}
-		stacktr, err = m.DecodeStacktrace(ex["stacktrace"], nil)
+		stacktr, decoder.Err = m.DecodeStacktrace(ex["stacktrace"], decoder.Err)
 		if stacktr != nil {
 			e.Exception.Stacktrace = *stacktr
 		}
@@ -167,22 +170,13 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 			LoggerName:   decoder.StringPtr(log, "logger_name"),
 			Stacktrace:   m.Stacktrace{},
 		}
-		stacktr, err = m.DecodeStacktrace(log["stacktrace"], err)
+		stacktr, decoder.Err = m.DecodeStacktrace(log["stacktrace"], decoder.Err)
 		if stacktr != nil {
 			e.Log.Stacktrace = *stacktr
 		}
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	if ok, _ := e.Context.HasKey("user"); ok {
-		user, err := e.Context.GetValue("user")
-		e.User, err = metadata.DecodeUser(user, err)
-		if err != nil {
-			return nil, err
-		}
+	if decoder.Err != nil {
+		return nil, decoder.Err
 	}
 
 	return &e, nil
@@ -205,10 +199,9 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
-	utility.Add(fields, "labels", e.Labels)
-	utility.Add(fields, "http", m.HttpFields(e.Context))
-	utility.Add(fields, "url", m.UrlFields(e.Context))
-
+	utility.Add(fields, "labels", e.Label.Fields())
+	utility.Add(fields, "http", e.Http.Fields())
+	utility.Add(fields, "url", e.Url.Fields())
 	tctx.Metadata.Merge(fields)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
@@ -247,11 +240,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 	e.updateCulprit(tctx)
 	e.add("culprit", e.Culprit)
-
-	custom, err := e.Context.GetValue("custom")
-	if err == nil && custom != nil {
-		e.add("custom", custom)
-	}
+	e.add("custom", e.Custom.Fields())
 
 	e.addGroupingKey()
 
