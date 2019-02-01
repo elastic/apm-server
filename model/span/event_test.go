@@ -245,7 +245,6 @@ func TestSpanTransform(t *testing.T) {
 						"method":   "get",
 					},
 				},
-				"context":   common.MapStr{"key": "val"},
 				"labels":    common.MapStr{"label.a": 12},
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"service":   common.MapStr{"name": "myService"},
