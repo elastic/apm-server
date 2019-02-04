@@ -442,3 +442,83 @@
           description: >
             Software agent acting in behalf of a user, eg. a web browser / OS combination.
           overwrite: true
+
+      - name: name
+        type: keyword
+        overwrite: true
+        example: Safari
+        description: >
+          Name of the user agent.
+
+      - name: version
+        type: keyword
+        overwrite: true
+        description: >
+          Version of the user agent.
+        example: 12.0
+
+      - name: device
+        type: group
+        overwrite: true
+        title: Device
+        description: >
+          Information concerning the device.
+        fields:
+
+        - name: name
+          type: keyword
+          overwrite: true
+          example: iPhone
+          description: >
+            Name of the device.
+
+      - name: os
+        type: group
+        overwrite: true
+        title: Operating System
+        description: >
+          The OS fields contain information about the operating system.
+        fields:
+
+          - name: platform
+            type: keyword
+            overwrite: true
+            description: >
+              Operating system platform (such centos, ubuntu, windows).
+            example: darwin
+
+          - name: name
+            type: keyword
+            overwrite: true
+            example: "Mac OS X"
+            description: >
+              Operating system name, without the version.
+
+          - name: full
+            type: keyword
+            overwrite: true
+            example: "Mac OS Mojave"
+            description: >
+              Operating system name, including the version or code name.
+
+          - name: family
+            type: keyword
+            overwrite: true
+            example: "debian"
+            description: >
+              OS family (such as redhat, debian, freebsd, windows).
+
+          - name: version
+            type: keyword
+            overwrite: true
+            example: "10.14.1"
+            description: >
+              Operating system version as a raw string.
+
+          - name: kernel
+            type: keyword
+            overwrite: true
+            example: "4.4.0-112-generic"
+            description: >
+              Operating system kernel version as a raw string.
+

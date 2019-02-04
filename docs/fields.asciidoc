@@ -657,6 +657,128 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
 --
 
+*`user_agent.name`*::
++
+--
+type: keyword
+
+example: Safari
+
+Name of the user agent.
+
+
+--
+
+*`user_agent.version`*::
++
+--
+type: keyword
+
+example: 12.0
+
+Version of the user agent.
+
+
+--
+
+[float]
+== device fields
+
+Information concerning the device.
+
+
+
+*`user_agent.device.name`*::
++
+--
+type: keyword
+
+example: iPhone
+
+Name of the device.
+
+
+--
+
+[float]
+== os fields
+
+The OS fields contain information about the operating system.
+
+
+
+*`user_agent.os.platform`*::
++
+--
+type: keyword
+
+example: darwin
+
+Operating system platform (such centos, ubuntu, windows).
+
+
+--
+
+*`user_agent.os.name`*::
++
+--
+type: keyword
+
+example: Mac OS X
+
+Operating system name, without the version.
+
+
+--
+
+*`user_agent.os.full`*::
++
+--
+type: keyword
+
+example: Mac OS Mojave
+
+Operating system name, including the version or code name.
+
+
+--
+
+*`user_agent.os.family`*::
++
+--
+type: keyword
+
+example: debian
+
+OS family (such as redhat, debian, freebsd, windows).
+
+
+--
+
+*`user_agent.os.version`*::
++
+--
+type: keyword
+
+example: 10.14.1
+
+Operating system version as a raw string.
+
+
+--
+
+*`user_agent.os.kernel`*::
++
+--
+type: keyword
+
+example: 4.4.0-112-generic
+
+Operating system kernel version as a raw string.
+
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 
