@@ -45,6 +45,7 @@ func transactionPayloadAttrsNotInFields() *tests.Set {
 		"transaction.span_count.started",
 		tests.Group("context"),
 		tests.Group("transaction.page"),
+		tests.Group("http.request.cookies"),
 	)
 }
 

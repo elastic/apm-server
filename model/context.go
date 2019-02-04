@@ -310,6 +310,8 @@ func (req *Req) fields() common.MapStr {
 	utility.Add(fields, "env", req.Env)
 	utility.DeepAdd(fields, "body.original", req.Body)
 	utility.Add(fields, "method", req.Method)
+	utility.Add(fields, "cookies", req.Cookies)
+
 	return fields
 }
 

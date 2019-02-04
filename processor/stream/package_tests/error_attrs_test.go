@@ -46,6 +46,7 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 		tests.Group("error.log.stacktrace"),
 		tests.Group("context"),
 		tests.Group("error.page"),
+		tests.Group("http.request.cookies"),
 	)
 }
 
