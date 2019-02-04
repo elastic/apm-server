@@ -13,15 +13,17 @@ https://github.com/elastic/apm-server/compare/v6.5.4\...v6.6.0[View commits]
 [float]
 ==== Added
 
+- Set some configuration defaults (`setup.template.settings.index.*`, `logging.metrics.enabled`) in code {pull}1494[1494].
 - Add `span.sync` property to intake json spec and index field in ES. {pull}1548[1548].
 - Make `service.framework` properties optional and nullable {pull}1546[1546].
 - Add optional `span.subtype` and `span.action` properties. {pull}1618[1618].
 - Add `transaction.sampled` to errors {pull}1662[1662].
 - Lookup sourcemaps by full URL and URL path only {pull}1661[1661].
+- Update Go to 1.10.8 {pull}1832[1832].
 
 [float]
 ==== Bug fixes
 
-- Fix index pattern bundled with Kibana to be in sync with ES template pull{1571}[1571].
-- Ensure all `transaction.marks.*.*` values are stored as scaled floats. pull{1704}[1704]
+- Fix index pattern bundled with Kibana to be in sync with ES template {pull}1571[1571].
+- Ensure all `transaction.marks.*.*` values are stored as scaled floats {pull}1704[1704].
 - Prevent slice out of bounds panic when sourcemap line numbers are off {pull}1764[1764].
