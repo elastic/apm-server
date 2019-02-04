@@ -21,12 +21,7 @@
                 },
                 "headers": {
                     "description": "A mapping of HTTP headers of the response object",
-                    "type": ["object", "null"],
-                    "properties": {
-                        "content-type": {
-                            "type": ["string", "null"]
-                        }
-                    }
+                    "type": ["object", "null"]
                 },
                 "headers_sent": {
                     "type": ["boolean", "null"]

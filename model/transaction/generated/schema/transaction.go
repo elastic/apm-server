@@ -88,12 +88,7 @@ const ModelSchema = `{
                 },
                 "headers": {
                     "description": "A mapping of HTTP headers of the response object",
-                    "type": ["object", "null"],
-                    "properties": {
-                        "content-type": {
-                            "type": ["string", "null"]
-                        }
-                    }
+                    "type": ["object", "null"]
                 },
                 "headers_sent": {
                     "type": ["boolean", "null"]
@@ -121,19 +116,7 @@ const ModelSchema = `{
         },
         "headers": {
             "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
-            "type": ["object", "null"],
-            "properties": {
-                "content-type": {
-                    "type": ["string", "null"]
-                },
-                "cookie": {
-                    "description": "Cookies sent with the request. It is expected to have values delimited by semicolons.",
-                    "type": ["string", "null"]
-                },
-                "user-agent": {
-                    "type": ["string", "null"]
-                }
-            }
+            "type": ["object", "null"]
         },
         "http_version": {
             "description": "HTTP version.",

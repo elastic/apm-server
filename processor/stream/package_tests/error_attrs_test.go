@@ -67,12 +67,12 @@ func errorPayloadAttrsNotInJsonSchema() *tests.Set {
 		"error.log.stacktrace.vars.key",
 		"error.exception.stacktrace.vars.key",
 		"error.exception.attributes.foo",
-		"error.context.request.headers.some-other-header",
-		"error.context.request.headers.array",
 		tests.Group("error.context.custom"),
 		tests.Group("error.context.request.env"),
 		tests.Group("error.context.request.cookies"),
 		tests.Group("error.context.tags"),
+		tests.Group("error.context.request.headers."),
+		tests.Group("error.context.response.headers."),
 	)
 }
 

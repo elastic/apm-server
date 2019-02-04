@@ -63,6 +63,7 @@ type Page struct {
 
 type Label common.MapStr
 type Custom common.MapStr
+type Headers common.MapStr
 
 type Req struct {
 	Method  string
@@ -70,18 +71,12 @@ type Req struct {
 	Headers *Headers
 	Env     interface{}
 	Socket  *Socket
+	Cookies interface{}
 }
 
 type Socket struct {
 	RemoteAddress *string
 	Encrypted     *bool
-}
-
-type Headers struct {
-	CookiesParsed   interface{}
-	ContentType     *string
-	CookiesOriginal *string
-	UserAgent       *string
 }
 
 type Resp struct {
@@ -169,18 +164,11 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 	if err != nil {
 		return nil, err
 	}
-	decoder := utility.ManualDecoder{}
-
-	var decodeCaseInsensitive = func(str common.MapStr, key string, keys ...string) *string {
-		if s := decoder.StringPtr(str, key, keys...); s != nil {
-			return s
-		}
-		return decoder.StringPtr(str, strings.Title(key), keys...)
-	}
-
 	var http *Http
+	decoder := utility.ManualDecoder{}
 	inpReq := decoder.MapStr(raw, "request")
 	if inpReq != nil {
+		headers := Headers(decoder.MapStr(inpReq, "headers"))
 		http = &Http{
 			Version: decoder.StringPtr(inpReq, "http_version"),
 			Request: &Req{
@@ -190,13 +178,9 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 					RemoteAddress: decoder.StringPtr(inpReq, "remote_address", "socket"),
 					Encrypted:     decoder.BoolPtr(inpReq, "encrypted", "socket"),
 				},
-				Headers: &Headers{
-					CookiesParsed:   decoder.Interface(inpReq, "cookies"),
-					ContentType:     decodeCaseInsensitive(inpReq, "content-type", "headers"),
-					CookiesOriginal: decodeCaseInsensitive(inpReq, "cookie", "headers"),
-					UserAgent:       decodeCaseInsensitive(inpReq, "user-agent", "headers"),
-				},
-				Body: decoder.Interface(inpReq, "body"),
+				Headers: &headers,
+				Body:    decoder.Interface(inpReq, "body"),
+				Cookies: decoder.Interface(inpReq, "cookies"),
 			},
 		}
 	}
@@ -206,13 +190,12 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 		if http == nil {
 			http = &Http{}
 		}
+		headers := Headers(decoder.MapStr(inpResp, "headers"))
 		http.Response = &Resp{
 			Finished:    decoder.BoolPtr(inpResp, "finished"),
 			StatusCode:  decoder.IntPtr(inpResp, "status_code"),
 			HeadersSent: decoder.BoolPtr(inpResp, "headers_sent"),
-			Headers: &Headers{
-				ContentType: decodeCaseInsensitive(inpResp, "content-type", "headers"),
-			},
+			Headers:     &headers,
 		}
 	}
 
@@ -346,12 +329,7 @@ func (h *Headers) fields() common.MapStr {
 	if h == nil {
 		return nil
 	}
-	fields := common.MapStr{}
-	utility.DeepAdd(fields, "cookies.parsed", h.CookiesParsed)
-	utility.DeepAdd(fields, "cookies.original", h.CookiesOriginal)
-	utility.DeepAdd(fields, "user-agent.original", h.UserAgent)
-	utility.Add(fields, "content-type", h.ContentType)
-	return fields
+	return common.MapStr(*h)
 }
 
 func (s *Socket) fields() common.MapStr {

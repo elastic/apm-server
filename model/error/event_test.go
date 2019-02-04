@@ -87,13 +87,12 @@ func TestErrorEventDecode(t *testing.T) {
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
 	transactionSampled := true
 	transactionType := "request"
-	contentType := "text/html"
 	label := m.Label{"ab": "c"}
 	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
 	page := m.Page{Url: &pUrl, Referer: &referer}
 	custom := m.Custom{"a": "b"}
-	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: &m.Headers{}}
-	response := m.Resp{Finished: new(bool), Headers: &m.Headers{ContentType: &contentType}}
+	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: &m.Headers{"user-agent": "go-1.1"}}
+	response := m.Resp{Finished: new(bool), Headers: &m.Headers{"Content-Type": "text/html"}}
 	http := m.Http{Request: &request, Response: &response}
 	ctxUrl := m.Url{Original: &origUrl}
 	context := m.Context{User: &user, Label: &label, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
@@ -179,13 +178,18 @@ func TestErrorEventDecode(t *testing.T) {
 			input: map[string]interface{}{
 				"timestamp": timestamp,
 				"context": map[string]interface{}{
-					"a":        "b",
-					"user":     map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
-					"tags":     map[string]interface{}{"ab": "c"},
-					"page":     map[string]interface{}{"url": pUrl, "referer": referer},
-					"custom":   map[string]interface{}{"a": "b"},
-					"request":  map[string]interface{}{"method": "POST", "url": map[string]interface{}{"raw": "127.0.0.1"}},
-					"response": map[string]interface{}{"finished": false, "headers": map[string]interface{}{"Content-Type": "text/html"}},
+					"a":      "b",
+					"user":   map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags":   map[string]interface{}{"ab": "c"},
+					"page":   map[string]interface{}{"url": pUrl, "referer": referer},
+					"custom": map[string]interface{}{"a": "b"},
+					"request": map[string]interface{}{
+						"method":  "POST",
+						"url":     map[string]interface{}{"raw": "127.0.0.1"},
+						"headers": map[string]interface{}{"user-agent": "go-1.1"}},
+					"response": map[string]interface{}{
+						"finished": false,
+						"headers":  map[string]interface{}{"Content-Type": "text/html"}},
 				},
 				"exception": map[string]interface{}{
 					"message": "Exception Msg",

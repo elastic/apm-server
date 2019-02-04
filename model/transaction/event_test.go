@@ -66,12 +66,12 @@ func TestTransactionEventDecode(t *testing.T) {
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
 	url, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
 	marks := map[string]interface{}{"k": "b"}
-	sampled, contentType := true, "text/html"
+	sampled := true
 	label := model.Label{"foo": "bar"}
 	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
 	page := model.Page{Url: &url, Referer: &referer}
-	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{}}
-	response := model.Resp{Finished: new(bool), Headers: &model.Headers{ContentType: &contentType}}
+	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{"user-agent": "go-1.1"}}
+	response := model.Resp{Finished: new(bool), Headers: &model.Headers{"Content-Type": "text/html"}}
 	http := model.Http{Request: &request, Response: &response}
 	ctxUrl := model.Url{Original: &origUrl}
 	custom := model.Custom{"abc": 1}
@@ -89,13 +89,18 @@ func TestTransactionEventDecode(t *testing.T) {
 				"id": id, "type": trType, "name": name, "result": result,
 				"duration": duration, "timestamp": timestampEpoch,
 				"context": map[string]interface{}{
-					"a":        "b",
-					"custom":   map[string]interface{}{"abc": 1},
-					"user":     map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
-					"tags":     map[string]interface{}{"foo": "bar"},
-					"page":     map[string]interface{}{"url": url, "referer": referer},
-					"request":  map[string]interface{}{"method": "POST", "url": map[string]interface{}{"raw": "127.0.0.1"}},
-					"response": map[string]interface{}{"finished": false, "headers": map[string]interface{}{"Content-Type": "text/html"}},
+					"a":      "b",
+					"custom": map[string]interface{}{"abc": 1},
+					"user":   map[string]interface{}{"username": name, "email": email, "ip": userIp, "id": userId},
+					"tags":   map[string]interface{}{"foo": "bar"},
+					"page":   map[string]interface{}{"url": url, "referer": referer},
+					"request": map[string]interface{}{
+						"method":  "POST",
+						"url":     map[string]interface{}{"raw": "127.0.0.1"},
+						"headers": map[string]interface{}{"user-agent": "go-1.1"}},
+					"response": map[string]interface{}{
+						"finished": false,
+						"headers":  map[string]interface{}{"Content-Type": "text/html"}},
 				},
 				"marks": marks, "sampled": sampled,
 				"parent_id": parentId, "trace_id": traceId,
@@ -298,9 +303,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 	}
 
-	ct := "text/html"
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{}}
-	response := model.Resp{Finished: new(bool), Headers: &model.Headers{ContentType: &ct}}
+	response := model.Resp{Finished: new(bool), Headers: &model.Headers{"content-type": "text/html"}}
 	txWithContext := Event{
 		Timestamp: timestamp,
 		Context:   &model.Context{User: &user},
