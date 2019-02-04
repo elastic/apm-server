@@ -15,25 +15,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package cmd
+package idxmgmt
 
-import (
-	"github.com/spf13/cobra"
+type assets struct {
+	fields []byte
+}
 
-	"github.com/elastic/beats/libbeat/cmd/export"
-	"github.com/elastic/beats/libbeat/cmd/instance"
-)
+// BeatsAssets creates an asseter with a predefine set of fields that is always
+// reported.
+func BeatsAssets(fields []byte) Asseter {
+	return &assets{fields: fields}
+}
 
-func genExportCmd(settings instance.Settings, name, idxPrefix, beatVersion string) *cobra.Command {
-	exportCmd := &cobra.Command{
-		Use:   "export",
-		Short: "Export current config or index template",
-	}
-
-	exportCmd.AddCommand(export.GenExportConfigCmd(settings, name, idxPrefix, beatVersion))
-	exportCmd.AddCommand(export.GenTemplateConfigCmd(settings, name, idxPrefix, beatVersion))
-	exportCmd.AddCommand(export.GenDashboardCmd(name, idxPrefix, beatVersion))
-	exportCmd.AddCommand(export.GenGetILMPolicyCmd(settings, name, idxPrefix, beatVersion))
-
-	return exportCmd
+func (a *assets) Fields(name string) []byte {
+	return a.fields // assume we have the beats global assets
 }

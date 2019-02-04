@@ -15,25 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package cmd
+package ilm
 
 import (
-	"github.com/spf13/cobra"
-
-	"github.com/elastic/beats/libbeat/cmd/export"
-	"github.com/elastic/beats/libbeat/cmd/instance"
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/idxmgmt/ilm"
+	"github.com/elastic/beats/libbeat/logp"
 )
 
-func genExportCmd(settings instance.Settings, name, idxPrefix, beatVersion string) *cobra.Command {
-	exportCmd := &cobra.Command{
-		Use:   "export",
-		Short: "Export current config or index template",
-	}
-
-	exportCmd.AddCommand(export.GenExportConfigCmd(settings, name, idxPrefix, beatVersion))
-	exportCmd.AddCommand(export.GenTemplateConfigCmd(settings, name, idxPrefix, beatVersion))
-	exportCmd.AddCommand(export.GenDashboardCmd(name, idxPrefix, beatVersion))
-	exportCmd.AddCommand(export.GenGetILMPolicyCmd(settings, name, idxPrefix, beatVersion))
-
-	return exportCmd
+// MakeDefaultSupporter creates the ILM supporter for APM that is passed to libbeat.
+// Currently ILM is disabled by using a NoopSupport.
+func MakeDefaultSupporter(_ *logp.Logger, info beat.Info, config *common.Config) (ilm.Supporter, error) {
+	return ilm.NoopSupport(info, config)
 }
