@@ -121,7 +121,7 @@ like {apm-java-ref-v}/metrics.html[JVM metrics] in the Java Agent,
 and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
 
 Infrastructure and application metrics are important sources of information when debugging production systems,
-which is why we've made it easy to filter metrics for specific hosts or containers in the Kibana {kibana-ref}/apm-ui.html.html[APM UI].
+which is why we've made it easy to filter metrics for specific hosts or containers in the Kibana {kibana-ref}/apm-ui.html[APM UI].
 
 Metrics have the `processor.event` property set to `metric`.
 
