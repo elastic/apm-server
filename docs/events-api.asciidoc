@@ -8,9 +8,9 @@ Events can be:
 * Transactions
 * Spans
 * Errors
-* Metricsets
+* Metrics
 
-You can learn more about events in the {apm-get-started-ref}/apm-data-model.html[APM Data Model] documentation. 
+You can learn more about events in the {apm-overview-ref-v}/apm-data-model.html[APM Data Model]. 
 
 [[events-api-endpoint]]
 [float]
@@ -102,7 +102,7 @@ The APM Server uses a collection of JSON Schemas for validating requests to the 
 * <<transaction-api, Transactions>>
 * <<span-api, Spans>>
 * <<error-api, Errors>>
-* <<metricset-api, Metricsets>>
+* <<metricset-api, Metrics>>
 * <<example-intakev2-events, Example Request Body>>
 
 include::./metadata-api.asciidoc[]
