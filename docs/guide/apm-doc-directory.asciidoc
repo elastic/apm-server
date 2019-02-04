@@ -8,7 +8,7 @@ The following sections are designed to guide you through the available Elastic A
 
 You're here!
 The APM Overview is your launchpad for getting started with APM.
-We recommend reading all sections in this book to gain a deeper understanding of the Elastic APM ecosystem.
+We recommend reading through this documentation to gain a deeper understanding of the Elastic APM ecosystem.
 
 * <<overview>>
 * <<install-and-run>>
@@ -35,7 +35,7 @@ Here you can learn about {apm-server-ref-v}/installing.html[installation],
 === APM Agents
 
 APM agents are open source libraries that you install into your services.
-You may only need one, or you might use all six.
+You may only need one, or you might use all of them.
 Each agent has its own documentation:
 
 * {apm-go-ref}/introduction.html[Go agent]
@@ -48,7 +48,7 @@ Each agent has its own documentation:
 [float]
 === APM Kibana UI
 
-Application performance monitoring is all about visualizing data and bottlenecks, so it's crucial you understand how to use the {kibana-ref}/xpack-apm.html[Kibana APM UI]. The following sections will help you get started:
+Application performance monitoring is all about visualizing data and detecting bottlenecks, so it's crucial you understand how to use the {kibana-ref}/xpack-apm.html[Kibana APM UI]. The following sections will help you get started:
 
 * {kibana-ref}/apm-getting-started.html[Getting Started]
 * {kibana-ref}/apm-bottlenecks.html[Visualizing application bottlenecks]
