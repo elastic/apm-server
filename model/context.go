@@ -107,9 +107,6 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	custom, err := decodeCustom(ctxInp, err)
 	page, err := decodePage(ctxInp, err)
 	user, err := metadata.DecodeUser(userInp, err)
-	if err != nil {
-		return nil, err
-	}
 	return &Context{
 		Http:   http,
 		Url:    url,
@@ -117,7 +114,7 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 		Page:   page,
 		Custom: custom,
 		User:   user,
-	}, nil
+	}, err
 
 }
 
@@ -197,21 +194,17 @@ func decodeUrl(raw common.MapStr, err error) (*Url, error) {
 		trimmed := strings.TrimSuffix(*scheme, ":")
 		url.Scheme = &trimmed
 	}
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-
+	err = decoder.Err
 	if url.Port = decoder.IntPtr(inpUrl, "port"); url.Port != nil {
 		return &url, nil
 	} else if portStr := decoder.StringPtr(inpUrl, "port"); portStr != nil {
-		if p, err := strconv.Atoi(*portStr); err == nil {
+		var p int
+		if p, err = strconv.Atoi(*portStr); err == nil {
 			url.Port = &p
-		} else {
-			return nil, err
 		}
 	}
 
-	return &url, nil
+	return &url, err
 }
 
 func decodeHttp(raw common.MapStr, err error) (*Http, error) {
@@ -252,12 +245,7 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 			Headers:     &headers,
 		}
 	}
-
-	if decoder.Err != nil {
-		return nil, decoder.Err
-	}
-
-	return http, nil
+	return http, decoder.Err
 }
 
 func decodePage(raw common.MapStr, err error) (*Page, error) {
