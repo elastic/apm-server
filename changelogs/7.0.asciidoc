@@ -1,13 +1,13 @@
 [[release-notes-7.0]]
 == APM Server version 7.0
 
-* <<release-notes-7.0.0>>
+* <<release-notes-7.0.0-beta>>
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
 
-[[release-notes-7.0.0]]
-=== APM Server version 7.0.0
+[[release-notes-7.0.0-beta]]
+=== APM Server version 7.0.0-beta
 
 https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 
