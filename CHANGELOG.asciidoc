@@ -1,4 +1,3 @@
-include::./changelogs/head.asciidoc[]
 include::./changelogs/6.7.asciidoc[]
 include::./changelogs/6.6.asciidoc[]
 include::./changelogs/6.5.asciidoc[]
