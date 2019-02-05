@@ -26,6 +26,7 @@ https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 - Change transaction.name to keyword, add transaction.name.text {pull}1859[1859].
 - Change error.culprit to keyword, limit length on intake {pull}1859[1859].
 - Move default index configuration to code {pull}1865[1865].
+- Change default user-agent pipeline to index information under root key `user_agent` {pull}1871[1871].
 
 [float]
 ==== Removed
