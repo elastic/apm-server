@@ -264,7 +264,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 6.x
-Revision: a0fd065d4553d2f9f0f6067beb0021da3c4963e4
+Revision: 0a680a65830a51a23fd1ce34ebbd236efebedd1a
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -321,7 +321,7 @@ Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-txfile
-Revision: 389b527ad365f6fc6cf5fa7e0ba5a2294ad2f3ed
+Revision: fa3d87c14381c01aaa1c7901877fb5e483294964
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-txfile/LICENSE:
 --------------------------------------------------------------------
@@ -354,7 +354,7 @@ Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Revision: 237dff72b4ba95da2cd985f96a9c0ede4aefc760
+Revision: f2a90fc413720c43da9c4fe1a47513c73f45ac3d
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------
