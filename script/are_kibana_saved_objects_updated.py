@@ -142,7 +142,7 @@ def main():
         print("Kibana file containing index pattern not found")
         return 1
 
-    with open(os.path.abspath(os.path.join('_meta', 'kibana.generated', '7', 'index-pattern', 'apmserver.json'))) as f:
+    with open(os.path.abspath(os.path.join('index-pattern.json'))) as f:
         s = json.load(f)["objects"][0]
     exit_val = max(exit_val, iterate(k["id"], "", s, k))
     if exit_val == 0:

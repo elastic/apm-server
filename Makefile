@@ -133,7 +133,8 @@ bench:
 
 .PHONY: are-kibana-objects-updated
 are-kibana-objects-updated: python-env
-	@$(MAKE) clean update
+	@$(MAKE) clean update apm-server
+	@./apm-server export index-pattern > index-pattern.json
 	@$(PYTHON_ENV)/bin/python ./script/are_kibana_saved_objects_updated.py ${BEATS_VERSION}
 
 .PHONY: register-pipelines
