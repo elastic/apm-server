@@ -71,7 +71,7 @@ type Event struct {
 	Culprit *string
 	User    *metadata.User
 	Context *m.Context
-	Label   *m.Label
+	Labels  *m.Labels
 	Page    *m.Page
 	Http    *m.Http
 	Url     *m.Url
@@ -126,7 +126,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Id:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, "culprit"),
 		Context:            ctx,
-		Label:              ctx.Label,
+		Labels:             ctx.Labels,
 		Page:               ctx.Page,
 		Http:               ctx.Http,
 		Url:                ctx.Url,
@@ -199,7 +199,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "user", e.User.Fields())
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
-	utility.Add(fields, "labels", e.Label.Fields())
+	utility.Add(fields, "labels", e.Labels.Fields())
 	utility.Add(fields, "http", e.Http.Fields())
 	utility.Add(fields, "url", e.Url.Fields())
 	tctx.Metadata.Merge(fields)

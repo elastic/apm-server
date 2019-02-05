@@ -87,7 +87,7 @@ func TestErrorEventDecode(t *testing.T) {
 	exMsg, paramMsg, level, logger := "Exception Msg", "log pm", "error", "mylogger"
 	transactionSampled := true
 	transactionType := "request"
-	label := m.Label{"ab": "c"}
+	labels := m.Labels{"ab": "c"}
 	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
 	page := m.Page{Url: &pUrl, Referer: &referer}
 	custom := m.Custom{"a": "b"}
@@ -95,7 +95,7 @@ func TestErrorEventDecode(t *testing.T) {
 	response := m.Resp{Finished: new(bool), Headers: &m.Headers{"Content-Type": "text/html"}}
 	http := m.Http{Request: &request, Response: &response}
 	ctxUrl := m.Url{Original: &origUrl}
-	context := m.Context{User: &user, Label: &label, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
+	context := m.Context{User: &user, Labels: &labels, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
 
 	for idx, test := range []struct {
 		input       interface{}
@@ -221,7 +221,7 @@ func TestErrorEventDecode(t *testing.T) {
 			e: &Event{
 				Timestamp: timestampParsed,
 				User:      &user,
-				Label:     &label,
+				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
 				Http:      &http,
@@ -442,11 +442,11 @@ func TestEvents(t *testing.T) {
 	email, userIp, userAgent := "m@m.com", "127.0.0.1", "js-1.0"
 	uid := "1234567889"
 	url, referer := "https://localhost", "http://localhost"
-	label := m.Label(common.MapStr{"key": true})
+	labels := m.Labels(common.MapStr{"key": true})
 	user := metadata.User{Email: &email, IP: &userIp}
 	page := m.Page{Url: &url, Referer: &referer}
 	custom := m.Custom(common.MapStr{"foo": "bar"})
-	context := m.Context{User: &user, Label: &label, Page: &page, Custom: &custom}
+	context := m.Context{User: &user, Labels: &labels, Page: &page, Custom: &custom}
 
 	tests := []struct {
 		Transformable transform.Transformable
@@ -509,7 +509,7 @@ func TestEvents(t *testing.T) {
 				TransactionId:      &trId,
 				TransactionSampled: &sampledTrue,
 				User:               &metadata.User{Email: &email, IP: &userIp, UserAgent: &userAgent},
-				Label:              &label,
+				Labels:             &labels,
 				Page:               &m.Page{Url: &url, Referer: &referer},
 				Custom:             &custom,
 			},

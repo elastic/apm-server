@@ -72,7 +72,7 @@ type Event struct {
 	Page      *m.Page
 	Http      *m.Http
 	Url       *m.Url
-	Label     *m.Label
+	Labels    *m.Labels
 	Custom    *m.Custom
 }
 
@@ -105,7 +105,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Result:    decoder.StringPtr(raw, "result"),
 		Duration:  decoder.Float64(raw, "duration"),
 		Context:   ctx,
-		Label:     ctx.Label,
+		Labels:    ctx.Labels,
 		Page:      ctx.Page,
 		Http:      ctx.Http,
 		Url:       ctx.Url,
@@ -177,7 +177,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 	utility.Add(fields, "client", e.User.ClientFields())
 	utility.Add(fields, "user_agent", e.User.UserAgentFields())
-	utility.Add(fields, "labels", e.Label.Fields())
+	utility.Add(fields, "labels", e.Labels.Fields())
 	utility.Add(fields, "http", e.Http.Fields())
 	utility.Add(fields, "url", e.Url.Fields())
 

@@ -24,8 +24,6 @@ import (
 
 	"github.com/elastic/apm-server/model/metadata"
 
-	errorw "github.com/pkg/errors"
-
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
@@ -33,7 +31,7 @@ import (
 type Context struct {
 	Http   *Http
 	Url    *Url
-	Label  *Label
+	Labels *Labels
 	Page   *Page
 	Custom *Custom
 	User   *metadata.User
@@ -61,7 +59,7 @@ type Page struct {
 	Referer *string
 }
 
-type Label common.MapStr
+type Labels common.MapStr
 type Custom common.MapStr
 type Headers common.MapStr
 
@@ -97,11 +95,15 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 
 	decoder := utility.ManualDecoder{}
 	ctxInp := decoder.MapStr(raw, "context")
+	if ctxInp == nil {
+		return &Context{}, decoder.Err
+	}
+
 	userInp := decoder.Interface(ctxInp, "user")
 	err = decoder.Err
 	http, err := decodeHttp(ctxInp, err)
 	url, err := decodeUrl(ctxInp, err)
-	label, err := decodeLabel(ctxInp, err)
+	labels, err := decodeLabels(ctxInp, err)
 	custom, err := decodeCustom(ctxInp, err)
 	page, err := decodePage(ctxInp, err)
 	user, err := metadata.DecodeUser(userInp, err)
@@ -111,12 +113,64 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	return &Context{
 		Http:   http,
 		Url:    url,
-		Label:  label,
+		Labels: labels,
 		Page:   page,
 		Custom: custom,
 		User:   user,
 	}, nil
 
+}
+
+func (url *Url) Fields() common.MapStr {
+	if url == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Add(fields, "full", url.Full)
+	utility.Add(fields, "fragment", url.Fragment)
+	utility.Add(fields, "domain", url.Domain)
+	utility.Add(fields, "path", url.Path)
+	utility.Add(fields, "port", url.Port)
+	utility.Add(fields, "original", url.Original)
+	utility.Add(fields, "scheme", url.Scheme)
+	utility.Add(fields, "query", url.Query)
+	return fields
+}
+
+func (http *Http) Fields() common.MapStr {
+	if http == nil {
+		return nil
+	}
+
+	fields := common.MapStr{}
+	utility.Add(fields, "version", http.Version)
+	utility.Add(fields, "request", http.Request.fields())
+	utility.Add(fields, "response", http.Response.fields())
+	return fields
+}
+
+func (page *Page) Fields() common.MapStr {
+	if page == nil {
+		return nil
+	}
+	var fields = common.MapStr{}
+	utility.Add(fields, "url", page.Url)
+	utility.Add(fields, "referer", page.Referer)
+	return fields
+}
+
+func (labels *Labels) Fields() common.MapStr {
+	if labels == nil {
+		return nil
+	}
+	return common.MapStr(*labels)
+}
+
+func (custom *Custom) Fields() common.MapStr {
+	if custom == nil {
+		return nil
+	}
+	return common.MapStr(*custom)
 }
 
 func decodeUrl(raw common.MapStr, err error) (*Url, error) {
@@ -149,11 +203,11 @@ func decodeUrl(raw common.MapStr, err error) (*Url, error) {
 
 	if url.Port = decoder.IntPtr(inpUrl, "port"); url.Port != nil {
 		return &url, nil
-	}
-
-	if portStr := decoder.StringPtr(inpUrl, "port"); portStr != nil {
+	} else if portStr := decoder.StringPtr(inpUrl, "port"); portStr != nil {
 		if p, err := strconv.Atoi(*portStr); err == nil {
 			url.Port = &p
+		} else {
+			return nil, err
 		}
 	}
 
@@ -210,28 +264,25 @@ func decodePage(raw common.MapStr, err error) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	decoder := utility.ManualDecoder{}
-	pageInput := decoder.MapStr(raw, "page")
-	if decoder.Err != nil {
-		return nil, errorw.Wrapf(decoder.Err, "fetching Page")
-	}
-	if pageInput == nil {
+	pageInput, ok := raw["page"].(map[string]interface{})
+	if !ok {
 		return nil, nil
 	}
+	decoder := utility.ManualDecoder{}
 	return &Page{
 		Url:     decoder.StringPtr(pageInput, "url"),
 		Referer: decoder.StringPtr(pageInput, "referer"),
 	}, decoder.Err
 }
 
-func decodeLabel(raw common.MapStr, err error) (*Label, error) {
+func decodeLabels(raw common.MapStr, err error) (*Labels, error) {
 	if err != nil {
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
 	if l := decoder.MapStr(raw, "tags"); decoder.Err == nil && l != nil {
-		label := Label(l)
-		return &label, nil
+		labels := Labels(l)
+		return &labels, nil
 	}
 	return nil, decoder.Err
 }
@@ -246,58 +297,6 @@ func decodeCustom(raw common.MapStr, err error) (*Custom, error) {
 		return &custom, nil
 	}
 	return nil, decoder.Err
-}
-
-func (url *Url) Fields() common.MapStr {
-	if url == nil {
-		return nil
-	}
-	fields := common.MapStr{}
-	utility.Add(fields, "full", url.Full)
-	utility.Add(fields, "fragment", url.Fragment)
-	utility.Add(fields, "domain", url.Domain)
-	utility.Add(fields, "path", url.Path)
-	utility.Add(fields, "port", url.Port)
-	utility.Add(fields, "original", url.Original)
-	utility.Add(fields, "scheme", url.Scheme)
-	utility.Add(fields, "query", url.Query)
-	return fields
-}
-
-func (http *Http) Fields() common.MapStr {
-	if http == nil {
-		return nil
-	}
-
-	fields := common.MapStr{}
-	utility.Add(fields, "version", http.Version)
-	utility.Add(fields, "request", http.Request.fields())
-	utility.Add(fields, "response", http.Response.fields())
-	return fields
-}
-
-func (page *Page) Fields() common.MapStr {
-	if page == nil {
-		return nil
-	}
-	var fields = common.MapStr{}
-	utility.Add(fields, "url", page.Url)
-	utility.Add(fields, "referer", page.Referer)
-	return fields
-}
-
-func (label *Label) Fields() common.MapStr {
-	if label == nil {
-		return nil
-	}
-	return common.MapStr(*label)
-}
-
-func (custom *Custom) Fields() common.MapStr {
-	if custom == nil {
-		return nil
-	}
-	return common.MapStr(*custom)
 }
 
 func (req *Req) fields() common.MapStr {

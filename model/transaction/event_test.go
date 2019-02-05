@@ -67,7 +67,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	url, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
 	marks := map[string]interface{}{"k": "b"}
 	sampled := true
-	label := model.Label{"foo": "bar"}
+	labels := model.Labels{"foo": "bar"}
 	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
 	page := model.Page{Url: &url, Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{"user-agent": "go-1.1"}}
@@ -75,7 +75,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	http := model.Http{Request: &request, Response: &response}
 	ctxUrl := model.Url{Original: &origUrl}
 	custom := model.Custom{"abc": 1}
-	context := model.Context{User: &user, Label: &label, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
+	context := model.Context{User: &user, Labels: &labels, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
 
 	for _, test := range []struct {
 		input interface{}
@@ -122,7 +122,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Dropped: &dropped, Started: &started},
 				User:      &user,
-				Label:     &label,
+				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
 				Http:      &http,
@@ -309,7 +309,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Timestamp: timestamp,
 		Context:   &model.Context{User: &user},
 		User:      &user,
-		Label:     &model.Label{"a": "b"},
+		Labels:    &model.Labels{"a": "b"},
 		Page:      &model.Page{Url: &url, Referer: &referer},
 		Http:      &model.Http{Request: &request, Response: &response},
 		Url:       &model.Url{Original: &url},
