@@ -100,17 +100,19 @@
                         "SERVER_SOFTWARE": "nginx"
                     },
                     "headers": {
-                        "content-type": "text/html",
-                        "cookies": {
-                            "original": "c1=v1; c2=v2",
-                            "parsed": {
-                                "c1": "v1",
-                                "c2": "v2"
-                            }
-                        },
-                        "user-agent": {
-                            "original": "Mozilla Chrome Edge"
-                        }
+                        "some-other-header": "foo",
+                        "cookie": "c1=v1; c2=v2",
+                        "array": [
+                            "foo",
+                            "bar",
+                            "baz"
+                        ],
+                        "Content-Type": "text/html",
+                        "User-Agent": "Mozilla Chrome Edge"
+                    },
+                    "cookies": {
+                        "c2": "v2",
+                        "c1": "v1"
                     },
                     "method": "post",
                     "socket": {

@@ -1,0 +1,14 @@
+{
+    "Custom": null,
+    "Http": null,
+    "Labels": null,
+    "Page": null,
+    "Url": null,
+    "User": {
+        "Email": null,
+        "IP": "10.15.21.3",
+        "Id": "1234",
+        "Name": "john",
+        "UserAgent": null
+    }
+}

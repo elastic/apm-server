@@ -58,24 +58,12 @@
 
   # not in ECS
 - from: context.request.cookies
-  to: http.request.headers.cookies.parsed
+  to: http.request.cookies
   index: false
 
   # not in ECS
-- from: context.request.headers.cookie
-  to: http.request.headers.cookies.original
-  index: false
-
-  # not in ECS
-  # `original` for consistency with root user_agent
-  # dashed for consistency with other headers
-- from: context.request.headers.user-agent
-  to: http.request.headers.user-agent.original
-  index: false
-
-  # not in ECS
-- from: context.request.headers.content-type
-  to: http.request.headers.content-type
+- from: context.request.headers
+  to: http.request.headers
   index: false
 
   # not in ECS

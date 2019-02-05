@@ -186,22 +186,24 @@
                     "body": {
                         "original": "Hello World"
                     },
+                    "cookies": {
+                        "c1": "v1",
+                        "c2": "v2"
+                    },
                     "env": {
                         "GATEWAY_INTERFACE": "CGI/1.1",
                         "SERVER_SOFTWARE": "nginx"
                     },
                     "headers": {
+                        "array": [
+                            "foo",
+                            "bar",
+                            "baz"
+                        ],
                         "content-type": "text/html",
-                        "cookies": {
-                            "original": "c1=v1; c2=v2",
-                            "parsed": {
-                                "c1": "v1",
-                                "c2": "v2"
-                            }
-                        },
-                        "user-agent": {
-                            "original": "Mozilla Chrome Edge"
-                        }
+                        "cookie": "c1=v1; c2=v2",
+                        "some-other-header": "foo",
+                        "user-agent": "Mozilla Chrome Edge"
                     },
                     "method": "post",
                     "socket": {

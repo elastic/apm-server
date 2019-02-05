@@ -1,0 +1,31 @@
+{
+    "Custom": null,
+    "Http": {
+        "Request": {
+            "Body": "user-request",
+            "Cookies": null,
+            "Env": null,
+            "Headers": null,
+            "Method": "get",
+            "Socket": {
+                "Encrypted": null,
+                "RemoteAddress": null
+            }
+        },
+        "Response": null,
+        "Version": null
+    },
+    "Labels": null,
+    "Page": null,
+    "Url": {
+        "Domain": null,
+        "Fragment": null,
+        "Full": null,
+        "Original": null,
+        "Path": null,
+        "Port": null,
+        "Query": null,
+        "Scheme": null
+    },
+    "User": null
+}

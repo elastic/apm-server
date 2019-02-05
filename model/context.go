@@ -18,81 +18,40 @@
 package model
 
 import (
-	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
 
-	errorw "github.com/pkg/errors"
+	"github.com/elastic/apm-server/model/metadata"
 
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func HttpFields(fields common.MapStr) common.MapStr {
-	var source = func(dottedKeys string) interface{} {
-		return utility.Get(fields, dottedKeys)
-	}
-
-	var caseInsensitive = func(prfx, key string) interface{} {
-		val := source(prfx + key)
-		if val != nil {
-			return val
-		}
-		return source(prfx + strings.Title(key))
-	}
-
-	destination := common.MapStr{}
-	utility.Add(destination, "version", source("request.http_version"))
-	if method, ok := source("request.method").(string); ok {
-		utility.DeepAdd(destination, "request.method", strings.ToLower(method))
-	}
-	utility.DeepAdd(destination, "request.body.original", source("request.body"))
-	utility.DeepAdd(destination, "request.env", source("request.env"))
-	utility.DeepAdd(destination, "request.socket", source("request.socket"))
-	utility.DeepAdd(destination, "request.headers.cookies.parsed", caseInsensitive("request.", "cookies"))
-	utility.DeepAdd(destination, "request.headers.cookies.original", caseInsensitive("request.headers.", "cookie"))
-	utility.DeepAdd(destination, "request.headers.user-agent.original", caseInsensitive("request.headers.", "user-agent"))
-	utility.DeepAdd(destination, "request.headers.content-type", caseInsensitive("request.headers.", "content-type"))
-
-	utility.DeepAdd(destination, "response.finished", source("response.finished"))
-	utility.DeepAdd(destination, "response.status_code", source("response.status_code"))
-	utility.DeepAdd(destination, "response.headers.content-type", caseInsensitive("response.headers.", "content-type"))
-	utility.DeepAdd(destination, "response.headers_sent", source("response.headers_sent"))
-
-	return destination
+type Context struct {
+	Http   *Http
+	Url    *Url
+	Labels *Labels
+	Page   *Page
+	Custom *Custom
+	User   *metadata.User
 }
 
-func UrlFields(fields common.MapStr) common.MapStr {
-	var source = func(dottedKeys string) interface{} {
-		return utility.Get(fields, dottedKeys)
-	}
+type Http struct {
+	Version  *string
+	Request  *Req
+	Response *Resp
+}
 
-	destination := common.MapStr{}
-	utility.Add(destination, "full", source("request.url.full"))
-	utility.Add(destination, "fragment", source("request.url.hash"))
-	utility.Add(destination, "domain", source("request.url.hostname"))
-	utility.Add(destination, "path", source("request.url.pathname"))
-	port := source("request.url.port")
-	var portInt *int
-	if portNumber, ok := port.(json.Number); ok {
-		if p64, err := portNumber.Int64(); err == nil {
-			p := int(p64)
-			portInt = &p
-		}
-	} else if portStr, ok := port.(string); ok {
-		if p, err := strconv.Atoi(portStr); err == nil {
-			portInt = &p
-		}
-	}
-	utility.Add(destination, "port", portInt)
-	utility.Add(destination, "original", source("request.url.raw"))
-	if scheme, ok := source("request.url.protocol").(string); ok {
-		utility.Add(destination, "scheme", strings.TrimSuffix(scheme, ":"))
-	}
-	utility.Add(destination, "query", source("request.url.search"))
-
-	return destination
+type Url struct {
+	Original *string
+	Scheme   *string
+	Full     *string
+	Domain   *string
+	Port     *int
+	Path     *string
+	Query    *string
+	Fragment *string
 }
 
 type Page struct {
@@ -100,23 +59,91 @@ type Page struct {
 	Referer *string
 }
 
-func DecodePage(input interface{}, err error) (*Page, error) {
+type Labels common.MapStr
+type Custom common.MapStr
+type Headers common.MapStr
+
+type Req struct {
+	Method  string
+	Body    interface{}
+	Headers *Headers
+	Env     interface{}
+	Socket  *Socket
+	Cookies interface{}
+}
+
+type Socket struct {
+	RemoteAddress *string
+	Encrypted     *bool
+}
+
+type Resp struct {
+	Finished    *bool
+	StatusCode  *int
+	HeadersSent *bool
+	Headers     *Headers
+}
+
+func DecodeContext(input interface{}, err error) (*Context, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
-	raw, ok := input.(common.MapStr)
+	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for fetching Page")
+		return nil, errors.New("Invalid type for fetching Context fields")
 	}
+
 	decoder := utility.ManualDecoder{}
-	pageInput := decoder.MapStr(raw, "page")
-	if decoder.Err != nil || pageInput == nil {
-		return nil, errorw.Wrapf(decoder.Err, "fetching Page")
+	ctxInp := decoder.MapStr(raw, "context")
+	if ctxInp == nil {
+		return &Context{}, decoder.Err
 	}
-	return &Page{
-		Url:     decoder.StringPtr(pageInput, "url"),
-		Referer: decoder.StringPtr(pageInput, "referer"),
-	}, decoder.Err
+
+	userInp := decoder.Interface(ctxInp, "user")
+	err = decoder.Err
+	http, err := decodeHttp(ctxInp, err)
+	url, err := decodeUrl(ctxInp, err)
+	labels, err := decodeLabels(ctxInp, err)
+	custom, err := decodeCustom(ctxInp, err)
+	page, err := decodePage(ctxInp, err)
+	user, err := metadata.DecodeUser(userInp, err)
+	return &Context{
+		Http:   http,
+		Url:    url,
+		Labels: labels,
+		Page:   page,
+		Custom: custom,
+		User:   user,
+	}, err
+
+}
+
+func (url *Url) Fields() common.MapStr {
+	if url == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Add(fields, "full", url.Full)
+	utility.Add(fields, "fragment", url.Fragment)
+	utility.Add(fields, "domain", url.Domain)
+	utility.Add(fields, "path", url.Path)
+	utility.Add(fields, "port", url.Port)
+	utility.Add(fields, "original", url.Original)
+	utility.Add(fields, "scheme", url.Scheme)
+	utility.Add(fields, "query", url.Query)
+	return fields
+}
+
+func (http *Http) Fields() common.MapStr {
+	if http == nil {
+		return nil
+	}
+
+	fields := common.MapStr{}
+	utility.Add(fields, "version", http.Version)
+	utility.Add(fields, "request", http.Request.fields())
+	utility.Add(fields, "response", http.Response.fields())
+	return fields
 }
 
 func (page *Page) Fields() common.MapStr {
@@ -126,5 +153,180 @@ func (page *Page) Fields() common.MapStr {
 	var fields = common.MapStr{}
 	utility.Add(fields, "url", page.Url)
 	utility.Add(fields, "referer", page.Referer)
+	return fields
+}
+
+func (labels *Labels) Fields() common.MapStr {
+	if labels == nil {
+		return nil
+	}
+	return common.MapStr(*labels)
+}
+
+func (custom *Custom) Fields() common.MapStr {
+	if custom == nil {
+		return nil
+	}
+	return common.MapStr(*custom)
+}
+
+func decodeUrl(raw common.MapStr, err error) (*Url, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	decoder := utility.ManualDecoder{}
+	req := decoder.MapStr(raw, "request")
+	if req == nil {
+		return nil, decoder.Err
+	}
+
+	inpUrl := decoder.MapStr(req, "url")
+	url := Url{
+		Original: decoder.StringPtr(inpUrl, "raw"),
+		Full:     decoder.StringPtr(inpUrl, "full"),
+		Domain:   decoder.StringPtr(inpUrl, "hostname"),
+		Path:     decoder.StringPtr(inpUrl, "pathname"),
+		Query:    decoder.StringPtr(inpUrl, "search"),
+		Fragment: decoder.StringPtr(inpUrl, "hash"),
+	}
+	if scheme := decoder.StringPtr(inpUrl, "protocol"); scheme != nil {
+		trimmed := strings.TrimSuffix(*scheme, ":")
+		url.Scheme = &trimmed
+	}
+	err = decoder.Err
+	if url.Port = decoder.IntPtr(inpUrl, "port"); url.Port != nil {
+		return &url, nil
+	} else if portStr := decoder.StringPtr(inpUrl, "port"); portStr != nil {
+		var p int
+		if p, err = strconv.Atoi(*portStr); err == nil {
+			url.Port = &p
+		}
+	}
+
+	return &url, err
+}
+
+func decodeHttp(raw common.MapStr, err error) (*Http, error) {
+	if err != nil {
+		return nil, err
+	}
+	var http *Http
+	decoder := utility.ManualDecoder{}
+	inpReq := decoder.MapStr(raw, "request")
+	if inpReq != nil {
+		headers := Headers(decoder.MapStr(inpReq, "headers"))
+		http = &Http{
+			Version: decoder.StringPtr(inpReq, "http_version"),
+			Request: &Req{
+				Method: strings.ToLower(decoder.String(inpReq, "method")),
+				Env:    decoder.Interface(inpReq, "env"),
+				Socket: &Socket{
+					RemoteAddress: decoder.StringPtr(inpReq, "remote_address", "socket"),
+					Encrypted:     decoder.BoolPtr(inpReq, "encrypted", "socket"),
+				},
+				Headers: &headers,
+				Body:    decoder.Interface(inpReq, "body"),
+				Cookies: decoder.Interface(inpReq, "cookies"),
+			},
+		}
+	}
+
+	inpResp := decoder.MapStr(raw, "response")
+	if inpResp != nil {
+		if http == nil {
+			http = &Http{}
+		}
+		headers := Headers(decoder.MapStr(inpResp, "headers"))
+		http.Response = &Resp{
+			Finished:    decoder.BoolPtr(inpResp, "finished"),
+			StatusCode:  decoder.IntPtr(inpResp, "status_code"),
+			HeadersSent: decoder.BoolPtr(inpResp, "headers_sent"),
+			Headers:     &headers,
+		}
+	}
+	return http, decoder.Err
+}
+
+func decodePage(raw common.MapStr, err error) (*Page, error) {
+	if err != nil {
+		return nil, err
+	}
+	pageInput, ok := raw["page"].(map[string]interface{})
+	if !ok {
+		return nil, nil
+	}
+	decoder := utility.ManualDecoder{}
+	return &Page{
+		Url:     decoder.StringPtr(pageInput, "url"),
+		Referer: decoder.StringPtr(pageInput, "referer"),
+	}, decoder.Err
+}
+
+func decodeLabels(raw common.MapStr, err error) (*Labels, error) {
+	if err != nil {
+		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	if l := decoder.MapStr(raw, "tags"); decoder.Err == nil && l != nil {
+		labels := Labels(l)
+		return &labels, nil
+	}
+	return nil, decoder.Err
+}
+
+func decodeCustom(raw common.MapStr, err error) (*Custom, error) {
+	if err != nil {
+		return nil, err
+	}
+	decoder := utility.ManualDecoder{}
+	if c := decoder.MapStr(raw, "custom"); decoder.Err == nil && c != nil {
+		custom := Custom(c)
+		return &custom, nil
+	}
+	return nil, decoder.Err
+}
+
+func (req *Req) fields() common.MapStr {
+	if req == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Add(fields, "headers", req.Headers.fields())
+	utility.Add(fields, "socket", req.Socket.fields())
+	utility.Add(fields, "env", req.Env)
+	utility.DeepAdd(fields, "body.original", req.Body)
+	utility.Add(fields, "method", req.Method)
+	utility.Add(fields, "cookies", req.Cookies)
+
+	return fields
+}
+
+func (resp *Resp) fields() common.MapStr {
+	if resp == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Add(fields, "headers", resp.Headers.fields())
+	utility.Add(fields, "headers_sent", resp.HeadersSent)
+	utility.Add(fields, "finished", resp.Finished)
+	utility.Add(fields, "status_code", resp.StatusCode)
+	return fields
+}
+
+func (h *Headers) fields() common.MapStr {
+	if h == nil {
+		return nil
+	}
+	return common.MapStr(*h)
+}
+
+func (s *Socket) fields() common.MapStr {
+	if s == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Add(fields, "encrypted", s.Encrypted)
+	utility.Add(fields, "remote_address", s.RemoteAddress)
 	return fields
 }

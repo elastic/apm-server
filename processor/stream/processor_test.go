@@ -91,7 +91,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 	}
 }
 
-func TestIntegration(t *testing.T) {
+func TestIntegrationESOutput(t *testing.T) {
 	report := func(ctx context.Context, p publish.PendingReq) error {
 		var events []beat.Event
 		for _, transformable := range p.Transformables {
