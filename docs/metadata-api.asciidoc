@@ -20,7 +20,11 @@ TIP: Metadata is stored under `context` when viewing documents in Elasticsearch.
 [float]
 ==== Kubernetes data
 
-APM agents automatically read kubernetes data and add it to the metadata that is sent to the APM Server. In most instances, agents are able to read this data from inside the container. If this is not the case, or if you wish to override this data, you can set environment variables for the agents to read. These environment variable are set via the kubernetes https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/#use-pod-fields-as-values-for-environment-variables[Downward API]. Here's how you would add the environment variables to your kubernetes pod spec:
+APM agents automatically read kubernetes data and send it to the APM Server.
+In most instances, agents are able to read this data from inside the container.
+If this is not the case, or if you wish to override this data, you can set environment variables for the agents to read.
+These environment variable are set via the kubernetes https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/#use-pod-fields-as-values-for-environment-variables[Downward API].
+Here's how you would add the environment variables to your kubernetes pod spec:
 
 [source,yaml]
 ----

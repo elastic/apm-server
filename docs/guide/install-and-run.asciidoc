@@ -22,7 +22,7 @@ compatibility.
 * Verify that your system meets the
 https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {es}.
 
-IMPORTANT: For best results, ensure you’re using the same version of Elasticsearch, Kibana, and APM Server.
+IMPORTANT: You must ensure you’re using the same version of Elasticsearch, Kibana, and APM Server.
 
 NOTE: The following links assume you're using the current version of the Elasticstack.
 If you're not, it's easy to adjust the version of the documentation after you land on each page.
@@ -92,7 +92,7 @@ Currently Elastic APM has agents for Go, Java, Node.js, Python, Ruby, and JavaSc
 Setting up a new service to be monitored requires installing the agent,
 and configuring it with the address of your APM Server and the service name.
 
-NOTE: Be sure to check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch
+NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch.
 
 [cols="h,,,"]
 |=======================================================================
@@ -100,7 +100,7 @@ NOTE: Be sure to check the <<agent-server-compatibility,Agent/Server compatibili
 3+| More information
 
 .2+|Go
-3+|The Go agent automatically instruments Gorilla and Gin, as well as support for Go’s built-in net/http and database/sql drivers.
+3+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
 |{apm-go-ref}/introduction.html[Introduction]
 |{apm-go-ref}/supported-tech.html[Supported technologies]
 |{apm-go-ref}/configuration.html[Config]
@@ -153,5 +153,5 @@ spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 [float]
 === Next steps
 
-Just like that, you're up and running with Elastic APM!
+You're now up and running with Elastic APM!
 Don't forget to check out the <<concepts>> and <<apm-data-model>> documentation to gain a deeper understanding of how Elastic APM works. 
