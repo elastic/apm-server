@@ -24,6 +24,7 @@
       type: group
       description: >
         A complete Url, with scheme, host and path.
+      dynamic: false
       fields:
 
        - name: scheme
@@ -70,6 +71,7 @@
 
     - name: http
       type: group
+      dynamic: false
       fields:
 
        - name: version
@@ -118,6 +120,7 @@
 
     - name: service
       type: group
+      dynamic: false
       description: >
         Service fields.
       fields:
@@ -218,6 +221,7 @@
 
     - name: agent
       type: group
+      dynamic: false
       fields:
 
         - name: name
@@ -234,6 +238,7 @@
 
     - name: container
       type: group
+      dynamic: false
       title: Container
       description: >
         Container fields are used for meta information about the specific container
@@ -249,6 +254,7 @@
 
     - name: kubernetes
       type: group
+      dynamic: false
       title: Kubernetes
       description: >
         Kubernetes metadata added by the kubernetes processor
@@ -287,6 +293,7 @@
 
     - name: host
       type: group
+      dynamic: false
       description: >
         Optional host fields.
       fields:
@@ -324,6 +331,7 @@
 
     - name: process
       type: group
+      dynamic: false
       description: >
         Information pertaining to the running process where the data was collected
       fields:
@@ -356,6 +364,7 @@
 
     - name: observer
       type: group
+      dynamic: false
       fields:
 
         - name: listening
@@ -388,6 +397,7 @@
 
     - name: user
       type: group
+      dynamic: false
       fields:
 
       - name: name
@@ -409,6 +419,7 @@
         overwrite: true
 
     - name: client
+      dynamic: false
       type: group
       fields:
 
@@ -421,6 +432,7 @@
         overwrite: true
 
     - name: user_agent
+      dynamic: false
       title: User agent
       description: >
         The user_agent fields normally come from a browser request. They often
