@@ -19,6 +19,8 @@ include::./apm-data-model.asciidoc[]
 
 include::./distributed-tracing.asciidoc[]
 
+include::./opentracing.asciidoc[]
+
 include::./agent-server-compatibility.asciidoc[]
 
 include::./apm-release-notes.asciidoc[]
