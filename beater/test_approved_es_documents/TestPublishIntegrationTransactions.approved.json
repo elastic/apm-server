@@ -38,7 +38,7 @@
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
                 "version": "8.0.0",
-                "version_major": 7
+                "version_major": 8
             },
             "parent": {
                 "id": "abcdefabcdef01234567"
@@ -186,7 +186,7 @@
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
                 "version": "8.0.0",
-                "version_major": 7
+                "version_major": 8
             },
             "process": {
                 "args": [
@@ -310,7 +310,7 @@
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
                 "version": "8.0.0",
-                "version_major": 7
+                "version_major": 8
             },
             "process": {
                 "args": [

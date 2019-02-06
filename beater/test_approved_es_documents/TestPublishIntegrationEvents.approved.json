@@ -41,7 +41,7 @@
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
                 "version": "8.0.0",
-                "version_major": 7
+                "version_major": 8
             },
             "process": {
                 "pid": 1234
@@ -80,7 +80,7 @@
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
                 "version": "8.0.0",
-                "version_major": 7
+                "version_major": 8
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -147,7 +147,7 @@
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
                 "version": "8.0.0",
-                "version_major": 7
+                "version_major": 8
             },
             "process": {
                 "pid": 1234
@@ -226,7 +226,7 @@
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
                 "version": "8.0.0",
-                "version_major": 7
+                "version_major": 8
             },
             "process": {
                 "pid": 1234
