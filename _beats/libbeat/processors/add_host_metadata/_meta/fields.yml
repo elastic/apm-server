@@ -15,6 +15,14 @@
           type: keyword
           description: >
             Unique host id.
+        - name: architecture
+          type: keyword
+          description: >
+            Host architecture (e.g. x86_64, arm, ppc, mips).
+        - name: os.platform
+          type: keyword
+          description: >
+            OS platform (e.g. centos, ubuntu, windows).
         - name: os.version
           type: keyword
           description: >
@@ -23,7 +31,12 @@
           type: keyword
           description: >
             OS family (e.g. redhat, debian, freebsd, windows).
+        - name: ip
+          type: ip
+          description: >
+            List of IP-addresses.
         - name: mac
           type: keyword
           description: >
             List of hardware-addresses, usually MAC-addresses.
+

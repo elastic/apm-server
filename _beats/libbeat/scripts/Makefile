@@ -83,6 +83,7 @@ INTEGRATION_TESTS?=
 FIND?=. ${PYTHON_ENV}/bin/activate; find . -type f -not -path "*/vendor/*" -not -path "*/build/*" -not -path "*/.git/*"
 PERM_EXEC?=$(shell [ `uname -s` = "Darwin" ] && echo "+111" || echo "/a+x")
 XPACK_ONLY?=false
+XPACK_DIR=${ES_BEATS}/x-pack/${BEAT_NAME}
 
 ifeq ($(DOCKER_CACHE),0)
 	DOCKER_NOCACHE=--no-cache
@@ -197,6 +198,11 @@ integration-tests: prepare-tests
 .PHONY: integration-tests-environment
 integration-tests-environment:  ## @testing Runs the integration inside a virtual environment. This can be run on any docker-machine (local, remote)
 integration-tests-environment: prepare-tests build-image
+	# If you want to get logs on CI when the `docker-compose` fails, you can
+	# add  `|| ${DOCKER_COMPOSE} logs --tail 200` after the command.
+	#
+	# This will make docker-compose command to display the logs on stdout on error, It's not enabled
+	# by default because it can create noise if the test inside the container fails.
 	${DOCKER_COMPOSE} run beat make integration-tests RACE_DETECTOR=$(RACE_DETECTOR) DOCKER_COMPOSE_PROJECT_NAME=${DOCKER_COMPOSE_PROJECT_NAME}
 
 # Runs the system tests
@@ -357,7 +363,11 @@ endif
 
 .PHONY: docs
 docs:  ## @build Builds the documents for the beat
-	sh ${ES_BEATS}/script/build_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR}
+	@if [ -d $(XPACK_DIR) ]; then \
+		sh ${ES_BEATS}/script/build_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR} ${XPACK_DIR}; \
+	else \
+		sh ${ES_BEATS}/script/build_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR}; \
+	fi
 
 .PHONY: docs-preview
 docs-preview:  ## @build Preview the documents for the beat in the browser

@@ -66,6 +66,9 @@
     Alias fields for compatibility with 7.x.
   fields:
     # Common Beats fields
+    - name: host.hostname
+      type: alias
+      path: beat.hostname
     - name: event.timezone
       type: alias
       path: beat.timezone
