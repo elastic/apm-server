@@ -2,8 +2,9 @@
 [[apm-release-notes]]
 == Release notes
 
+////
 [float]
-==== APM version 7.0.0
+==== APM version 7.0.0-beta
 
 [float]
 ===== Breaking Changes
@@ -11,6 +12,7 @@
 *APM Server*
 
 * Removal of deprecated Intake v1 API endpoints.
+////
 
 [float]
 ==== APM version 7.0.0-alpha2
