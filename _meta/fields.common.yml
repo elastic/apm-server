@@ -257,7 +257,7 @@
       dynamic: false
       title: Kubernetes
       description: >
-        Kubernetes metadata added by the kubernetes processor
+        Kubernetes metadata reported by agents
       fields:
 
         - name: namespace
