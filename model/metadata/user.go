@@ -67,9 +67,9 @@ func (u *User) Fields() common.MapStr {
 		return nil
 	}
 	user := common.MapStr{}
-	utility.Add(user, "id", u.Id)
-	utility.Add(user, "email", u.Email)
-	utility.Add(user, "name", u.Name)
+	utility.Set(user, "id", u.Id)
+	utility.Set(user, "email", u.Email)
+	utility.Set(user, "name", u.Name)
 	return user
 }
 
@@ -78,7 +78,7 @@ func (u *User) ClientFields() common.MapStr {
 		return nil
 	}
 	user := common.MapStr{}
-	utility.Add(user, "ip", u.IP)
+	utility.Set(user, "ip", u.IP)
 	return user
 }
 

@@ -47,6 +47,6 @@ func (k *Container) fields() common.MapStr {
 		return nil
 	}
 	container := common.MapStr{}
-	utility.Add(container, "id", k.ID)
+	utility.Set(container, "id", k.ID)
 	return container
 }

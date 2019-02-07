@@ -207,9 +207,9 @@ const ModelSchema = `{
     "additionalProperties": false
         },
         "user": {
+            "description": "Describes the correlated user for this event. If user data are provided here, all user related information from metadata is ignored, otherwise the metadata's user information will be stored with the event.",
                 "$id": "docs/spec/user.json",
     "title": "User",
-    "description": "Describes the authenticated User for a request.",
     "type": ["object", "null"],
     "properties": {
         "id": {
@@ -242,6 +242,88 @@ const ModelSchema = `{
                     "type": ["string", "null"]
                 }
             }
+        },
+        "service": {
+            "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
+                "$id": "doc/spec/service.json",
+    "title": "Service",
+    "type": ["object", "null"],
+    "properties": {
+        "agent": {
+            "description": "Name and version of the Elastic APM agent",
+            "type": ["object", "null"],
+            "properties": {
+                "name": {
+                    "description": "Name of the Elastic APM agent, e.g. \"Python\"",
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "version": {
+                    "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                }
+            }
+        },
+        "framework": {
+            "description": "Name and version of the web framework used",
+            "type": ["object", "null"],
+            "properties": {
+                "name": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "version": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                }
+            }
+        },
+        "language": {
+            "description": "Name and version of the programming language used",
+            "type": ["object", "null"],
+            "properties": {
+                "name": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "version": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                }
+            }
+        },
+        "name": {
+            "description": "Immutable name of the service emitting this event",
+            "type": ["string", "null"],
+            "pattern": "^[a-zA-Z0-9 _-]+$",
+            "maxLength": 1024
+        },
+        "environment": {
+            "description": "Environment name of the service, e.g. \"production\" or \"staging\"",
+            "type": ["string", "null"],
+            "maxLength": 1024
+        },
+        "runtime": {
+            "description": "Name and version of the language runtime running this service",
+            "type": ["object", "null"],
+            "properties": {
+                "name": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                },
+                "version": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                }
+            }
+        },
+        "version": {
+            "description": "Version of the service emitting this event",
+            "type": ["string", "null"],
+            "maxLength": 1024
+        }
+    }
         }
     }
                 },

@@ -26,40 +26,27 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
-func Get(m common.MapStr, key string) interface{} {
-	ret, _ := m.GetValue(key)
-	return ret
+// Set takes a map and changes key to point to the provided value.
+// In case the provided value is nil or of length 0, the key is deleted from the map .
+func Set(m common.MapStr, key string, val interface{}) {
+	update(m, key, val, true)
 }
 
-func DeepAdd(m common.MapStr, dottedKeys string, val interface{}) {
-	keys := strings.Split(dottedKeys, ".")
-	if len(keys) == 0 {
-		return
-	}
-	reverse(keys)
-	v := val
-	for _, k := range keys {
-		subMap := common.MapStr{}
-		Add(subMap, k, v)
-		v = subMap
-	}
-	m.DeepUpdate(v.(common.MapStr))
+// Update takes a map and changes key to point to the provided value.
+// In case the provided value is nil nothing is changed.
+func Update(m common.MapStr, key string, val interface{}) {
+	update(m, key, val, false)
 }
 
-func reverse(slice []string) {
-	size := len(slice)
-	for i := 0; i < len(slice)/2; i++ {
-		slice[i], slice[size-i-1] = slice[size-i-1], slice[i]
-	}
-}
-
-func Add(m common.MapStr, key string, val interface{}) {
+func update(m common.MapStr, key string, val interface{}, remove bool) {
 	if m == nil || key == "" {
 		return
 	}
 
 	if val == nil {
-		delete(m, key)
+		if remove {
+			delete(m, key)
+		}
 		return
 	}
 
@@ -67,60 +54,60 @@ func Add(m common.MapStr, key string, val interface{}) {
 	case *bool:
 		if value != nil {
 			m[key] = *value
-		} else {
+		} else if remove {
 			delete(m, key)
 		}
 	case *int:
 		if value != nil {
 			m[key] = *value
-		} else {
+		} else if remove {
 			delete(m, key)
 		}
 	case *int64:
 		if newVal := val.(*int64); newVal != nil {
 			m[key] = *newVal
-		} else {
+		} else if remove {
 			delete(m, key)
 		}
 	case *string:
 		if value != nil {
 			m[key] = *value
-		} else {
+		} else if remove {
 			delete(m, key)
 		}
 	case common.MapStr:
 		if len(value) > 0 {
 			newValMap := common.MapStr{}
 			for k, v := range value {
-				Add(newValMap, k, v)
+				update(newValMap, k, v, remove)
 			}
 			if len(newValMap) > 0 {
 				m[key] = newValMap
-			} else {
+			} else if remove {
 				delete(m, key)
 			}
-		} else {
+		} else if remove {
 			delete(m, key)
 		}
 	case map[string]interface{}:
 		if len(value) > 0 {
 			newValMap := map[string]interface{}{}
 			for k, v := range value {
-				Add(newValMap, k, v)
+				update(newValMap, k, v, remove)
 			}
 			if len(newValMap) > 0 {
 				m[key] = newValMap
-			} else {
+			} else if remove {
 				delete(m, key)
 			}
-		} else {
+		} else if remove {
 			delete(m, key)
 		}
 	case json.Number:
 		if floatVal, err := value.Float64(); err != nil {
-			Add(m, key, value.String())
+			update(m, key, value.String(), remove)
 		} else {
-			Add(m, key, floatVal)
+			update(m, key, floatVal, remove)
 		}
 	case float64:
 		if value == float64(int64(value)) {
@@ -131,7 +118,7 @@ func Add(m common.MapStr, key string, val interface{}) {
 	case *float64:
 		if value != nil {
 			m[key] = *value
-		} else {
+		} else if remove {
 			delete(m, key)
 		}
 	case float32:
@@ -148,7 +135,7 @@ func Add(m common.MapStr, key string, val interface{}) {
 		v := reflect.ValueOf(val)
 		switch v.Type().Kind() {
 		case reflect.Slice, reflect.Array:
-			if v.Len() == 0 {
+			if v.Len() == 0 && remove {
 				delete(m, key)
 			} else {
 				m[key] = val
@@ -164,37 +151,27 @@ func Add(m common.MapStr, key string, val interface{}) {
 	}
 }
 
-// MergeAdd modifies `m` *in place*, inserting `val` at the given `key`.
-// If `key` doesn't exist in m(at the top level), it gets created.
-// If the value under `key` is not a map, MergeAdd does nothing.
-func MergeAdd(m common.MapStr, key string, val common.MapStr) {
-	if m == nil || key == "" || val == nil || len(val) == 0 {
+// DeepUpdate splits the key by '.' and merges the given value at m[de-dottedKeys].
+func DeepUpdate(m common.MapStr, dottedKeys string, val interface{}) {
+	keys := strings.Split(dottedKeys, ".")
+	if len(keys) == 0 {
 		return
 	}
-
-	if _, ok := m[key]; !ok {
-		m[key] = common.MapStr{}
+	reverse(keys)
+	v := val
+	for _, k := range keys {
+		subMap := common.MapStr{}
+		update(subMap, k, v, false)
+		v = subMap
 	}
-
-	if nested, ok := m[key].(common.MapStr); ok {
-		for k, v := range val {
-			Add(nested, k, v)
-		}
-	} else if nested, ok := m[key].(map[string]interface{}); ok {
-		for k, v := range val {
-			Add(nested, k, v)
-		}
-	}
+	m.DeepUpdate(v.(common.MapStr))
 }
 
-func AddIfNil(m common.MapStr, key string, val common.MapStr) {
-	if m == nil || val == nil || len(val) == 0 {
-		return
+func reverse(slice []string) {
+	size := len(slice)
+	for i := 0; i < len(slice)/2; i++ {
+		slice[i], slice[size-i-1] = slice[size-i-1], slice[i]
 	}
-	if _, ok := m[key]; ok {
-		return
-	}
-	Add(m, key, val)
 }
 
 func MillisAsMicros(ms float64) common.MapStr {

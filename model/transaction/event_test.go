@@ -251,8 +251,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
 	user := metadata.User{Id: &id, Name: &name, IP: &ip, UserAgent: &userAgent}
 	url, referer := "https://localhost", "http://localhost"
+	serviceName := "myservice"
 
-	service := metadata.Service{Name: "myservice"}
+	service := metadata.Service{Name: &serviceName}
 	system := &metadata.System{
 		Hostname:     &hostname,
 		Architecture: &architecture,
@@ -261,7 +262,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	txValid := Event{Timestamp: timestamp}
 	txValidEs := common.MapStr{
-		"agent": common.MapStr{"name": "", "version": ""},
 		"processor": common.MapStr{
 			"event": "transaction",
 			"name":  "transaction",
@@ -279,7 +279,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}
 
 	txValidWithSystem := common.MapStr{
-		"agent": common.MapStr{"name": "", "version": ""},
 		"host": common.MapStr{
 			"architecture": architecture,
 			"hostname":     hostname,
@@ -316,7 +315,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Custom:    &model.Custom{"foo": "bar"},
 	}
 	txWithContextEs := common.MapStr{
-		"agent":      common.MapStr{"name": "", "version": ""},
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": "63.23.123.4"},
 		"user_agent": common.MapStr{"original": userAgent},
@@ -354,7 +352,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 	txValidWithSpan := Event{Timestamp: timestamp}
 	spanEs := common.MapStr{
-		"agent": common.MapStr{"name": "", "version": ""},
 		"processor": common.MapStr{
 			"event": "span",
 			"name":  "transaction",
@@ -377,8 +374,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Msg      string
 	}{
 		{
-			Metadata: metadata.NewMetadata(
-				&service,
+			Metadata: metadata.NewMetadata(&service,
 				nil, nil, nil,
 			),
 			Event:  &txValid,

@@ -1,7 +1,6 @@
 {
     "$id": "docs/spec/user.json",
     "title": "User",
-    "description": "Describes the authenticated User for a request.",
     "type": ["object", "null"],
     "properties": {
         "id": {
