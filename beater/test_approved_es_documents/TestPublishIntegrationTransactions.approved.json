@@ -37,8 +37,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0",
-                "version_major": 7
+                "version": "7.0.0"
             },
             "parent": {
                 "id": "abcdefabcdef01234567"
@@ -103,12 +102,34 @@
                 "version": "7.0.0"
             },
             "@timestamp": "2017-05-30T18:53:27.154Z",
+            "_meta": {
+                "kind": "apm"
+            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
             "container": {
                 "id": "container-id"
+            },
+            "context": {
+                "custom": {
+                    "(": "not a valid regex and that is fine",
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "some_other_value": "foo bar"
+                },
+                "tags": {
+                    "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                    "tag2": 12,
+                    "tag3": 12.45,
+                    "tag4": false
+                }
             },
             "host": {
                 "architecture": "x64",
@@ -129,24 +150,22 @@
                             "str": "hello world"
                         }
                     },
-                    "cookies": {
-                        "c1": "v1",
-                        "c2": "v2"
-                    },
                     "env": {
                         "GATEWAY_INTERFACE": "CGI/1.1",
                         "SERVER_SOFTWARE": "nginx"
                     },
                     "headers": {
-                        "array": [
-                            "foo",
-                            "bar",
-                            "baz"
-                        ],
                         "content-type": "text/html",
-                        "cookie": "c1=v1; c2=v2",
-                        "some-other-header": "foo",
-                        "user-agent": "Mozilla Chrome Edge"
+                        "cookies": {
+                            "original": "c1=v1; c2=v2",
+                            "parsed": {
+                                "c1": "v1",
+                                "c2": "v2"
+                            }
+                        },
+                        "user-agent": {
+                            "original": "Mozilla Chrome Edge"
+                        }
                     },
                     "method": "post",
                     "socket": {
@@ -174,19 +193,12 @@
                     "uid": "pod-uid"
                 }
             },
-            "labels": {
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "tag2": 12,
-                "tag3": 12.45,
-                "tag4": false
-            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0",
-                "version_major": 7
+                "version": "7.0.0"
             },
             "process": {
                 "args": [
@@ -225,26 +237,11 @@
                 "id": "0acd456789abcdef0123456789abcdef"
             },
             "transaction": {
-                "custom": {
-                    "(": "not a valid regex and that is fine",
-                    "and_objects": {
-                        "foo": [
-                            "bar",
-                            "baz"
-                        ]
-                    },
-                    "my_key": 1,
-                    "some_other_value": "foo bar"
-                },
                 "duration": {
                     "us": 32592
                 },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "GET /api/types",
-                "page": {
-                    "referer": "http://localhost:8000/test/e2e/",
-                    "url": "http://localhost:8000/test/e2e/general-usecase/"
-                },
                 "result": "success",
                 "sampled": true,
                 "span_count": {
@@ -260,7 +257,7 @@
                 "path": "/p/a/t/h",
                 "port": 8080,
                 "query": "?query=string",
-                "scheme": "https"
+                "scheme": "https:"
             },
             "user": {
                 "id": "99",
@@ -309,8 +306,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0",
-                "version_major": 7
+                "version": "7.0.0"
             },
             "process": {
                 "args": [

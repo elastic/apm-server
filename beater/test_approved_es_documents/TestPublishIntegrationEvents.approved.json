@@ -40,8 +40,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0",
-                "version_major": 7
+                "version": "7.0.0"
             },
             "process": {
                 "pid": 1234
@@ -79,8 +78,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0",
-                "version_major": 7
+                "version": "7.0.0"
             },
             "parent": {
                 "id": "ab23456a89012345"
@@ -93,7 +91,6 @@
                 "name": "1234_service-12a3"
             },
             "span": {
-                "action": "get",
                 "duration": {
                     "us": 3564
                 },
@@ -102,7 +99,7 @@
                 "start": {
                     "us": 1845
                 },
-                "type": "request.external"
+                "type": "request"
             },
             "timestamp": {
                 "us": 1547070053000000
@@ -146,8 +143,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0",
-                "version_major": 7
+                "version": "7.0.0"
             },
             "process": {
                 "pid": 1234
@@ -225,8 +221,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.0",
-                "version_major": 7
+                "version": "7.0.0"
             },
             "process": {
                 "pid": 1234
