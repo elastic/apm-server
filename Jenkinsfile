@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.4') _
+@Library('apm@v1.0.6') _
 
 pipeline {
   agent any
@@ -7,6 +7,7 @@ pipeline {
     BASE_DIR = "src/github.com/elastic/apm-server"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
+    JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -379,9 +380,12 @@ pipeline {
       }
       post {
         success {
-          echo "Archive packages"
-          /** TODO check if it is better storing in snapshots */
-          //googleStorageUpload bucket: "gs://${JOB_GCS_BUCKET}/${JOB_NAME}/${BUILD_NUMBER}", credentialsId: "${JOB_GCS_CREDENTIALS}", pathPrefix: "${BASE_DIR}/build/distributions/", pattern: '${BASE_DIR}/build/distributions//**/*', sharedPublicly: true, showInline: true
+          googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
+            credentialsId: "${JOB_GCS_CREDENTIALS}",
+            pathPrefix: "${BASE_DIR}/build/distributions/",
+            pattern: "${BASE_DIR}/build/distributions/**/*",
+            sharedPublicly: true,
+            showInline: true)
         }
       }
     }
