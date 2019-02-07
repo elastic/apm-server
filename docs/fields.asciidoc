@@ -387,7 +387,7 @@ Unique container id.
 [float]
 == kubernetes fields
 
-Kubernetes metadata added by the kubernetes processor
+Kubernetes metadata reported by agents
 
 
 
