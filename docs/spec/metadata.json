@@ -5,7 +5,16 @@
     "type": ["object"],
     "properties": {
         "service": {
-            "$ref": "service.json"
+            "$ref": "service.json",
+            "type": "object",
+            "properties.agent.required": ["name", "version"],
+            "properties.agent.properties.name.type": "string",
+            "properties.agent.properties.version.type": "string",
+            "properties.runtime.required": ["name", "version"],
+            "properties.runtime.properties.name.type": "string",
+            "properties.runtime.properties.version.type": "string",
+            "properties.language.required": ["name"],
+            "properties.language.properties.name.type": "string"
         },
         "process": {
             "$ref": "process.json"
@@ -14,6 +23,7 @@
             "$ref": "system.json"
         },
         "user": {
+            "description": "Describes the authenticated User for a request.",
             "$ref": "user.json"
         }
     },

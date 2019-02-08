@@ -412,10 +412,11 @@ func TestEventFields(t *testing.T) {
 		},
 	}
 
+	s := "myservice"
 	tctx := &transform.Context{
 		Config: transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
 		Metadata: metadata.Metadata{
-			Service: &metadata.Service{Name: "myService"},
+			Service: &metadata.Service{Name: &s},
 		},
 	}
 
@@ -431,8 +432,9 @@ func TestEvents(t *testing.T) {
 
 	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
 	timestampUs := timestamp.UnixNano() / 1000
+	serviceName, agentName, version := "myservice", "go", "1.0"
 	service := metadata.Service{
-		Name: "myservice", Agent: metadata.Agent{Name: "go", Version: "1.0"},
+		Name: &serviceName, Agent: metadata.Agent{Name: &agentName, Version: &version},
 	}
 	exMsg := "exception message"
 	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
@@ -883,6 +885,7 @@ func md5With(args ...string) []byte {
 
 func TestSourcemapping(t *testing.T) {
 	c1 := 18
+	empty := ""
 	exMsg := "exception message"
 	event := Event{Exception: &Exception{
 		Message: &exMsg,
@@ -893,7 +896,7 @@ func TestSourcemapping(t *testing.T) {
 	tctx := &transform.Context{
 		Config: transform.Config{SmapMapper: nil},
 		Metadata: metadata.Metadata{
-			Service: &metadata.Service{},
+			Service: &metadata.Service{Name: &empty},
 		},
 	}
 	trNoSmap := event.fields(tctx)

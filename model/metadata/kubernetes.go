@@ -53,17 +53,17 @@ func (k *Kubernetes) fields() common.MapStr {
 		return nil
 	}
 	kubernetes := common.MapStr{}
-	utility.Add(kubernetes, "namespace", k.Namespace)
+	utility.Set(kubernetes, "namespace", k.Namespace)
 
 	node := common.MapStr{}
-	utility.Add(node, "name", k.NodeName)
+	utility.Set(node, "name", k.NodeName)
 
 	pod := common.MapStr{}
-	utility.Add(pod, "name", k.PodName)
-	utility.Add(pod, "uid", k.PodUID)
+	utility.Set(pod, "name", k.PodName)
+	utility.Set(pod, "uid", k.PodUID)
 
-	utility.Add(kubernetes, "node", node)
-	utility.Add(kubernetes, "pod", pod)
+	utility.Set(kubernetes, "node", node)
+	utility.Set(kubernetes, "pod", pod)
 
 	return kubernetes
 }

@@ -60,10 +60,10 @@ func TestStacktraceDecode(t *testing.T) {
 }
 
 func TestStacktraceTransform(t *testing.T) {
-	service := metadata.Service{Name: "myService"}
 	colno := 1
 	fct := "original function"
-	absPath := "original path"
+	absPath, serviceName := "original path", "service1"
+	service := metadata.Service{Name: &serviceName}
 
 	tests := []struct {
 		Stacktrace Stacktrace
@@ -154,10 +154,10 @@ func TestStacktraceTransform(t *testing.T) {
 }
 
 func TestStacktraceTransformWithSourcemapping(t *testing.T) {
-	service := metadata.Service{Name: "myService"}
 	colno := 1
 	fct := "original function"
-	absPath := "original path"
+	absPath, serviceName := "original path", "service1"
+	service := metadata.Service{Name: &serviceName}
 
 	tests := []struct {
 		Stacktrace Stacktrace

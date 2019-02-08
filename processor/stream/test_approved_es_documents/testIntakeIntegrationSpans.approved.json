@@ -160,8 +160,8 @@
         {
             "@timestamp": "2018-08-01T10:00:00.00283092Z",
             "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
+                "name": "elastic-ruby",
+                "version": "2.2"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -171,7 +171,7 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "backendspans"
+                "name": "service1"
             },
             "span": {
                 "action": "query",

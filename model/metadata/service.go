@@ -25,7 +25,7 @@ import (
 )
 
 type Service struct {
-	Name        string
+	Name        *string
 	Version     *string
 	Environment *string
 	Language    Language
@@ -47,8 +47,8 @@ type Framework struct {
 	Version *string
 }
 type Agent struct {
-	Name    string
-	Version string
+	Name    *string
+	Version *string
 }
 
 func DecodeService(input interface{}, err error) (*Service, error) {
@@ -61,12 +61,12 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	}
 	decoder := utility.ManualDecoder{}
 	service := Service{
-		Name:        decoder.String(raw, "name"),
+		Name:        decoder.StringPtr(raw, "name"),
 		Version:     decoder.StringPtr(raw, "version"),
 		Environment: decoder.StringPtr(raw, "environment"),
 		Agent: Agent{
-			Name:    decoder.String(raw, "name", "agent"),
-			Version: decoder.String(raw, "version", "agent"),
+			Name:    decoder.StringPtr(raw, "name", "agent"),
+			Version: decoder.StringPtr(raw, "version", "agent"),
 		},
 		Framework: Framework{
 			Name:    decoder.StringPtr(raw, "name", "framework"),
@@ -84,40 +84,42 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	return &service, decoder.Err
 }
 
-func (s *Service) minimalFields() common.MapStr {
+func (s *Service) MinimalFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	return common.MapStr{"name": s.Name}
+	f := common.MapStr{}
+	utility.Set(f, "name", s.Name)
+	return f
 }
 
-func (s *Service) fields() common.MapStr {
+func (s *Service) Fields() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	svc := s.minimalFields()
-	utility.Add(svc, "version", s.Version)
-	utility.Add(svc, "environment", s.Environment)
+	svc := s.MinimalFields()
+	utility.Set(svc, "version", s.Version)
+	utility.Set(svc, "environment", s.Environment)
 
 	lang := common.MapStr{}
-	utility.Add(lang, "name", s.Language.Name)
-	utility.Add(lang, "version", s.Language.Version)
-	utility.Add(svc, "language", lang)
+	utility.Set(lang, "name", s.Language.Name)
+	utility.Set(lang, "version", s.Language.Version)
+	utility.Set(svc, "language", lang)
 
 	runtime := common.MapStr{}
-	utility.Add(runtime, "name", s.Runtime.Name)
-	utility.Add(runtime, "version", s.Runtime.Version)
-	utility.Add(svc, "runtime", runtime)
+	utility.Set(runtime, "name", s.Runtime.Name)
+	utility.Set(runtime, "version", s.Runtime.Version)
+	utility.Set(svc, "runtime", runtime)
 
 	framework := common.MapStr{}
-	utility.Add(framework, "name", s.Framework.Name)
-	utility.Add(framework, "version", s.Framework.Version)
-	utility.Add(svc, "framework", framework)
+	utility.Set(framework, "name", s.Framework.Name)
+	utility.Set(framework, "version", s.Framework.Version)
+	utility.Set(svc, "framework", framework)
 
 	return svc
 }
 
-func (s *Service) agentFields() common.MapStr {
+func (s *Service) AgentFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
@@ -129,7 +131,7 @@ func (a *Agent) fields() common.MapStr {
 		return nil
 	}
 	agent := common.MapStr{}
-	utility.Add(agent, "name", a.Name)
-	utility.Add(agent, "version", a.Version)
+	utility.Set(agent, "name", a.Name)
+	utility.Set(agent, "version", a.Version)
 	return agent
 }

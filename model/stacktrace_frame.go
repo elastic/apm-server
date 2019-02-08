@@ -90,47 +90,47 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 
 func (s *StacktraceFrame) Transform(tctx *transform.Context) common.MapStr {
 	m := common.MapStr{}
-	utility.Add(m, "filename", s.Filename)
-	utility.Add(m, "abs_path", s.AbsPath)
-	utility.Add(m, "module", s.Module)
-	utility.Add(m, "function", s.Function)
-	utility.Add(m, "vars", s.Vars)
+	utility.Set(m, "filename", s.Filename)
+	utility.Set(m, "abs_path", s.AbsPath)
+	utility.Set(m, "module", s.Module)
+	utility.Set(m, "function", s.Function)
+	utility.Set(m, "vars", s.Vars)
 	if tctx.Config.LibraryPattern != nil {
 		s.setLibraryFrame(tctx.Config.LibraryPattern)
 	}
-	utility.Add(m, "library_frame", s.LibraryFrame)
+	utility.Set(m, "library_frame", s.LibraryFrame)
 
 	if tctx.Config.ExcludeFromGrouping != nil {
 		s.setExcludeFromGrouping(tctx.Config.ExcludeFromGrouping)
 	}
-	utility.Add(m, "exclude_from_grouping", s.ExcludeFromGrouping)
+	utility.Set(m, "exclude_from_grouping", s.ExcludeFromGrouping)
 
 	context := common.MapStr{}
-	utility.Add(context, "pre", s.PreContext)
-	utility.Add(context, "post", s.PostContext)
-	utility.Add(m, "context", context)
+	utility.Set(context, "pre", s.PreContext)
+	utility.Set(context, "post", s.PostContext)
+	utility.Set(m, "context", context)
 
 	line := common.MapStr{}
-	utility.Add(line, "number", s.Lineno)
-	utility.Add(line, "column", s.Colno)
-	utility.Add(line, "context", s.ContextLine)
-	utility.Add(m, "line", line)
+	utility.Set(line, "number", s.Lineno)
+	utility.Set(line, "column", s.Colno)
+	utility.Set(line, "context", s.ContextLine)
+	utility.Set(m, "line", line)
 
 	sm := common.MapStr{}
-	utility.Add(sm, "updated", s.Sourcemap.Updated)
-	utility.Add(sm, "error", s.Sourcemap.Error)
-	utility.Add(m, "sourcemap", sm)
+	utility.Set(sm, "updated", s.Sourcemap.Updated)
+	utility.Set(sm, "error", s.Sourcemap.Error)
+	utility.Set(m, "sourcemap", sm)
 
 	orig := common.MapStr{}
-	utility.Add(orig, "library_frame", s.Original.LibraryFrame)
+	utility.Set(orig, "library_frame", s.Original.LibraryFrame)
 	if s.Sourcemap.Updated != nil && *(s.Sourcemap.Updated) {
-		utility.Add(orig, "filename", s.Original.Filename)
-		utility.Add(orig, "abs_path", s.Original.AbsPath)
-		utility.Add(orig, "function", s.Original.Function)
-		utility.Add(orig, "colno", s.Original.Colno)
-		utility.Add(orig, "lineno", s.Original.Lineno)
+		utility.Set(orig, "filename", s.Original.Filename)
+		utility.Set(orig, "abs_path", s.Original.AbsPath)
+		utility.Set(orig, "function", s.Original.Function)
+		utility.Set(orig, "colno", s.Original.Colno)
+		utility.Set(orig, "lineno", s.Original.Lineno)
 	}
-	utility.Add(m, "original", orig)
+	utility.Set(m, "original", orig)
 
 	return m
 }
@@ -162,7 +162,10 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metad
 		s.updateError(errMsg)
 		return prevFunction, errMsg
 	}
-	sourcemapId := s.buildSourcemapId(service)
+	sourcemapId, errMsg := s.buildSourcemapId(service)
+	if errMsg != "" {
+		return prevFunction, errMsg
+	}
 	mapping, err := mapper.Apply(sourcemapId, s.Original.Lineno, *s.Original.Colno)
 	if err != nil {
 		e, isSourcemapError := err.(sourcemap.Error)
@@ -204,15 +207,18 @@ func (s *StacktraceFrame) setOriginalSourcemapData() {
 	s.Original.sourcemapCopied = true
 }
 
-func (s *StacktraceFrame) buildSourcemapId(service *metadata.Service) sourcemap.Id {
-	id := sourcemap.Id{ServiceName: service.Name}
+func (s *StacktraceFrame) buildSourcemapId(service *metadata.Service) (sourcemap.Id, string) {
+	if service.Name == nil {
+		return sourcemap.Id{}, "Cannot apply sourcemap without a service name."
+	}
+	id := sourcemap.Id{ServiceName: *service.Name}
 	if service.Version != nil {
 		id.ServiceVersion = *service.Version
 	}
 	if s.AbsPath != nil {
 		id.Path = utility.CleanUrlPath(*s.AbsPath)
 	}
-	return id
+	return id, ""
 }
 
 func (s *StacktraceFrame) updateError(errMsg string) {

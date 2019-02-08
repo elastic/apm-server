@@ -23,6 +23,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/tests"
@@ -122,6 +124,26 @@ func TestDecodeContext(t *testing.T) {
 						"ip":         "10.15.21.3",
 						"id":         "12345678ab",
 						"user-agent": "go-1.1"},
+					"service": map[string]interface{}{
+						"name":        "myService",
+						"version":     "5.1.3",
+						"environment": "staging",
+						"language": common.MapStr{
+							"name":    "ecmascript",
+							"version": "8",
+						},
+						"runtime": common.MapStr{
+							"name":    "node",
+							"version": "8.0.0",
+						},
+						"framework": common.MapStr{
+							"name":    "Express",
+							"version": "1.2.3",
+						},
+						"agent": common.MapStr{
+							"name":    "elastic-node",
+							"version": "1.0.0",
+						}},
 					"page": map[string]interface{}{"url": "https://example.com", "referer": "http://refer.example.com"},
 				}},
 		},

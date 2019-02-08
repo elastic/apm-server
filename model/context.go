@@ -29,12 +29,13 @@ import (
 )
 
 type Context struct {
-	Http   *Http
-	Url    *Url
-	Labels *Labels
-	Page   *Page
-	Custom *Custom
-	User   *metadata.User
+	Http    *Http
+	Url     *Url
+	Labels  *Labels
+	Page    *Page
+	Custom  *Custom
+	User    *metadata.User
+	Service *metadata.Service
 }
 
 type Http struct {
@@ -100,6 +101,7 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	}
 
 	userInp := decoder.Interface(ctxInp, "user")
+	serviceInp := decoder.Interface(ctxInp, "service")
 	err = decoder.Err
 	http, err := decodeHttp(ctxInp, err)
 	url, err := decodeUrl(ctxInp, err)
@@ -107,13 +109,15 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	custom, err := decodeCustom(ctxInp, err)
 	page, err := decodePage(ctxInp, err)
 	user, err := metadata.DecodeUser(userInp, err)
+	service, err := metadata.DecodeService(serviceInp, err)
 	return &Context{
-		Http:   http,
-		Url:    url,
-		Labels: labels,
-		Page:   page,
-		Custom: custom,
-		User:   user,
+		Http:    http,
+		Url:     url,
+		Labels:  labels,
+		Page:    page,
+		Custom:  custom,
+		User:    user,
+		Service: service,
 	}, err
 
 }
@@ -123,14 +127,14 @@ func (url *Url) Fields() common.MapStr {
 		return nil
 	}
 	fields := common.MapStr{}
-	utility.Add(fields, "full", url.Full)
-	utility.Add(fields, "fragment", url.Fragment)
-	utility.Add(fields, "domain", url.Domain)
-	utility.Add(fields, "path", url.Path)
-	utility.Add(fields, "port", url.Port)
-	utility.Add(fields, "original", url.Original)
-	utility.Add(fields, "scheme", url.Scheme)
-	utility.Add(fields, "query", url.Query)
+	utility.Set(fields, "full", url.Full)
+	utility.Set(fields, "fragment", url.Fragment)
+	utility.Set(fields, "domain", url.Domain)
+	utility.Set(fields, "path", url.Path)
+	utility.Set(fields, "port", url.Port)
+	utility.Set(fields, "original", url.Original)
+	utility.Set(fields, "scheme", url.Scheme)
+	utility.Set(fields, "query", url.Query)
 	return fields
 }
 
@@ -140,9 +144,9 @@ func (http *Http) Fields() common.MapStr {
 	}
 
 	fields := common.MapStr{}
-	utility.Add(fields, "version", http.Version)
-	utility.Add(fields, "request", http.Request.fields())
-	utility.Add(fields, "response", http.Response.fields())
+	utility.Set(fields, "version", http.Version)
+	utility.Set(fields, "request", http.Request.fields())
+	utility.Set(fields, "response", http.Response.fields())
 	return fields
 }
 
@@ -151,8 +155,8 @@ func (page *Page) Fields() common.MapStr {
 		return nil
 	}
 	var fields = common.MapStr{}
-	utility.Add(fields, "url", page.Url)
-	utility.Add(fields, "referer", page.Referer)
+	utility.Set(fields, "url", page.Url)
+	utility.Set(fields, "referer", page.Referer)
 	return fields
 }
 
@@ -292,12 +296,12 @@ func (req *Req) fields() common.MapStr {
 		return nil
 	}
 	fields := common.MapStr{}
-	utility.Add(fields, "headers", req.Headers.fields())
-	utility.Add(fields, "socket", req.Socket.fields())
-	utility.Add(fields, "env", req.Env)
-	utility.DeepAdd(fields, "body.original", req.Body)
-	utility.Add(fields, "method", req.Method)
-	utility.Add(fields, "cookies", req.Cookies)
+	utility.Set(fields, "headers", req.Headers.fields())
+	utility.Set(fields, "socket", req.Socket.fields())
+	utility.Set(fields, "env", req.Env)
+	utility.DeepUpdate(fields, "body.original", req.Body)
+	utility.Set(fields, "method", req.Method)
+	utility.Set(fields, "cookies", req.Cookies)
 
 	return fields
 }
@@ -307,10 +311,10 @@ func (resp *Resp) fields() common.MapStr {
 		return nil
 	}
 	fields := common.MapStr{}
-	utility.Add(fields, "headers", resp.Headers.fields())
-	utility.Add(fields, "headers_sent", resp.HeadersSent)
-	utility.Add(fields, "finished", resp.Finished)
-	utility.Add(fields, "status_code", resp.StatusCode)
+	utility.Set(fields, "headers", resp.Headers.fields())
+	utility.Set(fields, "headers_sent", resp.HeadersSent)
+	utility.Set(fields, "finished", resp.Finished)
+	utility.Set(fields, "status_code", resp.StatusCode)
 	return fields
 }
 
@@ -326,7 +330,7 @@ func (s *Socket) fields() common.MapStr {
 		return nil
 	}
 	fields := common.MapStr{}
-	utility.Add(fields, "encrypted", s.Encrypted)
-	utility.Add(fields, "remote_address", s.RemoteAddress)
+	utility.Set(fields, "encrypted", s.Encrypted)
+	utility.Set(fields, "remote_address", s.RemoteAddress)
 	return fields
 }
