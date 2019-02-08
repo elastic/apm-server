@@ -56,10 +56,10 @@ func (p *Process) fields() common.MapStr {
 		return nil
 	}
 	svc := common.MapStr{}
-	utility.Add(svc, "pid", p.Pid)
-	utility.Add(svc, "ppid", p.Ppid)
-	utility.Add(svc, "title", p.Title)
-	utility.Add(svc, "args", p.Argv)
+	utility.Set(svc, "pid", p.Pid)
+	utility.Set(svc, "ppid", p.Ppid)
+	utility.Set(svc, "title", p.Title)
+	utility.Set(svc, "args", p.Argv)
 
 	return svc
 }

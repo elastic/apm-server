@@ -217,8 +217,8 @@
             },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
+                "name": "elastic-ruby",
+                "version": "2.2"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -236,7 +236,7 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "backendspans"
+                "name": "service1"
             },
             "span": {
                 "action": "query",

@@ -110,8 +110,8 @@
                 "ip": "127.0.0.1"
             },
             "agent": {
-                "version": "3.14.0",
-                "name": "elastic-node"
+                "version": "1.3",
+                "name": "js-base"
             },
             "span": {
                 "id": "15aaaaaaaaaaaaaa",
@@ -135,7 +135,7 @@
                 }
             },
             "service": {
-                "name": "1234_service-12a3"
+                "name": "serviceabc"
             },
             "transaction": {
                 "id": "85925e55b43f4342"

@@ -39,6 +39,7 @@
             "$ref": "tags.json"
         },
         "user": {
+            "description": "Describes the correlated user for this event. If user data are provided here, all user related information from metadata is ignored, otherwise the metadata's user information will be stored with the event.",
             "$ref": "user.json"
         },
         "page": {
@@ -54,6 +55,10 @@
                     "type": ["string", "null"]
                 }
             }
+        },
+        "service": {
+            "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
+            "$ref": "service.json"
         }
     }
 }
