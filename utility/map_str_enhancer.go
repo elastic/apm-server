@@ -135,10 +135,10 @@ func update(m common.MapStr, key string, val interface{}, remove bool) {
 		v := reflect.ValueOf(val)
 		switch v.Type().Kind() {
 		case reflect.Slice, reflect.Array:
-			if v.Len() == 0 && remove {
-				delete(m, key)
-			} else {
+			if v.Len() > 0 {
 				m[key] = val
+			} else if remove {
+				delete(m, key)
 			}
 
 		// do not store values of following type
