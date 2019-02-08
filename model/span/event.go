@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/apm-server/model/metadata"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	m "github.com/elastic/apm-server/model"
@@ -64,6 +66,7 @@ type Event struct {
 	Start      *float64
 	Duration   float64
 	Context    common.MapStr
+	Service    *metadata.Service
 	Stacktrace m.Stacktrace
 	Sync       *bool
 	Labels     common.MapStr
@@ -209,6 +212,14 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	}
 	event.Http = http
 
+	if s, set := event.Context["service"]; set {
+		service, err := metadata.DecodeService(s, nil)
+		if err != nil {
+			return nil, err
+		}
+		event.Service = service
+	}
+
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], nil)
 	if stacktr != nil {
@@ -251,6 +262,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	tctx.Metadata.SetMinimal(fields)
 
 	// then add event specific information
+	utility.DeepUpdate(fields, "service", e.Service.MinimalFields())
+	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	utility.Set(fields, "labels", e.Labels)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)

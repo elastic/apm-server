@@ -84,7 +84,7 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	return &service, decoder.Err
 }
 
-func (s *Service) minimalFields() common.MapStr {
+func (s *Service) MinimalFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
@@ -97,7 +97,7 @@ func (s *Service) Fields() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	svc := s.minimalFields()
+	svc := s.MinimalFields()
 	utility.Set(svc, "version", s.Version)
 	utility.Set(svc, "environment", s.Environment)
 

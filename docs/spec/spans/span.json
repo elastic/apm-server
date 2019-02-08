@@ -87,6 +87,45 @@
                         },
                         "tags": {
                             "$ref": "../tags.json"
+                        },
+                        "service": {
+                            "description": "Service related information can be sent per event. Provided information will override the more generic information from metadata, non provided fields will be set according to the metadata information.",
+                            "properties": {
+                                "agent": {
+                                    "description": "Name and version of the Elastic APM agent",
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "properties": {
+                                        "name": {
+                                            "description": "Name of the Elastic APM agent, e.g. \"Python\"",
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "maxLength": 1024
+                                        },
+                                        "version": {
+                                            "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "maxLength": 1024
+                                        }
+                                    }
+                                },
+                                "name": {
+                                    "description": "Immutable name of the service emitting this event",
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "pattern": "^[a-zA-Z0-9 _-]+$",
+                                    "maxLength": 1024
+                                }
+                            }
                         }
                     }
                 },
