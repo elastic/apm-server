@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/apm-server/model/metadata"
+
 	"github.com/santhosh-tekuri/jsonschema"
 
 	m "github.com/elastic/apm-server/model"
@@ -64,6 +66,7 @@ type Event struct {
 	Start      *float64
 	Duration   float64
 	Context    common.MapStr
+	Service    *metadata.Service
 	Stacktrace m.Stacktrace
 	Sync       *bool
 	Labels     common.MapStr
@@ -109,11 +112,11 @@ func (db *db) fields() common.MapStr {
 		return nil
 	}
 	var fields = common.MapStr{}
-	utility.Add(fields, "instance", db.Instance)
-	utility.Add(fields, "statement", db.Statement)
-	utility.Add(fields, "type", db.Type)
+	utility.Set(fields, "instance", db.Instance)
+	utility.Set(fields, "statement", db.Statement)
+	utility.Set(fields, "type", db.Type)
 	if db.UserName != nil {
-		utility.Add(fields, "user", common.MapStr{"name": db.UserName})
+		utility.Set(fields, "user", common.MapStr{"name": db.UserName})
 	}
 	return fields
 }
@@ -155,12 +158,12 @@ func (http *http) fields() common.MapStr {
 	}
 	var fields = common.MapStr{}
 	if http.Url != nil {
-		utility.Add(fields, "url", common.MapStr{"original": http.Url})
+		utility.Set(fields, "url", common.MapStr{"original": http.Url})
 	}
 	if http.StatusCode != nil {
-		utility.Add(fields, "response", common.MapStr{"status_code": http.StatusCode})
+		utility.Set(fields, "response", common.MapStr{"status_code": http.StatusCode})
 	}
-	utility.Add(fields, "method", http.Method)
+	utility.Set(fields, "method", http.Method)
 	return fields
 }
 
@@ -209,6 +212,14 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	}
 	event.Http = http
 
+	if s, set := event.Context["service"]; set {
+		service, err := metadata.DecodeService(s, nil)
+		if err != nil {
+			return nil, err
+		}
+		event.Service = service
+	}
+
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], nil)
 	if stacktr != nil {
@@ -246,11 +257,17 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor": processorEntry,
 		spanDocType: e.fields(tctx),
 	}
-	utility.Add(fields, "labels", e.Labels)
+
+	// first set the generic metadata
+	tctx.Metadata.SetMinimal(fields)
+
+	// then add event specific information
+	utility.DeepUpdate(fields, "service", e.Service.MinimalFields())
+	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
+	utility.Set(fields, "labels", e.Labels)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.AddId(fields, "transaction", &e.TransactionId)
-	tctx.Metadata.MergeMinimal(fields)
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {
@@ -262,7 +279,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		timestamp = tctx.RequestTime.Add(time.Duration(float64(time.Millisecond) * *e.Start))
 	}
 
-	utility.Add(fields, "timestamp", utility.TimeAsMicros(timestamp))
+	utility.Set(fields, "timestamp", utility.TimeAsMicros(timestamp))
 
 	return []beat.Event{
 		{
@@ -278,26 +295,26 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	}
 	tr := common.MapStr{}
 	if e.Id != "" {
-		utility.Add(tr, "id", e.Id)
+		utility.Set(tr, "id", e.Id)
 	}
-	utility.Add(tr, "subtype", e.Subtype)
-	utility.Add(tr, "action", e.Action)
+	utility.Set(tr, "subtype", e.Subtype)
+	utility.Set(tr, "action", e.Action)
 
 	// common
-	utility.Add(tr, "name", e.Name)
-	utility.Add(tr, "type", e.Type)
-	utility.Add(tr, "sync", e.Sync)
+	utility.Set(tr, "name", e.Name)
+	utility.Set(tr, "type", e.Type)
+	utility.Set(tr, "sync", e.Sync)
 
 	if e.Start != nil {
-		utility.Add(tr, "start", utility.MillisAsMicros(*e.Start))
+		utility.Set(tr, "start", utility.MillisAsMicros(*e.Start))
 	}
 
-	utility.Add(tr, "duration", utility.MillisAsMicros(e.Duration))
+	utility.Set(tr, "duration", utility.MillisAsMicros(e.Duration))
 
-	utility.Add(tr, "db", e.Db.fields())
-	utility.Add(tr, "http", e.Http.fields())
+	utility.Set(tr, "db", e.Db.fields())
+	utility.Set(tr, "http", e.Http.fields())
 
 	st := e.Stacktrace.Transform(tctx)
-	utility.Add(tr, "stacktrace", st)
+	utility.Set(tr, "stacktrace", st)
 	return tr
 }

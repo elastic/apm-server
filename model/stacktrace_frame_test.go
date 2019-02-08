@@ -23,6 +23,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/model/metadata"
@@ -277,8 +279,8 @@ func TestApplySourcemap(t *testing.T) {
 		},
 	}
 
-	ver := "1"
-	service := &metadata.Service{Name: "foo", Version: &ver}
+	ver, name := "1", "foo"
+	service := &metadata.Service{Name: &name, Version: &ver}
 	for idx, test := range tests {
 		// check that original data are preserved,
 		// even when Transform function is applied twice.
@@ -512,23 +514,26 @@ func TestLibraryFrame(t *testing.T) {
 func TestBuildSourcemap(t *testing.T) {
 	version := "1.0"
 	path := "././a/b/../c"
+	serviceName, empty := "foo", ""
 	tests := []struct {
 		service metadata.Service
 		fr      StacktraceFrame
 		out     string
+		err     string
 	}{
-		{service: metadata.Service{}, fr: StacktraceFrame{}, out: ""},
-		{service: metadata.Service{Version: &version}, fr: StacktraceFrame{}, out: "1.0"},
-		{service: metadata.Service{Name: "foo"}, fr: StacktraceFrame{}, out: "foo"},
-		{service: metadata.Service{}, fr: StacktraceFrame{AbsPath: &path}, out: "a/c"},
+		{service: metadata.Service{}, fr: StacktraceFrame{}, out: "", err: "Cannot apply sourcemap without a service name."},
+		{service: metadata.Service{Version: &version, Name: &empty}, fr: StacktraceFrame{}, out: "1.0"},
+		{service: metadata.Service{Name: &serviceName}, fr: StacktraceFrame{}, out: "foo"},
+		{service: metadata.Service{Name: &empty}, fr: StacktraceFrame{AbsPath: &path}, out: "a/c"},
 		{
-			service: metadata.Service{Name: "foo", Version: &version},
+			service: metadata.Service{Name: &serviceName, Version: &version},
 			fr:      StacktraceFrame{AbsPath: &path},
 			out:     "foo_1.0_a/c",
 		},
 	}
 	for _, test := range tests {
-		id := test.fr.buildSourcemapId(&test.service)
+		id, errStr := test.fr.buildSourcemapId(&test.service)
+		require.Equal(t, test.err, errStr)
 		assert.Equal(t, test.out, (&id).Key())
 	}
 }

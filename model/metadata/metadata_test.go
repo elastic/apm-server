@@ -87,10 +87,10 @@ func TestDecodeMetadata(t *testing.T) {
 				},
 			},
 			output: NewMetadata(
-				&Service{Name: serviceName,
+				&Service{Name: &serviceName,
 					Agent: Agent{
-						Name:    agentName,
-						Version: agentVersion,
+						Name:    &agentName,
+						Version: &agentVersion,
 					},
 				},
 				&System{Hostname: &host},
@@ -106,7 +106,7 @@ func TestDecodeMetadata(t *testing.T) {
 
 }
 
-func TestMetadataMerge(t *testing.T) {
+func TestMetadata_Set(t *testing.T) {
 	pid := 1234
 	host := "host"
 	serviceName := "myservice"
@@ -122,18 +122,24 @@ func TestMetadataMerge(t *testing.T) {
 		{
 			input: NewMetadata(
 				&Service{
-					Name: serviceName,
+					Name: &serviceName,
 					Agent: Agent{
-						Name:    agentName,
-						Version: agentVersion,
+						Name:    &agentName,
+						Version: &agentVersion,
 					},
 				},
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
 			),
-			fields: common.MapStr{},
+			fields: common.MapStr{
+				"foo": "bar",
+				"user": common.MapStr{
+					"email": "override@email.com",
+				},
+			},
 			output: common.MapStr{
+				"foo":     "bar",
 				"agent":   common.MapStr{"version": "1.0.0", "name": "elastic-node"},
 				"host":    common.MapStr{"hostname": host},
 				"process": common.MapStr{"pid": pid},
@@ -143,42 +149,12 @@ func TestMetadataMerge(t *testing.T) {
 				"user": common.MapStr{"id": "12321", "email": "user@email.com"},
 			},
 		},
-		{
-			input: NewMetadata(
-				&Service{
-					Name: serviceName,
-					Agent: Agent{
-						Name:    agentName,
-						Version: agentVersion,
-					},
-				},
-				&System{Hostname: &host},
-				&Process{Pid: pid},
-				&User{Id: &uid},
-			),
-			fields: common.MapStr{
-				"foo": "bar",
-				"user": common.MapStr{
-					"email": "override@email.com",
-				},
-			},
-			output: common.MapStr{
-				"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-				"foo":   "bar",
-				"host":  common.MapStr{"hostname": host},
-				"service": common.MapStr{
-					"name": "myservice",
-				},
-				"process": common.MapStr{"pid": pid},
-				"user":    common.MapStr{"email": "override@email.com"},
-			},
-		},
 	} {
-		assert.Equal(t, test.output, test.input.Merge(test.fields))
+		assert.Equal(t, test.output, test.input.Set(test.fields))
 	}
 }
 
-func TestMetadataMergeMinimal(t *testing.T) {
+func TestMetadata_SetMinimal(t *testing.T) {
 	pid := 1234
 	host := "host"
 	serviceName := "myservice"
@@ -194,10 +170,10 @@ func TestMetadataMergeMinimal(t *testing.T) {
 		{
 			input: NewMetadata(
 				&Service{
-					Name: serviceName,
+					Name: &serviceName,
 					Agent: Agent{
-						Name:    agentName,
-						Version: agentVersion,
+						Name:    &agentName,
+						Version: &agentVersion,
 					},
 				},
 				&System{Hostname: &host},
@@ -215,10 +191,10 @@ func TestMetadataMergeMinimal(t *testing.T) {
 		{
 			input: NewMetadata(
 				&Service{
-					Name: serviceName,
+					Name: &serviceName,
 					Agent: Agent{
-						Name:    agentName,
-						Version: agentVersion,
+						Name:    &agentName,
+						Version: &agentVersion,
 					},
 				},
 				&System{Hostname: &host},
@@ -237,6 +213,6 @@ func TestMetadataMergeMinimal(t *testing.T) {
 			},
 		},
 	} {
-		assert.Equal(t, test.output, test.input.MergeMinimal(test.fields))
+		assert.Equal(t, test.output, test.input.SetMinimal(test.fields))
 	}
 }

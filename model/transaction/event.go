@@ -74,6 +74,7 @@ type Event struct {
 	Url       *m.Url
 	Labels    *m.Labels
 	Custom    *m.Custom
+	Service   *metadata.Service
 }
 
 type SpanCount struct {
@@ -111,6 +112,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Url:       ctx.Url,
 		Custom:    ctx.Custom,
 		User:      ctx.User,
+		Service:   ctx.Service,
 		Marks:     decoder.MapStr(raw, "marks"),
 		Sampled:   decoder.BoolPtr(raw, "sampled"),
 		Timestamp: decoder.TimeEpochMicro(raw, "timestamp"),
@@ -130,30 +132,30 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 
 func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	tx := common.MapStr{"id": e.Id}
-	utility.Add(tx, "name", e.Name)
-	utility.Add(tx, "duration", utility.MillisAsMicros(e.Duration))
-	utility.Add(tx, "type", e.Type)
-	utility.Add(tx, "result", e.Result)
-	utility.Add(tx, "marks", e.Marks)
-	utility.Add(tx, "page", e.Page.Fields())
-	utility.Add(tx, "custom", e.Custom.Fields())
+	utility.Set(tx, "name", e.Name)
+	utility.Set(tx, "duration", utility.MillisAsMicros(e.Duration))
+	utility.Set(tx, "type", e.Type)
+	utility.Set(tx, "result", e.Result)
+	utility.Set(tx, "marks", e.Marks)
+	utility.Set(tx, "page", e.Page.Fields())
+	utility.Set(tx, "custom", e.Custom.Fields())
 
 	if e.Sampled == nil {
-		utility.Add(tx, "sampled", true)
+		utility.Set(tx, "sampled", true)
 	} else {
-		utility.Add(tx, "sampled", e.Sampled)
+		utility.Set(tx, "sampled", e.Sampled)
 	}
 
 	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
 		spanCount := common.MapStr{}
 
 		if e.SpanCount.Dropped != nil {
-			utility.Add(spanCount, "dropped", *e.SpanCount.Dropped)
+			utility.Set(spanCount, "dropped", *e.SpanCount.Dropped)
 		}
 		if e.SpanCount.Started != nil {
-			utility.Add(spanCount, "started", *e.SpanCount.Started)
+			utility.Set(spanCount, "started", *e.SpanCount.Started)
 		}
-		utility.Add(tx, "span_count", spanCount)
+		utility.Set(tx, "span_count", spanCount)
 	}
 
 	return tx
@@ -171,17 +173,22 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor":        processorEntry,
 		transactionDocType: e.fields(tctx),
 	}
-	utility.Add(fields, "user", e.User.Fields())
+
+	// first set generic metadata
+	tctx.Metadata.Set(fields)
+
+	// then merge event specific information
+	utility.Update(fields, "user", e.User.Fields())
+	utility.DeepUpdate(fields, "client", e.User.ClientFields())
+	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
+	utility.DeepUpdate(fields, "service", e.Service.Fields())
+	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
-	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	utility.Add(fields, "client", e.User.ClientFields())
-	utility.Add(fields, "user_agent", e.User.UserAgentFields())
-	utility.Add(fields, "labels", e.Labels.Fields())
-	utility.Add(fields, "http", e.Http.Fields())
-	utility.Add(fields, "url", e.Url.Fields())
-
-	tctx.Metadata.Merge(fields)
+	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	utility.Set(fields, "labels", e.Labels.Fields())
+	utility.Set(fields, "http", e.Http.Fields())
+	utility.Set(fields, "url", e.Url.Fields())
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

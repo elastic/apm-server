@@ -146,10 +146,10 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 
 	fields["processor"] = processorEntry
 	if me.Labels != nil {
-		// normalize map entries by calling utility.Add
-		utility.Add(fields, "labels", me.Labels)
+		// normalize map entries by calling utility.Set
+		utility.Set(fields, "labels", me.Labels)
 	}
-	tctx.Metadata.Merge(fields)
+	tctx.Metadata.Set(fields)
 
 	if me.Timestamp.IsZero() {
 		me.Timestamp = tctx.RequestTime

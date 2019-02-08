@@ -63,13 +63,13 @@ func (s *System) fields() common.MapStr {
 		return nil
 	}
 	system := common.MapStr{}
-	utility.Add(system, "hostname", s.Hostname)
-	utility.Add(system, "architecture", s.Architecture)
+	utility.Set(system, "hostname", s.Hostname)
+	utility.Set(system, "architecture", s.Architecture)
 	if s.Platform != nil {
-		utility.Add(system, "os", common.MapStr{"platform": s.Platform})
+		utility.Set(system, "os", common.MapStr{"platform": s.Platform})
 	}
 	if s.IP != nil && *s.IP != "" {
-		utility.Add(system, "ip", s.IP)
+		utility.Set(system, "ip", s.IP)
 	}
 	return system
 }

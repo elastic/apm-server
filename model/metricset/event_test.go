@@ -135,8 +135,9 @@ func TestDecode(t *testing.T) {
 
 func TestTransform(t *testing.T) {
 	timestamp := time.Now()
+	s := "myservice"
 	md := metadata.NewMetadata(
-		&metadata.Service{Name: "myservice"},
+		&metadata.Service{Name: &s},
 		nil,
 		nil,
 		nil,
@@ -156,7 +157,6 @@ func TestTransform(t *testing.T) {
 			Metricset: &Metricset{Timestamp: timestamp},
 			Output: []common.MapStr{
 				{
-					"agent":     common.MapStr{"name": "", "version": ""},
 					"processor": common.MapStr{"event": "metric", "name": "metric"},
 					"service": common.MapStr{
 						"name": "myservice",
@@ -182,7 +182,6 @@ func TestTransform(t *testing.T) {
 			},
 			Output: []common.MapStr{
 				{
-					"agent": common.MapStr{"name": "", "version": ""},
 					"labels": common.MapStr{
 						"a.b": "a.b.value",
 					},
