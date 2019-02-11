@@ -133,7 +133,7 @@ class Test(ElasticTest):
                         now = time.mktime(time.localtime())
                         delta = 10000  # 10seconds
                         got = time.mktime(time.strptime(rec['@timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ"))
-                        assert (now - delta) < got  and got < now
+                        assert (now - delta) < got and got < now
                     self.assert_docs(rec['processor'], appr['processor'])
             assert checked == True, "New entry with id {}".format(rec_id)
 
