@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2017-12-08T12:18:50.291Z",
+            "@timestamp": "2017-05-08T15:04:05.999Z",
             "context": {
                 "environment": {
                     "browserHeight": 726,

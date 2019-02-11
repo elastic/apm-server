@@ -7,6 +7,7 @@ from apmserver import SplitIndicesTest
 from beat.beat import INTEGRATION_TESTS
 import json
 import time
+import datetime
 
 
 class Test(ElasticTest):
@@ -109,7 +110,13 @@ class Test(ElasticTest):
                     checked = True
                     self.assert_docs(rec[doc_type], appr[doc_type])
                     self.assert_docs(rec['context'], appr['context'])
-                    self.assert_docs(rec['@timestamp'], appr['@timestamp'])
+                    if '@timestamp' in appr:
+                        self.assert_docs(rec['@timestamp'], appr['@timestamp'])
+                    else:
+                        now = time.mktime(time.localtime())
+                        delta = 10000  # 10seconds
+                        got = time.mktime(time.strptime(rec['@timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+                        assert (now - delta) < got and got < now
                     self.assert_docs(rec['processor'], appr['processor'])
             assert checked == True, "New entry with id {}".format(rec_id)
 

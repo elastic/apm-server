@@ -23,6 +23,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 
 	s "github.com/go-sourcemap/sourcemap"
 
@@ -39,9 +42,6 @@ var (
 		{Name: "TestProcessErrorFull", Path: "../testdata/error/payload.json"},
 		{Name: "TestProcessErrorNullValues", Path: "../testdata/error/null_values.json"},
 		{Name: "TestProcessErrorAugmentedIP", Path: "../testdata/error/augmented_payload_backend.json"},
-	}
-
-	backendRequestInfoIgnoreTimestamp = []tests.RequestInfo{
 		{Name: "TestProcessErrorMinimalPayloadException", Path: "../testdata/error/minimal_payload_exception.json"},
 		{Name: "TestProcessErrorMinimalPayloadLog", Path: "../testdata/error/minimal_payload_log.json"},
 	}
@@ -56,13 +56,10 @@ var (
 
 // ensure all valid documents pass through the whole validation and transformation process
 func TestProcessorBackendOK(t *testing.T) {
-	tctx := transform.Context{}
+	reqTime, err := time.Parse(time.RFC3339, "2017-05-08T15:04:05.999Z")
+	require.NoError(t, err)
+	tctx := transform.Context{RequestTime: reqTime}
 	tests.TestProcessRequests(t, perr.Processor, tctx, backendRequestInfo, map[string]string{})
-}
-
-func TestProcessorMinimalPayloadOK(t *testing.T) {
-	tctx := transform.Context{}
-	tests.TestProcessRequests(t, perr.Processor, tctx, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
 }
 
 func TestProcessorRumOK(t *testing.T) {
@@ -72,7 +69,9 @@ func TestProcessorRumOK(t *testing.T) {
 		LibraryPattern:      regexp.MustCompile("^test/e2e|~"),
 		ExcludeFromGrouping: regexp.MustCompile("^\\s*$|^/webpack|^[/][^/]*$"),
 	}
-	tctx := transform.Context{Config: conf}
+	reqTime, err := time.Parse(time.RFC3339, "2017-05-08T15:04:05.999Z")
+	require.NoError(t, err)
+	tctx := transform.Context{Config: conf, RequestTime: reqTime}
 	tests.TestProcessRequests(t, perr.Processor, tctx, rumRequestInfo, map[string]string{})
 }
 
@@ -117,7 +116,6 @@ func (ac *fakeAcc) Remove(smapId sourcemap.Id) {}
 func BenchmarkBackendProcessor(b *testing.B) {
 	tctx := transform.Context{Config: transform.Config{ExcludeFromGrouping: nil}}
 	tests.BenchmarkProcessRequests(b, perr.Processor, tctx, backendRequestInfo)
-	tests.BenchmarkProcessRequests(b, perr.Processor, tctx, backendRequestInfoIgnoreTimestamp)
 }
 
 func BenchmarkRumProcessor(b *testing.B) {
