@@ -41,7 +41,6 @@
             "type": "request",
             "duration": 32.592981,
             "result": "success",
-            "timestamp": "2017-05-30T18:53:27.154Z",
             "sampled": true,
             "span_count": {
                 "dropped": {
