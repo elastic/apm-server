@@ -75,21 +75,21 @@ func NewMetadata(service *Service, system *System, process *Process, user *User)
 	}
 }
 
-func (m *Metadata) Merge(fields common.MapStr) common.MapStr {
-	utility.MergeAdd(fields, "agent", m.Service.agentFields())
-	utility.Add(fields, "host", m.System.fields())
-	utility.Add(fields, "process", m.Process.fields())
-	utility.MergeAdd(fields, "service", m.Service.fields())
-	utility.AddIfNil(fields, "user", m.User.Fields())
-	utility.AddIfNil(fields, "client", m.User.ClientFields())
-	utility.AddIfNil(fields, "user_agent", m.User.UserAgentFields())
-	utility.Add(fields, "container", m.System.containerFields())
-	utility.Add(fields, "kubernetes", m.System.kubernetesFields())
+func (m *Metadata) Set(fields common.MapStr) common.MapStr {
+	utility.Set(fields, "service", m.Service.Fields())
+	utility.Set(fields, "agent", m.Service.AgentFields())
+	utility.Set(fields, "host", m.System.fields())
+	utility.Set(fields, "process", m.Process.fields())
+	utility.Set(fields, "user", m.User.Fields())
+	utility.Set(fields, "client", m.User.ClientFields())
+	utility.Set(fields, "user_agent", m.User.UserAgentFields())
+	utility.Set(fields, "container", m.System.containerFields())
+	utility.Set(fields, "kubernetes", m.System.kubernetesFields())
 	return fields
 }
 
-func (m *Metadata) MergeMinimal(fields common.MapStr) common.MapStr {
-	utility.MergeAdd(fields, "agent", m.Service.agentFields())
-	utility.MergeAdd(fields, "service", m.Service.minimalFields())
+func (m *Metadata) SetMinimal(fields common.MapStr) common.MapStr {
+	utility.Set(fields, "agent", m.Service.AgentFields())
+	utility.Set(fields, "service", m.Service.MinimalFields())
 	return fields
 }
