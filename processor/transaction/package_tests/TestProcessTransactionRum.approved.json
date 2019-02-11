@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "-",
+            "@timestamp": "2017-05-08T15:04:05.999Z",
             "context": {
                 "_metrics": {
                     "connectEnd": 14,
@@ -50,7 +50,7 @@
             }
         },
         {
-            "@timestamp": "-",
+            "@timestamp": "2017-05-08T15:04:05.999Z",
             "context": {
                 "http": {
                     "url": "http://localhost:8000/test/e2e/general-usecase/span"

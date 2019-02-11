@@ -25,7 +25,6 @@
                 "name": "40c010b36edc",
                 "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
                 "service": {
                     "name": "1234_service-12a3",
@@ -118,7 +117,6 @@
                 "name": "40c010b36edc",
                 "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
                 "service": {
                     "name": "1234_service-12a3",
@@ -198,7 +196,6 @@
                 "name": "40c010b36edc",
                 "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
                 "db": {
                     "instance": "customers",
@@ -256,7 +253,6 @@
                 "name": "40c010b36edc",
                 "version": "7.0.0-alpha1"
             },
-            "@timestamp": "2017-05-30T18:53:27.154Z",
             "context": {
                 "service": {
                     "name": "1234_service-12a3",

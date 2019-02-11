@@ -20,6 +20,9 @@ package package_tests
 import (
 	"regexp"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/processor/transaction"
 	"github.com/elastic/apm-server/tests"
@@ -37,9 +40,6 @@ var (
 		{Name: "TestProcessTransactionMinimalProcess", Path: "../testdata/transaction/minimal_process.json"},
 		{Name: "TestProcessTransactionEmpty", Path: "../testdata/transaction/transaction_empty_values.json"},
 		{Name: "TestProcessTransactionAugmentedIP", Path: "../testdata/transaction/augmented_payload_backend.json"},
-	}
-
-	backendRequestInfoIgnoreTimestamp = []tests.RequestInfo{
 		{Name: "TestProcessTransactionMinimalPayload", Path: "../testdata/transaction/minimal_payload.json"},
 	}
 
@@ -52,26 +52,27 @@ var (
 
 // ensure all valid documents pass through the whole validation and transformation process
 func TestTransactionProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, transaction.Processor, transform.Context{}, backendRequestInfo, map[string]string{})
-}
-
-func TestMinimalTransactionProcessorOK(t *testing.T) {
-	tests.TestProcessRequests(t, transaction.Processor, transform.Context{}, backendRequestInfoIgnoreTimestamp, map[string]string{"@timestamp": "-"})
+	reqTime, err := time.Parse(time.RFC3339, "2017-05-08T15:04:05.999Z")
+	require.NoError(t, err)
+	tctx := transform.Context{RequestTime: reqTime}
+	tests.TestProcessRequests(t, transaction.Processor, tctx, backendRequestInfo, map[string]string{})
 }
 
 func TestProcessorRumOK(t *testing.T) {
+	reqTime, err := time.Parse(time.RFC3339, "2017-05-08T15:04:05.999Z")
+	require.NoError(t, err)
 	tctx := transform.Context{
 		Config: transform.Config{
 			LibraryPattern:      regexp.MustCompile("/test/e2e|~"),
 			ExcludeFromGrouping: regexp.MustCompile("^~/test"),
 		},
+		RequestTime: reqTime,
 	}
-	tests.TestProcessRequests(t, transaction.Processor, tctx, rumRequestInfo, map[string]string{"@timestamp": "-"})
+	tests.TestProcessRequests(t, transaction.Processor, tctx, rumRequestInfo, map[string]string{})
 }
 
 func BenchmarkBackendProcessor(b *testing.B) {
 	tests.BenchmarkProcessRequests(b, transaction.Processor, transform.Context{}, backendRequestInfo)
-	tests.BenchmarkProcessRequests(b, transaction.Processor, transform.Context{}, backendRequestInfoIgnoreTimestamp)
 }
 
 func BenchmarkRumProcessor(b *testing.B) {
