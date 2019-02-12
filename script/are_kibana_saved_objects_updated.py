@@ -54,11 +54,16 @@ def build_key(k1, k2):
     return "{}.{}".format(k1, k2)
 
 
-def iterate(val_id, key, v1, v2):
+def iterate(val_id, key, v1, v2, apm_v1=True):
     ret_val = 0
     if isinstance(v1, dict) and isinstance(v2, dict):
         for k, v in v1.items():
-            ret_val = max(ret_val, iterate(val_id, build_key(key, k), *json_val(v, v2[k] if k in v2 else "")))
+            ret_val = max(ret_val, iterate(val_id, build_key(key, k), *json_val(v, v2[k] if k in v2 else ""),
+                                           apm_v1=apm_v1))
+        if ret_val == 0:
+            for k, v in v2.items():
+                ret_val = max(ret_val, iterate(val_id, build_key(key, k), *json_val(v, v1[k] if k in v1 else ""),
+                                               apm_v1=not apm_v1))
     elif isinstance(v1, list) and isinstance(v2, list):
         v1, v2 = json_val(v1, v2)
         # assumption: an array only contains items of same type
@@ -70,11 +75,12 @@ def iterate(val_id, key, v1, v2):
                     return 3
 
                 item2 = find_item(v2, qkey, item[qkey])
-                ret_val = max(ret_val, iterate(val_id, build_key(key, "{}={}".format(qkey, item[qkey])), item, item2))
+                ret_val = max(ret_val, iterate(val_id, build_key(key, "{}={}".format(qkey, item[qkey])), item, item2,
+                                               apm_v1=apm_v1))
         else:
             v1, v2 = sorted(v1), sorted(v2)
             for item1, item2 in zip(v1, v2):
-                ret_val = max(ret_val, iterate(val_id, key, *json_val(item1, item2)))
+                ret_val = max(ret_val, iterate(val_id, key, *json_val(item1, item2), apm_v1=apm_v1))
     else:
         d = jsondiff.JsonDiffer(syntax='symmetric').diff(*json_val(v1, v2))
         if d:
@@ -86,8 +92,11 @@ def iterate(val_id, key, v1, v2):
                 print(json.dumps(d, indent=4))
             except:
                 print(d)
-            print("Value in APM Server: {}".format(v1))
-            print("Value in Kibana: {}".format(v2))
+            v1_label, v2_label = "APM Server", "Kibana"
+            if not apm_v1:
+                v1_label, v2_label = v2_label, v1_label
+            print("Value in {}: {!r}".format(v1_label, v1))
+            print("Value in {}: {!r}".format(v2_label, v2))
             print("---")
     return ret_val
 
@@ -133,7 +142,7 @@ def main():
                         default='https://raw.githubusercontent.com/elastic/kibana/',
                         help='base repository path')
     parser.add_argument('-C', '--commit', help='Commit sha to get the index-pattern from')
-    parser.add_argument("got_index_pattern", type=argparse.FileType(mode="r"), help="expected index pattern")
+    parser.add_argument("gen_index_pattern", type=argparse.FileType(mode="r"), help="expected index pattern")
     args = parser.parse_args()
 
     # load expected kibana index pattern from url or local file
@@ -150,19 +159,28 @@ def main():
         path = urljoin(args.repo_path, "/".join([ref, args.index_pattern]))
         load_kibana_index_pattern = load_kibana_index_pattern_url
 
-    # load expected index pattern
+    # load index pattern sync'd to kibana
     print("---- Comparing Generated Index Pattern with " + path)
-    want_index_pattern = load_kibana_index_pattern(path)
+    sync_index_pattern = load_kibana_index_pattern(path)
 
     # load generated index pattern
-    got_index_pattern = json.load(args.got_index_pattern)["objects"][0]
+    gen_index_pattern = json.load(args.gen_index_pattern)["objects"][0]
+    gen_index_pattern["attributes"].pop("title")  # detects title set in sync'd pattern
 
-    exit_val = max(0, iterate(want_index_pattern["id"], "", got_index_pattern, want_index_pattern))
+    # decode fields, they are json
+    sync_index_pattern["attributes"]["fields"] = json.loads(sync_index_pattern["attributes"].pop("fields"))
+    gen_index_pattern["attributes"]["fields"] = json.loads(gen_index_pattern["attributes"].pop("fields"))
+
+    exit_val = 0
+    exit_val = max(exit_val, iterate(sync_index_pattern["id"], "", gen_index_pattern, sync_index_pattern))
+
+    # double check that there is no difference
     if exit_val == 0:
+        d = jsondiff.JsonDiffer(syntax='symmetric').diff(sync_index_pattern, gen_index_pattern)
+        if d:
+            print("index patterns differ: ", d)
+            return 5
         print("up-to-date")
-    if "title" in want_index_pattern["attributes"]:
-        print("`title` should be set dynamically, remove it from the index-pattern")
-        exit_val = 3
 
     return exit_val
 
