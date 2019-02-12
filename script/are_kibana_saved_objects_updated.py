@@ -9,23 +9,17 @@ import os
 import json
 import jsondiff
 import sys
-
-
-def fetch_kibana_file(repo_path, ref, file_name):
-    path = "{}/{}/{}".format(repo_path, ref, file_name)
-    print("---- Comparing Index Pattern with " + path)
-    rsp = requests.get(path)
-    if rsp.status_code != 200:
-        print("failed to query '{}'".format(path))
-        return 1
-    return rsp.json()
+try:
+    from urlparse import urljoin, urlparse
+except ImportError:
+    from urllib.parse import urljoin, urlparse
 
 
 def json_val(v1, v2):
     try:
-        return (json.loads(v1), json.loads(v2))
+        return json.loads(v1), json.loads(v2)
     except:
-        return (v1, v2)
+        return v1, v2
 
 
 def find_key(item):
@@ -118,37 +112,56 @@ def get_kibana_commit(branch):
     return None
 
 
+def load_kibana_index_pattern_file(p):
+    with open(p) as f:
+        return json.load(f)
+
+
+def load_kibana_index_pattern_url(p):
+    rsp = requests.get(p)
+    rsp.raise_for_status()
+    return rsp.json()
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('branch')
-    parser.add_argument('-I', '--index-pattern', type=str,
+    parser.add_argument('--branch', default='master')
+    parser.add_argument('-I', '--index-pattern',
                         default='src/legacy/core_plugins/kibana/server/tutorials/apm/saved_objects/index_pattern.json',
                         help='index-pattern file path')
-    parser.add_argument('-P', '--repo-path', type=str,
-                        default='https://raw.githubusercontent.com/elastic/kibana',
+    parser.add_argument('-P', '--repo-path',
+                        default='https://raw.githubusercontent.com/elastic/kibana/',
                         help='base repository path')
-    parser.add_argument('-C', '--commit', type=str, help='Commit sha to get the index-pattern from')
+    parser.add_argument('-C', '--commit', help='Commit sha to get the index-pattern from')
+    parser.add_argument("got_index_pattern", type=argparse.FileType(mode="r"), help="expected index pattern")
     args = parser.parse_args()
-    exit_val = 0
 
-    ref = args.commit
-    if ref is None:
-        ref = get_kibana_commit(args.branch)
-    if ref is None:
-        ref = args.branch
+    # load expected kibana index pattern from url or local file
+    if args.repo_path.startswith("file://"):
+        parsed = urlparse(args.repo_path)
+        path = os.path.join(parsed.path, args.index_pattern)
+        load_kibana_index_pattern = load_kibana_index_pattern_file
+    else:
+        ref = args.commit
+        if ref is None:
+            ref = get_kibana_commit(args.branch)
+        if ref is None:
+            ref = args.branch
+        path = urljoin(args.repo_path, "/".join([ref, args.index_pattern]))
+        load_kibana_index_pattern = load_kibana_index_pattern_url
 
-    k = fetch_kibana_file(args.repo_path, ref, args.index_pattern)
-    if k == 1:
-        print("Kibana file containing index pattern not found")
-        return 1
+    # load expected index pattern
+    print("---- Comparing Generated Index Pattern with " + path)
+    want_index_pattern = load_kibana_index_pattern(path)
 
-    with open(os.path.abspath(os.path.join('index-pattern.json'))) as f:
-        s = json.load(f)["objects"][0]
-    exit_val = max(exit_val, iterate(k["id"], "", s, k))
+    # load generated index pattern
+    got_index_pattern = json.load(args.got_index_pattern)["objects"][0]
+
+    exit_val = max(0, iterate(want_index_pattern["id"], "", got_index_pattern, want_index_pattern))
     if exit_val == 0:
         print("up-to-date")
-    if "title" in k["attributes"]:
-        print("`title` need to be set dynamically, remove it from the index-pattern!")
+    if "title" in want_index_pattern["attributes"]:
+        print("`title` should be set dynamically, remove it from the index-pattern")
         exit_val = 3
 
     return exit_val
