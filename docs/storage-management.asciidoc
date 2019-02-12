@@ -3,67 +3,159 @@
 
 [partintro]
 --
-In the following section you can learn how to:
 
-* <<manage-indices-kibana, Manage APM indices via Kibana>>
+* <<sizing-guide, Storage and sizing guide>>
+* <<processing-performance, Processing and performance>>
 * <<reduce-storage, Reduce storage usage>>
+* <<manage-indices-kibana, Manage APM indices via Kibana>>
 * <<update-existing-data, Update existing data>>
 --
 
-[[manage-indices-kibana]]
-== Manage Indices via Kibana
-The Kibana UI for managing indices allows you to
-view indices, index settings, mappings, docs count, used storage per index and much more.
-You can perform management operations,
-for example, deleting indices directly via the Kibana UI.
-The UI also supports applying bulk operations on several indices at once.
-Check out the {kibana-ref}/managing-indices.html[Kibana Managing Indices] documentation for more details.
+[[sizing-guide]]
+== Storage and sizing guide
+
+APM Server handles a few different kinds of {apm-overview-ref-v}/apm-data-model.html[events].
+Processing and storage costs are largely dominated by
+{apm-overview-ref-v}/transactions.html[transactions] and
+{apm-overview-ref-v}/transaction-spans.html[spans],
+so only those will be covered here.
+
+[float]
+[[typical-transactions]]
+=== Typical transactions
+
+The size of a transaction depends on the language, agent settings, and what services the agent instruments.
+For instance, a service with a popular tech stack (web framework, database, caching library, etc.) is more likely to generate bigger transactions.
+
+In addition, all agents support manual instrumentation.
+How little or much you use these APIs will also impact what a typical transaction looks like.
+
+Due to the high variability of transactions, it's difficult to classify a transaction as typical.
+Regardless, here's a speculative reference: 
+
+[options="header"]
+|=======================================================================
+|Transaction size |Number of Spans |Number of Frames
+|_Small_ |5-10 |5-10
+|_Medium_ |15-20 |15-20
+|_Large_ |30-40 |30-40
+|=======================================================================
+
+There will always be transaction outliers with hundreds of spans or frames, but those are very rare.
+Most customers should have _small_ transactions.
+
+[float]
+[[typical-storage]]
+=== Typical storage
+
+Consider the following typical storage reference.
+These numbers do not account for Elasticsearch compression.
+
+* 1 unsampled transaction is **~1 Kb**
+* 1 span with 10 frames is **~4 Kb**
+* 1 span with 50 frames is **~20 Kb**
+* 1 transaction with 10 spans, each with 10 frames is **~50 Kb**
+* 1 transaction with 25 spans, each with 25 spans is **250-300 Kb**
+* 100 transactions with 10 spans, each with 10 frames, sampled at 90% is **590 Kb**
+
+APM data compresses quite well, so the storage cost in Elasticsearch will be considerably less:
+
+* Indexing 100 unsampled transactions per second for 1 hour results in 360,000 documents. These documents use around **50 Mb** of disk space.   
+* Indexing 10 transactions per second for 1 hour, each transaction with 10 spans, each span with 10 frames, results in 396,000 documents. These documents use around **200 Mb** of disk space. 
+* Indexing 25 transactions per second for 1 hour, each transaction with 25 spans, each span with 25 frames, results in 2,340,000 documents. These documents use around **1.2 Gb** of disk space.
+
+NOTE: These examples were indexing the same data over and over with minimal variation. Because of that, the compression ratios of 80-90% are somewhat optimistic.
+
+[[processing-performance]]
+== Processing and performance
+
+APM Server performance depends on a number of factors: memory and CPU available,
+network latency, transaction sizes, workload patterns,
+agent and server settings, versions, and protocol.
+
+Let's look at a simple example that makes the following assumptions:
+
+* The load is generated in the same region as where APM Server and Elasticsearch are deployed.
+* We're using the default settings in cloud.
+* A small number of agents are reporting.
+
+This leaves us with relevant variables like payload and instance sizes.
+See the table below for approximations.
+As a reminder, events are
+{apm-overview-ref-v}/transactions.html[transactions] and
+{apm-overview-ref-v}/transaction-spans.html[spans].
+
+[options="header"]
+|=======================================================================
+|Transaction/Instance |512Mb Instance |2Gb Instance |8Gb Instance
+|Small transactions
+
+_5 spans with 5 frames each_ |600 events/second |1200 events/second |4800 events/second 
+|Medium transactions
+
+_15 spans with 15 frames each_ |300 events/second |600 events/second |2400 events/second
+|Large transactions
+
+_30 spans with 30 frames each_ |150 events/second |300 events/second |1400 events/second
+|=======================================================================
+
+In other words, a 512 Mb instance can process \~3 Mbs per second,
+while an 8 Gb instance can process ~20 Mbs per second.
+
+APM Server is CPU bound, so it scales better from 2 Gb to 8 Gb than it does from 512 Mb to 2 Gb. This is because larger instance types come with much more computing power.
+
+Don't forget that the APM Server is stateless. Several instances running do not need to know about each other. This means that with a properly sized Elasticsearch instance, APM Server scales out linearly.
+
+NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency. 
 
 [[reduce-storage]]
 == Reduce storage
-The amount of storage for APM data depends on several factors:
-how many services you are instrumenting, how much traffic the services see, agent and server settings,
-and for how long you keep monitoring data.
 
-[[reduce-sample-rate]]
+The amount of storage for APM data depends on several factors:
+the number of services you are instrumenting, how much traffic the services see, agent and server settings,
+and the length of time you keep monitoring data.
+
 [float]
+[[reduce-sample-rate]]
 === Reduce the sample rate
 
-The transaction sample rate directly influences the number of documents (more precisely, spans) to be indexed
-and therefore is the most obvious way to reduce storage.
+The transaction sample rate directly influences the number of documents (more precisely, spans) to be indexed.
+It is the easiest way to reduce storage.
 
-The transaction sample rate is a configuration setting of the agents.
+The transaction sample rate is a configuration setting of each agent.
+Reducing it does not affect the collection of metrics such as _Transactions per second_.
 
-Reducing it does not affect the collection of metrics such as _Transactions Per Second_.
-
+[float]
 [[reduce-stacktrace]]
-[float]
 === Reduce collected stacktrace information
-Elastic APM agents collect `stacktrace` information under certain circumstances.
-This can be very helpful by identifying issues in your code,
-but it also comes with an overhead at collection time and increases the storage usage.
-Stacktrace collection settings are managed in the agents.
 
-[[delete-data]]
+Elastic APM agents collect `stacktrace` information under certain circumstances.
+This can be very helpful in identifying issues in your code,
+but it also comes with an overhead at collection time and increases the storage usage.
+
+Stacktrace collection settings are managed in each agent.
+
 [float]
+[[delete-data]]
 === Delete data
 
-You might want to keep data only for a defined time period and delete old documents periodically,
-or you might also want to delete data collected for specific services or customers,
-or delete specific indices.
+You might want to only keep data for a defined time period.
+This might mean deleting old documents periodically,
+deleting data collected for specific services or customers,
+or deleting specific indices.
+
 Depending on your use case,
-you can either delete data periodically with {curator-ref-current}[Curator],
+you can delete data periodically with {curator-ref-current}[Curator],
 by using the {ref}/docs-delete-by-query.html[Delete By Query API],
 or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
-
-[[delete-data-periodically]]
 [float]
+[[delete-data-periodically]]
 ==== Delete data periodically
 
 To delete data periodically you can use {curator-ref-current}[Curator] and set up a cron job to run it.
 
-By default APM indices have the pattern `apm-%{[observer.version]}-{type}-%{+yyyy.MM.dd}`.
+By default, APM indices have the pattern `apm-%{[observer.version]}-{type}-%{+yyyy.MM.dd}`.
 With the curator command line interface you can, for instance, see all your existing indices:
 
 ["source","sh",subs="attributes"]
@@ -94,15 +186,12 @@ INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
 INFO      "delete_indices" action completed.
 ------------------------------------------------------------
 
-
-[[delete-data-by-query]]
 [float]
+[[delete-data-by-query]]
 ==== Delete data matching a query
 
-To delete documents matching a specific query, for example, all documents with a given context.service.name,
-use the following request:
-
-
+You can delete documents matching a specific query.
+For example, all documents with a given `c`ontext.service.name` use the following request:
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -123,30 +212,40 @@ POST /apm-*/_delete_by_query
   }
 }
 ------------------------------------------------------------
-// CONSOLE
 
 See {ref}/docs-delete-by-query.html[delete by query] for further information on this topic.
 
-[[delete-data-kibana]]
 [float]
+[[delete-data-kibana]]
 ==== Delete data via Kibana Index Management UI
-Select the indices you want to delete, and click the _Manage indices_ button to see the available actions.
-Then click _delete indices_.
-Follow the {kibana-ref}/managing-indices.html[Kibana Index Management] documentation
- to get started with the index management UI.
+
+Select the indices you want to delete, and click **Manage indices** to see the available actions.
+Then click **delete indices**.
+
+See {kibana-ref}/managing-indices.html[Kibana Index Management] for more information.
+
+[[manage-indices-kibana]]
+== Manage Indices via Kibana
+
+The Kibana UI for managing indices allows you to view indices, index settings,
+mappings, document counts, used storage per index, and much more.
+You can also perform management operations, like deleting indices directly via the Kibana UI.
+Finally, the UI supports applying bulk operations on several indices at once.
+Check out {kibana-ref}/managing-indices.html[Managing Indices] for more details.
 
 [[update-existing-data]]
 == Update existing data
-You might want to update documents already indexed,
-for example if you your service name was set incorrectly.
 
-For this, you can use the {ref}/docs-update-by-query.html[Update By Query API].
+You might want to update documents that are already indexed.
+For example, if you your service name was set incorrectly.
 
-[[update-data-rename-a-service]]
+To do this, you can use the {ref}/docs-update-by-query.html[Update By Query API].
+
 [float]
+[[update-data-rename-a-service]]
 === Rename a service
 
-To rename a service send the following request:
+To rename a service, send the following request:
 
 ["source","sh"]
 ------------------------------------------------------------
@@ -167,4 +266,4 @@ POST /apm-*/_update_by_query
 ------------------------------------------------------------
 // CONSOLE
 
-Remember to also change the service name in the {apm-agents-ref}/index.html[APM agent configuration] accordingly.
+TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[APM agent configuration].
