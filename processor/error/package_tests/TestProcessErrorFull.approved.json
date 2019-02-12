@@ -358,7 +358,7 @@
             }
         },
         {
-            "@timestamp": "2017-05-09T15:04:05.999Z",
+            "@timestamp": "2017-05-08T15:04:05.999Z",
             "context": {
                 "process": {
                     "argv": [

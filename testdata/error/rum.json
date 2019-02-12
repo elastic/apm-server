@@ -10,7 +10,6 @@
   "errors": [
     {
       "id": "aba2688e-0338-48ce-9c4e-4005f1caa534",
-      "timestamp": "2017-12-08T12:18:50.291Z",
       "culprit": "test/e2e/general-usecase/bundle.js.map",
       "log": {
         "message": "Uncaught Error: log timeout test error",
