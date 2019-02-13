@@ -134,8 +134,7 @@ bench:
 .PHONY: are-kibana-objects-updated
 are-kibana-objects-updated: python-env
 	@$(MAKE) clean update apm-server
-	@./apm-server export index-pattern > index-pattern.json
-	@$(PYTHON_ENV)/bin/python ./script/are_kibana_saved_objects_updated.py ${BEATS_VERSION}
+	@$(PYTHON_ENV)/bin/python ./script/are_kibana_saved_objects_updated.py --branch ${BEATS_VERSION} <(./apm-server export index-pattern)
 
 .PHONY: register-pipelines
 register-pipelines: update ${BEAT_NAME}
