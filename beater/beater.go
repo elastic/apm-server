@@ -38,6 +38,10 @@ import (
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 )
 
+func init() {
+	apm.DefaultTracer.Close()
+}
+
 type beater struct {
 	config  *Config
 	mutex   sync.Mutex // guards server and stopped
@@ -173,7 +177,6 @@ func (bt *beater) Run(b *beat.Beat) error {
 // initTracer configures and returns an apm.Tracer for tracing
 // the APM server's own execution.
 func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*apm.Tracer, net.Listener, error) {
-	apm.DefaultTracer.Close()
 	if !config.SelfInstrumentation.isEnabled() {
 		os.Setenv("ELASTIC_APM_ACTIVE", "false")
 		logger.Infof("self instrumentation is disabled")
