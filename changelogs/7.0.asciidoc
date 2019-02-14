@@ -1,16 +1,13 @@
 [[release-notes-7.0]]
 == APM Server version 7.0
 
-////
-* <<release-notes-7.0.0-beta>>
-////
+* <<release-notes-7.0.0-beta1>>
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
 
-////
-[[release-notes-7.0.0-beta]]
-=== APM Server version 7.0.0-beta
+[[release-notes-7.0.0-beta1]]
+=== APM Server version 7.0.0-beta1
 
 https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 
@@ -39,7 +36,6 @@ https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
 - Remove dashboards from being shipped with APM Server and all logic around them {pull}[1815].
-////
 
 [[release-notes-7.0.0-alpha2]]
 === APM Server version 7.0.0-alpha2
