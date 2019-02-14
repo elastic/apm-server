@@ -76,6 +76,7 @@ type Event struct {
 	Http    *m.Http
 	Url     *m.Url
 	Custom  *m.Custom
+	Service *metadata.Service
 
 	Exception *Exception
 	Log       *Log
@@ -132,6 +133,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Url:                ctx.Url,
 		Custom:             ctx.Custom,
 		User:               ctx.User,
+		Service:            ctx.Service,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
@@ -196,22 +198,28 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"error":     e.fields(tctx),
 		"processor": processorEntry,
 	}
-	utility.Add(fields, "user", e.User.Fields())
-	utility.Add(fields, "client", e.User.ClientFields())
-	utility.Add(fields, "user_agent", e.User.UserAgentFields())
-	utility.Add(fields, "labels", e.Labels.Fields())
-	utility.Add(fields, "http", e.Http.Fields())
-	utility.Add(fields, "url", e.Url.Fields())
-	tctx.Metadata.Merge(fields)
+
+	// first set the generic metadata
+	tctx.Metadata.Set(fields)
+
+	// then add event specific information
+	utility.Update(fields, "user", e.User.Fields())
+	utility.DeepUpdate(fields, "client", e.User.ClientFields())
+	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
+	utility.DeepUpdate(fields, "service", e.Service.Fields())
+	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
+	utility.Set(fields, "labels", e.Labels.Fields())
+	utility.Set(fields, "http", e.Http.Fields())
+	utility.Set(fields, "url", e.Url.Fields())
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data
 	if e.TransactionSampled != nil || e.TransactionType != nil || (e.TransactionId != nil && *e.TransactionId != "") {
 		transaction := common.MapStr{}
-		utility.Add(transaction, "id", e.TransactionId)
-		utility.Add(transaction, "type", e.TransactionType)
-		utility.Add(transaction, "sampled", e.TransactionSampled)
-		utility.Add(fields, "transaction", transaction)
+		utility.Set(transaction, "id", e.TransactionId)
+		utility.Set(transaction, "type", e.TransactionType)
+		utility.Set(transaction, "sampled", e.TransactionSampled)
+		utility.Set(fields, "transaction", transaction)
 	}
 
 	utility.AddId(fields, "parent", e.ParentId)
@@ -220,7 +228,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	if e.Timestamp.IsZero() {
 		e.Timestamp = tctx.RequestTime
 	}
-	utility.Add(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
+	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
 
 	return []beat.Event{
 		{
@@ -282,25 +290,25 @@ func (e *Event) addException(tctx *transform.Context) {
 		return
 	}
 	ex := common.MapStr{}
-	utility.Add(ex, "message", e.Exception.Message)
-	utility.Add(ex, "module", e.Exception.Module)
-	utility.Add(ex, "attributes", e.Exception.Attributes)
-	utility.Add(ex, "type", e.Exception.Type)
-	utility.Add(ex, "handled", e.Exception.Handled)
+	utility.Set(ex, "message", e.Exception.Message)
+	utility.Set(ex, "module", e.Exception.Module)
+	utility.Set(ex, "attributes", e.Exception.Attributes)
+	utility.Set(ex, "type", e.Exception.Type)
+	utility.Set(ex, "handled", e.Exception.Handled)
 
 	switch code := e.Exception.Code.(type) {
 	case int:
-		utility.Add(ex, "code", strconv.Itoa(code))
+		utility.Set(ex, "code", strconv.Itoa(code))
 	case float64:
-		utility.Add(ex, "code", fmt.Sprintf("%.0f", code))
+		utility.Set(ex, "code", fmt.Sprintf("%.0f", code))
 	case string:
-		utility.Add(ex, "code", code)
+		utility.Set(ex, "code", code)
 	case json.Number:
-		utility.Add(ex, "code", code.String())
+		utility.Set(ex, "code", code.String())
 	}
 
 	st := e.Exception.Stacktrace.Transform(tctx)
-	utility.Add(ex, "stacktrace", st)
+	utility.Set(ex, "stacktrace", st)
 
 	// NOTE(axw) error.exception is an array of objects.
 	// For now, the array holds just one exception. Later,
@@ -315,12 +323,12 @@ func (e *Event) addLog(tctx *transform.Context) {
 		return
 	}
 	log := common.MapStr{}
-	utility.Add(log, "message", e.Log.Message)
-	utility.Add(log, "param_message", e.Log.ParamMessage)
-	utility.Add(log, "logger_name", e.Log.LoggerName)
-	utility.Add(log, "level", e.Log.Level)
+	utility.Set(log, "message", e.Log.Message)
+	utility.Set(log, "param_message", e.Log.ParamMessage)
+	utility.Set(log, "logger_name", e.Log.LoggerName)
+	utility.Set(log, "level", e.Log.Level)
 	st := e.Log.Stacktrace.Transform(tctx)
-	utility.Add(log, "stacktrace", st)
+	utility.Set(log, "stacktrace", st)
 
 	e.add("log", log)
 }
@@ -396,7 +404,7 @@ func (e *Event) calcGroupingKey() string {
 }
 
 func (e *Event) add(key string, val interface{}) {
-	utility.Add(e.data, key, val)
+	utility.Set(e.data, key, val)
 }
 
 func addStacktraceCounter(st m.Stacktrace) {

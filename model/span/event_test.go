@@ -169,7 +169,8 @@ func TestDecodeSpan(t *testing.T) {
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
-	service := metadata.Service{Name: "myService"}
+	serviceName := "myService"
+	service := metadata.Service{Name: &serviceName}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "myspansubtype"
 	action := "myspanquery"
@@ -194,7 +195,6 @@ func TestSpanTransform(t *testing.T) {
 					"type":     "",
 				},
 				"timestamp": common.MapStr{"us": timestampUs},
-				"agent":     common.MapStr{"name": "", "version": ""},
 			},
 			Msg: "Span without a Stacktrace",
 		},
@@ -251,17 +251,14 @@ func TestSpanTransform(t *testing.T) {
 				"timestamp": common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
 				"trace":     common.MapStr{"id": traceId},
 				"parent":    common.MapStr{"id": parentId},
-				"agent":     common.MapStr{"name": "", "version": ""},
 			},
 			Msg: "Full Span",
 		},
 	}
 
 	tctx := &transform.Context{
-		Config: transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
-		Metadata: metadata.Metadata{
-			Service: &service,
-		},
+		Config:      transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Metadata:    metadata.Metadata{Service: &service},
 		RequestTime: timestamp,
 	}
 	for _, test := range tests {

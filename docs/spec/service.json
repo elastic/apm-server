@@ -1,24 +1,23 @@
 {
     "$id": "doc/spec/service.json",
     "title": "Service",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
         "agent": {
             "description": "Name and version of the Elastic APM agent",
-            "type": "object",
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "description": "Name of the Elastic APM agent, e.g. \"Python\"",
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
                     "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name", "version"]
+            }
         },
         "framework": {
             "description": "Name and version of the web framework used",
@@ -39,19 +38,18 @@
             "type": ["object", "null"],
             "properties": {
                 "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
                     "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name"]
+            }
         },
         "name": {
             "description": "Immutable name of the service emitting this event",
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
@@ -65,21 +63,19 @@
             "type": ["object", "null"],
             "properties": {
                 "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name", "version"]
+            }
         },
         "version": {
             "description": "Version of the service emitting this event",
             "type": ["string", "null"],
             "maxLength": 1024
         }
-    },
-    "required": ["agent", "name"]
+    }
 }

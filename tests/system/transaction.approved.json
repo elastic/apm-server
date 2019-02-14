@@ -37,8 +37,8 @@
                 "ip": "127.0.0.1"
             },
             "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
+                "name": "js-base",
+                "version": "1.3"
             },
             "processor": {
                 "name": "transaction",
@@ -54,21 +54,21 @@
                 "ppid": 6789
             },
             "service": {
-                "runtime": {
-                    "name": "node",
-                    "version": "8.0.0"
-                },
-                "framework": {
-                    "name": "Express",
-                    "version": "1.2.3"
-                },
-                "version": "5.1.3",
+                "name": "serviceabc",
                 "language": {
-                    "name": "ecmascript",
-                    "version": "8"
+                    "version": "8",
+                    "name": "ecmascript"
                 },
                 "environment": "staging",
-                "name": "1234_service-12a3"
+                "framework": {
+                    "version": "1.2.3",
+                    "name": "Express"
+                },
+                "version": "5.1.3",
+                "runtime": {
+                    "version": "8.0.0",
+                    "name": "javascript"
+                }
             },
             "user": {
                 "id": "99",

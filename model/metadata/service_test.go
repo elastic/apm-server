@@ -35,6 +35,7 @@ var (
 )
 
 func TestServiceTransform(t *testing.T) {
+	serviceName := "myService"
 
 	tests := []struct {
 		Service     Service
@@ -42,18 +43,13 @@ func TestServiceTransform(t *testing.T) {
 		AgentFields common.MapStr
 	}{
 		{
-			Service: Service{},
-			AgentFields: common.MapStr{
-				"name":    "",
-				"version": "",
-			},
-			Fields: common.MapStr{
-				"name": "",
-			},
+			Service:     Service{},
+			AgentFields: common.MapStr{},
+			Fields:      common.MapStr{},
 		},
 		{
 			Service: Service{
-				Name:        "myService",
+				Name:        &serviceName,
 				Version:     &version,
 				Environment: &environment,
 				Language: Language{
@@ -69,8 +65,8 @@ func TestServiceTransform(t *testing.T) {
 					Version: &fwVersion,
 				},
 				Agent: Agent{
-					Name:    agentName,
-					Version: agentVersion,
+					Name:    &agentName,
+					Version: &agentVersion,
 				},
 			},
 			AgentFields: common.MapStr{
@@ -98,12 +94,13 @@ func TestServiceTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.Fields, test.Service.fields())
-		assert.Equal(t, test.AgentFields, test.Service.agentFields())
+		assert.Equal(t, test.Fields, test.Service.Fields())
+		assert.Equal(t, test.AgentFields, test.Service.AgentFields())
 	}
 }
 
 func TestServiceDecode(t *testing.T) {
+	serviceName := "myService"
 	for _, test := range []struct {
 		input       interface{}
 		err, inpErr error
@@ -116,16 +113,15 @@ func TestServiceDecode(t *testing.T) {
 			input: map[string]interface{}{"name": 1234},
 			err:   errors.New("Error fetching field"),
 			s: &Service{
-				Name: "", Version: nil, Environment: nil,
-				Language:  Language{Name: nil, Version: nil},
-				Runtime:   Runtime{Name: nil, Version: nil},
-				Framework: Framework{Name: nil, Version: nil},
-				Agent:     Agent{Name: "", Version: ""},
+				Language:  Language{},
+				Runtime:   Runtime{},
+				Framework: Framework{},
+				Agent:     Agent{},
 			},
 		},
 		{
 			input: map[string]interface{}{
-				"name":        "myService",
+				"name":        serviceName,
 				"version":     "5.1.3",
 				"environment": "staging",
 				"language": common.MapStr{
@@ -147,7 +143,7 @@ func TestServiceDecode(t *testing.T) {
 			},
 			err: nil,
 			s: &Service{
-				Name:        "myService",
+				Name:        &serviceName,
 				Version:     &version,
 				Environment: &environment,
 				Language: Language{
@@ -163,8 +159,8 @@ func TestServiceDecode(t *testing.T) {
 					Version: &fwVersion,
 				},
 				Agent: Agent{
-					Name:    agentName,
-					Version: agentVersion,
+					Name:    &agentName,
+					Version: &agentVersion,
 				},
 			},
 		},

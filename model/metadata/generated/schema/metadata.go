@@ -26,24 +26,23 @@ const ModelSchema = `{
         "service": {
                 "$id": "doc/spec/service.json",
     "title": "Service",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
         "agent": {
             "description": "Name and version of the Elastic APM agent",
-            "type": "object",
+            "type": ["object", "null"],
             "properties": {
                 "name": {
                     "description": "Name of the Elastic APM agent, e.g. \"Python\"",
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
                     "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name", "version"]
+            }
         },
         "framework": {
             "description": "Name and version of the web framework used",
@@ -64,19 +63,18 @@ const ModelSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
                     "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name"]
+            }
         },
         "name": {
             "description": "Immutable name of the service emitting this event",
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[a-zA-Z0-9 _-]+$",
             "maxLength": 1024
         },
@@ -90,15 +88,14 @@ const ModelSchema = `{
             "type": ["object", "null"],
             "properties": {
                 "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 },
                 "version": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 1024
                 }
-            },
-            "required": ["name", "version"]
+            }
         },
         "version": {
             "description": "Version of the service emitting this event",
@@ -106,7 +103,15 @@ const ModelSchema = `{
             "maxLength": 1024
         }
     },
-    "required": ["agent", "name"]
+            "type": "object",
+            "properties.agent.required": ["name", "version"],
+            "properties.agent.properties.name.type": "string",
+            "properties.agent.properties.version.type": "string",
+            "properties.runtime.required": ["name", "version"],
+            "properties.runtime.properties.name.type": "string",
+            "properties.runtime.properties.version.type": "string",
+            "properties.language.required": ["name"],
+            "properties.language.properties.name.type": "string"
         },
         "process": {
               "$id": "doc/spec/process.json",
@@ -201,9 +206,9 @@ const ModelSchema = `{
     }
         },
         "user": {
+            "description": "Describes the authenticated User for a request.",
                 "$id": "docs/spec/user.json",
     "title": "User",
-    "description": "Describes the authenticated User for a request.",
     "type": ["object", "null"],
     "properties": {
         "id": {
