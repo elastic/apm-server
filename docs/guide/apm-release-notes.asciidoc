@@ -1,8 +1,11 @@
 [[apm-release-notes]]
 == Release notes
 
-This section summarizes the APM changes in each release.
-Also see <<apm-breaking-changes>>.
+This section summarizes the most important APM changes in each release.
+
+For a full list of changes, see the
+{apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
+{kibana-ref}/release-notes.html[Kibana Release Notes].
 
 // * <<release-notes-7.7.0>>
 // * <<release-notes-7.7.0-rc2>>
@@ -67,9 +70,10 @@ No significant changes.
 [float]
 ==== New features
 
-* Elastic APM agents now automatically record certain infrastructure and application metrics.
-* Elastic APM agents support the W3C Trace Context. All agents now have OpenTracing compatible bridges
-* Distributed tracing is generally available.
+* Elastic APM agents now automatically record certain <<metrics,infrastructure and application metrics>>.
+* Elastic APM agents support the W3C Trace Context.
+All agents now have <<opentracing,OpenTracing compatible bridges>>.
+* <<distributed-tracing,Distributed tracing>> is generally available.
 
 [[release-notes-6.5.0]]
 === APM version 6.5.0
