@@ -12,6 +12,10 @@
 https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 
 [float]
+==== Breaking Changes
+- Move fields in ES to be ECS compliant {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870]
+
+[float]
 ==== Added
 
 - Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].

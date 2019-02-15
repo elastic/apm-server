@@ -2,7 +2,6 @@
 [[apm-release-notes]]
 == Release notes
 
-////
 [float]
 ==== APM version 7.0.0-beta
 
@@ -12,7 +11,14 @@
 *APM Server*
 
 * Removal of deprecated Intake v1 API endpoints.
-////
+* Move fields in ES to be ECS compliant.
+
+===== New features
+
+*APM Server*
+
+* Change ownership to apm-server user/group for deb/rpm installs.
+
 
 [float]
 ==== APM version 7.0.0-alpha2
