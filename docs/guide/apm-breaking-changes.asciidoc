@@ -1,0 +1,81 @@
+[[apm-breaking-changes]]
+== Breaking changes
+
+This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
+
+* <<breaking-7.7.0-beta1, APM version 7.7.0-beta1>>
+* <<breaking-6.4.0, APM version 6.4.0>>
+
+Also see <<apm-release-notes>>.
+
+[[breaking-7.7.0-beta1]]
+=== Breaking changes in 7.7.0-beta1
+
+[float]
+==== APM Server
+
+**Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server, ensure all APM agents are upgraded to a version that supports APM Server >= 6.5. View the <<agent-server-compatibility, agent/server compatibility matrix>> to determine if your agent versions are compatible. 
+
+**Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).**
+APM has aligned with the field names defined in the
+https://github.com/elastic/ecs[Elastic Common Schema (ECS)].
+Utilizing this common schema will allow for easier data correlation within Elasticsearch.
+
+See the <<ecs-compliance,ECS field changes>> table for full details on which fields have changed.
+
+[float]
+==== APM UI
+
+**Moving to new data endpoints.**
+APM Server version 6.x or lower data will be filtered out of Kibana. 
+We offer a Kibana Migration Assistant (in the Kibana Management section) to help you migrate your data. 
+Be aware that this is a beta release.
+This script is **not** supposed to be run on production data at this stage.
+
+[float]
+[[ecs-compliance]]
+==== Elastic Common Schema field changes
+
+include::./ecs-name-changes.asciidoc[]
+
+[[breaking-6.4.0]]
+=== Breaking changes in 6.4.0
+
+We previously split APM data into separate indices (transaction, span, error, etc.).
+In 6.4 APM Kibana UI starts to leverage those separate indices for queries.
+
+In case you only update Kibana but run an older version of APM Server you will not be able to see any APM data by default.
+To fix this, use the {kibana-ref}/apm-settings-kb.html[Kibana APM settings] to specify the location of the APM index:
+["source","sh"]
+------------------------------------------------------------
+apm_oss.errorIndices: apm-*
+apm_oss.spanIndices: apm-*
+apm_oss.transactionIndices: apm-*
+apm_oss.onboardingIndices: apm-*
+------------------------------------------------------------
+
+In case you are upgrading APM Server from an older version, you might need to refresh your APM index pattern for certain APM UI features to work.
+Also ensure to add the new config options in `apm-server.yml` in case you keep your existing configuration file:
+["source","sh"]
+------------------------------------------------------------
+output.elasticsearch:
+  indices:
+    - index: "apm-%{[observer.version]}-sourcemap"
+      when.contains:
+        processor.event: "sourcemap"
+    - index: "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "error"
+    - index: "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "transaction"
+    - index: "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "span"
+    - index: "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "metric"
+    - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "onboarding"
+------------------------------------------------------------

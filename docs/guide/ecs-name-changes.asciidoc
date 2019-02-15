@@ -1,0 +1,11 @@
+// **This chart needs to be updated with APM data**
+
+[frame="topbot",options="header"]
+|======================
+|Old Field|New Field
+|`beat.hostname`            |`observer.hostname`
+|`beat.name`            |`observer.type`
+|`beat.timezone`            |`event.timezone`
+|`beat.version`            |`observer.version`
+|etc... |etc...
+|======================
