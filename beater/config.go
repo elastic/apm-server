@@ -212,7 +212,7 @@ func defaultConfig(beatVersion string) *Config {
 		Host:            net.JoinHostPort("localhost", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
 		MaxConnections:  0,               // unlimited
-		ReadTimeout:     30 * time.Second,
+		ReadTimeout:     45 * time.Second,
 		WriteTimeout:    30 * time.Second,
 		MaxEventSize:    300 * 1024, // 300 kb
 		ShutdownTimeout: 5 * time.Second,

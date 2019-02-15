@@ -10,7 +10,7 @@ apm-server:
   #max_header_size: 1048576
 
   # Maximum permitted duration for reading an entire request.
-  #read_timeout: 30s
+  #read_timeout: 45s
 
   # Maximum permitted duration for writing a response.
   #write_timeout: 30s
