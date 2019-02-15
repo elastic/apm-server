@@ -1,23 +1,6 @@
-import json
 import yaml
 
-from apmserver import ServerSetUpBaseTest
-
-
-class SubCommandTest(ServerSetUpBaseTest):
-    def wait_until_started(self):
-        self.apmserver_proc.check_wait()
-
-        # command and go test output is combined in log, pull out the command output
-        log = self.get_log()
-        pos = -1
-        for _ in range(2):
-            # export always uses \n, not os.linesep
-            pos = log[:pos].rfind("\n")
-        self.command_output = log[:pos]
-        for trimmed in log[pos:].strip().splitlines():
-            # ensure only skipping expected lines
-            assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
+from apmserver import SubCommandTest
 
 
 class ExportConfigDefaultTest(SubCommandTest):

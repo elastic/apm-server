@@ -1,15 +1,27 @@
 [[release-notes-7.0]]
 == APM Server version 7.0
 
+https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
+
+////
+* <<release-notes-7.0.0-rc1>>
+////
 * <<release-notes-7.0.0-beta1>>
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
+////
+[[release-notes-7.0.0-rc1]]
+=== APM Server version 7.0.0-rc1
+
+==== Bugfix
+
+- Ensure setup cmd uses expected configuration {pull}1934[1934]. 
+
+////
 
 [[release-notes-7.0.0-beta1]]
 === APM Server version 7.0.0-beta1
-
-https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 
 [float]
 ==== Breaking Changes
