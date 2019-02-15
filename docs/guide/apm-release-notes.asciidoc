@@ -3,43 +3,54 @@
 == Release notes
 
 [float]
-==== APM version 7.0.0-beta
+=== APM version 7.0.0-beta
 
 [float]
-===== Breaking Changes
+==== Breaking Changes
 
 *APM Server*
 
 * Removal of deprecated Intake v1 API endpoints.
-* Move fields in ES to be ECS compliant.
+* Move fields in Elasticsearch to be ECS compliant.
 
-===== New features
+*APM UI*
+
+* Moving to new data endpoints. We are filtering out 6.x or lower. 
+We offer a Kibana Migration Assistant (in the Kibana Management section) to help you migrate your data. 
+Be aware that this script is **not** supposed to be run on production data at this stage, as this is a beta release.
+
+[float]
+==== New features
 
 *APM Server*
 
 * Change ownership to apm-server user/group for deb/rpm installs.
 
+*APM UI*
+
+* Added support for frozen indices.
+
 
 [float]
-==== APM version 7.0.0-alpha2
+=== APM version 7.0.0-alpha2
 
 No significant changes.
 
 [float]
-==== APM version 7.0.0-alpha1
+=== APM version 7.0.0-alpha1
 
 No significant changes.
 
 ////
 [float]
-==== APM version 6.6.0
+=== APM version 6.6.0
 ////
 
 [float]
-==== APM version 6.5.0
+=== APM version 6.5.0
 
 [float]
-===== New features
+==== New features
 
 Elastic APM now enables {apm-overview-ref-v}/distributed-tracing.html[distributed tracing].
 
@@ -63,10 +74,10 @@ Elastic APM now enables {apm-overview-ref-v}/distributed-tracing.html[distribute
 * Node added support for Restify Framework, dropped support for Node.js 4 and 9
 
 [float]
-==== APM version 6.4.1
+=== APM version 6.4.1
 
 [float]
-===== Bug Fixes
+==== Bug Fixes
 Changes introduced in 6.4.0 potentially caused an empty APM Kibana UI.
 This happened in case the APM Server was using an outdated configuration file, not configured to index events into separate indices. 
 To fix this, the APM Kibana UI now falls back to use `apm-*` as default indices to query.
@@ -74,10 +85,10 @@ Users can still leverage separate indices for queries by overriding the default 
 
 
 [float]
-==== APM version 6.4.0
+=== APM version 6.4.0
 
 [float]
-===== Breaking changes
+==== Breaking changes
 
 We previously split APM data into separate indices (transaction, span, error, etc.).
 In 6.4 APM Kibana UI starts to leverage those separate indices for queries.
@@ -119,7 +130,7 @@ output.elasticsearch:
 ------------------------------------------------------------
 
 [float]
-===== New features
+==== New features
 
 *APM Server*
 
