@@ -178,7 +178,7 @@ class ElasticTest(ServerBaseTest):
     def config(self):
         cfg = super(ElasticTest, self).config()
         cfg.update({
-            "elasticsearch_host": self.get_elasticsearch_url(),
+            "elasticsearch_host": get_elasticsearch_url(),
             "file_enabled": "false",
         })
         cfg.update(self.config_overrides)
@@ -203,7 +203,7 @@ class ElasticTest(ServerBaseTest):
             time.sleep(poll_interval)
 
     def setUp(self):
-        self.es = Elasticsearch([self.get_elasticsearch_url()])
+        self.es = Elasticsearch([get_elasticsearch_url()])
 
         # Cleanup index and template first
         self.es.indices.delete(index="*", ignore=[400, 404])
@@ -223,16 +223,6 @@ class ElasticTest(ServerBaseTest):
         self.wait_until(lambda: self.es.ingest.get_pipeline("apm_user_agent"))
 
         super(ElasticTest, self).setUp()
-
-    def get_elasticsearch_url(self):
-        """
-        Returns an elasticsearch.Elasticsearch url built from the
-        env variables like the integration tests.
-        """
-        return "http://{host}:{port}".format(
-            host=os.getenv("ES_HOST", "localhost"),
-            port=os.getenv("ES_PORT", "9200"),
-        )
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count, query_index=None):
 
@@ -421,3 +411,30 @@ class ExpvarBaseTest(ServerBaseTest):
 
     def get_debug_vars(self):
         return requests.get(self.expvar_url)
+
+
+def get_elasticsearch_url():
+    """
+    Returns an elasticsearch.Elasticsearch url built from the
+    env variables like the integration tests.
+    """
+    return "http://{host}:{port}".format(
+        host=os.getenv("ES_HOST", "localhost"),
+        port=os.getenv("ES_PORT", "9200"),
+    )
+
+
+class SubCommandTest(ServerSetUpBaseTest):
+    def wait_until_started(self):
+        self.apmserver_proc.check_wait()
+
+        # command and go test output is combined in log, pull out the command output
+        log = self.get_log()
+        pos = -1
+        for _ in range(2):
+            # export always uses \n, not os.linesep
+            pos = log[:pos].rfind("\n")
+        self.command_output = log[:pos]
+        for trimmed in log[pos:].strip().splitlines():
+            # ensure only skipping expected lines
+            assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
