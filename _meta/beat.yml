@@ -36,11 +36,38 @@ apm-server:
   #secret_token:
 
   # Enable secure communication between APM agents and the server. By default ssl is disabled.
-  #ssl.enabled: false
-  #ssl.certificate : "path/to/cert"
-  #ssl.key : "path/to/private_key"
-  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-  #ssl.key_passphrase: ""
+  #ssl:
+    #enabled: false
+
+    # Configure a list of root certificates for HTTPS server verifications
+    #certificate_authorities: []
+
+    # Certificate for SSL client authentication
+    # Needs to be configured when ssl is enabled
+    #certificate: ""
+
+    # Client Certificate Key
+    # Needs to be configured when ssl is enabled
+    #key: ""
+
+    # Optional passphrase for decrypting the Certificate Key.
+    # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
+    #key_passphrase: ''
+
+    # List of supported/valid TLS versions. By default all TLS versions 1.1 up to
+    # 1.2 are enabled.
+    #supported_protocols: [TLSv1.1, TLSv1.2]
+
+    # Configure cipher suites to be used for SSL connections
+    #cipher_suites: []
+
+    # Configure curve types for ECDHE based cipher suites
+    #curve_types: []
+
+    # Configure which types of client authentication are supported.
+    # Options are `none`, `optional`, and `required`. Default is required.
+    # It is strongly recommended to always set to `required`
+    #client_authentication: "required"
 
   #rum:
     # To enable real user monitoring (RUM) support set this to true.

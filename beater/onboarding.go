@@ -28,7 +28,7 @@ import (
 func notifyListening(config *Config, pubFct func(beat.Event)) {
 
 	var isServerUp = func() bool {
-		secure := config.SSL.isEnabled()
+		secure := config.TLS.IsEnabled()
 		return isServerUp(secure, config.Host, 10, time.Second)
 	}
 

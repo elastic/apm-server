@@ -192,7 +192,11 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	bt.server = newServer(bt.config, tracer, pub.Send)
+	bt.server, err = newServer(bt.config, tracer, pub.Send)
+	if err != nil {
+		bt.logger.Error("failed to create new server:", err)
+		return nil
+	}
 	bt.mutex.Unlock()
 
 	var g errgroup.Group

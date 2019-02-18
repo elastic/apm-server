@@ -402,7 +402,6 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 }
 
 func TestServerSSL(t *testing.T) {
-	t.Skip("flaky test in go 1.11")
 	tests := []struct {
 		label            string
 		domain           string
@@ -433,10 +432,7 @@ func TestServerSSL(t *testing.T) {
 			},
 		},
 		{
-			label: "bad schema", domain: "localhost", expectedMsgs: []string{
-				"malformed HTTP response",
-				"transport connection broken"},
-			overrideProtocol: true,
+			label: "bad schema", domain: "localhost", statusCode: http.StatusBadRequest, overrideProtocol: true,
 		},
 		{
 			label: "with passphrase", domain: "localhost", statusCode: http.StatusAccepted, insecure: true, passphrase: "foobar",
@@ -458,7 +454,7 @@ func TestServerSSL(t *testing.T) {
 		res, err := client.Do(req)
 
 		if len(test.expectedMsgs) > 0 {
-			require.Error(t, err)
+			require.Error(t, err, test.label)
 			var containsErrMsg bool
 			for _, msg := range test.expectedMsgs {
 				containsErrMsg = containsErrMsg || strings.Contains(err.Error(), msg)
@@ -468,6 +464,9 @@ func TestServerSSL(t *testing.T) {
 		}
 
 		if test.statusCode != 0 {
+			if res == nil {
+				t.Skip("flaky test in go 1.11")
+			}
 			assert.Equal(t, test.statusCode, res.StatusCode,
 				fmt.Sprintf("wrong code at idx %d (%s)", idx, test.label))
 		}
@@ -481,9 +480,10 @@ func TestServerSecureBadPassphrase(t *testing.T) {
 	name := path.Join(tmpCertPath, t.Name())
 	cfg, err := common.NewConfigFrom(map[string]map[string]interface{}{
 		"ssl": {
-			"certificate":    name + ".pem",
-			"key":            name + ".key",
-			"key_passphrase": "bar",
+			"certificate":           name + ".pem",
+			"key":                   name + ".key",
+			"key_passphrase":        "bar",
+			"client_authentication": "none",
 		},
 	})
 	require.NoError(t, err)
@@ -557,9 +557,10 @@ func withSSL(t *testing.T, domain, passphrase string) *common.Config {
 	assert.NoError(t, err)
 	cfg, err := common.NewConfigFrom(map[string]map[string]interface{}{
 		"ssl": {
-			"certificate":    name + ".pem",
-			"key":            name + ".key",
-			"key_passphrase": passphrase,
+			"certificate":           name + ".pem",
+			"key":                   name + ".key",
+			"key_passphrase":        passphrase,
+			"client_authentication": "none",
 		},
 	})
 	require.NoError(t, err)
