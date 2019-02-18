@@ -80,6 +80,7 @@ func NewPublisher(info beat.Info, pipeline beat.Pipeline, shutdownTimeout time.D
 		},
 		SkipAgentMetadata: true,
 		SkipNormalization: true,
+		SkipHostName:      true,
 	})
 	if err != nil {
 		return nil, err

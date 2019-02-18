@@ -15,6 +15,7 @@
 ==== Bugfix
 
 - Ensure setup cmd uses expected configuration {pull}1934[1934]. 
+- Ensure host.name is not added {pull}1934[1934].
 
 ////
 
