@@ -83,7 +83,7 @@ pipeline {
       }
     }
     stage('Build'){
-      failFast true
+      failFast false
       parallel {
         /**
         Build on a linux environment.
@@ -129,7 +129,7 @@ pipeline {
       }
     }
     stage('Test') {
-      failFast true
+      failFast false
       parallel {
         /**
           Run unit tests and report junit results.
