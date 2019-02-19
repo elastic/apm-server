@@ -11,21 +11,22 @@ Also see <<apm-release-notes>>.
 [[breaking-7.7.0-beta1]]
 === Breaking changes in 7.7.0-beta1
 
-[float]
-==== APM Server
-
+APM Server::
++
+[[breaking-remove-v1]]
 **Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server, ensure all APM agents are upgraded to a version that supports APM Server >= 6.5. View the <<agent-server-compatibility, agent/server compatibility matrix>> to determine if your agent versions are compatible. 
-
++
+[[breaking-ecs]]
 **Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).**
 APM has aligned with the field names defined in the
 https://github.com/elastic/ecs[Elastic Common Schema (ECS)].
 Utilizing this common schema will allow for easier data correlation within Elasticsearch.
-
++
 See the <<ecs-compliance,ECS field changes>> table for full details on which fields have changed.
 
-[float]
-==== APM UI
-
+APM UI::
++
+[[breaking-new-endpoints]]
 **Moving to new data endpoints.**
 APM Server version 6.x or lower data will be filtered out of Kibana. 
 We offer a Kibana Migration Assistant (in the Kibana Management section) to help you migrate your data. 

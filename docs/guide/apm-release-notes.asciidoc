@@ -1,5 +1,5 @@
 [[apm-release-notes]]
-== Release notes
+== Release highlights
 
 This section summarizes the most important APM changes in each release.
 
