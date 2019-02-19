@@ -36,7 +36,7 @@ This script is **not** supposed to be run on production data at this stage.
 [[ecs-compliance]]
 ==== Elastic Common Schema field changes
 
-include::./ecs-name-changes.asciidoc[]
+include::../field-name-changes.asciidoc[]
 
 [[breaking-6.4.0]]
 === Breaking changes in 6.4.0
