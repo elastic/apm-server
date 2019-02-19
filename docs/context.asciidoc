@@ -1,10 +1,6 @@
-The contextual data describes the environment in which an event is recorded.
-It includes the `service`, the `system` where the service runs, and the `process`.
-
-It can also contain information about the authenticated `user`.
-
-An event's context can also include information about an authenticated `user`, a request leading to it, or a response.
-For instance, HTTP requests context have `url`, `cookies`, `body`, `headers`, etc.
-
-The agents provide some settings for users to capture customized information. This data is stored as not-indexed in a `custom` object.
-Searchable information is stored as `tags` instead.
+* Data about the environment in which the event is recorded:
+** Service - environment, framework, language, etc.
+** Host - architecture, hostname, IP, etc.
+** Process - args, PID, PPID, etc.
+** URL - full, domain, port, query, etc.
+** User - (if supplied) email, ID, username, etc.
