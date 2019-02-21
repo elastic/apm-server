@@ -2,15 +2,26 @@
 == APM Server version 7.0
 
 ////
-* <<release-notes-7.0.0-beta>>
+* <<release-notes-7.0.0-rc1>>
 ////
+* <<release-notes-7.0.0-beta1>>
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
+////
+[[release-notes-7.0.0-rc1]]
+=== APM Server version 7.0.0-rc1
+
+==== Bugfix
+
+- Ensure setup cmd uses expected configuration {pull}1934[1934]. 
+- Ensure host.name is not added {pull}1934[1934].
+- Update Go version to 1.11.5 {pull}1840[1840] {pull}1950[1950].
 
 ////
-[[release-notes-7.0.0-beta]]
-=== APM Server version 7.0.0-beta
+
+[[release-notes-7.0.0-beta1]]
+=== APM Server version 7.0.0-beta1
 
 https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 
@@ -27,7 +38,6 @@ https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 - Rename transaction.span_count.dropped.total to transaction.span_count.dropped {pull}1809[1809].
 - Rename span.hex_id to span.id {pull}1811[1811].
 - Index error.exception as array of objects {pull}1825[1825]
-- Update Go version to 1.11.5 {pull}1840[1840].
 - Change ownership to apm-server user/group for deb/rpm installs {pull}1833[1833].
 - Add observer.version_major {pull}1857[1857].
 - Change transaction.name to keyword, add transaction.name.text {pull}1859[1859].
@@ -43,7 +53,6 @@ https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
 - Remove dashboards from being shipped with APM Server and all logic around them {pull}[1815].
-////
 
 [[release-notes-7.0.0-alpha2]]
 === APM Server version 7.0.0-alpha2
