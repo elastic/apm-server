@@ -29,13 +29,14 @@ import (
 )
 
 type Context struct {
-	Http    *Http
-	Url     *Url
-	Labels  *Labels
-	Page    *Page
-	Custom  *Custom
-	User    *metadata.User
-	Service *metadata.Service
+	Http         *Http
+	Url          *Url
+	Labels       *Labels
+	Page         *Page
+	Custom       *Custom
+	User         *metadata.User
+	Service      *metadata.Service
+	Experimental interface{}
 }
 
 type Http struct {
@@ -110,7 +111,8 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	page, err := decodePage(ctxInp, err)
 	user, err := metadata.DecodeUser(userInp, err)
 	service, err := metadata.DecodeService(serviceInp, err)
-	return &Context{
+
+	ctx := Context{
 		Http:    http,
 		Url:     url,
 		Labels:  labels,
@@ -118,7 +120,12 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 		Custom:  custom,
 		User:    user,
 		Service: service,
-	}, err
+	}
+
+	if experimental, set := ctxInp["experimental"]; set {
+		ctx.Experimental = experimental
+	}
+	return &ctx, err
 
 }
 

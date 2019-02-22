@@ -40,4 +40,5 @@ type Config struct {
 	LibraryPattern      *regexp.Regexp
 	ExcludeFromGrouping *regexp.Regexp
 	SmapMapper          sourcemap.Mapper
+	Experimental        bool
 }

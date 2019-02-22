@@ -77,6 +77,8 @@ type Event struct {
 
 	Db   *db
 	Http *http
+
+	Experimental interface{}
 }
 type db struct {
 	Instance  *string
@@ -220,6 +222,10 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		event.Service = service
 	}
 
+	if obj, set := event.Context["experimental"]; set {
+		event.Experimental = obj
+	}
+
 	var stacktr *m.Stacktrace
 	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], nil)
 	if stacktr != nil {
@@ -268,6 +274,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.AddId(fields, "transaction", &e.TransactionId)
+
+	if tctx.Config.Experimental {
+		utility.Set(fields, "experimental", e.Experimental)
+
+	}
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {

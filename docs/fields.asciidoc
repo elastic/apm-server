@@ -779,6 +779,15 @@ Operating system kernel version as a raw string.
 
 --
 
+*`experimental`*::
++
+--
+type: object
+
+Additional experimental data sent by the agents.
+
+--
+
 [[exported-fields-apm-error]]
 == APM Error fields
 

@@ -64,7 +64,9 @@ var (
 		routeType{
 			backendHandler,
 			systemMetadataDecoder,
-			func(*Config) transform.Config { return transform.Config{} },
+			func(cfg *Config) transform.Config {
+				return transform.Config{Experimental: cfg.Environment == EnvExperimental}
+			},
 		},
 	}
 	rumRoute = intakeRoute{
@@ -146,6 +148,7 @@ func rumTransformConfig(beaterConfig *Config) transform.Config {
 		SmapMapper:          smapper,
 		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
+		Experimental:        beaterConfig.Environment == EnvExperimental,
 	}
 	return config
 }

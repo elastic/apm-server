@@ -84,7 +84,8 @@ type Event struct {
 	TransactionSampled *bool
 	TransactionType    *string
 
-	data common.MapStr
+	Experimental interface{}
+	data         common.MapStr
 }
 
 type Exception struct {
@@ -140,6 +141,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		TraceId:            decoder.StringPtr(raw, "trace_id"),
 		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
 		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
+		Experimental:       ctx.Experimental,
 	}
 
 	var stacktr *m.Stacktrace
@@ -211,6 +213,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
+
+	if tctx.Config.Experimental {
+		utility.Set(fields, "experimental", e.Experimental)
+
+	}
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data

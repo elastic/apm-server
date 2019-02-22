@@ -417,8 +417,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
             False, expected_err="No Sourcemap found for")
 
         # remove existing document
-        self.es.delete_by_query(index=self.index_rum_error,
-                                body={"query": {"term": {"processor.name": 'error'}}})
+        self.es.delete_by_query(index=self.index_rum_error, body={"query": {"term": {"processor.name": 'error'}}})
         self.wait_until(lambda: (self.es.count(index=self.index_rum_error)['count'] == 0))
 
         # upload second sourcemap file with same key,
@@ -594,3 +593,39 @@ class PipelineDisableTest(ElasticTest):
         loaded_msg = "No pipeline callback registered"
         self.wait_until(lambda: self.log_contains(loaded_msg),
                         max_timeout=5)
+
+
+class ExperimentalBaseTest(ElasticTest):
+    def check_experimental_key_indexed(self, experimental):
+        loaded_msg = "No pipeline callback registered"
+        self.wait_until(lambda: self.log_contains(loaded_msg), max_timeout=5)
+        self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
+                                     self.intake_url, 'transaction', 2)
+
+        self.assert_no_logged_warnings()
+
+        for idx in [self.index_transaction, self.index_span, self.index_error]:
+            # ensure documents exist
+            rs = self.es.search(index=idx)
+            assert rs['hits']['total']['value'] == 1
+
+            # check whether or not top level key `experimental` has been indexed
+            rs = self.es.search(index=idx, body={"query": {"exists": {"field": 'experimental'}}})
+            ct = 1 if experimental else 0
+            assert rs['hits']['total']['value'] == ct
+
+
+class ProductionEnvTest(ExperimentalBaseTest):
+    config_overrides = {"environment": "production"}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_experimental_key_indexed(self):
+        self.check_experimental_key_indexed(False)
+
+
+class ExperimentalEnvTest(ExperimentalBaseTest):
+    config_overrides = {"environment": "experimental"}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_experimental_key_indexed(self):
+        self.check_experimental_key_indexed(True)

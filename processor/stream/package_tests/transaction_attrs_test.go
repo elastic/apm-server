@@ -60,6 +60,7 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("client"),
 		tests.Group("url"),
 		tests.Group("http"),
+		"experimental",
 	)
 }
 
@@ -120,7 +121,7 @@ func TestTransactionPayloadMatchFields(t *testing.T) {
 func TestTransactionPayloadMatchJsonSchema(t *testing.T) {
 	transactionProcSetup().PayloadAttrsMatchJsonSchema(t,
 		transactionPayloadAttrsNotInJsonSchema(),
-		tests.NewSet("transaction.context.user.email"))
+		tests.NewSet("transaction.context.user.email", "transaction.context.experimental"))
 }
 
 func TestAttrsPresenceInTransaction(t *testing.T) {

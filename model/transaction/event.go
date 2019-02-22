@@ -75,6 +75,8 @@ type Event struct {
 	Labels    *m.Labels
 	Custom    *m.Custom
 	Service   *metadata.Service
+
+	Experimental interface{}
 }
 
 type SpanCount struct {
@@ -119,8 +121,9 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		SpanCount: SpanCount{
 			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
 			Started: decoder.IntPtr(raw, "started", "span_count")},
-		ParentId: decoder.StringPtr(raw, "parent_id"),
-		TraceId:  decoder.String(raw, "trace_id"),
+		ParentId:     decoder.StringPtr(raw, "parent_id"),
+		TraceId:      decoder.String(raw, "trace_id"),
+		Experimental: ctx.Experimental,
 	}
 
 	if decoder.Err != nil {
@@ -189,6 +192,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
+
+	if tctx.Config.Experimental {
+		utility.Set(fields, "experimental", e.Experimental)
+
+	}
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 
