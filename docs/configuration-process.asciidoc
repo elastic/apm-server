@@ -36,7 +36,7 @@ Defaults to 1048576 Bytes (1 MB).
 [[read_timeout]]
 [float]
 ==== `read_timeout`
-Maximum permitted duration for reading an entire request.
+Maximum permitted duration for reading an entire request. This does not relate to TCP keep-alive, but to HTTP request completion time.
 Defaults to 30 seconds.
 
 [[write_timeout]]
