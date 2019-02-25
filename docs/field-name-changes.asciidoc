@@ -1,0 +1,61 @@
+[frame="topbot",options="header"]
+|======================
+|Old Field|New Field
+|`beat.hostname`            |`observer.hostname`
+|`beat.name`            |`observer.type`
+|`beat.version`            |`observer.version`
+|`context.custom`            |`error.custom`
+|`context.db.instance`            |`span.db.instance`
+|`context.db.statement`            |`span.db.statement`
+|`context.db.type`            |`span.db.type`
+|`context.db.user`            |`span.db.user.name`
+|`context.http.method`            |`span.http.method`
+|`context.http.status_code`            |`span.http.response.status_code`
+|`context.http.url`            |`span.http.url.original`
+|`context.process.argv`            |`process.args`
+|`context.process.pid`            |`process.pid`
+|`context.process.ppid`            |`process.ppid`
+|`context.process.title`            |`process.title`
+|`context.request.body`            |`http.request.body.original`
+|`context.request.cookies`            |`http.request.cookies`
+|`context.request.env`            |`http.request.env`
+|`context.request.headers`            |`http.request.headers`
+|`context.request.http_version`            |`http.version`
+|`context.request.method`            |`http.request.method`
+|`context.request.socket`            |`http.request.socket`
+|`context.request.url.full`            |`url.full`
+|`context.request.url.hash`            |`url.fragment`
+|`context.request.url.hostname`            |`url.domain`
+|`context.request.url.pathname`            |`url.path`
+|`context.request.url.port`            |`url.port`
+|`context.request.url.protocol`            |`url.scheme`
+|`context.request.url.raw`            |`url.original`
+|`context.request.url.search`            |`url.query`
+|`context.response.finished`            |`http.response.finished`
+|`context.response.headers.content-type`            |`http.response.headers.content-type`
+|`context.response.headers_sent`            |`http.response.headers_sent`
+|`context.response.status_code`            |`http.response.status_code`
+|`context.service.agent.name`            |`agent.name`
+|`context.service.agent.version`            |`agent.version`
+|`context.service.environment`            |`service.environment`
+|`context.service.framework.name`            |`service.framework.name`
+|`context.service.framework.version`            |`service.framework.version`
+|`context.service.language.name`            |`service.language.name`
+|`context.service.language.version`            |`service.language.version`
+|`context.service.name`            |`service.name`
+|`context.service.runtime.name`            |`service.runtime.name`
+|`context.service.runtime.version`            |`service.runtime.version`
+|`context.service.version`            |`service.version`
+|`context.system.architecture`            |`host.architecture`
+|`context.system.hostname`            |`host.hostname`
+|`context.system.ip`            |`host.ip`
+|`context.system.platform`            |`host.os.platform`
+|`context.tags`            |`labels`
+|`context.user.email`            |`user.email`
+|`context.user.id`            |`user.id`
+|`context.user.ip`            |`client.ip`
+|`context.user.user-agent`            |`user_agent.original`
+|`context.user.username`            |`user.name`
+|`listening`            |`observer.listening`
+|======================
+
