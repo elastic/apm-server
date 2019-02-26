@@ -18,12 +18,11 @@ and they can have a parent/child relationship with other spans.
 Agents automatically instrument a variety of libraries to capture these spans from within your application.
 In addition, you can use the Agent API for ad hoc instrumentation of specific code paths. 
 
-Spans have a `transaction.id` attribute that refers to their parent <<transactions,transaction>>.
-They also have a `parent.id` attribute that refers to their parent span, or their transaction.
-Other span data includes:
+A span contains:
 
-* start time
-* duration
+* A `transaction.id` attribute that refers to their parent <<transactions,transaction>>.
+* A `parent.id` attribute that refers to their parent span, or their transaction.
+* start time and duration
 * name
 * type
 * `stack trace` (optional)
@@ -78,15 +77,14 @@ Within one transaction there can be 0, 1, or many spans captured.
 
 A transaction contains:
 
-* The timestamp and duration of the event
+* The timestamp of the event
 * A unique id, type, and name
-* A result (e.g. a response code)
-* Some contextual data (see below for details)
-* Other relevant information depending on the agent. Example: The JavaScript RUM captures transaction marks,
+include::../context.asciidoc[]
+* Other relevant information depending on the agent. Example: The JavaScript RUM agent captures transaction marks,
 which are points in time relative to the start of the transaction with some label.
 
-[[transactions-context]]
-include::../context.asciidoc[]
+In addition, the agents provide some settings for users to capture customized information. This data is stored as not-indexed in a `custom` object.
+Searchable information is stored as `labels` instead.
 
 Transactions are stored in {apm-server-ref-v}/transaction-indices.html[transaction indices].
 
@@ -98,16 +96,17 @@ information about the original `exception` that occurred
 or about a `log` created when the exception occurred.
 For simplicity, errors are represented by a unique ID.
 
-Error data includes:
+An Error contains:
 
 * Both the captured `exception` and the captured `log` of an error can contain a `stack trace`,
 which is helpful for debugging.
 * The `culprit` of an error indicates where it originated.
 * An error might relate to the <<transactions,transaction>> during which it happened,
 via the `transaction.id`.
-* Some contextual data (see below).
-
 include::../context.asciidoc[]
+
+In addition, the agents provide some settings for users to capture customized information. This data is stored as not-indexed in a `custom` object.
+Searchable information is stored as `labels` instead.
 
 Errors are stored in {apm-server-ref-v}/error-indices.html[error indices].
 
