@@ -231,6 +231,10 @@ apm-server:
 
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
+  # Array of hosts to connect to.
+  # Scheme and port can be left out and will be set to the default (http and 9200)
+  # In case you specify and additional path, the scheme is required: http://localhost:9200/path
+  # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
   hosts: ["elasticsearch:9200"]
 
   # Boolean flag to enable or disable the output module.
@@ -270,30 +274,30 @@ output.elasticsearch:
   # * `setup.template.name`
   # * `setup.template.pattern`
   #index: "apm-%{[observer.version]}-%{+yyyy.MM.dd}"
-  indices:
-    - index: "apm-%{[observer.version]}-sourcemap"
-      when.contains:
-        processor.event: "sourcemap"
-
-    - index: "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "error"
-
-    - index: "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "transaction"
-
-    - index: "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "span"
-
-    - index: "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "metric"
-
-    - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "onboarding"
+  #indices:
+  #  - index: "apm-%{[observer.version]}-sourcemap"
+  #    when.contains:
+  #      processor.event: "sourcemap"
+  #
+  #  - index: "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}"
+  #    when.contains:
+  #      processor.event: "error"
+  #
+  #  - index: "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}"
+  #    when.contains:
+  #      processor.event: "transaction"
+  #
+  #  - index: "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}"
+  #    when.contains:
+  #      processor.event: "span"
+  #
+  #  - index: "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}"
+  #    when.contains:
+  #      processor.event: "metric"
+  #
+  #  - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
+  #    when.contains:
+  #      processor.event: "onboarding"
 
   # A pipeline is a definition of processors applied to documents when writing them to Elasticsearch.
   # APM Server comes with a default pipeline definition, located at `ingets/pipeline/definition.json`.
