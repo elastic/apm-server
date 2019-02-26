@@ -341,8 +341,8 @@ output.elasticsearch:
   # Configure http request timeout before failing an request to Elasticsearch.
   #timeout: 90
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
-  #ssl.enabled: true
+  # Enable SSL settings for HTTPS.
+  #ssl.enabled: false
 
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
@@ -447,8 +447,8 @@ output.elasticsearch:
   # Resolve names locally when using a proxy server. Defaults to false.
   #proxy_use_local_resolver: false
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
-  #ssl.enabled: true
+  # Enable SSL settings for HTTPS.
+  #ssl.enabled: false
 
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
@@ -594,8 +594,8 @@ output.elasticsearch:
   # purposes.  The default is "beats".
   #client_id: beats
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
-  #ssl.enabled: true
+  # Enable SSL settings for HTTPS.
+  #ssl.enabled: false
 
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
@@ -796,8 +796,8 @@ output.elasticsearch:
   # Configure HTTP request timeout before failing an request to Elasticsearch.
   #timeout: 90
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
-  #ssl.enabled: true
+  # Enable SSL settings for HTTPS.
+  #ssl.enabled: false
 
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
