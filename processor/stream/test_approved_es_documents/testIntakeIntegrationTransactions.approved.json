@@ -239,6 +239,9 @@
             "user": {
                 "id": "99",
                 "name": "foo"
+            },
+            "user_agent": {
+                "original": "Mozilla Chrome Edge"
             }
         },
         {

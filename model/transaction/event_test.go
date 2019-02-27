@@ -68,9 +68,10 @@ func TestTransactionEventDecode(t *testing.T) {
 	marks := map[string]interface{}{"k": "b"}
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
-	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
+	ua := "go-1.1"
+	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId, UserAgent: &ua}
 	page := model.Page{Url: &url, Referer: &referer}
-	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{"user-agent": "go-1.1"}}
+	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{"user-agent": ua}}
 	response := model.Resp{Finished: new(bool), Headers: &model.Headers{"Content-Type": "text/html"}}
 	http := model.Http{Request: &request, Response: &response}
 	ctxUrl := model.Url{Original: &origUrl}
@@ -97,7 +98,7 @@ func TestTransactionEventDecode(t *testing.T) {
 					"request": map[string]interface{}{
 						"method":  "POST",
 						"url":     map[string]interface{}{"raw": "127.0.0.1"},
-						"headers": map[string]interface{}{"user-agent": "go-1.1"}},
+						"headers": map[string]interface{}{"user-agent": ua}},
 					"response": map[string]interface{}{
 						"finished": false,
 						"headers":  map[string]interface{}{"Content-Type": "text/html"}},

@@ -108,8 +108,10 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	labels, err := decodeLabels(ctxInp, err)
 	custom, err := decodeCustom(ctxInp, err)
 	page, err := decodePage(ctxInp, err)
-	user, err := metadata.DecodeUser(userInp, err)
 	service, err := metadata.DecodeService(serviceInp, err)
+	user, err := metadata.DecodeUser(userInp, err)
+	user = addUserAgent(user, http)
+
 	return &Context{
 		Http:    http,
 		Url:     url,
@@ -120,6 +122,16 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 		Service: service,
 	}, err
 
+}
+
+func addUserAgent(user *metadata.User, http *Http) *metadata.User {
+	if ua := http.UserAgent(); ua != nil {
+		if user == nil {
+			user = &metadata.User{}
+		}
+		user.UserAgent = ua
+	}
+	return user
 }
 
 func (url *Url) Fields() common.MapStr {
@@ -148,6 +160,18 @@ func (http *Http) Fields() common.MapStr {
 	utility.Set(fields, "request", http.Request.fields())
 	utility.Set(fields, "response", http.Response.fields())
 	return fields
+}
+
+func (http *Http) UserAgent() *string {
+	if http == nil || http.Request == nil || http.Request.Headers == nil {
+		return nil
+	}
+	for _, ua := range []string{"user-agent", "User-Agent"} {
+		if userAgent, ok := (*http.Request.Headers)[ua].(string); ok {
+			return &userAgent
+		}
+	}
+	return nil
 }
 
 func (page *Page) Fields() common.MapStr {
