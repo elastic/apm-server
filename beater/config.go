@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
+	"github.com/elastic/beats/libbeat/paths"
 )
 
 const DefaultPort = "8200"
@@ -243,7 +244,8 @@ func defaultConfig(beatVersion string) *Config {
 				Pipeline: &pipelineConfig{
 					Enabled:   &pipelineEnabled,
 					Overwrite: &pipelineOverwrite,
-					Path:      filepath.Join("ingest", "pipeline", "definition.json"),
+					Path: paths.Resolve(paths.Home,
+						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
 		},
 	}
