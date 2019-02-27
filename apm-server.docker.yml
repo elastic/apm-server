@@ -31,7 +31,9 @@ apm-server:
   # It is recommended to use an authorization token in combination with SSL enabled,
   # and save the token in the beats keystore.
   #secret_token:
-  #ssl.enabled: false
+
+  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
+  ssl.enabled: true
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
   # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
@@ -341,7 +343,7 @@ output.elasticsearch:
   # Configure http request timeout before failing an request to Elasticsearch.
   #timeout: 90
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
+  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   #ssl.enabled: true
 
   # Configure SSL verification mode. If `none` is configured, all server hosts
@@ -447,7 +449,7 @@ output.elasticsearch:
   # Resolve names locally when using a proxy server. Defaults to false.
   #proxy_use_local_resolver: false
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
+  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   #ssl.enabled: true
 
   # Configure SSL verification mode. If `none` is configured, all server hosts
@@ -594,7 +596,7 @@ output.elasticsearch:
   # purposes.  The default is "beats".
   #client_id: beats
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
+  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   #ssl.enabled: true
 
   # Configure SSL verification mode. If `none` is configured, all server hosts
@@ -796,7 +798,7 @@ output.elasticsearch:
   # Configure HTTP request timeout before failing an request to Elasticsearch.
   #timeout: 90
 
-  # Use SSL settings for HTTPS. SSL is automatically enabled if any SSL setting is set.
+  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   #ssl.enabled: true
 
   # Configure SSL verification mode. If `none` is configured, all server hosts

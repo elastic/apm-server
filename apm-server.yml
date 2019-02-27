@@ -32,8 +32,8 @@ apm-server:
   # and save the token in the beats keystore.
   #secret_token:
 
-  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
-  #ssl.enabled: true
+  # Enable secure communication between APM agents and the server. By default ssl is disabled.
+  #ssl.enabled: false
   #ssl.certificate : "path/to/cert"
   #ssl.key : "path/to/private_key"
   # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
