@@ -247,7 +247,7 @@ output.elasticsearch:
   #compression_level: 0
 
   # Optional protocol and basic auth credentials.
-  #protocol: "https"
+  #protocol: "http"
   #username: "elastic"
   #password: "changeme"
 
@@ -346,6 +346,7 @@ output.elasticsearch:
   # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   #ssl.enabled: true
 
+  # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
   # susceptible to man-in-the-middle attacks. Use only for testing. Default is
@@ -449,9 +450,10 @@ output.elasticsearch:
   # Resolve names locally when using a proxy server. Defaults to false.
   #proxy_use_local_resolver: false
 
-  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
-  #ssl.enabled: true
+  # Enable SSL support. SSL is automatically enabled if any SSL setting is set.
+  #ssl.enabled: false
 
+  # Optional SSL configuration options. SSL is off by default.
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
   # susceptible to man-in-the-middle attacks. Use only for testing. Default is
@@ -596,9 +598,10 @@ output.elasticsearch:
   # purposes.  The default is "beats".
   #client_id: beats
 
-  # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
-  #ssl.enabled: true
+  # Enable SSL support. SSL is automatically enabled if any SSL setting is set.
+  #ssl.enabled: false
 
+  # Optional SSL configuration options. SSL is off by default.
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
   # susceptible to man-in-the-middle attacks. Use only for testing. Default is
@@ -750,7 +753,7 @@ output.elasticsearch:
 # following line.
 #xpack.monitoring.elasticsearch:
   # Optional protocol and basic auth credentials.
-  #protocol: "https"
+  #protocol: "http"
   #username: "apm_system"
   #password: ""
 
@@ -801,6 +804,7 @@ output.elasticsearch:
   # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   #ssl.enabled: true
 
+  # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
   # Configure SSL verification mode. If `none` is configured, all server hosts
   # and certificates will be accepted. In this mode, SSL based connections are
   # susceptible to man-in-the-middle attacks. Use only for testing. Default is
