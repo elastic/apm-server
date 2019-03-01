@@ -300,7 +300,7 @@ output.elasticsearch:
   #      processor.event: "onboarding"
 
   # A pipeline is a definition of processors applied to documents when writing them to Elasticsearch.
-  # APM Server comes with a default pipeline definition, located at `ingets/pipeline/definition.json`.
+  # APM Server comes with a default pipeline definition, located at `ingest/pipeline/definition.json`.
   # Pipelines are disabled by default. To make use of them you have to:
   # (1) ensure pipelines are registered in Elasticsearch, see `apm-server.register.ingest.pipeline`
   # (2) enable the following:
