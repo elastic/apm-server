@@ -120,7 +120,15 @@ const ModelSchema = `{
         },
         "headers": {
             "description": "Should include any headers sent by the requester. Cookies will be taken by headers if supplied.",
-            "type": ["object", "null"]
+            "type": ["object", "null"],
+            "patternProperties": {
+                "[.*]*$": {
+                    "type": ["string", "array", "null"],
+                    "items": {
+                        "type": ["string"]
+                    }
+                }
+            }
         },
         "http_version": {
             "description": "HTTP version.",

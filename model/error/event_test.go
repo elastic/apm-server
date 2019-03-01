@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -92,11 +93,11 @@ func TestErrorEventDecode(t *testing.T) {
 	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId, UserAgent: &ua}
 	page := m.Page{Url: &pUrl, Referer: &referer}
 	custom := m.Custom{"a": "b"}
-	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: &m.Headers{"user-agent": ua}, Cookies: map[string]interface{}{"a": "b"}}
-	response := m.Resp{Finished: new(bool), Headers: &m.Headers{"Content-Type": "text/html"}}
-	http := m.Http{Request: &request, Response: &response}
+	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}
+	response := m.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
+	h := m.Http{Request: &request, Response: &response}
 	ctxUrl := m.Url{Original: &origUrl}
-	context := m.Context{User: &user, Labels: &labels, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
+	context := m.Context{User: &user, Labels: &labels, Page: &page, Http: &h, Url: &ctxUrl, Custom: &custom}
 
 	for idx, test := range []struct {
 		input       interface{}
@@ -225,7 +226,7 @@ func TestErrorEventDecode(t *testing.T) {
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
-				Http:      &http,
+				Http:      &h,
 				Url:       &ctxUrl,
 				Context:   &context,
 				Exception: &Exception{

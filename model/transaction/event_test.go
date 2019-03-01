@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
@@ -71,12 +72,12 @@ func TestTransactionEventDecode(t *testing.T) {
 	ua := "go-1.1"
 	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId, UserAgent: &ua}
 	page := model.Page{Url: &url, Referer: &referer}
-	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{"user-agent": ua}}
-	response := model.Resp{Finished: new(bool), Headers: &model.Headers{"Content-Type": "text/html"}}
-	http := model.Http{Request: &request, Response: &response}
+	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
+	response := model.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
+	h := model.Http{Request: &request, Response: &response}
 	ctxUrl := model.Url{Original: &origUrl}
 	custom := model.Custom{"abc": 1}
-	context := model.Context{User: &user, Labels: &labels, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
+	context := model.Context{User: &user, Labels: &labels, Page: &page, Http: &h, Url: &ctxUrl, Custom: &custom}
 
 	for _, test := range []struct {
 		input interface{}
@@ -126,7 +127,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
-				Http:      &http,
+				Http:      &h,
 				Url:       &ctxUrl,
 				Context:   &context,
 			},
@@ -303,8 +304,8 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 	}
 
-	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: &model.Headers{}}
-	response := model.Resp{Finished: new(bool), Headers: &model.Headers{"content-type": "text/html"}}
+	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{}}
+	response := model.Resp{Finished: new(bool), Headers: http.Header{"content-type": []string{"text/html"}}}
 	txWithContext := Event{
 		Timestamp: timestamp,
 		Context:   &model.Context{User: &user},
@@ -348,7 +349,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"url":    common.MapStr{"original": url},
 		"http": common.MapStr{
 			"request":  common.MapStr{"method": "post"},
-			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": "text/html"}}},
+			"response": common.MapStr{"finished": false, "headers": common.MapStr{"content-type": []string{"text/html"}}}},
 	}
 
 	txValidWithSpan := Event{Timestamp: timestamp}

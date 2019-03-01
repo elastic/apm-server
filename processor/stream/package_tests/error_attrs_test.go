@@ -209,6 +209,11 @@ func TestPayloadDataForError(t *testing.T) {
 					{Msg: `context/properties/custom/type`, Values: val{"context"}}}},
 			{Key: "error.context.request.body", Valid: val{tests.Str1025, obj{}},
 				Invalid: []tests.Invalid{{Msg: `/context/properties/request/properties/body/type`, Values: val{102}}}},
+			{Key: "error.context.request.headers", Valid: val{
+				obj{"User-Agent": "go-1.1"},
+				obj{"foo-bar": "a,b"},
+				obj{"foo": []interface{}{"a", "b"}}},
+				Invalid: []tests.Invalid{{Msg: `properties/headers`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
 			{Key: "error.context.request.env", Valid: val{obj{}},
 				Invalid: []tests.Invalid{{Msg: `/context/properties/request/properties/env/type`, Values: val{102, "a"}}}},
 			{Key: "error.context.request.cookies", Valid: val{obj{}},

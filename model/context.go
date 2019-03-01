@@ -19,6 +19,7 @@ package model
 
 import (
 	"errors"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -62,12 +63,11 @@ type Page struct {
 
 type Labels common.MapStr
 type Custom common.MapStr
-type Headers common.MapStr
 
 type Req struct {
 	Method  string
 	Body    interface{}
-	Headers *Headers
+	Headers http.Header
 	Env     interface{}
 	Socket  *Socket
 	Cookies interface{}
@@ -82,7 +82,7 @@ type Resp struct {
 	Finished    *bool
 	StatusCode  *int
 	HeadersSent *bool
-	Headers     *Headers
+	Headers     http.Header
 }
 
 func DecodeContext(input interface{}, err error) (*Context, error) {
@@ -124,12 +124,12 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 
 }
 
-func addUserAgent(user *metadata.User, http *Http) *metadata.User {
-	if ua := http.UserAgent(); ua != nil {
+func addUserAgent(user *metadata.User, h *Http) *metadata.User {
+	if ua := h.UserAgent(); ua != "" {
 		if user == nil {
 			user = &metadata.User{}
 		}
-		user.UserAgent = ua
+		user.UserAgent = &ua
 	}
 	return user
 }
@@ -150,28 +150,23 @@ func (url *Url) Fields() common.MapStr {
 	return fields
 }
 
-func (http *Http) Fields() common.MapStr {
-	if http == nil {
+func (h *Http) Fields() common.MapStr {
+	if h == nil {
 		return nil
 	}
 
 	fields := common.MapStr{}
-	utility.Set(fields, "version", http.Version)
-	utility.Set(fields, "request", http.Request.fields())
-	utility.Set(fields, "response", http.Response.fields())
+	utility.Set(fields, "version", h.Version)
+	utility.Set(fields, "request", h.Request.fields())
+	utility.Set(fields, "response", h.Response.fields())
 	return fields
 }
 
-func (http *Http) UserAgent() *string {
-	if http == nil || http.Request == nil || http.Request.Headers == nil {
-		return nil
+func (h *Http) UserAgent() string {
+	if h == nil || h.Request == nil {
+		return ""
 	}
-	for _, ua := range []string{"user-agent", "User-Agent"} {
-		if userAgent, ok := (*http.Request.Headers)[ua].(string); ok {
-			return &userAgent
-		}
-	}
-	return nil
+	return h.Request.Headers.Get("User-Agent")
 }
 
 func (page *Page) Fields() common.MapStr {
@@ -239,12 +234,11 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 	if err != nil {
 		return nil, err
 	}
-	var http *Http
+	var h *Http
 	decoder := utility.ManualDecoder{}
 	inpReq := decoder.MapStr(raw, "request")
 	if inpReq != nil {
-		headers := Headers(decoder.MapStr(inpReq, "headers"))
-		http = &Http{
+		h = &Http{
 			Version: decoder.StringPtr(inpReq, "http_version"),
 			Request: &Req{
 				Method: strings.ToLower(decoder.String(inpReq, "method")),
@@ -253,27 +247,27 @@ func decodeHttp(raw common.MapStr, err error) (*Http, error) {
 					RemoteAddress: decoder.StringPtr(inpReq, "remote_address", "socket"),
 					Encrypted:     decoder.BoolPtr(inpReq, "encrypted", "socket"),
 				},
-				Headers: &headers,
 				Body:    decoder.Interface(inpReq, "body"),
 				Cookies: decoder.Interface(inpReq, "cookies"),
+				Headers: decoder.Headers(inpReq),
 			},
 		}
 	}
 
 	inpResp := decoder.MapStr(raw, "response")
 	if inpResp != nil {
-		if http == nil {
-			http = &Http{}
+		if h == nil {
+			h = &Http{}
 		}
-		headers := Headers(decoder.MapStr(inpResp, "headers"))
-		http.Response = &Resp{
+		headers := decoder.Headers(inpResp)
+		h.Response = &Resp{
 			Finished:    decoder.BoolPtr(inpResp, "finished"),
 			StatusCode:  decoder.IntPtr(inpResp, "status_code"),
 			HeadersSent: decoder.BoolPtr(inpResp, "headers_sent"),
-			Headers:     &headers,
+			Headers:     headers,
 		}
 	}
-	return http, decoder.Err
+	return h, decoder.Err
 }
 
 func decodePage(raw common.MapStr, err error) (*Page, error) {
@@ -320,7 +314,7 @@ func (req *Req) fields() common.MapStr {
 		return nil
 	}
 	fields := common.MapStr{}
-	utility.Set(fields, "headers", req.Headers.fields())
+	utility.Set(fields, "headers", headerToFields(req.Headers))
 	utility.Set(fields, "socket", req.Socket.fields())
 	utility.Set(fields, "env", req.Env)
 	utility.DeepUpdate(fields, "body.original", req.Body)
@@ -335,18 +329,22 @@ func (resp *Resp) fields() common.MapStr {
 		return nil
 	}
 	fields := common.MapStr{}
-	utility.Set(fields, "headers", resp.Headers.fields())
+	utility.Set(fields, "headers", headerToFields(resp.Headers))
 	utility.Set(fields, "headers_sent", resp.HeadersSent)
 	utility.Set(fields, "finished", resp.Finished)
 	utility.Set(fields, "status_code", resp.StatusCode)
 	return fields
 }
 
-func (h *Headers) fields() common.MapStr {
-	if h == nil {
+func headerToFields(h http.Header) common.MapStr {
+	if len(h) == 0 {
 		return nil
 	}
-	return common.MapStr(*h)
+	m := common.MapStr{}
+	for k, v := range h {
+		m.Put(k, v)
+	}
+	return m
 }
 
 func (s *Socket) fields() common.MapStr {
