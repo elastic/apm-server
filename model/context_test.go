@@ -96,13 +96,13 @@ func TestDecodeContext(t *testing.T) {
 					"custom":    map[string]interface{}{"a": "b"},
 					"response": map[string]interface{}{
 						"finished":     false,
-						"headers":      map[string]interface{}{"Content-Type": "text/html"},
+						"headers":      map[string]interface{}{"Content-Type": []string{"text/html"}},
 						"headers_sent": true,
 						"status_code":  json.Number("202")},
 					"request": map[string]interface{}{
 						"body":         map[string]interface{}{"k": map[string]interface{}{"b": "v"}},
 						"env":          map[string]interface{}{"env": map[string]interface{}{"b": "v"}},
-						"headers":      map[string]interface{}{"headers": map[string]interface{}{"host": "val"}},
+						"headers":      map[string]interface{}{"host": []string{"a", "b"}},
 						"http_version": "2.0",
 						"method":       "POST",
 						"socket":       map[string]interface{}{"encrypted": false, "remote_address": "10.1.23.5"},

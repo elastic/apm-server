@@ -5,13 +5,6 @@
     "processors" : [
       {
         "user_agent" : {
-          "field": "context.request.headers.user-agent",
-          "target_field": "context.request.headers.user_agent",
-          "ignore_missing": true
-        }
-      },
-      {
-        "user_agent" : {
           "field": "user_agent.original",
           "target_field": "user_agent",
           "ignore_missing": true
