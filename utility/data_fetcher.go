@@ -20,6 +20,7 @@ package utility
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -146,7 +147,8 @@ func (d *ManualDecoder) StringArr(base map[string]interface{}, key string, keys 
 	if val == nil {
 		return nil
 	}
-	if valArr, ok := getDeep(base, keys...)[key].([]interface{}); ok {
+	arr := getDeep(base, keys...)[key]
+	if valArr, ok := arr.([]interface{}); ok {
 		strArr := make([]string, len(valArr))
 		for idx, v := range valArr {
 			if valStr, ok := v.(string); ok {
@@ -156,6 +158,9 @@ func (d *ManualDecoder) StringArr(base map[string]interface{}, key string, keys 
 				return nil
 			}
 		}
+		return strArr
+	}
+	if strArr, ok := arr.([]string); ok {
 		return strArr
 	}
 	d.Err = FetchErr
@@ -228,6 +233,28 @@ func (d *ManualDecoder) TimeEpochMicro(base map[string]interface{}, key string, 
 	}
 	d.Err = FetchErr
 	return time.Time{}
+}
+
+func (d *ManualDecoder) Headers(base map[string]interface{}) http.Header {
+	h := d.MapStr(base, "headers")
+	if d.Err != nil {
+		return nil
+	}
+	httpHeader := http.Header{}
+	for key, val := range h {
+		if v, ok := val.(string); ok {
+			httpHeader.Add(key, v)
+			continue
+		}
+		vals := d.StringArr(h, key)
+		if d.Err != nil {
+			return nil
+		}
+		for _, v := range vals {
+			httpHeader.Add(key, v)
+		}
+	}
+	return httpHeader
 }
 
 func getDeep(raw map[string]interface{}, keys ...string) map[string]interface{} {

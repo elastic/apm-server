@@ -5,7 +5,7 @@
             "Body": null,
             "Cookies": null,
             "Env": null,
-            "Headers": null,
+            "Headers": {},
             "Method": "get",
             "Socket": {
                 "Encrypted": null,
