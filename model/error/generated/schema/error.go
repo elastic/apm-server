@@ -92,7 +92,15 @@ const ModelSchema = `{
                 },
                 "headers": {
                     "description": "A mapping of HTTP headers of the response object",
-                    "type": ["object", "null"]
+                    "type": ["object", "null"],
+                    "patternProperties": {
+                        "[.*]*$": {
+                            "type": ["string", "array", "null"],
+                            "items": {
+                                "type": ["string"]
+                            }
+                        }
+                    }
                 },
                 "headers_sent": {
                     "type": ["boolean", "null"]

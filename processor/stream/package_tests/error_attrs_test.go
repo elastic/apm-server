@@ -214,6 +214,11 @@ func TestPayloadDataForError(t *testing.T) {
 				obj{"foo-bar": "a,b"},
 				obj{"foo": []interface{}{"a", "b"}}},
 				Invalid: []tests.Invalid{{Msg: `properties/headers`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
+			{Key: "error.context.response.headers", Valid: val{
+				obj{"User-Agent": "go-1.1"},
+				obj{"foo-bar": "a,b"},
+				obj{"foo": []interface{}{"a", "b"}}},
+				Invalid: []tests.Invalid{{Msg: `properties/headers`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
 			{Key: "error.context.request.env", Valid: val{obj{}},
 				Invalid: []tests.Invalid{{Msg: `/context/properties/request/properties/env/type`, Values: val{102, "a"}}}},
 			{Key: "error.context.request.cookies", Valid: val{obj{}},
