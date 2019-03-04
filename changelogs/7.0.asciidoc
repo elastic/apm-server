@@ -23,6 +23,8 @@
 - Ensure setup cmd uses expected configuration {pull}1934[1934]. 
 - Ensure host.name is not added {pull}1934[1934].
 - Update Go version to 1.11.5 {pull}1840[1840] {pull}1950[1950].
+- Ensure enabling user-agent pipeline indexes data at the same key by default {pull}1966[1966].
+- Request and Response headers are stored in a canonicalized way {pull}1966[1966].
 
 [[release-notes-7.7.0-rc1]]
 === APM Server version 7.0.0-rc1
