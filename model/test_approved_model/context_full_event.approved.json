@@ -20,9 +20,10 @@
                 }
             },
             "Headers": {
-                "headers": {
-                    "host": "val"
-                }
+                "Host": [
+                    "a",
+                    "b"
+                ]
             },
             "Method": "post",
             "Socket": {
@@ -33,7 +34,9 @@
         "Response": {
             "Finished": false,
             "Headers": {
-                "Content-Type": "text/html"
+                "Content-Type": [
+                    "text/html"
+                ]
             },
             "HeadersSent": true,
             "StatusCode": 202

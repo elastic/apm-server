@@ -90,6 +90,12 @@
               The http method of the request leading to this event.
             overwrite: true
 
+          - name: headers
+            type: object
+            enabled: false
+            description: >
+              The canonicalized headers of the monitored HTTP request.
+
        - name: response
          type: group
          fields:
@@ -105,6 +111,12 @@
            description: >
              Used by the Node agent to indicate when in the response life cycle an error has occurred.
            overwrite: true
+
+         - name: headers
+           type: object
+           enabled: false
+           description: >
+             The canonicalized headers of the monitored HTTP response.
 
     - name: labels
       type: object

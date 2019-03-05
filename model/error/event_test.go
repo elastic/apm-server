@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -88,14 +89,15 @@ func TestErrorEventDecode(t *testing.T) {
 	transactionSampled := true
 	transactionType := "request"
 	labels := m.Labels{"ab": "c"}
-	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId}
+	ua := "go-1.1"
+	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId, UserAgent: &ua}
 	page := m.Page{Url: &pUrl, Referer: &referer}
 	custom := m.Custom{"a": "b"}
-	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: &m.Headers{"user-agent": "go-1.1"}, Cookies: map[string]interface{}{"a": "b"}}
-	response := m.Resp{Finished: new(bool), Headers: &m.Headers{"Content-Type": "text/html"}}
-	http := m.Http{Request: &request, Response: &response}
+	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}
+	response := m.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
+	h := m.Http{Request: &request, Response: &response}
 	ctxUrl := m.Url{Original: &origUrl}
-	context := m.Context{User: &user, Labels: &labels, Page: &page, Http: &http, Url: &ctxUrl, Custom: &custom}
+	context := m.Context{User: &user, Labels: &labels, Page: &page, Http: &h, Url: &ctxUrl, Custom: &custom}
 
 	for idx, test := range []struct {
 		input       interface{}
@@ -186,7 +188,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"request": map[string]interface{}{
 						"method":  "POST",
 						"url":     map[string]interface{}{"raw": "127.0.0.1"},
-						"headers": map[string]interface{}{"user-agent": "go-1.1"},
+						"headers": map[string]interface{}{"user-agent": ua},
 						"cookies": map[string]interface{}{"a": "b"}},
 					"response": map[string]interface{}{
 						"finished": false,
@@ -224,7 +226,7 @@ func TestErrorEventDecode(t *testing.T) {
 				Labels:    &labels,
 				Page:      &page,
 				Custom:    &custom,
-				Http:      &http,
+				Http:      &h,
 				Url:       &ctxUrl,
 				Context:   &context,
 				Exception: &Exception{
