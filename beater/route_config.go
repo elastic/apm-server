@@ -66,7 +66,7 @@ var (
 		routeType{
 			backendHandler,
 			systemMetadataDecoder,
-			func(cfg *Config) transform.Config { return transform.Config{} },
+			func(*Config) transform.Config { return transform.Config{} },
 		},
 	}
 	rumRoute = intakeRoute{

@@ -19,9 +19,12 @@ package span
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,7 +41,7 @@ func TestDecodeSpan(t *testing.T) {
 	timestampEpoch := json.Number(fmt.Sprintf("%d", spanTime.UnixNano()/1000))
 	id, parentId := "0000000000000000", "FFFFFFFFFFFFFFFF"
 	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
-	name := "foo"
+	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user := "db01", "select *", "sql", "joe"
@@ -49,8 +52,7 @@ func TestDecodeSpan(t *testing.T) {
 		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user},
 	}
 	subtype := "postgresql"
-	//action, action2 := "query", "query.custom"
-	action := "query"
+	action, action2 := "query", "query.custom"
 	stacktrace := []interface{}{map[string]interface{}{
 		"filename": "file", "lineno": 1.0,
 	}}
@@ -63,128 +65,128 @@ func TestDecodeSpan(t *testing.T) {
 		inpErr error
 		e      transform.Transformable
 	}{
-		//"no input":     {input: nil, err: "Input missing for decoding Event"},
-		//"input error":  {input: nil, inpErr: errors.New("a"), err: "a"},
-		//"invalid type": {input: "", err: "Invalid type for span"},
-		//"missing required field": {
-		//	input: map[string]interface{}{},
-		//	err:   "Error fetching field",
-		//},
-		//"transaction id wrong type": {
-		//	input: map[string]interface{}{"name": name, "type": spType, "start": start, "duration": duration,
-		//		"timestamp": "2018-05-30T19:53:17.134Z", "transaction_id": 123},
-		//	err: "Error fetching field",
-		//},
-		//"no trace_id": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-		//		"timestamp": timestampEpoch, "id": id, "transaction_id": transactionId,
-		//	},
-		//	err: utility.FetchErr.Error(),
-		//},
-		//"no transaction_id": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-		//		"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
-		//	},
-		//	err: utility.FetchErr.Error(),
-		//},
-		//"no id": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-		//		"timestamp": timestampEpoch, "trace_id": traceId, "transaction_id": transactionId,
-		//	},
-		//	err: utility.FetchErr.Error(),
-		//},
-		//"no parent_id": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": spType, "start": start, "duration": duration,
-		//		"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
-		//	},
-		//	err: utility.FetchErr.Error(),
-		//},
-		//"minimal payload": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
-		//		"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
-		//	},
-		//	e: &Event{
-		//		Name:          name,
-		//		Type:          "db",
-		//		Subtype:       &subtype,
-		//		Action:        &action2,
-		//		Start:         &start,
-		//		Duration:      duration,
-		//		Timestamp:     spanTime,
-		//		ParentId:      parentId,
-		//		Id:            id,
-		//		TraceId:       traceId,
-		//		TransactionId: transactionId,
-		//	},
-		//},
-		//"event experimental=false": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
-		//		"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
-		//		"context": map[string]interface{}{"experimental": 123},
-		//	},
-		//	e: &Event{
-		//		Name:          name,
-		//		Type:          "db",
-		//		Subtype:       &subtype,
-		//		Action:        &action2,
-		//		Start:         &start,
-		//		Duration:      duration,
-		//		Timestamp:     spanTime,
-		//		ParentId:      parentId,
-		//		Id:            id,
-		//		TraceId:       traceId,
-		//		TransactionId: transactionId,
-		//	},
-		//},
-		//"event experimental=true, no experimental payload": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
-		//		"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
-		//		"context": map[string]interface{}{"foo": 123},
-		//	},
-		//	e: &Event{
-		//		Name:          name,
-		//		Type:          "db",
-		//		Subtype:       &subtype,
-		//		Action:        &action2,
-		//		Start:         &start,
-		//		Duration:      duration,
-		//		Timestamp:     spanTime,
-		//		ParentId:      parentId,
-		//		Id:            id,
-		//		TraceId:       traceId,
-		//		TransactionId: transactionId,
-		//	},
-		//	cfg: m.Config{Experimental: true},
-		//},
-		//"event experimental=true": {
-		//	input: map[string]interface{}{
-		//		"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
-		//		"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
-		//		"context": map[string]interface{}{"experimental": 123},
-		//	},
-		//	e: &Event{
-		//		Name:          name,
-		//		Type:          "db",
-		//		Subtype:       &subtype,
-		//		Action:        &action2,
-		//		Start:         &start,
-		//		Duration:      duration,
-		//		Timestamp:     spanTime,
-		//		ParentId:      parentId,
-		//		Id:            id,
-		//		TraceId:       traceId,
-		//		TransactionId: transactionId,
-		//		Experimental:  123,
-		//	},
-		//	cfg: m.Config{Experimental: true},
-		//},
+		"no input":     {input: nil, err: "Input missing for decoding Event"},
+		"input error":  {input: nil, inpErr: errors.New("a"), err: "a"},
+		"invalid type": {input: "", err: "Invalid type for span"},
+		"missing required field": {
+			input: map[string]interface{}{},
+			err:   "Error fetching field",
+		},
+		"transaction id wrong type": {
+			input: map[string]interface{}{"name": name, "type": spType, "start": start, "duration": duration,
+				"timestamp": "2018-05-30T19:53:17.134Z", "transaction_id": 123},
+			err: "Error fetching field",
+		},
+		"no trace_id": {
+			input: map[string]interface{}{
+				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "transaction_id": transactionId,
+			},
+			err: utility.FetchErr.Error(),
+		},
+		"no transaction_id": {
+			input: map[string]interface{}{
+				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
+			},
+			err: utility.FetchErr.Error(),
+		},
+		"no id": {
+			input: map[string]interface{}{
+				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "trace_id": traceId, "transaction_id": transactionId,
+			},
+			err: utility.FetchErr.Error(),
+		},
+		"no parent_id": {
+			input: map[string]interface{}{
+				"name": name, "type": spType, "start": start, "duration": duration,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+			},
+			err: utility.FetchErr.Error(),
+		},
+		"minimal payload": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+			},
+			e: &Event{
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: transactionId,
+			},
+		},
+		"event experimental=false": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"experimental": 123},
+			},
+			e: &Event{
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: transactionId,
+			},
+		},
+		"event experimental=true, no experimental payload": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"foo": 123},
+			},
+			e: &Event{
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: transactionId,
+			},
+			cfg: m.Config{Experimental: true},
+		},
+		"event experimental=true": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"experimental": 123},
+			},
+			e: &Event{
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: transactionId,
+				Experimental:  123,
+			},
+			cfg: m.Config{Experimental: true},
+		},
 		"full valid payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "external.request", "subtype": subtype, "action": action, "start": start,
