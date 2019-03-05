@@ -15,29 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package transform
-
-import (
-	"regexp"
-	"time"
-
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/beats/libbeat/beat"
-)
-
-type Transformable interface {
-	Transform(*Context) []beat.Event
-}
-
-type Context struct {
-	RequestTime time.Time
-	Config      Config
-	Metadata    metadata.Metadata
-}
+package model
 
 type Config struct {
-	LibraryPattern      *regexp.Regexp
-	ExcludeFromGrouping *regexp.Regexp
-	SmapMapper          sourcemap.Mapper
+	Experimental bool
 }

@@ -36,24 +36,26 @@ import (
 )
 
 func TestTransactionEventDecodeFailure(t *testing.T) {
-	for _, test := range []struct {
+	for name, test := range map[string]struct {
 		input       interface{}
 		err, inpErr error
 		e           *Event
 	}{
-		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		{input: "", err: errors.New("Invalid type for transaction event"), e: nil},
-		{input: map[string]interface{}{}, err: errors.New("Error fetching field"), e: nil},
+		"no input":           {input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
+		"input error":        {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		"invalid type":       {input: "", err: errors.New("Invalid type for transaction event"), e: nil},
+		"cannot fetch field": {input: map[string]interface{}{}, err: errors.New("Error fetching field"), e: nil},
 	} {
-		transformable, err := DecodeEvent(test.input, test.inpErr)
-		assert.Equal(t, test.err, err)
-		if test.e != nil {
-			event := transformable.(*Event)
-			assert.Equal(t, test.e, event)
-		} else {
-			assert.Nil(t, transformable)
-		}
+		t.Run(name, func(t *testing.T) {
+			transformable, err := DecodeEvent(test.input, model.Config{}, test.inpErr)
+			assert.Equal(t, test.err, err)
+			if test.e != nil {
+				event := transformable.(*Event)
+				assert.Equal(t, test.e, event)
+			} else {
+				assert.Nil(t, transformable)
+			}
+		})
 	}
 }
 
@@ -77,16 +79,60 @@ func TestTransactionEventDecode(t *testing.T) {
 	h := model.Http{Request: &request, Response: &response}
 	ctxUrl := model.Url{Original: &origUrl}
 	custom := model.Custom{"abc": 1}
-	context := model.Context{User: &user, Labels: &labels, Page: &page, Http: &h, Url: &ctxUrl, Custom: &custom}
 
-	for _, test := range []struct {
+	for name, test := range map[string]struct {
 		input interface{}
+		cfg   model.Config
 		err   error
 		e     *Event
 	}{
-
-		// full event, ignoring spans
-		{
+		"event experimental=true, no experimental payload": {
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId,
+				"timestamp": timestampEpoch, "context": map[string]interface{}{"foo": "bar"},
+			},
+			cfg: model.Config{Experimental: true},
+			e: &Event{
+				Id:        id,
+				Type:      trType,
+				Name:      &name,
+				TraceId:   traceId,
+				Duration:  duration,
+				Timestamp: timestampParsed,
+			},
+		},
+		"event experimental=false": {
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId, "timestamp": timestampEpoch,
+				"context": map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
+			},
+			cfg: model.Config{Experimental: false},
+			e: &Event{
+				Id:        id,
+				Type:      trType,
+				Name:      &name,
+				TraceId:   traceId,
+				Duration:  duration,
+				Timestamp: timestampParsed,
+			},
+		},
+		"event experimental=true": {
+			input: map[string]interface{}{
+				"id": id, "type": trType, "name": name, "duration": duration, "trace_id": traceId, "timestamp": timestampEpoch,
+				"context": map[string]interface{}{"experimental": map[string]interface{}{"foo": "bar"}},
+			},
+			cfg: model.Config{Experimental: true},
+			e: &Event{
+				Id:           id,
+				Type:         trType,
+				Name:         &name,
+				TraceId:      traceId,
+				Duration:     duration,
+				Timestamp:    timestampParsed,
+				Experimental: map[string]interface{}{"foo": "bar"},
+			},
+		},
+		"full event": {
 			input: map[string]interface{}{
 				"id": id, "type": trType, "name": name, "result": result,
 				"duration": duration, "timestamp": timestampEpoch,
@@ -129,16 +175,17 @@ func TestTransactionEventDecode(t *testing.T) {
 				Custom:    &custom,
 				Http:      &h,
 				Url:       &ctxUrl,
-				Context:   &context,
 			},
 		},
 	} {
-		transformable, err := DecodeEvent(test.input, nil)
-		assert.Equal(t, test.err, err)
-		if test.e != nil && assert.NotNil(t, transformable) {
-			event := transformable.(*Event)
-			assert.Equal(t, test.e, event)
-		}
+		t.Run(name, func(t *testing.T) {
+			transformable, err := DecodeEvent(test.input, test.cfg, nil)
+			assert.Equal(t, test.err, err)
+			if test.e != nil && assert.NotNil(t, transformable) {
+				event := transformable.(*Event)
+				assert.Equal(t, test.e, event)
+			}
+		})
 	}
 }
 
@@ -219,7 +266,6 @@ func TestEventTransform(t *testing.T) {
 				Result:    &result,
 				Timestamp: time.Now(),
 				Duration:  65.98,
-				Context:   &model.Context{},
 				Sampled:   &sampled,
 				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
 			},
@@ -308,7 +354,6 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	response := model.Resp{Finished: new(bool), Headers: http.Header{"content-type": []string{"text/html"}}}
 	txWithContext := Event{
 		Timestamp: timestamp,
-		Context:   &model.Context{User: &user},
 		User:      &user,
 		Labels:    &model.Labels{"a": "b"},
 		Page:      &model.Page{Url: &url, Referer: &referer},

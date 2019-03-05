@@ -97,64 +97,36 @@ func TestErrorEventDecode(t *testing.T) {
 	response := m.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
 	h := m.Http{Request: &request, Response: &response}
 	ctxUrl := m.Url{Original: &origUrl}
-	context := m.Context{User: &user, Labels: &labels, Page: &page, Http: &h, Url: &ctxUrl, Custom: &custom}
 
-	for idx, test := range []struct {
+	for name, test := range map[string]struct {
 		input       interface{}
+		cfg         m.Config
 		err, inpErr error
 		e           *Event
 	}{
-		{input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
-		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		{input: "", err: errors.New("Invalid type for error event"), e: nil},
-		{
+		"no input":            {input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
+		"arror passed as arg": {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		"invalid type":        {input: "", err: errors.New("Invalid type for error event"), e: nil},
+		"error decoding timestamp": {
 			input: map[string]interface{}{"timestamp": 123},
 			err:   errors.New("Error fetching field"),
-			e:     nil,
 		},
-		{
+		"error decoding transaction id": {
 			input: map[string]interface{}{"transaction_id": 123},
 			err:   errors.New("Error fetching field"),
-			e:     nil,
 		},
-		{
-			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp},
-			err: nil,
-			e: &Event{
-				Id:        &id,
-				Culprit:   &culprit,
-				Context:   &m.Context{},
-				Timestamp: timestampParsed,
-			},
-		},
-		{
-			input: map[string]interface{}{
-				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
-				"parent_id": 123},
+		"only parent id given": {input: map[string]interface{}{
+			"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
+			"parent_id": 123},
 			err: errors.New("Error fetching field"),
-			e:   nil,
 		},
-		{
+		"only trace id given": {
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
 				"trace_id": 123},
 			err: errors.New("Error fetching field"),
-			e:   nil,
 		},
-		{
-			input: map[string]interface{}{
-				"timestamp": timestamp,
-				"exception": map[string]interface{}{},
-				"log":       map[string]interface{}{},
-			},
-			err: nil,
-			e: &Event{
-				Timestamp: timestampParsed,
-				Context:   &m.Context{},
-			},
-		},
-		{
+		"invalid type for exception stacktrace": {
 			input: map[string]interface{}{
 				"timestamp": timestamp,
 				"exception": map[string]interface{}{
@@ -163,9 +135,8 @@ func TestErrorEventDecode(t *testing.T) {
 				},
 			},
 			err: errors.New("Invalid type for stacktrace"),
-			e:   nil,
 		},
-		{
+		"invalid type for log stacktrace": {
 			input: map[string]interface{}{
 				"timestamp": timestamp,
 				"log": map[string]interface{}{
@@ -174,9 +145,61 @@ func TestErrorEventDecode(t *testing.T) {
 				},
 			},
 			err: errors.New("Invalid type for stacktrace"),
-			e:   nil,
 		},
-		{
+		"minimal valid error": {
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp},
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Timestamp: timestampParsed,
+			},
+		},
+		"minimal valid error with log and exception": {
+			input: map[string]interface{}{
+				"timestamp": timestamp,
+				"exception": map[string]interface{}{},
+				"log":       map[string]interface{}{},
+			},
+			e: &Event{
+				Timestamp: timestampParsed,
+			},
+		},
+		"valid error experimental=true, no experimental payload": {
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "timestamp": timestamp,
+				"context": map[string]interface{}{"foo": []string{"a", "b"}}},
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Timestamp: timestampParsed,
+			},
+			cfg: m.Config{Experimental: true},
+		},
+		"valid error experimental=false": {
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "timestamp": timestamp,
+				"context": map[string]interface{}{"experimental": []string{"a", "b"}}},
+			e: &Event{
+				Id:        &id,
+				Culprit:   &culprit,
+				Timestamp: timestampParsed,
+			},
+			cfg: m.Config{Experimental: false},
+		},
+		"valid error experimental=true": {
+			input: map[string]interface{}{
+				"id": id, "culprit": culprit, "timestamp": timestamp,
+				"context": map[string]interface{}{"experimental": []string{"a", "b"}}},
+			e: &Event{
+				Id:           &id,
+				Culprit:      &culprit,
+				Timestamp:    timestampParsed,
+				Experimental: []string{"a", "b"},
+			},
+			cfg: m.Config{Experimental: true},
+		},
+		"full valid error event": {
 			input: map[string]interface{}{
 				"timestamp": timestamp,
 				"context": map[string]interface{}{
@@ -219,7 +242,6 @@ func TestErrorEventDecode(t *testing.T) {
 				"trace_id":       traceId,
 				"transaction":    map[string]interface{}{"sampled": transactionSampled, "type": transactionType},
 			},
-			err: nil,
 			e: &Event{
 				Timestamp: timestampParsed,
 				User:      &user,
@@ -228,7 +250,6 @@ func TestErrorEventDecode(t *testing.T) {
 				Custom:    &custom,
 				Http:      &h,
 				Url:       &ctxUrl,
-				Context:   &context,
 				Exception: &Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -257,13 +278,15 @@ func TestErrorEventDecode(t *testing.T) {
 			},
 		},
 	} {
-		transformable, err := DecodeEvent(test.input, test.inpErr)
-		if test.e != nil && assert.NotNil(t, transformable) {
-			event := transformable.(*Event)
-			assert.Equal(t, test.e, event, fmt.Sprintf("Failed at idx %v", idx))
-		}
+		t.Run(name, func(t *testing.T) {
+			transformable, err := DecodeEvent(test.input, test.cfg, test.inpErr)
+			if test.e != nil && assert.NotNil(t, transformable) {
+				event := transformable.(*Event)
+				assert.Equal(t, test.e, event)
+			}
 
-		assert.Equal(t, test.err, err, fmt.Sprintf("Failed at idx %v", idx))
+			assert.Equal(t, test.err, err)
+		})
 	}
 }
 
@@ -297,10 +320,6 @@ func TestEventFields(t *testing.T) {
 		ParamMessage: &paramMsg,
 		LoggerName:   &loggerName,
 	}
-
-	user := metadata.User{Id: &id}
-	context := m.Context{User: &user}
-
 	baseExceptionHash := md5.New()
 	io.WriteString(baseExceptionHash, *baseException().Message)
 	// 706a38d554b47b8f82c6b542725c05dc
@@ -377,7 +396,6 @@ func TestEventFields(t *testing.T) {
 				Id:            &id,
 				Timestamp:     time.Now(),
 				Culprit:       &culprit,
-				Context:       &context,
 				Exception:     &exception,
 				Log:           &log,
 				TransactionId: &trId,
@@ -447,10 +465,7 @@ func TestEvents(t *testing.T) {
 	uid := "1234567889"
 	url, referer := "https://localhost", "http://localhost"
 	labels := m.Labels(common.MapStr{"key": true})
-	user := metadata.User{Email: &email, IP: &userIp}
-	page := m.Page{Url: &url, Referer: &referer}
 	custom := m.Custom(common.MapStr{"foo": "bar"})
-	context := m.Context{User: &user, Labels: &labels, Page: &page, Custom: &custom}
 
 	tests := []struct {
 		Transformable transform.Transformable
@@ -504,7 +519,6 @@ func TestEvents(t *testing.T) {
 		{
 			Transformable: &Event{
 				Timestamp: timestamp,
-				Context:   &context,
 				Log:       baseLog(),
 				Exception: &Exception{
 					Message:    &exMsg,

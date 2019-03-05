@@ -65,7 +65,6 @@ type Event struct {
 	Name       string
 	Start      *float64
 	Duration   float64
-	Context    common.MapStr
 	Service    *metadata.Service
 	Stacktrace m.Stacktrace
 	Sync       *bool
@@ -91,7 +90,7 @@ func DecodeDb(input interface{}, err error) (*db, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
-	raw, ok := input.(common.MapStr)
+	raw, ok := input.(map[string]interface{})
 	if !ok {
 		return nil, errors.New("Invalid type for db")
 	}
@@ -133,7 +132,7 @@ func DecodeHttp(input interface{}, err error) (*http, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
-	raw, ok := input.(common.MapStr)
+	raw, ok := input.(map[string]interface{})
 	if !ok {
 		return nil, errors.New("Invalid type for http")
 	}
@@ -169,7 +168,7 @@ func (http *http) fields() common.MapStr {
 	return fields
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +185,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Name:          decoder.String(raw, "name"),
 		Start:         decoder.Float64Ptr(raw, "start"),
 		Duration:      decoder.Float64(raw, "duration"),
-		Context:       decoder.MapStr(raw, "context"),
 		Sync:          decoder.BoolPtr(raw, "sync"),
 		Timestamp:     decoder.TimeEpochMicro(raw, "timestamp"),
 		Id:            decoder.String(raw, "id"),
@@ -198,32 +196,37 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Action:        decoder.StringPtr(raw, "action"),
 	}
 
-	if labels, ok := event.Context["tags"].(map[string]interface{}); ok {
-		event.Labels = labels
-	}
+	ctx := decoder.MapStr(raw, "context")
+	if ctx != nil {
+		if labels, ok := ctx["tags"].(map[string]interface{}); ok {
+			event.Labels = labels
+		}
 
-	db, err := DecodeDb(event.Context, decoder.Err)
-	if err != nil {
-		return nil, err
-	}
-	event.Db = db
-
-	http, err := DecodeHttp(event.Context, nil)
-	if err != nil {
-		return nil, err
-	}
-	event.Http = http
-
-	if s, set := event.Context["service"]; set {
-		service, err := metadata.DecodeService(s, nil)
+		db, err := DecodeDb(ctx, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
-		event.Service = service
-	}
+		event.Db = db
 
-	if obj, set := event.Context["experimental"]; set {
-		event.Experimental = obj
+		http, err := DecodeHttp(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+		event.Http = http
+
+		if s, set := ctx["service"]; set {
+			service, err := metadata.DecodeService(s, nil)
+			if err != nil {
+				return nil, err
+			}
+			event.Service = service
+		}
+
+		if cfg.Experimental {
+			if obj, set := ctx["experimental"]; set {
+				event.Experimental = obj
+			}
+		}
 	}
 
 	var stacktr *m.Stacktrace
@@ -274,11 +277,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.AddId(fields, "transaction", &e.TransactionId)
-
-	if tctx.Config.Experimental {
-		utility.Set(fields, "experimental", e.Experimental)
-
-	}
+	utility.Set(fields, "experimental", e.Experimental)
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {

@@ -70,7 +70,6 @@ type Event struct {
 
 	Culprit *string
 	User    *metadata.User
-	Context *m.Context
 	Labels  *m.Labels
 	Page    *m.Page
 	Http    *m.Http
@@ -106,7 +105,7 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +126,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	e := Event{
 		Id:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, "culprit"),
-		Context:            ctx,
 		Labels:             ctx.Labels,
 		Page:               ctx.Page,
 		Http:               ctx.Http,
@@ -141,7 +139,10 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		TraceId:            decoder.StringPtr(raw, "trace_id"),
 		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
 		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
-		Experimental:       ctx.Experimental,
+	}
+
+	if cfg.Experimental {
+		e.Experimental = ctx.Experimental
 	}
 
 	var stacktr *m.Stacktrace
@@ -213,11 +214,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
-
-	if tctx.Config.Experimental {
-		utility.Set(fields, "experimental", e.Experimental)
-
-	}
+	utility.Set(fields, "experimental", e.Experimental)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data

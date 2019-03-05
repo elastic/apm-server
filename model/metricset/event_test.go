@@ -24,6 +24,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/model"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -120,7 +122,7 @@ func TestDecode(t *testing.T) {
 		},
 	} {
 		var err error
-		transformables, err := DecodeEvent(test.input, err)
+		transformables, err := DecodeEvent(test.input, model.Config{}, err)
 		if test.err != nil {
 			assert.Error(t, err)
 		}

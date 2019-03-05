@@ -615,16 +615,16 @@ class ExperimentalBaseTest(ElasticTest):
             assert rs['hits']['total']['value'] == ct
 
 
-class ProductionEnvTest(ExperimentalBaseTest):
-    config_overrides = {"environment": "production"}
+class ProductionModeTest(ExperimentalBaseTest):
+    config_overrides = {"mode": "production"}
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_experimental_key_indexed(self):
         self.check_experimental_key_indexed(False)
 
 
-class ExperimentalEnvTest(ExperimentalBaseTest):
-    config_overrides = {"environment": "experimental"}
+class ExperimentalModeTest(ExperimentalBaseTest):
+    config_overrides = {"mode": "experimental"}
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_experimental_key_indexed(self):

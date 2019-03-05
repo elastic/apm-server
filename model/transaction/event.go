@@ -67,7 +67,6 @@ type Event struct {
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
-	Context   *m.Context
 	User      *metadata.User
 	Page      *m.Page
 	Http      *m.Http
@@ -84,7 +83,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +106,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Name:      decoder.StringPtr(raw, "name"),
 		Result:    decoder.StringPtr(raw, "result"),
 		Duration:  decoder.Float64(raw, "duration"),
-		Context:   ctx,
 		Labels:    ctx.Labels,
 		Page:      ctx.Page,
 		Http:      ctx.Http,
@@ -121,9 +119,11 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		SpanCount: SpanCount{
 			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
 			Started: decoder.IntPtr(raw, "started", "span_count")},
-		ParentId:     decoder.StringPtr(raw, "parent_id"),
-		TraceId:      decoder.String(raw, "trace_id"),
-		Experimental: ctx.Experimental,
+		ParentId: decoder.StringPtr(raw, "parent_id"),
+		TraceId:  decoder.String(raw, "trace_id"),
+	}
+	if cfg.Experimental {
+		e.Experimental = ctx.Experimental
 	}
 
 	if decoder.Err != nil {
@@ -192,11 +192,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
-
-	if tctx.Config.Experimental {
-		utility.Set(fields, "experimental", e.Experimental)
-
-	}
+	utility.Set(fields, "experimental", e.Experimental)
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

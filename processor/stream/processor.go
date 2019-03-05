@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/apm-server/model"
+
 	"github.com/santhosh-tekuri/jsonschema"
 	"golang.org/x/time/rate"
 
@@ -82,6 +84,7 @@ func (s *srErrorWrapper) Read() (map[string]interface{}, error) {
 
 type Processor struct {
 	Tconfig      transform.Config
+	Mconfig      model.Config
 	MaxEventSize int
 	bufferPool   sync.Pool
 }
@@ -91,7 +94,7 @@ const batchSize = 10
 var models = []struct {
 	key          string
 	schema       *jsonschema.Schema
-	modelDecoder func(interface{}, error) (transform.Transformable, error)
+	modelDecoder func(interface{}, model.Config, error) (transform.Transformable, error)
 }{
 	{
 		"transaction",
@@ -115,7 +118,7 @@ var models = []struct {
 	},
 }
 
-func (v *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
+func (p *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamReader) (*metadata.Metadata, error) {
 	// first item is the metadata object
 	rawModel, err := reader.Read()
 	if err != nil {
@@ -162,7 +165,7 @@ func (v *Processor) readMetadata(reqMeta map[string]interface{}, reader StreamRe
 }
 
 // HandleRawModel validates and decodes a single json object into its struct form
-func (v *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
+func (p *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.Transformable, error) {
 	for _, model := range models {
 		if entry, ok := rawModel[model.key]; ok {
 			err := validation.Validate(entry, model.schema)
@@ -170,7 +173,7 @@ func (v *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.T
 				return nil, err
 			}
 
-			tr, err := model.modelDecoder(entry, err)
+			tr, err := model.modelDecoder(entry, p.Mconfig, err)
 			if err != nil {
 				return nil, err
 			}
@@ -182,7 +185,7 @@ func (v *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.T
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (s *Processor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+func (p *Processor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
 	var (
 		err        error
 		rawModel   map[string]interface{}
@@ -218,7 +221,7 @@ func (s *Processor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize i
 		}
 
 		if rawModel != nil {
-			tr, err := s.HandleRawModel(rawModel)
+			tr, err := p.HandleRawModel(rawModel)
 			if err != nil {
 				response.LimitedAdd(&Error{
 					Type:     InvalidInputErrType,
@@ -234,27 +237,27 @@ func (s *Processor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize i
 	return eventables, reader.IsEOF()
 }
 
-func (s *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
+func (p *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
-	buf, ok := s.bufferPool.Get().(*bufio.Reader)
+	buf, ok := p.bufferPool.Get().(*bufio.Reader)
 	if !ok {
-		buf = bufio.NewReaderSize(reader, s.MaxEventSize)
+		buf = bufio.NewReaderSize(reader, p.MaxEventSize)
 	} else {
 		buf.Reset(reader)
 	}
 	defer func() {
 		buf.Reset(nil)
-		s.bufferPool.Put(buf)
+		p.bufferPool.Put(buf)
 	}()
 
-	lineReader := decoder.NewLineReader(buf, s.MaxEventSize)
+	lineReader := decoder.NewLineReader(buf, p.MaxEventSize)
 	ndReader := decoder.NewNDJSONStreamReader(lineReader)
 
 	// our own wrapper converts jsonreader errors to errors that are useful to us
 	jsonReader := &srErrorWrapper{ndReader}
 
-	metadata, err := s.readMetadata(meta, jsonReader)
+	metadata, err := p.readMetadata(meta, jsonReader)
 	// no point in continuing if we couldn't read the metadata
 	if err != nil {
 		res.Add(err)
@@ -263,7 +266,7 @@ func (s *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map
 
 	tctx := &transform.Context{
 		RequestTime: utility.RequestTime(ctx),
-		Config:      s.Tconfig,
+		Config:      p.Tconfig,
 		Metadata:    *metadata,
 	}
 
@@ -272,7 +275,7 @@ func (s *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map
 
 	for {
 
-		transformables, done := s.readBatch(ctx, rl, batchSize, jsonReader, res)
+		transformables, done := p.readBatch(ctx, rl, batchSize, jsonReader, res)
 		if transformables != nil {
 			err := report(ctx, publish.PendingReq{
 				Transformables: transformables,

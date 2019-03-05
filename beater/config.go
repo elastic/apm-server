@@ -50,7 +50,7 @@ type Config struct {
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
 	RumConfig           *rumConfig             `config:"rum"`
 	Register            *registerConfig        `config:"register"`
-	Environment         Environment            `config:"environment"`
+	Mode                Mode                   `config:"mode"`
 }
 
 type ExpvarConfig struct {
@@ -113,19 +113,19 @@ type InstrumentationConfig struct {
 }
 
 //Environment enumerates the APM Server env
-type Environment uint8
+type Mode uint8
 
 const (
-	EnvProduction Environment = iota
-	EnvExperimental
+	ModeProduction Mode = iota
+	ModeExperimental
 )
 
-func (env *Environment) Unpack(s string) error {
+func (env *Mode) Unpack(s string) error {
 	if strings.ToLower(s) == "experimental" {
-		*env = EnvExperimental
+		*env = ModeExperimental
 		return nil
 	}
-	*env = EnvProduction
+	*env = ModeProduction
 	return nil
 }
 
@@ -267,6 +267,6 @@ func defaultConfig(beatVersion string) *Config {
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
 		},
-		Environment: EnvProduction,
+		Mode: ModeProduction,
 	}
 }

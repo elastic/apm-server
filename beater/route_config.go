@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/apm-server/model"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/processor/asset/sourcemap"
@@ -64,9 +66,7 @@ var (
 		routeType{
 			backendHandler,
 			systemMetadataDecoder,
-			func(cfg *Config) transform.Config {
-				return transform.Config{Experimental: cfg.Environment == EnvExperimental}
-			},
+			func(cfg *Config) transform.Config { return transform.Config{} },
 		},
 	}
 	rumRoute = intakeRoute{
@@ -148,7 +148,6 @@ func rumTransformConfig(beaterConfig *Config) transform.Config {
 		SmapMapper:          smapper,
 		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
-		Experimental:        beaterConfig.Environment == EnvExperimental,
 	}
 	return config
 }
@@ -182,6 +181,7 @@ func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) htt
 		requestDecoder: reqDecoder,
 		streamProcessor: &stream.Processor{
 			Tconfig:      r.transformConfig(c),
+			Mconfig:      model.Config{Experimental: c.Mode == ModeExperimental},
 			MaxEventSize: c.MaxEventSize,
 		},
 	}
