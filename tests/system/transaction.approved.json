@@ -74,6 +74,9 @@
                 "id": "99",
                 "email": "foo@example.com"
             },
+            "user_agent": {
+                "original": "Mozilla Chrome Edge"
+            },
             "url": {
                 "domain": "www.example.com",
                 "fragment": "#hash",
@@ -100,15 +103,11 @@
                         "SERVER_SOFTWARE": "nginx"
                     },
                     "headers": {
-                        "some-other-header": "foo",
-                        "cookie": "c1=v1; c2=v2",
-                        "array": [
-                            "foo",
-                            "bar",
-                            "baz"
-                        ],
-                        "Content-Type": "text/html",
-                        "User-Agent": "Mozilla Chrome Edge"
+                        "Some-Other-Header": ["foo"],
+                        "Cookie": ["c1=v1,c2=v2"],
+                        "Array": ["foo", "bar", "baz"],
+                        "Content-Type": ["text/html"],
+                        "User-Agent": ["Mozilla Chrome Edge"]
                     },
                     "cookies": {
                         "c2": "v2",
@@ -123,7 +122,7 @@
                 "response": {
                     "finished": true,
                     "headers": {
-                        "content-type": "application/json"
+                        "Content-Type": ["application/json"]
                     },
                     "headers_sent": true,
                     "status_code": 200

@@ -163,11 +163,11 @@
                         "SERVER_SOFTWARE": "nginx"
                     },
                     "headers": {
-                        "User-Agent":"Mozilla Chrome Edge",
-                        "Content-Type":"text/html",
-                        "cookie":"c1=v1; c2=v2",
-                        "some-other-header":"foo",
-                        "array":["foo","bar","baz"]
+                        "Some-Other-Header": ["foo"],
+                        "Cookie": ["c1=v1,c2=v2"],
+                        "Array": ["foo", "bar", "baz"],
+                        "Content-Type": ["text/html"],
+                        "User-Agent": ["Mozilla Chrome Edge"]
                     },
                     "cookies":{
                         "c1":"v1",
@@ -182,7 +182,7 @@
                 "response": {
                     "finished": true,
                     "headers": {
-                        "Content-Type": "application/json"
+                        "Content-Type": ["application/json"]
                     },
                     "headers_sent": true,
                     "status_code": 200
@@ -205,6 +205,9 @@
                 "name": "foo",
                 "id": 99,
                 "email": "foo@example.com"
+            },
+            "user_agent": {
+                "original": "Mozilla Chrome Edge"
             },
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
