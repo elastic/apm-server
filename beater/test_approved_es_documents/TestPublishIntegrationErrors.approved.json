@@ -440,6 +440,9 @@
                 "version": "8.0.0",
                 "version_major": 8
             },
+            "parent": {
+                "id": "9632587410abcdef"
+            },
             "process": {
                 "args": [
                     "node",
@@ -472,6 +475,9 @@
             },
             "timestamp": {
                 "us": 1547070053000000
+            },
+            "trace": {
+                "id": "0123456789abcdeffedcba0123456789"
             },
             "user": {
                 "email": "bar@example.com",

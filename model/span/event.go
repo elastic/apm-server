@@ -56,7 +56,7 @@ func ModelSchema() *jsonschema.Schema {
 
 type Event struct {
 	Id            string
-	TransactionId string
+	TransactionId *string
 	ParentId      string
 	TraceId       string
 
@@ -190,7 +190,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Id:            decoder.String(raw, "id"),
 		ParentId:      decoder.String(raw, "parent_id"),
 		TraceId:       decoder.String(raw, "trace_id"),
-		TransactionId: decoder.String(raw, "transaction_id"),
+		TransactionId: decoder.StringPtr(raw, "transaction_id"),
 		Type:          decoder.String(raw, "type"),
 		Subtype:       decoder.StringPtr(raw, "subtype"),
 		Action:        decoder.StringPtr(raw, "action"),
@@ -267,7 +267,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "labels", e.Labels)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
-	utility.AddId(fields, "transaction", &e.TransactionId)
+	utility.AddId(fields, "transaction", e.TransactionId)
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {
