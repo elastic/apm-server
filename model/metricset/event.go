@@ -22,10 +22,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/elastic/apm-server/model"
-
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"

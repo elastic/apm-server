@@ -86,7 +86,7 @@ type Resp struct {
 	Headers     http.Header
 }
 
-func DecodeContext(input interface{}, err error) (*Context, error) {
+func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -103,6 +103,10 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 
 	userInp := decoder.Interface(ctxInp, "user")
 	serviceInp := decoder.Interface(ctxInp, "service")
+	var experimental interface{}
+	if cfg.Experimental {
+		experimental = decoder.Interface(ctxInp, "experimental")
+	}
 	err = decoder.Err
 	http, err := decodeHttp(ctxInp, err)
 	url, err := decodeUrl(ctxInp, err)
@@ -114,18 +118,16 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	user = addUserAgent(user, http)
 
 	ctx := Context{
-		Http:    http,
-		Url:     url,
-		Labels:  labels,
-		Page:    page,
-		Custom:  custom,
-		User:    user,
-		Service: service,
+		Http:         http,
+		Url:          url,
+		Labels:       labels,
+		Page:         page,
+		Custom:       custom,
+		User:         user,
+		Service:      service,
+		Experimental: experimental,
 	}
 
-	if experimental, set := ctxInp["experimental"]; set {
-		ctx.Experimental = experimental
-	}
 	return &ctx, err
 
 }

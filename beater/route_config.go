@@ -22,9 +22,8 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/apm-server/model"
-
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"

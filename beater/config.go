@@ -120,12 +120,12 @@ const (
 	ModeExperimental
 )
 
-func (env *Mode) Unpack(s string) error {
+func (m *Mode) Unpack(s string) error {
 	if strings.ToLower(s) == "experimental" {
-		*env = ModeExperimental
+		*m = ModeExperimental
 		return nil
 	}
-	*env = ModeProduction
+	*m = ModeProduction
 	return nil
 }
 

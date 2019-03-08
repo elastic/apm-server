@@ -118,7 +118,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		return nil, errors.New("Invalid type for error event")
 	}
 
-	ctx, err := m.DecodeContext(raw, nil)
+	ctx, err := m.DecodeContext(raw, cfg, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -133,16 +133,13 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Custom:             ctx.Custom,
 		User:               ctx.User,
 		Service:            ctx.Service,
+		Experimental:       ctx.Experimental,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
 		TraceId:            decoder.StringPtr(raw, "trace_id"),
 		TransactionSampled: decoder.BoolPtr(raw, "sampled", "transaction"),
 		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
-	}
-
-	if cfg.Experimental {
-		e.Experimental = ctx.Experimental
 	}
 
 	var stacktr *m.Stacktrace

@@ -2,7 +2,9 @@
     "Custom": {
         "a": "b"
     },
-    "Experimental": null,
+    "Experimental": {
+        "foo": "bar"
+    },
     "Http": {
         "Request": {
             "Body": {
