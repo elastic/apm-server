@@ -247,7 +247,7 @@ output.elasticsearch:
   #compression_level: 0
 
   # Optional protocol and basic auth credentials.
-  #protocol: "http"
+  #protocol: "https"
   #username: "elastic"
   #password: "changeme"
 
@@ -753,7 +753,7 @@ output.elasticsearch:
 # following line.
 #xpack.monitoring.elasticsearch:
   # Optional protocol and basic auth credentials.
-  #protocol: "http"
+  #protocol: "https"
   #username: "apm_system"
   #password: ""
 
