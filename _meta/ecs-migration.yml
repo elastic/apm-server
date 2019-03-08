@@ -65,6 +65,7 @@
 - from: context.request.headers
   to: http.request.headers
   index: false
+  documented: true
 
   # not in ECS
 - from: context.request.env
@@ -156,9 +157,10 @@
   to: http.response.status_code
 
   # not in ECS
-- from: context.response.headers.content-type
-  to: http.response.headers.content-type
+- from: context.response.headers
+  to: http.response.headers
   index: false
+  documented: true
 
   # not in ECS
 - from: context.response.headers_sent

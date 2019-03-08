@@ -178,12 +178,22 @@ func TestPayloadDataForTransaction(t *testing.T) {
 			{Key: "transaction.context.request.body",
 				Valid:   []interface{}{obj{}, tests.Str1025},
 				Invalid: []tests.Invalid{{Msg: `context/properties/request/properties/body/type`, Values: val{102}}}},
+			{Key: "transaction.context.request.headers", Valid: val{
+				obj{"User-Agent": "go-1.1"},
+				obj{"foo-bar": "a,b"},
+				obj{"foo": []interface{}{"a", "b"}}},
+				Invalid: []tests.Invalid{{Msg: `properties/headers`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
 			{Key: "transaction.context.request.env",
 				Valid:   []interface{}{obj{}},
 				Invalid: []tests.Invalid{{Msg: `context/properties/request/properties/env/type`, Values: val{102, "a"}}}},
 			{Key: "transaction.context.request.cookies",
 				Valid:   []interface{}{obj{}},
 				Invalid: []tests.Invalid{{Msg: `context/properties/request/properties/cookies/type`, Values: val{123, ""}}}},
+			{Key: "transaction.context.response.headers", Valid: val{
+				obj{"User-Agent": "go-1.1"},
+				obj{"foo-bar": "a,b"},
+				obj{"foo": []interface{}{"a", "b"}}},
+				Invalid: []tests.Invalid{{Msg: `properties/headers`, Values: val{102, obj{"foo": obj{"bar": "a"}}}}}},
 			{Key: "transaction.context.tags",
 				Valid: val{obj{tests.Str1024Special: tests.Str1024Special}, obj{tests.Str1024: 123.45}, obj{tests.Str1024: true}},
 				Invalid: []tests.Invalid{

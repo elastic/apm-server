@@ -162,6 +162,18 @@ The http method of the request leading to this event.
 
 --
 
+*`http.request.headers`*::
++
+--
+type: object
+
+The canonicalized headers of the monitored HTTP request.
+
+
+Object is not enabled.
+
+--
+
 
 *`http.response.status_code`*::
 +
@@ -180,6 +192,18 @@ type: boolean
 
 Used by the Node agent to indicate when in the response life cycle an error has occurred.
 
+
+--
+
+*`http.response.headers`*::
++
+--
+type: object
+
+The canonicalized headers of the monitored HTTP response.
+
+
+Object is not enabled.
 
 --
 
