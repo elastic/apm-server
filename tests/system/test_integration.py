@@ -122,10 +122,6 @@ class Test(ElasticTest):
                 if rec_id == appr[doc_type]['id']:
                     checked = True
                     for k, v in rec.items():
-                        if k == "host":
-                            # TODO: fix https://github.com/elastic/apm-server/issues/1846
-                            #  then remove this exception handling and treat as other keys
-                            continue
                         if k == "observer":
                             expected = Set(["hostname", "version", "id", "ephemeral_id", "type", "version_major"])
                             rec_keys = Set(v.keys())

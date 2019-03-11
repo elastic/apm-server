@@ -14,6 +14,9 @@
             "container": {
                 "id": "container-id"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",
@@ -74,6 +77,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -127,6 +133,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -197,6 +206,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "go": {
                 "memstats": {

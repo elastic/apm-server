@@ -68,18 +68,18 @@ func NewPublisher(info beat.Info, pipeline beat.Pipeline, shutdownTimeout time.D
 
 		//       If set >0 `Close` will block for the duration or until pipeline is empty
 		WaitClose: shutdownTimeout,
-		Fields: common.MapStr{
-			"observer": common.MapStr{
-				"type":          info.Beat,
-				"hostname":      info.Hostname,
-				"version":       info.Version,
-				"version_major": 7,
-				"id":            info.ID.String(),
-				"ephemeral_id":  info.EphemeralID.String(),
+		Processing: beat.ProcessingConfig{
+			Fields: common.MapStr{
+				"observer": common.MapStr{
+					"type":          info.Beat,
+					"hostname":      info.Hostname,
+					"version":       info.Version,
+					"version_major": 7,
+					"id":            info.ID.String(),
+					"ephemeral_id":  info.EphemeralID.String(),
+				},
 			},
 		},
-		SkipAgentMetadata: true,
-		SkipNormalization: true,
 	})
 	if err != nil {
 		return nil, err

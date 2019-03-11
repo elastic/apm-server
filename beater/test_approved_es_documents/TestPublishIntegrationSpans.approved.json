@@ -11,6 +11,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -59,6 +62,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -109,6 +115,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "labels": {
                 "tag1": "value1",
@@ -167,6 +176,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -219,6 +231,9 @@
             "agent": {
                 "name": "elastic-ruby",
                 "version": "2.2"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
