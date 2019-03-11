@@ -62,6 +62,7 @@ import (
 	"github.com/elastic/beats/libbeat/paths"
 	"github.com/elastic/beats/libbeat/plugin"
 	"github.com/elastic/beats/libbeat/publisher/pipeline"
+	"github.com/elastic/beats/libbeat/publisher/processing"
 	svc "github.com/elastic/beats/libbeat/service"
 	"github.com/elastic/beats/libbeat/version"
 	sysinfo "github.com/elastic/go-sysinfo"
@@ -78,6 +79,8 @@ type Beat struct {
 
 	keystore keystore.Keystore
 	index    idxmgmt.Supporter
+
+	processing processing.Supporter
 }
 
 type beatConfig struct {
@@ -310,6 +313,7 @@ func (b *Beat) createBeater(bt beat.Creator) (beat.Beater, error) {
 			Logger:    logp.L().Named("publisher"),
 		},
 		b.Config.Pipeline,
+		b.processing,
 		b.makeOutputFactory(b.Config.Output),
 	)
 
@@ -519,6 +523,10 @@ func (b *Beat) configure(settings Settings) error {
 		return fmt.Errorf("error loading config file: %v", err)
 	}
 
+	if err := initPaths(cfg); err != nil {
+		return err
+	}
+
 	// We have to initialize the keystore before any unpack or merging the cloud
 	// options.
 	store, err := LoadKeystore(cfg, b.Info.Beat)
@@ -549,11 +557,6 @@ func (b *Beat) configure(settings Settings) error {
 
 	if name := b.Config.Name; name != "" {
 		b.Info.Name = name
-	}
-
-	err = paths.InitPaths(&b.Config.Path)
-	if err != nil {
-		return fmt.Errorf("error setting default paths: %v", err)
 	}
 
 	if err := configure.Logging(b.Info.Beat, b.Config.Logging); err != nil {
@@ -594,6 +597,16 @@ func (b *Beat) configure(settings Settings) error {
 		imFactory = idxmgmt.MakeDefaultSupport(settings.ILM)
 	}
 	b.index, err = imFactory(nil, b.Beat.Info, b.RawConfig)
+	if err != nil {
+		return err
+	}
+
+	processingFactory := settings.Processing
+	if processingFactory == nil {
+		processingFactory = processing.MakeDefaultBeatSupport(true)
+	}
+	b.processing, err = processingFactory(b.Info, logp.L().Named("processors"), b.RawConfig)
+
 	return err
 }
 
@@ -907,4 +920,23 @@ func initKibanaConfig(beatConfig beatConfig) (*common.Config, error) {
 		}
 	}
 	return kibanaConfig, nil
+}
+
+func initPaths(cfg *common.Config) error {
+	// To Fix the chicken-egg problem with the Keystore and the loading of the configuration
+	// files we are doing a partial unpack of the configuration file and only take into consideration
+	// the paths field. After we will unpack the complete configuration and keystore reference
+	// will be correctly replaced.
+	partialConfig := struct {
+		Path paths.Path `config:"path"`
+	}{}
+
+	if err := cfg.Unpack(&partialConfig); err != nil {
+		return fmt.Errorf("error extracting default paths: %+v", err)
+	}
+
+	if err := paths.InitPaths(&partialConfig.Path); err != nil {
+		return fmt.Errorf("error setting default paths: %+v", err)
+	}
+	return nil
 }
