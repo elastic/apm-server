@@ -14,6 +14,9 @@
             "container": {
                 "id": "container-id"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "error": {
                 "culprit": "my.module.function_name",
                 "custom": {
@@ -317,6 +320,9 @@
             "container": {
                 "id": "container-id"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "error": {
                 "exception": [
                     {
@@ -404,6 +410,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "error": {
                 "exception": [
@@ -498,6 +507,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",

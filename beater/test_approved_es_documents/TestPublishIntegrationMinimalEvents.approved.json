@@ -11,6 +11,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "error": {
                 "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
                 "id": "abcdef0123456789",
@@ -50,6 +53,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "error": {
                 "exception": [
@@ -93,6 +99,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "error": {
                 "exception": [
                     {
@@ -134,6 +143,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -182,6 +194,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -225,6 +240,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -272,6 +290,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "host": {
                 "ip": "127.0.0.1"

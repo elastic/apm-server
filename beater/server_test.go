@@ -32,6 +32,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
+
+	"github.com/elastic/beats/libbeat/version"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -505,17 +509,33 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
 		require.NoError(t, err)
 	}
 
+	beatId, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
+	require.NoError(t, err)
+	info := beat.Info{
+		Beat:        "test-apm-server",
+		IndexPrefix: "test-apm-server",
+		Version:     version.GetDefaultVersion(),
+		ID:          beatId,
+	}
+
 	var pub beat.Pipeline
 	if events != nil {
 		// capture events
 		pubClient := NewChanClientWith(events)
-		pub = DummyPipeline(pubClient)
+		pub = DummyPipeline(cfg, info, pubClient)
 	} else {
 		// don't capture events
-		pub = DummyPipeline()
+		pub = DummyPipeline(cfg, info)
 	}
 
-	btr, stop, err := setupBeater(t, pub, baseConfig, beatConfig)
+	// create a beat
+	apmBeat := &beat.Beat{
+		Publisher: pub,
+		Info:      info,
+		Config:    beatConfig,
+	}
+
+	btr, stop, err := setupBeater(t, apmBeat, baseConfig, beatConfig)
 	if err == nil {
 		assert.NotEqual(t, btr.config.Host, "localhost:0", "config.Host unmodified")
 	}

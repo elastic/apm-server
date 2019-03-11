@@ -20,15 +20,15 @@ package cmd
 import (
 	"github.com/spf13/pflag"
 
+	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/idxmgmt"
 	"github.com/elastic/apm-server/idxmgmt/ilm"
-
-	"github.com/elastic/apm-server/beater"
 	_ "github.com/elastic/apm-server/include"
 	"github.com/elastic/beats/libbeat/cmd"
 	"github.com/elastic/beats/libbeat/cmd/instance"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring/report"
+	"github.com/elastic/beats/libbeat/publisher/processing"
 )
 
 // Name of the beat (apm-server).
@@ -76,6 +76,7 @@ func init() {
 		},
 		ILM:             ilm.MakeDefaultSupporter,
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
+		Processing:      processing.MakeDefaultObserverSupport(false),
 	})
 	// remove dashboard from export commands
 	for _, cmd := range RootCmd.ExportCmd.Commands() {
