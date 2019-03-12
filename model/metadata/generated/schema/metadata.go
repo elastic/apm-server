@@ -104,6 +104,9 @@ const ModelSchema = `{
         }
     },
             "type": "object",
+            "required": ["name", "agent"],
+            "properties.name.type": "string",
+            "properties.agent.type": "string",
             "properties.agent.required": ["name", "version"],
             "properties.agent.properties.name.type": "string",
             "properties.agent.properties.version.type": "string",
