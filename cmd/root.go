@@ -72,4 +72,24 @@ func init() {
 			DefaultUsername: "apm_system",
 		},
 	})
+
+	// remove ilm-policy from export commands
+	for _, cmd := range RootCmd.ExportCmd.Commands() {
+		if cmd.Name() == "ilm-policy" {
+			RootCmd.ExportCmd.RemoveCommand(cmd)
+		}
+	}
+	// only add defined flags to setup command
+	setup := RootCmd.SetupCmd
+	setup.Short = "Setup Elasticsearch index template and pipelines"
+	setup.Long = `This command does initial setup of the environment:
+ * Index mapping template in Elasticsearch to ensure fields are mapped.
+ * Ingest pipelines
+ * Kibana dashboards
+`
+	setup.ResetFlags()
+	setup.Flags().Bool("template", false, "Setup index template")
+	// for compatibility reasons we need to still support dashboards.
+	setup.Flags().Bool("dashboards", false, "Setup dashboards")
+	setup.Flags().Bool("pipelines", false, "Setup Ingest pipelines")
 }
