@@ -14,6 +14,9 @@
             "container": {
                 "id": "container-id"
             },
+            "ecs": {
+                "version": "1.1.0-dev"
+            },
             "host": {
                 "architecture": "x64",
                 "hostname": "prod1.example.com",
@@ -109,6 +112,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "host": {
                 "architecture": "x64",
@@ -293,6 +299,9 @@
             },
             "container": {
                 "id": "container-id"
+            },
+            "ecs": {
+                "version": "1.1.0-dev"
             },
             "host": {
                 "architecture": "x64",
