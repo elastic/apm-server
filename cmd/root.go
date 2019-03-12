@@ -78,8 +78,9 @@ func init() {
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 	})
 	// remove dashboard from export commands
+	var unsupported = map[string]interface{}{"dashboard": nil, "ilm-policy": nil}
 	for _, cmd := range RootCmd.ExportCmd.Commands() {
-		if cmd.Name() == "dashboard" {
+		if _, ok := unsupported[cmd.Name()]; ok {
 			RootCmd.ExportCmd.RemoveCommand(cmd)
 		}
 	}
