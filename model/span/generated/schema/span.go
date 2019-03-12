@@ -40,7 +40,7 @@ const ModelSchema = `{
                     "maxLength": 1024
                 },
                 "transaction_id": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Hex encoded 64 random bits ID of the correlated transaction.", 
                     "maxLength": 1024
                 },
@@ -253,7 +253,7 @@ const ModelSchema = `{
                     "description": "Indicates whether the span was executed synchronously or asynchronously."
                 }
             },
-            "required": ["duration", "name", "type", "id", "transaction_id", "trace_id", "parent_id"]
+            "required": ["duration", "name", "type", "id","trace_id", "parent_id"]
         },
         { "anyOf":[
                 {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}},

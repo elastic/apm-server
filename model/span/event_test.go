@@ -84,14 +84,6 @@ func TestDecodeSpan(t *testing.T) {
 			err: utility.FetchErr.Error(),
 		},
 		{
-			// missing transactionId
-			input: map[string]interface{}{
-				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
-			},
-			err: utility.FetchErr.Error(),
-		},
-		{
 			// missing id
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
@@ -111,20 +103,19 @@ func TestDecodeSpan(t *testing.T) {
 			// minimal payload
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
-				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
 			},
 			e: &Event{
-				Name:          name,
-				Type:          "db",
-				Subtype:       &subtype,
-				Action:        &action2,
-				Start:         &start,
-				Duration:      duration,
-				Timestamp:     spanTime,
-				ParentId:      parentId,
-				Id:            id,
-				TraceId:       traceId,
-				TransactionId: transactionId,
+				Name:      name,
+				Type:      "db",
+				Subtype:   &subtype,
+				Action:    &action2,
+				Start:     &start,
+				Duration:  duration,
+				Timestamp: spanTime,
+				ParentId:  parentId,
+				Id:        id,
+				TraceId:   traceId,
 			},
 		},
 		{
@@ -150,7 +141,7 @@ func TestDecodeSpan(t *testing.T) {
 				Id:            id,
 				TraceId:       traceId,
 				ParentId:      parentId,
-				TransactionId: transactionId,
+				TransactionId: &transactionId,
 				Http:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
 				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
 			},

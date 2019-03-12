@@ -93,7 +93,6 @@ func spanRequiredKeys() *tests.Set {
 		"span.name",
 		"span.trace_id",
 		"span.parent_id",
-		"span.transaction_id",
 		"span.id",
 		"span.duration",
 		"span.type",

@@ -551,11 +551,11 @@ const ModelSchema = `{
             "allOf": [
                 { "required": ["id"] },
                 { "if": {"required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}},
-                  "then": { "required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}} },
+                    "then": { "required": ["trace_id", "parent_id"], "properties": {"trace_id": { "type": "string" }, "parent_id": {"type": "string"}}}},
                 { "if": {"required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}},
-                  "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
+                    "then": { "required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}} },
                 { "if": {"required": ["parent_id"], "properties": {"parent_id": { "type": "string" }}},
-                  "then": { "required": ["transaction_id"], "properties": {"transaction_id": { "type": "string" }}} }
+                    "then": { "required": ["trace_id"], "properties": {"trace_id": { "type": "string" }}} }
             ],
             "anyOf": [
                 { "required": ["exception"], "properties": {"exception": { "type": "object" }} },

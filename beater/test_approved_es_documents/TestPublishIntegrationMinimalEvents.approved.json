@@ -169,9 +169,6 @@
             },
             "trace": {
                 "id": "0123456789abcdef0123456789abcdef"
-            },
-            "transaction": {
-                "id": "ab23456a89012345"
             }
         },
         {
@@ -216,9 +213,6 @@
             },
             "trace": {
                 "id": "0123456789abcdef0123456789abcdef"
-            },
-            "transaction": {
-                "id": "ab23456a89012345"
             }
         },
         {
