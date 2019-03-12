@@ -95,7 +95,6 @@ func errorRequiredKeys() *tests.Set {
 		"error.context.request.url",
 
 		"error.trace_id",
-		"error.transaction_id",
 		"error.parent_id",
 	)
 }
@@ -110,9 +109,8 @@ func errorCondRequiredKeys() map[string]tests.Condition {
 		"error.exception.type":    {Absence: []string{"error.exception.message"}},
 		"error.log":               {Absence: []string{"error.exception"}},
 
-		"error.trace_id":       {Existence: obj{"error.parent_id": "abc123", "error.transaction_id": "abc123"}},
-		"error.transaction_id": {Existence: obj{"error.parent_id": "abc123", "error.trace_id": "abc123"}},
-		"error.parent_id":      {Existence: obj{"error.transaction_id": "abc123", "error.trace_id": "abc123"}},
+		"error.trace_id":  {Existence: obj{"error.parent_id": "abc123"}},
+		"error.parent_id": {Existence: obj{"error.trace_id": "abc123"}},
 	}
 }
 
