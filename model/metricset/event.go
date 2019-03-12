@@ -24,6 +24,7 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
@@ -66,7 +67,7 @@ type metricsetDecoder struct {
 	*utility.ManualDecoder
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+func DecodeEvent(input interface{}, _ model.Config, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}

@@ -24,6 +24,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -31,7 +33,6 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -55,52 +56,49 @@ func TestDecodeSpan(t *testing.T) {
 	stacktrace := []interface{}{map[string]interface{}{
 		"filename": "file", "lineno": 1.0,
 	}}
-	testdata := []struct {
+
+	for name, test := range map[string]struct {
 		input interface{}
+		cfg   m.Config
 		// we don't use a regular `error.New` here, because some errors are of a different type
 		err    string
 		inpErr error
 		e      transform.Transformable
 	}{
-		{input: nil, err: "Input missing for decoding Event"},
-		{input: nil, inpErr: errors.New("a"), err: "a"},
-		{input: "", err: "Invalid type for span"},
-		{
+		"no input":     {input: nil, err: "Input missing for decoding Event"},
+		"input error":  {input: nil, inpErr: errors.New("a"), err: "a"},
+		"invalid type": {input: "", err: "Invalid type for span"},
+		"missing required field": {
 			input: map[string]interface{}{},
 			err:   "Error fetching field",
 		},
-		{
-			// transaction id is wrong type
+		"transaction id wrong type": {
 			input: map[string]interface{}{"name": name, "type": spType, "start": start, "duration": duration,
 				"timestamp": "2018-05-30T19:53:17.134Z", "transaction_id": 123},
 			err: "Error fetching field",
 		},
-		{
-			// missing traceId
+		"no trace_id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "transaction_id": transactionId,
 			},
 			err: utility.FetchErr.Error(),
 		},
-		{
-			// missing id
+		"no id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: utility.FetchErr.Error(),
 		},
-		{
-			// missing parent_id
+		"no parent_id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
 			err: utility.FetchErr.Error(),
 		},
-		{
-			// minimal payload
+		"minimal payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId,
@@ -118,8 +116,70 @@ func TestDecodeSpan(t *testing.T) {
 				TraceId:   traceId,
 			},
 		},
-		{
-			// full valid payload
+		"event experimental=false": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"experimental": 123},
+			},
+			e: &Event{
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: &transactionId,
+			},
+		},
+		"event experimental=true, no experimental payload": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"foo": 123},
+			},
+			e: &Event{
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: &transactionId,
+			},
+			cfg: m.Config{Experimental: true},
+		},
+		"event experimental=true": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
+				"context": map[string]interface{}{"experimental": 123},
+			},
+			e: &Event{
+				Name:          name,
+				Type:          "db",
+				Subtype:       &subtype,
+				Action:        &action2,
+				Start:         &start,
+				Duration:      duration,
+				Timestamp:     spanTime,
+				ParentId:      parentId,
+				Id:            id,
+				TraceId:       traceId,
+				TransactionId: &transactionId,
+				Experimental:  123,
+			},
+			cfg: m.Config{Experimental: true},
+		},
+		"full valid payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "external.request", "subtype": subtype, "action": action, "start": start,
 				"duration": duration, "context": context, "timestamp": timestampEpoch, "stacktrace": stacktrace,
@@ -132,7 +192,6 @@ func TestDecodeSpan(t *testing.T) {
 				Action:    &action,
 				Start:     &start,
 				Duration:  duration,
-				Context:   context,
 				Timestamp: spanTime,
 				Stacktrace: m.Stacktrace{
 					&m.StacktraceFrame{Filename: "file", Lineno: 1},
@@ -146,14 +205,17 @@ func TestDecodeSpan(t *testing.T) {
 				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
 			},
 		},
-	}
-	for idx, test := range testdata {
-		span, err := DecodeEvent(test.input, test.inpErr)
-		if test.err == "" {
-			assert.Equal(t, test.e, span, fmt.Sprintf("Idx <%v>", idx))
-		} else {
-			assert.EqualError(t, err, test.err, fmt.Sprintf("Idx <%v>", idx))
-		}
+	} {
+		t.Run(name, func(t *testing.T) {
+			span, err := DecodeEvent(test.input, test.cfg, test.inpErr)
+			if test.err == "" {
+				assert.Equal(t, test.e, span)
+				return
+			}
+			if assert.Error(t, err) {
+				assert.Equal(t, test.err, err.Error())
+			}
+		})
 	}
 }
 
@@ -201,7 +263,6 @@ func TestSpanTransform(t *testing.T) {
 				Start:      &start,
 				Duration:   1.20,
 				Stacktrace: m.Stacktrace{{AbsPath: &path}},
-				Context:    common.MapStr{"key": "val"},
 				Labels:     common.MapStr{"label.a": 12},
 				Http:       &http{Method: &method, StatusCode: &statusCode, Url: &url},
 				Db:         &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},

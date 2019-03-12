@@ -65,6 +65,7 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			tests.Group("client"),
 			tests.Group("http"),
 			tests.Group("url"),
+			"experimental",
 		),
 		// not valid for the span context
 		transactionContext(),
@@ -84,6 +85,7 @@ func spanPayloadAttrsNotInJsonSchema() *tests.Set {
 func spanJsonSchemaNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"span.transaction_id",
+		"span.context.experimental",
 	)
 }
 

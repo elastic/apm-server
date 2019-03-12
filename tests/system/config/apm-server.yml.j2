@@ -33,6 +33,10 @@ apm-server:
     enabled: {{ register_pipeline_enabled }}
     overwrite: {{ register_pipeline_overwrite  }}
 
+  {% if mode %}
+  mode: {{ mode }}
+  {% endif %}
+
 ############################# Setup ##########################################
 
 {% if override_template %}

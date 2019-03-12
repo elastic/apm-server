@@ -22,6 +22,7 @@ import (
 	"net"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -49,6 +50,7 @@ type Config struct {
 	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
 	RumConfig           *rumConfig             `config:"rum"`
 	Register            *registerConfig        `config:"register"`
+	Mode                Mode                   `config:"mode"`
 }
 
 type ExpvarConfig struct {
@@ -108,6 +110,23 @@ type InstrumentationConfig struct {
 	Environment *string `config:"environment"`
 	Hosts       urls    `config:"hosts" validate:"nonzero"`
 	SecretToken string  `config:"secret_token"`
+}
+
+//Environment enumerates the APM Server env
+type Mode uint8
+
+const (
+	ModeProduction Mode = iota
+	ModeExperimental
+)
+
+func (m *Mode) Unpack(s string) error {
+	if strings.ToLower(s) == "experimental" {
+		*m = ModeExperimental
+		return nil
+	}
+	*m = ModeProduction
+	return nil
 }
 
 func newConfig(version string, ucfg *common.Config) (*Config, error) {
@@ -248,5 +267,6 @@ func defaultConfig(beatVersion string) *Config {
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
 		},
+		Mode: ModeProduction,
 	}
 }
