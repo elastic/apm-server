@@ -67,7 +67,6 @@ type Event struct {
 	Marks     common.MapStr
 	Sampled   *bool
 	SpanCount SpanCount
-	Context   *m.Context
 	User      *metadata.User
 	Page      *m.Page
 	Http      *m.Http
@@ -75,6 +74,8 @@ type Event struct {
 	Labels    *m.Labels
 	Custom    *m.Custom
 	Service   *metadata.Service
+
+	Experimental interface{}
 }
 
 type SpanCount struct {
@@ -82,7 +83,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -94,28 +95,28 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, errors.New("Invalid type for transaction event")
 	}
 
-	ctx, err := m.DecodeContext(raw, nil)
+	ctx, err := m.DecodeContext(raw, cfg, nil)
 	if err != nil {
 		return nil, err
 	}
 	decoder := utility.ManualDecoder{}
 	e := Event{
-		Id:        decoder.String(raw, "id"),
-		Type:      decoder.String(raw, "type"),
-		Name:      decoder.StringPtr(raw, "name"),
-		Result:    decoder.StringPtr(raw, "result"),
-		Duration:  decoder.Float64(raw, "duration"),
-		Context:   ctx,
-		Labels:    ctx.Labels,
-		Page:      ctx.Page,
-		Http:      ctx.Http,
-		Url:       ctx.Url,
-		Custom:    ctx.Custom,
-		User:      ctx.User,
-		Service:   ctx.Service,
-		Marks:     decoder.MapStr(raw, "marks"),
-		Sampled:   decoder.BoolPtr(raw, "sampled"),
-		Timestamp: decoder.TimeEpochMicro(raw, "timestamp"),
+		Id:           decoder.String(raw, "id"),
+		Type:         decoder.String(raw, "type"),
+		Name:         decoder.StringPtr(raw, "name"),
+		Result:       decoder.StringPtr(raw, "result"),
+		Duration:     decoder.Float64(raw, "duration"),
+		Labels:       ctx.Labels,
+		Page:         ctx.Page,
+		Http:         ctx.Http,
+		Url:          ctx.Url,
+		Custom:       ctx.Custom,
+		User:         ctx.User,
+		Service:      ctx.Service,
+		Experimental: ctx.Experimental,
+		Marks:        decoder.MapStr(raw, "marks"),
+		Sampled:      decoder.BoolPtr(raw, "sampled"),
+		Timestamp:    decoder.TimeEpochMicro(raw, "timestamp"),
 		SpanCount: SpanCount{
 			Dropped: decoder.IntPtr(raw, "dropped", "span_count"),
 			Started: decoder.IntPtr(raw, "started", "span_count")},
@@ -189,6 +190,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
+	utility.Set(fields, "experimental", e.Experimental)
 
 	events = append(events, beat.Event{Fields: fields, Timestamp: e.Timestamp})
 

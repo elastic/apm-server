@@ -30,13 +30,14 @@ import (
 )
 
 type Context struct {
-	Http    *Http
-	Url     *Url
-	Labels  *Labels
-	Page    *Page
-	Custom  *Custom
-	User    *metadata.User
-	Service *metadata.Service
+	Http         *Http
+	Url          *Url
+	Labels       *Labels
+	Page         *Page
+	Custom       *Custom
+	User         *metadata.User
+	Service      *metadata.Service
+	Experimental interface{}
 }
 
 type Http struct {
@@ -85,7 +86,7 @@ type Resp struct {
 	Headers     http.Header
 }
 
-func DecodeContext(input interface{}, err error) (*Context, error) {
+func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -102,6 +103,10 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 
 	userInp := decoder.Interface(ctxInp, "user")
 	serviceInp := decoder.Interface(ctxInp, "service")
+	var experimental interface{}
+	if cfg.Experimental {
+		experimental = decoder.Interface(ctxInp, "experimental")
+	}
 	err = decoder.Err
 	http, err := decodeHttp(ctxInp, err)
 	url, err := decodeUrl(ctxInp, err)
@@ -112,15 +117,18 @@ func DecodeContext(input interface{}, err error) (*Context, error) {
 	user, err := metadata.DecodeUser(userInp, err)
 	user = addUserAgent(user, http)
 
-	return &Context{
-		Http:    http,
-		Url:     url,
-		Labels:  labels,
-		Page:    page,
-		Custom:  custom,
-		User:    user,
-		Service: service,
-	}, err
+	ctx := Context{
+		Http:         http,
+		Url:          url,
+		Labels:       labels,
+		Page:         page,
+		Custom:       custom,
+		User:         user,
+		Service:      service,
+		Experimental: experimental,
+	}
+
+	return &ctx, err
 
 }
 

@@ -35,6 +35,7 @@ import (
 func TestDecodeContext(t *testing.T) {
 	for name, test := range map[string]struct {
 		input  interface{}
+		cfg    Config
 		errIn  error
 		errOut string
 	}{
@@ -89,11 +90,17 @@ func TestDecodeContext(t *testing.T) {
 						"method": "Get",
 						"url":    map[string]interface{}{"raw": "127.0.0.1"}}}},
 		},
-		"full_event": {
+		"experimental is not true": {
+			input: map[string]interface{}{"context": map[string]interface{}{
+				"experimental": "experimental data",
+			}},
+		},
+		"full_event with experimental=true": {
 			input: map[string]interface{}{
 				"context": map[string]interface{}{
-					"undefined": "val",
-					"custom":    map[string]interface{}{"a": "b"},
+					"experimental": map[string]interface{}{"foo": "bar"},
+					"undefined":    "val",
+					"custom":       map[string]interface{}{"a": "b"},
 					"response": map[string]interface{}{
 						"finished":     false,
 						"headers":      map[string]interface{}{"Content-Type": []string{"text/html"}},
@@ -146,10 +153,11 @@ func TestDecodeContext(t *testing.T) {
 						}},
 					"page": map[string]interface{}{"url": "https://example.com", "referer": "http://refer.example.com"},
 				}},
+			cfg: Config{Experimental: true},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			out, err := DecodeContext(test.input, test.errIn)
+			out, err := DecodeContext(test.input, test.cfg, test.errIn)
 			if test.errOut != "" {
 				if assert.Error(t, err) {
 					assert.Contains(t, err.Error(), test.errOut)

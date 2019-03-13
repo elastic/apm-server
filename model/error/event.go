@@ -70,7 +70,6 @@ type Event struct {
 
 	Culprit *string
 	User    *metadata.User
-	Context *m.Context
 	Labels  *m.Labels
 	Page    *m.Page
 	Http    *m.Http
@@ -84,7 +83,8 @@ type Event struct {
 	TransactionSampled *bool
 	TransactionType    *string
 
-	data common.MapStr
+	Experimental interface{}
+	data         common.MapStr
 }
 
 type Exception struct {
@@ -105,7 +105,7 @@ type Log struct {
 	Stacktrace   m.Stacktrace
 }
 
-func DecodeEvent(input interface{}, err error) (transform.Transformable, error) {
+func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		return nil, errors.New("Invalid type for error event")
 	}
 
-	ctx, err := m.DecodeContext(raw, nil)
+	ctx, err := m.DecodeContext(raw, cfg, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,6 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 	e := Event{
 		Id:                 decoder.StringPtr(raw, "id"),
 		Culprit:            decoder.StringPtr(raw, "culprit"),
-		Context:            ctx,
 		Labels:             ctx.Labels,
 		Page:               ctx.Page,
 		Http:               ctx.Http,
@@ -134,6 +133,7 @@ func DecodeEvent(input interface{}, err error) (transform.Transformable, error) 
 		Custom:             ctx.Custom,
 		User:               ctx.User,
 		Service:            ctx.Service,
+		Experimental:       ctx.Experimental,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
@@ -211,6 +211,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Set(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
+	utility.Set(fields, "experimental", e.Experimental)
 
 	// sampled and type is nil if an error happens outside a transaction or an (old) agent is not sending sampled info
 	// agents must send semantically correct data

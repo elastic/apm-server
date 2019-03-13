@@ -59,6 +59,7 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("client"),
 		tests.Group("http"),
 		tests.Group("url"),
+		"experimental",
 	)
 }
 
@@ -141,7 +142,7 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
 		errorPayloadAttrsNotInJsonSchema(),
-		tests.NewSet("error.context.user.email"))
+		tests.NewSet("error.context.user.email", "error.context.experimental"))
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {

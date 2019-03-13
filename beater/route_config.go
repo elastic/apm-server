@@ -23,6 +23,7 @@ import (
 	"regexp"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
@@ -179,6 +180,7 @@ func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) htt
 		requestDecoder: reqDecoder,
 		streamProcessor: &stream.Processor{
 			Tconfig:      r.transformConfig(c),
+			Mconfig:      model.Config{Experimental: c.Mode == ModeExperimental},
 			MaxEventSize: c.MaxEventSize,
 		},
 	}

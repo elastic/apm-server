@@ -546,3 +546,8 @@
             description: >
               Operating system kernel version as a raw string.
 
+    - name: experimental
+      type: object
+      dynamic: true
+      description: Additional experimental data sent by the agents.
+
