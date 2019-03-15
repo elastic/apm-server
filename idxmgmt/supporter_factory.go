@@ -26,6 +26,8 @@ import (
 	"github.com/elastic/beats/libbeat/idxmgmt"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/template"
+
+	"github.com/elastic/apm-server/idxmgmt/ilm"
 )
 
 // functionality largely copied from libbeat
@@ -36,14 +38,17 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	const logName = "index-management"
 
 	cfg := struct {
-		Template *common.Config         `config:"setup.template"`
-		Output   common.ConfigNamespace `config:"output"`
+		ILMEnabled bool                   `config:"apm-server.ilm.enabled"`
+		Template   *common.Config         `config:"setup.template"`
+		Output     common.ConfigNamespace `config:"output"`
 	}{}
 	if configRoot != nil {
 		if err := configRoot.Unpack(&cfg); err != nil {
 			return nil, err
 		}
 	}
+
+	ilmConfig := ilm.Config{Enabled: cfg.ILMEnabled}
 
 	tmplConfig, err := unpackTemplateConfig(cfg.Template)
 	if err != nil {
@@ -59,7 +64,7 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	} else {
 		log = log.Named(logName)
 	}
-	return newSupporter(log, info, tmplConfig, common.NewConfig(), false)
+	return newSupporter(log, info, tmplConfig, ilmConfig)
 }
 
 func checkTemplateESSettings(tmpl template.TemplateConfig, out common.ConfigNamespace) error {

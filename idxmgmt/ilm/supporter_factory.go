@@ -18,14 +18,71 @@
 package ilm
 
 import (
+	"time"
+
+	"github.com/pkg/errors"
+
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/idxmgmt/ilm"
+	"github.com/elastic/beats/libbeat/common/fmtstr"
+	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
 // MakeDefaultSupporter creates the ILM supporter for APM that is passed to libbeat.
-// Currently ILM is disabled by using a NoopSupport.
-func MakeDefaultSupporter(log *logp.Logger, info beat.Info, config *common.Config) (ilm.Supporter, error) {
-	return ilm.NoopSupport(log, info, config)
+func MakeDefaultSupporter(log *logp.Logger, info beat.Info, cfg *common.Config) (libilm.Supporter, error) {
+	if log == nil {
+		log = logp.NewLogger("ilm")
+	} else {
+		log = log.Named("ilm")
+	}
+
+	var ilmCfg Config
+	if err := cfg.Unpack(&ilmCfg); err != nil {
+		return nil, err
+	}
+	if ilmCfg.AliasName == nil || ilmCfg.PolicyName == nil {
+		return nil, errors.New("ilm alias and policy must be configured")
+	}
+	aliasName, err := applyStaticFmtstr(info, ilmCfg.AliasName)
+	if err != nil {
+		return nil, err
+	}
+
+	policyName, err := applyStaticFmtstr(info, ilmCfg.PolicyName)
+	if err != nil {
+		return nil, err
+	}
+
+	p, ok := eventPolicies[ilmCfg.Event]
+	if !ok {
+		return nil, errors.Errorf("policy for %s undefined", ilmCfg.Event)
+	}
+	policy := libilm.Policy{
+		Name: policyName,
+		Body: p,
+	}
+	alias := libilm.Alias{
+		Name:    aliasName,
+		Pattern: pattern,
+	}
+
+	return libilm.NewStdSupport(log, libilm.ModeEnabled, alias, policy, false, true), nil
+}
+
+func applyStaticFmtstr(info beat.Info, fmt *fmtstr.EventFormatString) (string, error) {
+	return fmt.Run(&beat.Event{
+		Fields: common.MapStr{
+			// beat object was left in for backward compatibility reason for older configs.
+			"beat": common.MapStr{
+				"name":    info.Beat,
+				"version": info.Version,
+			},
+			"observer": common.MapStr{
+				"name":    info.Beat,
+				"version": info.Version,
+			},
+		},
+		Timestamp: time.Now(),
+	})
 }

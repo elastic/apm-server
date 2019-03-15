@@ -18,11 +18,12 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/pflag"
 
 	"github.com/elastic/apm-server/beater"
 	"github.com/elastic/apm-server/idxmgmt"
-	"github.com/elastic/apm-server/idxmgmt/ilm"
 	_ "github.com/elastic/apm-server/include"
 	"github.com/elastic/beats/libbeat/cmd"
 	"github.com/elastic/beats/libbeat/cmd/instance"
@@ -33,6 +34,8 @@ import (
 
 // Name of the beat (apm-server).
 const Name = "apm-server"
+
+// IdxPattern for apm
 const IdxPattern = "apm"
 
 // RootCmd for running apm-server.
@@ -68,7 +71,7 @@ func init() {
 	})
 
 	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
-	RootCmd = cmd.GenRootCmdWithSettings(beater.New, instance.Settings{
+	settings := instance.Settings{
 		ConfigOverrides: overrides,
 		Name:            Name,
 		IndexPrefix:     IdxPattern,
@@ -77,27 +80,39 @@ func init() {
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",
 		},
-		ILM:             ilm.MakeDefaultSupporter,
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 		Processing:      processing.MakeDefaultObserverSupport(false),
-	})
-	// remove dashboard from export commands
+	}
+	RootCmd = cmd.GenRootCmdWithSettings(beater.New, settings)
+
 	for _, cmd := range RootCmd.ExportCmd.Commands() {
+
+		// remove `dashboard` from `export` commands
 		if cmd.Name() == "dashboard" {
 			RootCmd.ExportCmd.RemoveCommand(cmd)
+			continue
+		}
+
+		// only add defined flags to `export template` command
+		if cmd.Name() == "template" {
+			cmd.ResetFlags()
+			cmd.Flags().String("es.version", settings.Version, "Elasticsearch version")
+			cmd.Flags().String("dir", "", "Specify directory for printing template files. By default templates are printed to stdout.")
 		}
 	}
 	// only add defined flags to setup command
 	setup := RootCmd.SetupCmd
-	setup.Short = "Setup Elasticsearch index template and pipelines"
+	setup.Short = "Setup Elasticsearch index management components and pipelines"
 	setup.Long = `This command does initial setup of the environment:
 
- * Index mapping template in Elasticsearch to ensure fields are mapped.
+ * Index management including loading Elasticsearch templates, ILM policies and write aliases.
  * Ingest pipelines
 `
 	setup.ResetFlags()
 	//lint:ignore SA1019 Setting up template must still be supported until next major version upgrade.
 	setup.Flags().Bool(cmd.TemplateKey, false, "Setup index template")
+	setup.Flags().MarkDeprecated(cmd.TemplateKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
 	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
 	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
+
 }

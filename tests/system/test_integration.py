@@ -557,47 +557,6 @@ class MetricsIntegrationTest(ElasticTest):
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
 
-class PipelineRegisterTest(ElasticTest):
-    config_overrides = {
-        "register_pipeline_enabled": "true",
-        "register_pipeline_overwrite": "true"
-    }
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_default_pipelines_registered(self):
-        pipelines = [
-            ("apm_user_agent", "Add user agent information for APM events"),
-            ("apm_user_geo", "Add user geo information for APM events"),
-            ("apm", "Default enrichment for APM events"),
-        ]
-        loaded_msg = "Pipeline successfully registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg), max_timeout=5)
-        for pipeline_id, pipeline_desc in pipelines:
-            pipeline = self.es.ingest.get_pipeline(id=pipeline_id)
-            assert pipeline[pipeline_id]['description'] == pipeline_desc
-
-
-class PipelineDisableOverwriteTest(ElasticTest):
-    config_overrides = {
-        "register_pipeline_enabled": "true",
-        "register_pipeline_overwrite": "false"
-    }
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_pipeline_not_overwritten(self):
-        loaded_msg = "Pipeline already registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg),
-                        max_timeout=5)
-
-
-class PipelineDisableTest(ElasticTest):
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_pipeline_not_registered(self):
-        loaded_msg = "No pipeline callback registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg),
-                        max_timeout=5)
-
-
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
         loaded_msg = "No pipeline callback registered"

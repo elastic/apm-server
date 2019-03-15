@@ -20,6 +20,9 @@ package idxmgmt
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+
+	"github.com/elastic/apm-server/idxmgmt/ilm"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
@@ -28,8 +31,6 @@ import (
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/outputs/outil"
 	"github.com/elastic/beats/libbeat/template"
-
-	"github.com/elastic/apm-server/idxmgmt/ilm"
 )
 
 // The index management supporter holds information around ES template, ILM strategy and index setup for Elasticsearch.
@@ -45,55 +46,56 @@ import (
 //
 
 type supporter struct {
-	log          *logp.Logger
-	ilmSupporter libilm.Supporter
-	info         beat.Info
-	migration    bool
-	templateCfg  template.TemplateConfig
+	log            *logp.Logger
+	info           beat.Info
+	templateConfig template.TemplateConfig
+	ilmConfig      ilm.Config
+	migration      bool
 }
 
 type manager struct {
 	supporter     *supporter
-	ilm           libilm.Manager
 	clientHandler libidxmgmt.ClientHandler
 	assets        libidxmgmt.Asseter
 }
 
 type selector outil.Selector
 
+type component struct {
+	enabled, overwrite, load bool
+}
+
+func newComponent(enabled, overwrite bool, mode libidxmgmt.LoadMode) component {
+	if mode == libidxmgmt.LoadModeUnset {
+		mode = libidxmgmt.LoadModeDisabled
+	}
+	if mode >= libidxmgmt.LoadModeOverwrite {
+		overwrite = true
+	}
+	if mode == libidxmgmt.LoadModeForce {
+		enabled = true
+	}
+	load := mode.Enabled() && enabled
+	return component{enabled: enabled, overwrite: overwrite, load: load}
+}
+
 func newSupporter(
 	log *logp.Logger,
 	info beat.Info,
-	tmplConfig template.TemplateConfig,
-	ilmConfig *common.Config,
-	migration bool,
+	templateConfig template.TemplateConfig,
+	ilmConfig ilm.Config,
 ) (*supporter, error) {
-
-	// creates a Noop ILM handler for now.
-	ilmSupporter, err := ilm.MakeDefaultSupporter(log, info, ilmConfig)
-	if err != nil {
-		return nil, err
-	}
-
 	return &supporter{
-		log:          log,
-		ilmSupporter: ilmSupporter,
-		info:         info,
-		templateCfg:  tmplConfig,
-		migration:    migration,
+		log:            log,
+		info:           info,
+		templateConfig: templateConfig,
+		ilmConfig:      ilmConfig,
+		migration:      false,
 	}, nil
 }
 
 func (s *supporter) Enabled() bool {
-	return s.templateCfg.Enabled
-}
-
-func (s *supporter) ILM() libilm.Supporter {
-	return s.ilmSupporter
-}
-
-func (s *supporter) TemplateConfig(_ bool) (template.TemplateConfig, error) {
-	return s.templateCfg, nil
+	return s.templateConfig.Enabled || s.ilmConfig.Enabled
 }
 
 func (s *supporter) Manager(
@@ -102,58 +104,17 @@ func (s *supporter) Manager(
 ) libidxmgmt.Manager {
 	return &manager{
 		supporter:     s,
-		ilm:           s.ilmSupporter.Manager(clientHandler),
 		clientHandler: clientHandler,
 		assets:        assets,
 	}
 }
 
 func (s *supporter) BuildSelector(cfg *common.Config) (outputs.IndexSelector, error) {
-	var err error
-	var selCfg = common.NewConfig()
-
-	// set defaults
-	if !cfg.HasField("index") {
-		// set fallback default index
-		selCfg.SetString("index", -1, defaultIndex)
-
-		// set default indices if not set
-		if !cfg.HasField("indices") {
-			if indicesCfg, err := common.NewConfigFrom(defaultIndices); err == nil {
-				selCfg.SetChild("indices", -1, indicesCfg)
-			}
-		}
+	if s.ilmConfig.Enabled {
+		idcs, err := ilmIndices(cfg)
+		return s.buildSelector(idcs, err)
 	}
-
-	// use custom config settings where available
-	if cfg.HasField("index") {
-		indexName, err := cfg.String("index", -1)
-		if err != nil {
-			return nil, err
-		}
-		selCfg.SetString("index", -1, indexName)
-	}
-	if cfg.HasField("indices") {
-		sub, err := cfg.Child("indices", -1)
-		if err != nil {
-			return nil, err
-		}
-		selCfg.SetChild("indices", -1, sub)
-	}
-
-	buildSettings := outil.Settings{
-		Key:              "index",
-		MultiKey:         "indices",
-		EnableSingleOnly: true,
-		FailEmpty:        true,
-	}
-
-	indexSel, err := outil.BuildSelectorFromConfig(selCfg, buildSettings)
-	if err != nil {
-		return nil, err
-	}
-
-	return selector(indexSel), nil
+	return s.buildSelector(indices(cfg))
 }
 
 func (s selector) Select(evt *beat.Event) (string, error) {
@@ -163,38 +124,158 @@ func (s selector) Select(evt *beat.Event) (string, error) {
 	return outil.Selector(s).Select(evt)
 }
 
-func (m *manager) VerifySetup(loadTemplate, loadILM libidxmgmt.LoadMode) (bool, string) {
-	if !loadTemplate.Enabled() || !m.supporter.templateCfg.Enabled && loadTemplate < libidxmgmt.LoadModeForce {
-		return false, "Template loading not enabled."
+func (s *supporter) buildSelector(cfg *common.Config, err error) (outputs.IndexSelector, error) {
+	if err != nil {
+		return nil, err
 	}
-	return true, ""
+
+	buildSettings := outil.Settings{
+		Key:              "index",
+		MultiKey:         "indices",
+		EnableSingleOnly: true,
+		FailEmpty:        true,
+	}
+	indexSel, err := outil.BuildSelectorFromConfig(cfg, buildSettings)
+	if err != nil {
+		return nil, err
+	}
+
+	return selector(indexSel), nil
+}
+
+func (m *manager) VerifySetup(loadTemplate, loadILM libidxmgmt.LoadMode) (bool, string) {
+	ilmComponent := newComponent(m.supporter.ilmConfig.Enabled, false, loadILM)
+	templateComponent := newComponent(m.supporter.templateConfig.Enabled,
+		m.supporter.templateConfig.Overwrite, loadTemplate)
+
+	if ilmComponent.load && !templateComponent.load {
+		return false, "Loading ILM policy and write alias without loading template " +
+			"is not recommended. Check your configuration."
+	}
+	if templateComponent.load && !ilmComponent.load && ilmComponent.enabled {
+		return false, "Loading template with ILM settings whithout loading ILM policy and alias can lead " +
+			"to issues and is not recommended. Check your configuration"
+	}
+	var warn string
+	if !ilmComponent.load {
+		warn += "ILM policy and write alias loading not enabled. "
+	}
+	if !templateComponent.load {
+		warn += "Template loading not enabled."
+	}
+	return warn == "", warn
 }
 
 func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 	log := m.supporter.log
 
-	// create and install template
-	if m.supporter.templateCfg.Enabled {
-		tmplCfg := m.supporter.templateCfg
+	ilmComponent := newComponent(m.supporter.ilmConfig.Enabled, false, loadILM)
+	templateComponent := newComponent(m.supporter.templateConfig.Enabled,
+		m.supporter.templateConfig.Overwrite, loadTemplate)
+	m.supporter.templateConfig.Enabled = templateComponent.enabled
+	m.supporter.templateConfig.Overwrite = templateComponent.overwrite
 
-		if loadTemplate >= libidxmgmt.LoadModeOverwrite {
-			tmplCfg.Overwrite = true
+	//setup index management:
+	//(1) load general apm template
+	//(2) load policy per event type
+	//(3) create template per event respecting lifecycle settings
+	//(4) load write alias per event type AFTER the template has been created,
+	//    as this step also automatically creates an index, it is important the matching templates are already there
+
+	var (
+		ilmSupporter      libilm.Supporter
+		err               error
+		ilmCfg            *common.Config
+		policyCreated     bool
+		overwriteTemplate = templateComponent.overwrite
+		templateCfg       template.TemplateConfig
+	)
+
+	//(1) load general apm template
+	//only set to user configured name and pattern if ilm is disabled
+	//default template name and pattern, must be the same whether or not ilm is enabled or not,
+	//allowing former templates to be overwritten
+	if templateComponent.load {
+		if ilmComponent.enabled || m.supporter.templateConfig.Name == "" && m.supporter.templateConfig.Pattern == "" {
+			m.supporter.templateConfig.Name = fmt.Sprintf("%s-%s", apmPrefix, apmVersion)
+			m.supporter.log.Infof("Set setup.template.name to '%s'.", m.supporter.templateConfig.Name)
+			m.supporter.templateConfig.Pattern = m.supporter.templateConfig.Name + "*"
+			m.supporter.log.Infof("Set setup.template.pattern to '%s'.", m.supporter.templateConfig.Pattern)
 		}
-
-		fields := m.assets.Fields(m.supporter.info.Beat)
-		if err := m.clientHandler.Load(tmplCfg, m.supporter.info, fields, m.supporter.migration); err != nil {
+		if err := m.clientHandler.Load(m.supporter.templateConfig, m.supporter.info,
+			m.assets.Fields(m.supporter.info.Beat), m.supporter.migration); err != nil {
 			return fmt.Errorf("error loading Elasticsearch template: %+v", err)
 		}
-
 		log.Info("Loaded index template.")
 	}
 
+	for event, index := range eventIdxNames(false) {
+		if ilmCfg, err = common.NewConfigFrom(common.MapStr{
+			"enabled":     ilmComponent.enabled,
+			"event":       event,
+			"policy_name": idxStr(event, ""),
+			"alias_name":  index},
+		); err != nil {
+			return errors.Wrapf(err, "error creating index-management config")
+		}
+		if ilmSupporter, err = ilm.MakeDefaultSupporter(log, m.supporter.info, ilmCfg); err != nil {
+			return err
+		}
+		ilmManager := ilmSupporter.Manager(m.clientHandler)
+		policy := ilmSupporter.Policy().Name
+		alias := ilmSupporter.Alias().Name
+
+		if ilmComponent.load {
+			//(2) load event type policies, respecting ILM settings
+			if policyCreated, err = ilmManager.EnsurePolicy(ilmComponent.overwrite); err != nil {
+				return err
+			}
+			if policyCreated {
+				log.Infof("ILM policy %s successfully loaded.", policy)
+				overwriteTemplate = true
+			} else {
+				log.Infof("ILM policy %s exists already.", policy)
+			}
+		}
+
+		// (3) load event type specific template respecting index lifecycle information
+		if templateComponent.load {
+			templateCfg = ilm.Template(ilmComponent.enabled, templateComponent.enabled, overwriteTemplate, alias, policy)
+			if err = m.clientHandler.Load(templateCfg, m.supporter.info, nil, m.supporter.migration); err != nil {
+				return errors.Wrapf(err, "error loading template %+v", templateCfg.Name)
+			}
+			log.Infof("Additional template loaded for %s", templateCfg.Name)
+		}
+
+		if ilmComponent.load {
+			//(4) load ilm write aliases
+			//    ensure write aliases are created AFTER template creation
+			if err = ilmManager.EnsureAlias(); err != nil {
+				if libilm.ErrReason(err) != libilm.ErrAliasAlreadyExists {
+					return err
+				}
+				log.Infof("Write alias %s exists already", alias)
+			} else {
+				log.Infof("Write alias %s successfully generated", alias)
+			}
+		}
+	}
+
+	log.Info("Finished index management setup.")
 	return nil
 }
 
+// this logic is copied and aligned with handling in beats.
 func getEventCustomIndex(evt *beat.Event) string {
 	if len(evt.Meta) == 0 {
 		return ""
+	}
+
+	// returns index from alias
+	if tmp := evt.Meta["alias"]; tmp != nil {
+		if alias, ok := tmp.(string); ok {
+			return alias
+		}
 	}
 
 	// returns index from meta + day

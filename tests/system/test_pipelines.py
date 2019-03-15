@@ -1,9 +1,7 @@
 import unittest
-
 from apmserver import ElasticTest, SubCommandTest, get_elasticsearch_url
 from beat.beat import INTEGRATION_TESTS
 from elasticsearch import Elasticsearch, NotFoundError
-from elasticsearch.client import IngestClient
 
 
 class SetupPipelinesDefaultTest(SubCommandTest):
@@ -61,37 +59,42 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         assert self.log_contains("No pipeline callback registered")
 
 
-class SetupTemplateDefaultTest(SubCommandTest):
-    """
-    Test setup template subcommand with default option.
-    """
-
-    def config(self):
-        cfg = super(SubCommandTest, self).config()
-        cfg.update({
-            "elasticsearch_host": get_elasticsearch_url(),
-            "file_enabled": "false",
-        })
-        return cfg
-
-    def start_args(self):
-        return {
-            "logging_args": ["-v", "-d", "*"],
-            "extra_args":   ["-e",
-                             "setup",
-                             "-template"]
-        }
+class PipelineRegisterTest(ElasticTest):
+    config_overrides = {
+        "register_pipeline_enabled": "true",
+        "register_pipeline_overwrite": "true"
+    }
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_setup_default_template(self):
-        """
-        Test setup default template
-        """
+    def test_default_pipelines_registered(self):
+        pipelines = [
+            ("apm_user_agent", "Add user agent information for APM events"),
+            ("apm_user_geo", "Add user geo information for APM events"),
+            ("apm", "Default enrichment for APM events"),
+        ]
+        loaded_msg = "Pipeline successfully registered"
+        self.wait_until(lambda: self.log_contains(loaded_msg), max_timeout=5)
+        for pipeline_id, pipeline_desc in pipelines:
+            pipeline = self.es.ingest.get_pipeline(id=pipeline_id)
+            assert pipeline[pipeline_id]['description'] == pipeline_desc
 
-        es = Elasticsearch([get_elasticsearch_url()])
-        assert es.indices.exists_template(name='apm-*')
-        assert self.log_contains("Loaded index template")
-        assert self.log_contains("Index setup finished")
-        # by default overwrite is set to true when `setup` cmd is run
-        assert self.log_contains("Existing template will be overwritten, as overwrite is enabled.")
-        self.assertNotRegexpMatches(self.get_log(), "ILM")
+
+class PipelineDisableOverwriteTest(ElasticTest):
+    config_overrides = {
+        "register_pipeline_enabled": "true",
+        "register_pipeline_overwrite": "false"
+    }
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_pipeline_not_overwritten(self):
+        loaded_msg = "Pipeline already registered"
+        self.wait_until(lambda: self.log_contains(loaded_msg),
+                        max_timeout=5)
+
+
+class PipelineDisableTest(ElasticTest):
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_pipeline_not_registered(self):
+        loaded_msg = "No pipeline callback registered"
+        self.wait_until(lambda: self.log_contains(loaded_msg),
+                        max_timeout=5)

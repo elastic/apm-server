@@ -12,7 +12,8 @@
 - Upgrade Go to 1.12.4 {pull}2132[2132].
 - Add geoip processing to the default ingest pipeline {pull}2177[2177].
 - Add ephemeral_id attribute in the metadata {pull}2179[2179].
-- Add `setup --index-management` cmd {pull}[2180].
+- Add basic ILM support for APM Server, using fixed policies {pull}2099[2099].
+- Add `setup --index-management` cmd, deprecate `setup --template` cmd {pull}2180[2180],{pull}2099[2099].
 
 [float]
 ==== Removed
