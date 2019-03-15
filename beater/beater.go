@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"errors"
 	"net"
 	"net/http"
 	"net/url"
@@ -33,6 +34,7 @@ import (
 	"github.com/elastic/apm-server/pipelistener"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
@@ -46,9 +48,38 @@ type beater struct {
 	logger  *logp.Logger
 }
 
+var (
+	setupDashboardRemoved = errors.New("setting 'setup.dashboards' has been removed")
+)
+
+// checkConfig verifies the global configuration doesn't use unsupported settings
+func checkConfig(logger *logp.Logger) error {
+	cfg, err := cfgfile.Load("", nil)
+	if err != nil {
+		return err
+	}
+
+	var s struct {
+		Dashboards *common.Config `config:"setup.dashboards"`
+	}
+	if err := cfg.Unpack(&s); err != nil {
+		return err
+	}
+	if s.Dashboards != nil {
+		if s.Dashboards.Enabled() {
+			return setupDashboardRemoved
+		}
+		logger.Warn(setupDashboardRemoved)
+	}
+	return nil
+}
+
 // Creates beater
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	logger := logp.NewLogger("beater")
+	if err := checkConfig(logger); err != nil {
+		return nil, err
+	}
 	beaterConfig, err := newConfig(b.Info.Version, ucfg)
 	if err != nil {
 		return nil, err
