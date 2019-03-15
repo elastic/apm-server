@@ -56,7 +56,9 @@ var (
 func checkConfig(logger *logp.Logger) error {
 	cfg, err := cfgfile.Load("", nil)
 	if err != nil {
-		return err
+		// responsibility for failing to load configuration lies elsewhere
+		// this is not reachable after going through normal beat creation
+		return nil
 	}
 
 	var s struct {
