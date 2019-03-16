@@ -201,7 +201,7 @@ simply install the elastic-apm module from npm in your application:
 
 [source,bash]
 ----------------------------------
-npm install elastic-apm --save
+npm install elastic-apm-node --save
 ----------------------------------
 
 Then configure the elastic-apm module inside your application by adding the following lines to the very top of your application code:
