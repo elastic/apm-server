@@ -38,7 +38,7 @@ const IdxPattern = "apm"
 var RootCmd *cmd.BeatsRootCmd
 
 func init() {
-	overrides, _ := common.NewConfigFrom(map[string]interface{}{
+	overrides := common.MustNewConfigFrom(map[string]interface{}{
 		"logging": map[string]interface{}{
 			"metrics": map[string]interface{}{
 				"enabled": false,
