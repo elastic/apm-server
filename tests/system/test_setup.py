@@ -60,6 +60,7 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         self.assert_pipeline_presence(False)
         assert self.log_contains("No pipeline callback registered")
 
+
 class SetupTemplateDefaultTest(SubCommandTest):
     """
     Test setup template subcommand with default option.
