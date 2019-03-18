@@ -425,9 +425,6 @@ def get_elasticsearch_url():
 
 
 class SubCommandTest(ServerSetUpBaseTest):
-    def tearDown(self):
-        super(ServerSetUpBaseTest, self).tearDown()
-
     def wait_until_started(self):
         self.apmserver_proc.check_wait()
 
