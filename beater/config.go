@@ -227,7 +227,6 @@ func defaultRum(beatVersion string) *rumConfig {
 }
 
 func defaultConfig(beatVersion string) *Config {
-	pipelineEnabled, pipelineOverwrite := false, true
 	return &Config{
 		Host:            net.JoinHostPort("localhost", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
@@ -261,8 +260,6 @@ func defaultConfig(beatVersion string) *Config {
 		Register: &registerConfig{
 			Ingest: &ingestConfig{
 				Pipeline: &pipelineConfig{
-					Enabled:   &pipelineEnabled,
-					Overwrite: &pipelineOverwrite,
 					Path: paths.Resolve(paths.Home,
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
