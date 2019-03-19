@@ -60,7 +60,7 @@ Example configuration:
 
 output.elasticsearch:
   hosts: ["https://localhost:9200"]
-  index: "{beat_default_index_prefix}-%{[{beat_version_key}]}-%{+yyyy.MM.dd}"
+  index: "{beat_default_index_prefix}-%{[{beat.version}]}-%{+yyyy.MM.dd}"
   ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
   ssl.certificate: "/etc/pki/client/cert.pem"
   ssl.key: "/etc/pki/client/cert.key"
