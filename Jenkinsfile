@@ -29,6 +29,7 @@ pipeline {
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
+    booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
   }
   stages {
     /**
@@ -328,6 +329,10 @@ pipeline {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
+      }
+      when {
+        beforeAgent true
+        expression { return params.kibana_update_ci }
       }
       steps {
         deleteDir()

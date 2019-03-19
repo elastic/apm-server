@@ -5,26 +5,34 @@ This page is designed to make it easy to install and run the components of Elast
 Simply follow the step-by-step links below, and you'll be up and running in no time.
 Let's get started.
 
+[TIP]
+==============
+You can skip having to install {es}, {kib}, and APM Server by using our
+https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
+Elastic Cloud. The {es} Service is available on both AWS and GCP,
+and automatically configures APM Server to work with {es} and {kib}.
+Additional {cloud}/ec-manage-apm-settings.html[APM user settings] are also available.
+
+https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es}
+Service for free].
+==============
+
 * <<before-installation>>
 * <<install-elasticsearch>>
 * <<install-kibana>>
 * <<apm-server>>
-* <<kibana-dashboards>>
 * <<agents>>
 
 [float]
 [[before-installation]]
 === Before you begin
 
-* See the https://www.elastic.co/support/matrix[Elastic Support
-Matrix] for information about supported operating systems and product
-compatibility.
+* See the https://www.elastic.co/support/matrix[Elastic Support Matrix]
+for information about supported operating systems and product compatibility.
+We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
 * Verify that your system meets the
 https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {es}.
-
-IMPORTANT: You must ensure you’re using the same version of Elasticsearch, Kibana, and APM Server.
-
-NOTE: The following links assume you're using the current version of the Elasticstack.
+* The following links assume you're using the current version of the Elastic Stack.
 If you're not, it's easy to adjust the version of the documentation after you land on each page.
 
 [float]
@@ -74,12 +82,6 @@ you can configure it to listen on a Unix domain socket.
 TIP: For detailed instructions on how to install and secure APM Server in your server environment,
 including details on how to run APM Server in a highly available environment,
 please see the full {apm-server-ref-v}/index.html[APM Server documentation].
-
-[[kibana-dashboards]]
-[float]
-=== Install the Kibana dashboards
-
-Load APM dashboards directly in Kibana via the {kibana-ref}/apm-getting-started.html[APM - Getting started] page.
 
 [[agents]]
 [float]
