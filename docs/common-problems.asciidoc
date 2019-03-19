@@ -43,6 +43,9 @@ the response code to narrow down the possible causes (see sections below).
 Another reason for data not showing up is that the agent is not auto-instrumenting something you were expecting, check
 the {apm-agents-ref}/index.html[agent documentation] for details on what is automatically instrumented.
 
+APM Server currently relies on Elasticsearch to create indices that do not exist.
+As a result, Elasticsearch must be configured to allow {ref}/docs-index_.html#index-creation[automatic index creation] for APM indices.
+
 [[bad-request]]
 [float]
 === HTTP 400: Data decoding error / Data validation error
