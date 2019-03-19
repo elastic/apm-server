@@ -60,11 +60,7 @@ Example configuration:
 
 output.elasticsearch:
   hosts: ["https://localhost:9200"]
-<<<<<<< HEAD
-  index: "{beatname_lc}-%{[beat.version]}-%{+yyyy.MM.dd}"
-=======
   index: "{beat_default_index_prefix}-%{[{beat_version_key}]}-%{+yyyy.MM.dd}"
->>>>>>> 1a4f76ba... [docs] Update index prefix in output config (#2024)
   ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
   ssl.certificate: "/etc/pki/client/cert.pem"
   ssl.key: "/etc/pki/client/cert.key"
