@@ -29,7 +29,7 @@ apm-server:
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>.
   # It is recommended to use an authorization token in combination with SSL enabled,
-  # and save the token in the beats keystore.
+  # and save the token in the apm-server keystore.
   #secret_token:
 
   # Enable secure communication between APM agents and the server. By default ssl is disabled.
@@ -188,7 +188,7 @@ apm-server:
 #setup.template.name: "apm-%{[observer.version]}"
 
 # Template pattern. By default the template pattern is "apm-%{[observer.version]}-*" to apply to the default index settings.
-# The first part is the version of the beat and then -* is used to match all daily indices.
+# The first part is the version of apm-server and then -* is used to match all daily indices.
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
 #setup.template.pattern: "apm-%{[observer.version]}-*"
 
@@ -230,7 +230,7 @@ apm-server:
 
 #================================ Outputs =====================================
 
-# Configure what output to use when sending the data collected by the beat.
+# Configure what output to use when sending the data collected by apm-server.
 
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
@@ -551,8 +551,7 @@ output.elasticsearch:
 
   # The number of times to retry publishing an event after a publishing failure.
   # After the specified number of retries, the events are typically dropped.
-  # Some Beats, such as Filebeat, ignore the max_retries setting and retry until
-  # all events are published.  Set max_retries to a value less than 0 to retry
+  # Set max_retries to a value less than 0 to retry
   # until all events are published. The default is 3.
   #max_retries: 3
 
@@ -656,9 +655,8 @@ output.elasticsearch:
 # subdirectory inside the home path.
 #path.data: ${path.home}/data
 
-# The logs path for a apm-server installation. This is the default location for
-# the Beat's log files. If not set by a CLI flag or in the configuration file,
-# the default for the logs path is a logs subdirectory inside the home path.
+# The logs path for an apm-server installation. If not set by a CLI flag or in the
+# configuration file, the default is a logs subdirectory inside the home path.
 #path.logs: ${path.home}/logs
 
 
@@ -724,7 +722,7 @@ output.elasticsearch:
 
 #================================ HTTP Endpoint ======================================
 #
-# Each beat can expose internal metrics through a HTTP endpoint. For security
+# apm-server can expose internal metrics through a HTTP endpoint. For security
 # reasons the endpoint is disabled by default. This feature is currently experimental.
 # Stats can be access through http://localhost:5066/stats . For pretty JSON output
 # append ?pretty to the URL.
@@ -788,7 +786,7 @@ output.elasticsearch:
   #bulk_max_size: 50
 
   # The number of seconds to wait before trying to reconnect to Elasticsearch
-  # after a network error. After waiting backoff.init seconds, the Beat
+  # after a network error. After waiting backoff.init seconds, apm-server
   # tries to reconnect. If the attempt fails, the backoff timer is increased
   # exponentially up to backoff.max. After a successful connection, the backoff
   # timer is reset. The default is 1s.
