@@ -206,7 +206,7 @@ func TestBeatConfig(t *testing.T) {
 					Ingest: &ingestConfig{
 						Pipeline: &pipelineConfig{
 							Enabled:   &falsy,
-							Overwrite: &truthy,
+							Overwrite: nil,
 							Path:      filepath.Join("ingest", "pipeline", "definition.json"),
 						},
 					},
