@@ -76,7 +76,7 @@ func TestIndexSupport_TemplateConfig(t *testing.T) {
 }
 
 func TestIndexSupport_BuildSelector(t *testing.T) {
-	today := time.Now()
+	today := time.Now().UTC()
 	day := today.Format("2006.01.02")
 	testdata := map[string]struct {
 		meta     common.MapStr
