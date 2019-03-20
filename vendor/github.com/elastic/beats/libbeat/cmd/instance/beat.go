@@ -110,6 +110,9 @@ type beatConfig struct {
 	// elastic stack 'setup' configurations
 	Dashboards *common.Config `config:"setup.dashboards"`
 	Kibana     *common.Config `config:"setup.kibana"`
+
+	// Migration config to migration from 6 to 7
+	Migration *common.Config `config:"migration.6_to_7"`
 }
 
 var debugf = logp.MakeDebug("beat")
@@ -523,6 +526,10 @@ func (b *Beat) configure(settings Settings) error {
 		return fmt.Errorf("error loading config file: %v", err)
 	}
 
+	if err := initPaths(cfg); err != nil {
+		return err
+	}
+
 	// We have to initialize the keystore before any unpack or merging the cloud
 	// options.
 	store, err := LoadKeystore(cfg, b.Info.Beat)
@@ -553,11 +560,6 @@ func (b *Beat) configure(settings Settings) error {
 
 	if name := b.Config.Name; name != "" {
 		b.Info.Name = name
-	}
-
-	err = paths.InitPaths(&b.Config.Path)
-	if err != nil {
-		return fmt.Errorf("error setting default paths: %v", err)
 	}
 
 	if err := configure.Logging(b.Info.Beat, b.Config.Logging); err != nil {
@@ -695,14 +697,6 @@ func (b *Beat) loadDashboards(ctx context.Context, force bool) error {
 	}
 
 	if b.Config.Dashboards.Enabled() {
-		var withMigration bool
-		if b.RawConfig.HasField("migration") {
-			sub, err := b.RawConfig.Child("migration", -1)
-			if err != nil {
-				return fmt.Errorf("Failed to read migration setting: %+v", err)
-			}
-			withMigration = sub.Enabled()
-		}
 
 		// Initialize kibana config. If username and password is set in elasticsearch output config but not in kibana,
 		// initKibanaConfig will attach the ussername and password into kibana config as a part of the initialization.
@@ -719,7 +713,7 @@ func (b *Beat) loadDashboards(ctx context.Context, force bool) error {
 		// but it's assumed that KB and ES have the same minor version.
 		v := client.GetVersion()
 
-		indexPattern, err := kibana.NewGenerator(b.Info.IndexPrefix, b.Info.Beat, b.Fields, b.Info.Version, v, withMigration)
+		indexPattern, err := kibana.NewGenerator(b.Info.IndexPrefix, b.Info.Beat, b.Fields, b.Info.Version, v, b.Config.Migration.Enabled())
 		if err != nil {
 			return fmt.Errorf("error creating index pattern generator: %v", err)
 		}
@@ -921,4 +915,23 @@ func initKibanaConfig(beatConfig beatConfig) (*common.Config, error) {
 		}
 	}
 	return kibanaConfig, nil
+}
+
+func initPaths(cfg *common.Config) error {
+	// To Fix the chicken-egg problem with the Keystore and the loading of the configuration
+	// files we are doing a partial unpack of the configuration file and only take into consideration
+	// the paths field. After we will unpack the complete configuration and keystore reference
+	// will be correctly replaced.
+	partialConfig := struct {
+		Path paths.Path `config:"path"`
+	}{}
+
+	if err := cfg.Unpack(&partialConfig); err != nil {
+		return fmt.Errorf("error extracting default paths: %+v", err)
+	}
+
+	if err := paths.InitPaths(&partialConfig.Path); err != nil {
+		return fmt.Errorf("error setting default paths: %+v", err)
+	}
+	return nil
 }

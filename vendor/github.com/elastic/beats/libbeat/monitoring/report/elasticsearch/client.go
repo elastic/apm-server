@@ -116,9 +116,7 @@ func (c *publishClient) Publish(batch publisher.Batch) error {
 		meta := common.MapStr{
 			"_index":   "",
 			"_routing": nil,
-		}
-		if c.es.GetVersion().Major < 7 {
-			meta["_type"] = t
+			"_type":    t,
 		}
 		bulk := [2]interface{}{
 			common.MapStr{"index": meta},
@@ -130,7 +128,8 @@ func (c *publishClient) Publish(batch publisher.Batch) error {
 
 		// Currently one request per event is sent. Reason is that each event can contain different
 		// interval params and X-Pack requires to send the interval param.
-		_, err = c.es.BulkWith("_xpack", "monitoring", params, nil, bulk[:])
+		_, err = c.es.SendMonitoringBulk(params, bulk[:])
+
 		if err != nil {
 			failed = append(failed, event)
 			reason = err
