@@ -1,0 +1,189 @@
+== Manual index lifecycle management
+
+APM Server allows users to manually set up an index lifecylce managment (ILM) policy.
+This setup is made possible because of Elasticsearch's
+{ref}/using-policies-rollover.html#using-policies-rollover[index rollover] action.
+
+Follow the guide below to set up a custom ILM policy for span indices.
+You can repeat the actions for any other indices.
+
+. Set up the default index template
++
+If you haven't already, you'll need to set up the default index template.
+This is accomplished by running the <<setup-command,`setup --template`>> command.
++
+--
+[source,js]
+-----------------------
+./apm-server setup --template
+-----------------------
+// CONSOLE
+--
+
+. Create a policy for spans.
++
+Rollover actions are triggered when one or more criteria are met.
+In this example, we're creating a policy named `apm_span_policy`.
++
+This policy rolls data over to a new index after _1 day_, or _50gb_, whichever comes first.
+It also tells the old indexes to delete after _10 days_.
+All of these values can be customized to your specific needs.
++
+--
+[source,js]
+-----------------------
+PUT _ilm/policy/apm_span_policy
+{
+  "policy": {
+    "phases": {
+      "hot": {
+        "actions": {
+          "rollover": {
+            "max_age": "1d", <1>
+            "max_size": "50gb" <2>
+          }
+        }
+      },
+      "delete": {
+        "min_age": "10d", <3>
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}
+-----------------------
+// CONSOLE
+<1> Rollover after _1 day_
+<2> Rollover after _50gb_
+<3> Delete old indexes after _10 days_
+--
+
+. Set up the ILM index template.
++
+To use the index lifecycle management policy created in the previous step,
+you need to specify it in the index template used to create the indices.
+The following template associates `apm_span_policy` with indices created from the +apm-{stack-version}-span-ilm+ template.
++
+--
+["source","js",subs="attributes"]
+-----------------------
+PUT _template/apm-{stack-version}-span-ilm
+{
+  "order": 2,
+  "index_patterns": ["apm-{stack-version}-span-*"], <1>
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1,
+    "index.lifecycle.name": "apm_span_policy", <2>
+    "index.lifecycle.rollover_alias": "apm-{stack-version}-span"
+  }
+}
+-----------------------
+// CONSOLE
+<1> This template applies to all indices with the prefix +apm-{stack-version}-span-+
+<2> Associates `apm_span_policy` with all indices created with this template
+--
+
+. Create the index and alias.
++
+Now we can create the first index: +apm-{stack-version}-span-000001+.
++
+--
+["source","js",subs="attributes"]
+-----------------------
+PUT apm-{stack-version}-span-000001 <1>
+{
+  "aliases": {
+    "apm-{stack-version}-span":{
+      "is_write_index": true <2>
+    }
+  }
+}
+-----------------------
+// CONSOLE
+<1> The rollover action increments the suffix number for each subsequent index.
+<2> Designates this index as the write index for this alias.
+--
+
+. Verify the ILM index template was applied.
++
+--
+[source,js]
+-----------------------
+GET apm-*-span/_settings
+-----------------------
+// CONSOLE
+--
++
+The response should be similar to this:
++
+--
+["source","js",subs="attributes"]
+-----------------------
+{
+  "apm-{stack-version}-span-000001" : {
+    "settings" : {
+      "index" : {
+        "lifecycle" : {
+          "name" : "apm_span_policy",
+          "rollover_alias" : "apm-{stack-version}-span"
+        },
+        "number_of_shards" : "1",
+        "provided_name" : "apm-{stack-version}-span-000001",
+        "creation_date" : "1553024227938",
+        "number_of_replicas" : "1",
+        "uuid" : "6b5l-H7QTRK95FAodAN-wg",
+        "version" : {
+          "created" : "7000099"
+        }
+      }
+    }
+  }
+}
+-----------------------
+--
+
+. Modify APM Server's configuration.
++
+You'll need to modify the default index configuration in <<apm-server-configuration,`apm-server.yml`>>.
+Trim off the date template from each index you are setting up ILM for,
+so that APM Server is always writing events to the same place.
+The name of your modified index configuration must match the `is_write_index` alias created previously
++
+--
+["source","yml",subs="attributes"]
+-----------------------
+output.elasticsearch:
+  indices:
+    - index: "apm-{stack-version}-span"
+      when.contains:
+        processor.event: "span"
+-----------------------
+// CONSOLE
+--
+
+. Start apm-server.
++
+Your ILM policy should now be up and running!
+
+.. Monitor ILM status as events flow:
++
+--
+[source,js]
+-----------------------
+GET apm-*/_ilm/explain?human
+-----------------------
+// CONSOLE
+--
+
+.. Monitor index status:
++
+--
+[source,js]
+-----------------------
+GET _cat/indices/apm*?v
+-----------------------
+// CONSOLE
+--
