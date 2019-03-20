@@ -49,8 +49,22 @@ pipeline {
           dir("${BASE_DIR}"){
             env.GO_VERSION = readFile(".go-version")
             if(env.CHANGE_TARGET){
-              env.BEATS_UPDATED = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA}|grep '^_beats'|wc -l",
-                returnStdout: true)?.trim()
+              def regexps =[
+                "^_beats",
+                "^apm-server.yml",
+                "^apm-server.docker.yml",
+                "^magefile.go",
+                "^package-README.md.tmpl",
+                "^ingest",
+                "^packaging",
+                "^tests/packaging",
+                "^vendor/github.com/elastic/beats"
+              ]
+              def changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA} > git-diff.txt",returnStdout: true)
+              def match = regexps.find{ regexp ->
+                  sh(script: "grep '${regexp}' git-diff.txt",returnStatus: true) == 0
+              }
+              env.BEATS_UPDATED = (match != null)
             }
           }
         }
