@@ -12,7 +12,7 @@ You can repeat the actions for any other indices.
 NOTE: If you're migrating from an existing setup,
 any indices present before ILM was configured will need to be managed manually.
 
-. Set up the default index template
+. *Set up the default index template.*
 +
 If you haven't already, you'll need to set up the default index template.
 This is accomplished by running the <<setup-command,`setup --template`>> command.
@@ -25,7 +25,7 @@ This is accomplished by running the <<setup-command,`setup --template`>> command
 // CONSOLE
 --
 
-. Create a policy for spans.
+. *Create a policy for spans.*
 +
 Index lifecycle management will manage an index based on its defined policy.
 Policies only need to be created once, and will persist through version upgrades.
@@ -67,7 +67,7 @@ PUT _ilm/policy/apm_span_policy
 <3> Delete old indexes after _10 days_
 --
 
-. Set up the ILM index template.
+. *Set up the ILM index template.*
 +
 To use the index lifecycle management policy created in the previous step,
 you need to specify it in the index template used to create the indices.
@@ -94,7 +94,7 @@ PUT _template/apm-{stack-version}-span-ilm
 <2> Associates `apm_span_policy` with all indices created with this template
 --
 
-. Create the index and alias.
+. *Create the index and alias.*
 +
 Now we can create the first index: +apm-{stack-version}-span-000001+.
 +
@@ -117,7 +117,7 @@ PUT apm-{stack-version}-span-000001 <1>
 <2> Designates this index as the write index for this alias.
 --
 
-. Verify the ILM index template was applied.
+. *Verify the ILM index template was applied.*
 +
 --
 [source,js]
@@ -157,29 +157,58 @@ The response should be similar to this:
 +
 You can also verify and adjust your configuration via Kibana's {kibana-ref}/index-lifecycle-policies.html[management]. 
 
-. Modify APM Server's configuration.
+. *Repeat for other indices.*
 +
-Next, modify the default index configuration in <<apm-server-configuration,`apm-server.yml`>>.
+Repeat the previous steps for each index that will be using ILM.
++
+* Create a policy
+* Set up the ILM index template
+* Create the index and alias
+* Verify the ILM index template was applied
+
+. *Modify APM Server's configuration.*
++
+Finally, modify the default index configuration in <<apm-server-configuration,`apm-server.yml`>>.
 Trim off the date template from each index you are setting up ILM for,
 so that APM Server is always writing events to the same place.
 The name of your modified index configuration must match the `is_write_index` alias created previously
 +
 It's important to note that `apm-server.yml` overwrites defaults rather than being merged.
-This means you'll need to configure each index in the file, even if it's not using ILM.
+This means you'll need to configure all of your indices in the file, even if some are not using ILM.
 +
 --
 ["source","yml",subs="attributes"]
 -----------------------
 output.elasticsearch:
   indices:
+    - index: "apm-{stack-version}-sourcemap"
+      when.contains:
+        processor.event: "sourcemap"
+    
+    - index: "apm-{stack-version}-error"
+      when.contains:
+        processor.event: "error"
+    
+    - index: "apm-{stack-version}-transaction"
+      when.contains:
+        processor.event: "transaction"
+
     - index: "apm-{stack-version}-span"
       when.contains:
         processor.event: "span"
+    
+    - index: "apm-{stack-version}-metric"
+      when.contains:
+        processor.event: "metric"
+    
+    - index: "apm-{stack-version}-onboarding"
+      when.contains:
+        processor.event: "onboarding"
 -----------------------
 // CONSOLE
 --
 
-. Start apm-server.
+. *Start apm-server.*
 +
 Your ILM configuration should now be up and running!
 
