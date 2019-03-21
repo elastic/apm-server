@@ -1,11 +1,16 @@
+[role="xpack"]
+[[manual-ilm-setup]]
 == Manual index lifecycle management
 
-APM Server allows users to manually set up an index lifecylce managment (ILM) policy.
-This setup is made possible because of Elasticsearch's
-{ref}/using-policies-rollover.html#using-policies-rollover[index rollover] action.
+APM Server can take advantage of the index lifecycle management (ILM) capabilities of Elasticsearch.
+ILM enables you to automate how you want to manage your indices over time.
+You can base actions on factors such as shard size and performance requirements. 
 
-Follow the guide below to set up a custom ILM policy for span indices.
+The guide below will help you set up a custom ILM policy for span indices.
 You can repeat the actions for any other indices.
+
+NOTE: If you're migrating from an existing setup,
+any indices present before ILM was configured will need to be managed manually.
 
 . Set up the default index template
 +
@@ -22,11 +27,13 @@ This is accomplished by running the <<setup-command,`setup --template`>> command
 
 . Create a policy for spans.
 +
-Rollover actions are triggered when one or more criteria are met.
-In this example, we're creating a policy named `apm_span_policy`.
+Index lifecycle management will manage an index based on its defined policy.
+Policies only need to be created once, and will persist through version upgrades.
+Let's create a policy named `apm_span_policy`.
 +
-This policy rolls data over to a new index after _1 day_, or _50gb_, whichever comes first.
-It also tells the old indexes to delete after _10 days_.
+This policy defines two rollover criteria: `"max_age": "1d"`, and `"max_size": "50gb"`.
+When one or more of these criteria are met, the policy rolls data over into a new index.
+`apm_span_policy` also tells the old indexes to delete after _10 days_.
 All of these values can be customized to your specific needs.
 +
 --
@@ -66,6 +73,9 @@ To use the index lifecycle management policy created in the previous step,
 you need to specify it in the index template used to create the indices.
 The following template associates `apm_span_policy` with indices created from the +apm-{stack-version}-span-ilm+ template.
 +
+NOTE: Because we're utilizing the current stack-version ({stack-version}) in this step,
+this action will need to be performed as a part of each version upgrade.
++
 --
 ["source","js",subs="attributes"]
 -----------------------
@@ -74,8 +84,6 @@ PUT _template/apm-{stack-version}-span-ilm
   "order": 2,
   "index_patterns": ["apm-{stack-version}-span-*"], <1>
   "settings": {
-    "number_of_shards": 1,
-    "number_of_replicas": 1,
     "index.lifecycle.name": "apm_span_policy", <2>
     "index.lifecycle.rollover_alias": "apm-{stack-version}-span"
   }
@@ -89,6 +97,8 @@ PUT _template/apm-{stack-version}-span-ilm
 . Create the index and alias.
 +
 Now we can create the first index: +apm-{stack-version}-span-000001+.
++
+NOTE: This action will need to be performed as a part of each version upgrade.
 +
 --
 ["source","js",subs="attributes"]
@@ -144,13 +154,18 @@ The response should be similar to this:
 }
 -----------------------
 --
++
+You can also verify and adjust your configuration via Kibana's {kibana-ref}/index-lifecycle-policies.html[management]. 
 
 . Modify APM Server's configuration.
 +
-You'll need to modify the default index configuration in <<apm-server-configuration,`apm-server.yml`>>.
+Next, modify the default index configuration in <<apm-server-configuration,`apm-server.yml`>>.
 Trim off the date template from each index you are setting up ILM for,
 so that APM Server is always writing events to the same place.
 The name of your modified index configuration must match the `is_write_index` alias created previously
++
+It's important to note that `apm-server.yml` overwrites defaults rather than being merged.
+This means you'll need to configure each index in the file, even if it's not using ILM.
 +
 --
 ["source","yml",subs="attributes"]
@@ -166,7 +181,7 @@ output.elasticsearch:
 
 . Start apm-server.
 +
-Your ILM policy should now be up and running!
+Your ILM configuration should now be up and running!
 
 .. Monitor ILM status as events flow:
 +
