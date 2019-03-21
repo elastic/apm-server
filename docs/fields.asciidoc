@@ -199,6 +199,8 @@ Any arbitrary contextual information regarding the event, captured by the agent,
 --
 type: object
 
+Object is not enabled.
+
 --
 
 
@@ -334,12 +336,16 @@ Software agent acting in behalf of a user, eg. a web browser / OS combination.
 --
 type: object
 
+Object is not enabled.
+
 --
 
 *`context.request.cookies`*::
 +
 --
 type: object
+
+Object is not enabled.
 
 --
 
@@ -348,6 +354,8 @@ type: object
 --
 type: object
 
+Object is not enabled.
+
 --
 
 *`context.request.env`*::
@@ -355,12 +363,16 @@ type: object
 --
 type: object
 
+Object is not enabled.
+
 --
 
 *`context.request.socket`*::
 +
 --
 type: object
+
+Object is not enabled.
 
 --
 
@@ -477,6 +489,8 @@ The http method of the request leading to this event.
 --
 type: object
 
+Object is not enabled.
+
 --
 
 *`context.response.headers_sent`*::
@@ -566,6 +580,8 @@ Information pertaining to the running process where the data was collected
 +
 --
 type: object
+
+Object is not enabled.
 
 --
 
