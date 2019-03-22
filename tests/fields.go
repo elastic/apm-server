@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/mapping"
 )
 
 // This test checks
@@ -191,7 +192,7 @@ func fetchFlattenedFieldNames(paths []string, filters ...filter) (*Set, error) {
 	return fields, nil
 }
 
-func flattenFieldNames(fields []common.Field, prefix string, flattened *Set, filters ...filter) {
+func flattenFieldNames(fields []mapping.Field, prefix string, flattened *Set, filters ...filter) {
 	for _, f := range fields {
 		key := strConcat(prefix, f.Name, ".")
 		add := true
@@ -205,8 +206,8 @@ func flattenFieldNames(fields []common.Field, prefix string, flattened *Set, fil
 	}
 }
 
-func loadFields(yamlPath string) ([]common.Field, error) {
-	fields := []common.Field{}
+func loadFields(yamlPath string) ([]mapping.Field, error) {
+	fields := []mapping.Field{}
 
 	yaml, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
@@ -224,16 +225,16 @@ func loadFields(yamlPath string) ([]common.Field, error) {
 }
 
 // false to exclude field
-type filter func(common.Field) bool
+type filter func(mapping.Field) bool
 
-func hasName(f common.Field) bool {
+func hasName(f mapping.Field) bool {
 	return f.Name != ""
 }
 
-func isEnabled(f common.Field) bool {
+func isEnabled(f mapping.Field) bool {
 	return f.Enabled == nil || *f.Enabled
 }
 
-func isDisabled(f common.Field) bool {
+func isDisabled(f mapping.Field) bool {
 	return f.Enabled != nil && !*f.Enabled
 }

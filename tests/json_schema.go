@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/mapping"
 )
 
 type TestProcessor interface {
@@ -187,7 +187,7 @@ func (ps *ProcessorSetup) KeywordLimitation(t *testing.T, keywordExceptionKeys *
 
 	// fetch keyword restricted field names from ES template
 	keywordFields, err := fetchFlattenedFieldNames(ps.TemplatePaths, hasName,
-		func(f common.Field) bool { return f.Type == "keyword" })
+		func(f mapping.Field) bool { return f.Type == "keyword" })
 	require.NoError(t, err)
 
 	// fetch length restricted field names from json schema
