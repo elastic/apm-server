@@ -62,7 +62,7 @@ func TestContainerDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, c: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), c: nil},
-		{input: "", err: errors.New("Invalid type for container"), c: nil},
+		{input: "", err: errors.New("invalid type for container"), c: nil},
 		{
 			input: map[string]interface{}{
 				"id": id,

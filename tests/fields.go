@@ -85,8 +85,16 @@ func (ps *ProcessorSetup) EventFieldsMappedToTemplateFields(t *testing.T, eventF
 	for _, val := range eventFields.Array() {
 		var f = val.(string)
 		for _, m := range mappings {
-			if strings.HasPrefix(f, m.Template) {
-				f = strings.Replace(f, m.Template, m.Mapping, -1)
+			template := m.Template
+			starMatch := strings.HasSuffix(m.Template, ".*")
+			if starMatch {
+				template = strings.TrimRight(m.Template, ".*")
+			}
+			if strings.HasPrefix(f, template) {
+				if starMatch {
+					f = strings.Split(f, ".")[0]
+				}
+				f = strings.Replace(f, template, m.Mapping, -1)
 			}
 		}
 		if f != "" {
@@ -94,7 +102,7 @@ func (ps *ProcessorSetup) EventFieldsMappedToTemplateFields(t *testing.T, eventF
 		}
 	}
 	missing := Difference(eventFieldsMapped, allFieldNames)
-	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not documented in fields.yml: %v", missing))
+	assertEmptySet(t, missing, fmt.Sprintf("Event attributes not in fields.yml: %v", missing))
 }
 
 func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields, allowedNotInEvent *Set) {
@@ -103,7 +111,7 @@ func (ps *ProcessorSetup) TemplateFieldsInEventFields(t *testing.T, eventFields,
 
 	missing := Difference(allFieldNames, eventFields)
 	missing = differenceWithGroup(missing, allowedNotInEvent)
-	assertEmptySet(t, missing, fmt.Sprintf("Documented Fields missing in event: %v", missing))
+	assertEmptySet(t, missing, fmt.Sprintf("Fields missing in event: %v", missing))
 }
 
 func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *Set {

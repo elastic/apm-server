@@ -45,27 +45,27 @@ func TestDecodeMetadata(t *testing.T) {
 		},
 		{
 			input: "it doesn't work on strings",
-			err:   errors.New("Invalid type for metadata"),
+			err:   errors.New("invalid type for metadata"),
 		},
 		{
 			input: map[string]interface{}{"service": 123},
-			err:   errors.New("Invalid type for service"),
+			err:   errors.New("invalid type for service"),
 		},
 		{
 			input: map[string]interface{}{"system": 123},
-			err:   errors.New("Invalid type for system"),
+			err:   errors.New("invalid type for system"),
 		},
 		{
 			input: map[string]interface{}{"process": 123},
-			err:   errors.New("Invalid type for process"),
+			err:   errors.New("invalid type for process"),
 		},
 		{
 			input: map[string]interface{}{"user": 123},
-			err:   errors.New("Invalid type for user"),
+			err:   errors.New("invalid type for user"),
 		},
 		{
 			input: map[string]interface{}{"user": 123},
-			err:   errors.New("Invalid type for user"),
+			err:   errors.New("invalid type for user"),
 		},
 		{
 			input: map[string]interface{}{
@@ -85,6 +85,9 @@ func TestDecodeMetadata(t *testing.T) {
 				"user": map[string]interface{}{
 					"id": uid, "email": mail,
 				},
+				"labels": map[string]interface{}{
+					"k": "v", "n": 1, "f": 1.5, "b": false,
+				},
 			},
 			output: NewMetadata(
 				&Service{Name: &serviceName,
@@ -96,6 +99,7 @@ func TestDecodeMetadata(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
+				common.MapStr{"k": "v", "n": 1, "f": 1.5, "b": false},
 			),
 		},
 	} {
@@ -131,6 +135,7 @@ func TestMetadata_Set(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
+				nil,
 			),
 			fields: common.MapStr{
 				"foo": "bar",
@@ -179,6 +184,7 @@ func TestMetadata_SetMinimal(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
+				nil,
 			),
 			fields: common.MapStr{},
 			output: common.MapStr{
@@ -200,6 +206,7 @@ func TestMetadata_SetMinimal(t *testing.T) {
 				&System{Hostname: &host},
 				&Process{Pid: pid},
 				&User{Id: &uid},
+				common.MapStr{},
 			),
 			fields: common.MapStr{
 				"foo": "bar",

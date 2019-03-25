@@ -92,7 +92,7 @@ func DecodeDb(input interface{}, err error) (*db, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for db")
+		return nil, errors.New("invalid type for db")
 	}
 	decoder := utility.ManualDecoder{}
 	dbInput := decoder.MapStr(raw, "db")
@@ -134,7 +134,7 @@ func DecodeHttp(input interface{}, err error) (*http, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for http")
+		return nil, errors.New("invalid type for http")
 	}
 	decoder := utility.ManualDecoder{}
 	httpInput := decoder.MapStr(raw, "http")
@@ -177,7 +177,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for span")
+		return nil, errors.New("invalid type for span")
 	}
 
 	decoder := utility.ManualDecoder{}

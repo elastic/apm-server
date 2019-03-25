@@ -143,7 +143,7 @@ func TestUserDecode(t *testing.T) {
 	}{
 		{input: nil, inputErr: nil, err: nil, u: nil},
 		{input: nil, inputErr: inpErr, err: inpErr, u: nil},
-		{input: "", err: errors.New("Invalid type for user"), u: nil},
+		{input: "", err: errors.New("invalid type for user"), u: nil},
 		{input: map[string]interface{}{"id": json.Number("12")}, inputErr: nil, err: nil, u: &User{Id: &id}},
 		{
 			input: map[string]interface{}{

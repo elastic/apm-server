@@ -67,7 +67,7 @@ func TestDecodeSpan(t *testing.T) {
 	}{
 		"no input":     {input: nil, err: "Input missing for decoding Event"},
 		"input error":  {input: nil, inpErr: errors.New("a"), err: "a"},
-		"invalid type": {input: "", err: "Invalid type for span"},
+		"invalid type": {input: "", err: "invalid type for span"},
 		"missing required field": {
 			input: map[string]interface{}{},
 			err:   "Error fetching field",

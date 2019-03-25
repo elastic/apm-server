@@ -18,7 +18,9 @@
             "labels": {
                 "code": 200,
                 "some": "abc",
-                "success": true
+                "success": true,
+                "tag1": "one",
+                "tag2": 2
             },
             "long_gauge": 3147483648,
             "negative": {
@@ -68,6 +70,10 @@
                         }
                     }
                 }
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
             },
             "process": {
                 "pid": 1234

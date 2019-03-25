@@ -33,7 +33,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	}
 	raw, ok := input.([]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for stacktrace")
+		return nil, errors.New("invalid type for stacktrace")
 	}
 	st := make(Stacktrace, len(raw))
 	for idx, fr := range raw {

@@ -92,7 +92,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for fetching Context fields")
+		return nil, errors.New("invalid type for fetching Context fields")
 	}
 
 	decoder := utility.ManualDecoder{}

@@ -57,7 +57,7 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for service")
+		return nil, errors.New("invalid type for service")
 	}
 	decoder := utility.ManualDecoder{}
 	service := Service{

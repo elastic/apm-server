@@ -71,7 +71,7 @@ func TestProcessDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, p: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), p: nil},
-		{input: "", err: errors.New("Invalid type for process"), p: nil},
+		{input: "", err: errors.New("invalid type for process"), p: nil},
 		{
 			input: map[string]interface{}{"pid": "123"},
 			err:   errors.New("Error fetching field"),

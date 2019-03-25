@@ -100,6 +100,7 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 	setup := metadataProcSetup()
 	eventFields := getMetadataEventAttrs(t, "")
+
 	var mappingFields = []tests.FieldTemplateMapping{
 		{Template: "system.container.", Mapping: "container."},             // move system.container.*
 		{Template: "system.container", Mapping: ""},                        // delete system.container
@@ -114,6 +115,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 		{Template: "service.agent", Mapping: "agent"},
 		{Template: "user.username", Mapping: "user.name"},
 		{Template: "process.argv", Mapping: "process.args"},
+		{Template: "labels.*", Mapping: "labels"},
 	}
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
@@ -121,7 +123,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 func TestMetadataPayloadMatchJsonSchema(t *testing.T) {
 	metadataProcSetup().AttrsMatchJsonSchema(t,
 		getMetadataEventAttrs(t, ""),
-		nil,
+		tests.NewSet(tests.Group("labels")),
 		nil,
 	)
 }
@@ -153,7 +155,6 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 }
 
 func TestInvalidPayloadsForMetadata(t *testing.T) {
-	type obj = map[string]interface{}
 	type val = []interface{}
 
 	payloadData := []tests.SchemaTestData{

@@ -39,7 +39,7 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for user")
+		return nil, errors.New("invalid type for user")
 	}
 	decoder := utility.ManualDecoder{}
 	user := User{

@@ -92,7 +92,7 @@ func TestSystemDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, s: nil},
 		{input: nil, inputErr: inpErr, err: inpErr, s: nil},
-		{input: "", err: errors.New("Invalid type for system"), s: nil},
+		{input: "", err: errors.New("invalid type for system"), s: nil},
 		{
 			input: map[string]interface{}{"hostname": 1},
 			err:   errors.New("Error fetching field"),
