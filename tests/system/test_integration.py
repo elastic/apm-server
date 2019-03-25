@@ -129,7 +129,7 @@ class Test(ElasticTest):
                             assert v["version"].startswith(str(v["version_major"]) + ".")
                             continue
 
-                        self.assert_docs(v, appr[k])
+                        self.assert_docs(v, appr.get(k))
             assert checked, "New entry with id {}".format(rec_id)
 
     def assert_docs(self, received, approved):

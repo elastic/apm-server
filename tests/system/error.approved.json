@@ -81,6 +81,10 @@
                 "name": "bar",
                 "id": 123,
                 "email": "bar@example.com"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -210,7 +214,9 @@
                 "original": "Mozilla Chrome Edge"
             },
             "labels": {
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
+                "tag1": "one",
+                "tag2": 2
             },
             "error": {
                 "page": {
@@ -464,6 +470,10 @@
                 "name": "bar",
                 "id": 123,
                 "email": "bar@example.com"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
             }
         },
         "_index": "test-apm-12-12-2017"
@@ -551,6 +561,10 @@
                 "name": "bar",
                 "id": 123,
                 "email": "bar@example.com"
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
             }
         },
         "_index": "test-apm-12-12-2017"
