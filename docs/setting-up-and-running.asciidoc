@@ -27,9 +27,9 @@ You can change the defaults by supplying a different address on the command line
 
 [float]
 [[running-deb-rpm]]
-=== Debian / RPM Package
+=== Debian Package / RPM
 
-When using a packaged version of apm-server, the installation creates an `apm-server` user.
+The Debian package and RPM installations of APM Server create an `apm-server` user.
 To start the APM Server in this case, run:
 
 [source,bash]
@@ -37,7 +37,7 @@ To start the APM Server in this case, run:
 sudo -u apm-server apm-server -e [FLAGS]
 ----------------------------------
 
-For Debian and RPM, you’ll find the APM Server configuration file at `/etc/apm-server/apm-server.yml`.
+By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
 See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
 
 [[apm-server-configuration]]
