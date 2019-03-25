@@ -28,9 +28,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/elastic/beats/libbeat/logp"
+
+	"github.com/elastic/beats/libbeat/publisher/processing"
+
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -39,7 +41,6 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
-	"github.com/elastic/beats/libbeat/version"
 )
 
 func TestBeatConfig(t *testing.T) {
@@ -293,12 +294,19 @@ func (d *DummyOutputClient) Publish(batch pubs.Batch) error {
 func (d *DummyOutputClient) Close() error   { return nil }
 func (d *DummyOutputClient) String() string { return "" }
 
-func DummyPipeline(clients ...outputs.Client) *pipeline.Pipeline {
+func DummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client) *pipeline.Pipeline {
 	if len(clients) == 0 {
 		clients = []outputs.Client{&DummyOutputClient{}}
 	}
+	if cfg == nil {
+		cfg = common.NewConfig()
+	}
+	processors, err := processing.MakeDefaultObserverSupport(false)(info, logp.NewLogger("testbeat"), cfg)
+	if err != nil {
+		panic(err)
+	}
 	p, err := pipeline.New(
-		beat.Info{Name: "test-apm-server"},
+		info,
 		pipeline.Monitors{},
 		func(e queue.Eventer) (queue.Queue, error) {
 			return memqueue.NewBroker(nil, memqueue.Settings{
@@ -314,6 +322,7 @@ func DummyPipeline(clients ...outputs.Client) *pipeline.Pipeline {
 		pipeline.Settings{
 			WaitClose:     0,
 			WaitCloseMode: pipeline.NoWaitOnClose,
+			Processors:    processors,
 		},
 	)
 	if err != nil {
@@ -383,21 +392,7 @@ func (bt *beater) smapElasticsearchHosts() []string {
 	return hosts
 }
 
-func setupBeater(t *testing.T, publisher beat.Pipeline, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
-	beatId, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
-	require.NoError(t, err)
-	// create a beat
-	apmBeat := &beat.Beat{
-		Publisher: publisher,
-		Info: beat.Info{
-			Beat:        "test-apm-server",
-			IndexPrefix: "test-apm-server",
-			Version:     version.GetDefaultVersion(),
-			ID:          beatId,
-		},
-		Config: beatConfig,
-	}
-
+func setupBeater(t *testing.T, apmBeat *beat.Beat, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
 	// create our beater
 	beatBeater, err := New(apmBeat, ucfg)
 	assert.NoError(t, err)
