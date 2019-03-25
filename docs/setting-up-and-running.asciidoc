@@ -8,6 +8,7 @@ similar to how you run Elasticsearch.
 You _can_ run it on the same machines as Elasticsearch,
 but this is not recommended,
 as the processes will be competing for resources.
+
 To start APM Server, run:
 
 [source,bash]
@@ -23,6 +24,21 @@ You can change the defaults by supplying a different address on the command line
 ----------------------------------
 ./apm-server -e -E output.elasticsearch.hosts=ElasticsearchAddress:9200 -E apm-server.host=localhost:8200
 ----------------------------------
+
+[float]
+[[running-deb-rpm]]
+=== Debian / RPM Package
+
+When using a packaged version of apm-server, the installation creates an `apm-server` user.
+To start the APM Server in this case, run:
+
+[source,bash]
+----------------------------------
+sudo -u apm-server apm-server -e [FLAGS]
+----------------------------------
+
+For Debian and RPM, you’ll find the APM Server configuration file at `/etc/apm-server/apm-server.yml`.
+See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
 
 [[apm-server-configuration]]
 === Configuration file
