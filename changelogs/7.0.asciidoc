@@ -3,7 +3,7 @@
 
 // * <<release-notes-7.0.0>>
 // * <<release-notes-7.0.0-rc2>>
-// * <<release-notes-7.0.0-rc1>>
+* <<release-notes-7.0.0-rc1>>
 * <<release-notes-7.0.0-beta1>>
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
@@ -14,11 +14,15 @@
 
 [[release-notes-7.0.0-rc2]]
 === APM Server version 7.0.0-rc2
+////
 
 [[release-notes-7.0.0-rc1]]
 === APM Server version 7.0.0-rc1
 
-==== Bugfix
+https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
+
+[float]
+==== Bug fixes
 
 - Ensure setup cmd uses expected configuration {pull}1934[1934]. 
 - Ensure host.name is not added {pull}1934[1934] {pull}1982[1982].
@@ -26,12 +30,9 @@
 - Ensure enabling user-agent pipeline indexes data at the same key by default {pull}1966[1966].
 - Request and Response headers are stored in a canonicalized way {pull}1966[1966].
 - Use changed processor handling from libbeat {pull}1982[1982]. 
-////
 
 [[release-notes-7.0.0-beta1]]
 === APM Server version 7.0.0-beta1
-
-https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 
 [float]
 ==== Breaking Changes
