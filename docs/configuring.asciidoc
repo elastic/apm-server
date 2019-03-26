@@ -29,6 +29,8 @@ include::./copied-from-beats/shared-ssl-config.asciidoc[]
 
 include::./template-config.asciidoc[]
 
+include::./ilm-setup.asciidoc[]
+
 include::./copied-from-beats/loggingconfig.asciidoc[]
 
 include::./copied-from-beats/shared-kibana-config.asciidoc[]
