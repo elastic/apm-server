@@ -23,6 +23,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/{doc-branch}
 :securitydoc: https://www.elastic.co/guide/en/elastic-stack-overview/{doc-branch}
 :dockerconfig: https://raw.githubusercontent.com/elastic/apm-server/{doc-branch}/apm-server.docker.yml
+:repo: apm-server
 :no_dashboards:
 :no_ilm:
 :no-processors:

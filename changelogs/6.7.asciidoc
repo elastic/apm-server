@@ -19,4 +19,4 @@ https://github.com/elastic/apm-server/compare/v6.6.0\...v6.7.0[View commits]
 [float]
 ==== Removed
 - Remove support for using dots in tags for experimental metricset endpoint {pull}1712[1712].
-- Remove formatting of `duration.us` to milliseconds in index pattern pull{1717}[1717].
+- Remove formatting of `duration.us` to milliseconds in index pattern {pull}1717[1717].
