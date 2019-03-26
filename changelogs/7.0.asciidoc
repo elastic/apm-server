@@ -1,18 +1,18 @@
 [[release-notes-7.0]]
 == APM Server version 7.0
 
-// * <<release-notes-7.7.0>>
-// * <<release-notes-7.7.0-rc2>>
-// * <<release-notes-7.7.0-rc1>>
+// * <<release-notes-7.0.0>>
+// * <<release-notes-7.0.0-rc2>>
+// * <<release-notes-7.0.0-rc1>>
 * <<release-notes-7.0.0-beta1>>
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
 ////
-[[release-notes-7.7.0]]
+[[release-notes-7.0.0]]
 === APM Server version 7.0.0
 
-[[release-notes-7.7.0-rc2]]
+[[release-notes-7.0.0-rc2]]
 === APM Server version 7.0.0-rc2
 
 [[release-notes-7.0.0-rc1]]
@@ -25,7 +25,6 @@
 - Update Go version to 1.11.5 {pull}1840[1840] {pull}1950[1950].
 - Ensure enabling user-agent pipeline indexes data at the same key by default {pull}1966[1966].
 - Request and Response headers are stored in a canonicalized way {pull}1966[1966].
-
 ////
 
 [[release-notes-7.0.0-beta1]]
@@ -35,7 +34,7 @@ https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.7.0-beta1.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0-beta1.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
 
 [float]
 ==== Added
@@ -56,7 +55,7 @@ https://github.com/elastic/apm-server/compare/v6.7.0\...v7.0.0[View commits]
 [float]
 ==== Removed
 
-- Remove support for deprecated Intake v1 endpoints. {apm-overview-ref-v}/breaking-7.7.0-beta1.html#breaking-remove-v1[More information], {pull}1731[1731].
+- Remove support for deprecated Intake v1 endpoints. {apm-overview-ref-v}/breaking-7.0.0-beta1.html#breaking-remove-v1[More information], {pull}1731[1731].
 - Remove `concurrent_requests` setting and use number of CPUs instead {pull}1749[1749].
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
