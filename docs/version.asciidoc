@@ -1,4 +1,5 @@
 :stack-version: 8.0.0
+:major-version: 8.x
 :doc-branch: master
 :branch: {doc-branch}
 :go-version: 1.11.5
