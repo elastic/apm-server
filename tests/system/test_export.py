@@ -100,6 +100,7 @@ class ExportTemplateDefaultTest(SubCommandTest):
         """
         template = yaml.load(self.command_output)
         settings = template["settings"]
+        settings["index"].pop("query")
         self.assertDictEqual(
             {
                 "index": {
@@ -133,6 +134,7 @@ class ExportTemplateTest(SubCommandTest):
         """
         template = yaml.load(self.command_output)
         settings = template["settings"]
+        settings["index"].pop("query")
         self.assertDictEqual(
             {
                 "index": {
