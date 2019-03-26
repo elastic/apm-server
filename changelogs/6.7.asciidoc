@@ -11,7 +11,7 @@ https://github.com/elastic/apm-server/compare/6.6\...6.7[View commits]
 https://github.com/elastic/apm-server/compare/v6.6.0\...v6.7.0[View commits]
 
 [float]
-=== Added
+==== Added
 
 - Allow numbers and boolean values for `transaction.tags`, `span.tags`, `metricset.tags` {pull}1712[1712].
 - Retrieve `span.subtype` and `span.action` from `span.type` if not given {pull}1843[1843].
