@@ -34,7 +34,7 @@ To start the APM Server in this case, run:
 
 [source,bash]
 ----------------------------------
-sudo -u apm-server apm-server -e [FLAGS]
+sudo -u apm-server apm-server [<argument...>]
 ----------------------------------
 
 By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
