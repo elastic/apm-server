@@ -1,0 +1,31 @@
+[[upgrading-to-70]]
+=== Upgrading to APM Server v7.0
+
+Before upgrading to APM Server v7.0,
+there are some {apm-overview-ref-v}/breaking-7.0.0-beta1.html[breaking changes]
+in the APM Server and the APM UI that you should be aware of.
+
+[[upgrade-steps-70]]
+==== Upgrade Steps
+
+Check the https://www.elastic.co/support/matrix#matrix_compatibility[Product Compatibility matrix]
+to determine if you need to upgrade Elasticsearch and Kibana. 
+
+. Upgrade {ref}/setup-upgrade.html[Elasticsearch]
+. Upgrade {kibana-ref}/upgrade.html[Kibana]
+. Ensure all of your APM agents are upgraded to a version that supports APM Server >= 6.5.
+The {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
+will help determine compatibility.
+. Upgrade APM Server. (See below if upgrading from an RPM or Debian install)
+. Use the Kibana migration assistant, found in the Kibana Management tab,
+to migrate 6.x data to the 7.x format. 
+
+===== Upgrading from 6.x RPM or Debian install
+
+When upgrading from an RPM or Debian install,
+you'll be prompted with a warning saying the install is going to overwrite `/etc/apm-server/apm-server.yml`.
+Here's what you should do:
+
+. Back up your current `apm-server.yml` configuration file.
+. Accept the "overwrite" option from the `7.0` install.
+. Copy/Paste any configuration options you want to keep from the old config file to the new config file.
