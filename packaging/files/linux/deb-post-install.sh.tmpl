@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 
-#   On Debian,
-#       $1=configure : is set to 'configure' and if $2 is set, it is an upgrade
-
-if [ -z "$2" ]; then
-  chown -R apm-server:apm-server /var/lib/apm-server /var/log/apm-server /etc/apm-server/apm-server.yml
-fi
+chown -R apm-server:apm-server /var/lib/apm-server /var/log/apm-server /etc/apm-server/apm-server.yml
 
 systemctl daemon-reload 2> /dev/null
 exit 0
