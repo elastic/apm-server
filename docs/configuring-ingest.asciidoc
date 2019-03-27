@@ -5,7 +5,7 @@
 == Parse data using ingest node pipelines
 
 With the Elasticsearch output you can configure the APM Server to use
-{elasticsearch}/ingest.html[ingest node] to pre-process documents before indexing them.
+{ref}/ingest.html[ingest node] to pre-process documents before indexing them.
 A pipeline defines processors that operate on your data.
 For example, a pipeline can define one processor to remove a field and another to rename a field.
 
@@ -79,4 +79,4 @@ output.elasticsearch:
 ------------------------------------------------------------------------------
 
 For more information about defining a pre-processing pipeline, see the
-{elasticsearch}/ingest.html[Ingest Node] documentation.
+{ref}/ingest.html[Ingest Node] documentation.
