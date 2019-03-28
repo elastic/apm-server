@@ -38,6 +38,7 @@ rsync -crpv --delete \
     --include="libbeat/_meta/" \
     --include="libbeat/_meta/fields.common.yml" \
     --include="libbeat/_meta/fields.ecs.yml" \
+    --include="libbeat/autodiscover/providers/" \
     --include="libbeat/docs/" \
     --include=libbeat/docs/version.asciidoc \
     --include="libbeat/processors/" \
@@ -57,6 +58,10 @@ rsync -crpv --delete \
     --exclude="vendor/*" \
     --exclude="*" \
     ${GIT_CLONE}/ .
+
+# don't sync from libbeat as apm-server does not support autodiscover
+mkdir -p libbeat/autodiscover/providers
+echo Autodiscover disabled > libbeat/autodiscover/providers/README
 
 # copy license files
 LICENSEDIR=${DIRNAME}/../licenses
