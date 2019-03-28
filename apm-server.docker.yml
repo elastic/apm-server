@@ -188,7 +188,7 @@ apm-server:
 #setup.template.name: "apm-%{[observer.version]}"
 
 # Template pattern. By default the template pattern is "apm-%{[observer.version]}-*" to apply to the default index settings.
-# The first part is the version of the apm-server and then -* is used to match all daily indices.
+# The first part is the version of apm-server and then -* is used to match all daily indices.
 # The template name and pattern has to be set in case the elasticsearch index pattern is modified.
 #setup.template.pattern: "apm-%{[observer.version]}-*"
 
@@ -230,7 +230,7 @@ apm-server:
 
 #================================ Outputs =====================================
 
-# Configure what output to use when sending the data collected by the apm-server.
+# Configure what output to use when sending the data collected by apm-server.
 
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
