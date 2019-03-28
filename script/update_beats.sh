@@ -38,7 +38,6 @@ rsync -crpv --delete \
     --include="libbeat/_meta/" \
     --include="libbeat/_meta/fields.common.yml" \
     --include="libbeat/_meta/fields.ecs.yml" \
-    --include="libbeat/autodiscover/providers/" \
     --include="libbeat/docs/" \
     --include=libbeat/docs/version.asciidoc \
     --include="libbeat/processors/" \
