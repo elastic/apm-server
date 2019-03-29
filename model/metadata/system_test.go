@@ -33,6 +33,8 @@ func TestSystemTransform(t *testing.T) {
 	platform := "darwin"
 	ip := "127.0.0.1"
 	empty := ""
+	nodename := "a.node"
+	podname := "a.pod"
 
 	tests := []struct {
 		System System
@@ -72,6 +74,59 @@ func TestSystemTransform(t *testing.T) {
 			Output: common.MapStr{
 				"architecture": architecture,
 				"hostname":     hostname,
+			},
+		},
+		// nodename and podname
+		{
+			System: System{
+				Hostname: &hostname,
+				Kubernetes: &Kubernetes{
+					NodeName: &nodename,
+					PodName:  &podname,
+				},
+			},
+			Output: common.MapStr{
+				"hostname": nodename,
+			},
+		},
+		// podname
+		{
+			System: System{
+				Hostname: &hostname,
+				Kubernetes: &Kubernetes{
+					PodName: &podname,
+				},
+			},
+			Output: common.MapStr{},
+		},
+		// poduid
+		{
+			System: System{
+				Hostname: &hostname,
+				Kubernetes: &Kubernetes{
+					PodUID: &podname, // any string
+				},
+			},
+			Output: common.MapStr{},
+		},
+		// namespace
+		{
+			System: System{
+				Hostname: &hostname,
+				Kubernetes: &Kubernetes{
+					Namespace: &podname, // any string
+				},
+			},
+			Output: common.MapStr{},
+		},
+		// non-nil kubernetes, currently not possible via intake
+		{
+			System: System{
+				Hostname:   &hostname,
+				Kubernetes: &Kubernetes{},
+			},
+			Output: common.MapStr{
+				"hostname": hostname,
 			},
 		},
 	}

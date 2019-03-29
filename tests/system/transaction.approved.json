@@ -32,7 +32,6 @@
                 "os": {
                     "platform": "darwin"
                 },
-                "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
             },
@@ -212,7 +211,6 @@
                 "os": {
                     "platform": "darwin"
                 },
-                "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
             },
@@ -308,7 +306,6 @@
                 "os": {
                     "platform": "darwin"
                 },
-                "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
             },
@@ -403,7 +400,6 @@
                 "os": {
                     "platform": "darwin"
                 },
-                "hostname": "prod1.example.com",
                 "architecture": "x64",
                 "ip": "127.0.0.1"
             },

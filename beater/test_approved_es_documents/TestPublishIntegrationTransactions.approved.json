@@ -19,7 +19,7 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "prod1.example.com",
+                "hostname": "node-name",
                 "ip": "127.0.0.1",
                 "os": {
                     "platform": "darwin"
@@ -122,7 +122,7 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "prod1.example.com",
+                "hostname": "node-name",
                 "ip": "127.0.0.1",
                 "os": {
                     "platform": "darwin"
@@ -310,7 +310,7 @@
             },
             "host": {
                 "architecture": "x64",
-                "hostname": "prod1.example.com",
+                "hostname": "node-name",
                 "ip": "127.0.0.1",
                 "os": {
                     "platform": "darwin"

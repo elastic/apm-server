@@ -58,12 +58,36 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	return &system, decoder.Err
 }
 
+func (s *System) hostname() *string {
+	if s == nil {
+		return nil
+	}
+
+	if s.Kubernetes == nil {
+		return s.Hostname
+	}
+
+	// if system.kubernetes.node.name is set in the metadata, set host.hostname in the event to its value
+	if s.Kubernetes.NodeName != nil {
+		return s.Kubernetes.NodeName
+	}
+
+	// If system.kubernetes.* is set, but system.kubernetes.node.name is not, then don't set host.hostname at all.
+	// some day this could be a hook to discover the right node name using these values
+	if s.Kubernetes.PodName != nil || s.Kubernetes.PodUID != nil || s.Kubernetes.Namespace != nil {
+		return nil
+	}
+
+	// Otherwise set host.hostname to system.hostname
+	return s.Hostname
+}
+
 func (s *System) fields() common.MapStr {
 	if s == nil {
 		return nil
 	}
 	system := common.MapStr{}
-	utility.Set(system, "hostname", s.Hostname)
+	utility.Set(system, "hostname", s.hostname())
 	utility.Set(system, "architecture", s.Architecture)
 	if s.Platform != nil {
 		utility.Set(system, "os", common.MapStr{"platform": s.Platform})
