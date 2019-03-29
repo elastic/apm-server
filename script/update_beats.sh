@@ -58,6 +58,10 @@ rsync -crpv --delete \
     --exclude="*" \
     ${GIT_CLONE}/ .
 
+# don't sync from libbeat as apm-server does not support autodiscover
+mkdir -p libbeat/autodiscover/providers
+echo Autodiscover disabled > libbeat/autodiscover/providers/README
+
 # copy license files
 LICENSEDIR=${DIRNAME}/../licenses
 mkdir -p $LICENSEDIR
