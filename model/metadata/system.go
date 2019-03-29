@@ -40,7 +40,7 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for system")
+		return nil, errors.New("invalid type for system")
 	}
 	decoder := utility.ManualDecoder{}
 	system := System{

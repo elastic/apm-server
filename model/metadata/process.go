@@ -37,7 +37,7 @@ func DecodeProcess(input interface{}, err error) (*Process, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for process")
+		return nil, errors.New("invalid type for process")
 	}
 	decoder := utility.ManualDecoder{}
 	process := Process{

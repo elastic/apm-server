@@ -115,7 +115,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for error event")
+		return nil, errors.New("invalid type for error event")
 	}
 
 	ctx, err := m.DecodeContext(raw, cfg, nil)
@@ -199,16 +199,16 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		"processor": processorEntry,
 	}
 
-	// first set the generic metadata
+	// first set the generic metadata (order is relevant)
 	tctx.Metadata.Set(fields)
-
 	// then add event specific information
 	utility.Update(fields, "user", e.User.Fields())
 	utility.DeepUpdate(fields, "client", e.User.ClientFields())
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
 	utility.DeepUpdate(fields, "service", e.Service.Fields())
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
-	utility.Set(fields, "labels", e.Labels.Fields())
+	// merges with metadata labels, overrides conflicting keys
+	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
 	utility.Set(fields, "experimental", e.Experimental)

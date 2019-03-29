@@ -92,7 +92,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for transaction event")
+		return nil, errors.New("invalid type for transaction event")
 	}
 
 	ctx, err := m.DecodeContext(raw, cfg, nil)
@@ -175,7 +175,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		transactionDocType: e.fields(tctx),
 	}
 
-	// first set generic metadata
+	// first set generic metadata (order is relevant)
 	tctx.Metadata.Set(fields)
 
 	// then merge event specific information
@@ -187,7 +187,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.Set(fields, "timestamp", utility.TimeAsMicros(e.Timestamp))
-	utility.Set(fields, "labels", e.Labels.Fields())
+	// merges with metadata labels, overrides conflicting keys
+	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
 	utility.Set(fields, "http", e.Http.Fields())
 	utility.Set(fields, "url", e.Url.Fields())
 	utility.Set(fields, "experimental", e.Experimental)

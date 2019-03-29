@@ -69,7 +69,7 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for stacktrace frame")
+		return nil, errors.New("invalid type for stacktrace frame")
 	}
 	decoder := utility.ManualDecoder{}
 	frame := StacktraceFrame{

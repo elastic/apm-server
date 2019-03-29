@@ -37,7 +37,7 @@ func DecodeKubernetes(input interface{}, err error) (*Kubernetes, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for kubernetes")
+		return nil, errors.New("invalid type for kubernetes")
 	}
 	decoder := utility.ManualDecoder{}
 	return &Kubernetes{

@@ -108,7 +108,7 @@ func TestServiceDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, s: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: errors.New("Invalid type for service"), s: nil},
+		{input: "", err: errors.New("invalid type for service"), s: nil},
 		{
 			input: map[string]interface{}{"name": 1234},
 			err:   errors.New("Error fetching field"),

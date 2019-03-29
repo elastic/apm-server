@@ -70,7 +70,7 @@ func TestKubernetesDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, k: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), k: nil},
-		{input: "", err: errors.New("Invalid type for kubernetes"), k: nil},
+		{input: "", err: errors.New("invalid type for kubernetes"), k: nil},
 		{
 			input: map[string]interface{}{
 				"namespace": namespace,

@@ -41,7 +41,7 @@ func TestDecodeContext(t *testing.T) {
 	}{
 		"input_nil":  {},
 		"input_err":  {errIn: errors.New("test error"), errOut: "test error"},
-		"wrong_type": {input: "some string", errOut: "Invalid type"},
+		"wrong_type": {input: "some string", errOut: "invalid type"},
 		"no_context": {input: map[string]interface{}{}},
 		"empty":      {input: map[string]interface{}{"context": map[string]interface{}{}}},
 		"request_body_string": {

@@ -43,7 +43,7 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 	}{
 		"no input":           {input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
 		"input error":        {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		"invalid type":       {input: "", err: errors.New("Invalid type for transaction event"), e: nil},
+		"invalid type":       {input: "", err: errors.New("invalid type for transaction event"), e: nil},
 		"cannot fetch field": {input: map[string]interface{}{}, err: errors.New("Error fetching field"), e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -300,7 +300,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	user := metadata.User{Id: &id, Name: &name, IP: &ip, UserAgent: &userAgent}
 	url, referer := "https://localhost", "http://localhost"
 	serviceName := "myservice"
-
+	metadataLabels := common.MapStr{"a": true}
 	service := metadata.Service{Name: &serviceName}
 	system := &metadata.System{
 		Hostname:     &hostname,
@@ -323,6 +323,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"type":     "",
 			"sampled":  true,
 		},
+		"labels":    common.MapStr{"a": true},
 		"timestamp": common.MapStr{"us": timestampUs},
 	}
 
@@ -341,6 +342,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"service": common.MapStr{
 			"name": "myservice",
 		},
+		"labels":    common.MapStr{"a": true},
 		"timestamp": common.MapStr{"us": timestampUs},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
@@ -422,7 +424,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	}{
 		{
 			Metadata: metadata.NewMetadata(&service,
-				nil, nil, nil,
+				nil, nil, nil, metadataLabels,
 			),
 			Event:  &txValid,
 			Output: []common.MapStr{txValidEs},
@@ -430,7 +432,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		}, {
 			Metadata: metadata.NewMetadata(
 				&service,
-				nil, nil, nil,
+				nil, nil, nil, metadataLabels,
 			),
 			Event:  &txValidWithSpan,
 			Output: []common.MapStr{txValidEs, spanEs},
@@ -440,7 +442,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		{
 			Metadata: metadata.NewMetadata(
 				&service, system,
-				nil, nil,
+				nil, nil, metadataLabels,
 			),
 			Event:  &txValid,
 			Output: []common.MapStr{txValidWithSystem},
@@ -449,7 +451,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		{
 			Metadata: metadata.NewMetadata(
 				&service, system,
-				nil, nil,
+				nil, nil, metadataLabels,
 			),
 			Event:  &txWithContext,
 			Output: []common.MapStr{txWithContextEs},

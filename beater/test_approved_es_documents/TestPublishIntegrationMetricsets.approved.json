@@ -26,7 +26,9 @@
             "labels": {
                 "code": 200,
                 "some": "abc",
-                "success": true
+                "success": true,
+                "tag1": "one",
+                "tag2": 2
             },
             "long_gauge": 3147483648,
             "negative": {
@@ -92,6 +94,10 @@
                         }
                     }
                 }
+            },
+            "labels": {
+                "tag1": "one",
+                "tag2": 2
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

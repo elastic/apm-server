@@ -46,7 +46,7 @@ func TestStacktraceFrameDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, s: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: errors.New("Invalid type for stacktrace frame"), s: nil},
+		{input: "", err: errors.New("invalid type for stacktrace frame"), s: nil},
 		{
 			input: map[string]interface{}{},
 			err:   errors.New("Error fetching field"),

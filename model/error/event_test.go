@@ -106,7 +106,7 @@ func TestErrorEventDecode(t *testing.T) {
 	}{
 		"no input":            {input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
 		"arror passed as arg": {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		"invalid type":        {input: "", err: errors.New("Invalid type for error event"), e: nil},
+		"invalid type":        {input: "", err: errors.New("invalid type for error event"), e: nil},
 		"error decoding timestamp": {
 			input: map[string]interface{}{"timestamp": 123},
 			err:   errors.New("Error fetching field"),
@@ -134,7 +134,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"stacktrace": "123",
 				},
 			},
-			err: errors.New("Invalid type for stacktrace"),
+			err: errors.New("invalid type for stacktrace"),
 		},
 		"invalid type for log stacktrace": {
 			input: map[string]interface{}{
@@ -144,7 +144,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"stacktrace": "123",
 				},
 			},
-			err: errors.New("Invalid type for stacktrace"),
+			err: errors.New("invalid type for stacktrace"),
 		},
 		"minimal valid error": {
 			input: map[string]interface{}{
@@ -466,7 +466,7 @@ func TestEvents(t *testing.T) {
 	url, referer := "https://localhost", "http://localhost"
 	labels := m.Labels(common.MapStr{"key": true})
 	custom := m.Custom(common.MapStr{"foo": "bar"})
-
+	metadataLabels := common.MapStr{"label": 101}
 	tests := []struct {
 		Transformable transform.Transformable
 		Output        common.MapStr
@@ -483,6 +483,7 @@ func TestEvents(t *testing.T) {
 				"user":      common.MapStr{"id": uid},
 				"processor": common.MapStr{"event": "error", "name": "error"},
 				"timestamp": common.MapStr{"us": timestampUs},
+				"labels":    common.MapStr{"label": 101},
 			},
 			Msg: "Payload with valid Event.",
 		},
@@ -498,6 +499,7 @@ func TestEvents(t *testing.T) {
 				"user":      common.MapStr{"id": uid},
 				"processor": common.MapStr{"event": "error", "name": "error"},
 				"timestamp": common.MapStr{"us": timestampUs},
+				"labels":    common.MapStr{"label": 101},
 			},
 			Msg: "Payload with valid Event.",
 		},
@@ -513,6 +515,7 @@ func TestEvents(t *testing.T) {
 				"user":      common.MapStr{"id": uid},
 				"timestamp": common.MapStr{"us": timestampUs},
 				"agent":     common.MapStr{"name": "go", "version": "1.0"},
+				"labels":    common.MapStr{"label": 101},
 			},
 			Msg: "Payload with valid Event.",
 		},
@@ -533,7 +536,7 @@ func TestEvents(t *testing.T) {
 			},
 
 			Output: common.MapStr{
-				"labels":     common.MapStr{"key": true},
+				"labels":     common.MapStr{"key": true, "label": 101},
 				"service":    common.MapStr{"name": "myservice"},
 				"agent":      common.MapStr{"name": "go", "version": "1.0"},
 				"user":       common.MapStr{"email": email},
@@ -567,7 +570,7 @@ func TestEvents(t *testing.T) {
 		},
 	}
 
-	me := metadata.NewMetadata(&service, nil, nil, &metadata.User{Id: &uid})
+	me := metadata.NewMetadata(&service, nil, nil, &metadata.User{Id: &uid}, metadataLabels)
 	tctx := &transform.Context{
 		Metadata:    *me,
 		Config:      transform.Config{SmapMapper: &sourcemap.SmapMapper{}},

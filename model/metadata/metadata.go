@@ -39,6 +39,7 @@ type Metadata struct {
 	Process *Process
 	System  *System
 	User    *User
+	Labels  common.MapStr
 }
 
 func DecodeMetadata(input interface{}) (*Metadata, error) {
@@ -47,7 +48,7 @@ func DecodeMetadata(input interface{}) (*Metadata, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid type for metadata")
+		return nil, errors.New("invalid type for metadata")
 	}
 
 	var err error
@@ -55,23 +56,26 @@ func DecodeMetadata(input interface{}) (*Metadata, error) {
 	var system *System
 	var process *Process
 	var user *User
+	var labels common.MapStr
 	service, err = DecodeService(raw["service"], err)
 	system, err = DecodeSystem(raw["system"], err)
 	process, err = DecodeProcess(raw["process"], err)
 	user, err = DecodeUser(raw["user"], err)
+	labels, err = DecodeLabels(raw["labels"], err)
 
 	if err != nil {
 		return nil, err
 	}
-	return NewMetadata(service, system, process, user), nil
+	return NewMetadata(service, system, process, user, labels), nil
 }
 
-func NewMetadata(service *Service, system *System, process *Process, user *User) *Metadata {
+func NewMetadata(service *Service, system *System, process *Process, user *User, labels common.MapStr) *Metadata {
 	return &Metadata{
 		Service: service,
 		System:  system,
 		Process: process,
 		User:    user,
+		Labels:  labels,
 	}
 }
 
@@ -85,6 +89,8 @@ func (m *Metadata) Set(fields common.MapStr) common.MapStr {
 	utility.Set(fields, "user_agent", m.User.UserAgentFields())
 	utility.Set(fields, "container", m.System.containerFields())
 	utility.Set(fields, "kubernetes", m.System.kubernetesFields())
+	// to be merged with specific event labels, these should be overwritten in case of conflict
+	utility.Set(fields, "labels", m.Labels)
 	return fields
 }
 
