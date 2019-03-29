@@ -10,12 +10,13 @@ to pre-process documents before indexing them in Elasticsearch.
 A pipeline is a definition of a series of processors that operate on your data.
 For example, a pipeline can define one processor to remove a field, and another to rename a field.
 Using pipelines involves two steps:
+
 . First, you need to <<register-pipelines,register a pipeline>> in Elasticsearch.
 . Then, the pipeline needs to be <<apply-pipelines, applied during data ingestion>>.
 
 [[register-pipelines]]
 [float]
-=== Registering Pipelines in Elasticsearch
+=== Register pipelines in Elasticsearch
 To register a pipeline in Elasticsearch, you can either configure APM Server to
 register pipelines on startup, or you can manually upload a pipeline definition.
 
