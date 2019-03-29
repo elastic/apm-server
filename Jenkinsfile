@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.6') _
+@Library('apm@current') _
 
 pipeline {
   agent any
@@ -16,6 +16,8 @@ pipeline {
     ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
+    rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
+    quietPeriod(10)
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -26,7 +28,7 @@ pipeline {
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
-    booleanParam(name: 'releaser_ci', defaultValue: true, description: 'Enable build the release packages')
+    booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
   }
   stages {
@@ -34,7 +36,7 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout') {
-      agent { label 'linux && immutable' }
+      agent { label 'master || immutable' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
@@ -327,15 +329,7 @@ pipeline {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
-          sh """#!/bin/bash
-          set -euxo pipefail
-          make docs
-          """
-        }
-      }
-      post{
-        success {
-          tar(file: "doc-files.tgz", archive: true, dir: "html_docs", pathPrefix: "${BASE_DIR}/build")
+          buildDocs(docsDir: "docs", archive: true)
         }
       }
     }
@@ -387,7 +381,7 @@ pipeline {
             expression { return params.Run_As_Master_Branch }
             expression { return env.BEATS_UPDATED != "0" }
           }
-          expression { return params.releaser_ci }
+          expression { return params.release_ci }
         }
       }
       steps {
