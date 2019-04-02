@@ -8,4 +8,4 @@
 [float]
 ==== Removed
 
-https://github.com/elastic/apm-server/compare/v7.0.0-beta1...master[View commits]
+https://github.com/elastic/apm-server/compare/v7.0.0-rc2...master[View commits]
