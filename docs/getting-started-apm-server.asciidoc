@@ -1,0 +1,252 @@
+[[getting-started-apm-server]]
+== Getting Started With APM Server
+
+To get started with your own APM Server setup, install and configure these related products:
+
+* *{es}* for storing and indexing data.
+* *{kib}* for the UI.
+
+See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}]
+for more information about installing these products.
+
+[TIP]
+==============
+You can skip having to install {es} and {kib} by using our
+https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on Elastic Cloud.
+The {es} Service is available on both AWS and GCP.
+https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free].
+==============
+
+After installing the {stack}, read the following topics to learn how to install,
+configure, and run APM Server:
+
+* <<installing>>
+* <<apm-server-configuration>>
+* <<start-apm-server>>
+* <<next-steps>>
+
+// *******************************************************
+// STEP 1
+// *******************************************************
+
+[[installing]]
+=== Step 1: Install APM Server
+
+*Before you begin*: If you haven't installed the {stack}, do that now.
+See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}].
+
+To download and install {beatname_uc}, use the commands below that work with your system.
+
+ifeval::["{release-state}"!="unreleased"]
+[NOTE]
+==================================================
+If you use Apt or Yum, you can <<setup-repositories,install {beatname_uc} from our
+repositories>> to update to the newest version more easily.
+
+See our https://www.elastic.co/downloads/beats/{beatname_lc}[download page] for
+other installation options, such as 32-bit images.
+==================================================
+endif::[]
+
+[[deb]]
+*deb:*
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+["source","sh",subs="attributes"]
+----------------------------------------------------------------------
+curl -L -O {downloads}/apm-server-{version}-amd64.deb
+sudo dpkg -i apm-server-{version}-amd64.deb
+----------------------------------------------------------------------
+
+endif::[]
+
+[[rpm]]
+*rpm:*
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+["source","sh",subs="attributes"]
+----------------------------------------------------------------------
+curl -L -O {downloads}/apm-server-{version}-x86_64.rpm
+sudo rpm -vi apm-server-{version}-x86_64.rpm
+----------------------------------------------------------------------
+
+endif::[]
+
+[[mac]]
+*mac:*
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+["source","sh",subs="attributes"]
+------------------------------------------------
+curl -L -O {downloads}/apm-server-{version}-darwin-x86_64.tar.gz
+tar xzvf apm-server-{version}-darwin-x86_64.tar.gz
+------------------------------------------------
+
+endif::[]
+
+[[linux]]
+*linux:*
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+["source","sh",subs="attributes"]
+------------------------------------------------
+curl -L -O {downloads}/apm-server-{version}-linux-x86_64.tar.gz
+tar xzvf apm-server-{version}-linux-x86_64.tar.gz
+------------------------------------------------
+endif::[]
+
+[[docker]]
+*docker:*
+
+See <<running-on-docker, Running on Docker>> for deploying Docker containers.
+
+[[installing-on-windows]]
+*win:*
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+. Download the APM Server Windows zip file from the
+https://www.elastic.co/downloads/apm/apm-server[downloads page].
+
+. Extract the contents of the zip file into `C:\Program Files`.
+
+. Rename the `apm-server-<version>-windows` directory to `APM-Server`.
+
+. Open a PowerShell prompt as an Administrator (right-click the PowerShell icon and select *Run As Administrator*).
+If you are running Windows XP, you may need to download and install PowerShell.
+
+. From the PowerShell prompt, run the following commands to install APM Server as a Windows service:
++
+[source,shell]
+----------------------------------------------------------------------
+PS > cd 'C:\Program Files\APM-Server'
+PS C:\Program Files\APM-Server> .\install-service-apm-server.ps1
+----------------------------------------------------------------------
+
+NOTE: If script execution is disabled on your system,
+you need to set the execution policy for the current session to allow the script to run.
+For example: `PowerShell.exe -ExecutionPolicy UnRestricted -File .\install-service-apm-server.ps1`.
+
+endif::[]
+
+// *******************************************************
+// STEP 2
+// *******************************************************
+
+[[apm-server-configuration]]
+=== Step 2: Configure APM Server
+
+include::./copied-from-beats/shared-configuring.asciidoc[]
+
+Use the configuration file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
+or if you need to specify credentials:
+
+* {apm-server-ref-v}/configuration-process.html[General configuration options]
+* {apm-server-ref-v}/elasticsearch-output.html[Configure the Elasticsearch output]
+
+// Other important config settings can be included or linked to here
+
+[float]
+[[index-template-config]]
+==== Index template configuration
+
+In Elasticsearch, {ref}/indices-templates.html[index templates] are used to define settings
+and mappings that determine how fields should be analyzed.
+
+The recommended index template file for {beatname_uc} is installed by the{beatname_uc} packages.
+If you accept the default configuration in the +{beatname_lc}.yml+ config file,
+{beatname_uc} loads the template automatically after successfully connecting to Elasticsearch.
+If the template already exists,
+it's not overwritten unless you configure {beatname_uc} to do so.
+
+More information is available in <<load-template-auto, configure template loading>>.
+
+// *******************************************************
+// STEP 3
+// *******************************************************
+
+[[start-apm-server]]
+=== Step 3: Start APM Server
+
+In a production environment, you would put APM Server on its own machines,
+similar to how you run Elasticsearch.
+You _can_ run it on the same machines as Elasticsearch, but this is not recommended,
+as the processes will be competing for resources.
+
+To start APM Server, run:
+
+[source,bash]
+----------------------------------
+./apm-server -e
+----------------------------------
+
+You should see APM Server start up.
+It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
+You can change the defaults by supplying a different address on the command line:
+
+[source,bash]
+----------------------------------
+./apm-server -e -E output.elasticsearch.hosts=ElasticsearchAddress:9200 -E apm-server.host=localhost:8200
+----------------------------------
+
+[float]
+[[running-deb-rpm]]
+==== Debian Package / RPM
+
+The Debian package and RPM installations of APM Server create an `apm-server` user.
+To start the APM Server in this case, run:
+
+[source,bash]
+----------------------------------
+sudo -u apm-server apm-server [<argument...>]
+----------------------------------
+
+By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
+See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
+
+// *******************************************************
+// STEP 4
+// *******************************************************
+
+[[next-steps]]
+=== Step 4: Next steps
+
+// Quick note about installing/running agents now?
+// Quick note about kibana UI?
+
+// APM & YUM
+include::./copied-from-beats/repositories.asciidoc[]

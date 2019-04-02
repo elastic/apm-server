@@ -2,22 +2,16 @@
 [[setting-up-and-running]]
 == Setting up and running APM Server
 
-In a production environment,
-you would put APM Server on its own machines,
-similar to how you run Elasticsearch.
-You _can_ run it on the same machines as Elasticsearch,
-but this is not recommended,
-as the processes will be competing for resources.
+Before reading this section, see the <<getting-started-apm-server,getting started documentation>>
+for basic installation and running instructions.
 
-// This needs to be added to allow a link from monitoring-metricbeat.asciidoc to work
-// Update this when redoing the installation section
-[id="{beatname_lc}-starting"]
-To start APM Server, run:
+This section includes additional information on how to set up and run APM Server, including:
 
-[source,bash]
-----------------------------------
-./apm-server -e
-----------------------------------
+* <<directory-layout>>
+* <<keystore>>
+* <<command-line-options>>
+* <<high-availability>>
+* <<running-on-docker>>
 
 NOTE: The `-e` <<global-flags,global flag>> enables logging to stderr and disables syslog/file output.
 Remove this flag if you've enabled logging in the configuration file.
@@ -101,6 +95,7 @@ output.elasticsearch:
 
 See <<configuring-howto-apm-server>> for more configuration options.
 
+include::./copied-from-beats/shared-directory-layout.asciidoc[]
 
 include::./high-availability.asciidoc[]
 
@@ -108,7 +103,7 @@ include::./copied-from-beats/keystore.asciidoc[]
 
 include::./copied-from-beats/command-reference.asciidoc[]
 
-include::./copied-from-beats/shared-directory-layout.asciidoc[]
+include::./high-availability.asciidoc[]
 
 include::./copied-from-beats/shared-docker.asciidoc[]
 

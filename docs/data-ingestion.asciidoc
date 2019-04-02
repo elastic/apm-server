@@ -87,15 +87,18 @@ Increasing the <<event_rate.limit,`event_rate.limit`>> default value will help a
 [[tune-es]]
 == Tune Elasticsearch
 
-Get insights about tuning the Elasticsearch ingestion rate,
-especially with regards to
+The Elasticsearch reference provides insight on tuning Elasticsearch.
 
-* refresh interval
-* disable swapping
-* optimizing filesystem cache
-* considerations regarding faster hardware
-* setting the indexing buffer size
+{ref}/tune-for-indexing-speed.html[Tune for indexing speed] can provide information on:
 
-directly at the {ref}/tune-for-indexing-speed.html[Elasticsearch reference].
+* Refresh interval
+* Disabling swapping
+* Optimizing filesystem cache
+* Considerations regarding faster hardware
+* Setting the indexing buffer size
 
-You might also want to read up on how to {ref}/tune-for-disk-usage.html[tune for disk usage].
+{ref}/tune-for-disk-usage.html[Tune for disk usage] can provide information on:
+
+* Disabling unneeded features
+* Shard size
+* Shrink index

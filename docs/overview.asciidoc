@@ -10,7 +10,7 @@ The APM Server works in conjunction with {apm-agents-ref}/index.html[APM agents]
 
 NOTE: APM Server is built with the {beats-ref}[Beats] framework and leverages its functionality.
 
-
+[float]
 [[why-separate-component]]
 === Why is APM Server a separate component?
 
