@@ -4,7 +4,7 @@
 https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 
 // * <<release-notes-7.0.0>>
-// * <<release-notes-7.0.0-rc2>>
+* <<release-notes-7.0.0-rc2>>
 * <<release-notes-7.0.0-rc1>>
 * <<release-notes-7.0.0-beta1>>
 * <<release-notes-7.0.0-alpha2>>
@@ -13,10 +13,14 @@ https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 ////
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
+////
 
 [[release-notes-7.0.0-rc2]]
 === APM Server version 7.0.0-rc2
-////
+
+https://github.com/elastic/apm-server/compare/v7.0.0-rc1...v7.0.0-rc2[View commits]
+
+No significant changes.
 
 [[release-notes-7.0.0-rc1]]
 === APM Server version 7.0.0-rc1
