@@ -1,0 +1,50 @@
+[[apm-breaking-changes]]
+== Breaking changes
+
+This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
+
+* <<breaking-6.4.0, APM version 6.4.0>>
+
+Also see <<apm-release-notes>>.
+
+[[breaking-6.4.0]]
+=== Breaking changes in 6.4.0
+
+We previously split APM data into separate indices (transaction, span, error, etc.).
+In 6.4 APM Kibana UI starts to leverage those separate indices for queries.
+
+In case you only update Kibana but run an older version of APM Server you will not be able to see any APM data by default.
+To fix this, use the {kibana-ref}/apm-settings-kb.html[Kibana APM settings] to specify the location of the APM index:
+["source","sh"]
+------------------------------------------------------------
+apm_oss.errorIndices: apm-*
+apm_oss.spanIndices: apm-*
+apm_oss.transactionIndices: apm-*
+apm_oss.onboardingIndices: apm-*
+------------------------------------------------------------
+
+In case you are upgrading APM Server from an older version, you might need to refresh your APM index pattern for certain APM UI features to work.
+Also ensure to add the new config options in `apm-server.yml` in case you keep your existing configuration file:
+["source","sh"]
+------------------------------------------------------------
+output.elasticsearch:
+  indices:
+    - index: "apm-%{[observer.version]}-sourcemap"
+      when.contains:
+        processor.event: "sourcemap"
+    - index: "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "error"
+    - index: "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "transaction"
+    - index: "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "span"
+    - index: "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "metric"
+    - index: "apm-%{[observer.version]}-onboarding-%{+yyyy.MM.dd}"
+      when.contains:
+        processor.event: "onboarding"
+------------------------------------------------------------
