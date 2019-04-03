@@ -1,0 +1,26 @@
+[[breaking-changes]]
+=== Breaking Changes
+APM Server is built on top of {beats-ref}/index.html[libbeat].
+As such, any breaking change in libbeat is also considered to be a breaking change in APM Server.
+
+[float]
+==== 6.6
+* There are no breaking changes in APM Server.
+
+[float]
+==== 6.5
+* There are no breaking changes in APM Server.
+* Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
+
+[float]
+==== 6.4
+* Indexing the `onboarding` document in it's own index by default.
+
+[float]
+==== 6.3
+* Indexing events in separate indices by default.
+* {beats-ref}/breaking-changes-6.3.html[Breaking changes in libbeat]
+
+[float]
+==== 6.2
+* APM Server GA
