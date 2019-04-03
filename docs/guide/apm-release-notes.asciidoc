@@ -1,14 +1,41 @@
-[[kibana]]
 [[apm-release-notes]]
-== Release notes
+== Release highlights
+
+This section summarizes the most important APM changes in each release.
+
+For a full list of changes, see the
+{apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
+{kibana-ref}/release-notes.html[Kibana Release Notes].
+
+* <<release-notes-6.7.0>>
+* <<release-notes-6.6.0>>
+* <<release-notes-6.5.0>>
+* <<release-notes-6.4.1>>
+* <<release-notes-6.4.0>>
+
+[[release-notes-6.7.0]]
+=== APM version 6.7.0
+
+No significant changes.
+
+[[release-notes-6.6.0]]
+=== APM version 6.6.0
 
 [float]
-==== APM version 6.5.0
+==== New features
+
+* Elastic APM agents now automatically record certain <<metrics,infrastructure and application metrics>>.
+* Elastic APM agents support the W3C Trace Context.
+All agents now have <<opentracing,OpenTracing compatible bridges>>.
+* <<distributed-tracing,Distributed tracing>> is generally available.
+
+[[release-notes-6.5.0]]
+=== APM version 6.5.0
 
 [float]
-===== New features
+==== New features
 
-Elastic APM now enables {apm-get-started-ref}/distributed-tracing.html[distributed tracing].
+Elastic APM now enables {apm-overview-ref-v}/distributed-tracing.html[distributed tracing].
 
 *APM Server*
 
@@ -29,8 +56,8 @@ Elastic APM now enables {apm-get-started-ref}/distributed-tracing.html[distribut
 * Python switched to contextvars instead of thread locals for context tracking in Python 3.7
 * Node added support for Restify Framework, dropped support for Node.js 4 and 9
 
-[float]
-==== APM version 6.4.1
+[[release-notes-6.4.1]]
+=== APM version 6.4.1
 
 [float]
 ===== Bug Fixes
@@ -40,50 +67,13 @@ To fix this, the APM Kibana UI now falls back to use `apm-*` as default indices 
 Users can still leverage separate indices for queries by overriding the default values described in {kibana-ref}/apm-settings-kb.html[Kibana APM settings].
 
 
-[float]
-==== APM version 6.4.0
+[[release-notes-6.4.0]]
+=== APM version 6.4.0
 
 [float]
 ===== Breaking changes
 
-We previously split APM data into separate indices (transaction, span, error, etc.).
-In 6.4 APM Kibana UI starts to leverage those separate indices for queries.
-
-In case you only update Kibana but run an older version of APM Server you will not be able to see any APM data by default.
-To fix this, use the {kibana-ref}/apm-settings-kb.html[Kibana APM settings] to specify the location of the APM index:
-["source","sh"]
-------------------------------------------------------------
-apm_oss.errorIndices: apm-*
-apm_oss.spanIndices: apm-*
-apm_oss.transactionIndices: apm-*
-apm_oss.onboardingIndices: apm-*
-------------------------------------------------------------
-
-In case you are upgrading APM Server from an older version, you might need to refresh your APM index pattern for certain APM UI features to work.
-Also ensure to add the new config options in `apm-server.yml` in case you keep your existing configuration file:
-["source","sh"]
-------------------------------------------------------------
-output.elasticsearch:
-  indices:
-    - index: "apm-%{[beat.version]}-sourcemap"
-      when.contains:
-        processor.event: "sourcemap"
-    - index: "apm-%{[beat.version]}-error-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "error"
-    - index: "apm-%{[beat.version]}-transaction-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "transaction"
-    - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "span"
-    - index: "apm-%{[beat.version]}-metric-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "metric"
-    - index: "apm-%{[beat.version]}-onboarding-%{+yyyy.MM.dd}"
-      when.contains:
-        processor.event: "onboarding"
-------------------------------------------------------------
+See <<breaking-6.4.0>>.
 
 [float]
 ===== New features

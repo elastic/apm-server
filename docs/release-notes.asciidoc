@@ -8,8 +8,7 @@
 [partintro]
 
 --
-This following section summarizes the changes in each release.
-
+This following sections summarizes the changes in each release.
 
 * <<release-notes-6.7>>
 * <<release-notes-6.6>>
