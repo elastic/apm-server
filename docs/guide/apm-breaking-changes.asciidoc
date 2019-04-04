@@ -10,9 +10,9 @@ Also see <<apm-release-notes>>.
 
 //NOTE: The notable-breaking-changes tagged regions are re-used in the
 //Installation and Upgrade Guide
-// tag::notable-breaking-changes[]
+// tag::notable-v8-breaking-changes[]
 
-// end::notable-breaking-changes[]
+// end::notable-v8-breaking-changes[]
 
 [[breaking-7.0.0-beta1]]
 === Breaking changes in 7.0.0-beta1
