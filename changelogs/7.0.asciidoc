@@ -13,6 +13,17 @@ https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 ////
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
+https://github.com/elastic/apm-server/compare/v7.0.0-rc2...v7.0.0[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix index template always being overwritten {pull}2077[2077].
+
+[float]
+==== Added
+
+- Perform Basic license check on Elasticsearch connect {pull}2077[2077].
 ////
 
 [[release-notes-7.0.0-rc2]]
