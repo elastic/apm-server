@@ -38,7 +38,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 	defer lis.Close()
 	config.Host = lis.Addr().String()
 
-	server := newServer(config, apm.DefaultTracer, nopReporter)
+	server := newServer(config, apm.DefaultTracer, nil, nopReporter)
 	go run(server, lis, config)
 
 	notifyListening(config, publisher)

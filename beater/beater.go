@@ -26,6 +26,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/beats/libbeat/kibana"
+
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/transport"
 	"golang.org/x/sync/errgroup"
@@ -192,7 +194,12 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	bt.server = newServer(bt.config, tracer, pub.Send)
+	kibana, err := kibana.NewKibanaClient(b.BeatConfig)
+	if err != nil {
+		bt.logger.Error(err.Error())
+	}
+
+	bt.server = newServer(bt.config, tracer, kibana, pub.Send)
 	bt.mutex.Unlock()
 
 	var g errgroup.Group

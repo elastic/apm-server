@@ -23,6 +23,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/elastic/beats/libbeat/kibana"
+
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
@@ -33,8 +35,8 @@ import (
 	"github.com/elastic/beats/libbeat/version"
 )
 
-func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) *http.Server {
-	mux := newMuxer(config, report)
+func newServer(config *Config, tracer *apm.Tracer, kibana *kibana.Client, report publish.Reporter) *http.Server {
+	mux := newMuxer(config, kibana, report)
 
 	return &http.Server{
 		Addr: config.Host,

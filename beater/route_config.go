@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/beats/libbeat/kibana"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/asset"
@@ -34,6 +36,8 @@ import (
 
 var (
 	rootURL = "/"
+
+	agentConfigURL = "/config"
 
 	// intake v2
 	backendURL = "/intake/v2/events"
@@ -87,7 +91,7 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
+func newMuxer(beaterConfig *Config, kibana *kibana.Client, report publish.Reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
 
@@ -102,6 +106,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) *http.ServeMux {
 		mux.Handle(path, route.Handler(path, beaterConfig, report))
 	}
 
+	mux.Handle(agentConfigURL, agentConfigHandler(kibana, beaterConfig.SecretToken))
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
 
 	if beaterConfig.Expvar.isEnabled() {
