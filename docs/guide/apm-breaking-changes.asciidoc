@@ -10,9 +10,8 @@ Also see <<apm-release-notes>>.
 
 //NOTE: The notable-breaking-changes tagged regions are re-used in the
 //Installation and Upgrade Guide
-// tag::notable-v7-breaking-changes[]
 
-// end::notable-v7-breaking-changes[]
+// tag::notable-v7-breaking-changes[]
 
 [[breaking-7.0.0]]
 === Breaking changes in 7.0.0
@@ -20,7 +19,10 @@ Also see <<apm-release-notes>>.
 APM Server::
 +
 [[breaking-remove-v1]]
-**Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server, ensure all APM agents are upgraded to a version that supports APM Server >= 6.5. View the <<agent-server-compatibility, agent/server compatibility matrix>> to determine if your agent versions are compatible. 
+**Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server,
+ensure all APM agents are upgraded to a version that supports APM Server >= 6.5.
+View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
+to determine if your agent versions are compatible. 
 +
 [[breaking-ecs]]
 **Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).**
@@ -28,7 +30,8 @@ APM has aligned with the field names defined in the
 https://github.com/elastic/ecs[Elastic Common Schema (ECS)].
 Utilizing this common schema will allow for easier data correlation within Elasticsearch.
 +
-See the <<ecs-compliance,ECS field changes>> table for full details on which fields have changed.
+See the {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[ECS field changes]
+table for full details on which fields have changed.
 
 APM UI::
 +
@@ -38,6 +41,8 @@ When you upgrade to 7.x,
 data in indices created prior to 7.0 will not automatically appear in the APM UI.
 We offer a Kibana Migration Assistant (in the Kibana Management section) to help you migrate your data.
 The migration assistant will reindex your older data in the new ECS format.
+
+// end::notable-v7-breaking-changes[]
 
 [float]
 [[ecs-compliance]]
