@@ -24,6 +24,7 @@ Also see:
 [float]
 ==== Added
 
+- Perform Basic license check on Elasticsearch connect {pull}2077[2077].
 - Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].
 - Update response format of the healthcheck handler and prettyfy all JSON responses {pull}1748[1748].
 - Add `transaction.type` to error data {pull}1781[1781].
@@ -47,6 +48,7 @@ Also see:
 [float]
 ==== Bug fixes
 
+- Fix index template always being overwritten {pull}2077[2077].
 - Ensure setup cmd uses expected configuration {pull}1934[1934]. 
 - Ensure `host.name` is not added {pull}1934[1934], {pull}1982[1982].
 - Ensure enabling user-agent pipeline indexes data at the same key by default {pull}1966[1966].
