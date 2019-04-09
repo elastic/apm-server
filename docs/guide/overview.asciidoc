@@ -84,3 +84,21 @@ Traces are not events, but group together events that have a common root.
 
 All of our APM agents support <<distributed-tracing,distributed tracing>> out of the box.
 Distributed tracing enables you to analyze performance throughout your microservices architecture all in one view.
+
+// == Getting started with APM
+
+// The APM Overview documentation is your launchpad for getting started with APM.
+// We recommend reading through this book to gain a deeper understanding of the Elastic APM ecosystem.
+
+// * <<components>>
+// * <<install-and-run>>
+// * <<apm-data-model>>
+// * <<distributed-tracing>>
+// * <<rum>>
+// * <<opentracing>>
+// * <<agent-server-compatibility>>
+
+// TIP: Want to skip straight to installation?
+// Simply use an existing cluster or grab a fresh installation of the Elastic Stack,
+// spin up an APM Server, and add a bit of code to instrument your app with agents.
+// Full details are available on the <<install-and-run,install and run>> page.

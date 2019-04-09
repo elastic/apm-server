@@ -1,6 +1,9 @@
 [[distributed-tracing]]
 == Distributed tracing
 
+Together, <<transactions,`Transactions`>> and <<transaction-spans,`Spans`>> form a `Trace`.
+Traces are not events, but group together events that have a common root.
+
 Elastic APM supports distributed tracing.
 Distributed tracing enables you to analyze performance throughout your microservices architecture all in one view.
 This is accomplished by tracing all of the requests - from the initial web request to your front-end service - to queries made to your back-end services.
