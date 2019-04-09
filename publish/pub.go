@@ -74,7 +74,7 @@ func NewPublisher(info beat.Info, pipeline beat.Pipeline, shutdownTimeout time.D
 					"type":          info.Beat,
 					"hostname":      info.Hostname,
 					"version":       info.Version,
-					"version_major": 8,
+					"version_major": 7,
 					"id":            info.ID.String(),
 					"ephemeral_id":  info.EphemeralID.String(),
 				},
