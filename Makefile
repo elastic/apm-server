@@ -17,6 +17,8 @@ GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/li
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
+.DEFAULT_GOAL := ${BEAT_NAME}
+
 # overwrite some beats targets cleanly
 .OVER := original-
 
