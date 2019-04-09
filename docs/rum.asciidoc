@@ -4,7 +4,7 @@
 --
 Real User Monitoring captures user interaction with clients such as web browsers.
 The {apm-rum-ref-v}/index.html[JavaScript Agent] is Elastic's RUM Agent.
-To use it you need to <<rum-enable,enable RUM support>> in the APM Server.
+To use it you need to <<configuration-rum,enable RUM support>> in the APM Server.
 --
 
 [[sourcemaps]]
