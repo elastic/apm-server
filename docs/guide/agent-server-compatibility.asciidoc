@@ -69,5 +69,5 @@ it is recommended that you update to the newest version of the applicable agent.
 |Agent Version |APM Server Version
 |0.x |6.3-6.4
 |1.x |6.4
-|2.x, 3.x |>= 6.5
+|2.x, 3.x, 4.x |>= 6.5
 |=======================================================================
