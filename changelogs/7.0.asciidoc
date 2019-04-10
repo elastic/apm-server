@@ -3,17 +3,68 @@
 
 https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 
-// * <<release-notes-7.0.0>>
+* <<release-notes-7.0.0>>
 * <<release-notes-7.0.0-rc2>>
 * <<release-notes-7.0.0-rc1>>
 * <<release-notes-7.0.0-beta1>>
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
-////
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
-////
+
+coming[7.0.0]
+
+https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
+
+These release notes include all changes made in the alpha, beta, and RC releases of 7.0.0.
+
+Also see:
+
+* {apm-server-ref-v}/breaking-changes.html[Breaking changes in 7.0]
+
+[float]
+==== Added
+
+- Perform Basic license check on Elasticsearch connect {pull}2077[2077].
+- Update Elastic APM Go agent to v1.1.2 {pull}1711[1711], {pull}1728[1728].
+- Update response format of the healthcheck handler and prettyfy all JSON responses {pull}1748[1748].
+- Add `transaction.type` to error data {pull}1781[1781].
+- Change ownership to apm-server user/group for deb/rpm installs {pull}1833[1833].
+- Add `observer.version_major` {pull}1857[1857].
+- Move default index configuration to code {pull}1865[1865].
+- Change default user-agent pipeline to index information under root key `user_agent` {pull}1871[1871].
+- Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
+- Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
+- Build default distribution under the Elastic License. {pull}1645[1645].
+
+[float]
+==== Removed
+
+- Remove support for deprecated Intake v1 endpoints. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-remove-v1[More information], {pull}1731[1731].
+- Remove `concurrent_requests` setting and use number of CPUs instead {pull}1749[1749].
+- Remove `frontend` setting {pull}1751[1751].
+- Remove `metrics.enabled` setting {pull}1759[1759].
+- Remove dashboards from being shipped with APM Server and all logic around them {pull}[1815].
+
+[float]
+==== Bug fixes
+
+- Fix index template always being overwritten {pull}2077[2077].
+- Ensure setup cmd uses expected configuration {pull}1934[1934]. 
+- Ensure `host.name` is not added {pull}1934[1934], {pull}1982[1982].
+- Ensure enabling user-agent pipeline indexes data at the same key by default {pull}1966[1966].
+- Request and Response headers are stored in a canonicalized way {pull}1966[1966].
+- Use changed processor handling from libbeat {pull}1982[1982].
+
+[float]
+==== Breaking Changes
+- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
+- Rename `transaction.span_count.dropped.total` to `transaction.span_count.dropped` {pull}1809[1809].
+- Rename `span.hex_id` to `span.id` {pull}1811[1811].
+- Index `error.exception` as array of objects {pull}1825[1825]
+- Change `transaction.name` to keyword, add `transaction.name.text` {pull}1859[1859].
+- Change `error.culprit` to keyword, limit length on intake {pull}1859[1859].
 
 [[release-notes-7.0.0-rc2]]
 === APM Server version 7.0.0-rc2
@@ -44,7 +95,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...v7.0.0-beta1[View 
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0-beta1.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
 
 [float]
 ==== Added
@@ -65,7 +116,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...v7.0.0-beta1[View 
 [float]
 ==== Removed
 
-- Remove support for deprecated Intake v1 endpoints. {apm-overview-ref-v}/breaking-7.0.0-beta1.html#breaking-remove-v1[More information], {pull}1731[1731].
+- Remove support for deprecated Intake v1 endpoints. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-remove-v1[More information], {pull}1731[1731].
 - Remove `concurrent_requests` setting and use number of CPUs instead {pull}1749[1749].
 - Remove `frontend` setting {pull}1751[1751].
 - Remove `metrics.enabled` setting {pull}1759[1759].
