@@ -1,0 +1,96 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-server-config
+  labels:
+    k8s-app: apm-server
+data:
+  apm-server.yml: |-
+    apm-server:
+      host: "0.0.0.0:8200"
+      instrumentation:
+        enabled: true
+      register.ingest.pipeline:
+        enabled: true
+
+    cloud.id: ${ELASTIC_CLOUD_ID}
+    cloud.auth: ${ELASTIC_CLOUD_AUTH}
+
+    output.elasticsearch:
+      hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
+      username: ${ELASTICSEARCH_USERNAME}
+      password: ${ELASTICSEARCH_PASSWORD}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-server-env
+  labels:
+    k8s-app: apm-server
+data:
+  # CLOUD_ID:
+  ELASTICSEARCH_HOST: elasticsearch
+  ELASTICSEARCH_PORT: "9200"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apm-server-secret
+type: Opaque
+data:
+  cloud_auth: ""
+  elasticsearch_password: Y2hhbmdlbWUK
+  elasticsearch_username: YXBtLXNlcnZlci11c2VyCg==
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: apm-server
+  labels:
+    k8s-app: apm-server
+spec:
+  selector:
+    matchLabels:
+      name: apm-server
+  template:
+    metadata:
+      labels:
+        name: apm-server
+    spec:
+      containers:
+        - name: apm-server
+          envFrom:
+            - configMapRef:
+                name: apm-server-env
+          env:
+            - name: ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: elasticsearch_username
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: elasticsearch_password
+            - name: ELASTIC_CLOUD_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: cloud_auth
+          image: docker.elastic.co/apm/apm-server:8.0.0
+          ports:
+            - containerPort: 8200
+              hostPort: 8200
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/apm-server/apm-server.yml
+              readOnly: true
+              subPath: apm-server.yml
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 0444
+            name: apm-server-config

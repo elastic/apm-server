@@ -1,0 +1,166 @@
+[[running-on-kubernetes]]
+
+=== {beatname_uc} on Kubernetes
+
+{beatname_uc} <<running-on-docker,Docker images>> can be deployed to Kubernetes to eanble tracing of applications
+deployed there.
+
+ifeval::["{release-state}"=="unreleased"]
+
+However, version {stack-version} of {beatname_uc} has not yet been
+released, so no Docker image is currently available for this version.
+
+endif::[]
+
+[float]
+==== DaemonSet deployment
+
+By deploying {beatname_uc} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+we ensure we get a running instance on each node of the cluster.  This option is suitable for environments where a
+single apm-server should be reused for any pod that may be allocated to the node also running apm-server.
+
+To deploy apm-server as a daemonset, first run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+kubectl apply -f https://raw.githubusercontent.com/elastic/apm-server/{branch}/deploy/kubernetes/{beatname_lc}-kubernetes-daemonset.yaml
+------------------------------------------------
+
+then add the apm agent configuration to your application pod configuration.  For example:
+
+["source", "yaml", subs="attributes"]
+------------------------------------------------
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: traced-app
+spec:
+  containers:
+  - image: traced-app
+    name: traced-app
+    env:
+    - name: ELASTIC_APM_SERVER_HOST
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
+    - name: ELASTIC_APM_SERVER_URL
+      value: http://$(ELASTIC_APM_SERVER_HOST):8200
+    - name: KUBERNETES_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    - name: KUBERNETES_POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: KUBERNETES_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: KUBERNETES_POD_UID
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.uid
+------------------------------------------------
+
+==== Sidecar deployment
+
+For environments that should not share an apm-server, say when directing traces to separate Elasticsearch clusters from
+different applications, apm-server may be deployed as a sidecar container in your application pod.
+
+To deploy apm-server as a sidecar, first run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+kubectl apply -f https://raw.githubusercontent.com/elastic/apm-server/{branch}/deploy/kubernetes/{beatname_lc}-kubernetes-sidecar.yaml
+------------------------------------------------
+
+then add the apm-server container to your application pod.  For example:
+
+["source", "yaml", subs="attributes"]
+------------------------------------------------
+- apiVersion: apps/v1
+  kind: Pod
+  metadata:
+    name: traced-app
+  spec:
+    template:
+      spec:
+        containers:
+        - image: traced-app
+          name: traced-app
+        - image: docker.elastic.co/apm/apm-server:{stack-version}
+          name: apm-server
+          envFrom:
+            - configMapRef:
+                name: apm-server-env
+          env:
+            - name: ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: elasticsearch_username
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: elasticsearch_password
+            - name: ELASTIC_CLOUD_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: cloud_auth
+          ports:
+            - containerPort: 8200
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/apm-server/apm-server.yml
+              readOnly: true
+              subPath: apm-server.yml
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 0444
+            name: apm-server-config
+------------------------------------------------
+
+In this example, apm-server will use the configuration map created in the first step.
+All agents will connect to apm-server at `http://localhost:8200` by default so no additional configuration should be necessary.
+
+[float]
+==== Settings
+
+The deployment manifests provided configure apm-server to index events in an Elasticsearch cluster reachable at `http://elasticsearch:9200`.
+To update the Elasticsearch endpoint, edit the values in config manifest and apply the new settings.
+To update the Elasticsearch credentials, edit the values in secret manifest and apply the new settings.
+
+For example, to connect apm-server to Elasticsearch Service, set `CLOUD_ID` and `cloud_auth` and apply the new settings:
+
+["source", "yaml", subs="attributes"]
+------------------------------------------------
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-server-env
+  labels:
+    k8s-app: apm-server
+data:
+  CLOUD_ID: "cluster:cloud.elastic.co-cluster-info"
+  ELASTICSEARCH_HOST: elasticsearch
+  ELASTICSEARCH_PORT: "9200"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apm-server-secret
+type: Opaque
+data:
+  cloud_auth: dXNlcjpwYXNzCg==
+  elasticsearch_password: Y2hhbmdlbWUK
+  elasticsearch_username: YXBtLXNlcnZlci11c2VyCg==
+------------------------------------------------
+
+Be sure to base64 encode the `cloud_auth` value.

@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: apm-server
+  labels:
+    k8s-app: apm-server
+spec:
+  selector:
+    matchLabels:
+      name: apm-server
+  template:
+    metadata:
+      labels:
+        name: apm-server
+    spec:
+      containers:
+        - name: apm-server
+          envFrom:
+            - configMapRef:
+                name: apm-server-env
+          env:
+            - name: ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: elasticsearch_username
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: elasticsearch_password
+            - name: ELASTIC_CLOUD_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: apm-server-secret
+                  key: cloud_auth
+          image: docker.elastic.co/apm/apm-server:%VERSION%
+          ports:
+            - containerPort: 8200
+              hostPort: 8200
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/apm-server/apm-server.yml
+              readOnly: true
+              subPath: apm-server.yml
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 0444
+            name: apm-server-config
