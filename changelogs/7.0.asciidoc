@@ -37,6 +37,7 @@ Also see:
 - Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
 - Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
 - Build default distribution under the Elastic License. {pull}1645[1645].
+- Log to journald under systemd by default rather than file. To revert this behaviour override BEAT_LOG_OPTS with an empty value https://github.com/elastic/beats/pull/8942[beats/8942] via {pull}1645[1645].
 
 [float]
 ==== Removed
@@ -132,6 +133,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...v7.0.0-beta1[View 
 - Use _doc as document type for Elasticsearch >= 7.0.0 https://github.com/elastic/beats/pull/9056[beats/9057].
 - Automatically cap signed integers to 63bits https://github.com/elastic/beats/pull/8991[beats/8991].
 - Build default distribution under the Elastic License. {pull}1645[1645].
+- Log to journald under systemd by default rather than file. To revert this behaviour override BEAT_LOG_OPTS with an empty value https://github.com/elastic/beats/pull/8942[beats/8942] via {pull}1645[1645].
 
 [[release-notes-7.0.0-alpha1]]
 === APM Server version 7.0.0-alpha1
