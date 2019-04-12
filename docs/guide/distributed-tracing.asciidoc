@@ -12,11 +12,3 @@ The Timeline visualization has been redesigned to show all of the transactions f
 
 [role="screenshot"]
 image::distributed-tracing.jpg[distribute tracing in the UI]
-
-NOTE: As we're still working on enhancing the distributed tracing experience in the UI,
-we're flagging the feature as beta in the UI.
-
-Should you still encounter any bug or issues,
-please reach out in the https://github.com/elastic/apm[APM GitHub repository].
-For questions and feature requests,
-visit our https://discuss.elastic.co/c/apm[discussion forum].
