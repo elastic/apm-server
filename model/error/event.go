@@ -391,7 +391,7 @@ func (e *Event) calcGroupingKey() string {
 			continue
 		}
 		k.addEither(fr.Module, fr.Filename)
-		k.addEither(fr.Function, string(fr.Lineno))
+		k.add(fr.Function)
 	}
 	if k.empty {
 		if e.Exception != nil {
