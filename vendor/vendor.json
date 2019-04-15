@@ -186,6 +186,7 @@
 		},
 		{
 			"checksumSHA1": "2503DiCg4/0gQuslT1sbHy7ISIg=",
+			"origin": "github.com/elastic/beats/vendor/github.com/docker/docker/pkg/mount",
 			"path": "github.com/docker/docker/pkg/mount",
 			"revision": "f7ec606fc1ce5d547662af485acd78eb732eedfe",
 			"revisionTime": "2019-04-11T19:07:08Z"
@@ -1141,6 +1142,7 @@
 		},
 		{
 			"checksumSHA1": "Iz+no2yZkZ8SgDb6OjWhes5cfs4=",
+			"origin": "github.com/elastic/beats/vendor/github.com/elastic/ecs/code/go/ecs",
 			"path": "github.com/elastic/ecs/code/go/ecs",
 			"revision": "81aecf914207f7749638114393e5c58b17c2ec0a",
 			"revisionTime": "2019-03-08T20:06:34Z"
@@ -1773,6 +1775,7 @@
 		},
 		{
 			"checksumSHA1": "Aulh7C5SVOA4Jzt5eHNH6197Mbk=",
+			"origin": "github.com/elastic/beats/vendor/github.com/konsorten/go-windows-terminal-sequences",
 			"path": "github.com/konsorten/go-windows-terminal-sequences",
 			"revision": "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e",
 			"revisionTime": "2019-02-26T22:47:05Z"
