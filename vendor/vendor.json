@@ -2042,11 +2042,13 @@
 		},
 		{
 			"checksumSHA1": "mB5o9lbse489BCvZGbRkarc2Xp0=",
+			"origin": "github.com/elastic/beats/vendor/github.com/sirupsen/logrus",
 			"path": "github.com/sirupsen/logrus",
 			"revision": "9b3cdde74fbe9443d704467498a7dcb61a79de9b",
 			"revisionTime": "2019-04-03T09:10:19Z"
 		},
 		{
+			"origin": "github.com/elastic/beats/vendor/github.com/sirupsen/logrus/terminal",
 			"path": "github.com/sirupsen/logrus/terminal",
 			"revision": ""
 		},
