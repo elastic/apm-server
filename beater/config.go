@@ -169,7 +169,7 @@ func (s *SourceMapping) isSetup() bool {
 }
 
 func (c *pipelineConfig) isEnabled() bool {
-	return c != nil && (c.Enabled != nil && *c.Enabled)
+	return c == nil || c.Enabled == nil || *c.Enabled
 }
 
 func (c *pipelineConfig) shouldOverwrite() bool {

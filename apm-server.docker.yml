@@ -141,7 +141,7 @@ apm-server:
   #
   #register.ingest.pipeline:
     # Registers pipeline definitions in Elasticsearch on APM Server startup. Defaults to false.
-    #enabled: false
+    #enabled: true
 
     # Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
     #overwrite: true

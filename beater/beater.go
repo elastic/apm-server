@@ -108,9 +108,7 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		logger:  logger,
 	}
 
-	// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
-	shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.isEnabled() ||
-		(b.InSetupCmd && beaterConfig.Register.Ingest.Pipeline.Enabled == nil)
+	shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.isEnabled() || b.InSetupCmd
 
 	if isElasticsearchOutput(b) && shouldSetupPipelines {
 		logger.Info("Registering pipeline callback.")
