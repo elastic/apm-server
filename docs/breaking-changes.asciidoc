@@ -27,7 +27,7 @@ Upgrade agents to a version that supports APM Server >= 6.5.
 [float]
 ==== 6.3
 * Indexing events in separate indices by default.
-* {beats-ref}/breaking-changes-6.3.html[Breaking changes in libbeat]
+* {beats-ref-63}/breaking-changes-6.3.html[Breaking changes in libbeat]
 
 [float]
 ==== 6.2
