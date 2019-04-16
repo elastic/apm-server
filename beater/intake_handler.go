@@ -95,7 +95,7 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 		w.Header().Add("Connection", "Close")
 		send(w, r, sr, statusCode)
 
-		logger.Infow("error handling request", "error", sr.String())
+		logger.Infow("error handling request", "error", sr.Error())
 	}
 }
 
