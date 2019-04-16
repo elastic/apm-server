@@ -2,10 +2,14 @@
 == APM Server version HEAD
 
 [float]
-==== Added
+==== Bug fixes
+- Set user/group under systemd {pull}2101[2101].
 
+[float]
+==== Added
+- Make stacktrace lineno optional {pull}2105[2105].
 
 [float]
 ==== Removed
 
-https://github.com/elastic/apm-server/compare/v7.0.0-rc2...master[View commits]
+https://github.com/elastic/apm-server/compare/v7.0.0...master[View commits]

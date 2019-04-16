@@ -30,6 +30,7 @@ import (
 )
 
 func TestStacktraceDecode(t *testing.T) {
+	l1 := 1
 	for _, test := range []struct {
 		input       interface{}
 		err, inpErr error
@@ -49,7 +50,7 @@ func TestStacktraceDecode(t *testing.T) {
 			},
 			err: nil,
 			s: &Stacktrace{
-				&StacktraceFrame{Filename: "file", Lineno: 1},
+				&StacktraceFrame{Filename: "file", Lineno: &l1},
 			},
 		},
 	} {
@@ -61,6 +62,7 @@ func TestStacktraceDecode(t *testing.T) {
 
 func TestStacktraceTransform(t *testing.T) {
 	colno := 1
+	l4, l5, l6, l8 := 4, 5, 6, 8
 	fct := "original function"
 	absPath, serviceName := "original path", "service1"
 	service := metadata.Service{Name: &serviceName}
@@ -80,7 +82,6 @@ func TestStacktraceTransform(t *testing.T) {
 			Output: []common.MapStr{
 				{
 					"filename":              "",
-					"line":                  common.MapStr{"number": 0},
 					"exclude_from_grouping": false,
 				},
 			},
@@ -90,23 +91,23 @@ func TestStacktraceTransform(t *testing.T) {
 			Stacktrace: Stacktrace{
 				&StacktraceFrame{
 					Colno:    &colno,
-					Lineno:   4,
+					Lineno:   &l4,
 					Filename: "original filename",
 					Function: &fct,
 					AbsPath:  &absPath,
 				},
-				&StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
-				&StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{Colno: &colno, Lineno: &l6, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{Colno: &colno, Lineno: &l8, Function: &fct, AbsPath: &absPath},
 				&StacktraceFrame{
 					Colno:    &colno,
-					Lineno:   5,
+					Lineno:   &l5,
 					Filename: "original filename",
 					Function: &fct,
 					AbsPath:  &absPath,
 				},
 				&StacktraceFrame{
 					Colno:    &colno,
-					Lineno:   4,
+					Lineno:   &l4,
 					Filename: "/webpack",
 					AbsPath:  &absPath,
 				},
@@ -155,6 +156,7 @@ func TestStacktraceTransform(t *testing.T) {
 
 func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 	colno := 1
+	l4, l5, l6, l8 := 4, 5, 6, 8
 	fct := "original function"
 	absPath, serviceName := "original path", "service1"
 	service := metadata.Service{Name: &serviceName}
@@ -173,7 +175,6 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 			Stacktrace: Stacktrace{&StacktraceFrame{}},
 			Output: []common.MapStr{
 				{"filename": "",
-					"line":                  common.MapStr{"number": 0},
 					"exclude_from_grouping": false,
 					"sourcemap": common.MapStr{
 						"error":   "Colno mandatory for sourcemapping.",
@@ -184,26 +185,40 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 			Msg: "Stacktrace with empty Frame",
 		},
 		{
+			Stacktrace: Stacktrace{&StacktraceFrame{Colno: &colno}},
+			Output: []common.MapStr{
+				{"filename": "",
+					"line":                  common.MapStr{"column": 1},
+					"exclude_from_grouping": false,
+					"sourcemap": common.MapStr{
+						"error":   "Lineno mandatory for sourcemapping.",
+						"updated": false,
+					},
+				},
+			},
+			Msg: "Stacktrace with no lineno",
+		},
+		{
 			Stacktrace: Stacktrace{
 				&StacktraceFrame{
 					Colno:    &colno,
-					Lineno:   4,
+					Lineno:   &l4,
 					Filename: "original filename",
 					Function: &fct,
 					AbsPath:  &absPath,
 				},
-				&StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
-				&StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{Colno: &colno, Lineno: &l6, Function: &fct, AbsPath: &absPath},
+				&StacktraceFrame{Colno: &colno, Lineno: &l8, Function: &fct, AbsPath: &absPath},
 				&StacktraceFrame{
 					Colno:    &colno,
-					Lineno:   5,
+					Lineno:   &l5,
 					Filename: "original filename",
 					Function: &fct,
 					AbsPath:  &absPath,
 				},
 				&StacktraceFrame{
 					Colno:    &colno,
-					Lineno:   4,
+					Lineno:   &l4,
 					Filename: "/webpack",
 					AbsPath:  &absPath,
 				},

@@ -11,6 +11,8 @@ You can also install APM Server from our repositories or install as a service on
 
 To run APM Server in Docker, see <<running-on-docker>>.
 
+To run APM Server under systemd, see <<running-with-systemd>>.
+
 include::./copied-from-beats/repositories.asciidoc[]
 
 include::./installing-on-windows.asciidoc[]

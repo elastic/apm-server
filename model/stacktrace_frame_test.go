@@ -51,7 +51,7 @@ func TestStacktraceFrameDecode(t *testing.T) {
 			input: map[string]interface{}{},
 			err:   errors.New("Error fetching field"),
 			s: &StacktraceFrame{
-				AbsPath: nil, Filename: "", Lineno: 0.0, Colno: nil,
+				AbsPath: nil, Filename: "", Lineno: nil, Colno: nil,
 				ContextLine: nil, Module: nil, Function: nil, LibraryFrame: nil,
 				Vars: nil, PreContext: nil, PostContext: nil},
 		},
@@ -73,7 +73,7 @@ func TestStacktraceFrameDecode(t *testing.T) {
 			s: &StacktraceFrame{
 				AbsPath:      &path,
 				Filename:     filename,
-				Lineno:       lineno,
+				Lineno:       &lineno,
 				Colno:        &colno,
 				ContextLine:  &context,
 				Module:       &module,
@@ -106,7 +106,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 		Msg     string
 	}{
 		{
-			StFrame: StacktraceFrame{Filename: filename, Lineno: lineno},
+			StFrame: StacktraceFrame{Filename: filename, Lineno: &lineno},
 			Output: common.MapStr{
 				"filename":              filename,
 				"line":                  common.MapStr{"number": lineno},
@@ -118,7 +118,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 			StFrame: StacktraceFrame{
 				AbsPath:      &path,
 				Filename:     filename,
-				Lineno:       lineno,
+				Lineno:       &lineno,
 				Colno:        &colno,
 				ContextLine:  &context,
 				Module:       &module,
@@ -159,6 +159,7 @@ func TestStacktraceFrameTransform(t *testing.T) {
 
 func TestApplySourcemap(t *testing.T) {
 	colno := 1
+	l0, l5, l6, l7, l8, l9 := 0, 5, 6, 7, 8, 9
 	fct := "original function"
 	absPath := "original path"
 	tests := []struct {
@@ -172,8 +173,8 @@ func TestApplySourcemap(t *testing.T) {
 		msg                         string
 	}{
 		{
-			fr:          StacktraceFrame{Lineno: 0, Function: &fct, AbsPath: &absPath},
-			lineno:      0,
+			fr:          StacktraceFrame{Lineno: &l0, Function: &fct, AbsPath: &absPath},
+			lineno:      l0,
 			filename:    "",
 			function:    "original function",
 			absPath:     "original path",
@@ -186,13 +187,13 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{
 				Colno:    &colno,
-				Lineno:   9,
+				Lineno:   &l9,
 				Filename: "filename",
 				Function: &fct,
 				AbsPath:  &absPath,
 			},
 			colno:       1,
-			lineno:      9,
+			lineno:      l9,
 			filename:    "filename",
 			function:    "original function",
 			absPath:     "original path",
@@ -203,9 +204,9 @@ func TestApplySourcemap(t *testing.T) {
 			msg:         "Some error occured in mapper.",
 		},
 		{
-			fr:       StacktraceFrame{Colno: &colno, Lineno: 8, Function: &fct, AbsPath: &absPath},
+			fr:       StacktraceFrame{Colno: &colno, Lineno: &l8, Function: &fct, AbsPath: &absPath},
 			colno:    1,
-			lineno:   8,
+			lineno:   l8,
 			filename: "",
 			function: "original function",
 			absPath:  "original path",
@@ -214,9 +215,9 @@ func TestApplySourcemap(t *testing.T) {
 			msg:      "Some access error occured in mapper.",
 		},
 		{
-			fr:          StacktraceFrame{Colno: &colno, Lineno: 7, Function: &fct, AbsPath: &absPath},
+			fr:          StacktraceFrame{Colno: &colno, Lineno: &l7, Function: &fct, AbsPath: &absPath},
 			colno:       1,
-			lineno:      7,
+			lineno:      l7,
 			filename:    "",
 			function:    "original function",
 			absPath:     "original path",
@@ -227,9 +228,9 @@ func TestApplySourcemap(t *testing.T) {
 			msg:         "Some mapping error occured in mapper.",
 		},
 		{
-			fr:          StacktraceFrame{Colno: &colno, Lineno: 6, Function: &fct, AbsPath: &absPath},
+			fr:          StacktraceFrame{Colno: &colno, Lineno: &l6, Function: &fct, AbsPath: &absPath},
 			colno:       1,
-			lineno:      6,
+			lineno:      l6,
 			filename:    "",
 			function:    "original function",
 			absPath:     "original path",
@@ -242,7 +243,7 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{
 				Colno:    &colno,
-				Lineno:   5,
+				Lineno:   &l5,
 				Filename: "original filename",
 				Function: &fct,
 				AbsPath:  &absPath,
@@ -261,7 +262,7 @@ func TestApplySourcemap(t *testing.T) {
 		{
 			fr: StacktraceFrame{
 				Colno:    &colno,
-				Lineno:   4,
+				Lineno:   &l0,
 				Filename: "original filename",
 				Function: &fct,
 				AbsPath:  &absPath,
@@ -313,7 +314,7 @@ func TestApplySourcemap(t *testing.T) {
 		output, errMsg := (&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
 		assert.Equal(t, test.smapError, errMsg)
 		assert.Equal(t, test.outFct, output)
-		assert.Equal(t, test.lineno, test.fr.Lineno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+		assert.Equal(t, test.lineno, *test.fr.Lineno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
 		assert.Equal(t, test.filename, test.fr.Filename, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
 		assert.Equal(t, test.function, *test.fr.Function, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
 		assert.Equal(t, test.absPath, *test.fr.AbsPath, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
