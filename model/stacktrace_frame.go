@@ -31,7 +31,7 @@ import (
 type StacktraceFrame struct {
 	AbsPath      *string
 	Filename     string
-	Lineno       int
+	Lineno       *int
 	Colno        *int
 	ContextLine  *string
 	Module       *string
@@ -55,7 +55,7 @@ type Sourcemap struct {
 type Original struct {
 	AbsPath      *string
 	Filename     string
-	Lineno       int
+	Lineno       *int
 	Colno        *int
 	Function     *string
 	LibraryFrame *bool
@@ -75,7 +75,7 @@ func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, erro
 	frame := StacktraceFrame{
 		AbsPath:      decoder.StringPtr(raw, "abs_path"),
 		Filename:     decoder.String(raw, "filename"),
-		Lineno:       decoder.Int(raw, "lineno"),
+		Lineno:       decoder.IntPtr(raw, "lineno"),
 		Colno:        decoder.IntPtr(raw, "colno"),
 		ContextLine:  decoder.StringPtr(raw, "context_line"),
 		Module:       decoder.StringPtr(raw, "module"),
@@ -162,11 +162,17 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metad
 		s.updateError(errMsg)
 		return prevFunction, errMsg
 	}
+	if s.Original.Lineno == nil {
+		errMsg := "Lineno mandatory for sourcemapping."
+		s.updateError(errMsg)
+		return prevFunction, errMsg
+	}
+
 	sourcemapId, errMsg := s.buildSourcemapId(service)
 	if errMsg != "" {
 		return prevFunction, errMsg
 	}
-	mapping, err := mapper.Apply(sourcemapId, s.Original.Lineno, *s.Original.Colno)
+	mapping, err := mapper.Apply(sourcemapId, *s.Original.Lineno, *s.Original.Colno)
 	if err != nil {
 		e, isSourcemapError := err.(sourcemap.Error)
 		if !isSourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
@@ -180,7 +186,7 @@ func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metad
 	}
 
 	s.Colno = &mapping.Colno
-	s.Lineno = mapping.Lineno
+	s.Lineno = &mapping.Lineno
 	s.AbsPath = &mapping.Path
 	s.updateSmap(true)
 	s.Function = &prevFunction

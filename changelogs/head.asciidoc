@@ -7,8 +7,8 @@
 
 [float]
 ==== Added
-
 - Register pipelines by default {pull}2106[2106].
+- Make stacktrace lineno optional {pull}2105[2105].
 
 [float]
 ==== Removed
