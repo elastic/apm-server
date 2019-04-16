@@ -8,6 +8,7 @@
 [float]
 ==== Added
 
+- Register pipelines by default {pull}2106[2106].
 
 [float]
 ==== Removed
