@@ -307,6 +307,7 @@ func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) {
 	buf, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
 		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
+		sendPlain(w, body, statusCode)
 		return
 	}
 
