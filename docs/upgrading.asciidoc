@@ -37,7 +37,7 @@ As such any breaking change in libbeat is also considered to be a breaking chang
 ==== HEAD 
 no breaking changes in APM Server
 
-https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[breaking changes in libbeat]
+{beats-ref}/breaking-changes.html[breaking changes in libbeat]
 
 [float]
 ==== 6.4
@@ -48,7 +48,7 @@ Indexing the `onboarding` document in it's own index by default.
 ==== 6.3
 Indexing events in separate indices by default.
 
-https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[breaking changes in libbeat]
+{beats-ref}/breaking-changes-6.3.html[breaking changes in libbeat]
 
 [float]
 ==== 6.2
