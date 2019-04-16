@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -125,6 +126,8 @@ func TestRequestIntegration(t *testing.T) {
 			assert.Equal(t, test.code, w.Code, w.Body.String())
 			assert.Equal(t, ct+1, test.counter.Get())
 			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+			cl, err := strconv.Atoi(w.Header().Get("Content-Length"))
+			assert.True(t, cl > 0, err)
 			if test.code == http.StatusAccepted {
 				assert.NotZero(t, w.Body.Len())
 				assert.Equal(t, ctSuccess+1, responseSuccesses.Get())

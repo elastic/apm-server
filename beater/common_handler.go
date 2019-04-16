@@ -301,21 +301,21 @@ func acceptsJSON(r *http.Request) bool {
 	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
 }
 
-func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) {
+func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) int {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	buf, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
 		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
-		sendPlain(w, body, statusCode)
-		return
+		return sendPlain(w, body, statusCode)
 	}
 
-	w.Write(buf)
-	w.Write([]byte("\n"))
+	buf = append(buf, "\n"...)
+	n, _ := w.Write(buf)
+	return n
 }
 
-func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) {
+func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) int {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
 
@@ -323,6 +323,7 @@ func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) {
 	if err != nil {
 		b = []byte(fmt.Sprintf("%v", body))
 	}
-	w.Write(b)
-	w.Write([]byte("\n"))
+	b = append(b, "\n"...)
+	n, _ := w.Write(b)
+	return n
 }

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"golang.org/x/time/rate"
@@ -100,11 +101,13 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 }
 
 func send(w http.ResponseWriter, r *http.Request, body interface{}, statusCode int) {
+	var n int
 	if acceptsJSON(r) {
-		sendJSON(w, body, statusCode)
+		n = sendJSON(w, body, statusCode)
 	} else {
-		sendPlain(w, body, statusCode)
+		n = sendPlain(w, body, statusCode)
 	}
+	w.Header().Set("Content-Length", strconv.Itoa(n))
 }
 
 func (v *intakeHandler) sendError(logger *logp.Logger, w http.ResponseWriter, r *http.Request, err *stream.Error) {
