@@ -88,9 +88,7 @@ func errorRequiredKeys() *tests.Set {
 		"error.exception.message",
 		"error.log.message",
 		"error.exception.stacktrace.filename",
-		"error.exception.stacktrace.lineno",
 		"error.log.stacktrace.filename",
-		"error.log.stacktrace.lineno",
 		"error.context.request.method",
 		"error.context.request.url",
 

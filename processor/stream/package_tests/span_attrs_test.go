@@ -101,14 +101,13 @@ func spanRequiredKeys() *tests.Set {
 		"span.start",
 		"span.timestamp",
 		"span.stacktrace.filename",
-		"span.stacktrace.lineno",
 	)
 }
 
 func spanCondRequiredKeys() map[string]tests.Condition {
 	return map[string]tests.Condition{
-		"span.start":     tests.Condition{Absence: []string{"span.timestamp"}},
-		"span.timestamp": tests.Condition{Absence: []string{"span.start"}},
+		"span.start":     {Absence: []string{"span.timestamp"}},
+		"span.timestamp": {Absence: []string{"span.start"}},
 	}
 }
 

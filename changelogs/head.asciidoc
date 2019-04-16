@@ -7,7 +7,7 @@
 
 [float]
 ==== Added
-
+- Make stacktrace lineno optional {pull}2105[2105].
 
 [float]
 ==== Removed
