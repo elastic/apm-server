@@ -37,7 +37,7 @@ As such, any breaking change in libbeat is also considered to be a breaking chan
 ==== HEAD 
 * There are no breaking changes in APM Server.
 * Advanced users may find the <<upgrading-to-65,upgrading to 6.5 guide>> useful.
-* https://www.elastic.co/guide/en/beats/libbeat/master/breaking-changes.html[Breaking changes in libbeat]
+* {beats-ref}/breaking-changes.html[Breaking changes in libbeat]
 
 [float]
 ==== 6.4
@@ -46,7 +46,7 @@ As such, any breaking change in libbeat is also considered to be a breaking chan
 [float]
 ==== 6.3
 * Indexing events in separate indices by default.
-* https://www.elastic.co/guide/en/beats/libbeat/current/breaking-changes-6.3.html[Breaking changes in libbeat]
+* {beats-ref}/breaking-changes-6.3.html[Breaking changes in libbeat]
 
 [float]
 ==== 6.2
