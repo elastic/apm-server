@@ -108,8 +108,7 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 		logger:  logger,
 	}
 
-	shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.isEnabled() || b.InSetupCmd
-
+	shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.isEnabled()
 	if isElasticsearchOutput(b) && shouldSetupPipelines {
 		logger.Info("Registering pipeline callback.")
 		err := bt.registerPipelineCallback(b)
