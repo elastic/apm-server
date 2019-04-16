@@ -54,7 +54,7 @@ func TestDecodeSpan(t *testing.T) {
 	subtype := "postgresql"
 	action, action2 := "query", "query.custom"
 	stacktrace := []interface{}{map[string]interface{}{
-		"filename": "file", "lineno": 1.0,
+		"filename": "file",
 	}}
 
 	for name, test := range map[string]struct {
@@ -194,7 +194,7 @@ func TestDecodeSpan(t *testing.T) {
 				Duration:  duration,
 				Timestamp: spanTime,
 				Stacktrace: m.Stacktrace{
-					&m.StacktraceFrame{Filename: "file", Lineno: 1},
+					&m.StacktraceFrame{Filename: "file"},
 				},
 				Labels:        common.MapStr{"a": "tag", "tag.key": 17},
 				Id:            id,
@@ -280,7 +280,6 @@ func TestSpanTransform(t *testing.T) {
 						"exclude_from_grouping": false,
 						"abs_path":              path,
 						"filename":              "",
-						"line":                  common.MapStr{"number": 0},
 						"sourcemap": common.MapStr{
 							"error":   "Colno mandatory for sourcemapping.",
 							"updated": false,

@@ -407,7 +407,7 @@ const ModelSchema = `{
         },
         "lineno": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "integer"
+            "type": ["integer", "null"]
         },
         "module": {
             "description": "The module to which frame belongs to",
@@ -435,7 +435,7 @@ const ModelSchema = `{
             "properties": {}
         }
     },
-    "required": ["filename", "lineno"]
+    "required": ["filename"]
                             },
                             "minItems": 0
                         },
@@ -512,7 +512,7 @@ const ModelSchema = `{
         },
         "lineno": {
             "description": "The line number of code part of the stack frame, used e.g. to do error checksumming",
-            "type": "integer"
+            "type": ["integer", "null"]
         },
         "module": {
             "description": "The module to which frame belongs to",
@@ -540,7 +540,7 @@ const ModelSchema = `{
             "properties": {}
         }
     },
-    "required": ["filename", "lineno"]
+    "required": ["filename"]
                             },
                             "minItems": 0
                         }

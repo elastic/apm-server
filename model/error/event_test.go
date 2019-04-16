@@ -80,7 +80,7 @@ func TestErrorEventDecode(t *testing.T) {
 	timestamp := json.Number("1496170407154000")
 	timestampParsed, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
 
-	id, culprit := "123", "foo()"
+	id, culprit, lineno := "123", "foo()", 2
 	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
 	name, userId, email, userIp := "jane", "abc123", "j@d.com", "127.0.0.1"
 	pUrl, referer, origUrl := "https://mypage.com", "http:mypage.com", "127.0.0.1"
@@ -223,7 +223,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"type": exType, "handled": handled,
 					"stacktrace": []interface{}{
 						map[string]interface{}{
-							"filename": "file", "lineno": 1.0,
+							"filename": "file",
 						},
 					},
 				},
@@ -258,7 +258,7 @@ func TestErrorEventDecode(t *testing.T) {
 					Attributes: attrs,
 					Handled:    &handled,
 					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{Filename: "file", Lineno: 1},
+						&m.StacktraceFrame{Filename: "file"},
 					},
 				},
 				Log: &Log{
@@ -267,7 +267,7 @@ func TestErrorEventDecode(t *testing.T) {
 					Level:        &level,
 					LoggerName:   &logger,
 					Stacktrace: m.Stacktrace{
-						&m.StacktraceFrame{Filename: "log file", Lineno: 2},
+						&m.StacktraceFrame{Filename: "log file", Lineno: &lineno},
 					},
 				},
 				TransactionId:      &transactionId,
@@ -406,7 +406,6 @@ func TestEventFields(t *testing.T) {
 				"exception": []common.MapStr{{
 					"stacktrace": []common.MapStr{{
 						"filename":              "st file",
-						"line":                  common.MapStr{"number": 0},
 						"exclude_from_grouping": false,
 						"sourcemap": common.MapStr{
 							"error":   "Colno mandatory for sourcemapping.",
@@ -426,7 +425,7 @@ func TestEventFields(t *testing.T) {
 					"logger_name":   "logger",
 					"level":         "level",
 				},
-				"grouping_key": "d47ca09e1cfd512804f5d55cecd34262",
+				"grouping_key": "2725d2590215a6e975f393bf438f90ef",
 			},
 			Msg: "Event with frames",
 		},
@@ -546,14 +545,13 @@ func TestEvents(t *testing.T) {
 					"custom": common.MapStr{
 						"foo": "bar",
 					},
-					"grouping_key": "1d1e44ffdf01cad5117a72fd42e4fdf4",
+					"grouping_key": "a61a65e048f403d9bcb2863d517fb48d",
 					"log":          common.MapStr{"message": "error log message"},
 					"exception": []common.MapStr{{
 						"message": "exception message",
 						"stacktrace": []common.MapStr{{
 							"exclude_from_grouping": false,
 							"filename":              "myFile",
-							"line":                  common.MapStr{"number": 0},
 							"sourcemap": common.MapStr{
 								"error":   "Colno mandatory for sourcemapping.",
 								"updated": false,
@@ -716,15 +714,17 @@ func TestExplicitGroupingKey(t *testing.T) {
 }
 
 func TestFramesUsableForGroupingKey(t *testing.T) {
+	webpackLineno := 77
+	tmpLineno := 45
 	st1 := m.Stacktrace{
-		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: true},
+		&m.StacktraceFrame{Filename: "/a/b/c", ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "webpack", Lineno: &webpackLineno, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "~/tmp", Lineno: &tmpLineno, ExcludeFromGrouping: true},
 	}
 	st2 := m.Stacktrace{
-		&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 123, ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: "webpack", Lineno: 77, ExcludeFromGrouping: false},
-		&m.StacktraceFrame{Filename: "~/tmp", Lineno: 45, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "/a/b/c", ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "webpack", Lineno: &webpackLineno, ExcludeFromGrouping: false},
+		&m.StacktraceFrame{Filename: "~/tmp", Lineno: &tmpLineno, ExcludeFromGrouping: false},
 	}
 	exMsg := "base exception"
 	e1 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st1}}
@@ -738,12 +738,12 @@ func TestFallbackGroupingKey(t *testing.T) {
 	lineno := 12
 	filename := "file"
 
-	groupingKey := hex.EncodeToString(md5With(filename, string(lineno)))
+	groupingKey := hex.EncodeToString(md5With(filename))
 
-	e := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
+	e := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Filename: filename}})}
 	assert.Equal(t, groupingKey, e.calcGroupingKey())
 
-	e = Event{Exception: baseException(), Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: lineno, Filename: filename}})}
+	e = Event{Exception: baseException(), Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: &lineno, Filename: filename}})}
 	assert.Equal(t, groupingKey, e.calcGroupingKey())
 }
 
@@ -757,7 +757,7 @@ func TestNoFallbackGroupingKey(t *testing.T) {
 
 	e := Event{
 		Exception: baseException().withFrames([]*m.StacktraceFrame{
-			{Lineno: lineno, Module: &module, Filename: filename, Function: &function},
+			{Lineno: &lineno, Module: &module, Filename: filename, Function: &function},
 		}),
 	}
 	assert.Equal(t, groupingKey, e.calcGroupingKey())
@@ -808,25 +808,25 @@ func TestGroupableEvents(t *testing.T) {
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 10}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value}}),
 			},
 			e2: Event{
-				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 57}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value}}),
 			},
 			result: true,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 10}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{}),
 			},
 			e2: Event{
-				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 57}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{}),
 			},
-			result: false,
+			result: true,
 		},
 		{
 			e1: Event{
-				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 0}}),
+				Log: baseLog().withFrames([]*m.StacktraceFrame{}),
 			},
 			e2:     Event{},
 			result: false,
@@ -867,24 +867,6 @@ func TestGroupableEvents(t *testing.T) {
 			},
 			result: true,
 		},
-		{
-			e1: Event{
-				Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: 10}}),
-			},
-			e2: Event{
-				Exception: baseException().withFrames([]*m.StacktraceFrame{{Lineno: 10}}),
-			},
-			result: true,
-		},
-		{
-			e1: Event{
-				Log: baseLog().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 10}}),
-			},
-			e2: Event{
-				Exception: baseException().withFrames([]*m.StacktraceFrame{{Function: &value, Lineno: 57}}),
-			},
-			result: true,
-		},
 	}
 
 	for idx, test := range tests {
@@ -904,12 +886,13 @@ func md5With(args ...string) []byte {
 
 func TestSourcemapping(t *testing.T) {
 	c1 := 18
+	lineno := 1
 	empty := ""
 	exMsg := "exception message"
 	event := Event{Exception: &Exception{
 		Message: &exMsg,
 		Stacktrace: m.Stacktrace{
-			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: &lineno, Colno: &c1},
 		},
 	}}
 	tctx := &transform.Context{
@@ -923,7 +906,7 @@ func TestSourcemapping(t *testing.T) {
 	event2 := Event{Exception: &Exception{
 		Message: &exMsg,
 		Stacktrace: m.Stacktrace{
-			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: 1, Colno: &c1},
+			&m.StacktraceFrame{Filename: "/a/b/c", Lineno: &lineno, Colno: &c1},
 		},
 	}}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
@@ -931,8 +914,8 @@ func TestSourcemapping(t *testing.T) {
 	tctx.Config = transform.Config{SmapMapper: &mapper}
 	trWithSmap := event2.fields(tctx)
 
-	assert.Equal(t, 1, event.Exception.Stacktrace[0].Lineno)
-	assert.Equal(t, 5, event2.Exception.Stacktrace[0].Lineno)
+	assert.Equal(t, 1, *event.Exception.Stacktrace[0].Lineno)
+	assert.Equal(t, 5, *event2.Exception.Stacktrace[0].Lineno)
 
 	assert.NotEqual(t, trNoSmap["grouping_key"], trWithSmap["grouping_key"])
 }
