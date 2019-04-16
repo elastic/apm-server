@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"bytes"
 	"context"
 	"crypto/subtle"
 	"encoding/json"
@@ -319,17 +318,10 @@ func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
 
-	if m, ok := body.(map[string]interface{}); ok {
-		w.Write([]byte(mapToString(m)))
-		return
+	b, err := json.Marshal(body)
+	if err != nil {
+		b = []byte(fmt.Sprintf("%v", body))
 	}
-	w.Write([]byte(fmt.Sprintf("%v", body)))
-}
-
-func mapToString(m map[string]interface{}) string {
-	b := new(bytes.Buffer)
-	for k, v := range m {
-		fmt.Fprintf(b, "%s:\"%s\"\n", k, v)
-	}
-	return b.String()
+	w.Write(b)
+	w.Write([]byte("\n"))
 }
