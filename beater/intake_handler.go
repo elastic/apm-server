@@ -81,22 +81,29 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 	responseCounter.Inc()
 	counter.Inc()
 
-	if statusCode != http.StatusAccepted {
+	if statusCode == http.StatusAccepted {
+		responseSuccesses.Inc()
+		w.WriteHeader(statusCode)
+		if _, ok := r.URL.Query()["verbose"]; ok {
+			send(w, r, sr, statusCode)
+		}
+	} else {
 		responseErrors.Inc()
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
+		send(w, r, sr, statusCode)
 
-		if acceptsJSON(r) {
-			sendJSON(w, sr, statusCode)
-		} else {
-			sendPlain(w, sr.String(), statusCode)
-		}
 		logger.Infow("error handling request", "error", sr.String())
+	}
+}
+
+func send(w http.ResponseWriter, r *http.Request, body interface{}, statusCode int) {
+	if acceptsJSON(r) {
+		sendJSON(w, body, statusCode)
 	} else {
-		w.WriteHeader(statusCode)
-		responseSuccesses.Inc()
+		sendPlain(w, body, statusCode)
 	}
 }
 

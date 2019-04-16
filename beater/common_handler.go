@@ -284,12 +284,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 		body = map[string]interface{}{"error": res.err.Error()}
 		logger.Errorw("error handling request", "response_code", res.code, "error", body)
 	}
-
-	if acceptsJSON(r) {
-		sendJSON(w, body, res.code)
-		return
-	}
-	sendPlain(w, mapToString(body), res.code)
+	send(w, r, body, res.code)
 }
 
 // requestLogger is a convenience function to retrieve the logger that was
@@ -320,10 +315,15 @@ func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) {
 	w.Write([]byte("\n"))
 }
 
-func sendPlain(w http.ResponseWriter, body string, statusCode int) {
+func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
-	w.Write([]byte(body))
+
+	if m, ok := body.(map[string]interface{}); ok {
+		w.Write([]byte(mapToString(m)))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf("%v", body)))
 }
 
 func mapToString(m map[string]interface{}) string {
