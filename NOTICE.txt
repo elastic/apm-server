@@ -105,7 +105,7 @@ See also https://www.apache.org/dev/crypto.html and/or seek legal counsel.
 
 --------------------------------------------------------------------
 Dependency: github.com/docker/go-connections
-Revision: e15c02316c12de00874640cd76311849de2aeed5
+Revision: 3ede32e2033de7505e6500d6c868c2b9ed9f169d
 License type (autodetected): Apache-2.0
 ./vendor/github.com/docker/go-connections/LICENSE:
 --------------------------------------------------------------------
@@ -245,7 +245,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 5554677dc86b78f48b1ff2a214c661f5f78cbfe1
+Revision: 5f947e7a07261cbc10c2928e12c6de5a1830a624
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -287,7 +287,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-seccomp-bpf
-Revision: 5bed103a93993f24c58dd267faaab582f2373e31
+Revision: 4e6640ac0ec1b7cd22a7ec12f4ca610efbe3c4d9
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-seccomp-bpf/LICENSE.txt:
 --------------------------------------------------------------------
@@ -1189,6 +1189,22 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
+Dependency: github.com/konsorten/go-windows-terminal-sequences
+Revision: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
+License type (autodetected): MIT
+./vendor/github.com/konsorten/go-windows-terminal-sequences/LICENSE:
+--------------------------------------------------------------------
+(The MIT License)
+
+Copyright (c) 2017 marvin + konsorten GmbH (open-source@konsorten.de)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------
 Dependency: github.com/magefile/mage
 Revision: aedfce64c122eef47009b7f80c9771044753215d
 License type (autodetected): Apache-2.0
@@ -1726,10 +1742,10 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
-Dependency: github.com/Sirupsen/logrus
-Revision: 5e5dc898656f695e2a086b8e12559febbfc01562
+Dependency: github.com/sirupsen/logrus
+Revision: a6c0064cfaf982707445a1c90368f956421ebcf0
 License type (autodetected): MIT
-./vendor/github.com/Sirupsen/logrus/LICENSE:
+./vendor/github.com/sirupsen/logrus/LICENSE:
 --------------------------------------------------------------------
 The MIT License (MIT)
 
