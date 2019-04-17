@@ -40,6 +40,7 @@ func TestConfig(t *testing.T) {
 			config: []byte(`{
         "host": "localhost:3000",
         "max_header_size": 8,
+		"idle_timeout": 4s,
         "read_timeout": 3s,
         "write_timeout": 4s,
         "shutdown_timeout": 9s,
@@ -78,6 +79,7 @@ func TestConfig(t *testing.T) {
 			expectedConfig: Config{
 				Host:            "localhost:3000",
 				MaxHeaderSize:   8,
+				IdleTimeout:     4000000000,
 				ReadTimeout:     3000000000,
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
@@ -148,6 +150,7 @@ func TestConfig(t *testing.T) {
 			expectedConfig: Config{
 				Host:            "",
 				MaxHeaderSize:   0,
+				IdleTimeout:     0,
 				ReadTimeout:     0,
 				WriteTimeout:    0,
 				ShutdownTimeout: 0,

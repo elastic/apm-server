@@ -38,6 +38,7 @@ const DefaultPort = "8200"
 type Config struct {
 	Host                string                 `config:"host"`
 	MaxHeaderSize       int                    `config:"max_header_size"`
+	IdleTimeout         time.Duration          `config:"idle_timeout"`
 	ReadTimeout         time.Duration          `config:"read_timeout"`
 	WriteTimeout        time.Duration          `config:"write_timeout"`
 	MaxEventSize        int                    `config:"max_event_size"`
@@ -231,6 +232,7 @@ func defaultConfig(beatVersion string) *Config {
 		Host:            net.JoinHostPort("localhost", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
 		MaxConnections:  0,               // unlimited
+		IdleTimeout:     45 * time.Second,
 		ReadTimeout:     30 * time.Second,
 		WriteTimeout:    30 * time.Second,
 		MaxEventSize:    300 * 1024, // 300 kb
