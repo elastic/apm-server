@@ -46,7 +46,7 @@ apm-server:
     #event_rate:
 
       # Defines the maximum amount of events allowed to be sent to the APM Server RUM
-      # endpoint per ip per second. Defaults to 300.
+      # endpoint per IP per second. Defaults to 300.
       #limit: 300
 
       # An LRU cache is used to keep a rate limit per IP for the most recently seen IPs.
@@ -96,7 +96,7 @@ apm-server:
       #cache:
         #expiration: 5m
 
-      # Source maps are stored in a seperate index.
+      # Source maps are stored in a separate index.
       # If the default index pattern for source maps at 'outputs.elasticsearch.indices'
       # is changed, a matching index pattern needs to be specified here.
       #index_pattern: "apm-*-sourcemap*"
@@ -108,7 +108,7 @@ apm-server:
 
   # golang expvar support - https://golang.org/pkg/expvar/
   #expvar:
-    # Set to true to Expose expvar
+    # Set to true to expose expvar
     #enabled: false
 
     # Url to expose expvar
@@ -116,7 +116,7 @@ apm-server:
 
   # Instrumentation support for the server's HTTP endpoints and event publisher.
   #instrumentation:
-    # Set to true to enable instrumentation of the APM server itself.
+    # Set to true to enable instrumentation of the APM Server itself.
     #enabled: false
     # Environment in which the APM Server is running on (eg: staging, production, etc.)
     #environment: ""
@@ -681,7 +681,7 @@ output.elasticsearch:
 # If enabled, apm-server periodically logs its internal metrics that have changed
 # in the last period. For each metric that changed, the delta from the value at
 # the beginning of the period is logged. Also, the total values for
-# all non-zero internal metrics are logged on shutdown. The default is true.
+# all non-zero internal metrics are logged on shutdown. The default is false.
 #logging.metrics.enabled: false
 
 # The period after which to log the internal metrics. The default is 30s.
@@ -736,9 +736,9 @@ output.elasticsearch:
 # Port on which the HTTP endpoint will bind. Default is 5066.
 #http.port: 5066
 
-#============================== Xpack Monitoring ===============================
+#============================== X-pack Monitoring ===============================
 # APM server can export internal metrics to a central Elasticsearch monitoring
-# cluster.  This requires xpack monitoring to be enabled in Elasticsearch.  The
+# cluster.  This requires x-pack monitoring to be enabled in Elasticsearch.  The
 # reporting is disabled by default.
 
 # Set to true to enable the monitoring reporter.
