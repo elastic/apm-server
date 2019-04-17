@@ -24,13 +24,6 @@
 			"revisionTime": "2019-04-11T13:09:32Z"
 		},
 		{
-			"checksumSHA1": "YYMvxHp5ZvVURHxMQudv4yY3jJI=",
-			"origin": "github.com/elastic/beats/vendor/github.com/Sirupsen/logrus",
-			"path": "github.com/Sirupsen/logrus",
-			"revision": "5f947e7a07261cbc10c2928e12c6de5a1830a624",
-			"revisionTime": "2019-04-11T13:09:32Z"
-		},
-		{
 			"checksumSHA1": "Te1xRugxHQMAg7EvbIUuPWm8fvU=",
 			"origin": "github.com/elastic/beats/vendor/github.com/StackExchange/wmi",
 			"path": "github.com/StackExchange/wmi",
