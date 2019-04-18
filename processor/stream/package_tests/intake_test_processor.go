@@ -117,7 +117,7 @@ func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 	}
 
 	if len(result.Errors) > 0 {
-		return events, errors.New(result.String())
+		return events, errors.New(result.Error())
 	}
 
 	return events, nil

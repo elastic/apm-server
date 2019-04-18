@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"bytes"
 	"context"
 	"crypto/subtle"
 	"encoding/json"
@@ -284,12 +283,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 		body = map[string]interface{}{"error": res.err.Error()}
 		logger.Errorw("error handling request", "response_code", res.code, "error", body)
 	}
-
-	if acceptsJSON(r) {
-		sendJSON(w, body, res.code)
-		return
-	}
-	sendPlain(w, mapToString(body), res.code)
+	send(w, r, body, res.code)
 }
 
 // requestLogger is a convenience function to retrieve the logger that was
@@ -307,29 +301,29 @@ func acceptsJSON(r *http.Request) bool {
 	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
 }
 
-func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) {
+func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) int {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	buf, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
 		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
-		return
+		return sendPlain(w, body, statusCode)
 	}
 
-	w.Write(buf)
-	w.Write([]byte("\n"))
+	buf = append(buf, "\n"...)
+	n, _ := w.Write(buf)
+	return n
 }
 
-func sendPlain(w http.ResponseWriter, body string, statusCode int) {
+func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) int {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
-	w.Write([]byte(body))
-}
 
-func mapToString(m map[string]interface{}) string {
-	b := new(bytes.Buffer)
-	for k, v := range m {
-		fmt.Fprintf(b, "%s:\"%s\"\n", k, v)
+	b, err := json.Marshal(body)
+	if err != nil {
+		b = []byte(fmt.Sprintf("%v", body))
 	}
-	return b.String()
+	b = append(b, "\n"...)
+	n, _ := w.Write(b)
+	return n
 }

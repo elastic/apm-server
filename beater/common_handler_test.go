@@ -88,7 +88,7 @@ func TestOkBody(t *testing.T) {
 	})
 	rsp := w.Result()
 	got := body(t, rsp)
-	assert.Equal(t, "some:\"body\"\n", string(got))
+	assert.Equal(t, "{\"some\":\"body\"}\n", string(got))
 	assert.Equal(t, "text/plain; charset=utf-8", rsp.Header.Get("Content-Type"))
 }
 
@@ -118,7 +118,7 @@ func TestAccept(t *testing.T) {
   "error": "data validation error: error message"
 }
 `
-	expectedErrorText := "error:\"data validation error: error message\"\n"
+	expectedErrorText := "{\"error\":\"data validation error: error message\"}\n"
 
 	for idx, test := range []struct{ accept, expectedError, expectedContentType string }{
 		{"application/json", expectedErrorJson, "application/json"},

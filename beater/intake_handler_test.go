@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -48,7 +49,7 @@ func TestInvalidContentType(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
-	assert.Equal(t, "invalid content type: ''", w.Body.String())
+	assert.Contains(t, w.Body.String(), "invalid content type: ''")
 	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
 }
 
@@ -124,19 +125,19 @@ func TestRequestIntegration(t *testing.T) {
 
 			assert.Equal(t, test.code, w.Code, w.Body.String())
 			assert.Equal(t, ct+1, test.counter.Get())
+			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+			cl, err := strconv.Atoi(w.Header().Get("Content-Length"))
+			assert.True(t, cl > 0, err)
 			if test.code == http.StatusAccepted {
-				assert.Equal(t, 0, w.Body.Len())
-				assert.Equal(t, w.HeaderMap.Get("Content-Type"), "")
+				assert.NotZero(t, w.Body.Len())
 				assert.Equal(t, ctSuccess+1, responseSuccesses.Get())
 				assert.Equal(t, ctFailure, responseErrors.Get())
 			} else {
-				assert.Equal(t, "application/json", w.HeaderMap.Get("Content-Type"))
 				assert.Equal(t, ctSuccess, responseSuccesses.Get())
 				assert.Equal(t, ctFailure+1, responseErrors.Get())
-
-				body := w.Body.Bytes()
-				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+test.name, body)
 			}
+			body := w.Body.Bytes()
+			tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+test.name, body)
 		})
 	}
 }
@@ -178,6 +179,9 @@ func sendReq(c *Config, route *intakeRoute, url string, p string, repErr error) 
 	req := httptest.NewRequest("POST", url, bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	req.Header.Add("Accept", "application/json")
+	q := req.URL.Query()
+	q.Add("verbose", "")
+	req.URL.RawQuery = q.Encode()
 
 	report := func(context.Context, publish.PendingReq) error {
 		return repErr
