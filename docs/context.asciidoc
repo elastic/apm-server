@@ -1,6 +1,0 @@
-* Data about the environment in which the event is recorded:
-** Service - environment, framework, language, etc.
-** Host - architecture, hostname, IP, etc.
-** Process - args, PID, PPID, etc.
-** URL - full, domain, port, query, etc.
-** User - (if supplied) email, ID, username, etc.

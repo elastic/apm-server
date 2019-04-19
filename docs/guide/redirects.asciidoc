@@ -3,7 +3,7 @@
 
 The following pages do not exist. They may have moved, been deleted, or have not been created yet.
 
-[role="exclude",id="metadata"]
-=== Metadata
+// [role="exclude",id="metadata"]
+// === Metadata
 
-This page is coming soon. Please see the <<apm-data-model,APM Data Model>> for now.
+// This page has moved. Please see <<link>> for now.
