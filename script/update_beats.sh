@@ -55,6 +55,7 @@ rsync -crpv --delete \
     --include="vendor/" \
     --include="vendor/vendor.json" \
     --exclude="vendor/*" \
+    --include="CHANGELOG*" \
     --exclude="*" \
     ${GIT_CLONE}/ .
 
