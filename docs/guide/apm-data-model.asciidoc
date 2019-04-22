@@ -222,6 +222,7 @@ Multiple labels can be defined with different key-value pairs.
 * Elasticsearch field: `labels` (previously `context.tags`)
 
 Label values can be a string, boolean, or number.
+Note that some agents only support string values at this time.
 Because labels are stored in the same place in Elasticsearch, each value must have the same datatype.
 Multiple datatypes per key will throw an exception, e.g. `{foo: bar}` and `{foo: 42}`
 
