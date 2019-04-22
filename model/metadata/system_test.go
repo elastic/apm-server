@@ -23,6 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -150,7 +151,7 @@ func TestSystemDecode(t *testing.T) {
 		{input: "", err: errors.New("invalid type for system"), s: nil},
 		{
 			input: map[string]interface{}{"hostname": 1},
-			err:   errors.New("Error fetching field"),
+			err:   utility.ErrFetch,
 			s:     &System{Hostname: nil, Architecture: nil, Platform: nil, IP: nil},
 		},
 		{

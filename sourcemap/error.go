@@ -17,10 +17,6 @@
 
 package sourcemap
 
-import (
-	"fmt"
-)
-
 type Enum string
 
 const (
@@ -37,5 +33,5 @@ type Error struct {
 }
 
 func (e Error) Error() string {
-	return fmt.Sprintf("%s", e.Msg)
+	return e.Msg
 }

@@ -114,7 +114,6 @@ func (v *intakeHandler) sendError(logger *logp.Logger, w http.ResponseWriter, r 
 	sr := stream.Result{}
 	sr.Add(err)
 	v.sendResponse(logger, w, r, &sr)
-	return
 }
 
 func (v *intakeHandler) validateRequest(r *http.Request) *stream.Error {

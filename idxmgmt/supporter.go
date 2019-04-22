@@ -185,12 +185,12 @@ func (m *manager) load(forceTemplate, forcePolicy bool) error {
 		fields := m.assets.Fields(m.supporter.info.Beat)
 		loader, err := template.NewLoader(tmplCfg, m.client, m.supporter.info, fields, m.supporter.migration)
 		if err != nil {
-			return fmt.Errorf("Error creating Elasticsearch template loader: %v", err)
+			return fmt.Errorf("error creating Elasticsearch template loader: %+v", err)
 		}
 
 		err = loader.Load()
 		if err != nil {
-			return fmt.Errorf("Error loading Elasticsearch template: %v", err)
+			return fmt.Errorf("error loading Elasticsearch template: %+v", err)
 		}
 
 		log.Info("Loaded index template.")

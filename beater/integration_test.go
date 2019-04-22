@@ -53,7 +53,7 @@ var timestampOverride = time.Date(2019, 1, 9, 21, 40, 53, 690, time.UTC)
 
 // adjustMissingTimestamp sets @timestamp and timestamp.us to known values for events that originally omitted a ts
 func adjustMissingTimestamp(event *beat.Event) {
-	if time.Now().Sub(event.Timestamp) < 5*time.Minute {
+	if time.Since(event.Timestamp) < 5*time.Minute {
 		event.Timestamp = timestampOverride
 		event.Fields.Put("timestamp.us", timestampOverride.UnixNano()/1000)
 	}
@@ -65,6 +65,7 @@ func adjustMissingTimestamp(event *beat.Event) {
 func testPublish(t *testing.T, apm *beater, events <-chan beat.Event, url string, payload io.Reader) []byte {
 	baseUrl, client := apm.client(false)
 	req, err := http.NewRequest(http.MethodPost, baseUrl+url, payload)
+	require.NoError(t, err)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	rsp, err := client.Do(req)
 	require.NoError(t, err)

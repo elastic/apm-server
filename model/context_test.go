@@ -23,13 +23,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/common"
-
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/beats/libbeat/common"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/utility"
 )
 
 func TestDecodeContext(t *testing.T) {
@@ -81,7 +81,7 @@ func TestDecodeContext(t *testing.T) {
 				"context": map[string]interface{}{
 					"request": map[string]interface{}{
 						"url": map[string]interface{}{"raw": "127.0.0.1"}}}},
-			errOut: "Error fetching field",
+			errOut: utility.ErrFetch.Error(),
 		},
 		"no_url_protocol": {
 			input: map[string]interface{}{

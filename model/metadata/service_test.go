@@ -23,6 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -111,7 +112,7 @@ func TestServiceDecode(t *testing.T) {
 		{input: "", err: errors.New("invalid type for service"), s: nil},
 		{
 			input: map[string]interface{}{"name": 1234},
-			err:   errors.New("Error fetching field"),
+			err:   utility.ErrFetch,
 			s: &Service{
 				Language:  Language{},
 				Runtime:   Runtime{},

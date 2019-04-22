@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,10 +42,10 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 		err, inpErr error
 		e           *Event
 	}{
-		"no input":           {input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
+		"no input":           {input: nil, err: errMissingInput, e: nil},
 		"input error":        {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		"invalid type":       {input: "", err: errors.New("invalid type for transaction event"), e: nil},
-		"cannot fetch field": {input: map[string]interface{}{}, err: errors.New("Error fetching field"), e: nil},
+		"invalid type":       {input: "", err: errInvalidType, e: nil},
+		"cannot fetch field": {input: map[string]interface{}{}, err: utility.ErrFetch, e: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
 			transformable, err := DecodeEvent(test.input, model.Config{}, test.inpErr)
@@ -61,8 +62,7 @@ func TestTransactionEventDecodeFailure(t *testing.T) {
 
 func TestTransactionEventDecode(t *testing.T) {
 	id, trType, name, result := "123", "type", "foo()", "555"
-	timestamp := "2017-05-30T18:53:27.154Z"
-	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", timestampParsed.UnixNano()/1000))
 	traceId, parentId := "0147258369012345abcdef0123456789", "abcdef0123456789"
 	dropped, started, duration := 12, 6, 1.67
@@ -294,7 +294,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	hostname := "a.b.c"
 	architecture := "darwin"
 	platform := "x64"
-	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
+	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
 	user := metadata.User{Id: &id, Name: &name, IP: &ip, UserAgent: &userAgent}
@@ -474,10 +474,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 }
 
 func TestEventTransformUseReqTime(t *testing.T) {
-	reqTimestamp := "2017-05-30T18:53:27.154Z"
-	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
-	require.NoError(t, err)
-
+	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	e := Event{}
 	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)

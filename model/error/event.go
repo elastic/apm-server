@@ -30,15 +30,16 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/error/generated/schema"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 var (
@@ -47,6 +48,9 @@ var (
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")
 	processorEntry    = common.MapStr{"name": processorName, "event": errorDocType}
+
+	errMissingInput = errors.New("input missing for decoding error event")
+	errInvalidType  = errors.New("invalid type for error event")
 )
 
 const (
@@ -110,12 +114,12 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		return nil, err
 	}
 	if input == nil {
-		return nil, errors.New("Input missing for decoding Event")
+		return nil, errMissingInput
 	}
 
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for error event")
+		return nil, errInvalidType
 	}
 
 	ctx, err := m.DecodeContext(raw, cfg, nil)

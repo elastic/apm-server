@@ -154,7 +154,7 @@ func (ps *ProcessorSetup) AttrsPresence(t *testing.T, requiredKeys *Set, condReq
 		)
 
 		//test removing key from payload
-		cond, _ := condRequiredKeys[key]
+		cond := condRequiredKeys[key]
 		ps.changePayload(t, key, nil, cond, deleteFn,
 			func(k string) (bool, []string) {
 				errMsgs := []string{
@@ -336,9 +336,9 @@ func deleteFn(m interface{}, k string, v interface{}) interface{} {
 }
 
 func applyFn(m interface{}, k string, val interface{}, fn func(obj, string, interface{}) obj) interface{} {
-	switch m.(type) {
+	switch t := m.(type) {
 	case obj:
-		fn(m.(obj), k, val)
+		fn(t, k, val)
 	case []interface{}:
 		for _, e := range m.([]interface{}) {
 			if eObj, ok := e.(obj); ok {
@@ -387,10 +387,6 @@ type Schema struct {
 	AnyOf                []*Schema
 	MaxLength            int
 }
-type Mapping struct {
-	from string
-	to   string
-}
 
 func ParseSchema(s string) (*Schema, error) {
 	decoder := json.NewDecoder(bytes.NewBufferString(s))
@@ -415,10 +411,8 @@ func FlattenSchemaNames(s *Schema, prefix string, filter func(*Schema) bool, fla
 	}
 
 	for _, schemas := range [][]*Schema{s.AllOf, s.OneOf, s.AnyOf} {
-		if schemas != nil {
-			for _, e := range schemas {
-				FlattenSchemaNames(e, prefix, filter, flattened)
-			}
+		for _, e := range schemas {
+			FlattenSchemaNames(e, prefix, filter, flattened)
 		}
 	}
 }
