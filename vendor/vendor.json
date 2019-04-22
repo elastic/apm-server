@@ -3,6 +3,15 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"origin": "honnef.co/go/tools/config/config/vendor/github.com/BurntSushi/toml",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005",
+			"revisionTime": "2018-08-15T10:47:33Z",
+			"version": "v0.3.1",
+			"versionExact": "v0.3.1"
+		},
+		{
 			"checksumSHA1": "eruIVA8JnsB23rVKjETHvqJ0sj8=",
 			"origin": "github.com/elastic/beats/vendor/github.com/DataDog/zstd",
 			"path": "github.com/DataDog/zstd",
@@ -2491,6 +2500,24 @@
 			"versionExact": "release-branch.go1.12"
 		},
 		{
+			"checksumSHA1": "oLxfhYYiQoXoC63nQfZ6JGYc33o=",
+			"origin": "honnef.co/go/tools/lint/vendor/golang.org/x/tools/go/ast/inspector",
+			"path": "golang.org/x/tools/go/ast/inspector",
+			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
+			"revisionTime": "2019-03-01T11:00:19Z",
+			"version": "release-branch.go1.12",
+			"versionExact": "release-branch.go1.12"
+		},
+		{
+			"checksumSHA1": "/UCuUGzk9/QJTUcTkYDRdCas3Tc=",
+			"origin": "github.com/elastic/beats/vendor/golang.org/x/tools/go/buildutil",
+			"path": "golang.org/x/tools/go/buildutil",
+			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
+			"revisionTime": "2019-03-01T11:00:19Z",
+			"version": "release-branch.go1.12",
+			"versionExact": "release-branch.go1.12"
+		},
+		{
 			"checksumSHA1": "6lzLm5eIswP0fziPs74p+lb0QUo=",
 			"path": "golang.org/x/tools/go/gcexportdata",
 			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
@@ -2523,8 +2550,26 @@
 			"versionExact": "release-branch.go1.12"
 		},
 		{
+			"checksumSHA1": "wr2oXQWRoxvsHoc349wVfTzpXfM=",
+			"origin": "github.com/elastic/beats/vendor/golang.org/x/tools/go/loader",
+			"path": "golang.org/x/tools/go/loader",
+			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
+			"revisionTime": "2019-03-01T11:00:19Z",
+			"version": "release-branch.go1.12",
+			"versionExact": "release-branch.go1.12"
+		},
+		{
 			"checksumSHA1": "U4XmDuxzcmANbYDc10Gi7bv9v9o=",
 			"path": "golang.org/x/tools/go/packages",
+			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
+			"revisionTime": "2019-03-01T11:00:19Z",
+			"version": "release-branch.go1.12",
+			"versionExact": "release-branch.go1.12"
+		},
+		{
+			"checksumSHA1": "oT4r2iJVt4b9X0hqK2pN8qzAwoU=",
+			"origin": "honnef.co/go/tools/stylecheck/vendor/golang.org/x/tools/go/types/typeutil",
+			"path": "golang.org/x/tools/go/types/typeutil",
 			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
 			"revisionTime": "2019-03-01T11:00:19Z",
 			"version": "release-branch.go1.12",
