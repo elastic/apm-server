@@ -93,7 +93,7 @@ func (v *v2Handler) sendResponse(logger *logp.Logger, w http.ResponseWriter, r *
 		} else {
 			sendPlain(w, sr.String(), statusCode)
 		}
-		logger.Infow("error handling request", "error", sr.String())
+		logger.Errorw("error handling request", "error", sr.String())
 	} else {
 		w.WriteHeader(statusCode)
 		responseSuccesses.Inc()
