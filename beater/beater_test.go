@@ -46,22 +46,21 @@ import (
 func TestBeatConfig(t *testing.T) {
 	falsy, truthy := false, true
 
-	tests := []struct {
+	tests := map[string]struct {
 		conf       map[string]interface{}
 		beaterConf *Config
 		SmapIndex  string
-		msg        string
 	}{
-		{
+		"default config": {
 			conf:       map[string]interface{}{},
 			beaterConf: defaultConfig("6.2.0"),
-			msg:        "Default config created for empty config.",
 		},
-		{
+		"overwrite default config": {
 			conf: map[string]interface{}{
 				"host":                  "localhost:3000",
 				"max_header_size":       8,
 				"max_event_size":        100,
+				"idle_timeout":          5 * time.Second,
 				"read_timeout":          3 * time.Second,
 				"write_timeout":         4 * time.Second,
 				"shutdown_timeout":      9 * time.Second,
@@ -106,6 +105,7 @@ func TestBeatConfig(t *testing.T) {
 				Host:            "localhost:3000",
 				MaxHeaderSize:   8,
 				MaxEventSize:    100,
+				IdleTimeout:     5000000000,
 				ReadTimeout:     3000000000,
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
@@ -141,9 +141,8 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 			},
-			msg: "Given config overwrites default",
 		},
-		{
+		"merge config with default": {
 			conf: map[string]interface{}{
 				"host":         "localhost:3000",
 				"secret_token": "1234random",
@@ -175,6 +174,7 @@ func TestBeatConfig(t *testing.T) {
 				Host:            "localhost:3000",
 				MaxHeaderSize:   1048576,
 				MaxEventSize:    307200,
+				IdleTimeout:     45000000000,
 				ReadTimeout:     30000000000,
 				WriteTimeout:    30000000000,
 				ShutdownTimeout: 5000000000,
@@ -212,18 +212,19 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 			},
-			msg: "Given config merged with default",
 		},
 	}
 
-	for _, test := range tests {
-		ucfgConfig, err := common.NewConfigFrom(test.conf)
-		assert.NoError(t, err)
-		btr, err := New(&beat.Beat{Info: beat.Info{Version: "6.2.0"}}, ucfgConfig)
-		assert.NoError(t, err)
-		assert.NotNil(t, btr)
-		bt := btr.(*beater)
-		assert.Equal(t, test.beaterConf, bt.config, test.msg)
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			ucfgConfig, err := common.NewConfigFrom(test.conf)
+			assert.NoError(t, err)
+			btr, err := New(&beat.Beat{Info: beat.Info{Version: "6.2.0"}}, ucfgConfig)
+			assert.NoError(t, err)
+			assert.NotNil(t, btr)
+			bt := btr.(*beater)
+			assert.Equal(t, test.beaterConf, bt.config)
+		})
 	}
 }
 

@@ -42,6 +42,7 @@ func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) *htt
 			apmhttp.WithServerRequestIgnorer(doNotTrace),
 			apmhttp.WithTracer(tracer),
 		),
+		IdleTimeout:    config.IdleTimeout,
 		ReadTimeout:    config.ReadTimeout,
 		WriteTimeout:   config.WriteTimeout,
 		MaxHeaderBytes: config.MaxHeaderSize,
