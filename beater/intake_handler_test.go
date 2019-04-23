@@ -95,6 +95,13 @@ func TestRequestDecoderError(t *testing.T) {
 }
 
 func TestRequestIntegration(t *testing.T) {
+	endpoints := []struct {
+		url   string
+		route intakeRoute
+	}{
+		{url: backendURL, route: backendRoute},
+		{url: rumURL, route: rumRoute},
+	}
 	for name, test := range map[string]struct {
 		code         int
 		path         string
@@ -112,7 +119,7 @@ func TestRequestIntegration(t *testing.T) {
 		"FullQueue":           {code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
 	} {
 
-		for url, route := range map[string]intakeRoute{backendURL: backendRoute, rumURL: rumRoute} {
+		for _, endpoint := range endpoints {
 			cfg := defaultConfig("7.0.0")
 			rum := true
 			cfg.RumConfig.Enabled = &rum
@@ -124,8 +131,8 @@ func TestRequestIntegration(t *testing.T) {
 				reqCt := requestCounter.Get()
 
 				w, err := sendReq(cfg,
-					&route,
-					url,
+					&endpoint.route,
+					endpoint.url,
 					filepath.Join("../testdata/intake-v2/", test.path),
 					test.reportingErr)
 				require.NoError(t, err)
