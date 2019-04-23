@@ -10,6 +10,7 @@
 - Make stacktrace lineno optional {pull}2105[2105].
 - Return response body with number of accepted events when queries pass a `verbose` param. {pull}2110[2110].
 - Add Idle timeout to server config {pull}2122[2122].
+- Upgrade Go to 1.12.4 {pull}2132[2132].
 
 [float]
 ==== Removed
