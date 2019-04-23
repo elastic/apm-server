@@ -32,6 +32,12 @@ Defaults to 'localhost:8200'.
 Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
 Defaults to 1048576 Bytes (1 MB).
 
+[[idle_timeout]]
+[float]
+==== `idle_timeout`
+Maximum amount of time to wait for the next incoming request before underlying connection is closed.
+Defaults to 45 seconds.
+
 [[read_timeout]]
 [float]
 ==== `read_timeout`
