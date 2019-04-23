@@ -97,8 +97,8 @@ which are points in time relative to the start of the transaction with some labe
 In addition, agents provide options for users to capture custom <<metadata, metadata>>.
 Metadata can be indexed - <<labels-fields,`labels`>>, or not-indexed - <<custom-fields,`custom`>>.
 
-TIP: Most agents limit keyword fields (e.g. `transaction.name`) to 1024 characters,
-and non-keyword fields (e.g. `labels`) to 10,000 characters.
+TIP: Most agents limit keyword fields (e.g. `labels`) to 1024 characters,
+and non-keyword fields (e.g. `span.db.statement`) to 10,000 characters.
 
 Transactions are stored in {apm-server-ref-v}/transaction-indices.html[transaction indices].
 
@@ -166,51 +166,7 @@ For a full list of tracked metrics, see the relevant agent documentation:
 Metadata can enrich your events and make application performance monitoring even more useful.
 Let's explore the different types of metadata that Elastic APM offers.
 
-==== Quick Reference table
-
-[options="header", cols="1,1,1,2"]
-|=======================================================================
-|Metadata   |Indexed   |Applies to     |Agent API links
-
-|Labels
-|Yes
-v|<<transactions>>
-<<transaction-spans>>
-<<errors>>
-v|Go: {apm-go-ref}/api.html#context-set-tag[`SetTag`]
-Java: {apm-java-ref}/public-api.html#api-transaction-add-tag[`addLabel`]
-Node.js: {apm-node-ref}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref}/agent-api.html#apm-add-tags[`addTags`]
-Python: {apm-py-ref}/api.html#api-tag[`tag`]
-Ruby: {apm-ruby-ref}/api.html#api-agent-set-tag[`set_tag`]
-Rum: {apm-rum-ref}/api.html#apm-add-tags[`addTags`]
-
-|Custom
-|No
-v|<<transactions>>
-<<errors>>
-v|Go: {apm-go-ref}/api.html#slug-here[`???`]
-Java: {apm-java-ref}/public-api.html#slug-here[`???`]
-Node.js: {apm-node-ref}/agent-api.html#apm-set-custom-context[`setCustomContext`]
-Python: {apm-py-ref}/api.html#api-set-custom-context[`set_custom_context`]
-Ruby: {apm-ruby-ref}/api.html#api-agent-set-custom-context[`set_custom_context`]
-Rum: {apm-rum-ref}/api.html#apm-set-custom-context[`setCustomContext`]
-
-|User
-|Yes
-v|<<transactions>>
-<<errors>>
-v|Go: {apm-go-ref}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref}/api.html#context-set-id[`SetUserID`] \| {apm-go-ref}/api.html#context-set-email[`SetUserEmail`]
-Java: {apm-java-ref}/public-api.html#api-transaction-set-user[`setUser`]
-Node.js: {apm-node-ref}/agent-api.html#apm-set-user-context[`setUserContext`]
-Python: {apm-py-ref}api.html#api-set-user-context[`set_user_context`]
-Ruby: {apm-ruby-ref}/api.html#api-agent-set-user[`set_user`]
-Rum: {apm-rum-ref}/api.html#apm-set-user-context[`setUserContext`]
-
-|=======================================================================
-
-// GO CUSTOM - not quite sure where to link
-// JAVA CUSTOM - looks like Java doesn't have a custom context option
-
+[float]
 [[labels-fields]]
 ==== Labels
 
@@ -218,21 +174,35 @@ Labels are used to add *indexed* information to transactions, spans, and errors.
 Indexed means the data is searchable and aggregatable in Elasticsearch.
 Multiple labels can be defined with different key-value pairs.
 
+* Indexed: Yes
 * Elasticsearch type: {ref}/object.html[object]
-* Elasticsearch field: `labels` (previously `context.tags`)
+* Elasticsearch field: `labels` (previously `context.tags` in <v.7.0)
+* Applies to <<transactions>> | <<transaction-spans>> | <<errors>>
 
 Label values can be a string, boolean, or number.
 Note that some agents only support string values at this time.
-Because labels are stored in the same place in Elasticsearch, each value must have the same datatype.
-Multiple datatypes per key will throw an exception, e.g. `{foo: bar}` and `{foo: 42}`
+Because labels are stored in the same place in Elasticsearch, each value must have the same data type.
+Multiple data types per key will throw an exception, e.g. `{foo: bar}` and `{foo: 42}`
 
 IMPORTANT: Avoid defining too many user-specified labels.
 Defining too many unique fields in an index is a condition that can lead to a
 {ref}/mapping.html#mapping-limit-settings[mapping explosion].
 
+
+|===
+|Labels API links
+v|*Go:* {apm-go-ref}/api.html#context-set-tag[`SetTag`]
+*Java:* {apm-java-ref}/public-api.html#api-transaction-add-tag[`addLabel`]
+*Node.js:* {apm-node-ref}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref}/agent-api.html#apm-add-tags[`addTags`]
+*Python:* {apm-py-ref}/api.html#api-tag[`tag`]
+*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-tag[`set_tag`]
+*Rum:* {apm-rum-ref}/api.html#apm-add-tags[`addTags`]
+|===
+
 // elastic/apm-server#828
 // https://github.com/elastic/apm-server/pull/1712
 
+[float]
 [[custom-fields]]
 ==== Custom context
 
@@ -240,18 +210,47 @@ Custom context is used to add *non-indexed*,
 custom contextual information to transactions and errors.
 Non-indexed means the data is not searchable or aggregatable in Elasticsearch,
 and you cannot build dashboards on top of the data.
-However, non-indexed information is useful for other reasons,
-like providing contextual information to help you quickly debug performance issues or errors.
+This also means you do not have to worry about {ref}/mapping.html#mapping-limit-settings[mapping explosions],
+as these fields are not added to the mapping.
 
+Non-indexed information is useful for providing contextual information to help you
+quickly debug performance issues or errors.
+
+* Indexed: No
 * Elasticsearch type: {ref}/object.html[object]
 * Elasticsearch fields: `transaction.custom` | `error.custom`
+* Applies to <<transactions>> | <<errors>>
 
 IMPORTANT: Setting a circular object, large object, or a non JSON serializable object can lead to errors.
 
+|===
+|Custom context API links
+v|*Go:* _coming soon_
+*Java:* _coming soon_
+*Node.js:* {apm-node-ref}/agent-api.html#apm-set-custom-context[`setCustomContext`]
+*Python:* {apm-py-ref}/api.html#api-set-custom-context[`set_custom_context`]
+*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-custom-context[`set_custom_context`]
+*Rum:* {apm-rum-ref}/api.html#apm-set-custom-context[`setCustomContext`]
+|===
+
+[float]
 [[user-fields]]
 ==== User context
 
 User context is used to add *indexed* information to transactions and errors.
 
+* Indexed: Yes
 * Elasticsearch type: {ref}/keyword.html[keywords]
 * Elasticsearch fields: `user.email` | `user.name` | `user.id`
+* Applies to <<transactions>> | <<errors>>
+
+
+|===
+|User context API links
+v|*Go:* {apm-go-ref}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref}/api.html#context-set-id[`SetUserID`] \| {apm-go-ref}/api.html#context-set-email[`SetUserEmail`]
+*Java:* {apm-java-ref}/public-api.html#api-transaction-set-user[`setUser`]
+*Node.js:* {apm-node-ref}/agent-api.html#apm-set-user-context[`setUserContext`]
+*Python:* {apm-py-ref}api.html#api-set-user-context[`set_user_context`]
+*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-user[`set_user`]
+*Rum:* {apm-rum-ref}/api.html#apm-set-user-context[`setUserContext`]
+|===
