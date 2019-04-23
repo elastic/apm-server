@@ -83,8 +83,8 @@ func (r *Result) AddAccepted(ct int) {
 	mAccepted.Add(int64(ct))
 }
 
-func (r *Result) String() string {
-	errorList := []string{}
+func (r *Result) Error() string {
+	var errorList []string
 	for _, e := range r.Errors {
 		errorList = append(errorList, e.Error())
 	}

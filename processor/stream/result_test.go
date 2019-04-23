@@ -45,7 +45,7 @@ func TestStreamResponseSimple(t *testing.T) {
 	assert.Len(t, sr.Errors, 6)
 
 	expectedStr := `err1 [buf1], transmogrifier error, err2 [buf2], err3 [buf3], err4, err6`
-	assert.Equal(t, expectedStr, sr.String())
+	assert.Equal(t, expectedStr, sr.Error())
 }
 
 func TestMonitoring(t *testing.T) {

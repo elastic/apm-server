@@ -22,6 +22,12 @@ class Test(ServerBaseTest):
     def test_ok(self):
         r = self.request_intake()
         assert r.status_code == 202, r.status_code
+        assert r.text == "", r.text
+
+    def test_ok_verbose(self):
+        r = self.request_intake(url='http://localhost:8200/intake/v2/events?verbose')
+        assert r.status_code == 202, r.status_code
+        assert r.json() == {"accepted": 4}, r.json()
 
     def test_empty(self):
         r = self.request_intake(data={})

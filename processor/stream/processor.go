@@ -254,7 +254,7 @@ func (p *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map
 	lineReader := decoder.NewLineReader(buf, p.MaxEventSize)
 	ndReader := decoder.NewNDJSONStreamReader(lineReader)
 
-	// our own wrapper converts jsonreader errors to errors that are useful to us
+	// our own wrapper converts json reader errors to errors that are useful to us
 	jsonReader := &srErrorWrapper{ndReader}
 
 	metadata, err := p.readMetadata(meta, jsonReader)

@@ -8,6 +8,7 @@ pipeline {
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
+    CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -214,7 +215,7 @@ pipeline {
               //googleStorageUpload bucket: "gs://${JOB_GCS_BUCKET}/${JOB_NAME}/${BUILD_NUMBER}", credentialsId: "${JOB_GCS_CREDENTIALS}", pathPrefix: "${BASE_DIR}", pattern: '**/build/TEST-*.out', sharedPublicly: true, showInline: true
               tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
-              codecov(repo: 'apm-server', basedir: "${BASE_DIR}")
+              codecov(repo: 'apm-server', basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -260,9 +261,6 @@ pipeline {
             beforeAgent true
             allOf {
               anyOf {
-                not {
-                  changeRequest()
-                }
                 branch 'master'
                 branch "\\d+\\.\\d+"
                 branch "v\\d?"
@@ -374,9 +372,6 @@ pipeline {
         beforeAgent true
         allOf {
           anyOf {
-            not {
-              changeRequest()
-            }
             branch 'master'
             branch "\\d+\\.\\d+"
             branch "v\\d?"
