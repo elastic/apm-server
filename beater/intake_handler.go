@@ -83,6 +83,8 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 
 	if statusCode != http.StatusAccepted {
 		responseErrors.Inc()
+		logger.Errorw("error handling request", "error", sr.String())
+
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
@@ -93,7 +95,6 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 		} else {
 			sendPlain(w, sr.String(), statusCode)
 		}
-		logger.Infow("error handling request", "error", sr.String())
 	} else {
 		w.WriteHeader(statusCode)
 		responseSuccesses.Inc()

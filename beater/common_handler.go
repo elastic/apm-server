@@ -165,12 +165,23 @@ func logHandler(h http.Handler) http.Handler {
 			"remote_address", utility.RemoteAddr(r),
 			"user-agent", r.Header.Get("User-Agent"))
 
+		defer func() {
+			if r := recover(); r != nil {
+				var ok bool
+				if err, ok = r.(error); !ok {
+					err = fmt.Errorf("recovering from %+v", r)
+				}
+				reqLogger.Errorw("panic handling request", "error", err.Error())
+			}
+		}()
+
 		lw := utility.NewRecordingResponseWriter(w)
 		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
 
 		if lw.Code <= 399 {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 		}
+
 	})
 }
 
