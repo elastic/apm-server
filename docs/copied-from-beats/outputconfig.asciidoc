@@ -79,7 +79,7 @@ output.elasticsearch:
 
 If the Elasticsearch nodes are defined by `IP:PORT`, then add `protocol: https` to the yaml file.
 
-["source","yaml",subs="attributes,callouts"]
+[source,yaml]
 ------------------------------------------------------------------------------
 output.elasticsearch:
   hosts: ["localhost"]
