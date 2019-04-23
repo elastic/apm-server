@@ -99,6 +99,13 @@ func TestDecodeSpan(t *testing.T) {
 			},
 			err: utility.ErrFetch.Error(),
 		},
+		"invalid stacktrace": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "stacktrace": []interface{}{"foo"},
+			},
+			err: m.ErrInvalidStacktraceFrameType.Error(),
+		},
 		"minimal payload": {
 			input: map[string]interface{}{
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,

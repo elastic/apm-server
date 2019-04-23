@@ -63,13 +63,15 @@ type Original struct {
 	sourcemapCopied bool
 }
 
+var ErrInvalidStacktraceFrameType = errors.New("invalid type for stacktrace frame")
+
 func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for stacktrace frame")
+		return nil, ErrInvalidStacktraceFrameType
 	}
 	decoder := utility.ManualDecoder{}
 	frame := StacktraceFrame{

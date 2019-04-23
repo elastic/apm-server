@@ -26,6 +26,8 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
+var ErrInvalidStacktraceType = errors.New("invalid type for stacktrace")
+
 type Stacktrace []*StacktraceFrame
 
 func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
@@ -34,7 +36,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	}
 	raw, ok := input.([]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for stacktrace")
+		return nil, ErrInvalidStacktraceType
 	}
 	st := make(Stacktrace, len(raw))
 	for idx, fr := range raw {

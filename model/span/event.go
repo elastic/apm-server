@@ -232,13 +232,12 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	}
 
 	var stacktr *m.Stacktrace
-	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], nil)
-	if stacktr != nil {
-		event.Stacktrace = *stacktr
-	}
-
+	stacktr, decoder.Err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+	if stacktr != nil {
+		event.Stacktrace = *stacktr
 	}
 
 	if event.Subtype == nil && event.Action == nil {

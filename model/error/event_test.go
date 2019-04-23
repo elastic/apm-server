@@ -136,7 +136,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"stacktrace": "123",
 				},
 			},
-			err: errors.New("invalid type for stacktrace"),
+			err: m.ErrInvalidStacktraceType,
 		},
 		"invalid type for log stacktrace": {
 			input: map[string]interface{}{
@@ -146,7 +146,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"stacktrace": "123",
 				},
 			},
-			err: errors.New("invalid type for stacktrace"),
+			err: m.ErrInvalidStacktraceType,
 		},
 		"minimal valid error": {
 			input: map[string]interface{}{
