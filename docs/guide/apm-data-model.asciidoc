@@ -247,10 +247,10 @@ User context is used to add *indexed* information to transactions and errors.
 
 |===
 |User context API links
-v|*Go:* {apm-go-ref}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref}/api.html#context-set-id[`SetUserID`] \| {apm-go-ref}/api.html#context-set-email[`SetUserEmail`]
+v|*Go:* {apm-go-ref}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref}/api.html#context-set-user-id[`SetUserID`] \| {apm-go-ref}/api.html#context-set-user-email[`SetUserEmail`]
 *Java:* {apm-java-ref}/public-api.html#api-transaction-set-user[`setUser`]
 *Node.js:* {apm-node-ref}/agent-api.html#apm-set-user-context[`setUserContext`]
-*Python:* {apm-py-ref}api.html#api-set-user-context[`set_user_context`]
+*Python:* {apm-py-ref}/api.html#api-set-user-context[`set_user_context`]
 *Ruby:* {apm-ruby-ref}/api.html#api-agent-set-user[`set_user`]
 *Rum:* {apm-rum-ref}/api.html#apm-set-user-context[`setUserContext`]
 |===
