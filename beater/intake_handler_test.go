@@ -30,13 +30,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 func TestInvalidContentType(t *testing.T) {
@@ -94,51 +95,62 @@ func TestRequestDecoderError(t *testing.T) {
 }
 
 func TestRequestIntegration(t *testing.T) {
-	for _, test := range []struct {
-		name         string
+	for name, test := range map[string]struct {
 		code         int
 		path         string
 		reportingErr error
 		counter      *monitoring.Int
 	}{
-		{name: "Success", code: http.StatusAccepted, path: "errors.ndjson", counter: responseAccepted},
-		{name: "InvalidEvent", code: http.StatusBadRequest, path: "invalid-event.ndjson", counter: validateCounter},
-		{name: "InvalidJSONEvent", code: http.StatusBadRequest, path: "invalid-json-event.ndjson", counter: validateCounter},
-		{name: "InvalidJSONMetadata", code: http.StatusBadRequest, path: "invalid-json-metadata.ndjson", counter: validateCounter},
-		{name: "InvalidMetadata", code: http.StatusBadRequest, path: "invalid-metadata.ndjson", counter: validateCounter},
-		{name: "InvalidMetadata2", code: http.StatusBadRequest, path: "invalid-metadata-2.ndjson", counter: validateCounter},
-		{name: "UnrecognizedEvent", code: http.StatusBadRequest, path: "unrecognized-event.ndjson", counter: validateCounter},
-		{name: "Closing", code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrChannelClosed, counter: serverShuttingDownCounter},
-		{name: "FullQueue", code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
+		"Success":             {code: http.StatusAccepted, path: "errors.ndjson", counter: responseAccepted},
+		"InvalidEvent":        {code: http.StatusBadRequest, path: "invalid-event.ndjson", counter: validateCounter},
+		"InvalidJSONEvent":    {code: http.StatusBadRequest, path: "invalid-json-event.ndjson", counter: validateCounter},
+		"InvalidJSONMetadata": {code: http.StatusBadRequest, path: "invalid-json-metadata.ndjson", counter: validateCounter},
+		"InvalidMetadata":     {code: http.StatusBadRequest, path: "invalid-metadata.ndjson", counter: validateCounter},
+		"InvalidMetadata2":    {code: http.StatusBadRequest, path: "invalid-metadata-2.ndjson", counter: validateCounter},
+		"UnrecognizedEvent":   {code: http.StatusBadRequest, path: "unrecognized-event.ndjson", counter: validateCounter},
+		"Closing":             {code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrChannelClosed, counter: serverShuttingDownCounter},
+		"FullQueue":           {code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
 	} {
-		t.Run(test.name, func(t *testing.T) {
-			ctSuccess := responseSuccesses.Get()
-			ctFailure := responseErrors.Get()
-			ct := test.counter.Get()
 
-			w, err := sendReq(defaultConfig("7.0.0"),
-				&backendRoute,
-				backendURL,
-				filepath.Join("../testdata/intake-v2/", test.path),
-				test.reportingErr)
-			require.NoError(t, err)
+		for url, route := range map[string]intakeRoute{backendURL: backendRoute, rumURL: rumRoute} {
+			cfg := defaultConfig("7.0.0")
+			rum := true
+			cfg.RumConfig.Enabled = &rum
 
-			assert.Equal(t, test.code, w.Code, w.Body.String())
-			assert.Equal(t, ct+1, test.counter.Get())
-			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
-			cl, err := strconv.Atoi(w.Header().Get("Content-Length"))
-			assert.True(t, cl > 0, err)
-			if test.code == http.StatusAccepted {
-				assert.NotZero(t, w.Body.Len())
-				assert.Equal(t, ctSuccess+1, responseSuccesses.Get())
-				assert.Equal(t, ctFailure, responseErrors.Get())
-			} else {
-				assert.Equal(t, ctSuccess, responseSuccesses.Get())
-				assert.Equal(t, ctFailure+1, responseErrors.Get())
-			}
-			body := w.Body.Bytes()
-			tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+test.name, body)
-		})
+			t.Run(name, func(t *testing.T) {
+				ctSuccess := responseSuccesses.Get()
+				ctFailure := responseErrors.Get()
+				ct := test.counter.Get()
+				reqCt := requestCounter.Get()
+
+				w, err := sendReq(cfg,
+					&route,
+					url,
+					filepath.Join("../testdata/intake-v2/", test.path),
+					test.reportingErr)
+				require.NoError(t, err)
+
+				assert.Equal(t, test.code, w.Code, w.Body.String())
+				assert.Equal(t, ct+1, test.counter.Get())
+				assert.Equal(t, reqCt+1, requestCounter.Get())
+
+				assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+				cl, err := strconv.Atoi(w.Header().Get("Content-Length"))
+				assert.True(t, cl > 0, err)
+
+				if test.code == http.StatusAccepted {
+					assert.NotZero(t, w.Body.Len())
+					assert.Equal(t, ctSuccess+1, responseSuccesses.Get())
+					assert.Equal(t, ctFailure, responseErrors.Get())
+				} else {
+					assert.Equal(t, ctSuccess, responseSuccesses.Get())
+					assert.Equal(t, ctFailure+1, responseErrors.Get())
+				}
+
+				body := w.Body.Bytes()
+				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+name, body)
+			})
+		}
 	}
 }
 
