@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -31,9 +32,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -165,12 +167,24 @@ func logHandler(h http.Handler) http.Handler {
 			"remote_address", utility.RemoteAddr(r),
 			"user-agent", r.Header.Get("User-Agent"))
 
+		defer func() {
+			if r := recover(); r != nil {
+				var ok bool
+				if err, ok = r.(error); !ok {
+					err = fmt.Errorf("internal server error %+v", r)
+				}
+				reqLogger.Errorw("panic handling request",
+					"error", err.Error(), "stacktrace", string(debug.Stack()))
+			}
+		}()
+
 		lw := utility.NewRecordingResponseWriter(w)
 		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
 
 		if lw.Code <= 399 {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 		}
+
 	})
 }
 

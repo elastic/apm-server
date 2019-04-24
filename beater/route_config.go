@@ -118,9 +118,10 @@ func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
 }
 
 func rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-		requestTimeHandler(
-			corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))
+	return logHandler(
+		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
+			requestTimeHandler(
+				corsHandler(beaterConfig.RumConfig.AllowOrigins, h))))
 }
 
 func sourcemapHandler(beaterConfig *Config, h http.Handler) http.Handler {
