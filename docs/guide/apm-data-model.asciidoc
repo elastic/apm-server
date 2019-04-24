@@ -179,18 +179,19 @@ Multiple labels can be defined with different key-value pairs.
 * Elasticsearch field: `labels` (previously `context.tags` in <v.7.0)
 * Applies to <<transactions>> | <<transaction-spans>> | <<errors>>
 
-Label values can be a string, boolean, or number.
-Note that some agents only support string values at this time.
-Because labels for a given key are stored in the same place in Elasticsearch, all label values of a given key must have the same data type.
+Label values can be a string, boolean, or number in APM Server v.6.7+.
+Using this API in combination with an older APM Server version leads to validation errors.
+In addition, some agents only support string values at this time.
+Because labels for a given key, regardless of agent used, are stored in the same place in Elasticsearch,
+all label values of a given key must have the same data type.
 Multiple data types per key will throw an exception, e.g. `{foo: bar}` and `{foo: 42}`
 
 IMPORTANT: Avoid defining too many user-specified labels.
 Defining too many unique fields in an index is a condition that can lead to a
 {ref}/mapping.html#mapping-limit-settings[mapping explosion].
 
-
 |===
-|Labels API links
+|*Labels API links*
 v|*Go:* {apm-go-ref}/api.html#context-set-tag[`SetTag`]
 *Java:* {apm-java-ref}/public-api.html#api-transaction-add-tag[`addLabel`]
 *Node.js:* {apm-node-ref}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref}/agent-api.html#apm-add-tags[`addTags`]
@@ -198,9 +199,6 @@ v|*Go:* {apm-go-ref}/api.html#context-set-tag[`SetTag`]
 *Ruby:* {apm-ruby-ref}/api.html#api-agent-set-tag[`set_tag`]
 *Rum:* {apm-rum-ref}/api.html#apm-add-tags[`addTags`]
 |===
-
-// elastic/apm-server#828
-// https://github.com/elastic/apm-server/pull/1712
 
 [float]
 [[custom-fields]]
@@ -224,7 +222,7 @@ quickly debug performance issues or errors.
 IMPORTANT: Setting a circular object, large object, or a non JSON serializable object can lead to errors.
 
 |===
-|Custom context API links
+|*Custom context API links*
 v|*Go:* _coming soon_
 *Java:* _coming soon_
 *Node.js:* {apm-node-ref}/agent-api.html#apm-set-custom-context[`setCustomContext`]
@@ -237,16 +235,16 @@ v|*Go:* _coming soon_
 [[user-fields]]
 ==== User context
 
-User context is used to add *indexed* information to transactions and errors.
+User context is used to add *indexed* user information to transactions and errors.
+Indexed means the data is searchable and aggregatable in Elasticsearch.
 
 * Indexed: Yes
 * Elasticsearch type: {ref}/keyword.html[keywords]
 * Elasticsearch fields: `user.email` | `user.name` | `user.id`
 * Applies to <<transactions>> | <<errors>>
 
-
 |===
-|User context API links
+|*User context API links*
 v|*Go:* {apm-go-ref}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref}/api.html#context-set-user-id[`SetUserID`] \| {apm-go-ref}/api.html#context-set-user-email[`SetUserEmail`]
 *Java:* {apm-java-ref}/public-api.html#api-transaction-set-user[`setUser`]
 *Node.js:* {apm-node-ref}/agent-api.html#apm-set-user-context[`setUserContext`]
