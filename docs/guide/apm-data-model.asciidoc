@@ -1,12 +1,15 @@
 [[apm-data-model]]
 == Data Model
 
-Elastic APM agents capture different types of information from within their instrumented applications - namely `spans`, `transactions`, `errors`, and `metrics`.
+Elastic APM agents capture different types of information from within their instrumented applications.
+These are known as events, and can be `spans`, `transactions`, `errors`, or `metrics`.
 
 * <<transaction-spans>>
 * <<transactions>>
 * <<errors>>
 * <<metrics>>
+
+Events can contain additional <<metadata,metadata>> which further enriches your data.
 
 [[transaction-spans]]
 === Spans
@@ -68,10 +71,10 @@ They describe an event captured by an Elastic APM agent instrumenting a service.
 You can think of transactions as the highest level of work you’re measuring within a service.
 As an example, a transaction might be a:
 
-* request to your server
-* batch job
-* background job
-* custom transaction type.
+* Request to your server
+* Batch job
+* Background job
+* Custom transaction type
 
 Agents decide whether to sample transactions or not,
 and provide settings to control sampling behavior.
@@ -82,15 +85,20 @@ A transaction contains:
 
 * The timestamp of the event
 * A unique id, type, and name
-include::../context.asciidoc[]
+* Data about the environment in which the event is recorded:
+** Service - environment, framework, language, etc.
+** Host - architecture, hostname, IP, etc.
+** Process - args, PID, PPID, etc.
+** URL - full, domain, port, query, etc.
+** <<user-fields,User>> - (if supplied) email, ID, username, etc.
 * Other relevant information depending on the agent. Example: The JavaScript RUM agent captures transaction marks,
 which are points in time relative to the start of the transaction with some label.
 
-In addition, the agents provide some settings for users to capture customized information. This data is stored as not-indexed in a `custom` object.
-Searchable information is stored as `labels` instead.
+In addition, agents provide options for users to capture custom <<metadata, metadata>>.
+Metadata can be indexed - <<labels-fields,`labels`>>, or not-indexed - <<custom-fields,`custom`>>.
 
-TIP: Most agents limit keyword fields (e.g. `transaction.name`) to 1024 characters,
-and non-keyword fields (e.g. `labels`) to 10,000 characters.
+TIP: Most agents limit keyword fields (e.g. `labels`) to 1024 characters,
+non-keyword fields (e.g. `span.db.statement`) to 10,000 characters.
 
 Transactions are stored in {apm-server-ref-v}/transaction-indices.html[transaction indices].
 
@@ -109,13 +117,18 @@ which is helpful for debugging.
 * The `culprit` of an error indicates where it originated.
 * An error might relate to the <<transactions,transaction>> during which it happened,
 via the `transaction.id`.
-include::../context.asciidoc[]
+* Data about the environment in which the event is recorded:
+** Service - environment, framework, language, etc.
+** Host - architecture, hostname, IP, etc.
+** Process - args, PID, PPID, etc.
+** URL - full, domain, port, query, etc.
+** <<user-fields,User>> - (if supplied) email, ID, username, etc.
 
-In addition, the agents provide some settings for users to capture customized information. This data is stored as not-indexed in a `custom` object.
-Searchable information is stored as `labels` instead.
+In addition, agents provide options for users to capture custom <<metadata,metadata>>.
+Metadata can be indexed - <<labels-fields,`labels`>>, or not-indexed - <<custom-fields,`custom`>>.
 
 TIP: Most agents limit keyword fields (e.g. `error.id`) to 1024 characters,
-and non-keyword fields (e.g. `error.exception.message`) to 10,000 characters.
+non-keyword fields (e.g. `error.exception.message`) to 10,000 characters.
 
 Errors are stored in {apm-server-ref-v}/error-indices.html[error indices].
 
@@ -134,7 +147,7 @@ which is why we've made it easy to filter metrics for specific hosts or containe
 Metrics have the `processor.event` property set to `metric`.
 
 TIP: Most agents limit keyword fields (e.g. `processor.event`) to 1024 characters,
-and non-keyword fields (e.g. `system.memory.total`) to 10,000 characters.
+non-keyword fields (e.g. `system.memory.total`) to 10,000 characters.
 
 Metrics are stored in {apm-server-ref-v}/metricset-indices.html[metric indices].
 
@@ -145,3 +158,97 @@ For a full list of tracked metrics, see the relevant agent documentation:
 * {apm-node-ref-v}/metrics.html[Node.js]
 * {apm-py-ref-v}/metrics.html[Python]
 * {apm-ruby-ref-v}/metrics.html[Ruby]
+
+// This heading is linked to from the APM UI section in Kibana
+[[metadata]]
+=== Metadata
+
+Metadata can enrich your events and make application performance monitoring even more useful.
+Let's explore the different types of metadata that Elastic APM offers.
+
+[float]
+[[labels-fields]]
+==== Labels
+
+Labels are used to add *indexed* information to transactions, spans, and errors.
+Indexed means the data is searchable and aggregatable in Elasticsearch.
+Multiple labels can be defined with different key-value pairs.
+
+* Indexed: Yes
+* Elasticsearch type: {ref}/object.html[object]
+* Elasticsearch field: `labels` (`context.tags` in APM Server pre-7.0)
+* Applies to <<transactions>> | <<transaction-spans>> | <<errors>>
+
+Label values can be a string, boolean, or number in APM Server 6.7+.
+Using this API in combination with an older APM Server version leads to validation errors.
+In addition, some agents only support string values at this time.
+Because labels for a given key, regardless of agent used, are stored in the same place in Elasticsearch,
+all label values of a given key must have the same data type.
+Multiple data types per key will throw an exception, e.g. `{foo: bar}` and `{foo: 42}`
+
+IMPORTANT: Avoid defining too many user-specified labels.
+Defining too many unique fields in an index is a condition that can lead to a
+{ref}/mapping.html#mapping-limit-settings[mapping explosion].
+
+|===
+|*Labels API links*
+v|*Go:* {apm-go-ref}/api.html#context-set-tag[`SetTag`]
+*Java:* {apm-java-ref}/public-api.html#api-transaction-add-tag[`addLabel`]
+*Node.js:* {apm-node-ref}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref}/agent-api.html#apm-add-tags[`addTags`]
+*Python:* {apm-py-ref}/api.html#api-tag[`tag`]
+*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-tag[`set_tag`]
+*Rum:* {apm-rum-ref}/api.html#apm-add-tags[`addTags`]
+|===
+
+[float]
+[[custom-fields]]
+==== Custom context
+
+Custom context is used to add *non-indexed*,
+custom contextual information to transactions and errors.
+Non-indexed means the data is not searchable or aggregatable in Elasticsearch,
+and you cannot build dashboards on top of the data.
+This also means you do not have to worry about {ref}/mapping.html#mapping-limit-settings[mapping explosions],
+as these fields are not added to the mapping.
+
+Non-indexed information is useful for providing contextual information to help you
+quickly debug performance issues or errors.
+
+* Indexed: No
+* Elasticsearch type: {ref}/object.html[object]
+* Elasticsearch fields: `transaction.custom` | `error.custom`
+* Applies to <<transactions>> | <<errors>>
+
+IMPORTANT: Setting a circular object, large object, or a non JSON serializable object can lead to errors.
+
+|===
+|*Custom context API links*
+v|*Go:* _coming soon_
+*Java:* _coming soon_
+*Node.js:* {apm-node-ref}/agent-api.html#apm-set-custom-context[`setCustomContext`]
+*Python:* {apm-py-ref}/api.html#api-set-custom-context[`set_custom_context`]
+*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-custom-context[`set_custom_context`]
+*Rum:* {apm-rum-ref}/api.html#apm-set-custom-context[`setCustomContext`]
+|===
+
+[float]
+[[user-fields]]
+==== User context
+
+User context is used to add *indexed* user information to transactions and errors.
+Indexed means the data is searchable and aggregatable in Elasticsearch.
+
+* Indexed: Yes
+* Elasticsearch type: {ref}/keyword.html[keywords]
+* Elasticsearch fields: `user.email` | `user.name` | `user.id`
+* Applies to <<transactions>> | <<errors>>
+
+|===
+|*User context API links*
+v|*Go:* {apm-go-ref}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref}/api.html#context-set-user-id[`SetUserID`] \| {apm-go-ref}/api.html#context-set-user-email[`SetUserEmail`]
+*Java:* {apm-java-ref}/public-api.html#api-transaction-set-user[`setUser`]
+*Node.js:* {apm-node-ref}/agent-api.html#apm-set-user-context[`setUserContext`]
+*Python:* {apm-py-ref}/api.html#api-set-user-context[`set_user_context`]
+*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-user[`set_user`]
+*Rum:* {apm-rum-ref}/api.html#apm-set-user-context[`setUserContext`]
+|===
