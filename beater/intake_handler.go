@@ -90,13 +90,12 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 		}
 	} else {
 		responseErrors.Inc()
+		logger.Errorw("error handling request", "error", sr.Error())
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		w.Header().Add("Connection", "Close")
 		send(w, r, sr, statusCode)
-
-		logger.Errorw("error handling request", "error", sr.Error())
 	}
 }
 
