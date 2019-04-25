@@ -18,6 +18,7 @@
 package metadata
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/elastic/apm-server/utility"
@@ -42,12 +43,23 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 	}
 	decoder := utility.ManualDecoder{}
 	user := User{
-		Id:        decoder.StringPtr(raw, "id"),
 		Email:     decoder.StringPtr(raw, "email"),
 		Username:  decoder.StringPtr(raw, "username"),
 		IP:        decoder.StringPtr(raw, "ip"),
 		UserAgent: decoder.StringPtr(raw, "user-agent"),
 	}
+
+	//id can be string or int
+	tmp := decoder.Interface(raw, "id")
+	if tmp != nil {
+		if t, ok := tmp.(json.Number); ok {
+			id := t.String()
+			user.Id = &id
+		} else if t, ok := tmp.(string); ok && t != "" {
+			user.Id = &t
+		}
+	}
+
 	return &user, decoder.Err
 }
 
