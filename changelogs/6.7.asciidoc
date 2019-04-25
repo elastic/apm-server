@@ -3,7 +3,7 @@
 
 https://github.com/elastic/apm-server/compare/6.6\...6.7[View commits]
 
-//* <<release-notes-6.721>>
+//* <<release-notes-6.7.2>>
 * <<release-notes-6.7.1>>
 * <<release-notes-6.7.0>>
 
