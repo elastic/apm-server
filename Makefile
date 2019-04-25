@@ -15,6 +15,7 @@ BEATS_VERSION?=master
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
+STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
 # overwrite some beats targets cleanly
 .OVER := original-
@@ -95,7 +96,12 @@ start-env:
 stop-env:
 	@docker-compose -f tests/docker-compose.yml down -v
 
-check-full: check
+.PHONY: staticcheck
+staticcheck:
+	go get $(STATICCHECK_REPO)
+	staticcheck $(BEAT_PATH)/...
+
+check-full: check staticcheck
 	@# Validate that all updates were committed
 	@$(MAKE) update
 	@$(MAKE) check

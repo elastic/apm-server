@@ -23,10 +23,13 @@ import (
 
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -53,10 +56,9 @@ func TestDecode(t *testing.T) {
 	assert.Equal(t, "1", getStr(output, "service.version"))
 	assert.Equal(t, data["sourcemap"], getStr(output, "sourcemap"))
 
-	sourcemap, err = DecodeSourcemap(nil)
-	if assert.Error(t, err) {
-		assert.Contains(t, err.Error(), "Error fetching field")
-	}
+	_, err = DecodeSourcemap(nil)
+	require.Error(t, err)
+	assert.EqualError(t, err, utility.ErrFetch.Error())
 }
 
 func TestTransform(t *testing.T) {
@@ -103,20 +105,22 @@ func TestInvalidateCache(t *testing.T) {
 		},
 	}
 	mapping, err := smapMapper.Apply(smapId, 0, 0)
+	require.NoError(t, err)
 	assert.NotNil(t, mapping)
 
 	conf := transform.Config{SmapMapper: &smapMapper}
 	tctx := &transform.Context{Config: conf}
 
 	sourcemap, err := DecodeSourcemap(data)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	sourcemap.Transform(tctx)
 
 	sourcemap, err = DecodeSourcemap(data)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	sourcemap.Transform(tctx)
 
 	mapping, err = smapMapper.Apply(smapId, 0, 0)
+	require.NoError(t, err)
 	assert.Nil(t, mapping)
 }
 

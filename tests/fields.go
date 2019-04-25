@@ -26,9 +26,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/mapping"
+
+	"github.com/elastic/apm-server/tests/loader"
 )
 
 // This test checks
@@ -122,7 +123,7 @@ func fetchFields(t *testing.T, p TestProcessor, path string, blacklisted *Set) *
 
 	keys := NewSet()
 	for _, event := range events {
-		for k, _ := range event.Fields {
+		for k := range event.Fields {
 			if k == "@timestamp" {
 				continue
 			}

@@ -18,20 +18,17 @@
 package sourcemap
 
 import (
-	"errors"
-	"fmt"
-
+	parser "github.com/go-sourcemap/sourcemap"
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/elastic/apm-server/decoder"
-
-	parser "github.com/go-sourcemap/sourcemap"
-
 	"github.com/elastic/apm-server/model/metadata"
 	sm "github.com/elastic/apm-server/model/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 const eventName = "sourcemap"
@@ -76,7 +73,7 @@ func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {
 
 	smap, ok := raw["sourcemap"].(string)
 	if !ok {
-		if s, _ := raw["sourcemap"]; s == nil {
+		if s := raw["sourcemap"]; s == nil {
 			return errors.New(`missing properties: "sourcemap", expected sourcemap to be sent as string, but got null`)
 		} else {
 			return errors.New("sourcemap not in expected format")
@@ -85,7 +82,7 @@ func (p *sourcemapProcessor) Validate(raw map[string]interface{}) error {
 
 	_, err := parser.Parse("", []byte(smap))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error validating sourcemap: %v", err))
+		return errors.Wrap(err, "error validating sourcemap")
 	}
 
 	err = validation.Validate(raw, p.PayloadSchema)

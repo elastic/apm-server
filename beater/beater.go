@@ -53,7 +53,7 @@ type beater struct {
 }
 
 var (
-	setupDashboardRemoved = errors.New("setting 'setup.dashboards' has been removed")
+	errSetupDashboardRemoved = errors.New("setting 'setup.dashboards' has been removed")
 )
 
 // checkConfig verifies the global configuration doesn't use unsupported settings
@@ -73,9 +73,9 @@ func checkConfig(logger *logp.Logger) error {
 	}
 	if s.Dashboards != nil {
 		if s.Dashboards.Enabled() {
-			return setupDashboardRemoved
+			return errSetupDashboardRemoved
 		}
-		logger.Warn(setupDashboardRemoved)
+		logger.Warn(errSetupDashboardRemoved)
 	}
 	return nil
 }

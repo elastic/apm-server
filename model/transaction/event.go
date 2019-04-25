@@ -40,13 +40,13 @@ const (
 )
 
 var (
-	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
-	transformations = monitoring.NewInt(Metrics, "transformations")
-	processorEntry  = common.MapStr{"name": processorName, "event": transactionDocType}
-)
-
-var (
+	Metrics           = monitoring.Default.NewRegistry("apm-server.processor.transaction", monitoring.PublishExpvar)
+	transformations   = monitoring.NewInt(Metrics, "transformations")
+	processorEntry    = common.MapStr{"name": processorName, "event": transactionDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "transaction")
+
+	errMissingInput = errors.New("input missing for decoding transaction event")
+	errInvalidType  = errors.New("invalid type for transaction event")
 )
 
 func ModelSchema() *jsonschema.Schema {
@@ -88,11 +88,11 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		return nil, err
 	}
 	if input == nil {
-		return nil, errors.New("Input missing for decoding Event")
+		return nil, errMissingInput
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for transaction event")
+		return nil, errInvalidType
 	}
 
 	ctx, err := m.DecodeContext(raw, cfg, nil)

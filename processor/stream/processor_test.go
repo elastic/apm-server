@@ -31,16 +31,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/beats/libbeat/beat"
+
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/beat"
 )
-
-func validMetadata() string {
-	return `{"metadata": {"service": {"name": "myservice", "agent": {"name": "test", "version": "1.0"}}}}`
-}
 
 func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 	resultName := fmt.Sprintf("test_approved_stream_result/testIntegrationResult%s", name)
@@ -131,7 +128,7 @@ func TestIntegrationESOutput(t *testing.T) {
 
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			ctx := context.WithValue(context.Background(), "name", name)
-			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
+			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
 
 			reqDecoderMeta := map[string]interface{}{
@@ -174,7 +171,7 @@ func TestIntegrationRum(t *testing.T) {
 
 			name := fmt.Sprintf("test_approved_es_documents/testIntakeIntegration%s", test.name)
 			ctx := context.WithValue(context.Background(), "name", name)
-			reqTimestamp, err := time.Parse(time.RFC3339, "2018-08-01T10:00:00Z")
+			reqTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 			ctx = utility.ContextWithRequestTime(ctx, reqTimestamp)
 
 			reqDecoderMeta := map[string]interface{}{

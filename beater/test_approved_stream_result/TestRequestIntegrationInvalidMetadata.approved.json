@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{\"metadata\": {\"user\": null}}",
-            "message": "Problem validating JSON document against schema: I[#] S[#] doesn't validate with \"metadata#\"\n  I[#] S[#/required] missing properties: \"service\""
+            "message": "error validating JSON document against schema: I[#] S[#] doesn't validate with \"metadata#\"\n  I[#] S[#/required] missing properties: \"service\""
         }
     ]
 }

@@ -20,10 +20,13 @@ package model
 import (
 	"errors"
 
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+
+	"github.com/elastic/apm-server/transform"
 )
+
+var ErrInvalidStacktraceType = errors.New("invalid type for stacktrace")
 
 type Stacktrace []*StacktraceFrame
 
@@ -33,7 +36,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	}
 	raw, ok := input.([]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for stacktrace")
+		return nil, ErrInvalidStacktraceType
 	}
 	st := make(Stacktrace, len(raw))
 	for idx, fr := range raw {
@@ -67,8 +70,7 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 		return nil
 	}
 	var fr *StacktraceFrame
-	var frames []common.MapStr
-	frames = make([]common.MapStr, frameCount)
+	frames := make([]common.MapStr, frameCount)
 
 	fct := "<anonymous>"
 	var sourcemapErrorSet = make(map[string]struct{})
@@ -83,7 +85,7 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 		frames[idx] = fr.Transform(tctx)
 	}
 	logger := logp.NewLogger("stacktrace")
-	for errMsg, _ := range sourcemapErrorSet {
+	for errMsg := range sourcemapErrorSet {
 		if errMsg != "" {
 			logger.Warn(errMsg)
 		}

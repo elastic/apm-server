@@ -27,9 +27,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/tests"
 )
 
 // transactions from testdata/intake-v2/transactions.ndjson used to trigger tracing
@@ -87,7 +88,7 @@ func TestServerTracingExternal(t *testing.T) {
 	defer remote.Close()
 
 	// start a test apm-server
-	ucfg, err := common.NewConfigFrom(m{"instrumentation": m{
+	ucfg := common.MustNewConfigFrom(m{"instrumentation": m{
 		"enabled": true,
 		"hosts":   []string{"http://" + remote.Listener.Addr().String()}}})
 	apm, teardown, err := setupServer(t, ucfg, nil, nil)
@@ -170,6 +171,7 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 		"host":            "localhost:0",
 	})
 	beater, teardown, err := setupServer(t, cfg, nil, events)
+	require.NoError(t, err)
 
 	// onboarding event
 	e := <-events

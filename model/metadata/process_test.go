@@ -24,6 +24,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 func TestProcessTransform(t *testing.T) {
@@ -74,7 +76,7 @@ func TestProcessDecode(t *testing.T) {
 		{input: "", err: errors.New("invalid type for process"), p: nil},
 		{
 			input: map[string]interface{}{"pid": "123"},
-			err:   errors.New("Error fetching field"),
+			err:   utility.ErrFetch,
 			p:     &Process{Ppid: nil, Title: nil, Argv: nil},
 		},
 		{

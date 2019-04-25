@@ -18,9 +18,9 @@
 package validation
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema"
 )
 
@@ -39,7 +39,7 @@ func CreateSchema(schemaData string, url string) *jsonschema.Schema {
 
 func Validate(raw interface{}, schema *jsonschema.Schema) error {
 	if err := schema.ValidateInterface(raw); err != nil {
-		return fmt.Errorf("Problem validating JSON document against schema: %v", err)
+		return errors.Wrap(err, "error validating JSON document against schema")
 	}
 	return nil
 }

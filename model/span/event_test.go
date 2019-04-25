@@ -29,15 +29,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestDecodeSpan(t *testing.T) {
-	spanTime, _ := time.Parse(time.RFC3339, "2018-05-30T19:53:17.134Z")
+	spanTime := time.Date(2018, 5, 30, 19, 53, 17, 134*1e6, time.UTC)
 	timestampEpoch := json.Number(fmt.Sprintf("%d", spanTime.UnixNano()/1000))
 	id, parentId := "0000000000000000", "FFFFFFFFFFFFFFFF"
 	transactionId, traceId := "ABCDEF0123456789", "01234567890123456789abcdefABCDEF"
@@ -65,38 +66,45 @@ func TestDecodeSpan(t *testing.T) {
 		inpErr error
 		e      transform.Transformable
 	}{
-		"no input":     {input: nil, err: "Input missing for decoding Event"},
+		"no input":     {input: nil, err: errMissingInput.Error()},
 		"input error":  {input: nil, inpErr: errors.New("a"), err: "a"},
-		"invalid type": {input: "", err: "invalid type for span"},
+		"invalid type": {input: "", err: errInvalidType.Error()},
 		"missing required field": {
 			input: map[string]interface{}{},
-			err:   "Error fetching field",
+			err:   utility.ErrFetch.Error(),
 		},
 		"transaction id wrong type": {
 			input: map[string]interface{}{"name": name, "type": spType, "start": start, "duration": duration,
 				"timestamp": "2018-05-30T19:53:17.134Z", "transaction_id": 123},
-			err: "Error fetching field",
+			err: utility.ErrFetch.Error(),
 		},
 		"no trace_id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "transaction_id": transactionId,
 			},
-			err: utility.FetchErr.Error(),
+			err: utility.ErrFetch.Error(),
 		},
 		"no id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "trace_id": traceId, "transaction_id": transactionId,
 			},
-			err: utility.FetchErr.Error(),
+			err: utility.ErrFetch.Error(),
 		},
 		"no parent_id": {
 			input: map[string]interface{}{
 				"name": name, "type": spType, "start": start, "duration": duration,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "transaction_id": transactionId,
 			},
-			err: utility.FetchErr.Error(),
+			err: utility.ErrFetch.Error(),
+		},
+		"invalid stacktrace": {
+			input: map[string]interface{}{
+				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
+				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "stacktrace": []interface{}{"foo"},
+			},
+			err: m.ErrInvalidStacktraceFrameType.Error(),
 		},
 		"minimal payload": {
 			input: map[string]interface{}{
@@ -227,7 +235,8 @@ func TestSpanTransform(t *testing.T) {
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "myspansubtype"
 	action := "myspanquery"
-	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
+	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
+		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user := "db01", "select *", "sql", "jane"
@@ -320,13 +329,12 @@ func TestSpanTransform(t *testing.T) {
 }
 
 func TestEventTransformUseReqTimePlusStart(t *testing.T) {
-	reqTimestampParsed, err := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
-	require.NoError(t, err)
+	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	start := 1234.8
 	e := Event{Start: &start}
 	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)
 
-	adjustedParsed, err := time.Parse(time.RFC3339, "2017-05-30T18:53:28.3888Z")
+	adjustedParsed := time.Date(2017, 5, 30, 18, 53, 28, 388.8*1e6, time.UTC)
 	assert.Equal(t, adjustedParsed, beatEvent[0].Timestamp)
 }

@@ -74,14 +74,14 @@ func (s *Set) ContainsStrPattern(str string) bool {
 }
 
 func (s *Set) Copy() *Set {
-	copy := NewSet()
+	cp := NewSet()
 	if s == nil {
 		return nil
 	}
-	for k, _ := range s.entries {
-		copy.Add(k)
+	for k := range s.entries {
+		cp.Add(k)
 	}
-	return copy
+	return cp
 }
 
 func (s *Set) Len() int {
@@ -99,7 +99,7 @@ func Union(s1, s2 *Set) *Set {
 		return s1.Copy()
 	}
 	s := s1.Copy()
-	for k, _ := range s2.entries {
+	for k := range s2.entries {
 		s.Add(k)
 	}
 	return s
@@ -127,7 +127,7 @@ func (s *Set) Array() []interface{} {
 		return []interface{}{}
 	}
 	a := make([]interface{}, 0, len(s.entries))
-	for k, _ := range s.entries {
+	for k := range s.entries {
 		a = append(a, k)
 	}
 	return a

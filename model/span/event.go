@@ -45,9 +45,11 @@ var (
 
 	spanDocType = "span"
 
-	processorEntry = common.MapStr{"name": "transaction", "event": spanDocType}
-
+	processorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
+
+	errMissingInput = errors.New("input missing for decoding span event")
+	errInvalidType  = errors.New("invalid type for span event")
 )
 
 func ModelSchema() *jsonschema.Schema {
@@ -173,11 +175,11 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		return nil, err
 	}
 	if input == nil {
-		return nil, errors.New("Input missing for decoding Event")
+		return nil, errMissingInput
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for span")
+		return nil, errInvalidType
 	}
 
 	decoder := utility.ManualDecoder{}
@@ -230,13 +232,12 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 	}
 
 	var stacktr *m.Stacktrace
-	stacktr, err = m.DecodeStacktrace(raw["stacktrace"], nil)
-	if stacktr != nil {
-		event.Stacktrace = *stacktr
-	}
-
+	stacktr, decoder.Err = m.DecodeStacktrace(raw["stacktrace"], decoder.Err)
 	if decoder.Err != nil {
 		return nil, decoder.Err
+	}
+	if stacktr != nil {
+		event.Stacktrace = *stacktr
 	}
 
 	if event.Subtype == nil && event.Action == nil {

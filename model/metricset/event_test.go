@@ -19,19 +19,20 @@ package metricset
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/common"
 )
 
 // assertMetricsMatch is an equality test for a metricset as sample order is not important
@@ -49,8 +50,7 @@ func TestDecode(t *testing.T) {
 	tsFormat := func(ts time.Time) interface{} {
 		return json.Number(fmt.Sprintf("%d", ts.UnixNano()/1000))
 	}
-	timestamp := "2017-05-30T18:53:27.154Z"
-	timestampParsed, _ := time.Parse(time.RFC3339, timestamp)
+	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 
 	for _, test := range []struct {
 		input     map[string]interface{}
@@ -85,7 +85,7 @@ func TestDecode(t *testing.T) {
 					},
 				},
 			},
-			err: errors.New("Error fetching field"),
+			err: utility.ErrFetch,
 		},
 		{
 			input: map[string]interface{}{
@@ -213,10 +213,7 @@ func TestTransform(t *testing.T) {
 }
 
 func TestEventTransformUseReqTime(t *testing.T) {
-	reqTimestamp := "2017-05-30T18:53:27.154Z"
-	reqTimestampParsed, err := time.Parse(time.RFC3339, reqTimestamp)
-	require.NoError(t, err)
-
+	reqTimestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 	e := Metricset{}
 	beatEvent := e.Transform(&transform.Context{RequestTime: reqTimestampParsed})
 	require.Len(t, beatEvent, 1)

@@ -35,9 +35,9 @@ func TestDecodeMetadata(t *testing.T) {
 	agentName := "elastic-node"
 
 	for _, test := range []struct {
-		input       interface{}
-		err, inpErr error
-		output      *Metadata
+		input  interface{}
+		err    error
+		output *Metadata
 	}{
 		{
 			input: nil,

@@ -41,7 +41,7 @@ func TestStacktraceDecode(t *testing.T) {
 		{input: "", err: errors.New("invalid type for stacktrace"), s: nil},
 		{
 			input: []interface{}{"foo"},
-			err:   errors.New("invalid type for stacktrace frame"),
+			err:   ErrInvalidStacktraceFrameType,
 			s:     &Stacktrace{nil},
 		},
 		{

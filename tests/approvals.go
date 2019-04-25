@@ -77,7 +77,7 @@ func ApproveJson(received map[string]interface{}, name string, ignored map[strin
 			r = append(r, '\n')
 		}
 		ioutil.WriteFile(receivedPath, r, 0644)
-		return errors.New(fmt.Sprintf("Received data differ from approved data. Run 'make update' and then 'approvals' to verify the Diff."))
+		return errors.New("received data differs from approved data. Run 'make update' and then 'approvals' to verify the diff")
 	}
 
 	os.Remove(receivedPath)

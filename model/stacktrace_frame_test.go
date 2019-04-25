@@ -30,6 +30,8 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -46,10 +48,10 @@ func TestStacktraceFrameDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, s: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: errors.New("invalid type for stacktrace frame"), s: nil},
+		{input: "", err: ErrInvalidStacktraceFrameType, s: nil},
 		{
 			input: map[string]interface{}{},
-			err:   errors.New("Error fetching field"),
+			err:   utility.ErrFetch,
 			s: &StacktraceFrame{
 				AbsPath: nil, Filename: "", Lineno: nil, Colno: nil,
 				ContextLine: nil, Module: nil, Function: nil, LibraryFrame: nil,

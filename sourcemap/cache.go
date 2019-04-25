@@ -29,7 +29,7 @@ import (
 
 const (
 	MinCleanupIntervalSeconds float64 = 60
-	LoggerSelector                    = "sourcemap"
+	LoggerSelector            string  = "sourcemap"
 )
 
 type cache struct {

@@ -39,6 +39,8 @@ import (
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/elastic/beats/libbeat/common"
 )
 
@@ -78,7 +80,7 @@ func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
 
 func TestErrorEventDecode(t *testing.T) {
 	timestamp := json.Number("1496170407154000")
-	timestampParsed, _ := time.Parse(time.RFC3339, "2017-05-30T18:53:27.154Z")
+	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
 
 	id, culprit, lineno := "123", "foo()", 2
 	parentId, traceId, transactionId := "0123456789abcdef", "01234567890123456789abcdefabcdef", "abcdefabcdef0000"
@@ -104,27 +106,27 @@ func TestErrorEventDecode(t *testing.T) {
 		err, inpErr error
 		e           *Event
 	}{
-		"no input":            {input: nil, err: errors.New("Input missing for decoding Event"), e: nil},
-		"arror passed as arg": {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
-		"invalid type":        {input: "", err: errors.New("invalid type for error event"), e: nil},
+		"no input":               {input: nil, err: errMissingInput, e: nil},
+		"an error passed as arg": {input: nil, inpErr: errors.New("a"), err: errors.New("a"), e: nil},
+		"invalid type":           {input: "", err: errInvalidType, e: nil},
 		"error decoding timestamp": {
 			input: map[string]interface{}{"timestamp": 123},
-			err:   errors.New("Error fetching field"),
+			err:   utility.ErrFetch,
 		},
 		"error decoding transaction id": {
 			input: map[string]interface{}{"transaction_id": 123},
-			err:   errors.New("Error fetching field"),
+			err:   utility.ErrFetch,
 		},
 		"only parent id given": {input: map[string]interface{}{
 			"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
 			"parent_id": 123},
-			err: errors.New("Error fetching field"),
+			err: utility.ErrFetch,
 		},
 		"only trace id given": {
 			input: map[string]interface{}{
 				"id": id, "culprit": culprit, "context": map[string]interface{}{}, "timestamp": timestamp,
 				"trace_id": 123},
-			err: errors.New("Error fetching field"),
+			err: utility.ErrFetch,
 		},
 		"invalid type for exception stacktrace": {
 			input: map[string]interface{}{
@@ -134,7 +136,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"stacktrace": "123",
 				},
 			},
-			err: errors.New("invalid type for stacktrace"),
+			err: m.ErrInvalidStacktraceType,
 		},
 		"invalid type for log stacktrace": {
 			input: map[string]interface{}{
@@ -144,7 +146,7 @@ func TestErrorEventDecode(t *testing.T) {
 					"stacktrace": "123",
 				},
 			},
-			err: errors.New("invalid type for stacktrace"),
+			err: m.ErrInvalidStacktraceType,
 		},
 		"minimal valid error": {
 			input: map[string]interface{}{
@@ -448,8 +450,8 @@ func TestEventFields(t *testing.T) {
 }
 
 func TestEvents(t *testing.T) {
-
-	timestamp, _ := time.Parse(time.RFC3339, "2019-01-03T15:17:04.908596+01:00")
+	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
+		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	serviceName, agentName, version := "myservice", "go", "1.0"
 	service := metadata.Service{
