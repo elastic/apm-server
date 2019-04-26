@@ -175,7 +175,7 @@ func customizePackaging() {
 	var (
 		readmeTemplate = mage.PackageFile{
 			Mode:     0644,
-			Template: "package-README.md.tmpl",
+			Template: "packaging/files/README.md.tmpl",
 		}
 		ingestTarget = "ingest"
 		ingest       = mage.PackageFile{
