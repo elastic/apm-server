@@ -60,7 +60,6 @@ pipeline {
                 "^apm-server.yml",
                 "^apm-server.docker.yml",
                 "^magefile.go",
-                "^package-README.md.tmpl",
                 "^ingest",
                 "^packaging",
                 "^tests/packaging",
