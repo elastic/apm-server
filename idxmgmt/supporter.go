@@ -52,10 +52,10 @@ type supporter struct {
 }
 
 type manager struct {
-	supporter *supporter
-	ilm       libilm.Manager
-	client    idxmgmt.ESClient
-	assets    idxmgmt.Asseter
+	supporter     *supporter
+	ilm           libilm.Manager
+	clientHandler idxmgmt.ClientHandler
+	assets        idxmgmt.Asseter
 }
 
 type selector outil.Selector
@@ -96,15 +96,16 @@ func (s *supporter) TemplateConfig(_ bool) (template.TemplateConfig, error) {
 }
 
 func (s *supporter) Manager(
-	client idxmgmt.ESClient,
+	clientHandler idxmgmt.ClientHandler,
 	assets idxmgmt.Asseter,
 ) idxmgmt.Manager {
-	ilm := s.ilmSupporter.Manager(libilm.ESClientHandler(client))
+	ilm := s.ilmSupporter.Manager(clientHandler)
+
 	return &manager{
-		supporter: s,
-		ilm:       ilm,
-		client:    client,
-		assets:    assets,
+		supporter:     s,
+		ilm:           ilm,
+		clientHandler: clientHandler,
+		assets:        assets,
 	}
 }
 
@@ -163,32 +164,27 @@ func (s selector) Select(evt *beat.Event) (string, error) {
 	return outil.Selector(s).Select(evt)
 }
 
-func (m *manager) Setup(forceTemplate, forcePolicy bool) error {
-	return m.load(forceTemplate, forcePolicy)
+func (m *manager) Setup(templateMode, ilmMode idxmgmt.LoadMode) error {
+	return m.load(templateMode, ilmMode)
 }
 
 func (m *manager) Load() error {
-	return m.load(false, false)
+	return m.load(idxmgmt.LoadModeUnset, idxmgmt.LoadModeUnset)
 }
 
-func (m *manager) load(forceTemplate, forcePolicy bool) error {
+func (m *manager) load(templateMode, _ idxmgmt.LoadMode) error {
 	log := m.supporter.log
 
 	// create and install template
 	if m.supporter.templateCfg.Enabled {
 		tmplCfg := m.supporter.templateCfg
 
-		if forceTemplate {
+		if templateMode == idxmgmt.LoadModeForce {
 			tmplCfg.Overwrite = true
 		}
 
 		fields := m.assets.Fields(m.supporter.info.Beat)
-		loader, err := template.NewLoader(tmplCfg, m.client, m.supporter.info, fields, m.supporter.migration)
-		if err != nil {
-			return fmt.Errorf("error creating Elasticsearch template loader: %+v", err)
-		}
-
-		err = loader.Load()
+		err := m.clientHandler.Load(tmplCfg, m.supporter.info, fields, m.supporter.migration)
 		if err != nil {
 			return fmt.Errorf("error loading Elasticsearch template: %+v", err)
 		}

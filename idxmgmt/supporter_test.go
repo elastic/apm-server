@@ -22,9 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/beats/libbeat/template"
-
 	"github.com/elastic/beats/libbeat/idxmgmt/ilm"
+	"github.com/elastic/beats/libbeat/template"
 
 	"github.com/elastic/beats/libbeat/idxmgmt"
 
@@ -61,7 +60,7 @@ func TestIndexSupport_Enabled(t *testing.T) {
 func TestIndexSupport_ILM(t *testing.T) {
 	noop, err := ilm.NoopSupport(info, nil)
 	require.NoError(t, err)
-	assert.Equal(t, noop, defaultSupporter(t, nil).ILM())
+	assert.Equal(t, noop, defaultSupporter(t, nil).(*supporter).ILM())
 }
 
 func TestIndexSupport_TemplateConfig(t *testing.T) {
@@ -69,7 +68,7 @@ func TestIndexSupport_TemplateConfig(t *testing.T) {
 	tmplCfg := template.DefaultConfig()
 	tmplCfg.Enabled = false
 
-	supporterCfg, err := defaultSupporter(t, cfg).TemplateConfig(true)
+	supporterCfg, err := defaultSupporter(t, cfg).(*supporter).TemplateConfig(true)
 	assert.NoError(t, err)
 
 	assert.Equal(t, tmplCfg, supporterCfg)
