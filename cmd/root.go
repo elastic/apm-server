@@ -59,6 +59,9 @@ func init() {
 						},
 						"number_of_shards": 1,
 					},
+					"_source": map[string]interface{}{
+						"enabled": true,
+					},
 				},
 			},
 		},
