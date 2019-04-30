@@ -98,7 +98,7 @@ class ExportTemplateDefaultTest(SubCommandTest):
         Test export default template
         """
         template = yaml.load(self.command_output)
-        settings = template["settings"]
+        settings = template["apm-8.0.0"]["settings"]
         del(settings["index"]["query"])
         self.assertDictEqual(
             {
@@ -132,7 +132,7 @@ class ExportTemplateTest(SubCommandTest):
         Test export customized template
         """
         template = yaml.load(self.command_output)
-        settings = template["settings"]
+        settings = template["apm-8.0.0"]["settings"]
         del(settings["index"]["query"])
         self.assertDictEqual(
             {
