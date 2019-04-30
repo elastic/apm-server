@@ -1,4 +1,4 @@
-package mount // import "github.com/docker/docker/pkg/mount"
+package mount
 
 /*
 #include <errno.h>
@@ -11,6 +11,7 @@ package mount // import "github.com/docker/docker/pkg/mount"
 import "C"
 
 import (
+	"fmt"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -47,13 +48,12 @@ func mount(device, target, mType string, flag uintptr, data string) error {
 	}
 
 	if errno := C.nmount(&rawOptions[0], C.uint(len(options)), C.int(flag)); errno != 0 {
-		return &mountError{
-			op:     "mount",
-			source: device,
-			target: target,
-			flags:  flag,
-			err:    syscall.Errno(errno),
-		}
+		reason := C.GoString(C.strerror(*C.__error()))
+		return fmt.Errorf("Failed to call nmount: %s", reason)
 	}
 	return nil
+}
+
+func unmount(target string, flag int) error {
+	return syscall.Unmount(target, flag)
 }
