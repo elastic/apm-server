@@ -9,7 +9,7 @@
                 "us": 1496170407154000
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -82,7 +82,7 @@
                 "us": 1496170422281000
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -163,7 +163,7 @@
                 "us": 1496170407154000
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -234,7 +234,7 @@
                 "us": 1496170407154000
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -364,7 +364,7 @@
                 "us": 1496170407154000
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "type": "apm-server",
