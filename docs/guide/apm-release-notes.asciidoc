@@ -36,7 +36,7 @@ See <<breaking-7.0.0>>
 *APM UI*
 
 * Links from APM to Infra may produce unexpected results due to a problem with the time range included in those links.
-This will be fixed in the next patch release.
+Fixed in 7.0.1.
 
 [[release-notes-6.7.0]]
 === APM version 6.7.0
