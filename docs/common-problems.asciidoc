@@ -244,26 +244,26 @@ APM Agent --> Load Balancer  --> APM Server
 
 [[server-es-down]]
 [float]
-=== What happens to data when APM Server or Elasticsearch is down?
+=== What happens when APM Server or Elasticsearch is down?
 
-==== Elasticsearch down
+*If Elasticsearch is down*
 
 If Elasticsearch goes down, the APM Server will keep data in memory until Elasticsearch is back up,
 or until it runs out of space in its internal in-memory queue. 
 You can <<adjust-queue-size,adjust the internal queue size>> if necessary.
-When the queue becomes full, APM Server will respond with an <<queue-full`HTTP 503: Queue is full`>>,
+When the queue becomes full, APM Server will respond with <<queue-full,`HTTP 503: Queue is full`>>,
 and data will be lost.
 
-==== APM Server down
+*If APM Server is down*
 
 Some agents have internal queues or buffers to temporarily store data in case the APM Server goes down.
 As a general rule of thumb, queues fill up quickly. Assume data will be lost if APM Server goes down.
 Adjusting these queues/buffers can increase the overhead of the agent, so use caution when updating default values.
 
 * Go Agent - `ELASTIC_APM_BUFFER_SIZE`/`ELASTIC_APM_REQUEST_SIZE`?
-* Java Agent - {}/config-reporter.html#config-max-queue-size[`max_queue_size`]
+* Java Agent - {apm-java-ref}/config-reporter.html#config-max-queue-size[`max_queue_size`]
 * Node.js Agent - No internal queue. Data is lost
-* Python Agent - {}/tuning-and-overhead.html#tuning-queue[Transaction Queue]
-* Ruby Agent - {}/configuration.html#config-api-buffer-size[`api_buffer_size`]
+* Python Agent - {apm-py-ref}/tuning-and-overhead.html#tuning-queue[Transaction Queue]
+* Ruby Agent - {apm-ruby-ref}/configuration.html#config-api-buffer-size[`api_buffer_size`]
 * RUM Agent - ?
 // * .NET Agent - 
