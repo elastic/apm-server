@@ -1,6 +1,6 @@
-:stack-version: 6.7.1
+:stack-version: 6.8.0
 :major-version: 6.x
-:doc-branch: 6.7
+:doc-branch: 6.8
 :branch: {doc-branch}
 :go-version: 1.10.8
 :release-state: released
