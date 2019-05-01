@@ -29,6 +29,7 @@ class ExportConfigDefaultTest(SubCommandTest):
             {
                 "template": {
                     "settings": {
+                        "_source": {"enabled": True},
                         "index": {
                             "codec": "best_compression",
                             "mapping": {
@@ -70,6 +71,7 @@ class ExportConfigTest(SubCommandTest):
             {
                 "template": {
                     "settings": {
+                        "_source": {"enabled": True},
                         "index": {
                             "codec": "best_compression",
                             "mapping": {
