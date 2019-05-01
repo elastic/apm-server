@@ -4,7 +4,7 @@
             "@metadata": {
                 "beat": "apm-test",
                 "type": "_doc",
-                "version": "7.0.1"
+                "version": "7.0.2"
             },
             "@timestamp": "2017-05-09T15:04:05.999Z",
             "agent": {
@@ -252,7 +252,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.1",
+                "version": "7.0.2",
                 "version_major": 7
             },
             "process": {
@@ -310,7 +310,7 @@
             "@metadata": {
                 "beat": "apm-test",
                 "type": "_doc",
-                "version": "7.0.1"
+                "version": "7.0.2"
             },
             "@timestamp": "2018-08-09T14:59:05.999Z",
             "agent": {
@@ -355,7 +355,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.1",
+                "version": "7.0.2",
                 "version_major": 7
             },
             "process": {
@@ -401,7 +401,7 @@
             "@metadata": {
                 "beat": "apm-test",
                 "type": "_doc",
-                "version": "7.0.1"
+                "version": "7.0.2"
             },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
@@ -446,7 +446,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.1",
+                "version": "7.0.2",
                 "version_major": 7
             },
             "process": {
@@ -492,7 +492,7 @@
             "@metadata": {
                 "beat": "apm-test",
                 "type": "_doc",
-                "version": "7.0.1"
+                "version": "7.0.2"
             },
             "@timestamp": "2018-08-09T15:04:05.999Z",
             "agent": {
@@ -536,7 +536,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.0.1",
+                "version": "7.0.2",
                 "version_major": 7
             },
             "parent": {
