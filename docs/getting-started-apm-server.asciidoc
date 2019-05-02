@@ -187,7 +187,7 @@ or if you need to specify credentials:
 In Elasticsearch, {ref}/indices-templates.html[index templates] are used to define settings
 and mappings that determine how fields should be analyzed.
 
-The recommended index template file for {beatname_uc} is installed by the{beatname_uc} packages.
+The recommended index template file for {beatname_uc} is installed by the {beatname_uc} packages.
 If you accept the default configuration in the +{beatname_lc}.yml+ config file,
 {beatname_uc} loads the template automatically after successfully connecting to Elasticsearch.
 If the template already exists,
@@ -245,8 +245,9 @@ See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
 [[next-steps]]
 === Step 4: Next steps
 
-// Quick note about installing/running agents now?
-// Quick note about kibana UI?
+?? Quick note about installing/running agents now?
+?? Quick note about kibana UI?
+?? 
 
 // APM & YUM
 include::./copied-from-beats/repositories.asciidoc[]
