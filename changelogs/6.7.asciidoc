@@ -12,7 +12,10 @@ https://github.com/elastic/apm-server/compare/6.6\...6.7[View commits]
 
 https://github.com/elastic/apm-server/compare/v6.7.1\...v6.7.2[View commits]
 
-No significant changes.
+[float]
+==== Bug fixes
+
+- Fix numeric user id decoding {pull}2147[2147].
 
 [[release-notes-6.7.1]]
 === APM Server version 6.7.1

@@ -18,6 +18,7 @@
 package metadata
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -77,11 +78,7 @@ func TestUserDecode(t *testing.T) {
 		{input: nil, inputErr: nil, err: nil, u: nil},
 		{input: nil, inputErr: inpErr, err: inpErr, u: nil},
 		{input: "", err: errors.New("Invalid type for user"), u: nil},
-		{
-			input: map[string]interface{}{"id": 1},
-			err:   errors.New("Error fetching field"),
-			u:     &User{Id: nil, Email: nil, Username: nil, IP: nil, UserAgent: nil},
-		},
+		{input: map[string]interface{}{"id": json.Number("12")}, inputErr: nil, err: nil, u: &User{Id: &id}},
 		{
 			input: map[string]interface{}{
 				"id": id, "email": mail, "username": name,
