@@ -280,8 +280,9 @@ output.elasticsearch:
   index: "apm-%\{[observer.version]\}-%\{[processor.event]\}-%\{+yyyy.MM.dd}\" <1>
 ------------------------------------------------------------------------------
 
-<1> We recommend including +{beat_version_key}+ in the name to avoid mapping issues
-when you upgrade.
+<1>  `observer` refers to {beatname_uc}. We recommend including
++{beat_version_key}+ in the name to avoid mapping issues when you upgrade
+{beatname_uc}.
 
 With this configuration,
 all events are separated by their `processor.event` into different indices.
@@ -397,6 +398,10 @@ output.elasticsearch:
       when.contains:
         processor.event: "onboarding"
 ------------------------------------------------------------------------------
+
+NOTE: `observer` refers to {beatname_uc}. We recommend including
++{beat_version_key}+ in the name to avoid mapping issues when you upgrade
+{beatname_uc}.
 
 This is the default configuration for {beatname_uc} and results in indices
 named in the following format: +"apm-%\{[{beat_version_key}]\}-{type\}-%\{+yyyy.MM.dd\}"+
