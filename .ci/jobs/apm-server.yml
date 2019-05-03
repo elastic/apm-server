@@ -1,0 +1,4 @@
+---
+- job:
+    name: apm-server
+    project-type: folder
