@@ -1,6 +1,6 @@
 
 [[setting-up-and-running]]
-== Setting up and running APM Server
+== Setting up APM Server
 
 Before reading this section, see the <<getting-started-apm-server,getting started documentation>>
 for basic installation and running instructions.
@@ -104,7 +104,5 @@ include::./copied-from-beats/keystore.asciidoc[]
 include::./copied-from-beats/command-reference.asciidoc[]
 
 include::./high-availability.asciidoc[]
-
-include::./copied-from-beats/shared-docker.asciidoc[]
 
 include::./copied-from-beats/shared-systemd.asciidoc[]

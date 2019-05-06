@@ -249,5 +249,9 @@ See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
 ?? Quick note about kibana UI?
 ?? 
 
-// APM & YUM
+// Shared APM & YUM
 include::./copied-from-beats/repositories.asciidoc[]
+
+// Shared docker
+
+include::./copied-from-beats/shared-docker.asciidoc[]
