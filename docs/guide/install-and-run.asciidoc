@@ -122,7 +122,7 @@ NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>>
 .2+|Python
 3+|The Python agent automatically instruments Django and Flask out of the box.
 |{apm-py-ref}/getting-started.html[Getting Started]
-|
+|{apm-py-ref}/supported-technologies.html[Supported technologies]
 |{apm-py-ref}/configuration.html[Config]
 
 .2+|Ruby
@@ -134,7 +134,7 @@ NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>>
 .2+|RUM
 3+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
 |{apm-rum-ref}/intro.html[Introduction]
-|
+|{apm-rum-ref}/supported-technologies.html[Supported technologies]
 |{apm-rum-ref}/configuration.html[Config]
 |=======================================================================
 
