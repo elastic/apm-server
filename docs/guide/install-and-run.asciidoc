@@ -13,6 +13,8 @@ Elastic Cloud. The {es} Service is available on both AWS and GCP,
 and automatically configures APM Server to work with {es} and {kib}.
 Additional {cloud}/ec-manage-apm-settings.html[APM user settings] are also available.
 
+image::install_apm_cloud.png[Install Elastic APM on Cloud]
+
 https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free],
 then skip straight to <<agents>>.
 
@@ -21,7 +23,9 @@ then skip straight to <<agents>>.
 === Install the stack yourself
 
 To install the stack yourself, first see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
-We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
+We recommend you use the same version of Elasticsearch, Kibana, and APM Server:
+
+image::install_apm_yourself.png[Install Elastic APM yourself]
 
 Ready to go? Let's get started:
 
