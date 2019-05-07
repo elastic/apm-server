@@ -97,9 +97,11 @@ which are points in time relative to the start of the transaction with some labe
 In addition, agents provide options for users to capture custom <<metadata, metadata>>.
 Metadata can be indexed - <<labels-fields,`labels`>>, or not-indexed - <<custom-fields,`custom`>>.
 
-Transactions are grouped by their `type` and `name` in the APM UI's {kibana-ref}/transactions.html[Transaction overview].
+Transactions are grouped by their `type` and `name` in the APM UI's
+{kibana-ref}/transactions.html[Transaction overview].
 If you're using a supported framework, APM agents will automatically handle the naming for you.
-If you're not, or if you wish to override the default, all agents have API methods to manually set the `type` and `name`.
+If you're not, or if you wish to override the default,
+all agents have API methods to manually set the `type` and `name`.
 
 * `type` should be a keyword of specific relevance in the service's domain,
 e.g. `request`, `backgroundjob`, etc.
