@@ -16,7 +16,7 @@ To start APM Server, run:
 ./apm-server -e
 ----------------------------------
 
-NOTE: The `-e` <<global-flags,global flag>> enables logs to stdout and disables syslog/file output.
+NOTE: The `-e` <<global-flags,global flag>> enables logging to stderr and disables syslog/file output.
 Remove this flag if you've enabled logging in the configuration file.
 
 You should see APM Server start up.
