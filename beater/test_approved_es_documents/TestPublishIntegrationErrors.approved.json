@@ -8,6 +8,7 @@
             },
             "@timestamp": "2017-05-09T15:04:05.999Z",
             "agent": {
+                "ephemeral_id": "abcdef123",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -314,6 +315,7 @@
             },
             "@timestamp": "2018-08-09T14:59:05.999Z",
             "agent": {
+                "ephemeral_id": "abcdef123",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -405,6 +407,7 @@
             },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
+                "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.1.3"
             },
@@ -502,6 +505,7 @@
             },
             "@timestamp": "2018-08-09T15:04:05.999Z",
             "agent": {
+                "ephemeral_id": "abcdef123",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },

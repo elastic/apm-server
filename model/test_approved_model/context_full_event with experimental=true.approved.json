@@ -56,6 +56,7 @@
     },
     "Service": {
         "Agent": {
+            "EphemeralId": "abcdef123",
             "Name": "elastic-node",
             "Version": "1.0.0"
         },

@@ -226,6 +226,7 @@
             },
             "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
+                "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
             },

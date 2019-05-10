@@ -94,7 +94,7 @@
             type: object
             enabled: false
             description: >
-              The canonicalized headers of the monitored HTTP request.
+              The canonical headers of the monitored HTTP request.
 
        - name: response
          type: group
@@ -116,7 +116,7 @@
            type: object
            enabled: false
            description: >
-             The canonicalized headers of the monitored HTTP response.
+             The canonical headers of the monitored HTTP response.
 
     - name: labels
       type: object
@@ -246,6 +246,12 @@
           type: keyword
           description: >
             Version of the agent used.
+          overwrite: true
+
+        - name: ephemeral_id
+          type: keyword
+          description: >
+            The Ephemeral ID identifies a running process.
           overwrite: true
 
     - name: container
