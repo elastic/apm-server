@@ -20,15 +20,16 @@ package idxmgmt
 import (
 	"fmt"
 
-	"github.com/elastic/apm-server/idxmgmt/ilm"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/idxmgmt"
+	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/outputs/outil"
 	"github.com/elastic/beats/libbeat/template"
+
+	"github.com/elastic/apm-server/idxmgmt/ilm"
 )
 
 // The index management supporter holds information around ES template, ILM strategy and index setup for Elasticsearch.
@@ -52,10 +53,10 @@ type supporter struct {
 }
 
 type manager struct {
-	supporter *supporter
-	ilm       libilm.Manager
-	client    idxmgmt.ESClient
-	assets    idxmgmt.Asseter
+	supporter     *supporter
+	ilm           libilm.Manager
+	clientHandler libidxmgmt.ClientHandler
+	assets        libidxmgmt.Asseter
 }
 
 type selector outil.Selector
@@ -96,15 +97,14 @@ func (s *supporter) TemplateConfig(_ bool) (template.TemplateConfig, error) {
 }
 
 func (s *supporter) Manager(
-	client idxmgmt.ESClient,
-	assets idxmgmt.Asseter,
-) idxmgmt.Manager {
-	ilm := s.ilmSupporter.Manager(libilm.ESClientHandler(client))
+	clientHandler libidxmgmt.ClientHandler,
+	assets libidxmgmt.Asseter,
+) libidxmgmt.Manager {
 	return &manager{
-		supporter: s,
-		ilm:       ilm,
-		client:    client,
-		assets:    assets,
+		supporter:     s,
+		ilm:           s.ilmSupporter.Manager(clientHandler),
+		clientHandler: clientHandler,
+		assets:        assets,
 	}
 }
 
@@ -163,33 +163,26 @@ func (s selector) Select(evt *beat.Event) (string, error) {
 	return outil.Selector(s).Select(evt)
 }
 
-func (m *manager) Setup(forceTemplate, forcePolicy bool) error {
-	return m.load(forceTemplate, forcePolicy)
+func (m *manager) VerifySetup(loadTemplate, loadILM libidxmgmt.LoadMode) (bool, string) {
+	if loadTemplate.Enabled() {
+		return false, "Template loading not enabled."
+	}
+	return true, ""
 }
 
-func (m *manager) Load() error {
-	return m.load(false, false)
-}
-
-func (m *manager) load(forceTemplate, forcePolicy bool) error {
+func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 	log := m.supporter.log
 
 	// create and install template
 	if m.supporter.templateCfg.Enabled {
 		tmplCfg := m.supporter.templateCfg
 
-		if forceTemplate {
+		if loadTemplate >= libidxmgmt.LoadModeOverwrite {
 			tmplCfg.Overwrite = true
 		}
 
 		fields := m.assets.Fields(m.supporter.info.Beat)
-		loader, err := template.NewLoader(tmplCfg, m.client, m.supporter.info, fields, m.supporter.migration)
-		if err != nil {
-			return fmt.Errorf("error creating Elasticsearch template loader: %+v", err)
-		}
-
-		err = loader.Load()
-		if err != nil {
+		if err := m.clientHandler.Load(tmplCfg, m.supporter.info, fields, m.supporter.migration); err != nil {
 			return fmt.Errorf("error loading Elasticsearch template: %+v", err)
 		}
 

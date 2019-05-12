@@ -26,6 +26,6 @@ import (
 
 // MakeDefaultSupporter creates the ILM supporter for APM that is passed to libbeat.
 // Currently ILM is disabled by using a NoopSupport.
-func MakeDefaultSupporter(_ *logp.Logger, info beat.Info, config *common.Config) (ilm.Supporter, error) {
-	return ilm.NoopSupport(info, config)
+func MakeDefaultSupporter(log *logp.Logger, info beat.Info, config *common.Config) (ilm.Supporter, error) {
+	return ilm.NoopSupport(log, info, config)
 }
