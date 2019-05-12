@@ -164,7 +164,7 @@ func (s selector) Select(evt *beat.Event) (string, error) {
 }
 
 func (m *manager) VerifySetup(loadTemplate, loadILM libidxmgmt.LoadMode) (bool, string) {
-	if loadTemplate.Enabled() {
+	if !loadTemplate.Enabled() || !m.supporter.templateCfg.Enabled && loadTemplate < libidxmgmt.LoadModeForce {
 		return false, "Template loading not enabled."
 	}
 	return true, ""
