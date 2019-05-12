@@ -76,12 +76,11 @@ import (
 type Beat struct {
 	beat.Beat
 
-	Config    beatConfig
-	RawConfig *common.Config // Raw config that can be unpacked to get Beat specific config data.
+	Config       beatConfig
+	RawConfig    *common.Config // Raw config that can be unpacked to get Beat specific config data.
+	IdxSupporter idxmgmt.Supporter
 
-	keystore keystore.Keystore
-	index    idxmgmt.Supporter
-
+	keystore   keystore.Keystore
 	processing processing.Supporter
 }
 
@@ -184,6 +183,18 @@ func Run(settings Settings, bt beat.Creator) error {
 
 		return b.launch(settings, bt)
 	}())
+}
+
+// NewInitializedBeat creates a new beat where all information and initialization is derived from settings
+func NewInitializedBeat(settings Settings) (*Beat, error) {
+	b, err := NewBeat(settings.Name, settings.IndexPrefix, settings.Version)
+	if err != nil {
+		return nil, err
+	}
+	if err := b.InitWithSettings(settings); err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 // NewBeat creates a new beat instance
@@ -436,11 +447,14 @@ func (b *Beat) TestConfig(settings Settings, bt beat.Creator) error {
 
 //SetupSettings holds settings necessary for beat setup
 type SetupSettings struct {
-	Template        bool
 	Dashboard       bool
 	MachineLearning bool
 	Pipeline        bool
-	ILMPolicy       bool
+	IndexManagement bool
+	//Deprecated: use IndexManagementKey instead
+	Template bool
+	//Deprecated: use IndexManagementKey instead
+	ILMPolicy bool
 }
 
 // Setup registers ES index template, kibana dashboards, ml jobs and pipelines.
@@ -460,29 +474,31 @@ func (b *Beat) Setup(settings Settings, bt beat.Creator, setup SetupSettings) er
 			return err
 		}
 
-		if setup.Template || setup.ILMPolicy {
+		if setup.IndexManagement || setup.Template || setup.ILMPolicy {
 			outCfg := b.Config.Output
-
 			if outCfg.Name() != "elasticsearch" {
 				return fmt.Errorf("Index management requested but the Elasticsearch output is not configured/enabled")
 			}
-
-			esConfig := outCfg.Config()
-			if b.index.Enabled() {
-				esClient, err := elasticsearch.NewConnectedClient(esConfig)
-				if err != nil {
-					return err
-				}
-
-				// prepare index by loading templates, lifecycle policies and write aliases
-
-				m := b.index.Manager(esClient, idxmgmt.BeatsAssets(b.Fields))
-				err = m.Setup(setup.Template, setup.ILMPolicy)
-				if err != nil {
-					return err
-				}
+			esClient, err := elasticsearch.NewConnectedClient(outCfg.Config())
+			if err != nil {
+				return err
 			}
-			fmt.Println("Index setup complete.")
+
+			var loadTemplate, loadILM = idxmgmt.LoadModeUnset, idxmgmt.LoadModeUnset
+			if setup.IndexManagement || setup.Template {
+				loadTemplate = idxmgmt.LoadModeOverwrite
+			}
+			if setup.IndexManagement || setup.ILMPolicy {
+				loadILM = idxmgmt.LoadModeOverwrite
+			}
+			m := b.IdxSupporter.Manager(idxmgmt.NewESClientHandler(esClient), idxmgmt.BeatsAssets(b.Fields))
+			if ok, warn := m.VerifySetup(loadTemplate, loadILM); !ok {
+				fmt.Println(warn)
+			}
+			if err = m.Setup(loadTemplate, loadILM); err != nil {
+				return err
+			}
+			fmt.Println("Index setup finished.")
 		}
 
 		if setup.Dashboard {
@@ -615,7 +631,7 @@ func (b *Beat) configure(settings Settings) error {
 	if imFactory == nil {
 		imFactory = idxmgmt.MakeDefaultSupport(settings.ILM)
 	}
-	b.index, err = imFactory(nil, b.Beat.Info, b.RawConfig)
+	b.IdxSupporter, err = imFactory(nil, b.Beat.Info, b.RawConfig)
 	if err != nil {
 		return err
 	}
@@ -762,7 +778,7 @@ func (b *Beat) loadDashboards(ctx context.Context, force bool) error {
 // policy as a callback with the elasticsearch output. It is important the
 // registration happens before the publisher is created.
 func (b *Beat) registerESIndexManagement() error {
-	if b.Config.Output.Name() != "elasticsearch" || !b.index.Enabled() {
+	if b.Config.Output.Name() != "elasticsearch" || !b.IdxSupporter.Enabled() {
 		return nil
 	}
 
@@ -775,8 +791,8 @@ func (b *Beat) registerESIndexManagement() error {
 
 func (b *Beat) indexSetupCallback() elasticsearch.ConnectCallback {
 	return func(esClient *elasticsearch.Client) error {
-		m := b.index.Manager(esClient, idxmgmt.BeatsAssets(b.Fields))
-		return m.Setup(false, false)
+		m := b.IdxSupporter.Manager(idxmgmt.NewESClientHandler(esClient), idxmgmt.BeatsAssets(b.Fields))
+		return m.Setup(idxmgmt.LoadModeEnabled, idxmgmt.LoadModeEnabled)
 	}
 }
 
@@ -800,7 +816,7 @@ func (b *Beat) createOutput(stats outputs.Observer, cfg common.ConfigNamespace) 
 		return outputs.Group{}, nil
 	}
 
-	return outputs.Load(b.index, b.Info, stats, cfg.Name(), cfg.Config())
+	return outputs.Load(b.IdxSupporter, b.Info, stats, cfg.Name(), cfg.Config())
 }
 
 func (b *Beat) registerClusterUUIDFetching() error {
