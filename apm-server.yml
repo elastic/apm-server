@@ -306,7 +306,7 @@ output.elasticsearch:
   # (1) ensure pipelines are registered in Elasticsearch, see `apm-server.register.ingest.pipeline`
   # (2) enable the following:
   #pipelines:
-  #- pipeline: "apm_user_agent"
+  #- pipeline: "apm"
 
   # Optional HTTP Path
   #path: "/elasticsearch"

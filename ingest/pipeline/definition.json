@@ -1,4 +1,23 @@
-[{
+[
+{
+  "id": "apm",
+  "body": {
+    "description" : "Default enrichment for APM events",
+    "processors" : [
+      {
+        "pipeline": {
+          "name": "apm_user_agent"
+        }
+      },
+      {
+        "pipeline": {
+          "name": "apm_user_geo"
+        }
+      }
+    ]
+  }
+},
+{
   "id": "apm_user_agent",
   "body": {
     "description" : "Add user agent information for APM events",
@@ -12,4 +31,21 @@
       }
     ]
   }
-}]
+},
+{
+  "id": "apm_user_geo",
+  "body": {
+    "description" : "Add user geo information for APM events",
+    "processors" : [
+      {
+        "geoip" : {
+          "database_file": "GeoLite2-City.mmdb",
+          "field": "client.ip",
+          "target_field": "client.geo",
+          "ignore_missing": true
+        }
+      }
+    ]
+  }
+}
+]

@@ -216,11 +216,11 @@ class ElasticTest(ServerBaseTest):
 
         # Cleanup pipelines
         self.es.ingest.delete_pipeline(id="*")
-        # Write empyt pipeline for user_agent
+        # Write empty default pipeline
         self.es.ingest.put_pipeline(
-            id="apm_user_agent",
-            body={"description": "user agent test", "processors": []})
-        self.wait_until(lambda: self.es.ingest.get_pipeline("apm_user_agent"))
+            id="apm",
+            body={"description": "empty apm test pipeline", "processors": []})
+        self.wait_until(lambda: self.es.ingest.get_pipeline("apm"))
 
         super(ElasticTest, self).setUp()
 

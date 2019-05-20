@@ -11,6 +11,7 @@
 - Return response body with number of accepted events when queries pass a `verbose` param. {pull}2110[2110].
 - Add Idle timeout to server config {pull}2122[2122].
 - Upgrade Go to 1.12.4 {pull}2132[2132].
+- Add geoip processing to the default ingest pipeline {pull}2177[2177].
 
 [float]
 ==== Removed
