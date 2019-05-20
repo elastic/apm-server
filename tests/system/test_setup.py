@@ -91,7 +91,7 @@ class SetupTemplateDefaultTest(SubCommandTest):
         es = Elasticsearch([get_elasticsearch_url()])
         assert es.indices.exists_template(name='apm-*')
         assert self.log_contains("Loaded index template")
-        assert self.log_contains("Index setup complete")
+        assert self.log_contains("Index setup finished")
         # by default overwrite is set to true when `setup` cmd is run
         assert self.log_contains("Existing template will be overwritten, as overwrite is enabled.")
         self.assertNotRegexpMatches(self.get_log(), "ILM")

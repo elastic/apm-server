@@ -12,7 +12,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -64,7 +64,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -117,7 +117,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "labels": {
                 "tag1": "value1",
@@ -177,7 +177,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -231,7 +231,7 @@
                 "version": "2.2"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",

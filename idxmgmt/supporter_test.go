@@ -23,16 +23,19 @@ import (
 	"time"
 
 	"github.com/elastic/beats/libbeat/template"
+	"github.com/elastic/beats/libbeat/version"
 
-	"github.com/elastic/beats/libbeat/idxmgmt/ilm"
+	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 
-	"github.com/elastic/beats/libbeat/idxmgmt"
+	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/idxmgmt/ilm"
 )
 
 func TestIndexSupport_Enabled(t *testing.T) {
@@ -59,20 +62,12 @@ func TestIndexSupport_Enabled(t *testing.T) {
 }
 
 func TestIndexSupport_ILM(t *testing.T) {
-	noop, err := ilm.NoopSupport(info, nil)
+	noop, err := libilm.NoopSupport(nil, info, nil)
 	require.NoError(t, err)
-	assert.Equal(t, noop, defaultSupporter(t, nil).ILM())
-}
-
-func TestIndexSupport_TemplateConfig(t *testing.T) {
-	cfg := common.MapStr{"setup.template.enabled": false}
-	tmplCfg := template.DefaultConfig()
-	tmplCfg.Enabled = false
-
-	supporterCfg, err := defaultSupporter(t, cfg).TemplateConfig(true)
-	assert.NoError(t, err)
-
-	assert.Equal(t, tmplCfg, supporterCfg)
+	ilmSupporter, err := ilm.MakeDefaultSupporter(nil, beat.Info{}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, noop, ilmSupporter)
+	assert.Equal(t, noop, defaultSupporter(t, nil).(*supporter).ilmSupporter)
 }
 
 func TestIndexSupport_BuildSelector(t *testing.T) {
@@ -170,12 +165,86 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 	}
 }
 
+func TestManager_VerifySetup(t *testing.T) {
+	for name, test := range map[string]struct {
+		cfg          common.MapStr
+		loadTemplate libidxmgmt.LoadMode
+		ok           bool
+		warn         string
+	}{
+		"default config, template loading enabled": {
+			cfg:          common.MapStr{"setup.template.enabled": true},
+			loadTemplate: libidxmgmt.LoadModeEnabled,
+			ok:           true,
+		},
+		"default config, template loading disabled": {
+			cfg:          common.MapStr{"setup.template.enabled": true},
+			loadTemplate: libidxmgmt.LoadModeDisabled,
+			ok:           false, warn: "not enabled",
+		},
+		"setup template disabled, loadmode enabled": {
+			cfg:          common.MapStr{"setup.template.enabled": false},
+			loadTemplate: libidxmgmt.LoadModeEnabled,
+			ok:           false, warn: "not enabled",
+		},
+		"setup template disabled, loadmode overwrite": {
+			cfg:          common.MapStr{"setup.template.enabled": false},
+			loadTemplate: libidxmgmt.LoadModeOverwrite,
+			ok:           false, warn: "not enabled",
+		},
+		"setup template disabled, loadmode force": {
+			cfg:          common.MapStr{"setup.template.enabled": false},
+			loadTemplate: libidxmgmt.LoadModeForce,
+			ok:           true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			supporter := defaultSupporter(t, test.cfg)
+			ok, warn := supporter.Manager(&mockClientHandler{}, nil).VerifySetup(test.loadTemplate, libidxmgmt.LoadModeUnset)
+			assert.Equal(t, test.ok, ok)
+			assert.Contains(t, warn, test.warn)
+		})
+	}
+}
+
 var info = beat.Info{Beat: "testbeat", Version: "1.1.0"}
 
-func defaultSupporter(t *testing.T, c common.MapStr) idxmgmt.Supporter {
+func defaultSupporter(t *testing.T, c common.MapStr) libidxmgmt.Supporter {
 	cfg, err := common.NewConfigFrom(c)
 	require.NoError(t, err)
 	supporter, err := MakeDefaultSupporter(nil, info, cfg)
 	require.NoError(t, err)
 	return supporter
+}
+
+type mockClientHandler struct{}
+
+func (c *mockClientHandler) GetVersion() common.Version {
+	return *common.MustNewVersion(version.GetDefaultVersion())
+}
+
+func (c *mockClientHandler) Write(_ string, _ string, _ string) error {
+	return nil
+}
+
+func (c *mockClientHandler) CheckILMEnabled(libilm.Mode) (bool, error) {
+	return false, nil
+}
+
+func (c *mockClientHandler) HasAlias(name string) (bool, error) {
+	return false, nil
+}
+func (c *mockClientHandler) CreateAlias(alias libilm.Alias) error {
+	return nil
+}
+
+func (c *mockClientHandler) HasILMPolicy(name string) (bool, error) {
+	return false, nil
+}
+func (c *mockClientHandler) CreateILMPolicy(policy libilm.Policy) error {
+	return nil
+}
+
+func (c *mockClientHandler) Load(config template.TemplateConfig, info beat.Info, fields []byte, migration bool) error {
+	return nil
 }

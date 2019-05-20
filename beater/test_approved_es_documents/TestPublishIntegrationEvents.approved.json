@@ -15,7 +15,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
@@ -79,7 +79,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -136,7 +136,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "host": {
                 "hostname": "node-name",
@@ -210,7 +210,7 @@
                 "id": "container-id"
             },
             "ecs": {
-                "version": "1.1.0-dev"
+                "version": "1.0.0"
             },
             "go": {
                 "memstats": {

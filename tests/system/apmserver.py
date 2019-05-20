@@ -237,7 +237,7 @@ class ElasticTest(ServerBaseTest):
 
         # make sure template is loaded
         self.wait_until(
-            lambda: self.log_contains("Elasticsearch template"),
+            lambda: self.log_contains("Loaded index template."),
             max_timeout=20)
         self.wait_until(lambda: self.es.indices.exists(query_index))
         # Quick wait to give documents some time to be sent to the index
