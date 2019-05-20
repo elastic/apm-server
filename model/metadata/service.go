@@ -47,8 +47,9 @@ type Framework struct {
 	Version *string
 }
 type Agent struct {
-	Name    *string
-	Version *string
+	Name        *string
+	Version     *string
+	EphemeralId *string
 }
 
 func DecodeService(input interface{}, err error) (*Service, error) {
@@ -65,8 +66,9 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 		Version:     decoder.StringPtr(raw, "version"),
 		Environment: decoder.StringPtr(raw, "environment"),
 		Agent: Agent{
-			Name:    decoder.StringPtr(raw, "name", "agent"),
-			Version: decoder.StringPtr(raw, "version", "agent"),
+			Name:        decoder.StringPtr(raw, "name", "agent"),
+			Version:     decoder.StringPtr(raw, "version", "agent"),
+			EphemeralId: decoder.StringPtr(raw, "ephemeral_id", "agent"),
 		},
 		Framework: Framework{
 			Name:    decoder.StringPtr(raw, "name", "framework"),
@@ -133,5 +135,6 @@ func (a *Agent) fields() common.MapStr {
 	agent := common.MapStr{}
 	utility.Set(agent, "name", a.Name)
 	utility.Set(agent, "version", a.Version)
+	utility.Set(agent, "ephemeral_id", a.EphemeralId)
 	return agent
 }

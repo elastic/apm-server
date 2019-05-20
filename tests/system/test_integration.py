@@ -564,14 +564,17 @@ class PipelineRegisterTest(ElasticTest):
     }
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    def test_default_pipeline_registered(self):
-        pipeline_id = "apm_user_agent"
-        default_desc = "Add user agent information for APM events"
+    def test_default_pipelines_registered(self):
+        pipelines = [
+            ("apm_user_agent", "Add user agent information for APM events"),
+            ("apm_user_geo", "Add user geo information for APM events"),
+            ("apm", "Default enrichment for APM events"),
+        ]
         loaded_msg = "Pipeline successfully registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg),
-                        max_timeout=5)
-        pipeline = self.es.ingest.get_pipeline(id=pipeline_id)
-        assert pipeline[pipeline_id]['description'] == default_desc
+        self.wait_until(lambda: self.log_contains(loaded_msg), max_timeout=5)
+        for pipeline_id, pipeline_desc in pipelines:
+            pipeline = self.es.ingest.get_pipeline(id=pipeline_id)
+            assert pipeline[pipeline_id]['description'] == pipeline_desc
 
 
 class PipelineDisableOverwriteTest(ElasticTest):

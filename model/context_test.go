@@ -148,8 +148,9 @@ func TestDecodeContext(t *testing.T) {
 							"version": "1.2.3",
 						},
 						"agent": common.MapStr{
-							"name":    "elastic-node",
-							"version": "1.0.0",
+							"name":         "elastic-node",
+							"version":      "1.0.0",
+							"ephemeral_id": "abcdef123",
 						}},
 					"page": map[string]interface{}{"url": "https://example.com", "referer": "http://refer.example.com"},
 				}},

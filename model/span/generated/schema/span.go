@@ -151,6 +151,11 @@ const ModelSchema = `{
                                                 "null"
                                             ],
                                             "maxLength": 1024
+                                        },
+                                        "ephemeral_id": {
+                                            "description": "Free format ID used for metrics correlation by some agents",
+                                            "type": ["string", "null"],
+                                            "maxLength": 1024
                                         }
                                     }
                                 },

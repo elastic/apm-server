@@ -157,6 +157,7 @@
         {
             "@timestamp": "2018-08-01T10:00:00.00283092Z",
             "agent": {
+                "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
             },

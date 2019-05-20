@@ -282,6 +282,11 @@ const ModelSchema = `{
                     "description": "Version of the Elastic APM agent, e.g.\"1.0.0\"",
                     "type": ["string", "null"],
                     "maxLength": 1024
+                },
+                "ephemeral_id": {
+                    "description": "Free format ID used for metrics correlation by some agents",
+                    "type": ["string", "null"],
+                    "maxLength": 1024
                 }
             }
         },

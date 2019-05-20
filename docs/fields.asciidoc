@@ -167,7 +167,7 @@ The http method of the request leading to this event.
 --
 type: object
 
-The canonicalized headers of the monitored HTTP request.
+The canonical headers of the monitored HTTP request.
 
 
 Object is not enabled.
@@ -200,7 +200,7 @@ Used by the Node agent to indicate when in the response life cycle an error has 
 --
 type: object
 
-The canonicalized headers of the monitored HTTP response.
+The canonical headers of the monitored HTTP response.
 
 
 Object is not enabled.
@@ -387,6 +387,16 @@ Name of the agent used.
 type: keyword
 
 Version of the agent used.
+
+
+--
+
+*`agent.ephemeral_id`*::
++
+--
+type: keyword
+
+The Ephemeral ID identifies a running process.
 
 
 --
