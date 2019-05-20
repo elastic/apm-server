@@ -7,11 +7,17 @@ For a full list of changes, see the
 {apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
+* <<release-notes-6.8.0>>
 * <<release-notes-6.7.0>>
 * <<release-notes-6.6.0>>
 * <<release-notes-6.5.0>>
 * <<release-notes-6.4.1>>
 * <<release-notes-6.4.0>>
+
+[[release-notes-6.8.0]]
+=== APM version 6.7.0
+
+No significant changes.
 
 [[release-notes-6.7.0]]
 === APM version 6.7.0
