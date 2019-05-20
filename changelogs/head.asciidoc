@@ -3,7 +3,6 @@
 
 [float]
 ==== Bug fixes
-- Set user/group under systemd {pull}2101[2101].
 
 [float]
 ==== Added
@@ -17,4 +16,4 @@
 [float]
 ==== Removed
 
-https://github.com/elastic/apm-server/compare/v7.0.0...master[View commits]
+https://github.com/elastic/apm-server/compare/7.1...master[View commits]

@@ -3,6 +3,7 @@
 
 https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 
+* <<release-notes-7.0.1>>
 * <<release-notes-7.0.0>>
 * <<release-notes-7.0.0-rc2>>
 * <<release-notes-7.0.0-rc1>>
@@ -10,10 +11,17 @@ https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 * <<release-notes-7.0.0-alpha2>>
 * <<release-notes-7.0.0-alpha1>>
 
+[[release-notes-7.0.1]]
+=== APM Server version 7.0.1
+
+https://github.com/elastic/apm-server/compare/v7.0.0...v7.0.1[View commits]
+
+[float]
+==== Bug fixes
+- Set user/group under systemd {pull}2101[2101].
+
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
-
-coming[7.0.0]
 
 https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 
