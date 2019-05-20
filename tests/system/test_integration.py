@@ -567,7 +567,7 @@ class PipelineRegisterTest(ElasticTest):
     def test_default_pipelines_registered(self):
         pipelines = [
             ("apm_user_agent", "Add user agent information for APM events"),
-            ("apm_user_geoip", "Add user geo information for APM events"),
+            ("apm_user_geo", "Add user geo information for APM events"),
             ("apm", "Default enrichment for APM events"),
         ]
         loaded_msg = "Pipeline successfully registered"
