@@ -7,12 +7,19 @@ For a full list of changes, see the
 {apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
+* <<release-notes-7.1.0>>
 * <<release-highlights-7.0.0>>
+* <<release-notes-6.8.0>>
 * <<release-notes-6.7.0>>
 * <<release-notes-6.6.0>>
 * <<release-notes-6.5.0>>
 * <<release-notes-6.4.1>>
 * <<release-notes-6.4.0>>
+
+[[release-notes-7.1.0]]
+=== APM version 7.1.0
+
+No new features.
 
 
 [[release-highlights-7.0.0]]
@@ -29,6 +36,11 @@ See <<breaking-7.0.0>>
 *APM UI*
 
 * Added support for frozen indices.
+
+[[release-notes-6.8.0]]
+=== APM version 6.8.0
+
+No new features.
 
 [[release-notes-6.7.0]]
 === APM version 6.7.0
