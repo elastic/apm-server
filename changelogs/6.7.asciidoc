@@ -3,8 +3,19 @@
 
 https://github.com/elastic/apm-server/compare/6.6\...6.7[View commits]
 
+* <<release-notes-6.7.2>>
 * <<release-notes-6.7.1>>
 * <<release-notes-6.7.0>>
+
+[[release-notes-6.7.2]]
+=== APM Server version 6.7.2
+
+https://github.com/elastic/apm-server/compare/v6.7.1\...v6.7.2[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix numeric user id decoding {pull}2147[2147].
 
 [[release-notes-6.7.1]]
 === APM Server version 6.7.1
@@ -26,8 +37,10 @@ https://github.com/elastic/apm-server/compare/v6.6.0\...v6.7.0[View commits]
 
 - Allow numbers and boolean values for `transaction.tags`, `span.tags`, `metricset.tags` {pull}1712[1712].
 - Retrieve `span.subtype` and `span.action` from `span.type` if not given {pull}1843[1843].
+- Set default query fields in index pattern {pull}1996[1996].
 
 [float]
 ==== Removed
 - Remove support for using dots in tags for experimental metricset endpoint {pull}1712[1712].
 - Remove formatting of `duration.us` to milliseconds in index pattern {pull}1717[1717].
+
