@@ -27,7 +27,7 @@ import (
 func Template(ilmEnabled, templateEnabled, overwrite bool, name string, policy string) libtemplate.TemplateConfig {
 	template := libtemplate.TemplateConfig{
 		Enabled:   templateEnabled,
-		Name:      fmt.Sprintf("%s", name),
+		Name:      name,
 		Pattern:   fmt.Sprintf("%s*", name),
 		Overwrite: overwrite,
 		Order:     2,

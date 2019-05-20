@@ -110,8 +110,9 @@ func init() {
 `
 	setup.ResetFlags()
 	//lint:ignore SA1019 Setting up template must still be supported until next major version upgrade.
-	setup.Flags().Bool(cmd.TemplateKey, false, "Setup index template")
-	setup.Flags().MarkDeprecated(cmd.TemplateKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
+	tmplKey := cmd.TemplateKey
+	setup.Flags().Bool(tmplKey, false, "Setup index template")
+	setup.Flags().MarkDeprecated(tmplKey, fmt.Sprintf("please use --%s instead", cmd.IndexManagementKey))
 	setup.Flags().Bool(cmd.IndexManagementKey, false, "Setup Elasticsearch index management")
 	setup.Flags().Bool(cmd.PipelineKey, false, "Setup ingest pipelines")
 
