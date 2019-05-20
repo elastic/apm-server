@@ -1,5 +1,7 @@
 include::./changelogs/head.asciidoc[]
+include::./changelogs/7.1.asciidoc[]
 include::./changelogs/7.0.asciidoc[]
+include::./changelogs/6.8.asciidoc[]
 include::./changelogs/6.7.asciidoc[]
 include::./changelogs/6.6.asciidoc[]
 include::./changelogs/6.5.asciidoc[]
