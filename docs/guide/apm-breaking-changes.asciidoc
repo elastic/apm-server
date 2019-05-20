@@ -10,12 +10,11 @@ Also see <<apm-release-notes>>.
 
 //NOTE: The notable-breaking-changes tagged regions are re-used in the
 //Installation and Upgrade Guide
-// tag::notable-v8-breaking-changes[]
-
-// end::notable-v8-breaking-changes[]
 
 [[breaking-7.0.0]]
 === Breaking changes in 7.0.0
+
+// tag::notable-v7-breaking-changes[]
 
 APM Server::
 +
@@ -42,6 +41,8 @@ When you upgrade to 7.x,
 data in indices created prior to 7.0 will not automatically appear in the APM UI.
 We offer a Kibana Migration Assistant (in the Kibana Management section) to help you migrate your data.
 The migration assistant will reindex your older data in the new ECS format.
+
+// end::notable-v7-breaking-changes[]
 
 [float]
 [[ecs-compliance]]
