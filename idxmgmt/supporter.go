@@ -206,7 +206,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 			m.assets.Fields(m.supporter.info.Beat), m.supporter.migration); err != nil {
 			return fmt.Errorf("error loading Elasticsearch template: %+v", err)
 		}
-		log.Info("Loaded index template.")
+		log.Infof("Finished loading index template.")
 	}
 
 	for event, index := range eventIdxNames(false) {
@@ -244,7 +244,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 			if err = m.clientHandler.Load(templateCfg, m.supporter.info, nil, m.supporter.migration); err != nil {
 				return errors.Wrapf(err, "error loading template %+v", templateCfg.Name)
 			}
-			log.Infof("Additional template loaded for %s", templateCfg.Name)
+			log.Infof("Finished template setup for %s.", templateCfg.Name)
 		}
 
 		if ilmComponent.load {
@@ -254,9 +254,9 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 				if libilm.ErrReason(err) != libilm.ErrAliasAlreadyExists {
 					return err
 				}
-				log.Infof("Write alias %s exists already", alias)
+				log.Infof("Write alias %s exists already.", alias)
 			} else {
-				log.Infof("Write alias %s successfully generated", alias)
+				log.Infof("Write alias %s successfully generated.", alias)
 			}
 		}
 	}

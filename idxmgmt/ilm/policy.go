@@ -50,9 +50,6 @@ var PolicyKeep = common.MapStr{
 						"priority": 50,
 					},
 					"readonly": m{},
-					"forcemerge": m{
-						"max_num_segments": 1,
-					},
 				},
 			},
 		},
@@ -81,9 +78,6 @@ var PolicyKeepMedium = common.MapStr{
 						"priority": 50,
 					},
 					"readonly": m{},
-					"forcemerge": m{
-						"max_num_segments": 1,
-					},
 				},
 			},
 		},
