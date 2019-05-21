@@ -149,6 +149,12 @@ apm-server:
     # Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
     #overwrite: true
 
+  # When ilm is set to true the APM Server will take care of ILM setup.
+  # Configurations in output.elasticsearch.index and output.elasticsearch.indices sections will be ignored
+  # ilm can only be enabled for output.elasticsearch
+  #ilm:
+    #enabled: false
+
 #================================ General ======================================
 
 # Internal queue configuration for buffering events to be published.

@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import shutil
@@ -206,11 +205,11 @@ class ElasticTest(ServerBaseTest):
         self.es = Elasticsearch([get_elasticsearch_url()])
 
         # Cleanup index and template first
-        self.es.indices.delete(index="*", ignore=[400, 404])
+        self.es.indices.delete(index="apm*", ignore=[400, 404])
         for idx in self.indices:
             self.wait_until(lambda: not self.es.indices.exists(idx))
 
-        self.es.indices.delete_template(name="*", ignore=[400, 404])
+        self.es.indices.delete_template(name="apm*", ignore=[400, 404])
         for idx in self.indices:
             self.wait_until(lambda: not self.es.indices.exists_template(idx))
 
@@ -237,7 +236,7 @@ class ElasticTest(ServerBaseTest):
 
         # make sure template is loaded
         self.wait_until(
-            lambda: self.log_contains("Loaded index template."),
+            lambda: self.log_contains("Finished loading index template"),
             max_timeout=20)
         self.wait_until(lambda: self.es.indices.exists(query_index))
         # Quick wait to give documents some time to be sent to the index
