@@ -8,6 +8,7 @@ For a full list of changes, see the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
 * <<release-highlights-7.0.0>>
+* <<release-notes-6.8.0>>
 * <<release-notes-6.7.0>>
 * <<release-notes-6.6.0>>
 * <<release-notes-6.5.0>>
@@ -37,6 +38,11 @@ See <<breaking-7.0.0>>
 
 * Links from APM to Infra may produce unexpected results due to a problem with the time range included in those links.
 Fixed in 7.0.1.
+
+[[release-notes-6.8.0]]
+=== APM version 6.8.0
+
+No new features.
 
 [[release-notes-6.7.0]]
 === APM version 6.7.0
