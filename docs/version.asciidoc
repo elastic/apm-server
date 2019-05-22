@@ -1,6 +1,6 @@
 :stack-version: 7.2.0
-:major-version: 7.x
-:doc-branch: 7.x
+:major-version: 7.2
+:doc-branch: 7.2
 :branch: {doc-branch}
 :go-version: 1.12.4
 :release-state: unreleased

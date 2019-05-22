@@ -11,7 +11,7 @@ TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/test
 SYSTEM_TESTS=true
 TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
-BEATS_VERSION?=7.x
+BEATS_VERSION?=7.2
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
 GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
