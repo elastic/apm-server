@@ -1,7 +1,7 @@
 [[release-notes-7.0]]
 == APM Server version 7.0
 
-https://github.com/elastic/apm-server/compare/6.7\...7.0[View commits]
+https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 
 * <<release-notes-7.0.1>>
 * <<release-notes-7.0.0>>
@@ -14,7 +14,7 @@ https://github.com/elastic/apm-server/compare/6.7\...7.0[View commits]
 [[release-notes-7.0.1]]
 === APM Server version 7.0.1
 
-https://github.com/elastic/apm-server/compare/v7.0.0\...v7.0.1[View commits]
+https://github.com/elastic/apm-server/compare/v7.0.0...v7.0.1[View commits]
 
 [float]
 ==== Bug fixes
@@ -23,7 +23,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0\...v7.0.1[View commits]
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
 
-https://github.com/elastic/apm-server/compare/6.7.2\...7.0[View commits]
+https://github.com/elastic/apm-server/compare/6.7...7.0[View commits]
 
 These release notes include all changes made in the alpha, beta, and RC releases of 7.0.0.
 
@@ -78,14 +78,14 @@ Also see:
 [[release-notes-7.0.0-rc2]]
 === APM Server version 7.0.0-rc2
 
-https://github.com/elastic/apm-server/compare/v7.0.0-rc1\...v7.0.0-rc2[View commits]
+https://github.com/elastic/apm-server/compare/v7.0.0-rc1...v7.0.0-rc2[View commits]
 
 No significant changes.
 
 [[release-notes-7.0.0-rc1]]
 === APM Server version 7.0.0-rc1
 
-https://github.com/elastic/apm-server/compare/v7.0.0-beta1\...v7.0.0-rc1[View commits]
+https://github.com/elastic/apm-server/compare/v7.0.0-beta1...v7.0.0-rc1[View commits]
 
 [float]
 ==== Bug fixes
@@ -100,7 +100,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-beta1\...v7.0.0-rc1[View co
 [[release-notes-7.0.0-beta1]]
 === APM Server version 7.0.0-beta1
 
-https://github.com/elastic/apm-server/compare/v7.0.0-alpha2\...v7.0.0-beta1[View commits]
+https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...v7.0.0-beta1[View commits]
 
 [float]
 ==== Breaking Changes
@@ -133,6 +133,8 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2\...v7.0.0-beta1[View
 
 [[release-notes-7.0.0-alpha2]]
 === APM Server version 7.0.0-alpha2
+
+https://github.com/elastic/apm-server/compare/v7.0.0-alpha1...v7.0.0-alpha2[View commits]
 
 [float]
 ==== Added
