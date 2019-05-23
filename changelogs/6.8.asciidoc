@@ -1,14 +1,14 @@
 [[release-notes-6.8]]
 == APM Server version 6.8
 
-https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
+https://github.com/elastic/apm-server/compare/6.7...6.8[View commits]
 
 * <<release-notes-6.8.0>>
 
 [[release-notes-6.8.0]]
 === APM Server version 6.8.0
 
-https://github.com/elastic/apm-server/compare/v6.7.2\...v6.8.0[View commits]
+https://github.com/elastic/apm-server/compare/v6.7.1...v6.8.0[View commits]
 
 [float]
 ==== Bug fixes
