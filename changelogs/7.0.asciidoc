@@ -134,8 +134,6 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2...v7.0.0-beta1[View 
 [[release-notes-7.0.0-alpha2]]
 === APM Server version 7.0.0-alpha2
 
-https://github.com/elastic/apm-server/compare/v7.0.0-alpha1...v7.0.0-alpha2[View commits]
-
 [float]
 ==== Added
 
