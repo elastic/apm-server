@@ -194,12 +194,15 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	kibana, err := kibana.NewKibanaClient(b.BeatConfig)
-	if err != nil {
-		bt.logger.Error(err.Error())
+	var kb *kibana.Client
+	if bt.config.Kibana.Enabled() {
+		kb, err = kibana.NewKibanaClient(bt.config.Kibana)
+		if err != nil {
+			bt.logger.Error(err.Error())
+		}
 	}
 
-	bt.server = newServer(bt.config, tracer, kibana, pub.Send)
+	bt.server = newServer(bt.config, tracer, kb, pub.Send)
 	bt.mutex.Unlock()
 
 	var g errgroup.Group
