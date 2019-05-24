@@ -8,7 +8,8 @@ Example config with RUM enabled:
 ["source","yaml"]
 ----
 apm-server.rum.enabled: true
-apm-server.rum.rate_limit: 10
+apm-server.rum.event_rate.limit: 300
+apm-server.rum.event_rate.lru_size: 1000
 apm-server.rum.allow_origins: ['*']
 apm-server.rum.library_pattern: "node_modules|bower_components|~"
 apm-server.rum.exclude_from_grouping: "^/webpack"
@@ -22,7 +23,7 @@ apm-server.rum.source_mapping.index_pattern: "apm-*-sourcemap*"
 [[rum-enable]]
 [float]
 ==== `enabled`
-For enabling RUM support, set the `apm-server.rum.enabled` to `true`.
+To enable RUM support, set `apm-server.rum.enabled` to `true`.
 By default this is disabled.
 
 [float]
