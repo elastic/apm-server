@@ -18,6 +18,7 @@ To start APM Server, run:
 
 NOTE: The `-e` <<global-flags,global flag>> enables logging to stderr and disables syslog/file output.
 Remove this flag if you've enabled logging in the configuration file.
+For linux systems, see <<running-with-systemd,APM Server status and logs>>.
 
 You should see APM Server start up.
 It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
