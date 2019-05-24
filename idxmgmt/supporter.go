@@ -183,12 +183,12 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 	//(4) load write alias per event type AFTER the template has been created,
 	//    as this step also automatically creates an index, it is important the matching templates are already there
 
-	type ilmStruct struct {
+	type ilmHandler struct {
 		manager   libilm.Manager
 		supporter libilm.Supporter
 	}
 	var (
-		ilmInfo           []ilmStruct
+		ilmHandlers       []ilmHandler
 		err               error
 		ilmCfg            *common.Config
 		policyCreated     bool
@@ -219,7 +219,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 				return err
 			}
 		}
-		ilmInfo = append(ilmInfo, ilmStruct{manager: ilmManager, supporter: ilmSupporter})
+		ilmHandlers = append(ilmHandlers, ilmHandler{manager: ilmManager, supporter: ilmSupporter})
 	}
 
 	//(1) load general apm template
@@ -240,13 +240,13 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		log.Infof("Finished loading index template.")
 	}
 
-	for _, ilmInfo := range ilmInfo {
+	for _, handler := range ilmHandlers {
 
-		policy := ilmInfo.supporter.Policy().Name
-		alias := ilmInfo.supporter.Alias().Name
+		policy := handler.supporter.Policy().Name
+		alias := handler.supporter.Alias().Name
 		if ilmComponent.load {
 			//(2) load event type policies, respecting ILM settings
-			if policyCreated, err = ilmInfo.manager.EnsurePolicy(ilmComponent.overwrite); err != nil {
+			if policyCreated, err = handler.manager.EnsurePolicy(ilmComponent.overwrite); err != nil {
 				return err
 			}
 			if policyCreated {
@@ -269,7 +269,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		if ilmComponent.load {
 			//(4) load ilm write aliases
 			//    ensure write aliases are created AFTER template creation
-			if err = ilmInfo.manager.EnsureAlias(); err != nil {
+			if err = handler.manager.EnsureAlias(); err != nil {
 				if libilm.ErrReason(err) != libilm.ErrAliasAlreadyExists {
 					return err
 				}
