@@ -1,21 +1,50 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package apmlog
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/rs/zerolog"
+	"go.elastic.co/fastjson"
 )
 
 var (
 	// DefaultLogger is the default Logger to use, if ELASTIC_APM_LOG_* are specified.
 	DefaultLogger Logger
+
+	fastjsonPool = &sync.Pool{
+		New: func() interface{} {
+			return &fastjson.Writer{}
+		},
+	}
 )
 
 func init() {
+	initDefaultLogger()
+}
+
+func initDefaultLogger() {
 	fileStr := strings.TrimSpace(os.Getenv("ELASTIC_APM_LOG_FILE"))
 	if fileStr == "" {
 		return
@@ -36,19 +65,54 @@ func init() {
 		logWriter = &syncFile{File: f}
 	}
 
-	const defaultLevel = zerolog.ErrorLevel
-	logger := zerolog.New(logWriter)
+	logLevel := errorLevel
 	if levelStr := strings.TrimSpace(os.Getenv("ELASTIC_APM_LOG_LEVEL")); levelStr != "" {
-		level, err := zerolog.ParseLevel(strings.ToLower(levelStr))
+		level, err := parseLogLevel(levelStr)
 		if err != nil {
-			log.Printf("invalid ELASTIC_APM_LOG_LEVEL %q, falling back to %q", levelStr, defaultLevel)
-			level = defaultLevel
+			log.Printf("invalid ELASTIC_APM_LOG_LEVEL %q, falling back to %q", levelStr, logLevel)
+		} else {
+			logLevel = level
 		}
-		logger = logger.Level(level)
-	} else {
-		logger = logger.Level(defaultLevel)
 	}
-	DefaultLogger = zerologLogger{l: logger}
+	DefaultLogger = levelLogger{w: logWriter, level: logLevel}
+}
+
+const (
+	debugLevel logLevel = iota
+	infoLevel
+	warnLevel
+	errorLevel
+	noLevel
+)
+
+type logLevel uint8
+
+func (l logLevel) String() string {
+	switch l {
+	case debugLevel:
+		return "debug"
+	case infoLevel:
+		return "info"
+	case warnLevel:
+		return "warn"
+	case errorLevel:
+		return "error"
+	}
+	return ""
+}
+
+func parseLogLevel(s string) (logLevel, error) {
+	switch strings.ToLower(s) {
+	case "debug":
+		return debugLevel, nil
+	case "info":
+		return infoLevel, nil
+	case "warn":
+		return warnLevel, nil
+	case "error":
+		return errorLevel, nil
+	}
+	return noLevel, fmt.Errorf("invalid log level string %q", s)
 }
 
 // Logger provides methods for logging.
@@ -57,18 +121,36 @@ type Logger interface {
 	Errorf(format string, args ...interface{})
 }
 
-type zerologLogger struct {
-	l zerolog.Logger
+type levelLogger struct {
+	w     io.Writer
+	level logLevel
 }
 
 // Debugf logs a message with log.Printf, with a DEBUG prefix.
-func (l zerologLogger) Debugf(format string, args ...interface{}) {
-	l.l.Debug().Timestamp().Msgf(format, args...)
+func (l levelLogger) Debugf(format string, args ...interface{}) {
+	l.logf(debugLevel, format, args...)
 }
 
 // Errorf logs a message with log.Printf, with an ERROR prefix.
-func (l zerologLogger) Errorf(format string, args ...interface{}) {
-	l.l.Error().Timestamp().Msgf(format, args...)
+func (l levelLogger) Errorf(format string, args ...interface{}) {
+	l.logf(errorLevel, format, args...)
+}
+
+func (l levelLogger) logf(level logLevel, format string, args ...interface{}) {
+	if level < l.level {
+		return
+	}
+	jw := fastjsonPool.Get().(*fastjson.Writer)
+	jw.RawString(`{"level":"`)
+	jw.RawString(level.String())
+	jw.RawString(`","time":"`)
+	jw.Time(time.Now(), time.RFC3339)
+	jw.RawString(`","message":`)
+	jw.String(fmt.Sprintf(format, args...))
+	jw.RawString("}\n")
+	l.w.Write(jw.Bytes())
+	jw.Reset()
+	fastjsonPool.Put(jw)
 }
 
 type syncFile struct {
@@ -76,7 +158,7 @@ type syncFile struct {
 	*os.File
 }
 
-// Write calls f.File.Write with f.mu held, to protect  multiple Tracers
+// Write calls f.File.Write with f.mu held, to protect multiple Tracers
 // in the same process from one another.
 func (f *syncFile) Write(data []byte) (int, error) {
 	f.mu.Lock()
