@@ -88,7 +88,7 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 		return
 	}
 
-	if err == nil && query.Metadata.Service.Name == "" {
+	if err == nil && query.Service.Name == "" {
 		err = errors.New(agentcfg.ServiceName + " is required")
 	}
 

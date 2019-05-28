@@ -38,7 +38,7 @@ var (
 
 func Fetch(kb *kibana.Client, q Query, err error) (map[string]interface{}, string, error) {
 	var doc Doc
-	resultBytes, err := request(kb, convert.ToReader(q.Metadata), err)
+	resultBytes, err := request(kb, convert.ToReader(q), err)
 	err = convert.FromBytes(resultBytes, &doc, err)
 	return doc.Source.Settings, doc.Id, err
 }

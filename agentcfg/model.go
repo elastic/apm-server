@@ -31,15 +31,11 @@ type Source struct {
 	Settings map[string]interface{} `json:"settings"`
 }
 
-type Query struct {
-	Metadata Metadata `json:"metadata"`
-}
-
 func NewQuery(name, env string) Query {
-	return Query{Metadata: Metadata{Service{name, env}}}
+	return Query{Service{name, env}}
 }
 
-type Metadata struct {
+type Query struct {
 	Service Service `json:"service"`
 }
 
