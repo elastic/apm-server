@@ -18,7 +18,7 @@ any indices present before ILM was configured will need to be managed manually.
 [[ilm-setup]]
 === ILM default configuration
 
-IMPORTANT: The default index lifecycle configuration cannot be configured until after it has been applied.
+IMPORTANT: The default index lifecycle configuration cannot be changed until after it has been applied.
 
 The default configuration only applies hot and warm phase definitions.
 Cold and delete phases are not defined.
@@ -42,8 +42,6 @@ readonly
 readonly
 `priority: 50`
 |=======================================================================
-
-After applying ILM, the policies are editable in the Kibana **UI management** section.
 
 // OLD INFO, MAYBE DELETE 
 // *******
@@ -81,11 +79,10 @@ DELETE
 [[ilm-setup]]
 === ILM setup
 
-To use index lifecylce management, set `ilm.enabled` to `true` in apm-server.yml.
-
+To set up index lifecycle management, set `ilm.enabled` to `true` in apm-server.yml.
 ILM can only be enabled for `output.elasticsearch`.
 When enabled, configurations defined for `output.elasticsearch.index` and `output.elasticsearch.indices` will be ignored.
-ILM clears all index settings and sets up a predefined set of indices and policies that the user cannot configure.
+ILM clears all index settings and sets up a predefined set of indices and policies that the user cannot initially configure.
 
 It is recommended to setup index lifecycle management (ILM) before starting APM Server.
 This prevents indices from being created before policies are changed, and allows policies to be applied to indices at creation time.
@@ -100,7 +97,7 @@ Run the <<setup-command>> with the ` --index-management` flag to set up the defa
 -----------------------
 // CONSOLE
 
-Policies only need to be created once, and will persist through version upgrades.
+//Policies only need to be created once, and will persist through version upgrades.
 You can confirm the policy was created with the GET lifecycle policy API.
 Here's what the transaction response looks like:
 
@@ -150,7 +147,13 @@ GET _ilm/policy
 === Editing ILM defaults
 
 Once you've enabled index lifecycle management and setup the ILM policies, you can view and edit the policies in the Index lifecycle policies UI in Kibana. For more information about working with the UI,
-see {kibana-ref}/index-lifecycle-policies.html[Index lifecyle policies].
+see {kibana-ref}/index-lifecycle-policies.html[*Index lifecycle policies*].
+
+Index policies and templates are prefixed with version numbers, for example: `apm-7.2.0-metric-000001`.
+This means if you use APM Server, modify the policy, and upgrade, you'll need to do two things:
+1. Set `ilm.enabled` to false and configure your indices to the old ILM indices in the yml file.
+2. Update the policies manually when you upgrade. When APM Server is started for the first time,
+APM Server checks to see if the policies are there for this version, if they're not, it creates them.
 
 
 // NOTES BELOW...
@@ -172,10 +175,6 @@ GET _template/apm*
 Used to just be the `apm-{observer.version}` template.
 Now, there are four additional templates, one for each event. Each has an order (`"order": 2`). If multiple templates contain the same key, ES prefers the template with the lower number. Each event template sets the index lifecycle.
 
-We prefix policies and templates with version numbers. This means if you use apm server, then modify your policy and do an upgrade, you'll need to do two things:
-1. They set ILM enabled to false and configure the indices to the old ILM indices in yml. Then, no new policy
-2. They need to update the policies manually again when they upgrade. When APM Server is started for the first time, APM Server checks if the policies are there for this version. Update custom rollover time/size.
-
 Updating a policy wont take effect until a new index is created. Make sure you update all ILM settings prior to starting APM Server if you are not OK with the defaults.
 
 // Questions:
@@ -185,3 +184,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/7.x/multi-index.html
 https://www.elastic.co/guide/en/elasticsearch/reference/7.x/searching_a_frozen_index.html
 
 Do we remove manual ILM setup?
+
+Privileges required for APM Server:
+cluster: manage_ilm
+indices: manage, manage_ilm
