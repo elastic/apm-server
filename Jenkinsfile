@@ -66,7 +66,7 @@ pipeline {
             }
             steps {
                 withEnvWrapper() {
-                //     unstash 'source'
+                    unstash 'source'
                     dir("${BASE_DIR}"){
                        sh './script/jenkins/intake.sh'
                     }
