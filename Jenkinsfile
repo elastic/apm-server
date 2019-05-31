@@ -52,7 +52,7 @@ pipeline {
          Checks YAML files are generated.
          Validate that all updates were committed.
          */
-        stage('Intake-experiment') {
+        stage('Intake') {
             agent any
             options { skipDefaultCheckout() }
             environment {
