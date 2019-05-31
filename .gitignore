@@ -22,3 +22,4 @@
 html_docs
 /x-pack/apm-server/apm-server
 /x-pack/apm-server/build
+.vscode
