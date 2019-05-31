@@ -271,3 +271,7 @@ func getDeep(raw map[string]interface{}, keys ...string) map[string]interface{} 
 	}
 	return nil
 }
+
+func FooBar() string {
+	return ""
+}
