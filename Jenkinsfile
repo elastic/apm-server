@@ -53,7 +53,7 @@ pipeline {
          Validate that all updates were committed.
          */
         stage('Intake-experiment') {
-            agent { label 'linux && immutable' }
+            agent any
             options { skipDefaultCheckout() }
             environment {
                 PATH = "${env.PATH}:${env.WORKSPACE}/bin"
