@@ -1728,6 +1728,12 @@
 			"versionExact": "v3.1.1"
 		},
 		{
+			"checksumSHA1": "qY4/AmJwYyWjyO+V3X2k2dfN4I8=",
+			"path": "github.com/golang/lint/golint",
+			"revision": "959b441ac422379a43da2230f62be024250818b0",
+			"revisionTime": "2019-04-09T20:23:51Z"
+		},
+		{
 			"checksumSHA1": "kBeNcaKk56FguvPSUCEaH6AxpRc=",
 			"origin": "github.com/elastic/beats/vendor/github.com/golang/protobuf/proto",
 			"path": "github.com/golang/protobuf/proto",
@@ -2364,6 +2370,12 @@
 			"path": "golang.org/x/crypto/ssh/terminal",
 			"revision": "f549cec7f437795bec4f239010d0441bbd75af0b",
 			"revisionTime": "2019-05-16T16:14:22Z"
+		},
+		{
+			"checksumSHA1": "RGFEeJVsaq+s5qGwd0MzXNMMFSU=",
+			"path": "golang.org/x/lint",
+			"revision": "959b441ac422379a43da2230f62be024250818b0",
+			"revisionTime": "2019-04-09T20:23:51Z"
 		},
 		{
 			"checksumSHA1": "uX2McdP4VcQ6zkAF0Q4oyd0rFtU=",
