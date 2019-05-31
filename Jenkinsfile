@@ -54,16 +54,16 @@ pipeline {
          */
         stage('Intake-experiment') {
             agent any
-            // options { skipDefaultCheckout() }
-            // environment {
-            //     PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            //     HOME = "${env.WORKSPACE}"
-            //     GOPATH = "${env.WORKSPACE}"
-            // }
-            // when {
-            //     beforeAgent true
-            //     environment name: 'intake_ci', value: 'true'
-            // }
+            options { skipDefaultCheckout() }
+            environment {
+                PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+                HOME = "${env.WORKSPACE}"
+                GOPATH = "${env.WORKSPACE}"
+            }
+            when {
+                beforeAgent true
+                environment name: 'intake_ci', value: 'true'
+            }
             steps {
                 withEnvWrapper() {
                 //     unstash 'source'
