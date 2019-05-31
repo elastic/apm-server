@@ -8,6 +8,7 @@ BEAT_REF_YAML=false
 COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gotestcover
 GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
 GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
+REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
 TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
 SYSTEM_TESTS=true
 TEST_ENVIRONMENT=true
