@@ -101,7 +101,7 @@ staticcheck:
 	go get $(STATICCHECK_REPO)
 	staticcheck $(BEAT_PATH)/...
 
-check-full: check staticcheck
+check-full: check lint staticcheck
 	@# Validate that all updates were committed
 	@$(MAKE) update
 	@$(MAKE) check
