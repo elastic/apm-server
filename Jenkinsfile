@@ -65,12 +65,12 @@ pipeline {
             //     environment name: 'intake_ci', value: 'true'
             // }
             steps {
-                // withEnvWrapper() {
+                withEnvWrapper() {
                 //     unstash 'source'
                     dir("${BASE_DIR}"){
                        sh './script/jenkins/intake.sh'
                     }
-                // }
+                }
             }
         }
         // stage('Build'){
