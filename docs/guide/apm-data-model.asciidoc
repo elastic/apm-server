@@ -208,7 +208,7 @@ v|*Go:* {apm-go-ref-v}/api.html#context-set-tag[`SetTag`]
 *Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref-v}/agent-api.html#apm-add-tags[`addTags`]
 *Python:* {apm-py-ref-v}/api.html#api-tag[`tag`]
 *Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-tag[`set_tag`]
-*Rum:* {apm-rum-ref-v}/api.html#apm-add-tags[`addTags`]
+*Rum:* {apm-rum-ref-v}/agent-api.html#apm-add-tags[`addTags`]
 |===
 
 [float]
@@ -239,7 +239,7 @@ v|*Go:* _coming soon_
 *Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
 *Python:* {apm-py-ref-v}/api.html#api-set-custom-context[`set_custom_context`]
 *Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-custom-context[`set_custom_context`]
-*Rum:* {apm-rum-ref-v}/api.html#apm-set-custom-context[`setCustomContext`]
+*Rum:* {apm-rum-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
 |===
 
 [float]
@@ -261,5 +261,5 @@ v|*Go:* {apm-go-ref-v}/api.html#context-set-username[`SetUsername`] \| {apm-go-r
 *Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]
 *Python:* {apm-py-ref-v}/api.html#api-set-user-context[`set_user_context`]
 *Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-user[`set_user`]
-*Rum:* {apm-rum-ref-v}/api.html#apm-set-user-context[`setUserContext`]
+*Rum:* {apm-rum-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]
 |===
