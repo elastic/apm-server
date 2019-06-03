@@ -123,14 +123,32 @@ BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
 
 ## Packaging
 
-The beat frameworks provides tools to crosscompile and package your beat for different platforms. This requires [docker](https://www.docker.com/) and vendoring as described above. To build packages of your beat, run the following command:
+The beats framework provides tools to cross-compile and package apm-server for different platforms.
+This requires [docker](https://www.docker.com/), [mage](magefile.org), and vendoring as described above.
+To build all apm-server packages from source, run:
 
+```bash
+mage package
 ```
-make package
+
+This will fetch and create all images required for the build process.
+The whole process can take several minutes.
+When complete, packages can be found in `build/distributions/`.
+
+### Building docker packages
+
+To customize image configuration, see [the docs](https://www.elastic.co/guide/en/apm/server/current/running-on-docker.html).
+
+To build docker images from source, run:
+
+```bash
+PLATFORMS=linux/amd64 mage -v package
 ```
 
-This will fetch and create all images required for the build process. The whole process can take several minutes.
+When complete, docker images can be found through the local docker daemon and at `build/distributions/apm-server-*-linux-amd64.docker.tar.gz`.
 
+When building images for testing pre-release versions, we recommend setting `SNAPSHOT=true` in the build environment, to
+ clearly indicate the packages are not for a specific release.
 
 ## Documentation
 The [Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.
