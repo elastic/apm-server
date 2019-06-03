@@ -17,6 +17,11 @@
 
 package agentcfg
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 var (
 	ServiceName = "service.name"
 	ServiceEnv  = "service.environment"
@@ -28,7 +33,20 @@ type Doc struct {
 }
 
 type Source struct {
-	Settings map[string]interface{} `json:"settings"`
+	Settings Settings `json:"settings"`
+}
+
+type Settings map[string]string
+
+func (s *Settings) UnmarshalJSON(b []byte) error {
+	in := make(map[string]interface{})
+	out := make(map[string]string)
+	err := json.Unmarshal(b, &in)
+	for k, v := range in {
+		out[k] = fmt.Sprintf("%v", v)
+	}
+	*s = out
+	return err
 }
 
 func NewQuery(name, env string) Query {

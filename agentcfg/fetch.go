@@ -36,7 +36,7 @@ var (
 	minVersion = common.Version{Major: 7, Minor: 3}
 )
 
-func Fetch(kb *kibana.Client, q Query, err error) (map[string]interface{}, string, error) {
+func Fetch(kb *kibana.Client, q Query, err error) (map[string]string, string, error) {
 	var doc Doc
 	resultBytes, err := request(kb, convert.ToReader(q), err)
 	err = convert.FromBytes(resultBytes, &doc, err)
