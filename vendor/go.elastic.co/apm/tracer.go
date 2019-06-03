@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package apm
 
 import (
@@ -23,12 +40,10 @@ import (
 )
 
 const (
-	defaultPreContext      = 3
-	defaultPostContext     = 3
-	gracePeriodJitter      = 0.1 // +/- 10%
-	transactionsChannelCap = 1000
-	spansChannelCap        = 1000
-	errorsChannelCap       = 1000
+	defaultPreContext     = 3
+	defaultPostContext    = 3
+	gracePeriodJitter     = 0.1 // +/- 10%
+	tracerEventChannelCap = 1000
 )
 
 var (
@@ -57,6 +72,8 @@ type options struct {
 	metricsBufferSize     int
 	sampler               Sampler
 	sanitizedFieldNames   wildcard.Matchers
+	disabledMetrics       wildcard.Matchers
+	captureHeaders        bool
 	captureBody           CaptureBodyMode
 	spanFramesMinDuration time.Duration
 	serviceName           string
@@ -114,6 +131,11 @@ func (opts *options) init(continueOnError bool) error {
 		sampler = nil
 	}
 
+	captureHeaders, err := initialCaptureHeaders()
+	if failed(err) {
+		captureHeaders = defaultCaptureHeaders
+	}
+
 	captureBody, err := initialCaptureBody()
 	if failed(err) {
 		captureBody = CaptureBodyOff
@@ -144,6 +166,8 @@ func (opts *options) init(continueOnError bool) error {
 	opts.maxSpans = maxSpans
 	opts.sampler = sampler
 	opts.sanitizedFieldNames = initialSanitizedFieldNames()
+	opts.disabledMetrics = initialDisabledMetrics()
+	opts.captureHeaders = captureHeaders
 	opts.captureBody = captureBody
 	opts.spanFramesMinDuration = spanFramesMinDuration
 	opts.serviceName, opts.serviceVersion, opts.serviceEnvironment = initialService()
@@ -189,9 +213,7 @@ type Tracer struct {
 	forceFlush        chan chan<- struct{}
 	forceSendMetrics  chan chan<- struct{}
 	configCommands    chan tracerConfigCommand
-	transactions      chan *TransactionData
-	spans             chan *SpanData
-	errors            chan *ErrorData
+	events            chan tracerEvent
 
 	statsMu sync.Mutex
 	stats   TracerStats
@@ -204,6 +226,9 @@ type Tracer struct {
 
 	samplerMu sync.RWMutex
 	sampler   Sampler
+
+	captureHeadersMu sync.RWMutex
+	captureHeaders   bool
 
 	captureBodyMu sync.RWMutex
 	captureBody   CaptureBodyMode
@@ -245,12 +270,11 @@ func newTracer(opts options) *Tracer {
 		forceFlush:            make(chan chan<- struct{}),
 		forceSendMetrics:      make(chan chan<- struct{}),
 		configCommands:        make(chan tracerConfigCommand),
-		transactions:          make(chan *TransactionData, transactionsChannelCap),
-		spans:                 make(chan *SpanData, spansChannelCap),
-		errors:                make(chan *ErrorData, errorsChannelCap),
+		events:                make(chan tracerEvent, tracerEventChannelCap),
 		active:                1,
 		maxSpans:              opts.maxSpans,
 		sampler:               opts.sampler,
+		captureHeaders:        opts.captureHeaders,
 		captureBody:           opts.captureBody,
 		spanFramesMinDuration: opts.spanFramesMinDuration,
 		bufferSize:            opts.bufferSize,
@@ -272,6 +296,7 @@ func newTracer(opts options) *Tracer {
 		cfg.requestDuration = opts.requestDuration
 		cfg.requestSize = opts.requestSize
 		cfg.sanitizedFieldNames = opts.sanitizedFieldNames
+		cfg.disabledMetrics = opts.disabledMetrics
 		cfg.preContext = defaultPreContext
 		cfg.postContext = defaultPostContext
 		cfg.metricsGatherers = []MetricsGatherer{newBuiltinMetricsGatherer(t)}
@@ -293,6 +318,7 @@ type tracerConfig struct {
 	contextSetter           stacktrace.ContextSetter
 	preContext, postContext int
 	sanitizedFieldNames     wildcard.Matchers
+	disabledMetrics         wildcard.Matchers
 }
 
 type tracerConfigCommand func(*tracerConfig)
@@ -447,6 +473,13 @@ func (t *Tracer) SetSpanFramesMinDuration(d time.Duration) {
 	t.spanFramesMinDurationMu.Unlock()
 }
 
+// SetCaptureHeaders enables or disables capturing of HTTP headers.
+func (t *Tracer) SetCaptureHeaders(capture bool) {
+	t.captureHeadersMu.Lock()
+	t.captureHeaders = capture
+	t.captureHeadersMu.Unlock()
+}
+
 // SetCaptureBody sets the HTTP request body capture mode.
 func (t *Tracer) SetCaptureBody(mode CaptureBodyMode) {
 	t.captureBodyMu.Lock()
@@ -587,14 +620,17 @@ func (t *Tracer) loop() {
 				}
 			}
 			continue
-		case tx := <-t.transactions:
-			modelWriter.writeTransaction(tx)
-		case s := <-t.spans:
-			modelWriter.writeSpan(s)
-		case e := <-t.errors:
-			// Flush the buffer to transmit the error immediately.
-			modelWriter.writeError(e)
-			flushRequest = true
+		case event := <-t.events:
+			switch event.eventType {
+			case transactionEvent:
+				modelWriter.writeTransaction(event.tx.Transaction, event.tx.TransactionData)
+			case spanEvent:
+				modelWriter.writeSpan(event.span.Span, event.span.SpanData)
+			case errorEvent:
+				modelWriter.writeError(event.err)
+				// Flush the buffer to transmit the error immediately.
+				flushRequest = true
+			}
 		case <-requestTimer.C:
 			requestTimerActive = false
 			closeRequest = true
@@ -619,14 +655,16 @@ func (t *Tracer) loop() {
 			}
 		case flushed = <-t.forceFlush:
 			// Drain any objects buffered in the channels.
-			for n := len(t.spans); n > 0; n-- {
-				modelWriter.writeSpan(<-t.spans)
-			}
-			for n := len(t.transactions); n > 0; n-- {
-				modelWriter.writeTransaction(<-t.transactions)
-			}
-			for n := len(t.errors); n > 0; n-- {
-				modelWriter.writeError(<-t.errors)
+			for n := len(t.events); n > 0; n-- {
+				event := <-t.events
+				switch event.eventType {
+				case transactionEvent:
+					modelWriter.writeTransaction(event.tx.Transaction, event.tx.TransactionData)
+				case spanEvent:
+					modelWriter.writeSpan(event.span.Span, event.span.SpanData)
+				case errorEvent:
+					modelWriter.writeError(event.err)
+				}
 			}
 			if !requestActive && buffer.Len() == 0 && metricsBuffer.Len() == 0 {
 				flushed <- struct{}{}
@@ -714,6 +752,7 @@ func (t *Tracer) loop() {
 
 		if gatherMetrics {
 			gatheringMetrics = true
+			metrics.disabled = cfg.disabledMetrics
 			t.gatherMetrics(ctx, cfg.metricsGatherers, &metrics, cfg.logger, gatheredMetrics)
 			if cfg.logger != nil {
 				cfg.logger.Debugf("gathering metrics")
@@ -839,4 +878,38 @@ func (t *Tracer) gatherMetrics(ctx context.Context, gatherers []MetricsGatherer,
 		}
 		gathered <- struct{}{}
 	}()
+}
+
+type tracerEventType int
+
+const (
+	transactionEvent tracerEventType = iota
+	spanEvent
+	errorEvent
+)
+
+type tracerEvent struct {
+	eventType tracerEventType
+
+	// err is set only if eventType == errorEvent.
+	err *ErrorData
+
+	// tx is set only if eventType == transactionEvent.
+	tx struct {
+		*Transaction
+		// Transaction.TransactionData is nil at the
+		// point tracerEvent is created (to signify
+		// that the transaction is ended), so we pass
+		// it along side.
+		*TransactionData
+	}
+
+	// span is set only if eventType == spanEvent.
+	span struct {
+		*Span
+		// Span.SpanData is nil at the point tracerEvent
+		// is created (to signify that the span is ended),
+		// so we pass it along side.
+		*SpanData
+	}
 }

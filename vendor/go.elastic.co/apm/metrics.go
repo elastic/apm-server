@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package apm
 
 import (
@@ -6,11 +23,14 @@ import (
 	"strings"
 	"sync"
 
+	"go.elastic.co/apm/internal/wildcard"
 	"go.elastic.co/apm/model"
 )
 
 // Metrics holds a set of metrics.
 type Metrics struct {
+	disabled wildcard.Matchers
+
 	mu      sync.Mutex
 	metrics []*model.Metrics
 }
@@ -55,6 +75,9 @@ func (m *Metrics) Add(name string, labels []MetricLabel, value float64) {
 }
 
 func (m *Metrics) addMetric(name string, labels []MetricLabel, metric model.Metric) {
+	if m.disabled.MatchAny(name) {
+		return
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

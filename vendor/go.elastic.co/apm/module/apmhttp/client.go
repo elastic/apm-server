@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package apmhttp
 
 import (
@@ -13,6 +30,11 @@ import (
 // across, and the Transport field wrapped with WrapRoundTripper
 // such that client requests are reported as spans to Elastic APM
 // if their context contains a sampled transaction.
+//
+// Spans are started just before the request is sent, and ended
+// immediately if the request returned an error (e.g. due to socket
+// timeout, but not a valid response with a non-200 status code),
+// or otherwise when the response body is fully consumed or closed.
 //
 // If c is nil, then http.DefaultClient is wrapped.
 func WrapClient(c *http.Client, o ...ClientOption) *http.Client {
@@ -102,6 +124,26 @@ func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 	}
 	return resp, err
+}
+
+// CloseIdleConnections calls r.r.CloseIdleConnections if the method exists.
+func (r *roundTripper) CloseIdleConnections() {
+	type closeIdler interface {
+		CloseIdleConnections()
+	}
+	if r, ok := r.r.(closeIdler); ok {
+		r.CloseIdleConnections()
+	}
+}
+
+// CancelRequest calls r.r.CancelRequest(req) if the method exists.
+func (r *roundTripper) CancelRequest(req *http.Request) {
+	type cancelRequester interface {
+		CancelRequest(*http.Request)
+	}
+	if r, ok := r.r.(cancelRequester); ok {
+		r.CancelRequest(req)
+	}
 }
 
 type responseBody struct {

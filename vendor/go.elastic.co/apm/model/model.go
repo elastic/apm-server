@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package model
 
 import (
@@ -199,7 +216,7 @@ type Span struct {
 	// Name holds the name of the span.
 	Name string `json:"name"`
 
-	// Timestamp holds the time at which the span's transaction started.
+	// Timestamp holds the time at which the span started.
 	Timestamp Time `json:"timestamp"`
 
 	// Duration holds the duration of the span, in milliseconds.
@@ -340,6 +357,18 @@ type Error struct {
 
 	// Log holds additional information added when logging the error.
 	Log Log `json:"log,omitempty"`
+
+	// Transaction holds information about the transaction within which the error occurred.
+	Transaction ErrorTransaction `json:"transaction,omitempty"`
+}
+
+// ErrorTransaction holds information about the transaction within which an error occurred.
+type ErrorTransaction struct {
+	// Sampled indicates that the transaction was sampled.
+	Sampled *bool `json:"sampled,omitempty"`
+
+	// Type holds the transaction type.
+	Type string `json:"type,omitempty"`
 }
 
 // Exception represents an exception: an error or panic.
@@ -555,7 +584,11 @@ type Metrics struct {
 
 	// Labels holds a set of labels associated with the metrics.
 	// The labels apply uniformly to all metric samples in the set.
-	Labels StringMap `json:"labels,omitempty"`
+	//
+	// NOTE(axw) the schema calls the field "tags", but we use
+	// "labels" for agent-internal consistency. Labels aligns better
+	// with the common schema, anyway.
+	Labels StringMap `json:"tags,omitempty"`
 
 	// Samples holds a map of metric samples, keyed by metric name.
 	Samples map[string]Metric `json:"samples"`
