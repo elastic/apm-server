@@ -7,6 +7,11 @@ BEAT_DOC_URL=https://www.elastic.co/guide/en/apm/server/
 BEAT_REF_YAML=false
 COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gotestcover
 GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
+GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
+GOLINT_TARGETS?=$(shell go list ./... | grep -v /vendor/)
+GOLINT_UPSTREAM?=origin/master
+GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | $(REVIEWDOG) -f=golint -diff="git diff $(GOLINT_UPSTREAM)")
+REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
 TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
 SYSTEM_TESTS=true
 TEST_ENVIRONMENT=true
@@ -98,12 +103,19 @@ start-env:
 stop-env:
 	@docker-compose -f tests/docker-compose.yml down -v
 
+.PHONY: golint golint-install
+golint-install:
+	go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
+
+golint: golint-install
+	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
+
 .PHONY: staticcheck
 staticcheck:
 	go get $(STATICCHECK_REPO)
 	staticcheck $(BEAT_PATH)/...
 
-check-full: check staticcheck
+check-full: check golint staticcheck
 	@# Validate that all updates were committed
 	@$(MAKE) update
 	@$(MAKE) check
