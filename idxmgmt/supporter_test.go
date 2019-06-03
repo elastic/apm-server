@@ -39,6 +39,8 @@ type mockClientHandler struct {
 	tmplLoadCt, tmplLoadWithILMCt int
 	tmplOrderILMCt                int
 	tmplForce                     bool
+
+	ilmSupported bool
 }
 
 var (
@@ -249,7 +251,7 @@ func TestIndexManager_VerifySetup(t *testing.T) {
 			require.NoError(t, err)
 			support, err := MakeDefaultSupporter(nil, beat.Info{}, cfg)
 			require.NoError(t, err)
-			manager := support.Manager(newMockClientHandler(), nil)
+			manager := support.Manager(newMockClientHandler(true), nil)
 			ok, warn := manager.VerifySetup(setup.loadTmpl, setup.loadILM)
 			assert.Equal(t, setup.ok, ok)
 			assert.Contains(t, warn, setup.warn)
@@ -259,70 +261,115 @@ func TestIndexManager_VerifySetup(t *testing.T) {
 
 func TestManager_Setup(t *testing.T) {
 	fields := []byte("apm-server fields")
+	errIlmNotSupported := "ILM not supported"
 	for name, test := range map[string]struct {
 		cfg                       common.MapStr
 		tLoad, ilmLoad            libidxmgmt.LoadMode
 		tCt, tWithILMCt, pCt, aCt int
+		ilmSupported              bool
+		errMsg                    string
 	}{
 		"default load template without ilm": {
-			cfg:   nil,
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			ilmSupported: true,
+			cfg:          nil,
+			tLoad:        libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
 			tCt: 5,
 		},
 		"load template without ilm": {
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			ilmSupported: true,
+			tLoad:        libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			tCt: 5,
+		},
+		"no dependency on ilm support": {
+			ilmSupported: false,
+			tLoad:        libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
 			tCt: 5,
 		},
 		"load template with ilm settings": {
-			cfg:   common.MapStr{"apm-server.ilm.enabled": true},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeDisabled,
+			ilmSupported: true,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true},
+			tLoad:        libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeDisabled,
 			tCt: 5, tWithILMCt: 4,
 		},
+		"load template with ilm settings when ilm is not supported": {
+			ilmSupported: false,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true},
+			tLoad:        libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeDisabled,
+			errMsg: errIlmNotSupported,
+			tCt:    0, tWithILMCt: 0,
+		},
 		"load template disabled": {
-			cfg:   nil,
-			tLoad: libidxmgmt.LoadModeDisabled,
+			ilmSupported: true,
+			cfg:          nil,
+			tLoad:        libidxmgmt.LoadModeDisabled,
 		},
 		"template disabled": {
-			cfg:   common.MapStr{"setup.template.enabled": false},
-			tLoad: libidxmgmt.LoadModeEnabled,
+			ilmSupported: true,
+			cfg:          common.MapStr{"setup.template.enabled": false},
+			tLoad:        libidxmgmt.LoadModeEnabled,
 		},
 		"force load template": {
-			cfg:   nil,
-			tLoad: libidxmgmt.LoadModeForce,
-			tCt:   5,
+			ilmSupported: true,
+			cfg:          nil,
+			tLoad:        libidxmgmt.LoadModeForce,
+			tCt:          5,
 		},
 		"template disabled ilm enabled loading disabled": {
-			cfg:     common.MapStr{"apm-server.ilm.enabled": true, "setup.template.enabled": false},
-			ilmLoad: libidxmgmt.LoadModeUnset,
+			ilmSupported: true,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true, "setup.template.enabled": false},
+			ilmLoad:      libidxmgmt.LoadModeUnset,
 		},
 		"do not load template load ilm": {
-			cfg:     common.MapStr{"apm-server.ilm.enabled": true, "setup.template.enabled": false},
-			ilmLoad: libidxmgmt.LoadModeEnabled,
-			pCt:     3, aCt: 3,
+			ilmSupported: true,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true, "setup.template.enabled": false},
+			ilmLoad:      libidxmgmt.LoadModeEnabled,
+			pCt:          3, aCt: 3,
+		},
+		"try loading ilm when ilm not supported": {
+			ilmSupported: false,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true, "setup.template.enabled": false},
+			ilmLoad:      libidxmgmt.LoadModeEnabled,
+			errMsg:       errIlmNotSupported,
+			tCt:          0, tWithILMCt: 0,
 		},
 		"do not load template force load ilm": {
-			cfg:   common.MapStr{"apm-server.ilm.enabled": true},
-			tLoad: libidxmgmt.LoadModeDisabled, ilmLoad: libidxmgmt.LoadModeForce,
+			ilmSupported: true,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true},
+			tLoad:        libidxmgmt.LoadModeDisabled, ilmLoad: libidxmgmt.LoadModeForce,
 			pCt: 4, aCt: 3,
 		},
 		"load template and ilm": {
-			cfg:   common.MapStr{"apm-server.ilm.enabled": true},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			ilmSupported: true,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true},
+			tLoad:        libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
 			tCt: 5, tWithILMCt: 4, pCt: 3, aCt: 3,
 		},
+		"try loading template and ilm when ilm is not supported": {
+			ilmSupported: false,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true},
+			tLoad:        libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			errMsg: errIlmNotSupported,
+			tCt:    0, tWithILMCt: 0,
+		},
 		"force load template force load ilm": {
-			cfg:   common.MapStr{"apm-server.ilm.enabled": true},
-			tLoad: libidxmgmt.LoadModeForce, ilmLoad: libidxmgmt.LoadModeForce,
+			ilmSupported: true,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true},
+			tLoad:        libidxmgmt.LoadModeForce, ilmLoad: libidxmgmt.LoadModeForce,
 			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
 		},
 	} {
 
 		t.Run(name, func(t *testing.T) {
-			ch := newMockClientHandler()
+			ch := newMockClientHandler(test.ilmSupported)
 			m := defaultSupporter(t, test.cfg).Manager(ch, libidxmgmt.BeatsAssets(fields))
 			idxManager := m.(*manager)
 			err := idxManager.Setup(test.tLoad, test.ilmLoad)
-			require.NoError(t, err)
+			if test.errMsg == "" {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), test.errMsg)
+			}
 
 			assert.Equal(t, test.pCt, len(ch.policies))
 			assert.Equal(t, test.aCt, len(ch.aliases))
@@ -339,8 +386,8 @@ func TestManager_Setup(t *testing.T) {
 
 var existingILM = fmt.Sprintf("apm-%s-transaction", info.Version)
 
-func newMockClientHandler() *mockClientHandler {
-	return &mockClientHandler{}
+func newMockClientHandler(ilmSupported bool) *mockClientHandler {
+	return &mockClientHandler{ilmSupported: ilmSupported}
 }
 
 func (h *mockClientHandler) Load(config template.TemplateConfig, _ beat.Info, fields []byte, migration bool) error {
@@ -362,7 +409,11 @@ func (h *mockClientHandler) Load(config template.TemplateConfig, _ beat.Info, fi
 }
 
 func (h *mockClientHandler) CheckILMEnabled(m libilm.Mode) (bool, error) {
-	return m == libilm.ModeEnabled, nil
+	enabled := m == libilm.ModeEnabled
+	if h.ilmSupported {
+		return enabled, nil
+	}
+	return enabled, errors.New("ILM not supported")
 }
 
 func (h *mockClientHandler) HasAlias(name string) (bool, error) {

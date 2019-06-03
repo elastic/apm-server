@@ -176,20 +176,51 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 	m.supporter.templateConfig.Overwrite = templateComponent.overwrite
 
 	//setup index management:
+	//(0) check if setup is supported
 	//(1) load general apm template
 	//(2) load policy per event type
 	//(3) create template per event respecting lifecycle settings
 	//(4) load write alias per event type AFTER the template has been created,
 	//    as this step also automatically creates an index, it is important the matching templates are already there
 
+	type ilmHandler struct {
+		manager   libilm.Manager
+		supporter libilm.Supporter
+	}
 	var (
-		ilmSupporter      libilm.Supporter
+		ilmHandlers       []ilmHandler
 		err               error
 		ilmCfg            *common.Config
 		policyCreated     bool
 		overwriteTemplate = templateComponent.overwrite
 		templateCfg       template.TemplateConfig
 	)
+
+	//(0) prepare ilm handlers and check if setup is supported
+	//    fail early before anything is loaded if ILM is requested but not supported
+	for event, index := range eventIdxNames(false) {
+		if ilmCfg, err = common.NewConfigFrom(common.MapStr{
+			"enabled":     ilmComponent.enabled,
+			"event":       event,
+			"policy_name": idxStr(event, ""),
+			"alias_name":  index},
+		); err != nil {
+			return errors.Wrapf(err, "error creating index-management config")
+		}
+		ilmSupporter, err := ilm.MakeDefaultSupporter(log, m.supporter.info, ilmCfg)
+		if err != nil {
+			return err
+		}
+		ilmManager := ilmSupporter.Manager(m.clientHandler)
+
+		if ilmComponent.enabled {
+			// check if ILM is supported by the clientHandler
+			if _, err = ilmManager.Enabled(); err != nil {
+				return err
+			}
+		}
+		ilmHandlers = append(ilmHandlers, ilmHandler{manager: ilmManager, supporter: ilmSupporter})
+	}
 
 	//(1) load general apm template
 	//only set to user configured name and pattern if ilm is disabled
@@ -209,25 +240,13 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		log.Infof("Finished loading index template.")
 	}
 
-	for event, index := range eventIdxNames(false) {
-		if ilmCfg, err = common.NewConfigFrom(common.MapStr{
-			"enabled":     ilmComponent.enabled,
-			"event":       event,
-			"policy_name": idxStr(event, ""),
-			"alias_name":  index},
-		); err != nil {
-			return errors.Wrapf(err, "error creating index-management config")
-		}
-		if ilmSupporter, err = ilm.MakeDefaultSupporter(log, m.supporter.info, ilmCfg); err != nil {
-			return err
-		}
-		ilmManager := ilmSupporter.Manager(m.clientHandler)
-		policy := ilmSupporter.Policy().Name
-		alias := ilmSupporter.Alias().Name
+	for _, handler := range ilmHandlers {
 
+		policy := handler.supporter.Policy().Name
+		alias := handler.supporter.Alias().Name
 		if ilmComponent.load {
 			//(2) load event type policies, respecting ILM settings
-			if policyCreated, err = ilmManager.EnsurePolicy(ilmComponent.overwrite); err != nil {
+			if policyCreated, err = handler.manager.EnsurePolicy(ilmComponent.overwrite); err != nil {
 				return err
 			}
 			if policyCreated {
@@ -250,7 +269,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		if ilmComponent.load {
 			//(4) load ilm write aliases
 			//    ensure write aliases are created AFTER template creation
-			if err = ilmManager.EnsureAlias(); err != nil {
+			if err = handler.manager.EnsureAlias(); err != nil {
 				if libilm.ErrReason(err) != libilm.ErrAliasAlreadyExists {
 					return err
 				}
