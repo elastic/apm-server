@@ -106,7 +106,7 @@ golint-install:
 	go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
 
 golint: golint-install
-	test -z "$(GOLINT_COMMAND)" || (echo $(GOLINT_COMMAND) && exit 1)
+	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
 
 .PHONY: staticcheck
 staticcheck:
