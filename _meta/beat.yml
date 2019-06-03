@@ -44,13 +44,15 @@ apm-server:
 
     # Certificate for SSL client authentication
     # Needs to be configured when ssl is enabled
-    #certificate: ""
+    #certificate: ''
 
     # Client Certificate Key
     # Needs to be configured when ssl is enabled
-    #key: ""
+    #key: ''
 
-    # Optional passphrase for decrypting the Certificate Key.
+    # Optional configuration options for ssl communication
+
+    # Passphrase for decrypting the Certificate Key.
     # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
     #key_passphrase: ''
 
@@ -65,9 +67,16 @@ apm-server:
     #curve_types: []
 
     # Configure which types of client authentication are supported.
-    # Options are `none`, `optional`, and `required`. Default is required.
+    # Options are `none`, `optional`, and `required`.
     # It is strongly recommended to always set to `required`
+    # Default is `required`.
     #client_authentication: "required"
+
+    # Configure SSL verification mode.
+    # If `none` is configured, all server hosts and certificates will be accepted. In this mode,
+    # SSL-based connections are susceptible to man-in-the-middle attacks. Use only for testing.
+    # Default is `full`.
+    #verification_mode: full
 
   #rum:
     # To enable real user monitoring (RUM) support set this to true.

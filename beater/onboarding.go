@@ -26,22 +26,13 @@ import (
 )
 
 func notifyListening(config *Config, pubFct func(beat.Event)) {
-
-	var isServerUp = func() bool {
-		secure := config.TLS.IsEnabled()
-		return isServerUp(secure, config.Host, 10, time.Second)
+	logp.NewLogger("onboarding").Info("Publishing onboarding document")
+	event := beat.Event{
+		Timestamp: time.Now(),
+		Fields: common.MapStr{
+			"processor": common.MapStr{"name": "onboarding", "event": "onboarding"},
+			"observer":  common.MapStr{"listening": config.Host},
+		},
 	}
-
-	if isServerUp() {
-		logp.NewLogger("onboarding").Info("Publishing onboarding document")
-
-		event := beat.Event{
-			Timestamp: time.Now(),
-			Fields: common.MapStr{
-				"processor": common.MapStr{"name": "onboarding", "event": "onboarding"},
-				"observer":  common.MapStr{"listening": config.Host},
-			},
-		}
-		pubFct(event)
-	}
+	pubFct(event)
 }

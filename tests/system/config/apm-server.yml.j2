@@ -20,6 +20,10 @@ apm-server:
   ssl.key: {{ ssl_key }}
   {% endif %}
 
+  {% if ssl_key_passphrase %}
+  ssl.key_passphrase: {{ ssl_key_passphrase }}
+  {% endif %}
+
   {% if ssl_supported_protocols %}
   ssl.supported_protocols: {{ ssl_supported_protocols }}
   {% endif %}
@@ -28,6 +32,9 @@ apm-server:
   ssl.client_authentication: {{ ssl_client_authentication }}
   {% endif %}
 
+  {% if cipher_suites %}
+  ssl.cipher_suites: {{ cipher_suites }}
+  {% endif %}
 
   rum.enabled: {{ enable_rum }}
   rum.rate_limit: 3

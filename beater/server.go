@@ -79,19 +79,22 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 	case true:
 		logger.Info("RUM endpoints enabled!")
 	case false:
-		logger.Info("RUM endpoints disabled")
+		logger.Info("RUM endpoints disabled.")
 	}
 
 	if config.MaxConnections > 0 {
 		lis = netutil.LimitListener(lis, config.MaxConnections)
-		logger.Infof("connections limit set to: %d", config.MaxConnections)
+		logger.Infof("Connections limit set to: %d", config.MaxConnections)
 	}
 
 	if server.TLSConfig != nil {
+		logger.Info("SSL enabled.")
 		return server.ServeTLS(lis, "", "")
 	}
 	if config.SecretToken != "" {
 		logger.Warn("Secret token is set, but SSL is not enabled.")
+	} else {
+		logger.Info("SSL disabled.")
 	}
 	return server.Serve(lis)
 }

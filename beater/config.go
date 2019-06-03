@@ -127,35 +127,15 @@ func (m *Mode) Unpack(s string) error {
 
 func newConfig(version string, ucfg *common.Config) (*Config, error) {
 	c := defaultConfig(version)
-	var err error
-
-	if ucfg.HasField("ssl") || ucfg.HasField("ssl.enabled") {
-		// ensure client_authentication is set to `required` by default.
-		clientAuthKey := "client_authentication"
-		key := "ssl." + clientAuthKey
-		cfg := ucfg
-		if ucfg.HasField("ssl") {
-			key = clientAuthKey
-			if cfg, err = ucfg.Child("ssl", -1); err != nil {
-				return nil, err
-			}
-		}
-		if !cfg.HasField(key) {
-			if err = cfg.SetString(key, -1, "required"); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	if err = ucfg.Unpack(c); err != nil {
+	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
 	if c.RumConfig.isEnabled() {
-		if _, err = regexp.Compile(c.RumConfig.LibraryPattern); err != nil {
+		if _, err := regexp.Compile(c.RumConfig.LibraryPattern); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
 		}
-		if _, err = regexp.Compile(c.RumConfig.ExcludeFromGrouping); err != nil {
+		if _, err := regexp.Compile(c.RumConfig.ExcludeFromGrouping); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
 		}
 	}

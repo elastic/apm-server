@@ -16,8 +16,6 @@ rm -f $certdir/*.pem $certdir/*.csr $certdir/*.srl
 ### Simple certificate and key without passphrase
 openssl req -batch -x509 -newkey rsa:2048 -out $certdir/simple.crt.pem -keyout  $certdir/simple.key.pem -nodes -days 365 -subj /CN=localhost
 
-### Cert with key passphrase is not supported by python requests library atm, see http://docs.python-requests.org/en/master/user/advanced/#client-side-certificates
-
 ### Generate root CA for signing certificates for mutual authentication
 #### Create the root key
 openssl genrsa -out $cakey 2048
@@ -25,8 +23,8 @@ openssl genrsa -out $cakey 2048
 openssl req -config $cfgdir/ca.cfg -extensions extensions -key $cakey -new -x509 -out $cacert -outform pem
 
 #### Generate signed server certificate and key
-openssl genrsa -out $certdir/server.key.pem 2048
-openssl req -batch -new -key $certdir/server.key.pem -out $certdir/server.csr -subj "/C=US/ST=SF/L=SF/O=apm/OU=apm.test/CN=localhost"
+openssl genrsa -des3 -passout pass:"foobar" -out $certdir/server.key.pem 2048
+openssl req -batch -new -key $certdir/server.key.pem -passin pass:"foobar" -out $certdir/server.csr -subj "/C=US/ST=SF/L=SF/O=apm/OU=apm.test/CN=localhost"
 openssl x509 -req -in $certdir/server.csr -CA $cacert -CAkey $cakey -CAcreateserial -out $certdir/server.crt.pem -extfile $cfgdir/ca.cfg -extensions server
 cat $cacert >> $certdir/server.crt.pem
 

@@ -48,35 +48,36 @@ func TestConfig(t *testing.T) {
         "shutdown_timeout": 9s,
         "secret_token": "1234random",
         "ssl": {
-					"enabled": true,
-					"key": "1234key",
-					"certificate": "1234cert",
+			"enabled": true,
+			"key": "1234key",
+			"certificate": "1234cert",
+			"certificate_authorities": ["./ca.cert.pem"]
+		},
+		"rum": {
+			"enabled": true,
+			"event_rate": {
+				"limit":      8000,
+				"lru_size": 2000,
+			},
+			"allow_origins": ["rum*"],
+			"source_mapping": {
+				"cache": {
+					"expiration": 1m,
 				},
-				"rum": {
-					"enabled": true,
-					"event_rate": {
-						"limit":      8000,
-						"lru_size": 2000,
-					},
-					"allow_origins": ["rum*"],
-					"source_mapping": {
-						"cache": {
-							"expiration": 1m,
-						},
-						"index_pattern": "apm-rum-test*"
-					},
-					"library_pattern": "pattern-rum",
-					"exclude_from_grouping": "group_pattern-rum",
-				},
-				"register": {
-					"ingest": { 
-						"pipeline": {
-							enabled: true,
-							overwrite: true,
-							path: "tmp",
-						}
-					}
+				"index_pattern": "apm-rum-test*"
+			},
+			"library_pattern": "pattern-rum",
+			"exclude_from_grouping": "group_pattern-rum",
+		},
+		"register": {
+			"ingest": { 
+				"pipeline": {
+					enabled: true,
+					overwrite: true,
+					path: "tmp",
 				}
+			}
+		}
       }`),
 			expectedConfig: Config{
 				Host:            "localhost:3000",
@@ -86,7 +87,11 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
-				TLS:             &tlscommon.ServerConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
+				TLS: &tlscommon.ServerConfig{
+					Enabled:     &truthy,
+					CAs:         []string{"./ca.cert.pem"},
+					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
+					ClientAuth:  4}, //4=RequireAndVerifyClientCert
 				RumConfig: &rumConfig{
 					Enabled: &truthy,
 					EventRate: &eventRate{
@@ -119,12 +124,11 @@ func TestConfig(t *testing.T) {
         "read_timeout": 3s,
         "write_timeout": 2s,
         "shutdown_timeout": 5s,
-		"secret_token": "1234random",
-		"ssl": {},
+        "secret_token": "1234random",
 		"rum": {
 			"source_mapping": {}
 		},
-		"register": {},
+		"register": {}
       }`),
 			expectedConfig: Config{
 				Host:            "localhost:8200",
@@ -133,7 +137,6 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:    2000000000,
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
-				TLS:             &tlscommon.ServerConfig{},
 				RumConfig: &rumConfig{
 					Enabled:      nil,
 					EventRate:    nil,

@@ -25,10 +25,7 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path"
-	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -39,34 +36,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/outputs/transport/transptest"
+
+	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/tests/loader"
 )
 
-var tmpCertPath string
-
 type m map[string]interface{}
-
-func TestMain(m *testing.M) {
-	current, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	tmpCertPath = filepath.Join(current, "test_certs")
-	if err := os.MkdirAll(tmpCertPath, os.ModePerm); err != nil {
-		panic(err)
-	}
-
-	code := m.Run()
-	if code == 0 {
-		os.RemoveAll(tmpCertPath)
-	}
-	os.Exit(code)
-}
 
 func TestServerOk(t *testing.T) {
 	apm, teardown, err := setupServer(t, nil, nil, nil)
@@ -401,100 +378,6 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 	}
 }
 
-func TestServerSSL(t *testing.T) {
-	tests := []struct {
-		label            string
-		domain           string
-		passphrase       string
-		expectedMsgs     []string
-		insecure         bool
-		statusCode       int
-		overrideProtocol bool
-	}{
-		{
-			label: "unknown CA", domain: "127.0.0.1", expectedMsgs: []string{"x509: certificate signed by unknown authority"},
-		},
-		{
-			label: "skip verification", domain: "127.0.0.1", insecure: true, statusCode: http.StatusAccepted,
-		},
-		{
-			label:  "bad domain",
-			domain: "ELASTIC", expectedMsgs: []string{
-				"x509: certificate signed by unknown authority",
-				"x509: cannot validate certificate for 127.0.0.1",
-			},
-		},
-		{
-			label:  "bad IP",
-			domain: "192.168.10.11", expectedMsgs: []string{
-				"x509: certificate signed by unknown authority",
-				"x509: certificate is valid for 192.168.10.11, not 127.0.0.1",
-			},
-		},
-		{
-			label: "bad schema", domain: "localhost", statusCode: http.StatusBadRequest, overrideProtocol: true,
-		},
-		{
-			label: "with passphrase", domain: "localhost", statusCode: http.StatusAccepted, insecure: true, passphrase: "foobar",
-		},
-	}
-	var teardown = func() {}
-	defer teardown() // in case test crashes. calling teardown twice is ok
-	for idx, test := range tests {
-		var apm *beater
-		var err error
-		apm, teardown, err = setupServer(t, withSSL(t, test.domain, test.passphrase), nil, nil)
-		require.NoError(t, err)
-		baseUrl, client := apm.client(test.insecure)
-		if test.overrideProtocol {
-			baseUrl = strings.Replace(baseUrl, "https", "http", 1)
-		}
-		req := makeTransactionRequest(t, baseUrl)
-		req.Header.Add("Content-Type", "application/x-ndjson")
-		res, err := client.Do(req)
-
-		if len(test.expectedMsgs) > 0 {
-			require.Error(t, err, test.label)
-			var containsErrMsg bool
-			for _, msg := range test.expectedMsgs {
-				containsErrMsg = containsErrMsg || strings.Contains(err.Error(), msg)
-			}
-			assert.True(t, containsErrMsg,
-				fmt.Sprintf("expected %v at idx %d (%s)", err, idx, test.label))
-		}
-
-		if test.statusCode != 0 {
-			if res == nil {
-				t.Skip("flaky test in go 1.11")
-			}
-			assert.Equal(t, test.statusCode, res.StatusCode,
-				fmt.Sprintf("wrong code at idx %d (%s)", idx, test.label))
-		}
-		teardown()
-	}
-}
-
-func TestServerSecureBadPassphrase(t *testing.T) {
-	t.Skip("flaky test")
-	withSSL(t, "127.0.0.1", "foo")
-	name := path.Join(tmpCertPath, t.Name())
-	cfg, err := common.NewConfigFrom(map[string]map[string]interface{}{
-		"ssl": {
-			"certificate":           name + ".pem",
-			"key":                   name + ".key",
-			"key_passphrase":        "bar",
-			"client_authentication": "none",
-		},
-	})
-	require.NoError(t, err)
-	_, _, err = setupServer(t, cfg, nil, nil)
-	if assert.Error(t, err) {
-		b := strings.Contains(err.Error(), "no PEM blocks") ||
-			strings.Contains(err.Error(), "failed to parse private key")
-		assert.True(t, b, err.Error())
-	}
-}
-
 func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
 	events chan beat.Event) (*beater, func(), error) {
 	if testing.Short() {
@@ -549,23 +432,6 @@ var testData = func() []byte {
 	}
 	return b
 }()
-
-func withSSL(t *testing.T, domain, passphrase string) *common.Config {
-	name := path.Join(tmpCertPath, t.Name())
-	t.Log("generating certificate in", name)
-	err := transptest.GenCertForTestingPurpose(t, domain, name, passphrase)
-	assert.NoError(t, err)
-	cfg, err := common.NewConfigFrom(map[string]map[string]interface{}{
-		"ssl": {
-			"certificate":           name + ".pem",
-			"key":                   name + ".key",
-			"key_passphrase":        passphrase,
-			"client_authentication": "none",
-		},
-	})
-	require.NoError(t, err)
-	return cfg
-}
 
 func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
 	req, err := http.NewRequest(http.MethodPost, baseUrl+backendURL, bytes.NewReader(testData))
