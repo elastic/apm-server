@@ -203,12 +203,12 @@ Defining too many unique fields in an index is a condition that can lead to a
 
 |===
 |*Labels API links*
-v|*Go:* {apm-go-ref}/api.html#context-set-tag[`SetTag`]
-*Java:* {apm-java-ref}/public-api.html#api-transaction-add-tag[`addLabel`]
-*Node.js:* {apm-node-ref}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref}/agent-api.html#apm-add-tags[`addTags`]
-*Python:* {apm-py-ref}/api.html#api-tag[`tag`]
-*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-tag[`set_tag`]
-*Rum:* {apm-rum-ref}/api.html#apm-add-tags[`addTags`]
+v|*Go:* {apm-go-ref-v}/api.html#context-set-tag[`SetTag`]
+*Java:* {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`addLabel`]
+*Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref-v}/agent-api.html#apm-add-tags[`addTags`]
+*Python:* {apm-py-ref-v}/api.html#api-tag[`tag`]
+*Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-tag[`set_tag`]
+*Rum:* {apm-rum-ref-v}/api.html#apm-add-tags[`addTags`]
 |===
 
 [float]
@@ -236,10 +236,10 @@ IMPORTANT: Setting a circular object, large object, or a non JSON serializable o
 |*Custom context API links*
 v|*Go:* _coming soon_
 *Java:* _coming soon_
-*Node.js:* {apm-node-ref}/agent-api.html#apm-set-custom-context[`setCustomContext`]
-*Python:* {apm-py-ref}/api.html#api-set-custom-context[`set_custom_context`]
-*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-custom-context[`set_custom_context`]
-*Rum:* {apm-rum-ref}/api.html#apm-set-custom-context[`setCustomContext`]
+*Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
+*Python:* {apm-py-ref-v}/api.html#api-set-custom-context[`set_custom_context`]
+*Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-custom-context[`set_custom_context`]
+*Rum:* {apm-rum-ref-v}/api.html#apm-set-custom-context[`setCustomContext`]
 |===
 
 [float]
@@ -256,10 +256,10 @@ Indexed means the data is searchable and aggregatable in Elasticsearch.
 
 |===
 |*User context API links*
-v|*Go:* {apm-go-ref}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref}/api.html#context-set-user-id[`SetUserID`] \| {apm-go-ref}/api.html#context-set-user-email[`SetUserEmail`]
-*Java:* {apm-java-ref}/public-api.html#api-transaction-set-user[`setUser`]
-*Node.js:* {apm-node-ref}/agent-api.html#apm-set-user-context[`setUserContext`]
-*Python:* {apm-py-ref}/api.html#api-set-user-context[`set_user_context`]
-*Ruby:* {apm-ruby-ref}/api.html#api-agent-set-user[`set_user`]
-*Rum:* {apm-rum-ref}/api.html#apm-set-user-context[`setUserContext`]
+v|*Go:* {apm-go-ref-v}/api.html#context-set-username[`SetUsername`] \| {apm-go-ref-v}/api.html#context-set-user-id[`SetUserID`] \| {apm-go-ref-v}/api.html#context-set-user-email[`SetUserEmail`]
+*Java:* {apm-java-ref-v}/public-api.html#api-transaction-set-user[`setUser`]
+*Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-user-context[`setUserContext`]
+*Python:* {apm-py-ref-v}/api.html#api-set-user-context[`set_user_context`]
+*Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-user[`set_user`]
+*Rum:* {apm-rum-ref-v}/api.html#apm-set-user-context[`setUserContext`]
 |===
