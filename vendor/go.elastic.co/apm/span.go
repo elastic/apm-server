@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package apm
 
 import (
@@ -45,42 +62,36 @@ func (tx *Transaction) StartSpan(name, spanType string, parent *Span) *Span {
 // the span type, subtype, and action; a single dot separates span
 // type and subtype, and the action will not be set.
 func (tx *Transaction) StartSpanOptions(name, spanType string, opts SpanOptions) *Span {
-	if tx == nil {
+	if tx == nil || !tx.traceContext.Options.Recorded() {
 		return newDroppedSpan()
 	}
 
-	haveParent := opts.Parent != TraceContext{}
-	if !haveParent && opts.parent != nil {
-		opts.parent.mu.RLock()
-		if opts.parent.ended() {
-			opts.parent.mu.RUnlock()
-			return newDroppedSpan()
+	if opts.Parent == (TraceContext{}) {
+		if opts.parent != nil {
+			opts.Parent = opts.parent.TraceContext()
+		} else {
+			opts.Parent = tx.traceContext
 		}
-		opts.Parent = opts.parent.TraceContext()
-		opts.parent.mu.RUnlock()
-		haveParent = true
 	}
+	transactionID := tx.traceContext.Span
 
 	// Prevent tx from being ended while we're starting a span.
 	tx.mu.RLock()
 	defer tx.mu.RUnlock()
 
-	if tx.ended() || !tx.traceContext.Options.Recorded() {
-		return newDroppedSpan()
+	if tx.ended() {
+		return tx.tracer.StartSpan(name, spanType, transactionID, opts)
 	}
 
-	// Guard access to spansCreated, spansDropped, and rand.
+	// Guard access to spansCreated, spansDropped, maxSpans, timestamp,
+	// rand, and spanFramesMinDuration.
 	tx.TransactionData.mu.Lock()
 	defer tx.TransactionData.mu.Unlock()
-
 	if tx.maxSpans > 0 && tx.spansCreated >= tx.maxSpans {
 		tx.spansDropped++
 		return newDroppedSpan()
 	}
-	transactionID := tx.traceContext.Span
-	if !haveParent {
-		opts.Parent = tx.traceContext
-	}
+
 	// Calculate the span time relative to the transaction timestamp so
 	// that wall-clock adjustments occurring after the transaction start
 	// don't affect the span timestamp.
@@ -89,9 +100,15 @@ func (tx *Transaction) StartSpanOptions(name, spanType string, opts SpanOptions)
 	} else {
 		opts.Start = tx.timestamp.Add(opts.Start.Sub(tx.timestamp))
 	}
+
 	span := tx.tracer.startSpan(name, spanType, transactionID, opts)
-	binary.LittleEndian.PutUint64(span.traceContext.Span[:], tx.rand.Uint64())
+	if opts.SpanID.Validate() == nil {
+		span.traceContext.Span = opts.SpanID
+	} else {
+		binary.LittleEndian.PutUint64(span.traceContext.Span[:], tx.rand.Uint64())
+	}
 	span.stackFramesMinDuration = tx.spanFramesMinDuration
+	span.tx = tx
 	tx.spansCreated++
 	return span
 }
@@ -113,8 +130,12 @@ func (t *Tracer) StartSpan(name, spanType string, transactionID SpanID, opts Spa
 		return newDroppedSpan()
 	}
 	var spanID SpanID
-	if _, err := cryptorand.Read(spanID[:]); err != nil {
-		return newDroppedSpan()
+	if opts.SpanID.Validate() == nil {
+		spanID = opts.SpanID
+	} else {
+		if _, err := cryptorand.Read(spanID[:]); err != nil {
+			return newDroppedSpan()
+		}
 	}
 	if opts.Start.IsZero() {
 		opts.Start = time.Now()
@@ -131,6 +152,10 @@ func (t *Tracer) StartSpan(name, spanType string, transactionID SpanID, opts Spa
 type SpanOptions struct {
 	// Parent, if non-zero, holds the trace context of the parent span.
 	Parent TraceContext
+
+	// SpanID holds the ID to assign to the span. If this is zero, a new ID
+	// will be generated and used instead.
+	SpanID SpanID
 
 	// parent, if non-nil, holds the parent span.
 	//
@@ -156,12 +181,9 @@ type SpanOptions struct {
 func (t *Tracer) startSpan(name, spanType string, transactionID SpanID, opts SpanOptions) *Span {
 	sd, _ := t.spanDataPool.Get().(*SpanData)
 	if sd == nil {
-		sd = &SpanData{
-			tracer:   t,
-			Duration: -1,
-		}
+		sd = &SpanData{Duration: -1}
 	}
-	span := &Span{SpanData: sd}
+	span := &Span{tracer: t, SpanData: sd}
 	span.Name = name
 	span.traceContext = opts.Parent
 	span.parentID = opts.Parent.Span
@@ -188,6 +210,11 @@ func newDroppedSpan() *Span {
 
 // Span describes an operation within a transaction.
 type Span struct {
+	tracer        *Tracer      // nil if span is dropped
+	tx            *Transaction // nil if span is dropped
+	traceContext  TraceContext
+	transactionID SpanID
+
 	mu sync.RWMutex
 
 	// SpanData holds the span data. This field is set to nil when
@@ -200,11 +227,6 @@ func (s *Span) TraceContext() TraceContext {
 	if s == nil {
 		return TraceContext{}
 	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.ended() {
-		return TraceContext{}
-	}
 	return s.traceContext
 }
 
@@ -212,12 +234,12 @@ func (s *Span) TraceContext() TraceContext {
 // skipping the first skip number of frames,
 // excluding the SetStacktrace function.
 func (s *Span) SetStacktrace(skip int) {
-	if s == nil {
+	if s == nil || s.dropped() {
 		return
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.ended() || s.dropped() {
+	if s.ended() {
 		return
 	}
 	s.SpanData.setStacktrace(skip + 1)
@@ -231,13 +253,11 @@ func (s *Span) SetStacktrace(skip int) {
 // Dropped may be used to avoid any expensive computation required to set
 // the span's context.
 func (s *Span) Dropped() bool {
-	if s == nil {
-		return true
-	}
-	s.mu.RLock()
-	dropped := s.ended() || s.dropped()
-	s.mu.RUnlock()
-	return dropped
+	return s == nil || s.dropped()
+}
+
+func (s *Span) dropped() bool {
+	return s.tracer == nil
 }
 
 // End marks the s as being complete; s must not be used after this.
@@ -247,8 +267,12 @@ func (s *Span) Dropped() bool {
 func (s *Span) End() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.ended() || s.dropped() {
+	if s.ended() {
+		return
+	}
+	if s.dropped() {
 		droppedSpanDataPool.Put(s.SpanData)
+		s.SpanData = nil
 		return
 	}
 	if s.Duration < 0 {
@@ -257,8 +281,23 @@ func (s *Span) End() {
 	if len(s.stacktrace) == 0 && s.Duration >= s.stackFramesMinDuration {
 		s.setStacktrace(1)
 	}
-	s.SpanData.enqueue()
+	s.enqueue()
 	s.SpanData = nil
+}
+
+func (s *Span) enqueue() {
+	event := tracerEvent{eventType: spanEvent}
+	event.span.Span = s
+	event.span.SpanData = s.SpanData
+	select {
+	case s.tracer.events <- event:
+	default:
+		// Enqueuing a span should never block.
+		s.tracer.statsMu.Lock()
+		s.tracer.stats.SpansDropped++
+		s.tracer.statsMu.Unlock()
+		s.reset(s.tracer)
+	}
 }
 
 func (s *Span) ended() bool {
@@ -269,10 +308,7 @@ func (s *Span) ended() bool {
 // When a span is ended or discarded, its SpanData field will be set
 // to nil.
 type SpanData struct {
-	tracer                 *Tracer // nil if span is dropped
-	traceContext           TraceContext
 	parentID               SpanID
-	transactionID          SpanID
 	stackFramesMinDuration time.Duration
 	timestamp              time.Time
 
@@ -307,29 +343,12 @@ func (s *SpanData) setStacktrace(skip int) {
 	s.stacktrace = stacktrace.AppendStacktrace(s.stacktrace[:0], skip+1, -1)
 }
 
-func (s *SpanData) dropped() bool {
-	return s.tracer == nil
-}
-
-func (s *SpanData) enqueue() {
-	select {
-	case s.tracer.spans <- s:
-	default:
-		// Enqueuing a span should never block.
-		s.tracer.statsMu.Lock()
-		s.tracer.stats.SpansDropped++
-		s.tracer.statsMu.Unlock()
-		s.reset()
-	}
-}
-
-func (s *SpanData) reset() {
+func (s *SpanData) reset(tracer *Tracer) {
 	*s = SpanData{
-		tracer:     s.tracer,
 		Context:    s.Context,
 		Duration:   -1,
 		stacktrace: s.stacktrace[:0],
 	}
 	s.Context.reset()
-	s.tracer.spanDataPool.Put(s)
+	tracer.spanDataPool.Put(s)
 }

@@ -40,6 +40,13 @@
 			"revisionTime": "2019-05-22T18:59:36Z"
 		},
 		{
+			"checksumSHA1": "ZWu+JUivE3zS4FZvVktFAWhj3FQ=",
+			"origin": "go.elastic.co/apm/stacktrace/vendor/github.com/armon/go-radix",
+			"path": "github.com/armon/go-radix",
+			"revision": "1a2de0c21c94309923825da3df33a4381872c795",
+			"revisionTime": "2018-08-24T02:57:28Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"origin": "github.com/elastic/beats/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
@@ -2140,132 +2147,140 @@
 			"revisionTime": "2017-06-26T13:12:58Z"
 		},
 		{
-			"checksumSHA1": "agpf3Bp8dI8VPg/zFGipN/tFJ5c=",
+			"checksumSHA1": "oi6Gci6hbYMlPyWNMOrbFe7S9wA=",
 			"path": "go.elastic.co/apm",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "LtEsnsQ9KsIFzuSh7RChXKVP6kw=",
+			"checksumSHA1": "0DlaT3v7dLz9+nRSumt4It4Qfzw=",
 			"path": "go.elastic.co/apm/internal/apmconfig",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "uLC1vDQnVuK/HXwIQ8GoL98rylg=",
+			"checksumSHA1": "k47GkPJ3iWtd4Fy5M/4vT7afxNE=",
 			"path": "go.elastic.co/apm/internal/apmcontext",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "pbXuN24ylhPL5h02eJFhpAxbrl4=",
+			"checksumSHA1": "nZ1n1rg7avIGutQadrrKG48XwLE=",
 			"path": "go.elastic.co/apm/internal/apmhostutil",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "QS2vPrpZv7E55DQxmLcF5X0sIy4=",
+			"checksumSHA1": "gpP1JJK7m4j53MydzNNLvyb8eN0=",
 			"path": "go.elastic.co/apm/internal/apmhttputil",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "LOCcwNVZdrTb9Qr2z8qOle4b8Rs=",
+			"checksumSHA1": "FQ0kpTNTV854BSbV3Mi9Hn4h3VQ=",
 			"path": "go.elastic.co/apm/internal/apmlog",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "jyJHgSRm/2ahkVvk1k/oJOUzwSs=",
+			"checksumSHA1": "xQ0kHAhP72wTgFFyx1ClsvCFB6c=",
 			"path": "go.elastic.co/apm/internal/apmschema",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "XSoU5dwRILhiekV5z14rR7+AtaM=",
+			"checksumSHA1": "JjoM/Kp8bRFt6SApUARdJXHlc7Y=",
 			"path": "go.elastic.co/apm/internal/apmstrings",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "ha/lUFc0OQz0bdIbOVyzjwpuVD4=",
+			"checksumSHA1": "t3RBXEqNjYBOzkISQ2owvJ7O9ts=",
 			"path": "go.elastic.co/apm/internal/iochan",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
+		},
+		{
+			"checksumSHA1": "gcLzWzeaTZd6XuCcXq5oJM2crRs=",
+			"path": "go.elastic.co/apm/internal/pkgerrorsutil",
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
 			"checksumSHA1": "F3J0rky8CLcyEl18/lVc9wNvLRw=",
 			"path": "go.elastic.co/apm/internal/radix",
 			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
 			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "ymDI3ffN6UBKgJ6pydRqKTL2dZE=",
+			"checksumSHA1": "94vpBAGXi3+EKqka4Gj20QYv+dc=",
 			"path": "go.elastic.co/apm/internal/ringbuffer",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "4C9JC8A3zeVWk05Z1ZLQBctrS90=",
+			"checksumSHA1": "YCmYIuI9nZS67lRGltx8/Zr16dk=",
 			"path": "go.elastic.co/apm/internal/wildcard",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "1lbJHa9EntU+87nLm65uSUKjdL0=",
+			"checksumSHA1": "Sp8+13lbaLcCt39VOGK5oFdxAT8=",
 			"path": "go.elastic.co/apm/model",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "FCMaFXsNJLCTHHnvLqCfI2W51kQ=",
+			"checksumSHA1": "xhQn3+RPpe8ZyWVqhuk9PzmjmjQ=",
 			"path": "go.elastic.co/apm/module/apmhttp",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "dfR4rjh7Jupul8AEZcks+IMaIWQ=",
+			"checksumSHA1": "Nc5G5CQd4rhhfHOP9vQgJs1ThlQ=",
 			"path": "go.elastic.co/apm/stacktrace",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
-			"checksumSHA1": "ZxFX6eC/Hxgqo7dy0K+JUQ9wOPo=",
+			"checksumSHA1": "wydiZJQefd6UQV7hg0uqGLVtcs0=",
 			"path": "go.elastic.co/apm/transport",
-			"revision": "9f89e36c6e534fd548810428cad1bd55cd57a5d2",
-			"revisionTime": "2019-01-04T03:47:35Z",
-			"version": "v1.1.2",
-			"versionExact": "v1.1.2"
+			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
+			"revisionTime": "2019-03-21T01:42:55Z",
+			"version": "v1.3.0",
+			"versionExact": "v1.3.0"
 		},
 		{
 			"checksumSHA1": "ou8/GMlWF1EShL3NuomgkrmDwb0=",
