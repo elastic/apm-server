@@ -9,7 +9,7 @@ COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gote
 GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
 GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
 GOLINT_TARGETS?=$(shell go list ./... | grep -v /vendor/)
-GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | $(REVIEWDOG) -f=golint -diff="git diff master")
+GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | $(REVIEWDOG) -f=golint -diff="git diff origin/master")
 REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
 TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
 SYSTEM_TESTS=true
