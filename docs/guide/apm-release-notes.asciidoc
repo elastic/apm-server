@@ -25,7 +25,7 @@ For a full list of changes, see the
 
 *APM Server*
 
-* Support for {apm-overview-ref-v}/ilm.html[index lifecycle management (ILM)]
+* Support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]
 
 [[release-highlights-7.1.0]]
 === APM version 7.1.0
