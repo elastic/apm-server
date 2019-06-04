@@ -2,25 +2,28 @@
 [role="xpack"]
 == Index lifecycle management (ILM)
 
-Use the {ref}/getting-started-index-lifecycle-management.html[index lifecycle management]
+Use the {ref}/getting-started-index-lifecycle-management.html[index lifecycle management (ILM)]
 feature in {es} to manage your APM Server indices as they age.
-For example, instead of creating daily indices where index size can vary based on the number of agents and number of events sent,
-use an index lifecycle policy to automate a rollover to a new index when the existing index reaches a specified size or age.
+ILM enables you to automate how you want to manage your indices over time,
+by automating rollovers to a new index when the existing index reaches a specified size or age.
 
 You can view and edit the index lifecycle policies in the *Index lifecycle policies* UI in {kib}.
 For more information about working with the UI,
 see {kibana-ref}/index-lifecycle-policies.html[Index lifecyle policies].
 
+APM Server currently offers two ways to get started with ILM:
+
+1. <<ilm-default,**ILM default policy**>> - Get up and running with a default index lifecycle management policy as quickly as possible.
+2. <<manual-ilm-setup,**Manual ILM**>> - Customize and manage your own ILM policies.
+
 NOTE: If you're migrating from an existing setup,
 any indices present before ILM was configured will need to be managed manually.
 
-[float]
-[[ilm-setup]]
-=== ILM default configuration
+[[ilm-default]]
+=== ILM default policy
 
-IMPORTANT: The default index lifecycle configuration cannot be changed until after it has been applied.
-
-The default configuration only applies hot and warm phase definitions.
+Index lifecycle management will manage an index based on its defined policy.
+The default ILM configuration applies hot and warm phase policies.
 Cold and delete phases are not defined.
 Because errors and spans lose information value faster than metrics and transactions do,
 there are two different policies defined:
@@ -30,65 +33,33 @@ one for `errors` and `spans`, and one for `metrics` and `transactions`.
 |=======================================================================
 |Event type |Hot |Warm
 |Errors & Spans
-|Rollover: `max_size: 50gb`, `max_age: 1 day`
+|Rollover: `max_size: 50gb`, `max_age: 1 day`,
 `priority: 100`
-|`min_age: 7 days`
-readonly
+|`min_age: 7 days`,
+readonly,
 `priority: 50`
 |Transactions & Metrics
-|Rollover: `max_size: 50gb`, `max_age: 7 days`
+|Rollover: `max_size: 50gb`, `max_age: 7 days`,
 `priority: 100`
-|`min_age: 31 days`
-readonly
+|`min_age: 31 days`,
+readonly,
 `priority: 50`
 |=======================================================================
 
-// OLD INFO, MAYBE DELETE 
-// *******
-
-**Error & Span events**
-_14 days to look at data in a very fast way_
-HOT
-* A new index is created every 50gb or 1 day (whichever comes first). This makes it very easy to delete indices day by day, and ensures no index gets too large.
-* After seven days, hot indices are moved to the warm phase.
-WARM
-* Warm indices are read-only.
-* After another seven days, warm indices are moved to the cold phase.
-COLD
-* Cold indices move data out of memory to clean up memory usage. Data can still be queried, albeit slowly.
-DELETE
-* By default, no delete phase is defined. Create a custom delete policy using the UI management section.
-
-**Transactions & Metrics**
-_Compare the current month with your last month without any performance reduction_
-HOT
-* A new index is created every 50gb or 7 days (whichever comes first). This makes it very easy to delete indices week by week, and ensures no index gets too large.
-* After one month (31 days), hot indices are moved to the warm phase.
-WARM
-* Warm indices are read-only.
-* After two more months (62 days), warm indices are moved to the cold phase.
-COLD
-* Cold indices move data out of memory to clean up memory usage. Data can still be queried, albeit slowly.
-DELETE
-* By default, no delete phase is defined. Create a custom delete policy using the UI management section.
-
-// *******
-// END OLD INFO
+IMPORTANT: Changes to the default index lifecycle policy do not take effect until the current index has rolled over.
+If you'd like to manage a custom policy, see <<manual-ilm-setup,Manual ILM>>.
 
 [float]
 [[ilm-setup]]
-=== ILM setup
+==== ILM default policy setup
 
 To set up index lifecycle management, set `ilm.enabled` to `true` in apm-server.yml.
 ILM can only be enabled for `output.elasticsearch`.
 When enabled, configurations defined for `output.elasticsearch.index` and `output.elasticsearch.indices` will be ignored.
-ILM clears all index settings and sets up a predefined set of indices and policies that the user cannot initially configure.
 
-It is recommended to setup index lifecycle management (ILM) before starting APM Server.
-This prevents indices from being created before policies are changed, and allows policies to be applied to indices at creation time.
-It also excludes setup from the ingestion process, which allows you to ensure ILM is setup correctly before using APM.
+It is recommended to set up index lifecycle management (ILM) before starting APM Server.
+This excludes setup from the ingestion process, which allows you to ensure ILM is set up correctly before using APM.
 
-Index lifecycle management will manage an index based on its defined policy.
 Run the <<setup-command>> with the ` --index-management` flag to set up the default ILM policy:
 
 [source,js]
@@ -97,7 +68,6 @@ Run the <<setup-command>> with the ` --index-management` flag to set up the defa
 -----------------------
 // CONSOLE
 
-//Policies only need to be created once, and will persist through version upgrades.
 You can confirm the policy was created with the GET lifecycle policy API.
 Here's what the transaction response looks like:
 
@@ -111,11 +81,11 @@ GET _ilm/policy
         "policy": {
             "phases": {
                 "warm": {
-                    "min_age": "31d",<3>
+                    "min_age": "31d",<1>
                     "actions": {
                         "readonly": {},
                         "set_priority": {
-                            "priority": 50<4>
+                            "priority": 50
                         }
                     }
                 },
@@ -123,8 +93,8 @@ GET _ilm/policy
                     "min_age": "0ms",
                     "actions": {
                         "rollover": {
-                            "max_size": "50gb",<1>
-                            "max_age": "7d"<2>
+                            "max_size": "50gb",<2>
+                            "max_age": "7d"<3>
                         },
                         "set_priority": {
                             "priority": 100<4>
@@ -137,54 +107,20 @@ GET _ilm/policy
 }
 -----------------------
 // CONSOLE
-<1> Rollover after _50gb_
-<2> Rollover after _7 days_
-<3> Move to warm phase after _31 days_
+<1> Move to warm phase after _31 days_
+<2> Rollover after _50gb_
+<3> Rollover after _7 days_
 <4> Priority for recovering your indices after a node restart. Higher priorities are recovered first.
 
-[float]
-[[ilm-edit]]
-=== Editing ILM defaults
+Your indices are now configured to use index lifecylce management. Go ahead and <<setting-up-and-running,run APM Server>>.
 
-Once you've enabled index lifecycle management and setup the ILM policies, you can view and edit the policies in the Index lifecycle policies UI in Kibana. For more information about working with the UI,
-see {kibana-ref}/index-lifecycle-policies.html[*Index lifecycle policies*].
+// [float]
+// [[ilm-upgrade]]
+// ==== ILM default policy upgrades
 
-Index policies and templates are prefixed with version numbers, for example: `apm-7.2.0-metric-000001`.
-This means if you use APM Server, modify the policy, and upgrade, you'll need to do two things:
-1. Set `ilm.enabled` to false and configure your indices to the old ILM indices in the yml file.
-2. Update the policies manually when you upgrade. When APM Server is started for the first time,
-APM Server checks to see if the policies are there for this version, if they're not, it creates them.
+// Policies are versioned so they can change.
+// Indices are versioned so they can change.
+// An upgrade creates new templates, policies, and indices.
+// If you customize anything, it will revert back to the default during an upgrade
 
-
-// NOTES BELOW...
-// **************
-
-// True?? If you do not run the setup command, policies will will not be applied immediately??
-
-// We want users to have the option to define policies and prefixes for the indices, not the whole config.
-
-When you start the APM Server, you'll see in the logs index-management.
-The template gets set up the same as before.
-The ILM policy gets setup.
-Load template error-ilm template (for every type of event) template, policy, alias
-
----
-GET _template/apm*
----
-
-Used to just be the `apm-{observer.version}` template.
-Now, there are four additional templates, one for each event. Each has an order (`"order": 2`). If multiple templates contain the same key, ES prefers the template with the lower number. Each event template sets the index lifecycle.
-
-Updating a policy wont take effect until a new index is created. Make sure you update all ILM settings prior to starting APM Server if you are not OK with the defaults.
-
-// Questions:
-Global Kibana setting for in/excluding frozen indices in searches. If set to false, frozen data will not be queried.
-Changing this global setting could potentially slow down other queries.
-https://www.elastic.co/guide/en/elasticsearch/reference/7.x/multi-index.html
-https://www.elastic.co/guide/en/elasticsearch/reference/7.x/searching_a_frozen_index.html
-
-Do we remove manual ILM setup?
-
-Privileges required for APM Server:
-cluster: manage_ilm
-indices: manage, manage_ilm
+include::./ilm-setup.asciidoc[]
