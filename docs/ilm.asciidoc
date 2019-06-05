@@ -9,7 +9,7 @@ by automating rollovers to a new index when the existing index reaches a specifi
 
 You can view and edit the index lifecycle policies in the *Index lifecycle policies* UI in {kib}.
 For more information about working with the UI,
-see {kibana-ref}/index-lifecycle-policies.html[Index lifecyle policies].
+see {kibana-ref}/index-lifecycle-policies.html[Index lifecycle policies].
 
 APM Server currently offers two ways to get started with ILM:
 
@@ -112,11 +112,16 @@ GET _ilm/policy
 <3> Rollover after _7 days_
 <4> Priority for recovering your indices after a node restart. Higher priorities are recovered first.
 
-Your indices are now configured to use index lifecylce management. Go ahead and <<setting-up-and-running,run APM Server>>.
+Your indices are now configured to use index lifecycle management. Go ahead and <<setting-up-and-running,run APM Server>>.
 
-// [float]
-// [[ilm-upgrade]]
-// ==== ILM default policy upgrades
+NOTE: If you switch between ILM enabled/disabled multiple times,
+you should set `setup.template.overwrite` to `true` to ensure a complete setup.
+
+[float]
+==== ILM default policy upgrades
+
+If you decide to customize the default ILM policy, any customizations will be overwritten when you upgrade APM Server.
+Default policies are also subject to change in future releases
 
 // Policies are versioned so they can change.
 // Indices are versioned so they can change.
