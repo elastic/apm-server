@@ -40,7 +40,7 @@ func MockKibana(respCode int, respBody map[string]interface{}) *kibana.Client {
 	resp := http.Response{StatusCode: respCode, Body: ioutil.NopCloser(convert.ToReader(respBody))}
 	return &kibana.Client{
 		Connection: kibana.Connection{
-			Http: &http.Client{
+			HTTP: &http.Client{
 				Transport: rt{resp: &resp},
 			},
 			Version: common.Version{Major: 10, Minor: 0},

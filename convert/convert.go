@@ -23,12 +23,14 @@ import (
 	"io"
 )
 
+// FromReader reads the given reader into the given interface
 func FromReader(r io.ReadCloser, i interface{}) error {
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r)
 	return FromBytes(buf.Bytes(), i, err)
 }
 
+// FromBytes reads the given byte slice into the given interface
 func FromBytes(bs []byte, i interface{}, err error) error {
 	if err != nil {
 		return err
@@ -36,6 +38,7 @@ func FromBytes(bs []byte, i interface{}, err error) error {
 	return json.Unmarshal(bs, i)
 }
 
+// ToReader converts a marshall-able interface into a reader
 func ToReader(i interface{}) io.Reader {
 	b, _ := json.Marshal(i)
 	return bytes.NewReader(b)

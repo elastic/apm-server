@@ -36,11 +36,12 @@ var (
 	minVersion = common.Version{Major: 7, Minor: 3}
 )
 
+// Fetch retrieves agent configuration from Kibana
 func Fetch(kb *kibana.Client, q Query, err error) (map[string]string, string, error) {
 	var doc Doc
 	resultBytes, err := request(kb, convert.ToReader(q), err)
 	err = convert.FromBytes(resultBytes, &doc, err)
-	return doc.Source.Settings, doc.Id, err
+	return doc.Source.Settings, doc.ID, err
 }
 
 func request(kb *kibana.Client, r io.Reader, err error) ([]byte, error) {

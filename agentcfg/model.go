@@ -23,21 +23,27 @@ import (
 )
 
 var (
+	// ServiceName keyword
 	ServiceName = "service.name"
-	ServiceEnv  = "service.environment"
+	// ServiceEnv keyword
+	ServiceEnv = "service.environment"
 )
 
+// Doc represents an elasticsearch document
 type Doc struct {
-	Id     string `json:"_id"`
+	ID     string `json:"_id"`
 	Source Source `json:"_source"`
 }
 
+// Source represents the elasticsearch _source field of a document
 type Source struct {
 	Settings Settings `json:"settings"`
 }
 
+// Settings hold agent configuration
 type Settings map[string]string
 
+// UnmarshalJSON overrides default method to convert any JSON type to string
 func (s *Settings) UnmarshalJSON(b []byte) error {
 	in := make(map[string]interface{})
 	out := make(map[string]string)
@@ -49,14 +55,17 @@ func (s *Settings) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// NewQuery creates a Query struct
 func NewQuery(name, env string) Query {
 	return Query{Service{name, env}}
 }
 
+// Query represents an URL body or query params for agent configuration
 type Query struct {
 	Service Service `json:"service"`
 }
 
+// Service holds supported attributes for querying configuration
 type Service struct {
 	Name        string `json:"name"`
 	Environment string `json:"environment,omitempty"`
