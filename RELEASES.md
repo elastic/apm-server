@@ -9,7 +9,7 @@
     2. Updates the `:stack-version:`
     * [Sample PR](https://github.com/elastic/apm-server/pull/2064/files)
 
-* Update `vendor/github.com/elastic/beats/libbeat/version/version.go`
+* Create a separate PR to update `vendor/github.com/elastic/beats/libbeat/version/version.go`
     * [Sample PR](https://github.com/elastic/apm-server/pull/1886)
 
 * The following may also need to be updated manually:
