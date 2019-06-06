@@ -77,7 +77,6 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
     def tearDownClass(cls):
         if not INTEGRATION_TESTS:
             return
-        raise Exception("------")
         super(TestSecureServerBaseTest, cls).tearDownClass()
         shutil.rmtree(cls.cert_path)
 
