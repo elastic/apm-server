@@ -14,7 +14,7 @@ rm -f $certdir/*.pem $certdir/*.csr $certdir/*.srl
 ## Create certificates and keys
 
 ### Simple certificate and key without passphrase
-openssl req -batch -x509 -newkey rsa:2048 -out $certdir/simple.crt.pem -keyout  $certdir/simple.key.pem -nodes -days 365 -subj /CN=localhost
+openssl req -batch -x509 -newkey rsa:2048 -out $certdir/simple.crt.pem -keyout $certdir/simple.key.pem -nodes -days 365 -subj /CN=localhost
 
 ### Generate root CA for signing certificates for mutual authentication
 #### Create the root key
