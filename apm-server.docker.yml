@@ -39,7 +39,7 @@ apm-server:
   #ssl:
     #enabled: false
 
-    # Configure a list of root certificates for HTTPS server verifications
+    # Configure a list of root certificate authorities for verifying client certificates
     #certificate_authorities: []
 
     # Certificate for SSL client authentication
@@ -71,12 +71,6 @@ apm-server:
     # It is strongly recommended to always set to `required`
     # Default is `required`.
     #client_authentication: "required"
-
-    # Configure SSL verification mode.
-    # If `none` is configured, all server hosts and certificates will be accepted. In this mode,
-    # SSL-based connections are susceptible to man-in-the-middle attacks. Use only for testing.
-    # Default is `full`.
-    #verification_mode: full
 
   #rum:
     # To enable real user monitoring (RUM) support set this to true.
