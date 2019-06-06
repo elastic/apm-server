@@ -28,6 +28,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -64,6 +66,11 @@ func TestBeatConfig(t *testing.T) {
 				"shutdown_timeout":      9 * time.Second,
 				"capture_personal_data": true,
 				"secret_token":          "1234random",
+				"ssl": map[string]interface{}{
+					"enabled":     true,
+					"key":         "1234key",
+					"certificate": "1234cert",
+				},
 				"expvar": map[string]interface{}{
 					"enabled": true,
 					"url":     "/debug/vars",
@@ -103,7 +110,11 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
-				AugmentEnabled:  true,
+				TLS: &tlscommon.ServerConfig{
+					Enabled:     &truthy,
+					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
+					ClientAuth:  4},
+				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
@@ -138,6 +149,9 @@ func TestBeatConfig(t *testing.T) {
 			conf: map[string]interface{}{
 				"host":         "localhost:3000",
 				"secret_token": "1234random",
+				"ssl": map[string]interface{}{
+					"enabled": true,
+				},
 				"expvar": map[string]interface{}{
 					"enabled": true,
 					"url":     "/debug/vars",
@@ -168,7 +182,11 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:    30000000000,
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
-				AugmentEnabled:  true,
+				TLS: &tlscommon.ServerConfig{
+					Enabled:     &truthy,
+					Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
+					ClientAuth:  4},
+				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",

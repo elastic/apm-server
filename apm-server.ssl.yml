@@ -4,7 +4,7 @@
 
 apm-server:
   # Defines the host and port the server is listening on.  use "unix:/path/to.sock" to listen on a unix domain socket.
-  host: "0.0.0.0:8200"
+  host: "localhost:8200"
 
   # Maximum permitted size in bytes of a request's header accepted by the server to be processed.
   #max_header_size: 1048576
@@ -36,27 +36,26 @@ apm-server:
   #secret_token:
 
   # Enable secure communication between APM agents and the server. By default ssl is disabled.
-  #ssl:
-    #enabled: false
+  ssl:
+    enabled: true
 
-    # Configure a list of root certificate authorities for verifying client certificates
-    #certificate_authorities: []
+    # Configure a list of root certificates for HTTPS server verifications
+    certificate_authorities: ["/Users/simitt/coding/pysslserver/certs/ca.crt.pem"]
 
-    # Certificate for SSL server authentication
+    # Certificate for SSL client authentication
     # Needs to be configured when ssl is enabled
-    #certificate: ''
+    certificate: "/Users/simitt/coding/pysslserver/certs/server.crt.pem"
 
-    # Server Certificate Key
+    # Client Certificate Key
     # Needs to be configured when ssl is enabled
-    #key: ''
+    key: "/Users/simitt/coding/pysslserver/certs/server.key.pem"
 
-    # Optional configuration options for ssl communication
-
-    # Passphrase for decrypting the Certificate Key.
+    # Optional passphrase for decrypting the Certificate Key.
     # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
     #key_passphrase: ''
 
-    # List of supported/valid TLS versions. By default TLS versions 1.1 up to 1.2 are enabled.
+    # List of supported/valid TLS versions. By default all TLS versions 1.1 up to
+    # 1.2 are enabled.
     #supported_protocols: [TLSv1.1, TLSv1.2]
 
     # Configure cipher suites to be used for SSL connections
@@ -66,9 +65,8 @@ apm-server:
     #curve_types: []
 
     # Configure which types of client authentication are supported.
-    # Options are `none`, `optional`, and `required`.
+    # Options are `none`, `optional`, and `required`. Default is required.
     # It is strongly recommended to always set to `required`
-    # Default is `required`.
     #client_authentication: "required"
 
   #rum:
@@ -271,7 +269,7 @@ output.elasticsearch:
   # Scheme and port can be left out and will be set to the default (http and 9200)
   # In case you specify and additional path, the scheme is required: http://localhost:9200/path
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
-  hosts: ["elasticsearch:9200"]
+  hosts: ["localhost:9200"]
 
   # Boolean flag to enable or disable the output module.
   #enabled: true

@@ -13,6 +13,8 @@ from beat.beat import INTEGRATION_TESTS, TimeoutError
 from requests.packages.urllib3.exceptions import SubjectAltNameWarning
 requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
+INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
+
 
 class TestAccessWithCredentials(ServerBaseTest):
 
@@ -55,20 +57,28 @@ class TestAccessWithCredentials(ServerBaseTest):
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-class SecureServerBaseTest(ServerSetUpBaseTest):
+class TestSecureServerBaseTest(ServerSetUpBaseTest):
     @classmethod
     def setUpClass(cls):
+        # According to https://docs.python.org/2/library/unittest.html#setupclass-and-teardownclass setUp and tearDown
+        # should be skipped when class is skipped, which is apparently not true.
+        # This is a hack to avoid running the setup while it should be skipped
+        if not INTEGRATION_TESTS:
+            return
         cls.config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "config"))
         cls.cert_path = os.path.join(cls.config_path, "certs")
         shutil.rmtree(cls.cert_path, ignore_errors=True)
         cls.create_certs_cmd = os.path.join(cls.config_path, "create_certs.sh")
         with open(os.devnull, 'wb') as dev_null:
             subprocess.call([cls.create_certs_cmd, cls.config_path, cls.cert_path], stdout=dev_null, stderr=dev_null)
-        super(SecureServerBaseTest, cls).setUpClass()
+        super(TestSecureServerBaseTest, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        super(SecureServerBaseTest, cls).tearDownClass()
+        if not INTEGRATION_TESTS:
+            return
+        raise Exception("------")
+        super(TestSecureServerBaseTest, cls).tearDownClass()
         shutil.rmtree(cls.cert_path)
 
     def setUp(self):
@@ -82,10 +92,10 @@ class SecureServerBaseTest(ServerSetUpBaseTest):
         self.server_cert = os.path.join(self.cert_path, "server.crt.pem")
         self.server_key = os.path.join(self.cert_path, "server.key.pem")
         self.password = "foobar"
-        super(SecureServerBaseTest, self).setUp()
+        super(TestSecureServerBaseTest, self).setUp()
 
     def tearDown(self):
-        super(SecureServerBaseTest, self).tearDown()
+        super(TestSecureServerBaseTest, self).tearDown()
         self.apmserver_proc.kill_and_wait()
 
     def config_overrides(self):
@@ -103,7 +113,7 @@ class SecureServerBaseTest(ServerSetUpBaseTest):
         return {}
 
     def config(self):
-        cfg = super(SecureServerBaseTest, self).config()
+        cfg = super(TestSecureServerBaseTest, self).config()
         cfg.update(self.config_overrides())
         self.host = "localhost"
         self.port = 8200
@@ -127,16 +137,16 @@ class SecureServerBaseTest(ServerSetUpBaseTest):
         s.connect((self.host, self.port))
 
 
-class TestSSLBadPassphrase(SecureServerBaseTest):
+class TestSSLBadPassphraseTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_key_passphrase": "invalid"}
 
     @raises(TimeoutError)
     def setUp(self):
-        super(SecureServerBaseTest, self).setUp()
+        super(TestSecureServerBaseTest, self).setUp()
 
 
-class TestSSLEnabledNoClientVerification(SecureServerBaseTest):
+class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "none"}
 
@@ -154,7 +164,7 @@ class TestSSLEnabledNoClientVerification(SecureServerBaseTest):
         assert r.status_code == 202, r.status_code
 
 
-class TestSSLEnabledOptionalClientVerification(SecureServerBaseTest):
+class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "optional"}
 
@@ -173,7 +183,7 @@ class TestSSLEnabledOptionalClientVerification(SecureServerBaseTest):
         assert r.status_code == 202, r.status_code
 
 
-class TestSSLEnabledRequiredClientVerification(SecureServerBaseTest):
+class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
     # no ssl_overrides necessary as `required` is default
 
     @raises(SSLError)
@@ -191,7 +201,7 @@ class TestSSLEnabledRequiredClientVerification(SecureServerBaseTest):
         assert r.status_code == 202, r.status_code
 
 
-class TestSSLDefaultSupportedProcotols(SecureServerBaseTest):
+class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "none"}
 
@@ -206,7 +216,7 @@ class TestSSLDefaultSupportedProcotols(SecureServerBaseTest):
         self.ssl_connect()
 
 
-class TestSSLSupportedProcotols(SecureServerBaseTest):
+class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "none",
                 "ssl_supported_protocols": ["TLSv1.2"]}
@@ -219,7 +229,7 @@ class TestSSLSupportedProcotols(SecureServerBaseTest):
         self.ssl_connect()
 
 
-class TestSSLSupportedCiphers(SecureServerBaseTest):
+class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_cipher_suites": ['ECDHE-RSA-AES128-GCM-SHA256']}
 
