@@ -2,6 +2,8 @@
 
 ## Before the release
 
+* Backport all relevant commits
+
 * Create a PR that:
     1. Uncomments out relevant release notes. Release notes are in the [changelogs](https://github.com/elastic/apm-server/tree/master/changelogs).
     2. Updates the `:stack-version:`
@@ -16,14 +18,18 @@
     * APM Server's [breaking changes](https://github.com/elastic/apm-server/blob/master/docs/breaking-changes.asciidoc) - Any APM Server breaking changes.
     * APM Server's [upgrade guide](https://github.com/elastic/apm-server/blob/master/docs/upgrading.asciidoc).
 
-* Script for determining if changelogs are synced: https://gist.github.com/graphaelli/92fd6b5ff08d69600e880df2a234ac35
-    * This will soon be a PR check
+* Changelogs:
+    * Review the [changelogs](https://github.com/elastic/apm-server/tree/master/changelogs) to ensure all relevant notes have been added
+    * Run the [`check_changelogs.py`](script/check_changelogs.py) script to ensure changelogs are synced across branches. This will soon be a PR check.
+        * Don't forget to update the "VERSIONS" to include a new branch if necessary.
 
-## During the release
+## On release day
 
 * New branches need to be added to `conf.yml` in the `elastic/docs` repo. [Example](https://github.com/elastic/docs/pull/893/files#diff-4a701a5adb4359c6abf9b8e1cb38819fR925). **This is handled by the docs release manager.**
 
 * Merge the above PRs
+
+* Push [tags](https://github.com/elastic/apm-server/releases) on GitHub.
 
 ## When compatibility between Agents & Server changes
 

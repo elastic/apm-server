@@ -90,6 +90,10 @@ For further development, check out the [beat developer guide](https://www.elasti
 
 See [contributing](CONTRIBUTING.md) for details about reporting bugs or requesting features in APM server.
 
+### Releases
+
+See [releases](RELEASES.md) for an APM Server release checklist.
+
 ## Update Dependencies
 
 The `apm-server` has two types of dependencies, 
