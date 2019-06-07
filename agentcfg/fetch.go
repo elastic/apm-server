@@ -37,39 +37,32 @@ var (
 )
 
 // Fetch retrieves agent configuration from Kibana
-func Fetch(kb *kibana.Client, q Query, err error) (map[string]string, string, error) {
+func Fetch(kbClient *kibana.Client, q Query, err error) (map[string]string, string, error) {
 	var doc Doc
-	resultBytes, err := request(kb, convert.ToReader(q), err)
+	resultBytes, err := request(kbClient, convert.ToReader(q), err)
 	err = convert.FromBytes(resultBytes, &doc, err)
 	return doc.Source.Settings, doc.ID, err
 }
 
-func request(kb *kibana.Client, r io.Reader, err error) ([]byte, error) {
-
+func request(kbClient *kibana.Client, r io.Reader, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if kb == nil {
+	if kbClient == nil {
 		return nil, errors.New("No configured Kibana Client: provide apm-server.kibana.* settings")
 	}
-
-	if version := kb.GetVersion(); version.LessThan(&minVersion) {
+	if version := kbClient.GetVersion(); version.LessThan(&minVersion) {
 		return nil, errors.New(fmt.Sprintf("Needs Kibana version %s or higher", minVersion.String()))
 	}
-
-	resp, err := kb.Send(http.MethodPost, endpoint, nil, nil, r)
-
+	resp, err := kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	result, err := ioutil.ReadAll(resp.Body)
-
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		return nil, errors.New(string(result))
 	}
-
 	return result, err
 }

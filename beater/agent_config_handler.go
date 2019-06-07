@@ -29,39 +29,31 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 )
 
-func agentConfigHandler(client *kibana.Client, secretToken string) http.Handler {
+func agentConfigHandler(kbClient *kibana.Client, secretToken string) http.Handler {
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		send := wrap(w, r)
 		clientEtag := r.Header.Get("If-None-Match")
 
 		query, requestErr := buildQuery(r)
-		cfg, upstreamEtag, internalErr := agentcfg.Fetch(client, query, requestErr)
+		cfg, upstreamEtag, internalErr := agentcfg.Fetch(kbClient, query, requestErr)
 
 		switch {
-
 		case requestErr != nil:
 			send(requestErr.Error(), http.StatusBadRequest)
-
 		case query == agentcfg.Query{}:
 			send(nil, http.StatusMethodNotAllowed)
-
 		case internalErr != nil:
 			send(internalErr.Error(), http.StatusInternalServerError)
-
 		case len(cfg) == 0:
 			send(nil, http.StatusNotFound)
-
 		case clientEtag != "" && clientEtag == upstreamEtag:
 			w.Header().Set("Cache-Control", "max-age=0")
 			send(nil, http.StatusNotModified)
-
 		case upstreamEtag != "":
 			w.Header().Set("Cache-Control", "max-age=0")
 			w.Header().Set("Etag", upstreamEtag)
 			fallthrough
-
 		default:
 			send(cfg, http.StatusOK)
 		}
@@ -73,17 +65,14 @@ func agentConfigHandler(client *kibana.Client, secretToken string) http.Handler 
 // Returns (zero, zero) if request method is not GET or POST
 func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	switch r.Method {
-
 	case http.MethodPost:
 		err = convert.FromReader(r.Body, &query)
-
 	case http.MethodGet:
 		params := r.URL.Query()
 		query = agentcfg.NewQuery(
 			params.Get(agentcfg.ServiceName),
 			params.Get(agentcfg.ServiceEnv),
 		)
-
 	default:
 		return
 	}
@@ -91,7 +80,6 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	if err == nil && query.Service.Name == "" {
 		err = errors.New(agentcfg.ServiceName + " is required")
 	}
-
 	return
 }
 

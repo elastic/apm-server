@@ -37,7 +37,7 @@ import (
 var (
 	rootURL = "/"
 
-	agentConfigURL = "/config"
+	agentConfigURL = "/agent/v1/config"
 
 	// intake v2
 	backendURL = "/intake/v2/events"
@@ -91,7 +91,7 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, kibana *kibana.Client, report publish.Reporter) *http.ServeMux {
+func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Reporter) *http.ServeMux {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
 
@@ -106,7 +106,7 @@ func newMuxer(beaterConfig *Config, kibana *kibana.Client, report publish.Report
 		mux.Handle(path, route.Handler(path, beaterConfig, report))
 	}
 
-	mux.Handle(agentConfigURL, agentConfigHandler(kibana, beaterConfig.SecretToken))
+	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.SecretToken))
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
 
 	if beaterConfig.Expvar.isEnabled() {

@@ -35,8 +35,8 @@ import (
 	"github.com/elastic/beats/libbeat/version"
 )
 
-func newServer(config *Config, tracer *apm.Tracer, kibana *kibana.Client, report publish.Reporter) *http.Server {
-	mux := newMuxer(config, kibana, report)
+func newServer(config *Config, tracer *apm.Tracer, kbClient *kibana.Client, report publish.Reporter) *http.Server {
+	mux := newMuxer(config, kbClient, report)
 
 	return &http.Server{
 		Addr: config.Host,
