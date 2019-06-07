@@ -59,11 +59,13 @@ type Sample struct {
 	Value float64
 }
 
+// Transaction provides enough information to connect a metricset to the related kind of transactions
 type Transaction struct {
 	Name *string
 	Type *string
 }
 
+// Span provides enough information to connect a metricset to the related kind of spans
 type Span struct {
 	Type    *string
 	Subtype *string
