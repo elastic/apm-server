@@ -70,7 +70,8 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
         shutil.rmtree(cls.cert_path, ignore_errors=True)
         cls.create_certs_cmd = os.path.join(cls.config_path, "create_certs.sh")
         with open(os.devnull, 'wb') as dev_null:
-            subprocess.call([cls.create_certs_cmd, cls.config_path, cls.cert_path], stdout=dev_null, stderr=dev_null)
+            subprocess.call([cls.create_certs_cmd, cls.config_path, cls.cert_path,
+                             "foobar"], stdout=dev_null, stderr=dev_null)
         super(TestSecureServerBaseTest, cls).setUpClass()
 
     @classmethod

@@ -84,7 +84,7 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 
 	if config.MaxConnections > 0 {
 		lis = netutil.LimitListener(lis, config.MaxConnections)
-		logger.Infof("Connections limit set to: %d", config.MaxConnections)
+		logger.Infof("Connection limit set to: %d", config.MaxConnections)
 	}
 
 	if server.TLSConfig != nil {

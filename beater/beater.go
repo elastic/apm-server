@@ -232,7 +232,8 @@ func (bt *beater) isServerAvailable(timeout time.Duration) bool {
 		return false
 	}
 	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
-	bufio.NewReader(conn).ReadString('\n')
+	bufio.NewReader(conn).ReadByte()
+
 	err = conn.Close()
 	return err == nil
 }
