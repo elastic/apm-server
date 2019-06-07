@@ -17,6 +17,7 @@ cakey="$certdir/ca.key.pem"
 cacert="$certdir/ca.crt.pem"
 
 ## Create certificates and keys
+
 ### Generate root CA for signing certificates
 openssl genrsa -out $cakey 2048
 openssl req -config $cfgdir/ca.cfg -extensions extensions -key $cakey -new -x509 -out $cacert -outform pem
