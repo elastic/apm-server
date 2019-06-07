@@ -36,8 +36,10 @@ import (
 )
 
 const (
-	processorName = "metric"
-	docType       = "metric"
+	processorName  = "metric"
+	docType        = "metric"
+	transactionKey = "transaction"
+	spanKey        = "span"
 )
 
 var (
@@ -57,10 +59,22 @@ type Sample struct {
 	Value float64
 }
 
+type Transaction struct {
+	Name *string
+	Type *string
+}
+
+type Span struct {
+	Type    *string
+	Subtype *string
+}
+
 type Metricset struct {
-	Samples   []*Sample
-	Labels    common.MapStr
-	Timestamp time.Time
+	Samples     []*Sample
+	Labels      common.MapStr
+	Transaction *Transaction
+	Span        *Span
+	Timestamp   time.Time
 }
 
 type metricsetDecoder struct {
@@ -81,8 +95,10 @@ func DecodeEvent(input interface{}, _ model.Config, err error) (transform.Transf
 
 	md := metricsetDecoder{&utility.ManualDecoder{}}
 	e := Metricset{
-		Samples:   md.decodeSamples(raw["samples"]),
-		Timestamp: md.TimeEpochMicro(raw, "timestamp"),
+		Samples:     md.decodeSamples(raw["samples"]),
+		Transaction: md.decodeTransaction(raw[transactionKey]),
+		Span:        md.decodeSpan(raw[spanKey]),
+		Timestamp:   md.TimeEpochMicro(raw, "timestamp"),
 	}
 
 	if md.Err != nil {
@@ -131,6 +147,57 @@ func (md *metricsetDecoder) decodeSamples(input interface{}) []*Sample {
 	return samples
 }
 
+func (md *metricsetDecoder) decodeSpan(input interface{}) *Span {
+	if input == nil {
+		return nil
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		md.Err = errors.New("invalid type for span in metric event")
+		return nil
+	}
+
+	return &Span{
+		Type:    md.StringPtr(raw, "type"),
+		Subtype: md.StringPtr(raw, "subtype"),
+	}
+}
+func (md *metricsetDecoder) decodeTransaction(input interface{}) *Transaction {
+	if input == nil {
+		return nil
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		md.Err = errors.New("invalid type for transaction in metric event")
+		return nil
+	}
+
+	return &Transaction{
+		Type: md.StringPtr(raw, "type"),
+		Name: md.StringPtr(raw, "name"),
+	}
+}
+
+func (s *Span) fields() common.MapStr {
+	if s == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Set(fields, "type", s.Type)
+	utility.Set(fields, "subtype", s.Subtype)
+	return fields
+}
+
+func (t *Transaction) fields() common.MapStr {
+	if t == nil {
+		return nil
+	}
+	fields := common.MapStr{}
+	utility.Set(fields, "type", t.Type)
+	utility.Set(fields, "name", t.Name)
+	return fields
+}
+
 func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	transformations.Inc()
 	if me == nil {
@@ -146,6 +213,8 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	fields["processor"] = processorEntry
+	utility.Set(fields, transactionKey, me.Transaction.fields())
+	utility.Set(fields, spanKey, me.Span.fields())
 
 	tctx.Metadata.Set(fields)
 
