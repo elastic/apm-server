@@ -19,7 +19,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.0.0"
+                "version": "1.0.1"
             },
             "float_gauge": 9.16,
             "integer_gauge": 42767,
@@ -84,7 +84,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.0.0"
+                "version": "1.0.1"
             },
             "go": {
                 "memstats": {
