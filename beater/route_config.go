@@ -37,7 +37,7 @@ import (
 var (
 	rootURL = "/"
 
-	agentConfigURL = "/agent/v1/config"
+	agentConfigURL = "/v1/agent/configs"
 
 	// intake v2
 	backendURL = "/intake/v2/events"
