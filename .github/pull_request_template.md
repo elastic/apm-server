@@ -7,7 +7,7 @@ See also https://github.com/elastic/apm-server/blob/master/CONTRIBUTING.md for m
 -->
 
 <!--
-Replace this comment with a description of what's being changed by this PR.
+Replace this comment with a description of what is being changed by this PR and why.
 
 If this PR should close an issue, please add one of the magic keywords
 (e.g. fixes) followed by the issue number. For more info see:
