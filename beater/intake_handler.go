@@ -84,9 +84,10 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 
 	if statusCode == http.StatusAccepted {
 		responseSuccesses.Inc()
-		w.WriteHeader(statusCode)
 		if _, ok := r.URL.Query()["verbose"]; ok {
 			send(w, r, sr, statusCode)
+		} else {
+			w.WriteHeader(statusCode)
 		}
 	} else {
 		responseErrors.Inc()

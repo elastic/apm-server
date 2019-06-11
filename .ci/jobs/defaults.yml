@@ -1,0 +1,17 @@
+---
+
+##### GLOBAL METADATA
+
+- meta:
+    cluster: apm-ci
+
+##### JOB DEFAULTS
+
+- job:
+    logrotate:
+      daysToKeep: 30
+      numToKeep: 100
+    node: linux
+    publishers:
+    - email:
+        recipients: infra-root+build@elastic.co

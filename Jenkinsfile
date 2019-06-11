@@ -21,7 +21,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -402,18 +402,8 @@ pipeline {
     }
   }
   post {
-    success {
-      echoColor(text: '[SUCCESS]', colorfg: 'green', colorbg: 'default')
-    }
-    aborted {
-      echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
-    }
-    failure {
-      echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
-    }
-    unstable {
-      echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
+    always {
+      notifyBuildResult()
     }
   }
 }

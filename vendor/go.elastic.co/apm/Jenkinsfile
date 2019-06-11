@@ -1,5 +1,7 @@
 #!/usr/bin/env groovy
 
+@Library('apm@current') _
+
 pipeline {
   agent any
   environment {
@@ -14,9 +16,14 @@ pipeline {
     ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
+    rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
+    quietPeriod(10)
+  }
+  triggers {
+    issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
-    string(name: 'GO_VERSION', defaultValue: "1.10.3", description: "Go version to use.")
+    string(name: 'GO_VERSION', defaultValue: "1.12.0", description: "Go version to use.")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'docker_test_ci', defaultValue: true, description: 'Enable run docker tests')
@@ -164,7 +171,7 @@ pipeline {
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
                 testResults: "${BASE_DIR}/build/junit-*.xml")
-              codecov(repo: 'apm-agent-go', basedir: "${BASE_DIR}")
+              codecov(repo: 'apm-agent-go', basedir: "${BASE_DIR}", flags: "-f build/coverage/coverage.cov -X search")
             }
           }
         }
@@ -176,12 +183,6 @@ pipeline {
     stage('Documentation') {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-        ELASTIC_DOCS = "${env.WORKSPACE}/elastic/docs"
-      }
       when {
         beforeAgent true
         allOf {
@@ -201,16 +202,8 @@ pipeline {
       steps {
         deleteDir()
         unstash 'source'
-        checkoutElasticDocsTools(basedir: "${ELASTIC_DOCS}")
         dir("${BASE_DIR}"){
-          sh """#!/bin/bash
-          make docs
-          """
-        }
-      }
-      post{
-        success {
-          tar(file: "doc-files.tgz", archive: true, dir: "html", pathPrefix: "${BASE_DIR}/docs")
+          buildDocs(docsDir: "docs", archive: true)
         }
       }
     }
