@@ -24,5 +24,6 @@ Major changes require a number of considerations including impact on:
 * logging selector(s)
 * metrics
 * telemetry
-* ESS/ECE
+* Elasticsearch Service (https://cloud.elastic.co)
+* Elastic Cloud Enterprise (https://www.elastic.co/products/ece)
 -->
