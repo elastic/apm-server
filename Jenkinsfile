@@ -71,7 +71,7 @@ pipeline {
               ]
               def changes = sh(label: 'Check paths changed', script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA} > git-diff.txt",returnStdout: true)
               def match = regexps.find{ regexp ->
-                  sh(script: "grep '${regexp}' git-diff.txt",returnStatus: true) == 0
+                  sh(label: 'Check paths changed', script: "grep '${regexp}' git-diff.txt",returnStatus: true) == 0
               }
               env.BEATS_UPDATED = (match != null)
             }
@@ -434,7 +434,8 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh './script/jenkins/package.sh'
+            sh(label: 'Build packages', script: './script/jenkins/package.sh')
+            sh(label: 'Test packages install', script: 'mage -v testPackagesInstall')
           }
         }
       }
