@@ -205,7 +205,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return run(bt.server, lis, bt.config)
 	})
 
-	if bt.isServerAvailable(10 * time.Second) {
+	if bt.isServerAvailable(bt.config.ShutdownTimeout) {
 		go notifyListening(bt.config, pub.Client().Publish)
 	}
 
@@ -231,8 +231,15 @@ func (bt *beater) isServerAvailable(timeout time.Duration) bool {
 	if err != nil {
 		return false
 	}
+	err = conn.SetReadDeadline(time.Now().Add(timeout))
+	if err != nil {
+		return false
+	}
 	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
-	bufio.NewReader(conn).ReadByte()
+	_, err = bufio.NewReader(conn).ReadByte()
+	if err != nil {
+		return false
+	}
 
 	err = conn.Close()
 	return err == nil
