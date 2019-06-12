@@ -29,7 +29,7 @@
 
 * Merge the above PRs
 
-* Push [tags](https://github.com/elastic/apm-server/releases) on GitHub.
+* Verify that a new [tag](https://github.com/elastic/apm-server/releases) has been created on GitHub.
 
 ## When compatibility between Agents & Server changes
 
