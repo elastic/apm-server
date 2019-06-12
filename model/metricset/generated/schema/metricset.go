@@ -32,6 +32,46 @@ const ModelSchema = `{
             "type": ["integer", "null"]
         }
     }},
+        {     "$id": "docs/spec/span_type.json",
+    "title": "Span Type",
+    "type": ["object"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+            "maxLength": 1024
+        }
+    } },
+        {     "$id": "docs/spec/span_subtype.json",
+    "title": "Span Subtype",
+    "type": ["object"],
+    "properties": {
+        "subtype": {
+            "type": ["string", "null"],
+            "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+            "maxLength": 1024
+        }
+    } },
+        {     "$id": "docs/spec/transaction_name.json",
+    "title": "Transaction Name",
+    "type": ["object"],
+    "properties": {
+        "name": {
+            "type": ["string","null"],
+            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
+            "maxLength": 1024
+        }
+    } },
+        {     "$id": "docs/spec/transaction_type.json",
+    "title": "Transaction Type",
+    "type": ["object"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
+            "maxLength": 1024
+        }
+    } },
         {
             "properties": {
                 "samples": {
