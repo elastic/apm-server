@@ -3,9 +3,11 @@
 
 [float]
 ==== Bug fixes
+- Require client authentication by default when `apm-server.ssl.enabled` is true {pull}2224[2224].
 
 [float]
 ==== Added
+- Support more SSL config options for agent/server communication {pull}2224[2224].
 
 [float]
 ==== Removed
