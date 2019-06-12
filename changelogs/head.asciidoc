@@ -3,10 +3,12 @@
 
 [float]
 ==== Bug fixes
-- Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273]
+- Require client authentication by default when `apm-server.ssl.enabled` is true {pull}2224[2224].
+- Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273].
 
 [float]
 ==== Added
+- Support more SSL config options for agent/server communication {pull}2224[2224].
 
 [float]
 ==== Removed

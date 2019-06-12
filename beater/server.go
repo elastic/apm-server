@@ -19,9 +19,10 @@ package beater
 
 import (
 	"context"
-	"crypto/tls"
 	"net"
 	"net/http"
+
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
@@ -29,14 +30,13 @@ import (
 
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/version"
 )
 
-func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) *http.Server {
+func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
 	mux := newMuxer(config, report)
 
-	return &http.Server{
+	server := &http.Server{
 		Addr: config.Host,
 		Handler: apmhttp.Wrap(mux,
 			apmhttp.WithServerRequestIgnorer(doNotTrace),
@@ -47,6 +47,15 @@ func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) *htt
 		WriteTimeout:   config.WriteTimeout,
 		MaxHeaderBytes: config.MaxHeaderSize,
 	}
+
+	if config.TLS.IsEnabled() {
+		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(config.TLS)
+		if err != nil {
+			return nil, err
+		}
+		server.TLSConfig = tlsServerConfig.BuildModuleConfig(config.Host)
+	}
+	return server, nil
 }
 
 func doNotTrace(req *http.Request) bool {
@@ -70,25 +79,22 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 	case true:
 		logger.Info("RUM endpoints enabled!")
 	case false:
-		logger.Info("RUM endpoints disabled")
+		logger.Info("RUM endpoints disabled.")
 	}
 
 	if config.MaxConnections > 0 {
 		lis = netutil.LimitListener(lis, config.MaxConnections)
-		logger.Infof("connections limit set to: %d", config.MaxConnections)
+		logger.Infof("Connection limit set to: %d", config.MaxConnections)
 	}
 
-	ssl := config.SSL
-	if ssl.isEnabled() {
-		cert, err := outputs.LoadCertificate(&config.SSL.Certificate)
-		if err != nil {
-			return err
-		}
-		server.TLSConfig = &tls.Config{Certificates: []tls.Certificate{*cert}}
+	if server.TLSConfig != nil {
+		logger.Info("SSL enabled.")
 		return server.ServeTLS(lis, "", "")
 	}
 	if config.SecretToken != "" {
 		logger.Warn("Secret token is set, but SSL is not enabled.")
+	} else {
+		logger.Info("SSL disabled.")
 	}
 	return server.Serve(lis)
 }
