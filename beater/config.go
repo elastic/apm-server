@@ -166,7 +166,7 @@ func (c *pipelineConfig) isEnabled() bool {
 }
 
 func (c *pipelineConfig) shouldOverwrite() bool {
-	return c != nil && (c.Overwrite != nil && *c.Overwrite)
+	return c != nil && (c.Overwrite == nil || *c.Overwrite)
 }
 
 func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
