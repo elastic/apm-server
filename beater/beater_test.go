@@ -32,11 +32,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-agent-go"
+	elasticapm "github.com/elastic/apm-agent-go"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
@@ -125,8 +127,11 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:        4000000000,
 				ShutdownTimeout:     9000000000,
 				SecretToken:         "1234random",
-				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
-				AugmentEnabled:      true,
+				TLS: &tlscommon.ServerConfig{
+					Enabled:     &truthy,
+					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
+					ClientAuth:  4},
+				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
@@ -230,8 +235,11 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:        30000000000,
 				ShutdownTimeout:     5000000000,
 				SecretToken:         "1234random",
-				SSL:                 &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
-				AugmentEnabled:      true,
+				TLS: &tlscommon.ServerConfig{
+					Enabled:     &truthy,
+					Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
+					ClientAuth:  4},
+				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
 					Url:     "/debug/vars",
@@ -377,7 +385,7 @@ func (bt *beater) client(insecure bool) (string, *http.Client) {
 		}
 	}
 	scheme := "http://"
-	if bt.config.SSL.isEnabled() {
+	if bt.config.TLS.IsEnabled() {
 		scheme = "https://"
 	}
 	return scheme + bt.config.Host, &http.Client{Transport: transport}

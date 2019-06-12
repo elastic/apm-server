@@ -4,6 +4,7 @@
 https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
 
 * <<release-notes-6.8.0>>
+* <<release-notes-6.8.1>>
 
 [[release-notes-6.8.0]]
 === APM Server version 6.8.0
@@ -14,3 +15,18 @@ https://github.com/elastic/apm-server/compare/v6.7.2\...v6.8.0[View commits]
 ==== Bug fixes
 
 - Fix numeric user id decoding {pull}2147[2147].
+
+
+
+[[release-notes-6.8.1]]
+=== APM Server version 6.8.1
+
+https://github.com/elastic/apm-server/compare/v6.8.0\...v6.8.1[View commits]
+
+[float]
+==== Bug fixes
+- Require client authentication by default when `apm-server.ssl.enabled` is true {pull}2224[2224].
+
+[float]
+==== Added
+- Support more SSL config options for agent/server communication {pull}2224[2224].

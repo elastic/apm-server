@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -49,6 +51,7 @@ func TestConfig(t *testing.T) {
 					"enabled": true,
 					"key": "1234key",
 					"certificate": "1234cert",
+                    "certificate_authorities": ["./ca.cert.pem"]
 				},
         "concurrent_requests": 15,
 				"rum": {
@@ -103,7 +106,11 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
-				SSL:             &SSLConfig{Enabled: &truthy, Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"}},
+				TLS: &tlscommon.ServerConfig{
+					Enabled:     &truthy,
+					CAs:         []string{"./ca.cert.pem"},
+					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
+					ClientAuth:  4}, //4=RequireAndVerifyClientCert
 				RumConfig: &rumConfig{
 					Enabled:   &truthy,
 					RateLimit: 800,
@@ -156,7 +163,6 @@ func TestConfig(t *testing.T) {
         "shutdown_timeout": 5s,
 				"secret_token": "1234random",
         "concurrent_requests": 20,
-				"ssl": {},
 				"frontend": {
 					"source_mapping": {
 					}
@@ -175,7 +181,6 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:       2000000000,
 				ShutdownTimeout:    5000000000,
 				SecretToken:        "1234random",
-				SSL:                &SSLConfig{Enabled: nil, Certificate: outputs.CertificateConfig{Certificate: "", Key: ""}},
 				ConcurrentRequests: 20,
 				FrontendConfig: &rumConfig{
 					Enabled:      nil,
@@ -209,7 +214,6 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:       0,
 				ShutdownTimeout:    0,
 				SecretToken:        "",
-				SSL:                nil,
 				ConcurrentRequests: 0,
 				FrontendConfig:     nil,
 				RumConfig:          nil,
@@ -232,23 +236,23 @@ func TestIsSSLEnabled(t *testing.T) {
 	truthy := true
 	falsy := false
 	cases := []struct {
-		config   *SSLConfig
-		expected bool
+		tlsServerCfg *tlscommon.ServerConfig
+		expected     bool
 	}{
-		{config: nil, expected: false},
-		{config: &SSLConfig{Enabled: nil}, expected: true},
-		{config: &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert"}}, expected: true},
-		{config: &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
-		{config: &SSLConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: &falsy}, expected: false},
-		{config: &SSLConfig{Enabled: &truthy}, expected: true},
-		{config: &SSLConfig{Enabled: &falsy}, expected: false},
+		{tlsServerCfg: nil, expected: false},
+		{tlsServerCfg: &tlscommon.ServerConfig{Enabled: nil}, expected: true},
+		{tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert"}}, expected: true},
+		{tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
+		{tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: &falsy}, expected: false},
+		{tlsServerCfg: &tlscommon.ServerConfig{Enabled: &truthy}, expected: true},
+		{tlsServerCfg: &tlscommon.ServerConfig{Enabled: &falsy}, expected: false},
 	}
 
 	for idx, test := range cases {
-		name := fmt.Sprintf("%v %v->%v", idx, test.config, test.expected)
+		name := fmt.Sprintf("%v %v->%v", idx, test.tlsServerCfg, test.expected)
 		t.Run(name, func(t *testing.T) {
 			b := test.expected
-			isEnabled := test.config.isEnabled()
+			isEnabled := test.tlsServerCfg.IsEnabled()
 			assert.Equal(t, b, isEnabled, "ssl config but should be %v", b)
 		})
 	}
