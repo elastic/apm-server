@@ -7,6 +7,7 @@ For a full list of changes, see the
 {apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
+* <<release-highlights-7.2.0>>
 * <<release-highlights-7.1.0>>
 * <<release-highlights-7.0.0>>
 * <<release-highlights-6.8.0>>
@@ -15,6 +16,16 @@ For a full list of changes, see the
 * <<release-notes-6.5.0>>
 * <<release-notes-6.4.1>>
 * <<release-notes-6.4.0>>
+
+[[release-highlights-7.2.0]]
+=== APM version 7.2.0
+
+[float]
+==== New features
+
+*APM Server*
+
+* Support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]
 
 [[release-highlights-7.1.0]]
 === APM version 7.1.0

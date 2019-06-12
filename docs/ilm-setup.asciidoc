@@ -1,13 +1,9 @@
 [role="xpack"]
 [[manual-ilm-setup]]
-== Manual index lifecycle management
+=== Manual index lifecycle management
 
-APM Server can take advantage of the index lifecycle management (ILM) capabilities of Elasticsearch.
-ILM enables you to automate how you want to manage your indices over time.
-You can base actions on factors such as shard size and performance requirements. 
-
-The guide below will help you set up a custom ILM policy for span indices.
-You can repeat the actions for any other indices.
+The guide below will help you set up a custom index lifecycle management policy for span indices.
+You can repeat these actions for any other indices (transactions, errors, etc.).
 
 NOTE: If you're migrating from an existing setup,
 any indices present before ILM was configured will need to be managed manually.
