@@ -9,6 +9,7 @@
 [float]
 ==== Added
 - Support more SSL config options for agent/server communication {pull}2224[2224].
+- Support adding transaction and span information to metrics  {pull}2265[2265].
 
 [float]
 ==== Removed
