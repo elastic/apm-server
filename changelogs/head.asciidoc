@@ -3,6 +3,7 @@
 
 [float]
 ==== Bug fixes
+- Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273]
 
 [float]
 ==== Added
