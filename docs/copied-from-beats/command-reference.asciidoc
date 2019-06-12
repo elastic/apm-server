@@ -636,8 +636,15 @@ enabled modules in the +{beatname_lc}.yml+ file. If you used the
 directory, also specify the `--modules` flag.
 endif::[]
 
+ifndef::apm-server[]
 *`--template`*::
 Sets up the index template only.
+endif::apm-server[]
+
+ifdef::apm-server[]
+*` --index-management`*::
+Sets up <<ilm,index lifecycle management>>.
+endif::[]
 
 {global-flags}
 
