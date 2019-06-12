@@ -3,6 +3,7 @@
 
 [float]
 ==== Bug fixes
+- Process all user-agent information from headers {pull}2271[2271].
 
 [float]
 ==== Added
