@@ -5,10 +5,7 @@ import threading
 import time
 import zlib
 
-from nose.tools import raises
-from requests.exceptions import SSLError
-
-from apmserver import ServerBaseTest, SecureServerBaseTest, ClientSideBaseTest, CorsBaseTest
+from apmserver import ServerBaseTest, ClientSideBaseTest, CorsBaseTest
 
 
 try:
@@ -104,23 +101,6 @@ class Test(ServerBaseTest):
         """expvar should not be exposed by default"""
         r = requests.get(self.expvar_url)
         assert r.status_code == 404, r.status_code
-
-
-class SecureTest(SecureServerBaseTest):
-
-    def test_https_ok(self):
-        r = requests.post("https://localhost:8200/intake/v2/events",
-                          headers={'content-type': 'application/x-ndjson'},
-                          data=self.get_event_payload(),
-                          verify=False)
-        assert r.status_code == 202, r.status_code
-
-    @raises(SSLError)
-    def test_https_verify(self):
-        events = self.get_event_payload()
-        requests.post("https://localhost:8200/intake/v2/events",
-                      data=events,
-                      headers={'content-type': 'application/x-ndjson'})
 
 
 class ClientSideTest(ClientSideBaseTest):
