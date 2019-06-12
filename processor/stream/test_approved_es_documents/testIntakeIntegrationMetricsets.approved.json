@@ -50,6 +50,14 @@
                 "name": "1234_service-12a3"
             },
             "short_counter": 227,
+            "span": {
+                "subtype": "mysql",
+                "type": "db"
+            },
+            "transaction": {
+                "name": "GET /",
+                "type": "request"
+            },
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
