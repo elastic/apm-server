@@ -3,12 +3,20 @@
 
 https://github.com/elastic/apm-server/compare/7.1\...7.2[View commits]
 
+* <<release-notes-7.2.1>>
 * <<release-notes-7.2.0>>
+
+[[release-notes-7.2.1]]
+=== APM Server version 7.2.1
+
+https://github.com/elastic/apm-server/compare/v7.2.0\...v7.2.1[View commits]
+
+[float]
+==== Bug fixes
+- Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273].
 
 [[release-notes-7.2.0]]
 === APM Server version 7.2.0
-
-https://github.com/elastic/apm-server/compare/v7.1.0\...v7.2.0[View commits]
 
 [float]
 ==== Added
