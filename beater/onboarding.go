@@ -23,10 +23,12 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+
+	logs "github.com/elastic/apm-server/log"
 )
 
 func notifyListening(config *Config, pubFct func(beat.Event)) {
-	logp.NewLogger("onboarding").Info("Publishing onboarding document")
+	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
 	event := beat.Event{
 		Timestamp: time.Now(),
 		Fields: common.MapStr{

@@ -21,8 +21,6 @@ import (
 	"fmt"
 
 	"github.com/go-sourcemap/sourcemap"
-
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 type Accessor interface {
@@ -36,8 +34,6 @@ type SmapAccessor struct {
 }
 
 func NewSmapAccessor(config Config) (*SmapAccessor, error) {
-	logp.NewLogger("sourcemap").Debugf("creating NewSmapAccessor for index: %s", config.Index)
-
 	es, err := NewElasticsearch(config.ElasticsearchConfig, config.Index)
 	if err != nil {
 		return nil, err

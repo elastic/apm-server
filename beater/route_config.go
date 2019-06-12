@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/beats/libbeat/kibana"
 
 	"github.com/elastic/apm-server/decoder"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/processor/asset/sourcemap"
@@ -93,7 +94,7 @@ var (
 
 func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Reporter) (*http.ServeMux, error) {
 	mux := http.NewServeMux()
-	logger := logp.NewLogger("handler")
+	logger := logp.NewLogger(logs.Handler)
 
 	for path, route := range AssetRoutes {
 		logger.Infof("Path %s added to request handler", path)

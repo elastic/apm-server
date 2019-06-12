@@ -40,6 +40,7 @@ import (
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 
 	"github.com/elastic/apm-server/ingest/pipeline"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/pipelistener"
 	"github.com/elastic/apm-server/publish"
 )
@@ -86,7 +87,7 @@ func checkConfig(logger *logp.Logger) error {
 
 // Creates beater
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
-	logger := logp.NewLogger("beater")
+	logger := logp.NewLogger(logs.Beater)
 	if err := checkConfig(logger); err != nil {
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.isEnabled() ||
 		(b.InSetupCmd && beaterConfig.Register.Ingest.Pipeline.Enabled == nil)
 	if isElasticsearchOutput(b) && shouldSetupPipelines {
-		logger.Info("Registering pipeline callback.")
+		logger.Info("Registering pipeline callback")
 		err := bt.registerPipelineCallback(b)
 		if err != nil {
 			return nil, err
@@ -215,7 +216,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 
 	var g errgroup.Group
 	g.Go(func() error {
-		return run(bt.server, lis, bt.config)
+		return run(bt.logger, bt.server, lis, bt.config)
 	})
 
 	if bt.isServerAvailable(bt.config.ShutdownTimeout) {
@@ -281,7 +282,7 @@ func initTracer(info beat.Info, config *Config, logger *logp.Logger) (*apm.Trace
 	if config.SelfInstrumentation.Environment != nil {
 		tracer.Service.Environment = *config.SelfInstrumentation.Environment
 	}
-	tracer.SetLogger(logp.NewLogger("tracing"))
+	tracer.SetLogger(logp.NewLogger(logs.Tracing))
 
 	// tracing destined for external host
 	if config.SelfInstrumentation.Hosts != nil {
@@ -338,10 +339,10 @@ func (bt *beater) registerPipelineCallback(b *beat.Beat) error {
 		return pipeline.RegisterPipelines(esClient, overwrite, path)
 	}
 	// ensure pipelines are registered when new ES connection is established.
-	elasticsearch.RegisterConnectCallback(func(esClient *elasticsearch.Client) error {
+	_, err := elasticsearch.RegisterConnectCallback(func(esClient *elasticsearch.Client) error {
 		return pipeline.RegisterPipelines(esClient, overwrite, path)
 	})
-	return nil
+	return err
 }
 
 // Graceful shutdown
@@ -350,7 +351,7 @@ func (bt *beater) Stop() {
 		bt.config.ShutdownTimeout.Seconds())
 	bt.mutex.Lock()
 	if bt.server != nil {
-		stop(bt.server)
+		stop(bt.logger, bt.server)
 	}
 	bt.stopped = true
 	bt.mutex.Unlock()

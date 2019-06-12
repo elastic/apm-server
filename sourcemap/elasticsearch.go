@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"sync"
 
+	logs "github.com/elastic/apm-server/log"
+
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -39,26 +41,34 @@ type smapElasticsearch struct {
 	mu      sync.Mutex // guards clients
 	clients []es.Client
 
-	index string
+	index  string
+	logger *logp.Logger
 }
 
 func NewElasticsearch(config *common.Config, index string) (*smapElasticsearch, error) {
 	esClients, err := es.NewElasticsearchClients(config)
 	if err != nil || esClients == nil || len(esClients) == 0 {
-		return nil, Error{Msg: fmt.Sprintf("Sourcemap ES Client cannot be initialized. %v", err.Error()), Kind: InitError}
+		return nil, Error{
+			Msg:  fmt.Sprintf("Sourcemap ES Client cannot be initialized. %v", err.Error()),
+			Kind: InitError,
+		}
 	}
 	if index == "" {
 		index = "*"
 	}
-	return &smapElasticsearch{clients: esClients, index: index}, nil
+	return &smapElasticsearch{
+		clients: esClients,
+		index:   index,
+		logger:  logp.NewLogger(logs.Sourcemap),
+	}, nil
 }
 
 func (e *smapElasticsearch) fetch(id Id) (*sourcemap.Consumer, error) {
-	result, err := e.runESQuery(query(id))
-	if err != nil {
+	if result, err := e.runESQuery(query(id)); err != nil {
 		return nil, err
+	} else {
+		return e.parseResult(result, id)
 	}
-	return parseResult(result, id)
 }
 
 func (e *smapElasticsearch) runESQuery(body map[string]interface{}) (*es.SearchResults, error) {
@@ -78,13 +88,13 @@ func (e *smapElasticsearch) runESQuery(body map[string]interface{}) (*es.SearchR
 	return result, nil
 }
 
-func parseResult(result *es.SearchResults, id Id) (*sourcemap.Consumer, error) {
+func (e *smapElasticsearch) parseResult(result *es.SearchResults, id Id) (*sourcemap.Consumer, error) {
 	if result.Hits.Total.Value == 0 {
 		return nil, nil
 	}
 	if result.Hits.Total.Value > 1 {
-		logp.NewLogger("sourcemap").Warnf("Multiple sourcemaps found for service %s version %s and file %s , fetching the last uploaded one",
-			id.ServiceName, id.ServiceVersion, id.Path)
+		e.logger.Warnf("%d sourcemaps found for service %s version %s and file %s, using the most recent one",
+			result.Hits.Total.Value, id.ServiceName, id.ServiceVersion, id.Path)
 	}
 	smap, err := parseSmap(result.Hits.Hits[0])
 	if err != nil {

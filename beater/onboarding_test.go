@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"github.com/elastic/beats/libbeat/logp"
 	"net"
 	"testing"
 
@@ -42,7 +43,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 
 	server, err := newServer(config, apm.DefaultTracer, nil, nopReporter)
 	require.NoError(t, err)
-	go run(server, lis, config)
+	go run(logp.NewLogger("onboarding_test"), server, lis, config)
 
 	notifyListening(config, publisher)
 
