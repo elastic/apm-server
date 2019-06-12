@@ -20,6 +20,7 @@ package decoder_test
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -202,39 +203,49 @@ func TestDecodeSystemData(t *testing.T) {
 func TestDecodeUserData(t *testing.T) {
 
 	type test struct {
-		augment    bool
-		remoteAddr string
-		expectIP   string
+		augment         bool
+		remoteAddr      string
+		userAgent       []string
+		expectIP        string
+		expectUserAgent string
 	}
+	ua1 := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"
+	ua2 := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:67.0) Gecko/20100101 Firefox/67.0"
 
 	tests := []test{
-		{augment: false, remoteAddr: "1.2.3.4:1234"},
-		{augment: true, remoteAddr: "1.2.3.4:1234", expectIP: "1.2.3.4"},
-		{augment: true, remoteAddr: "not-an-ip:1234"},
+		{augment: false, remoteAddr: "1.2.3.4:1234", userAgent: []string{ua1}},
+		{augment: true, remoteAddr: "1.2.3.4:1234", expectIP: "1.2.3.4", userAgent: []string{ua1, ua2}, expectUserAgent: fmt.Sprintf("%s; %s", ua1, ua2)},
+		{augment: true, remoteAddr: "not-an-ip:1234", userAgent: []string{ua1}, expectUserAgent: ua1},
 		{augment: true, remoteAddr: ""},
 	}
 
 	for _, test := range tests {
-
+		// request setup
 		buffer := bytes.NewReader(input)
-
 		req, err := http.NewRequest("POST", "_", buffer)
 		req.Header.Add("Content-Type", "application/json")
 		req.RemoteAddr = test.remoteAddr
+		for _, ua := range test.userAgent {
+			req.Header.Add("User-Agent", ua)
+		}
 		assert.Nil(t, err)
 
+		// decode user data from request
 		body, err := decoder.DecodeUserData(decoder.DecodeLimitJSONData(1024*1024), test.augment)(req)
 		assert.Nil(t, err)
 		user, hasUser := body["user"].(map[string]interface{})
 		assert.Equal(t, test.augment, hasUser)
 
-		_, hasUserAgent := user["user-agent"]
-		assert.Equal(t, test.augment, hasUserAgent)
-
 		if test.expectIP == "" {
 			assert.NotContains(t, user, "ip")
 		} else {
 			assert.Equal(t, test.expectIP, user["ip"])
+		}
+
+		if test.expectUserAgent != "" {
+			userAgent, ok := user["user-agent"].(string)
+			assert.True(t, ok)
+			assert.Equal(t, test.expectUserAgent, userAgent)
 		}
 	}
 }

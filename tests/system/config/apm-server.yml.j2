@@ -78,6 +78,11 @@ output.elasticsearch:
   index: {{ override_index }}
   {% endif %}
 
+  {% if register_pipeline_enabled %}
+  pipelines:
+  - pipeline: "apm"
+  {% endif %}
+
 {% endif %}
 
 ############################# Beat #########################################
