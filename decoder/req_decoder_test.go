@@ -214,7 +214,7 @@ func TestDecodeUserData(t *testing.T) {
 
 	tests := []test{
 		{augment: false, remoteAddr: "1.2.3.4:1234", userAgent: []string{ua1}},
-		{augment: true, remoteAddr: "1.2.3.4:1234", expectIP: "1.2.3.4", userAgent: []string{ua1, ua2}, expectUserAgent: fmt.Sprintf("%s; %s", ua1, ua2)},
+		{augment: true, remoteAddr: "1.2.3.4:1234", expectIP: "1.2.3.4", userAgent: []string{ua1, ua2}, expectUserAgent: fmt.Sprintf("%s, %s", ua1, ua2)},
 		{augment: true, remoteAddr: "not-an-ip:1234", userAgent: []string{ua1}, expectUserAgent: ua1},
 		{augment: true, remoteAddr: ""},
 	}

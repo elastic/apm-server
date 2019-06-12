@@ -96,7 +96,7 @@ class PipelineRegisterTest(ElasticTest):
                 continue
             else:
                 assert ua is not None
-                assert ua["original"] == "Mozilla Chrome Edge; Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"
+                assert ua["original"] == "Mozilla Chrome Edge, Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"
                 assert ua["name"] == "Chrome"
                 assert ua["version"] == "51.0.2704"
                 assert ua["os"]["name"] == "Mac OS X"

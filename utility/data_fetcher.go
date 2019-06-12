@@ -22,6 +22,7 @@ import (
 	"errors"
 	"net/http"
 	"net/textproto"
+	"strings"
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -261,14 +262,7 @@ func (d *ManualDecoder) Headers(base map[string]interface{}) http.Header {
 // UserAgentHeader fetches all `user-agent` values from a given header and combines them into one string.
 // Values are separated by `;`.
 func (d *ManualDecoder) UserAgentHeader(header http.Header) string {
-	return strings.Join(header[textproto.CanonicalMIMEHeaderKey("User-Agent")], "; ")
-	for _, entry := range header[textproto.CanonicalMIMEHeaderKey("User-Agent")] {
-		if ua != "" {
-			ua += "; "
-		}
-		ua += entry
-	}
-	return ua
+	return strings.Join(header[textproto.CanonicalMIMEHeaderKey("User-Agent")], ", ")
 }
 
 func getDeep(raw map[string]interface{}, keys ...string) map[string]interface{} {
