@@ -6,6 +6,7 @@
 
 [float]
 ==== Added
+- Support adding transaction and span information to metrics  {pull}2265[2265]
 
 [float]
 ==== Removed
