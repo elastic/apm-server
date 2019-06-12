@@ -1,0 +1,12 @@
+{
+    "$id": "docs/spec/transaction_type.json",
+    "title": "Transaction Type",
+    "type": ["object"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
+            "maxLength": 1024
+        }
+    }
+}
