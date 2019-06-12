@@ -131,46 +131,6 @@ class ServerBaseTest(ServerSetUpBaseTest):
         self.apmserver_proc.check_kill_and_wait()
 
 
-class SecureServerBaseTest(ServerSetUpBaseTest):
-
-    @classmethod
-    def setUpClass(cls):
-        super(SecureServerBaseTest, cls).setUpClass()
-
-        try:
-            import urllib3
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        except ImportError:
-            pass
-
-        try:
-            from requests.packages import urllib3
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        except ImportError:
-            pass
-
-    def config(self):
-        cfg = super(SecureServerBaseTest, self).config()
-        cfg.update({
-            "ssl_enabled": "true",
-            "ssl_cert": self._beat_path_join("tests", "system", "config", "certs", "cert.pem"),
-            "ssl_key": self._beat_path_join("tests", "system", "config", "certs", "key.pem"),
-        })
-        return cfg
-
-    def tearDown(self):
-        super(SecureServerBaseTest, self).tearDown()
-        self.apmserver_proc.kill_and_wait()
-
-
-class AccessTest(ServerBaseTest):
-
-    def config(self):
-        cfg = super(AccessTest, self).config()
-        cfg.update({"secret_token": "1234"})
-        return cfg
-
-
 class ElasticTest(ServerBaseTest):
     config_overrides = {}
 
