@@ -4577,6 +4577,18 @@ OS build information.
 
 --
 
+*`host.os.codename`*::
++
+--
+type: keyword
+
+example: stretch
+
+OS codename, if any.
+
+
+--
+
 [[exported-fields-kubernetes-processor]]
 == Kubernetes fields
 
