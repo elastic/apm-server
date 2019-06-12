@@ -26,36 +26,38 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/go-ucfg"
+
+	"github.com/elastic/apm-server/sourcemap"
 )
 
 const DefaultPort = "8200"
 
 type Config struct {
-	Host                string                 `config:"host"`
-	MaxUnzippedSize     int64                  `config:"max_unzipped_size"`
-	MaxHeaderSize       int                    `config:"max_header_size"`
-	ReadTimeout         time.Duration          `config:"read_timeout"`
-	WriteTimeout        time.Duration          `config:"write_timeout"`
-	MaxEventSize        int                    `config:"max_event_size"`
-	ShutdownTimeout     time.Duration          `config:"shutdown_timeout"`
-	SecretToken         string                 `config:"secret_token"`
-	SSL                 *SSLConfig             `config:"ssl"`
-	ConcurrentRequests  int                    `config:"concurrent_requests" validate:"min=1"`
-	MaxConnections      int                    `config:"max_connections"`
-	MaxRequestQueueTime time.Duration          `config:"max_request_queue_time"`
-	Expvar              *ExpvarConfig          `config:"expvar"`
-	Metrics             *metricsConfig         `config:"metrics"`
-	AugmentEnabled      bool                   `config:"capture_personal_data"`
-	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
-	RumConfig           *rumConfig             `config:"rum"`
-	FrontendConfig      *rumConfig             `config:"frontend"`
-	Register            *registerConfig        `config:"register"`
+	Host                string                  `config:"host"`
+	MaxUnzippedSize     int64                   `config:"max_unzipped_size"`
+	MaxHeaderSize       int                     `config:"max_header_size"`
+	ReadTimeout         time.Duration           `config:"read_timeout"`
+	WriteTimeout        time.Duration           `config:"write_timeout"`
+	MaxEventSize        int                     `config:"max_event_size"`
+	ShutdownTimeout     time.Duration           `config:"shutdown_timeout"`
+	SecretToken         string                  `config:"secret_token"`
+	TLS                 *tlscommon.ServerConfig `config:"ssl"`
+	ConcurrentRequests  int                     `config:"concurrent_requests" validate:"min=1"`
+	MaxConnections      int                     `config:"max_connections"`
+	MaxRequestQueueTime time.Duration           `config:"max_request_queue_time"`
+	Expvar              *ExpvarConfig           `config:"expvar"`
+	Metrics             *metricsConfig          `config:"metrics"`
+	AugmentEnabled      bool                    `config:"capture_personal_data"`
+	SelfInstrumentation *InstrumentationConfig  `config:"instrumentation"`
+	RumConfig           *rumConfig              `config:"rum"`
+	FrontendConfig      *rumConfig              `config:"frontend"`
+	Register            *registerConfig         `config:"register"`
 }
 
 type ExpvarConfig struct {
@@ -110,11 +112,6 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
-type SSLConfig struct {
-	Enabled     *bool                     `config:"enabled"`
-	Certificate outputs.CertificateConfig `config:",inline"`
-}
-
 func init() {
 	if err := ucfg.RegisterValidator("maxlen", func(v interface{}, param string) error {
 		if v == nil {
@@ -166,10 +163,6 @@ func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
 	if c != nil && c.RumConfig.isEnabled() && c.RumConfig.SourceMapping != nil {
 		c.RumConfig.SourceMapping.EsConfig = esConfig
 	}
-}
-
-func (c *SSLConfig) isEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
 func (c *ExpvarConfig) isEnabled() bool {

@@ -8,10 +8,7 @@ import time
 import unittest
 import zlib
 
-from nose.tools import raises
-from requests.exceptions import SSLError
-
-from apmserver import ServerBaseTest, SecureServerBaseTest, ClientSideBaseTest, CorsBaseTest
+from apmserver import ServerBaseTest, ClientSideBaseTest, CorsBaseTest
 
 
 try:
@@ -125,21 +122,6 @@ class Test(ServerBaseTest):
         """expvar should not be exposed by default"""
         r = requests.get(self.expvar_url)
         assert r.status_code == 404, r.status_code
-
-
-class SecureTest(SecureServerBaseTest):
-
-    def test_https_ok(self):
-        transactions = self.get_transaction_payload()
-        r = requests.post("https://localhost:8200/v1/transactions",
-                          json=transactions, verify=False)
-        assert r.status_code == 202, r.status_code
-
-    @raises(SSLError)
-    def test_https_verify(self):
-        transactions = self.get_transaction_payload()
-        requests.post("https://localhost:8200/v1/transactions",
-                      json=transactions)
 
 
 class ClientSideTest(ClientSideBaseTest):
