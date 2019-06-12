@@ -261,7 +261,7 @@ func (d *ManualDecoder) Headers(base map[string]interface{}) http.Header {
 // UserAgentHeader fetches all `user-agent` values from a given header and combines them into one string.
 // Values are separated by `;`.
 func (d *ManualDecoder) UserAgentHeader(header http.Header) string {
-	var ua string
+	return strings.Join(header[textproto.CanonicalMIMEHeaderKey("User-Agent")], "; ")
 	for _, entry := range header[textproto.CanonicalMIMEHeaderKey("User-Agent")] {
 		if ua != "" {
 			ua += "; "
