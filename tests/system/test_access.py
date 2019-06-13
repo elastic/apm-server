@@ -193,8 +193,7 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
 
 
 class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
-    def ssl_overrides(self):
-        return {"ssl_client_authentication": "optional"}
+    # no ssl_overrides necessary as `optional` is default
 
     def test_https_no_certificate_ok(self):
         r = self.send_http_request(verify=self.ca_cert)
@@ -212,7 +211,8 @@ class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
 
 
 class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
-    # no ssl_overrides necessary as `required` is default
+    def ssl_overrides(self):
+        return {"ssl_client_authentication": "required"}
 
     @raises(SSLError)
     def test_https_no_cert_fails(self):
@@ -230,9 +230,6 @@ class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
 
 
 class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
-    def ssl_overrides(self):
-        return {"ssl_client_authentication": "none"}
-
     def test_tls_v1_0(self):
         self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1)
 
@@ -245,8 +242,7 @@ class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
 
 class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
-        return {"ssl_client_authentication": "none",
-                "ssl_supported_protocols": ["TLSv1.2"]}
+        return {"ssl_supported_protocols": ["TLSv1.2"]}
 
     @raises(ssl.SSLError)
     def test_tls_v1_1(self):
