@@ -231,6 +231,16 @@ func TestServerRumSwitch(t *testing.T) {
 	}
 }
 
+func TestServerSourcemapBadConfig(t *testing.T) {
+	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "source_mapping": m{"elasticsearch": m{"hosts": []string{}}}}})
+	require.NoError(t, err)
+	_, teardown, err := setupServer(t, ucfg, nil, nil)
+	if err == nil {
+		defer teardown()
+	}
+	require.Error(t, err)
+}
+
 func TestServerCORS(t *testing.T) {
 	true := true
 	tests := []struct {
