@@ -165,7 +165,7 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
 
 
 class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
-    # no ssl_overrides necessary as `required` is default
+    # no ssl_overrides necessary as `optional` is default
 
     def test_https_no_certificate_ok(self):
         r = self.send_http_request(verify=self.ca_cert)
