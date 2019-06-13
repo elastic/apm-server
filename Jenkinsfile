@@ -121,10 +121,12 @@ pipeline {
             expression { return params.linux_ci }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/build.sh'
+            withGithubNotify(context: 'Build - Linux') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh './script/jenkins/build.sh'
+              }
             }
           }
         }
@@ -139,10 +141,12 @@ pipeline {
             expression { return params.windows_ci }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+            withGithubNotify(context: 'Build - Windows') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+              }
             }
           }
         }
@@ -167,10 +171,12 @@ pipeline {
             expression { return params.test_ci }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/unit-test.sh'
+            withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh './script/jenkins/unit-test.sh'
+              }
             }
           }
           post {
@@ -198,10 +204,12 @@ pipeline {
             expression { return params.test_sys_env_ci }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/linux-test.sh'
+            withGithubNotify(context: 'System Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh './script/jenkins/linux-test.sh'
+              }
             }
           }
           post {
@@ -230,10 +238,12 @@ pipeline {
             expression { return params.windows_ci }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              powershell(script: '.\\script\\jenkins\\windows-test.ps1')
+            withGithubNotify(context: 'Test - Windows', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                powershell(script: '.\\script\\jenkins\\windows-test.ps1')
+              }
             }
           }
           post {
@@ -270,11 +280,13 @@ pipeline {
             }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/bench.sh'
-              sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+            withGithubNotify(context: 'Benchmarking') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh './script/jenkins/bench.sh'
+                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+              }
             }
           }
         }
@@ -326,10 +338,12 @@ pipeline {
         }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          buildDocs(docsDir: "docs", archive: true)
+        withGithubNotify(context: 'Documentation', tab: 'artifacts') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            buildDocs(docsDir: "docs", archive: true)
+          }
         }
       }
     }
@@ -349,10 +363,12 @@ pipeline {
         expression { return params.kibana_update_ci }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/sync.sh'
+        withGithubNotify(context: 'Synk Kibana') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh './script/jenkins/sync.sh'
+          }
         }
       }
     }
@@ -382,10 +398,12 @@ pipeline {
         }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/package.sh'
+        withGithubNotify(context: 'Release') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh './script/jenkins/package.sh'
+          }
         }
       }
       post {
