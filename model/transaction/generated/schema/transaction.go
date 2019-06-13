@@ -32,6 +32,26 @@ const ModelSchema = `{
             "type": ["integer", "null"]
         }
     } },
+        {     "$id": "docs/spec/transaction_name.json",
+    "title": "Transaction Name",
+    "type": ["object"],
+    "properties": {
+        "name": {
+            "type": ["string","null"],
+            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
+            "maxLength": 1024
+        }
+    } },
+        {     "$id": "docs/spec/transaction_type.json",
+    "title": "Transaction Type",
+    "type": ["object"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
+            "maxLength": 1024
+        }
+    } },
         {  
             "properties": {
                 "id": {
@@ -352,19 +372,9 @@ const ModelSchema = `{
                     "type": "number",
                     "description": "How long the transaction took to complete, in ms with 3 decimal points"
                 },
-                "name": {
-                    "type": ["string","null"],
-                    "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
-                    "maxLength": 1024
-                },
                 "result": {
                     "type": ["string", "null"],
                     "description": "The result of the transaction. For HTTP-related transactions, this should be the status code formatted like 'HTTP 2xx'.",
-                    "maxLength": 1024
-                },
-                "type": {
-                    "type": "string",
-                    "description": "Keyword of specific relevance in the service's domain (eg: 'request', 'backgroundjob', etc)",
                     "maxLength": 1024
                 },
                 "marks": {

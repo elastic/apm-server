@@ -19,7 +19,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.0.0"
+                "version": "1.0.1"
             },
             "float_gauge": 9.16,
             "integer_gauge": 42767,
@@ -66,6 +66,14 @@
                 "name": "1234_service-12a3"
             },
             "short_counter": 227,
+            "span": {
+                "subtype": "mysql",
+                "type": "db"
+            },
+            "transaction": {
+                "name": "GET /",
+                "type": "request"
+            },
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
@@ -84,7 +92,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.0.0"
+                "version": "1.0.1"
             },
             "go": {
                 "memstats": {

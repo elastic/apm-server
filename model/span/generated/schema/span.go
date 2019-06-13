@@ -32,6 +32,26 @@ const ModelSchema = `{
             "type": ["integer", "null"]
         }
     } },
+        {     "$id": "docs/spec/span_type.json",
+    "title": "Span Type",
+    "type": ["object"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
+            "maxLength": 1024
+        }
+    } },
+        {     "$id": "docs/spec/span_subtype.json",
+    "title": "Span Subtype",
+    "type": ["object"],
+    "properties": {
+        "subtype": {
+            "type": ["string", "null"],
+            "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+            "maxLength": 1024
+        }
+    } },
         {  
             "properties": {
                 "id": {
@@ -57,11 +77,6 @@ const ModelSchema = `{
                 "start": {
                     "type": ["number", "null"],
                     "description": "Offset relative to the transaction's timestamp identifying the start of the span, in milliseconds"
-                },
-                "subtype": {
-                    "type": ["string", "null"],
-                    "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
-                    "maxLength": 1024
                 },
                 "action": {
                     "type": ["string", "null"],
@@ -247,11 +262,6 @@ const ModelSchema = `{
     "required": ["filename"]
                     },
                     "minItems": 0
-                },
-                "type": {
-                    "type": "string",
-                    "description": "Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', etc)",
-                    "maxLength": 1024
                 },
                 "sync": {
                     "type": ["boolean", "null"],

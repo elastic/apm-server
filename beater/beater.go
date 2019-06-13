@@ -18,7 +18,9 @@
 package beater
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -26,20 +28,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/beats/libbeat/kibana"
-
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/transport"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/ingest/pipeline"
-	"github.com/elastic/apm-server/pipelistener"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/kibana"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
+
+	"github.com/elastic/apm-server/ingest/pipeline"
+	"github.com/elastic/apm-server/pipelistener"
+	"github.com/elastic/apm-server/publish"
 )
 
 func init() {
@@ -186,8 +188,6 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	go notifyListening(bt.config, pub.Client().Publish)
-
 	bt.mutex.Lock()
 	if bt.stopped {
 		defer bt.mutex.Unlock()
@@ -202,23 +202,56 @@ func (bt *beater) Run(b *beat.Beat) error {
 		}
 	}
 
-	bt.server = newServer(bt.config, tracer, kbClient, pub.Send)
+	bt.server, err = newServer(bt.config, tracer, kbClient, pub.Send)
+	if err != nil {
+		bt.logger.Error("failed to create new server:", err)
+		return nil
+	}
 	bt.mutex.Unlock()
 
 	var g errgroup.Group
 	g.Go(func() error {
 		return run(bt.server, lis, bt.config)
 	})
+
+	if bt.isServerAvailable(bt.config.ShutdownTimeout) {
+		go notifyListening(bt.config, pub.Client().Publish)
+	}
+
 	if traceListener != nil {
 		g.Go(func() error {
 			return bt.server.Serve(traceListener)
 		})
 	}
+
 	if err := g.Wait(); err != http.ErrServerClosed {
 		return err
 	}
 	bt.logger.Infof("Server stopped")
 	return nil
+}
+
+func (bt *beater) isServerAvailable(timeout time.Duration) bool {
+	// following an example from https://golang.org/pkg/net/
+	// dial into tcp connection to ensure listener is ready, send get request and read response,
+	// in case tls is enabled, the server will respond with 400,
+	// as this only checks the server is up and reachable errors can be ignored
+	conn, err := net.DialTimeout("tcp", bt.config.Host, timeout)
+	if err != nil {
+		return false
+	}
+	err = conn.SetReadDeadline(time.Now().Add(timeout))
+	if err != nil {
+		return false
+	}
+	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
+	_, err = bufio.NewReader(conn).ReadByte()
+	if err != nil {
+		return false
+	}
+
+	err = conn.Close()
+	return err == nil
 }
 
 // initTracer configures and returns an apm.Tracer for tracing
