@@ -5,6 +5,7 @@
 ==== Bug fixes
 - Require client authentication by default when `apm-server.ssl.enabled` is true {pull}2224[2224].
 - Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273].
+- Abort server startup on sourcemap configuration error {pull}2278[2278].
 
 [float]
 ==== Added
