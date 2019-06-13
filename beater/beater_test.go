@@ -28,12 +28,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	pubs "github.com/elastic/beats/libbeat/publisher"
@@ -67,9 +66,10 @@ func TestBeatConfig(t *testing.T) {
 				"capture_personal_data": true,
 				"secret_token":          "1234random",
 				"ssl": map[string]interface{}{
-					"enabled":     true,
-					"key":         "1234key",
-					"certificate": "1234cert",
+					"enabled":               true,
+					"key":                   "1234key",
+					"certificate":           "1234cert",
+					"client_authentication": "none",
 				},
 				"expvar": map[string]interface{}{
 					"enabled": true,
@@ -113,7 +113,7 @@ func TestBeatConfig(t *testing.T) {
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
 					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
-					ClientAuth:  4},
+					ClientAuth:  0},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,
@@ -185,7 +185,7 @@ func TestBeatConfig(t *testing.T) {
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
 					Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
-					ClientAuth:  4},
+					ClientAuth:  3},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
 					Enabled: &truthy,

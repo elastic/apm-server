@@ -65,11 +65,10 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites
     #curve_types: []
 
-    # Configure which types of client authentication are supported.
-    # Options are `none`, `optional`, and `required`.
-    # It is strongly recommended to always set to `required`
-    # Default is `required`.
-    #client_authentication: "required"
+    # Configure which type of client authentication is supported.
+    # Options are `none`, `optional`, and `required`. Default is `optional`.
+    #client_authentication: "optional"
+
 
   #rum:
     # To enable real user monitoring (RUM) support set this to true.
