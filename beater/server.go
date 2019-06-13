@@ -34,7 +34,10 @@ import (
 )
 
 func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
-	mux := newMuxer(config, report)
+	mux, err := newMuxer(config, report)
+	if err != nil {
+		return nil, err
+	}
 
 	server := &http.Server{
 		Addr: config.Host,
