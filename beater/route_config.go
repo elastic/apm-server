@@ -52,7 +52,7 @@ const burstMultiplier = 3
 type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
 	configurableDecoder func(*Config, decoder.ReqDecoder) decoder.ReqDecoder
-	transformConfig     func(*Config) transform.Config
+	transformConfig     func(*Config) (*transform.Config, error)
 }
 
 var IntakeRoutes = map[string]intakeRoute{
@@ -69,7 +69,7 @@ var (
 		routeType{
 			backendHandler,
 			systemMetadataDecoder,
-			func(*Config) transform.Config { return transform.Config{} },
+			func(*Config) (*transform.Config, error) { return &transform.Config{}, nil },
 		},
 	}
 	rumRoute = intakeRoute{
@@ -91,19 +91,26 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Reporter) *http.ServeMux {
+func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Reporter) (*http.ServeMux, error) {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
 
 	for path, route := range AssetRoutes {
 		logger.Infof("Path %s added to request handler", path)
-
-		mux.Handle(path, route.Handler(route.Processor, beaterConfig, report))
+		handler, err := route.Handler(route.Processor, beaterConfig, report)
+		if err != nil {
+			return nil, err
+		}
+		mux.Handle(path, handler)
 	}
 	for path, route := range IntakeRoutes {
 		logger.Infof("Path %s added to request handler", path)
 
-		mux.Handle(path, route.Handler(path, beaterConfig, report))
+		handler, err := route.Handler(path, beaterConfig, report)
+		if err != nil {
+			return nil, err
+		}
+		mux.Handle(path, handler)
 	}
 
 	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.SecretToken))
@@ -114,7 +121,7 @@ func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Repo
 		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, expvar.Handler())
 	}
-	return mux
+	return mux, nil
 }
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
@@ -144,17 +151,16 @@ func userMetaDataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.Req
 	return decoder.DecodeUserData(d, beaterConfig.AugmentEnabled)
 }
 
-func rumTransformConfig(beaterConfig *Config) transform.Config {
+func rumTransformConfig(beaterConfig *Config) (*transform.Config, error) {
 	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
 	if err != nil {
-		logp.NewLogger("handler").Error(err.Error())
+		return nil, err
 	}
-	config := transform.Config{
+	return &transform.Config{
 		SmapMapper:          smapper,
 		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
-	}
-	return config
+	}, nil
 }
 
 type assetRoute struct {
@@ -163,29 +169,37 @@ type assetRoute struct {
 	topLevelRequestDecoder func(*Config) decoder.ReqDecoder
 }
 
-func (r *assetRoute) Handler(p asset.Processor, beaterConfig *Config, report publish.Reporter) http.Handler {
+func (r *assetRoute) Handler(p asset.Processor, beaterConfig *Config, report publish.Reporter) (http.Handler, error) {
+	config, err := r.transformConfig(beaterConfig)
+	if err != nil {
+		return nil, err
+	}
 	handler := assetHandler{
 		requestDecoder: r.configurableDecoder(beaterConfig, r.topLevelRequestDecoder(beaterConfig)),
 		processor:      p,
-		tconfig:        r.transformConfig(beaterConfig),
+		tconfig:        *config,
 	}
 
-	return r.wrappingHandler(beaterConfig, handler.Handle(beaterConfig, report))
+	return r.wrappingHandler(beaterConfig, handler.Handle(beaterConfig, report)), nil
 }
 
 type intakeRoute struct {
 	routeType
 }
 
-func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) http.Handler {
+func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) (http.Handler, error) {
 	reqDecoder := r.configurableDecoder(
 		c,
 		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },
 	)
+	config, err := r.transformConfig(c)
+	if err != nil {
+		return nil, err
+	}
 	handler := intakeHandler{
 		requestDecoder: reqDecoder,
 		streamProcessor: &stream.Processor{
-			Tconfig:      r.transformConfig(c),
+			Tconfig:      *config,
 			Mconfig:      model.Config{Experimental: c.Mode == ModeExperimental},
 			MaxEventSize: c.MaxEventSize,
 		},
@@ -195,9 +209,9 @@ func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) htt
 		if c, err := newRlCache(c.RumConfig.EventRate.LruSize, c.RumConfig.EventRate.Limit, burstMultiplier); err == nil {
 			handler.rlc = c
 		} else {
-			logp.NewLogger("handler").Error(err.Error())
+			return nil, err
 		}
 	}
 
-	return r.wrappingHandler(c, handler.Handle(c, report))
+	return r.wrappingHandler(c, handler.Handle(c, report)), nil
 }

@@ -34,7 +34,10 @@ import (
 )
 
 func newServer(config *Config, tracer *apm.Tracer, kbClient *kibana.Client, report publish.Reporter) (*http.Server, error) {
-	mux := newMuxer(config, kbClient, report)
+	mux, err := newMuxer(config, kbClient, report)
+	if err != nil {
+		return nil, err
+	}
 
 	server := &http.Server{
 		Addr: config.Host,

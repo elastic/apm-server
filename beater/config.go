@@ -128,6 +128,19 @@ func (m *Mode) Unpack(s string) error {
 
 func newConfig(version string, ucfg *common.Config) (*Config, error) {
 	c := defaultConfig(version)
+
+	if ucfg.HasField("ssl") {
+		ssl, err := ucfg.Child("ssl", -1)
+		if err != nil {
+			return nil, err
+		}
+		if !ssl.HasField("client_authentication") {
+			if err := ucfg.SetString("ssl.client_authentication", -1, "optional"); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
