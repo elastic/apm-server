@@ -22,7 +22,7 @@ import (
 	"fmt"
 )
 
-var (
+const (
 	// ServiceName keyword
 	ServiceName = "service.name"
 	// ServiceEnv keyword

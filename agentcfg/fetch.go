@@ -31,10 +31,9 @@ import (
 	"github.com/elastic/beats/libbeat/kibana"
 )
 
-var (
-	endpoint   = "/api/apm/settings/cm/search"
-	minVersion = common.Version{Major: 7, Minor: 3}
-)
+const endpoint = "/api/apm/settings/cm/search"
+
+var minVersion = common.Version{Major: 7, Minor: 3}
 
 // Fetch retrieves agent configuration from Kibana
 func Fetch(kbClient *kibana.Client, q Query, err error) (map[string]string, string, error) {

@@ -34,7 +34,7 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-var (
+const (
 	rootURL = "/"
 
 	agentConfigURL = "/v1/agent/configs"
@@ -45,9 +45,9 @@ var (
 
 	// assets
 	sourcemapsURL = "/assets/v1/sourcemaps"
-)
 
-const burstMultiplier = 3
+	burstMultiplier = 3
+)
 
 type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
