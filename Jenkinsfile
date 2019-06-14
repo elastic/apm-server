@@ -95,10 +95,12 @@ pipeline {
         expression { return params.intake_ci }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/intake.sh'
+        withGithubNotify(context: 'Intake') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh './script/jenkins/intake.sh'
+          }
         }
       }
     }
@@ -338,12 +340,10 @@ pipeline {
         }
       }
       steps {
-        withGithubNotify(context: 'Documentation', tab: 'artifacts') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            buildDocs(docsDir: "docs", archive: true)
-          }
+        deleteDir()
+        unstash 'source'
+        dir("${BASE_DIR}"){
+          buildDocs(docsDir: "docs", archive: true)
         }
       }
     }
