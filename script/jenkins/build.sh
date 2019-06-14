@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -xeuo pipefail
 
 mage -debug build

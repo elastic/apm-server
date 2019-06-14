@@ -29,12 +29,12 @@ pipeline {
   parameters {
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
-    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
-    booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
+    booleanParam(name: 'windows_ci', defaultValue: false, description: 'Enable Windows CI')
+    booleanParam(name: 'intake_ci', defaultValue: false, description: 'Enable test')
+    booleanParam(name: 'test_ci', defaultValue: false, description: 'Enable test')
+    booleanParam(name: 'test_sys_env_ci', defaultValue: false, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
-    booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
+    booleanParam(name: 'doc_ci', defaultValue: false, description: 'Enable build documentation')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
@@ -117,11 +117,6 @@ pipeline {
         stage('linux build') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
           when {
             beforeAgent true
             expression { return params.linux_ci }
@@ -292,9 +287,11 @@ pipeline {
             withGithubNotify(context: 'Benchmarking') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
-                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                  sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+                }
               }
             }
           }
@@ -433,9 +430,14 @@ pipeline {
         withGithubNotify(context: 'Release') {
           deleteDir()
           unstash 'source'
-          dir("${BASE_DIR}"){
-            sh(label: 'Build packages', script: './script/jenkins/package.sh')
-            sh(label: 'Test packages install', script: 'mage -v testPackagesInstall')
+          /**
+            The package build needs mage and docker
+          */
+          golang(){
+            dir("${BASE_DIR}"){
+              sh(label: 'Build packages', script: './script/jenkins/package.sh')
+              sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
+            }
           }
         }
       }

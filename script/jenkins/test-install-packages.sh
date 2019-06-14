@@ -1,14 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -xeuo pipefail
 
-source ./_beats/dev-tools/common.bash
+#go test -v tests/packaging/package_test.go -files /var/lib/jenkins/workspace/pm-server_apm-server-mbp_PR-2268/src/github.com/elastic/apm-server/build/distributions/* -tags=package
 
-jenkins_setup
-
-cleanup() {
-  rm -rf $TEMP_PYTHON_ENV
-  make stop-environment fix-permissions
-}
-trap cleanup EXIT
-
-mage -v testPackagesInstall
+mage -v -debug testPackagesInstall
