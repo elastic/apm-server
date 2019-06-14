@@ -45,7 +45,8 @@ func TestInvalidContentType(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	c := defaultConfig("7.0.0")
-	handler := (&backendRoute).Handler("", c, nil)
+	handler, err := (&backendRoute).Handler("", c, nil)
+	require.NoError(t, err)
 
 	handler.ServeHTTP(w, req)
 
@@ -61,7 +62,8 @@ func TestEmptyRequest(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	c := defaultConfig("7.0.0")
-	handler := (&backendRoute).Handler("", c, nil)
+	handler, err := (&backendRoute).Handler("", c, nil)
+	require.NoError(t, err)
 
 	handler.ServeHTTP(w, req)
 
@@ -83,11 +85,12 @@ func TestRequestDecoderError(t *testing.T) {
 		routeType{
 			backendHandler,
 			func(*Config, decoder.ReqDecoder) decoder.ReqDecoder { return faultyDecoder },
-			func(*Config) transform.Config { return transform.Config{} },
+			func(*Config) (*transform.Config, error) { return &transform.Config{}, nil },
 		},
 	}
 
-	handler := testRouteWithFaultyDecoder.Handler("", c, nil)
+	handler, err := testRouteWithFaultyDecoder.Handler("", c, nil)
+	require.NoError(t, err)
 
 	handler.ServeHTTP(w, req)
 
@@ -205,7 +208,10 @@ func sendReq(c *Config, route *intakeRoute, url string, p string, repErr error) 
 	report := func(context.Context, publish.PendingReq) error {
 		return repErr
 	}
-	handler := route.Handler(url, c, report)
+	handler, err := route.Handler(url, c, report)
+	if err != nil {
+		return nil, err
+	}
 
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
@@ -216,7 +222,8 @@ func TestWrongMethod(t *testing.T) {
 	req := httptest.NewRequest("GET", "/intake/v2/events", nil)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	w := httptest.NewRecorder()
-	handler := (&backendRoute).Handler("", defaultConfig("7.0.0"), nil)
+	handler, err := (&backendRoute).Handler("", defaultConfig("7.0.0"), nil)
+	require.NoError(t, err)
 
 	ct := methodNotAllowedCounter.Get()
 	handler.ServeHTTP(w, req)
@@ -249,7 +256,8 @@ func TestLineExceeded(t *testing.T) {
 
 	c := defaultConfig("7.0.0")
 	assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
-	handler := (&backendRoute).Handler("", c, nilReport)
+	handler, err := (&backendRoute).Handler("", c, nilReport)
+	require.NoError(t, err)
 	handler.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusAccepted, w.Code, w.Body.String())
@@ -257,7 +265,8 @@ func TestLineExceeded(t *testing.T) {
 
 	c.MaxEventSize = 20
 	assert.True(t, lineLimitExceededInTestData(c.MaxEventSize))
-	handler = (&backendRoute).Handler("", c, nilReport)
+	handler, err = (&backendRoute).Handler("", c, nilReport)
+	require.NoError(t, err)
 
 	req = httptest.NewRequest("POST", "/intake/v2/events", bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
