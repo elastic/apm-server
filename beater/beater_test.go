@@ -100,6 +100,7 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 				},
+				"kibana": map[string]interface{}{"enabled": "true"},
 			},
 			beaterConf: &Config{
 				Host:            "localhost:3000",
@@ -143,6 +144,7 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 				},
+				Kibana: common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
 			},
 		},
 		"merge config with default": {
@@ -217,6 +219,7 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 				},
+				Kibana: common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 			},
 		},
 	}

@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/beats/libbeat/kibana"
+
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/asset"
@@ -32,8 +34,10 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-var (
+const (
 	rootURL = "/"
+
+	agentConfigURL = "/v1/agent/configs"
 
 	// intake v2
 	backendURL = "/intake/v2/events"
@@ -41,9 +45,9 @@ var (
 
 	// assets
 	sourcemapsURL = "/assets/v1/sourcemaps"
-)
 
-const burstMultiplier = 3
+	burstMultiplier = 3
+)
 
 type routeType struct {
 	wrappingHandler     func(*Config, http.Handler) http.Handler
@@ -87,7 +91,7 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, error) {
+func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Reporter) (*http.ServeMux, error) {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger("handler")
 
@@ -109,6 +113,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, er
 		mux.Handle(path, handler)
 	}
 
+	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.SecretToken))
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
 
 	if beaterConfig.Expvar.isEnabled() {
