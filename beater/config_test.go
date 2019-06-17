@@ -290,7 +290,7 @@ func TestPipeline(t *testing.T) {
 		enabled, overwrite bool
 	}{
 		{c: nil, enabled: false, overwrite: false},
-		{c: &pipelineConfig{}, enabled: false, overwrite: true}, //default values
+		{c: &pipelineConfig{}, enabled: true, overwrite: true}, //default values
 		{c: &pipelineConfig{Enabled: &falsy, Overwrite: &truthy},
 			enabled: false, overwrite: true},
 		{c: &pipelineConfig{Enabled: &truthy, Overwrite: &falsy},

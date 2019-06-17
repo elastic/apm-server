@@ -53,6 +53,8 @@ type Config struct {
 	Register            *registerConfig         `config:"register"`
 	Mode                Mode                    `config:"mode"`
 	Kibana              *common.Config          `config:"kibana"`
+
+	pipeline string
 }
 
 type ExpvarConfig struct {
@@ -176,7 +178,7 @@ func (s *SourceMapping) isSetup() bool {
 }
 
 func (c *pipelineConfig) isEnabled() bool {
-	return c != nil && (c.Enabled != nil && *c.Enabled)
+	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
 func (c *pipelineConfig) shouldOverwrite() bool {
@@ -234,6 +236,7 @@ func defaultRum(beatVersion string) *rumConfig {
 }
 
 func defaultConfig(beatVersion string) *Config {
+	pipeline := true
 	return &Config{
 		Host:            net.JoinHostPort("localhost", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
@@ -268,11 +271,14 @@ func defaultConfig(beatVersion string) *Config {
 		Register: &registerConfig{
 			Ingest: &ingestConfig{
 				Pipeline: &pipelineConfig{
+					Enabled:   &pipeline,
+					Overwrite: &pipeline,
 					Path: paths.Resolve(paths.Home,
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
 		},
-		Mode:   ModeProduction,
-		Kibana: common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+		Mode:     ModeProduction,
+		Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+		pipeline: "apm",
 	}
 }
