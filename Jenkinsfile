@@ -24,6 +24,7 @@ pipeline {
     issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: '7.0.0', description: 'Elastic Stack Git branch/tag to use when running ITs.')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
@@ -34,6 +35,7 @@ pipeline {
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
+    booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
   }
   stages {
     /**
@@ -416,6 +418,22 @@ pipeline {
             sharedPublicly: true,
             showInline: true)
         }
+      }
+    }
+
+    stage('Integration Tests') {
+      agent none
+      when {
+        beforeAgent true
+        expression { return params.its_ci }
+      }
+      steps {
+        log(level: 'INFO', text: 'Launching Async ITs')
+        githubNotify(context: 'Integration Tests', description: 'Integration Tests ...', status: 'PENDING', targetUrl: ' ')
+        // TODO: missing to notify the downstream what GH check is required to be updated.
+        build(job: '/apm-integration-tests-mbp/master', propagate: false, quietPeriod: 10, wait: false,
+              parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
+                           string(name: 'BUILD_OPTS', value: '')])
       }
     }
   }
