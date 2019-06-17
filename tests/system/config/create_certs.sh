@@ -36,3 +36,7 @@ openssl genrsa -out $certdir/client.key.pem 2048
 openssl req -batch -new -key $certdir/client.key.pem -out $certdir/client.csr -subj "/C=US/ST=SF/L=SF/O=apm/OU=apm.test/CN=localhost"
 openssl x509 -req -in $certdir/client.csr -CA $cacert -CAkey $cakey -CAcreateserial -out $certdir/client.crt.pem -extfile $cfgdir/ca.cfg -extensions client
 cat $cacert >> $certdir/client.crt.pem
+
+### Generate certificate for ECDSA
+openssl ecparam -genkey -out $certdir/ecdsa.key.pem -name prime256v1
+openssl req -batch -x509 -new -key $certdir/ecdsa.key.pem -out $certdir/ecdsa.crt.pem -nodes -days 365 -subj /CN=localhost

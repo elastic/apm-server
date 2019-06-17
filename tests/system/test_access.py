@@ -69,9 +69,9 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
         cls.cert_path = os.path.join(cls.config_path, "certs")
         shutil.rmtree(cls.cert_path, ignore_errors=True)
         cls.create_certs_cmd = os.path.join(cls.config_path, "create_certs.sh")
-        with open(os.devnull, 'wb') as dev_null:
+        with open(os.devnull, 'wb') as devnull:
             subprocess.call([cls.create_certs_cmd, cls.config_path, cls.cert_path,
-                             "foobar"], stdout=dev_null, stderr=dev_null)
+                             "foobar"], stdout=devnull, stderr=devnull)
         super(TestSecureServerBaseTest, cls).setUpClass()
 
     @classmethod
@@ -91,6 +91,8 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
         self.client_key = os.path.join(self.cert_path, "client.key.pem")
         self.server_cert = os.path.join(self.cert_path, "server.crt.pem")
         self.server_key = os.path.join(self.cert_path, "server.key.pem")
+        self.ecdsa_cert = os.path.join(self.cert_path, "ecdsa.crt.pem")
+        self.ecdsa_key = os.path.join(self.cert_path, "ecdsa.key.pem")
         self.password = "foobar"
         super(TestSecureServerBaseTest, self).setUp()
 
@@ -135,6 +137,23 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
         context.load_cert_chain(certfile=self.server_cert, keyfile=self.server_key, password=self.password)
         s = context.wrap_socket(ssl.socket())
         s.connect((self.host, self.port))
+
+    def openssl_ciphers(self):
+        ciphers = subprocess.Popen(["openssl", "ciphers"], stdout=subprocess.PIPE).stdout.read()
+        return ciphers.split(':')
+
+    def check_ciphers(self, expected_ciphers):
+        allowed_ciphers = set()
+        for cipher in self.openssl_ciphers():
+            try:
+                subprocess.check_call(["curl", "-k", "--ciphers", cipher, "--http1.1", "https://localhost:8200"],
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                allowed_ciphers.add(cipher)
+            except subprocess.CalledProcessError:
+                pass
+        self.assertItemsEqual(allowed_ciphers, expected_ciphers,
+                              "\nAllowed: {}, \nExpected: {}, \nMissing: {}\nAdditional: {}".format(
+                                  allowed_ciphers, expected_ciphers, expected_ciphers-allowed_ciphers, allowed_ciphers-expected_ciphers))
 
 
 class TestSSLBadPassphraseTest(TestSecureServerBaseTest):
@@ -225,23 +244,125 @@ class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
         self.ssl_connect()
 
 
-class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
+default_rsa_ciphers = set([
+    # current default rsa ciphers in golang stdlib
+    # in openssl notation
+    'ECDHE-RSA-DES-CBC3-SHA',  # TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+    'ECDHE-RSA-AES128-SHA',  # TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+    'ECDHE-RSA-AES128-GCM-SHA256',  # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    'ECDHE-RSA-AES256-SHA',  # TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+    'ECDHE-RSA-AES256-GCM-SHA384',  # TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    'DES-CBC3-SHA',  # TLS_RSA_WITH_3DES_EDE_CBC_SHA
+    'AES128-SHA',  # TLS_RSA_WITH_AES_128_CBC_SHA
+    'AES128-GCM-SHA256',  # TLS_RSA_WITH_AES_128_GCM_SHA256
+    'AES256-SHA',  # TLS_RSA_WITH_AES_256_CBC_SHA
+    'AES256-GCM-SHA384',  # TLS_RSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-RSA-CHACHA20-POLY1305',  # TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+])
+
+default_ecdsa_ciphers = set([
+    # current default ecdsa ciphers in golang stdlib
+    # in openssl notation
+    'ECDHE-ECDSA-AES128-SHA',  # TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+    'ECDHE-ECDSA-AES128-GCM-SHA256',  # TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    'ECDHE-ECDSA-AES256-SHA',  # TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+    'ECDHE-ECDSA-AES256-GCM-SHA384',  # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-ECDSA-CHACHA20-POLY1305',  # TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+])
+
+enabled_rsa_ciphers = set([
+    # currently defined rsa ciphers in libbeat implementation
+    # in openssl notation
+    'ECDHE-RSA-DES-CBC3-SHA',  # TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+    'ECDHE-RSA-AES128-SHA',  # TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+    'ECDHE-RSA-AES128-SHA256',  # TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+    'ECDHE-RSA-AES128-GCM-SHA256',  # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    'ECDHE-RSA-AES256-SHA',  # TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+    'ECDHE-RSA-AES256-GCM-SHA384',  # TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-RSA-RC4-SHA',  # TLS_ECDHE_RSA_WITH_RC4_128_SHA
+    'DES-CBC3-SHA',  # TLS_RSA_WITH_3DES_EDE_CBC_SHA
+    'AES128-SHA',  # TLS_RSA_WITH_AES_128_CBC_SHA
+    'AES128-SHA256',  # TLS_RSA_WITH_AES_128_CBC_SHA256
+    'AES128-GCM-SHA256',  # TLS_RSA_WITH_AES_128_GCM_SHA256
+    'AES256-SHA',  # TLS_RSA_WITH_AES_256_CBC_SHA
+    'AES256-GCM-SHA384',  # TLS_RSA_WITH_AES_256_GCM_SHA384
+    'RC4-SHA',  # TLS_RSA_WITH_RC4_128_SHA
+    'ECDHE-RSA-CHACHA20-POLY1305',  # TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+])
+
+enabled_ecdsa_ciphers = set([
+    # currently defined ecdsa ciphers in libbeat implementation
+    # in openssl notation
+    'ECDHE-ECDSA-AES128-SHA',  # TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+    'ECDHE-ECDSA-AES128-SHA256',  # TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+    'ECDHE-ECDSA-AES128-GCM-SHA256',  # TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    'ECDHE-ECDSA-AES256-SHA',  # TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+    'ECDHE-ECDSA-AES256-GCM-SHA384',  # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-ECDSA-RC4-SHA',  # TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
+    'ECDHE-ECDSA-CHACHA20-POLY1305',  # TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+])
+
+defined_ciphers = [
+    # currently defined ciphers in libbeat implementation
+    # in libbeat notation
+    "ECDHE-ECDSA-CHACHA20-POLY1305",
+    "ECDHE-RSA-CHACHA20-POLY1205",
+    "ECDHE-ECDSA-AES-256-GCM-SHA384",
+    "ECDHE-ECDSA-AES-128-GCM-SHA256",
+    "ECDHE-RSA-AES-128-GCM-SHA256",
+    "ECDHE-RSA-AES-256-GCM-SHA384",
+    "ECDHE-ECDSA-AES-128-CBC-SHA",
+    "ECDHE-ECDSA-AES-128-CBC-SHA256",
+    "ECDHE-RSA-AES-128-CBC-SHA",
+    "ECDHE-RSA-AES-128-CBC-SHA256",
+    "ECDHE-ECDSA-AES-256-CBC-SHA",
+    "ECDHE-RSA-AES-256-CBC-SHA",
+    "ECDHE-ECDSA-RC4-128-SHA",
+    "ECDHE-RSA-3DES-CBC3-SHA",
+    "ECDHE-RSA-RC4-128-SHA",
+    "RSA-AES-256-GCM-SHA384",
+    "RSA-RC4-128-SHA",
+    "RSA-3DES-CBC3-SHA",
+    "RSA-AES-128-CBC-SHA",
+    "RSA-AES-128-CBC-SHA256",
+    "RSA-AES-128-GCM-SHA256",
+    "RSA-AES-256-CBC-SHA"
+]
+
+
+class TestDefaultRSACiphers(TestSecureServerBaseTest):
+    def test_default_ciphers(self):
+        self.check_ciphers(default_rsa_ciphers)
+
+
+class TestDefaultECDSACiphers(TestSecureServerBaseTest):
     def ssl_overrides(self):
-        return {"ssl_cipher_suites": ['ECDHE-RSA-AES128-GCM-SHA256']}
+        return {
+            "ssl_certificate": self.ecdsa_cert,
+            "ssl_key": self.ecdsa_key,
+            "ssl_client_authentication": "none"
+        }
 
-    def test_https_no_cipher_set(self):
-        self.ssl_connect()
+    def test_default_ciphers(self):
+        self.check_ciphers(default_ecdsa_ciphers)
 
-    def test_https_supports_cipher(self):
-        # set the same cipher in the client as set in the server
-        self.ssl_connect(ciphers='ECDHE-RSA-AES128-GCM-SHA256')
 
-    def test_https_unsupported_cipher(self):
-        # client only offers unsupported cipher
-        with self.assertRaisesRegexp(ssl.SSLError, 'SSLV3_ALERT_HANDSHAKE_FAILURE'):
-            self.ssl_connect(ciphers='ECDHE-RSA-AES256-SHA384')
+class TestEnabledRSACiphers(TestSecureServerBaseTest):
+    def ssl_overrides(self):
+        return {"ssl_cipher_suites": defined_ciphers,
+                "ssl_supported_protocols": ["SSLv3.0", "TLSv1.0", "TLSv1.1", "TLSv1.2"]}
 
-    def test_https_no_cipher_selected(self):
-        # client provides invalid cipher
-        with self.assertRaisesRegexp(ssl.SSLError, 'No cipher can be selected'):
-            self.ssl_connect(ciphers='AES1sd28-CCM8')
+    def test_enabled_ciphers(self):
+        self.check_ciphers(enabled_rsa_ciphers)
+
+
+class TestEnabledECDSACiphers(TestSecureServerBaseTest):
+    def ssl_overrides(self):
+        return {
+            "ssl_certificate": self.ecdsa_cert,
+            "ssl_key": self.ecdsa_key,
+            "ssl_cipher_suites": defined_ciphers
+        }
+
+    def test_default_ciphers(self):
+        self.check_ciphers(enabled_ecdsa_ciphers)

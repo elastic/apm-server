@@ -32,8 +32,8 @@ apm-server:
   ssl.client_authentication: {{ ssl_client_authentication }}
   {% endif %}
 
-  {% if cipher_suites %}
-  ssl.cipher_suites: {{ cipher_suites }}
+  {% if ssl_cipher_suites %}
+  ssl.cipher_suites: {{ ssl_cipher_suites }}
   {% endif %}
 
   rum.enabled: {{ enable_rum }}
