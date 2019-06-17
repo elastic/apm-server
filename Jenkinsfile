@@ -9,6 +9,7 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
+    GITHUB_CHECK_ITS_NAME = 'Integration Tests'
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -382,11 +383,14 @@ pipeline {
       }
       steps {
         log(level: 'INFO', text: 'Launching Async ITs')
-        githubNotify(context: 'Integration Tests', description: 'Integration Tests ...', status: 'PENDING', targetUrl: ' ')
+        githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: ' ')
         // TODO: missing to notify the downstream what GH check is required to be updated.
-        build(job: '/apm-integration-tests-mbp/master', propagate: false, quietPeriod: 10, wait: false,
+        build(job: '/apm-integration-tests-mbp/PR-470', propagate: false, quietPeriod: 10, wait: false,
               parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-                           string(name: 'BUILD_OPTS', value: '')])
+                           string(name: 'BUILD_OPTS', value: ''),
+                           string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
+                           string(name: 'GITHUB_CHECK_REPO', value: 'apm-server'),
+                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_COMMIT)])
       }
     }
     /**
