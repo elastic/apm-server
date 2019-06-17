@@ -381,7 +381,13 @@ pipeline {
       agent none
       when {
         beforeAgent true
-        expression { return params.its_ci }
+        allOf {
+          anyOf {
+            environment name: 'GIT_BUILD_CAUSE', value: 'pr'
+            expression { return !params.Run_As_Master_Branch }
+          }
+          expression { return params.its_ci }
+        }
       }
       steps {
         log(level: 'INFO', text: 'Launching Async ITs')
@@ -392,7 +398,7 @@ pipeline {
                            string(name: 'BUILD_OPTS', value: ''),
                            string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
                            string(name: 'GITHUB_CHECK_REPO', value: 'apm-server'),
-                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_COMMIT)])
+                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
       }
     }
     /**
