@@ -139,6 +139,7 @@
                             "foo"
                         ],
                         "User-Agent": [
+                            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
                             "Mozilla Chrome Edge"
                         ]
                     },
@@ -256,7 +257,7 @@
                 "name": "foo"
             },
             "user_agent": {
-                "original": "Mozilla Chrome Edge"
+                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
             }
         },
         {

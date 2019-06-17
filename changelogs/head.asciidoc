@@ -5,6 +5,7 @@
 ==== Bug fixes
 - Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273].
 - Abort server startup on sourcemap configuration error {pull}2278[2278].
+- Process all user-agent information from headers {pull}2271[2271].
 
 [float]
 ==== Added
