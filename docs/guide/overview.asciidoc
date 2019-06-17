@@ -35,7 +35,7 @@ Elasticsearch is used to store APM performance metrics and make use of its aggre
 
 {kibana-ref}/xpack-apm.html[*Kibana*] is an open source analytics and visualization platform designed to work with Elasticsearch.
 You use Kibana to search, view, and interact with data stored in Elasticsearch.
-You an use Kibana to visualize APM data by utilizing the dedicated APM UI bundled in Basic license,
+You can use Kibana to visualize APM data by utilizing the dedicated APM UI bundled in Basic license,
 or the pre-built, open source,
 Kibana dashboards that can be loaded directly via the {kibana-ref}/apm-getting-started.html[APM Kibana UI].
 
