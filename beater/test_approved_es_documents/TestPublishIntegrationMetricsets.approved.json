@@ -67,11 +67,18 @@
             },
             "short_counter": 227,
             "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": 633.288
+                },
                 "subtype": "mysql",
                 "type": "db"
             },
             "transaction": {
                 "name": "GET /",
+                "self_time": {
+                    "count": 2
+                },
                 "type": "request"
             },
             "user": {
