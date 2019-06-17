@@ -393,7 +393,7 @@ pipeline {
         log(level: 'INFO', text: 'Launching Async ITs')
         build(job: env.ITS_PIPELINE, propagate: false, wait: false,
               parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}"),
+                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/${env.CHANGE_FORK}/${env.REPO}@${env.CHANGE_BRANCH}"),
                            string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
                            string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
                            string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
