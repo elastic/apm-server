@@ -273,6 +273,6 @@ func defaultConfig(beatVersion string) *Config {
 				}},
 		},
 		Mode:   ModeProduction,
-		Kibana: nil,
+		Kibana: common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 	}
 }
