@@ -52,6 +52,7 @@ type Config struct {
 	RumConfig           *rumConfig              `config:"rum"`
 	Register            *registerConfig         `config:"register"`
 	Mode                Mode                    `config:"mode"`
+	Kibana              *common.Config          `config:"kibana"`
 }
 
 type ExpvarConfig struct {
@@ -271,6 +272,7 @@ func defaultConfig(beatVersion string) *Config {
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
 		},
-		Mode: ModeProduction,
+		Mode:   ModeProduction,
+		Kibana: common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 	}
 }
