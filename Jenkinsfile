@@ -390,13 +390,15 @@ pipeline {
       }
       steps {
         log(level: 'INFO', text: 'Launching Async ITs')
-        def buildId = build(job: '/apm-integration-tests-mbp/PR-470', propagate: false, wait: false,
-                            parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-                                         string(name: 'BUILD_OPTS', value: ''),
-                                         string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
-                                         string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
-                                         string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
-        githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: buildId.absoluteUrl)
+        script {
+          def buildId = build(job: '/apm-integration-tests-mbp/PR-470', propagate: false, wait: false,
+                              parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
+                                           string(name: 'BUILD_OPTS', value: ''),
+                                           string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
+                                           string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
+                                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
+          githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: buildId.absoluteUrl)
+        }
       }
     }
     /**
