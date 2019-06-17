@@ -372,8 +372,6 @@ pipeline {
           unstash 'source'
           dir("${BASE_DIR}"){
             sh './script/jenkins/sync.sh'
-            sh 'env | sort'
-            sh 'git status && git rev-parse HEAD'
           }
         }
       }
