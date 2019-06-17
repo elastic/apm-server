@@ -174,7 +174,8 @@ func (h *Http) UserAgent() string {
 	if h == nil || h.Request == nil {
 		return ""
 	}
-	return h.Request.Headers.Get("User-Agent")
+	dec := utility.ManualDecoder{}
+	return dec.UserAgentHeader(h.Request.Headers)
 }
 
 func (page *Page) Fields() common.MapStr {

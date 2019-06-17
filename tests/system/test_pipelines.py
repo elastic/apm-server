@@ -78,6 +78,33 @@ class PipelineRegisterTest(ElasticTest):
             pipeline = self.es.ingest.get_pipeline(id=pipeline_id)
             assert pipeline[pipeline_id]['description'] == pipeline_desc
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_default_pipelines_applied(self):
+        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"), max_timeout=5)
+        self.wait_until(lambda: self.log_contains("Finished index management setup."), max_timeout=5)
+
+        self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
+                                     self.intake_url, 'transaction', 3)
+        entries = self.es.search(index=self.index_transaction)['hits']['hits']
+        for e in entries:
+            src = e['_source']
+            ua = src['user_agent']
+            id = src['transaction']['id']
+            if id != "4340a8e0df1906ecbfa9":
+                # transaction with id '4340a8e0df1906ecbfa9' has user agent info set
+                assert ua is None
+                continue
+            else:
+                assert ua is not None
+                assert ua["original"] == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 " \
+                                         "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
+                assert ua["name"] == "Chrome"
+                assert ua["version"] == "51.0.2704"
+                assert ua["os"]["name"] == "Mac OS X"
+                assert ua["os"]["version"] == "10.10.5"
+                assert ua["os"]["full"] == "Mac OS X 10.10.5"
+                assert ua["device"]["name"] == "Other"
+
 
 class PipelineDisableOverwriteTest(ElasticTest):
     config_overrides = {

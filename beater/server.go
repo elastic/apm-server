@@ -22,19 +22,19 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/libbeat/kibana"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
 )
 
-func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
-	mux, err := newMuxer(config, report)
+func newServer(config *Config, tracer *apm.Tracer, kbClient *kibana.Client, report publish.Reporter) (*http.Server, error) {
+	mux, err := newMuxer(config, kbClient, report)
 	if err != nil {
 		return nil, err
 	}

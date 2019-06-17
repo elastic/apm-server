@@ -5,11 +5,13 @@
 ==== Bug fixes
 - Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273].
 - Abort server startup on sourcemap configuration error {pull}2278[2278].
+- Process all user-agent information from headers {pull}2271[2271].
 
 [float]
 ==== Added
 - Support more SSL config options for agent/server communication {pull}2224[2224].
 - Support adding transaction and span information to metrics  {pull}2265[2265],{pull}2281[2281],{pull}2287[2287].
+- Initial support for remote agent configuration, requires Kibana {pull}2289[2289].
 
 [float]
 ==== Removed
