@@ -29,8 +29,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/monitoring"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 type ReqReader func(req *http.Request) (io.ReadCloser, error)
@@ -166,9 +167,10 @@ func DecodeUserData(decoder ReqDecoder, enabled bool) ReqDecoder {
 		return decoder
 	}
 
+	dec := utility.ManualDecoder{}
 	augment := func(req *http.Request) map[string]interface{} {
 		m := map[string]interface{}{
-			"user-agent": req.Header.Get("User-Agent"),
+			"user-agent": dec.UserAgentHeader(req.Header),
 		}
 		if ip := utility.ExtractIP(req); ip != nil {
 			m["ip"] = ip.String()
