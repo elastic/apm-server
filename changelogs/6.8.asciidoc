@@ -12,7 +12,7 @@ https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
 https://github.com/elastic/apm-server/compare/v6.8.0\...v6.8.1[View commits]
 
 [float]
-==== Bug fixes
+==== Added
 
 - Support more SSL config options for agent/server communication {pull}2224[2224], {pull}2281[2281].
 
