@@ -215,13 +215,12 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	fields["processor"] = processorEntry
-	utility.Set(fields, transactionKey, me.Transaction.fields())
-	utility.Set(fields, spanKey, me.Span.fields())
-
 	tctx.Metadata.Set(fields)
 
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", me.Labels)
+	utility.DeepUpdate(fields, transactionKey, me.Transaction.fields())
+	utility.DeepUpdate(fields, spanKey, me.Span.fields())
 
 	if me.Timestamp.IsZero() {
 		me.Timestamp = tctx.RequestTime
