@@ -25,7 +25,25 @@ For a full list of changes, see the
 
 *APM Server*
 
+<<<<<<< HEAD
 * Support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]
+=======
+* Added support for index lifecycle management (ILM).
+* Added Geo-IP processor.
+
+ILM - Docs: elastic/apm-server#2231, PR: elastic/apm-server#2099
+GeoIP - Issue: elastic/apm-server#1283, PR: elastic/apm-server#2177
+
+*APM UI*
+
+* The transaction action menu now links APM transactions to the Uptime UI
+* Added a global filter for service environment. You can now see which enviorments are available, and view data according to a selected envioronment.
+* Added support for agent specific metrics - Java is the first to get custom charts in the APM UI.
+
+* APM -> Uptime connection - elastic/kibana#35144, https://github.com/elastic/kibana/pull/36378
+Java Metrics - elastic/kibana#34840
+Global filters - elastic/kibana#34918
+>>>>>>> docs: first draft release highlights
 
 [[release-highlights-7.1.0]]
 === APM version 7.1.0
