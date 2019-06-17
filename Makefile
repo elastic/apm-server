@@ -127,7 +127,7 @@ notice: python-env
 	@$(PYTHON_ENV)/bin/python ${ES_BEATS}/dev-tools/generate_notice.py . -e '_beats' -s "./vendor/github.com/elastic/beats" -b "Apm Server" --beats-origin <($(PYTHON_ENV)/bin/python script/generate_notice_overrides.py)
 
 .PHONY: apm-docs
-apm-docs:  ## @build Builds the APM documents
+apm-docs:  ## @build Builds the documentation for APM Server and APM Overview
 	@rm -rf build/html_docs
 	sh script/build_apm_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR}
 
