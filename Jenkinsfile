@@ -374,6 +374,21 @@ pipeline {
         }
       }
     }
+    stage('Integration Tests') {
+      agent none
+      when {
+        beforeAgent true
+        expression { return params.its_ci }
+      }
+      steps {
+        log(level: 'INFO', text: 'Launching Async ITs')
+        githubNotify(context: 'Integration Tests', description: 'Integration Tests ...', status: 'PENDING', targetUrl: ' ')
+        // TODO: missing to notify the downstream what GH check is required to be updated.
+        build(job: '/apm-integration-tests-mbp/master', propagate: false, quietPeriod: 10, wait: false,
+              parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
+                           string(name: 'BUILD_OPTS', value: '')])
+      }
+    }
     /**
       build release packages.
     */
@@ -418,22 +433,6 @@ pipeline {
             sharedPublicly: true,
             showInline: true)
         }
-      }
-    }
-
-    stage('Integration Tests') {
-      agent none
-      when {
-        beforeAgent true
-        expression { return params.its_ci }
-      }
-      steps {
-        log(level: 'INFO', text: 'Launching Async ITs')
-        githubNotify(context: 'Integration Tests', description: 'Integration Tests ...', status: 'PENDING', targetUrl: ' ')
-        // TODO: missing to notify the downstream what GH check is required to be updated.
-        build(job: '/apm-integration-tests-mbp/master', propagate: false, quietPeriod: 10, wait: false,
-              parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-                           string(name: 'BUILD_OPTS', value: '')])
       }
     }
   }
