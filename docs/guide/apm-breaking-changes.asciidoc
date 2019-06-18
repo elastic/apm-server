@@ -20,6 +20,10 @@ Also see <<apm-release-notes>>.
 
 // end::notable-v8-breaking-changes[]
 
+// tag::notable-v7-breaking-changes[]
+
+// end::notable-v7-breaking-changes[]
+
 [[breaking-7.2.0]]
 === 7.2.0 APM Breaking changes
 
