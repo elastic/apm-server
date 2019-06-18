@@ -12,6 +12,7 @@
 - Support more SSL config options for agent/server communication {pull}2224[2224].
 - Support adding transaction and span information to metrics  {pull}2265[2265],{pull}2281[2281],{pull}2287[2287].
 - Initial support for remote agent configuration, requires Kibana {pull}2289[2289].
+- Enable APM pipeline by default {pull}2301[2301].
 
 [float]
 ==== Removed
