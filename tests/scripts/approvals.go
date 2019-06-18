@@ -19,13 +19,10 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/yudai/gojsondiff/formatter"
 
 	"github.com/elastic/apm-server/tests"
 )
@@ -46,17 +43,7 @@ func approval() int {
 			fmt.Println("Could not create diff ", err)
 			return 3
 		}
-
-		var aJson map[string]interface{}
-		json.Unmarshal(approved, &aJson)
-		config := formatter.AsciiFormatterConfig{
-			ShowArrayIndex: true,
-			Coloring:       true,
-		}
-		formatter := formatter.NewAsciiFormatter(aJson, config)
-		diffString, _ := formatter.Format(d)
-
-		fmt.Println(diffString)
+		fmt.Println(tests.PrettyDiff(approved, d))
 		fmt.Println(rf)
 		fmt.Println("\nApprove Changes? (y/n)")
 		reader := bufio.NewReader(os.Stdin)

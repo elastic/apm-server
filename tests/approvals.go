@@ -19,12 +19,14 @@ package tests
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/yudai/gojsondiff/formatter"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -67,7 +69,7 @@ func ApproveJson(received map[string]interface{}, name string, ignored map[strin
 
 	r, _ := json.MarshalIndent(received, "", "    ")
 	ioutil.WriteFile(receivedPath, r, 0644)
-	received, _, diff, err := Compare(path, ignored)
+	received, approved, diff, err := Compare(path, ignored)
 	if err != nil {
 		return err
 	}
@@ -77,7 +79,7 @@ func ApproveJson(received map[string]interface{}, name string, ignored map[strin
 			r = append(r, '\n')
 		}
 		ioutil.WriteFile(receivedPath, r, 0644)
-		return errors.New("received data differs from approved data. Run 'make update' and then 'approvals' to verify the diff")
+		return errors.New("received data differs from approved data. Run 'make update' and then 'approvals' to verify the diff\n" + PrettyDiff(approved, diff))
 	}
 
 	os.Remove(receivedPath)
@@ -99,6 +101,18 @@ func ignoredKey(data *map[string]interface{}, ignored map[string]string) {
 			}
 		}
 	}
+}
+
+func PrettyDiff(approved []byte, diff gojsondiff.Diff) string {
+	var aJson map[string]interface{}
+	json.Unmarshal(approved, &aJson)
+	config := formatter.AsciiFormatterConfig{
+		ShowArrayIndex: true,
+		Coloring:       true,
+	}
+	formatter := formatter.NewAsciiFormatter(aJson, config)
+	diffString, _ := formatter.Format(diff)
+	return diffString
 }
 
 func Compare(path string, ignored map[string]string) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
