@@ -32,12 +32,12 @@ For a full list of changes, see the
 *APM Server*
 
 * Added support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]:
-ILM enables you to automate how you want to manage your indices over time,
-by automating rollovers to a new index when the existing index reaches a specified size or age.
+ILM automates the management of your indices over time,
+by rolling over data to new indices when the existing indices reach the specified size or age.
 * Added Geo-IP processing to the default ingest pipeline:
-Pipelines are still disabled by default, but activation now includes a new Geo-IP pipeline.
 The Geo-IP pipeline takes an extracted IP address from RUM events and stores it in the `client.geo` field.
-This makes it much easier to use location data in Kibana's Visualize maps and Maps app directly:
+This makes it much easier to use location data in Kibana's Visualize maps and Maps app directly.
+Pipelines must be <<register.ingest.pipeline.enabled,enabled>>.
 
 [role="screenshot"]
 image::kibana-geo-data.png[Kibana maps app]
@@ -48,7 +48,7 @@ image::kibana-geo-data.png[Kibana maps app]
 * Added a global filter for {kibana-ref}/filters.html#environment-selector[service environments]:
 You can now easily name and switch between environments in the APM UI.
 * Added support for {kibana-ref}/metrics.html[agent specific metrics]:
-Java is the first to get custom metrics in the APM UI, with more agents to follow.
+Java is the first agent to get custom metrics in the APM UI, with more agents to follow.
 
 [[release-highlights-7.1.0]]
 === APM version 7.1.0
