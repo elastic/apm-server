@@ -22,13 +22,19 @@ import "net/http"
 type recordingResponseWriter struct {
 	http.ResponseWriter
 	Code int
+	Body string
 }
 
 func NewRecordingResponseWriter(w http.ResponseWriter) *recordingResponseWriter {
-	return &recordingResponseWriter{w, http.StatusOK}
+	return &recordingResponseWriter{ResponseWriter: w}
 }
 
 func (lrw *recordingResponseWriter) WriteHeader(code int) {
 	lrw.ResponseWriter.WriteHeader(code)
 	lrw.Code = code
+}
+
+func (lrw *recordingResponseWriter) Write(b []byte) (int, error) {
+	lrw.Body = string(b)
+	return lrw.ResponseWriter.Write(b)
 }

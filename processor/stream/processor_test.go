@@ -27,6 +27,8 @@ import (
 	"testing/iotest"
 	"time"
 
+	"github.com/elastic/apm-server/server"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
@@ -39,9 +41,9 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
+func assertApproveResult(t *testing.T, actualResponse server.Response, name string) {
 	resultName := fmt.Sprintf("test_approved_stream_result/testIntegrationResult%s", name)
-	resultJSON, err := json.Marshal(actualResponse)
+	resultJSON, err := json.Marshal(actualResponse.Body())
 	require.NoError(t, err)
 	tests.AssertApproveResult(t, resultName, resultJSON)
 }

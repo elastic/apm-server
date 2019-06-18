@@ -113,8 +113,8 @@ func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Repo
 		mux.Handle(path, handler)
 	}
 
-	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.SecretToken))
-	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
+	mux.Handle(agentConfigURL, requestCountHandler(agentConfigHandler(kbClient, beaterConfig.SecretToken)))
+	mux.Handle(rootURL, requestCountHandler(rootHandler(beaterConfig.SecretToken)))
 
 	if beaterConfig.Expvar.isEnabled() {
 		path := beaterConfig.Expvar.Url
@@ -125,22 +125,25 @@ func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Repo
 }
 
 func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
-		requestTimeHandler(
-			authHandler(beaterConfig.SecretToken, h)))
+	return requestCountHandler(
+		logHandler(
+			requestTimeHandler(
+				authHandler(beaterConfig.SecretToken, h))))
 }
 
 func rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
-		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-			requestTimeHandler(
-				corsHandler(beaterConfig.RumConfig.AllowOrigins, h))))
+	return requestCountHandler(
+		logHandler(
+			killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
+				requestTimeHandler(
+					corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))))
 }
 
 func sourcemapHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
-		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-			authHandler(beaterConfig.SecretToken, h)))
+	return requestCountHandler(
+		logHandler(
+			killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
+				authHandler(beaterConfig.SecretToken, h))))
 }
 
 func systemMetadataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {

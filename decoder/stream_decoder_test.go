@@ -37,6 +37,7 @@ func TestNDStreamReader(t *testing.T) {
 	expected := []struct {
 		errPattern string
 		out        map[string]interface{}
+		stop       bool
 		isEOF      bool
 		latestLine string
 	}{
@@ -59,13 +60,14 @@ func TestNDStreamReader(t *testing.T) {
 			latestLine: `{"key": "value3"}`,
 			errPattern: "EOF",
 			isEOF:      true,
+			stop:       true,
 		},
 	}
 	buf := bytes.NewBufferString(strings.Join(lines, "\n"))
 	n := NewNDJSONStreamReader(NewLineReader(bufio.NewReaderSize(buf, 20), 20))
 
 	for idx, test := range expected {
-		out, err := n.Read()
+		out, err, stop := n.Read()
 		assert.Equal(t, test.out, out, "Failed at idx %v", idx)
 		if test.errPattern == "" {
 			assert.Nil(t, err)
@@ -79,5 +81,6 @@ func TestNDStreamReader(t *testing.T) {
 		} else {
 			assert.Equal(t, []byte(test.latestLine), n.LatestLine(), "Failed at idx %v", idx)
 		}
+		assert.Equal(t, test.stop, stop, "Failed at idx %v", idx)
 	}
 }

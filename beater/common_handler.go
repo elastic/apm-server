@@ -20,126 +20,30 @@ package beater
 import (
 	"context"
 	"crypto/subtle"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/elastic/beats/libbeat/monitoring"
+
+	"github.com/elastic/apm-server/beater/internal"
+
+	"github.com/elastic/apm-server/server"
 
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	"github.com/elastic/apm-server/utility"
+	"github.com/elastic/beats/libbeat/logp"
 )
 
 const (
 	supportedHeaders = "Content-Type, Content-Encoding, Accept"
 	supportedMethods = "POST, OPTIONS"
-)
-
-type serverResponse struct {
-	err     error
-	code    int
-	counter *monitoring.Int
-	body    map[string]interface{}
-}
-
-var (
-	serverMetrics = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
-	counter       = func(s string) *monitoring.Int {
-		return monitoring.NewInt(serverMetrics, s)
-	}
-	requestCounter    = counter("request.count")
-	responseCounter   = counter("response.count")
-	responseErrors    = counter("response.errors.count")
-	responseSuccesses = counter("response.valid.count")
-	responseOk        = counter("response.valid.ok")
-	responseAccepted  = counter("response.valid.accepted")
-
-	okResponse = serverResponse{
-		code:    http.StatusOK,
-		counter: responseOk,
-	}
-	acceptedResponse = serverResponse{
-		code:    http.StatusAccepted,
-		counter: responseAccepted,
-	}
-	internalErrorCounter  = counter("response.errors.internal")
-	internalErrorResponse = func(err error) serverResponse {
-		return serverResponse{
-			err:     errors.Wrap(err, "internal error"),
-			code:    http.StatusInternalServerError,
-			counter: internalErrorCounter,
-		}
-	}
-	forbiddenCounter  = counter("response.errors.forbidden")
-	forbiddenResponse = func(err error) serverResponse {
-		return serverResponse{
-			err:     errors.Wrap(err, "forbidden request"),
-			code:    http.StatusForbidden,
-			counter: forbiddenCounter,
-		}
-	}
-	unauthorizedResponse = serverResponse{
-		err:     errors.New("invalid token"),
-		code:    http.StatusUnauthorized,
-		counter: counter("response.errors.unauthorized"),
-	}
-	requestTooLargeCounter  = counter("response.errors.toolarge")
-	requestTooLargeResponse = serverResponse{
-		err:     errors.New("request body too large"),
-		code:    http.StatusRequestEntityTooLarge,
-		counter: requestTooLargeCounter,
-	}
-	decodeCounter        = counter("response.errors.decode")
-	cannotDecodeResponse = func(err error) serverResponse {
-		return serverResponse{
-			err:     errors.Wrap(err, "data decoding error"),
-			code:    http.StatusBadRequest,
-			counter: decodeCounter,
-		}
-	}
-	validateCounter        = counter("response.errors.validate")
-	cannotValidateResponse = func(err error) serverResponse {
-		return serverResponse{
-			err:     errors.Wrap(err, "data validation error"),
-			code:    http.StatusBadRequest,
-			counter: validateCounter,
-		}
-	}
-	rateLimitCounter    = counter("response.errors.ratelimit")
-	rateLimitedResponse = serverResponse{
-		err:     errors.New("too many requests"),
-		code:    http.StatusTooManyRequests,
-		counter: rateLimitCounter,
-	}
-	methodNotAllowedCounter  = counter("response.errors.method")
-	methodNotAllowedResponse = serverResponse{
-		err:     errors.New("only POST requests are supported"),
-		code:    http.StatusMethodNotAllowed,
-		counter: methodNotAllowedCounter,
-	}
-	fullQueueCounter  = counter("response.errors.queue")
-	fullQueueResponse = func(err error) serverResponse {
-		return serverResponse{
-			err:     errors.Wrap(err, "queue is full"),
-			code:    http.StatusServiceUnavailable,
-			counter: fullQueueCounter,
-		}
-	}
-	serverShuttingDownCounter  = counter("response.errors.closed")
-	serverShuttingDownResponse = func(err error) serverResponse {
-		return serverResponse{
-			err:     errors.New("server is shutting down"),
-			code:    http.StatusServiceUnavailable,
-			counter: serverShuttingDownCounter,
-		}
-	}
 )
 
 type reqLoggerKey struct{}
@@ -152,10 +56,9 @@ func logHandler(h http.Handler) http.Handler {
 	logger := logp.NewLogger("request")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestCounter.Inc()
 		reqID, err := uuid.NewV4()
 		if err != nil {
-			sendStatus(w, r, internalErrorResponse(err))
+			internal.SendCnt(w, r, server.Error{err, http.StatusInternalServerError})
 		}
 
 		reqLogger := logger.With(
@@ -181,9 +84,24 @@ func logHandler(h http.Handler) http.Handler {
 		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
 
 		if lw.Code <= 399 {
-			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
+			reqLogger.Infow("handled request", []interface{}{"code", lw.Code}...)
+		} else {
+			reqLogger.Errorw("error handling request", "code", lw.Code, "body", lw.Body)
 		}
 
+	})
+}
+
+var reqCounter *monitoring.Int
+var once sync.Once
+
+func requestCountHandler(h http.Handler) http.Handler {
+	once.Do(func() {
+		reqCounter = monitoring.NewInt(internal.ServerMetrics, "request.count")
+	})
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqCounter.Inc()
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -199,7 +117,7 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 		if killSwitch {
 			h.ServeHTTP(w, r)
 		} else {
-			sendStatus(w, r, forbiddenResponse(errors.New("endpoint is disabled")))
+			internal.SendCnt(w, r, server.Error{errors.New("endpoint is disabled"), http.StatusForbidden})
 		}
 	})
 }
@@ -207,7 +125,7 @@ func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
 func authHandler(secretToken string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isAuthorized(r, secretToken) {
-			sendStatus(w, r, unauthorizedResponse)
+			internal.SendCnt(w, r, server.Unauthorized())
 			return
 		}
 		h.ServeHTTP(w, r)
@@ -266,7 +184,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 
 			w.Header().Set("Content-Length", "0")
 
-			sendStatus(w, r, okResponse)
+			internal.Send(w, r, server.Result{StatusCode: http.StatusOK})
 
 		} else if validOrigin {
 			// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
@@ -274,70 +192,8 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 			h.ServeHTTP(w, r)
 
 		} else {
-			sendStatus(w, r, forbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
+			internal.SendCnt(w, r,
+				server.Error{errors.New("origin: '" + origin + "' is not allowed"), http.StatusForbidden})
 		}
 	})
-}
-
-func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
-	responseCounter.Inc()
-	res.counter.Inc()
-
-	body := res.body
-	if res.err == nil {
-		responseSuccesses.Inc()
-		if res.body == nil {
-			w.WriteHeader(res.code)
-			return
-		}
-	} else {
-		responseErrors.Inc()
-
-		logger := requestLogger(r)
-		body = map[string]interface{}{"error": res.err.Error()}
-		logger.Errorw("error handling request", "response_code", res.code, "error", body)
-	}
-	send(w, r, body, res.code)
-}
-
-// requestLogger is a convenience function to retrieve the logger that was
-// added to the request context by handler `logHandler``
-func requestLogger(r *http.Request) *logp.Logger {
-	logger, ok := r.Context().Value(reqLoggerKey{}).(*logp.Logger)
-	if !ok {
-		logger = logp.NewLogger("request")
-	}
-	return logger
-}
-
-func acceptsJSON(r *http.Request) bool {
-	h := r.Header.Get("Accept")
-	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
-}
-
-func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) int {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	buf, err := json.MarshalIndent(body, "", "  ")
-	if err != nil {
-		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
-		return sendPlain(w, body, statusCode)
-	}
-
-	buf = append(buf, "\n"...)
-	n, _ := w.Write(buf)
-	return n
-}
-
-func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) int {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(statusCode)
-
-	b, err := json.Marshal(body)
-	if err != nil {
-		b = []byte(fmt.Sprintf("%v", body))
-	}
-	b = append(b, "\n"...)
-	n, _ := w.Write(b)
-	return n
 }

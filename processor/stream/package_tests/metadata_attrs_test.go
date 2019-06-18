@@ -86,7 +86,7 @@ func getMetadataEventAttrs(t *testing.T, prefix string) *tests.Set {
 	require.NoError(t, err)
 
 	lr := decoder.NewLineReader(bufio.NewReader(payloadStream), lrSize)
-	metadata, err := decoder.NewNDJSONStreamReader(lr).Read()
+	metadata, err, _ := decoder.NewNDJSONStreamReader(lr).Read()
 	require.NoError(t, err)
 
 	contextMetadata := metadata["metadata"]

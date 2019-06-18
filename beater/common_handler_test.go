@@ -18,8 +18,6 @@
 package beater
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,25 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestIncCounter(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "_", nil)
-	require.NoError(t, err)
-	req.Header.Set("Accept", "application/json")
-	w := httptest.NewRecorder()
-
-	for i := 1; i <= 5; i++ {
-		for _, res := range []serverResponse{acceptedResponse, okResponse, forbiddenResponse(errors.New("")), unauthorizedResponse,
-			requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse,
-			cannotValidateResponse(errors.New("")), cannotDecodeResponse(errors.New("")),
-			fullQueueResponse(errors.New("")), serverShuttingDownResponse(errors.New(""))} {
-			sendStatus(w, req, res)
-			assert.Equal(t, int64(i), res.counter.Get())
-		}
-	}
-	assert.Equal(t, int64(55), responseCounter.Get())
-	assert.Equal(t, int64(45), responseErrors.Get())
-}
 
 func TestOPTIONS(t *testing.T) {
 	config := defaultConfig("7.0.0")
@@ -75,72 +54,6 @@ func TestOPTIONS(t *testing.T) {
 	h.ServeHTTP(w, r)
 	assert.Equal(t, 200, w.Code, w.Body.String())
 	done <- struct{}{}
-}
-
-func TestOkBody(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "_", nil)
-	assert.Nil(t, err)
-	w := httptest.NewRecorder()
-	sendStatus(w, req, serverResponse{
-		code:    http.StatusNonAuthoritativeInfo,
-		counter: requestCounter,
-		body:    map[string]interface{}{"some": "body"},
-	})
-	rsp := w.Result()
-	got := body(t, rsp)
-	assert.Equal(t, "{\"some\":\"body\"}\n", string(got))
-	assert.Equal(t, "text/plain; charset=utf-8", rsp.Header.Get("Content-Type"))
-}
-
-func TestOkBodyJson(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "_", nil)
-	req.Header.Set("Accept", "application/json")
-	assert.Nil(t, err)
-	w := httptest.NewRecorder()
-	sendStatus(w, req, serverResponse{
-		code:    http.StatusNonAuthoritativeInfo,
-		counter: requestCounter,
-		body:    map[string]interface{}{"version": "1.0"},
-	})
-	rsp := w.Result()
-	got := body(t, rsp)
-	assert.Equal(t,
-		`{
-  "version": "1.0"
-}
-`, string(got))
-	assert.Equal(t, "application/json", rsp.Header.Get("Content-Type"))
-}
-
-func TestAccept(t *testing.T) {
-	expectedErrorJson :=
-		`{
-  "error": "data validation error: error message"
-}
-`
-	expectedErrorText := "{\"error\":\"data validation error: error message\"}\n"
-
-	for idx, test := range []struct{ accept, expectedError, expectedContentType string }{
-		{"application/json", expectedErrorJson, "application/json"},
-		{"*/*", expectedErrorJson, "application/json"},
-		{"text/html", expectedErrorText, "text/plain; charset=utf-8"},
-		{"", expectedErrorText, "text/plain; charset=utf-8"},
-	} {
-		req, err := http.NewRequest(http.MethodPost, "_", nil)
-		require.NoError(t, err)
-		if test.accept != "" {
-			req.Header.Set("Accept", test.accept)
-		} else {
-			delete(req.Header, "Accept")
-		}
-		w := httptest.NewRecorder()
-		sendStatus(w, req, cannotValidateResponse(errors.New("error message")))
-		rsp := w.Result()
-		got := body(t, rsp)
-		assert.Equal(t, 400, w.Code)
-		assert.Equal(t, test.expectedError, got, fmt.Sprintf("at index %d", idx))
-		assert.Equal(t, test.expectedContentType, rsp.Header.Get("Content-Type"), fmt.Sprintf("at index %d", idx))
-	}
 }
 
 func TestIsAuthorized(t *testing.T) {

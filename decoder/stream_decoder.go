@@ -37,27 +37,33 @@ type JSONDecodeError string
 
 func (s JSONDecodeError) Error() string { return string(s) }
 
-func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error) {
+// Read consumes the reader returning its content, an error if any, and
+// a boolean indicating if the error is terminal (ie. another Read call can be performed)
+func (sr *NDJSONStreamReader) Read() (map[string]interface{}, error, bool) {
 	// readLine can return valid data in `buf` _and_ also an io.EOF
 	buf, readErr := sr.reader.ReadLine()
 	sr.latestLine = buf
 
+	if readErr == ErrLineTooLong {
+		return nil, readErr, false
+	}
+
 	if readErr != nil && readErr != io.EOF {
-		return nil, readErr
+		return nil, readErr, true
 	}
 
 	sr.isEOF = readErr == io.EOF
 
 	if len(buf) == 0 {
-		return nil, readErr
+		return nil, readErr, true
 	}
 	tmpreader := ioutil.NopCloser(bytes.NewBuffer(buf))
 	decoded, err := DecodeJSONData(tmpreader)
 	if err != nil {
-		return nil, JSONDecodeError(err.Error())
+		return nil, JSONDecodeError(err.Error()), false
 	}
 
-	return decoded, readErr // this might be io.EOF
+	return decoded, readErr, readErr != nil // this might be io.EOF
 }
 
 func (sr *NDJSONStreamReader) IsEOF() bool        { return sr.isEOF }

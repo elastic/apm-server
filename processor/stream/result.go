@@ -18,35 +18,12 @@
 package stream
 
 import (
-	"fmt"
+	"net/http"
 	"strings"
 
+	"github.com/elastic/apm-server/server"
+
 	"github.com/elastic/beats/libbeat/monitoring"
-)
-
-type Error struct {
-	Type     StreamError `json:"-"`
-	Message  string      `json:"message"`
-	Document string      `json:"document,omitempty"`
-}
-
-func (s *Error) Error() string {
-	if s.Document != "" {
-		return fmt.Sprintf("%s [%s]", s.Message, string(s.Document))
-	}
-	return s.Message
-}
-
-type StreamError int
-
-const (
-	QueueFullErrType StreamError = iota
-	InvalidInputErrType
-	InputTooLargeErrType
-	ShuttingDownErrType
-	ServerErrType
-	MethodForbiddenErrType
-	RateLimitErrType
 )
 
 const (
@@ -54,58 +31,60 @@ const (
 )
 
 var (
-	m             = monitoring.Default.NewRegistry("apm-server.processor.stream")
-	mAccepted     = monitoring.NewInt(m, "accepted")
-	monitoringMap = map[StreamError]*monitoring.Int{
-		QueueFullErrType:     monitoring.NewInt(m, "errors.queue"),
-		InvalidInputErrType:  monitoring.NewInt(m, "errors.invalid"),
-		InputTooLargeErrType: monitoring.NewInt(m, "errors.toolarge"),
-		ShuttingDownErrType:  monitoring.NewInt(m, "errors.server"),
-		ServerErrType:        monitoring.NewInt(m, "errors.closed"),
-	}
+	eventMetrics = monitoring.Default.NewRegistry("apm-server.processor.stream")
+	accepted     = monitoring.NewInt(eventMetrics, "accepted")
 )
 
-type Result struct {
-	Accepted int      `json:"accepted"`
-	Errors   []*Error `json:"errors,omitempty"`
+type result struct {
+	accepted int
+	errors   []error
+	code     int
 }
 
-func (r *Result) LimitedAdd(err error) {
-	r.add(err, len(r.Errors) < errorsLimit)
+func newErroredResult(e error) result {
+	return result{errors: []error{e}, code: http.StatusBadRequest}
 }
 
-func (r *Result) Add(err error) {
-	r.add(err, true)
+func (r result) Code() int {
+	if r.code == 0 {
+		return http.StatusAccepted
+	}
+	return r.code
 }
 
-func (r *Result) AddAccepted(ct int) {
-	r.Accepted += ct
-	mAccepted.Add(int64(ct))
+func (r result) Body() interface{} {
+	body := map[string]interface{}{
+		"accepted": r.accepted,
+	}
+	if r.IsError() {
+		body["errors"] = r.Error()
+	}
+	return body
 }
 
-func (r *Result) Error() string {
+func (r result) IsError() bool {
+	return len(r.errors) > 0
+}
+
+func (r *result) add(e *server.Error) {
+	if e.Code() > r.code {
+		r.code = e.Code()
+	}
+	r.errors = append(r.errors, e.Err)
+}
+
+func (r *result) addAccepted(ct int) {
+	r.accepted += ct
+	accepted.Add(int64(ct))
+}
+
+func (r result) Error() string {
 	var errorList []string
-	for _, e := range r.Errors {
+	for idx, e := range r.errors {
+		if idx == errorsLimit {
+			break
+		}
 		errorList = append(errorList, e.Error())
 	}
 	return strings.Join(errorList, ", ")
-}
-
-func (r *Result) add(err error, add bool) {
-	e, ok := err.(*Error)
-	if !ok {
-		e = &Error{Message: err.Error(), Type: ServerErrType}
-	}
-	if add {
-		r.Errors = append(r.Errors, e)
-	}
-	countErr(e.Type)
-}
-
-func countErr(e StreamError) {
-	if i, ok := monitoringMap[e]; ok {
-		i.Inc()
-	} else {
-		monitoringMap[ServerErrType].Inc()
-	}
 }

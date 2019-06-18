@@ -20,13 +20,14 @@ package beater
 import (
 	"net/http"
 
-	"github.com/elastic/apm-server/convert"
-
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/internal"
+	"github.com/elastic/apm-server/convert"
+	"github.com/elastic/apm-server/server"
 )
 
 func agentConfigHandler(kbClient *kibana.Client, secretToken string) http.Handler {
@@ -40,22 +41,22 @@ func agentConfigHandler(kbClient *kibana.Client, secretToken string) http.Handle
 
 		switch {
 		case requestErr != nil:
-			send(requestErr.Error(), http.StatusBadRequest)
+			send(server.Error{requestErr, http.StatusBadRequest})
 		case query == agentcfg.Query{}:
-			send(nil, http.StatusMethodNotAllowed)
+			send(server.MethodNotAllowed())
 		case internalErr != nil:
-			send(internalErr.Error(), http.StatusInternalServerError)
+			send(server.Error{internalErr, http.StatusInternalServerError})
 		case len(cfg) == 0:
-			send(nil, http.StatusNotFound)
+			send(server.Result{StatusCode: http.StatusNotFound})
 		case clientEtag != "" && clientEtag == upstreamEtag:
 			w.Header().Set("Cache-Control", "max-age=0")
-			send(nil, http.StatusNotModified)
+			send(server.Result{StatusCode: http.StatusNotModified})
 		case upstreamEtag != "":
 			w.Header().Set("Cache-Control", "max-age=0")
 			w.Header().Set("Etag", upstreamEtag)
 			fallthrough
 		default:
-			send(cfg, http.StatusOK)
+			send(server.Result{StatusCode: http.StatusOK, ResponseBody: cfg})
 		}
 	})
 	return authHandler(secretToken, logHandler(handler))
@@ -83,12 +84,8 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	return
 }
 
-func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int) {
-	return func(body interface{}, code int) {
-		if body == nil {
-			w.WriteHeader(code)
-		} else {
-			send(w, r, body, code)
-		}
+func wrap(w http.ResponseWriter, r *http.Request) func(server.Response) {
+	return func(response server.Response) {
+		internal.Send(w, r, response)
 	}
 }

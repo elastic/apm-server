@@ -50,36 +50,6 @@ var (
 	readerCounter                 = monitoring.NewInt(decoderMetrics, "reader.count")
 )
 
-type monitoringReader struct {
-	r io.ReadCloser
-}
-
-func (mr monitoringReader) Read(p []byte) (int, error) {
-	n, err := mr.r.Read(p)
-	readerAccumulator.Add(int64(n))
-	return n, err
-}
-
-func (mr monitoringReader) Close() error {
-	return mr.r.Close()
-}
-
-func DecodeLimitJSONData(maxSize int64) ReqDecoder {
-	return func(req *http.Request) (map[string]interface{}, error) {
-		contentType := req.Header.Get("Content-Type")
-		if !strings.Contains(contentType, "application/json") {
-			return nil, fmt.Errorf("invalid content type: %s", req.Header.Get("Content-Type"))
-		}
-
-		reader, err := CompressedRequestReader(req)
-		if err != nil {
-			return nil, err
-		}
-		reader = http.MaxBytesReader(nil, reader, maxSize)
-		return DecodeJSONData(monitoringReader{reader})
-	}
-}
-
 // CompressedRequestReader returns a reader that will decompress
 // the body according to the supplied Content-Encoding header in the request
 func CompressedRequestReader(req *http.Request) (io.ReadCloser, error) {

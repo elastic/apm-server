@@ -23,9 +23,11 @@ import (
 
 	"go.elastic.co/apm"
 
+	"github.com/elastic/apm-server/beater/internal"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/server"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 )
@@ -39,30 +41,30 @@ type assetHandler struct {
 func (h *assetHandler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res := h.processRequest(r, report)
-		sendStatus(w, r, res)
+		internal.SendCnt(w, r, res)
 	})
 }
 
-func (h *assetHandler) processRequest(r *http.Request, report publish.Reporter) serverResponse {
+func (h *assetHandler) processRequest(r *http.Request, report publish.Reporter) server.Response {
 	if r.Method != "POST" {
-		return methodNotAllowedResponse
+		return server.MethodNotAllowed()
 	}
 
 	data, err := h.requestDecoder(r)
 	if err != nil {
 		if strings.Contains(err.Error(), "request body too large") {
-			return requestTooLargeResponse
+			return server.Error{err, http.StatusRequestEntityTooLarge}
 		}
-		return cannotDecodeResponse(err)
+		return server.Error{err, http.StatusBadRequest}
 	}
 
 	if err = h.processor.Validate(data); err != nil {
-		return cannotValidateResponse(err)
+		return server.Error{err, http.StatusBadRequest}
 	}
 
 	metadata, transformables, err := h.processor.Decode(data)
 	if err != nil {
-		return cannotDecodeResponse(err)
+		return server.Error{err, http.StatusBadRequest}
 	}
 
 	tctx := &transform.Context{
@@ -73,16 +75,16 @@ func (h *assetHandler) processRequest(r *http.Request, report publish.Reporter) 
 
 	req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
 	ctx := r.Context()
-	span, ctx := apm.StartSpan(ctx, "Send", "Reporter")
+	span, ctx := apm.StartSpan(ctx, "send", "Reporter")
 	defer span.End()
 	req.Trace = !span.Dropped()
 
 	if err = report(ctx, req); err != nil {
 		if err == publish.ErrChannelClosed {
-			return serverShuttingDownResponse(err)
+			return server.ShuttingDown()
 		}
-		return fullQueueResponse(err)
+		return server.Error{err, http.StatusServiceUnavailable}
 	}
 
-	return acceptedResponse
+	return server.Result{StatusCode: http.StatusAccepted}
 }

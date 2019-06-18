@@ -30,14 +30,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
+	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestInvalidContentType(t *testing.T) {
@@ -50,7 +48,7 @@ func TestInvalidContentType(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusUnsupportedMediaType, w.Code, w.Body.String())
 	assert.Contains(t, w.Body.String(), "invalid content type: ''")
 	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
 }
@@ -94,7 +92,7 @@ func TestRequestDecoderError(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 }
 
 func TestRequestIntegration(t *testing.T) {
@@ -109,17 +107,16 @@ func TestRequestIntegration(t *testing.T) {
 		code         int
 		path         string
 		reportingErr error
-		counter      *monitoring.Int
 	}{
-		"Success":             {code: http.StatusAccepted, path: "errors.ndjson", counter: responseAccepted},
-		"InvalidEvent":        {code: http.StatusBadRequest, path: "invalid-event.ndjson", counter: validateCounter},
-		"InvalidJSONEvent":    {code: http.StatusBadRequest, path: "invalid-json-event.ndjson", counter: validateCounter},
-		"InvalidJSONMetadata": {code: http.StatusBadRequest, path: "invalid-json-metadata.ndjson", counter: validateCounter},
-		"InvalidMetadata":     {code: http.StatusBadRequest, path: "invalid-metadata.ndjson", counter: validateCounter},
-		"InvalidMetadata2":    {code: http.StatusBadRequest, path: "invalid-metadata-2.ndjson", counter: validateCounter},
-		"UnrecognizedEvent":   {code: http.StatusBadRequest, path: "unrecognized-event.ndjson", counter: validateCounter},
-		"Closing":             {code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrChannelClosed, counter: serverShuttingDownCounter},
-		"FullQueue":           {code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrFull, counter: fullQueueCounter},
+		"Success":             {code: http.StatusAccepted, path: "errors.ndjson"},
+		"InvalidEvent":        {code: http.StatusBadRequest, path: "invalid-event.ndjson"},
+		"InvalidJSONEvent":    {code: http.StatusBadRequest, path: "invalid-json-event.ndjson"},
+		"InvalidJSONMetadata": {code: http.StatusBadRequest, path: "invalid-json-metadata.ndjson"},
+		"InvalidMetadata":     {code: http.StatusBadRequest, path: "invalid-metadata.ndjson"},
+		"InvalidMetadata2":    {code: http.StatusBadRequest, path: "invalid-metadata-2.ndjson"},
+		"UnrecognizedEvent":   {code: http.StatusBadRequest, path: "unrecognized-event.ndjson"},
+		"Closing":             {code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrChannelClosed},
+		"FullQueue":           {code: http.StatusServiceUnavailable, path: "errors.ndjson", reportingErr: publish.ErrFull},
 	} {
 
 		for _, endpoint := range endpoints {
@@ -128,11 +125,6 @@ func TestRequestIntegration(t *testing.T) {
 			cfg.RumConfig.Enabled = &rum
 
 			t.Run(name, func(t *testing.T) {
-				ctSuccess := responseSuccesses.Get()
-				ctFailure := responseErrors.Get()
-				ct := test.counter.Get()
-				reqCt := requestCounter.Get()
-
 				w, err := sendReq(cfg,
 					&endpoint.route,
 					endpoint.url,
@@ -141,22 +133,13 @@ func TestRequestIntegration(t *testing.T) {
 				require.NoError(t, err)
 
 				assert.Equal(t, test.code, w.Code, w.Body.String())
-				assert.Equal(t, ct+1, test.counter.Get())
-				assert.Equal(t, reqCt+1, requestCounter.Get())
-
 				assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 				cl, err := strconv.Atoi(w.Header().Get("Content-Length"))
 				assert.True(t, cl > 0, err)
 
 				if test.code == http.StatusAccepted {
 					assert.NotZero(t, w.Body.Len())
-					assert.Equal(t, ctSuccess+1, responseSuccesses.Get())
-					assert.Equal(t, ctFailure, responseErrors.Get())
-				} else {
-					assert.Equal(t, ctSuccess, responseSuccesses.Get())
-					assert.Equal(t, ctFailure+1, responseErrors.Get())
 				}
-
 				body := w.Body.Bytes()
 				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+name, body)
 			})
@@ -225,11 +208,9 @@ func TestWrongMethod(t *testing.T) {
 	handler, err := (&backendRoute).Handler("", defaultConfig("7.0.0"), nil)
 	require.NoError(t, err)
 
-	ct := methodNotAllowedCounter.Get()
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.Equal(t, ct+1, methodNotAllowedCounter.Get())
+	assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
 }
 
 func TestLineExceeded(t *testing.T) {
@@ -273,9 +254,7 @@ func TestLineExceeded(t *testing.T) {
 	req.Header.Add("Accept", "*/*")
 	w = httptest.NewRecorder()
 
-	ct := requestTooLargeCounter.Get()
 	handler.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
-	assert.Equal(t, ct+1, requestTooLargeCounter.Get())
 	tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
 }

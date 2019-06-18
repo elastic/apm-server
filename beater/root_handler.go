@@ -21,6 +21,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elastic/apm-server/beater/internal"
+
+	"github.com/elastic/apm-server/server"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/version"
 )
@@ -31,11 +35,6 @@ func rootHandler(secretToken string) http.Handler {
 		"build_sha":  version.Commit(),
 		"version":    version.GetDefaultVersion(),
 	}
-	detailedOkResponse := serverResponse{
-		code:    http.StatusOK,
-		counter: responseOk,
-		body:    serverInfo,
-	}
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -44,10 +43,10 @@ func rootHandler(secretToken string) http.Handler {
 		}
 
 		if isAuthorized(r, secretToken) {
-			sendStatus(w, r, detailedOkResponse)
+			internal.SendCnt(w, r, server.Result{StatusCode: http.StatusOK, ResponseBody: serverInfo})
 			return
 		}
-		sendStatus(w, r, okResponse)
+		internal.SendCnt(w, r, server.Result{StatusCode: http.StatusOK})
 	})
 	return logHandler(handler)
 }

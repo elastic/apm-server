@@ -313,7 +313,7 @@ func TestServerNoContentType(t *testing.T) {
 	req := makeTransactionRequest(t, baseUrl)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
-		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode, body(t, rsp))
+		assert.Equal(t, http.StatusUnsupportedMediaType, rsp.StatusCode, body(t, rsp))
 	}
 }
 

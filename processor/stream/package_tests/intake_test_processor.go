@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/santhosh-tekuri/jsonschema"
@@ -63,7 +64,7 @@ func (v *intakeTestProcessor) readEvents(reader *decoder.NDJSONStreamReader) ([]
 	)
 
 	for err != io.EOF {
-		e, err = reader.Read()
+		e, err, _ = reader.Read()
 		if err != nil && err != io.EOF {
 			return events, err
 		}
@@ -116,8 +117,8 @@ func (p *intakeTestProcessor) Process(buf []byte) ([]beat.Event, error) {
 		}
 	}
 
-	if len(result.Errors) > 0 {
-		return events, errors.New(result.Error())
+	if result.IsError() {
+		return events, errors.New(fmt.Sprintf("+%v", result.Body()))
 	}
 
 	return events, nil
