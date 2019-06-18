@@ -38,7 +38,7 @@ by rolling over data to new indices when the existing indices reach the specifie
 * Added Geo-IP processing to the default ingest pipeline:
 The Geo-IP pipeline takes an extracted IP address from RUM events and stores it in the `client.geo` field.
 This makes it much easier to use location data in Kibana's Visualize maps and Maps app directly.
-Pipelines must be <<register.ingest.pipeline.enabled,enabled>>.
+Pipelines must be {apm-server-ref-v}/configuration-process.html#register.ingest.pipeline.enabled[enabled].
 
 [role="screenshot"]
 image::kibana-geo-data.png[Kibana maps app]
