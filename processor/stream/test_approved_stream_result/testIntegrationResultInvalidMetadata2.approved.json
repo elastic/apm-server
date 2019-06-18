@@ -1,9 +1,4 @@
 {
     "accepted": 0,
-    "errors": [
-        {
-            "document": "{\"not\": \"metadata\"}",
-            "message": "did not recognize object type"
-        }
-    ]
+    "errors": "did not recognize object type [{\"not\": \"metadata\"}]"
 }

@@ -1,8 +1,4 @@
 {
     "accepted": 3,
-    "errors": [
-        {
-            "message": "timeout"
-        }
-    ]
+    "errors": "timeout"
 }

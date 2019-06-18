@@ -1,8 +1,4 @@
 {
     "accepted": 0,
-    "errors": [
-        {
-            "message": "server is shutting down"
-        }
-    ]
+    "errors": "server is shutting down"
 }

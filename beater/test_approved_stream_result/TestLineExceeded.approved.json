@@ -1,9 +1,4 @@
 {
     "accepted": 0,
-    "errors": [
-        {
-            "document": "{\"metadata\": {\"servi",
-            "message": "event exceeded the permitted size."
-        }
-    ]
+    "errors": "Line exceeded permitted length [{\"metadata\": {\"servi]"
 }

@@ -1,9 +1,4 @@
 {
     "accepted": 0,
-    "errors": [
-        {
-            "document": "{\"tennis-court\": {\"name\": \"Centre Court, Wimbledon\"}}",
-            "message": "did not recognize object type"
-        }
-    ]
+    "errors": "did not recognize object type [{\"tennis-court\": {\"name\": \"Centre Court, Wimbledon\"}}]"
 }

@@ -1,9 +1,4 @@
 {
     "accepted": 0,
-    "errors": [
-        {
-            "document": "{\"metadata\": {\"invalid-json\"}}",
-            "message": "data read error: invalid character '}' after object key"
-        }
-    ]
+    "errors": "data read error: invalid character '}' after object key [{\"metadata\": {\"invalid-json\"}}]"
 }
