@@ -27,7 +27,6 @@ pipeline {
     issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: '7.0.0', description: 'Elastic Stack Git branch/tag to use when running ITs.')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
     booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
     booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
@@ -392,8 +391,7 @@ pipeline {
       steps {
         log(level: 'INFO', text: 'Launching Async ITs')
         build(job: env.ITS_PIPELINE, propagate: false, wait: false,
-              parameters: [string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/${env.CHANGE_FORK}/${env.REPO}@${env.CHANGE_BRANCH}"),
+              parameters: [string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/${env.CHANGE_FORK}/${env.REPO}@${env.CHANGE_BRANCH}"),
                            string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
                            string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
                            string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
