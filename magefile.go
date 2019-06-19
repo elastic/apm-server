@@ -154,11 +154,11 @@ func TestPackagesInstall() error {
 		args = append(args, "-v")
 	}
 	args = append(args, mage.MustExpand("tests/packaging/package_test.go"))
-	args = append(args, "-files", "/var/lib/jenkins/workspace/pm-server_apm-server-mbp_PR-2268/src/github.com/elastic/apm-server/build/distributions/* ")
+	args = append(args, "-files", mage.MustExpand("{{.PWD}}/build/distributions/*"))
 	args = append(args, "-tags=package")
 
 	if out, err := goTest(args...); err != nil {
-		if !mg.Verbose() {
+		if mg.Verbose() {
 			fmt.Println(out)
 		}
 		return err
