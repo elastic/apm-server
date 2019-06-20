@@ -40,7 +40,7 @@ type Reporter func(context.Context, PendingReq) error
 // queue size. As the publisher is not waiting for the outputs ACK, the total
 // number requests(events) active in the system can exceed the queue size. Only
 // the number of concurrent HTTP requests trying to publish at the same time is limited.
-type publisher struct {
+type Publisher struct {
 	pendingRequests chan PendingReq
 	tracer          *apm.Tracer
 	client          beat.Client
@@ -54,6 +54,14 @@ type PendingReq struct {
 	Trace          bool
 }
 
+// PublisherConfig is a struct holding configuration information for the publisher,
+// such as shutdown timeout, default pipeline name and beat info.
+type PublisherConfig struct {
+	Info            beat.Info
+	ShutdownTimeout time.Duration
+	Pipeline        string
+}
+
 var (
 	ErrFull          = errors.New("queue is full")
 	ErrChannelClosed = errors.New("can't send batch, publisher is being stopped")
@@ -62,30 +70,33 @@ var (
 // newPublisher creates a new publisher instance.
 //MaxCPU new go-routines are started for forwarding events to libbeat.
 //Stop must be called to close the beat.Client and free resources.
-func NewPublisher(info beat.Info, pipeline beat.Pipeline, shutdownTimeout time.Duration, tracer *apm.Tracer) (*publisher, error) {
-	client, err := pipeline.ConnectWith(beat.ClientConfig{
-		PublishMode: beat.GuaranteedSend,
-
-		//       If set >0 `Close` will block for the duration or until pipeline is empty
-		WaitClose: shutdownTimeout,
-		Processing: beat.ProcessingConfig{
-			Fields: common.MapStr{
-				"observer": common.MapStr{
-					"type":          info.Beat,
-					"hostname":      info.Hostname,
-					"version":       info.Version,
-					"version_major": 8,
-					"id":            info.ID.String(),
-					"ephemeral_id":  info.EphemeralID.String(),
-				},
+func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer, cfg *PublisherConfig) (*Publisher, error) {
+	processingCfg := beat.ProcessingConfig{
+		Fields: common.MapStr{
+			"observer": common.MapStr{
+				"type":          cfg.Info.Beat,
+				"hostname":      cfg.Info.Hostname,
+				"version":       cfg.Info.Version,
+				"version_major": 8,
+				"id":            cfg.Info.ID.String(),
+				"ephemeral_id":  cfg.Info.EphemeralID.String(),
 			},
 		},
+	}
+	if cfg.Pipeline != "" {
+		processingCfg.Meta = map[string]interface{}{"pipeline": cfg.Pipeline}
+	}
+	client, err := pipeline.ConnectWith(beat.ClientConfig{
+		PublishMode: beat.GuaranteedSend,
+		// If set >0 `Close` will block for the duration or until pipeline is empty
+		WaitClose:  cfg.ShutdownTimeout,
+		Processing: processingCfg,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	p := &publisher{
+	p := &Publisher{
 		tracer: tracer,
 		client: client,
 
@@ -101,14 +112,15 @@ func NewPublisher(info beat.Info, pipeline beat.Pipeline, shutdownTimeout time.D
 	return p, nil
 }
 
-func (p *publisher) Client() beat.Client {
+// Client returns the beat client used by the publisher
+func (p *Publisher) Client() beat.Client {
 	return p.client
 }
 
 // Stop closes all channels and waits for the the worker to stop.
 // The worker will drain the queue on shutdown, but no more pending requests
 // will be published.
-func (p *publisher) Stop() {
+func (p *Publisher) Stop() {
 	p.m.Lock()
 	p.stopped = true
 	p.m.Unlock()
@@ -119,7 +131,7 @@ func (p *publisher) Stop() {
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,
 // an error is returned.
 // Calling send after Stop will return an error.
-func (p *publisher) Send(ctx context.Context, req PendingReq) error {
+func (p *Publisher) Send(ctx context.Context, req PendingReq) error {
 	p.m.RLock()
 	defer p.m.RUnlock()
 	if p.stopped {
@@ -136,13 +148,13 @@ func (p *publisher) Send(ctx context.Context, req PendingReq) error {
 	}
 }
 
-func (p *publisher) run() {
+func (p *Publisher) run() {
 	for req := range p.pendingRequests {
 		p.processPendingReq(req)
 	}
 }
 
-func (p *publisher) processPendingReq(req PendingReq) {
+func (p *Publisher) processPendingReq(req PendingReq) {
 	var tx *apm.Transaction
 	if req.Trace {
 		tx = p.tracer.StartTransaction("ProcessPending", "Publisher")

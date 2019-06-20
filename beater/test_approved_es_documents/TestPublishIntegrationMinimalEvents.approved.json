@@ -3,6 +3,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "8.0.0"
             },
@@ -46,6 +47,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "8.0.0"
             },
@@ -91,6 +93,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "8.0.0"
             },
@@ -136,6 +139,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "8.0.0"
             },
@@ -186,6 +190,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "8.0.0"
             },
@@ -233,6 +238,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "8.0.0"
             },
@@ -283,6 +289,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "8.0.0"
             },

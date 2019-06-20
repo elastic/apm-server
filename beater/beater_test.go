@@ -94,7 +94,6 @@ func TestBeatConfig(t *testing.T) {
 				"register": map[string]interface{}{
 					"ingest": map[string]interface{}{
 						"pipeline": map[string]interface{}{
-							"enabled":   true,
 							"overwrite": false,
 							"path":      filepath.Join("tmp", "definition.json"),
 						},
@@ -144,7 +143,8 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana: common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
+				Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
+				pipeline: defaultAPMPipeline,
 			},
 		},
 		"merge config with default": {
@@ -214,12 +214,13 @@ func TestBeatConfig(t *testing.T) {
 					Ingest: &ingestConfig{
 						Pipeline: &pipelineConfig{
 							Enabled:   &falsy,
-							Overwrite: nil,
+							Overwrite: &truthy,
 							Path:      filepath.Join("ingest", "pipeline", "definition.json"),
 						},
 					},
 				},
-				Kibana: common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+				Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+				pipeline: defaultAPMPipeline,
 			},
 		},
 	}

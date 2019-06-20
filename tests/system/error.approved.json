@@ -209,7 +209,11 @@
                 "email": "foo@example.com"
             },
             "user_agent": {
-                "original": "Mozilla Chrome Edge"
+                "original": "Mozilla Chrome Edge",
+                "name": "Other",
+                "device": {
+                    "name": "Other"
+                }
             },
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",

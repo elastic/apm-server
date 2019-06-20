@@ -38,6 +38,7 @@ class BaseTest(TestCase):
         cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
         cls.indices = [cls.index_onboarding, cls.index_error,
                        cls.index_transaction, cls.index_span, cls.index_metric, cls.index_smap]
+
         super(BaseTest, cls).setUpClass()
 
     @classmethod
@@ -68,8 +69,9 @@ class BaseTest(TestCase):
 
 
 class ServerSetUpBaseTest(BaseTest):
-    intake_url = 'http://localhost:8200/intake/v2/events'
-    expvar_url = 'http://localhost:8200/debug/vars'
+    host = "http://localhost:8200"
+    intake_url = "{}/{}".format(host, 'intake/v2/events')
+    expvar_url = "{}/{}".format(host, 'debug/vars')
 
     def config(self):
         return {"ssl_enabled": "false",
@@ -175,15 +177,11 @@ class ElasticTest(ServerBaseTest):
 
         # Cleanup pipelines
         self.es.ingest.delete_pipeline(id="*")
-        # Write empty default pipeline
-        self.es.ingest.put_pipeline(
-            id="apm",
-            body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: self.es.ingest.get_pipeline("apm"))
 
         super(ElasticTest, self).setUp()
 
-    def load_docs_with_template(self, data_path, url, endpoint, expected_events_count, query_index=None):
+    def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
+                                query_index=None, max_timeout=10):
 
         if query_index is None:
             query_index = self.index_name_pattern
@@ -197,7 +195,7 @@ class ElasticTest(ServerBaseTest):
         # make sure template is loaded
         self.wait_until(
             lambda: self.log_contains("Finished loading index template"),
-            max_timeout=20)
+            max_timeout=max_timeout)
         self.wait_until(lambda: self.es.indices.exists(query_index))
         # Quick wait to give documents some time to be sent to the index
         # This is not required but speeds up the tests
@@ -207,7 +205,8 @@ class ElasticTest(ServerBaseTest):
         self.wait_until(
             lambda: (self.es.count(index=query_index, body={
                 "query": {"term": {"processor.name": endpoint}}}
-            )['count'] == expected_events_count)
+            )['count'] == expected_events_count),
+            max_timeout=max_timeout
         )
 
     def check_backend_error_sourcemap(self, index, count=1):
