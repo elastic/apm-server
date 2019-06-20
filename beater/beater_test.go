@@ -144,7 +144,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 				Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
-				pipeline: "apm",
+				pipeline: defaultAPMPipeline,
 			},
 		},
 		"merge config with default": {
@@ -220,7 +220,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 				Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				pipeline: "apm",
+				pipeline: defaultAPMPipeline,
 			},
 		},
 	}

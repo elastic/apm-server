@@ -33,7 +33,12 @@ import (
 	"github.com/elastic/beats/libbeat/paths"
 )
 
-const DefaultPort = "8200"
+const (
+	// DefaultPort of APM Server
+	DefaultPort = "8200"
+
+	defaultAPMPipeline = "apm"
+)
 
 type Config struct {
 	Host                string                  `config:"host"`
@@ -279,6 +284,6 @@ func defaultConfig(beatVersion string) *Config {
 		},
 		Mode:     ModeProduction,
 		Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		pipeline: "apm",
+		pipeline: defaultAPMPipeline,
 	}
 }
