@@ -44,6 +44,24 @@ sudo -u apm-server apm-server [<argument...>]
 By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
 See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
 
+[float]
+[[running-brew]]
+=== Brew
+
+To start APM Server, run:
+
+["source","sh"]
+-----
+apm-server -e
+-----
+
+To have launchd start APM Server and restart it at login, run:
+
+["source","sh"]
+-----
+brew services start elastic/tap/apm-server-full
+-----
+
 [[apm-server-configuration]]
 === Configuration file
 To configure APM Server, you can also update the `apm-server.yml` configuration file.
