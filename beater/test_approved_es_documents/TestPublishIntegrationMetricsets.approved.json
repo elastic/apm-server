@@ -3,6 +3,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "7.3.0"
             },
@@ -90,6 +91,7 @@
         {
             "@metadata": {
                 "beat": "apm-test",
+                "pipeline": "apm",
                 "type": "_doc",
                 "version": "7.3.0"
             },
