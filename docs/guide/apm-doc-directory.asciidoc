@@ -18,6 +18,7 @@ Each agent has its own documentation:
 
 * {apm-go-ref}/introduction.html[Go agent]
 * {apm-java-ref}/intro.html[Java agent]
+* {apm-dotnet-ref-v}/intro.html[.NET agent]
 * {apm-node-ref}/intro.html[Node.js agent]
 * {apm-py-ref}/getting-started.html[Python agent]
 * {apm-ruby-ref}/introduction.html[Ruby agent]
