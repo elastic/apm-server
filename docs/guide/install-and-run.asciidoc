@@ -88,7 +88,7 @@ please see the full {apm-server-ref-v}/index.html[APM Server documentation].
 === Install and configure APM agents
 
 Agents are written in the same language as your service.
-Currently Elastic APM has agents for Go, Java, Node.js, Python, Ruby, and JavaScript RUM.
+Currently Elastic APM has agents for Go, Java, .NET, Node.js, Python, Ruby, and JavaScript RUM.
 
 // todo: fix this sentence
 Setting up a new service to be monitored requires installing the agent,
@@ -112,6 +112,12 @@ NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>>
 |{apm-java-ref}/intro.html[Introduction]
 |{apm-java-ref}/supported-technologies-details.html[Supported technologies]
 |{apm-java-ref}/configuration.html[Config]
+
+.2+|.NET
+3+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
+|{apm-dotnet-ref-v}/intro.html[Introduction]
+|
+|{apm-dotnet-ref-v}/configuration.html[Config]
 
 .2+|Node.js
 3+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
