@@ -27,17 +27,19 @@ Each agent has its own documentation:
 [float]
 === APM Server
 
-APM Server is an open source application written in Go which typically runs on dedicated servers.
-It's a {apm-server-ref-v}/why-separate-component.html[separate component by design].
-This helps keep the agents light, prevents certain security risks,
-and improves compatibility across the Elastic and APM Stack.  
+APM Server is an open source application that receives performance data from your APM agents.
+It's a {apm-server-ref-v}/why-separate-component.html[separate component by design],
+which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.  
 
-APM Server listens on port 8200 by default and receives data from agents through the JSON HTTP
-{apm-server-ref-v}/intake-api.html[Intake API].
 After the APM Server has validated and processed events from the APM agents,
-the server transforms the data into Elasticsearch documents and stores them in corresponding {apm-server-ref-v}/exploring-es-data.html[Elasticsearch indices].
-In a matter of seconds you can start viewing your application performance data in Kibana.
+the server transforms the data into Elasticsearch documents and stores them in corresponding
+{apm-server-ref-v}/exploring-es-data.html[Elasticsearch indices].
+In a matter of seconds you can start viewing your application performance data in the Kibana APM UI.
 
+// Todo: Change these links to include APM Server on Cloud installation
+// The easiest way to get started with Elastic APM is by using our
+// https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
+// Elastic Cloud 
 The {apm-server-ref-v}/index.html[APM Server reference] provides everything you need when it comes to working with the server.
 Here you can learn about {apm-server-ref-v}/installing.html[installation],
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuration],
@@ -54,7 +56,7 @@ Elasticsearch is used to store APM performance metrics and make use of its aggre
 [float]
 === APM Kibana UI
 
-Kibana is an open source analytics and visualization platform designed to work with Elasticsearch.
+{kibana-ref}/index.html[Kibana] is an open source analytics and visualization platform designed to work with Elasticsearch.
 You use Kibana to search, view, and interact with data stored in Elasticsearch.
 
 Since application performance monitoring is all about visualizing data and detecting bottlenecks,
@@ -66,5 +68,3 @@ The following sections will help you get started:
 * {kibana-ref}/apm-ui.html[Using the APM UI]
 
 APM also has built-in integrations with Machine Learning. To learn more about this feature, refer to the Kibana UI documentation for {kibana-ref}/machine-learning-integration.html[Machine learning integration].
-
-TIP: If you'd like to dive deeper into Kibana, the general {kibana-ref}/index.html[Kibana documentation] is also helpful.

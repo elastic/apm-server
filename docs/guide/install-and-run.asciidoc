@@ -5,7 +5,6 @@ The easiest way to get started with Elastic APM is by using our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud. The {es} Service is available on both AWS and GCP,
 and automatically configures APM Server to work with {es} and {kib}.
-Additional {cloud}/ec-manage-apm-settings.html[APM user settings] are also available.
 
 Alternatively, you can install the stack yourself.
 
@@ -19,7 +18,7 @@ https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud.
 
 https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free],
-then skip straight to <<agents>>.
+then jump straight to <<agents>>.
 
 [float]
 [[before-installation]]
@@ -43,10 +42,10 @@ We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
 
 Install an Elasticsearch cluster, start it up, and make sure it's running.
 
-* Verify that your system meets the
+. Verify that your system meets the
 https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {es}.
-* {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[Install Elasticsearch].
-* {stack-gs}/get-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running].
+. {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[Install Elasticsearch].
+. {stack-gs}/get-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running].
 
 [[install-kibana]]
 === Step 2: Install Kibana
@@ -56,18 +55,18 @@ https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {
 
 Install Kibana, start it up, and open up the web interface:
 
-* {stack-gs}/get-started-elastic-stack.html#install-kibana[Install Kibana].
-* {stack-gs}/get-started-elastic-stack.html#_launch_the_kibana_web_interface[Launch the Kibana Web Interface].
+. {stack-gs}/get-started-elastic-stack.html#install-kibana[Install Kibana].
+. {stack-gs}/get-started-elastic-stack.html#_launch_the_kibana_web_interface[Launch the Kibana Web Interface].
 
 [[apm-server]]
 === Step 3: Install APM Server
 
-Let's get APM Server up and running.
+Install, set up, and run APM Server.
 
-* {apm-server-ref-v}/installing.html[Install APM Server].
-* {apm-server-ref-v}/setting-up-and-running.html[Set up and Run APM Server].
+. {apm-server-ref-v}/installing.html[Install APM Server].
+. {apm-server-ref-v}/setting-up-and-running.html[Set up and Run APM Server].
 
-Use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
+Next, use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
 or if you need to specify credentials:
 
 * {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
@@ -162,7 +161,9 @@ Make sure you choose a good service name before you get started.
 The service name can only contain alphanumeric characters,
 spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
-=== What now?
-
+=== Step 5: Configure
+// todo: improve this section
 You're now up and running with Elastic APM!
 Don't forget to check out the <<components>> and <<apm-data-model>> documentation to gain a deeper understanding of how Elastic APM works. 
+
+Additional {cloud}/ec-manage-apm-settings.html[APM user settings] are also available.

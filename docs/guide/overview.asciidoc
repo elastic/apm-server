@@ -2,17 +2,18 @@
 == Overview
 
 Elastic APM is an application performance monitoring system built on the Elastic Stack.
-It allows you to monitor software services and applications in real time,
-collecting detailed performance information on response time for incoming requests,
-database queries, calls to caches, external HTTP requests,
-etc.
-This makes it easier to pinpoint and fix performance problems quickly.
+It allows you to monitor software services and applications in real time --
+collect detailed performance information on response time for incoming requests,
+database queries, calls to caches, external HTTP requests, and more.
+This makes it easy to pinpoint and fix performance problems quickly.
 
 Elastic APM also automatically collects unhandled errors and exceptions.
 Errors are grouped based primarily on the stacktrace,
-so you can identify new errors as they appear and keep an eye on how many times specific errors happen. 
+so you can identify new errors as they appear and keep an eye on how many times specific errors happen.
 
-NOTE: This guide will indiscriminately use the word "service" for both services and applications.
+Metrics are another important source of information when debugging production systems.
+Elastic APM agents automatically pick up basic host-level metrics and agent specific metrics,
+like JVM metrics in the Java Agent, and Go runtime metrics in the Go Agent.
 
 Gain a deeper understanding of the Elastic APM ecosystem by reading the following topics:
 
@@ -24,3 +25,5 @@ Gain a deeper understanding of the Elastic APM ecosystem by reading the followin
 * <<opentracing>>
 * <<agent-server-compatibility>>
 * <<troubleshooting>>
+
+NOTE: This guide will indiscriminately use the word "service" for both services and applications.
