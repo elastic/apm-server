@@ -114,7 +114,7 @@ NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>>
 |{apm-java-ref}/configuration.html[Config]
 
 .2+|.NET
-3+|The .NET agent automatically instruments ASP.NET Core, while the Full framework can be instrumented with the public API.
+3+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
 |{apm-dotnet-ref-v}/intro.html[Introduction]
 |
 |{apm-dotnet-ref-v}/configuration.html[Config]
