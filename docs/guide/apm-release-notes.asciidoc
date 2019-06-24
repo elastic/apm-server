@@ -50,6 +50,13 @@ image::kibana-geo-data.png[Kibana maps app]
 You can now easily name and switch between environments in the APM UI.
 * Added support for {kibana-ref}/metrics.html[agent specific metrics]:
 Java is the first agent to get custom metrics in the APM UI, with more agents to follow.
+
+*APM agents*
+
+* The .NET agent is now in beta!
+The {apm-dotnet-ref-v}/intro.html[.Net agent] automatically instruments applications using ASP.NET Core 2.x+
+and Entity Framework Core 2.x+.
+Other frameworks can be manually instrumented using the {apm-dotnet-ref-v}/public-api.html[Public API].
 // end::notable-v72-highlights[]
 
 [[release-highlights-7.1.0]]
