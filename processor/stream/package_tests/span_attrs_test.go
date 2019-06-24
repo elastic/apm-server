@@ -66,6 +66,7 @@ func spanFieldsNotInPayloadAttrs() *tests.Set {
 			tests.Group("client"),
 			tests.Group("http"),
 			tests.Group("url"),
+			tests.Group("span.self_time"),
 			"experimental",
 		),
 		// not valid for the span context

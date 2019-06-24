@@ -1116,6 +1116,28 @@ Indicates whether the span was executed synchronously or asynchronously.
 
 --
 
+[float]
+== self_time fields
+
+Portion of the span's duration where no direct child was running
+
+
+
+*`span.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 
@@ -1136,6 +1158,21 @@ type: long
 
 Total duration of this transaction, in microseconds.
 
+
+--
+
+*`transaction.duration.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.duration.sum.us`*::
++
+--
+type: long
 
 --
 
@@ -1173,6 +1210,42 @@ type: object
 type: long
 
 The total amount of dropped spans for this transaction.
+
+--
+
+[float]
+== self_time fields
+
+Portion of the transaction's duration where no direct child was running
+
+
+
+*`transaction.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+== breakdown fields
+
+Counter for collected breakdowns for the transaction
+
+
+
+*`transaction.breakdown.count`*::
++
+--
+type: long
 
 --
 

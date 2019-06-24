@@ -46,6 +46,17 @@ var (
 	Metrics         = monitoring.Default.NewRegistry("apm-server.processor.metric", monitoring.PublishExpvar)
 	transformations = monitoring.NewInt(Metrics, "transformations")
 	processorEntry  = common.MapStr{"name": processorName, "event": docType}
+
+	knownSpanSampleAttrs = []string{
+		"span.self_time.count",
+		"span.self_time.sum.us",
+	}
+	knownTransactionSampleAttrs = []string{
+		"transaction.self_time.count",
+		"transaction.self_time.sum.us",
+		"transaction.duration.sum.us",
+		"transaction.breakdown.count",
+	}
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metricset")
@@ -164,6 +175,7 @@ func (md *metricsetDecoder) decodeSpan(input interface{}) *Span {
 		Subtype: md.StringPtr(raw, "subtype"),
 	}
 }
+
 func (md *metricsetDecoder) decodeTransaction(input interface{}) *Transaction {
 	if input == nil {
 		return nil
@@ -206,21 +218,34 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 		return nil
 	}
 
+	sampleSpanFields := common.MapStr{"span": common.MapStr{}}
+	sampleTransactionFields := common.MapStr{"transaction": common.MapStr{}}
+
 	fields := common.MapStr{}
 	for _, sample := range me.Samples {
-		if _, err := fields.Put(sample.Name, sample.Value); err != nil {
+		if utility.Contains(sample.Name, knownSpanSampleAttrs) {
+			sampleSpanFields.Put(sample.Name, sample.Value)
+		} else if utility.Contains(sample.Name, knownTransactionSampleAttrs) {
+			sampleTransactionFields.Put(sample.Name, sample.Value)
+		} else if _, err := fields.Put(sample.Name, sample.Value); err != nil {
 			logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
 			continue
 		}
 	}
+
+	transactionFields := me.Transaction.fields()
+	transactionFields.DeepUpdate(sampleTransactionFields["transaction"].(common.MapStr))
+
+	spanFields := me.Span.fields()
+	spanFields.DeepUpdate(sampleSpanFields["span"].(common.MapStr))
 
 	fields["processor"] = processorEntry
 	tctx.Metadata.Set(fields)
 
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", me.Labels)
-	utility.DeepUpdate(fields, transactionKey, me.Transaction.fields())
-	utility.DeepUpdate(fields, spanKey, me.Span.fields())
+	utility.DeepUpdate(fields, transactionKey, transactionFields)
+	utility.DeepUpdate(fields, spanKey, spanFields)
 
 	if me.Timestamp.IsZero() {
 		me.Timestamp = tctx.RequestTime

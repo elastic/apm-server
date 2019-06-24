@@ -16,6 +16,17 @@
               description: >
                 Total duration of this transaction, in microseconds.
 
+            - name: count
+              type: long
+              count: 1
+
+            - name: sum
+              type: group
+              fields:
+                - name: us
+                  type: long
+                  count: 1
+
         - name: result
           type: keyword
           description: >
@@ -34,10 +45,34 @@
           scaling_factor: 1000000
           dynamic: true
 
-
         - name: span_count
           type: group
           fields:
             - name: dropped
               type: long
               description: The total amount of dropped spans for this transaction.
+
+        - name: self_time
+          type: group
+          description: >
+            Portion of the transaction's duration where no direct child was running
+          fields:
+            - name: count
+              type: long
+              count: 1
+
+            - name: sum
+              type: group
+              fields:
+                - name: us
+                  type: long
+                  count: 1
+
+        - name: breakdown
+          type: group
+          description: >
+            Counter for collected breakdowns for the transaction
+          fields:
+            - name: count
+              type: long
+              count: 1

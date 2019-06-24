@@ -91,6 +91,61 @@ const ModelSchema = `{
     "required": ["value"]
                         }
                     },
+                    "properties": {
+                        "transaction": {
+                            "type": ["object", "null"],
+                            "properties": {
+                                "duration": {
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "properties": {
+                                        "count": {
+                                            "type": "number"
+                                        },
+                                        "sum.us": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "breakdown.count": {
+                                    "type": "number"
+                                },
+                                "self_time": {
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "properties": {
+                                        "count": {
+                                            "type": "number"
+                                        },
+                                        "sum.us": {
+                                            "type": "number"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "span": {
+                            "type": ["object", "null"],
+                            "self_time": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "count": {
+                                        "type": "number"
+                                    },
+                                    "sum.us": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "additionalProperties": false
                 },
                 "tags": {
