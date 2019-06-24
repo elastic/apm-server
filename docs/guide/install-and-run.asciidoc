@@ -107,15 +107,15 @@ NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>>
 
 .2+|Go
 3+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
-|{apm-go-ref}/introduction.html[Introduction]
-|{apm-go-ref}/supported-tech.html[Supported technologies]
-|{apm-go-ref}/configuration.html[Config]
+|{apm-go-ref-v}/introduction.html[Introduction]
+|{apm-go-ref-v}/supported-tech.html[Supported technologies]
+|{apm-go-ref-v}/configuration.html[Config]
 
 .2+|Java
 3+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
-|{apm-java-ref}/intro.html[Introduction]
-|{apm-java-ref}/supported-technologies-details.html[Supported technologies]
-|{apm-java-ref}/configuration.html[Config]
+|{apm-java-ref-v}/intro.html[Introduction]
+|{apm-java-ref-v}/supported-technologies-details.html[Supported technologies]
+|{apm-java-ref-v}/configuration.html[Config]
 
 .2+|.NET
 3+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
@@ -125,27 +125,27 @@ NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>>
 
 .2+|Node.js
 3+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
-|{apm-node-ref}/intro.html[Introduction]
-|{apm-node-ref}/supported-technologies.html[Supported technologies]
-|{apm-node-ref}/configuring-the-agent.html[Config]
+|{apm-node-ref-v}/intro.html[Introduction]
+|{apm-node-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-node-ref-v}/configuring-the-agent.html[Config]
 
 .2+|Python
 3+|The Python agent automatically instruments Django and Flask out of the box.
-|{apm-py-ref}/getting-started.html[Getting Started]
-|{apm-py-ref}/supported-technologies.html[Supported technologies]
-|{apm-py-ref}/configuration.html[Config]
+|{apm-py-ref-v}/getting-started.html[Getting Started]
+|{apm-py-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-py-ref-v}/configuration.html[Config]
 
 .2+|Ruby
 3+|The Ruby agent automatically instruments Rails out of the box.
-|{apm-ruby-ref}/introduction.html[Introduction]
-|{apm-ruby-ref}/supported-technologies.html[Supported technologies]
-|{apm-ruby-ref}/configuration.html[Config]
+|{apm-ruby-ref-v}/introduction.html[Introduction]
+|{apm-ruby-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-ruby-ref-v}/configuration.html[Config]
 
 .2+|RUM
 3+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
-|{apm-rum-ref}/intro.html[Introduction]
-|{apm-rum-ref}/supported-technologies.html[Supported technologies]
-|{apm-rum-ref}/configuration.html[Config]
+|{apm-rum-ref-v}/intro.html[Introduction]
+|{apm-rum-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-rum-ref-v}/configuration.html[Config]
 |=======================================================================
 
 [[choose-service-name]]

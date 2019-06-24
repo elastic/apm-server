@@ -16,13 +16,13 @@ This data is buffered for a short period and sent on to APM Server.
 
 Each agent has its own documentation:
 
-* {apm-go-ref}/introduction.html[Go agent]
-* {apm-java-ref}/intro.html[Java agent]
+* {apm-go-ref-v}/introduction.html[Go agent]
+* {apm-java-ref-v}/intro.html[Java agent]
 * {apm-dotnet-ref-v}/intro.html[.NET agent]
-* {apm-node-ref}/intro.html[Node.js agent]
-* {apm-py-ref}/getting-started.html[Python agent]
-* {apm-ruby-ref}/introduction.html[Ruby agent]
-* {apm-rum-ref}/intro.html[JavaScript Real User Monitoring (RUM) agent]
+* {apm-node-ref-v}/intro.html[Node.js agent]
+* {apm-py-ref-v}/getting-started.html[Python agent]
+* {apm-ruby-ref-v}/introduction.html[Ruby agent]
+* {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
 [float]
 === APM Server
