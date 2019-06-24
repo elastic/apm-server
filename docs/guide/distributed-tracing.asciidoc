@@ -14,4 +14,4 @@ The APM UI in Kibana also supports distributed tracing.
 The Timeline visualization has been redesigned to show all of the transactions from individual services that are connected in a trace:
 
 [role="screenshot"]
-image::distributed-tracing.jpg[distribute tracing in the UI]
+image::images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
