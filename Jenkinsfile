@@ -367,7 +367,7 @@ pipeline {
         expression { return params.kibana_update_ci }
       }
       steps {
-        withGithubNotify(context: 'Synk Kibana') {
+        withGithubNotify(context: 'Sync Kibana') {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
