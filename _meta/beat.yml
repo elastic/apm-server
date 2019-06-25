@@ -4,7 +4,7 @@
 
 apm-server:
   # Defines the host and port the server is listening on.  use "unix:/path/to.sock" to listen on a unix domain socket.
-  host: "localhost:8200"
+  host: "{{ .listen_hostport }}"
 
   # Maximum permitted size in bytes of a request's header accepted by the server to be processed.
   #max_header_size: 1048576
@@ -324,7 +324,7 @@ output.elasticsearch:
   # Scheme and port can be left out and will be set to the default (http and 9200)
   # In case you specify and additional path, the scheme is required: http://localhost:9200/path
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
-  hosts: ["localhost:9200"]
+  hosts: ["{{ .elasticsearch_hostport }}"]
 
   # Boolean flag to enable or disable the output module.
   #enabled: true
