@@ -24,6 +24,16 @@ Below is a chart that outlines the compatibility between different versions of t
 |=======================================================================
 
 [float]
+[[dotnet-compatibility]]
+==== .NET Agent Compatibility
+
+[options="header"]
+|=======================================================================
+|Agent Version |APM Server Version
+|1.0.0-beta1 |>= 6.5
+|=======================================================================
+
+[float]
 [[nodejs-compatibility]]
 ==== Node.js Agent Compatibility
 
