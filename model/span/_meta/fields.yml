@@ -40,29 +40,15 @@
         - name: duration
           type: group
           fields:
+
             - name: us
               type: long
               count: 1
               description: >
                 Duration of the span, in microseconds.
 
-        - name: sync 
+        - name: sync
           type: boolean
           description: >
             Indicates whether the span was executed synchronously or asynchronously.
 
-        - name: self_time
-          type: group
-          description: >
-            Portion of the span's duration where no direct child was running
-          fields:
-            - name: count
-              type: long
-              count: 1
-
-            - name: sum
-              type: group
-              fields:
-                - name: us
-                  type: long
-                  count: 1

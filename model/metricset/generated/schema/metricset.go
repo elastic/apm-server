@@ -96,33 +96,42 @@ const ModelSchema = `{
                             "type": ["object", "null"],
                             "properties": {
                                 "duration": {
-                                    "type": [
-                                        "object",
-                                        "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                         "count": {
-                                            "type": "number"
+                                            "type": ["number", "null"]
                                         },
-                                        "sum.us": {
-                                            "type": "number"
+                                        "sum": {
+                                            "type": ["object", "null"],
+                                            "properties": {
+                                                "us": {
+                                                    "type": ["number", "null"]
+                                                }
+                                            }
                                         }
                                     }
                                 },
-                                "breakdown.count": {
-                                    "type": "number"
-                                },
-                                "self_time": {
-                                    "type": [
-                                        "object",
-                                        "null"
-                                    ],
+                                "breakdown": {
+                                    "type": ["object", "null"],
                                     "properties": {
                                         "count": {
-                                            "type": "number"
+                                            "type": ["number", "null"]
+                                        }
+                                    }
+                                },
+                                "self_time": {
+                                    "type": ["object", "null"],
+                                    "properties": {
+                                        "count": {
+                                            "type": ["number", "null"]
                                         },
-                                        "sum.us": {
-                                            "type": "number"
+                                        "sum": {
+                                            "type": ["object", "null"],
+                                            "properties": {
+                                                "us": {
+                                                    "type": ["number", "null"]
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -131,16 +140,18 @@ const ModelSchema = `{
                         "span": {
                             "type": ["object", "null"],
                             "self_time": {
-                                "type": [
-                                    "object",
-                                    "null"
-                                ],
+                                "type": ["object", "null"],
                                 "properties": {
                                     "count": {
-                                        "type": "number"
+                                        "type":  ["number", "null"]
                                     },
-                                    "sum.us": {
-                                        "type": "number"
+                                    "sum": {
+                                        "type": ["object", "null"],
+                                        "properties": {
+                                            "us": {
+                                                "type": ["number", "null"]
+                                            }
+                                        }
                                     }
                                 }
                             }
