@@ -27,6 +27,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -58,6 +59,7 @@ type Config struct {
 	Register            *registerConfig         `config:"register"`
 	Mode                Mode                    `config:"mode"`
 	Kibana              *common.Config          `config:"kibana"`
+	RemoteConfig        *remoteConfig           `config:"remote_config"`
 
 	pipeline string
 }
@@ -95,6 +97,10 @@ type pipelineConfig struct {
 	Enabled   *bool `config:"enabled"`
 	Overwrite *bool `config:"overwrite"`
 	Path      string
+}
+
+type remoteConfig struct {
+	AgentConfig *agentcfg.Config `config:"agent"`
 }
 
 type SourceMapping struct {
@@ -282,8 +288,9 @@ func defaultConfig(beatVersion string) *Config {
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
 		},
-		Mode:     ModeProduction,
-		Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		pipeline: defaultAPMPipeline,
+		Mode:         ModeProduction,
+		Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+		RemoteConfig: &remoteConfig{AgentConfig: &agentcfg.Config{CacheExpiration: 10 * time.Second}},
+		pipeline:     defaultAPMPipeline,
 	}
 }

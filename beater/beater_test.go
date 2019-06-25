@@ -40,6 +40,8 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/processing"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
+
+	"github.com/elastic/apm-server/agentcfg"
 )
 
 func TestBeatConfig(t *testing.T) {
@@ -99,7 +101,8 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 				},
-				"kibana": map[string]interface{}{"enabled": "true"},
+				"kibana":                               map[string]interface{}{"enabled": "true"},
+				"remote_config.agent.cache.expiration": "2m",
 			},
 			beaterConf: &Config{
 				Host:            "localhost:3000",
@@ -143,8 +146,9 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
-				pipeline: defaultAPMPipeline,
+				Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
+				RemoteConfig: &remoteConfig{AgentConfig: &agentcfg.Config{CacheExpiration: 2 * time.Minute}},
+				pipeline:     defaultAPMPipeline,
 			},
 		},
 		"merge config with default": {
@@ -219,8 +223,9 @@ func TestBeatConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana:   common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				pipeline: defaultAPMPipeline,
+				Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+				RemoteConfig: &remoteConfig{AgentConfig: &agentcfg.Config{CacheExpiration: 10 * time.Second}},
+				pipeline:     defaultAPMPipeline,
 			},
 		},
 	}

@@ -18,29 +18,57 @@
 package agentcfg
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/pkg/errors"
+	"sync"
+	"time"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/kibana"
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/convert"
-	"github.com/elastic/beats/libbeat/kibana"
 )
 
-const endpoint = "/api/apm/settings/cm/search"
+const (
+	endpoint = "/api/apm/settings/cm/search"
+)
 
-var minVersion = common.Version{Major: 7, Minor: 3}
+var (
+	minVersion = common.Version{Major: 7, Minor: 3}
+	once       sync.Once
+	docCache   *cache
+)
+
+// Config holds any configurable information related to agent remote config handling.git
+type Config struct {
+	CacheExpiration time.Duration `config:"cache.expiration"`
+}
 
 // Fetch retrieves agent configuration from Kibana
-func Fetch(kbClient *kibana.Client, q Query, err error) (map[string]string, string, error) {
-	var doc Doc
-	resultBytes, err := request(kbClient, convert.ToReader(q), err)
-	err = convert.FromBytes(resultBytes, &doc, err)
-	return doc.Source.Settings, doc.ID, err
+func Fetch(kbClient *kibana.Client, config *Config, q Query, err error) (map[string]string, string, error) {
+
+	once.Do(func() {
+		logger := logp.NewLogger("agentcfg")
+		docCache = newCache(logger)
+	})
+
+	req := func(query Query) (*Doc, error) {
+		var doc Doc
+		resultBytes, err := request(kbClient, convert.ToReader(query), err)
+		err = convert.FromBytes(resultBytes, &doc, err)
+		return &doc, err
+	}
+
+	doc, err := docCache.fetchAndAdd(q, req, config.CacheExpiration)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return doc.Source.Settings, doc.ID, nil
 }
 
 func request(kbClient *kibana.Client, r io.Reader, err error) ([]byte, error) {
