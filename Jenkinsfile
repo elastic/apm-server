@@ -371,7 +371,9 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh './script/jenkins/sync.sh'
+            catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
+              sh './script/jenkins/sync.sh'
+            }
           }
         }
       }
