@@ -69,12 +69,9 @@ endif
 is-beats-updated: python-env
 	@$(PYTHON_ENV)/bin/python ./script/is_beats_updated.py ${BEATS_VERSION}
 
-apm-server.docker.yml: _meta/beat.yml
-	@sed -E -e 's/^  hosts: \["localhost:9200"\]/  hosts: ["elasticsearch:9200"]/' -e 's/  host: "localhost:8200"/  host: "0.0.0.0:8200"/' < _meta/beat.yml > apm-server.docker.yml
-
 # Collects all dependencies and then calls update
 .PHONY: collect
-collect: fields go-generate add-headers create-docs notice apm-server.docker.yml
+collect: fields go-generate add-headers create-docs notice
 
 .PHONY: go-generate
 go-generate:
