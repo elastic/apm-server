@@ -3,8 +3,14 @@
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
 
-* <<breaking-7.0.0, APM version 7.0.0>>
-* <<breaking-6.4.0, APM version 6.4.0>>
+* <<breaking-7.2.0>>
+* <<breaking-7.1.0>>
+* <<breaking-7.0.0>>
+* <<breaking-6.8.0>>
+* <<breaking-6.7.0>>
+* <<breaking-6.6.0>>
+* <<breaking-6.5.0>>
+* <<breaking-6.4.0>>
 
 Also see <<apm-release-notes>>.
 
@@ -14,8 +20,22 @@ Also see <<apm-release-notes>>.
 
 // end::notable-v8-breaking-changes[]
 
+// tag::notable-v7-breaking-changes[]
+
+// end::notable-v7-breaking-changes[]
+
+[[breaking-7.2.0]]
+=== 7.2.0 APM Breaking changes
+
+No breaking changes.
+
+[[breaking-7.1.0]]
+=== 7.1.0 APM Breaking changes
+
+No breaking changes.
+
 [[breaking-7.0.0]]
-=== Breaking changes in 7.0.0
+=== 7.0.0 APM Breaking changes
 
 APM Server::
 +
@@ -49,8 +69,28 @@ The migration assistant will reindex your older data in the new ECS format.
 
 include::../field-name-changes.asciidoc[]
 
+[[breaking-6.8.0]]
+=== 6.8.0 APM Breaking changes
+
+No breaking changes.
+
+[[breaking-6.7.0]]
+=== 6.7.0 APM Breaking changes
+
+No breaking changes.
+
+[[breaking-6.6.0]]
+=== 6.6.0 APM Breaking changes
+
+No breaking changes.
+
+[[breaking-6.5.0]]
+=== 6.5.0 APM Breaking changes
+
+No breaking changes.
+
 [[breaking-6.4.0]]
-=== Breaking changes in 6.4.0
+=== 6.4.0 APM Breaking changes
 
 We previously split APM data into separate indices (transaction, span, error, etc.).
 In 6.4 APM Kibana UI starts to leverage those separate indices for queries.

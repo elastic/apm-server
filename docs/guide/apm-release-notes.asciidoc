@@ -17,15 +17,47 @@ For a full list of changes, see the
 * <<release-notes-6.4.1>>
 * <<release-notes-6.4.0>>
 
+//NOTE: The notable-highlights tagged regions are re-used in the
+//Installation and Upgrade Guide
+// tag::notable-v8-highlights[]
+
+// end::notable-v8-highlights[]
+
 [[release-highlights-7.2.0]]
 === APM version 7.2.0
 
 [float]
 ==== New features
 
+// tag::notable-v72-highlights[]
 *APM Server*
 
-* Support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]
+* Added support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]:
+ILM automates the management of your indices over time,
+by rolling over data to new indices when the existing indices reach the specified size or age.
+* Added Geo-IP processing to the default ingest pipeline:
+The Geo-IP pipeline takes an extracted IP address from RUM events and stores it in the `client.geo` field.
+This makes it much easier to use location data in Kibana's Visualize maps and Maps app directly.
+Pipelines must be {apm-server-ref-v}/configuration-process.html#register.ingest.pipeline.enabled[enabled].
+
+[role="screenshot"]
+image::kibana-geo-data.png[Kibana maps app]
+
+*APM UI*
+
+* APM + Uptime integration: APM transactions now include links to the Uptime UI when data is available.
+* Added a global filter for {kibana-ref}/filters.html#environment-selector[service environments]:
+You can now easily name and switch between environments in the APM UI.
+* Added support for {kibana-ref}/metrics.html[agent specific metrics]:
+Java is the first agent to get custom metrics in the APM UI, with more agents to follow.
+
+*APM agents*
+
+* The .NET agent is now in beta!
+The {apm-dotnet-ref-v}/intro.html[.Net agent] automatically instruments applications using ASP.NET Core 2.x+,
+Entity Framework Core 2.x+, and the `HttpClient` class.
+Other frameworks can be manually instrumented using the {apm-dotnet-ref-v}/public-api.html[Public API].
+// end::notable-v72-highlights[]
 
 [[release-highlights-7.1.0]]
 === APM version 7.1.0
