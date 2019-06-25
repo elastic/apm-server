@@ -391,7 +391,7 @@ pipeline {
     }
   }
   post {
-    always {
+    cleanup {
       notifyBuildResult()
     }
   }
