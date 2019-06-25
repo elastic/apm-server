@@ -84,6 +84,37 @@ func Clean() error {
 	return mage.Clean()
 }
 
+func Config() error {
+	if err := mage.Config(mage.ShortConfigType, shortConfigFileParams(), "."); err != nil {
+		return err
+	}
+	return mage.Config(mage.DockerConfigType, dockerConfigFileParams(), ".")
+}
+
+func shortConfigFileParams() mage.ConfigFileParams {
+	return mage.ConfigFileParams{
+		ShortParts: []string{
+			mage.OSSBeatDir("_meta/beat.yml"),
+		},
+		ExtraVars: map[string]interface{}{
+			"elasticsearch_hostport": "localhost:9200",
+			"listen_hostport":        "localhost:" + beater.DefaultPort,
+		},
+	}
+}
+
+func dockerConfigFileParams() mage.ConfigFileParams {
+	return mage.ConfigFileParams{
+		DockerParts: []string{
+			mage.OSSBeatDir("_meta/beat.yml"),
+		},
+		ExtraVars: map[string]interface{}{
+			"elasticsearch_hostport": "elasticsearch:9200",
+			"listen_hostport":        "0.0.0.0:" + beater.DefaultPort,
+		},
+	}
+}
+
 // Package packages the Beat for distribution.
 // Use SNAPSHOT=true to build snapshots.
 // Use PLATFORMS to control the target platforms.
