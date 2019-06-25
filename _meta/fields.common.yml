@@ -219,6 +219,39 @@
           description: >
             Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
+        - name: duration
+          type: group
+          description:
+          fields:
+            - name: count
+              type: long
+            - name: sum
+              type: group
+              fields:
+                - name: us
+                  type: long
+
+        - name: self_time
+          type: group
+          description: >
+            Portion of the transaction's duration where no direct child was running
+          fields:
+            - name: count
+              type: long
+            - name: sum
+              type: group
+              fields:
+                - name: us
+                  type: long
+
+        - name: breakdown
+          type: group
+          description: >
+            Counter for collected breakdowns for the transaction
+          fields:
+            - name: count
+              type: long
+
     - name: span
       type: group
       dynamic: false
@@ -234,6 +267,19 @@
           count: 1
           description: >
             A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+        - name: self_time
+          type: group
+          description: >
+            Portion of the span's duration where no direct child was running
+          fields:
+          - name: count
+            type: long
+          - name: sum
+            type: group
+            fields:
+              - name: us
+                type: long
 
     - name: trace
       type: group
