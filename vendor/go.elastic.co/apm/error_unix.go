@@ -15,26 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmhttp
+// +build !windows
+
+package apm
 
 import (
-	"fmt"
+	"syscall"
+
+	"golang.org/x/sys/unix"
 )
 
-var standardStatusCodeResults = [...]string{
-	"HTTP 1xx",
-	"HTTP 2xx",
-	"HTTP 3xx",
-	"HTTP 4xx",
-	"HTTP 5xx",
-}
-
-// StatusCodeResult returns the transaction result value to use for the given
-// status code.
-func StatusCodeResult(statusCode int) string {
-	switch i := statusCode / 100; i {
-	case 1, 2, 3, 4, 5:
-		return standardStatusCodeResults[i-1]
-	}
-	return fmt.Sprintf("HTTP %d", statusCode)
+func errnoName(err syscall.Errno) string {
+	return unix.ErrnoName(err)
 }

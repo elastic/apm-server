@@ -1,6 +1,38 @@
 # Changelog
 
-## [Unreleased](https://github.com/elastic/apm-agent-go/compare/v1.1.2...master)
+## [Unreleased](https://github.com/elastic/apm-agent-go/compare/v1.2.0...master)
+
+## [v1.3.0](https://github.com/elastic/apm-agent-go/releases/tag/v1.3.0)
+
+ - Rename "metricset.labels" to "metricset.tags" (#438)
+ - Introduce `ELASTIC_APM_DISABLE_METRICS` to disable metrics with matching names (#439)
+ - module/apmelasticsearch: introduce instrumentation for Elasticsearch clients (#445)
+ - module/apmmongo: introduce instrumentation for the MongoDB Go Driver (#452)
+ - Introduce ErrorDetailer interface (#453)
+ - module/apmhttp: add CloseIdleConnectons and CancelRequest to RoundTripper (#457)
+ - Allow specifying transaction (span) ID via TransactionOptions/SpanOptions (#463)
+ - module/apmzerolog: introduce zerolog log correlation and exception-tracking writer (#428)
+ - module/apmelasticsearch: capture body for \_msearch, template and rollup search (#470)
+ - Ended Transactions/Spans may now be used as parents (#478)
+ - Introduce apm.DetachedContext for async/fire-and-forget trace propagation (#481)
+ - module/apmechov4: add a copy of apmecho supporting echo/v4 (#477)
+
+## [v1.2.0](https://github.com/elastic/apm-agent-go/releases/tag/v1.2.0)
+
+ - Add "transaction.sampled" to errors (#410)
+ - Enforce license header in source files with go-licenser (#411)
+ - module/apmot: ignore "follows-from" span references (#414)
+ - module/apmot: report error log records (#415)
+ - Introduce `ELASTIC_APM_CAPTURE_HEADERS` to control HTTP header capture (#418)
+ - module/apmzap: introduce zap log correlation and exception-tracking hook (#426)
+ - type Error implements error interface (#399)
+ - Add "transaction.type" to errors (#433)
+ - Added instrumentation-specific Go modules (i.e. one for each package under apm/module) (#405)
+
+## [v1.1.3](https://github.com/elastic/apm-agent-go/releases/tag/v1.1.3)
+
+ - Remove the `agent.*` metrics (#407)
+ - Add support for new github.com/pkg/errors.Frame type (#409)
 
 ## [v1.1.2](https://github.com/elastic/apm-agent-go/releases/tag/v1.1.2)
 
