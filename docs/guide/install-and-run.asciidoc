@@ -6,7 +6,7 @@ https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud. The {es} Service is available on both AWS and GCP,
 and automatically configures APM Server to work with {es} and {kib}.
 
-Alternatively, you can install the stack yourself.
+Alternatively, you can <<before-installation,install the stack yourself>>.
 
 [float]
 === Hosted Elasticsearch Service
@@ -91,61 +91,52 @@ please see the full {apm-server-ref-v}/index.html[APM Server documentation].
 === Step 4: Install APM agents
 
 Agents are written in the same language as your service.
-Currently Elastic APM has agents for Go, Java, .NET, Node.js, Python, Ruby, and JavaScript RUM.
+Monitoring a new service requires installing the agent
+and configuring it with the address of your APM Server, a secret token (if necessary), and a service name.
 
-// todo: fix this sentence
-Setting up a new service to be monitored requires installing the agent,
-and configuring it with the address of your APM Server and the service name.
-
-NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch.
-
-[cols="h,,,"]
+[cols="h,,"]
 |=======================================================================
 |Agent
-3+| More information
+2+|
 
 .2+|Go
-3+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
-|{apm-go-ref-v}/introduction.html[Introduction]
+2+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
 |{apm-go-ref-v}/supported-tech.html[Supported technologies]
-|{apm-go-ref-v}/configuration.html[Config]
+|{apm-go-ref-v}/getting-started.html[Getting started with the Go Agent]
 
 .2+|Java
-3+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
-|{apm-java-ref-v}/intro.html[Introduction]
+2+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
 |{apm-java-ref-v}/supported-technologies-details.html[Supported technologies]
-|{apm-java-ref-v}/configuration.html[Config]
+|{apm-java-ref-v}/setup.html[Set up the Java Agent]
 
 .2+|.NET
-3+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
-|{apm-dotnet-ref-v}/intro.html[Introduction]
+2+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
+|{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
 |
-|{apm-dotnet-ref-v}/configuration.html[Config]
 
 .2+|Node.js
-3+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
-|{apm-node-ref-v}/intro.html[Introduction]
+2+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
 |{apm-node-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-node-ref-v}/configuring-the-agent.html[Config]
+|{apm-node-ref-v}/intro.html#get-started[Get started with the Node.js Agent]
 
 .2+|Python
-3+|The Python agent automatically instruments Django and Flask out of the box.
-|{apm-py-ref-v}/getting-started.html[Getting Started]
+2+|The Python agent automatically instruments Django and Flask out of the box.
 |{apm-py-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-py-ref-v}/configuration.html[Config]
+|{apm-py-ref-v}/getting-started.html[Getting Started with the Python Agent]
 
 .2+|Ruby
-3+|The Ruby agent automatically instruments Rails out of the box.
-|{apm-ruby-ref-v}/introduction.html[Introduction]
+2+|The Ruby agent automatically instruments Rails out of the box.
 |{apm-ruby-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-ruby-ref-v}/configuration.html[Config]
+|{apm-ruby-ref-v}/introduction.html#framework-support[Getting started with the Ruby Agent]
 
 .2+|RUM
-3+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
-|{apm-rum-ref-v}/intro.html[Introduction]
+2+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
 |{apm-rum-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-rum-ref-v}/configuration.html[Config]
+|{apm-rum-ref-v}/getting-started.html[Getting started with the RUM Agent]
+
 |=======================================================================
+
+TIP: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch.
 
 [[choose-service-name]]
 [float]
@@ -161,9 +152,46 @@ Make sure you choose a good service name before you get started.
 The service name can only contain alphanumeric characters,
 spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
-=== Step 5: Configure
-// todo: improve this section
-You're now up and running with Elastic APM!
-Don't forget to check out the <<components>> and <<apm-data-model>> documentation to gain a deeper understanding of how Elastic APM works. 
+=== Step 5: Configure APM
 
-Additional {cloud}/ec-manage-apm-settings.html[APM user settings] are also available.
+Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
+Luckily, there are many different ways to tweak and tune the Elastic ecosystem to adapt it to your needs.
+
+
+[float]
+==== Configure APM agents
+
+// Note about central config will go here
+APM agents have a number of configuration options that allow you to fine tune things like
+environment names, sampling rates, instrumentations, metrics, and more.
+
+|===
+|*Agent configuration documentation*
+a|
+
+* {apm-go-ref-v}/configuration.html[Go Agent configuration]
+* {apm-java-ref-v}/configuration.html[Java Agent configuration]
+* {apm-dotnet-ref-v}/configuration.html[.NET Agent configuration]
+* {apm-node-ref}/configuring-the-agent.html[Node.js Agent configuration]
+* {apm-py-ref-v}/configuration.html[Python Agent configuration]
+* {apm-ruby-ref-v}/configuration.html[Ruby Agent configuration]
+* {apm-rum-ref-v}/configuration.html[RUM Agent configuration]
+|===
+
+[float]
+==== Configure Elastic Cloud
+
+If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
+Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
+
+Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
+
+[float]
+==== Configure a self installation
+
+If you've installed APM Server yourself, you can edit the `apm-server.yml` configuration file to make changes.
+More information is available in {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
+
+Don't forget to also read about
+{apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
+{apm-server-ref-v}/monitoring.html[monitoring APM Server].
