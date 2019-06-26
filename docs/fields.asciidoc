@@ -348,6 +348,44 @@ Keyword of specific relevance in the service's domain (eg. 'request', 'backgroun
 
 --
 
+*`transaction.name`*::
++
+--
+type: keyword
+
+Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
+
+
+*`transaction.name.text`*::
++
+--
+type: text
+
+--
+
+--
+
+
+*`span.type`*::
++
+--
+type: keyword
+
+Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+
+
+--
+
+*`span.subtype`*::
++
+--
+type: keyword
+
+A further sub-division of the type (e.g. postgresql, elasticsearch)
+
+
+--
+
 
 *`trace.id`*::
 +
@@ -1036,26 +1074,6 @@ Generic designation of a span in the scope of a transaction.
 
 --
 
-*`span.type`*::
-+
---
-type: keyword
-
-Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-
-
---
-
-*`span.subtype`*::
-+
---
-type: keyword
-
-A further sub-division of the type (e.g. postgresql, elasticsearch)
-
-
---
-
 *`span.action`*::
 +
 --
@@ -1104,23 +1122,6 @@ Indicates whether the span was executed synchronously or asynchronously.
 Transaction-specific data for APM
 
 
-
-*`transaction.name`*::
-+
---
-type: keyword
-
-Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
-
-
-*`transaction.name.text`*::
-+
---
-type: text
-
---
-
---
 
 [float]
 == duration fields

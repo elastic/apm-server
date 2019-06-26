@@ -1,0 +1,12 @@
+{
+    "$id": "docs/spec/transaction_name.json",
+    "title": "Transaction Name",
+    "type": ["object"],
+    "properties": {
+        "name": {
+            "type": ["string","null"],
+            "description": "Generic designation of a transaction in the scope of a single service (eg: 'GET /users/:id')",
+            "maxLength": 1024
+        }
+    }
+}

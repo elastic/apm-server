@@ -23,11 +23,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/utility"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/elastic/beats/libbeat/common"
 
@@ -51,6 +51,7 @@ func TestDecode(t *testing.T) {
 		return json.Number(fmt.Sprintf("%d", ts.UnixNano()/1000))
 	}
 	timestampParsed := time.Date(2017, 5, 30, 18, 53, 27, 154*1e6, time.UTC)
+	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
 
 	for _, test := range []struct {
 		input     map[string]interface{}
@@ -120,6 +121,42 @@ func TestDecode(t *testing.T) {
 				Timestamp: timestampParsed,
 			},
 		},
+		{
+			input: map[string]interface{}{
+				"tags": map[string]interface{}{
+					"atag": true,
+				},
+				"timestamp": tsFormat(timestampParsed),
+				"samples": map[string]interface{}{
+					"a.counter": map[string]interface{}{
+						"value": json.Number("612"),
+					},
+				},
+				"span": map[string]interface{}{
+					"type":    spType,
+					"subtype": spSubtype,
+				},
+				"transaction": map[string]interface{}{
+					"type": trType,
+					"name": trName,
+				},
+			},
+			err: nil,
+			metricset: &Metricset{
+				Samples: []*Sample{
+					{
+						Name:  "a.counter",
+						Value: 612,
+					},
+				},
+				Labels: common.MapStr{
+					"atag": true,
+				},
+				Span:        &Span{Type: &spType, Subtype: &spSubtype},
+				Transaction: &Transaction{Type: &trType, Name: &trName},
+				Timestamp:   timestampParsed,
+			},
+		},
 	} {
 		var err error
 		transformables, err := DecodeEvent(test.input, model.Config{}, err)
@@ -145,6 +182,7 @@ func TestTransform(t *testing.T) {
 		nil,
 		nil,
 	)
+	spType, spSubtype, trType, trName := "db", "sql", "request", "GET /"
 
 	tests := []struct {
 		Metricset *Metricset
@@ -182,6 +220,8 @@ func TestTransform(t *testing.T) {
 						Value: 9.16,
 					},
 				},
+				Span:        &Span{Type: &spType, Subtype: &spSubtype},
+				Transaction: &Transaction{Type: &trType, Name: &trName},
 			},
 			Output: []common.MapStr{
 				{
@@ -192,9 +232,11 @@ func TestTransform(t *testing.T) {
 						"name": "myservice",
 					},
 
-					"a":         common.MapStr{"counter": float64(612)},
-					"some":      common.MapStr{"gauge": float64(9.16)},
-					"processor": common.MapStr{"event": "metric", "name": "metric"},
+					"a":           common.MapStr{"counter": float64(612)},
+					"some":        common.MapStr{"gauge": float64(9.16)},
+					"processor":   common.MapStr{"event": "metric", "name": "metric"},
+					"transaction": common.MapStr{"name": trName, "type": trType},
+					"span":        common.MapStr{"type": spType, "subtype": spSubtype},
 				},
 			},
 			Msg: "Payload with valid metric.",
