@@ -38,10 +38,6 @@ func query(name string) Query {
 	return Query{Service: Service{Name: name}}
 }
 
-func testCache() *cache {
-	return newCache(nil, time.Nanosecond)
-}
-
 func TestFetchNoClient(t *testing.T) {
 	kb, kerr := kibana.NewKibanaClient(nil)
 	_, _, ferr := NewFetcher(kb, testExp).Fetch(query(t.Name()), kerr)

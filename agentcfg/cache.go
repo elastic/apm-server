@@ -62,7 +62,6 @@ func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error)) (doc *Doc, er
 	}
 
 	// add resource to cache
-	// use shorter expiration time for nil values
 	c.add(id, doc)
 
 	return doc, err
