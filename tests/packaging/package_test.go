@@ -45,7 +45,8 @@ func TestDeb(t *testing.T) {
 }
 
 func TestRpm(t *testing.T) {
-	rpms := getFiles(t, regexp.MustCompile(`(i386|i686|amd64|x86)*.\.rpm$`))
+        // only test x86 packages, excluding arm
+	rpms := getFiles(t, regexp.MustCompile(`(i386|i686|amd64|x86)+.*\.rpm$`))
 	if len(rpms) == 0 {
 		t.Fatal("no rpms found")
 	}
