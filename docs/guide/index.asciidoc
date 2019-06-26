@@ -32,6 +32,3 @@ include::./apm-breaking-changes.asciidoc[]
 include::./apm-release-notes.asciidoc[]
 
 include::./redirects.asciidoc[]
-
-//TEST ONLY
-//include::./install-apm-steps.asciidoc[]
