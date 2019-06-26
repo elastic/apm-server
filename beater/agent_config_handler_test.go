@@ -18,10 +18,13 @@
 package beater
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/elastic/beats/libbeat/kibana"
 
 	"github.com/stretchr/testify/assert"
 
@@ -29,28 +32,118 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
-var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
+var testcases = map[string]struct {
+	kbClient      *kibana.Client
+	requestHeader map[string]string
+	queryParams   map[string]string
+	method        string
 
-func TestAgentConfigHandlerGetOk(t *testing.T) {
-
-	kb := tests.MockKibana(http.StatusOK, m{
-		"_id": "1",
-		"_source": m{
-			"settings": m{
-				"sampling_rate": 0.5,
+	respStatus     int
+	respBody       bool
+	respEtagHeader string
+}{
+	"NotModified": {
+		kbClient: tests.MockKibana(http.StatusOK, m{
+			"_id": "1",
+			"_source": m{
+				"settings": m{
+					"sampling_rate": 0.5,
+				},
 			},
-		},
-	})
+		}),
+		method:         http.MethodGet,
+		requestHeader:  map[string]string{headerIfNoneMatch: "1"},
+		queryParams:    map[string]string{"service.name": "opbeans-node"},
+		respStatus:     http.StatusNotModified,
+		respEtagHeader: "1",
+	},
 
-	h := agentConfigHandler(kb, &cfg, "")
+	"ModifiedWithoutEtag": {
+		kbClient: tests.MockKibana(http.StatusOK, m{
+			"_source": m{
+				"settings": m{
+					"sampling_rate": 0.5,
+				},
+			},
+		}),
+		method:      http.MethodGet,
+		queryParams: map[string]string{"service.name": "opbeans-java"},
+		respStatus:  http.StatusOK,
+		respBody:    true,
+	},
 
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-python", nil)
-	h.ServeHTTP(w, r)
+	"ModifiedWithEtag": {
+		kbClient: tests.MockKibana(http.StatusOK, m{
+			"_id": "1",
+			"_source": m{
+				"settings": m{
+					"sampling_rate": 0.5,
+				},
+			},
+		}),
+		method:         http.MethodGet,
+		requestHeader:  map[string]string{headerIfNoneMatch: "2"},
+		queryParams:    map[string]string{"service.name": "opbeans-java"},
+		respStatus:     http.StatusOK,
+		respEtagHeader: "1",
+		respBody:       true,
+	},
 
-	etagHeader := w.Header().Get("Etag")
-	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	assert.Equal(t, "1", etagHeader, etagHeader)
+	"InternalError": {
+		kbClient: tests.MockKibana(http.StatusOK, m{
+			"_id": "1", "_source": ""},
+		),
+		method:      http.MethodGet,
+		queryParams: map[string]string{"service.name": "opbeans-ruby"},
+		respStatus:  http.StatusInternalServerError,
+		respBody:    true,
+	},
+
+	"StatusNotFoundError": {
+		kbClient:    tests.MockKibana(http.StatusOK, m{}),
+		method:      http.MethodGet,
+		queryParams: map[string]string{"service.name": "opbeans-python"},
+		respStatus:  http.StatusNotFound,
+	},
+
+	"NoService": {
+		kbClient:   tests.MockKibana(http.StatusOK, m{}),
+		method:     http.MethodGet,
+		respStatus: http.StatusBadRequest,
+		respBody:   true,
+	},
+
+	"MethodNotAllowed": {
+		kbClient:   tests.MockKibana(http.StatusOK, m{}),
+		method:     http.MethodPut,
+		respStatus: http.StatusMethodNotAllowed,
+	},
+}
+
+func TestAgentConfigHandler(t *testing.T) {
+	var cfg = agentConfig{Cache: &Cache{Expiration: 3 * time.Second}}
+	var respCacheControlHeader = "max-age=3"
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			h := agentConfigHandler(tc.kbClient, &cfg, "")
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
+			for k, v := range tc.requestHeader {
+				r.Header.Set(k, v)
+			}
+			h.ServeHTTP(w, r)
+
+			assert.Equal(t, tc.respStatus, w.Code)
+			assert.Equal(t, respCacheControlHeader, w.Header().Get(headerCacheControl))
+			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headerEtag))
+			if tc.respBody {
+				assert.NotEmpty(t, w.Body)
+			} else {
+				assert.Empty(t, w.Body)
+			}
+		})
+	}
 }
 
 func TestAgentConfigHandlerPostOk(t *testing.T) {
@@ -64,6 +157,7 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 		},
 	})
 
+	var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
 	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
@@ -74,77 +168,14 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 }
 
-func TestAgentConfigHandlerBadMethod(t *testing.T) {
-
-	kb := tests.MockKibana(http.StatusOK, m{})
-
-	h := agentConfigHandler(kb, &cfg, "")
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPut, "/config?service.name=opbeans-java", nil)
-	h.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusMethodNotAllowed, w.Code, w.Body.String())
-}
-
-func TestAgentConfigHandlerNoService(t *testing.T) {
-
-	kb := tests.MockKibana(http.StatusOK, m{})
-
-	h := agentConfigHandler(kb, &cfg, "")
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/config", nil)
-	h.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
-}
-
-func TestAgentConfigHandlerNotFound(t *testing.T) {
-
-	kb := tests.MockKibana(http.StatusOK, m{})
-
-	h := agentConfigHandler(kb, &cfg, "")
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-go", nil)
-	h.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
-}
-
-func TestAgentConfigHandlerInternalError(t *testing.T) {
-
-	kb := tests.MockKibana(http.StatusOK, m{
-		"_id": "1", "_source": ""},
-	)
-
-	h := agentConfigHandler(kb, &cfg, "")
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-ruby", nil)
-	h.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
-}
-
-func TestAgentConfigHandlerNotModified(t *testing.T) {
-
-	kb := tests.MockKibana(http.StatusOK, m{
-		"_id": "1",
-		"_source": m{
-			"settings": m{
-				"sampling_rate": 0.5,
-			},
-		},
-	})
-
-	h := agentConfigHandler(kb, &cfg, "")
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-js", nil)
-	r.Header.Set("If-None-Match", "1")
-	h.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusNotModified, w.Code, w.Body.String())
+func target(params map[string]string) string {
+	t := "/config"
+	if len(params) == 0 {
+		return t
+	}
+	t += "?"
+	for k, v := range params {
+		t = fmt.Sprintf("%s%s=%s", t, k, v)
+	}
+	return t
 }

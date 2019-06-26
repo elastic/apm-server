@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/elastic/apm-server/convert"
@@ -29,35 +30,52 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 )
 
+const (
+	headerIfNoneMatch  = "If-None-Match"
+	headerEtag         = "Etag"
+	headerCacheControl = "Cache-Control"
+)
+
 func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToken string) http.Handler {
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
+	maxAge := fmt.Sprintf("max-age=%v", config.Cache.Expiration.Seconds())
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		send := wrap(w, r)
-		clientEtag := r.Header.Get("If-None-Match")
+		clientEtag := r.Header.Get(headerIfNoneMatch)
 
 		query, requestErr := buildQuery(r)
 		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
 
+		var resp interface{}
+		var state int
+
 		switch {
 		case requestErr != nil:
-			send(requestErr.Error(), http.StatusBadRequest)
+			resp = requestErr.Error()
+			state = http.StatusBadRequest
 		case query == agentcfg.Query{}:
-			send(nil, http.StatusMethodNotAllowed)
+			resp = nil
+			state = http.StatusMethodNotAllowed
 		case internalErr != nil:
-			send(internalErr.Error(), http.StatusInternalServerError)
+			resp = internalErr.Error()
+			state = http.StatusInternalServerError
 		case len(cfg) == 0:
-			send(nil, http.StatusNotFound)
+			resp = nil
+			state = http.StatusNotFound
 		case clientEtag != "" && clientEtag == upstreamEtag:
-			w.Header().Set("Cache-Control", "max-age=0")
-			send(nil, http.StatusNotModified)
+			w.Header().Set(headerEtag, clientEtag)
+			resp = nil
+			state = http.StatusNotModified
 		case upstreamEtag != "":
-			w.Header().Set("Cache-Control", "max-age=0")
-			w.Header().Set("Etag", upstreamEtag)
+			w.Header().Set(headerEtag, upstreamEtag)
 			fallthrough
 		default:
-			send(cfg, http.StatusOK)
+			resp = cfg
+			state = http.StatusOK
 		}
+		w.Header().Set(headerCacheControl, maxAge)
+		send(resp, state)
 	})
 	return authHandler(secretToken, logHandler(handler))
 }
