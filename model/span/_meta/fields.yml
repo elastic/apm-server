@@ -22,18 +22,6 @@
           description: >
             Generic designation of a span in the scope of a transaction.
 
-        - name: type
-          type: keyword
-          count: 1
-          description: >
-            Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-
-        - name: subtype
-          type: keyword
-          count: 1
-          description: >
-            A further sub-division of the type (e.g. postgresql, elasticsearch)
-
         - name: action
           type: keyword
           count: 1

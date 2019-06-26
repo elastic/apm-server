@@ -1,0 +1,12 @@
+{
+    "$id": "docs/spec/span_subtype.json",
+    "title": "Span Subtype",
+    "type": ["object"],
+    "properties": {
+        "subtype": {
+            "type": ["string", "null"],
+            "description": "A further sub-division of the type (e.g. postgresql, elasticsearch)",
+            "maxLength": 1024
+        }
+    }
+}
