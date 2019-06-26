@@ -54,12 +54,7 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         assert self.log_contains("No pipeline callback registered")
 
 
-# APM Server `run`
-
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-class PipelineDefaultTest(ElasticTest):
-    # pipeline.overwrite enabled by default.
-
+class PipelineRegisterTest(ElasticTest):
     def test_default_pipelines_registered(self):
         pipelines = [
             ("apm_user_agent", "Add user agent information for APM events"),
@@ -159,13 +154,14 @@ class MissingPipelineTest(ElasticTest):
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-class PipelineDisableRegisterOverwriteTest(ElasticTest):
+class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
+
     config_overrides = {
         "register_pipeline_overwrite": "false"
     }
 
     def setUp(self):
-        super(PipelineDisableRegisterOverwriteTest, self).setUp()
+        super(PipelineDefaultDisableRegisterOverwriteTest, self).setUp()
         es = Elasticsearch([self.get_elasticsearch_url()])
         # Write empty default pipeline
         es.ingest.put_pipeline(
@@ -176,3 +172,28 @@ class PipelineDisableRegisterOverwriteTest(ElasticTest):
     def test_pipeline_not_overwritten(self):
         loaded_msg = "Pipeline already registered"
         self.wait_until(lambda: self.log_contains(loaded_msg))
+
+
+@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+class PipelineEnableRegisterOverwriteTest(ElasticTest):
+
+    config_overrides = {
+        "register_pipeline_overwrite": "true"
+    }
+
+    def setUp(self):
+        super(PipelineEnableRegisterOverwriteTest, self).setUp()
+        es = Elasticsearch([self.get_elasticsearch_url()])
+        # Write empty default pipeline
+        es.ingest.put_pipeline(
+            id="apm",
+            body={"description": "empty apm test pipeline", "processors": []})
+        self.wait_until(lambda: es.ingest.get_pipeline("apm"))
+
+    def test_pipeline_overwritten(self):
+        loaded_msg = "Pipeline successfully registered"
+        self.wait_until(lambda: self.log_contains(loaded_msg))
+        pipeline_id = "apm"
+        pipeline = self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id),
+                                   name="fetching pipeline {}".format(pipeline_id))
+        assert pipeline[pipeline_id]['description'] == "Default enrichment for APM events"
