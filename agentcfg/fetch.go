@@ -78,10 +78,10 @@ func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
 		return nil, err
 	}
 	if f.kbClient == nil {
-		return nil, errors.New("No configured Kibana Client: provide apm-server.kibana.* settings")
+		return nil, errors.New("no configured Kibana Client: provide apm-server.kibana.* settings")
 	}
 	if version := f.kbClient.GetVersion(); version.LessThan(&f.minVersion) {
-		return nil, fmt.Errorf("Needs Kibana version %s or higher", f.minVersion.String())
+		return nil, fmt.Errorf("needs Kibana version %s or higher", f.minVersion.String())
 	}
 	resp, err := f.kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
