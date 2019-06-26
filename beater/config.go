@@ -27,7 +27,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -100,7 +99,11 @@ type pipelineConfig struct {
 }
 
 type remoteConfig struct {
-	AgentConfig *agentcfg.Config `config:"agent"`
+	AgentConfig *agentConfig `config:"agent"`
+}
+
+type agentConfig struct {
+	Cache *Cache `config:"cache"`
 }
 
 type SourceMapping struct {
@@ -290,7 +293,7 @@ func defaultConfig(beatVersion string) *Config {
 		},
 		Mode:         ModeProduction,
 		Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		RemoteConfig: &remoteConfig{AgentConfig: &agentcfg.Config{CacheExpiration: 10 * time.Second}},
+		RemoteConfig: &remoteConfig{AgentConfig: &agentConfig{Cache: &Cache{Expiration: 10 * time.Second}}},
 		pipeline:     defaultAPMPipeline,
 	}
 }

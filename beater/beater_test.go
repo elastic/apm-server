@@ -40,8 +40,6 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/processing"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
-
-	"github.com/elastic/apm-server/agentcfg"
 )
 
 func TestBeatConfig(t *testing.T) {
@@ -147,7 +145,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 				Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
-				RemoteConfig: &remoteConfig{AgentConfig: &agentcfg.Config{CacheExpiration: 2 * time.Minute}},
+				RemoteConfig: &remoteConfig{AgentConfig: &agentConfig{Cache: &Cache{Expiration: 2 * time.Minute}}},
 				pipeline:     defaultAPMPipeline,
 			},
 		},
@@ -224,7 +222,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 				Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				RemoteConfig: &remoteConfig{AgentConfig: &agentcfg.Config{CacheExpiration: 10 * time.Second}},
+				RemoteConfig: &remoteConfig{AgentConfig: &agentConfig{Cache: &Cache{Expiration: 10 * time.Second}}},
 				pipeline:     defaultAPMPipeline,
 			},
 		},

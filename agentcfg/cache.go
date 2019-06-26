@@ -26,26 +26,27 @@ import (
 )
 
 const (
-	defaultExp      time.Duration = 10 * time.Second
 	cleanupInterval time.Duration = 60 * time.Second
 )
 
 type cache struct {
 	logger  *logp.Logger
+	exp     time.Duration
 	gocache *gocache.Cache
 }
 
-func newCache(logger *logp.Logger) *cache {
+func newCache(logger *logp.Logger, exp time.Duration) *cache {
 	if logger == nil {
 		logger = logp.NewLogger("agentcfg")
 	}
-	logger.Infof("Cache creation with default expiration %v.", defaultExp)
+	logger.Infof("Cache creation with default expiration %v.", exp)
 	return &cache{
 		logger:  logger,
-		gocache: gocache.New(defaultExp, cleanupInterval)}
+		exp:     exp,
+		gocache: gocache.New(exp, cleanupInterval)}
 }
 
-func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error), exp time.Duration) (doc *Doc, err error) {
+func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error)) (doc *Doc, err error) {
 	id := q.id()
 
 	// return from cache if possible
@@ -62,13 +63,13 @@ func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error), exp time.Dura
 
 	// add resource to cache
 	// use shorter expiration time for nil values
-	c.add(id, doc, exp)
+	c.add(id, doc)
 
 	return doc, err
 }
 
-func (c *cache) add(id string, doc *Doc, exp time.Duration) {
-	c.gocache.Set(id, doc, exp)
+func (c *cache) add(id string, doc *Doc) {
+	c.gocache.Set(id, doc, c.exp)
 	c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), id)
 }
 

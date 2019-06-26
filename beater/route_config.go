@@ -113,7 +113,7 @@ func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Repo
 		mux.Handle(path, handler)
 	}
 
-	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.SecretToken, beaterConfig.RemoteConfig.AgentConfig))
+	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.RemoteConfig.AgentConfig, beaterConfig.SecretToken))
 	logger.Infof("Path %s added to request handler", agentConfigURL)
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))

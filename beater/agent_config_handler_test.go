@@ -25,12 +25,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/tests"
 )
 
-var cfg = agentcfg.Config{CacheExpiration: time.Nanosecond}
+var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
 
 func TestAgentConfigHandlerGetOk(t *testing.T) {
 
@@ -43,7 +42,7 @@ func TestAgentConfigHandlerGetOk(t *testing.T) {
 		},
 	})
 
-	h := agentConfigHandler(kb, "", &cfg)
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-python", nil)
@@ -65,7 +64,7 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 		},
 	})
 
-	h := agentConfigHandler(kb, "", &cfg)
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
@@ -79,7 +78,7 @@ func TestAgentConfigHandlerBadMethod(t *testing.T) {
 
 	kb := tests.MockKibana(http.StatusOK, m{})
 
-	h := agentConfigHandler(kb, "", &cfg)
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPut, "/config?service.name=opbeans-java", nil)
@@ -92,7 +91,7 @@ func TestAgentConfigHandlerNoService(t *testing.T) {
 
 	kb := tests.MockKibana(http.StatusOK, m{})
 
-	h := agentConfigHandler(kb, "", &cfg)
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/config", nil)
@@ -105,7 +104,7 @@ func TestAgentConfigHandlerNotFound(t *testing.T) {
 
 	kb := tests.MockKibana(http.StatusOK, m{})
 
-	h := agentConfigHandler(kb, "", &cfg)
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-go", nil)
@@ -120,7 +119,7 @@ func TestAgentConfigHandlerInternalError(t *testing.T) {
 		"_id": "1", "_source": ""},
 	)
 
-	h := agentConfigHandler(kb, "", &cfg)
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-ruby", nil)
@@ -140,7 +139,7 @@ func TestAgentConfigHandlerNotModified(t *testing.T) {
 		},
 	})
 
-	h := agentConfigHandler(kb, "", &cfg)
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/config?service.name=opbeans-js", nil)

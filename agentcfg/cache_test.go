@@ -41,11 +41,11 @@ type cacheSetup struct {
 func newCacheSetup(service string, exp time.Duration, init bool) cacheSetup {
 	setup := cacheSetup{
 		q:   Query{Service: Service{Name: service}},
-		c:   newCache(nil),
+		c:   newCache(nil, exp),
 		doc: &defaultDoc,
 	}
 	if init {
-		setup.c.add(setup.q.id(), setup.doc, exp)
+		setup.c.add(setup.q.id(), setup.doc)
 	}
 	return setup
 }
@@ -68,7 +68,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			setup := newCacheSetup(name, exp, tc.init)
 
-			doc, err := setup.c.fetchAndAdd(setup.q, tc.fn, exp)
+			doc, err := setup.c.fetchAndAdd(setup.q, tc.fn)
 			assert.Equal(t, tc.doc, doc)
 			if tc.fail {
 				require.Error(t, err)
@@ -85,7 +85,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 	t.Run("CacheKeyExpires", func(t *testing.T) {
 		exp := 100 * time.Millisecond
 		setup := newCacheSetup(t.Name(), exp, false)
-		doc, err := setup.c.fetchAndAdd(setup.q, testFn, exp)
+		doc, err := setup.c.fetchAndAdd(setup.q, testFn)
 		require.NoError(t, err)
 		require.NotNil(t, doc)
 		time.Sleep(exp)
@@ -108,7 +108,7 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		exp := 5 * time.Minute
 		setup := newCacheSetup(b.Name(), exp, true)
 		for i := 0; i < b.N; i++ {
-			setup.c.fetchAndAdd(setup.q, testFn, exp)
+			setup.c.fetchAndAdd(setup.q, testFn)
 		}
 	})
 
@@ -120,7 +120,7 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		q := Query{Service: Service{}}
 		for i := 0; i < b.N; i++ {
 			q.Service.Name = string(b.N)
-			setup.c.fetchAndAdd(q, testFn, exp)
+			setup.c.fetchAndAdd(q, testFn)
 		}
 	})
 }

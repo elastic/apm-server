@@ -29,14 +29,15 @@ import (
 	"github.com/elastic/apm-server/agentcfg"
 )
 
-func agentConfigHandler(kbClient *kibana.Client, secretToken string, config *agentcfg.Config) http.Handler {
+func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToken string) http.Handler {
+	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		send := wrap(w, r)
 		clientEtag := r.Header.Get("If-None-Match")
 
 		query, requestErr := buildQuery(r)
-		cfg, upstreamEtag, internalErr := agentcfg.Fetch(kbClient, config, query, requestErr)
+		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
 
 		switch {
 		case requestErr != nil:

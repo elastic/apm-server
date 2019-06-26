@@ -23,7 +23,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -37,33 +36,36 @@ const (
 	endpoint = "/api/apm/settings/cm/search"
 )
 
-var (
-	minVersion = common.Version{Major: 7, Minor: 3}
-	once       sync.Once
+// Fetcher holds static information and information shared between requests.
+// It implements the Fetch method to retrieve agent configuration information.
+type Fetcher struct {
+	kbClient   *kibana.Client
 	docCache   *cache
-)
-
-// Config holds any configurable information related to agent remote config handling.git
-type Config struct {
-	CacheExpiration time.Duration `config:"cache.expiration"`
+	logger     *logp.Logger
+	minVersion common.Version
 }
 
-// Fetch retrieves agent configuration from Kibana
-func Fetch(kbClient *kibana.Client, config *Config, q Query, err error) (map[string]string, string, error) {
+// NewFetcher returns a Fetcher instance.
+func NewFetcher(kbClient *kibana.Client, cacheExp time.Duration) *Fetcher {
+	logger := logp.NewLogger("agentcfg")
+	return &Fetcher{
+		kbClient:   kbClient,
+		logger:     logger,
+		docCache:   newCache(logger, cacheExp),
+		minVersion: common.Version{Major: 7, Minor: 3},
+	}
+}
 
-	once.Do(func() {
-		logger := logp.NewLogger("agentcfg")
-		docCache = newCache(logger)
-	})
-
+// Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
+func (f *Fetcher) Fetch(q Query, err error) (map[string]string, string, error) {
 	req := func(query Query) (*Doc, error) {
 		var doc Doc
-		resultBytes, err := request(kbClient, convert.ToReader(query), err)
+		resultBytes, err := f.request(convert.ToReader(query), err)
 		err = convert.FromBytes(resultBytes, &doc, err)
 		return &doc, err
 	}
 
-	doc, err := docCache.fetchAndAdd(q, req, config.CacheExpiration)
+	doc, err := f.docCache.fetchAndAdd(q, req)
 	if err != nil {
 		return nil, "", err
 	}
@@ -71,17 +73,17 @@ func Fetch(kbClient *kibana.Client, config *Config, q Query, err error) (map[str
 	return doc.Source.Settings, doc.ID, nil
 }
 
-func request(kbClient *kibana.Client, r io.Reader, err error) ([]byte, error) {
+func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if kbClient == nil {
+	if f.kbClient == nil {
 		return nil, errors.New("No configured Kibana Client: provide apm-server.kibana.* settings")
 	}
-	if version := kbClient.GetVersion(); version.LessThan(&minVersion) {
-		return nil, errors.New(fmt.Sprintf("Needs Kibana version %s or higher", minVersion.String()))
+	if version := f.kbClient.GetVersion(); version.LessThan(&f.minVersion) {
+		return nil, fmt.Errorf("Needs Kibana version %s or higher", f.minVersion.String())
 	}
-	resp, err := kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
+	resp, err := f.kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
 		return nil, err
 	}
