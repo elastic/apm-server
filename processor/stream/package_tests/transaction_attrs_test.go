@@ -60,6 +60,7 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("client"),
 		tests.Group("url"),
 		tests.Group("http"),
+		tests.Group("span"),
 		"experimental",
 	)
 }
@@ -109,6 +110,7 @@ func transactionKeywordExceptionKeys() *tests.Set {
 		tests.Group("user"),
 		tests.Group("url"),
 		tests.Group("http"),
+		tests.Group("span"),
 	)
 }
 
