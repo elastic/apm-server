@@ -21,7 +21,7 @@ Secret tokens are not applicable for RUM, as they would be publicly exposed.
 [float]
 ==== SSL/TLS setup
 
-To enable SSL/TLS you need a private key and a certificate issued by a certification authority (CA).
+To enable [SSL/TLS](https://hosting.review/web-hosting-glossary/#12) you need a private key and a certificate issued by a certification authority (CA).
 You can then specify the path to those files in your configuration properties:
 `apm-server.ssl.key` and `apm-server.ssl.certificate` respectively.
 This will make the APM Server serve HTTPS requests instead of HTTP.
