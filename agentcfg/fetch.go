@@ -89,6 +89,10 @@ func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+
 	result, err := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		return nil, errors.New(string(result))

@@ -21,13 +21,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/elastic/apm-server/convert"
-
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/convert"
 )
 
 const (
@@ -38,7 +37,7 @@ const (
 
 func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToken string) http.Handler {
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
-	maxAge := fmt.Sprintf("max-age=%v", config.Cache.Expiration.Seconds())
+	maxAge := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		send := wrap(w, r)

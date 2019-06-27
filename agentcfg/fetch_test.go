@@ -70,7 +70,7 @@ func TestFetchVersionCheck(t *testing.T) {
 }
 
 func TestFetchError(t *testing.T) {
-	kb := tests.MockKibana(http.StatusNotFound, m{"error": "an error"})
+	kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"})
 	_, _, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
 	require.Error(t, err)
 	assert.Equal(t, "{\"error\":\"an error\"}", err.Error())

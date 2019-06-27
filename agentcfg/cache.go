@@ -52,23 +52,22 @@ func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error)) (doc *Doc, er
 	// return from cache if possible
 	doc, found := c.fetch(id)
 	if found {
-		return doc, err
+		return
 	}
 
 	// call fn to retrieve resource from external source
 	doc, err = fn(q)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	// add resource to cache
 	c.add(id, doc)
-
-	return doc, err
+	return
 }
 
 func (c *cache) add(id string, doc *Doc) {
-	c.gocache.Set(id, doc, c.exp)
+	c.gocache.SetDefault(id, doc)
 	c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), id)
 }
 

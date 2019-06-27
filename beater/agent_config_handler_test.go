@@ -90,7 +90,7 @@ var testcases = map[string]struct {
 	},
 
 	"InternalError": {
-		kbClient: tests.MockKibana(http.StatusOK, m{
+		kbClient: tests.MockKibana(http.StatusExpectationFailed, m{
 			"_id": "1", "_source": ""},
 		),
 		method:      http.MethodGet,
@@ -100,7 +100,7 @@ var testcases = map[string]struct {
 	},
 
 	"StatusNotFoundError": {
-		kbClient:    tests.MockKibana(http.StatusOK, m{}),
+		kbClient:    tests.MockKibana(http.StatusNotFound, m{}),
 		method:      http.MethodGet,
 		queryParams: map[string]string{"service.name": "opbeans-python"},
 		respStatus:  http.StatusNotFound,
@@ -122,7 +122,7 @@ var testcases = map[string]struct {
 
 func TestAgentConfigHandler(t *testing.T) {
 	var cfg = agentConfig{Cache: &Cache{Expiration: 3 * time.Second}}
-	var respCacheControlHeader = "max-age=3"
+	var respCacheControlHeader = "max-age=3, must-revalidate"
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
