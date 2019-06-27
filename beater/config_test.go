@@ -321,6 +321,32 @@ func TestTLSSettings(t *testing.T) {
 		}
 	})
 
+	t.Run("VerificationMode", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			config map[string]interface{}
+			tls    *tlscommon.ServerConfig
+		}{
+			"Default": {
+				config: map[string]interface{}{"ssl": nil},
+				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
+			"ConfiguredToFull": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "full"}},
+				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
+			"ConfiguredToNone": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "none"}},
+				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyNone}},
+		} {
+			t.Run(name, func(t *testing.T) {
+				ucfgCfg, err := common.NewConfigFrom(tc.config)
+				require.NoError(t, err)
+
+				cfg, err := newConfig("9.9.9", ucfgCfg)
+				require.NoError(t, err)
+				assert.Equal(t, tc.tls.VerificationMode, cfg.TLS.VerificationMode)
+			})
+		}
+	})
+
 	t.Run("Enabled", func(t *testing.T) {
 		truthy := true
 		falsy := false
@@ -338,7 +364,7 @@ func TestTLSSettings(t *testing.T) {
 			t.Run(name, func(t *testing.T) {
 				b := tc.expected
 				isEnabled := tc.tlsServerCfg.IsEnabled()
-				assert.Equal(t, b, isEnabled, "ssl tlsServerCfg but should be %v", b)
+				assert.Equal(t, b, isEnabled)
 			})
 		}
 	})

@@ -69,6 +69,11 @@ apm-server:
     # Options are `none`, `optional`, and `required`. Default is `optional`.
     #client_authentication: "optional"
 
+    # Configure SSL verification mode. If `none` is configured, all hosts and
+    # certificates will be accepted. In this mode, SSL-based connections are
+    # susceptible to man-in-the-middle attacks. Use only for testing. Default is `full`.
+    #ssl.verification_mode: full
+
 
   #rum:
     # To enable real user monitoring (RUM) support set this to true.
