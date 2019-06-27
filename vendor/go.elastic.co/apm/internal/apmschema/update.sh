@@ -5,16 +5,12 @@ set -ex
 BRANCH=master
 
 FILES=( \
-    "errors/common_error.json" \
-    "errors/v2_error.json" \
+    "errors/error.json" \
     "sourcemaps/payload.json" \
-    "spans/common_span.json" \
-    "spans/v2_span.json" \
+    "spans/span.json" \
     "transactions/mark.json" \
-    "transactions/common_transaction.json" \
-    "transactions/v2_transaction.json" \
-    "metricsets/common_metricset.json" \
-    "metricsets/v2_metricset.json" \
+    "transactions/transaction.json" \
+    "metricsets/metricset.json" \
     "metricsets/sample.json" \
     "context.json" \
     "metadata.json" \

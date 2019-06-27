@@ -29,29 +29,29 @@ import (
 
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/outputs"
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/paths"
 )
 
 const DefaultPort = "8200"
 
 type Config struct {
-	Host                string                 `config:"host"`
-	MaxHeaderSize       int                    `config:"max_header_size"`
-	IdleTimeout         time.Duration          `config:"idle_timeout"`
-	ReadTimeout         time.Duration          `config:"read_timeout"`
-	WriteTimeout        time.Duration          `config:"write_timeout"`
-	MaxEventSize        int                    `config:"max_event_size"`
-	ShutdownTimeout     time.Duration          `config:"shutdown_timeout"`
-	SecretToken         string                 `config:"secret_token"`
-	SSL                 *SSLConfig             `config:"ssl"`
-	MaxConnections      int                    `config:"max_connections"`
-	Expvar              *ExpvarConfig          `config:"expvar"`
-	AugmentEnabled      bool                   `config:"capture_personal_data"`
-	SelfInstrumentation *InstrumentationConfig `config:"instrumentation"`
-	RumConfig           *rumConfig             `config:"rum"`
-	Register            *registerConfig        `config:"register"`
-	Mode                Mode                   `config:"mode"`
+	Host                string                  `config:"host"`
+	MaxHeaderSize       int                     `config:"max_header_size"`
+	IdleTimeout         time.Duration           `config:"idle_timeout"`
+	ReadTimeout         time.Duration           `config:"read_timeout"`
+	WriteTimeout        time.Duration           `config:"write_timeout"`
+	MaxEventSize        int                     `config:"max_event_size"`
+	ShutdownTimeout     time.Duration           `config:"shutdown_timeout"`
+	SecretToken         string                  `config:"secret_token"`
+	TLS                 *tlscommon.ServerConfig `config:"ssl"`
+	MaxConnections      int                     `config:"max_connections"`
+	Expvar              *ExpvarConfig           `config:"expvar"`
+	AugmentEnabled      bool                    `config:"capture_personal_data"`
+	SelfInstrumentation *InstrumentationConfig  `config:"instrumentation"`
+	RumConfig           *rumConfig              `config:"rum"`
+	Register            *registerConfig         `config:"register"`
+	Mode                Mode                    `config:"mode"`
 }
 
 type ExpvarConfig struct {
@@ -101,11 +101,6 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
-type SSLConfig struct {
-	Enabled     *bool                     `config:"enabled"`
-	Certificate outputs.CertificateConfig `config:",inline"`
-}
-
 type InstrumentationConfig struct {
 	Enabled     *bool   `config:"enabled"`
 	Environment *string `config:"environment"`
@@ -132,6 +127,19 @@ func (m *Mode) Unpack(s string) error {
 
 func newConfig(version string, ucfg *common.Config) (*Config, error) {
 	c := defaultConfig(version)
+
+	if ucfg.HasField("ssl") {
+		ssl, err := ucfg.Child("ssl", -1)
+		if err != nil {
+			return nil, err
+		}
+		if !ssl.HasField("client_authentication") {
+			if err := ucfg.SetString("ssl.client_authentication", -1, "optional"); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
@@ -144,6 +152,7 @@ func newConfig(version string, ucfg *common.Config) (*Config, error) {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
 		}
 	}
+
 	return c, nil
 }
 
@@ -151,10 +160,6 @@ func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
 	if c != nil && c.RumConfig.isEnabled() && c.RumConfig.SourceMapping != nil {
 		c.RumConfig.SourceMapping.EsConfig = esConfig
 	}
-}
-
-func (c *SSLConfig) isEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
 func (c *ExpvarConfig) isEnabled() bool {
@@ -174,7 +179,7 @@ func (c *pipelineConfig) isEnabled() bool {
 }
 
 func (c *pipelineConfig) shouldOverwrite() bool {
-	return c != nil && (c.Overwrite != nil && *c.Overwrite)
+	return c != nil && (c.Overwrite == nil || *c.Overwrite)
 }
 
 func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
