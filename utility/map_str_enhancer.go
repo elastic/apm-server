@@ -153,6 +153,9 @@ func update(m common.MapStr, key string, val interface{}, remove bool) {
 
 // DeepUpdate splits the key by '.' and merges the given value at m[de-dottedKeys].
 func DeepUpdate(m common.MapStr, dottedKeys string, val interface{}) {
+	if m == nil {
+		m = common.MapStr{}
+	}
 	keys := strings.Split(dottedKeys, ".")
 	if len(keys) == 0 {
 		return

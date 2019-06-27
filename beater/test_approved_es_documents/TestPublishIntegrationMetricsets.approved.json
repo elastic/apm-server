@@ -69,15 +69,29 @@
             "span": {
                 "self_time": {
                     "count": 1,
-                    "sum": 633.288
+                    "sum": {
+                        "us": 633.288
+                    }
                 },
                 "subtype": "mysql",
                 "type": "db"
             },
             "transaction": {
+                "breakdown": {
+                    "count": 12
+                },
+                "duration": {
+                    "count": 2,
+                    "sum": {
+                        "us": 12
+                    }
+                },
                 "name": "GET /",
                 "self_time": {
-                    "count": 2
+                    "count": 2,
+                    "sum": {
+                        "us": 10
+                    }
                 },
                 "type": "request"
             },
