@@ -60,6 +60,9 @@ func errorFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("http"),
 		tests.Group("url"),
 		tests.Group("span"),
+		tests.Group("transaction.self_time"),
+		tests.Group("transaction.breakdown"),
+		tests.Group("transaction.duration"),
 		"experimental",
 	)
 }

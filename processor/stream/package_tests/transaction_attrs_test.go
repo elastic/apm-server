@@ -54,6 +54,7 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"context.http",
 		"context.http.status_code",
 		"host.ip",
+		"transaction.duration.count",
 		"transaction.marks.*.*",
 		tests.Group("observer"),
 		tests.Group("user"),
@@ -61,6 +62,9 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		tests.Group("url"),
 		tests.Group("http"),
 		tests.Group("span"),
+		tests.Group("transaction.self_time"),
+		tests.Group("transaction.breakdown"),
+		tests.Group("transaction.duration.sum"),
 		"experimental",
 	)
 }

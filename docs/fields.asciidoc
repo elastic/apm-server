@@ -365,6 +365,63 @@ type: text
 
 --
 
+[float]
+== duration fields
+
+None
+
+
+*`transaction.duration.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.duration.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+== self_time fields
+
+Portion of the transaction's duration where no direct child was running
+
+
+
+*`transaction.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`transaction.self_time.sum.us`*::
++
+--
+type: long
+
+--
+
+[float]
+== breakdown fields
+
+Counter for collected breakdowns for the transaction
+
+
+
+*`transaction.breakdown.count`*::
++
+--
+type: long
+
+--
+
 
 *`span.type`*::
 +
@@ -383,6 +440,28 @@ type: keyword
 
 A further sub-division of the type (e.g. postgresql, elasticsearch)
 
+
+--
+
+[float]
+== self_time fields
+
+Portion of the span's duration where no direct child was running
+
+
+
+*`span.self_time.count`*::
++
+--
+type: long
+
+--
+
+
+*`span.self_time.sum.us`*::
++
+--
+type: long
 
 --
 

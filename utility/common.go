@@ -58,3 +58,13 @@ func InsertInMap(data map[string]interface{}, key string, values map[string]inte
 	}
 
 }
+
+// Contains does the obvious
+func Contains(s string, a []string) bool {
+	for _, x := range a {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
