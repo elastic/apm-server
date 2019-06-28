@@ -111,13 +111,14 @@ Disabled by default.
 [[register.ingest.pipeline.enabled]]
 [float]
 ==== `register.ingest.pipeline.enabled`
-Loads pipeline definitions to Elasticsearch on APM Server startup.
-Defaults to false.
+Loads the default pipeline definition to Elasticsearch on APM Server startup.
+Defaults to true.
 
 [[register.ingest.pipeline.overwrite]]
 [float]
 ==== `register.ingest.pipeline.overwrite`
-Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
+Overwrites the existing APM pipeline definition in Elasticsearch.
+Defaults to true.
 
 [float]
 === Configuration options: `queue.mem.*`
