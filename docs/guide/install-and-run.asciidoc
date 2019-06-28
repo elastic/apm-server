@@ -152,6 +152,7 @@ Make sure you choose a good service name before you get started.
 The service name can only contain alphanumeric characters,
 spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
+[[configure-apm]]
 === Step 5: Configure APM
 
 Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
