@@ -27,13 +27,10 @@ class BaseTest(TestCase):
 
         cls.index_name = "apm-{}".format(cls.apm_version)
         cls.index_name_pattern = "apm-*"
-
         cls.index_onboarding = "apm-{}-onboarding-{}".format(cls.apm_version, cls.day)
         cls.index_error = "apm-{}-error".format(cls.apm_version)
-        cls.index_rum_error = "apm-{}-error".format(cls.apm_version)
         cls.index_transaction = "apm-{}-transaction".format(cls.apm_version)
         cls.index_span = "apm-{}-span".format(cls.apm_version)
-        cls.index_rum_span = "apm-{}-span".format(cls.apm_version)
         cls.index_metric = "apm-{}-metric".format(cls.apm_version)
         cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
         cls.indices = [cls.index_onboarding, cls.index_error,
@@ -221,7 +218,7 @@ class ElasticTest(ServerBaseTest):
                 self.check_for_no_smap(err["log"])
 
     def check_backend_span_sourcemap(self, count=1):
-        rs = self.es.search(index=self.index_rum_span, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -290,7 +287,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
         )
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_rum_error, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=self.index_error, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:
@@ -301,7 +298,7 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
                 self.check_smap(err["log"], updated, expected_err)
 
     def check_rum_transaction_sourcemap(self, updated, expected_err=None, count=1):
-        rs = self.es.search(index=self.index_rum_span, params={"rest_total_hits_as_int": "true"})
+        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
         assert rs['hits']['total'] == count, "found {} documents, expected {}".format(
             rs['hits']['total'], count)
         for doc in rs['hits']['hits']:

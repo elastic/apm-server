@@ -46,7 +46,7 @@ class Test(ElasticTest):
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_transaction, fields="context.tags.*")
-        for name, metric in mappings[self.index_transaction]["mappings"].items():
+        for name, metric in mappings["{}-000001".format(self.index_transaction)]["mappings"].items():
             fullname = metric["full_name"]
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
@@ -63,7 +63,7 @@ class Test(ElasticTest):
                                      self.intake_url, 'transaction', 9)
         self.assert_no_logged_warnings()
         mappings = self.es.indices.get_field_mapping(index=self.index_transaction, fields="transaction.marks.*")
-        for name, metric in mappings[self.index_transaction]["mappings"].items():
+        for name, metric in mappings["{}-000001".format(self.index_transaction)]["mappings"].items():
             for mapping in metric["mapping"].values():
                 mtype = mapping["type"]
                 assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
@@ -156,7 +156,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      self.intake_url,
                                      'error',
                                      1)
-        self.check_library_frames({"true": 5, "false": 1, "empty": 0}, self.index_rum_error)
+        self.check_library_frames({"true": 5, "false": 1, "empty": 0}, self.index_error)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_transaction(self):
@@ -174,7 +174,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      self.intake_url,
                                      'transaction',
                                      2)
-        self.check_library_frames({"true": 1, "false": 1, "empty": 0}, self.index_rum_span)
+        self.check_library_frames({"true": 1, "false": 1, "empty": 0}, self.index_span)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_enrich_backend_event(self):
@@ -192,7 +192,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      'error',
                                      1)
 
-        rs = self.es.search(index=self.index_rum_error)
+        rs = self.es.search(index=self.index_error)
 
         hits = rs['hits']['hits']
         for hit in hits:
@@ -214,7 +214,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      'error',
                                      2)
 
-        rs = self.es.search(index=self.index_rum_error)
+        rs = self.es.search(index=self.index_error)
         docs = rs['hits']['hits']
         grouping_key1 = docs[0]["_source"]["error"]["grouping_key"]
         grouping_key2 = docs[1]["_source"]["error"]["grouping_key"]
@@ -295,7 +295,7 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
                                      'error',
                                      1)
         self.assert_no_logged_warnings()
-        self.check_backend_error_sourcemap(self.index_rum_error)
+        self.check_backend_error_sourcemap(self.index_error)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_duplicated_sourcemap_warning(self):
@@ -417,8 +417,8 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
             False, expected_err="No Sourcemap found for")
 
         # remove existing document
-        self.es.delete_by_query(index=self.index_rum_error, body={"query": {"term": {"processor.name": 'error'}}})
-        self.wait_until(lambda: (self.es.count(index=self.index_rum_error)['count'] == 0))
+        self.es.delete_by_query(index=self.index_error, body={"query": {"term": {"processor.name": 'error'}}})
+        self.wait_until(lambda: (self.es.count(index=self.index_error)['count'] == 0))
 
         # upload second sourcemap file with same key,
         # that actually leads to proper matchings
@@ -499,13 +499,14 @@ class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
         self.assert_no_logged_warnings()
 
         # delete sourcemap and error event from ES
-        self.es.indices.delete(index=self.index_rum_error)
+        self.es.indices.delete(index=self.index_error)
         # fetching from ES will lead to an error afterwards
         self.es.indices.delete(index=self.index_smap, ignore=[400, 404])
         self.wait_until(lambda: not self.es.indices.exists(self.index_smap))
         # ensure smap is not in cache any more
         time.sleep(1)
 
+        time.sleep(30)
         # after cache expiration no sourcemap should be found any more
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
