@@ -30,6 +30,18 @@ const (
 	apmSuffix  = "-%{+yyyy.MM.dd}"
 )
 
+type esIndexConfig struct {
+	Index   string         `config:"index"`
+	Indices *common.Config `config:"indices"`
+}
+
+func (cfg *esIndexConfig) customized() bool {
+	if cfg == nil {
+		return false
+	}
+	return cfg.Index != "" || cfg.Indices != nil
+}
+
 var defaultIndex = fmt.Sprintf("%s-%s%s", apmPrefix, apmVersion, apmSuffix)
 
 func idxStr(name string, suffix string) string {
@@ -57,14 +69,18 @@ func othersIdxNames() map[string]string {
 
 func indices(cfg *common.Config) (*common.Config, error) {
 	var idcsCfg = common.NewConfig()
+	var customESIdxCfg esIndexConfig
+	if err := cfg.Unpack(&customESIdxCfg); err != nil {
+		return nil, err
+	}
 
 	// set defaults
-	if !cfg.HasField("index") {
+	if customESIdxCfg.Index == "" {
 		// set fallback default index
 		idcsCfg.SetString("index", -1, defaultIndex)
 
 		// set default indices if not set
-		if !cfg.HasField("indices") {
+		if customESIdxCfg.Indices == nil {
 			if indicesCfg, err := common.NewConfigFrom(indicesConditions(false)); err == nil {
 				idcsCfg.SetChild("indices", -1, indicesCfg)
 			}
@@ -72,19 +88,15 @@ func indices(cfg *common.Config) (*common.Config, error) {
 	}
 
 	// use custom config settings where available
-	if cfg.HasField("index") {
-		indexName, err := cfg.String("index", -1)
-		if err != nil {
+	if customESIdxCfg.Index != "" {
+		if err := idcsCfg.SetString("index", -1, customESIdxCfg.Index); err != nil {
 			return nil, err
 		}
-		idcsCfg.SetString("index", -1, indexName)
 	}
-	if cfg.HasField("indices") {
-		sub, err := cfg.Child("indices", -1)
-		if err != nil {
+	if customESIdxCfg.Indices != nil {
+		if err := idcsCfg.SetChild("indices", -1, customESIdxCfg.Indices); err != nil {
 			return nil, err
 		}
-		idcsCfg.SetChild("indices", -1, sub)
 	}
 	return idcsCfg, nil
 }

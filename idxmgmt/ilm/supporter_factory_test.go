@@ -60,6 +60,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 			"policy_name": "%{[observer.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}",
 			"alias_name":  "alias-%{[observer.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}",
 			"event":       "span",
+			"enabled":     "true",
 		})
 
 		s, err := MakeDefaultSupporter(nil, info, cfg)
@@ -69,6 +70,18 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.Equal(t, "alias-mockapm-9.9.9-mockapm-9.9.9", s.Alias().Name)
 		assert.Equal(t, "000001", s.Alias().Pattern)
 		assert.Equal(t, libilm.ModeEnabled, s.Mode())
+	})
+
+	t.Run("default mode", func(t *testing.T) {
+		cfg := common.MustNewConfigFrom(map[string]interface{}{
+			"policy_name": "policy",
+			"alias_name":  "alias",
+			"event":       "span",
+		})
+
+		s, err := MakeDefaultSupporter(nil, info, cfg)
+		require.NoError(t, err)
+		assert.Equal(t, libilm.ModeAuto, s.Mode())
 	})
 
 }

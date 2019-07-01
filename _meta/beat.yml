@@ -172,11 +172,21 @@ apm-server:
     # Overwrites existing APM pipeline definition in Elasticsearch. Defaults to true.
     #overwrite: true
 
-  # When ilm is set to true the APM Server will take care of ILM setup.
-  # Configurations in output.elasticsearch.index and output.elasticsearch.indices sections will be ignored
-  # ilm can only be enabled for output.elasticsearch
-  #ilm:
-    #enabled: false
+  # When ilm is set to `auto`, the APM Server checks a couple of preconditions:
+  # If a different output than Elasticsearch is configured, ILM will be disabled.
+  # If Elasticsearch output is configured, but specific `index` or `indices` settings are configured, ILM will be
+  # disabled, as it only works with default index settings.
+  # If the configured Elasticsearch instance is not eligible for ILM, ILM will also be disabled.
+  # If all preconditions are met, ILM will be enabled.
+  #
+  # When ILM is set to `true`, the APM Server ignores any configured index settings.
+  # For ILM to be applied, The configured output must be set to Elasticsearch and the instance
+  # needs to support ILM. Otherwise APM Server falls back to ordinary index management without ILM.
+  #
+  # Disable ILM by setting it to `false`.
+  #
+  # Defaults to `auto`.
+  #ilm.enabled: "auto"
 
   #kibana:
     # For agent remote configuration, enabled must be true

@@ -29,12 +29,12 @@ class BaseTest(TestCase):
         cls.index_name_pattern = "apm-*"
 
         cls.index_onboarding = "apm-{}-onboarding-{}".format(cls.apm_version, cls.day)
-        cls.index_error = "apm-{}-error-2017.05.09".format(cls.apm_version)
-        cls.index_rum_error = "apm-{}-error-2017.12.08".format(cls.apm_version)
-        cls.index_transaction = "apm-{}-transaction-2017.05.30".format(cls.apm_version)
-        cls.index_span = "apm-{}-span-2017.05.30".format(cls.apm_version)
-        cls.index_rum_span = "apm-{}-span-2017.12.08".format(cls.apm_version)
-        cls.index_metric = "apm-{}-metric-2017.05.30".format(cls.apm_version)
+        cls.index_error = "apm-{}-error".format(cls.apm_version)
+        cls.index_rum_error = "apm-{}-error".format(cls.apm_version)
+        cls.index_transaction = "apm-{}-transaction".format(cls.apm_version)
+        cls.index_span = "apm-{}-span".format(cls.apm_version)
+        cls.index_rum_span = "apm-{}-span".format(cls.apm_version)
+        cls.index_metric = "apm-{}-metric".format(cls.apm_version)
         cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
         cls.indices = [cls.index_onboarding, cls.index_error,
                        cls.index_transaction, cls.index_span, cls.index_metric, cls.index_smap]
