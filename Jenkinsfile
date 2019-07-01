@@ -53,7 +53,7 @@ pipeline {
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}")
+        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true)
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
@@ -367,11 +367,13 @@ pipeline {
         expression { return params.kibana_update_ci }
       }
       steps {
-        withGithubNotify(context: 'Synk Kibana') {
+        withGithubNotify(context: 'Sync Kibana') {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh './script/jenkins/sync.sh'
+            catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
+              sh './script/jenkins/sync.sh'
+            }
           }
         }
       }

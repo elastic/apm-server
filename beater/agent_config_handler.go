@@ -20,6 +20,7 @@ package beater
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -33,11 +34,13 @@ const (
 	headerIfNoneMatch  = "If-None-Match"
 	headerEtag         = "Etag"
 	headerCacheControl = "Cache-Control"
+	errMaxAgeDuration  = 5 * time.Minute
 )
 
 func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToken string) http.Handler {
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
-	maxAge := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+	defaultHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+	errHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		send := wrap(w, r)
@@ -48,32 +51,39 @@ func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToke
 
 		var resp interface{}
 		var state int
+		var headerCacheControlVal string
 
 		switch {
 		case requestErr != nil:
 			resp = requestErr.Error()
 			state = http.StatusBadRequest
+			headerCacheControlVal = errHeaderCacheControl
 		case query == agentcfg.Query{}:
 			resp = nil
 			state = http.StatusMethodNotAllowed
+			headerCacheControlVal = errHeaderCacheControl
 		case internalErr != nil:
 			resp = internalErr.Error()
 			state = http.StatusInternalServerError
+			headerCacheControlVal = errHeaderCacheControl
 		case len(cfg) == 0:
 			resp = nil
 			state = http.StatusNotFound
+			headerCacheControlVal = errHeaderCacheControl
 		case clientEtag != "" && clientEtag == upstreamEtag:
 			w.Header().Set(headerEtag, clientEtag)
 			resp = nil
 			state = http.StatusNotModified
+			headerCacheControlVal = defaultHeaderCacheControl
 		case upstreamEtag != "":
 			w.Header().Set(headerEtag, upstreamEtag)
 			fallthrough
 		default:
 			resp = cfg
 			state = http.StatusOK
+			headerCacheControlVal = defaultHeaderCacheControl
 		}
-		w.Header().Set(headerCacheControl, maxAge)
+		w.Header().Set(headerCacheControl, headerCacheControlVal)
 		send(resp, state)
 	})
 	return authHandler(secretToken, logHandler(handler))
