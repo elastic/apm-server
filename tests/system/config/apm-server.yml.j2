@@ -57,9 +57,12 @@ apm-server:
   expvar.url: {{ expvar_url }}
   {% endif %}
 
-  register.ingest.pipeline:
-    enabled: {{ register_pipeline_enabled }}
-    overwrite: {{ register_pipeline_overwrite  }}
+  {% if register_pipeline_enabled %}
+  register.ingest.pipeline.enabled: {{ register_pipeline_enabled }}
+  {% endif %}
+  {% if register_pipeline_overwrite %}
+  register.ingest.pipeline.overwrite: {{ register_pipeline_overwrite  }}
+  {% endif %}
 
   {% if mode %}
   mode: {{ mode }}
@@ -104,6 +107,15 @@ output.elasticsearch:
 
   {% if override_index %}
   index: {{ override_index }}
+  {% endif %}
+
+  {% if disable_pipeline %}
+  pipeline: _none
+  {% endif %}
+
+  {% if disable_pipelines %}
+  pipelines:
+  - pipeline: _none
   {% endif %}
 
 {% endif %}

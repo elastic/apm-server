@@ -559,8 +559,8 @@ class MetricsIntegrationTest(ElasticTest):
 
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
-        loaded_msg = "No pipeline callback registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg), max_timeout=5)
+        loaded_msg = "Registered Ingest Pipelines successfully."
+        self.wait_until(lambda: self.log_contains(loaded_msg), max_timeout=10)
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
 

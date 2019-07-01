@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/kibana"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 
@@ -104,6 +105,10 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 			}
 		}
 	}
+	if isElasticsearchOutput(b) &&
+		(b.Config.Output.Config().HasField("pipeline") || b.Config.Output.Config().HasField("pipelines")) {
+		beaterConfig.pipeline = ""
+	}
 
 	bt := &beater{
 		config:  beaterConfig,
@@ -114,7 +119,6 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	// setup pipelines if explicitly directed to or setup --pipelines and config is not set at all
 	shouldSetupPipelines := beaterConfig.Register.Ingest.Pipeline.isEnabled() ||
 		(b.InSetupCmd && beaterConfig.Register.Ingest.Pipeline.Enabled == nil)
-
 	if isElasticsearchOutput(b) && shouldSetupPipelines {
 		logger.Info("Registering pipeline callback.")
 		err := bt.registerPipelineCallback(b)
@@ -124,7 +128,6 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	} else {
 		logger.Info("No pipeline callback registered")
 	}
-
 	return bt, nil
 }
 
@@ -175,7 +178,9 @@ func (bt *beater) Run(b *beat.Beat) error {
 	}
 	defer tracer.Close()
 
-	pub, err := publish.NewPublisher(b.Info, b.Publisher, bt.config.ShutdownTimeout, tracer)
+	pub, err := publish.NewPublisher(b.Publisher, tracer, &publish.PublisherConfig{
+		Info: b.Info, ShutdownTimeout: bt.config.ShutdownTimeout, Pipeline: bt.config.pipeline,
+	})
 	if err != nil {
 		return err
 	}
@@ -193,7 +198,15 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	bt.server, err = newServer(bt.config, tracer, pub.Send)
+	var kbClient *kibana.Client
+	if bt.config.Kibana.Enabled() {
+		kbClient, err = kibana.NewKibanaClient(bt.config.Kibana)
+		if err != nil {
+			bt.logger.Error(err.Error())
+		}
+	}
+
+	bt.server, err = newServer(bt.config, tracer, kbClient, pub.Send)
 	if err != nil {
 		bt.logger.Error("failed to create new server:", err)
 		return nil

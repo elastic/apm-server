@@ -47,7 +47,7 @@
               description: >
                 Duration of the span, in microseconds.
 
-        - name: sync 
+        - name: sync
           type: boolean
           description: >
             Indicates whether the span was executed synchronously or asynchronously.

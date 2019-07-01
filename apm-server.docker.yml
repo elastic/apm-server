@@ -157,24 +157,19 @@ apm-server:
     # Remote apm-servers' secret_token
     #secret_token:
 
-  # A pipeline is a definition of processors applied to documents when writing them to Elasticsearch.
+  # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
   # Using pipelines involves two steps:
   # (1) registering a pipeline
-  # (2) applying a pipeline during data ingestion (see `output.elasticsearch.pipelines`)
+  # (2) applying a pipeline during data ingestion (see `output.elasticsearch.pipeline`)
   #
-  # You can manually register pipelines, or use this configuration option to ensure
-  # pipelines are loaded and registered at the configured Elasticsearch instances.
-  # Automatic pipeline registration requires
-  # * `output.elasticsearch` to be enabled and configured.
-  # * having the required Elasticsearch Processor Plugins installed.
-  #   APM Server default pipelines require you to have the `Ingest User Agent Plugin` installed.
-  #   Find the default pipeline configuration at `ingest/pipeline/definition.json`.
-  #
+  # You can manually register a pipeline, or use this configuration option to ensure
+  # the pipeline is loaded and registered at the configured Elasticsearch instances.
+  # Find the default pipeline configuration at `ingest/pipeline/definition.json`.
+  # Automatic pipeline registration requires the output.elasticsearch` to be enabled and configured.
   #register.ingest.pipeline:
-    # Registers pipeline definitions in Elasticsearch on APM Server startup. Defaults to false.
-    #enabled: false
-
-    # Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
+    # Registers APM pipeline definition in Elasticsearch on APM Server startup. Defaults to true.
+    #enabled: true
+    # Overwrites existing APM pipeline definition in Elasticsearch. Defaults to true.
     #overwrite: true
 
   # When ilm is set to true the APM Server will take care of ILM setup.
@@ -182,6 +177,56 @@ apm-server:
   # ilm can only be enabled for output.elasticsearch
   #ilm:
     #enabled: false
+
+  #kibana:
+    # For agent remote configuration, enabled must be true
+    #enabled: false
+
+    # Scheme and port can be left out and will be set to the default (http and 5601)
+    # In case you specify an additional path, the scheme is required: http://localhost:5601/path
+    # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
+    #host: "localhost:5601"
+
+    # Optional protocol and basic auth credentials.
+    #protocol: "https"
+    #username: "elastic"
+    #password: "changeme"
+
+    # Optional HTTP path
+    #path: ""
+
+    # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
+    #ssl.enabled: true
+
+    # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
+    # Configure SSL verification mode. If `none` is configured, all server hosts
+    # and certificates will be accepted. In this mode, SSL based connections are
+    # susceptible to man-in-the-middle attacks. Use only for testing. Default is
+    # `full`.
+    #ssl.verification_mode: full
+
+    # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
+    # 1.2 are enabled.
+    #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+
+    # List of root certificates for HTTPS server verifications
+    #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+
+    # Certificate for SSL client authentication
+    #ssl.certificate: "/etc/pki/client/cert.pem"
+
+    # Client Certificate Key
+    #ssl.key: "/etc/pki/client/cert.key"
+
+    # Optional passphrase for decrypting the Certificate Key.
+    # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
+    #ssl.key_passphrase: ''
+
+    # Configure cipher suites to be used for SSL connections
+    #ssl.cipher_suites: []
+
+    # Configure curve types for ECDHE based cipher suites
+    #ssl.curve_types: []
 
 #================================ General ======================================
 
@@ -334,13 +379,11 @@ output.elasticsearch:
   #    when.contains:
   #      processor.event: "onboarding"
 
-  # A pipeline is a definition of processors applied to documents when writing them to Elasticsearch.
-  # APM Server comes with a default pipeline definition, located at `ingest/pipeline/definition.json`.
-  # Pipelines are disabled by default. To make use of them you have to:
-  # (1) ensure pipelines are registered in Elasticsearch, see `apm-server.register.ingest.pipeline`
-  # (2) enable the following:
-  #pipelines:
-  #- pipeline: "apm"
+  # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
+  # APM Server comes with a default pipeline definition, located at `ingest/pipeline/definition.json`, which is
+  # loaded to Elasticsearch by default (see `apm-server.register.ingest.pipeline`).
+  # APM pipeline is enabled by default. For disabling set `pipeline: _none`.
+  #pipeline: "apm"
 
   # Optional HTTP Path
   #path: "/elasticsearch"
