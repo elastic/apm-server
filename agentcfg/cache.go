@@ -68,6 +68,9 @@ func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error)) (doc *Doc, er
 
 func (c *cache) add(id string, doc *Doc) {
 	c.gocache.SetDefault(id, doc)
+	if !c.logger.IsDebug() {
+		return
+	}
 	c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), id)
 }
 

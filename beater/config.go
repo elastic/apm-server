@@ -58,7 +58,7 @@ type Config struct {
 	Register            *registerConfig         `config:"register"`
 	Mode                Mode                    `config:"mode"`
 	Kibana              *common.Config          `config:"kibana"`
-	RemoteConfig        *remoteConfig           `config:"remote_config"`
+	AgentConfig         *agentConfig            `config:"agent.config"`
 
 	pipeline string
 }
@@ -96,10 +96,6 @@ type pipelineConfig struct {
 	Enabled   *bool `config:"enabled"`
 	Overwrite *bool `config:"overwrite"`
 	Path      string
-}
-
-type remoteConfig struct {
-	AgentConfig *agentConfig `config:"agent"`
 }
 
 type agentConfig struct {
@@ -291,9 +287,9 @@ func defaultConfig(beatVersion string) *Config {
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
 		},
-		Mode:         ModeProduction,
-		Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		RemoteConfig: &remoteConfig{AgentConfig: &agentConfig{Cache: &Cache{Expiration: 10 * time.Second}}},
-		pipeline:     defaultAPMPipeline,
+		Mode:        ModeProduction,
+		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+		AgentConfig: &agentConfig{Cache: &Cache{Expiration: 10 * time.Second}},
+		pipeline:    defaultAPMPipeline,
 	}
 }
