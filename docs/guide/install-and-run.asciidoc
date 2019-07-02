@@ -13,7 +13,7 @@ Alternatively, you can <<before-installation,install the stack yourself>>.
 
 image::images/apm-architecture-cloud.png[Install Elastic APM on cloud]
 
-Skip having to install {es}, {kib}, and APM Server by using our
+Skip managing your own {es}, {kib}, and APM Server by using our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud.
 
