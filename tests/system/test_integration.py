@@ -358,11 +358,11 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
 
         self.upload_sourcemap(file_name='bundle.js.map', bundle_filepath=path)
         self.wait_for_sourcemaps(3)
-        assert self.log_contains("Multiple sourcemaps found"), \
+        assert self.log_contains("2 sourcemaps found for service"), \
             "the 3rd fetch should query ES and find that there are 2 sourcemaps with the same caching key"
 
         self.assert_no_logged_warnings(
-            ["WARN.*Overriding sourcemap", "WARN.*Multiple sourcemaps"])
+            ["WARN.*Overriding sourcemap", "WARN.*2 sourcemaps found for service"])
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error(self):
