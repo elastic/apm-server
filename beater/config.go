@@ -141,7 +141,7 @@ func newConfig(version string, ucfg *common.Config) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !ssl.HasField("client_authentication") {
+		if !ssl.HasField("certificate_authorities") && !ssl.HasField("client_authentication") {
 			if err := ucfg.SetString("ssl.client_authentication", -1, "optional"); err != nil {
 				return nil, err
 			}

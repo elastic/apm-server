@@ -167,39 +167,13 @@ func TestConfig(t *testing.T) {
 	}
 	for idx, test := range cases {
 		cfg, err := yaml.NewConfig(test.config)
-		assert.NoError(t, err)
-
+		require.NoError(t, err)
 		var beaterConfig Config
 		err = cfg.Unpack(&beaterConfig)
-		assert.NoError(t, err)
+		require.NoError(t, err)
+
 		msg := fmt.Sprintf("Test number %v failed. Config: %v, ExpectedConfig: %v", idx, beaterConfig, test.expectedConfig)
 		assert.Equal(t, test.expectedConfig, beaterConfig, msg)
-	}
-}
-
-func TestIsSSLEnabled(t *testing.T) {
-	truthy := true
-	falsy := false
-	cases := []struct {
-		tlsServerCfg *tlscommon.ServerConfig
-		expected     bool
-	}{
-		{tlsServerCfg: nil, expected: false},
-		{tlsServerCfg: &tlscommon.ServerConfig{Enabled: nil}, expected: true},
-		{tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert"}}, expected: true},
-		{tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
-		{tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: &falsy}, expected: false},
-		{tlsServerCfg: &tlscommon.ServerConfig{Enabled: &truthy}, expected: true},
-		{tlsServerCfg: &tlscommon.ServerConfig{Enabled: &falsy}, expected: false},
-	}
-
-	for idx, test := range cases {
-		name := fmt.Sprintf("%v %v->%v", idx, test.tlsServerCfg, test.expected)
-		t.Run(name, func(t *testing.T) {
-			b := test.expected
-			isEnabled := test.tlsServerCfg.IsEnabled()
-			assert.Equal(t, b, isEnabled, "ssl tlsServerCfg but should be %v", b)
-		})
 	}
 }
 
@@ -303,4 +277,95 @@ func TestPipeline(t *testing.T) {
 		assert.Equal(t, test.overwrite, test.c.shouldOverwrite(),
 			fmt.Sprintf("<%v> shouldOverwrite() expected %v", idx, test.overwrite))
 	}
+}
+
+func TestTLSSettings(t *testing.T) {
+
+	t.Run("ClientAuthentication", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			config map[string]interface{}
+
+			tls *tlscommon.ServerConfig
+		}{
+			"Defaults": {
+				config: map[string]interface{}{"ssl": nil},
+				tls:    &tlscommon.ServerConfig{ClientAuth: 3},
+			},
+			"ConfiguredToRequired": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{"client_authentication": "required"}},
+				tls:    &tlscommon.ServerConfig{ClientAuth: 4},
+			},
+			"ConfiguredToNone": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{"client_authentication": "none"}},
+				tls:    &tlscommon.ServerConfig{ClientAuth: 0},
+			},
+			"DefaultRequiredByCA": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{
+					"certificate_authorities": []string{"./path"}}},
+				tls: &tlscommon.ServerConfig{ClientAuth: 4},
+			},
+			"ConfiguredWithCA": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{
+					"certificate_authorities": []string{"./path"}, "client_authentication": "none"}},
+				tls: &tlscommon.ServerConfig{ClientAuth: 0},
+			},
+		} {
+			t.Run(name, func(t *testing.T) {
+				ucfgCfg, err := common.NewConfigFrom(tc.config)
+				require.NoError(t, err)
+
+				cfg, err := newConfig("9.9.9", ucfgCfg)
+				require.NoError(t, err)
+				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
+			})
+		}
+	})
+
+	t.Run("VerificationMode", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			config map[string]interface{}
+			tls    *tlscommon.ServerConfig
+		}{
+			"Default": {
+				config: map[string]interface{}{"ssl": nil},
+				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
+			"ConfiguredToFull": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "full"}},
+				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyFull}},
+			"ConfiguredToNone": {
+				config: map[string]interface{}{"ssl": map[string]interface{}{"verification_mode": "none"}},
+				tls:    &tlscommon.ServerConfig{VerificationMode: tlscommon.VerifyNone}},
+		} {
+			t.Run(name, func(t *testing.T) {
+				ucfgCfg, err := common.NewConfigFrom(tc.config)
+				require.NoError(t, err)
+
+				cfg, err := newConfig("9.9.9", ucfgCfg)
+				require.NoError(t, err)
+				assert.Equal(t, tc.tls.VerificationMode, cfg.TLS.VerificationMode)
+			})
+		}
+	})
+
+	t.Run("Enabled", func(t *testing.T) {
+		truthy := true
+		falsy := false
+		for name, tc := range map[string]struct {
+			tlsServerCfg *tlscommon.ServerConfig
+			expected     bool
+		}{
+			"NoConfig":          {tlsServerCfg: nil, expected: false},
+			"SSL":               {tlsServerCfg: &tlscommon.ServerConfig{Enabled: nil}, expected: true},
+			"WithCert":          {tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert"}}, expected: true},
+			"WithCertAndKey":    {tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
+			"ConfiguredToFalse": {tlsServerCfg: &tlscommon.ServerConfig{Certificate: outputs.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: &falsy}, expected: false},
+			"ConfiguredToTrue":  {tlsServerCfg: &tlscommon.ServerConfig{Enabled: &truthy}, expected: true},
+		} {
+			t.Run(name, func(t *testing.T) {
+				b := tc.expected
+				isEnabled := tc.tlsServerCfg.IsEnabled()
+				assert.Equal(t, b, isEnabled)
+			})
+		}
+	})
 }
