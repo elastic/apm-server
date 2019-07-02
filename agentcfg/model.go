@@ -20,6 +20,7 @@ package agentcfg
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -63,6 +64,16 @@ func NewQuery(name, env string) Query {
 // Query represents an URL body or query params for agent configuration
 type Query struct {
 	Service Service `json:"service"`
+}
+
+func (q Query) id() string {
+	var str strings.Builder
+	str.WriteString(q.Service.Name)
+	if q.Service.Environment != "" {
+		str.WriteString("_")
+		str.WriteString(q.Service.Environment)
+	}
+	return str.String()
 }
 
 // Service holds supported attributes for querying configuration
