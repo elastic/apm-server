@@ -248,7 +248,26 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                 lf["empty"] += 1
 
 
+class ILMDisabledIntegrationTest(ElasticTest):
+    config_overrides = {"ilm_enabled": "false"}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_override_indices_config(self):
+        # load error and transaction document to ES
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.intake_url,
+                                     'error',
+                                     4,
+                                     query_index="{}-2017.05.09".format(self.index_error))
+        self.load_docs_with_template(self.get_payload_path("transactions_spans_rum.ndjson"),
+                                     self.intake_url,
+                                     'transaction',
+                                     1,
+                                     query_index="{}-2019.07.02".format(self.index_transaction))
+
+
 class OverrideIndicesIntegrationTest(OverrideIndicesTest):
+    # default ILM=auto disables ILM when custom indices given
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_override_indices_config(self):
@@ -265,7 +284,35 @@ class OverrideIndicesIntegrationTest(OverrideIndicesTest):
                                      query_index=self.index_name)
 
         # check that every document is indexed once in the expected index (incl.1 onboarding doc)
-        assert 7 == self.es.count(index=self.index_name)['count']
+        assert 4+2+1 == self.es.count(index=self.index_name)['count']
+
+
+class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
+    config_overrides = {"ilm_enabled": "false"}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_override_indices_config(self):
+        # load error and transaction document to ES
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.intake_url,
+                                     'error',
+                                     4,
+                                     query_index=self.index_name)
+        assert 4+1 == self.es.count(index=self.index_name)['count']
+
+
+class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
+    config_overrides = {"ilm_enabled": "true"}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_override_indices_config(self):
+        # load error and transaction document to ES
+        self.load_docs_with_template(self.get_error_payload_path(),
+                                     self.intake_url,
+                                     'error',
+                                     4,
+                                     query_index=self.ilm_index(self.index_error))
+        assert 4 == self.es.count(index=self.ilm_index(self.index_error))['count']
 
 
 class OverrideIndicesFailureIntegrationTest(OverrideIndicesFailureTest):
@@ -499,7 +546,7 @@ class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
         self.assert_no_logged_warnings()
 
         # delete sourcemap and error event from ES
-        self.es.indices.delete(index=self.index_error)
+        self.es.indices.delete(index=self.ilm_index(self.index_error))
         # fetching from ES will lead to an error afterwards
         self.es.indices.delete(index=self.index_smap, ignore=[400, 404])
         self.wait_until(lambda: not self.es.indices.exists(self.index_smap))
@@ -553,17 +600,17 @@ class MetricsIntegrationTest(ElasticTest):
         mappings = self.es.indices.get_field_mapping(
             index=self.index_metric, fields="system.process.cpu.total.norm.pct")
         expected_type = "scaled_float"
-        doc = mappings[self.index_metric]["mappings"]
+        doc = mappings[self.ilm_index(self.index_metric)]["mappings"]
         actual_type = doc["system.process.cpu.total.norm.pct"]["mapping"]["pct"]["type"]
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
 
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
-        loaded_msg = "Registered Ingest Pipelines successfully."
-        self.wait_until(lambda: self.log_contains(loaded_msg), max_timeout=10)
+        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"), max_timeout=10)
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
+        self.wait_until(lambda: self.log_contains("3 events have been published"), max_timeout=10)
 
         self.assert_no_logged_warnings()
 

@@ -64,6 +64,9 @@ class BaseTest(TestCase):
     def get_event_payload(self, name="events.ndjson"):
         return self.get_payload(name)
 
+    def ilm_index(self, index):
+        return "{}-000001".format(index)
+
 
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
@@ -380,6 +383,15 @@ def get_elasticsearch_url():
 
 
 class SubCommandTest(ServerSetUpBaseTest):
+
+    def config(self):
+        cfg = super(SubCommandTest, self).config()
+        cfg.update({
+            "elasticsearch_host": get_elasticsearch_url(),
+            "file_enabled": "false",
+        })
+        return cfg
+
     def wait_until_started(self):
         self.apmserver_proc.check_wait()
 

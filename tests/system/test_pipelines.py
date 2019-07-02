@@ -11,14 +11,6 @@ from nose.tools import raises
 class SetupPipelinesDefaultTest(SubCommandTest):
     pipeline_name = "apm_user_agent"
 
-    def config(self):
-        cfg = super(SubCommandTest, self).config()
-        cfg.update({
-            "elasticsearch_host": get_elasticsearch_url(),
-            "file_enabled": "false",
-        })
-        return cfg
-
     def start_args(self):
         return {
             "logging_args": ["-v", "-d", "*"],
