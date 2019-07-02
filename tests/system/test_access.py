@@ -101,7 +101,6 @@ class TestSecureServerBaseTest(ServerSetUpBaseTest):
     def config_overrides(self):
         cfg = {
             "ssl_enabled": "true",
-            "ssl_certificate_authorities": self.ca_cert,
             "ssl_certificate": self.server_cert,
             "ssl_key": self.server_key,
             "ssl_key_passphrase": self.password
@@ -176,6 +175,30 @@ class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
         self.send_http_request(verify=self.ca_cert,
                                cert=(self.simple_cert, self.simple_key))
 
+    @raises(SSLError)
+    def test_https_self_signed_cert(self):
+        # CA is not configured server side, so self signed certs are not valid
+        r = self.send_http_request(verify=self.ca_cert,
+                                   cert=(self.client_cert, self.client_key))
+        assert r.status_code == 202, r.status_code
+
+
+class TestSSLEnabledOptionalClientVerificationWithCATest(TestSecureServerBaseTest):
+    def ssl_overrides(self):
+        return {"ssl_certificate_authorities": self.ca_cert}
+
+    @raises(SSLError)
+    def test_https_no_certificate(self):
+        # since CA is configured, client auth is required
+        r = self.send_http_request(verify=self.ca_cert)
+        assert r.status_code == 202, r.status_code
+
+    @raises(SSLError)
+    def test_https_verify_cert_if_given(self):
+        # invalid certificate
+        self.send_http_request(verify=self.ca_cert,
+                               cert=(self.simple_cert, self.simple_key))
+
     def test_https_auth_cert_ok(self):
         r = self.send_http_request(verify=self.ca_cert,
                                    cert=(self.client_cert, self.client_key))
@@ -184,7 +207,8 @@ class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
 
 class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
-        return {"ssl_client_authentication": "required"}
+        return {"ssl_client_authentication": "required",
+                "ssl_certificate_authorities": self.ca_cert}
 
     @raises(SSLError)
     def test_https_no_cert_fails(self):
@@ -202,6 +226,9 @@ class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
 
 
 class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
+    def ssl_overrides(self):
+        return {"ssl_certificate_authorities": self.ca_cert}
+
     @raises(ssl.SSLError)
     def test_tls_v1_0(self):
         self.ssl_connect(protocol=ssl.PROTOCOL_TLSv1)
@@ -215,7 +242,8 @@ class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
 
 class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
-        return {"ssl_supported_protocols": ["TLSv1.2"]}
+        return {"ssl_supported_protocols": ["TLSv1.2"],
+                "ssl_certificate_authorities": self.ca_cert}
 
     @raises(ssl.SSLError)
     def test_tls_v1_1(self):
@@ -227,7 +255,8 @@ class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
 
 class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
-        return {"ssl_cipher_suites": ['ECDHE-RSA-AES128-GCM-SHA256']}
+        return {"ssl_cipher_suites": ['ECDHE-RSA-AES-128-GCM-SHA256'],
+                "ssl_certificate_authorities": self.ca_cert}
 
     def test_https_no_cipher_set(self):
         self.ssl_connect()
