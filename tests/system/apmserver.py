@@ -1,16 +1,19 @@
+from datetime import datetime, timedelta
+import json
 import os
 import re
 import shutil
+from time import gmtime, strftime
 
-import requests
 import sys
 import time
+
 from elasticsearch import Elasticsearch
-from datetime import datetime, timedelta
+import requests
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
 from beat.beat import TestCase, TimeoutError
-from time import gmtime, strftime
 
 
 class BaseTest(TestCase):
@@ -232,6 +235,13 @@ class ElasticTest(ServerBaseTest):
             return
         for frame in doc["stacktrace"]:
             assert "sourcemap" not in frame, frame
+
+    def intake_requests(self):
+        for line in self.get_log_lines():
+            jline = json.loads(line)
+            if jline.get("logger") == "request" and \
+                jline.get("method") == "POST" and jline.get("URL") == "/intake/v2/events":
+                yield jline
 
 
 class ClientSideBaseTest(ServerBaseTest):
