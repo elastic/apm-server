@@ -193,6 +193,10 @@ apm-server:
   # Defaults to `auto`.
   #ilm.enabled: "auto"
 
+  # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
+  # Specify cache key expiration via this setting. Default is 30 seconds.
+  #agent.config.cache.expiration: 30s
+
   #kibana:
     # For agent remote configuration, enabled must be true
     #enabled: false
