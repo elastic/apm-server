@@ -144,7 +144,11 @@ output.elasticsearch:
 
 ############################# Logging #########################################
 
+{% if logging_json or logging_level %}
 logging:
+{% else %}
+#logging:
+{% endif %}
   # Send all logging output to syslog. On Windows default is false, otherwise
   # default is true.
   #to_syslog: true
@@ -156,11 +160,15 @@ logging:
   # Enable debug output for selected components.
   #selectors: []
 
+{% if logging_json %}
   # Set to true to log messages in json format.
   json: {{ logging_json|default("false") }}
+{% endif %}
 
+{% if logging_level %}
   # Set log level
   level: {{ logging_level|default("info") }}
+{% endif %}
 
   #files:
     # The directory where the log files will written to.
