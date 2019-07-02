@@ -20,20 +20,19 @@ package idxmgmt
 import (
 	"fmt"
 
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/logp"
-
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/idxmgmt/ilm"
-	"github.com/elastic/beats/libbeat/common"
 	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 )
 
-const ilmDisabledESErr = "automatically disabled ILM as not supported by configured Elasticsearch"
-const ilmDisabledESMsg = "Automatically disabled ILM as not supported by configured Elasticsearch."
-const ilmDisabledCfgMsg = "Automatically disabled ILM as custom index settings configured."
+const (
+	msgErrIlmDisabledES = "automatically disabled ILM as not supported by configured Elasticsearch"
+	msgIlmDisabledES    = "Automatically disabled ILM as not supported by configured Elasticsearch."
+	msgIlmDisabledCfg   = "Automatically disabled ILM as custom index settings configured."
+	msgIdxCfgIgnored    = "Custom index configuration ignored when ILM is enabled."
+)
 
 type manager struct {
 	supporter     *supporter
@@ -42,12 +41,8 @@ type manager struct {
 }
 
 func (m *manager) VerifySetup(loadTemplate, loadILM libidxmgmt.LoadMode) (bool, string) {
-	ilmSupporters, err := ilmSupporters(m.supporter.ilmConfig.Mode, m.supporter.log, m.supporter.info)
-	if err != nil {
-		return false, err.Error()
-	}
 	templateFeature := m.templateFeature(loadTemplate)
-	ilmFeature := m.ilmFeature(ilmSupporters, loadILM)
+	ilmFeature := m.ilmFeature(loadILM)
 
 	if err := ilmFeature.error(); err != nil {
 		return false, err.Error()
@@ -64,19 +59,20 @@ func (m *manager) VerifySetup(loadTemplate, loadILM libidxmgmt.LoadMode) (bool, 
 
 	var warn string
 
-	if ilmWarn := ilmFeature.warning(); ilmWarn != "" {
-		warn += ilmWarn
-	}
 	if !ilmFeature.load && ilmFeature.supported {
-		warn += "ILM policy and write alias loading not enabled. "
+		warn = "ILM policy and write alias loading not enabled. "
 	}
 	if !templateFeature.load {
-		warn += "Template loading not enabled."
+		warn += "Template loading not enabled. "
+	}
+	if ilmWarn := ilmFeature.warning(); ilmWarn != "" {
+		warn += ilmWarn
 	}
 	return warn == "", warn
 }
 
 func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
+
 	log := m.supporter.log
 
 	//setup index management:
@@ -88,11 +84,8 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 	//    as this step also automatically creates an index, it is important the matching templates are already there
 
 	//(0) prepare template and ilm handlers, check if ILM is supported, fall back to ordinary index handling otherwise
-	ilmSupporters, err := ilmSupporters(m.supporter.ilmConfig.Mode, log, m.supporter.info)
-	if err != nil {
-		return err
-	}
-	ilmFeature := m.ilmFeature(ilmSupporters, loadILM)
+
+	ilmFeature := m.ilmFeature(loadILM)
 	if warn := ilmFeature.warning(); warn != "" {
 		log.Warn(warn)
 	}
@@ -112,7 +105,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		return err
 	}
 
-	for _, ilmSupporter := range ilmSupporters {
+	for _, ilmSupporter := range m.supporter.ilmSupporters {
 		//(2) load event type policies, respecting ILM settings
 		loaded, err := m.loadPolicy(ilmFeature, ilmSupporter)
 		if err != nil {
@@ -140,33 +133,33 @@ func (m *manager) templateFeature(loadMode libidxmgmt.LoadMode) feature {
 	return newFeature(m.supporter.templateConfig.Enabled, m.supporter.templateConfig.Overwrite, true, loadMode)
 }
 
-func (m *manager) ilmFeature(ilmSupporters []libilm.Supporter, loadMode libidxmgmt.LoadMode) feature {
-	if !m.supporter.ilmConfig.Enabled() {
-		return newFeature(m.supporter.ilmConfig.Enabled(), false, true, loadMode)
+func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) feature {
+	if m.supporter.st.ilmEnabled.Load() {
+		f := newFeature(true, false, true, loadMode)
+		if m.supporter.esIdxCfg.customized() {
+			f.warn = msgIdxCfgIgnored
+		}
+		return f
 	}
 
-	var supported = true
-	var warn, err string
-	if m.supporter.esIdxCfg.customized() {
-		supported = false
-		warn = ilmDisabledCfgMsg
-	}
-	for _, ilmSupporter := range ilmSupporters {
-		if enabled, _ := ilmSupporter.Manager(m.clientHandler).Enabled(); !enabled {
+	var (
+		warn      string
+		err       error
+		supported = true
+	)
+	if m.supporter.ilmConfig.Mode == libilm.ModeAuto {
+		if m.supporter.esIdxCfg.customized() {
+			warn = msgIlmDisabledCfg
+		} else {
+			warn = msgIlmDisabledES
 			supported = false
-			if m.supporter.ilmConfig.Mode == libilm.ModeEnabled {
-				err = ilmDisabledESErr
-				break
-			}
-			warn = ilmDisabledESMsg
-			break
 		}
+	} else if m.supporter.ilmConfig.Mode == libilm.ModeEnabled {
+		err = errors.New(msgErrIlmDisabledES)
+		supported = false
 	}
-	f := newFeature(m.supporter.ilmConfig.Enabled(), false, supported, loadMode)
-	f.warn = warn
-	if err != "" {
-		f.err = errors.New(err)
-	}
+	f := newFeature(false, false, supported, loadMode)
+	f.warn, f.err = warn, err
 	return f
 }
 
@@ -234,29 +227,4 @@ func (m *manager) loadAlias(ilmFeature feature, ilmSupporter libilm.Supporter) e
 	}
 	m.supporter.log.Infof("Write alias %s successfully generated.", alias)
 	return nil
-}
-
-func ilmSupporters(mode libilm.Mode, logger *logp.Logger, info beat.Info) ([]libilm.Supporter, error) {
-	var (
-		ilmSupporters []libilm.Supporter
-		err           error
-		ilmCfg        *common.Config
-	)
-
-	for event, index := range eventIdxNames(false) {
-		if ilmCfg, err = common.NewConfigFrom(common.MapStr{
-			"enabled":     ilm.ModeString(mode),
-			"event":       event,
-			"policy_name": idxStr(event, ""),
-			"alias_name":  index},
-		); err != nil {
-			return nil, errors.Wrapf(err, "error creating index-management config")
-		}
-		ilmSupporter, err := ilm.MakeDefaultSupporter(logger, info, ilmCfg)
-		if err != nil {
-			return nil, err
-		}
-		ilmSupporters = append(ilmSupporters, ilmSupporter)
-	}
-	return ilmSupporters, nil
 }

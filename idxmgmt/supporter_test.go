@@ -15,6 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
+//// Licensed to Elasticsearch B.V. under one or more contributor
+//// license agreements. See the NOTICE file distributed with
+//// this work for additional information regarding copyright
+//// ownership. Elasticsearch B.V. licenses this file to you under
+//// the Apache License, Version 2.0 (the "License"); you may
+//// not use this file except in compliance with the License.
+//// You may obtain a copy of the License at
+////
+////     http://www.apache.org/licenses/LICENSE-2.0
+////
+//// Unless required by applicable law or agreed to in writing,
+//// software distributed under the License is distributed on an
+//// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+//// KIND, either express or implied.  See the License for the
+//// specific language governing permissions and limitations
+//// under the License.
+//
 package idxmgmt
 
 import (
@@ -23,21 +40,32 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
+	"github.com/stretchr/testify/require"
 )
 
-var info = beat.Info{Beat: "testbeat", Version: "1.1.0"}
+var (
+	info  = beat.Info{Beat: "testbeat", Version: "1.1.0"}
+	today = time.Now().UTC()
+	day   = today.Format("2006.01.02")
+)
 
-func defaultSupporter(t *testing.T, c common.MapStr) libidxmgmt.Supporter {
+func defaultSupporter(t *testing.T, m common.MapStr) *supporter {
+	c := common.MapStr{
+		"output.elasticsearch.enabled": true,
+		"setup.template.name":          "custom",
+		"setup.template.pattern":       "custom*",
+	}
+	c.DeepUpdate(m)
+
 	cfg, err := common.NewConfigFrom(c)
 	require.NoError(t, err)
-	supporter, err := MakeDefaultSupporter(nil, info, cfg)
+	sup, err := MakeDefaultSupporter(nil, info, cfg)
 	require.NoError(t, err)
-	return supporter
+	return sup.(*supporter)
 }
 
 func TestIndexSupport_Enabled(t *testing.T) {
@@ -74,9 +102,8 @@ func TestIndexSupport_Enabled(t *testing.T) {
 		})
 	}
 }
+
 func TestIndexSupport_BuildSelector(t *testing.T) {
-	today := time.Now().UTC()
-	day := today.Format("2006.01.02")
 
 	type testdata struct {
 		meta     common.MapStr
@@ -88,62 +115,62 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 	}
 
 	cases := map[string]testdata{
-		"default index": {
+		"DefaultIndex": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-%s", day),
 			withIlm: fmt.Sprintf("apm-7.0.0-%s", day),
 			fields:  common.MapStr{},
 		},
-		"default onboarding": {
+		"DefaultOnboarding": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-onboarding-%s", day),
 			withIlm: fmt.Sprintf("apm-7.0.0-onboarding-%s", day),
 			fields:  common.MapStr{"processor.event": "onboarding"},
 		},
-		"default error": {
+		"DefaultError": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-error-%s", day),
 			withIlm: "apm-7.0.0-error",
 			fields:  common.MapStr{"processor.event": "error"},
 		},
-		"default span": {
+		"DefaultSpan": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-span-%s", day),
 			withIlm: "apm-7.0.0-span",
 			fields:  common.MapStr{"processor.event": "span"},
 		},
-		"default transaction": {
+		"DefaultTransaction": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-transaction-%s", day),
 			withIlm: "apm-7.0.0-transaction",
 			fields:  common.MapStr{"processor.event": "transaction"},
 		},
-		"default metric": {
+		"DefaultMetric": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-metric-%s", day),
 			withIlm: "apm-7.0.0-metric",
 			fields:  common.MapStr{"processor.event": "metric"},
 		},
-		"default sourcemap": {
+		"DefaultSourcemap": {
 			noIlm:   "apm-7.0.0-sourcemap",
 			withIlm: "apm-7.0.0-sourcemap",
 			fields:  common.MapStr{"processor.event": "sourcemap"},
 		},
-		"meta alias information overwrites config": {
+		"MetaInformationAlias": {
 			noIlm:   "apm-7.0.0-meta",
 			withIlm: "apm-7.0.0-meta", //meta overwrites ilm
 			fields:  common.MapStr{"processor.event": "span"},
 			meta:    common.MapStr{"alias": "apm-7.0.0-meta", "index": "test-123"},
 			cfg:     common.MapStr{"index": "apm-customized"},
 		},
-		"meta information overwrites config": {
+		"MateInformationIndex": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-%s", day),
 			withIlm: fmt.Sprintf("apm-7.0.0-%s", day), //meta overwrites ilm
 			fields:  common.MapStr{"processor.event": "span"},
 			meta:    common.MapStr{"index": "apm-7.0.0"},
 			cfg:     common.MapStr{"index": "apm-customized"},
 		},
-		"custom index": {
+		"CustomIndex": {
 			noIlm:   "apm-customized",
 			withIlm: "apm-7.0.0-metric", //custom index ignored when ilm enabled
 			fields:  common.MapStr{"processor.event": "metric"},
 			cfg:     common.MapStr{"index": "apm-customized"},
 		},
-		"custom indices, fallback to default index": {
+		"differentCustomIndices": {
 			noIlm:   fmt.Sprintf("apm-7.0.0-%s", day),
 			withIlm: "apm-7.0.0-metric", //custom index ignored when ilm enabled
 			fields:  common.MapStr{"processor.event": "metric"},
@@ -154,7 +181,7 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 						"contains": map[string]interface{}{"processor.event": "error"}}}},
 			},
 		},
-		"custom indices": {
+		"CustomIndices": {
 			noIlm:   "apm-custom-7.0.0-metric",
 			withIlm: "apm-7.0.0-metric", //custom index ignored when ilm enabled
 			fields:  common.MapStr{"processor.event": "metric"},
@@ -167,37 +194,78 @@ func TestIndexSupport_BuildSelector(t *testing.T) {
 		},
 	}
 
-	checkIndexSelector := func(t *testing.T, name string, test testdata) {
+	ilmSupportedHandler := newMockClientHandler("7.2.0")
+	ilmUnsupportedHandler := newMockClientHandler("6.2.0")
+
+	checkIndexSelector := func(t *testing.T, name string, test testdata, handler libidxmgmt.ClientHandler) {
 		t.Run(name, func(t *testing.T) {
-			fields := test.fields
-			fields.Put("observer", common.MapStr{"version": "7.0.0"})
-			testEvent := &beat.Event{
-				Fields:    fields,
-				Meta:      test.meta,
-				Timestamp: today,
-			}
+			// create initialized supporter and selector
+			supporter := defaultSupporter(t, test.cfg)
+			supporter.setIlmState(handler)
+
 			cfg, err := common.NewConfigFrom(test.cfg)
 			require.NoError(t, err)
+			s, err := supporter.BuildSelector(cfg)
+			require.NoError(t, err)
 
-			s, err := defaultSupporter(t, test.cfg).BuildSelector(cfg)
-			assert.NoError(t, err)
-			idx, err := s.Select(testEvent)
-			assert.NoError(t, err)
+			// test selected index
+			idx, err := s.Select(testEvent(test.fields, test.meta))
+			require.NoError(t, err)
 			assert.Equal(t, test.expected, idx)
 		})
 	}
 
 	for name, test := range cases {
-		//ilm=true
-		test.expected = test.withIlm
-		checkIndexSelector(t, name, test)
-
-		//ilm=false
-		test.expected = test.noIlm
 		if test.cfg == nil {
 			test.cfg = common.MapStr{}
 		}
+
+		//ilm true and supported
+		test.cfg["apm-server.ilm.enabled"] = true
+		test.expected = test.withIlm
+		checkIndexSelector(t, name, test, ilmSupportedHandler)
+
+		//ilm true but unsupported
+		test.cfg["apm-server.ilm.enabled"] = true
+		test.expected = test.noIlm
+		checkIndexSelector(t, name, test, ilmUnsupportedHandler)
+
+		//ilm=false
 		test.cfg["apm-server.ilm.enabled"] = false
-		checkIndexSelector(t, name, test)
+		test.expected = test.noIlm
+		checkIndexSelector(t, name, test, ilmSupportedHandler)
+
+		//ilm=auto and supported
+		test.cfg["apm-server.ilm.enabled"] = "auto"
+		test.expected = test.withIlm
+		checkIndexSelector(t, name, test, ilmSupportedHandler)
+
+		//ilm auto but unsupported
+		test.cfg["apm-server.ilm.enabled"] = "auto"
+		test.expected = test.noIlm
+		checkIndexSelector(t, name, test, ilmUnsupportedHandler)
+	}
+
+	t.Run("uninitializedSupporter", func(t *testing.T) {
+		// create initialized supporter and selector
+		supporter := defaultSupporter(t, common.MapStr{})
+
+		s, err := supporter.BuildSelector(common.MustNewConfigFrom(common.MapStr{}))
+		require.NoError(t, err)
+
+		// test selected index
+		idx, err := s.Select(testEvent(common.MapStr{}, common.MapStr{}))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "setup not finished")
+		assert.Equal(t, "", idx)
+	})
+}
+
+func testEvent(fields, meta common.MapStr) *beat.Event {
+	fields.Put("observer", common.MapStr{"version": "7.0.0"})
+	return &beat.Event{
+		Fields:    fields,
+		Meta:      meta,
+		Timestamp: today,
 	}
 }

@@ -32,73 +32,104 @@ import (
 	"github.com/elastic/beats/libbeat/template"
 )
 
-func TestIndexManager_VerifySetup(t *testing.T) {
+func TestManager_VerifySetup(t *testing.T) {
 	for name, setup := range map[string]struct {
 		tmpl              bool
 		ilm               string
 		loadTmpl, loadILM libidxmgmt.LoadMode
 		version           string
+		esCfg             common.MapStr
 
 		ok   bool
 		warn string
 	}{
-		"load template with ilm without loading ilm": {
+		"LoadTemplateWithoutILM": {
 			ilm: "true", loadILM: libidxmgmt.LoadModeDisabled,
 			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
 			warn: "whithout loading ILM policy and alias",
 		},
-		"load ilm without template": {
+		"LoadILMWithoutTemplate": {
 			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
 			loadTmpl: libidxmgmt.LoadModeEnabled,
 			warn:     "without loading template is not recommended",
 		},
-		"template disabled but loading enabled": {
+		"SetupTemplateDisabled": {
 			ilm: "false", loadILM: libidxmgmt.LoadModeEnabled,
 			loadTmpl: libidxmgmt.LoadModeEnabled,
 			warn:     "loading not enabled",
 		},
-		"ilm disabled but loading enabled": {
+		"SetupILMDisabled": {
 			ilm: "false", loadILM: libidxmgmt.LoadModeEnabled,
 			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
 			warn: "loading not enabled",
 		},
-		"ilm loading disabled": {
+		"LoadILMDisabled": {
 			ilm: "true", loadILM: libidxmgmt.LoadModeDisabled,
 			loadTmpl: libidxmgmt.LoadModeEnabled,
 			warn:     "loading not enabled",
 		},
-		"template loading disabled": {
+		"LoadTemplateDisabled": {
 			ilm: "false", loadILM: libidxmgmt.LoadModeEnabled,
 			tmpl: true, loadTmpl: libidxmgmt.LoadModeDisabled,
 			warn: "loading not enabled",
 		},
-		"ilm enabled but not supported": {
+		"ILMEnabledButUnsupported": {
 			version: "6.2.0",
 			ilm:     "true", loadILM: libidxmgmt.LoadModeEnabled,
 			loadTmpl: libidxmgmt.LoadModeEnabled,
-			warn:     "automatically disabled ILM",
+			warn:     msgErrIlmDisabledES,
 		},
-		"ilm auto but not supported": {
+		"ILMAutoButUnsupported": {
 			loadTmpl: libidxmgmt.LoadModeEnabled,
 			version:  "6.2.0",
 			tmpl:     true,
 			ilm:      "auto", loadILM: libidxmgmt.LoadModeEnabled,
-			warn: "Automatically disabled ILM",
+			warn: msgIlmDisabledES,
 		},
-		"everything enabled": {
+		"ILMAutoCustomIndex": {
+			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
+			ilm: "auto", loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg: common.MapStr{"output.elasticsearch.index": "custom"},
+			warn:  msgIlmDisabledCfg,
+		},
+		"ILMAutoCustomIndices": {
+			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
+			ilm: "auto", loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg: common.MapStr{"output.elasticsearch.indices": []common.MapStr{{
+				"index": "apm-custom-%{[observer.version]}-metric",
+				"when": map[string]interface{}{
+					"contains": map[string]interface{}{"processor.event": "metric"}}}}},
+			warn: msgIlmDisabledCfg,
+		},
+		"ILMTrueCustomIndex": {
+			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
+			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg: common.MapStr{"output.elasticsearch.index": "custom"},
+			warn:  msgIdxCfgIgnored,
+		},
+		"LogstashOutput": {
+			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
+			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg: common.MapStr{
+				"output.elasticsearch.enabled": false,
+				"output.logstash.enabled":      true},
+			warn: "automatically disabled ILM",
+		},
+		"EverythingEnabled": {
 			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
 			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
 			ok: true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			cfg, err := common.NewConfigFrom(common.MapStr{
+			c := common.MapStr{
 				"apm-server.ilm.enabled": setup.ilm,
 				"setup.template.enabled": setup.tmpl,
-			})
-			require.NoError(t, err)
-			support, err := MakeDefaultSupporter(nil, beat.Info{}, cfg)
-			require.NoError(t, err)
+			}
+			if setup.esCfg != nil {
+				c.DeepUpdate(setup.esCfg)
+			}
+			support := defaultSupporter(t, c)
 			version := setup.version
 			if version == "" {
 				version = "7.0.0"
@@ -312,8 +343,6 @@ func TestManager_Setup(t *testing.T) {
 		}
 	}
 }
-
-//TODO: test error logs when ILM not supported
 
 type mockClientHandler struct {
 	aliases, policies []string

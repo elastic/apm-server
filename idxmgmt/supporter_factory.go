@@ -18,7 +18,6 @@
 package idxmgmt
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -56,33 +55,12 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 		return nil, fmt.Errorf("unpacking template config fails: %+v", err)
 	}
 
-	var esIdxCfg *esIndexConfig
-	if cfg.Output.Name() == "elasticsearch" {
-		if err := cfg.Output.Config().Unpack(&esIdxCfg); err != nil {
-			return nil, fmt.Errorf("unpacking output elasticsearch index config fails: %+v", err)
-		}
-		if err := checkTemplateESSettings(tmplConfig, esIdxCfg); err != nil {
-			return nil, err
-		}
-	}
-
 	if log == nil {
 		log = logp.NewLogger(logName)
 	} else {
 		log = log.Named(logName)
 	}
-	return newSupporter(log, info, tmplConfig, ilmConfig, esIdxCfg)
-}
-
-func checkTemplateESSettings(tmplCfg template.TemplateConfig, esIndexCfg *esIndexConfig) error {
-	if !tmplCfg.Enabled {
-		return nil
-	}
-
-	if esIndexCfg.Index != "" && (tmplCfg.Name == "" || tmplCfg.Pattern == "") {
-		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
-	}
-	return nil
+	return newSupporter(log, info, tmplConfig, ilmConfig, cfg.Output)
 }
 
 func unpackTemplateConfig(cfg *common.Config) (template.TemplateConfig, error) {
