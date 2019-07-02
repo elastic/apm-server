@@ -611,6 +611,7 @@ class ExperimentalBaseTest(ElasticTest):
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
         self.wait_until(lambda: self.log_contains("3 events have been published"), max_timeout=10)
+        self.wait_until(lambda: self.log_contains("Server stopped"), max_timeout=10)
 
         self.assert_no_logged_warnings()
 

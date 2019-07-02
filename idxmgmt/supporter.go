@@ -37,15 +37,10 @@ import (
 
 // The index management supporter holds information around ES template, ILM strategy and index setup for Elasticsearch.
 // The supporter methods are called from within libbeat code during setup time and on startup.
-// The supporter takes care of template loading respecting the ILM strategy. Currently APM does not support setting up ILM
-// from within the server, so it uses the ILM noop supporter.
+// The supporter takes care of template loading respecting the ILM strategy, loading ILM policies and write aliases.
 // The supporter also ensures the default index and indices settings are used, if not overwritten in the config by the user.
 //
-// Functionality is largely copied from libbeat, and mainly differs in
-// - the used ILM supporter
-// - ignoring ILM in template setup for now
-// - the default index and indices that are set.
-//
+// Functionality is partly copied from libbeat.
 
 const esKey = "elasticsearch"
 
@@ -83,7 +78,7 @@ func newSupporter(
 ) (*supporter, error) {
 
 	var (
-		esIdxCfg *esIndexConfig
+		esIdxCfg esIndexConfig
 		mode     = ilmConfig.Mode
 		st       = indexState{}
 	)
@@ -93,7 +88,7 @@ func newSupporter(
 			return nil, fmt.Errorf("unpacking output elasticsearch index config fails: %+v", err)
 		}
 
-		if err := checkTemplateESSettings(templateConfig, esIdxCfg); err != nil {
+		if err := checkTemplateESSettings(templateConfig, &esIdxCfg); err != nil {
 			return nil, err
 		}
 	}
@@ -116,17 +111,20 @@ func newSupporter(
 		info:           info,
 		templateConfig: templateConfig,
 		ilmConfig:      ilmConfig,
-		esIdxCfg:       esIdxCfg,
+		esIdxCfg:       &esIdxCfg,
 		migration:      false,
 		st:             st,
 		ilmSupporters:  ilmSupporters,
 	}, nil
 }
 
+// Enabled indicates whether template or ilm setup is set to enabled in config.
 func (s *supporter) Enabled() bool {
 	return s.templateConfig.Enabled || s.ilmConfig.Enabled()
 }
 
+// Manager instance takes only care of the setup.
+// A clientHandler is passed in, which is required for figuring out the ILM state if set to `auto`.
 func (s *supporter) Manager(
 	clientHandler libidxmgmt.ClientHandler,
 	assets libidxmgmt.Asseter,
@@ -139,8 +137,11 @@ func (s *supporter) Manager(
 	}
 }
 
-func (s *supporter) BuildSelector(cfg *common.Config) (outputs.IndexSelector, error) {
-	sel, err := s.buildSelector(indices(cfg))
+// BuildSelector returns an index selector instance,
+// depending on the supporter's config an ILM instance or an ordinary index selector instance is returned.
+// The ILM instance decides on every Select call whether or not to return ILM indices or regular ones.
+func (s *supporter) BuildSelector(_ *common.Config) (outputs.IndexSelector, error) {
+	sel, err := s.buildSelector(indices(s.esIdxCfg))
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +151,7 @@ func (s *supporter) BuildSelector(cfg *common.Config) (outputs.IndexSelector, er
 		return ordIdxSel, nil
 	}
 
-	ilmSel, err := s.buildSelector(ilmIndices(cfg))
+	ilmSel, err := s.buildSelector(ilmIndices())
 	if err != nil {
 		return nil, err
 	}
@@ -198,6 +199,8 @@ func (s *supporter) setIlmState(handler libidxmgmt.ClientHandler) {
 	stSet()
 }
 
+// Select either returns the index from the event's metadata or
+// decides based on the supporter's ILM state whether or not an ILM index is returned
 func (s *ilmIndexSelector) Select(evt *beat.Event) (string, error) {
 	if idx := getEventCustomIndex(evt); idx != "" {
 		return idx, nil
@@ -212,6 +215,8 @@ func (s *ilmIndexSelector) Select(evt *beat.Event) (string, error) {
 	return s.defaultSel.Select(evt)
 }
 
+// Select either returns the index from the event's metadata or
+// the regular index.
 func (s defaultIndexSelector) Select(evt *beat.Event) (string, error) {
 	if idx := getEventCustomIndex(evt); idx != "" {
 		return idx, nil

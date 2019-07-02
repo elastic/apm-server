@@ -67,20 +67,16 @@ func othersIdxNames() map[string]string {
 	}
 }
 
-func indices(cfg *common.Config) (*common.Config, error) {
+func indices(cfg *esIndexConfig) (*common.Config, error) {
 	var idcsCfg = common.NewConfig()
-	var customESIdxCfg esIndexConfig
-	if err := cfg.Unpack(&customESIdxCfg); err != nil {
-		return nil, err
-	}
 
 	// set defaults
-	if customESIdxCfg.Index == "" {
+	if cfg.Index == "" {
 		// set fallback default index
 		idcsCfg.SetString("index", -1, defaultIndex)
 
 		// set default indices if not set
-		if customESIdxCfg.Indices == nil {
+		if cfg.Indices == nil {
 			if indicesCfg, err := common.NewConfigFrom(indicesConditions(false)); err == nil {
 				idcsCfg.SetChild("indices", -1, indicesCfg)
 			}
@@ -88,20 +84,20 @@ func indices(cfg *common.Config) (*common.Config, error) {
 	}
 
 	// use custom config settings where available
-	if customESIdxCfg.Index != "" {
-		if err := idcsCfg.SetString("index", -1, customESIdxCfg.Index); err != nil {
+	if cfg.Index != "" {
+		if err := idcsCfg.SetString("index", -1, cfg.Index); err != nil {
 			return nil, err
 		}
 	}
-	if customESIdxCfg.Indices != nil {
-		if err := idcsCfg.SetChild("indices", -1, customESIdxCfg.Indices); err != nil {
+	if cfg.Indices != nil {
+		if err := idcsCfg.SetChild("indices", -1, cfg.Indices); err != nil {
 			return nil, err
 		}
 	}
 	return idcsCfg, nil
 }
 
-func ilmIndices(_ *common.Config) (*common.Config, error) {
+func ilmIndices() (*common.Config, error) {
 	var idcsCfg = common.NewConfig()
 
 	// set fallback index
