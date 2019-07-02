@@ -18,46 +18,80 @@
 package agentcfg
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/pkg/errors"
+	"time"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/kibana"
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/convert"
-	"github.com/elastic/beats/libbeat/kibana"
 )
 
-const endpoint = "/api/apm/settings/cm/search"
+const (
+	endpoint = "/api/apm/settings/cm/search"
+)
 
-var minVersion = common.Version{Major: 7, Minor: 3}
-
-// Fetch retrieves agent configuration from Kibana
-func Fetch(kbClient *kibana.Client, q Query, err error) (map[string]string, string, error) {
-	var doc Doc
-	resultBytes, err := request(kbClient, convert.ToReader(q), err)
-	err = convert.FromBytes(resultBytes, &doc, err)
-	return doc.Source.Settings, doc.ID, err
+// Fetcher holds static information and information shared between requests.
+// It implements the Fetch method to retrieve agent configuration information.
+type Fetcher struct {
+	kbClient   *kibana.Client
+	docCache   *cache
+	logger     *logp.Logger
+	minVersion common.Version
 }
 
-func request(kbClient *kibana.Client, r io.Reader, err error) ([]byte, error) {
+// NewFetcher returns a Fetcher instance.
+func NewFetcher(kbClient *kibana.Client, cacheExp time.Duration) *Fetcher {
+	logger := logp.NewLogger("agentcfg")
+	return &Fetcher{
+		kbClient:   kbClient,
+		logger:     logger,
+		docCache:   newCache(logger, cacheExp),
+		minVersion: common.Version{Major: 7, Minor: 3},
+	}
+}
+
+// Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
+func (f *Fetcher) Fetch(q Query, err error) (map[string]string, string, error) {
+	req := func(query Query) (*Doc, error) {
+		var doc Doc
+		resultBytes, err := f.request(convert.ToReader(query), err)
+		err = convert.FromBytes(resultBytes, &doc, err)
+		return &doc, err
+	}
+
+	doc, err := f.docCache.fetchAndAdd(q, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return doc.Source.Settings, doc.ID, nil
+}
+
+func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if kbClient == nil {
-		return nil, errors.New("No configured Kibana Client: provide apm-server.kibana.* settings")
+	if f.kbClient == nil {
+		return nil, errors.New("no configured Kibana Client: provide apm-server.kibana.* settings")
 	}
-	if version := kbClient.GetVersion(); version.LessThan(&minVersion) {
-		return nil, errors.New(fmt.Sprintf("Needs Kibana version %s or higher", minVersion.String()))
+	if version := f.kbClient.GetVersion(); version.LessThan(&f.minVersion) {
+		return nil, fmt.Errorf("needs Kibana version %s or higher", f.minVersion.String())
 	}
-	resp, err := kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
+	resp, err := f.kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
 
 	result, err := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode >= http.StatusMultipleChoices {
