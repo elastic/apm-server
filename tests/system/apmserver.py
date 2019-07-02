@@ -240,7 +240,7 @@ class ElasticTest(ServerBaseTest):
         for line in self.get_log_lines():
             jline = json.loads(line)
             if jline.get("logger") == "request" and \
-                jline.get("method") == "POST" and jline.get("URL") == "/intake/v2/events":
+                    jline.get("method") == "POST" and jline.get("URL") == "/intake/v2/events":
                 yield jline
 
 
