@@ -17,6 +17,7 @@
 
 package logs
 
+// logging selectors
 const (
 	Beater          = "beater"
 	Handler         = "handler"

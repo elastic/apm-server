@@ -64,11 +64,11 @@ func NewElasticsearch(config *common.Config, index string) (*smapElasticsearch, 
 }
 
 func (e *smapElasticsearch) fetch(id Id) (*sourcemap.Consumer, error) {
-	if result, err := e.runESQuery(query(id)); err != nil {
+	result, err := e.runESQuery(query(id))
+	if err != nil {
 		return nil, err
-	} else {
-		return e.parseResult(result, id)
 	}
+	return e.parseResult(result, id)
 }
 
 func (e *smapElasticsearch) runESQuery(body map[string]interface{}) (*es.SearchResults, error) {
