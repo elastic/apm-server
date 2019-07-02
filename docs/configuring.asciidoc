@@ -10,7 +10,9 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 * <<configuring-ingest-node>>
 * <<configuration-ssl>>
 * <<configuration-template>>
+* <<ilm>>
 * <<configuration-logging>>
+* <<setup-kibana-endpoint>>
 * <<configuration-rum>>
 * <<using-environ-vars>>
 * <<configuration-path>>
@@ -30,6 +32,8 @@ include::./template-config.asciidoc[]
 include::./ilm.asciidoc[]
 
 include::./copied-from-beats/loggingconfig.asciidoc[]
+
+include::./configure-kibana-endpoint.asciidoc[]
 
 include::./configuration-rum.asciidoc[]
 
