@@ -181,7 +181,7 @@ func logHandler(h http.Handler) http.Handler {
 		lw := utility.NewRecordingResponseWriter(w)
 		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
 
-		if lw.Code <= 399 {
+		if lw.Code < http.StatusBadRequest {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 		}
 

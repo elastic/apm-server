@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 from time import gmtime, strftime
+from urlparse import urlparse
 
 import sys
 import time
@@ -73,6 +74,7 @@ class BaseTest(TestCase):
 
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
+    agent_config_url = "{}/{}".format(host, "config/v1/agents")
     intake_url = "{}/{}".format(host, 'intake/v2/events')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
@@ -236,11 +238,11 @@ class ElasticTest(ServerBaseTest):
         for frame in doc["stacktrace"]:
             assert "sourcemap" not in frame, frame
 
-    def intake_requests(self):
+    def logged_requests(self, url="/intake/v2/events"):
         for line in self.get_log_lines():
             jline = json.loads(line)
-            if jline.get("logger") == "request" and \
-                    jline.get("method") == "POST" and jline.get("URL") == "/intake/v2/events":
+            u = urlparse(jline.get("URL", ""))
+            if jline.get("logger") == "request" and u.path == url:
                 yield jline
 
 
