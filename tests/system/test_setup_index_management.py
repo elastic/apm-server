@@ -96,11 +96,24 @@ class TestCommandSetupIndexManagement(BaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
-    def test_setup_default_template_enabled_ilm_disabled(self):
+    def test_setup_default_template_enabled_ilm_auto(self):
+        """
+        Test setup --index-management when template enabled and ilm auto
+        """
+        exit_code = self.run_beat(extra_args=["setup", self.cmd])
+        assert exit_code == 0
+        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
+        self.idxmgmt.assert_alias(loaded=True)
+        self.idxmgmt.assert_policies(loaded=True)
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    @attr('integration')
+    def test_setup_template_enabled_ilm_disabled(self):
         """
         Test setup --index-management when template enabled and ilm disabled
         """
-        exit_code = self.run_beat(extra_args=["setup", self.cmd])
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=True)
         self.idxmgmt.assert_alias(loaded=False)
@@ -121,12 +134,11 @@ class TestCommandSetupIndexManagement(BaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
-    def test_setup_template_disabled_ilm_enabled(self):
+    def test_setup_template_disabled_ilm_auto(self):
         """
         Test setup --index-management when template disabled and ilm enabled
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=true",
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=False, with_ilm=True)
@@ -140,6 +152,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         Test setup --index-management when template disabled and ilm disabled
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false",
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=False)
@@ -161,7 +174,8 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_policies(loaded=True)
 
         # load with ilm disabled
-        exit_code = self.run_beat(extra_args=["setup", self.cmd])
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=True, with_ilm=False)
         self.idxmgmt.assert_policies(loaded=True)  # policies do not get deleted
@@ -174,7 +188,8 @@ class TestCommandSetupIndexManagement(BaseTest):
         Test setup --index-management when ilm was disabled and gets enabled
         """
         # load with ilm disabled
-        exit_code = self.run_beat(extra_args=["setup", self.cmd])
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=True, with_ilm=False)
         self.idxmgmt.assert_alias(loaded=False)
@@ -195,8 +210,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         """
         Test setup --index-management actually creates policies that are used
         """
-        exit_code = self.run_beat(extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=true"])
+        exit_code = self.run_beat(extra_args=["setup", self.cmd])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=True, with_ilm=True)
         self.idxmgmt.assert_alias(loaded=True)
@@ -216,28 +230,28 @@ class TestRunIndexManagementDefault(ElasticTest):
     def test_template_loaded(self):
         self.wait_until(lambda: self.log_contains("Finished index management setup."),
                         max_timeout=5)
-        self.idxmgmt.assert_template(loaded=True)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
+        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
+        self.idxmgmt.assert_alias(loaded=True)
+        self.idxmgmt.assert_policies(loaded=True)
 
 
-class TestRunIndexManagementWithILM(ElasticTest):
+class TestRunIndexManagementWithoutILM(ElasticTest):
     def setUp(self):
-        super(TestRunIndexManagementWithILM, self).setUp()
+        super(TestRunIndexManagementWithoutILM, self).setUp()
 
         self.idxmgmt = IdxMgmt(self.es, self.index_name)
         self.idxmgmt.delete()
 
     def start_args(self):
-        return {"extra_args": ["-E", "apm-server.ilm.enabled=true"]}
+        return {"extra_args": ["-E", "apm-server.ilm.enabled=false"]}
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template_and_ilm_loaded(self):
         self.wait_until(lambda: self.log_contains("Finished index management setup."),
                         max_timeout=5)
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=True)
-        self.idxmgmt.assert_policies(loaded=True)
+        self.idxmgmt.assert_template(loaded=True, with_ilm=False)
+        self.idxmgmt.assert_alias(loaded=False)
+        self.idxmgmt.assert_policies(loaded=False)
 
 
 class TestCommandSetupTemplate(BaseTest):
@@ -264,11 +278,24 @@ class TestCommandSetupTemplate(BaseTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
-    def test_setup_default_template_enabled(self):
+    def test_setup_default(self):
         """
-        Test setup --template when template enabled
+        Test setup --template default
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd])
+        assert exit_code == 0
+        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
+        self.idxmgmt.assert_alias(loaded=False)
+        self.idxmgmt.assert_policies(loaded=False)
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    @attr('integration')
+    def test_setup_template_enabled_ilm_disabled(self):
+        """
+        Test setup --template when template enabled and ilm disabled
+        """
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=True)
 
@@ -292,7 +319,6 @@ class TestCommandSetupTemplate(BaseTest):
         Test setup --template when template disabled and ilm enabled
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=true",
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=False)
@@ -306,6 +332,7 @@ class TestCommandSetupTemplate(BaseTest):
         Test setup --template when template disabled and ilm disabled
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false",
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=False)
@@ -329,7 +356,8 @@ class TestCommandSetupTemplate(BaseTest):
 
         # load with ilm disabled
         exit_code = self.run_beat(logging_args=["-v", "-d", "*"],
-                                  extra_args=["setup", self.cmd])
+                                  extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=True, with_ilm=False)
 
@@ -343,7 +371,8 @@ class TestCommandSetupTemplate(BaseTest):
 
         # load with ilm disabled
         exit_code = self.run_beat(logging_args=["-v", "-d", "*"],
-                                  extra_args=["setup", self.cmd])
+                                  extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
         self.idxmgmt.assert_template(loaded=True, with_ilm=False)
 

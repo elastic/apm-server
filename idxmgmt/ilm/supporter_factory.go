@@ -67,7 +67,7 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, cfg *common.Config) 
 		Pattern: pattern,
 	}
 
-	return libilm.NewStdSupport(log, libilm.ModeEnabled, alias, policy, false, true), nil
+	return libilm.NewStdSupport(log, ilmCfg.Mode, alias, policy, false, true), nil
 }
 
 func applyStaticFmtstr(info beat.Info, fmt *fmtstr.EventFormatString) (string, error) {

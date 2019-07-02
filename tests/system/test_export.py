@@ -140,7 +140,8 @@ class TestExportTemplateWithILM(SubCommandTest):
     def start_args(self):
         return {
             "extra_args": ["export", "template", "--dir", self.dir,
-                           "-E", "apm-server.ilm.enabled=true"],
+                           "-E", "apm-server.ilm.enabled=true",
+                           "-E", "output.elasticsearch.enabled=true"],
         }
 
     def setUp(self):
@@ -171,6 +172,7 @@ class TestExportTemplateWithILM(SubCommandTest):
             with open(file) as f:
                 template = json.load(f)
             assert template['index_patterns'] == [name + '*']
+            assert template['settings']['index'] is not None
             assert template['settings']['index']['lifecycle.name'] == name
             assert template['settings']['index']['lifecycle.rollover_alias'] == name
             assert 'mapping' not in template
@@ -185,7 +187,7 @@ class TestExportILMPolicy(SubCommandTest):
     def start_args(self):
         return {
             "extra_args": ["export", "ilm-policy", "--dir", self.dir,
-                           "-E", "apm-server.ilm.enabled=false"],
+                           "-E", "apm-server.ilm.enabled=true"],
         }
 
     def setUp(self):
@@ -209,13 +211,13 @@ class TestExportILMPolicy(SubCommandTest):
             assert "delete" not in policy["policy"]["phases"]
 
 
-class TestExportILMPolicyDisabledTest(TestExportILMPolicy):
+class TestExportILMPolicyILMDisabled(TestExportILMPolicy):
     """
-    Test export ilm-policy regardless of enabled setting
+    Test export ilm-policy independent of ILM enabled state
     """
 
     def start_args(self):
         return {
             "extra_args": ["export", "ilm-policy", "--dir", self.dir,
-                           "-E", "apm-server.ilm.enabled=true"],
+                           "-E", "apm-server.ilm.enabled=false"],
         }
