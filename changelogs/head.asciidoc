@@ -15,6 +15,7 @@
 - Enable APM pipeline by default {pull}2301[2301].
 - Add fields required by breakdown graphs APM pipeline by default {pull}2287[2287].
 - Require client auth when CA is configured and SSL enabled {pull}2340[2340].
+- Add basic caching to remote agent configuration {pull}2337[2337].
 
 [float]
 ==== Removed

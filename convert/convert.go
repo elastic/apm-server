@@ -32,7 +32,7 @@ func FromReader(r io.ReadCloser, i interface{}) error {
 
 // FromBytes reads the given byte slice into the given interface
 func FromBytes(bs []byte, i interface{}, err error) error {
-	if err != nil {
+	if err != nil || len(bs) == 0 {
 		return err
 	}
 	return json.Unmarshal(bs, i)
