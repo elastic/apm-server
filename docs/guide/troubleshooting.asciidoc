@@ -14,9 +14,11 @@ The APM Server and some of the APM agents have troubleshooting guides:
 * {apm-rum-ref-v}/troubleshooting.html[RUM troubleshooting]
 
 [float]
-=== GitHub repositories
+=== Elastic Support
 
-Elastic APM is open source! Our https://github.com/elastic?utf8=%E2%9C%93&q=apm[GitHub repositories] have a plethora of knowledge available in the form of code, issues, and PRs.
+We offer a support experience unlike any other.
+Our team of professionals 'speak human and code', and love open source and making your day.
+https://www.elastic.co/subscriptions[Learn more about subscriptions].
 
 [float]
 === Discussion forum
