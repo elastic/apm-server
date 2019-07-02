@@ -11,14 +11,6 @@ from nose.tools import raises
 class SetupPipelinesDefaultTest(SubCommandTest):
     pipeline_name = "apm_user_agent"
 
-    def config(self):
-        cfg = super(SubCommandTest, self).config()
-        cfg.update({
-            "elasticsearch_host": get_elasticsearch_url(),
-            "file_enabled": "false",
-        })
-        return cfg
-
     def start_args(self):
         return {
             "logging_args": ["-v", "-d", "*"],
@@ -88,15 +80,12 @@ class PipelineDefaultTest(ElasticTest):
                                      self.intake_url, 'transaction', 3)
 
         entries = self.es.search(index=self.index_transaction)['hits']['hits']
+        ua_found = False
         for e in entries:
             src = e['_source']
-            ua = src['user_agent']
-            id = src['transaction']['id']
-            if id != "4340a8e0df1906ecbfa9":
-                # transaction with id '4340a8e0df1906ecbfa9' has user agent info set
-                assert ua is None
-                continue
-            else:
+            if 'user_agent' in src:
+                ua_found = True
+                ua = src['user_agent']
                 assert ua is not None
                 assert ua["original"] == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 " \
                                          "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
@@ -106,6 +95,7 @@ class PipelineDefaultTest(ElasticTest):
                 assert ua["os"]["version"] == "10.10.5"
                 assert ua["os"]["full"] == "Mac OS X 10.10.5"
                 assert ua["device"]["name"] == "Other"
+        assert ua_found
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -116,19 +106,18 @@ class PipelineConfigurationNoneTest(ElasticTest):
         self.wait_until(lambda: self.log_contains("Finished index management setup."), max_timeout=5)
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
-
+        uaFound = False
         entries = self.es.search(index=self.index_transaction)['hits']['hits']
         for e in entries:
             src = e['_source']
-            ua = src['user_agent']
-            if src['transaction']['id'] != "4340a8e0df1906ecbfa9":
-                # transaction with id '4340a8e0df1906ecbfa9' has user agent info set
-                continue
-            else:
+            if 'user_agent' in src:
+                uaFound = True
+                ua = src['user_agent']
                 assert ua is not None
                 assert ua["original"] == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 " \
                                          "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
                 assert 'name' not in ua
+        assert uaFound
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -141,17 +130,17 @@ class PipelinesConfigurationNoneTest(ElasticTest):
                                      self.intake_url, 'transaction', 3)
 
         entries = self.es.search(index=self.index_transaction)['hits']['hits']
+        uaFound = False
         for e in entries:
             src = e['_source']
-            ua = src['user_agent']
-            if src['transaction']['id'] != "4340a8e0df1906ecbfa9":
-                # transaction with id '4340a8e0df1906ecbfa9' has user agent info set
-                continue
-            else:
+            if 'user_agent' in src:
+                uaFound = True
+                ua = src['user_agent']
                 assert ua is not None
                 assert ua["original"] == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 " \
                                          "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
                 assert 'name' not in ua
+        assert uaFound
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
