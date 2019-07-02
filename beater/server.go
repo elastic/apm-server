@@ -74,8 +74,7 @@ func doNotTrace(req *http.Request) bool {
 	return false
 }
 
-func run(server *http.Server, lis net.Listener, config *Config) error {
-	logger := logp.NewLogger("server")
+func run(logger *logp.Logger, server *http.Server, lis net.Listener, config *Config) error {
 	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	logger.Infof("Listening on: %s", server.Addr)
 	switch config.RumConfig.isEnabled() {
@@ -102,8 +101,7 @@ func run(server *http.Server, lis net.Listener, config *Config) error {
 	return server.Serve(lis)
 }
 
-func stop(server *http.Server) {
-	logger := logp.NewLogger("server")
+func stop(logger *logp.Logger, server *http.Server) {
 	err := server.Shutdown(context.Background())
 	if err != nil {
 		logger.Error(err.Error())

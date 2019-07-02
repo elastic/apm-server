@@ -27,14 +27,16 @@ import (
 	"github.com/elastic/beats/libbeat/common/fmtstr"
 	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/libbeat/logp"
+
+	logs "github.com/elastic/apm-server/log"
 )
 
 // MakeDefaultSupporter creates the ILM supporter for APM that is passed to libbeat.
 func MakeDefaultSupporter(log *logp.Logger, info beat.Info, cfg *common.Config) (libilm.Supporter, error) {
 	if log == nil {
-		log = logp.NewLogger("ilm")
+		log = logp.NewLogger(logs.Ilm)
 	} else {
-		log = log.Named("ilm")
+		log = log.Named(logs.Ilm)
 	}
 
 	var ilmCfg Config

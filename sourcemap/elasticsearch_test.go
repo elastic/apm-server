@@ -51,7 +51,7 @@ func TestNoElasticsearchConnection(t *testing.T) {
 func TestParseResultNoSourcemap(t *testing.T) {
 	id := Id{Path: "/tmp"}
 	result := &es.SearchResults{}
-	c, err := parseResult(result, id)
+	c, err := (&smapElasticsearch{}).parseResult(result, id)
 	assert.Nil(t, c)
 	assert.NoError(t, err)
 }
@@ -66,7 +66,7 @@ func TestParseResultParseError(t *testing.T) {
 			Total: es.Total{Value: 1},
 		},
 	}
-	c, err := parseResult(result, id)
+	c, err := (&smapElasticsearch{}).parseResult(result, id)
 	assert.Nil(t, c)
 	assert.Error(t, err)
 	assert.Equal(t, (err.(Error)).Kind, ParseError)
@@ -79,7 +79,7 @@ func TestParseResultParseError(t *testing.T) {
 			Total: es.Total{Value: 1},
 		},
 	}
-	c, err = parseResult(result, id)
+	c, err = (&smapElasticsearch{}).parseResult(result, id)
 	assert.Nil(t, c)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Could not parse Sourcemap")

@@ -15,26 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package logs
 
-import (
-	"time"
-
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
-
-	logs "github.com/elastic/apm-server/log"
+// logging selectors
+const (
+	Beater          = "beater"
+	Handler         = "handler"
+	Ilm             = "ilm"
+	IndexManagement = "index-management"
+	Onboarding      = "onboarding"
+	Pipelines       = "pipelines"
+	Request         = "request"
+	Response        = "response"
+	Server          = "server"
+	Sourcemap       = "sourcemap"
+	Stacktrace      = "stacktrace"
+	Tracing         = "tracing"
+	Transform       = "transform"
 )
-
-func notifyListening(config *Config, pubFct func(beat.Event)) {
-	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
-	event := beat.Event{
-		Timestamp: time.Now(),
-		Fields: common.MapStr{
-			"processor": common.MapStr{"name": "onboarding", "event": "onboarding"},
-			"observer":  common.MapStr{"listening": config.Host},
-		},
-	}
-	pubFct(event)
-}

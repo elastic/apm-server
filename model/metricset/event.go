@@ -24,15 +24,17 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
+
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metricset/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 const (
@@ -209,7 +211,7 @@ func (me *Metricset) Transform(tctx *transform.Context) []beat.Event {
 	fields := common.MapStr{}
 	for _, sample := range me.Samples {
 		if _, err := fields.Put(sample.Name, sample.Value); err != nil {
-			logp.NewLogger("transform").Warnf("failed to transform sample %#v", sample)
+			logp.NewLogger(logs.Transform).Warnf("failed to transform sample %#v", sample)
 			continue
 		}
 	}

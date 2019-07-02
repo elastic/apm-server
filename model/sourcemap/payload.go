@@ -22,15 +22,17 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
+
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
 	smap "github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 const (
@@ -65,7 +67,7 @@ func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
 	}
 
 	if tctx.Config.SmapMapper == nil {
-		logp.NewLogger("sourcemap").Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
+		logp.NewLogger(logs.Sourcemap).Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
 		tctx.Config.SmapMapper.NewSourcemapAdded(smap.Id{
 			ServiceName:    pa.ServiceName,

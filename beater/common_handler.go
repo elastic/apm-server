@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -149,7 +150,7 @@ func ContextWithReqLogger(ctx context.Context, rl *logp.Logger) context.Context 
 }
 
 func logHandler(h http.Handler) http.Handler {
-	logger := logp.NewLogger("request")
+	logger := logp.NewLogger(logs.Request)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCounter.Inc()
@@ -180,7 +181,7 @@ func logHandler(h http.Handler) http.Handler {
 		lw := utility.NewRecordingResponseWriter(w)
 		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
 
-		if lw.Code <= 399 {
+		if lw.Code < http.StatusBadRequest {
 			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
 		}
 
@@ -305,7 +306,7 @@ func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
 func requestLogger(r *http.Request) *logp.Logger {
 	logger, ok := r.Context().Value(reqLoggerKey{}).(*logp.Logger)
 	if !ok {
-		logger = logp.NewLogger("request")
+		logger = logp.NewLogger(logs.Request)
 	}
 	return logger
 }
@@ -320,7 +321,7 @@ func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) int {
 	w.WriteHeader(statusCode)
 	buf, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
-		logp.NewLogger("response").Errorf("Error while generating a JSON error response: %v", err)
+		logp.NewLogger(logs.Response).Errorf("Error while generating a JSON error response: %v", err)
 		return sendPlain(w, body, statusCode)
 	}
 

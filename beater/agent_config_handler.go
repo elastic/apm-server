@@ -85,8 +85,13 @@ func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToke
 		}
 		w.Header().Set(headerCacheControl, headerCacheControlVal)
 		send(resp, state)
+		// logHandler logs the rest
+		if state >= http.StatusBadRequest {
+			requestLogger(r).Errorw("error handling request", "response_code", state,
+				"error", resp)
+		}
 	})
-	return authHandler(secretToken, logHandler(handler))
+	return logHandler(authHandler(secretToken, handler))
 }
 
 // Returns (zero, error) if request body can't be unmarshalled or service.name is missing
