@@ -50,7 +50,7 @@ Here you can learn about {apm-server-ref-v}/installing.html[installation],
 === Elasticsearch
 
 {ref}/index.html[Elasticsearch] is a highly scalable open-source full-text search and analytics engine.
-It allows you to store, search, and analyze big volumes of data quickly and in near real time.
+It allows you to store, search, and analyze large volumes of data quickly and in near real time.
 Elasticsearch is used to store APM performance metrics and make use of its aggregations.
 
 [float]
