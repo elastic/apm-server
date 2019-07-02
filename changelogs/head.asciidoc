@@ -16,6 +16,7 @@
 - Add fields required by breakdown graphs APM pipeline by default {pull}2287[2287].
 - Require client auth when CA is configured and SSL enabled {pull}2340[2340].
 - Add basic caching to remote agent configuration {pull}2337[2337].
+- Enable ILM by default when supported by configured Elasticsearch {pull}2356[2356].
 
 [float]
 ==== Removed

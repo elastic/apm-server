@@ -19,14 +19,33 @@ package ilm
 
 import (
 	"github.com/elastic/beats/libbeat/common/fmtstr"
+	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 )
 
 const pattern = "000001"
 
-//Config for ILM supporter
+// Config for ILM supporter
 type Config struct {
-	Enabled    bool                      `config:"enabled"`
+	Mode       libilm.Mode               `config:"enabled"`
 	PolicyName *fmtstr.EventFormatString `config:"policy_name"`
 	AliasName  *fmtstr.EventFormatString `config:"alias_name"`
 	Event      string                    `config:"event"`
+}
+
+// Enabled indicates whether or not ILM should be enabled
+func (c *Config) Enabled() bool {
+	return c.Mode != libilm.ModeDisabled
+}
+
+// ModeString stringifies enabled mode
+// This is a workaround as strings should be generated in libbeat.
+func ModeString(m libilm.Mode) string {
+	switch m {
+	case libilm.ModeAuto:
+		return "auto"
+	case libilm.ModeEnabled:
+		return "true"
+	default:
+		return "false"
+	}
 }
