@@ -21,13 +21,13 @@ import (
 	"net"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
 )
 
 func TestNotifyUpServerDown(t *testing.T) {
@@ -42,7 +42,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 
 	server, err := newServer(config, apm.DefaultTracer, nil, nopReporter)
 	require.NoError(t, err)
-	go run(server, lis, config)
+	go run(logp.NewLogger("onboarding_test"), server, lis, config)
 
 	notifyListening(config, publisher)
 

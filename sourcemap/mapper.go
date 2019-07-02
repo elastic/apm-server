@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	logs "github.com/elastic/apm-server/log"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 )
@@ -35,6 +37,7 @@ type Mapper interface {
 
 type SmapMapper struct {
 	Accessor Accessor
+	logger   *logp.Logger
 }
 
 type Config struct {
@@ -59,7 +62,10 @@ func NewSmapMapper(config Config) (*SmapMapper, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &SmapMapper{Accessor: accessor}, nil
+	return &SmapMapper{
+		Accessor: accessor,
+		logger:   logp.NewLogger(logs.Sourcemap),
+	}, nil
 }
 
 func (m *SmapMapper) Apply(id Id, lineno, colno int) (*Mapping, error) {
@@ -93,7 +99,7 @@ func (m *SmapMapper) Apply(id Id, lineno, colno int) (*Mapping, error) {
 func (m *SmapMapper) NewSourcemapAdded(id Id) {
 	_, err := m.Accessor.Fetch(id)
 	if err == nil {
-		logp.NewLogger("sourcemap").Warnf("Overriding sourcemap for service %s version %s and file %s",
+		m.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
 			id.ServiceName, id.ServiceVersion, id.Path)
 	}
 	m.Accessor.Remove(id)

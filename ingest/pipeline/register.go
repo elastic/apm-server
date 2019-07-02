@@ -21,13 +21,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	logs "github.com/elastic/apm-server/log"
+
 	"github.com/elastic/beats/libbeat/logp"
 	es "github.com/elastic/beats/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/libbeat/paths"
 )
 
 func RegisterPipelines(esClient *es.Client, overwrite bool, path string) error {
-	logger := logp.NewLogger("pipelines")
+	logger := logp.NewLogger(logs.Pipelines)
 	pipelines, err := loadPipelinesFromJSON(path)
 	if err != nil {
 		return err

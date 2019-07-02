@@ -20,6 +20,8 @@ package model
 import (
 	"errors"
 
+	logs "github.com/elastic/apm-server/log"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 
@@ -84,10 +86,12 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 		}
 		frames[idx] = fr.Transform(tctx)
 	}
-	logger := logp.NewLogger("stacktrace")
-	for errMsg := range sourcemapErrorSet {
-		if errMsg != "" {
-			logger.Warn(errMsg)
+	if len(sourcemapErrorSet) > 0 {
+		logger := logp.NewLogger(logs.Stacktrace)
+		for errMsg := range sourcemapErrorSet {
+			if errMsg != "" {
+				logger.Warn(errMsg)
+			}
 		}
 	}
 
