@@ -162,12 +162,12 @@ logging:
 
 {% if logging_json %}
   # Set to true to log messages in json format.
-  json: {{ logging_json|default("false") }}
+  json: {{ logging_json }}
 {% endif %}
 
 {% if logging_level %}
   # Set log level
-  level: {{ logging_level|default("info") }}
+  level: {{ logging_level }}
 {% endif %}
 
   #files:
