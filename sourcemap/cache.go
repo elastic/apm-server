@@ -28,12 +28,13 @@ import (
 )
 
 const (
-	MinCleanupIntervalSeconds float64 = 60
-	LoggerSelector            string  = "sourcemap"
+	minCleanupIntervalSeconds float64 = 60
+	loggerSelector            string  = "sourcemap"
 )
 
 type cache struct {
-	goca *gocache.Cache
+	goca   *gocache.Cache
+	logger *logp.Logger
 }
 
 func newCache(expiration time.Duration) (*cache, error) {
@@ -43,17 +44,23 @@ func newCache(expiration time.Duration) (*cache, error) {
 			Kind: InitError,
 		}
 	}
-	return &cache{goca: gocache.New(expiration, cleanupInterval(expiration))}, nil
+	return &cache{goca: gocache.New(expiration, cleanupInterval(expiration)), logger: logp.NewLogger(loggerSelector)}, nil
 }
 
 func (c *cache) add(id Id, consumer *sourcemap.Consumer) {
 	c.goca.Set(id.Key(), consumer, gocache.DefaultExpiration)
-	logp.NewLogger(LoggerSelector).Debugf("Added id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
+	if !c.logger.IsDebug() {
+		return
+	}
+	c.logger.Debugf("Added id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
 }
 
 func (c *cache) remove(id Id) {
 	c.goca.Delete(id.Key())
-	logp.NewLogger(LoggerSelector).Debugf("Removed id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
+	if !c.logger.IsDebug() {
+		return
+	}
+	c.logger.Debugf("Removed id %v. Cache now has %v entries.", id.Key(), c.goca.ItemCount())
 }
 
 func (c *cache) fetch(id Id) (*sourcemap.Consumer, bool) {
@@ -69,5 +76,5 @@ func (c *cache) fetch(id Id) (*sourcemap.Consumer, bool) {
 }
 
 func cleanupInterval(ttl time.Duration) time.Duration {
-	return time.Duration(math.Max(ttl.Seconds(), MinCleanupIntervalSeconds)) * time.Second
+	return time.Duration(math.Max(ttl.Seconds(), minCleanupIntervalSeconds)) * time.Second
 }
