@@ -73,6 +73,10 @@ apm-server:
   mode: {{ mode }}
   {% endif %}
 
+  {% if ilm_enabled %}
+  ilm.enabled: {{ ilm_enabled }}
+  {% endif %}
+
 ############################# Setup ##########################################
 
 {% if override_template %}

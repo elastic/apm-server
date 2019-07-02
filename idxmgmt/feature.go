@@ -15,31 +15,44 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package convert
+package idxmgmt
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
+	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
 )
 
-// FromReader reads the given reader into the given interface
-func FromReader(r io.ReadCloser, i interface{}) error {
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(r)
-	return FromBytes(buf.Bytes(), i, err)
+type feature struct {
+	enabled, overwrite, load, supported bool
+
+	warn string
+	err  error
 }
 
-// FromBytes reads the given byte slice into the given interface
-func FromBytes(bs []byte, i interface{}, err error) error {
-	if err != nil || len(bs) == 0 {
-		return err
+func newFeature(enabled, overwrite, supported bool, mode libidxmgmt.LoadMode) feature {
+	if mode == libidxmgmt.LoadModeUnset {
+		mode = libidxmgmt.LoadModeDisabled
 	}
-	return json.Unmarshal(bs, i)
+	if mode >= libidxmgmt.LoadModeOverwrite {
+		overwrite = true
+	}
+	if mode == libidxmgmt.LoadModeForce {
+		enabled = true
+	}
+	if !supported {
+		enabled = false
+	}
+	load := mode.Enabled() && enabled
+	return feature{
+		enabled:   enabled,
+		overwrite: overwrite,
+		load:      load,
+		supported: supported}
 }
 
-// ToReader converts a marshall-able interface into a reader
-func ToReader(i interface{}) io.Reader {
-	b, _ := json.Marshal(i)
-	return bytes.NewReader(b)
+func (f *feature) warning() string {
+	return f.warn
+}
+
+func (f *feature) error() error {
+	return f.err
 }

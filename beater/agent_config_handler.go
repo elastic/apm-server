@@ -18,45 +18,73 @@
 package beater
 
 import (
+	"fmt"
 	"net/http"
-
-	"github.com/elastic/apm-server/convert"
+	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/convert"
 )
 
-func agentConfigHandler(kbClient *kibana.Client, secretToken string) http.Handler {
+const (
+	headerIfNoneMatch  = "If-None-Match"
+	headerEtag         = "Etag"
+	headerCacheControl = "Cache-Control"
+	errMaxAgeDuration  = 5 * time.Minute
+)
+
+func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToken string) http.Handler {
+	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
+	defaultHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+	errHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		send := wrap(w, r)
-		clientEtag := r.Header.Get("If-None-Match")
+		clientEtag := r.Header.Get(headerIfNoneMatch)
 
 		query, requestErr := buildQuery(r)
-		cfg, upstreamEtag, internalErr := agentcfg.Fetch(kbClient, query, requestErr)
+		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
+
+		var resp interface{}
+		var state int
+		var headerCacheControlVal string
 
 		switch {
 		case requestErr != nil:
-			send(requestErr.Error(), http.StatusBadRequest)
+			resp = requestErr.Error()
+			state = http.StatusBadRequest
+			headerCacheControlVal = errHeaderCacheControl
 		case query == agentcfg.Query{}:
-			send(nil, http.StatusMethodNotAllowed)
+			resp = nil
+			state = http.StatusMethodNotAllowed
+			headerCacheControlVal = errHeaderCacheControl
 		case internalErr != nil:
-			send(internalErr.Error(), http.StatusInternalServerError)
+			resp = internalErr.Error()
+			state = http.StatusInternalServerError
+			headerCacheControlVal = errHeaderCacheControl
 		case len(cfg) == 0:
-			send(nil, http.StatusNotFound)
+			resp = nil
+			state = http.StatusNotFound
+			headerCacheControlVal = errHeaderCacheControl
 		case clientEtag != "" && clientEtag == upstreamEtag:
-			w.Header().Set("Cache-Control", "max-age=0")
-			send(nil, http.StatusNotModified)
+			w.Header().Set(headerEtag, clientEtag)
+			resp = nil
+			state = http.StatusNotModified
+			headerCacheControlVal = defaultHeaderCacheControl
 		case upstreamEtag != "":
-			w.Header().Set("Cache-Control", "max-age=0")
-			w.Header().Set("Etag", upstreamEtag)
+			w.Header().Set(headerEtag, upstreamEtag)
 			fallthrough
 		default:
-			send(cfg, http.StatusOK)
+			resp = cfg
+			state = http.StatusOK
+			headerCacheControlVal = defaultHeaderCacheControl
 		}
+		w.Header().Set(headerCacheControl, headerCacheControlVal)
+		send(resp, state)
 	})
 	return authHandler(secretToken, logHandler(handler))
 }

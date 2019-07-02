@@ -18,12 +18,12 @@
 package idxmgmt
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/idxmgmt"
+	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/template"
 
@@ -38,7 +38,7 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	const logName = "index-management"
 
 	cfg := struct {
-		ILMEnabled bool                   `config:"apm-server.ilm.enabled"`
+		ILMEnabled libilm.Mode            `config:"apm-server.ilm.enabled"`
 		Template   *common.Config         `config:"setup.template"`
 		Output     common.ConfigNamespace `config:"output"`
 	}{}
@@ -48,15 +48,11 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 		}
 	}
 
-	ilmConfig := ilm.Config{Enabled: cfg.ILMEnabled}
+	ilmConfig := ilm.Config{Mode: cfg.ILMEnabled}
 
 	tmplConfig, err := unpackTemplateConfig(cfg.Template)
 	if err != nil {
-		return nil, fmt.Errorf("unpacking template config fails: %v", err)
-	}
-
-	if err := checkTemplateESSettings(tmplConfig, cfg.Output); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unpacking template config fails: %+v", err)
 	}
 
 	if log == nil {
@@ -64,26 +60,7 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 	} else {
 		log = log.Named(logName)
 	}
-	return newSupporter(log, info, tmplConfig, ilmConfig)
-}
-
-func checkTemplateESSettings(tmpl template.TemplateConfig, out common.ConfigNamespace) error {
-	if out.Name() != "elasticsearch" || !tmpl.Enabled {
-		return nil
-	}
-
-	idxCfg := struct {
-		Index string `config:"index"`
-	}{}
-	if err := out.Config().Unpack(&idxCfg); err != nil {
-		return err
-	}
-
-	if idxCfg.Index != "" && (tmpl.Name == "" || tmpl.Pattern == "") {
-		return errors.New("setup.template.name and setup.template.pattern have to be set if index name is modified")
-	}
-
-	return nil
+	return newSupporter(log, info, tmplConfig, ilmConfig, cfg.Output)
 }
 
 func unpackTemplateConfig(cfg *common.Config) (template.TemplateConfig, error) {
