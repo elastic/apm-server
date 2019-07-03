@@ -411,6 +411,7 @@ pipeline {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
+        SNAPSHOT="true"
       }
       when {
         beforeAgent true
