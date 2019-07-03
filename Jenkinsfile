@@ -421,7 +421,7 @@ pipeline {
             branch "v\\d?"
             tag "v\\d+\\.\\d+\\.\\d+*"
             expression { return params.Run_As_Master_Branch }
-            expression { return env.BEATS_UPDATED != "0" }
+            expression { return env.BEATS_UPDATED != "false" }
           }
           expression { return params.release_ci }
         }
