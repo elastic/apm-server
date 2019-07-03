@@ -1,11 +1,14 @@
 [[setup-kibana-endpoint]]
 == Configure the Kibana endpoint
 
-Starting with {beatname_uc} 7.3.0, we've introduced support for
-{kib-ref}/agent-configuration.html[APM Agent configuration in Kibana] via the Kibana API.
-This requires a Kibana endpoint configuration.
+Starting with {beatname_uc} 7.3.0, we've introduced a new Kibana API for APM Server.
+Configuring this endpoint is required for 
+{kib-ref}/agent-configuration.html[APM Agent configuration in Kibana].
 Once the endpoint is configured,
 you'll be able to fine-tune certain agent configurations directly in Kibana without having to redeploy your agents.
+
+IMPORTANT: Kibana must be running and healthy before starting APM Server.
+If APM Server fails to establish a connection with Kibana on the first try it will not try again.
 
 You configure the endpoint in the `apm-server.kibana` section of the
 +{beatname_lc}.yml+ config file.
@@ -18,7 +21,7 @@ apm-server.kibana.host: "http://localhost:5601"
 ----
 
 [float]
-=== Configuration options
+=== Kibana endpoint configuration options
 
 You can specify the following options in the `apm-server.kibana` section of the
 +{beatname_lc}.yml+ config file:
@@ -102,3 +105,15 @@ apm-server.kibana.ssl.key: "/etc/pki/client/cert.key
 
 For information on the additional SSL configuration options,
 see <<configuration-ssl>>.
+
+[float]
+=== Agent Config configuration options
+
+You can specify the following options in the `apm-server.agent.config` section of the
++{beatname_lc}.yml+ config file:
+
+[float]
+==== `agent.config.cache.expiration`
+
+When using APM Agent configuration, information fetched from Kibana will be cached in memory.
+This setting specifies the time before cache key expiration. Defaults to 30 seconds.
