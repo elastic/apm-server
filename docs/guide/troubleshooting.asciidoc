@@ -1,0 +1,27 @@
+[[troubleshooting]]
+== Troubleshooting
+
+If you run into trouble, there are three places you can look for help.
+
+[float]
+=== Troubleshooting documentation
+
+The APM Server and some of the APM agents have troubleshooting guides:
+
+* {apm-server-ref-v}/troubleshooting.html[Server troubleshooting]
+* {apm-java-ref-v}/trouble-shooting.html[Java agent troubleshooting]
+* {apm-node-ref-v}/troubleshooting.html[Node.js agent troubleshooting]
+* {apm-rum-ref-v}/troubleshooting.html[RUM troubleshooting]
+
+[float]
+=== Elastic Support
+
+We offer a support experience unlike any other.
+Our team of professionals 'speak human and code', and love open source and making your day.
+https://www.elastic.co/subscriptions[Learn more about subscriptions].
+
+[float]
+=== Discussion forum
+
+For additional questions and feature requests,
+visit our https://discuss.elastic.co/c/apm[discussion forum].
