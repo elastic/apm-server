@@ -289,7 +289,7 @@ func defaultConfig(beatVersion string) *Config {
 		},
 		Mode:        ModeProduction,
 		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		AgentConfig: &agentConfig{Cache: &Cache{Expiration: 10 * time.Second}},
+		AgentConfig: &agentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 		pipeline:    defaultAPMPipeline,
 	}
 }
