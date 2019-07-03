@@ -301,7 +301,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 7.x
-Revision: fc1d5fa44d2c1668a4f9f200dbae2b4f8275320e
+Revision: cecb997f09f2387d88704631ec1ce0bace29c89e
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -643,14 +643,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/golang/protobuf
-Revision: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+Revision: b5d812f8a3706043e23a9cd5babf2e5423744d30
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/golang/protobuf/LICENSE:
 --------------------------------------------------------------------
-Go support for Protocol Buffers - Google's data interchange format
-
 Copyright 2010 The Go Authors.  All rights reserved.
-https://github.com/golang/protobuf
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -783,7 +780,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: github.com/hashicorp/golang-lru
-Revision: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
+Revision: 59383c442f7d7b190497e9bb8fc17a48d06cd03f
 License type (autodetected): MPL-2.0
 ./vendor/github.com/hashicorp/golang-lru/LICENSE:
 --------------------------------------------------------------------
@@ -2910,7 +2907,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/net
-Revision: 44b7c21cbf19450f38b337eb6b6fe4f6496fb5b3
+Revision: d28f0bde5980168871434b95cfc858db9f2a7a99
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/net/LICENSE:
 --------------------------------------------------------------------
@@ -2944,7 +2941,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/oauth2
-Revision: aaccbc9213b0974828f81aaac109d194880e3014
+Revision: 0f29369cfe4552d0e4bcddc57cc75f4d7e672a33
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/oauth2/LICENSE:
 --------------------------------------------------------------------
@@ -2978,7 +2975,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: golang.org/x/sync
-Revision: 1d60e4601c6fd243af51cc01ddf169918a5407ca
+Revision: 112230192c580c3556b8cee6403af37a4fc5f28c
 License type (autodetected): BSD-3-Clause
 ./vendor/golang.org/x/sync/LICENSE:
 --------------------------------------------------------------------
@@ -3149,7 +3146,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------
 Dependency: google.golang.org/appengine
-Revision: 311d3c5cf9373249645db030e53c37c209a8b378
+Revision: b2f4a3cf3c67576a2ee09e1fe62656a5086ce880
 License type (autodetected): Apache-2.0
 ./vendor/google.golang.org/appengine/LICENSE:
 --------------------------------------------------------------------
