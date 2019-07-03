@@ -222,7 +222,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				AgentConfig: &agentConfig{Cache: &Cache{Expiration: 10 * time.Second}},
+				AgentConfig: &agentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 				pipeline:    defaultAPMPipeline,
 			},
 		},
