@@ -259,11 +259,6 @@ class ILMDisabledIntegrationTest(ElasticTest):
                                      'error',
                                      4,
                                      query_index="{}-2017.05.09".format(self.index_error))
-        self.load_docs_with_template(self.get_payload_path("transactions_spans_rum.ndjson"),
-                                     self.intake_url,
-                                     'transaction',
-                                     1,
-                                     query_index="{}-2019.07.02".format(self.index_transaction))
 
 
 class OverrideIndicesIntegrationTest(OverrideIndicesTest):
