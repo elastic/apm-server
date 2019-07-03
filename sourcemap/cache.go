@@ -25,11 +25,12 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 
 	"github.com/elastic/beats/libbeat/logp"
+
+	logs "github.com/elastic/apm-server/log"
 )
 
 const (
 	minCleanupIntervalSeconds float64 = 60
-	loggerSelector            string  = "sourcemap"
 )
 
 type cache struct {
@@ -44,7 +45,10 @@ func newCache(expiration time.Duration) (*cache, error) {
 			Kind: InitError,
 		}
 	}
-	return &cache{goca: gocache.New(expiration, cleanupInterval(expiration)), logger: logp.NewLogger(loggerSelector)}, nil
+	return &cache{
+		goca:   gocache.New(expiration, cleanupInterval(expiration)),
+		logger: logp.NewLogger(logs.Sourcemap),
+	}, nil
 }
 
 func (c *cache) add(id Id, consumer *sourcemap.Consumer) {
