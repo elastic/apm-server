@@ -74,8 +74,8 @@ class PipelineDefaultTest(ElasticTest):
 
     def test_pipeline_applied(self):
         # setup
-        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"), max_timeout=5)
-        self.wait_until(lambda: self.log_contains("Finished index management setup."), max_timeout=5)
+        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"))
+        self.wait_until(lambda: self.log_contains("Finished index management setup."))
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
 
@@ -103,7 +103,7 @@ class PipelineConfigurationNoneTest(ElasticTest):
     config_overrides = {"disable_pipeline": True}
 
     def test_pipeline_not_applied(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."), max_timeout=5)
+        self.wait_until(lambda: self.log_contains("Finished index management setup."))
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
         uaFound = False
@@ -125,7 +125,7 @@ class PipelinesConfigurationNoneTest(ElasticTest):
     config_overrides = {"disable_pipelines": True}
 
     def test_pipeline_not_applied(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."), max_timeout=5)
+        self.wait_until(lambda: self.log_contains("Finished index management setup."))
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
 
@@ -149,11 +149,11 @@ class MissingPipelineTest(ElasticTest):
 
     @raises(TimeoutError)
     def test_pipeline_not_registered(self):
-        self.wait_until(lambda: self.log_contains("No pipeline callback registered"), max_timeout=5)
-        self.wait_until(lambda: self.log_contains("Finished index management setup."), max_timeout=5)
+        self.wait_until(lambda: self.log_contains("No pipeline callback registered"))
+        self.wait_until(lambda: self.log_contains("Finished index management setup."))
         # ensure events get stored properly nevertheless
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
-                                     self.intake_url, 'transaction', 3, max_timeout=3)
+                                     self.intake_url, 'transaction', 3)
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -173,5 +173,4 @@ class PipelineDisableRegisterOverwriteTest(ElasticTest):
 
     def test_pipeline_not_overwritten(self):
         loaded_msg = "Pipeline already registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg),
-                        max_timeout=5)
+        self.wait_until(lambda: self.log_contains(loaded_msg))

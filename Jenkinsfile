@@ -69,7 +69,7 @@ pipeline {
                 "^tests/packaging",
                 "^vendor/github.com/elastic/beats"
               ]
-              def changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA} > git-diff.txt",returnStdout: true)
+              def changes = sh(label: 'Check paths changed', script: "git diff --name-only origin/${env.CHANGE_TARGET}...${env.GIT_SHA} > git-diff.txt",returnStdout: true)
               def match = regexps.find{ regexp ->
                   sh(script: "grep '${regexp}' git-diff.txt",returnStatus: true) == 0
               }
@@ -103,7 +103,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh './script/jenkins/intake.sh'
+            sh(label: 'Run intake', script: './script/jenkins/intake.sh')
           }
         }
       }
@@ -153,7 +153,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                powershell(script: '.\\script\\jenkins\\windows-build.ps1')
+                powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
               }
             }
           }
@@ -183,7 +183,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh './script/jenkins/unit-test.sh'
+                sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
               }
             }
           }
@@ -216,7 +216,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh './script/jenkins/linux-test.sh'
+                sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
               }
             }
           }
@@ -250,7 +250,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                powershell(script: '.\\script\\jenkins\\windows-test.ps1')
+                powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
               }
             }
           }
@@ -292,7 +292,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh './script/jenkins/bench.sh'
+                sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
                 sendBenchmarks(file: 'bench.out', index: "benchmark-server")
               }
             }
@@ -374,7 +374,7 @@ pipeline {
           unstash 'source'
           dir("${BASE_DIR}"){
             catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-              sh './script/jenkins/sync.sh'
+              sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
             }
           }
         }
@@ -451,7 +451,7 @@ pipeline {
     }
   }
   post {
-    always {
+    cleanup {
       notifyBuildResult()
     }
   }

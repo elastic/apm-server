@@ -548,7 +548,6 @@ class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
         # ensure smap is not in cache any more
         time.sleep(1)
 
-        time.sleep(30)
         # after cache expiration no sourcemap should be found any more
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
