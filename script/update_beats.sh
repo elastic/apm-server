@@ -52,6 +52,7 @@ rsync -crpv --delete \
     --include="libbeat/tests/system/beat/***" \
     --exclude="libbeat/*" \
     --include=.go-version \
+    --include=reviewdog.yml \
     --include="vendor/" \
     --include="vendor/vendor.json" \
     --exclude="vendor/*" \
