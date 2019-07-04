@@ -77,6 +77,11 @@ apm-server:
   ilm.enabled: {{ ilm_enabled }}
   {% endif %}
 
+  {% if kibana_enabled %}
+  kibana.enabled: {{ kibana_enabled }}
+  {% endif %}
+
+
 ############################# Setup ##########################################
 
 {% if override_template %}
