@@ -5,6 +5,7 @@ BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
 BEAT_URL=https://${BEAT_PATH}
 BEAT_DOC_URL=https://www.elastic.co/guide/en/apm/server/
 BEAT_REF_YAML=false
+COBERTURA_REPO?=github.com/elastic/apm-server/vendor/github.com/t-yuki/gocover-cobertura
 COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gotestcover
 GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
 GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
@@ -117,6 +118,10 @@ check-full: check golint staticcheck
 	@git diff | cat
 	@git update-index --refresh
 	@git diff-index --exit-code HEAD --
+
+.PHONY: test-deps
+test-deps:
+	go get $(COBERTURA_REPO)
 
 .PHONY: notice
 notice: python-env

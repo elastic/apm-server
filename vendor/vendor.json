@@ -2250,6 +2250,12 @@
 			"revisionTime": "2019-06-25T20:01:03Z"
 		},
 		{
+			"checksumSHA1": "X6WTt1wvfs59cC1Dr9WxDmitfnE=",
+			"path": "github.com/t-yuki/gocover-cobertura",
+			"revision": "aaee18c8195c3f2d90e5ef80ca918d265463842a",
+			"revisionTime": "2018-02-17T15:00:09Z"
+		},
+		{
 			"checksumSHA1": "CpcG17Q/0k1g2uy8AL26Uu7TouU=",
 			"origin": "github.com/elastic/beats/vendor/github.com/theckman/go-flock",
 			"path": "github.com/theckman/go-flock",
