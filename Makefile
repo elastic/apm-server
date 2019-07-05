@@ -113,7 +113,10 @@ staticcheck:
 	go get $(STATICCHECK_REPO)
 	staticcheck $(BEAT_PATH)/...
 
-check-full: test-deps check
+.PHONY: staticcheck
+check-deps: test-deps golint staticcheck
+
+check-full: check-deps check
 	@# Validate that all updates were committed
 	@$(MAKE) update
 	@$(MAKE) check
