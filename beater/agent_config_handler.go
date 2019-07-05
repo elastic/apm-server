@@ -37,7 +37,7 @@ const (
 	errMaxAgeDuration  = 5 * time.Minute
 )
 
-func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToken string) http.Handler {
+func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConfig, secretToken string) http.Handler {
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 	defaultHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	errHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
@@ -64,7 +64,7 @@ func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToke
 			headerCacheControlVal = errHeaderCacheControl
 		case internalErr != nil:
 			resp = internalErr.Error()
-			state = http.StatusInternalServerError
+			state = http.StatusServiceUnavailable
 			headerCacheControlVal = errHeaderCacheControl
 		case len(cfg) == 0:
 			resp = nil
@@ -91,7 +91,9 @@ func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToke
 				"error", resp)
 		}
 	})
-	return logHandler(authHandler(secretToken, handler))
+	return logHandler(
+		killSwitchHandler(enabled,
+			authHandler(secretToken, handler)))
 }
 
 // Returns (zero, error) if request body can't be unmarshalled or service.name is missing
