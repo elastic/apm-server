@@ -38,7 +38,7 @@ pipeline {
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
-    booleanParam(name: 'test_changelog', defaultValue: true, description: 'Enable check the changelogs')
+    booleanParam(name: 'check_changelogs_ci', defaultValue: true, description: 'Enable check the changelogs')
   }
   stages {
     /**
@@ -313,7 +313,7 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_changelog }
+            expression { return params.check_changelogs_ci }
           }
           steps {
             // In order to notify the GH check as we wish in case of check failures and change the stage as UNSTABLE.
