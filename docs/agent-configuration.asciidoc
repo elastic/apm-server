@@ -34,7 +34,7 @@ Example Agent configuration request including the service name "test-service":
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
-curl http://127.0.0.1:8200/config/v1/agents?service.name=test-service
+curl -i http://127.0.0.1:8200/config/v1/agents?service.name=test-service
 ---------------------------------------------------------------------------
 
 A sample response to the above curl request:
@@ -45,7 +45,7 @@ HTTP/1.1 200 OK
 Cache-Control: max-age=30, must-revalidate
 Content-Type: application/json
 Etag: 5
-Date: Thu, 04 Jul 2019 13:50:11 GMT
+Date: Fri, 05 Jul 2019 21:47:35 GMT
 Content-Length: 30
 
 {
