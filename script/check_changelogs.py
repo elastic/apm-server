@@ -9,6 +9,7 @@ import requests
 
 VERSIONS = ["6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.2", "7.3", "7.x"]
 
+
 def parse_version(version):
     return tuple([int(x) if x != "x" else 100 for x in version.split('.')])
 
@@ -25,7 +26,8 @@ def shasum(fp):
 
 def main():
 
-    parser = argparse.ArgumentParser(description="Check changelogs for the current released versions. {}".format(VERSIONS))
+    parser = argparse.ArgumentParser(
+        description="Check changelogs for the current released versions. {}".format(VERSIONS))
     parser.add_argument('--fail-if-errors', dest='fail_if_errors', action='store_true', default=False,
                         help='fail the check if there are check errors.')
 
@@ -44,8 +46,8 @@ def main():
         print("**", cl, master, "**")
         for v in VERSIONS:
             if parsed_version <= parse_version(v):
-                print("checking {} on {}".format(cl,v))
-                url = "https://raw.githubusercontent.com/elastic/apm-server/{}/{}".format(v,f.name)
+                print("checking {} on {}".format(cl, v))
+                url = "https://raw.githubusercontent.com/elastic/apm-server/{}/{}".format(v, f.name)
                 rsp = requests.get(url)
                 status = "success"
                 if rsp.status_code == 200:
@@ -60,6 +62,7 @@ def main():
         print()
         if args.fail_if_errors and any_failures:
             raise Exception('Some changelogs are missing, please look at for failed.')
+
 
 if __name__ == '__main__':
     main()
