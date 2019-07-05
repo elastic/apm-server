@@ -117,11 +117,6 @@ pipeline {
         stage('linux build') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
           when {
             beforeAgent true
             expression { return params.linux_ci }
@@ -270,11 +265,6 @@ pipeline {
         stage('Benchmarking') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
           when {
             beforeAgent true
             allOf {
@@ -292,9 +282,11 @@ pipeline {
             withGithubNotify(context: 'Benchmarking') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
-                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                  sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+                }
               }
             }
           }
