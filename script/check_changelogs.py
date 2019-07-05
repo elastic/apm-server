@@ -47,19 +47,19 @@ def main():
                 print("checking {} on {}".format(cl,v))
                 url = "https://raw.githubusercontent.com/elastic/apm-server/{}/{}".format(v,f.name)
                 rsp = requests.get(url)
-                status = "✅"
+                status = "success"
                 if rsp.status_code == 200:
                     h = shasum(io.BytesIO(rsp.content))
                 else:
                     h = "error: {}".format(rsp.status_code)
                 # rsp.raise_for_status()
                 if h != master:
-                    status = "🔴"
+                    status = "failed"
                     any_failures = True
                 print(h, url, status)
         print()
         if args.fail_if_errors and any_failures:
-            raise Exception('Some changelogs are missing, please look at for 🔴.')
+            raise Exception('Some changelogs are missing, please look at for failed.')
 
 if __name__ == '__main__':
     main()
