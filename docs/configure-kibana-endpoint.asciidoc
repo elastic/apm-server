@@ -6,6 +6,8 @@ Configuring this endpoint is required for
 {kib-ref}/agent-configuration.html[APM Agent configuration in Kibana].
 Once the endpoint is configured,
 you'll be able to fine-tune certain agent configurations directly in Kibana without having to redeploy your agents.
+If your setup uses a <<config-secret-token>> for Agent/Server communication,
+the same token is used to secure this endpoint.
 
 IMPORTANT: Kibana must be running and healthy before starting APM Server.
 If APM Server fails to establish a connection with Kibana on the first try it will not try again.
@@ -27,6 +29,7 @@ You can specify the following options in the `apm-server.kibana` section of the
 +{beatname_lc}.yml+ config file:
 
 [float]
+[[kibana-enabled]]
 ==== `apm-server.kibana.enabled`
 
 Defaults to `false`. Must be `true` to use APM Agent configuration.
