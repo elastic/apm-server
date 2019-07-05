@@ -57,7 +57,7 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
-            env.GO_VERSION = readFile(".go-version")
+            env.GO_VERSION = readFile(".go-version").trim()
             if(env.CHANGE_TARGET){
               def regexps =[
                 "^_beats",
@@ -130,8 +130,10 @@ pipeline {
             withGithubNotify(context: 'Build - Linux') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                sh(label: 'Linux build', script: './script/jenkins/build.sh')
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                }
               }
             }
           }
@@ -454,4 +456,13 @@ pipeline {
       notifyBuildResult()
     }
   }
+}
+
+def golang(Closure body){
+  def golangDocker = docker.build("golang-mage", "--build-arg GO_VERSION=${GO_VERSION} ${BASE_DIR}/.ci/docker/golang-mage")
+  withEnv(["HOME=${WORKSPACE}", "GOPATH=${WORKSPACE}", "SHELL=/bin/bash"]) {
+     golangDocker.inside('-v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock'){
+       body()
+     }
+   }
 }
