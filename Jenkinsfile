@@ -316,11 +316,12 @@ pipeline {
             expression { return params.test_changelog }
           }
           steps {
-            withGithubNotify(context: 'Changelog Tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                catchError(buildResult: 'SUCCESS', message: 'Failed to check the changelogs', stageResult: 'UNSTABLE') {
+            // In order to notify the GH check as we wish in case of check failures and change the stage as UNSTABLE.
+            catchError(buildResult: 'SUCCESS', message: 'Failed to check the changelogs', stageResult: 'UNSTABLE') {
+              withGithubNotify(context: 'Changelog Tests') {
+                deleteDir()
+                unstash 'source'
+                dir("${BASE_DIR}"){
                   sh(label: 'Run check changelogs', script: './script/jenkins/check-changelogs.sh')
                 }
               }
