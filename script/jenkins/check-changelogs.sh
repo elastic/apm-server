@@ -14,7 +14,6 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 
 ### Install pyenv-virtualenv plugin
 git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
-eval "$(pyenv virtualenv-init -)"
 
 ### Install 3.6.8 version and setup environment
 pyenv install ${VERSION}
