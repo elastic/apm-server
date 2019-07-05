@@ -38,6 +38,7 @@ pipeline {
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
+    booleanParam(name: 'test_changelog', defaultValue: true, description: 'Enable check the changelogs')
   }
   stages {
     /**
