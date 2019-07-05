@@ -13,6 +13,7 @@ GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
 GOLINT_TARGETS?=$(shell go list ./... | grep -v /vendor/)
 GOLINT_UPSTREAM?=origin/master
 GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | $(REVIEWDOG) -f=golint -diff="git diff $(GOLINT_UPSTREAM)")
+JUNIT_REPORT_REPO?=github.com/elastic/apm-server/vendor/github.com/jstemmer/go-junit-report
 REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
 TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
 SYSTEM_TESTS=true
@@ -122,7 +123,7 @@ check-full: check golint staticcheck
 
 .PHONY: test-deps
 test-deps:
-	go get $(BENCHCMP_REPO) $(COBERTURA_REPO)
+	go get $(BENCHCMP_REPO) $(COBERTURA_REPO) $(JUNIT_REPORT_REPO)
 
 .PHONY: notice
 notice: python-env
