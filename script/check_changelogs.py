@@ -3,7 +3,6 @@
 import io
 import hashlib
 import os
-import argparse
 import requests
 
 
@@ -25,13 +24,6 @@ def shasum(fp):
 
 
 def main():
-
-    parser = argparse.ArgumentParser(
-        description="Check changelogs for the current released versions. {}".format(VERSIONS))
-    parser.add_argument('--fail-if-errors', dest='fail_if_errors', action='store_true', default=False,
-                        help='fail the check if there are check errors.')
-
-    args = parser.parse_args()
 
     cl_dir = 'changelogs'
     for cl in sorted(os.listdir(cl_dir)):
@@ -60,7 +52,7 @@ def main():
                     any_failures = True
                 print(h, url, status)
         print()
-        if args.fail_if_errors and any_failures:
+        if any_failures:
             raise Exception('Some changelogs are missing, please look at for failed.')
 
 
