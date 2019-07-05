@@ -25,7 +25,7 @@ def shasum(fp):
 
 def main():
 
-    parser = argparse.ArgumentParser(description=f"Check changelogs for the current released versions. {VERSIONS}")
+    parser = argparse.ArgumentParser(description="Check changelogs for the current released versions. {}".format(VERSIONS))
     parser.add_argument('--fail-if-errors', dest='fail_if_errors', action='store_true', default=False,
                         help='fail the check if there are check errors.')
 
@@ -44,14 +44,14 @@ def main():
         print("**", cl, master, "**")
         for v in VERSIONS:
             if parsed_version <= parse_version(v):
-                print(f"checking {cl} on {v}")
-                url = f"https://raw.githubusercontent.com/elastic/apm-server/{v}/changelogs/{cl}"
+                print("checking {} on {}".format(cl,v))
+                url = "https://raw.githubusercontent.com/elastic/apm-server/{}/{}".format(v,f.name)
                 rsp = requests.get(url)
                 status = "✅"
                 if rsp.status_code == 200:
                     h = shasum(io.BytesIO(rsp.content))
                 else:
-                    h = f"error: {rsp.status_code}"
+                    h = "error: {}".format(rsp.status_code)
                 # rsp.raise_for_status()
                 if h != master:
                     status = "🔴"
