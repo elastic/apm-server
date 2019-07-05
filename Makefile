@@ -166,4 +166,4 @@ import-dashboards:
 # Checks the changelogs for certains branches.
 .PHONY: check-changelogs
 check-changelogs:
-	@python script/check_changelogs.py
+	@python script/check_changelogs.py --fail-if-errors
