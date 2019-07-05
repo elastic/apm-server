@@ -2720,6 +2720,14 @@
 			"revisionTime": "2019-06-25T20:01:03Z"
 		},
 		{
+			"checksumSHA1": "Qt4D32VRtcQTojQc1Bc7FxHYnGU=",
+			"path": "golang.org/x/tools/cmd/benchcmp",
+			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
+			"revisionTime": "2019-03-01T11:00:19Z",
+			"version": "release-branch.go1.12",
+			"versionExact": "release-branch.go1.12"
+		},
+		{
 			"checksumSHA1": "1AaBS00YoGPd0fAjH1soKkj12J0=",
 			"path": "golang.org/x/tools/cmd/goimports",
 			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",

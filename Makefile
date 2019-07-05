@@ -5,6 +5,7 @@ BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
 BEAT_URL=https://${BEAT_PATH}
 BEAT_DOC_URL=https://www.elastic.co/guide/en/apm/server/
 BEAT_REF_YAML=false
+BENCHCMP_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/benchcmp
 COBERTURA_REPO?=github.com/elastic/apm-server/vendor/github.com/t-yuki/gocover-cobertura
 COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gotestcover
 GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
@@ -121,7 +122,7 @@ check-full: check golint staticcheck
 
 .PHONY: test-deps
 test-deps:
-	go get $(COBERTURA_REPO)
+	go get $(BENCHCMP_REPO) $(COBERTURA_REPO)
 
 .PHONY: notice
 notice: python-env
