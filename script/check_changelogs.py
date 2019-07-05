@@ -7,7 +7,7 @@ import argparse
 import requests
 
 
-VERSIONS = ["6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.2", "7.x"]
+VERSIONS = ["6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.2", "7.3", "7.x"]
 
 def parse_version(version):
     return tuple([int(x) if x != "x" else 100 for x in version.split('.')])
