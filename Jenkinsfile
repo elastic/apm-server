@@ -129,10 +129,14 @@ pipeline {
             }
           }
           steps {
-            deleteDir()
-            unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/build.sh'
+            withGithubNotify(context: 'Build - Linux') {
+              deleteDir()
+              unstash 'source'
+              golang(){
+                dir("${BASE_DIR}"){
+                  sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                }
+              }
             }
           }
         }
