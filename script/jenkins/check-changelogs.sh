@@ -16,9 +16,9 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
 eval "$(pyenv virtualenv-init -)"
 
-### Install the python ersion and setup environment
+### Install 3.6.8 version and setup environment
 pyenv install ${VERSION}
-pyenv virtualenv ${VERSION} my-virtual-env-${VERSION}
+pyenv virtualenv ${VERSION} my-virtual-env-3.6.8
 pip install requests
 
 ## Run the goal
