@@ -258,7 +258,7 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 			}
 
 			// tell browsers to cache response requestHeaders for up to 1 hour (browsers might ignore this)
-			w.Header().Set(headers.AccessControlMaxAge, "")
+			w.Header().Set(headers.AccessControlMaxAge, "3600")
 			// origin must be part of the cache key so that we can handle multiple allowed origins
 			w.Header().Set(headers.Vary, "Origin")
 
