@@ -38,7 +38,6 @@ pipeline {
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
-    booleanParam(name: 'check_changelogs_ci', defaultValue: true, description: 'Enable check the changelogs')
   }
   stages {
     /**
@@ -296,34 +295,6 @@ pipeline {
               dir("${BASE_DIR}"){
                 sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
                 sendBenchmarks(file: 'bench.out', index: "benchmark-server")
-              }
-            }
-          }
-        }
-        /**
-          Validate changelog tests.
-        */
-        stage('Changelog Test') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            expression { return params.check_changelogs_ci }
-          }
-          steps {
-            // In order to notify the GH check as we wish in case of check failures and change the stage as UNSTABLE.
-            catchError(buildResult: 'SUCCESS', message: 'Failed to check the changelogs', stageResult: 'UNSTABLE') {
-              withGithubNotify(context: 'Changelog Tests') {
-                deleteDir()
-                unstash 'source'
-                dir("${BASE_DIR}"){
-                  sh(label: 'Run check changelogs', script: './script/jenkins/check-changelogs.sh')
-                }
               }
             }
           }
