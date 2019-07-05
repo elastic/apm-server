@@ -113,7 +113,7 @@ staticcheck:
 	go get $(STATICCHECK_REPO)
 	staticcheck $(BEAT_PATH)/...
 
-check-full: check golint staticcheck
+check-full: test-deps check
 	@# Validate that all updates were committed
 	@$(MAKE) update
 	@$(MAKE) check
@@ -123,7 +123,7 @@ check-full: check golint staticcheck
 
 .PHONY: test-deps
 test-deps:
-	go get $(BENCHCMP_REPO) $(COBERTURA_REPO) $(JUNIT_REPORT_REPO)
+	go get $(BENCHCMP_REPO) $(COBERTURA_REPO) $(JUNIT_REPORT_REPO) $(MAGE_IMPORT_PATH)
 
 .PHONY: notice
 notice: python-env
