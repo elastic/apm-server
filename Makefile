@@ -162,3 +162,8 @@ register-pipelines: update ${BEAT_NAME}
 .PHONY: import-dashboards
 import-dashboards:
 	echo "APM loads dashboards via Kibana, not the APM Server"
+
+# Checks the changelogs for certains branches.
+.PHONY: check-changelogs
+check-changelogs:
+	@python script/check_changelogs.py

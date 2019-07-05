@@ -300,6 +300,33 @@ pipeline {
           }
         }
         /**
+          Validate changelog tests.
+        */
+        stage('Changelog Test') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+          }
+          when {
+            beforeAgent true
+            expression { return params.test_changelog }
+          }
+          steps {
+            withGithubNotify(context: 'Changelog Tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                catchError(buildResult: 'SUCCESS', message: 'Failed to check the changelogs', stageResult: 'UNSTABLE') {
+                  sh(label: 'Run check changelogs', script: './script/jenkins/check-changelogs.sh')
+                }
+              }
+            }
+          }
+        }
+        /**
         updates beats updates the framework part and go parts of beats.
         Then build and test.
         Finally archive the results.
