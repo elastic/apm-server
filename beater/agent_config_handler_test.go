@@ -98,7 +98,7 @@ var testcases = map[string]struct {
 		),
 		method:                 http.MethodGet,
 		queryParams:            map[string]string{"service.name": "opbeans-ruby"},
-		respStatus:             http.StatusInternalServerError,
+		respStatus:             http.StatusServiceUnavailable,
 		respCacheControlHeader: "max-age=300, must-revalidate",
 		respBody:               true,
 	},
@@ -132,7 +132,7 @@ func TestAgentConfigHandler(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			h := agentConfigHandler(tc.kbClient, &cfg, "")
+			h := agentConfigHandler(tc.kbClient, true, &cfg, "")
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
@@ -152,6 +152,17 @@ func TestAgentConfigHandler(t *testing.T) {
 	}
 }
 
+func TestAgentConfigDisabled(t *testing.T) {
+	cfg := agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
+	h := agentConfigHandler(nil, false, &cfg, "")
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/config", nil)
+	h.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+}
+
 func TestAgentConfigHandlerPostOk(t *testing.T) {
 
 	kb := tests.MockKibana(http.StatusOK, m{
@@ -164,7 +175,7 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 	})
 
 	var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(kb, &cfg, "")
+	h := agentConfigHandler(kb, true, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
