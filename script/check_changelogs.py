@@ -27,7 +27,7 @@ def main():
 
     parser = argparse.ArgumentParser(description=f"Check changelogs for the current released versions. {VERSIONS}")
     parser.add_argument('--fail-if-errors', dest='fail_if_errors', action='store_true', default=False,
-                        help='NEVER fail the check, regardless of result.')
+                        help='fail the check if there are check errors.')
 
     args = parser.parse_args()
 
