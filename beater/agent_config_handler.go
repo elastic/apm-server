@@ -27,14 +27,12 @@ import (
 	"github.com/elastic/beats/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/convert"
 )
 
 const (
-	headerIfNoneMatch  = "If-None-Match"
-	headerEtag         = "Etag"
-	headerCacheControl = "Cache-Control"
-	errMaxAgeDuration  = 5 * time.Minute
+	errMaxAgeDuration = 5 * time.Minute
 )
 
 func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConfig, secretToken string) http.Handler {
@@ -44,7 +42,7 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		send := wrap(w, r)
-		clientEtag := r.Header.Get(headerIfNoneMatch)
+		clientEtag := r.Header.Get(headers.IfNoneMatch)
 
 		query, requestErr := buildQuery(r)
 		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
@@ -71,19 +69,19 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 			state = http.StatusNotFound
 			headerCacheControlVal = errHeaderCacheControl
 		case clientEtag != "" && clientEtag == upstreamEtag:
-			w.Header().Set(headerEtag, clientEtag)
+			w.Header().Set(headers.Etag, clientEtag)
 			resp = nil
 			state = http.StatusNotModified
 			headerCacheControlVal = defaultHeaderCacheControl
 		case upstreamEtag != "":
-			w.Header().Set(headerEtag, upstreamEtag)
+			w.Header().Set(headers.Etag, upstreamEtag)
 			fallthrough
 		default:
 			resp = cfg
 			state = http.StatusOK
 			headerCacheControlVal = defaultHeaderCacheControl
 		}
-		w.Header().Set(headerCacheControl, headerCacheControlVal)
+		w.Header().Set(headers.CacheControl, headerCacheControlVal)
 		send(resp, state)
 		// logHandler logs the rest
 		if state >= http.StatusBadRequest {
