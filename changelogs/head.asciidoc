@@ -10,4 +10,4 @@
 [float]
 ==== Removed
 
-https://github.com/elastic/apm-server/compare/7.2\...master[View commits]
+https://github.com/elastic/apm-server/compare/7.3\...master[View commits]
