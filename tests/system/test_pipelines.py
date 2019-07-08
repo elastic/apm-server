@@ -68,6 +68,9 @@ class PipelineDefaultTest(ElasticTest):
         ]
         loaded_msg = "Pipeline successfully registered"
         self.wait_until(lambda: self.log_contains(loaded_msg))
+        # ingest some data to avoid timing errors with pipeline registration.
+        self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
+                                     self.intake_url, 'transaction', 3)
         for pipeline_id, pipeline_desc in pipelines:
             pipeline = self.es.ingest.get_pipeline(id=pipeline_id)
             assert pipeline[pipeline_id]['description'] == pipeline_desc
