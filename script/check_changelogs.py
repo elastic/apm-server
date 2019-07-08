@@ -39,7 +39,7 @@ def main():
         for v in VERSIONS:
             if parsed_version <= parse_version(v):
                 print("checking {} on {}".format(cl, v))
-                url = "https://raw.githubusercontent.com/elastic/apm-server/{}/{}".format(v, f.name)
+                url = "https://raw.githubusercontent.com/elastic/apm-server/{}/changelogs/{}".format(v, cl)
                 rsp = requests.get(url)
                 status = "success"
                 if rsp.status_code == 200:
