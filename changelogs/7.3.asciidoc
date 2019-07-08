@@ -1,0 +1,28 @@
+[[release-notes-7.3]]
+== APM Server version 7.3
+
+https://github.com/elastic/apm-server/compare/7.2\...7.3[View commits]
+
+* <<release-notes-7.3.0>>
+
+
+[[release-notes-7.3.0]]
+=== APM Server version 7.3.0
+
+https://github.com/elastic/apm-server/compare/v7.2.1\...v7.3.0[View commits]
+
+[float]
+==== Bug fixes
+- Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273].
+- Abort server startup on sourcemap configuration error {pull}2278[2278].
+- Process all user-agent information from headers {pull}2271[2271].
+
+[float]
+==== Added
+- Support adding transaction and span information to metrics  {pull}2265[2265],{pull}2287[2287].
+- Initial support for remote agent configuration, requires Kibana {pull}2289[2289],{pull}2301[2301]{pull}2386[2386].
+- Add basic caching to remote agent configuration {pull}2337[2337].
+- Enable APM pipeline by default {pull}2301[2301].
+- Add fields required by breakdown graphs APM pipeline by default {pull}2315[2315].
+- Require client auth when CA is configured and SSL enabled {pull}2340[2340].
+- Enable ILM by default when configured Elasticsearch >= 7.0 {pull}2356[2356].

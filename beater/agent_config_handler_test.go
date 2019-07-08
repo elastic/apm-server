@@ -28,6 +28,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/tests"
 )
@@ -52,7 +53,7 @@ var testcases = map[string]struct {
 			},
 		}),
 		method:                 http.MethodGet,
-		requestHeader:          map[string]string{headerIfNoneMatch: "1"},
+		requestHeader:          map[string]string{headers.IfNoneMatch: "1"},
 		queryParams:            map[string]string{"service.name": "opbeans-node"},
 		respStatus:             http.StatusNotModified,
 		respCacheControlHeader: "max-age=4, must-revalidate",
@@ -84,7 +85,7 @@ var testcases = map[string]struct {
 			},
 		}),
 		method:                 http.MethodGet,
-		requestHeader:          map[string]string{headerIfNoneMatch: "2"},
+		requestHeader:          map[string]string{headers.IfNoneMatch: "2"},
 		queryParams:            map[string]string{"service.name": "opbeans-java"},
 		respStatus:             http.StatusOK,
 		respEtagHeader:         "1",
@@ -141,8 +142,8 @@ func TestAgentConfigHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			assert.Equal(t, tc.respStatus, w.Code)
-			assert.Equal(t, tc.respCacheControlHeader, w.Header().Get(headerCacheControl))
-			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headerEtag))
+			assert.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
+			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
 			if tc.respBody {
 				assert.NotEmpty(t, w.Body)
 			} else {
