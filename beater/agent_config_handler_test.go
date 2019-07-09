@@ -53,11 +53,11 @@ var testcases = map[string]struct {
 			},
 		}),
 		method:                 http.MethodGet,
-		requestHeader:          map[string]string{headers.IfNoneMatch: "1"},
+		requestHeader:          map[string]string{headers.IfNoneMatch: `"` + "1" + `"`},
 		queryParams:            map[string]string{"service.name": "opbeans-node"},
 		respStatus:             http.StatusNotModified,
 		respCacheControlHeader: "max-age=4, must-revalidate",
-		respEtagHeader:         "1",
+		respEtagHeader:         "\"1\"",
 	},
 
 	"ModifiedWithoutEtag": {
@@ -88,7 +88,7 @@ var testcases = map[string]struct {
 		requestHeader:          map[string]string{headers.IfNoneMatch: "2"},
 		queryParams:            map[string]string{"service.name": "opbeans-java"},
 		respStatus:             http.StatusOK,
-		respEtagHeader:         "1",
+		respEtagHeader:         "\"1\"",
 		respCacheControlHeader: "max-age=4, must-revalidate",
 		respBody:               true,
 	},
