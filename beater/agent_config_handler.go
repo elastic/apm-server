@@ -46,6 +46,7 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 
 		query, requestErr := buildQuery(r)
 		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
+		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
 
 		var resp interface{}
 		var state int
@@ -68,13 +69,13 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 			resp = nil
 			state = http.StatusNotFound
 			headerCacheControlVal = errHeaderCacheControl
-		case clientEtag != "" && clientEtag == upstreamEtag:
-			w.Header().Set(headers.Etag, clientEtag)
+		case clientEtag != "" && clientEtag == etag:
+			w.Header().Set(headers.Etag, etag)
 			resp = nil
 			state = http.StatusNotModified
 			headerCacheControlVal = defaultHeaderCacheControl
 		case upstreamEtag != "":
-			w.Header().Set(headers.Etag, upstreamEtag)
+			w.Header().Set(headers.Etag, etag)
 			fallthrough
 		default:
 			resp = cfg
@@ -92,6 +93,10 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 	return logHandler(
 		killSwitchHandler(enabled,
 			authHandler(secretToken, handler)))
+}
+
+func etag(t string) string {
+	return fmt.Sprintf("\"%s\"", t)
 }
 
 // Returns (zero, error) if request body can't be unmarshalled or service.name is missing
