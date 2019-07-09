@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	endpoint = "/api/apm/settings/cm/search"
+	endpoint = "/api/apm/settings/agent-configuration/search"
 )
 
 // Fetcher holds static information and information shared between requests.
