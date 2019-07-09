@@ -157,16 +157,17 @@ class ElasticTest(ServerBaseTest):
          eg. on 503 response codes
         """
         start = datetime.now()
-        abort = False
-        while not abort:
+        result = False
+        while not result:
             try:
-                abort = cond()
+                result = cond()
             except:
-                abort = False
+                result = False
             if datetime.now() - start > timedelta(seconds=max_timeout):
                 raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
                                    "Waited {} seconds.".format(max_timeout))
             time.sleep(poll_interval)
+        return result
 
     def setUp(self):
         self.es = Elasticsearch([get_elasticsearch_url()])
