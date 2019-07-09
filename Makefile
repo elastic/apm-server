@@ -13,6 +13,7 @@ GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
 GOLINT_TARGETS?=$(shell go list ./... | grep -v /vendor/)
 GOLINT_UPSTREAM?=origin/master
 GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | $(REVIEWDOG) -f=golint -diff="git diff $(GOLINT_UPSTREAM)")
+GOVENDOR_REPO?=github.com/elastic/apm-server/vendor/github.com/kardianos/govendor
 JUNIT_REPORT_REPO?=github.com/elastic/apm-server/vendor/github.com/jstemmer/go-junit-report
 REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
 TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
@@ -32,7 +33,7 @@ STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 -include $(ES_BEATS)/libbeat/scripts/Makefile
 
 # updates beats updates the framework part and go parts of beats
-update-beats:
+update-beats: govendor
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
 	@govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION)
@@ -107,6 +108,10 @@ golint-install:
 
 golint: golint-install
 	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
+
+.PHONY: govendor
+govendor:
+	go get $(GOVENDOR_REPO)
 
 .PHONY: staticcheck
 staticcheck:
