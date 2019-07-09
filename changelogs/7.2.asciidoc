@@ -3,7 +3,17 @@
 
 https://github.com/elastic/apm-server/compare/7.1\...7.2[View commits]
 
+* <<release-notes-7.2.1>>
 * <<release-notes-7.2.0>>
+
+[[release-notes-7.2.1]]
+=== APM Server version 7.2.1
+
+https://github.com/elastic/apm-server/compare/v7.2.0\...v7.2.1[View commits]
+
+[float]
+==== Bug fixes
+- Set `apm-server.register.ingest.pipeline.overwrite` to true by default {pull}2273[2273].
 
 [[release-notes-7.2.0]]
 === APM Server version 7.2.0
@@ -20,4 +30,4 @@ https://github.com/elastic/apm-server/compare/v7.1.0\...v7.2.0[View commits]
 - Add ephemeral_id attribute in the metadata {pull}2179[2179].
 - Add ILM support for APM Server, using fixed policies {pull}2099[2099],{pull}2209[2209].
 - Add `setup --index-management` cmd, deprecate `setup --template` cmd {pull}2180[2180],{pull}2099[2099].
-- Support more SSL config options for agent/server communication {pull}2224[2224].
+- Support more SSL config options for agent/server communication {pull}2224[2224],{pull}2281[2281].
