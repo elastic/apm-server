@@ -34,13 +34,14 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/utility"
 )
 
-const (
-	supportedHeaders = "Content-Type, Content-Encoding, Accept"
-	supportedMethods = "POST, OPTIONS"
+var (
+	supportedHeaders = fmt.Sprintf("%s, %s, %s", headers.ContentType, headers.ContentEncoding, headers.Accept)
+	supportedMethods = fmt.Sprintf("%s, %s", http.MethodPost, http.MethodOptions)
 )
 
 type serverResponse struct {
@@ -165,7 +166,7 @@ func logHandler(h http.Handler) http.Handler {
 			"URL", r.URL,
 			"content_length", r.ContentLength,
 			"remote_address", utility.RemoteAddr(r),
-			"user-agent", r.Header.Get("User-Agent"))
+			"user-agent", r.Header.Get(headers.UserAgent))
 
 		defer func() {
 			if r := recover(); r != nil {
@@ -223,9 +224,9 @@ func isAuthorized(req *http.Request, secretToken string) bool {
 	if secretToken == "" {
 		return true
 	}
-	header := req.Header.Get("Authorization")
+	header := req.Header.Get(headers.Authorization)
 	parts := strings.Split(header, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
+	if len(parts) != 2 || parts[0] != headers.Bearer {
 		return false
 	}
 	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(secretToken)) == 1
@@ -245,33 +246,33 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// origin header is always set by the browser
-		origin := r.Header.Get("Origin")
+		origin := r.Header.Get(headers.Origin)
 		validOrigin := isAllowed(origin)
 
-		if r.Method == "OPTIONS" {
+		if r.Method == http.MethodOptions {
 
 			// setting the ACAO header is the way to tell the browser to go ahead with the request
 			if validOrigin {
 				// do not set the configured origin(s), echo the received origin instead
-				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set(headers.AccessControlAllowOrigin, origin)
 			}
 
 			// tell browsers to cache response requestHeaders for up to 1 hour (browsers might ignore this)
-			w.Header().Set("Access-Control-Max-Age", "3600")
+			w.Header().Set(headers.AccessControlMaxAge, "3600")
 			// origin must be part of the cache key so that we can handle multiple allowed origins
-			w.Header().Set("Vary", "Origin")
+			w.Header().Set(headers.Vary, "Origin")
 
 			// required if Access-Control-Request-Method and Access-Control-Request-Headers are in the requestHeaders
-			w.Header().Set("Access-Control-Allow-Methods", supportedMethods)
-			w.Header().Set("Access-Control-Allow-Headers", supportedHeaders)
+			w.Header().Set(headers.AccessControlAllowMethods, supportedMethods)
+			w.Header().Set(headers.AccessControlAllowHeaders, supportedHeaders)
 
-			w.Header().Set("Content-Length", "0")
+			w.Header().Set(headers.ContentLength, "0")
 
 			sendStatus(w, r, okResponse)
 
 		} else if validOrigin {
 			// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
-			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set(headers.AccessControlAllowOrigin, origin)
 			h.ServeHTTP(w, r)
 
 		} else {
@@ -312,12 +313,13 @@ func requestLogger(r *http.Request) *logp.Logger {
 }
 
 func acceptsJSON(r *http.Request) bool {
-	h := r.Header.Get("Accept")
+	h := r.Header.Get(headers.Accept)
 	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
 }
 
 func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) int {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(headers.ContentType, "application/json")
+	w.Header().Set(headers.XContentTypeOptions, "nosniff")
 	w.WriteHeader(statusCode)
 	buf, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
@@ -331,7 +333,8 @@ func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) int {
 }
 
 func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) int {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
+	w.Header().Set(headers.XContentTypeOptions, "nosniff")
 	w.WriteHeader(statusCode)
 
 	b, err := json.Marshal(body)
