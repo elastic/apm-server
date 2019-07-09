@@ -281,11 +281,9 @@ pipeline {
             withGithubNotify(context: 'Benchmarking') {
               deleteDir()
               unstash 'source'
-              golang(){
-                dir("${BASE_DIR}"){
-                  sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
-                  sendBenchmarks(file: 'bench.out', index: "benchmark-server")
-                }
+              dir("${BASE_DIR}"){
+                sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
               }
             }
           }
