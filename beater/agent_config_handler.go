@@ -95,10 +95,6 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 			authHandler(secretToken, handler)))
 }
 
-func etag(t string) string {
-	return fmt.Sprintf("\"%s\"", t)
-}
-
 // Returns (zero, error) if request body can't be unmarshalled or service.name is missing
 // Returns (zero, zero) if request method is not GET or POST
 func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
