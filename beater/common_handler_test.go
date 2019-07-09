@@ -34,13 +34,16 @@ func TestIncCounter(t *testing.T) {
 	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
 
-	for i := 1; i <= 5; i++ {
-		for _, res := range []serverResponse{acceptedResponse, okResponse, forbiddenResponse(errors.New("")), unauthorizedResponse,
-			requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse,
-			cannotValidateResponse(errors.New("")), cannotDecodeResponse(errors.New("")),
-			fullQueueResponse(errors.New("")), serverShuttingDownResponse(errors.New(""))} {
+	responseCounter.Set(0)
+	responseErrors.Set(0)
+	for _, res := range []serverResponse{acceptedResponse, okResponse, forbiddenResponse(errors.New("")), unauthorizedResponse,
+		requestTooLargeResponse, rateLimitedResponse, methodNotAllowedResponse,
+		cannotValidateResponse(errors.New("")), cannotDecodeResponse(errors.New("")),
+		fullQueueResponse(errors.New("")), serverShuttingDownResponse(errors.New(""))} {
+		res.counter.Set(0)
+		for i := 1; i <= 5; i++ {
 			sendStatus(w, req, res)
-			assert.Equal(t, int64(i), res.counter.Get())
+			assert.Equal(t, int64(i), res.counter.Get(), string(res.code))
 		}
 	}
 	assert.Equal(t, int64(55), responseCounter.Get())

@@ -26,6 +26,7 @@ import (
 
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
@@ -95,7 +96,7 @@ func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter,
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
-		w.Header().Add("Connection", "Close")
+		w.Header().Add(headers.Connection, "Close")
 		send(w, r, sr, statusCode)
 	}
 }
@@ -107,7 +108,7 @@ func send(w http.ResponseWriter, r *http.Request, body interface{}, statusCode i
 	} else {
 		n = sendPlain(w, body, statusCode)
 	}
-	w.Header().Set("Content-Length", strconv.Itoa(n))
+	w.Header().Set(headers.ContentLength, strconv.Itoa(n))
 }
 
 func (v *intakeHandler) sendError(logger *logp.Logger, w http.ResponseWriter, r *http.Request, err *stream.Error) {
@@ -117,17 +118,17 @@ func (v *intakeHandler) sendError(logger *logp.Logger, w http.ResponseWriter, r 
 }
 
 func (v *intakeHandler) validateRequest(r *http.Request) *stream.Error {
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		return &stream.Error{
 			Type:    stream.MethodForbiddenErrType,
 			Message: "only POST requests are supported",
 		}
 	}
 
-	if !strings.Contains(r.Header.Get("Content-Type"), "application/x-ndjson") {
+	if !strings.Contains(r.Header.Get(headers.ContentType), "application/x-ndjson") {
 		return &stream.Error{
 			Type:    stream.InvalidInputErrType,
-			Message: fmt.Sprintf("invalid content type: '%s'", r.Header.Get("Content-Type")),
+			Message: fmt.Sprintf("invalid content type: '%s'", r.Header.Get(headers.ContentType)),
 		}
 	}
 	return nil

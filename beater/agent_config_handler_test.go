@@ -28,6 +28,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/tests"
 )
@@ -52,7 +53,7 @@ var testcases = map[string]struct {
 			},
 		}),
 		method:                 http.MethodGet,
-		requestHeader:          map[string]string{headerIfNoneMatch: "1"},
+		requestHeader:          map[string]string{headers.IfNoneMatch: "1"},
 		queryParams:            map[string]string{"service.name": "opbeans-node"},
 		respStatus:             http.StatusNotModified,
 		respCacheControlHeader: "max-age=4, must-revalidate",
@@ -84,7 +85,7 @@ var testcases = map[string]struct {
 			},
 		}),
 		method:                 http.MethodGet,
-		requestHeader:          map[string]string{headerIfNoneMatch: "2"},
+		requestHeader:          map[string]string{headers.IfNoneMatch: "2"},
 		queryParams:            map[string]string{"service.name": "opbeans-java"},
 		respStatus:             http.StatusOK,
 		respEtagHeader:         "1",
@@ -98,7 +99,7 @@ var testcases = map[string]struct {
 		),
 		method:                 http.MethodGet,
 		queryParams:            map[string]string{"service.name": "opbeans-ruby"},
-		respStatus:             http.StatusInternalServerError,
+		respStatus:             http.StatusServiceUnavailable,
 		respCacheControlHeader: "max-age=300, must-revalidate",
 		respBody:               true,
 	},
@@ -132,7 +133,7 @@ func TestAgentConfigHandler(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			h := agentConfigHandler(tc.kbClient, &cfg, "")
+			h := agentConfigHandler(tc.kbClient, true, &cfg, "")
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
@@ -141,8 +142,8 @@ func TestAgentConfigHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			assert.Equal(t, tc.respStatus, w.Code)
-			assert.Equal(t, tc.respCacheControlHeader, w.Header().Get(headerCacheControl))
-			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headerEtag))
+			assert.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
+			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
 			if tc.respBody {
 				assert.NotEmpty(t, w.Body)
 			} else {
@@ -150,6 +151,17 @@ func TestAgentConfigHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAgentConfigDisabled(t *testing.T) {
+	cfg := agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
+	h := agentConfigHandler(nil, false, &cfg, "")
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/config", nil)
+	h.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 }
 
 func TestAgentConfigHandlerPostOk(t *testing.T) {
@@ -164,7 +176,7 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 	})
 
 	var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(kb, &cfg, "")
+	h := agentConfigHandler(kb, true, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{

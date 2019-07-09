@@ -27,24 +27,22 @@ import (
 	"github.com/elastic/beats/libbeat/kibana"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/convert"
 )
 
 const (
-	headerIfNoneMatch  = "If-None-Match"
-	headerEtag         = "Etag"
-	headerCacheControl = "Cache-Control"
-	errMaxAgeDuration  = 5 * time.Minute
+	errMaxAgeDuration = 5 * time.Minute
 )
 
-func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToken string) http.Handler {
+func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConfig, secretToken string) http.Handler {
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 	defaultHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	errHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		send := wrap(w, r)
-		clientEtag := r.Header.Get(headerIfNoneMatch)
+		clientEtag := r.Header.Get(headers.IfNoneMatch)
 
 		query, requestErr := buildQuery(r)
 		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
@@ -64,26 +62,26 @@ func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToke
 			headerCacheControlVal = errHeaderCacheControl
 		case internalErr != nil:
 			resp = internalErr.Error()
-			state = http.StatusInternalServerError
+			state = http.StatusServiceUnavailable
 			headerCacheControlVal = errHeaderCacheControl
 		case len(cfg) == 0:
 			resp = nil
 			state = http.StatusNotFound
 			headerCacheControlVal = errHeaderCacheControl
 		case clientEtag != "" && clientEtag == upstreamEtag:
-			w.Header().Set(headerEtag, clientEtag)
+			w.Header().Set(headers.Etag, clientEtag)
 			resp = nil
 			state = http.StatusNotModified
 			headerCacheControlVal = defaultHeaderCacheControl
 		case upstreamEtag != "":
-			w.Header().Set(headerEtag, upstreamEtag)
+			w.Header().Set(headers.Etag, upstreamEtag)
 			fallthrough
 		default:
 			resp = cfg
 			state = http.StatusOK
 			headerCacheControlVal = defaultHeaderCacheControl
 		}
-		w.Header().Set(headerCacheControl, headerCacheControlVal)
+		w.Header().Set(headers.CacheControl, headerCacheControlVal)
 		send(resp, state)
 		// logHandler logs the rest
 		if state >= http.StatusBadRequest {
@@ -91,7 +89,9 @@ func agentConfigHandler(kbClient *kibana.Client, config *agentConfig, secretToke
 				"error", resp)
 		}
 	})
-	return logHandler(authHandler(secretToken, handler))
+	return logHandler(
+		killSwitchHandler(enabled,
+			authHandler(secretToken, handler)))
 }
 
 // Returns (zero, error) if request body can't be unmarshalled or service.name is missing
