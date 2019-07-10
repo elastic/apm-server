@@ -17,8 +17,14 @@ services:
     image: busybox
     depends_on:
       elasticsearch: { condition: service_healthy }
+      kibana: { condition: service_healthy }
 
   elasticsearch:
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: elasticsearch
+
+  kibana:
+    extends:
+      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
+      service: kibana
