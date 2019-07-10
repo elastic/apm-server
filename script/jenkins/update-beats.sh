@@ -11,7 +11,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-go get -u github.com/kardianos/govendor
+go get github.com/elastic/apm-server/vendor/github.com/kardianos/govendor
 RACE_DETECTOR=1 make update-beats
 
 eval "$(gvm $(cat ./_beats/.go-version))"

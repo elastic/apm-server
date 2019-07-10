@@ -11,9 +11,7 @@ jenkins_setup
 #}
 #trap cleanup EXIT
 
-make testsuite
-
-go get -v -u github.com/t-yuki/gocover-cobertura
+make test-deps testsuite
 
 export COV_DIR="build/coverage"
 
