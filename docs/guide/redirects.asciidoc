@@ -1,0 +1,39 @@
+["appendix",role="exclude",id="redirects"]
+= Deleted pages
+
+The following pages do not exist. They may have moved, been deleted, or have not been created yet.
+
+[role="exclude",id="go-compatibility"]
+=== Go Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="java-compatibility"]
+=== Java Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="dotnet-compatibility"]
+=== .NET Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="nodejs-compatibility"]
+=== Node.js Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="python-compatibility"]
+=== Python Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="ruby-compatibility"]
+=== Ruby Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="rum-compatibility"]
+=== RUM Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.

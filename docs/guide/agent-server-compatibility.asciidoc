@@ -1,73 +1,37 @@
 [[agent-server-compatibility]]
-== Agent/Server compatibility
+== Agent and Server compatibility
 
-Below is a chart that outlines the compatibility between different versions of the APM agents and the APM Server.
-
-NOTE: APM Server version 6.5 introduced a new way for APM agents to communicate with the APM Server.
-To take advantage of new features,
-it is recommended that you update to the newest version of the applicable agent.
-
-[float]
-[[go-compatibility]]
-==== Go Agent Compatibility
+The chart below outlines the compatibility between different versions of the APM agents and the APM Server.
 
 [options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|1.x |>= 6.5
-|=======================================================================
+|====
+|Agent |Agent Version |APM Server Version
+// Go
+.1+|**Go Agent**
+|`1.x` |>= `6.5`
 
-[float]
-[[java-compatibility]]
-==== Java Agent Compatibility
+// Java
+.1+|**Java Agent**
+|`1.x`|>= `6.5`
 
-[options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|1.x |>= 6.5
-|=======================================================================
+// Node
+.2+|**Node.js Agent**
+|`1.x` |`6.2`-`6.x`
+|`2.x` |>= `6.5`
 
-[float]
-[[nodejs-compatibility]]
-==== Node.js Agent Compatibility
+// Python
+.2+|**Python Agent**
+|`2.x`, `3.x` |`6.2`-`6.x`
+|`4.x` |>= `6.5`
 
-[options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|1.x |6.2-6.x
-|2.x |>= 6.5
-|=======================================================================
+// Ruby
+.2+|**Ruby Agent**
+|`1.x` |`6.4`-`6.x`
+|`2.x` |>= `6.5`
 
-[float]
-[[python-compatibility]]
-==== Python Agent Compatibility
-
-[options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|2.x, 3.x |6.2-6.x
-|4.x |>= 6.5
-|=======================================================================
-
-[float]
-[[ruby-compatibility]]
-==== Ruby Agent Compatibility
-
-[options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|1.x |6.4-6.x
-|2.x |>= 6.5
-|=======================================================================
-
-[float]
-[[rum-compatibility]]
-==== RUM Agent Compatibility
-
-[options="header"]
-|=======================================================================
-|Agent Version |APM Server Version
-|0.x |6.3-6.4
-|1.x |6.4
-|2.x, 3.x, 4.x |>= 6.5
-|=======================================================================
+// RUM
+.3+|**JavaScript RUM Agent**
+|`0.x` |`6.3`-`6.4`
+|`1.x` |`6.4`
+|`2.x`, `3.x`, `4.x` |>= `6.5`
+|====
