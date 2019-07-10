@@ -48,6 +48,7 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 
 		query, requestErr := buildQuery(r)
 		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
+		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
 
 		var resp interface{}
 		var state int
@@ -70,13 +71,13 @@ func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConf
 			resp = nil
 			state = http.StatusNotFound
 			headerCacheControlVal = errHeaderCacheControl
-		case clientEtag != "" && clientEtag == upstreamEtag:
-			w.Header().Set(headerEtag, clientEtag)
+		case clientEtag != "" && clientEtag == etag:
+			w.Header().Set(headerEtag, etag)
 			resp = nil
 			state = http.StatusNotModified
 			headerCacheControlVal = defaultHeaderCacheControl
 		case upstreamEtag != "":
-			w.Header().Set(headerEtag, upstreamEtag)
+			w.Header().Set(headerEtag, etag)
 			fallthrough
 		default:
 			resp = cfg
