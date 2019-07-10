@@ -238,21 +238,6 @@ Loading dashboards from APM Server is no longer supported. Please see the {kiban
 
 Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
 
-[role="exclude",id="setup-kibana-endpoint"]
-=== Set up the Kibana endpoint
-
-Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
-
-[role="exclude",id="kibana-protocol-option"]
-=== setup.kibana.protocol
-
-Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
-
-[role="exclude",id="kibana-path-option"]
-=== setup.kibana.path
-
-Loading dashboards from APM Server is no longer supported. Please see the {kibana-ref}/xpack-apm.html[Kibana APM UI] documentation.
-
 [role="exclude",id="load-kibana-dashboards"]
 === Dashboards
 
