@@ -3,24 +3,27 @@
 
 Starting with {beatname_uc} 7.3.0, we've introduced a new Kibana API for APM Server.
 Configuring this endpoint is required for 
-{kib-ref}/agent-configuration.html[APM Agent configuration in Kibana].
+{kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
 Once the endpoint is configured,
 you'll be able to fine-tune certain agent configurations directly in Kibana without having to redeploy your agents.
-If your setup uses a <<config-secret-token>> for Agent/Server communication,
-the same token is used to secure this endpoint.
-
-IMPORTANT: Kibana must be running and healthy before starting APM Server.
-If APM Server fails to establish a connection with Kibana on the first try it will not try again.
-
 You configure the endpoint in the `apm-server.kibana` section of the
 +{beatname_lc}.yml+ config file.
 
-Here is an example configuration:
+Here's a sample configuration:
 
 [source,yaml]
 ----
 apm-server.kibana.host: "http://localhost:5601"
 ----
+
+[float]
+=== Considerations
+
+* If your setup uses a <<config-secret-token>> for Agent/Server communication,
+the same token is used to secure this endpoint.
+* It's important to still set relevant defaults locally in each Agent's configuration.
+If APM Server is unreachable, slow to respond, returns an error, etc.,
+defaults set in the agent will apply according to their precedence. 
 
 [float]
 === Kibana endpoint configuration options
