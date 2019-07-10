@@ -1,6 +1,9 @@
 [[distributed-tracing]]
 == Distributed tracing
 
+Together, <<transactions,`Transactions`>> and <<transaction-spans,`Spans`>> form a `Trace`.
+Traces are not events, but group together events that have a common root.
+
 Elastic APM supports distributed tracing.
 Distributed tracing enables you to analyze performance throughout your microservices architecture all in one view.
 This is accomplished by tracing all of the requests - from the initial web request to your front-end service - to queries made to your back-end services.
@@ -11,4 +14,4 @@ The APM UI in Kibana also supports distributed tracing.
 The Timeline visualization has been redesigned to show all of the transactions from individual services that are connected in a trace:
 
 [role="screenshot"]
-image::distributed-tracing.jpg[distribute tracing in the UI]
+image::images/apm-distributed-tracing.png[Distributed tracing in the APM UI]
