@@ -32,4 +32,5 @@ const (
 	Stacktrace      = "stacktrace"
 	Tracing         = "tracing"
 	Transform       = "transform"
+	Kibana          = "kibana"
 )

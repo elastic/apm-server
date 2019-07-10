@@ -22,9 +22,10 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/beats/libbeat/kibana"
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/kibana"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/asset"
@@ -32,7 +33,6 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 const (
@@ -92,7 +92,7 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Reporter) (*http.ServeMux, error) {
+func newMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, error) {
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
@@ -114,7 +114,11 @@ func newMuxer(beaterConfig *Config, kbClient *kibana.Client, report publish.Repo
 		mux.Handle(path, handler)
 	}
 
-	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.Kibana.Enabled(), beaterConfig.AgentConfig, beaterConfig.SecretToken))
+	mux.Handle(agentConfigURL, agentConfigHandler(
+		kibana.NewConnectingClient(beaterConfig.Kibana),
+		beaterConfig.Kibana.Enabled(),
+		beaterConfig.AgentConfig,
+		beaterConfig.SecretToken))
 	logger.Infof("Path %s added to request handler", agentConfigURL)
 
 	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))

@@ -22,25 +22,30 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/libbeat/kibana"
+	"github.com/elastic/beats/libbeat/common"
 
+	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/tests"
 )
 
 type m map[string]interface{}
 
-var testExp = time.Nanosecond
+var (
+	testExp     = time.Nanosecond
+	mockVersion = *common.MustNewVersion("7.3.0")
+)
 
 func query(name string) Query {
 	return Query{Service: Service{Name: name}}
 }
 
-func TestFetchNoClient(t *testing.T) {
-	kb, kerr := kibana.NewKibanaClient(nil)
-	_, _, ferr := NewFetcher(kb, testExp).Fetch(query(t.Name()), kerr)
+func TestFetchWithError(t *testing.T) {
+	kerr := errors.New("test error")
+	_, _, ferr := NewFetcher(&kibana.ConnectingClient{}, testExp).Fetch(query(t.Name()), kerr)
 	require.Error(t, ferr)
 	assert.Equal(t, kerr, ferr)
 }
@@ -54,23 +59,23 @@ func TestFetchStringConversion(t *testing.T) {
 					"sampling_rate": 0.5,
 				},
 			},
-		})
+		},
+		mockVersion, true)
 	result, etag, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
 	require.NoError(t, err)
 	assert.Equal(t, "1", etag, etag)
 	assert.Equal(t, map[string]string{"sampling_rate": "0.5"}, result)
 }
 
-func TestFetchVersionCheck(t *testing.T) {
-	kb := tests.MockKibana(http.StatusOK, m{})
-	kb.Connection.Version.Major = 6
+func TestFetchError(t *testing.T) {
+	kb := tests.MockKibana(http.StatusMultipleChoices, m{"error": "an error"}, mockVersion, true)
 	_, _, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "version")
+	assert.Equal(t, "multiple configurations found: {\"error\":\"an error\"}", err.Error())
 }
 
-func TestFetchError(t *testing.T) {
-	kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"})
+func TestExpectationFailed(t *testing.T) {
+	kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
 	_, _, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
 	require.Error(t, err)
 	assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
@@ -79,7 +84,7 @@ func TestFetchError(t *testing.T) {
 func TestFetchWithCaching(t *testing.T) {
 	fetch := func(f *Fetcher, samplingRate float64) map[string]string {
 
-		client := func(samplingRate float64) *kibana.Client {
+		client := func(samplingRate float64) kibana.Client {
 			return tests.MockKibana(http.StatusOK,
 				m{
 					"_id": "1",
@@ -88,7 +93,8 @@ func TestFetchWithCaching(t *testing.T) {
 							"sampling_rate": samplingRate,
 						},
 					},
-				})
+				},
+				mockVersion, true)
 		}
 		f.kbClient = client(samplingRate)
 
@@ -109,7 +115,7 @@ func TestFetchWithCaching(t *testing.T) {
 	assert.Equal(t, map[string]string{"sampling_rate": "0.5"}, result)
 
 	// after key is expired, fetch from Kibana again
-	fetcher.docCache.gocache.Delete(query(t.Name()).id())
+	fetcher.docCache.gocache.Delete(query(t.Name()).ID())
 	result = fetch(fetcher, 0.7)
 	assert.Equal(t, map[string]string{"sampling_rate": "0.7"}, result)
 

@@ -20,76 +20,93 @@ package beater
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/elastic/beats/libbeat/common"
 
-	"github.com/elastic/beats/libbeat/kibana"
+	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/convert"
+	"github.com/elastic/apm-server/kibana"
 )
 
 const (
-	errMaxAgeDuration = 5 * time.Minute
+	errMsgMethodUnsupported          = "method not supported"
+	errMaxAgeDuration                = 5 * time.Minute
+	errMsgConfigNotFound             = "no config found for"
+	errMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
+	errMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
+	errMsgInvalidQuery               = "invalid query"
 )
 
-func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConfig, secretToken string) http.Handler {
+var (
+	minKibanaVersion = common.MustNewVersion("7.3.0")
+)
+
+func agentConfigHandler(kbClient kibana.Client, enabled bool, config *agentConfig, secretToken string) http.Handler {
+
+	authErrMsg := func(errMsg, logMsg string) string {
+		if secretToken == "" {
+			return errMsg
+		}
+		return logMsg
+	}
+
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 	defaultHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	errHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		send := wrap(w, r)
-		clientEtag := r.Header.Get(headers.IfNoneMatch)
+		sendResp := wrap(w, r)
+
+		if !kbClient.Connected() {
+			sendResp(errMsgNoKibanaConnection, http.StatusServiceUnavailable, errHeaderCacheControl, errMsgNoKibanaConnection)
+			return
+		}
+		if supported, _ := kbClient.SupportsVersion(minKibanaVersion); !supported {
+			version, _ := kbClient.GetVersion()
+			logMsg := fmt.Sprintf("min required Kibana version %+v, configured Kibana version %+v",
+				minKibanaVersion, version)
+			sendResp(authErrMsg(errMsgKibanaVersionNotCompatible, logMsg), http.StatusServiceUnavailable,
+				errHeaderCacheControl, logMsg)
+			return
+		}
 
 		query, requestErr := buildQuery(r)
-		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
+		if requestErr != nil {
+			if strings.Contains(requestErr.Error(), errMsgMethodUnsupported) {
+				sendResp(authErrMsg(errMsgMethodUnsupported, requestErr.Error()), http.StatusMethodNotAllowed, errHeaderCacheControl, requestErr.Error())
+				return
+			}
+			sendResp(authErrMsg(errMsgInvalidQuery, requestErr.Error()), http.StatusBadRequest, errHeaderCacheControl, requestErr.Error())
+			return
+		}
+
+		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, nil)
 		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
 
-		var resp interface{}
-		var state int
-		var headerCacheControlVal string
-
 		switch {
-		case requestErr != nil:
-			resp = requestErr.Error()
-			state = http.StatusBadRequest
-			headerCacheControlVal = errHeaderCacheControl
-		case query == agentcfg.Query{}:
-			resp = nil
-			state = http.StatusMethodNotAllowed
-			headerCacheControlVal = errHeaderCacheControl
 		case internalErr != nil:
-			resp = internalErr.Error()
-			state = http.StatusServiceUnavailable
-			headerCacheControlVal = errHeaderCacheControl
+			logMsg := internalErr.Error()
+			sendResp(authErrMsg(internalErrMsg(logMsg), logMsg), http.StatusServiceUnavailable,
+				errHeaderCacheControl, logMsg)
 		case len(cfg) == 0:
-			resp = nil
-			state = http.StatusNotFound
-			headerCacheControlVal = errHeaderCacheControl
-		case clientEtag != "" && clientEtag == etag:
+			logMsg := fmt.Sprintf("%s %s", errMsgConfigNotFound, query.ID())
+			sendResp(authErrMsg(errMsgConfigNotFound, logMsg), http.StatusNotFound, errHeaderCacheControl, logMsg)
+		case upstreamEtag == "":
+			sendResp(cfg, http.StatusOK, defaultHeaderCacheControl, "")
+		case etag == r.Header.Get(headers.IfNoneMatch):
 			w.Header().Set(headers.Etag, etag)
-			resp = nil
-			state = http.StatusNotModified
-			headerCacheControlVal = defaultHeaderCacheControl
-		case upstreamEtag != "":
-			w.Header().Set(headers.Etag, etag)
-			fallthrough
+			sendResp(nil, http.StatusNotModified, defaultHeaderCacheControl, "")
 		default:
-			resp = cfg
-			state = http.StatusOK
-			headerCacheControlVal = defaultHeaderCacheControl
-		}
-		w.Header().Set(headers.CacheControl, headerCacheControlVal)
-		send(resp, state)
-		// logHandler logs the rest
-		if state >= http.StatusBadRequest {
-			requestLogger(r).Errorw("error handling request", "response_code", state,
-				"error", resp)
+			w.Header().Set(headers.Etag, etag)
+			sendResp(cfg, http.StatusOK, defaultHeaderCacheControl, "")
 		}
 	})
+
 	return logHandler(
 		killSwitchHandler(enabled,
 			authHandler(secretToken, handler)))
@@ -108,7 +125,7 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 			params.Get(agentcfg.ServiceEnv),
 		)
 	default:
-		return
+		err = errors.Errorf("%s: %s", errMsgMethodUnsupported, r.Method)
 	}
 
 	if err == nil && query.Service.Name == "" {
@@ -117,12 +134,31 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	return
 }
 
-func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int) {
-	return func(body interface{}, code int) {
+func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int, string, string) {
+	return func(body interface{}, code int, cacheControl string, errMsg string) {
+		w.Header().Set(headers.CacheControl, cacheControl)
+
+		if code >= http.StatusBadRequest {
+			requestLogger(r).Errorw("error handling request", "response_code", code,
+				"body", body, "error", errMsg)
+		}
+
 		if body == nil {
 			w.WriteHeader(code)
-		} else {
-			send(w, r, body, code)
+			return
 		}
+		send(w, r, body, code)
 	}
+}
+
+func internalErrMsg(msg string) string {
+	switch {
+	case strings.Contains(msg, agentcfg.ErrMsgSendToKibanaFailed):
+		return agentcfg.ErrMsgSendToKibanaFailed
+	case strings.Contains(msg, agentcfg.ErrMsgMultipleChoices):
+		return agentcfg.ErrMsgMultipleChoices
+	case strings.Contains(msg, agentcfg.ErrMsgReadKibanaResponse):
+		return agentcfg.ErrMsgReadKibanaResponse
+	}
+	return ""
 }
