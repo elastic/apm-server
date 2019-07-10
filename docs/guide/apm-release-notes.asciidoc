@@ -30,7 +30,7 @@ No significant changes.
 [float]
 ==== New features
 
-* Elastic APM agents now automatically record certain <<metrics,infrastructure and application metrics>>.
+* Elastic APM agents now automatically record certain infrastructure and application metrics.
 * Elastic APM agents support the W3C Trace Context.
 All agents now have <<opentracing,OpenTracing compatible bridges>>.
 * <<distributed-tracing,Distributed tracing>> is generally available.
