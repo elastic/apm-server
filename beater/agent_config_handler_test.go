@@ -178,7 +178,7 @@ func TestAgentConfigHandler(t *testing.T) {
 	for name, tc := range testcases {
 
 		runTest := func(t *testing.T, body, token string) {
-			h := agentConfigHandler(tc.kbClient, true, &cfg, token)
+			h := agentConfigHandler(tc.kbClient, &cfg, token)
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
@@ -211,7 +211,7 @@ func TestAgentConfigHandler(t *testing.T) {
 
 func TestAgentConfigDisabled(t *testing.T) {
 	cfg := agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(nil, false, &cfg, "")
+	h := agentConfigHandler(nil, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/config", nil)
@@ -232,7 +232,7 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 	}, mockVersion, true)
 
 	var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(kb, true, &cfg, "")
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{

@@ -40,13 +40,14 @@ const (
 	errMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
 	errMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
 	errMsgInvalidQuery               = "invalid query"
+	errMsgKibanaDisabled             = "kibana config disabled"
 )
 
 var (
 	minKibanaVersion = common.MustNewVersion("7.3.0")
 )
 
-func agentConfigHandler(kbClient kibana.Client, enabled bool, config *agentConfig, secretToken string) http.Handler {
+func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) http.Handler {
 
 	authErrMsg := func(errMsg, logMsg string) string {
 		if secretToken == "" {
@@ -62,6 +63,10 @@ func agentConfigHandler(kbClient kibana.Client, enabled bool, config *agentConfi
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sendResp := wrap(w, r)
 
+		if kbClient == nil {
+			sendResp(errMsgKibanaDisabled, http.StatusServiceUnavailable, errHeaderCacheControl, errMsgKibanaDisabled)
+			return
+		}
 		if !kbClient.Connected() {
 			sendResp(errMsgNoKibanaConnection, http.StatusServiceUnavailable, errHeaderCacheControl, errMsgNoKibanaConnection)
 			return
@@ -108,7 +113,7 @@ func agentConfigHandler(kbClient kibana.Client, enabled bool, config *agentConfi
 	})
 
 	return logHandler(
-		killSwitchHandler(enabled,
+		killSwitchHandler(kbClient != nil,
 			authHandler(secretToken, handler)))
 }
 

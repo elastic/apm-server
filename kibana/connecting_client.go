@@ -64,21 +64,23 @@ type ConnectingClient struct {
 // to configured Kibana instance, using JitterBackoff for establishing connection.
 func NewConnectingClient(cfg *common.Config) Client {
 	c := &ConnectingClient{cfg: cfg}
-
-	go func() {
-		log := logp.NewLogger(logs.Kibana)
-		done := make(chan struct{})
-		jitterBackoff := backoff.NewEqualJitterBackoff(done, initBackoff, maxBackoff)
-		for c.client == nil {
-			log.Info("Trying to obtain connection to Kibana.")
-			err := c.connect()
-			if err != nil {
-				log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
+	if cfg.Enabled() {
+		go func() {
+			log := logp.NewLogger(logs.Kibana)
+			done := make(chan struct{})
+			jitterBackoff := backoff.NewEqualJitterBackoff(done, initBackoff, maxBackoff)
+			for c.client == nil {
+				log.Info("Trying to obtain connection to Kibana.")
+				err := c.connect()
+				if err != nil {
+					log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
+				}
+				backoff.WaitOnError(jitterBackoff, err)
 			}
-			backoff.WaitOnError(jitterBackoff, err)
-		}
-		log.Info("Successfully obtained connection to Kibana.")
-	}()
+			log.Info("Successfully obtained connection to Kibana.")
+		}()
+	}
+
 	return c
 }
 
