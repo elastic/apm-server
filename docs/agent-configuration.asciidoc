@@ -1,0 +1,54 @@
+[[agent-configuration-api]]
+== Agent configuration API
+
+APM Server exposes an API endpoint that allows agents to query the server for configuration changes.
+More information on this feature is available in {kibana-ref}/agent-configuration.html[APM Agent configuration in Kibana].
+
+[[agent-config-endpoint]]
+[float]
+=== Agent configuration endpoint
+
+Send an `HTTP GET` request to the agent configuration endpoint.
+`service.name` is a required query string parameter.
+
+[source,bash]
+------------------------------------------------------------
+http(s)://{hostname}:{port}/config/v1/agents?service.name=SERVICE_NAME
+------------------------------------------------------------
+
+If a <<secret-token,`secret_token`>> has been configured, it should also apply to this endpoint.
+
+[[agent-config-api-response]]
+[float]
+==== Responses
+
+* Successful - `200`
+* Kibana endpoint is disabled - `403`
+* Kibana is unreachable - `503`
+
+[[agent-config-api-example]]
+[float]
+==== Example
+
+Example Agent configuration request including the service name "test-service":
+
+["source","sh",subs="attributes"]
+---------------------------------------------------------------------------
+curl -i http://127.0.0.1:8200/config/v1/agents?service.name=test-service
+---------------------------------------------------------------------------
+
+A sample response to the above curl request:
+
+["source","sh",subs="attributes"]
+---------------------------------------------------------------------------
+HTTP/1.1 200 OK
+Cache-Control: max-age=30, must-revalidate
+Content-Type: application/json
+Etag: "5"
+Date: Fri, 05 Jul 2019 21:47:35 GMT
+Content-Length: 30
+
+{
+  "sampling_rate": "0.12"
+}
+---------------------------------------------------------------------------
