@@ -1,68 +1,70 @@
 [[install-and-run]]
 == Install and run
 
-This page is designed to make it easy to install and run the components of Elastic APM.
-Simply follow the step-by-step links below, and you'll be up and running in no time.
-Let's get started.
-
-[TIP]
-==============
-You can skip having to install {es}, {kib}, and APM Server by using our
+The easiest way to get started with Elastic APM is by using our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 Elastic Cloud. The {es} Service is available on both AWS and GCP,
 and automatically configures APM Server to work with {es} and {kib}.
-Additional {cloud}/ec-manage-apm-settings.html[APM user settings] are also available.
 
-https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es}
-Service for free].
-==============
+[float]
+=== Hosted Elasticsearch Service
 
-* <<before-installation>>
+image::images/apm-architecture-cloud.png[Install Elastic APM on cloud]
+
+Skip managing your own {es}, {kib}, and APM Server by using our
+https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
+Elastic Cloud.
+
+https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free],
+then jump straight to <<agents>>.
+
+[float]
+[[before-installation]]
+=== Install the stack yourself
+
+image::images/apm-architecture-diy.png[Install Elastic APM yourself]
+
+If you'd rather install the stack yourself, first see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
+We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
+
 * <<install-elasticsearch>>
 * <<install-kibana>>
 * <<apm-server>>
 * <<agents>>
 
-[float]
-[[before-installation]]
-=== Before you begin
-
-* See the https://www.elastic.co/support/matrix[Elastic Support Matrix]
-for information about supported operating systems and product compatibility.
-We recommend you use the same version of Elasticsearch, Kibana, and APM Server.
-* Verify that your system meets the
-https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {es}.
-* The following links assume you're using the current version of the Elastic Stack.
-If you're not, it's easy to adjust the version of the documentation after you land on each page.
-
-[float]
 [[install-elasticsearch]]
-=== Install and run Elasticsearch
+=== Step 1: Install Elasticsearch
 
-You'll need to install an Elasticsearch cluster, and make sure it's up and running:
+// This will move to tagged regions so we can pull the installation instructions
+// here (instead of linking out)
 
-* {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[Install Elasticsearch]
-* {stack-gs}/get-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running]
+Install an Elasticsearch cluster, start it up, and make sure it's running.
 
-[float]
+. Verify that your system meets the
+https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {es}.
+. {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[Install Elasticsearch].
+. {stack-gs}/get-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running].
+
 [[install-kibana]]
-=== Install and run Kibana
+=== Step 2: Install Kibana
 
-Now we'll install Kibana and open up the web interface:
+// This will move to tagged regions so we can pull the installation instructions
+// here (instead of linking out)
 
-* {stack-gs}/get-started-elastic-stack.html#install-kibana[Install Kibana]
-* {stack-gs}/get-started-elastic-stack.html#_launch_the_kibana_web_interface[Launch the Kibana Web Interface]
+Install Kibana, start it up, and open up the web interface:
+
+. {stack-gs}/get-started-elastic-stack.html#install-kibana[Install Kibana].
+. {stack-gs}/get-started-elastic-stack.html#_launch_the_kibana_web_interface[Launch the Kibana Web Interface].
 
 [[apm-server]]
-[float]
-=== Install and run APM Server
+=== Step 3: Install APM Server
 
-You've made it to the fun part - Let's get APM Server up and running:
+Install, set up, and run APM Server.
 
-* {apm-server-ref-v}/installing.html[Install APM Server]
-* {apm-server-ref-v}/setting-up-and-running.html[Set up and Run APM Server]
+. {apm-server-ref-v}/installing.html[Install APM Server].
+. {apm-server-ref-v}/setting-up-and-running.html[Set up and Run APM Server].
 
-Use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
+Next, use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
 or if you need to specify credentials:
 
 * {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
@@ -84,65 +86,55 @@ including details on how to run APM Server in a highly available environment,
 please see the full {apm-server-ref-v}/index.html[APM Server documentation].
 
 [[agents]]
-[float]
-=== Install and configure APM agents
+=== Step 4: Install APM agents
 
 Agents are written in the same language as your service.
-Currently Elastic APM has agents for Go, Java, .NET, Node.js, Python, Ruby, and JavaScript RUM.
+Monitoring a new service requires installing the agent
+and configuring it with the address of your APM Server, a secret token (if necessary), and a service name.
 
-// todo: fix this sentence
-Setting up a new service to be monitored requires installing the agent,
-and configuring it with the address of your APM Server and the service name.
-
-NOTE: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch.
-
-[cols="h,,,"]
+[cols="h,,"]
 |=======================================================================
 |Agent
-3+| More information
+2+|
 
 .2+|Go
-3+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
-|{apm-go-ref}/introduction.html[Introduction]
-|{apm-go-ref}/supported-tech.html[Supported technologies]
-|{apm-go-ref}/configuration.html[Config]
+2+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
+|{apm-go-ref-v}/supported-tech.html[Supported technologies]
+|{apm-go-ref-v}/getting-started.html[Getting started with the Go Agent]
 
 .2+|Java
-3+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
-|{apm-java-ref}/intro.html[Introduction]
-|{apm-java-ref}/supported-technologies-details.html[Supported technologies]
-|{apm-java-ref}/configuration.html[Config]
+2+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
+|{apm-java-ref-v}/supported-technologies-details.html[Supported technologies]
+|{apm-java-ref-v}/setup.html[Set up the Java Agent]
 
 .2+|.NET
-3+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
-|{apm-dotnet-ref-v}/intro.html[Introduction]
+2+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
+|{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
 |
-|{apm-dotnet-ref-v}/configuration.html[Config]
 
 .2+|Node.js
-3+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
-|{apm-node-ref}/intro.html[Introduction]
-|{apm-node-ref}/supported-technologies.html[Supported technologies]
-|{apm-node-ref}/configuring-the-agent.html[Config]
+2+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
+|{apm-node-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-node-ref-v}/intro.html#get-started[Get started with the Node.js Agent]
 
 .2+|Python
-3+|The Python agent automatically instruments Django and Flask out of the box.
-|{apm-py-ref}/getting-started.html[Getting Started]
-|{apm-py-ref}/supported-technologies.html[Supported technologies]
-|{apm-py-ref}/configuration.html[Config]
+2+|The Python agent automatically instruments Django and Flask out of the box.
+|{apm-py-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-py-ref-v}/getting-started.html[Getting Started with the Python Agent]
 
 .2+|Ruby
-3+|The Ruby agent automatically instruments Rails out of the box.
-|{apm-ruby-ref}/introduction.html[Introduction]
-|{apm-ruby-ref}/supported-technologies.html[Supported technologies]
-|{apm-ruby-ref}/configuration.html[Config]
+2+|The Ruby agent automatically instruments Rails out of the box.
+|{apm-ruby-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-ruby-ref-v}/introduction.html#framework-support[Getting started with the Ruby Agent]
 
 .2+|RUM
-3+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
-|{apm-rum-ref}/intro.html[Introduction]
-|{apm-rum-ref}/supported-technologies.html[Supported technologies]
-|{apm-rum-ref}/configuration.html[Config]
+2+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
+|{apm-rum-ref-v}/supported-technologies.html[Supported technologies]
+|{apm-rum-ref-v}/getting-started.html[Getting started with the RUM Agent]
+
 |=======================================================================
+
+TIP: Check the <<agent-server-compatibility,Agent/Server compatibility matrix>> to ensure you're using agents that are compatible with your version of Elasticsearch.
 
 [[choose-service-name]]
 [float]
@@ -158,8 +150,47 @@ Make sure you choose a good service name before you get started.
 The service name can only contain alphanumeric characters,
 spaces, underscores, and dashes (must match `^[a-zA-Z0-9 _-]+$`).
 
-[float]
-=== Next steps
+[[configure-apm]]
+=== Step 5: Configure APM
 
-You're now up and running with Elastic APM!
-Don't forget to check out the <<concepts>> and <<apm-data-model>> documentation to gain a deeper understanding of how Elastic APM works. 
+Now that you're up and running with Elastic APM, you may want to adjust some configuration settings.
+Luckily, there are many different ways to tweak and tune the Elastic ecosystem to adapt it to your needs.
+
+
+[float]
+==== Configure APM agents
+
+// Note about central config will go here
+APM agents have a number of configuration options that allow you to fine tune things like
+environment names, sampling rates, instrumentations, metrics, and more.
+
+|===
+|*Agent configuration documentation*
+a|
+
+* {apm-go-ref-v}/configuration.html[Go Agent configuration]
+* {apm-java-ref-v}/configuration.html[Java Agent configuration]
+* {apm-dotnet-ref-v}/configuration.html[.NET Agent configuration]
+* {apm-node-ref}/configuring-the-agent.html[Node.js Agent configuration]
+* {apm-py-ref-v}/configuration.html[Python Agent configuration]
+* {apm-ruby-ref-v}/configuration.html[Ruby Agent configuration]
+* {apm-rum-ref-v}/configuration.html[RUM Agent configuration]
+|===
+
+[float]
+==== Configure Elastic Cloud
+
+If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
+Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
+
+Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
+
+[float]
+==== Configure a self installation
+
+If you've installed APM Server yourself, you can edit the `apm-server.yml` configuration file to make changes.
+More information is available in {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
+
+Don't forget to also read about
+{apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
+{apm-server-ref-v}/monitoring.html[monitoring APM Server].

@@ -40,7 +40,7 @@ The Geo-IP pipeline takes an extracted IP address from RUM events and stores it 
 This makes it much easier to use location data in Kibana's Visualize maps and Maps app directly:
 
 [role="screenshot"]
-image::kibana-geo-data.png[Kibana maps app]
+image::images/kibana-geo-data.png[Kibana maps app]
 
 *APM UI*
 
