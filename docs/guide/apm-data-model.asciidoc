@@ -148,9 +148,6 @@ Errors are stored in {apm-server-ref-v}/error-indices.html[error indices].
 
 APM agents automatically pick up basic host-level metrics,
 including system and process-level CPU and memory metrics.
-Agent specific metrics are also available,
-like {apm-java-ref-v}/metrics.html[JVM metrics] in the Java Agent,
-and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
 
 Infrastructure and application metrics are important sources of information when debugging production systems,
 which is why we've made it easy to filter metrics for specific hosts or containers in the Kibana {kibana-ref}/metrics.html[metrics overview].
