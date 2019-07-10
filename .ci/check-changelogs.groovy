@@ -22,7 +22,6 @@ pipeline {
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   stages {
     /**
@@ -32,8 +31,6 @@ pipeline {
       agent { label 'master || immutable' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       options { skipDefaultCheckout() }
       steps {
@@ -51,7 +48,6 @@ pipeline {
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
       }
       steps {
         deleteDir()
