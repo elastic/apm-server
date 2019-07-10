@@ -115,3 +115,7 @@ are-kibana-objects-updated: python-env
 .PHONY: register-pipelines
 register-pipelines: update ${BEAT_NAME}
 	${BEAT_GOPATH}/src/${BEAT_PATH}/${BEAT_NAME} setup --pipelines
+
+.PHONY: check-changelogs
+check-changelogs: ## @testing Checks the changelogs for certain branches.
+	@python script/check_changelogs.py
