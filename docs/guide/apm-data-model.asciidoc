@@ -1,12 +1,11 @@
 [[apm-data-model]]
 == Data Model
 
-Elastic APM agents capture different types of information from within their instrumented applications - namely `spans`, `transactions`, `errors`, and `metrics`. 
+Elastic APM agents capture different types of information from within their instrumented applications - namely `spans`, `transactions`, and `errors`. 
 
 * <<transaction-spans>>
 * <<transactions>>
 * <<errors>>
-* <<metrics>>
 
 [[transaction-spans]]
 === Spans
@@ -110,27 +109,3 @@ via the `transaction.id`.
 include::../context.asciidoc[]
 
 Errors are stored in {apm-server-ref-v}/error-indices.html[error indices].
-
-[[metrics]]
-=== Metrics
-
-APM agents automatically pick up basic host-level metrics,
-including system and process-level CPU and memory metrics.
-Agent specific metrics are also available,
-like {apm-java-ref-v}/metrics.html[JVM metrics] in the Java Agent,
-and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
-
-Infrastructure and application metrics are important sources of information when debugging production systems,
-which is why we've made it easy to filter metrics for specific hosts or containers in the Kibana {kibana-ref}/apm-ui.html[APM UI].
-
-Metrics have the `processor.event` property set to `metric`.
-
-Metrics are stored in {apm-server-ref-v}/metricset-indices.html[metric indices].
-
-For a full list of tracked metrics, see the relevant agent documentation:
-
-* {apm-go-ref-v}/metrics.html[Go]
-* {apm-java-ref-v}/metrics.html[Java]
-* {apm-node-ref-v}/metrics.html[Node.js]
-* {apm-py-ref-v}/metrics.html[Python]
-* {apm-ruby-ref-v}/metrics.html[Ruby]
