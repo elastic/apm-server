@@ -198,7 +198,7 @@ apm-server:
   #agent.config.cache.expiration: 30s
 
   #kibana:
-    # For agent remote configuration, enabled must be true
+    # For APM Agent configuration in Kibana, enabled must be true
     #enabled: false
 
     # Scheme and port can be left out and will be set to the default (http and 5601)

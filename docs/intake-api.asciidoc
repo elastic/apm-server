@@ -33,4 +33,5 @@ The APM Server exposes endpoints for
 --
 include::./events-api.asciidoc[]
 include::./sourcemap-api.asciidoc[]
+include::./agent-configuration.asciidoc[]
 include::./server-info.asciidoc[]
