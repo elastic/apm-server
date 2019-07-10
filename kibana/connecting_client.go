@@ -70,7 +70,7 @@ func NewConnectingClient(cfg *common.Config) Client {
 			done := make(chan struct{})
 			jitterBackoff := backoff.NewEqualJitterBackoff(done, initBackoff, maxBackoff)
 			for c.client == nil {
-				log.Info("Trying to obtain connection to Kibana.")
+				log.Debug("Trying to obtain connection to Kibana.")
 				err := c.connect()
 				if err != nil {
 					log.Errorf("failed to obtain connection to Kibana: %s", err.Error())

@@ -34,13 +34,14 @@ import (
 )
 
 const (
-	errMsgMethodUnsupported          = "method not supported"
 	errMaxAgeDuration                = 5 * time.Minute
-	errMsgConfigNotFound             = "no config found for"
-	errMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
-	errMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
+	errMsgConfigNotFound             = "no configuration available"
 	errMsgInvalidQuery               = "invalid query"
-	errMsgKibanaDisabled             = "kibana config disabled"
+	errMsgKibanaDisabled             = "kibana configuration disabled"
+	errMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
+	errMsgMethodUnsupported          = "method not supported"
+	errMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
+	errMsgServiceUnavailable         = "service unavailable"
 )
 
 var (
@@ -49,11 +50,11 @@ var (
 
 func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) http.Handler {
 
-	authErrMsg := func(errMsg, logMsg string) string {
-		if secretToken == "" {
-			return errMsg
+	authErrMsg := func(errMsg, logMsg string) map[string]string {
+		if secretToken == "" || logMsg == "" {
+			return map[string]string{"error": errMsg}
 		}
-		return logMsg
+		return map[string]string{"error": logMsg}
 	}
 
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
@@ -64,11 +65,13 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 		sendResp := wrap(w, r)
 
 		if kbClient == nil {
-			sendResp(errMsgKibanaDisabled, http.StatusServiceUnavailable, errHeaderCacheControl, errMsgKibanaDisabled)
+			sendResp(authErrMsg(errMsgKibanaDisabled, ""), http.StatusServiceUnavailable, errHeaderCacheControl,
+				errMsgKibanaDisabled)
 			return
 		}
 		if !kbClient.Connected() {
-			sendResp(errMsgNoKibanaConnection, http.StatusServiceUnavailable, errHeaderCacheControl, errMsgNoKibanaConnection)
+			sendResp(authErrMsg(errMsgNoKibanaConnection, ""), http.StatusServiceUnavailable, errHeaderCacheControl,
+				errMsgNoKibanaConnection)
 			return
 		}
 		if supported, _ := kbClient.SupportsVersion(minKibanaVersion); !supported {
@@ -99,7 +102,7 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 			sendResp(authErrMsg(internalErrMsg(logMsg), logMsg), http.StatusServiceUnavailable,
 				errHeaderCacheControl, logMsg)
 		case len(cfg) == 0:
-			logMsg := fmt.Sprintf("%s %s", errMsgConfigNotFound, query.ID())
+			logMsg := fmt.Sprintf("%s for %s", errMsgConfigNotFound, query.ID())
 			sendResp(authErrMsg(errMsgConfigNotFound, logMsg), http.StatusNotFound, errHeaderCacheControl, logMsg)
 		case upstreamEtag == "":
 			sendResp(cfg, http.StatusOK, defaultHeaderCacheControl, "")
@@ -144,8 +147,9 @@ func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int, string,
 		w.Header().Set(headers.CacheControl, cacheControl)
 
 		if code >= http.StatusBadRequest {
-			requestLogger(r).Errorw("error handling request", "response_code", code,
-				"body", body, "error", errMsg)
+			requestLogger(r).Errorw("error handling request",
+				"response_code", code,
+				"error", errMsg)
 		}
 
 		if body == nil {
@@ -165,5 +169,5 @@ func internalErrMsg(msg string) string {
 	case strings.Contains(msg, agentcfg.ErrMsgReadKibanaResponse):
 		return agentcfg.ErrMsgReadKibanaResponse
 	}
-	return ""
+	return errMsgServiceUnavailable
 }

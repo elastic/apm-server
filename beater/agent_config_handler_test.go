@@ -40,6 +40,8 @@ import (
 
 var (
 	mockVersion = *common.MustNewVersion("7.3.0")
+	errWrap     = func(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
+	successBody = `{"sampling_rate":"0.5"}` + "\n"
 
 	testcases = map[string]struct {
 		kbClient      kibana.Client
@@ -80,8 +82,8 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-java"},
 			respStatus:             http.StatusOK,
 			respCacheControlHeader: "max-age=4, must-revalidate",
-			respBody:               `{"sampling_rate":"0.5"}`,
-			respBodyToken:          `{"sampling_rate":"0.5"}`,
+			respBody:               successBody,
+			respBodyToken:          successBody,
 		},
 
 		"ModifiedWithEtag": {
@@ -99,8 +101,8 @@ var (
 			respStatus:             http.StatusOK,
 			respEtagHeader:         "\"1\"",
 			respCacheControlHeader: "max-age=4, must-revalidate",
-			respBody:               `{"sampling_rate":"0.5"}`,
-			respBodyToken:          `{"sampling_rate":"0.5"}`,
+			respBody:               successBody,
+			respBodyToken:          successBody,
 		},
 
 		"SendToKibanaFailed": {
@@ -109,8 +111,8 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               agentcfg.ErrMsgSendToKibanaFailed,
-			respBodyToken:          fmt.Sprintf("%s: testerror", agentcfg.ErrMsgSendToKibanaFailed),
+			respBody:               errWrap(agentcfg.ErrMsgSendToKibanaFailed),
+			respBodyToken:          errWrap(fmt.Sprintf("%s: testerror", agentcfg.ErrMsgSendToKibanaFailed)),
 		},
 
 		"MultipleConfigs": {
@@ -119,8 +121,8 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               agentcfg.ErrMsgMultipleChoices,
-			respBodyToken:          fmt.Sprintf("%s: {\"s1\":1}", agentcfg.ErrMsgMultipleChoices),
+			respBody:               errWrap(agentcfg.ErrMsgMultipleChoices),
+			respBodyToken:          errWrap(fmt.Sprintf("%s: {\\\"s1\\\":1}", agentcfg.ErrMsgMultipleChoices)),
 		},
 
 		"NoConnection": {
@@ -128,8 +130,8 @@ var (
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errMsgNoKibanaConnection,
-			respBodyToken:          errMsgNoKibanaConnection,
+			respBody:               errWrap(errMsgNoKibanaConnection),
+			respBodyToken:          errWrap(errMsgNoKibanaConnection),
 		},
 
 		"InvalidVersion": {
@@ -137,9 +139,9 @@ var (
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errMsgKibanaVersionNotCompatible,
-			respBodyToken: "min required Kibana version 7.3.0," +
-				" configured Kibana version {version:7.2.0 Major:7 Minor:2 Bugfix:0 Meta:}",
+			respBody:               errWrap(errMsgKibanaVersionNotCompatible),
+			respBodyToken: errWrap("min required Kibana version 7.3.0," +
+				" configured Kibana version {version:7.2.0 Major:7 Minor:2 Bugfix:0 Meta:}"),
 		},
 
 		"StatusNotFoundError": {
@@ -148,16 +150,16 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-python"},
 			respStatus:             http.StatusNotFound,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errMsgConfigNotFound,
-			respBodyToken:          "no config found for opbeans-python",
+			respBody:               errWrap(errMsgConfigNotFound),
+			respBodyToken:          errWrap(fmt.Sprintf("%s for opbeans-python", errMsgConfigNotFound)),
 		},
 
 		"NoService": {
 			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusBadRequest,
-			respBody:               errMsgInvalidQuery,
-			respBodyToken:          `service.name is required`,
+			respBody:               errWrap(errMsgInvalidQuery),
+			respBodyToken:          errWrap(`service.name is required`),
 			respCacheControlHeader: "max-age=300, must-revalidate",
 		},
 
@@ -166,8 +168,8 @@ var (
 			method:                 http.MethodPut,
 			respStatus:             http.StatusMethodNotAllowed,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errMsgMethodUnsupported,
-			respBodyToken:          fmt.Sprintf("%s: PUT", errMsgMethodUnsupported),
+			respBody:               errWrap(errMsgMethodUnsupported),
+			respBodyToken:          errWrap(fmt.Sprintf("%s: PUT", errMsgMethodUnsupported)),
 		},
 	}
 )
@@ -195,7 +197,7 @@ func TestAgentConfigHandler(t *testing.T) {
 			} else {
 				b, err := ioutil.ReadAll(w.Body)
 				require.NoError(t, err)
-				assert.Equal(t, body+"\n", string(b))
+				assert.Equal(t, body, string(b))
 			}
 		}
 
