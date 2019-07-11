@@ -45,7 +45,7 @@ func newCacheSetup(service string, exp time.Duration, init bool) cacheSetup {
 		doc: &defaultDoc,
 	}
 	if init {
-		setup.c.add(setup.q.id(), setup.doc)
+		setup.c.add(setup.q.ID(), setup.doc)
 	}
 	return setup
 }
@@ -75,7 +75,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				//ensure value is cached afterwards
-				cachedDoc, found := setup.c.fetch(setup.q.id())
+				cachedDoc, found := setup.c.fetch(setup.q.ID())
 				assert.True(t, found)
 				assert.Equal(t, doc, cachedDoc)
 			}
@@ -89,7 +89,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, doc)
 		time.Sleep(exp)
-		nilDoc, found := setup.c.fetch(setup.q.id())
+		nilDoc, found := setup.c.fetch(setup.q.ID())
 		assert.False(t, found)
 		assert.Nil(t, nilDoc)
 	})

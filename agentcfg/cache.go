@@ -47,7 +47,7 @@ func newCache(logger *logp.Logger, exp time.Duration) *cache {
 }
 
 func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error)) (doc *Doc, err error) {
-	id := q.id()
+	id := q.ID()
 
 	// return from cache if possible
 	doc, found := c.fetch(id)

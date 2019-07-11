@@ -18,41 +18,42 @@
 package agentcfg
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/kibana"
+	"github.com/pkg/errors"
+
 	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/convert"
+	"github.com/elastic/apm-server/kibana"
 )
 
+// Error Messages used to signal fetching errors
 const (
-	endpoint = "/api/apm/settings/agent-configuration/search"
+	ErrMsgSendToKibanaFailed = "sending request to kibana failed"
+	ErrMsgMultipleChoices    = "multiple configurations found"
+	ErrMsgReadKibanaResponse = "unable to read Kibana response body"
 )
+const endpoint = "/api/apm/settings/agent-configuration/search"
 
 // Fetcher holds static information and information shared between requests.
 // It implements the Fetch method to retrieve agent configuration information.
 type Fetcher struct {
-	kbClient   *kibana.Client
-	docCache   *cache
-	logger     *logp.Logger
-	minVersion common.Version
+	docCache *cache
+	logger   *logp.Logger
+	kbClient kibana.Client
 }
 
 // NewFetcher returns a Fetcher instance.
-func NewFetcher(kbClient *kibana.Client, cacheExp time.Duration) *Fetcher {
+func NewFetcher(kbClient kibana.Client, cacheExp time.Duration) *Fetcher {
 	logger := logp.NewLogger("agentcfg")
 	return &Fetcher{
-		kbClient:   kbClient,
-		logger:     logger,
-		docCache:   newCache(logger, cacheExp),
-		minVersion: common.Version{Major: 7, Minor: 3},
+		kbClient: kbClient,
+		logger:   logger,
+		docCache: newCache(logger, cacheExp),
 	}
 }
 
@@ -77,15 +78,10 @@ func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if f.kbClient == nil {
-		return nil, errors.New("no configured Kibana Client: provide apm-server.kibana.* settings")
-	}
-	if version := f.kbClient.GetVersion(); version.LessThan(&f.minVersion) {
-		return nil, fmt.Errorf("needs Kibana version %s or higher", f.minVersion.String())
-	}
+
 	resp, err := f.kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, ErrMsgSendToKibanaFailed)
 	}
 	defer resp.Body.Close()
 
@@ -94,8 +90,13 @@ func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
 	}
 
 	result, err := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode >= http.StatusMultipleChoices {
+	if resp.StatusCode == http.StatusMultipleChoices {
+		return nil, errors.Wrap(errors.New(string(result)), ErrMsgMultipleChoices)
+	} else if resp.StatusCode > http.StatusMultipleChoices {
 		return nil, errors.New(string(result))
 	}
-	return result, err
+	if err != nil {
+		return nil, errors.Wrap(err, ErrMsgReadKibanaResponse)
+	}
+	return result, nil
 }
