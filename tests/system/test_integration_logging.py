@@ -84,6 +84,7 @@ class LoggingIntegrationAuth(ElasticTest):
             "level": "error",
             "message": "error handling request",
             "response_code": 503,
+            "error": "unable to retrieve connection to Kibana",
         }, config_request_logs[1])
 
 

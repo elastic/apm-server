@@ -51,7 +51,7 @@ GOIMPORTS=goimports
 GOIMPORTS_REPO?=github.com/elastic/beats/vendor/golang.org/x/tools/cmd/goimports
 GOIMPORTS_LOCAL_PREFIX?=github.com/elastic
 GOLINT=golint
-GOLINT_REPO?=github.com/golang/lint/golint
+GOLINT_REPO?=golang.org/x/lint/golint
 REVIEWDOG?=reviewdog -conf ${ES_BEATS}/reviewdog.yml
 REVIEWDOG_OPTIONS?=-diff "git diff master"
 REVIEWDOG_REPO?=github.com/haya14busa/reviewdog/cmd/reviewdog
@@ -351,7 +351,7 @@ endif
 endif
 
 .PHONY: docs
-docs:  ## @build Builds the documents for the beat
+docs:  ## @build Builds the documentation for the beat
 	@if [ -d $(XPACK_DIR) ]; then \
 		sh ${ES_BEATS}/script/build_docs.sh ${BEAT_NAME} ${BEAT_PATH}/docs ${BUILD_DIR} ${XPACK_DIR}; \
 	else \
@@ -359,7 +359,7 @@ docs:  ## @build Builds the documents for the beat
 	fi
 
 .PHONY: docs-preview
-docs-preview:  ## @build Preview the documents for the beat in the browser
+docs-preview:  ## @build Previews the documentation for the beat in the browser
 	PREVIEW=1 $(MAKE) docs
 
 ### SETUP commands ###

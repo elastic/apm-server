@@ -5,12 +5,16 @@ BEAT_GOPATH=$(firstword $(subst :, ,${GOPATH}))
 BEAT_URL=https://${BEAT_PATH}
 BEAT_DOC_URL=https://www.elastic.co/guide/en/apm/server/
 BEAT_REF_YAML=false
+BENCHCMP_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/benchcmp
+COBERTURA_REPO?=github.com/elastic/apm-server/vendor/github.com/t-yuki/gocover-cobertura
 COVERAGE_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/pierrre/gotestcover
 GOIMPORTS_REPO?=github.com/elastic/apm-server/vendor/golang.org/x/tools/cmd/goimports
 GOLINT_REPO?=github.com/elastic/apm-server/vendor/github.com/golang/lint/golint
 GOLINT_TARGETS?=$(shell go list ./... | grep -v /vendor/)
 GOLINT_UPSTREAM?=origin/master
 GOLINT_COMMAND=$(shell $(GOLINT) ${GOLINT_TARGETS} | $(REVIEWDOG) -f=golint -diff="git diff $(GOLINT_UPSTREAM)")
+GOVENDOR_REPO?=github.com/elastic/apm-server/vendor/github.com/kardianos/govendor
+JUNIT_REPORT_REPO?=github.com/elastic/apm-server/vendor/github.com/jstemmer/go-junit-report
 REVIEWDOG_REPO?=github.com/elastic/apm-server/vendor/github.com/haya14busa/reviewdog/cmd/reviewdog
 TESTIFY_TOOL_REPO?=github.com/elastic/apm-server/vendor/github.com/stretchr/testify/assert
 SYSTEM_TESTS=true
@@ -29,7 +33,7 @@ STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 -include $(ES_BEATS)/libbeat/scripts/Makefile
 
 # updates beats updates the framework part and go parts of beats
-update-beats:
+update-beats: govendor
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
 	@govendor fetch github.com/elastic/beats/libbeat/generator/fields@$(BEATS_VERSION)
@@ -105,18 +109,29 @@ golint-install:
 golint: golint-install
 	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
 
+.PHONY: govendor
+govendor:
+	go get $(GOVENDOR_REPO)
+
 .PHONY: staticcheck
 staticcheck:
 	go get $(STATICCHECK_REPO)
 	staticcheck $(BEAT_PATH)/...
 
-check-full: check golint staticcheck
+.PHONY: staticcheck
+check-deps: test-deps golint staticcheck
+
+check-full: check-deps check
 	@# Validate that all updates were committed
 	@$(MAKE) update
 	@$(MAKE) check
 	@git diff | cat
 	@git update-index --refresh
 	@git diff-index --exit-code HEAD --
+
+.PHONY: test-deps
+test-deps:
+	go get $(BENCHCMP_REPO) $(COBERTURA_REPO) $(JUNIT_REPORT_REPO) $(MAGE_IMPORT_PATH)
 
 .PHONY: notice
 notice: python-env
@@ -162,3 +177,7 @@ register-pipelines: update ${BEAT_NAME}
 .PHONY: import-dashboards
 import-dashboards:
 	echo "APM loads dashboards via Kibana, not the APM Server"
+
+.PHONY: check-changelogs
+check-changelogs: ## @testing Checks the changelogs for certain branches.
+	@python script/check_changelogs.py

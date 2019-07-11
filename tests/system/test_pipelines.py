@@ -68,8 +68,10 @@ class PipelineDefaultTest(ElasticTest):
         ]
         loaded_msg = "Pipeline successfully registered"
         self.wait_until(lambda: self.log_contains(loaded_msg))
+
         for pipeline_id, pipeline_desc in pipelines:
-            pipeline = self.es.ingest.get_pipeline(id=pipeline_id)
+            pipeline = self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id),
+                                       name="fetching pipeline {}".format(pipeline_id))
             assert pipeline[pipeline_id]['description'] == pipeline_desc
 
     def test_pipeline_applied(self):
@@ -99,7 +101,7 @@ class PipelineDefaultTest(ElasticTest):
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-class PipelineConfigurationNoneTest(ElasticTest):
+class PipelineDisabledTest(ElasticTest):
     config_overrides = {"disable_pipeline": True}
 
     def test_pipeline_not_applied(self):

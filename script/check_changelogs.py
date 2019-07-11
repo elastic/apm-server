@@ -1,13 +1,12 @@
-#!/Users/gil/.venv/ipy/bin/python
+#!/usr/bin/env python
 
 import io
 import hashlib
 import os
-
 import requests
 
 
-VERSIONS = ["6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.x"]
+VERSIONS = ["6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.2", "7.3", "7.x"]
 
 
 def parse_version(version):
@@ -25,6 +24,7 @@ def shasum(fp):
 
 
 def main():
+
     cl_dir = 'changelogs'
     for cl in sorted(os.listdir(cl_dir)):
         version, _ = os.path.splitext(cl)
@@ -34,19 +34,26 @@ def main():
         with open(os.path.join(cl_dir, cl), mode='rb') as f:
             master = shasum(f)
 
+        any_failures = False
         print("**", cl, master, "**")
         for v in VERSIONS:
             if parsed_version <= parse_version(v):
-                print(f"checking {cl} on {v}")
-                url = f"https://raw.githubusercontent.com/elastic/apm-server/{v}/changelogs/{cl}"
+                print("checking {} on {}".format(cl, v))
+                url = "https://raw.githubusercontent.com/elastic/apm-server/{}/changelogs/{}".format(v, cl)
                 rsp = requests.get(url)
+                status = "success"
                 if rsp.status_code == 200:
                     h = shasum(io.BytesIO(rsp.content))
                 else:
-                    h = f"error: {rsp.status_code}"
+                    h = "error: {}".format(rsp.status_code)
                 # rsp.raise_for_status()
-                print(h, url, "🔴" if h != master else "✅")
+                if h != master:
+                    status = "failed"
+                    any_failures = True
+                print(h, url, status)
         print()
+        if any_failures:
+            raise Exception('Some changelogs are missing, please look at for failed.')
 
 
 if __name__ == '__main__':
