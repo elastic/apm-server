@@ -100,10 +100,10 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 
 func validateKbClient(client kibana.Client) (bool, string, string) {
 	if client == nil {
-		return false, errMsgKibanaDisabled, ""
+		return false, errMsgKibanaDisabled, errMsgKibanaDisabled
 	}
 	if !client.Connected() {
-		return false, errMsgNoKibanaConnection, ""
+		return false, errMsgNoKibanaConnection, errMsgNoKibanaConnection
 	}
 	if supported, _ := client.SupportsVersion(minKibanaVersion); !supported {
 		version, _ := client.GetVersion()
@@ -148,7 +148,7 @@ func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int, string)
 
 func wrapErr(w http.ResponseWriter, r *http.Request, token string) func(int, string, string) {
 	authErrMsg := func(errMsg, logMsg string) map[string]string {
-		if token == "" || logMsg == "" {
+		if token == "" {
 			return map[string]string{"error": errMsg}
 		}
 		return map[string]string{"error": logMsg}
