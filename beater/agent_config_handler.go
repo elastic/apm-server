@@ -20,81 +20,100 @@ package beater
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
+
+	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/libbeat/kibana"
-
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/convert"
+	"github.com/elastic/apm-server/kibana"
 )
 
 const (
 	headerIfNoneMatch  = "If-None-Match"
 	headerEtag         = "Etag"
 	headerCacheControl = "Cache-Control"
-	errMaxAgeDuration  = 5 * time.Minute
+
+	errMaxAgeDuration = 5 * time.Minute
+
+	errMsgConfigNotFound             = "no configuration available"
+	errMsgInvalidQuery               = "invalid query"
+	errMsgKibanaDisabled             = "disabled Kibana configuration"
+	errMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
+	errMsgMethodUnsupported          = "method not supported"
+	errMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
+	errMsgServiceUnavailable         = "service unavailable"
 )
 
-func agentConfigHandler(kbClient *kibana.Client, enabled bool, config *agentConfig, secretToken string) http.Handler {
+var (
+	minKibanaVersion = common.MustNewVersion("7.3.0")
+	errCacheControl  = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
+)
+
+func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) http.Handler {
+	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
-	defaultHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
-	errHeaderCacheControl := fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		send := wrap(w, r)
-		clientEtag := r.Header.Get(headerIfNoneMatch)
+		sendResp := wrap(w, r)
+		sendErr := wrapErr(w, r, secretToken)
+
+		if valid, shortMsg, detailMsg := validateKbClient(kbClient); !valid {
+			sendErr(http.StatusServiceUnavailable, shortMsg, detailMsg)
+			return
+		}
 
 		query, requestErr := buildQuery(r)
-		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, requestErr)
+		if requestErr != nil {
+			if strings.Contains(requestErr.Error(), errMsgMethodUnsupported) {
+				sendErr(http.StatusMethodNotAllowed, errMsgMethodUnsupported, requestErr.Error())
+				return
+			}
+			sendErr(http.StatusBadRequest, errMsgInvalidQuery, requestErr.Error())
+			return
+		}
+
+		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, nil)
 		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
 
-		var resp interface{}
-		var state int
-		var headerCacheControlVal string
-
 		switch {
-		case requestErr != nil:
-			resp = requestErr.Error()
-			state = http.StatusBadRequest
-			headerCacheControlVal = errHeaderCacheControl
-		case query == agentcfg.Query{}:
-			resp = nil
-			state = http.StatusMethodNotAllowed
-			headerCacheControlVal = errHeaderCacheControl
 		case internalErr != nil:
-			resp = internalErr.Error()
-			state = http.StatusServiceUnavailable
-			headerCacheControlVal = errHeaderCacheControl
+			sendErr(http.StatusServiceUnavailable, internalErrMsg(internalErr.Error()), internalErr.Error())
 		case len(cfg) == 0:
-			resp = nil
-			state = http.StatusNotFound
-			headerCacheControlVal = errHeaderCacheControl
-		case clientEtag != "" && clientEtag == etag:
+			logMsg := fmt.Sprintf("%s for %s", errMsgConfigNotFound, query.ID())
+			sendErr(http.StatusNotFound, errMsgConfigNotFound, logMsg)
+		case upstreamEtag == "":
+			sendResp(cfg, http.StatusOK, cacheControl)
+		case etag == r.Header.Get(headerIfNoneMatch):
 			w.Header().Set(headerEtag, etag)
-			resp = nil
-			state = http.StatusNotModified
-			headerCacheControlVal = defaultHeaderCacheControl
-		case upstreamEtag != "":
-			w.Header().Set(headerEtag, etag)
-			fallthrough
+			sendResp(nil, http.StatusNotModified, cacheControl)
 		default:
-			resp = cfg
-			state = http.StatusOK
-			headerCacheControlVal = defaultHeaderCacheControl
-		}
-		w.Header().Set(headerCacheControl, headerCacheControlVal)
-		send(resp, state)
-		// logHandler logs the rest
-		if state >= http.StatusBadRequest {
-			requestLogger(r).Errorw("error handling request", "response_code", state,
-				"error", resp)
+			w.Header().Set(headerEtag, etag)
+			sendResp(cfg, http.StatusOK, cacheControl)
 		}
 	})
+
 	return logHandler(
-		killSwitchHandler(enabled,
+		killSwitchHandler(kbClient != nil,
 			authHandler(secretToken, handler)))
+}
+
+func validateKbClient(client kibana.Client) (bool, string, string) {
+	if client == nil {
+		return false, errMsgKibanaDisabled, errMsgKibanaDisabled
+	}
+	if !client.Connected() {
+		return false, errMsgNoKibanaConnection, errMsgNoKibanaConnection
+	}
+	if supported, _ := client.SupportsVersion(minKibanaVersion); !supported {
+		version, _ := client.GetVersion()
+		return false, errMsgKibanaVersionNotCompatible, fmt.Sprintf("min required Kibana version %+v, "+
+			"configured Kibana version %+v", minKibanaVersion, version)
+	}
+	return true, "", ""
 }
 
 // Returns (zero, error) if request body can't be unmarshalled or service.name is missing
@@ -110,7 +129,7 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 			params.Get(agentcfg.ServiceEnv),
 		)
 	default:
-		return
+		err = errors.Errorf("%s: %s", errMsgMethodUnsupported, r.Method)
 	}
 
 	if err == nil && query.Service.Name == "" {
@@ -119,12 +138,43 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	return
 }
 
-func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int) {
-	return func(body interface{}, code int) {
+func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int, string) {
+	return func(body interface{}, code int, cacheControl string) {
+		w.Header().Set(headerCacheControl, cacheControl)
 		if body == nil {
 			w.WriteHeader(code)
-		} else {
-			send(w, r, body, code)
+			return
 		}
+		send(w, r, body, code)
 	}
+}
+
+func wrapErr(w http.ResponseWriter, r *http.Request, token string) func(int, string, string) {
+	authErrMsg := func(errMsg, logMsg string) map[string]string {
+		if token == "" {
+			return map[string]string{"error": errMsg}
+		}
+		return map[string]string{"error": logMsg}
+	}
+
+	return func(status int, errMsg, logMsg string) {
+		requestLogger(r).Errorw("error handling request",
+			"response_code", status, "error", logMsg)
+
+		w.Header().Set(headerCacheControl, errCacheControl)
+		body := authErrMsg(errMsg, logMsg)
+		send(w, r, body, status)
+	}
+}
+
+func internalErrMsg(msg string) string {
+	switch {
+	case strings.Contains(msg, agentcfg.ErrMsgSendToKibanaFailed):
+		return agentcfg.ErrMsgSendToKibanaFailed
+	case strings.Contains(msg, agentcfg.ErrMsgMultipleChoices):
+		return agentcfg.ErrMsgMultipleChoices
+	case strings.Contains(msg, agentcfg.ErrMsgReadKibanaResponse):
+		return agentcfg.ErrMsgReadKibanaResponse
+	}
+	return errMsgServiceUnavailable
 }

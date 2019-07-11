@@ -334,11 +334,17 @@ func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) int {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
 
-	b, err := json.Marshal(body)
-	if err != nil {
-		b = []byte(fmt.Sprintf("%v", body))
+	var b []byte
+	var err error
+	if bStr, ok := body.(string); ok {
+		b = []byte(bStr + "\n")
+	} else {
+		b, err = json.Marshal(body)
+		if err != nil {
+			b = []byte(fmt.Sprintf("%+v", body))
+		}
+		b = append(b, "\n"...)
 	}
-	b = append(b, "\n"...)
 	n, _ := w.Write(b)
 	return n
 }
