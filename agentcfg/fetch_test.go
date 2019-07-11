@@ -71,7 +71,7 @@ func TestFetchError(t *testing.T) {
 	kb := tests.MockKibana(http.StatusMultipleChoices, m{"error": "an error"}, mockVersion, true)
 	_, _, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
 	require.Error(t, err)
-	assert.Equal(t, "multiple configurations found: {\"error\":\"an error\"}", err.Error())
+	assert.Contains(t, err.Error(), ErrMsgMultipleChoices)
 }
 
 func TestExpectationFailed(t *testing.T) {
