@@ -23,6 +23,7 @@ const (
 	Handler         = "handler"
 	Ilm             = "ilm"
 	IndexManagement = "index-management"
+	Kibana          = "kibana"
 	Onboarding      = "onboarding"
 	Pipelines       = "pipelines"
 	Request         = "request"
