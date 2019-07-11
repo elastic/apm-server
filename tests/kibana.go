@@ -18,32 +18,51 @@
 package tests
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+
+	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/convert"
+	"github.com/elastic/apm-server/kibana"
+
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/kibana"
 )
 
-type rt struct {
-	resp *http.Response
+// MockKibanaClient implements the kibana.Client interface for testing purposes
+type MockKibanaClient struct {
+	code      int
+	body      map[string]interface{}
+	v         common.Version
+	connected bool
 }
 
-// RoundTrip implements the Round Tripper interface
-func (rt rt) RoundTrip(r *http.Request) (*http.Response, error) {
-	return rt.resp, nil
+// Send returns a mock http.Response based on parameters used to init the MockKibanaClient instance
+func (c *MockKibanaClient) Send(method, extraPath string, params url.Values,
+	headers http.Header, body io.Reader) (*http.Response, error) {
+	resp := http.Response{StatusCode: c.code, Body: ioutil.NopCloser(convert.ToReader(c.body))}
+	if resp.StatusCode == http.StatusBadGateway {
+		return nil, errors.New("testerror")
+	}
+	return &resp, nil
+}
+
+// GetVersion returns a mock version based on parameters used to init the MockKibanaClient instance
+func (c *MockKibanaClient) GetVersion() (common.Version, error) {
+	return c.v, nil
+}
+
+// Connected returns whether or not mock client is connected
+func (c *MockKibanaClient) Connected() bool { return c.connected }
+
+// SupportsVersion returns whether or not mock client is compatible with given version
+func (c *MockKibanaClient) SupportsVersion(v *common.Version) (bool, error) {
+	return v.LessThanOrEqual(true, &c.v), nil
 }
 
 // MockKibana provides a fake connection for unit tests
-func MockKibana(respCode int, respBody map[string]interface{}) *kibana.Client {
-	resp := http.Response{StatusCode: respCode, Body: ioutil.NopCloser(convert.ToReader(respBody))}
-	return &kibana.Client{
-		Connection: kibana.Connection{
-			HTTP: &http.Client{
-				Transport: rt{resp: &resp},
-			},
-			Version: common.Version{Major: 10, Minor: 0},
-		},
-	}
+func MockKibana(respCode int, respBody map[string]interface{}, v common.Version, connected bool) kibana.Client {
+	return &MockKibanaClient{code: respCode, body: respBody, v: v, connected: connected}
 }

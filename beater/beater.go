@@ -35,7 +35,6 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/kibana"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
 
@@ -199,15 +198,7 @@ func (bt *beater) Run(b *beat.Beat) error {
 		return nil
 	}
 
-	var kbClient *kibana.Client
-	if bt.config.Kibana.Enabled() {
-		kbClient, err = kibana.NewKibanaClient(bt.config.Kibana)
-		if err != nil {
-			bt.logger.Error(err.Error())
-		}
-	}
-
-	bt.server, err = newServer(bt.config, tracer, kbClient, pub.Send)
+	bt.server, err = newServer(bt.config, tracer, pub.Send)
 	if err != nil {
 		bt.logger.Error("failed to create new server:", err)
 		return nil
