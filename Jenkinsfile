@@ -116,11 +116,6 @@ pipeline {
         */
         stage('linux build') {
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
           when {
             beforeAgent true
             allOf {
@@ -283,9 +278,11 @@ pipeline {
           steps {
             deleteDir()
             unstash 'source'
-            dir("${BASE_DIR}"){
-              sh './script/jenkins/bench.sh'
-              sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+            golang(){
+              dir("${BASE_DIR}"){
+                sh(label: 'Run benchmarks', script: './script/jenkins/bench.sh')
+                sendBenchmarks(file: 'bench.out', index: "benchmark-server")
+              }
             }
           }
         }
@@ -295,11 +292,6 @@ pipeline {
         stage('Check kibana Obj. Updated') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            GOPATH = "${env.WORKSPACE}"
-          }
           when {
             beforeAgent true
             allOf {
