@@ -34,8 +34,7 @@ var (
 )
 
 func TestDeb(t *testing.T) {
-	// only test x86 packages, excluding arm
-	debs := getFiles(t, regexp.MustCompile(`(i386|i686|amd64|x86)*.\.deb$`))
+	debs := getFiles(t, regexp.MustCompile(`\.deb$`))
 	if len(debs) == 0 {
 		t.Fatal("no debs found")
 	}
@@ -45,8 +44,7 @@ func TestDeb(t *testing.T) {
 }
 
 func TestRpm(t *testing.T) {
-        // only test x86 packages, excluding arm
-	rpms := getFiles(t, regexp.MustCompile(`(i386|i686|amd64|x86)+.*\.rpm$`))
+	rpms := getFiles(t, regexp.MustCompile(`\.rpm$`))
 	if len(rpms) == 0 {
 		t.Fatal("no rpms found")
 	}
