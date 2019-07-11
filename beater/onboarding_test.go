@@ -40,7 +40,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 	defer lis.Close()
 	config.Host = lis.Addr().String()
 
-	server, err := newServer(config, apm.DefaultTracer, nil, nopReporter)
+	server, err := newServer(config, apm.DefaultTracer, nopReporter)
 	require.NoError(t, err)
 	go run(logp.NewLogger("onboarding_test"), server, lis, config)
 

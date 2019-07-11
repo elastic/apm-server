@@ -19,143 +19,201 @@ package beater
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/elastic/beats/libbeat/kibana"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/convert"
+	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/tests"
 )
 
-var testcases = map[string]struct {
-	kbClient      *kibana.Client
-	requestHeader map[string]string
-	queryParams   map[string]string
-	method        string
+var (
+	mockVersion = *common.MustNewVersion("7.3.0")
+	errWrap     = func(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
+	successBody = `{"sampling_rate":"0.5"}` + "\n"
 
-	respStatus                             int
-	respBody                               bool
-	respEtagHeader, respCacheControlHeader string
-}{
-	"NotModified": {
-		kbClient: tests.MockKibana(http.StatusOK, m{
-			"_id": "1",
-			"_source": m{
-				"settings": m{
-					"sampling_rate": 0.5,
+	testcases = map[string]struct {
+		kbClient      kibana.Client
+		requestHeader map[string]string
+		queryParams   map[string]string
+		method        string
+
+		respStatus                             int
+		respBody, respBodyToken                string
+		respEtagHeader, respCacheControlHeader string
+	}{
+		"NotModified": {
+			kbClient: tests.MockKibana(http.StatusOK, m{
+				"_id": "1",
+				"_source": m{
+					"settings": m{
+						"sampling_rate": 0.5,
+					},
 				},
-			},
-		}),
-		method:                 http.MethodGet,
-		requestHeader:          map[string]string{headers.IfNoneMatch: `"` + "1" + `"`},
-		queryParams:            map[string]string{"service.name": "opbeans-node"},
-		respStatus:             http.StatusNotModified,
-		respCacheControlHeader: "max-age=4, must-revalidate",
-		respEtagHeader:         "\"1\"",
-	},
+			}, mockVersion, true),
+			method:                 http.MethodGet,
+			requestHeader:          map[string]string{headers.IfNoneMatch: `"` + "1" + `"`},
+			queryParams:            map[string]string{"service.name": "opbeans-node"},
+			respStatus:             http.StatusNotModified,
+			respCacheControlHeader: "max-age=4, must-revalidate",
+			respEtagHeader:         "\"1\"",
+		},
 
-	"ModifiedWithoutEtag": {
-		kbClient: tests.MockKibana(http.StatusOK, m{
-			"_source": m{
-				"settings": m{
-					"sampling_rate": 0.5,
+		"ModifiedWithoutEtag": {
+			kbClient: tests.MockKibana(http.StatusOK, m{
+				"_source": m{
+					"settings": m{
+						"sampling_rate": 0.5,
+					},
 				},
-			},
-		}),
-		method:                 http.MethodGet,
-		queryParams:            map[string]string{"service.name": "opbeans-java"},
-		respStatus:             http.StatusOK,
-		respCacheControlHeader: "max-age=4, must-revalidate",
-		respBody:               true,
-	},
+			}, mockVersion, true),
+			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-java"},
+			respStatus:             http.StatusOK,
+			respCacheControlHeader: "max-age=4, must-revalidate",
+			respBody:               successBody,
+			respBodyToken:          successBody,
+		},
 
-	"ModifiedWithEtag": {
-		kbClient: tests.MockKibana(http.StatusOK, m{
-			"_id": "1",
-			"_source": m{
-				"settings": m{
-					"sampling_rate": 0.5,
+		"ModifiedWithEtag": {
+			kbClient: tests.MockKibana(http.StatusOK, m{
+				"_id": "1",
+				"_source": m{
+					"settings": m{
+						"sampling_rate": 0.5,
+					},
 				},
-			},
-		}),
-		method:                 http.MethodGet,
-		requestHeader:          map[string]string{headers.IfNoneMatch: "2"},
-		queryParams:            map[string]string{"service.name": "opbeans-java"},
-		respStatus:             http.StatusOK,
-		respEtagHeader:         "\"1\"",
-		respCacheControlHeader: "max-age=4, must-revalidate",
-		respBody:               true,
-	},
+			}, mockVersion, true),
+			method:                 http.MethodGet,
+			requestHeader:          map[string]string{headers.IfNoneMatch: "2"},
+			queryParams:            map[string]string{"service.name": "opbeans-java"},
+			respStatus:             http.StatusOK,
+			respEtagHeader:         "\"1\"",
+			respCacheControlHeader: "max-age=4, must-revalidate",
+			respBody:               successBody,
+			respBodyToken:          successBody,
+		},
 
-	"InternalError": {
-		kbClient: tests.MockKibana(http.StatusExpectationFailed, m{
-			"_id": "1", "_source": ""},
-		),
-		method:                 http.MethodGet,
-		queryParams:            map[string]string{"service.name": "opbeans-ruby"},
-		respStatus:             http.StatusServiceUnavailable,
-		respCacheControlHeader: "max-age=300, must-revalidate",
-		respBody:               true,
-	},
+		"SendToKibanaFailed": {
+			kbClient:               tests.MockKibana(http.StatusBadGateway, m{}, mockVersion, true),
+			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
+			respStatus:             http.StatusServiceUnavailable,
+			respCacheControlHeader: "max-age=300, must-revalidate",
+			respBody:               errWrap(agentcfg.ErrMsgSendToKibanaFailed),
+			respBodyToken:          errWrap(fmt.Sprintf("%s: testerror", agentcfg.ErrMsgSendToKibanaFailed)),
+		},
 
-	"StatusNotFoundError": {
-		kbClient:               tests.MockKibana(http.StatusNotFound, m{}),
-		method:                 http.MethodGet,
-		queryParams:            map[string]string{"service.name": "opbeans-python"},
-		respStatus:             http.StatusNotFound,
-		respCacheControlHeader: "max-age=300, must-revalidate",
-	},
+		"MultipleConfigs": {
+			kbClient:               tests.MockKibana(http.StatusMultipleChoices, m{"s1": 1}, mockVersion, true),
+			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
+			respStatus:             http.StatusServiceUnavailable,
+			respCacheControlHeader: "max-age=300, must-revalidate",
+			respBody:               errWrap(agentcfg.ErrMsgMultipleChoices),
+			respBodyToken:          errWrap(fmt.Sprintf("%s: {\\\"s1\\\":1}", agentcfg.ErrMsgMultipleChoices)),
+		},
 
-	"NoService": {
-		kbClient:               tests.MockKibana(http.StatusOK, m{}),
-		method:                 http.MethodGet,
-		respStatus:             http.StatusBadRequest,
-		respBody:               true,
-		respCacheControlHeader: "max-age=300, must-revalidate",
-	},
+		"NoConnection": {
+			kbClient:               tests.MockKibana(http.StatusServiceUnavailable, m{}, mockVersion, false),
+			method:                 http.MethodGet,
+			respStatus:             http.StatusServiceUnavailable,
+			respCacheControlHeader: "max-age=300, must-revalidate",
+			respBody:               errWrap(errMsgNoKibanaConnection),
+			respBodyToken:          errWrap(errMsgNoKibanaConnection),
+		},
 
-	"MethodNotAllowed": {
-		kbClient:               tests.MockKibana(http.StatusOK, m{}),
-		method:                 http.MethodPut,
-		respStatus:             http.StatusMethodNotAllowed,
-		respCacheControlHeader: "max-age=300, must-revalidate",
-	},
-}
+		"InvalidVersion": {
+			kbClient:               tests.MockKibana(http.StatusServiceUnavailable, m{}, *common.MustNewVersion("7.2.0"), true),
+			method:                 http.MethodGet,
+			respStatus:             http.StatusServiceUnavailable,
+			respCacheControlHeader: "max-age=300, must-revalidate",
+			respBody:               errWrap(errMsgKibanaVersionNotCompatible),
+			respBodyToken: errWrap("min required Kibana version 7.3.0," +
+				" configured Kibana version {version:7.2.0 Major:7 Minor:2 Bugfix:0 Meta:}"),
+		},
+
+		"StatusNotFoundError": {
+			kbClient:               tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true),
+			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-python"},
+			respStatus:             http.StatusNotFound,
+			respCacheControlHeader: "max-age=300, must-revalidate",
+			respBody:               errWrap(errMsgConfigNotFound),
+			respBodyToken:          errWrap(fmt.Sprintf("%s for opbeans-python", errMsgConfigNotFound)),
+		},
+
+		"NoService": {
+			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
+			method:                 http.MethodGet,
+			respStatus:             http.StatusBadRequest,
+			respBody:               errWrap(errMsgInvalidQuery),
+			respBodyToken:          errWrap(`service.name is required`),
+			respCacheControlHeader: "max-age=300, must-revalidate",
+		},
+
+		"MethodNotAllowed": {
+			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
+			method:                 http.MethodPut,
+			respStatus:             http.StatusMethodNotAllowed,
+			respCacheControlHeader: "max-age=300, must-revalidate",
+			respBody:               errWrap(errMsgMethodUnsupported),
+			respBodyToken:          errWrap(fmt.Sprintf("%s: PUT", errMsgMethodUnsupported)),
+		},
+	}
+)
 
 func TestAgentConfigHandler(t *testing.T) {
 	var cfg = agentConfig{Cache: &Cache{Expiration: 4 * time.Second}}
 
 	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			h := agentConfigHandler(tc.kbClient, true, &cfg, "")
+
+		runTest := func(t *testing.T, body, token string) {
+			h := agentConfigHandler(tc.kbClient, &cfg, token)
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
 			}
+			r.Header.Set("Authorization", "Bearer "+token)
 			h.ServeHTTP(w, r)
 
-			assert.Equal(t, tc.respStatus, w.Code)
+			require.Equal(t, tc.respStatus, w.Code)
 			assert.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
 			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
-			if tc.respBody {
-				assert.NotEmpty(t, w.Body)
-			} else {
+			if body == "" {
 				assert.Empty(t, w.Body)
+			} else {
+				b, err := ioutil.ReadAll(w.Body)
+				require.NoError(t, err)
+				assert.Equal(t, body, string(b))
 			}
+		}
+
+		t.Run(name+"NoSecretToken", func(t *testing.T) {
+			runTest(t, tc.respBody, "")
+		})
+
+		t.Run(name+"WithSecretToken", func(t *testing.T) {
+			runTest(t, tc.respBodyToken, "1234")
 		})
 	}
 }
 
 func TestAgentConfigDisabled(t *testing.T) {
 	cfg := agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(nil, false, &cfg, "")
+	h := agentConfigHandler(nil, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/config", nil)
@@ -173,10 +231,10 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 				"sampling_rate": 0.5,
 			},
 		},
-	})
+	}, mockVersion, true)
 
 	var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(kb, true, &cfg, "")
+	h := agentConfigHandler(kb, &cfg, "")
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{

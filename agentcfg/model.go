@@ -66,7 +66,8 @@ type Query struct {
 	Service Service `json:"service"`
 }
 
-func (q Query) id() string {
+// ID returns the unique id for the query
+func (q Query) ID() string {
 	var str strings.Builder
 	str.WriteString(q.Service.Name)
 	if q.Service.Environment != "" {
