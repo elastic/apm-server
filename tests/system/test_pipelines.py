@@ -21,7 +21,7 @@ class SetupPipelinesDefaultTest(SubCommandTest):
 
     def setUp(self):
         # TODO (gr): consolidate with ElasticTest
-        self.es = Elasticsearch([get_elasticsearch_url()])
+        self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.es.ingest.delete_pipeline(id="*")
         super(SetupPipelinesDefaultTest, self).setUp()
 

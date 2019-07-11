@@ -37,6 +37,7 @@ class BaseTest(TestCase):
         cls.index_span = "apm-{}-span".format(cls.apm_version)
         cls.index_metric = "apm-{}-metric".format(cls.apm_version)
         cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
+        cls.index_acm = ".apm-agent-configuration"
         cls.indices = [cls.index_onboarding, cls.index_error,
                        cls.index_transaction, cls.index_span, cls.index_metric, cls.index_smap]
 
@@ -144,7 +145,7 @@ class ElasticTest(ServerBaseTest):
     def config(self):
         cfg = super(ElasticTest, self).config()
         cfg.update({
-            "elasticsearch_host": get_elasticsearch_url(),
+            "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
         })
         cfg.update(self.config_overrides)
@@ -170,7 +171,8 @@ class ElasticTest(ServerBaseTest):
         return result
 
     def setUp(self):
-        self.es = Elasticsearch([get_elasticsearch_url()])
+        self.es = Elasticsearch([self.get_elasticsearch_url()])
+        self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
         self.es.indices.delete(index="apm*", ignore=[400, 404])
@@ -181,6 +183,9 @@ class ElasticTest(ServerBaseTest):
         for idx in self.indices:
             self.wait_until(lambda: not self.es.indices.exists_template(idx))
 
+        # truncate, don't delete agent configuration index since it's only created with kibana starts up
+        self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}}, wait_for_completion=True)
+        self.wait_until(lambda: self.es.count(index=self.index_acm)["count"] == 0)
         # Cleanup pipelines
         self.es.ingest.delete_pipeline(id="*")
 
@@ -384,23 +389,12 @@ class ExpvarBaseTest(ServerBaseTest):
         return requests.get(self.expvar_url)
 
 
-def get_elasticsearch_url():
-    """
-    Returns an elasticsearch.Elasticsearch url built from the
-    env variables like the integration tests.
-    """
-    return "http://{host}:{port}".format(
-        host=os.getenv("ES_HOST", "localhost"),
-        port=os.getenv("ES_PORT", "9200"),
-    )
-
-
 class SubCommandTest(ServerSetUpBaseTest):
 
     def config(self):
         cfg = super(SubCommandTest, self).config()
         cfg.update({
-            "elasticsearch_host": get_elasticsearch_url(),
+            "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
         })
         return cfg
