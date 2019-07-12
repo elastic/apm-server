@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "kwUfnTXFn6mjfw31/cmVIizn/Q4=",
+			"path": "github.com/Bowery/prompt",
+			"revision": "972d0ceb96f55132a1ba9714cb771ce19b3821ab",
+			"revisionTime": "2019-04-19T14:42:37Z"
+		},
+		{
 			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
 			"origin": "honnef.co/go/tools/config/config/vendor/github.com/BurntSushi/toml",
 			"path": "github.com/BurntSushi/toml",
@@ -52,6 +58,12 @@
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "1e5a1046bfa1f231a8dce53a269c2598ac91f28d",
 			"revisionTime": "2019-07-03T13:56:36Z"
+		},
+		{
+			"checksumSHA1": "ULnk7ggN82JFO0ZdBCmSsQH3Vh8=",
+			"path": "github.com/dchest/safefile",
+			"revision": "855e8d98f1852d48dde521e0522408d1fe7e836a",
+			"revisionTime": "2015-10-22T10:31:44Z"
 		},
 		{
 			"checksumSHA1": "Gj+xR1VgFKKmFXYOJMnAczC3Znk=",
@@ -1767,6 +1779,12 @@
 			"revisionTime": "2019-03-18T16:54:38Z"
 		},
 		{
+			"checksumSHA1": "c0Z2sKLKi+IKRVzq0IzNvqvfCrQ=",
+			"path": "github.com/google/shlex",
+			"revision": "c34317bd91bf98fab745d77b03933cf8769299fe",
+			"revisionTime": "2018-11-06T13:46:48Z"
+		},
+		{
 			"checksumSHA1": "d9PxF1XQGLMJZRct2R8qVM/eYlE=",
 			"path": "github.com/hashicorp/golang-lru",
 			"revision": "0a025b7e63adc15a622f29b0b2c4c3848243bbf6",
@@ -1861,6 +1879,12 @@
 			"revisionTime": "2019-07-03T13:56:36Z"
 		},
 		{
+			"checksumSHA1": "ZDbDMPTelGitnepIFyLkplBGh1o=",
+			"path": "github.com/jstemmer/go-junit-report",
+			"revision": "af01ea7f8024089b458d804d5cdf190f962a9a0c",
+			"revisionTime": "2019-01-06T14:48:39Z"
+		},
+		{
 			"checksumSHA1": "IH4jnWcj4d4h+hgsHsHOWg/F+rk=",
 			"origin": "github.com/elastic/beats/vendor/github.com/jstemmer/go-junit-report/formatter",
 			"path": "github.com/jstemmer/go-junit-report/formatter",
@@ -1879,6 +1903,84 @@
 			"path": "github.com/kabukky/httpscerts",
 			"revision": "617593d7dcb39c9ed617bb62c5e2056244d02184",
 			"revisionTime": "2015-03-20T12:54:33Z"
+		},
+		{
+			"checksumSHA1": "eHdL3LdmUx5+M6RDV1LLQuqCwYg=",
+			"path": "github.com/kardianos/govendor",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "EDbwTD6uQOx+c13If7Jxo9hFbs4=",
+			"path": "github.com/kardianos/govendor/cliprompt",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "bkOWuhW8enzlEtJMCxYj1fFBVoY=",
+			"path": "github.com/kardianos/govendor/context",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "zNEnQheihh/BKnZl16KiIcG86F8=",
+			"path": "github.com/kardianos/govendor/help",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "SOMQHVCs36zWP0cZAEtSEU8H2bQ=",
+			"path": "github.com/kardianos/govendor/internal/pathos",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "Bl6I6yMiK60dzOAfyO7As6MSPIk=",
+			"path": "github.com/kardianos/govendor/internal/vfilepath",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "2Vg+J79rEhmtnprErQ7fTZdneIk=",
+			"path": "github.com/kardianos/govendor/internal/vos",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "3h5OMPOj5oIkObUzLDJjE9DnFPs=",
+			"path": "github.com/kardianos/govendor/migrate",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "wL4SaLS/HTn32Gmq8kpYRr/cn68=",
+			"path": "github.com/kardianos/govendor/pkgspec",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "B+3eGc34fJuF5dHsOSCa9dSdHQY=",
+			"path": "github.com/kardianos/govendor/prompt",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "QjnTESUuxrrcMLwutBkaxF4pLBw=",
+			"path": "github.com/kardianos/govendor/run",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "A9cS/HSXJjmExS3T3bpXA/iO6ok=",
+			"path": "github.com/kardianos/govendor/vcs",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
+		},
+		{
+			"checksumSHA1": "qAEXdxLQRkP1i8KhgyndRsVUzrw=",
+			"path": "github.com/kardianos/govendor/vendorfile",
+			"revision": "d88665830a7b2a51819ed7f4130cbcd49e7b2e61",
+			"revisionTime": "2019-06-13T17:14:05Z"
 		},
 		{
 			"checksumSHA1": "KKxbAKrKrfd33YPpkNsDmTN3S+M=",
@@ -2248,6 +2350,12 @@
 			"path": "github.com/stretchr/testify/require",
 			"revision": "1e5a1046bfa1f231a8dce53a269c2598ac91f28d",
 			"revisionTime": "2019-07-03T13:56:36Z"
+		},
+		{
+			"checksumSHA1": "X6WTt1wvfs59cC1Dr9WxDmitfnE=",
+			"path": "github.com/t-yuki/gocover-cobertura",
+			"revision": "aaee18c8195c3f2d90e5ef80ca918d265463842a",
+			"revisionTime": "2018-02-17T15:00:09Z"
 		},
 		{
 			"checksumSHA1": "CpcG17Q/0k1g2uy8AL26Uu7TouU=",
@@ -2712,6 +2820,14 @@
 			"path": "golang.org/x/time/rate",
 			"revision": "1e5a1046bfa1f231a8dce53a269c2598ac91f28d",
 			"revisionTime": "2019-07-03T13:56:36Z"
+		},
+		{
+			"checksumSHA1": "Qt4D32VRtcQTojQc1Bc7FxHYnGU=",
+			"path": "golang.org/x/tools/cmd/benchcmp",
+			"revision": "aa82965741a9fecd12b026fbb3d3c6ed3231b8f8",
+			"revisionTime": "2019-03-01T11:00:19Z",
+			"version": "release-branch.go1.12",
+			"versionExact": "release-branch.go1.12"
 		},
 		{
 			"checksumSHA1": "1AaBS00YoGPd0fAjH1soKkj12J0=",
