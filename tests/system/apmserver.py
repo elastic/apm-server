@@ -147,6 +147,7 @@ class ElasticTest(ServerBaseTest):
         cfg.update({
             "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
+            "kibana_host": self.get_kibana_url(),
         })
         cfg.update(self.config_overrides)
         return cfg
