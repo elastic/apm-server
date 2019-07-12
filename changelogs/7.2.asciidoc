@@ -13,7 +13,7 @@ https://github.com/elastic/apm-server/compare/v7.2.0\...v7.2.1[View commits]
 
 [float]
 ==== Known issues
-- `apm-server.register.ingest.pipeline.overwrite` set to true by default {pull}[].
+- Pipelines are overwritten by default - `apm-server.register.ingest.pipeline.overwrite` defaults to true.  Set `apm-server.register.ingest.pipeline.overwrite` to `false` explicitly to work around this.
 
 [[release-notes-7.2.0]]
 === APM Server version 7.2.0
