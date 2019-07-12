@@ -176,7 +176,6 @@ class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 class PipelineEnableRegisterOverwriteTest(ElasticTest):
-
     config_overrides = {
         "register_pipeline_overwrite": "true"
     }
