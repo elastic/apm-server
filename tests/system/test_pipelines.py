@@ -1,5 +1,5 @@
 import unittest
-from apmserver import ElasticTest, SubCommandTest, get_elasticsearch_url
+from apmserver import ElasticTest, SubCommandTest
 from beat.beat import INTEGRATION_TESTS, TimeoutError
 from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import raises
@@ -21,7 +21,7 @@ class SetupPipelinesDefaultTest(SubCommandTest):
 
     def setUp(self):
         # TODO (gr): consolidate with ElasticTest
-        self.es = Elasticsearch([get_elasticsearch_url()])
+        self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.es.ingest.delete_pipeline(id="*")
         super(SetupPipelinesDefaultTest, self).setUp()
 
