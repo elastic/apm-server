@@ -6,6 +6,9 @@ services:
       - proxy_dep
     env_file:
       - ${PWD}/build/test.env
+    environment:
+      - KIBANA_HOST=kibana
+      - KIBANA_PORT=5601
     working_dir: /go/src/github.com/elastic/apm-server
     volumes:
       - ${PWD}:/go/src/github.com/elastic/apm-server/
@@ -17,8 +20,14 @@ services:
     image: busybox
     depends_on:
       elasticsearch: { condition: service_healthy }
+      kibana: { condition: service_healthy }
 
   elasticsearch:
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: elasticsearch
+
+  kibana:
+    extends:
+      file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
+      service: kibana
