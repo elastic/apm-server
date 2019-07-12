@@ -60,10 +60,11 @@ func NewFetcher(kbClient kibana.Client, cacheExp time.Duration) *Fetcher {
 // Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
 func (f *Fetcher) Fetch(q Query, err error) (map[string]string, string, error) {
 	req := func(query Query) (*Doc, error) {
-		var doc Doc
 		resultBytes, err := f.request(convert.ToReader(query), err)
-		err = convert.FromBytes(resultBytes, &doc, err)
-		return &doc, err
+		if err != nil {
+			return nil, err
+		}
+		return NewDoc(resultBytes)
 	}
 
 	doc, err := f.docCache.fetchAndAdd(q, req)
@@ -71,7 +72,7 @@ func (f *Fetcher) Fetch(q Query, err error) (map[string]string, string, error) {
 		return nil, "", err
 	}
 
-	return doc.Source.Settings, doc.ID, nil
+	return doc.Settings, doc.ID, nil
 }
 
 func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {

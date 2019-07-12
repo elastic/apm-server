@@ -40,6 +40,7 @@ import (
 
 var (
 	mockVersion = *common.MustNewVersion("7.3.0")
+	mockEtag    = "61a98e293262279d6ad99e5739fdd1b8"
 	errWrap     = func(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
 	successBody = `{"sampling_rate":"0.5"}` + "\n"
 
@@ -63,27 +64,11 @@ var (
 				},
 			}, mockVersion, true),
 			method:                 http.MethodGet,
-			requestHeader:          map[string]string{headers.IfNoneMatch: `"` + "1" + `"`},
+			requestHeader:          map[string]string{headers.IfNoneMatch: `"` + mockEtag + `"`},
 			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusNotModified,
 			respCacheControlHeader: "max-age=4, must-revalidate",
-			respEtagHeader:         "\"1\"",
-		},
-
-		"ModifiedWithoutEtag": {
-			kbClient: tests.MockKibana(http.StatusOK, m{
-				"_source": m{
-					"settings": m{
-						"sampling_rate": 0.5,
-					},
-				},
-			}, mockVersion, true),
-			method:                 http.MethodGet,
-			queryParams:            map[string]string{"service.name": "opbeans-java"},
-			respStatus:             http.StatusOK,
-			respCacheControlHeader: "max-age=4, must-revalidate",
-			respBody:               successBody,
-			respBodyToken:          successBody,
+			respEtagHeader:         `"` + mockEtag + `"`,
 		},
 
 		"ModifiedWithEtag": {
@@ -99,7 +84,7 @@ var (
 			requestHeader:          map[string]string{headers.IfNoneMatch: "2"},
 			queryParams:            map[string]string{"service.name": "opbeans-java"},
 			respStatus:             http.StatusOK,
-			respEtagHeader:         "\"1\"",
+			respEtagHeader:         `"` + mockEtag + `"`,
 			respCacheControlHeader: "max-age=4, must-revalidate",
 			respBody:               successBody,
 			respBodyToken:          successBody,

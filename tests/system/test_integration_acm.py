@@ -162,7 +162,6 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         # wait for cache to purge
         time.sleep(1.1)  # sleep much more than acm_cache_expiration to reduce flakiness
 
-        # TODO (gr): include If-None-Match header - https://github.com/elastic/apm-server/issues/2434
         r5_post_update = requests.get(self.agent_config_url,
                                       params={
                                           "service.name": service_name,
@@ -170,7 +169,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                                       },
                                       headers={
                                           "Content-Type": "application/x-ndjson",
-                                          # "If-None-Match": r5.headers["Etag"],
+                                          "If-None-Match": r5.headers["Etag"],
                                       })
         assert r5_post_update.status_code == 200, r5_post_update.status_code
         self.assertDictEqual({"sample_rate": "0.99"}, r5_post_update.json())

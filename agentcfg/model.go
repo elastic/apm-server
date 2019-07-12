@@ -18,31 +18,50 @@
 package agentcfg
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"strings"
-)
-
-const (
-	// ServiceName keyword
-	ServiceName = "service.name"
-	// ServiceEnv keyword
-	ServiceEnv = "service.environment"
 )
 
 // Doc represents an elasticsearch document
 type Doc struct {
-	ID     string `json:"_id"`
-	Source Source `json:"_source"`
-}
-
-// Source represents the elasticsearch _source field of a document
-type Source struct {
-	Settings Settings `json:"settings"`
+	Settings Settings
+	ID       string
 }
 
 // Settings hold agent configuration
 type Settings map[string]string
+
+// NewDoc unmarshals given byte slice into t Doc instance
+func NewDoc(in []byte) (*Doc, error) {
+	var doc Doc
+	if len(in) == 0 {
+		return &doc, nil
+	}
+	var tmp tmpDoc
+	if err := json.Unmarshal(in, &tmp); err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(tmp.Source.Settings, &doc.Settings); err != nil {
+		return nil, err
+	}
+	doc.ID = tmp.hash()
+	return &doc, nil
+}
+
+type tmpDoc struct {
+	ID     string `json:"_id"`
+	Source struct {
+		Settings json.RawMessage `json:"settings"`
+	} `json:"_source"`
+}
+
+func (t *tmpDoc) hash() string {
+	h := md5.New()
+	h.Write([]byte(t.ID))
+	h.Write([]byte(t.Source.Settings))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
 
 // UnmarshalJSON overrides default method to convert any JSON type to string
 func (s *Settings) UnmarshalJSON(b []byte) error {
@@ -54,31 +73,4 @@ func (s *Settings) UnmarshalJSON(b []byte) error {
 	}
 	*s = out
 	return err
-}
-
-// NewQuery creates a Query struct
-func NewQuery(name, env string) Query {
-	return Query{Service{name, env}}
-}
-
-// Query represents an URL body or query params for agent configuration
-type Query struct {
-	Service Service `json:"service"`
-}
-
-// ID returns the unique id for the query
-func (q Query) ID() string {
-	var str strings.Builder
-	str.WriteString(q.Service.Name)
-	if q.Service.Environment != "" {
-		str.WriteString("_")
-		str.WriteString(q.Service.Environment)
-	}
-	return str.String()
-}
-
-// Service holds supported attributes for querying configuration
-type Service struct {
-	Name        string `json:"name"`
-	Environment string `json:"environment,omitempty"`
 }
