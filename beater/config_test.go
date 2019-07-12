@@ -369,3 +369,26 @@ func TestTLSSettings(t *testing.T) {
 		}
 	})
 }
+
+func TestAgentConfig(t *testing.T) {
+	t.Run("InvalidValueTooSmall", func(t *testing.T) {
+		cfg, err := newConfig("9.9.9",
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}))
+		require.Error(t, err)
+		assert.Nil(t, cfg)
+	})
+
+	t.Run("InvalidUnit", func(t *testing.T) {
+		cfg, err := newConfig("9.9.9",
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}))
+		require.Error(t, err)
+		assert.Nil(t, cfg)
+	})
+
+	t.Run("Valid", func(t *testing.T) {
+		cfg, err := newConfig("9.9.9",
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}))
+		require.NoError(t, err)
+		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
+	})
+}
