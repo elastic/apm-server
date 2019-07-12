@@ -1,5 +1,5 @@
 import unittest
-from apmserver import ElasticTest, SubCommandTest, get_elasticsearch_url
+from apmserver import ElasticTest, SubCommandTest
 from beat.beat import INTEGRATION_TESTS, TimeoutError
 from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import raises
