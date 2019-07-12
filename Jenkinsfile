@@ -44,7 +44,7 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout') {
-      agent { label 'master || immutable' }
+      agent { label 'master || ubuntu-18' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
@@ -81,7 +81,7 @@ pipeline {
     Validate that all updates were committed.
     */
     stage('Intake') {
-      agent { label 'linux && immutable' }
+      agent { label 'ubuntu-18' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -109,7 +109,7 @@ pipeline {
         Build on a linux environment.
         */
         stage('linux build') {
-          agent { label 'linux && immutable' }
+          agent { label 'ubuntu-18' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
@@ -156,7 +156,7 @@ pipeline {
           Run unit tests and report junit results.
         */
         stage('Unit Test') {
-          agent { label 'linux && immutable' }
+          agent { label 'ubuntu-18' }
           options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -189,7 +189,7 @@ pipeline {
         Finally archive the results.
         */
         stage('System and Environment Tests') {
-          agent { label 'linux && immutable' }
+          agent { label 'ubuntu-18' }
           options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -257,7 +257,7 @@ pipeline {
         Finally archive the results.
         */
         stage('Benchmarking') {
-          agent { label 'linux && immutable' }
+          agent { label 'ubuntu-18' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
@@ -315,7 +315,7 @@ pipeline {
     Finally archive the results.
     */
     stage('Documentation') {
-      agent { label 'linux && immutable' }
+      agent { label 'ubuntu-18' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -344,7 +344,7 @@ pipeline {
     Checks if kibana objects are updated.
     */
     stage('Check kibana Obj. Updated') {
-      agent { label 'linux && immutable' }
+      agent { label 'ubuntu-18' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -394,7 +394,7 @@ pipeline {
       build release packages.
     */
     stage('Release') {
-      agent { label 'linux && immutable' }
+      agent { label 'linux && ubuntu-18' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
