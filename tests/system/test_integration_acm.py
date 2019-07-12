@@ -13,7 +13,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
     config_overrides = {
         "logging_json": "true",
         "kibana_enabled": "true",
-        "acm_cache_expiration": "1ms",  # no cache
+        "acm_cache_expiration": "1s",
     }
 
     def create_service_config(self, settings, name, env=None, _id="new"):
@@ -160,7 +160,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         assert updated_config_with_env_rsp.status_code == 200, updated_config_with_env_rsp.status_code
         # TODO (gr): remove when cache can be disabled via config
         # wait for cache to purge
-        time.sleep(.10)  # sleep much more than acm_cache_expiration to reduce flakiness
+        time.sleep(1.1)  # sleep much more than acm_cache_expiration to reduce flakiness
 
         # TODO (gr): include If-None-Match header - https://github.com/elastic/apm-server/issues/2434
         r5_post_update = requests.get(self.agent_config_url,

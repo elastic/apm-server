@@ -27,17 +27,19 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/paths"
+
+	"github.com/elastic/apm-server/sourcemap"
 )
 
 const (
 	// DefaultPort of APM Server
 	DefaultPort = "8200"
 
-	defaultAPMPipeline = "apm"
+	defaultAPMPipeline  = "apm"
+	errMsgInvalidACMCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 )
 
 type Config struct {
@@ -157,6 +159,9 @@ func newConfig(version string, ucfg *common.Config) (*Config, error) {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
+	if float64(int(c.AgentConfig.Cache.Expiration.Seconds())) != c.AgentConfig.Cache.Expiration.Seconds() {
+		return nil, errors.New(errMsgInvalidACMCfg)
+	}
 	if c.RumConfig.isEnabled() {
 		if _, err := regexp.Compile(c.RumConfig.LibraryPattern); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
