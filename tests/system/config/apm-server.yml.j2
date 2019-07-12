@@ -77,9 +77,12 @@ apm-server:
   ilm.enabled: {{ ilm_enabled }}
   {% endif %}
 
-  {% if kibana_enabled %}
-  kibana.enabled: {{ kibana_enabled }}
+  {% if kibana_enabled is not none or kibana_host is not none %}
+  kibana:
+    {% if kibana_enabled is not none %}enabled: {{ kibana_enabled }}{% endif %}
+    {% if kibana_host is not none %}host: {{ kibana_host }}{% endif %}
   {% endif %}
+{% if acm_cache_expiration is not none %}  agent.config.cache.expiration: {{ acm_cache_expiration }}{% endif %}
 
 
 ############################# Setup ##########################################
