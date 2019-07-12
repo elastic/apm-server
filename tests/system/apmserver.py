@@ -184,7 +184,7 @@ class ElasticTest(ServerBaseTest):
         for idx in self.indices:
             self.wait_until(lambda: not self.es.indices.exists_template(idx))
 
-        # truncate, don't delete agent configuration index since it's only created with kibana starts up
+        # truncate, don't delete agent configuration index since it's only created when kibana starts up
         self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}}, wait_for_completion=True)
         self.wait_until(lambda: self.es.count(index=self.index_acm)["count"] == 0)
         # Cleanup pipelines
