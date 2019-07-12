@@ -56,15 +56,18 @@ If you'd like to manage a custom policy, see <<manual-ilm-setup,Manual ILM>>.
 ILM can be enabled/disabled via the `ilm.enabled` configuration option.
 Starting in v7.3, `ilm.enabled` is set to `"auto"` by default.
 
+IMPORTANT: If you switch between ILM enabled/disabled multiple times,
+you should set `setup.template.overwrite` to `true` to ensure a complete setup.
+
 [float]
 ===== `ilm.enabled: "auto"`
 
 `"auto"` means APM Server will attempt to enable ILM based on the following conditions:
 
-* *`output.elasticsearch` must be enabled*. If any other output is configured, ILM will be disabled and an error will be logged.
+* *`output.elasticsearch` must be enabled*. If any other output is configured, ILM will be disabled.
+* *The Elasticsearch instance must support ILM*. If it does not, ILM will be disabled.
 * *Custom `index` or `indices` settings cannot be configured*. If custom index settings are configured,
 ILM will be disabled, as it only works with default index settings.
-* *The Elasticsearch instance must support ILM*. If it does not, ILM will be disabled.
 
 If all three of the above conditions are true, ILM will be enabled.
 
@@ -141,9 +144,6 @@ GET _ilm/policy
 <4> Priority for recovering your indices after a node restart. Higher priorities are recovered first.
 
 Your indices are now configured to use index lifecycle management. Go ahead and <<setting-up-and-running,run APM Server>>.
-
-NOTE: If you switch between ILM enabled/disabled multiple times,
-you should set `setup.template.overwrite` to `true` to ensure a complete setup.
 
 [float]
 ==== ILM default policy upgrades
