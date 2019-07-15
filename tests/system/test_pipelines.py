@@ -54,6 +54,7 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         assert self.log_contains("No pipeline callback registered")
 
 
+@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 class PipelineRegisterTest(ElasticTest):
     def test_default_pipelines_registered(self):
         pipelines = [
