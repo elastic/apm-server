@@ -48,6 +48,7 @@ func TestNewDoc(t *testing.T) {
 				"settings": map[string]interface{}{
 					"sample_rate": 0.5,
 					"name":        "testconfig",
+					"sampling":    true,
 				}}}
 		inp, err := json.Marshal(m)
 		require.NoError(t, err)
@@ -55,13 +56,13 @@ func TestNewDoc(t *testing.T) {
 		settings := Settings{
 			"sample_rate": "0.5",
 			"name":        "testconfig",
+			"sampling":    "true",
 		}
-		idBytes := []byte("1234")
-		sBytes, err := json.Marshal(map[string]interface{}{
-			"sample_rate": 0.5,
-			"name":        "testconfig"})
-		require.NoError(t, err)
-		b := append(idBytes, sBytes...)
+
+		var b []byte
+		b = append(b, []byte("name_testconfig")...)
+		b = append(b, []byte("sample_rate_0.5")...)
+		b = append(b, []byte("sampling_true")...)
 		id := fmt.Sprintf("%x", md5.Sum(b))
 
 		d, err := NewDoc(inp)

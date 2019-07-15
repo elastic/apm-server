@@ -17,10 +17,6 @@
 
 package agentcfg
 
-import (
-	"strings"
-)
-
 const (
 	// ServiceName keyword
 	ServiceName = "service.name"
@@ -46,11 +42,8 @@ func NewQuery(name, env string) Query {
 
 // ID returns the unique id for the query
 func (q Query) ID() string {
-	var str strings.Builder
-	str.WriteString(q.Service.Name)
-	if q.Service.Environment != "" {
-		str.WriteString("_")
-		str.WriteString(q.Service.Environment)
+	if q.Service.Environment == "" {
+		return q.Service.Name
 	}
-	return str.String()
+	return q.Service.Name + "_" + q.Service.Environment
 }

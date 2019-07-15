@@ -40,7 +40,7 @@ import (
 
 var (
 	mockVersion = *common.MustNewVersion("7.3.0")
-	mockEtag    = "61a98e293262279d6ad99e5739fdd1b8"
+	mockEtag    = "1c9588f5a4da71cdef992981a9c9735c"
 	errWrap     = func(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
 	successBody = `{"sampling_rate":"0.5"}` + "\n"
 
@@ -175,8 +175,8 @@ func TestAgentConfigHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			require.Equal(t, tc.respStatus, w.Code)
-			assert.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
-			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
+			require.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
+			require.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
 			if body == "" {
 				assert.Empty(t, w.Body)
 			} else {

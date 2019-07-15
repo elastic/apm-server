@@ -21,6 +21,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"sort"
 )
 
 // Doc represents an elasticsearch document
@@ -34,43 +35,34 @@ type Settings map[string]string
 
 // NewDoc unmarshals given byte slice into t Doc instance
 func NewDoc(in []byte) (*Doc, error) {
-	var doc Doc
 	if len(in) == 0 {
-		return &doc, nil
+		return &Doc{}, nil
 	}
 	var tmp tmpDoc
 	if err := json.Unmarshal(in, &tmp); err != nil {
 		return nil, err
 	}
-	if err := json.Unmarshal(tmp.Source.Settings, &doc.Settings); err != nil {
-		return nil, err
+
+	h := md5.New()
+	var keys []string
+	for k := range tmp.Source.Settings {
+		keys = append(keys, k)
 	}
-	doc.ID = tmp.hash()
-	return &doc, nil
+	sort.Strings(keys)
+	out := make(map[string]string)
+	for _, k := range keys {
+		out[k] = fmt.Sprintf("%v", tmp.Source.Settings[k])
+		h.Write([]byte(fmt.Sprintf("%s_%v", k, tmp.Source.Settings[k])))
+	}
+
+	return &Doc{
+		ID:       fmt.Sprintf("%x", h.Sum(nil)),
+		Settings: out,
+	}, nil
 }
 
 type tmpDoc struct {
-	ID     string `json:"_id"`
 	Source struct {
-		Settings json.RawMessage `json:"settings"`
+		Settings map[string]interface{} `json:"settings"`
 	} `json:"_source"`
-}
-
-func (t *tmpDoc) hash() string {
-	h := md5.New()
-	h.Write([]byte(t.ID))
-	h.Write([]byte(t.Source.Settings))
-	return fmt.Sprintf("%x", h.Sum(nil))
-}
-
-// UnmarshalJSON overrides default method to convert any JSON type to string
-func (s *Settings) UnmarshalJSON(b []byte) error {
-	in := make(map[string]interface{})
-	out := make(map[string]string)
-	err := json.Unmarshal(b, &in)
-	for k, v := range in {
-		out[k] = fmt.Sprintf("%v", v)
-	}
-	*s = out
-	return err
 }
