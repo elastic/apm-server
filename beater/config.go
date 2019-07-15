@@ -197,7 +197,7 @@ func (c *pipelineConfig) isEnabled() bool {
 }
 
 func (c *pipelineConfig) shouldOverwrite() bool {
-	return c != nil && (c.Overwrite == nil || *c.Overwrite)
+	return c != nil && (c.Overwrite != nil && *c.Overwrite)
 }
 
 func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
@@ -286,8 +286,7 @@ func defaultConfig(beatVersion string) *Config {
 		Register: &registerConfig{
 			Ingest: &ingestConfig{
 				Pipeline: &pipelineConfig{
-					Enabled:   &pipeline,
-					Overwrite: &pipeline,
+					Enabled: &pipeline,
 					Path: paths.Resolve(paths.Home,
 						filepath.Join("ingest", "pipeline", "definition.json")),
 				}},
