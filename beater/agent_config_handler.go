@@ -74,14 +74,15 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 		}
 
 		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, nil)
-		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
-
-		switch {
-		case internalErr != nil:
+		if internalErr != nil {
 			sendErr(http.StatusServiceUnavailable, internalErrMsg(internalErr.Error()), internalErr.Error())
+			return
+		}
+
+		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
+		switch {
 		case len(cfg) == 0:
-			logMsg := fmt.Sprintf("%s for %s", errMsgConfigNotFound, query.ID())
-			sendErr(http.StatusNotFound, errMsgConfigNotFound, logMsg)
+			sendResp(nil, http.StatusOK, cacheControl)
 		case upstreamEtag == "":
 			sendResp(cfg, http.StatusOK, cacheControl)
 		case etag == r.Header.Get(headers.IfNoneMatch):
