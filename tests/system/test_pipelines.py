@@ -59,10 +59,11 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         assert self.log_contains("No pipeline callback registered")
 
 
+
 class PipelineRegisterTest(ElasticTest):
-    # pipeline.overwrite should be enabled by default.
     config_overrides = {
         "register_pipeline_enabled": "true",
+        "register_pipeline_overwrite": "true"
     }
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -79,10 +80,9 @@ class PipelineRegisterTest(ElasticTest):
             assert pipeline[pipeline_id]['description'] == pipeline_desc
 
 
-class PipelineDisableOverwriteTest(ElasticTest):
+class PipelineDefaultOverwriteTest(ElasticTest):
     config_overrides = {
         "register_pipeline_enabled": "true",
-        "register_pipeline_overwrite": "false"
     }
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
