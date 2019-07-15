@@ -59,7 +59,6 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         assert self.log_contains("No pipeline callback registered")
 
 
-
 class PipelineRegisterTest(ElasticTest):
     config_overrides = {
         "register_pipeline_enabled": "true",

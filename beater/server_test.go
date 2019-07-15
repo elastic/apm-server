@@ -322,7 +322,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 			expected: []string{"localhost:5200"},
 			config: m{
 				"rum": m{
-					"enabled":                            "true",
+					"enabled": "true",
 					"source_mapping.elasticsearch.hosts": []string{"localhost:5200"},
 				},
 			},
