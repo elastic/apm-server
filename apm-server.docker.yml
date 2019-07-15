@@ -174,8 +174,8 @@ apm-server:
   #register.ingest.pipeline:
     # Registers APM pipeline definition in Elasticsearch on APM Server startup. Defaults to true.
     #enabled: true
-    # Overwrites existing APM pipeline definition in Elasticsearch. Defaults to true.
-    #overwrite: true
+    # Overwrites existing APM pipeline definition in Elasticsearch. Defaults to false.
+    #overwrite: false
 
   # When ilm is set to `auto`, the APM Server checks a couple of preconditions:
   # If a different output than Elasticsearch is configured, ILM will be disabled.
