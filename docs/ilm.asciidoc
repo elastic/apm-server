@@ -13,8 +13,8 @@ see {kibana-ref}/index-lifecycle-policies.html[Index lifecycle policies].
 
 APM Server currently offers two ways to get started with ILM:
 
-1. <<ilm-default,**ILM default policy**>> - Get up and running with a default index lifecycle management policy as quickly as possible.
-2. <<manual-ilm-setup,**Manual ILM**>> - Customize and manage your own ILM policies.
+1. <<ilm-default,ILM default policy>> - Get up and running with a default index lifecycle management policy as quickly as possible.
+2. <<manual-ilm-setup,Manual ILM>> - Customize and manage your own ILM policies.
 
 NOTE: If you're migrating from an existing setup,
 any indices present before ILM was configured will need to be managed manually.
@@ -50,12 +50,43 @@ IMPORTANT: Changes to the default index lifecycle policy do not take effect unti
 If you'd like to manage a custom policy, see <<manual-ilm-setup,Manual ILM>>.
 
 [float]
+[[ilm-enable]]
+==== Enable ILM
+
+ILM can be enabled/disabled via the `ilm.enabled` configuration option.
+Starting in v7.3, `ilm.enabled` is set to `"auto"` by default.
+
+IMPORTANT: If you switch between ILM enabled/disabled multiple times,
+you should set `setup.template.overwrite` to `true` to ensure a complete setup.
+
+[float]
+===== `ilm.enabled: "auto"`
+
+`"auto"` means APM Server will attempt to enable ILM based on the following conditions:
+
+* *`output.elasticsearch` must be enabled*. If any other output is configured, ILM will be disabled.
+* *The Elasticsearch instance must support ILM*. If it does not, ILM will be disabled.
+* *Custom `index` or `indices` settings cannot be configured*. If custom index settings are configured,
+ILM will be disabled, as it only works with default index settings.
+
+If all three of the above conditions are true, ILM will be enabled.
+
+[float]
+===== `ilm.enabled: true`
+
+You can explicitly set `ilm.enabled` to `true`.
+When this happens, the APM Server ignores any configured index settings.
+The configured output must still be set to Elasticsearch and the instance still needs to support ILM.
+If not, APM Server falls back to ordinary index management without ILM, and an error is logged.
+
+[float]
+===== `ilm.enabled: false`
+
+ILM can be explicitly disabled by setting `ilm.enabled` to `false`.
+
+[float]
 [[ilm-setup]]
 ==== ILM default policy setup
-
-To set up index lifecycle management, set `ilm.enabled` to `true` in apm-server.yml.
-ILM can only be enabled for `output.elasticsearch`.
-When enabled, configurations defined for `output.elasticsearch.index` and `output.elasticsearch.indices` will be ignored.
 
 It is recommended to set up index lifecycle management (ILM) before starting APM Server.
 This excludes setup from the ingestion process, which allows you to ensure ILM is set up correctly before using APM.
@@ -113,9 +144,6 @@ GET _ilm/policy
 <4> Priority for recovering your indices after a node restart. Higher priorities are recovered first.
 
 Your indices are now configured to use index lifecycle management. Go ahead and <<setting-up-and-running,run APM Server>>.
-
-NOTE: If you switch between ILM enabled/disabled multiple times,
-you should set `setup.template.overwrite` to `true` to ensure a complete setup.
 
 [float]
 ==== ILM default policy upgrades
