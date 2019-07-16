@@ -175,7 +175,7 @@ apm-server:
     #enabled: false
 
     # Overwrites existing pipeline definitions in Elasticsearch. Defaults to true.
-    #overwrite: true
+    #overwrite: false
 
   # When ilm is set to true the APM Server will take care of ILM setup.
   # Configurations in output.elasticsearch.index and output.elasticsearch.indices sections will be ignored
