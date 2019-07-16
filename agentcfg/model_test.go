@@ -19,7 +19,6 @@ package agentcfg
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -32,7 +31,7 @@ func TestNewDoc(t *testing.T) {
 	t.Run("InvalidInput", func(t *testing.T) {
 		d, err := NewDoc([]byte("some string"))
 		assert.Error(t, err)
-		assert.Nil(t, d)
+		assert.Empty(t, d)
 	})
 
 	t.Run("EmptyInput", func(t *testing.T) {
@@ -42,25 +41,24 @@ func TestNewDoc(t *testing.T) {
 	})
 
 	t.Run("ValidInput", func(t *testing.T) {
-		m := map[string]interface{}{
-			"_id": "1234",
-			"_source": map[string]interface{}{
-				"settings": map[string]interface{}{
-					"sample_rate": 0.5,
-					"name":        "testconfig",
-					"sampling":    true,
-				}}}
-		inp, err := json.Marshal(m)
-		require.NoError(t, err)
+		inp := []byte(`{"_id": "1234", 
+"_source": {"settings":{"sample_rate":0.5,"name":"testconfig","sampling":true,
+"nested":{"ab":"val","ac":[3,1,2],"aa":{"c":45.6}}}}}`)
 
 		settings := Settings{
 			"sample_rate": "0.5",
 			"name":        "testconfig",
 			"sampling":    "true",
+			"nested.ab":   "val",
+			"nested.ac":   "3,1,2",
+			"nested.aa.c": "45.6",
 		}
 
 		var b []byte
 		b = append(b, []byte("name_testconfig")...)
+		b = append(b, []byte("nested.aa.c_45.6")...)
+		b = append(b, []byte("nested.ab_val")...)
+		b = append(b, []byte("nested.ac_3,1,2")...)
 		b = append(b, []byte("sample_rate_0.5")...)
 		b = append(b, []byte("sampling_true")...)
 		id := fmt.Sprintf("%x", md5.Sum(b))
