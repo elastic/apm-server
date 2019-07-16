@@ -104,6 +104,14 @@ var (
 			respBodyToken:          successBody,
 		},
 
+		"NoConfigFound": {
+			kbClient:               tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true),
+			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-python"},
+			respStatus:             http.StatusOK,
+			respCacheControlHeader: "max-age=4, must-revalidate",
+		},
+
 		"SendToKibanaFailed": {
 			kbClient:               tests.MockKibana(http.StatusBadGateway, m{}, mockVersion, true),
 			method:                 http.MethodGet,
@@ -141,16 +149,6 @@ var (
 			respBody:               errWrap(errMsgKibanaVersionNotCompatible),
 			respBodyToken: errWrap("min required Kibana version 7.3.0," +
 				" configured Kibana version {version:7.2.0 Major:7 Minor:2 Bugfix:0 Meta:}"),
-		},
-
-		"StatusNotFoundError": {
-			kbClient:               tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true),
-			method:                 http.MethodGet,
-			queryParams:            map[string]string{"service.name": "opbeans-python"},
-			respStatus:             http.StatusNotFound,
-			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errWrap(errMsgConfigNotFound),
-			respBodyToken:          errWrap(fmt.Sprintf("%s for opbeans-python", errMsgConfigNotFound)),
 		},
 
 		"NoService": {
