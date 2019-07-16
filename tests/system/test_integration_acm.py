@@ -62,13 +62,13 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                           params={"service.name": service_name + "_cache_bust"},
                           headers={"Content-Type": "application/x-ndjson"},
                           )
-        assert r2.status_code == 404, r2.status_code
+        assert r2.status_code == 200, r2.status_code
         expect_log.append({
-            "level": "error",
-            "message": "error handling request",
-            "error": "no configuration available for {}_cache_bust".format(service_name),
-            "response_code": 404,
+            "level": "info",
+            "message": "handled request",
+            "response_code": 200,
         })
+        assert r2.json() is None
 
         create_config_rsp = self.create_service_config({"sample_rate": "0.05"}, service_name)
         assert create_config_rsp.status_code == 200, create_config_rsp.status_code
@@ -109,13 +109,13 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                               "service.environment": bad_service_env,
                           },
                           headers={"Content-Type": "application/x-ndjson"})
-        assert r4.status_code == 404, r4.status_code
+        assert r4.status_code == 200, r4.status_code
         expect_log.append({
-            "level": "error",
-            "message": "error handling request",
-            "error": "no configuration available for {}_{}".format(service_name, bad_service_env),
-            "response_code": 404,
+            "level": "info",
+            "message": "handled request",
+            "response_code": 200,
         })
+        assert r4.json() is None
 
         create_config_with_env_rsp = self.create_service_config({"sample_rate": "0.15"}, service_name, env=service_env)
         assert create_config_with_env_rsp.status_code == 200, create_config_with_env_rsp.status_code
