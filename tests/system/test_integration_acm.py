@@ -68,7 +68,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
             "message": "handled request",
             "response_code": 200,
         })
-        assert r2.json() is None
+        self.assertFalse(r2.content)
 
         create_config_rsp = self.create_service_config({"sample_rate": "0.05"}, service_name)
         assert create_config_rsp.status_code == 200, create_config_rsp.status_code
@@ -115,7 +115,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
             "message": "handled request",
             "response_code": 200,
         })
-        assert r4.json() is None
+        self.assertFalse(r4.content)
 
         create_config_with_env_rsp = self.create_service_config({"sample_rate": "0.15"}, service_name, env=service_env)
         assert create_config_with_env_rsp.status_code == 200, create_config_with_env_rsp.status_code
