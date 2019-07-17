@@ -37,21 +37,18 @@ type Settings map[string]string
 
 // NewDoc unmarshals given byte slice into a Doc instance
 func NewDoc(inp []byte) (*Doc, error) {
-	var doc Doc
 	settings, err := unmarshal(inp)
 	if err != nil {
-		return &doc, err
+		return nil, err
 	}
 
 	h := md5.New()
 	var out = map[string]string{}
 	if err := parse(settings, out, "", h); err != nil {
-		return &doc, err
+		return nil, err
 	}
 
-	doc.ID = fmt.Sprintf("%x", h.Sum(nil))
-	doc.Settings = out
-	return &doc, nil
+	return &Doc{ID: fmt.Sprintf("%x", h.Sum(nil)), Settings: out}, nil
 }
 
 func unmarshal(inp []byte) (map[string]interface{}, error) {
