@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"crypto/md5"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -41,8 +42,10 @@ import (
 var (
 	mockVersion = *common.MustNewVersion("7.3.0")
 	mockEtag    = "1c9588f5a4da71cdef992981a9c9735c"
+	emptyEtag   = fmt.Sprintf("%x", md5.New().Sum([]byte{}))
 	errWrap     = func(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
 	successBody = `{"sampling_rate":"0.5"}` + "\n"
+	emptyBody   = `{}` + "\n"
 
 	testcases = map[string]struct {
 		kbClient      kibana.Client
@@ -96,6 +99,9 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-python"},
 			respStatus:             http.StatusOK,
 			respCacheControlHeader: "max-age=4, must-revalidate",
+			respEtagHeader:         `"` + emptyEtag + `"`,
+			respBody:               emptyBody,
+			respBodyToken:          emptyBody,
 		},
 
 		"SendToKibanaFailed": {

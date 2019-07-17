@@ -36,16 +36,21 @@ func TestNewDoc(t *testing.T) {
 
 	t.Run("EmptyInput", func(t *testing.T) {
 		d, err := NewDoc([]byte{})
-		assert.NoError(t, err)
-		assert.Empty(t, d)
+		require.NoError(t, err)
+		expectedDoc := Doc{
+			Settings: map[string]string{},
+			ID:       fmt.Sprintf("%x", md5.Sum([]byte{}))}
+		assert.Equal(t, &expectedDoc, d)
 	})
 
 	t.Run("ValidInput", func(t *testing.T) {
 		inp := []byte(`{"_id": "1234", 
 "_source": {"settings":{"sample_rate":0.5,"name":"testconfig","sampling":true,
+"b":["b", "a"],
 "nested":{"ab":"val","ac":[3,1,2],"aa":{"c":45.6}}}}}`)
 
 		settings := Settings{
+			"b":           "b,a",
 			"sample_rate": "0.5",
 			"name":        "testconfig",
 			"sampling":    "true",
@@ -55,6 +60,7 @@ func TestNewDoc(t *testing.T) {
 		}
 
 		var b []byte
+		b = append(b, []byte("b_b,a")...)
 		b = append(b, []byte("name_testconfig")...)
 		b = append(b, []byte("nested.aa.c_45.6")...)
 		b = append(b, []byte("nested.ab_val")...)

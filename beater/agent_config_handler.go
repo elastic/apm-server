@@ -80,14 +80,10 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 		}
 
 		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
-		switch {
-		case len(cfg) == 0:
-			sendResp(nil, http.StatusOK, cacheControl)
-		case etag == r.Header.Get(headers.IfNoneMatch):
-			w.Header().Set(headers.Etag, etag)
+		w.Header().Set(headers.Etag, etag)
+		if etag == r.Header.Get(headers.IfNoneMatch) {
 			sendResp(nil, http.StatusNotModified, cacheControl)
-		default:
-			w.Header().Set(headers.Etag, etag)
+		} else {
 			sendResp(cfg, http.StatusOK, cacheControl)
 		}
 	})

@@ -64,11 +64,13 @@ func TestFetcher_Fetch(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
+		doc, err := NewDoc([]byte{})
+		require.NoError(t, err)
 
 		result, etag, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
 		require.NoError(t, err)
-		assert.Empty(t, etag)
-		assert.Nil(t, result)
+		assert.Equal(t, doc.ID, etag)
+		assert.Equal(t, doc.Settings, Settings(result))
 	})
 
 	t.Run("Success", func(t *testing.T) {

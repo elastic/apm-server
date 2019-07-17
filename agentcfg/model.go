@@ -39,7 +39,7 @@ type Settings map[string]string
 func NewDoc(inp []byte) (*Doc, error) {
 	var doc Doc
 	settings, err := unmarshal(inp)
-	if settings == nil || err != nil {
+	if err != nil {
 		return &doc, err
 	}
 
@@ -78,26 +78,32 @@ func parse(inp map[string]interface{}, out map[string]string, rootKey string, h 
 	sort.Strings(keys)
 	var localkey string
 	for _, k := range keys {
-		if rootKey == "" {
-			localkey = k
-		} else {
-			localkey = fmt.Sprintf("%s.%s", rootKey, k)
-		}
-		if inpMap, ok := inp[k].(map[string]interface{}); ok {
-			if err := parse(inpMap, out, localkey, h); err != nil {
+		localkey = dotKey(rootKey, k)
+
+		switch inp[k].(type) {
+		case map[string]interface{}:
+			if err := parse(inp[k].(map[string]interface{}), out, localkey, h); err != nil {
 				return err
 			}
-		} else if inpArr, ok := inp[k].([]interface{}); ok {
+		case []interface{}:
+			inpArr := inp[k].([]interface{})
 			var strArr = make([]string, len(inpArr))
 			for idx, entry := range inpArr {
 				strArr[idx] = fmt.Sprintf("%+v", entry)
 			}
 			out[localkey] = strings.Join(strArr, ",")
 			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, out[localkey])))
-		} else {
+		default:
 			out[localkey] = fmt.Sprintf("%+v", inp[k])
 			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, inp[k])))
 		}
 	}
 	return nil
+}
+
+func dotKey(k1, k2 string) string {
+	if k1 == "" {
+		return k2
+	}
+	return fmt.Sprintf("%s.%s", k1, k2)
 }
