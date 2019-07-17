@@ -77,22 +77,21 @@ func parse(inp map[string]interface{}, out map[string]string, rootKey string, h 
 	for _, k := range keys {
 		localkey = dotKey(rootKey, k)
 
-		switch inp[k].(type) {
+		switch val := inp[k].(type) {
 		case map[string]interface{}:
-			if err := parse(inp[k].(map[string]interface{}), out, localkey, h); err != nil {
+			if err := parse(val, out, localkey, h); err != nil {
 				return err
 			}
 		case []interface{}:
-			inpArr := inp[k].([]interface{})
-			var strArr = make([]string, len(inpArr))
-			for idx, entry := range inpArr {
+			var strArr = make([]string, len(val))
+			for idx, entry := range val {
 				strArr[idx] = fmt.Sprintf("%+v", entry)
 			}
 			out[localkey] = strings.Join(strArr, ",")
 			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, out[localkey])))
 		default:
-			out[localkey] = fmt.Sprintf("%+v", inp[k])
-			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, inp[k])))
+			out[localkey] = fmt.Sprintf("%+v", val)
+			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, val)))
 		}
 	}
 	return nil
