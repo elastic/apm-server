@@ -345,6 +345,7 @@ pipeline {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
         GOPATH = "${env.WORKSPACE}"
+        SNAPSHOT="true"
       }
       when {
         beforeAgent true
@@ -362,10 +363,18 @@ pipeline {
         }
       }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh './script/jenkins/package.sh'
+        withGithubNotify(context: 'Release') {
+          deleteDir()
+          unstash 'source'
+          /**
+            The package build needs mage and docker
+          */
+          golang(){
+            dir("${BASE_DIR}"){
+              sh(label: 'Build packages', script: './script/jenkins/package.sh')
+              sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
+            }
+          }
         }
       }
       post {
