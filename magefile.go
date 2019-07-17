@@ -158,7 +158,7 @@ func TestPackagesInstall() error {
 	args = append(args, "-tags=package")
 
 	if out, err := goTest(args...); err != nil {
-		if !mg.Verbose() {
+		if mg.Verbose() {
 			fmt.Println(out)
 		}
 		return err

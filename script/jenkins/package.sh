@@ -5,4 +5,4 @@ set -euox pipefail
 # to prevent jenkins_release.sh from adding more PLATFORMS
 export PLATFORMS="${PLATFORMS:-+linux/amd64}"
 
- ./_beats/dev-tools/jenkins_release.sh
+mage -debug package
