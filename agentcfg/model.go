@@ -18,67 +18,88 @@
 package agentcfg
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"hash"
+	"sort"
 	"strings"
-)
-
-const (
-	// ServiceName keyword
-	ServiceName = "service.name"
-	// ServiceEnv keyword
-	ServiceEnv = "service.environment"
 )
 
 // Doc represents an elasticsearch document
 type Doc struct {
-	ID     string `json:"_id"`
-	Source Source `json:"_source"`
-}
-
-// Source represents the elasticsearch _source field of a document
-type Source struct {
-	Settings Settings `json:"settings"`
+	Settings Settings
+	ID       string
 }
 
 // Settings hold agent configuration
 type Settings map[string]string
 
-// UnmarshalJSON overrides default method to convert any JSON type to string
-func (s *Settings) UnmarshalJSON(b []byte) error {
-	in := make(map[string]interface{})
-	out := make(map[string]string)
-	err := json.Unmarshal(b, &in)
-	for k, v := range in {
-		out[k] = fmt.Sprintf("%v", v)
+// NewDoc unmarshals given byte slice into a Doc instance
+func NewDoc(inp []byte) (*Doc, error) {
+	settings, err := unmarshal(inp)
+	if err != nil {
+		return nil, err
 	}
-	*s = out
-	return err
-}
 
-// NewQuery creates a Query struct
-func NewQuery(name, env string) Query {
-	return Query{Service{name, env}}
-}
-
-// Query represents an URL body or query params for agent configuration
-type Query struct {
-	Service Service `json:"service"`
-}
-
-// ID returns the unique id for the query
-func (q Query) ID() string {
-	var str strings.Builder
-	str.WriteString(q.Service.Name)
-	if q.Service.Environment != "" {
-		str.WriteString("_")
-		str.WriteString(q.Service.Environment)
+	h := md5.New()
+	var out = map[string]string{}
+	if err := parse(settings, out, "", h); err != nil {
+		return nil, err
 	}
-	return str.String()
+
+	return &Doc{ID: fmt.Sprintf("%x", h.Sum(nil)), Settings: out}, nil
 }
 
-// Service holds supported attributes for querying configuration
-type Service struct {
-	Name        string `json:"name"`
-	Environment string `json:"environment,omitempty"`
+func unmarshal(inp []byte) (map[string]interface{}, error) {
+	if len(inp) == 0 {
+		return nil, nil
+	}
+	type tmpDoc struct {
+		Source struct {
+			Settings map[string]interface{} `json:"settings"`
+		} `json:"_source"`
+	}
+	var tmp tmpDoc
+	if err := json.Unmarshal(inp, &tmp); err != nil {
+		return nil, err
+	}
+	return tmp.Source.Settings, nil
+}
+
+func parse(inp map[string]interface{}, out map[string]string, rootKey string, h hash.Hash) error {
+	var keys []string
+	for k := range inp {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var localkey string
+	for _, k := range keys {
+		localkey = dotKey(rootKey, k)
+
+		switch val := inp[k].(type) {
+		case map[string]interface{}:
+			if err := parse(val, out, localkey, h); err != nil {
+				return err
+			}
+		case []interface{}:
+			var strArr = make([]string, len(val))
+			for idx, entry := range val {
+				strArr[idx] = fmt.Sprintf("%+v", entry)
+			}
+			out[localkey] = strings.Join(strArr, ",")
+			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, out[localkey])))
+		default:
+			out[localkey] = fmt.Sprintf("%+v", val)
+			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, val)))
+		}
+	}
+	return nil
+}
+
+func dotKey(k1, k2 string) string {
+	if k1 == "" {
+		return k2
+	}
+	return fmt.Sprintf("%s.%s", k1, k2)
 }
