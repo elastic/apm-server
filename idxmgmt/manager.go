@@ -29,7 +29,7 @@ import (
 
 const (
 	msgErrIlmDisabledES = "automatically disabled ILM as not supported by configured Elasticsearch"
-	msgIlmDisabledES    = "Automatically disabled ILM as not supported by configured Elasticsearch."
+	msgIlmDisabledES    = "Automatically disabled ILM as configured Elasticsearch not eligible for auto enabling."
 	msgIlmDisabledCfg   = "Automatically disabled ILM as custom index settings configured."
 	msgIdxCfgIgnored    = "Custom index configuration ignored when ILM is enabled."
 )

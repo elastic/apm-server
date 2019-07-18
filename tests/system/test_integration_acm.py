@@ -70,7 +70,8 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         })
         self.assertDictEqual({}, r2.json())
 
-        create_config_rsp = self.create_service_config({"sample_rate": "0.05"}, service_name)
+        create_config_rsp = self.create_service_config({"transaction_sample_rate": 0.05}, service_name)
+        create_config_rsp.raise_for_status()
         assert create_config_rsp.status_code == 200, create_config_rsp.status_code
         create_config_result = create_config_rsp.json()
         assert create_config_result["result"] == "created"
@@ -86,7 +87,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
             "message": "handled request",
             "response_code": 200,
         })
-        self.assertDictEqual({"sample_rate": "0.05"}, r3.json())
+        self.assertDictEqual({"transaction_sample_rate": "0.05"}, r3.json())
 
         # not modified on re-request
         r3_again = requests.get(self.agent_config_url,
@@ -117,7 +118,8 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         })
         self.assertDictEqual({}, r4.json())
 
-        create_config_with_env_rsp = self.create_service_config({"sample_rate": "0.15"}, service_name, env=service_env)
+        create_config_with_env_rsp = self.create_service_config(
+            {"transaction_sample_rate": 0.15}, service_name, env=service_env)
         assert create_config_with_env_rsp.status_code == 200, create_config_with_env_rsp.status_code
         create_config_with_env_result = create_config_with_env_rsp.json()
         assert create_config_with_env_result["result"] == "created"
@@ -131,7 +133,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                           },
                           headers={"Content-Type": "application/x-ndjson"})
         assert r5.status_code == 200, r5.status_code
-        self.assertDictEqual({"sample_rate": "0.15"}, r5.json())
+        self.assertDictEqual({"transaction_sample_rate": "0.15"}, r5.json())
         expect_log.append({
             "level": "info",
             "message": "handled request",
@@ -156,7 +158,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         })
 
         updated_config_with_env_rsp = self.update_service_config(
-            {"sample_rate": "0.99"}, create_config_with_env_id, service_name, env=service_env)
+            {"transaction_sample_rate": 0.99}, create_config_with_env_id, service_name, env=service_env)
         assert updated_config_with_env_rsp.status_code == 200, updated_config_with_env_rsp.status_code
         # TODO (gr): remove when cache can be disabled via config
         # wait for cache to purge
@@ -172,7 +174,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                                           "If-None-Match": r5.headers["Etag"],
                                       })
         assert r5_post_update.status_code == 200, r5_post_update.status_code
-        self.assertDictEqual({"sample_rate": "0.99"}, r5_post_update.json())
+        self.assertDictEqual({"transaction_sample_rate": "0.99"}, r5_post_update.json())
         expect_log.append({
             "level": "info",
             "message": "handled request",
