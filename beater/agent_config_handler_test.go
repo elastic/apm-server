@@ -18,6 +18,7 @@
 package beater
 
 import (
+	"crypto/md5"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -40,8 +41,11 @@ import (
 
 var (
 	mockVersion = *common.MustNewVersion("7.3.0")
+	mockEtag    = "1c9588f5a4da71cdef992981a9c9735c"
+	emptyEtag   = fmt.Sprintf("%x", md5.New().Sum([]byte{}))
 	errWrap     = func(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
 	successBody = `{"sampling_rate":"0.5"}` + "\n"
+	emptyBody   = `{}` + "\n"
 
 	testcases = map[string]struct {
 		kbClient      kibana.Client
@@ -63,27 +67,11 @@ var (
 				},
 			}, mockVersion, true),
 			method:                 http.MethodGet,
-			requestHeader:          map[string]string{headers.IfNoneMatch: `"` + "1" + `"`},
+			requestHeader:          map[string]string{headers.IfNoneMatch: `"` + mockEtag + `"`},
 			queryParams:            map[string]string{"service.name": "opbeans-node"},
 			respStatus:             http.StatusNotModified,
 			respCacheControlHeader: "max-age=4, must-revalidate",
-			respEtagHeader:         "\"1\"",
-		},
-
-		"ModifiedWithoutEtag": {
-			kbClient: tests.MockKibana(http.StatusOK, m{
-				"_source": m{
-					"settings": m{
-						"sampling_rate": 0.5,
-					},
-				},
-			}, mockVersion, true),
-			method:                 http.MethodGet,
-			queryParams:            map[string]string{"service.name": "opbeans-java"},
-			respStatus:             http.StatusOK,
-			respCacheControlHeader: "max-age=4, must-revalidate",
-			respBody:               successBody,
-			respBodyToken:          successBody,
+			respEtagHeader:         `"` + mockEtag + `"`,
 		},
 
 		"ModifiedWithEtag": {
@@ -99,7 +87,7 @@ var (
 			requestHeader:          map[string]string{headers.IfNoneMatch: "2"},
 			queryParams:            map[string]string{"service.name": "opbeans-java"},
 			respStatus:             http.StatusOK,
-			respEtagHeader:         "\"1\"",
+			respEtagHeader:         `"` + mockEtag + `"`,
 			respCacheControlHeader: "max-age=4, must-revalidate",
 			respBody:               successBody,
 			respBodyToken:          successBody,
@@ -111,6 +99,9 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-python"},
 			respStatus:             http.StatusOK,
 			respCacheControlHeader: "max-age=4, must-revalidate",
+			respEtagHeader:         `"` + emptyEtag + `"`,
+			respBody:               emptyBody,
+			respBodyToken:          emptyBody,
 		},
 
 		"SendToKibanaFailed": {
@@ -188,8 +179,8 @@ func TestAgentConfigHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			require.Equal(t, tc.respStatus, w.Code)
-			assert.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
-			assert.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
+			require.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
+			require.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
 			if body == "" {
 				assert.Empty(t, w.Body)
 			} else {

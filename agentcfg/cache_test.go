@@ -28,8 +28,8 @@ import (
 )
 
 var (
-	defaultDoc  = Doc{Source: Source{Settings: Settings{"a": "default"}}}
-	externalDoc = Doc{Source: Source{Settings: Settings{"a": "b"}}}
+	defaultDoc  = Doc{Settings: Settings{"a": "default"}}
+	externalDoc = Doc{Settings: Settings{"a": "b"}}
 )
 
 type cacheSetup struct {
@@ -62,7 +62,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 		"DocFromCache":         {fn: testFn, init: true, doc: &defaultDoc},
 		"DocFromFunctionFails": {fn: testFnErr, fail: true},
 		"DocFromFunction":      {fn: testFn, doc: &externalDoc},
-		"EmptyDocFromFunction": {fn: testFnSettingsNil, doc: &Doc{Source: Source{Settings: Settings{}}}},
+		"EmptyDocFromFunction": {fn: testFnSettingsNil, doc: &Doc{Settings: Settings{}}},
 		"NilDocFromFunction":   {fn: testFnNil},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -134,7 +134,7 @@ func testFnNil(_ Query) (*Doc, error) {
 }
 
 func testFnSettingsNil(_ Query) (*Doc, error) {
-	return &Doc{Source: Source{Settings: Settings{}}}, nil
+	return &Doc{Settings: Settings{}}, nil
 }
 
 func testFn(_ Query) (*Doc, error) {
