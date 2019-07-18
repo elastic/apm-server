@@ -70,7 +70,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         })
         self.assertFalse(r2.content)
 
-        create_config_rsp = self.create_service_config({"transaction_sample_rate": "0.05"}, service_name)
+        create_config_rsp = self.create_service_config({"transaction_sample_rate": 0.05}, service_name)
         create_config_rsp.raise_for_status()
         assert create_config_rsp.status_code == 200, create_config_rsp.status_code
         create_config_result = create_config_rsp.json()
@@ -118,7 +118,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         })
         self.assertFalse(r4.content)
 
-        create_config_with_env_rsp = self.create_service_config({"transaction_sample_rate": "0.15"}, service_name, env=service_env)
+        create_config_with_env_rsp = self.create_service_config({"transaction_sample_rate": 0.15}, service_name, env=service_env)
         assert create_config_with_env_rsp.status_code == 200, create_config_with_env_rsp.status_code
         create_config_with_env_result = create_config_with_env_rsp.json()
         assert create_config_with_env_result["result"] == "created"
@@ -157,7 +157,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         })
 
         updated_config_with_env_rsp = self.update_service_config(
-            {"transaction_sample_rate": "0.99"}, create_config_with_env_id, service_name, env=service_env)
+            {"transaction_sample_rate": 0.99}, create_config_with_env_id, service_name, env=service_env)
         assert updated_config_with_env_rsp.status_code == 200, updated_config_with_env_rsp.status_code
         # TODO (gr): remove when cache can be disabled via config
         # wait for cache to purge
