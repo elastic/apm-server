@@ -362,7 +362,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 8855f9a5935e26b82c4a2073ae61c800aee130ca
+Revision: 7bba6ecec89daf3b5a2d84a0900bd3354e4e5af2
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -419,7 +419,7 @@ Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-structform
-Revision: 1425975cf4eb470099fcf02cbe9389cf3a7028a3
+Revision: a50e916a1b628ad1abc6f58b47668a2f60075ef1
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-structform/LICENSE:
 --------------------------------------------------------------------
@@ -428,7 +428,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-sysinfo
-Revision: 9a4be54a53be4c48b44d351d52fb425a5e274be5
+Revision: 06c1f463545498d8f4b378d4dcf3171794c28537
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-sysinfo/LICENSE.txt:
 --------------------------------------------------------------------
@@ -476,7 +476,7 @@ Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Revision: 99ed9cf55303a9d3936cb656b9a86a4a6e67b30a
+Revision: f48d9dc84bc636d361c33fab2d7d753b705fd373
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------
@@ -1632,7 +1632,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/miekg/dns
-Revision: 5a2b9fab83ff0f8bfc99684bd5f43a37abe560f1
+Revision: b13675009d59c97f3721247d9efa8914e1866a5b
 License type (autodetected): BSD-3-Clause
 ./vendor/github.com/miekg/dns/LICENSE:
 --------------------------------------------------------------------
