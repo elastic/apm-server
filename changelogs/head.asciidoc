@@ -6,6 +6,7 @@
 
 [float]
 ==== Added
+- Upgrade Go to 1.12.7 {pull}XXX[XXX].
 
 [float]
 ==== Removed
