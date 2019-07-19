@@ -18,24 +18,19 @@
 package beater
 
 import (
-	"context"
 	"crypto/subtle"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 
-	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/headers"
-	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -144,76 +139,31 @@ var (
 	}
 )
 
-type reqLoggerKey struct{}
-
-func ContextWithReqLogger(ctx context.Context, rl *logp.Logger) context.Context {
-	return context.WithValue(ctx, reqLoggerKey{}, rl)
+func requestTimeHandler(h Handler) Handler {
+	return func(c *request.Context) {
+		c.Req = c.Req.WithContext(utility.ContextWithRequestTime(c.Req.Context(), time.Now()))
+		h(c)
+	}
 }
 
-func logHandler(h http.Handler) http.Handler {
-	logger := logp.NewLogger(logs.Request)
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestCounter.Inc()
-		reqID, err := uuid.NewV4()
-		if err != nil {
-			sendStatus(w, r, internalErrorResponse(err))
-		}
-
-		reqLogger := logger.With(
-			"request_id", reqID,
-			"method", r.Method,
-			"URL", r.URL,
-			"content_length", r.ContentLength,
-			"remote_address", utility.RemoteAddr(r),
-			"user-agent", r.Header.Get(headers.UserAgent))
-
-		defer func() {
-			if r := recover(); r != nil {
-				var ok bool
-				if err, ok = r.(error); !ok {
-					err = fmt.Errorf("internal server error %+v", r)
-				}
-				reqLogger.Errorw("panic handling request",
-					"error", err.Error(), "stacktrace", string(debug.Stack()))
-			}
-		}()
-
-		lw := utility.NewRecordingResponseWriter(w)
-		h.ServeHTTP(lw, r.WithContext(ContextWithReqLogger(r.Context(), reqLogger)))
-
-		if lw.Code < http.StatusBadRequest {
-			reqLogger.Infow("handled request", []interface{}{"response_code", lw.Code}...)
-		}
-
-	})
-}
-
-func requestTimeHandler(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(utility.ContextWithRequestTime(r.Context(), time.Now()))
-		h.ServeHTTP(w, r)
-	})
-}
-
-func killSwitchHandler(killSwitch bool, h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func killSwitchHandler(killSwitch bool, h Handler) Handler {
+	return func(c *request.Context) {
 		if killSwitch {
-			h.ServeHTTP(w, r)
+			h(c)
 		} else {
-			sendStatus(w, r, forbiddenResponse(errors.New("endpoint is disabled")))
+			sendStatus(c, forbiddenResponse(errors.New("endpoint is disabled")))
 		}
-	})
+	}
 }
 
-func authHandler(secretToken string, h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !isAuthorized(r, secretToken) {
-			sendStatus(w, r, unauthorizedResponse)
+func authHandler(secretToken string, h Handler) Handler {
+	return func(c *request.Context) {
+		if !isAuthorized(c.Req, secretToken) {
+			sendStatus(c, unauthorizedResponse)
 			return
 		}
-		h.ServeHTTP(w, r)
-	})
+		h(c)
+	}
 }
 
 // isAuthorized checks the Authorization header. It must be in the form of:
@@ -232,7 +182,7 @@ func isAuthorized(req *http.Request, secretToken string) bool {
 	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(secretToken)) == 1
 }
 
-func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
+func corsHandler(allowedOrigins []string, h Handler) Handler {
 
 	var isAllowed = func(origin string) bool {
 		for _, allowed := range allowedOrigins {
@@ -243,111 +193,63 @@ func corsHandler(allowedOrigins []string, h http.Handler) http.Handler {
 		return false
 	}
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(c *request.Context) {
 
 		// origin header is always set by the browser
-		origin := r.Header.Get(headers.Origin)
+		origin := c.Req.Header.Get(headers.Origin)
 		validOrigin := isAllowed(origin)
 
-		if r.Method == http.MethodOptions {
+		if c.Req.Method == http.MethodOptions {
 
 			// setting the ACAO header is the way to tell the browser to go ahead with the request
 			if validOrigin {
 				// do not set the configured origin(s), echo the received origin instead
-				w.Header().Set(headers.AccessControlAllowOrigin, origin)
+				c.Header().Set(headers.AccessControlAllowOrigin, origin)
 			}
 
 			// tell browsers to cache response requestHeaders for up to 1 hour (browsers might ignore this)
-			w.Header().Set(headers.AccessControlMaxAge, "3600")
+			c.Header().Set(headers.AccessControlMaxAge, "3600")
 			// origin must be part of the cache key so that we can handle multiple allowed origins
-			w.Header().Set(headers.Vary, "Origin")
+			c.Header().Set(headers.Vary, "Origin")
 
 			// required if Access-Control-Request-Method and Access-Control-Request-Headers are in the requestHeaders
-			w.Header().Set(headers.AccessControlAllowMethods, supportedMethods)
-			w.Header().Set(headers.AccessControlAllowHeaders, supportedHeaders)
+			c.Header().Set(headers.AccessControlAllowMethods, supportedMethods)
+			c.Header().Set(headers.AccessControlAllowHeaders, supportedHeaders)
 
-			w.Header().Set(headers.ContentLength, "0")
+			c.Header().Set(headers.ContentLength, "0")
 
-			sendStatus(w, r, okResponse)
+			sendStatus(c, okResponse)
 
 		} else if validOrigin {
 			// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
-			w.Header().Set(headers.AccessControlAllowOrigin, origin)
-			h.ServeHTTP(w, r)
+			c.Header().Set(headers.AccessControlAllowOrigin, origin)
+			h(c)
 
 		} else {
-			sendStatus(w, r, forbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
+			sendStatus(c, forbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
 		}
-	})
+	}
 }
 
-func sendStatus(w http.ResponseWriter, r *http.Request, res serverResponse) {
+//TODO: move to Context when reworking response handling.
+func sendStatus(c *request.Context, res serverResponse) {
 	responseCounter.Inc()
 	res.counter.Inc()
 
-	body := res.body
-	if res.err == nil {
-		responseSuccesses.Inc()
-		if res.body == nil {
-			w.WriteHeader(res.code)
-			return
-		}
-	} else {
+	if res.err != nil {
 		responseErrors.Inc()
 
-		logger := requestLogger(r)
-		body = map[string]interface{}{"error": res.err.Error()}
-		logger.Errorw("error handling request", "response_code", res.code, "error", body)
+		body := map[string]interface{}{"error": res.err.Error()}
+		//TODO: refactor response handling: get rid of additional `error` and just pass in error
+		c.SendError(body, body, res.code)
+		return
+
 	}
-	send(w, r, body, res.code)
-}
-
-// requestLogger is a convenience function to retrieve the logger that was
-// added to the request context by handler `logHandler``
-func requestLogger(r *http.Request) *logp.Logger {
-	logger, ok := r.Context().Value(reqLoggerKey{}).(*logp.Logger)
-	if !ok {
-		logger = logp.NewLogger(logs.Request)
-	}
-	return logger
-}
-
-func acceptsJSON(r *http.Request) bool {
-	h := r.Header.Get(headers.Accept)
-	return strings.Contains(h, "*/*") || strings.Contains(h, "application/json")
-}
-
-func sendJSON(w http.ResponseWriter, body interface{}, statusCode int) int {
-	w.Header().Set(headers.ContentType, "application/json")
-	w.Header().Set(headers.XContentTypeOptions, "nosniff")
-	w.WriteHeader(statusCode)
-	buf, err := json.MarshalIndent(body, "", "  ")
-	if err != nil {
-		logp.NewLogger(logs.Response).Errorf("Error while generating a JSON error response: %v", err)
-		return sendPlain(w, body, statusCode)
+	responseSuccesses.Inc()
+	if res.body == nil {
+		c.WriteHeader(res.code)
+		return
 	}
 
-	buf = append(buf, "\n"...)
-	n, _ := w.Write(buf)
-	return n
-}
-
-func sendPlain(w http.ResponseWriter, body interface{}, statusCode int) int {
-	w.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
-	w.Header().Set(headers.XContentTypeOptions, "nosniff")
-	w.WriteHeader(statusCode)
-
-	var b []byte
-	var err error
-	if bStr, ok := body.(string); ok {
-		b = []byte(bStr + "\n")
-	} else {
-		b, err = json.Marshal(body)
-		if err != nil {
-			b = []byte(fmt.Sprintf("%+v", body))
-		}
-		b = append(b, "\n"...)
-	}
-	n, _ := w.Write(b)
-	return n
+	c.Send(res.body, res.code)
 }

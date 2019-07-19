@@ -23,6 +23,7 @@ import (
 
 	"go.elastic.co/apm"
 
+	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/publish"
@@ -36,11 +37,11 @@ type assetHandler struct {
 	tconfig        transform.Config
 }
 
-func (h *assetHandler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := h.processRequest(r, report)
-		sendStatus(w, r, res)
-	})
+func (h *assetHandler) Handle(beaterConfig *Config, report publish.Reporter) Handler {
+	return func(c *request.Context) {
+		res := h.processRequest(c.Req, report)
+		sendStatus(c, res)
+	}
 }
 
 func (h *assetHandler) processRequest(r *http.Request, report publish.Reporter) serverResponse {

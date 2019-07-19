@@ -18,37 +18,27 @@
 package beater
 
 import (
+	"fmt"
 	"net/http"
-	"time"
-
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/version"
+	"runtime/debug"
 
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func rootHandler(secretToken string) Handler {
-	serverInfo := common.MapStr{
-		"build_date": version.BuildTime().Format(time.RFC3339),
-		"build_sha":  version.Commit(),
-		"version":    version.GetDefaultVersion(),
-	}
-	detailedOkResponse := serverResponse{
-		code:    http.StatusOK,
-		counter: responseOk,
-		body:    serverInfo,
-	}
-
+func panicHandler(h Handler) Handler {
 	return func(c *request.Context) {
-		if c.Req.URL.Path != "/" {
-			c.SendNotFoundErr()
-			return
-		}
 
-		if isAuthorized(c.Req, secretToken) {
-			sendStatus(c, detailedOkResponse)
-			return
-		}
-		sendStatus(c, okResponse)
+		defer func() {
+			if r := recover(); r != nil {
+				var ok bool
+				var err error
+				if err, ok = r.(error); !ok {
+					err = fmt.Errorf("internal server error %+v", r)
+				}
+				c.AddStacktrace(string(debug.Stack()))
+				c.SendError(nil, fmt.Sprintf("panic handling request: %s", err.Error()), http.StatusInternalServerError)
+			}
+		}()
+		h(c)
 	}
 }

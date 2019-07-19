@@ -33,6 +33,8 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/headers"
+	btcontext "github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
@@ -47,8 +49,9 @@ func TestInvalidContentType(t *testing.T) {
 	c := defaultConfig("7.0.0")
 	handler, err := (&backendRoute).Handler("", c, nil)
 	require.NoError(t, err)
-
-	handler.ServeHTTP(w, req)
+	ctx := &btcontext.Context{}
+	ctx.Reset(w, req)
+	handler(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 	assert.Contains(t, w.Body.String(), "invalid content type: ''")
@@ -64,8 +67,9 @@ func TestEmptyRequest(t *testing.T) {
 	c := defaultConfig("7.0.0")
 	handler, err := (&backendRoute).Handler("", c, nil)
 	require.NoError(t, err)
-
-	handler.ServeHTTP(w, req)
+	ctx := &btcontext.Context{}
+	ctx.Reset(w, req)
+	handler(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 }
@@ -91,19 +95,20 @@ func TestRequestDecoderError(t *testing.T) {
 
 	handler, err := testRouteWithFaultyDecoder.Handler("", c, nil)
 	require.NoError(t, err)
-
-	handler.ServeHTTP(w, req)
+	ctx := &btcontext.Context{}
+	ctx.Reset(w, req)
+	handler(ctx)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
 }
 
 func TestRequestIntegration(t *testing.T) {
 	endpoints := []struct {
-		url   string
-		route intakeRoute
+		name, url string
+		route     intakeRoute
 	}{
-		{url: backendURL, route: backendRoute},
-		{url: rumURL, route: rumRoute},
+		{name: "Backend", url: backendURL, route: backendRoute},
+		{name: "Rum", url: rumURL, route: rumRoute},
 	}
 	for name, test := range map[string]struct {
 		code         int
@@ -123,42 +128,62 @@ func TestRequestIntegration(t *testing.T) {
 	} {
 
 		for _, endpoint := range endpoints {
+			testname := name + endpoint.name
 			cfg := defaultConfig("7.0.0")
 			rum := true
 			cfg.RumConfig.Enabled = &rum
 
-			t.Run(name, func(t *testing.T) {
-				ctSuccess := responseSuccesses.Get()
-				ctFailure := responseErrors.Get()
-				ct := test.counter.Get()
-				reqCt := requestCounter.Get()
+			if endpoint.name == "Rum" {
+				rum := true
+				cfg.RumConfig.Enabled = &rum
+			}
 
-				w, err := sendReq(cfg,
-					&endpoint.route,
-					endpoint.url,
-					filepath.Join("../testdata/intake-v2/", test.path),
-					test.reportingErr)
-				require.NoError(t, err)
+			// reset counters
+			ctSuccess := responseSuccesses.Get()
+			ctFailure := responseErrors.Get()
+			ct := test.counter.Get()
+			reqCt := requestCounter.Get()
 
+			// Send request
+			w, err := sendReq(cfg,
+				&endpoint.route,
+				endpoint.url,
+				filepath.Join("../testdata/intake-v2/", test.path),
+				test.reportingErr)
+			require.NoError(t, err)
+
+			t.Run(testname+"Status", func(t *testing.T) {
 				assert.Equal(t, test.code, w.Code, w.Body.String())
+			})
+
+			t.Run(testname+"Header", func(t *testing.T) {
+				assert.Equal(t, "application/json", w.Header().Get(headers.ContentType))
+				contentLength := w.Header().Get(headers.ContentLength)
+				require.NotEmpty(t, contentLength)
+				cl, err := strconv.Atoi(contentLength)
+				require.NoError(t, err)
+				assert.True(t, cl > 0)
+			})
+
+			t.Run(testname+"Body", func(t *testing.T) {
+				if test.code == http.StatusAccepted {
+					assert.NotNil(t, w.Body.Len())
+				}
+				body := w.Body.Bytes()
+				//TODO: ensure that approval tests for backend and rum don't overwrite each other
+				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+name, body)
+			})
+
+			t.Run(testname+"MonitoringCounter", func(t *testing.T) {
 				assert.Equal(t, ct+1, test.counter.Get())
 				assert.Equal(t, reqCt+1, requestCounter.Get())
-
-				assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
-				cl, err := strconv.Atoi(w.Header().Get("Content-Length"))
-				assert.True(t, cl > 0, err)
-
 				if test.code == http.StatusAccepted {
-					assert.NotZero(t, w.Body.Len())
 					assert.Equal(t, ctSuccess+1, responseSuccesses.Get())
 					assert.Equal(t, ctFailure, responseErrors.Get())
 				} else {
 					assert.Equal(t, ctSuccess, responseSuccesses.Get())
 					assert.Equal(t, ctFailure+1, responseErrors.Get())
 				}
-
-				body := w.Body.Bytes()
-				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+name, body)
 			})
 		}
 	}
@@ -214,7 +239,9 @@ func sendReq(c *Config, route *intakeRoute, url string, p string, repErr error) 
 	}
 
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	ctx := &btcontext.Context{}
+	ctx.Reset(w, req)
+	logHandler(handler)(ctx)
 	return w, nil
 }
 
@@ -226,7 +253,9 @@ func TestWrongMethod(t *testing.T) {
 	require.NoError(t, err)
 
 	ct := methodNotAllowedCounter.Get()
-	handler.ServeHTTP(w, req)
+	ctx := &btcontext.Context{}
+	ctx.Reset(w, req)
+	handler(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, ct+1, methodNotAllowedCounter.Get())
@@ -258,7 +287,9 @@ func TestLineExceeded(t *testing.T) {
 	assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
 	handler, err := (&backendRoute).Handler("", c, nilReport)
 	require.NoError(t, err)
-	handler.ServeHTTP(w, req)
+	ctx := &btcontext.Context{}
+	ctx.Reset(w, req)
+	handler(ctx)
 
 	assert.Equal(t, http.StatusAccepted, w.Code, w.Body.String())
 	assert.Equal(t, 0, w.Body.Len())
@@ -274,7 +305,9 @@ func TestLineExceeded(t *testing.T) {
 	w = httptest.NewRecorder()
 
 	ct := requestTooLargeCounter.Get()
-	handler.ServeHTTP(w, req)
+	ctx = &btcontext.Context{}
+	ctx.Reset(w, req)
+	handler(ctx)
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 	assert.Equal(t, ct+1, requestTooLargeCounter.Get())
 	tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())

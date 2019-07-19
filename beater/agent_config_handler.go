@@ -29,6 +29,7 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
 )
@@ -36,7 +37,6 @@ import (
 const (
 	errMaxAgeDuration = 5 * time.Minute
 
-	errMsgConfigNotFound             = "no configuration available"
 	errMsgInvalidQuery               = "invalid query"
 	errMsgKibanaDisabled             = "disabled Kibana configuration"
 	errMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
@@ -50,20 +50,20 @@ var (
 	errCacheControl  = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 )
 
-func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) http.Handler {
+func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) Handler {
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 
-	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sendResp := wrap(w, r)
-		sendErr := wrapErr(w, r, secretToken)
+	var handler = func(c *request.Context) {
+		sendResp := wrap(c)
+		sendErr := wrapErr(c, secretToken)
 
 		if valid, shortMsg, detailMsg := validateKbClient(kbClient); !valid {
 			sendErr(http.StatusServiceUnavailable, shortMsg, detailMsg)
 			return
 		}
 
-		query, requestErr := buildQuery(r)
+		query, requestErr := buildQuery(c.Req)
 		if requestErr != nil {
 			if strings.Contains(requestErr.Error(), errMsgMethodUnsupported) {
 				sendErr(http.StatusMethodNotAllowed, errMsgMethodUnsupported, requestErr.Error())
@@ -80,17 +80,16 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 		}
 
 		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
-		w.Header().Set(headers.Etag, etag)
-		if etag == r.Header.Get(headers.IfNoneMatch) {
+		c.Header().Set(headers.Etag, etag)
+		if etag == c.Req.Header.Get(headers.IfNoneMatch) {
 			sendResp(nil, http.StatusNotModified, cacheControl)
 		} else {
 			sendResp(cfg, http.StatusOK, cacheControl)
 		}
-	})
+	}
 
-	return logHandler(
-		killSwitchHandler(kbClient != nil,
-			authHandler(secretToken, handler)))
+	return killSwitchHandler(kbClient != nil,
+		authHandler(secretToken, handler))
 }
 
 func validateKbClient(client kibana.Client) (bool, string, string) {
@@ -130,18 +129,18 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	return
 }
 
-func wrap(w http.ResponseWriter, r *http.Request) func(interface{}, int, string) {
+func wrap(c *request.Context) func(interface{}, int, string) {
 	return func(body interface{}, code int, cacheControl string) {
-		w.Header().Set(headers.CacheControl, cacheControl)
+		c.Header().Set(headers.CacheControl, cacheControl)
 		if body == nil {
-			w.WriteHeader(code)
+			c.WriteHeader(code)
 			return
 		}
-		send(w, r, body, code)
+		c.Send(body, code)
 	}
 }
 
-func wrapErr(w http.ResponseWriter, r *http.Request, token string) func(int, string, string) {
+func wrapErr(c *request.Context, token string) func(int, string, string) {
 	authErrMsg := func(errMsg, logMsg string) map[string]string {
 		if token == "" {
 			return map[string]string{"error": errMsg}
@@ -150,12 +149,9 @@ func wrapErr(w http.ResponseWriter, r *http.Request, token string) func(int, str
 	}
 
 	return func(status int, errMsg, logMsg string) {
-		requestLogger(r).Errorw("error handling request",
-			"response_code", status, "error", logMsg)
-
-		w.Header().Set(headers.CacheControl, errCacheControl)
+		c.Header().Set(headers.CacheControl, errCacheControl)
 		body := authErrMsg(errMsg, logMsg)
-		send(w, r, body, status)
+		c.SendError(body, logMsg, status)
 	}
 }
 
