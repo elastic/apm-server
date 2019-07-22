@@ -267,6 +267,7 @@ class ClientSideBaseTest(ServerBaseTest):
         cfg = super(ClientSideBaseTest, self).config()
         cfg.update({"enable_rum": "true",
                     "smap_cache_expiration": "200"})
+        cfg.update(self.config_overrides)
         return cfg
 
     def get_backend_error_payload_path(self, name="errors_2.ndjson"):
@@ -365,17 +366,9 @@ class OverrideIndicesFailureTest(ElasticTest):
 
 
 class CorsBaseTest(ClientSideBaseTest):
-
     def config(self):
         cfg = super(CorsBaseTest, self).config()
         cfg.update({"allow_origins": ["http://www.elastic.co"]})
-        return cfg
-
-
-class SmapCacheBaseTest(ClientSideElasticTest):
-    def config(self):
-        cfg = super(SmapCacheBaseTest, self).config()
-        cfg.update({"smap_cache_expiration": "1"})
         return cfg
 
 

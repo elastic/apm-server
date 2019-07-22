@@ -4,7 +4,7 @@ import time
 import unittest
 
 from apmserver import ElasticTest, ExpvarBaseTest
-from apmserver import ClientSideElasticTest, SmapCacheBaseTest
+from apmserver import ClientSideElasticTest
 from apmserver import OverrideIndicesTest, OverrideIndicesFailureTest
 from beat.beat import INTEGRATION_TESTS
 from sets import Set
@@ -505,8 +505,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_rum_error_sourcemap(True)
 
-
-class SourcemappingIntegrationChangedConfigTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error_changed_index(self):
         # use an uncleaned path to test that path is cleaned in upload
@@ -524,7 +522,9 @@ class SourcemappingIntegrationChangedConfigTest(ClientSideElasticTest):
         self.check_rum_error_sourcemap(True)
 
 
-class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
+class SourcemappingCacheIntegrationTest(ClientSideElasticTest):
+    config_overrides = {"smap_cache_expiration": "1"}
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
