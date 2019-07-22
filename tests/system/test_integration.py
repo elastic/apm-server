@@ -584,6 +584,7 @@ class SourcemappingDisabledIntegrationTest(ClientSideElasticTest):
                 assert "sourcemap" not in frame, frame
         assert frames_checked > 0, "no frames checked"
 
+
 class ExpvarDisabledIntegrationTest(ExpvarBaseTest):
     config_overrides = {"expvar_enabled": "false"}
 
