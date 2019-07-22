@@ -258,6 +258,7 @@ class ClientSideBaseTest(ServerBaseTest):
     sourcemap_url = 'http://localhost:8200/assets/v1/sourcemaps'
     intake_url = 'http://localhost:8200/intake/v2/rum/events'
     backend_intake_url = 'http://localhost:8200/intake/v2/events'
+    config_overrides = {}
 
     @classmethod
     def setUpClass(cls):
