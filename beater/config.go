@@ -106,6 +106,7 @@ type agentConfig struct {
 
 type SourceMapping struct {
 	Cache        *Cache `config:"cache"`
+	Enabled      *bool  `config:"enabled"`
 	IndexPattern string `config:"index_pattern"`
 
 	EsConfig *common.Config `config:"elasticsearch"`
@@ -188,6 +189,10 @@ func (c *rumConfig) isEnabled() bool {
 	return c != nil && (c.Enabled != nil && *c.Enabled)
 }
 
+func (s *SourceMapping) isEnabled() bool {
+	return s == nil || s.Enabled == nil || *s.Enabled
+}
+
 func (s *SourceMapping) isSetup() bool {
 	return s != nil && (s.EsConfig != nil)
 }
@@ -201,7 +206,7 @@ func (c *pipelineConfig) shouldOverwrite() bool {
 }
 
 func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
-	if !c.isEnabled() || !c.SourceMapping.isSetup() {
+	if !c.isEnabled() || !c.SourceMapping.isEnabled() || !c.SourceMapping.isSetup() {
 		return nil, nil
 	}
 	if c.SourceMapping.mapper != nil {

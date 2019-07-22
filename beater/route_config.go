@@ -146,7 +146,7 @@ func rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
 
 func sourcemapHandler(beaterConfig *Config, h http.Handler) http.Handler {
 	return logHandler(
-		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
+		killSwitchHandler(beaterConfig.RumConfig.SourceMapping.isEnabled(),
 			authHandler(beaterConfig.SecretToken, h)))
 }
 

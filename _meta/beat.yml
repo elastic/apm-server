@@ -112,6 +112,9 @@ apm-server:
     # to all error and transaction documents sent to the RUM endpoint.
     #source_mapping:
 
+      # Sourcemapping is enabled by default for RUM events
+      #enabled: true
+
       # Source maps are always fetched from Elasticsearch, by default using the output.elasticsearch configuration.
       # A different instance must be configured when using any other output.
       # This setting only affects sourcemap reads - the output determines where sourcemaps are written.
