@@ -17,7 +17,40 @@
 
 package beater
 
-import "github.com/elastic/apm-server/beater/request"
+import (
+	"net/http"
 
-// Handler specifies the handler type that is implemented by middleware and apm handlers
-type Handler func(c *request.Context)
+	"github.com/elastic/beats/libbeat/monitoring"
+
+	"github.com/elastic/apm-server/beater/request"
+)
+
+const (
+	slash = "/"
+)
+
+func monitoringHandler(fn func(id request.ResultID) *monitoring.Int) middleware {
+	return func(h request.Handler) request.Handler {
+		inc := func(counter *monitoring.Int) {
+			if counter == nil {
+				return
+			}
+			counter.Inc()
+		}
+		return func(c *request.Context) {
+			inc(fn(request.IdRequestCount))
+
+			h(c)
+
+			inc(fn(request.IdResponseCount))
+			if c.StatusCode >= http.StatusBadRequest {
+				inc(fn(request.IdResponseErrorsCount))
+			} else {
+				inc(fn(request.IdResponseValidCount))
+			}
+
+			inc(fn(c.MonitoringId))
+		}
+
+	}
+}

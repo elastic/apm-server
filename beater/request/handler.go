@@ -15,40 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package request
 
-import (
-	"net/http"
-	"time"
-
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/version"
-
-	"github.com/elastic/apm-server/beater/request"
-)
-
-func rootHandler(secretToken string) request.Handler {
-	serverInfo := common.MapStr{
-		"build_date": version.BuildTime().Format(time.RFC3339),
-		"build_sha":  version.Commit(),
-		"version":    version.GetDefaultVersion(),
-	}
-	detailedOkResponse := request.Result{
-		StatusCode: http.StatusOK,
-		Id:         request.IdResponseValidOK,
-		Body:       serverInfo,
-	}
-
-	return func(c *request.Context) {
-		if c.Request.URL.Path != "/" {
-			c.SendNotFoundErr()
-			return
-		}
-
-		if isAuthorized(c.Request, secretToken) {
-			sendStatus(c, detailedOkResponse)
-			return
-		}
-		sendStatus(c, request.OKResponse)
-	}
-}
+// Handler specifies the handler type that is implemented by middleware and apm handlers
+type Handler func(c *Context)

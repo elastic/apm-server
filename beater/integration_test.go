@@ -122,7 +122,7 @@ func TestPublishIntegration(t *testing.T) {
 
 			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", tc.payload))
 			require.NoError(t, err)
-			docs := testPublish(t, apm, events, backendURL, bytes.NewReader(b))
+			docs := testPublish(t, apm, events, intakePath, bytes.NewReader(b))
 			tests.AssertApproveResult(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
 		})
 	}

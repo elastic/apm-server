@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"net/http"
 	"strings"
 
 	"go.elastic.co/apm"
@@ -31,59 +30,56 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-type assetHandler struct {
-	requestDecoder decoder.ReqDecoder
-	processor      asset.Processor
-	tconfig        transform.Config
-}
-
-func (h *assetHandler) Handle(beaterConfig *Config, report publish.Reporter) Handler {
+func newAssetHandler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Config, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
-		res := h.processRequest(c.Request, report)
-		sendStatus(c, res)
-	}
-}
-
-func (h *assetHandler) processRequest(r *http.Request, report publish.Reporter) serverResponse {
-	if r.Method != "POST" {
-		return methodNotAllowedResponse
-	}
-
-	data, err := h.requestDecoder(r)
-	if err != nil {
-		if strings.Contains(err.Error(), "request body too large") {
-			return requestTooLargeResponse
+		if c.Request.Method != "POST" {
+			sendStatus(c, request.MethodNotAllowedResponse)
+			return
 		}
-		return cannotDecodeResponse(err)
-	}
 
-	if err = h.processor.Validate(data); err != nil {
-		return cannotValidateResponse(err)
-	}
-
-	metadata, transformables, err := h.processor.Decode(data)
-	if err != nil {
-		return cannotDecodeResponse(err)
-	}
-
-	tctx := &transform.Context{
-		RequestTime: utility.RequestTime(r.Context()),
-		Config:      h.tconfig,
-		Metadata:    *metadata,
-	}
-
-	req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
-	ctx := r.Context()
-	span, ctx := apm.StartSpan(ctx, "Send", "Reporter")
-	defer span.End()
-	req.Trace = !span.Dropped()
-
-	if err = report(ctx, req); err != nil {
-		if err == publish.ErrChannelClosed {
-			return serverShuttingDownResponse(err)
+		data, err := dec(c.Request)
+		if err != nil {
+			if strings.Contains(err.Error(), "request body too large") {
+				sendStatus(c, request.RequestTooLargeResponse)
+				return
+			}
+			sendStatus(c, request.CannotDecodeResponse(err))
+			return
 		}
-		return fullQueueResponse(err)
-	}
 
-	return acceptedResponse
+		if err = processor.Validate(data); err != nil {
+			sendStatus(c, request.CannotValidateResponse(err))
+			return
+		}
+
+		metadata, transformables, err := processor.Decode(data)
+		if err != nil {
+			sendStatus(c, request.CannotDecodeResponse(err))
+			return
+		}
+
+		tctx := &transform.Context{
+			RequestTime: utility.RequestTime(c.Request.Context()),
+			Config:      cfg,
+			Metadata:    *metadata,
+		}
+
+		req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
+		ctx := c.Request.Context()
+		span, ctx := apm.StartSpan(ctx, "Send", "Reporter")
+		defer span.End()
+		req.Trace = !span.Dropped()
+
+		if err = report(ctx, req); err != nil {
+			if err == publish.ErrChannelClosed {
+				sendStatus(c, request.ServerShuttingDownResponse(err))
+				return
+			}
+			sendStatus(c, request.FullQueueResponse(err))
+			return
+		}
+
+		sendStatus(c, request.AcceptedResponse)
+		return
+	}
 }

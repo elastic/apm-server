@@ -30,36 +30,37 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func logHandler(h Handler) Handler {
+func logHandler() middleware {
 	logger := logp.NewLogger(logs.Request)
+	return func(h request.Handler) request.Handler {
 
-	return func(c *request.Context) {
-		requestCounter.Inc()
-		reqID, err := uuid.NewV4()
-		if err != nil {
-			sendStatus(c, internalErrorResponse(err))
-		}
-
-		reqLogger := logger.With(
-			"request_id", reqID,
-			"method", c.Request.Method,
-			"URL", c.Request.URL,
-			"content_length", c.Request.ContentLength,
-			"remote_address", utility.RemoteAddr(c.Request),
-			"user-agent", c.Request.Header.Get(headers.UserAgent))
-
-		h(c)
-
-		keysAndValues := []interface{}{"response_code", c.StatusCode}
-		if c.StatusCode >= http.StatusBadRequest {
-			keysAndValues = append(keysAndValues, "error", c.Err)
-			if c.Stacktrace != "" {
-				keysAndValues = append(keysAndValues, "stacktrace", c.Stacktrace)
+		return func(c *request.Context) {
+			reqID, err := uuid.NewV4()
+			if err != nil {
+				sendStatus(c, request.InternalErrorResponse(err))
 			}
-			reqLogger.Errorw("error handling request", keysAndValues...)
-			return
-		}
 
-		reqLogger.Infow("handled request", keysAndValues...)
+			reqLogger := logger.With(
+				"request_id", reqID,
+				"method", c.Request.Method,
+				"URL", c.Request.URL,
+				"content_length", c.Request.ContentLength,
+				"remote_address", utility.RemoteAddr(c.Request),
+				"user-agent", c.Request.Header.Get(headers.UserAgent))
+
+			h(c)
+
+			keysAndValues := []interface{}{"response_code", c.StatusCode}
+			if c.StatusCode >= http.StatusBadRequest {
+				keysAndValues = append(keysAndValues, "error", c.Err)
+				if c.Stacktrace != "" {
+					keysAndValues = append(keysAndValues, "stacktrace", c.Stacktrace)
+				}
+				reqLogger.Errorw("error handling request", keysAndValues...)
+				return
+			}
+
+			reqLogger.Infow("handled request", keysAndValues...)
+		}
 	}
 }
