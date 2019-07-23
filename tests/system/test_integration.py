@@ -4,7 +4,7 @@ import time
 import unittest
 
 from apmserver import ElasticTest, ExpvarBaseTest
-from apmserver import ClientSideElasticTest, SmapCacheBaseTest
+from apmserver import ClientSideElasticTest
 from apmserver import OverrideIndicesTest, OverrideIndicesFailureTest
 from beat.beat import INTEGRATION_TESTS
 from sets import Set
@@ -505,8 +505,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_rum_error_sourcemap(True)
 
-
-class SourcemappingIntegrationChangedConfigTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error_changed_index(self):
         # use an uncleaned path to test that path is cleaned in upload
@@ -524,7 +522,9 @@ class SourcemappingIntegrationChangedConfigTest(ClientSideElasticTest):
         self.check_rum_error_sourcemap(True)
 
 
-class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
+class SourcemappingCacheIntegrationTest(ClientSideElasticTest):
+    config_overrides = {"smap_cache_expiration": "1"}
+
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
@@ -554,6 +554,35 @@ class SourcemappingCacheIntegrationTest(SmapCacheBaseTest):
                                      'error',
                                      1)
         self.check_rum_error_sourcemap(False, expected_err="No Sourcemap available for")
+
+
+class SourcemappingDisabledIntegrationTest(ClientSideElasticTest):
+    config_overrides = {
+        "rum_sourcemapping_disabled": True,
+    }
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_rum_transaction(self):
+        path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
+        r = self.upload_sourcemap(file_name='bundle.js.map',
+                                  bundle_filepath=path,
+                                  service_version='1.0.0')
+        assert r.status_code == 403, r.status_code
+
+        self.load_docs_with_template(self.get_transaction_payload_path(),
+                                     self.intake_url,
+                                     'transaction',
+                                     2)
+        rs = self.es.search(index=self.index_span, params={"rest_total_hits_as_int": "true"})
+        assert rs['hits']['total'] == 1, "found {} documents, expected {}".format(
+            rs['hits']['total'], 1)
+        frames_checked = 0
+        for doc in rs['hits']['hits']:
+            span = doc["_source"]["span"]
+            for frame in span["stacktrace"]:
+                frames_checked += 1
+                assert "sourcemap" not in frame, frame
+        assert frames_checked > 0, "no frames checked"
 
 
 class ExpvarDisabledIntegrationTest(ExpvarBaseTest):

@@ -13,3 +13,4 @@ https://github.com/elastic/apm-server/compare/v7.3.0\...v7.4.0[View commits]
 [float]
 ==== Added
 - Upgrade Go to 1.12.7 {pull}2483[2483].
+- Add config option to disable sourcemapping {pull}2488[2488].
