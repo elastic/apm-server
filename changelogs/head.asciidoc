@@ -6,7 +6,8 @@
 
 [float]
 ==== Added
-- Upgrade Go to 1.12.7 {pull}XXX[XXX].
+- Upgrade Go to 1.12.7 {pull}2483[2483].
+- Add config option to disable sourcemapping {pull}2488[2488].
 
 [float]
 ==== Removed

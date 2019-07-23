@@ -48,10 +48,14 @@ apm-server:
   rum.exclude_from_grouping: "~/test"
   rum.event_rate.limit: 16
 
-  {% if smap_cache_expiration%}
+  {% if rum_sourcemapping_disabled %}
+  rum.source_mapping.enabled: false
+  {% endif %}
+
+  {% if smap_cache_expiration %}
   rum.source_mapping.cache.expiration: {{ smap_cache_expiration}}
   {% endif %}
-  {% if smap_index_pattern%}
+  {% if smap_index_pattern %}
   rum.source_mapping.index_pattern: {{ smap_index_pattern}}
   {% endif %}
 
