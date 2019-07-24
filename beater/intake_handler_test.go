@@ -34,7 +34,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/headers"
-	btcontext "github.com/elastic/apm-server/beater/request"
+	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
@@ -49,7 +49,7 @@ func TestInvalidContentType(t *testing.T) {
 	c := defaultConfig("7.0.0")
 	handler, err := (&backendRoute).Handler("", c, nil)
 	require.NoError(t, err)
-	ctx := &btcontext.Context{}
+	ctx := &request.Context{}
 	ctx.Reset(w, req)
 	handler(ctx)
 
@@ -67,7 +67,7 @@ func TestEmptyRequest(t *testing.T) {
 	c := defaultConfig("7.0.0")
 	handler, err := (&backendRoute).Handler("", c, nil)
 	require.NoError(t, err)
-	ctx := &btcontext.Context{}
+	ctx := &request.Context{}
 	ctx.Reset(w, req)
 	handler(ctx)
 
@@ -95,7 +95,7 @@ func TestRequestDecoderError(t *testing.T) {
 
 	handler, err := testRouteWithFaultyDecoder.Handler("", c, nil)
 	require.NoError(t, err)
-	ctx := &btcontext.Context{}
+	ctx := &request.Context{}
 	ctx.Reset(w, req)
 	handler(ctx)
 
@@ -239,7 +239,7 @@ func sendReq(c *Config, route *intakeRoute, url string, p string, repErr error) 
 	}
 
 	w := httptest.NewRecorder()
-	ctx := &btcontext.Context{}
+	ctx := &request.Context{}
 	ctx.Reset(w, req)
 	logHandler(handler)(ctx)
 	return w, nil
@@ -253,7 +253,7 @@ func TestWrongMethod(t *testing.T) {
 	require.NoError(t, err)
 
 	ct := methodNotAllowedCounter.Get()
-	ctx := &btcontext.Context{}
+	ctx := &request.Context{}
 	ctx.Reset(w, req)
 	handler(ctx)
 
@@ -287,7 +287,7 @@ func TestLineExceeded(t *testing.T) {
 	assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
 	handler, err := (&backendRoute).Handler("", c, nilReport)
 	require.NoError(t, err)
-	ctx := &btcontext.Context{}
+	ctx := &request.Context{}
 	ctx.Reset(w, req)
 	handler(ctx)
 
@@ -305,7 +305,7 @@ func TestLineExceeded(t *testing.T) {
 	w = httptest.NewRecorder()
 
 	ct := requestTooLargeCounter.Get()
-	ctx = &btcontext.Context{}
+	ctx = &request.Context{}
 	ctx.Reset(w, req)
 	handler(ctx)
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
