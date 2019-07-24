@@ -311,36 +311,6 @@ pipeline {
       }
     }
     /**
-    Build the documentation and archive it.
-    Finally archive the results.
-    */
-    stage('Documentation') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            branch 'master'
-            expression { return params.Run_As_Master_Branch }
-          }
-          expression { return params.doc_ci }
-        }
-      }
-      steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          buildDocs(docsDir: "docs", archive: true)
-        }
-      }
-    }
-    /**
     Checks if kibana objects are updated.
     */
     stage('Check kibana Obj. Updated') {
