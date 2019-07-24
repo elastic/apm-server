@@ -18,37 +18,46 @@
 package beater
 
 import (
-	"net/http"
+	"runtime/debug"
 
-	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/beater/request"
 )
 
-// MonitoringHandler returns a middleware that increases monitoring counters for collecting metrics
-// about request processing. It takes a function as input parameter that maps a request.ResultID to a counter.
-func MonitoringHandler(fn func(id request.ResultID) *monitoring.Int) Middleware {
+const keywordPanic = "panic handling request"
+
+// PanicHandler returns a middleware ensuring that the Server recovers from panics,
+// while trying to write an according response.
+func PanicHandler() Middleware {
 	return func(h request.Handler) request.Handler {
-		inc := func(counter *monitoring.Int) {
-			if counter == nil {
-				return
-			}
-			counter.Inc()
-		}
 		return func(c *request.Context) {
-			inc(fn(request.IDRequestCount))
 
+			defer func() {
+				if r := recover(); r != nil {
+
+					// recover again in case setting the context's result or writing the response itself
+					// is throwing the panic
+					defer func() {
+						recover()
+					}()
+
+					// set the context's result and write response
+					var ok bool
+					var err error
+					if err, ok = r.(error); !ok {
+						err = errors.Wrap(err, request.KeywordResponseErrorsInternal)
+					}
+					c.Result.SetDefault(request.IDResponseErrorsInternal)
+					c.Result.Stacktrace = string(debug.Stack())
+					c.Result.Keyword = keywordPanic
+					c.Result.Body = keywordPanic
+					c.Result.Err = err
+
+					c.Write()
+				}
+			}()
 			h(c)
-
-			inc(fn(request.IDResponseCount))
-			if c.Result.StatusCode >= http.StatusBadRequest {
-				inc(fn(request.IDResponseErrorsCount))
-			} else {
-				inc(fn(request.IDResponseValidCount))
-			}
-
-			inc(fn(c.Result.ID))
 		}
-
 	}
 }

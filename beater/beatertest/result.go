@@ -15,20 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package beatertest
 
-import (
-	"github.com/elastic/apm-server/beater/request"
-)
+import "fmt"
 
-// Middleware wraps a request.Handler
-type Middleware func(request.Handler) request.Handler
-
-// WithMiddleware wraps a request.Handler into given middleware functions,
-// maintaining order from the last to the first middleware
-func WithMiddleware(h request.Handler, m ...Middleware) request.Handler {
-	for i := len(m) - 1; i >= 0; i-- {
-		h = m[i](h)
-	}
-	return h
-}
+// ResultErrWrap wraps given input into the expected result error string
+func ResultErrWrap(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }

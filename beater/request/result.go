@@ -23,128 +23,88 @@ import (
 	"github.com/pkg/errors"
 )
 
-//Ids can be used for monitoring counters
 const (
 
-	//IDRequestCount identifies all requests
-	IDRequestCount ResultID = "request.count"
-	//IDResponseCount identifies all responses
-	IDResponseCount ResultID = "response.count"
-	//IDResponseErrorsCount identifies all non successful responses
-	IDResponseErrorsCount ResultID = "response.errors.count"
-	//IDResponseValidCount identifies all successful responses
-	IDResponseValidCount ResultID = "response.valid.count"
+	// IDUnset identifies requests not covered by other IDs
+	IDUnset ResultID = "unset"
 
-	//IDResponseValidOK identifies responses with status code 200
+	// IDRequestCount identifies all requests
+	IDRequestCount ResultID = "request.count"
+	// IDResponseCount identifies all responses
+	IDResponseCount ResultID = "response.count"
+	// IDResponseErrorsCount identifies all non successful responses
+	IDResponseErrorsCount ResultID = "response.errors.count"
+	// IDResponseValidCount identifies all successful responses
+	IDResponseValidCount ResultID = "response.valid.count"
+	// IDResponseValidNotModified identifies all successful responses without a modified body
+	IDResponseValidNotModified ResultID = "response.valid.notmodified"
+
+	// IDResponseValidOK identifies responses with status code 200
 	IDResponseValidOK ResultID = "response.valid.ok"
-	//IDResponseValidAccepted identifies responses with status code 202
+	// IDResponseValidAccepted identifies responses with status code 202
 	IDResponseValidAccepted ResultID = "response.valid.accepted"
 
-	//IDResponseErrorsForbidden identifies responses for forbidden requests
+	// IDResponseErrorsForbidden identifies responses for forbidden requests
 	IDResponseErrorsForbidden ResultID = "response.errors.forbidden"
-	//IDResponseErrorsUnauthorized identifies responses for unauthorized requests
+	// IDResponseErrorsUnauthorized identifies responses for unauthorized requests
 	IDResponseErrorsUnauthorized ResultID = "response.errors.unauthorized"
-	//IDResponseErrorsRequestTooLarge identifies responses for too large requests
+	// IDResponseErrorsNotFound identifies responses where route was not found
+	IDResponseErrorsNotFound ResultID = "response.errors.notfound"
+	// IDResponseErrorsInvalidQuery identifies responses with invalid query sent
+	IDResponseErrorsInvalidQuery ResultID = "response.errors.invalidquery"
+	// IDResponseErrorsRequestTooLarge identifies responses for too large requests
 	IDResponseErrorsRequestTooLarge ResultID = "response.errors.toolarge"
-	//IDResponseErrorsDecode identifies responses for requests that could not be decoded
+	// IDResponseErrorsDecode identifies responses for requests that could not be decoded
 	IDResponseErrorsDecode ResultID = "response.errors.decode"
-	//IDResponseErrorsValidate identifies responses for invalid requests
+	// IDResponseErrorsValidate identifies responses for invalid requests
 	IDResponseErrorsValidate ResultID = "response.errors.validate"
-	//IDResponseErrorsRateLimit identifies responses for rate limited requests
+	// IDResponseErrorsRateLimit identifies responses for rate limited requests
 	IDResponseErrorsRateLimit ResultID = "response.errors.ratelimit"
-	//IDResponseErrorsMethodNotAllowed identifies responses for requests using a forbidden method
+	// IDResponseErrorsMethodNotAllowed identifies responses for requests using a forbidden method
 	IDResponseErrorsMethodNotAllowed ResultID = "response.errors.method"
-	//IDResponseErrorsFullQueue identifies responses when internal queue was full
+	// IDResponseErrorsFullQueue identifies responses when internal queue was full
 	IDResponseErrorsFullQueue ResultID = "response.errors.queue"
-	//IDResponseErrorsShuttingDown identifies responses requests occuring after channel was closed
+	// IDResponseErrorsShuttingDown identifies responses requests occuring after channel was closed
 	IDResponseErrorsShuttingDown ResultID = "response.errors.closed"
-	//IDResponseErrorsInternal identifies responses where internal errors occured
+	// IDResponseErrorsServiceUnavailable identifies responses where service was unavailable
+	IDResponseErrorsServiceUnavailable ResultID = "response.errors.unavailable"
+	// IDResponseErrorsInternal identifies responses where internal errors occured
 	IDResponseErrorsInternal ResultID = "response.errors.internal"
-)
+	// IDResponseErrorsServiceUnavailable identifies responses where resource is unavailable
 
-var (
-	//OKResponse represents status 200
-	OKResponse = Result{
-		StatusCode: http.StatusOK,
-		ID:         IDResponseValidOK,
-	}
-	//AcceptedResponse represents status 200
-	AcceptedResponse = Result{
-		StatusCode: http.StatusAccepted,
-		ID:         IDResponseValidAccepted,
-	}
-	//InternalErrorResponse represents status 500
-	InternalErrorResponse = func(err error) Result {
-		return Result{
-			Err:        errors.Wrap(err, "internal error"),
-			StatusCode: http.StatusInternalServerError,
-			ID:         IDResponseErrorsInternal,
-		}
-	}
-	//ForbiddenResponse represents status 403
-	ForbiddenResponse = func(err error) Result {
-		return Result{
-			Err:        errors.Wrap(err, "forbidden request"),
-			StatusCode: http.StatusForbidden,
-			ID:         IDResponseErrorsForbidden,
-		}
-	}
-	//UnauthorizedResponse represents status 401
-	UnauthorizedResponse = Result{
-		Err:        errors.New("invalid token"),
-		StatusCode: http.StatusUnauthorized,
-		ID:         IDResponseErrorsUnauthorized,
-	}
-	//RequestTooLargeResponse represents status 413
-	RequestTooLargeResponse = Result{
-		Err:        errors.New("request body too large"),
-		StatusCode: http.StatusRequestEntityTooLarge,
-		ID:         IDResponseErrorsRequestTooLarge,
-	}
-	//CannotDecodeResponse represents status 400 because of decoding errors
-	CannotDecodeResponse = func(err error) Result {
-		return Result{
-			Err:        errors.Wrap(err, "data decoding error"),
-			StatusCode: http.StatusBadRequest,
-			ID:         IDResponseErrorsDecode,
-		}
-	}
-	//CannotValidateResponse represents status 400 because of validation errors
-	CannotValidateResponse = func(err error) Result {
-		return Result{
-			Err:        errors.Wrap(err, "data validation error"),
-			StatusCode: http.StatusBadRequest,
-			ID:         IDResponseErrorsValidate,
-		}
-	}
-	//RateLimitedResponse represents status 429
-	RateLimitedResponse = Result{
-		Err:        errors.New("too many requests"),
-		StatusCode: http.StatusTooManyRequests,
-		ID:         IDResponseErrorsRateLimit,
-	}
-	//MethodNotAllowedResponse represents status 405
-	MethodNotAllowedResponse = Result{
-		Err:        errors.New("only POST requests are supported"),
-		StatusCode: http.StatusMethodNotAllowed,
-		ID:         IDResponseErrorsMethodNotAllowed,
-	}
-	//FullQueueResponse represents status 503 because internal memory queue is full
-	FullQueueResponse = func(err error) Result {
-		return Result{
-			Err:        errors.Wrap(err, "queue is full"),
-			StatusCode: http.StatusServiceUnavailable,
-			ID:         IDResponseErrorsFullQueue,
-		}
-	}
-	//ServerShuttingDownResponse represents status 503 because server is shutting down
-	ServerShuttingDownResponse = func(err error) Result {
-		return Result{
-			Err:        errors.New("server is shutting down"),
-			StatusCode: http.StatusServiceUnavailable,
-			ID:         IDResponseErrorsShuttingDown,
-		}
-	}
+	// KeywordResponseValidOK represents keyword for valid request
+	KeywordResponseValidOK = "request ok"
+	// KeywordResponseValidAccepted represents keyword for accepted request
+	KeywordResponseValidAccepted = "request accepted"
+	// KeywordResponseNotModified represents keyword for unmodified resource
+	KeywordResponseNotModified = "not modified"
+
+	// KeywordResponseErrorsForbidden represents keyword for forbidden request
+	KeywordResponseErrorsForbidden = "forbidden request"
+	// KeywordResponseErrorsUnauthorized represents keyword for request with invalid security token
+	KeywordResponseErrorsUnauthorized = "invalid token"
+	// KeywordResponseErrorsNotFound represents keyword for resource not found
+	KeywordResponseErrorsNotFound = "404 page not found"
+	// KeywordResponseErrorsInvalidQuery represents keyword for invalid query
+	KeywordResponseErrorsInvalidQuery = "invalid query"
+	// KeywordResponseErrorsRequestTooLarge represents keyword for body too large
+	KeywordResponseErrorsRequestTooLarge = "request body too large"
+	// KeywordResponseErrorsDecode represents keyword for error while decoding request body
+	KeywordResponseErrorsDecode = "data decoding error"
+	// KeywordResponseErrorsValidate represents keyword for error while validating request body
+	KeywordResponseErrorsValidate = "data validation error"
+	// KeywordResponseErrorsRateLimit represents keyword for rate limit hit
+	KeywordResponseErrorsRateLimit = "too many requests"
+	// KeywordResponseErrorsMethodNotAllowed represents keyword for method not allowed
+	KeywordResponseErrorsMethodNotAllowed = "only POST requests are supported"
+	// KeywordResponseErrorsFullQueue represents keyword for internal memory queue full
+	KeywordResponseErrorsFullQueue = "queue is full"
+	// KeywordResponseErrorsShuttingDown represents keyword for server shutting down
+	KeywordResponseErrorsShuttingDown = "server is shutting down"
+	// KeywordResponseErrorsServiceUnavailable represents keyword for service unavailable
+	KeywordResponseErrorsServiceUnavailable = "service unavailable"
+	// KeywordResponseErrorsInternal represents keyword for internal error
+	KeywordResponseErrorsInternal = "internal error"
 )
 
 //ResultID unique string identifying a requests Result
@@ -160,20 +120,128 @@ type Result struct {
 	Stacktrace string
 }
 
-//SendStatus initiates response writing for a given context
-//TODO: move to Context when reworking response handling.
-func SendStatus(c *Context, res Result) {
-	if res.Err != nil {
-		body := map[string]interface{}{"error": res.Err.Error()}
-		//TODO: refactor response handling: get rid of additional `error` and just pass in error
-		c.SendError(body, body, res.StatusCode)
-		return
+// Reset sets result to it's empty values
+func (r *Result) Reset() {
+	r.ID = IDUnset
+	r.StatusCode = http.StatusOK
+	r.Keyword = ""
+	r.Body = nil
+	r.Err = nil
+	r.Stacktrace = ""
+}
 
-	}
-	if res.Body == nil {
-		c.WriteHeader(res.StatusCode)
+// SetDefault derives information about the result solely from the ID.
+func (r *Result) SetDefault(id ResultID) {
+	r.set(id, nil, nil)
+}
+
+// SetWithError derives information about the result from the given ID and the error.
+// The body is derived from the error in case the result describes a failure.
+func (r *Result) SetWithError(id ResultID, err error) {
+	r.set(id, nil, err)
+}
+
+// SetWithBody derives information about the result from the given ID. The body is set to the passed value.
+func (r *Result) SetWithBody(id ResultID, body interface{}) {
+	r.set(id, body, nil)
+}
+
+// Set allows for the most flexibility in setting a result's properties.
+// The error and body information are derived from the given parameters.
+func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface{}, err error) {
+	if r == nil {
 		return
 	}
+	r.ID = id
+	r.StatusCode = statusCode
+	r.Keyword = keyword
+	r.Body = body
+	r.Err = err
 
-	c.Send(res.Body, res.StatusCode)
+	if r.Failure() {
+		if err == nil {
+			r.Err = errors.New(keyword)
+		}
+		if r.Body == nil {
+			r.Body = r.Err.Error()
+		}
+	}
+}
+
+// Failure returns a bool indicating whether it is describing a successful result or not
+func (r *Result) Failure() bool {
+	return r.StatusCode >= http.StatusBadRequest
+}
+
+func (r *Result) set(id ResultID, body interface{}, err error) {
+	if r == nil {
+		return
+	}
+	statusCode := http.StatusInternalServerError
+	keyword := KeywordResponseErrorsInternal
+
+	switch id {
+	case IDResponseValidOK:
+		statusCode = http.StatusOK
+		keyword = KeywordResponseValidOK
+
+	case IDResponseValidAccepted:
+		statusCode = http.StatusAccepted
+		keyword = KeywordResponseValidAccepted
+
+	case IDResponseValidNotModified:
+		statusCode = http.StatusNotModified
+		keyword = KeywordResponseNotModified
+
+	case IDResponseErrorsForbidden:
+		statusCode = http.StatusForbidden
+		keyword = KeywordResponseErrorsForbidden
+
+	case IDResponseErrorsUnauthorized:
+		statusCode = http.StatusUnauthorized
+		keyword = KeywordResponseErrorsUnauthorized
+
+	case IDResponseErrorsNotFound:
+		statusCode = http.StatusNotFound
+		keyword = KeywordResponseErrorsNotFound
+
+	case IDResponseErrorsInvalidQuery:
+		statusCode = http.StatusBadRequest
+		keyword = KeywordResponseErrorsInvalidQuery
+
+	case IDResponseErrorsRequestTooLarge:
+		statusCode = http.StatusRequestEntityTooLarge
+		keyword = KeywordResponseErrorsRequestTooLarge
+
+	case IDResponseErrorsDecode:
+		statusCode = http.StatusBadRequest
+		keyword = KeywordResponseErrorsDecode
+
+	case IDResponseErrorsValidate:
+		statusCode = http.StatusBadRequest
+		keyword = KeywordResponseErrorsValidate
+
+	case IDResponseErrorsRateLimit:
+		statusCode = http.StatusTooManyRequests
+		keyword = KeywordResponseErrorsRateLimit
+
+	case IDResponseErrorsMethodNotAllowed:
+		statusCode = http.StatusMethodNotAllowed
+		keyword = KeywordResponseErrorsMethodNotAllowed
+
+	case IDResponseErrorsFullQueue:
+		statusCode = http.StatusServiceUnavailable
+		keyword = KeywordResponseErrorsFullQueue
+
+	case IDResponseErrorsShuttingDown:
+		statusCode = http.StatusServiceUnavailable
+		keyword = KeywordResponseErrorsShuttingDown
+
+	case IDResponseErrorsServiceUnavailable:
+		statusCode = http.StatusServiceUnavailable
+		keyword = KeywordResponseErrorsServiceUnavailable
+	}
+	err = errors.Wrap(err, keyword)
+	r.Set(id, statusCode, keyword, body, err)
+
 }

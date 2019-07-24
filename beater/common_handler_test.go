@@ -18,8 +18,6 @@
 package beater
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,105 +28,37 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-//TODO: figure out what this should be actually testing
-//func TestOPTIONS(t *testing.T) {
-//	config := defaultConfig("7.0.0")
-//	enabled := true
-//	config.RumConfig.Enabled = &enabled
-//
-//	requestTaken := make(chan struct{}, 1)
-//	done := make(chan struct{}, 1)
-//
-//	h := rumHandler(config, http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
-//		requestTaken <- struct{}{}
-//		<-done
-//	}))
-//
-//	// use this to block the single allowed concurrent requests
-//	go func() {
-//		w := httptest.NewRecorder()
-//		r := httptest.NewRequest(http.MethodPost, "/", nil)
-//		h.ServeHTTP(w, r)
-//	}()
-//
-//	<-requestTaken
-//
-//	// send a new request which should be allowed through
-//	w := httptest.NewRecorder()
-//	r := httptest.NewRequest("OPTIONS", "/", nil)
-//	h.ServeHTTP(w, r)
-//	assert.Equal(t, 200, w.Code, w.Body.String())
-//	done <- struct{}{}
-//}
+func TestOPTIONS(t *testing.T) {
+	requestTaken := make(chan struct{}, 1)
+	done := make(chan struct{}, 1)
 
-func TestOkBody(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "_", nil)
-	require.NoError(t, err)
-	w := httptest.NewRecorder()
-	c := &request.Context{}
-	c.Reset(w, req)
-	request.SendStatus(c, request.Result{
-		StatusCode: http.StatusNonAuthoritativeInfo,
-		Body:       map[string]interface{}{"some": "body"},
-	})
-	rsp := w.Result()
-	got := body(t, rsp)
-	assert.Equal(t, "{\"some\":\"body\"}\n", string(got))
-	assert.Equal(t, "text/plain; charset=utf-8", rsp.Header.Get("Content-Type"))
-}
+	h := WithMiddleware(
+		func(c *request.Context) {
+			requestTaken <- struct{}{}
+			<-done
+		},
+		append(apmHandler(IntakeResultIDToMonitoringInt),
+			KillSwitchHandler(true),
+			RequestTimeHandler(),
+			CorsHandler([]string{"*"}))...)
 
-func TestOkBodyJson(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "_", nil)
-	req.Header.Set("Accept", "application/json")
-	assert.Nil(t, err)
-	w := httptest.NewRecorder()
-	c := &request.Context{}
-	c.Reset(w, req)
-	request.SendStatus(c, request.Result{
-		StatusCode: http.StatusNonAuthoritativeInfo,
-		Body:       map[string]interface{}{"version": "1.0"},
-	})
-	rsp := w.Result()
-	got := body(t, rsp)
-	assert.Equal(t,
-		`{
-  "version": "1.0"
-}
-`, string(got))
-	assert.Equal(t, "application/json", rsp.Header.Get("Content-Type"))
-}
-
-func TestAccept(t *testing.T) {
-	expectedErrorJson :=
-		`{
-  "error": "data validation error: error message"
-}
-`
-	expectedErrorText := "{\"error\":\"data validation error: error message\"}\n"
-
-	for idx, test := range []struct{ accept, expectedError, expectedContentType string }{
-		{"application/json", expectedErrorJson, "application/json"},
-		{"*/*", expectedErrorJson, "application/json"},
-		{"text/html", expectedErrorText, "text/plain; charset=utf-8"},
-		{"", expectedErrorText, "text/plain; charset=utf-8"},
-	} {
-		req, err := http.NewRequest(http.MethodPost, "_", nil)
-		require.NoError(t, err)
-		if test.accept != "" {
-			req.Header.Set("Accept", test.accept)
-		} else {
-			delete(req.Header, "Accept")
-		}
-		w := httptest.NewRecorder()
+	// use this to block the single allowed concurrent requests
+	go func() {
 		c := &request.Context{}
-		c.Reset(w, req)
-		request.SendStatus(c, request.CannotValidateResponse(errors.New("error message")))
-		rsp := w.Result()
-		got := body(t, rsp)
-		assert.Equal(t, 400, w.Code)
-		assert.Equal(t, test.expectedError, got, fmt.Sprintf("at index %d", idx))
-		assert.Equal(t, test.expectedContentType, rsp.Header.Get("Content-Type"), fmt.Sprintf("at index %d", idx))
-	}
+		c.Reset(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/", nil))
+		h(c)
+	}()
+
+	<-requestTaken
+
+	// send a new request which should be allowed through
+	c := &request.Context{}
+	w := httptest.NewRecorder()
+	c.Reset(w, httptest.NewRequest(http.MethodOptions, "/", nil))
+	h(c)
+
+	assert.Equal(t, 200, w.Code, w.Body.String())
+	done <- struct{}{}
 }
 
 func TestIsAuthorized(t *testing.T) {

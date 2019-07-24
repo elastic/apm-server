@@ -18,106 +18,53 @@
 package beater
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
 )
 
 func TestMonitoringHandler(t *testing.T) {
-	requestCounter := mockMonitoringFn(request.IDRequestCount)
-	responseCounter := mockMonitoringFn(request.IDResponseCount)
-	responseErrors := mockMonitoringFn(request.IDResponseErrorsCount)
-	responseSuccesses := mockMonitoringFn(request.IDResponseValidCount)
-
 	t.Run("Error", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/assets/v1/sourcemaps/")
-		withMiddleware(mockHandler403, monitoringHandler(mockMonitoringFn))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseErrors: 1,
-			mockMonitoringFn(request.IDResponseErrorsForbidden): 1})
+		beatertest.ClearRegistry(mockMonitoringRegistry, mockMonitoringFn)
+		c, _ := beatertest.DefaultContextWithResponseRecorder()
+		WithMiddleware(beatertest.Handler403, MonitoringHandler(mockMonitoringFn))(c)
+		expected := map[request.ResultID]int{
+			request.IDRequestCount:            1,
+			request.IDResponseCount:           1,
+			request.IDResponseErrorsCount:     1,
+			request.IDResponseErrorsForbidden: 1}
+		equal, result := beatertest.CompareMonitoringInt(expected, mockMonitoringFn)
+		assert.True(t, equal, result)
 	})
 	t.Run("Accepted", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/assets/v1/sourcemaps")
-		withMiddleware(mockHandler202, monitoringHandler(mockMonitoringFn))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseSuccesses: 1,
-			mockMonitoringFn(request.IDResponseValidAccepted): 1})
+		beatertest.ClearRegistry(mockMonitoringRegistry, mockMonitoringFn)
+		c, _ := beatertest.DefaultContextWithResponseRecorder()
+		WithMiddleware(beatertest.Handler202, MonitoringHandler(mockMonitoringFn))(c)
+		expected := map[request.ResultID]int{
+			request.IDRequestCount:          1,
+			request.IDResponseCount:         1,
+			request.IDResponseValidCount:    1,
+			request.IDResponseValidAccepted: 1}
+		equal, result := beatertest.CompareMonitoringInt(expected, mockMonitoringFn)
+		assert.True(t, equal, result)
 	})
 	t.Run("Idle", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/assets/v1/sourcemaps")
-
-		withMiddleware(mockHandlerIdle, monitoringHandler(mockMonitoringFn))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseSuccesses: 1})
+		beatertest.ClearRegistry(mockMonitoringRegistry, mockMonitoringFn)
+		c, _ := beatertest.DefaultContextWithResponseRecorder()
+		WithMiddleware(beatertest.HandlerIdle, MonitoringHandler(mockMonitoringFn))(c)
+		expected := map[request.ResultID]int{
+			request.IDRequestCount:       1,
+			request.IDResponseCount:      1,
+			request.IDResponseValidCount: 1,
+			request.IDUnset:              1}
+		equal, result := beatertest.CompareMonitoringInt(expected, mockMonitoringFn)
+		assert.True(t, equal, result)
 	})
-}
-
-func testCounter(t *testing.T, ctrs map[*monitoring.Int]int64) {
-	for idx, ct := range testGetCounter() {
-		actual := ct.Get()
-		expected := int64(0)
-		if val, included := ctrs[ct]; included {
-			expected = val
-		}
-		assert.Equal(t, expected, actual, fmt.Sprintf("Idx: %d", idx))
-	}
-}
-
-func setupContext(path string) *request.Context {
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, path, nil)
-	c := &request.Context{}
-	c.Reset(w, r)
-	return c
-}
-
-func mockHandler403(c *request.Context) {
-	c.MonitoringID = request.IDResponseErrorsForbidden
-	c.WriteHeader(http.StatusForbidden)
-}
-
-func mockHandler202(c *request.Context) {
-	c.MonitoringID = request.IDResponseValidAccepted
-	c.WriteHeader(http.StatusAccepted)
-}
-
-func mockHandlerIdle(c *request.Context) {}
-
-func testResetCounter() {
-	for _, ct := range testGetCounter() {
-		ct.Set(0)
-	}
-}
-
-func testGetCounter() []*monitoring.Int {
-	return []*monitoring.Int{
-		mockMonitoringFn(request.IDRequestCount),
-		mockMonitoringFn(request.IDResponseCount),
-		mockMonitoringFn(request.IDResponseErrorsCount),
-		mockMonitoringFn(request.IDResponseValidCount),
-		mockMonitoringFn(request.IDResponseValidOK),
-		mockMonitoringFn(request.IDResponseValidAccepted),
-		mockMonitoringFn(request.IDResponseErrorsInternal),
-		mockMonitoringFn(request.IDResponseErrorsForbidden),
-		mockMonitoringFn(request.IDResponseErrorsRequestTooLarge),
-		mockMonitoringFn(request.IDResponseErrorsDecode),
-		mockMonitoringFn(request.IDResponseErrorsValidate),
-		mockMonitoringFn(request.IDResponseErrorsRateLimit),
-		mockMonitoringFn(request.IDResponseErrorsMethodNotAllowed),
-		mockMonitoringFn(request.IDResponseErrorsFullQueue),
-		mockMonitoringFn(request.IDResponseErrorsShuttingDown),
-		mockMonitoringFn(request.IDResponseErrorsUnauthorized),
-	}
 }
 
 var (

@@ -33,7 +33,7 @@ import (
 )
 
 func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
-	mux, err := newMuxer(config, report)
+	mux, err := NewMuxer(config, report)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func doNotTrace(req *http.Request) bool {
 func run(logger *logp.Logger, server *http.Server, lis net.Listener, config *Config) error {
 	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	logger.Infof("Listening on: %s", server.Addr)
-	switch config.RumConfig.isEnabled() {
+	switch config.RumConfig.IsEnabled() {
 	case true:
 		logger.Info("RUM endpoints enabled!")
 	case false:

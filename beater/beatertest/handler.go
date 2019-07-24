@@ -15,32 +15,27 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package beatertest
 
 import (
-	"fmt"
 	"net/http"
-	"runtime/debug"
 
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func panicHandler() middleware {
-	return func(h request.Handler) request.Handler {
-		return func(c *request.Context) {
-
-			defer func() {
-				if r := recover(); r != nil {
-					var ok bool
-					var err error
-					if err, ok = r.(error); !ok {
-						err = fmt.Errorf("internal server error %+v", r)
-					}
-					c.Stacktrace = string(debug.Stack())
-					c.SendError(nil, fmt.Sprintf("panic handling request: %s", err.Error()), http.StatusInternalServerError)
-				}
-			}()
-			h(c)
-		}
-	}
+// Handler403 sets a 403 ID and status code to the context's response and calls Write()
+func Handler403(c *request.Context) {
+	c.Result.ID = request.IDResponseErrorsForbidden
+	c.Result.StatusCode = http.StatusForbidden
+	c.Write()
 }
+
+// Handler202 sets a 202 ID and status code to the context's response and calls Write()
+func Handler202(c *request.Context) {
+	c.Result.ID = request.IDResponseValidAccepted
+	c.Result.StatusCode = http.StatusAccepted
+	c.Write()
+}
+
+// HandlerIdle doesn't do anything but implement the request.Handler type
+func HandlerIdle(c *request.Context) {}

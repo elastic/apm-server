@@ -18,8 +18,6 @@
 package beater
 
 import (
-	"net/http"
-
 	"github.com/gofrs/uuid"
 
 	"github.com/elastic/beats/libbeat/logp"
@@ -30,14 +28,16 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func logHandler() middleware {
+// LogHandler returns a middleware taking care of logging processing a request in the middleware and the request handler
+func LogHandler() Middleware {
 	logger := logp.NewLogger(logs.Request)
 	return func(h request.Handler) request.Handler {
 
 		return func(c *request.Context) {
 			reqID, err := uuid.NewV4()
 			if err != nil {
-				request.SendStatus(c, request.InternalErrorResponse(err))
+				c.Result.SetWithError(request.IDResponseErrorsInternal, err)
+				c.Write()
 			}
 
 			reqLogger := logger.With(
@@ -48,18 +48,22 @@ func logHandler() middleware {
 				"remote_address", utility.RemoteAddr(c.Request),
 				"user-agent", c.Request.Header.Get(headers.UserAgent))
 
+			c.Logger = reqLogger
 			h(c)
 
-			keysAndValues := []interface{}{"response_code", c.StatusCode}
-			if c.StatusCode >= http.StatusBadRequest {
-				keysAndValues = append(keysAndValues, "error", c.Err)
-				if c.Stacktrace != "" {
-					keysAndValues = append(keysAndValues, "stacktrace", c.Stacktrace)
+			keysAndValues := []interface{}{"response_code", c.Result.StatusCode}
+			if c.Result.Failure() {
+				if c.Result.Err != nil {
+					keysAndValues = append(keysAndValues, "error", c.Result.Err.Error())
+				}
+				if c.Result.Stacktrace != "" {
+					keysAndValues = append(keysAndValues, "stacktrace", c.Result.Stacktrace)
 				}
 				reqLogger.Errorw("error handling request", keysAndValues...)
 				return
 			}
 
+			//TODO: log body if log level is debug
 			reqLogger.Infow("handled request", keysAndValues...)
 		}
 	}

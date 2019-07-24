@@ -19,14 +19,11 @@ package request
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
-
 	"github.com/elastic/beats/libbeat/logp"
 )
 
@@ -41,26 +38,25 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Request *http.Request
+	Request              *http.Request
+	Logger               *logp.Logger
+	TokenSet, Authorized bool
 
 	w http.ResponseWriter
 
-	StatusCode   int
-	Err          interface{}
-	Stacktrace   string
-	MonitoringID ResultID
+	Result Result
 }
 
 // Reset allows to reuse a context by removing all request specific information
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Request = r
+	c.Logger = nil
+	c.TokenSet = false
+	c.Authorized = false
 
 	c.w = w
 
-	c.StatusCode = http.StatusOK
-	c.Err = ""
-	c.Stacktrace = ""
-	c.MonitoringID = ""
+	c.Result.Reset()
 }
 
 // Header returns the http.Header of the context's writer
@@ -68,73 +64,38 @@ func (c *Context) Header() http.Header {
 	return c.w.Header()
 }
 
-//TODO: All of the below methods will be changed during the response handling refactoring
-
-// WriteHeader sets status code in context and call the http.ResponseWriter method
-func (c *Context) WriteHeader(statusCode int) {
-	c.w.WriteHeader(statusCode)
-	c.StatusCode = statusCode
-}
-
-// SendNotFoundErr is moved from the rootHandler and will be removed in the following refactoring
-func (c *Context) SendNotFoundErr() {
-	c.StatusCode = http.StatusNotFound
-	http.NotFound(c.w, c.Request)
-}
-
-// Send is taking care of writing the response
-func (c *Context) Send(body interface{}, statusCode int) {
-	c.SendError(body, nil, statusCode)
-}
-
-// SendError sets and error and writes the response
-func (c *Context) SendError(body, err interface{}, statusCode int) {
-	c.Err = err
+// Write sets response headers, and writes the body to the response writer.
+// In case body is nil only the headers will be set.
+// In case statusCode indicates an error response, the body is also set as error in the context.
+func (c *Context) Write() {
 	c.w.Header().Set(headers.XContentTypeOptions, "nosniff")
 
+	body := c.Result.Body
 	if body == nil {
-		c.WriteHeader(statusCode)
+		c.w.WriteHeader(c.Result.StatusCode)
 		return
 	}
 
-	if c.acceptJSON() {
-		c.sendJSON(body, statusCode)
-	} else {
-		c.sendPlain(body, statusCode)
-	}
-}
-
-func (c *Context) sendJSON(body interface{}, statusCode int) {
-	c.Header().Set(headers.ContentType, "application/json")
-	c.WriteHeader(statusCode)
-	buf, err := json.MarshalIndent(body, "", "  ")
-	if err != nil {
-		logp.NewLogger(logs.Response).Errorf("Error while generating a JSON error response: %v", err)
-		c.sendPlain(body, statusCode)
-		return
-	}
-
-	buf = append(buf, "\n"...)
-	n, _ := c.w.Write(buf)
-	c.w.Header().Set(headers.ContentLength, strconv.Itoa(n))
-}
-
-func (c *Context) sendPlain(body interface{}, statusCode int) {
-	c.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
-	c.WriteHeader(statusCode)
-	var b []byte
-	var err error
-	if bStr, ok := body.(string); ok {
-		b = []byte(bStr + "\n")
-	} else {
-		b, err = json.Marshal(body)
-		if err != nil {
-			b = []byte(fmt.Sprintf("%+v", body))
+	// wrap body in map: necessary to keep current logic
+	if c.Result.Failure() {
+		if b, ok := body.(string); ok {
+			body = map[string]string{"error": b}
 		}
-		b = append(b, "\n"...)
 	}
-	n, _ := c.w.Write(b)
-	c.w.Header().Set(headers.ContentLength, strconv.Itoa(n))
+
+	var err error
+	if c.acceptJSON() {
+		c.w.Header().Set(headers.ContentType, "application/json")
+		c.w.WriteHeader(c.Result.StatusCode)
+		err = c.writeJSON(body, true)
+	} else {
+		c.w.Header().Set(headers.ContentType, "text/plain; charset=utf-8")
+		c.w.WriteHeader(c.Result.StatusCode)
+		err = c.writePlain(body)
+	}
+	if err != nil {
+		c.errOnWrite(err)
+	}
 }
 
 func (c *Context) acceptJSON() bool {
@@ -145,4 +106,28 @@ func (c *Context) acceptJSON() bool {
 		}
 	}
 	return false
+}
+
+func (c *Context) writeJSON(body interface{}, pretty bool) error {
+	enc := json.NewEncoder(c.w)
+	if pretty {
+		enc.SetIndent("", "  ")
+	}
+	return enc.Encode(body)
+}
+
+func (c *Context) writePlain(body interface{}) error {
+	if b, ok := body.(string); ok {
+		_, err := c.w.Write([]byte(b + "\n"))
+		return err
+	}
+	// unexpected behavior to return json but changing this would be breaking
+	return c.writeJSON(body, false)
+}
+
+func (c *Context) errOnWrite(err error) {
+	if c.Logger == nil {
+		c.Logger = logp.NewLogger(logs.Response)
+	}
+	c.Logger.Errorw("write response", "error", err)
 }

@@ -39,15 +39,18 @@ import (
 const (
 	errMaxAgeDuration = 5 * time.Minute
 
-	errMsgInvalidQuery               = "invalid query"
-	errMsgKibanaDisabled             = "disabled Kibana configuration"
-	errMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
-	errMsgMethodUnsupported          = "method not supported"
-	errMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
-	errMsgServiceUnavailable         = "service unavailable"
+	msgInvalidQuery               = "invalid query"
+	msgKibanaDisabled             = "disabled Kibana configuration"
+	msgKibanaVersionNotCompatible = "not a compatible Kibana version"
+	msgMethodUnsupported          = "method not supported"
+	msgNoKibanaConnection         = "unable to retrieve connection to Kibana"
+	msgServiceUnavailable         = "service unavailable"
 )
 
 var (
+	errMsgKibanaDisabled     = errors.New(msgKibanaDisabled)
+	errMsgNoKibanaConnection = errors.New(msgNoKibanaConnection)
+
 	minKibanaVersion = common.MustNewVersion("7.3.0")
 	errCacheControl  = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 
@@ -59,76 +62,95 @@ var (
 	//}
 
 	// reflects current behavior
-	countRequest = intakeResultIDToMonitoringInt(request.IDRequestCount)
+	countRequest = IntakeResultIDToMonitoringInt(request.IDRequestCount)
 
 	mapping = map[request.ResultID]*monitoring.Int{
 		request.IDRequestCount: countRequest,
 	}
 )
 
-func acmResultIDToMonitoringInt(id request.ResultID) *monitoring.Int {
+// ACMResultIDToMonitoringInt takes a request.ResultID and maps it to a monitoring counter. If no mapping is found,
+// nil is returned.
+func ACMResultIDToMonitoringInt(id request.ResultID) *monitoring.Int {
 	if i, ok := mapping[id]; ok {
 		return i
 	}
 	return nil
 }
 
-func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) request.Handler {
+// AgentConfigHandler returns a request.Handler for managing ACM requests.
+func AgentConfigHandler(kbClient kibana.Client, config *AgentConfig) request.Handler {
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 
 	return func(c *request.Context) {
-		sendResp := wrap(c)
-		sendErr := wrapErr(c, secretToken)
+		// error handling
+		c.Header().Set(headers.CacheControl, errCacheControl)
 
-		if valid, shortMsg, detailMsg := validateKbClient(kbClient); !valid {
-			sendErr(http.StatusServiceUnavailable, shortMsg, detailMsg)
+		if valid := validateKbClient(c, kbClient, c.TokenSet); !valid {
+			c.Write()
 			return
 		}
 
-		query, requestErr := buildQuery(c.Request)
-		if requestErr != nil {
-			if strings.Contains(requestErr.Error(), errMsgMethodUnsupported) {
-				sendErr(http.StatusMethodNotAllowed, errMsgMethodUnsupported, requestErr.Error())
-				return
-			}
-			sendErr(http.StatusBadRequest, errMsgInvalidQuery, requestErr.Error())
+		query, queryErr := buildQuery(c.Request)
+		if queryErr != nil {
+			extractQueryError(c, queryErr, c.TokenSet)
+			c.Write()
 			return
 		}
 
-		cfg, upstreamEtag, internalErr := fetcher.Fetch(query, nil)
-		if internalErr != nil {
-			sendErr(http.StatusServiceUnavailable, internalErrMsg(internalErr.Error()), internalErr.Error())
+		cfg, upstreamEtag, err := fetcher.Fetch(query, nil)
+		if err != nil {
+			extractInternalError(c, err, c.TokenSet)
+			c.Write()
 			return
 		}
 
+		// configuration successfully fetched
+		c.Header().Set(headers.CacheControl, cacheControl)
 		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
 		c.Header().Set(headers.Etag, etag)
 		if etag == c.Request.Header.Get(headers.IfNoneMatch) {
-			sendResp(nil, http.StatusNotModified, cacheControl)
+			c.Result.SetDefault(request.IDResponseValidNotModified)
 		} else {
-			sendResp(cfg, http.StatusOK, cacheControl)
+			c.Result.SetWithBody(request.IDResponseValidOK, cfg)
 		}
+		c.Write()
 	}
 }
 
-func validateKbClient(client kibana.Client) (bool, string, string) {
+func validateKbClient(c *request.Context, client kibana.Client, withAuth bool) bool {
 	if client == nil {
-		return false, errMsgKibanaDisabled, errMsgKibanaDisabled
+		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
+			http.StatusServiceUnavailable,
+			msgKibanaDisabled,
+			msgKibanaDisabled,
+			errMsgKibanaDisabled)
+		return false
 	}
 	if !client.Connected() {
-		return false, errMsgNoKibanaConnection, errMsgNoKibanaConnection
+		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
+			http.StatusServiceUnavailable,
+			msgNoKibanaConnection,
+			msgNoKibanaConnection,
+			errMsgNoKibanaConnection)
+		return false
 	}
 	if supported, _ := client.SupportsVersion(minKibanaVersion); !supported {
 		version, _ := client.GetVersion()
-		return false, errMsgKibanaVersionNotCompatible, fmt.Sprintf("min required Kibana version %+v, "+
-			"configured Kibana version %+v", minKibanaVersion, version)
-	}
-	return true, "", ""
-}
 
-// Returns (zero, error) if request body can't be unmarshalled or service.name is missing
-// Returns (zero, zero) if request method is not GET or POST
+		errMsg := fmt.Sprintf("%s: min version %+v, configured version %+v",
+			msgKibanaVersionNotCompatible, minKibanaVersion, version.String())
+		body := authErrMsg(errMsg, msgKibanaVersionNotCompatible, withAuth)
+		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
+			http.StatusServiceUnavailable,
+			msgKibanaVersionNotCompatible,
+			body,
+			errors.New(errMsg))
+		return false
+	}
+	return true
+}
 func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	switch r.Method {
 	case http.MethodPost:
@@ -140,7 +162,7 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 			params.Get(agentcfg.ServiceEnv),
 		)
 	default:
-		err = errors.Errorf("%s: %s", errMsgMethodUnsupported, r.Method)
+		err = errors.Errorf("%s: %s", msgMethodUnsupported, r.Method)
 	}
 
 	if err == nil && query.Service.Name == "" {
@@ -149,40 +171,55 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	return
 }
 
-func wrap(c *request.Context) func(interface{}, int, string) {
-	return func(body interface{}, code int, cacheControl string) {
-		c.Header().Set(headers.CacheControl, cacheControl)
-		if body == nil {
-			c.WriteHeader(code)
-			return
-		}
-		c.Send(body, code)
-	}
-}
-
-func wrapErr(c *request.Context, token string) func(int, string, string) {
-	authErrMsg := func(errMsg, logMsg string) map[string]string {
-		if token == "" {
-			return map[string]string{"error": errMsg}
-		}
-		return map[string]string{"error": logMsg}
-	}
-
-	return func(status int, errMsg, logMsg string) {
-		c.Header().Set(headers.CacheControl, errCacheControl)
-		body := authErrMsg(errMsg, logMsg)
-		c.SendError(body, logMsg, status)
-	}
-}
-
-func internalErrMsg(msg string) string {
+func extractInternalError(c *request.Context, err error, withAuth bool) {
+	msg := err.Error()
+	var body interface{}
+	var keyword string
 	switch {
 	case strings.Contains(msg, agentcfg.ErrMsgSendToKibanaFailed):
-		return agentcfg.ErrMsgSendToKibanaFailed
+		body = authErrMsg(msg, agentcfg.ErrMsgSendToKibanaFailed, withAuth)
+		keyword = agentcfg.ErrMsgSendToKibanaFailed
+
 	case strings.Contains(msg, agentcfg.ErrMsgMultipleChoices):
-		return agentcfg.ErrMsgMultipleChoices
+		body = authErrMsg(msg, agentcfg.ErrMsgMultipleChoices, withAuth)
+		keyword = agentcfg.ErrMsgMultipleChoices
+
 	case strings.Contains(msg, agentcfg.ErrMsgReadKibanaResponse):
-		return agentcfg.ErrMsgReadKibanaResponse
+		body = authErrMsg(msg, agentcfg.ErrMsgReadKibanaResponse, withAuth)
+		keyword = agentcfg.ErrMsgReadKibanaResponse
+
+	default:
+		body = authErrMsg(msg, msgServiceUnavailable, withAuth)
+		keyword = msgServiceUnavailable
 	}
-	return errMsgServiceUnavailable
+
+	c.Result.Set(request.IDResponseErrorsServiceUnavailable,
+		http.StatusServiceUnavailable,
+		keyword,
+		body,
+		err)
+}
+
+func extractQueryError(c *request.Context, err error, withAuth bool) {
+	msg := err.Error()
+	if strings.Contains(msg, msgMethodUnsupported) {
+		c.Result.Set(request.IDResponseErrorsMethodNotAllowed,
+			http.StatusMethodNotAllowed,
+			msgMethodUnsupported,
+			authErrMsg(msg, msgMethodUnsupported, withAuth),
+			err)
+		return
+	}
+	c.Result.Set(request.IDResponseErrorsInvalidQuery,
+		http.StatusBadRequest,
+		msgInvalidQuery,
+		authErrMsg(msg, msgInvalidQuery, withAuth),
+		err)
+}
+
+func authErrMsg(fullMsg, shortMsg string, withAuth bool) string {
+	if withAuth {
+		return fullMsg
+	}
+	return shortMsg
 }
