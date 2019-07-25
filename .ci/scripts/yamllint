@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+set -e
+docker run --rm -t -v "$PWD:/yaml" -u "$(id -u):$(id -g)" docker.elastic.co/observability-ci/yamllint "$@"
