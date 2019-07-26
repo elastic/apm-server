@@ -45,7 +45,8 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "environment": "staging"
             },
             "span": {
                 "id": "2aaaaaaaaaaaaaaa",
@@ -135,7 +136,8 @@
                 }
             },
             "service": {
-                "name": "serviceabc"
+                "name": "serviceabc",
+                "environment": "staging"
             },
             "transaction": {
                 "id": "85925e55b43f4342"
@@ -199,7 +201,8 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "environment": "staging"
             },
             "span": {
                 "id": "3aaaaaaaaaaaaaaa",
@@ -270,7 +273,8 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "environment": "staging"
             },
             "span": {
                 "id": "0aaaaaaaaaaaaaaa",
@@ -400,7 +404,8 @@
                 "event": "span"
             },
             "service": {
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "environment": "staging"
             },
             "span": {
                 "id": "1aaaaaaaaaaaaaaa",
