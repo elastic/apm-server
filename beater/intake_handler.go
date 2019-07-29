@@ -85,7 +85,7 @@ func (v *intakeHandler) sendResponse(c *request.Context, sr *stream.Result) {
 
 	if statusCode == http.StatusAccepted {
 		responseSuccesses.Inc()
-		if _, ok := c.Req.URL.Query()["verbose"]; ok {
+		if _, ok := c.Request.URL.Query()["verbose"]; ok {
 			c.Send(sr, statusCode)
 		} else {
 			c.WriteHeader(statusCode)
@@ -150,33 +150,33 @@ func (v *intakeHandler) bodyReader(r *http.Request) (io.ReadCloser, *stream.Erro
 func (v *intakeHandler) Handle(beaterConfig *Config, report publish.Reporter) Handler {
 	return func(c *request.Context) {
 
-		serr := v.validateRequest(c.Req)
+		serr := v.validateRequest(c.Request)
 		if serr != nil {
 			v.sendError(c, serr)
 			return
 		}
 
-		rl, serr := v.rateLimit(c.Req)
+		rl, serr := v.rateLimit(c.Request)
 		if serr != nil {
 			v.sendError(c, serr)
 			return
 		}
 
-		reader, serr := v.bodyReader(c.Req)
+		reader, serr := v.bodyReader(c.Request)
 		if serr != nil {
 			v.sendError(c, serr)
 			return
 		}
 
 		// extract metadata information from the request, like user-agent or remote address
-		reqMeta, err := v.requestDecoder(c.Req)
+		reqMeta, err := v.requestDecoder(c.Request)
 		if err != nil {
 			sr := stream.Result{}
 			sr.Add(err)
 			v.sendResponse(c, &sr)
 			return
 		}
-		res := v.streamProcessor.HandleStream(c.Req.Context(), rl, reqMeta, reader, report)
+		res := v.streamProcessor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
 
 		v.sendResponse(c, res)
 	}

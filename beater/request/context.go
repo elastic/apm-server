@@ -41,23 +41,24 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Req *http.Request
-
-	statusCode int
-	err        interface{}
-	stacktrace string
+	Request *http.Request
 
 	w http.ResponseWriter
+
+	StatusCode int
+	Err        interface{}
+	Stacktrace string
 }
 
 // Reset allows to reuse a context by removing all request specific information
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
-	c.Req = r
+	c.Request = r
 
 	c.w = w
-	c.statusCode = http.StatusOK
-	c.err = ""
-	c.stacktrace = ""
+
+	c.StatusCode = http.StatusOK
+	c.Err = ""
+	c.Stacktrace = ""
 }
 
 // Header returns the http.Header of the context's writer
@@ -65,38 +66,18 @@ func (c *Context) Header() http.Header {
 	return c.w.Header()
 }
 
-// StatusCode returns the context's status code
-func (c *Context) StatusCode() int {
-	return c.statusCode
-}
-
-// Error returns the context's error
-func (c *Context) Error() interface{} {
-	return c.err
-}
-
-// Stacktrace returns the context's stacktrace
-func (c *Context) Stacktrace() string {
-	return c.stacktrace
-}
-
-// AddStacktrace sets a stacktrace for the context
-func (c *Context) AddStacktrace(stacktrace string) {
-	c.stacktrace = stacktrace
-}
-
 //TODO: All of the below methods will be changed during the response handling refactoring
 
 // WriteHeader sets status code in context and call the http.ResponseWriter method
 func (c *Context) WriteHeader(statusCode int) {
 	c.w.WriteHeader(statusCode)
-	c.statusCode = statusCode
+	c.StatusCode = statusCode
 }
 
 // SendNotFoundErr is moved from the rootHandler and will be removed in the following refactoring
 func (c *Context) SendNotFoundErr() {
-	c.statusCode = http.StatusNotFound
-	http.NotFound(c.w, c.Req)
+	c.StatusCode = http.StatusNotFound
+	http.NotFound(c.w, c.Request)
 }
 
 // Send is taking care of writing the response
@@ -106,7 +87,7 @@ func (c *Context) Send(body interface{}, statusCode int) {
 
 // SendError sets and error and writes the response
 func (c *Context) SendError(body, err interface{}, statusCode int) {
-	c.err = err
+	c.Err = err
 	c.w.Header().Set(headers.XContentTypeOptions, "nosniff")
 
 	if body == nil {
@@ -155,7 +136,7 @@ func (c *Context) sendPlain(body interface{}, statusCode int) {
 }
 
 func (c *Context) acceptJSON() bool {
-	acceptHeader := c.Req.Header.Get(headers.Accept)
+	acceptHeader := c.Request.Header.Get(headers.Accept)
 	for _, s := range mimeTypesJSON {
 		if strings.Contains(acceptHeader, s) {
 			return true

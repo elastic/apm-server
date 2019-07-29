@@ -42,19 +42,19 @@ func logHandler(h Handler) Handler {
 
 		reqLogger := logger.With(
 			"request_id", reqID,
-			"method", c.Req.Method,
-			"URL", c.Req.URL,
-			"content_length", c.Req.ContentLength,
-			"remote_address", utility.RemoteAddr(c.Req),
-			"user-agent", c.Req.Header.Get(headers.UserAgent))
+			"method", c.Request.Method,
+			"URL", c.Request.URL,
+			"content_length", c.Request.ContentLength,
+			"remote_address", utility.RemoteAddr(c.Request),
+			"user-agent", c.Request.Header.Get(headers.UserAgent))
 
 		h(c)
 
-		keysAndValues := []interface{}{"response_code", c.StatusCode()}
-		if c.StatusCode() >= http.StatusBadRequest {
-			keysAndValues = append(keysAndValues, "error", c.Error())
-			if c.Stacktrace() != "" {
-				keysAndValues = append(keysAndValues, "stacktrace", c.Stacktrace())
+		keysAndValues := []interface{}{"response_code", c.StatusCode}
+		if c.StatusCode >= http.StatusBadRequest {
+			keysAndValues = append(keysAndValues, "error", c.Err)
+			if c.Stacktrace != "" {
+				keysAndValues = append(keysAndValues, "stacktrace", c.Stacktrace)
 			}
 			reqLogger.Errorw("error handling request", keysAndValues...)
 			return

@@ -40,12 +40,12 @@ func rootHandler(secretToken string) Handler {
 	}
 
 	return func(c *request.Context) {
-		if c.Req.URL.Path != "/" {
+		if c.Request.URL.Path != "/" {
 			c.SendNotFoundErr()
 			return
 		}
 
-		if isAuthorized(c.Req, secretToken) {
+		if isAuthorized(c.Request, secretToken) {
 			sendStatus(c, detailedOkResponse)
 			return
 		}

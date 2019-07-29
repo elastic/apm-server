@@ -141,7 +141,7 @@ var (
 
 func requestTimeHandler(h Handler) Handler {
 	return func(c *request.Context) {
-		c.Req = c.Req.WithContext(utility.ContextWithRequestTime(c.Req.Context(), time.Now()))
+		c.Request = c.Request.WithContext(utility.ContextWithRequestTime(c.Request.Context(), time.Now()))
 		h(c)
 	}
 }
@@ -158,7 +158,7 @@ func killSwitchHandler(killSwitch bool, h Handler) Handler {
 
 func authHandler(secretToken string, h Handler) Handler {
 	return func(c *request.Context) {
-		if !isAuthorized(c.Req, secretToken) {
+		if !isAuthorized(c.Request, secretToken) {
 			sendStatus(c, unauthorizedResponse)
 			return
 		}
@@ -196,10 +196,10 @@ func corsHandler(allowedOrigins []string, h Handler) Handler {
 	return func(c *request.Context) {
 
 		// origin header is always set by the browser
-		origin := c.Req.Header.Get(headers.Origin)
+		origin := c.Request.Header.Get(headers.Origin)
 		validOrigin := isAllowed(origin)
 
-		if c.Req.Method == http.MethodOptions {
+		if c.Request.Method == http.MethodOptions {
 
 			// setting the ACAO header is the way to tell the browser to go ahead with the request
 			if validOrigin {

@@ -39,7 +39,7 @@ type assetHandler struct {
 
 func (h *assetHandler) Handle(beaterConfig *Config, report publish.Reporter) Handler {
 	return func(c *request.Context) {
-		res := h.processRequest(c.Req, report)
+		res := h.processRequest(c.Request, report)
 		sendStatus(c, res)
 	}
 }

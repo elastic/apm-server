@@ -54,7 +54,7 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 
-	var handler = func(c *request.Context) {
+	handler := func(c *request.Context) {
 		sendResp := wrap(c)
 		sendErr := wrapErr(c, secretToken)
 
@@ -63,7 +63,7 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 			return
 		}
 
-		query, requestErr := buildQuery(c.Req)
+		query, requestErr := buildQuery(c.Request)
 		if requestErr != nil {
 			if strings.Contains(requestErr.Error(), errMsgMethodUnsupported) {
 				sendErr(http.StatusMethodNotAllowed, errMsgMethodUnsupported, requestErr.Error())
@@ -81,7 +81,7 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 
 		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
 		c.Header().Set(headers.Etag, etag)
-		if etag == c.Req.Header.Get(headers.IfNoneMatch) {
+		if etag == c.Request.Header.Get(headers.IfNoneMatch) {
 			sendResp(nil, http.StatusNotModified, cacheControl)
 		} else {
 			sendResp(cfg, http.StatusOK, cacheControl)

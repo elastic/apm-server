@@ -43,18 +43,18 @@ func TestPanicHandler(t *testing.T) {
 		h := func(c *request.Context) { c.WriteHeader(http.StatusAccepted) }
 		c := setupContext()
 		panicHandler(h)(c)
-		require.Equal(t, http.StatusAccepted, c.StatusCode())
-		assert.Empty(t, c.Error())
-		assert.Empty(t, c.Stacktrace())
+		require.Equal(t, http.StatusAccepted, c.StatusCode)
+		assert.Empty(t, c.Err)
+		assert.Empty(t, c.Stacktrace)
 	})
 
 	t.Run("HandlePanic", func(t *testing.T) {
 		h := func(c *request.Context) { panic("panic xyz") }
 		c := setupContext()
 		panicHandler(h)(c)
-		require.Equal(t, http.StatusInternalServerError, c.StatusCode())
-		assert.Contains(t, c.Error(), "panic xyz")
-		assert.NotNil(t, c.Stacktrace())
+		require.Equal(t, http.StatusInternalServerError, c.StatusCode)
+		assert.Contains(t, c.Err, "panic xyz")
+		assert.NotNil(t, c.Stacktrace)
 	})
 
 }
