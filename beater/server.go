@@ -66,7 +66,7 @@ func doNotTrace(req *http.Request) bool {
 		// or we will go into a continuous cycle.
 		return true
 	}
-	if req.URL.Path == rootURL {
+	if req.URL.Path == rootPath {
 		// Don't trace root url (healthcheck) requests.
 		return true
 	}

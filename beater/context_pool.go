@@ -19,36 +19,29 @@ package beater
 
 import (
 	"net/http"
-	"time"
-
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/version"
+	"sync"
 
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func rootHandler(secretToken string) request.Handler {
-	serverInfo := common.MapStr{
-		"build_date": version.BuildTime().Format(time.RFC3339),
-		"build_sha":  version.Commit(),
-		"version":    version.GetDefaultVersion(),
-	}
-	detailedOkResponse := request.Result{
-		StatusCode: http.StatusOK,
-		ID:         request.IDResponseValidOK,
-		Body:       serverInfo,
-	}
+type contextPool struct {
+	p sync.Pool
+}
 
-	return func(c *request.Context) {
-		if c.Request.URL.Path != "/" {
-			c.SendNotFoundErr()
-			return
-		}
-
-		if isAuthorized(c.Request, secretToken) {
-			request.SendStatus(c, detailedOkResponse)
-			return
-		}
-		request.SendStatus(c, request.OKResponse)
+func newContextPool() *contextPool {
+	pool := contextPool{}
+	pool.p.New = func() interface{} {
+		return &request.Context{}
 	}
+	return &pool
+}
+
+func (pool *contextPool) handler(h request.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c := pool.p.Get().(*request.Context)
+		defer pool.p.Put(c)
+		c.Reset(w, r)
+
+		h(c)
+	})
 }

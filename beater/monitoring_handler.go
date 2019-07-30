@@ -19,36 +19,34 @@ package beater
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/version"
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func rootHandler(secretToken string) request.Handler {
-	serverInfo := common.MapStr{
-		"build_date": version.BuildTime().Format(time.RFC3339),
-		"build_sha":  version.Commit(),
-		"version":    version.GetDefaultVersion(),
-	}
-	detailedOkResponse := request.Result{
-		StatusCode: http.StatusOK,
-		ID:         request.IDResponseValidOK,
-		Body:       serverInfo,
-	}
+func monitoringHandler(fn func(id request.ResultID) *monitoring.Int) middleware {
+	return func(h request.Handler) request.Handler {
+		inc := func(counter *monitoring.Int) {
+			if counter == nil {
+				return
+			}
+			counter.Inc()
+		}
+		return func(c *request.Context) {
+			inc(fn(request.IDRequestCount))
 
-	return func(c *request.Context) {
-		if c.Request.URL.Path != "/" {
-			c.SendNotFoundErr()
-			return
+			h(c)
+
+			inc(fn(request.IDResponseCount))
+			if c.StatusCode >= http.StatusBadRequest {
+				inc(fn(request.IDResponseErrorsCount))
+			} else {
+				inc(fn(request.IDResponseValidCount))
+			}
+
+			inc(fn(c.MonitoringID))
 		}
 
-		if isAuthorized(c.Request, secretToken) {
-			request.SendStatus(c, detailedOkResponse)
-			return
-		}
-		request.SendStatus(c, request.OKResponse)
 	}
 }

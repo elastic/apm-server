@@ -25,20 +25,22 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func panicHandler(h Handler) Handler {
-	return func(c *request.Context) {
+func panicHandler() middleware {
+	return func(h request.Handler) request.Handler {
+		return func(c *request.Context) {
 
-		defer func() {
-			if r := recover(); r != nil {
-				var ok bool
-				var err error
-				if err, ok = r.(error); !ok {
-					err = fmt.Errorf("internal server error %+v", r)
+			defer func() {
+				if r := recover(); r != nil {
+					var ok bool
+					var err error
+					if err, ok = r.(error); !ok {
+						err = fmt.Errorf("internal server error %+v", r)
+					}
+					c.Stacktrace = string(debug.Stack())
+					c.SendError(nil, fmt.Sprintf("panic handling request: %s", err.Error()), http.StatusInternalServerError)
 				}
-				c.Stacktrace = string(debug.Stack())
-				c.SendError(nil, fmt.Sprintf("panic handling request: %s", err.Error()), http.StatusInternalServerError)
-			}
-		}()
-		h(c)
+			}()
+			h(c)
+		}
 	}
 }

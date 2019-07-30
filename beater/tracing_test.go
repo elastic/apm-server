@@ -57,7 +57,7 @@ func TestServerTracingEnabled(t *testing.T) {
 			assert.FailNow(t, "timed out waiting for transaction")
 		}
 	}
-	assert.Contains(t, selfTransactions, "POST "+backendURL)
+	assert.Contains(t, selfTransactions, "POST "+intakePath)
 	assert.Contains(t, selfTransactions, "ProcessPending")
 
 	// We expect no more events, i.e. no recursive self-tracing.
@@ -107,7 +107,7 @@ func TestServerTracingExternal(t *testing.T) {
 	select {
 	case r := <-requests:
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, backendURL, r.RequestURI)
+		assert.Equal(t, intakePath, r.RequestURI)
 	case <-time.After(time.Second):
 		assert.FailNow(t, "timed out waiting for transaction to")
 	}

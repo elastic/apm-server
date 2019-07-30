@@ -15,9 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
-
-import "github.com/elastic/apm-server/beater/request"
+package request
 
 // Handler specifies the handler type that is implemented by middleware and apm handlers
-type Handler func(c *request.Context)
+type Handler func(c *Context)

@@ -18,37 +18,14 @@
 package beater
 
 import (
-	"net/http"
-	"time"
-
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/version"
-
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func rootHandler(secretToken string) request.Handler {
-	serverInfo := common.MapStr{
-		"build_date": version.BuildTime().Format(time.RFC3339),
-		"build_sha":  version.Commit(),
-		"version":    version.GetDefaultVersion(),
-	}
-	detailedOkResponse := request.Result{
-		StatusCode: http.StatusOK,
-		ID:         request.IDResponseValidOK,
-		Body:       serverInfo,
-	}
+type middleware func(request.Handler) request.Handler
 
-	return func(c *request.Context) {
-		if c.Request.URL.Path != "/" {
-			c.SendNotFoundErr()
-			return
-		}
-
-		if isAuthorized(c.Request, secretToken) {
-			request.SendStatus(c, detailedOkResponse)
-			return
-		}
-		request.SendStatus(c, request.OKResponse)
+func withMiddleware(h request.Handler, m ...middleware) request.Handler {
+	for i := len(m) - 1; i >= 0; i-- {
+		h = m[i](h)
 	}
+	return h
 }
