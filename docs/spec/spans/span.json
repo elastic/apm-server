@@ -6,7 +6,7 @@
         { "$ref": "../timestamp_epoch.json" },
         { "$ref": "../span_type.json" },
         { "$ref": "../span_subtype.json" },
-        {  
+        {
             "properties": {
                 "id": {
                     "description": "Hex encoded 64 random bits ID of the span.",
@@ -15,16 +15,16 @@
                 },
                 "transaction_id": {
                     "type": ["string", "null"],
-                    "description": "Hex encoded 64 random bits ID of the correlated transaction.", 
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction.",
                     "maxLength": 1024
                 },
                 "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "description": "Hex encoded 128 random bits ID of the correlated trace.",
                     "type": "string",
                     "maxLength": 1024
                 },
                 "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.",
                     "type": "string",
                     "maxLength": 1024
                 },
@@ -48,6 +48,11 @@
                                 "instance": {
                                     "type": ["string", "null"],
                                     "description": "Database instance name"
+                                },
+                                "link": {
+                                    "type": ["string", "null"],
+                                    "maxLength": 1024,
+                                    "description": "Database link"
                                 },
                                 "statement": {
                                     "type": ["string", "null"],

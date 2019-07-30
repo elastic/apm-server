@@ -45,12 +45,12 @@ func TestDecodeSpan(t *testing.T) {
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
-	instance, statement, dbType, user := "db01", "select *", "sql", "joe"
+	instance, statement, dbType, user, link := "db01", "select *", "sql", "joe", "other.db.com"
 	context := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag.key": 17},
 		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
-		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user},
+		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user, "link": link},
 	}
 	subtype := "postgresql"
 	action, action2 := "query", "query.custom"
@@ -210,7 +210,7 @@ func TestDecodeSpan(t *testing.T) {
 				ParentId:      parentId,
 				TransactionId: &transactionId,
 				Http:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
+				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user, Link: &link},
 			},
 		},
 	} {

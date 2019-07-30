@@ -52,7 +52,7 @@ const ModelSchema = `{
             "maxLength": 1024
         }
     } },
-        {  
+        {
             "properties": {
                 "id": {
                     "description": "Hex encoded 64 random bits ID of the span.",
@@ -61,16 +61,16 @@ const ModelSchema = `{
                 },
                 "transaction_id": {
                     "type": ["string", "null"],
-                    "description": "Hex encoded 64 random bits ID of the correlated transaction.", 
+                    "description": "Hex encoded 64 random bits ID of the correlated transaction.",
                     "maxLength": 1024
                 },
                 "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace.", 
+                    "description": "Hex encoded 128 random bits ID of the correlated trace.",
                     "type": "string",
                     "maxLength": 1024
                 },
                 "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.", 
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span.",
                     "type": "string",
                     "maxLength": 1024
                 },
@@ -94,6 +94,11 @@ const ModelSchema = `{
                                 "instance": {
                                     "type": ["string", "null"],
                                     "description": "Database instance name"
+                                },
+                                "link": {
+                                    "type": ["string", "null"],
+                                    "maxLength": 1024,
+                                    "description": "Database link"
                                 },
                                 "statement": {
                                     "type": ["string", "null"],
