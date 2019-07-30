@@ -86,6 +86,7 @@ type db struct {
 	Statement *string
 	Type      *string
 	UserName  *string
+	Link      *string
 }
 
 func DecodeDb(input interface{}, err error) (*db, error) {
@@ -106,6 +107,7 @@ func DecodeDb(input interface{}, err error) (*db, error) {
 		decoder.StringPtr(dbInput, "statement"),
 		decoder.StringPtr(dbInput, "type"),
 		decoder.StringPtr(dbInput, "user"),
+		decoder.StringPtr(dbInput, "link"),
 	}
 	return &db, decoder.Err
 }
@@ -121,6 +123,7 @@ func (db *db) fields() common.MapStr {
 	if db.UserName != nil {
 		utility.Set(fields, "user", common.MapStr{"name": db.UserName})
 	}
+	utility.Set(fields, "link", db.Link)
 	return fields
 }
 

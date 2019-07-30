@@ -265,6 +265,7 @@
                 "action": "query",
                 "db": {
                     "instance": "customers",
+                    "link": "other.db.com",
                     "statement": "SELECT * FROM product_types WHERE user_id=?",
                     "type": "sql",
                     "user": {
