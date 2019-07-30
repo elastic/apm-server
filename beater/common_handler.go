@@ -52,7 +52,7 @@ func killSwitchHandler(on bool) middleware {
 			if on {
 				h(c)
 			} else {
-				sendStatus(c, request.ForbiddenResponse(errors.New("endpoint is disabled")))
+				request.SendStatus(c, request.ForbiddenResponse(errors.New("endpoint is disabled")))
 			}
 		}
 	}
@@ -62,7 +62,7 @@ func authHandler(secretToken string) middleware {
 	return func(h request.Handler) request.Handler {
 		return func(c *request.Context) {
 			if !isAuthorized(c.Request, secretToken) {
-				sendStatus(c, request.UnauthorizedResponse)
+				request.SendStatus(c, request.UnauthorizedResponse)
 				return
 			}
 			h(c)
@@ -123,7 +123,7 @@ func corsHandler(allowedOrigins []string) middleware {
 
 				c.Header().Set(headers.ContentLength, "0")
 
-				sendStatus(c, request.OKResponse)
+				request.SendStatus(c, request.OKResponse)
 
 			} else if validOrigin {
 				// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
@@ -131,25 +131,8 @@ func corsHandler(allowedOrigins []string) middleware {
 				h(c)
 
 			} else {
-				sendStatus(c, request.ForbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
+				request.SendStatus(c, request.ForbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
 			}
 		}
 	}
-}
-
-//TODO: move to Context when reworking response handling.
-func sendStatus(c *request.Context, res request.Result) {
-	if res.Err != nil {
-		body := map[string]interface{}{"error": res.Err.Error()}
-		//TODO: refactor response handling: get rid of additional `error` and just pass in error
-		c.SendError(body, body, res.StatusCode)
-		return
-	}
-
-	if res.Body == nil {
-		c.WriteHeader(res.StatusCode)
-		return
-	}
-
-	c.Send(res.Body, res.StatusCode)
 }

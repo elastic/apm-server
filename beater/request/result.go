@@ -23,110 +23,136 @@ import (
 	"github.com/pkg/errors"
 )
 
+//Ids can be used for monitoring counters
 const (
-	IdUnset ResultID = "unset"
 
-	IdRequestCount        ResultID = "request.count"
-	IdResponseCount       ResultID = "response.count"
-	IdResponseErrorsCount ResultID = "response.errors.count"
-	IdResponseValidCount  ResultID = "response.valid.count"
+	//IDRequestCount identifies all requests
+	IDRequestCount ResultID = "request.count"
+	//IDResponseCount identifies all responses
+	IDResponseCount ResultID = "response.count"
+	//IDResponseErrorsCount identifies all non successful responses
+	IDResponseErrorsCount ResultID = "response.errors.count"
+	//IDResponseValidCount identifies all successful responses
+	IDResponseValidCount ResultID = "response.valid.count"
 
-	IdResponseValidOK          ResultID = "response.valid.ok"
-	IdResponseValidAccepted    ResultID = "response.valid.accepted"
-	IdResponseValidNotModified ResultID = "response.valid.notmodified"
+	//IDResponseValidOK identifies responses with status code 200
+	IDResponseValidOK ResultID = "response.valid.ok"
+	//IDResponseValidAccepted identifies responses with status code 202
+	IDResponseValidAccepted ResultID = "response.valid.accepted"
 
-	IdResponseErrorsForbidden          ResultID = "response.errors.forbidden"
-	IdResponseErrorsUnauthorized       ResultID = "response.errors.unauthorized"
-	IdResponseErrorsNotFound           ResultID = "response.errors.notfound"
-	IdResponseErrorsInvalidQuery       ResultID = "response.errors.invalidquery"
-	IdResponseErrorsRequestTooLarge    ResultID = "response.errors.toolarge"
-	IdResponseErrorsDecode             ResultID = "response.errors.decode"
-	IdResponseErrorsValidate           ResultID = "response.errors.validate"
-	IdResponseErrorsRateLimit          ResultID = "response.errors.ratelimit"
-	IdResponseErrorsMethodNotAllowed   ResultID = "response.errors.method"
-	IdResponseErrorsFullQueue          ResultID = "response.errors.queue"
-	IdResponseErrorsShuttingDown       ResultID = "response.errors.closed"
-	IdResponseErrorsServiceUnavailable ResultID = "response.errors.unavailable"
-	IdResponseErrorsInternal           ResultID = "response.errors.internal"
+	//IDResponseErrorsForbidden identifies responses for forbidden requests
+	IDResponseErrorsForbidden ResultID = "response.errors.forbidden"
+	//IDResponseErrorsUnauthorized identifies responses for unauthorized requests
+	IDResponseErrorsUnauthorized ResultID = "response.errors.unauthorized"
+	//IDResponseErrorsRequestTooLarge identifies responses for too large requests
+	IDResponseErrorsRequestTooLarge ResultID = "response.errors.toolarge"
+	//IDResponseErrorsDecode identifies responses for requests that could not be decoded
+	IDResponseErrorsDecode ResultID = "response.errors.decode"
+	//IDResponseErrorsValidate identifies responses for invalid requests
+	IDResponseErrorsValidate ResultID = "response.errors.validate"
+	//IDResponseErrorsRateLimit identifies responses for rate limited requests
+	IDResponseErrorsRateLimit ResultID = "response.errors.ratelimit"
+	//IDResponseErrorsMethodNotAllowed identifies responses for requests using a forbidden method
+	IDResponseErrorsMethodNotAllowed ResultID = "response.errors.method"
+	//IDResponseErrorsFullQueue identifies responses when internal queue was full
+	IDResponseErrorsFullQueue ResultID = "response.errors.queue"
+	//IDResponseErrorsShuttingDown identifies responses requests occuring after channel was closed
+	IDResponseErrorsShuttingDown ResultID = "response.errors.closed"
+	//IDResponseErrorsInternal identifies responses where internal errors occured
+	IDResponseErrorsInternal ResultID = "response.errors.internal"
 )
 
 var (
+	//OKResponse represents status 200
 	OKResponse = Result{
 		StatusCode: http.StatusOK,
-		Id:         IdResponseValidOK,
+		ID:         IDResponseValidOK,
 	}
+	//AcceptedResponse represents status 200
 	AcceptedResponse = Result{
 		StatusCode: http.StatusAccepted,
-		Id:         IdResponseValidAccepted,
+		ID:         IDResponseValidAccepted,
 	}
+	//InternalErrorResponse represents status 500
 	InternalErrorResponse = func(err error) Result {
 		return Result{
 			Err:        errors.Wrap(err, "internal error"),
 			StatusCode: http.StatusInternalServerError,
-			Id:         IdResponseErrorsInternal,
+			ID:         IDResponseErrorsInternal,
 		}
 	}
+	//ForbiddenResponse represents status 403
 	ForbiddenResponse = func(err error) Result {
 		return Result{
 			Err:        errors.Wrap(err, "forbidden request"),
 			StatusCode: http.StatusForbidden,
-			Id:         IdResponseErrorsForbidden,
+			ID:         IDResponseErrorsForbidden,
 		}
 	}
+	//UnauthorizedResponse represents status 401
 	UnauthorizedResponse = Result{
 		Err:        errors.New("invalid token"),
 		StatusCode: http.StatusUnauthorized,
-		Id:         IdResponseErrorsUnauthorized,
+		ID:         IDResponseErrorsUnauthorized,
 	}
+	//RequestTooLargeResponse represents status 413
 	RequestTooLargeResponse = Result{
 		Err:        errors.New("request body too large"),
 		StatusCode: http.StatusRequestEntityTooLarge,
-		Id:         IdResponseErrorsRequestTooLarge,
+		ID:         IDResponseErrorsRequestTooLarge,
 	}
+	//CannotDecodeResponse represents status 400 because of decoding errors
 	CannotDecodeResponse = func(err error) Result {
 		return Result{
 			Err:        errors.Wrap(err, "data decoding error"),
 			StatusCode: http.StatusBadRequest,
-			Id:         IdResponseErrorsDecode,
+			ID:         IDResponseErrorsDecode,
 		}
 	}
+	//CannotValidateResponse represents status 400 because of validation errors
 	CannotValidateResponse = func(err error) Result {
 		return Result{
 			Err:        errors.Wrap(err, "data validation error"),
 			StatusCode: http.StatusBadRequest,
-			Id:         IdResponseErrorsValidate,
+			ID:         IDResponseErrorsValidate,
 		}
 	}
+	//RateLimitedResponse represents status 429
 	RateLimitedResponse = Result{
 		Err:        errors.New("too many requests"),
 		StatusCode: http.StatusTooManyRequests,
-		Id:         IdResponseErrorsRateLimit,
+		ID:         IDResponseErrorsRateLimit,
 	}
+	//MethodNotAllowedResponse represents status 405
 	MethodNotAllowedResponse = Result{
 		Err:        errors.New("only POST requests are supported"),
 		StatusCode: http.StatusMethodNotAllowed,
-		Id:         IdResponseErrorsMethodNotAllowed,
+		ID:         IDResponseErrorsMethodNotAllowed,
 	}
+	//FullQueueResponse represents status 503 because internal memory queue is full
 	FullQueueResponse = func(err error) Result {
 		return Result{
 			Err:        errors.Wrap(err, "queue is full"),
 			StatusCode: http.StatusServiceUnavailable,
-			Id:         IdResponseErrorsFullQueue,
+			ID:         IDResponseErrorsFullQueue,
 		}
 	}
+	//ServerShuttingDownResponse represents status 503 because server is shutting down
 	ServerShuttingDownResponse = func(err error) Result {
 		return Result{
 			Err:        errors.New("server is shutting down"),
 			StatusCode: http.StatusServiceUnavailable,
-			Id:         IdResponseErrorsShuttingDown,
+			ID:         IDResponseErrorsShuttingDown,
 		}
 	}
 )
 
+//ResultID unique string identifying a requests Result
 type ResultID string
 
+//Result holds information about a processed request
 type Result struct {
-	Id         ResultID
+	ID         ResultID
 	StatusCode int
 	Keyword    string
 	Body       interface{}
@@ -134,6 +160,7 @@ type Result struct {
 	Stacktrace string
 }
 
+//SendStatus initiates response writing for a given context
 //TODO: move to Context when reworking response handling.
 func SendStatus(c *Context, res Result) {
 	if res.Err != nil {

@@ -67,7 +67,7 @@ func TestOkBody(t *testing.T) {
 	w := httptest.NewRecorder()
 	c := &request.Context{}
 	c.Reset(w, req)
-	sendStatus(c, request.Result{
+	request.SendStatus(c, request.Result{
 		StatusCode: http.StatusNonAuthoritativeInfo,
 		Body:       map[string]interface{}{"some": "body"},
 	})
@@ -84,7 +84,7 @@ func TestOkBodyJson(t *testing.T) {
 	w := httptest.NewRecorder()
 	c := &request.Context{}
 	c.Reset(w, req)
-	sendStatus(c, request.Result{
+	request.SendStatus(c, request.Result{
 		StatusCode: http.StatusNonAuthoritativeInfo,
 		Body:       map[string]interface{}{"version": "1.0"},
 	})
@@ -122,7 +122,7 @@ func TestAccept(t *testing.T) {
 		w := httptest.NewRecorder()
 		c := &request.Context{}
 		c.Reset(w, req)
-		sendStatus(c, request.CannotValidateResponse(errors.New("error message")))
+		request.SendStatus(c, request.CannotValidateResponse(errors.New("error message")))
 		rsp := w.Result()
 		got := body(t, rsp)
 		assert.Equal(t, 400, w.Code)

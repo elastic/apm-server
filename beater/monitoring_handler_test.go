@@ -31,10 +31,10 @@ import (
 )
 
 func TestMonitoringHandler(t *testing.T) {
-	requestCounter := mockMonitoringFn(request.IdRequestCount)
-	responseCounter := mockMonitoringFn(request.IdResponseCount)
-	responseErrors := mockMonitoringFn(request.IdResponseErrorsCount)
-	responseSuccesses := mockMonitoringFn(request.IdResponseValidCount)
+	requestCounter := mockMonitoringFn(request.IDRequestCount)
+	responseCounter := mockMonitoringFn(request.IDResponseCount)
+	responseErrors := mockMonitoringFn(request.IDResponseErrorsCount)
+	responseSuccesses := mockMonitoringFn(request.IDResponseValidCount)
 
 	t.Run("Error", func(t *testing.T) {
 		testResetCounter()
@@ -42,7 +42,7 @@ func TestMonitoringHandler(t *testing.T) {
 		withMiddleware(mockHandler403, monitoringHandler(mockMonitoringFn))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseErrors: 1,
-			mockMonitoringFn(request.IdResponseErrorsForbidden): 1})
+			mockMonitoringFn(request.IDResponseErrorsForbidden): 1})
 	})
 	t.Run("Accepted", func(t *testing.T) {
 		testResetCounter()
@@ -50,7 +50,7 @@ func TestMonitoringHandler(t *testing.T) {
 		withMiddleware(mockHandler202, monitoringHandler(mockMonitoringFn))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseSuccesses: 1,
-			mockMonitoringFn(request.IdResponseValidAccepted): 1})
+			mockMonitoringFn(request.IDResponseValidAccepted): 1})
 	})
 	t.Run("Idle", func(t *testing.T) {
 		testResetCounter()
@@ -82,12 +82,12 @@ func setupContext(path string) *request.Context {
 }
 
 func mockHandler403(c *request.Context) {
-	c.MonitoringId = request.IdResponseErrorsForbidden
+	c.MonitoringID = request.IDResponseErrorsForbidden
 	c.WriteHeader(http.StatusForbidden)
 }
 
 func mockHandler202(c *request.Context) {
-	c.MonitoringId = request.IdResponseValidAccepted
+	c.MonitoringID = request.IDResponseValidAccepted
 	c.WriteHeader(http.StatusAccepted)
 }
 
@@ -101,22 +101,22 @@ func testResetCounter() {
 
 func testGetCounter() []*monitoring.Int {
 	return []*monitoring.Int{
-		mockMonitoringFn(request.IdRequestCount),
-		mockMonitoringFn(request.IdResponseCount),
-		mockMonitoringFn(request.IdResponseErrorsCount),
-		mockMonitoringFn(request.IdResponseValidCount),
-		mockMonitoringFn(request.IdResponseValidOK),
-		mockMonitoringFn(request.IdResponseValidAccepted),
-		mockMonitoringFn(request.IdResponseErrorsInternal),
-		mockMonitoringFn(request.IdResponseErrorsForbidden),
-		mockMonitoringFn(request.IdResponseErrorsRequestTooLarge),
-		mockMonitoringFn(request.IdResponseErrorsDecode),
-		mockMonitoringFn(request.IdResponseErrorsValidate),
-		mockMonitoringFn(request.IdResponseErrorsRateLimit),
-		mockMonitoringFn(request.IdResponseErrorsMethodNotAllowed),
-		mockMonitoringFn(request.IdResponseErrorsFullQueue),
-		mockMonitoringFn(request.IdResponseErrorsShuttingDown),
-		mockMonitoringFn(request.IdResponseErrorsUnauthorized),
+		mockMonitoringFn(request.IDRequestCount),
+		mockMonitoringFn(request.IDResponseCount),
+		mockMonitoringFn(request.IDResponseErrorsCount),
+		mockMonitoringFn(request.IDResponseValidCount),
+		mockMonitoringFn(request.IDResponseValidOK),
+		mockMonitoringFn(request.IDResponseValidAccepted),
+		mockMonitoringFn(request.IDResponseErrorsInternal),
+		mockMonitoringFn(request.IDResponseErrorsForbidden),
+		mockMonitoringFn(request.IDResponseErrorsRequestTooLarge),
+		mockMonitoringFn(request.IDResponseErrorsDecode),
+		mockMonitoringFn(request.IDResponseErrorsValidate),
+		mockMonitoringFn(request.IDResponseErrorsRateLimit),
+		mockMonitoringFn(request.IDResponseErrorsMethodNotAllowed),
+		mockMonitoringFn(request.IDResponseErrorsFullQueue),
+		mockMonitoringFn(request.IDResponseErrorsShuttingDown),
+		mockMonitoringFn(request.IDResponseErrorsUnauthorized),
 	}
 }
 

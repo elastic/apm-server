@@ -69,13 +69,13 @@ func TestEmptyRequest(t *testing.T) {
 }
 
 func TestRequestIntegration(t *testing.T) {
-	requestCounter := intakeResultIdToMonitoringInt(request.IdRequestCount)
-	responseSuccesses := intakeResultIdToMonitoringInt(request.IdResponseValidCount)
-	responseErrors := intakeResultIdToMonitoringInt(request.IdResponseErrorsCount)
-	responseAccepted := intakeResultIdToMonitoringInt(request.IdResponseValidAccepted)
-	validateCounter := intakeResultIdToMonitoringInt(request.IdResponseErrorsValidate)
-	serverShuttingDownCounter := intakeResultIdToMonitoringInt(request.IdResponseErrorsShuttingDown)
-	fullQueueCounter := intakeResultIdToMonitoringInt(request.IdResponseErrorsFullQueue)
+	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
+	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
+	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
+	responseAccepted := intakeResultIDToMonitoringInt(request.IDResponseValidAccepted)
+	validateCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsValidate)
+	serverShuttingDownCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsShuttingDown)
+	fullQueueCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsFullQueue)
 
 	endpoints := []struct {
 		name, url string
@@ -219,9 +219,9 @@ func sendReq(c *Config, handlerFn func(*Config, publish.Reporter) (request.Handl
 
 func TestWrongMethod(t *testing.T) {
 	registry := monitoring.Default.NewRegistry(t.Name()+"test", monitoring.PublishExpvar)
-	methodNotAllowedCounter := monitoring.NewInt(registry, string(request.IdResponseErrorsMethodNotAllowed))
+	methodNotAllowedCounter := monitoring.NewInt(registry, string(request.IDResponseErrorsMethodNotAllowed))
 	monitoringFn := func(id request.ResultID) *monitoring.Int {
-		if id == request.IdResponseErrorsMethodNotAllowed {
+		if id == request.IDResponseErrorsMethodNotAllowed {
 			return methodNotAllowedCounter
 		}
 		return nil
@@ -278,9 +278,9 @@ func TestLineExceeded(t *testing.T) {
 
 	t.Run("Exceeded", func(t *testing.T) {
 		registry := monitoring.Default.NewRegistry(t.Name()+"test", monitoring.PublishExpvar)
-		requestTooLargeCounter := monitoring.NewInt(registry, string(request.IdResponseErrorsRequestTooLarge))
+		requestTooLargeCounter := monitoring.NewInt(registry, string(request.IDResponseErrorsRequestTooLarge))
 		monitoringFn := func(id request.ResultID) *monitoring.Int {
-			if id == request.IdResponseErrorsRequestTooLarge {
+			if id == request.IDResponseErrorsRequestTooLarge {
 				return requestTooLargeCounter
 			}
 			return nil
@@ -308,64 +308,64 @@ func TestLineExceeded(t *testing.T) {
 }
 
 func TestMonitoringHandler_IntakeBackend(t *testing.T) {
-	requestCounter := intakeResultIdToMonitoringInt(request.IdRequestCount)
-	responseCounter := intakeResultIdToMonitoringInt(request.IdResponseCount)
-	responseErrors := intakeResultIdToMonitoringInt(request.IdResponseErrorsCount)
-	responseSuccesses := intakeResultIdToMonitoringInt(request.IdResponseValidCount)
+	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
+	responseCounter := intakeResultIDToMonitoringInt(request.IDResponseCount)
+	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
+	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
 
 	t.Run("Error", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/intake/v2/events/")
-		withMiddleware(mockHandler403, monitoringHandler(intakeResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandler403, monitoringHandler(intakeResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseErrors: 1,
-			intakeResultIdToMonitoringInt(request.IdResponseErrorsForbidden): 1})
+			intakeResultIDToMonitoringInt(request.IDResponseErrorsForbidden): 1})
 	})
 	t.Run("Accepted", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/intake/v2/events/")
-		withMiddleware(mockHandler202, monitoringHandler(intakeResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandler202, monitoringHandler(intakeResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseSuccesses: 1,
-			intakeResultIdToMonitoringInt(request.IdResponseValidAccepted): 1})
+			intakeResultIDToMonitoringInt(request.IDResponseValidAccepted): 1})
 	})
 	t.Run("Idle", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/intake/v2/events")
 
-		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseSuccesses: 1})
 	})
 }
 
 func TestMonitoringHandler_IntakeRUM(t *testing.T) {
-	requestCounter := intakeResultIdToMonitoringInt(request.IdRequestCount)
-	responseCounter := intakeResultIdToMonitoringInt(request.IdResponseCount)
-	responseErrors := intakeResultIdToMonitoringInt(request.IdResponseErrorsCount)
-	responseSuccesses := intakeResultIdToMonitoringInt(request.IdResponseValidCount)
+	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
+	responseCounter := intakeResultIDToMonitoringInt(request.IDResponseCount)
+	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
+	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
 
 	t.Run("Error", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/intake/v2/rum/events/")
-		withMiddleware(mockHandler403, monitoringHandler(intakeResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandler403, monitoringHandler(intakeResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseErrors: 1,
-			intakeResultIdToMonitoringInt(request.IdResponseErrorsForbidden): 1})
+			intakeResultIDToMonitoringInt(request.IDResponseErrorsForbidden): 1})
 	})
 	t.Run("Accepted", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/intake/v2/rum/events/")
-		withMiddleware(mockHandler202, monitoringHandler(intakeResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandler202, monitoringHandler(intakeResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseSuccesses: 1,
-			intakeResultIdToMonitoringInt(request.IdResponseValidAccepted): 1})
+			intakeResultIDToMonitoringInt(request.IDResponseValidAccepted): 1})
 	})
 	t.Run("Idle", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/intake/v2/rum/events")
 
-		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
 			responseCounter: 1, responseSuccesses: 1})
 	})

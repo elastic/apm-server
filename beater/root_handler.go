@@ -35,7 +35,7 @@ func rootHandler(secretToken string) request.Handler {
 	}
 	detailedOkResponse := request.Result{
 		StatusCode: http.StatusOK,
-		Id:         request.IdResponseValidOK,
+		ID:         request.IDResponseValidOK,
 		Body:       serverInfo,
 	}
 
@@ -46,9 +46,9 @@ func rootHandler(secretToken string) request.Handler {
 		}
 
 		if isAuthorized(c.Request, secretToken) {
-			sendStatus(c, detailedOkResponse)
+			request.SendStatus(c, detailedOkResponse)
 			return
 		}
-		sendStatus(c, request.OKResponse)
+		request.SendStatus(c, request.OKResponse)
 	}
 }

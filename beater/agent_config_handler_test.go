@@ -241,24 +241,24 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 }
 
 func TestMonitoringHandlerACM(t *testing.T) {
-	requestCounter := acmResultIdToMonitoringInt(request.IdRequestCount)
+	requestCounter := acmResultIDToMonitoringInt(request.IDRequestCount)
 
 	t.Run("Error", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/config/v1/agents?service.name=xyz")
-		withMiddleware(mockHandler403, monitoringHandler(acmResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandler403, monitoringHandler(acmResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
 	})
 	t.Run("Accepted", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/config/v1/agents")
-		withMiddleware(mockHandler202, monitoringHandler(acmResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandler202, monitoringHandler(acmResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
 	})
 	t.Run("Idle", func(t *testing.T) {
 		testResetCounter()
 		c := setupContext("/config/v1/agents/")
-		withMiddleware(mockHandlerIdle, monitoringHandler(acmResultIdToMonitoringInt))(c)
+		withMiddleware(mockHandlerIdle, monitoringHandler(acmResultIDToMonitoringInt))(c)
 		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
 	})
 }

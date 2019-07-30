@@ -44,22 +44,22 @@ var (
 		return monitoring.NewInt(serverMetrics, string(s))
 	}
 
-	resultIdToCounter = map[request.ResultID]*monitoring.Int{}
+	resultIDToCounter = map[request.ResultID]*monitoring.Int{}
 )
 
-func intakeResultIdToMonitoringInt(name request.ResultID) *monitoring.Int {
-	if i, ok := resultIdToCounter[name]; ok {
+func intakeResultIDToMonitoringInt(name request.ResultID) *monitoring.Int {
+	if i, ok := resultIDToCounter[name]; ok {
 		return i
 	}
 
 	mu.Lock()
 	defer mu.Unlock()
 	if i, ok := monitoring.Get(string(name)).(*monitoring.Int); ok {
-		resultIdToCounter[name] = i
+		resultIDToCounter[name] = i
 		return i
 	}
 	ct := counter(name)
-	resultIdToCounter[name] = ct
+	resultIDToCounter[name] = ct
 	return ct
 }
 
@@ -67,42 +67,42 @@ func statusCode(sr *stream.Result) (int, request.ResultID) {
 	var code int
 	var id request.ResultID
 	highestCode := http.StatusAccepted
-	monitoringId := request.IdResponseValidAccepted
+	monitoringID := request.IDResponseValidAccepted
 	for _, err := range sr.Errors {
 		switch err.Type {
 		case stream.MethodForbiddenErrType:
 			code = http.StatusBadRequest
-			id = request.IdResponseErrorsMethodNotAllowed
+			id = request.IDResponseErrorsMethodNotAllowed
 		case stream.InputTooLargeErrType:
 			code = http.StatusBadRequest
-			id = request.IdResponseErrorsRequestTooLarge
+			id = request.IDResponseErrorsRequestTooLarge
 		case stream.InvalidInputErrType:
 			code = http.StatusBadRequest
-			id = request.IdResponseErrorsValidate
+			id = request.IDResponseErrorsValidate
 		case stream.QueueFullErrType:
 			code = http.StatusServiceUnavailable
-			id = request.IdResponseErrorsFullQueue
+			id = request.IDResponseErrorsFullQueue
 		case stream.ShuttingDownErrType:
 			code = http.StatusServiceUnavailable
-			id = request.IdResponseErrorsShuttingDown
+			id = request.IDResponseErrorsShuttingDown
 		case stream.RateLimitErrType:
 			code = http.StatusTooManyRequests
-			id = request.IdResponseErrorsRateLimit
+			id = request.IDResponseErrorsRateLimit
 		default:
 			code = http.StatusInternalServerError
-			id = request.IdResponseErrorsInternal
+			id = request.IDResponseErrorsInternal
 		}
 		if code > highestCode {
 			highestCode = code
-			monitoringId = id
+			monitoringID = id
 		}
 	}
-	return highestCode, monitoringId
+	return highestCode, monitoringID
 }
 
 func sendResponse(c *request.Context, sr *stream.Result) {
 	statusCode, id := statusCode(sr)
-	c.MonitoringId = id
+	c.MonitoringID = id
 	if statusCode == http.StatusAccepted {
 		if _, ok := c.Request.URL.Query()["verbose"]; ok {
 			c.Send(sr, statusCode)

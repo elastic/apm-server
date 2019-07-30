@@ -111,7 +111,7 @@ func backendHandler(cfg *Config, reporter publish.Reporter) (request.Handler, er
 
 	return withMiddleware(
 		h,
-		append(apmHandler(intakeResultIdToMonitoringInt),
+		append(apmHandler(intakeResultIDToMonitoringInt),
 			requestTimeHandler(),
 			authHandler(cfg.SecretToken))...), nil
 }
@@ -139,7 +139,7 @@ func rumHandler(cfg *Config, reporter publish.Reporter) (request.Handler, error)
 
 	return withMiddleware(
 		h,
-		append(apmHandler(intakeResultIdToMonitoringInt),
+		append(apmHandler(intakeResultIDToMonitoringInt),
 			killSwitchHandler(cfg.RumConfig.isEnabled()),
 			requestTimeHandler(),
 			corsHandler(cfg.RumConfig.AllowOrigins))...), nil
@@ -156,7 +156,7 @@ func sourcemapHandler(cfg *Config, reporter publish.Reporter) (request.Handler, 
 
 	return withMiddleware(
 		h,
-		append(apmHandler(intakeResultIdToMonitoringInt),
+		append(apmHandler(intakeResultIDToMonitoringInt),
 			killSwitchHandler(cfg.RumConfig.isEnabled() && cfg.RumConfig.SourceMapping.isEnabled()),
 			authHandler(cfg.SecretToken))...), nil
 }
@@ -169,7 +169,7 @@ func agentHandler(cfg *Config, _ publish.Reporter) (request.Handler, error) {
 
 	return withMiddleware(
 		agentConfigHandler(kbClient, cfg.AgentConfig, cfg.SecretToken),
-		append(apmHandler(acmResultIdToMonitoringInt),
+		append(apmHandler(acmResultIDToMonitoringInt),
 			killSwitchHandler(kbClient != nil),
 			authHandler(cfg.SecretToken))...), nil
 }
@@ -178,7 +178,7 @@ func agentHandler(cfg *Config, _ publish.Reporter) (request.Handler, error) {
 func defaultHandler(cfg *Config, _ publish.Reporter) (request.Handler, error) {
 	return withMiddleware(
 		rootHandler(cfg.SecretToken),
-		append(apmHandler(intakeResultIdToMonitoringInt))...), nil
+		apmHandler(intakeResultIDToMonitoringInt)...), nil
 }
 
 func systemMetadataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {

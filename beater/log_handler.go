@@ -37,7 +37,7 @@ func logHandler() middleware {
 		return func(c *request.Context) {
 			reqID, err := uuid.NewV4()
 			if err != nil {
-				sendStatus(c, request.InternalErrorResponse(err))
+				request.SendStatus(c, request.InternalErrorResponse(err))
 			}
 
 			reqLogger := logger.With(

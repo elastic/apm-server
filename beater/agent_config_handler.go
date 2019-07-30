@@ -59,14 +59,14 @@ var (
 	//}
 
 	// reflects current behavior
-	countRequest = intakeResultIdToMonitoringInt(request.IdRequestCount)
+	countRequest = intakeResultIDToMonitoringInt(request.IDRequestCount)
 
 	mapping = map[request.ResultID]*monitoring.Int{
-		request.IdRequestCount: countRequest,
+		request.IDRequestCount: countRequest,
 	}
 )
 
-func acmResultIdToMonitoringInt(id request.ResultID) *monitoring.Int {
+func acmResultIDToMonitoringInt(id request.ResultID) *monitoring.Int {
 	if i, ok := mapping[id]; ok {
 		return i
 	}

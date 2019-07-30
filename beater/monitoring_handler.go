@@ -25,10 +25,6 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-const (
-	slash = "/"
-)
-
 func monitoringHandler(fn func(id request.ResultID) *monitoring.Int) middleware {
 	return func(h request.Handler) request.Handler {
 		inc := func(counter *monitoring.Int) {
@@ -38,18 +34,18 @@ func monitoringHandler(fn func(id request.ResultID) *monitoring.Int) middleware 
 			counter.Inc()
 		}
 		return func(c *request.Context) {
-			inc(fn(request.IdRequestCount))
+			inc(fn(request.IDRequestCount))
 
 			h(c)
 
-			inc(fn(request.IdResponseCount))
+			inc(fn(request.IDResponseCount))
 			if c.StatusCode >= http.StatusBadRequest {
-				inc(fn(request.IdResponseErrorsCount))
+				inc(fn(request.IDResponseErrorsCount))
 			} else {
-				inc(fn(request.IdResponseValidCount))
+				inc(fn(request.IDResponseValidCount))
 			}
 
-			inc(fn(c.MonitoringId))
+			inc(fn(c.MonitoringID))
 		}
 
 	}

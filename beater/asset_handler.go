@@ -33,28 +33,28 @@ import (
 func newAssetHandler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Config, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
 		if c.Request.Method != "POST" {
-			sendStatus(c, request.MethodNotAllowedResponse)
+			request.SendStatus(c, request.MethodNotAllowedResponse)
 			return
 		}
 
 		data, err := dec(c.Request)
 		if err != nil {
 			if strings.Contains(err.Error(), "request body too large") {
-				sendStatus(c, request.RequestTooLargeResponse)
+				request.SendStatus(c, request.RequestTooLargeResponse)
 				return
 			}
-			sendStatus(c, request.CannotDecodeResponse(err))
+			request.SendStatus(c, request.CannotDecodeResponse(err))
 			return
 		}
 
 		if err = processor.Validate(data); err != nil {
-			sendStatus(c, request.CannotValidateResponse(err))
+			request.SendStatus(c, request.CannotValidateResponse(err))
 			return
 		}
 
 		metadata, transformables, err := processor.Decode(data)
 		if err != nil {
-			sendStatus(c, request.CannotDecodeResponse(err))
+			request.SendStatus(c, request.CannotDecodeResponse(err))
 			return
 		}
 
@@ -72,14 +72,13 @@ func newAssetHandler(dec decoder.ReqDecoder, processor asset.Processor, cfg tran
 
 		if err = report(ctx, req); err != nil {
 			if err == publish.ErrChannelClosed {
-				sendStatus(c, request.ServerShuttingDownResponse(err))
+				request.SendStatus(c, request.ServerShuttingDownResponse(err))
 				return
 			}
-			sendStatus(c, request.FullQueueResponse(err))
+			request.SendStatus(c, request.FullQueueResponse(err))
 			return
 		}
 
-		sendStatus(c, request.AcceptedResponse)
-		return
+		request.SendStatus(c, request.AcceptedResponse)
 	}
 }
