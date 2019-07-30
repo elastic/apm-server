@@ -18,15 +18,10 @@
 package beater
 
 import (
-	"expvar"
 	"net/http"
 	"regexp"
 
-	"github.com/elastic/beats/libbeat/logp"
-
 	"github.com/elastic/apm-server/decoder"
-	"github.com/elastic/apm-server/kibana"
-	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/asset"
 	"github.com/elastic/apm-server/processor/asset/sourcemap"
@@ -51,7 +46,7 @@ const (
 )
 
 type routeType struct {
-	wrappingHandler     func(*Config, http.Handler) http.Handler
+	wrappingHandler     func(*Config, Handler) Handler
 	configurableDecoder func(*Config, decoder.ReqDecoder) decoder.ReqDecoder
 	transformConfig     func(*Config) (*transform.Config, error)
 }
@@ -92,62 +87,20 @@ var (
 	}
 )
 
-func newMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, error) {
-	mux := http.NewServeMux()
-	logger := logp.NewLogger(logs.Handler)
-
-	for path, route := range AssetRoutes {
-		logger.Infof("Path %s added to request handler", path)
-		handler, err := route.Handler(route.Processor, beaterConfig, report)
-		if err != nil {
-			return nil, err
-		}
-		mux.Handle(path, handler)
-	}
-	for path, route := range IntakeRoutes {
-		logger.Infof("Path %s added to request handler", path)
-
-		handler, err := route.Handler(path, beaterConfig, report)
-		if err != nil {
-			return nil, err
-		}
-		mux.Handle(path, handler)
-	}
-
-	var kbClient kibana.Client
-	if beaterConfig.Kibana.Enabled() {
-		kbClient = kibana.NewConnectingClient(beaterConfig.Kibana)
-	}
-	mux.Handle(agentConfigURL, agentConfigHandler(kbClient, beaterConfig.AgentConfig, beaterConfig.SecretToken))
-	logger.Infof("Path %s added to request handler", agentConfigURL)
-
-	mux.Handle(rootURL, rootHandler(beaterConfig.SecretToken))
-
-	if beaterConfig.Expvar.isEnabled() {
-		path := beaterConfig.Expvar.Url
-		logger.Infof("Path %s added to request handler", path)
-		mux.Handle(path, expvar.Handler())
-	}
-	return mux, nil
+func backendHandler(beaterConfig *Config, h Handler) Handler {
+	return requestTimeHandler(
+		authHandler(beaterConfig.SecretToken, h))
 }
 
-func backendHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
+func rumHandler(beaterConfig *Config, h Handler) Handler {
+	return killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
 		requestTimeHandler(
-			authHandler(beaterConfig.SecretToken, h)))
+			corsHandler(beaterConfig.RumConfig.AllowOrigins, h)))
 }
 
-func rumHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
-		killSwitchHandler(beaterConfig.RumConfig.isEnabled(),
-			requestTimeHandler(
-				corsHandler(beaterConfig.RumConfig.AllowOrigins, h))))
-}
-
-func sourcemapHandler(beaterConfig *Config, h http.Handler) http.Handler {
-	return logHandler(
-		killSwitchHandler(beaterConfig.RumConfig.isEnabled() && beaterConfig.RumConfig.SourceMapping.isEnabled(),
-			authHandler(beaterConfig.SecretToken, h)))
+func sourcemapHandler(beaterConfig *Config, h Handler) Handler {
+	return killSwitchHandler(beaterConfig.RumConfig.isEnabled() && beaterConfig.RumConfig.SourceMapping.isEnabled(),
+		authHandler(beaterConfig.SecretToken, h))
 }
 
 func systemMetadataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {
@@ -176,7 +129,7 @@ type assetRoute struct {
 	topLevelRequestDecoder func(*Config) decoder.ReqDecoder
 }
 
-func (r *assetRoute) Handler(p asset.Processor, beaterConfig *Config, report publish.Reporter) (http.Handler, error) {
+func (r *assetRoute) Handler(p asset.Processor, beaterConfig *Config, report publish.Reporter) (Handler, error) {
 	config, err := r.transformConfig(beaterConfig)
 	if err != nil {
 		return nil, err
@@ -194,7 +147,7 @@ type intakeRoute struct {
 	routeType
 }
 
-func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) (http.Handler, error) {
+func (r intakeRoute) Handler(url string, c *Config, report publish.Reporter) (Handler, error) {
 	reqDecoder := r.configurableDecoder(
 		c,
 		func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil },

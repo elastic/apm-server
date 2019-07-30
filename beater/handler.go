@@ -15,20 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package utility
+package beater
 
-import "net/http"
+import "github.com/elastic/apm-server/beater/request"
 
-type recordingResponseWriter struct {
-	http.ResponseWriter
-	Code int
-}
-
-func NewRecordingResponseWriter(w http.ResponseWriter) *recordingResponseWriter {
-	return &recordingResponseWriter{w, http.StatusOK}
-}
-
-func (lrw *recordingResponseWriter) WriteHeader(code int) {
-	lrw.ResponseWriter.WriteHeader(code)
-	lrw.Code = code
-}
+// Handler specifies the handler type that is implemented by middleware and apm handlers
+type Handler func(c *request.Context)

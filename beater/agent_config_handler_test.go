@@ -34,6 +34,7 @@ import (
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
 	"github.com/elastic/apm-server/tests"
@@ -176,7 +177,9 @@ func TestAgentConfigHandler(t *testing.T) {
 				r.Header.Set(k, v)
 			}
 			r.Header.Set("Authorization", "Bearer "+token)
-			h.ServeHTTP(w, r)
+			ctx := &request.Context{}
+			ctx.Reset(w, r)
+			h(ctx)
 
 			require.Equal(t, tc.respStatus, w.Code)
 			require.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
@@ -205,8 +208,9 @@ func TestAgentConfigDisabled(t *testing.T) {
 	h := agentConfigHandler(nil, &cfg, "")
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/config", nil)
-	h.ServeHTTP(w, r)
+	ctx := &request.Context{}
+	ctx.Reset(w, httptest.NewRequest(http.MethodGet, "/config", nil))
+	h(ctx)
 
 	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 }
@@ -228,7 +232,9 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
 		"service": m{"name": "opbeans-node"}}))
-	h.ServeHTTP(w, r)
+	ctx := &request.Context{}
+	ctx.Reset(w, r)
+	h(ctx)
 
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 }
