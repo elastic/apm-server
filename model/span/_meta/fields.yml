@@ -12,7 +12,7 @@
       fields:
 
         - name: id
-          type: keyword 
+          type: keyword
           description: >
             The ID of the span stored as hex encoded string.
 
@@ -52,3 +52,12 @@
           description: >
             Indicates whether the span was executed synchronously or asynchronously.
 
+        - name: db
+          type: group
+          dynamic: false
+          fields:
+
+            - name: link
+              type: keyword
+              description: >
+                Database link.
