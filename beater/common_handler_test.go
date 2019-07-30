@@ -26,13 +26,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/beater/request"
 )
 
 func TestIncCounter(t *testing.T) {
 	req, err := http.NewRequest(http.MethodPost, "_", nil)
 	require.NoError(t, err)
 	req.Header.Set("Accept", "application/json")
-	w := httptest.NewRecorder()
+	c := &request.Context{}
+	c.Reset(httptest.NewRecorder(), req)
 
 	responseCounter.Set(0)
 	responseErrors.Set(0)
@@ -42,7 +45,7 @@ func TestIncCounter(t *testing.T) {
 		fullQueueResponse(errors.New("")), serverShuttingDownResponse(errors.New(""))} {
 		res.counter.Set(0)
 		for i := 1; i <= 5; i++ {
-			sendStatus(w, req, res)
+			sendStatus(c, res)
 			assert.Equal(t, int64(i), res.counter.Get(), string(res.code))
 		}
 	}
@@ -58,33 +61,37 @@ func TestOPTIONS(t *testing.T) {
 	requestTaken := make(chan struct{}, 1)
 	done := make(chan struct{}, 1)
 
-	h := rumHandler(config, http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+	h := rumHandler(config, func(_ *request.Context) {
 		requestTaken <- struct{}{}
 		<-done
-	}))
+	})
 
 	// use this to block the single allowed concurrent requests
 	go func() {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "/", nil)
-		h.ServeHTTP(w, r)
+		c := &request.Context{}
+		c.Reset(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/", nil))
+		h(c)
 	}()
 
 	<-requestTaken
 
-	// send a new request which should be allowed through
+	// Send a new request which should be allowed through
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("OPTIONS", "/", nil)
-	h.ServeHTTP(w, r)
+	c := &request.Context{}
+	c.Reset(w, r)
+	h(c)
 	assert.Equal(t, 200, w.Code, w.Body.String())
 	done <- struct{}{}
 }
 
 func TestOkBody(t *testing.T) {
 	req, err := http.NewRequest(http.MethodPost, "_", nil)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	w := httptest.NewRecorder()
-	sendStatus(w, req, serverResponse{
+	c := &request.Context{}
+	c.Reset(w, req)
+	sendStatus(c, serverResponse{
 		code:    http.StatusNonAuthoritativeInfo,
 		counter: requestCounter,
 		body:    map[string]interface{}{"some": "body"},
@@ -100,7 +107,9 @@ func TestOkBodyJson(t *testing.T) {
 	req.Header.Set("Accept", "application/json")
 	assert.Nil(t, err)
 	w := httptest.NewRecorder()
-	sendStatus(w, req, serverResponse{
+	c := &request.Context{}
+	c.Reset(w, req)
+	sendStatus(c, serverResponse{
 		code:    http.StatusNonAuthoritativeInfo,
 		counter: requestCounter,
 		body:    map[string]interface{}{"version": "1.0"},
@@ -137,7 +146,9 @@ func TestAccept(t *testing.T) {
 			delete(req.Header, "Accept")
 		}
 		w := httptest.NewRecorder()
-		sendStatus(w, req, cannotValidateResponse(errors.New("error message")))
+		c := &request.Context{}
+		c.Reset(w, req)
+		sendStatus(c, cannotValidateResponse(errors.New("error message")))
 		rsp := w.Result()
 		got := body(t, rsp)
 		assert.Equal(t, 400, w.Code)

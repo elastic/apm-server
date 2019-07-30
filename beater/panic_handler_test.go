@@ -19,36 +19,42 @@ package beater
 
 import (
 	"net/http"
-	"time"
+	"net/http/httptest"
+	"testing"
 
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/version"
+	"github.com/stretchr/testify/require"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func rootHandler(secretToken string) Handler {
-	serverInfo := common.MapStr{
-		"build_date": version.BuildTime().Format(time.RFC3339),
-		"build_sha":  version.Commit(),
-		"version":    version.GetDefaultVersion(),
-	}
-	detailedOkResponse := serverResponse{
-		code:    http.StatusOK,
-		counter: responseOk,
-		body:    serverInfo,
+func TestPanicHandler(t *testing.T) {
+
+	setupContext := func() *request.Context {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		c := &request.Context{}
+		c.Reset(w, r)
+		return c
 	}
 
-	return func(c *request.Context) {
-		if c.Request.URL.Path != "/" {
-			c.SendNotFoundErr()
-			return
-		}
+	t.Run("NoPanic", func(t *testing.T) {
+		h := func(c *request.Context) { c.WriteHeader(http.StatusAccepted) }
+		c := setupContext()
+		panicHandler(h)(c)
+		require.Equal(t, http.StatusAccepted, c.StatusCode)
+		assert.Empty(t, c.Err)
+		assert.Empty(t, c.Stacktrace)
+	})
 
-		if isAuthorized(c.Request, secretToken) {
-			sendStatus(c, detailedOkResponse)
-			return
-		}
-		sendStatus(c, okResponse)
-	}
+	t.Run("HandlePanic", func(t *testing.T) {
+		h := func(c *request.Context) { panic("panic xyz") }
+		c := setupContext()
+		panicHandler(h)(c)
+		require.Equal(t, http.StatusInternalServerError, c.StatusCode)
+		assert.Contains(t, c.Err, "panic xyz")
+		assert.NotNil(t, c.Stacktrace)
+	})
+
 }

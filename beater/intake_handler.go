@@ -21,18 +21,18 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 type intakeHandler struct {
@@ -78,43 +78,32 @@ func (v *intakeHandler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
 	return highestCode, monitoringCt
 }
 
-func (v *intakeHandler) sendResponse(logger *logp.Logger, w http.ResponseWriter, r *http.Request, sr *stream.Result) {
+func (v *intakeHandler) sendResponse(c *request.Context, sr *stream.Result) {
 	statusCode, counter := v.statusCode(sr)
 	responseCounter.Inc()
 	counter.Inc()
 
 	if statusCode == http.StatusAccepted {
 		responseSuccesses.Inc()
-		if _, ok := r.URL.Query()["verbose"]; ok {
-			send(w, r, sr, statusCode)
+		if _, ok := c.Request.URL.Query()["verbose"]; ok {
+			c.Send(sr, statusCode)
 		} else {
-			w.WriteHeader(statusCode)
+			c.WriteHeader(statusCode)
 		}
 	} else {
 		responseErrors.Inc()
-		logger.Errorw("error handling request", "error", sr.Error(), "response_code", statusCode)
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
-		w.Header().Add(headers.Connection, "Close")
-		send(w, r, sr, statusCode)
+		c.Header().Add(headers.Connection, "Close")
+		c.SendError(sr, sr.Error(), statusCode)
 	}
 }
 
-func send(w http.ResponseWriter, r *http.Request, body interface{}, statusCode int) {
-	var n int
-	if acceptsJSON(r) {
-		n = sendJSON(w, body, statusCode)
-	} else {
-		n = sendPlain(w, body, statusCode)
-	}
-	w.Header().Set(headers.ContentLength, strconv.Itoa(n))
-}
-
-func (v *intakeHandler) sendError(logger *logp.Logger, w http.ResponseWriter, r *http.Request, err *stream.Error) {
+func (v *intakeHandler) sendError(c *request.Context, err *stream.Error) {
 	sr := stream.Result{}
 	sr.Add(err)
-	v.sendResponse(logger, w, r, &sr)
+	v.sendResponse(c, &sr)
 }
 
 func (v *intakeHandler) validateRequest(r *http.Request) *stream.Error {
@@ -158,38 +147,37 @@ func (v *intakeHandler) bodyReader(r *http.Request) (io.ReadCloser, *stream.Erro
 	return reader, nil
 }
 
-func (v *intakeHandler) Handle(beaterConfig *Config, report publish.Reporter) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := requestLogger(r)
+func (v *intakeHandler) Handle(beaterConfig *Config, report publish.Reporter) Handler {
+	return func(c *request.Context) {
 
-		serr := v.validateRequest(r)
+		serr := v.validateRequest(c.Request)
 		if serr != nil {
-			v.sendError(logger, w, r, serr)
+			v.sendError(c, serr)
 			return
 		}
 
-		rl, serr := v.rateLimit(r)
+		rl, serr := v.rateLimit(c.Request)
 		if serr != nil {
-			v.sendError(logger, w, r, serr)
+			v.sendError(c, serr)
 			return
 		}
 
-		reader, serr := v.bodyReader(r)
+		reader, serr := v.bodyReader(c.Request)
 		if serr != nil {
-			v.sendError(logger, w, r, serr)
+			v.sendError(c, serr)
 			return
 		}
 
 		// extract metadata information from the request, like user-agent or remote address
-		reqMeta, err := v.requestDecoder(r)
+		reqMeta, err := v.requestDecoder(c.Request)
 		if err != nil {
 			sr := stream.Result{}
 			sr.Add(err)
-			v.sendResponse(logger, w, r, &sr)
+			v.sendResponse(c, &sr)
 			return
 		}
-		res := v.streamProcessor.HandleStream(r.Context(), rl, reqMeta, reader, report)
+		res := v.streamProcessor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
 
-		v.sendResponse(logger, w, r, res)
-	})
+		v.sendResponse(c, res)
+	}
 }
