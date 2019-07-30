@@ -45,9 +45,10 @@ type Context struct {
 
 	w http.ResponseWriter
 
-	StatusCode int
-	Err        interface{}
-	Stacktrace string
+	StatusCode   int
+	Err          interface{}
+	Stacktrace   string
+	MonitoringID ResultID
 }
 
 // Reset allows to reuse a context by removing all request specific information
@@ -59,6 +60,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.StatusCode = http.StatusOK
 	c.Err = ""
 	c.Stacktrace = ""
+	c.MonitoringID = ""
 }
 
 // Header returns the http.Header of the context's writer

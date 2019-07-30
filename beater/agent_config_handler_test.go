@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/stretchr/testify/assert"
 
@@ -210,7 +211,7 @@ func TestAgentConfigDisabled(t *testing.T) {
 	w := httptest.NewRecorder()
 	ctx := &request.Context{}
 	ctx.Reset(w, httptest.NewRequest(http.MethodGet, "/config", nil))
-	h(ctx)
+	withMiddleware(h, killSwitchHandler(false))(ctx)
 
 	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 }
@@ -237,6 +238,29 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 	h(ctx)
 
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
+
+func TestMonitoringHandlerACM(t *testing.T) {
+	requestCounter := acmResultIDToMonitoringInt(request.IDRequestCount)
+
+	t.Run("Error", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/config/v1/agents?service.name=xyz")
+		withMiddleware(mockHandler403, monitoringHandler(acmResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
+	})
+	t.Run("Accepted", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/config/v1/agents")
+		withMiddleware(mockHandler202, monitoringHandler(acmResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
+	})
+	t.Run("Idle", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/config/v1/agents/")
+		withMiddleware(mockHandlerIdle, monitoringHandler(acmResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
+	})
 }
 
 func target(params map[string]string) string {

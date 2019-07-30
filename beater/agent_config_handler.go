@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/pkg/errors"
@@ -48,13 +50,34 @@ const (
 var (
 	minKibanaVersion = common.MustNewVersion("7.3.0")
 	errCacheControl  = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
+
+	//TODO: change logic for acm specific monitoring counters
+	//will be done in a follow up PR to avoid changing logic here
+	//serverMetrics = monitoring.Default.NewRegistry("apm-server.server.acm", monitoring.PublishExpvar)
+	//counter       = func(s request.ResultID) *monitoring.Int {
+	//	return monitoring.NewInt(serverMetrics, string(s))
+	//}
+
+	// reflects current behavior
+	countRequest = intakeResultIDToMonitoringInt(request.IDRequestCount)
+
+	mapping = map[request.ResultID]*monitoring.Int{
+		request.IDRequestCount: countRequest,
+	}
 )
 
-func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) Handler {
+func acmResultIDToMonitoringInt(id request.ResultID) *monitoring.Int {
+	if i, ok := mapping[id]; ok {
+		return i
+	}
+	return nil
+}
+
+func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken string) request.Handler {
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
 	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
 
-	handler := func(c *request.Context) {
+	return func(c *request.Context) {
 		sendResp := wrap(c)
 		sendErr := wrapErr(c, secretToken)
 
@@ -87,9 +110,6 @@ func agentConfigHandler(kbClient kibana.Client, config *agentConfig, secretToken
 			sendResp(cfg, http.StatusOK, cacheControl)
 		}
 	}
-
-	return killSwitchHandler(kbClient != nil,
-		authHandler(secretToken, handler))
 }
 
 func validateKbClient(client kibana.Client) (bool, string, string) {

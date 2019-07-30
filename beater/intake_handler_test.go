@@ -26,7 +26,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -35,37 +34,32 @@ import (
 
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
 	"github.com/elastic/apm-server/tests/loader"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestInvalidContentType(t *testing.T) {
-	req := httptest.NewRequest("POST", backendURL, nil)
-	w := httptest.NewRecorder()
-
-	c := defaultConfig("7.0.0")
-	handler, err := (&backendRoute).Handler("", c, nil)
+	h, err := backendHandler(defaultConfig("7.0.0"), nil)
 	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", intakePath, nil)
 	ctx := &request.Context{}
 	ctx.Reset(w, req)
-	handler(ctx)
+	h(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 	assert.Contains(t, w.Body.String(), "invalid content type: ''")
-	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
+	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get(headers.ContentType))
 }
 
 func TestEmptyRequest(t *testing.T) {
-	req := httptest.NewRequest("POST", backendURL, nil)
+	req := httptest.NewRequest("POST", intakePath, nil)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
 	w := httptest.NewRecorder()
 
-	c := defaultConfig("7.0.0")
-	handler, err := (&backendRoute).Handler("", c, nil)
+	handler, err := backendHandler(defaultConfig("7.0.0"), nil)
 	require.NoError(t, err)
 	ctx := &request.Context{}
 	ctx.Reset(w, req)
@@ -74,41 +68,21 @@ func TestEmptyRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 }
 
-func TestRequestDecoderError(t *testing.T) {
-	req := httptest.NewRequest("POST", backendURL, bytes.NewBufferString(`asdasd`))
-	req.Header.Add("Content-Type", "application/x-ndjson")
-
-	w := httptest.NewRecorder()
-
-	c := defaultConfig("7.0.0")
-	expectedErr := errors.New("Faulty decoder")
-	faultyDecoder := func(r *http.Request) (map[string]interface{}, error) {
-		return nil, expectedErr
-	}
-	testRouteWithFaultyDecoder := intakeRoute{
-		routeType{
-			backendHandler,
-			func(*Config, decoder.ReqDecoder) decoder.ReqDecoder { return faultyDecoder },
-			func(*Config) (*transform.Config, error) { return &transform.Config{}, nil },
-		},
-	}
-
-	handler, err := testRouteWithFaultyDecoder.Handler("", c, nil)
-	require.NoError(t, err)
-	ctx := &request.Context{}
-	ctx.Reset(w, req)
-	handler(ctx)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
-}
-
 func TestRequestIntegration(t *testing.T) {
+	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
+	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
+	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
+	responseAccepted := intakeResultIDToMonitoringInt(request.IDResponseValidAccepted)
+	validateCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsValidate)
+	serverShuttingDownCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsShuttingDown)
+	fullQueueCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsFullQueue)
+
 	endpoints := []struct {
 		name, url string
-		route     intakeRoute
+		fn        func(*Config, publish.Reporter) (request.Handler, error)
 	}{
-		{name: "Backend", url: backendURL, route: backendRoute},
-		{name: "Rum", url: rumURL, route: rumRoute},
+		{name: "Backend", url: intakePath, fn: backendHandler},
+		{name: "Rum", url: intakeRumPath, fn: rumHandler},
 	}
 	for name, test := range map[string]struct {
 		code         int
@@ -146,7 +120,7 @@ func TestRequestIntegration(t *testing.T) {
 
 			// Send request
 			w, err := sendReq(cfg,
-				&endpoint.route,
+				endpoint.fn,
 				endpoint.url,
 				filepath.Join("../testdata/intake-v2/", test.path),
 				test.reportingErr)
@@ -206,7 +180,7 @@ func TestRequestIntegrationRUM(t *testing.T) {
 			require.NoError(t, err)
 			c, err := newConfig("7.0.0", ucfg)
 			require.NoError(t, err)
-			w, err := sendReq(c, &rumRoute, rumURL, test.path, nil)
+			w, err := sendReq(c, rumHandler, intakeRumPath, test.path, nil)
 			require.NoError(t, err)
 
 			require.Equal(t, test.code, w.Code, w.Body.String())
@@ -218,7 +192,7 @@ func TestRequestIntegrationRUM(t *testing.T) {
 	}
 }
 
-func sendReq(c *Config, route *intakeRoute, url string, p string, repErr error) (*httptest.ResponseRecorder, error) {
+func sendReq(c *Config, handlerFn func(*Config, publish.Reporter) (request.Handler, error), url string, p string, repErr error) (*httptest.ResponseRecorder, error) {
 	b, err := loader.LoadDataAsBytes(p)
 	if err != nil {
 		return nil, err
@@ -233,29 +207,36 @@ func sendReq(c *Config, route *intakeRoute, url string, p string, repErr error) 
 	report := func(context.Context, publish.PendingReq) error {
 		return repErr
 	}
-	handler, err := route.Handler(url, c, report)
+	handler, err := handlerFn(c, report)
 	if err != nil {
 		return nil, err
 	}
 
 	w := httptest.NewRecorder()
-	ctx := &request.Context{}
-	ctx.Reset(w, req)
-	logHandler(handler)(ctx)
+	newContextPool().handler(handler).ServeHTTP(w, req)
 	return w, nil
 }
 
 func TestWrongMethod(t *testing.T) {
+	registry := monitoring.Default.NewRegistry(t.Name()+"test", monitoring.PublishExpvar)
+	methodNotAllowedCounter := monitoring.NewInt(registry, string(request.IDResponseErrorsMethodNotAllowed))
+	monitoringFn := func(id request.ResultID) *monitoring.Int {
+		if id == request.IDResponseErrorsMethodNotAllowed {
+			return methodNotAllowedCounter
+		}
+		return nil
+	}
+
 	req := httptest.NewRequest("GET", "/intake/v2/events", nil)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	w := httptest.NewRecorder()
-	handler, err := (&backendRoute).Handler("", defaultConfig("7.0.0"), nil)
+	handler, err := backendHandler(defaultConfig("7.0.0"), nil)
 	require.NoError(t, err)
 
 	ct := methodNotAllowedCounter.Get()
 	ctx := &request.Context{}
 	ctx.Reset(w, req)
-	handler(ctx)
+	withMiddleware(handler, monitoringHandler(monitoringFn))(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, ct+1, methodNotAllowedCounter.Get())
@@ -278,37 +259,114 @@ func TestLineExceeded(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/intake/v2/events", bytes.NewBuffer(b))
 	req.Header.Add("Content-Type", "application/x-ndjson")
-
 	w := httptest.NewRecorder()
 
 	nilReport := func(ctx context.Context, p publish.PendingReq) error { return nil }
-
 	c := defaultConfig("7.0.0")
-	assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
-	handler, err := (&backendRoute).Handler("", c, nilReport)
-	require.NoError(t, err)
-	ctx := &request.Context{}
-	ctx.Reset(w, req)
-	handler(ctx)
 
-	assert.Equal(t, http.StatusAccepted, w.Code, w.Body.String())
-	assert.Equal(t, 0, w.Body.Len())
+	t.Run("OK", func(t *testing.T) {
+		assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
+		handler, err := backendHandler(defaultConfig("7.0.0"), nilReport)
+		require.NoError(t, err)
+		ctx := &request.Context{}
+		ctx.Reset(w, req)
+		handler(ctx)
 
-	c.MaxEventSize = 20
-	assert.True(t, lineLimitExceededInTestData(c.MaxEventSize))
-	handler, err = (&backendRoute).Handler("", c, nilReport)
-	require.NoError(t, err)
+		assert.Equal(t, http.StatusAccepted, w.Code, w.Body.String())
+		assert.Equal(t, 0, w.Body.Len())
+	})
 
-	req = httptest.NewRequest("POST", "/intake/v2/events", bytes.NewBuffer(b))
-	req.Header.Add("Content-Type", "application/x-ndjson")
-	req.Header.Add("Accept", "*/*")
-	w = httptest.NewRecorder()
+	t.Run("Exceeded", func(t *testing.T) {
+		registry := monitoring.Default.NewRegistry(t.Name()+"test", monitoring.PublishExpvar)
+		requestTooLargeCounter := monitoring.NewInt(registry, string(request.IDResponseErrorsRequestTooLarge))
+		monitoringFn := func(id request.ResultID) *monitoring.Int {
+			if id == request.IDResponseErrorsRequestTooLarge {
+				return requestTooLargeCounter
+			}
+			return nil
+		}
 
-	ct := requestTooLargeCounter.Get()
-	ctx = &request.Context{}
-	ctx.Reset(w, req)
-	handler(ctx)
-	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
-	assert.Equal(t, ct+1, requestTooLargeCounter.Get())
-	tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
+		c := defaultConfig("7.0.0")
+		c.MaxEventSize = 20
+		assert.True(t, lineLimitExceededInTestData(c.MaxEventSize))
+		handler, err := backendHandler(c, nilReport)
+		require.NoError(t, err)
+
+		req = httptest.NewRequest("POST", "/intake/v2/events", bytes.NewBuffer(b))
+		req.Header.Add("Content-Type", "application/x-ndjson")
+		req.Header.Add("Accept", "*/*")
+		w = httptest.NewRecorder()
+
+		ct := requestTooLargeCounter.Get()
+		ctx := &request.Context{}
+		ctx.Reset(w, req)
+		withMiddleware(handler, monitoringHandler(monitoringFn))(ctx)
+		assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+		assert.Equal(t, ct+1, requestTooLargeCounter.Get())
+		tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
+	})
+}
+
+func TestMonitoringHandler_IntakeBackend(t *testing.T) {
+	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
+	responseCounter := intakeResultIDToMonitoringInt(request.IDResponseCount)
+	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
+	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
+
+	t.Run("Error", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/intake/v2/events/")
+		withMiddleware(mockHandler403, monitoringHandler(intakeResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
+			responseCounter: 1, responseErrors: 1,
+			intakeResultIDToMonitoringInt(request.IDResponseErrorsForbidden): 1})
+	})
+	t.Run("Accepted", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/intake/v2/events/")
+		withMiddleware(mockHandler202, monitoringHandler(intakeResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
+			responseCounter: 1, responseSuccesses: 1,
+			intakeResultIDToMonitoringInt(request.IDResponseValidAccepted): 1})
+	})
+	t.Run("Idle", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/intake/v2/events")
+
+		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
+			responseCounter: 1, responseSuccesses: 1})
+	})
+}
+
+func TestMonitoringHandler_IntakeRUM(t *testing.T) {
+	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
+	responseCounter := intakeResultIDToMonitoringInt(request.IDResponseCount)
+	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
+	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
+
+	t.Run("Error", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/intake/v2/rum/events/")
+		withMiddleware(mockHandler403, monitoringHandler(intakeResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
+			responseCounter: 1, responseErrors: 1,
+			intakeResultIDToMonitoringInt(request.IDResponseErrorsForbidden): 1})
+	})
+	t.Run("Accepted", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/intake/v2/rum/events/")
+		withMiddleware(mockHandler202, monitoringHandler(intakeResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
+			responseCounter: 1, responseSuccesses: 1,
+			intakeResultIDToMonitoringInt(request.IDResponseValidAccepted): 1})
+	})
+	t.Run("Idle", func(t *testing.T) {
+		testResetCounter()
+		c := setupContext("/intake/v2/rum/events")
+
+		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIDToMonitoringInt))(c)
+		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
+			responseCounter: 1, responseSuccesses: 1})
+	})
 }

@@ -22,6 +22,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 
 	"golang.org/x/time/rate"
 
@@ -35,63 +36,80 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-type intakeHandler struct {
-	requestDecoder  decoder.ReqDecoder
-	streamProcessor *stream.Processor
-	rlc             *rlCache
+var (
+	mu sync.Mutex
+
+	serverMetrics = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
+	counter       = func(s request.ResultID) *monitoring.Int {
+		return monitoring.NewInt(serverMetrics, string(s))
+	}
+
+	resultIDToCounter = map[request.ResultID]*monitoring.Int{}
+)
+
+func intakeResultIDToMonitoringInt(name request.ResultID) *monitoring.Int {
+	if i, ok := resultIDToCounter[name]; ok {
+		return i
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if i, ok := monitoring.Get(string(name)).(*monitoring.Int); ok {
+		resultIDToCounter[name] = i
+		return i
+	}
+	ct := counter(name)
+	resultIDToCounter[name] = ct
+	return ct
 }
 
-func (v *intakeHandler) statusCode(sr *stream.Result) (int, *monitoring.Int) {
+func statusCode(sr *stream.Result) (int, request.ResultID) {
 	var code int
-	var ct *monitoring.Int
+	var id request.ResultID
 	highestCode := http.StatusAccepted
-	monitoringCt := responseAccepted
+	monitoringID := request.IDResponseValidAccepted
 	for _, err := range sr.Errors {
 		switch err.Type {
 		case stream.MethodForbiddenErrType:
 			code = http.StatusBadRequest
-			ct = methodNotAllowedCounter
+			id = request.IDResponseErrorsMethodNotAllowed
 		case stream.InputTooLargeErrType:
 			code = http.StatusBadRequest
-			ct = requestTooLargeCounter
+			id = request.IDResponseErrorsRequestTooLarge
 		case stream.InvalidInputErrType:
 			code = http.StatusBadRequest
-			ct = validateCounter
+			id = request.IDResponseErrorsValidate
 		case stream.QueueFullErrType:
 			code = http.StatusServiceUnavailable
-			ct = fullQueueCounter
+			id = request.IDResponseErrorsFullQueue
 		case stream.ShuttingDownErrType:
 			code = http.StatusServiceUnavailable
-			ct = serverShuttingDownCounter
+			id = request.IDResponseErrorsShuttingDown
 		case stream.RateLimitErrType:
 			code = http.StatusTooManyRequests
-			ct = rateLimitCounter
+			id = request.IDResponseErrorsRateLimit
 		default:
 			code = http.StatusInternalServerError
-			ct = internalErrorCounter
+			id = request.IDResponseErrorsInternal
 		}
 		if code > highestCode {
 			highestCode = code
-			monitoringCt = ct
+			monitoringID = id
 		}
 	}
-	return highestCode, monitoringCt
+	return highestCode, monitoringID
 }
 
-func (v *intakeHandler) sendResponse(c *request.Context, sr *stream.Result) {
-	statusCode, counter := v.statusCode(sr)
-	responseCounter.Inc()
-	counter.Inc()
-
+func sendResponse(c *request.Context, sr *stream.Result) {
+	statusCode, id := statusCode(sr)
+	c.MonitoringID = id
 	if statusCode == http.StatusAccepted {
-		responseSuccesses.Inc()
 		if _, ok := c.Request.URL.Query()["verbose"]; ok {
 			c.Send(sr, statusCode)
 		} else {
 			c.WriteHeader(statusCode)
 		}
 	} else {
-		responseErrors.Inc()
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
@@ -100,13 +118,13 @@ func (v *intakeHandler) sendResponse(c *request.Context, sr *stream.Result) {
 	}
 }
 
-func (v *intakeHandler) sendError(c *request.Context, err *stream.Error) {
+func sendError(c *request.Context, err *stream.Error) {
 	sr := stream.Result{}
 	sr.Add(err)
-	v.sendResponse(c, &sr)
+	sendResponse(c, &sr)
 }
 
-func (v *intakeHandler) validateRequest(r *http.Request) *stream.Error {
+func validateRequest(r *http.Request) *stream.Error {
 	if r.Method != http.MethodPost {
 		return &stream.Error{
 			Type:    stream.MethodForbiddenErrType,
@@ -123,8 +141,8 @@ func (v *intakeHandler) validateRequest(r *http.Request) *stream.Error {
 	return nil
 }
 
-func (v *intakeHandler) rateLimit(r *http.Request) (*rate.Limiter, *stream.Error) {
-	if rl, ok := v.rlc.getRateLimiter(utility.RemoteAddr(r)); ok {
+func rateLimit(r *http.Request, rlc *rlCache) (*rate.Limiter, *stream.Error) {
+	if rl, ok := rlc.getRateLimiter(utility.RemoteAddr(r)); ok {
 		if !rl.Allow() {
 			return nil, &stream.Error{
 				Type:    stream.RateLimitErrType,
@@ -136,7 +154,7 @@ func (v *intakeHandler) rateLimit(r *http.Request) (*rate.Limiter, *stream.Error
 	return nil, nil
 }
 
-func (v *intakeHandler) bodyReader(r *http.Request) (io.ReadCloser, *stream.Error) {
+func bodyReader(r *http.Request) (io.ReadCloser, *stream.Error) {
 	reader, err := decoder.CompressedRequestReader(r)
 	if err != nil {
 		return nil, &stream.Error{
@@ -147,37 +165,36 @@ func (v *intakeHandler) bodyReader(r *http.Request) (io.ReadCloser, *stream.Erro
 	return reader, nil
 }
 
-func (v *intakeHandler) Handle(beaterConfig *Config, report publish.Reporter) Handler {
+func newIntakeHandler(dec decoder.ReqDecoder, processor *stream.Processor, rlc *rlCache, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
-
-		serr := v.validateRequest(c.Request)
+		serr := validateRequest(c.Request)
 		if serr != nil {
-			v.sendError(c, serr)
+			sendError(c, serr)
 			return
 		}
 
-		rl, serr := v.rateLimit(c.Request)
+		rl, serr := rateLimit(c.Request, rlc)
 		if serr != nil {
-			v.sendError(c, serr)
+			sendError(c, serr)
 			return
 		}
 
-		reader, serr := v.bodyReader(c.Request)
+		reader, serr := bodyReader(c.Request)
 		if serr != nil {
-			v.sendError(c, serr)
+			sendError(c, serr)
 			return
 		}
 
 		// extract metadata information from the request, like user-agent or remote address
-		reqMeta, err := v.requestDecoder(c.Request)
+		reqMeta, err := dec(c.Request)
 		if err != nil {
 			sr := stream.Result{}
 			sr.Add(err)
-			v.sendResponse(c, &sr)
+			sendResponse(c, &sr)
 			return
 		}
-		res := v.streamProcessor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
+		res := processor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
 
-		v.sendResponse(c, res)
+		sendResponse(c, res)
 	}
 }

@@ -165,7 +165,7 @@ func TestServerTcpNoPort(t *testing.T) {
 	defer teardown()
 
 	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + rootURL)
+	rsp, err := client.Get(baseUrl + rootPath)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
 	}
@@ -193,7 +193,7 @@ func TestServerOkUnix(t *testing.T) {
 	defer stop()
 
 	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + rootURL)
+	rsp, err := client.Get(baseUrl + rootPath)
 	assert.NoError(t, err)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
@@ -206,7 +206,7 @@ func TestServerHealth(t *testing.T) {
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest(http.MethodGet, baseUrl+rootURL, nil)
+	req, err := http.NewRequest(http.MethodGet, baseUrl+rootPath, nil)
 	require.NoError(t, err)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
@@ -223,7 +223,7 @@ func TestServerRumSwitch(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 
-	req, err := http.NewRequest(http.MethodPost, baseUrl+rumURL, bytes.NewReader(testData))
+	req, err := http.NewRequest(http.MethodPost, baseUrl+intakeRumPath, bytes.NewReader(testData))
 	require.NoError(t, err)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
@@ -290,7 +290,7 @@ func TestServerCORS(t *testing.T) {
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 
-		req, err := http.NewRequest(http.MethodPost, baseUrl+rumURL, bytes.NewReader(testData))
+		req, err := http.NewRequest(http.MethodPost, baseUrl+intakeRumPath, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/x-ndjson")
 		assert.NoError(t, err)
@@ -444,7 +444,7 @@ var testData = func() []byte {
 }()
 
 func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest(http.MethodPost, baseUrl+backendURL, bytes.NewReader(testData))
+	req, err := http.NewRequest(http.MethodPost, baseUrl+intakePath, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
@@ -456,7 +456,7 @@ func waitForServer(url string, client *http.Client, c chan error) {
 	var check = func() int {
 		var res *http.Response
 		var err error
-		res, err = client.Get(url + rootURL)
+		res, err = client.Get(url + rootPath)
 		if err != nil {
 			return http.StatusInternalServerError
 		}
