@@ -130,7 +130,7 @@ pipeline {
         Build on a windows environment.
         */
         stage('windows build') {
-          agent { label 'windows' }
+          agent { label 'windows-2019-immutable' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
@@ -228,7 +228,7 @@ pipeline {
         Finally archive the results.
         */
         stage('windows test') {
-          agent { label 'windows' }
+          agent { label 'windows-2019-immutable' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
