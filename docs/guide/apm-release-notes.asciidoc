@@ -27,8 +27,61 @@ For a full list of changes, see the
 [[release-highlights-7.3.0]]
 === APM version 7.3.0
 
-TBD
 // tag::notable-v73-highlights[]
+
+[discrete]
+==== Elastic APM .NET Agent GA
+
+https://github.com/elastic/apm-agent-dotnet/[Elastic APM agent for .NET] is now
+generally available! The .NET Agent adds automatic instrumentation for ASP.NET
+Core 2.x+ and Entity Framework Core 2.x+, while also providing a
+{apm-dotnet-ref}/public-api.html[Public API] for the .NET agent that will allow
+you to instrument any .NET custom application code.
+
+[discrete]
+==== Aggregate service breakdown charts
+
+beta[] In addition to the transaction duration and throughput charts, the 7.3
+release adds aggregated service breakdown charts for services. These charts help
+you visualize where your application and services are spending most of their
+time, allowing you to get to the root cause of a performance problem quickly.
+These charts are available in Beta with support for certain APM agents(Java, Go,
+Node.js, Python).
+
+[role="screenshot"]
+image::images/apm-highlight-breakdown-charts.png[Aggregate service breakdown charts]
+
+[discrete]
+==== Agent sample rate configuration from APM UI
+
+Configuring sampling rate for your services is a whole lot easier with this
+release. The new settings page now lets you view and configure the sampling rate
+for your services from within the APM UI without changing the agent yaml files
+for each individual reporting instance of the service. To learn more about this
+configuration, see {kibana-ref}/agent-configuration.html[APM Agent configuration].
+
+[role="screenshot"]
+image::images/apm-highlight-sample-rate.png[APM sample rate configuration in Kibana]
+
+[discrete]
+==== React support for Single Page Applications 
+
+The 7.3 release also brings a lot of exciting changes to the Real User
+Monitoring (RUM) agent. We have furthered our support of Single Page
+Applications (SPA). You can now use the RUM agent to instrument your SPA written
+in React.js without the need to manually create or rename transactions. For
+more information, see {apm-rum-ref}/react-integration.html[React integration].
+
+[discrete]
+===== APM RUM integration with Elastic Maps
+
+This release also makes both the geo-ip and user-agent modules enabled by
+default, which makes it easier for you to integrate with
+https://www.elastic.co/products/maps[Maps] so you can better understand the
+performance of your RUM applications.
+
+[role="screenshot"]
+image::images/apm-highlight-rum-maps.png[APM sample rate configuration in Kibana]
 
 // end::notable-v73-highlights[]
 
