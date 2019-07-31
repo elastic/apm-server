@@ -56,9 +56,9 @@ image::images/apm-highlight-breakdown-charts.png[Aggregate service breakdown cha
 
 beta[] Configuring sampling rate for your services is a whole lot easier with this
 release. The new settings page now lets you view and configure the sampling rate
-for your services from within the APM UI without changing the agent yaml files
-for each individual reporting instance of the service. To learn more about this
-configuration, see {kibana-ref}/agent-configuration.html[APM Agent configuration].
+for your services from within the APM UI without restarting them. To learn more
+about this configuration, see
+{kibana-ref}/agent-configuration.html[APM Agent configuration].
 
 [role="screenshot"]
 image::images/apm-highlight-sample-rate.png[APM sample rate configuration in Kibana]
