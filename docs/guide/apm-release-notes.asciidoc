@@ -54,7 +54,7 @@ image::images/apm-highlight-breakdown-charts.png[Aggregate service breakdown cha
 [discrete]
 ==== Agent sample rate configuration from APM UI
 
-Configuring sampling rate for your services is a whole lot easier with this
+beta[] Configuring sampling rate for your services is a whole lot easier with this
 release. The new settings page now lets you view and configure the sampling rate
 for your services from within the APM UI without changing the agent yaml files
 for each individual reporting instance of the service. To learn more about this
