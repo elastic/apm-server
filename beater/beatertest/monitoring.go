@@ -83,6 +83,8 @@ func AllRequestResultIDs() []request.ResultID {
 		request.IDResponseErrorsInternal}
 }
 
+// clearRegistry sets all counters to 0 and removes all registered counters from the registry
+// Only use this in test environments
 func clearRegistry(r *monitoring.Registry, fn func(id request.ResultID) *monitoring.Int) {
 	for _, id := range AllRequestResultIDs() {
 		i := fn(id)
@@ -90,4 +92,5 @@ func clearRegistry(r *monitoring.Registry, fn func(id request.ResultID) *monitor
 			i.Set(0)
 		}
 	}
+	r.Clear()
 }

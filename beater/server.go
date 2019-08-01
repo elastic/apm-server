@@ -26,36 +26,38 @@ import (
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
+	"github.com/elastic/apm-server/beater/api"
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
 )
 
-func newServer(config *Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
-	mux, err := NewMuxer(config, report)
+func newServer(cfg *config.Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
+	mux, err := api.NewMux(cfg, report)
 	if err != nil {
 		return nil, err
 	}
 
 	server := &http.Server{
-		Addr: config.Host,
+		Addr: cfg.Host,
 		Handler: apmhttp.Wrap(mux,
 			apmhttp.WithServerRequestIgnorer(doNotTrace),
 			apmhttp.WithTracer(tracer),
 		),
-		IdleTimeout:    config.IdleTimeout,
-		ReadTimeout:    config.ReadTimeout,
-		WriteTimeout:   config.WriteTimeout,
-		MaxHeaderBytes: config.MaxHeaderSize,
+		IdleTimeout:    cfg.IdleTimeout,
+		ReadTimeout:    cfg.ReadTimeout,
+		WriteTimeout:   cfg.WriteTimeout,
+		MaxHeaderBytes: cfg.MaxHeaderSize,
 	}
 
-	if config.TLS.IsEnabled() {
-		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(config.TLS)
+	if cfg.TLS.IsEnabled() {
+		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
 		if err != nil {
 			return nil, err
 		}
-		server.TLSConfig = tlsServerConfig.BuildModuleConfig(config.Host)
+		server.TLSConfig = tlsServerConfig.BuildModuleConfig(cfg.Host)
 	}
 	return server, nil
 }
@@ -66,33 +68,33 @@ func doNotTrace(req *http.Request) bool {
 		// or we will go into a continuous cycle.
 		return true
 	}
-	if req.URL.Path == rootPath {
+	if req.URL.Path == api.RootPath {
 		// Don't trace root url (healthcheck) requests.
 		return true
 	}
 	return false
 }
 
-func run(logger *logp.Logger, server *http.Server, lis net.Listener, config *Config) error {
+func run(logger *logp.Logger, server *http.Server, lis net.Listener, cfg *config.Config) error {
 	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	logger.Infof("Listening on: %s", server.Addr)
-	switch config.RumConfig.IsEnabled() {
+	switch cfg.RumConfig.IsEnabled() {
 	case true:
 		logger.Info("RUM endpoints enabled!")
 	case false:
 		logger.Info("RUM endpoints disabled.")
 	}
 
-	if config.MaxConnections > 0 {
-		lis = netutil.LimitListener(lis, config.MaxConnections)
-		logger.Infof("Connection limit set to: %d", config.MaxConnections)
+	if cfg.MaxConnections > 0 {
+		lis = netutil.LimitListener(lis, cfg.MaxConnections)
+		logger.Infof("Connection limit set to: %d", cfg.MaxConnections)
 	}
 
 	if server.TLSConfig != nil {
 		logger.Info("SSL enabled.")
 		return server.ServeTLS(lis, "", "")
 	}
-	if config.SecretToken != "" {
+	if cfg.SecretToken != "" {
 		logger.Warn("Secret token is set, but SSL is not enabled.")
 	} else {
 		logger.Info("SSL disabled.")

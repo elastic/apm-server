@@ -66,10 +66,10 @@ func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
 		return nil
 	}
 
-	if tctx.Config.SmapMapper == nil {
+	if tctx.Config.SourcemapMapper == nil {
 		logp.NewLogger(logs.Sourcemap).Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		tctx.Config.SmapMapper.NewSourcemapAdded(smap.Id{
+		tctx.Config.SourcemapMapper.NewSourcemapAdded(smap.Id{
 			ServiceName:    pa.ServiceName,
 			ServiceVersion: pa.ServiceVersion,
 			Path:           pa.BundleFilepath,

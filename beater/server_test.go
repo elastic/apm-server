@@ -19,7 +19,6 @@ package beater
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -39,9 +38,12 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 
-	"github.com/elastic/apm-server/publish"
+	"github.com/elastic/apm-server/beater/api"
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/tests/loader"
 )
+
+type m = map[string]interface{}
 
 func TestServerOk(t *testing.T) {
 	apm, teardown, err := setupServer(t, nil, nil, nil)
@@ -112,7 +114,7 @@ func TestServerRoot(t *testing.T) {
 func TestServerRootWithToken(t *testing.T) {
 	token := "verysecret"
 	badToken := "Verysecret"
-	ucfg, err := common.NewConfigFrom(map[string]interface{}{"secret_token": token})
+	ucfg, err := common.NewConfigFrom(m{"secret_token": token})
 	assert.NoError(t, err)
 	apm, teardown, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
@@ -145,7 +147,7 @@ func TestServerTcpNoPort(t *testing.T) {
 	// try to connect to localhost:DefaultPort
 	// if connection succeeds, port is in use and skip test
 	// if it fails, make sure it is because connection refused
-	if conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", DefaultPort), 2*time.Second); err == nil {
+	if conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", config.DefaultPort), 2*time.Second); err == nil {
 		conn.Close()
 		t.Skipf("default port is in use")
 	} else {
@@ -163,7 +165,7 @@ func TestServerTcpNoPort(t *testing.T) {
 	defer teardown()
 
 	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + rootPath)
+	rsp, err := client.Get(baseUrl + api.RootPath)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
 	}
@@ -184,14 +186,14 @@ func TestServerOkUnix(t *testing.T) {
 	}
 
 	addr := tmpTestUnix(t)
-	ucfg, err := common.NewConfigFrom(m{"host": "unix:" + addr})
+	ucfg, err := common.NewConfigFrom(map[string]interface{}{"host": "unix:" + addr})
 	assert.NoError(t, err)
 	btr, stop, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer stop()
 
 	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + rootPath)
+	rsp, err := client.Get(baseUrl + api.RootPath)
 	assert.NoError(t, err)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
@@ -204,7 +206,7 @@ func TestServerHealth(t *testing.T) {
 	defer teardown()
 
 	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest(http.MethodGet, baseUrl+rootPath, nil)
+	req, err := http.NewRequest(http.MethodGet, baseUrl+api.RootPath, nil)
 	require.NoError(t, err)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
@@ -221,7 +223,7 @@ func TestServerRumSwitch(t *testing.T) {
 
 	baseUrl, client := apm.client(false)
 
-	req, err := http.NewRequest(http.MethodPost, baseUrl+intakeRumPath, bytes.NewReader(testData))
+	req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakeRUMPath, bytes.NewReader(testData))
 	require.NoError(t, err)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
@@ -288,7 +290,7 @@ func TestServerCORS(t *testing.T) {
 		require.NoError(t, err)
 		baseUrl, client := apm.client(false)
 
-		req, err := http.NewRequest(http.MethodPost, baseUrl+intakeRumPath, bytes.NewReader(testData))
+		req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakeRUMPath, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/x-ndjson")
 		assert.NoError(t, err)
@@ -380,7 +382,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 		beatConfig.Output.Unpack(ocfg)
 		apm, teardown, err := setupServer(t, ucfg, &beatConfig, nil)
 		if assert.NoError(t, err) {
-			assert.Equal(t, testCase.expected, apm.smapElasticsearchHosts())
+			assert.Equal(t, testCase.expected, apm.sourcemapElasticsearchHosts())
 		}
 		teardown()
 	}
@@ -442,7 +444,7 @@ var testData = func() []byte {
 }()
 
 func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest(http.MethodPost, baseUrl+intakePath, bytes.NewReader(testData))
+	req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakePath, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
@@ -454,7 +456,7 @@ func waitForServer(url string, client *http.Client, c chan error) {
 	var check = func() int {
 		var res *http.Response
 		var err error
-		res, err = client.Get(url + rootPath)
+		res, err = client.Get(url + api.RootPath)
 		if err != nil {
 			return http.StatusInternalServerError
 		}
@@ -472,9 +474,7 @@ func waitForServer(url string, client *http.Client, c chan error) {
 
 func body(t *testing.T, response *http.Response) string {
 	body, err := ioutil.ReadAll(response.Body)
-	response.Body.Close()
 	require.NoError(t, err)
+	require.NoError(t, response.Body.Close())
 	return string(body)
 }
-
-func nopReporter(context.Context, publish.PendingReq) error { return nil }
