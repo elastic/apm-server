@@ -59,20 +59,21 @@ func TestResult_Set(t *testing.T) {
 
 	t.Run("SetErrToKeyword", func(t *testing.T) {
 		r := Result{}
-		r.Set(IDUnset, http.StatusBadRequest, KeywordResponseErrorsValidate, "foo", nil)
-		assert.Equal(t, KeywordResponseErrorsValidate, r.Err.Error())
+		r.Set(IDUnset, http.StatusBadRequest, MapResultIDToStatus[IDResponseErrorsValidate].Keyword, "foo", nil)
+		assert.Equal(t, MapResultIDToStatus[IDResponseErrorsValidate].Keyword, r.Err.Error())
 		assert.Equal(t, "foo", r.Body)
 	})
 	t.Run("SetBodyToKeyword", func(t *testing.T) {
 		r := Result{}
-		r.Set(IDUnset, http.StatusServiceUnavailable, KeywordResponseErrorsFullQueue, nil, nil)
-		assert.Equal(t, KeywordResponseErrorsFullQueue, r.Err.Error())
-		assert.Equal(t, string(KeywordResponseErrorsFullQueue), r.Body)
+		fullQueue := MapResultIDToStatus[IDResponseErrorsFullQueue].Keyword
+		r.Set(IDUnset, http.StatusServiceUnavailable, fullQueue, nil, nil)
+		assert.Equal(t, fullQueue, r.Err.Error())
+		assert.Equal(t, string(fullQueue), r.Body)
 	})
 	t.Run("SetBodyToErr", func(t *testing.T) {
 		err := errors.New("xyz")
 		r := Result{}
-		r.Set(IDUnset, http.StatusBadRequest, KeywordResponseErrorsDecode, nil, err)
+		r.Set(IDUnset, http.StatusBadRequest, MapResultIDToStatus[IDResponseErrorsDecode].Keyword, nil, err)
 		assert.Equal(t, err, r.Err)
 		assert.Equal(t, err.Error(), r.Body)
 	})

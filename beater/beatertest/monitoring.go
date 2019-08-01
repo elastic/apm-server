@@ -25,25 +25,23 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-// ClearRegistry sets all counters to 0 and removes all registered counters from the registry
-// Only use this in test environments
-func ClearRegistry(r *monitoring.Registry, fn func(id request.ResultID) *monitoring.Int) {
-	for _, id := range AllRequestResultIDs() {
-		i := fn(id)
-		if i != nil {
-			i.Set(0)
-		}
-	}
-	r.Clear()
-}
-
 // CompareMonitoringInt matches expected with real monitoring counters and
 // returns false and an a string showind diffs if not matching
-func CompareMonitoringInt(expected map[request.ResultID]int, fn func(id request.ResultID) *monitoring.Int) (bool, string) {
+func CompareMonitoringInt(
+	handler func(c *request.Context),
+	c *request.Context,
+	expected map[request.ResultID]int,
+	registry *monitoring.Registry,
+	mapFn func(id request.ResultID) *monitoring.Int,
+) (bool, string) {
+
+	clearRegistry(registry, mapFn)
+	handler(c)
+
 	var result string
 	for _, id := range AllRequestResultIDs() {
 		monitoringIntVal := int64(0)
-		monitoringInt := fn(id)
+		monitoringInt := mapFn(id)
 		if monitoringInt != nil {
 			monitoringIntVal = monitoringInt.Get()
 		}
@@ -83,4 +81,13 @@ func AllRequestResultIDs() []request.ResultID {
 		request.IDResponseErrorsShuttingDown,
 		request.IDResponseErrorsServiceUnavailable,
 		request.IDResponseErrorsInternal}
+}
+
+func clearRegistry(r *monitoring.Registry, fn func(id request.ResultID) *monitoring.Int) {
+	for _, id := range AllRequestResultIDs() {
+		i := fn(id)
+		if i != nil {
+			i.Set(0)
+		}
+	}
 }

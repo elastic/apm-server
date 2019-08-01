@@ -43,33 +43,33 @@ func TestNewAssetHandler(t *testing.T) {
 		"method": {
 			r:    httptest.NewRequest(http.MethodGet, "/", nil),
 			code: http.StatusMethodNotAllowed,
-			body: beatertest.ResultErrWrap(request.KeywordResponseErrorsMethodNotAllowed),
+			body: beatertest.ResultErrWrap(request.MapResultIDToStatus[request.IDResponseErrorsMethodNotAllowed].Keyword),
 		},
 		"large": {
 			dec: func(r *http.Request) (map[string]interface{}, error) {
 				return nil, errors.New("error decoding request body too large")
 			},
 			code: http.StatusRequestEntityTooLarge,
-			body: beatertest.ResultErrWrap(request.KeywordResponseErrorsRequestTooLarge),
+			body: beatertest.ResultErrWrap(request.MapResultIDToStatus[request.IDResponseErrorsRequestTooLarge].Keyword),
 		},
 		"decode": {
 			dec: func(r *http.Request) (map[string]interface{}, error) {
 				return nil, errors.New("foo")
 			},
 			code: http.StatusBadRequest,
-			body: beatertest.ResultErrWrap(request.KeywordResponseErrorsDecode),
+			body: beatertest.ResultErrWrap(request.MapResultIDToStatus[request.IDResponseErrorsDecode].Keyword),
 		},
 		"validate": {
 			dec:  func(req *http.Request) (map[string]interface{}, error) { return nil, nil },
 			code: http.StatusBadRequest,
-			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: no input", request.KeywordResponseErrorsValidate)),
+			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: no input", request.MapResultIDToStatus[request.IDResponseErrorsValidate].Keyword)),
 		},
 		"processorDecode": {
 			dec: func(*http.Request) (map[string]interface{}, error) {
 				return map[string]interface{}{"mockProcessor": "xyz"}, nil
 			},
 			code: http.StatusBadRequest,
-			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: processor decode error", request.KeywordResponseErrorsDecode)),
+			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: processor decode error", request.MapResultIDToStatus[request.IDResponseErrorsDecode].Keyword)),
 		},
 		"shuttingDown": {
 			reporter: func(ctx context.Context, p publish.PendingReq) error {
@@ -77,14 +77,14 @@ func TestNewAssetHandler(t *testing.T) {
 			},
 			code: http.StatusServiceUnavailable,
 			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: %s",
-				request.KeywordResponseErrorsShuttingDown, publish.ErrChannelClosed)),
+				request.MapResultIDToStatus[request.IDResponseErrorsShuttingDown].Keyword, publish.ErrChannelClosed)),
 		},
 		"queue": {
 			reporter: func(ctx context.Context, p publish.PendingReq) error {
 				return errors.New("500")
 			},
 			code: http.StatusServiceUnavailable,
-			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: 500", request.KeywordResponseErrorsFullQueue)),
+			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: 500", request.MapResultIDToStatus[request.IDResponseErrorsFullQueue].Keyword)),
 		},
 		"valid": {
 			code: http.StatusAccepted,

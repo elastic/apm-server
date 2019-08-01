@@ -29,41 +29,54 @@ import (
 )
 
 func TestMonitoringHandler(t *testing.T) {
+	checkMonitoring := func(t *testing.T,
+		h func(*request.Context),
+		expected map[request.ResultID]int,
+		fn func(id request.ResultID) *monitoring.Int,
+	) {
+		c, _ := beatertest.DefaultContextWithResponseRecorder()
+		equal, result := beatertest.CompareMonitoringInt(MonitoringHandler(fn)(h), c, expected, mockMonitoringRegistry, fn)
+		assert.True(t, equal, result)
+	}
+
 	t.Run("Error", func(t *testing.T) {
-		beatertest.ClearRegistry(mockMonitoringRegistry, mockMonitoringFn)
-		c, _ := beatertest.DefaultContextWithResponseRecorder()
-		WithMiddleware(beatertest.Handler403, MonitoringHandler(mockMonitoringFn))(c)
-		expected := map[request.ResultID]int{
-			request.IDRequestCount:            1,
-			request.IDResponseCount:           1,
-			request.IDResponseErrorsCount:     1,
-			request.IDResponseErrorsForbidden: 1}
-		equal, result := beatertest.CompareMonitoringInt(expected, mockMonitoringFn)
-		assert.True(t, equal, result)
+		checkMonitoring(t,
+			beatertest.Handler403,
+			map[request.ResultID]int{
+				request.IDRequestCount:            1,
+				request.IDResponseCount:           1,
+				request.IDResponseErrorsCount:     1,
+				request.IDResponseErrorsForbidden: 1},
+			mockMonitoringFn)
 	})
+
 	t.Run("Accepted", func(t *testing.T) {
-		beatertest.ClearRegistry(mockMonitoringRegistry, mockMonitoringFn)
-		c, _ := beatertest.DefaultContextWithResponseRecorder()
-		WithMiddleware(beatertest.Handler202, MonitoringHandler(mockMonitoringFn))(c)
-		expected := map[request.ResultID]int{
-			request.IDRequestCount:          1,
-			request.IDResponseCount:         1,
-			request.IDResponseValidCount:    1,
-			request.IDResponseValidAccepted: 1}
-		equal, result := beatertest.CompareMonitoringInt(expected, mockMonitoringFn)
-		assert.True(t, equal, result)
+		checkMonitoring(t,
+			beatertest.Handler202,
+			map[request.ResultID]int{
+				request.IDRequestCount:          1,
+				request.IDResponseCount:         1,
+				request.IDResponseValidCount:    1,
+				request.IDResponseValidAccepted: 1},
+			mockMonitoringFn)
 	})
+
 	t.Run("Idle", func(t *testing.T) {
-		beatertest.ClearRegistry(mockMonitoringRegistry, mockMonitoringFn)
-		c, _ := beatertest.DefaultContextWithResponseRecorder()
-		WithMiddleware(beatertest.HandlerIdle, MonitoringHandler(mockMonitoringFn))(c)
-		expected := map[request.ResultID]int{
-			request.IDRequestCount:       1,
-			request.IDResponseCount:      1,
-			request.IDResponseValidCount: 1,
-			request.IDUnset:              1}
-		equal, result := beatertest.CompareMonitoringInt(expected, mockMonitoringFn)
-		assert.True(t, equal, result)
+		checkMonitoring(t,
+			beatertest.HandlerIdle,
+			map[request.ResultID]int{
+				request.IDRequestCount:       1,
+				request.IDResponseCount:      1,
+				request.IDResponseValidCount: 1,
+				request.IDUnset:              1},
+			mockMonitoringFn)
+	})
+
+	t.Run("Nil", func(t *testing.T) {
+		checkMonitoring(t,
+			beatertest.HandlerIdle,
+			map[request.ResultID]int{},
+			mockMonitoringNilFn)
 	})
 }
 
@@ -82,4 +95,8 @@ func mockMonitoringFn(name request.ResultID) *monitoring.Int {
 	ct := mockCounterFn(string(name))
 	mockMonitoringMap[name] = ct
 	return ct
+}
+
+func mockMonitoringNilFn(id request.ResultID) *monitoring.Int {
+	return nil
 }

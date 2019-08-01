@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,24 +29,19 @@ import (
 )
 
 func TestBackendHandler_MonitoringMiddleware(t *testing.T) {
-	beatertest.ClearRegistry(serverMetrics, IntakeResultIDToMonitoringInt)
-	requestToBackend(t, DefaultConfig(beatertest.MockBeatVersion()))
+	h, err := backendHandler(DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	require.NoError(t, err)
+	c, _ := beatertest.DefaultContextWithResponseRecorder()
+
 	// send GET request resulting in 405 MethodNotAllowed error
 	expected := map[request.ResultID]int{
 		request.IDRequestCount:                   1,
 		request.IDResponseCount:                  1,
 		request.IDResponseErrorsCount:            1,
 		request.IDResponseErrorsMethodNotAllowed: 1}
-	equal, result := beatertest.CompareMonitoringInt(expected, IntakeResultIDToMonitoringInt)
-	assert.True(t, equal, result)
-}
 
-func requestToBackend(t *testing.T, cfg *Config) *httptest.ResponseRecorder {
-	h, err := backendHandler(cfg, beatertest.NilReporter)
-	require.NoError(t, err)
-	c, rec := beatertest.DefaultContextWithResponseRecorder()
-	h(c)
-	return rec
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, serverMetrics, IntakeResultIDToMonitoringInt)
+	assert.True(t, equal, result)
 }
 
 //TODO: add more integration tests for the actual middleware

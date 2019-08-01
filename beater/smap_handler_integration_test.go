@@ -99,12 +99,19 @@ func TestAssetHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestAssetHandler_MonitoringMiddleware(t *testing.T) {
-	t.Run("Default", func(t *testing.T) {
-		beatertest.ClearRegistry(serverMetrics, IntakeResultIDToMonitoringInt)
-		requestToSmapHandler(t, DefaultConfig(beatertest.MockBeatVersion()))
-		equal, result := beatertest.CompareMonitoringInt(map[request.ResultID]int{request.IDRequestCount: 1}, ACMResultIDToMonitoringInt)
-		assert.True(t, equal, result)
-	})
+	h, err := sourcemapHandler(DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	require.NoError(t, err)
+	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
+
+	// send GET request resulting in 403 Forbidden error as RUM is disabled by default
+	expected := map[request.ResultID]int{
+		request.IDRequestCount:            1,
+		request.IDResponseCount:           1,
+		request.IDResponseErrorsCount:     1,
+		request.IDResponseErrorsForbidden: 1}
+
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, serverMetrics, IntakeResultIDToMonitoringInt)
+	assert.True(t, equal, result)
 }
 
 func requestToSmapHandler(t *testing.T, cfg *Config) *httptest.ResponseRecorder {

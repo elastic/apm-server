@@ -41,7 +41,7 @@ func AssetHandler(dec decoder.ReqDecoder, processor asset.Processor, cfg transfo
 
 		data, err := dec(c.Request)
 		if err != nil {
-			if strings.Contains(err.Error(), request.KeywordResponseErrorsRequestTooLarge) {
+			if strings.Contains(err.Error(), request.MapResultIDToStatus[request.IDResponseErrorsRequestTooLarge].Keyword) {
 				c.Result.SetDefault(request.IDResponseErrorsRequestTooLarge)
 			} else {
 				c.Result.SetDefault(request.IDResponseErrorsDecode)

@@ -36,9 +36,9 @@ const (
 	IDResponseErrorsCount ResultID = "response.errors.count"
 	// IDResponseValidCount identifies all successful responses
 	IDResponseValidCount ResultID = "response.valid.count"
+
 	// IDResponseValidNotModified identifies all successful responses without a modified body
 	IDResponseValidNotModified ResultID = "response.valid.notmodified"
-
 	// IDResponseValidOK identifies responses with status code 200
 	IDResponseValidOK ResultID = "response.valid.ok"
 	// IDResponseValidAccepted identifies responses with status code 202
@@ -71,46 +71,41 @@ const (
 	// IDResponseErrorsInternal identifies responses where internal errors occured
 	IDResponseErrorsInternal ResultID = "response.errors.internal"
 	// IDResponseErrorsServiceUnavailable identifies responses where resource is unavailable
-
-	// KeywordResponseValidOK represents keyword for valid request
-	KeywordResponseValidOK = "request ok"
-	// KeywordResponseValidAccepted represents keyword for accepted request
-	KeywordResponseValidAccepted = "request accepted"
-	// KeywordResponseNotModified represents keyword for unmodified resource
-	KeywordResponseNotModified = "not modified"
-
-	// KeywordResponseErrorsForbidden represents keyword for forbidden request
-	KeywordResponseErrorsForbidden = "forbidden request"
-	// KeywordResponseErrorsUnauthorized represents keyword for request with invalid security token
-	KeywordResponseErrorsUnauthorized = "invalid token"
-	// KeywordResponseErrorsNotFound represents keyword for resource not found
-	KeywordResponseErrorsNotFound = "404 page not found"
-	// KeywordResponseErrorsInvalidQuery represents keyword for invalid query
-	KeywordResponseErrorsInvalidQuery = "invalid query"
-	// KeywordResponseErrorsRequestTooLarge represents keyword for body too large
-	KeywordResponseErrorsRequestTooLarge = "request body too large"
-	// KeywordResponseErrorsDecode represents keyword for error while decoding request body
-	KeywordResponseErrorsDecode = "data decoding error"
-	// KeywordResponseErrorsValidate represents keyword for error while validating request body
-	KeywordResponseErrorsValidate = "data validation error"
-	// KeywordResponseErrorsRateLimit represents keyword for rate limit hit
-	KeywordResponseErrorsRateLimit = "too many requests"
-	// KeywordResponseErrorsMethodNotAllowed represents keyword for method not allowed
-	KeywordResponseErrorsMethodNotAllowed = "only POST requests are supported"
-	// KeywordResponseErrorsFullQueue represents keyword for internal memory queue full
-	KeywordResponseErrorsFullQueue = "queue is full"
-	// KeywordResponseErrorsShuttingDown represents keyword for server shutting down
-	KeywordResponseErrorsShuttingDown = "server is shutting down"
-	// KeywordResponseErrorsServiceUnavailable represents keyword for service unavailable
-	KeywordResponseErrorsServiceUnavailable = "service unavailable"
-	// KeywordResponseErrorsInternal represents keyword for internal error
-	KeywordResponseErrorsInternal = "internal error"
 )
 
-//ResultID unique string identifying a requests Result
+var (
+	// MapResultIDToStatus takes a ResultID and maps it to a status
+	MapResultIDToStatus = map[ResultID]Status{
+		IDUnset:                            {Code: 0, Keyword: ""},
+		IDResponseValidOK:                  {Code: http.StatusOK, Keyword: "request ok"},
+		IDResponseValidAccepted:            {Code: http.StatusAccepted, Keyword: "request accepted"},
+		IDResponseValidNotModified:         {Code: http.StatusNotModified, Keyword: "not modified"},
+		IDResponseErrorsForbidden:          {Code: http.StatusForbidden, Keyword: "forbidden request"},
+		IDResponseErrorsUnauthorized:       {Code: http.StatusUnauthorized, Keyword: "invalid token"},
+		IDResponseErrorsNotFound:           {Code: http.StatusNotFound, Keyword: "404 page not found"},
+		IDResponseErrorsRequestTooLarge:    {Code: http.StatusRequestEntityTooLarge, Keyword: "request body too large"},
+		IDResponseErrorsInvalidQuery:       {Code: http.StatusBadRequest, Keyword: "invalid query"},
+		IDResponseErrorsDecode:             {Code: http.StatusBadRequest, Keyword: "data decoding error"},
+		IDResponseErrorsValidate:           {Code: http.StatusBadRequest, Keyword: "data validation error"},
+		IDResponseErrorsMethodNotAllowed:   {Code: http.StatusMethodNotAllowed, Keyword: "only POST requests are supported"},
+		IDResponseErrorsRateLimit:          {Code: http.StatusTooManyRequests, Keyword: "too many requests"},
+		IDResponseErrorsFullQueue:          {Code: http.StatusServiceUnavailable, Keyword: "queue is full"},
+		IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
+		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
+		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
+	}
+)
+
+// ResultID unique string identifying a requests Result
 type ResultID string
 
-//Result holds information about a processed request
+// Status holds statuscode and keyword information
+type Status struct {
+	Code    int
+	Keyword string
+}
+
+// Result holds information about a processed request
 type Result struct {
 	ID         ResultID
 	StatusCode int
@@ -177,71 +172,17 @@ func (r *Result) set(id ResultID, body interface{}, err error) {
 	if r == nil {
 		return
 	}
-	statusCode := http.StatusInternalServerError
-	keyword := KeywordResponseErrorsInternal
 
-	switch id {
-	case IDResponseValidOK:
-		statusCode = http.StatusOK
-		keyword = KeywordResponseValidOK
+	var statusCode int
+	var keyword string
+	if status, ok := MapResultIDToStatus[id]; ok {
+		statusCode = status.Code
+		keyword = status.Keyword
+	} else {
 
-	case IDResponseValidAccepted:
-		statusCode = http.StatusAccepted
-		keyword = KeywordResponseValidAccepted
-
-	case IDResponseValidNotModified:
-		statusCode = http.StatusNotModified
-		keyword = KeywordResponseNotModified
-
-	case IDResponseErrorsForbidden:
-		statusCode = http.StatusForbidden
-		keyword = KeywordResponseErrorsForbidden
-
-	case IDResponseErrorsUnauthorized:
-		statusCode = http.StatusUnauthorized
-		keyword = KeywordResponseErrorsUnauthorized
-
-	case IDResponseErrorsNotFound:
-		statusCode = http.StatusNotFound
-		keyword = KeywordResponseErrorsNotFound
-
-	case IDResponseErrorsInvalidQuery:
-		statusCode = http.StatusBadRequest
-		keyword = KeywordResponseErrorsInvalidQuery
-
-	case IDResponseErrorsRequestTooLarge:
-		statusCode = http.StatusRequestEntityTooLarge
-		keyword = KeywordResponseErrorsRequestTooLarge
-
-	case IDResponseErrorsDecode:
-		statusCode = http.StatusBadRequest
-		keyword = KeywordResponseErrorsDecode
-
-	case IDResponseErrorsValidate:
-		statusCode = http.StatusBadRequest
-		keyword = KeywordResponseErrorsValidate
-
-	case IDResponseErrorsRateLimit:
-		statusCode = http.StatusTooManyRequests
-		keyword = KeywordResponseErrorsRateLimit
-
-	case IDResponseErrorsMethodNotAllowed:
-		statusCode = http.StatusMethodNotAllowed
-		keyword = KeywordResponseErrorsMethodNotAllowed
-
-	case IDResponseErrorsFullQueue:
-		statusCode = http.StatusServiceUnavailable
-		keyword = KeywordResponseErrorsFullQueue
-
-	case IDResponseErrorsShuttingDown:
-		statusCode = http.StatusServiceUnavailable
-		keyword = KeywordResponseErrorsShuttingDown
-
-	case IDResponseErrorsServiceUnavailable:
-		statusCode = http.StatusServiceUnavailable
-		keyword = KeywordResponseErrorsServiceUnavailable
+		statusCode = MapResultIDToStatus[IDResponseErrorsInternal].Code
+		keyword = MapResultIDToStatus[IDResponseErrorsInternal].Keyword
 	}
 	err = errors.Wrap(err, keyword)
 	r.Set(id, statusCode, keyword, body, err)
-
 }

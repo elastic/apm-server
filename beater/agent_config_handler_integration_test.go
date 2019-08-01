@@ -87,9 +87,12 @@ func TestAgentConfigHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestAgentConfigHandler_MonitoringMiddleware(t *testing.T) {
-	beatertest.ClearRegistry(serverMetrics, ACMResultIDToMonitoringInt)
-	requestToACMHandler(t, DefaultConfig(beatertest.MockBeatVersion()))
-	equal, result := beatertest.CompareMonitoringInt(map[request.ResultID]int{request.IDRequestCount: 1}, ACMResultIDToMonitoringInt)
+	h, err := agentConfigHandler(DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	require.NoError(t, err)
+	c, _ := beatertest.DefaultContextWithResponseRecorder()
+
+	expected := map[request.ResultID]int{request.IDRequestCount: 1}
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, serverMetrics, ACMResultIDToMonitoringInt)
 	assert.True(t, equal, result)
 }
 

@@ -46,7 +46,7 @@ func PanicHandler() Middleware {
 					var ok bool
 					var err error
 					if err, ok = r.(error); !ok {
-						err = errors.Wrap(err, request.KeywordResponseErrorsInternal)
+						err = errors.Wrap(err, request.MapResultIDToStatus[request.IDResponseErrorsInternal].Keyword)
 					}
 					c.Result.SetDefault(request.IDResponseErrorsInternal)
 					c.Result.Stacktrace = string(debug.Stack())

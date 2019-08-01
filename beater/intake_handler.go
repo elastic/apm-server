@@ -114,15 +114,13 @@ func IntakeHandler(dec decoder.ReqDecoder, processor *stream.Processor, rlc *rlC
 func sendResponse(c *request.Context, sr *stream.Result) {
 	code := http.StatusAccepted
 	id := request.IDResponseValidAccepted
-	keyword := request.KeywordResponseValidAccepted
 	err := errors.New(sr.Error())
 	var body interface{}
 
-	set := func(c int, i request.ResultID, k string) {
+	set := func(c int, i request.ResultID) {
 		if c > code {
-			code = c
+			code = request.MapResultIDToStatus[i].Code
 			id = i
-			keyword = k
 		}
 	}
 
@@ -130,21 +128,21 @@ L:
 	for _, err := range sr.Errors {
 		switch err.Type {
 		case stream.MethodForbiddenErrType:
-			set(http.StatusBadRequest, request.IDResponseErrorsMethodNotAllowed, request.KeywordResponseErrorsMethodNotAllowed)
+			set(http.StatusBadRequest, request.IDResponseErrorsMethodNotAllowed)
 		case stream.InputTooLargeErrType:
-			set(http.StatusBadRequest, request.IDResponseErrorsRequestTooLarge, request.KeywordResponseErrorsRequestTooLarge)
+			set(http.StatusBadRequest, request.IDResponseErrorsRequestTooLarge)
 		case stream.InvalidInputErrType:
-			set(http.StatusBadRequest, request.IDResponseErrorsValidate, request.KeywordResponseErrorsValidate)
+			set(http.StatusBadRequest, request.IDResponseErrorsValidate)
 		case stream.RateLimitErrType:
-			set(http.StatusTooManyRequests, request.IDResponseErrorsRateLimit, request.KeywordResponseErrorsRateLimit)
+			set(http.StatusTooManyRequests, request.IDResponseErrorsRateLimit)
 		case stream.QueueFullErrType:
-			set(http.StatusServiceUnavailable, request.IDResponseErrorsFullQueue, request.KeywordResponseErrorsFullQueue)
+			set(http.StatusServiceUnavailable, request.IDResponseErrorsFullQueue)
 			break L
 		case stream.ShuttingDownErrType:
-			set(http.StatusServiceUnavailable, request.IDResponseErrorsShuttingDown, request.KeywordResponseErrorsShuttingDown)
+			set(http.StatusServiceUnavailable, request.IDResponseErrorsShuttingDown)
 			break L
 		default:
-			set(http.StatusInternalServerError, request.IDResponseErrorsInternal, request.KeywordResponseErrorsInternal)
+			set(http.StatusInternalServerError, request.IDResponseErrorsInternal)
 		}
 	}
 
@@ -158,7 +156,7 @@ L:
 		body = sr
 	}
 
-	c.Result.Set(id, code, keyword, body, err)
+	c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, body, err)
 	c.Write()
 }
 
