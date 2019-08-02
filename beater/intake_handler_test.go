@@ -233,7 +233,7 @@ func TestWrongMethod(t *testing.T) {
 	ctx.Reset(w, req)
 	WithMiddleware(handler, MonitoringHandler(monitoringFn))(ctx)
 
-	assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, ct+1, methodNotAllowedCounter.Get())
 }
 

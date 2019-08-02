@@ -50,14 +50,16 @@ func TestNewAssetHandler(t *testing.T) {
 				return nil, errors.New("error decoding request body too large")
 			},
 			code: http.StatusRequestEntityTooLarge,
-			body: beatertest.ResultErrWrap(request.MapResultIDToStatus[request.IDResponseErrorsRequestTooLarge].Keyword),
+			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: error decoding request body too large",
+				request.MapResultIDToStatus[request.IDResponseErrorsRequestTooLarge].Keyword)),
 		},
 		"decode": {
 			dec: func(r *http.Request) (map[string]interface{}, error) {
 				return nil, errors.New("foo")
 			},
 			code: http.StatusBadRequest,
-			body: beatertest.ResultErrWrap(request.MapResultIDToStatus[request.IDResponseErrorsDecode].Keyword),
+			body: beatertest.ResultErrWrap(fmt.Sprintf("%s: foo",
+				request.MapResultIDToStatus[request.IDResponseErrorsDecode].Keyword)),
 		},
 		"validate": {
 			dec:  func(req *http.Request) (map[string]interface{}, error) { return nil, nil },

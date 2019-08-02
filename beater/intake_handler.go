@@ -119,7 +119,12 @@ func sendResponse(c *request.Context, sr *stream.Result) {
 
 	set := func(c int, i request.ResultID) {
 		if c > code {
-			code = request.MapResultIDToStatus[i].Code
+			if i == request.IDResponseErrorsMethodNotAllowed {
+				// TODO: remove exception and use StatusMethodNotAllowed (breaking bugfix)
+				code = http.StatusBadRequest
+			} else {
+				code = request.MapResultIDToStatus[i].Code
+			}
 			id = i
 		}
 	}
