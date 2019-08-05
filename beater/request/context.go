@@ -66,6 +66,7 @@ func (c *Context) Header() http.Header {
 	return c.w.Header()
 }
 
+// MultipleWriteAttempts returns a boolean set to true if Write() was called multiple times.
 func (c *Context) MultipleWriteAttempts() bool {
 	return c.writeAttempts > 1
 }
@@ -73,9 +74,9 @@ func (c *Context) MultipleWriteAttempts() bool {
 // Write sets response headers, and writes the body to the response writer.
 // In case body is nil only the headers will be set.
 // In case statusCode indicates an error response, the body is also set as error in the context.
+// Only first call with write to http response.
 func (c *Context) Write() {
 	if c.MultipleWriteAttempts() {
-		c.Logger.Warn("Multiple write attempts.")
 		return
 	}
 	c.writeAttempts++
