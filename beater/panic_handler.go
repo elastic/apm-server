@@ -42,17 +42,17 @@ func PanicHandler() Middleware {
 						recover()
 					}()
 
+					id := request.IDResponseErrorsInternal
+					status := request.MapResultIDToStatus[id]
+
 					// set the context's result and write response
 					var ok bool
 					var err error
 					if err, ok = r.(error); !ok {
-						err = errors.Wrap(err, request.MapResultIDToStatus[request.IDResponseErrorsInternal].Keyword)
+						err = errors.Wrap(err, status.Keyword)
 					}
-					c.Result.SetDefault(request.IDResponseErrorsInternal)
+					c.Result.Set(id, status.Code, status.Keyword, keywordPanic, err)
 					c.Result.Stacktrace = string(debug.Stack())
-					c.Result.Keyword = keywordPanic
-					c.Result.Body = keywordPanic
-					c.Result.Err = err
 
 					c.Write()
 				}

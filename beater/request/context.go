@@ -42,9 +42,10 @@ type Context struct {
 	Logger               *logp.Logger
 	TokenSet, Authorized bool
 
-	w http.ResponseWriter
-
 	Result Result
+
+	w             http.ResponseWriter
+	writeAttempts int
 }
 
 // Reset allows to reuse a context by removing all request specific information
@@ -54,9 +55,10 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.TokenSet = false
 	c.Authorized = false
 
-	c.w = w
-
 	c.Result.Reset()
+
+	c.w = w
+	c.writeAttempts = 0
 }
 
 // Header returns the http.Header of the context's writer
@@ -64,10 +66,20 @@ func (c *Context) Header() http.Header {
 	return c.w.Header()
 }
 
+func (c *Context) MultipleWriteAttempts() bool {
+	return c.writeAttempts > 1
+}
+
 // Write sets response headers, and writes the body to the response writer.
 // In case body is nil only the headers will be set.
 // In case statusCode indicates an error response, the body is also set as error in the context.
 func (c *Context) Write() {
+	if c.MultipleWriteAttempts() {
+		c.Logger.Warn("Multiple write attempts.")
+		return
+	}
+	c.writeAttempts++
+
 	c.w.Header().Set(headers.XContentTypeOptions, "nosniff")
 
 	body := c.Result.Body

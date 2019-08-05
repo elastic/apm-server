@@ -51,6 +51,10 @@ func LogHandler() Middleware {
 			c.Logger = reqLogger
 			h(c)
 
+			if c.MultipleWriteAttempts() {
+				reqLogger.Warn("multiple write attempts")
+			}
+
 			keysAndValues := []interface{}{"response_code", c.Result.StatusCode}
 			if c.Result.Failure() {
 				if c.Result.Err != nil {

@@ -71,6 +71,19 @@ func TestContext_Header(t *testing.T) {
 }
 
 func TestContext_Write(t *testing.T) {
+
+	t.Run("SecondWrite", func(t *testing.T) {
+		c, w := mockContextAccept("*/*")
+		c.Result = Result{Body: nil, StatusCode: http.StatusAccepted}
+		c.Write()
+		c.Result = Result{Body: nil, StatusCode: http.StatusBadRequest}
+		c.Write()
+
+		testHeaderXContentTypeOptions(t, c)
+		assert.Equal(t, http.StatusAccepted, w.Code)
+		assert.Empty(t, w.Body.String())
+	})
+
 	t.Run("EmptyBody", func(t *testing.T) {
 		c, w := mockContextAccept("*/*")
 		c.Result = Result{Body: nil, StatusCode: http.StatusAccepted}
