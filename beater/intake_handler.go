@@ -119,12 +119,7 @@ func sendResponse(c *request.Context, sr *stream.Result) {
 
 	set := func(c int, i request.ResultID) {
 		if c > code {
-			if i == request.IDResponseErrorsMethodNotAllowed {
-				// TODO: remove exception and use StatusMethodNotAllowed (breaking bugfix)
-				code = http.StatusBadRequest
-			} else {
-				code = request.MapResultIDToStatus[i].Code
-			}
+			code = c
 			id = i
 		}
 	}
@@ -133,21 +128,23 @@ L:
 	for _, err := range sr.Errors {
 		switch err.Type {
 		case stream.MethodForbiddenErrType:
+			// TODO: remove exception case and use StatusMethodNotAllowed (breaking bugfix)
 			set(http.StatusBadRequest, request.IDResponseErrorsMethodNotAllowed)
 		case stream.InputTooLargeErrType:
+			// TODO: remove exception case and use StatusRequestEntityTooLarge (breaking bugfix)
 			set(http.StatusBadRequest, request.IDResponseErrorsRequestTooLarge)
 		case stream.InvalidInputErrType:
-			set(http.StatusBadRequest, request.IDResponseErrorsValidate)
+			set(request.MapResultIDToStatus[request.IDResponseErrorsValidate].Code, request.IDResponseErrorsValidate)
 		case stream.RateLimitErrType:
-			set(http.StatusTooManyRequests, request.IDResponseErrorsRateLimit)
+			set(request.MapResultIDToStatus[request.IDResponseErrorsRateLimit].Code, request.IDResponseErrorsRateLimit)
 		case stream.QueueFullErrType:
-			set(http.StatusServiceUnavailable, request.IDResponseErrorsFullQueue)
+			set(request.MapResultIDToStatus[request.IDResponseErrorsFullQueue].Code, request.IDResponseErrorsFullQueue)
 			break L
 		case stream.ShuttingDownErrType:
-			set(http.StatusServiceUnavailable, request.IDResponseErrorsShuttingDown)
+			set(request.MapResultIDToStatus[request.IDResponseErrorsShuttingDown].Code, request.IDResponseErrorsShuttingDown)
 			break L
 		default:
-			set(http.StatusInternalServerError, request.IDResponseErrorsInternal)
+			set(request.MapResultIDToStatus[request.IDResponseErrorsInternal].Code, request.IDResponseErrorsInternal)
 		}
 	}
 

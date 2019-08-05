@@ -295,7 +295,7 @@ func TestLineExceeded(t *testing.T) {
 		ctx := &request.Context{}
 		ctx.Reset(w, req)
 		WithMiddleware(handler, MonitoringHandler(monitoringFn))(ctx)
-		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code, w.Body.String())
+		assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 		assert.Equal(t, ct+1, requestTooLargeCounter.Get())
 		tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
 	})
