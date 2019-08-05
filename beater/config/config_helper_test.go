@@ -26,11 +26,11 @@ import (
 	"github.com/elastic/go-ucfg"
 )
 
-type testUrlConfig struct {
+type testURLConfig struct {
 	Hosts urls `config:"hosts"`
 }
 
-var defaultTestUrlConfig = testUrlConfig{
+var defaultTestUrlConfig = testURLConfig{
 	Hosts: urls{&url.URL{Scheme: "http", Host: "elastic.co"}},
 }
 
@@ -39,7 +39,7 @@ func TestConfigURLs(t *testing.T) {
 	cases := []struct {
 		cfg map[string][]interface{}
 		want,
-		got *testUrlConfig
+		got *testURLConfig
 	}{
 		{
 			// use default
@@ -53,12 +53,12 @@ func TestConfigURLs(t *testing.T) {
 		{
 			// single host in list
 			cfg:  map[string][]interface{}{"hosts": {"http://one"}},
-			want: &testUrlConfig{Hosts: urls{&url.URL{Scheme: "http", Host: "one"}}},
+			want: &testURLConfig{Hosts: urls{&url.URL{Scheme: "http", Host: "one"}}},
 		},
 		{
 			// multiple hosts in list
 			cfg: map[string][]interface{}{"hosts": {"http://one", "http://two"}},
-			want: &testUrlConfig{Hosts: urls{
+			want: &testURLConfig{Hosts: urls{
 				&url.URL{Scheme: "http", Host: "one"},
 				&url.URL{Scheme: "http", Host: "two"},
 			}},
@@ -66,8 +66,8 @@ func TestConfigURLs(t *testing.T) {
 		{
 			// single host in list, multiple in default - ensure defaults are completely overwritten
 			cfg:  map[string][]interface{}{"hosts": {"http://one"}},
-			want: &testUrlConfig{Hosts: urls{&url.URL{Scheme: "http", Host: "one"}}},
-			got:  &testUrlConfig{Hosts: urls{&url.URL{Host: "elastic.co"}, &url.URL{Host: "go.elastic.co"}}},
+			want: &testURLConfig{Hosts: urls{&url.URL{Scheme: "http", Host: "one"}}},
+			got:  &testURLConfig{Hosts: urls{&url.URL{Host: "elastic.co"}, &url.URL{Host: "go.elastic.co"}}},
 		},
 	}
 

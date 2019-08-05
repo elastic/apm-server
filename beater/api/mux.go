@@ -93,7 +93,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 
 	}
 	if beaterConfig.Expvar.IsEnabled() {
-		path := beaterConfig.Expvar.Url
+		path := beaterConfig.Expvar.URL
 		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, expvar.Handler())
 	}

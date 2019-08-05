@@ -70,7 +70,7 @@ type Config struct {
 // ExpvarConfig holds config information about exposing expvar
 type ExpvarConfig struct {
 	Enabled *bool  `config:"enabled"`
-	Url     string `config:"url"`
+	URL     string `config:"url"`
 }
 
 // RumConfig holds config information related to the RUM endpoint
@@ -298,7 +298,7 @@ func DefaultConfig(beatVersion string) *Config {
 		AugmentEnabled:  true,
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
-			Url:     "/debug/vars",
+			URL:     "/debug/vars",
 		},
 		RumConfig: &RumConfig{
 			EventRate: &EventRate{

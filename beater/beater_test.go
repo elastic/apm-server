@@ -118,7 +118,7 @@ func TestBeatConfig(t *testing.T) {
 				AugmentEnabled: true,
 				Expvar: &config.ExpvarConfig{
 					Enabled: &truthy,
-					Url:     "/debug/vars",
+					URL:     "/debug/vars",
 				},
 				RumConfig: &config.RumConfig{
 					Enabled: &truthy,
@@ -193,7 +193,7 @@ func TestBeatConfig(t *testing.T) {
 				AugmentEnabled: true,
 				Expvar: &config.ExpvarConfig{
 					Enabled: &truthy,
-					Url:     "/debug/vars",
+					URL:     "/debug/vars",
 				},
 				RumConfig: &config.RumConfig{
 					Enabled: &truthy,
