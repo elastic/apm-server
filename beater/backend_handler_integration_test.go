@@ -18,37 +18,30 @@
 package beater
 
 import (
-	"net/http"
+	"testing"
 
-	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/stretchr/testify/assert"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
 )
 
-// MonitoringHandler returns a middleware that increases monitoring counters for collecting metrics
-// about request processing. It takes a function as input parameter that maps a request.ResultID to a counter.
-func MonitoringHandler(fn func(id request.ResultID) *monitoring.Int) Middleware {
-	return func(h request.Handler) request.Handler {
-		inc := func(counter *monitoring.Int) {
-			if counter == nil {
-				return
-			}
-			counter.Inc()
-		}
-		return func(c *request.Context) {
-			inc(fn(request.IDRequestCount))
+func TestBackendHandler_MonitoringMiddleware(t *testing.T) {
+	h, err := backendHandler(DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	require.NoError(t, err)
+	c, _ := beatertest.DefaultContextWithResponseRecorder()
 
-			h(c)
+	// send GET request resulting in 405 MethodNotAllowed error
+	expected := map[request.ResultID]int{
+		request.IDRequestCount:                   1,
+		request.IDResponseCount:                  1,
+		request.IDResponseErrorsCount:            1,
+		request.IDResponseErrorsMethodNotAllowed: 1}
 
-			inc(fn(request.IDResponseCount))
-			if c.Result.StatusCode >= http.StatusBadRequest {
-				inc(fn(request.IDResponseErrorsCount))
-			} else {
-				inc(fn(request.IDResponseValidCount))
-			}
-
-			inc(fn(c.Result.ID))
-		}
-
-	}
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, serverMetrics, IntakeResultIDToMonitoringInt)
+	assert.True(t, equal, result)
 }
+
+//TODO: add more integration tests for the actual middleware

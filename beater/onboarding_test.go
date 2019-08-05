@@ -31,7 +31,7 @@ import (
 )
 
 func TestNotifyUpServerDown(t *testing.T) {
-	config := defaultConfig("7.0.0")
+	config := DefaultConfig("7.0.0")
 	var saved beat.Event
 	var publisher = func(e beat.Event) { saved = e }
 

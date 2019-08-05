@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
@@ -27,28 +26,25 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func rootHandler(secretToken string) request.Handler {
+// RootHandler returns error if route does not exist,
+// otherwise returns information about the server. The detail level differs for authorized and non-authorized requests.
+//TODO: only allow GET, HEAD requests (breaking change)
+func RootHandler() request.Handler {
 	serverInfo := common.MapStr{
 		"build_date": version.BuildTime().Format(time.RFC3339),
 		"build_sha":  version.Commit(),
 		"version":    version.GetDefaultVersion(),
 	}
-	detailedOkResponse := request.Result{
-		StatusCode: http.StatusOK,
-		ID:         request.IDResponseValidOK,
-		Body:       serverInfo,
-	}
 
 	return func(c *request.Context) {
 		if c.Request.URL.Path != "/" {
-			c.SendNotFoundErr()
-			return
+			c.Result.SetDefault(request.IDResponseErrorsNotFound)
+		} else {
+			c.Result.SetDefault(request.IDResponseValidOK)
+			if c.Authorized {
+				c.Result.Body = serverInfo
+			}
 		}
-
-		if isAuthorized(c.Request, secretToken) {
-			request.SendStatus(c, detailedOkResponse)
-			return
-		}
-		request.SendStatus(c, request.OKResponse)
+		c.Write()
 	}
 }

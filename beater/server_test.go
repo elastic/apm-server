@@ -43,8 +43,6 @@ import (
 	"github.com/elastic/apm-server/tests/loader"
 )
 
-type m map[string]interface{}
-
 func TestServerOk(t *testing.T) {
 	apm, teardown, err := setupServer(t, nil, nil, nil)
 	require.NoError(t, err)
@@ -99,7 +97,7 @@ func TestServerRoot(t *testing.T) {
 		{path: "/", expectStatus: http.StatusOK, expectContentType: plain, assertions: checkResponse(false)},
 		{path: "/", accept: &jsonContent, expectStatus: http.StatusOK, expectContentType: jsonContent, assertions: checkResponse(true)},
 		{path: "/foo", expectStatus: http.StatusNotFound, expectContentType: plain},
-		{path: "/foo", accept: &jsonContent, expectStatus: http.StatusNotFound, expectContentType: plain},
+		{path: "/foo", accept: &jsonContent, expectStatus: http.StatusNotFound, expectContentType: jsonContent},
 	}
 	for _, testCase := range testCases {
 		res := rootRequest(testCase.path, testCase.accept)

@@ -32,12 +32,15 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
+const errDisabledMsg = "endpoint is disabled"
+
 var (
 	supportedHeaders = fmt.Sprintf("%s, %s, %s", headers.ContentType, headers.ContentEncoding, headers.Accept)
 	supportedMethods = fmt.Sprintf("%s, %s", http.MethodPost, http.MethodOptions)
 )
 
-func requestTimeHandler() middleware {
+// RequestTimeHandler returns a Middleware setting the current time in the request's context.
+func RequestTimeHandler() Middleware {
 	return func(h request.Handler) request.Handler {
 		return func(c *request.Context) {
 			c.Request = c.Request.WithContext(utility.ContextWithRequestTime(c.Request.Context(), time.Now()))
@@ -46,25 +49,45 @@ func requestTimeHandler() middleware {
 	}
 }
 
-func killSwitchHandler(on bool) middleware {
+// KillSwitchHandler returns a Middleware checking whether the path for the request is enabled
+func KillSwitchHandler(on bool) Middleware {
 	return func(h request.Handler) request.Handler {
 		return func(c *request.Context) {
 			if on {
 				h(c)
 			} else {
-				request.SendStatus(c, request.ForbiddenResponse(errors.New("endpoint is disabled")))
+				c.Result.SetWithError(request.IDResponseErrorsForbidden, errors.New(errDisabledMsg))
+				c.Write()
 			}
 		}
 	}
 }
 
-func authHandler(secretToken string) middleware {
+// RequireAuthorization returns a Middleware to only let authorized requests pass through
+func RequireAuthorization(token string) Middleware {
 	return func(h request.Handler) request.Handler {
 		return func(c *request.Context) {
-			if !isAuthorized(c.Request, secretToken) {
-				request.SendStatus(c, request.UnauthorizedResponse)
+			if !isAuthorized(c.Request, token) {
+				c.Result.SetDefault(request.IDResponseErrorsUnauthorized)
+				c.Write()
 				return
 			}
+
+			c.Authorized = true
+			c.TokenSet = tokenSet(token)
+
+			h(c)
+		}
+	}
+}
+
+// SetAuthorization returns a middleware setting authorization information in the context without terminating the
+// request if it is not authorized
+func SetAuthorization(token string) Middleware {
+	return func(h request.Handler) request.Handler {
+		return func(c *request.Context) {
+			c.Authorized = isAuthorized(c.Request, token)
+			c.TokenSet = tokenSet(token)
 			h(c)
 		}
 	}
@@ -73,9 +96,9 @@ func authHandler(secretToken string) middleware {
 // isAuthorized checks the Authorization header. It must be in the form of:
 //   Authorization: Bearer <secret-token>
 // Bearer must be part of it.
-func isAuthorized(req *http.Request, secretToken string) bool {
+func isAuthorized(req *http.Request, token string) bool {
 	// No token configured
-	if secretToken == "" {
+	if !tokenSet(token) {
 		return true
 	}
 	header := req.Header.Get(headers.Authorization)
@@ -83,21 +106,27 @@ func isAuthorized(req *http.Request, secretToken string) bool {
 	if len(parts) != 2 || parts[0] != headers.Bearer {
 		return false
 	}
-	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(secretToken)) == 1
+	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(token)) == 1
 }
 
-func corsHandler(allowedOrigins []string) middleware {
-	return func(h request.Handler) request.Handler {
+func tokenSet(token string) bool {
+	return token != ""
+}
 
-		var isAllowed = func(origin string) bool {
-			for _, allowed := range allowedOrigins {
-				if glob.Glob(allowed, origin) {
-					return true
-				}
+// CorsHandler returns a middleware serving preflight OPTION requests and terminating requests if they do not
+// match the required valid origin.
+func CorsHandler(allowedOrigins []string) Middleware {
+
+	var isAllowed = func(origin string) bool {
+		for _, allowed := range allowedOrigins {
+			if glob.Glob(allowed, origin) {
+				return true
 			}
-			return false
 		}
+		return false
+	}
 
+	return func(h request.Handler) request.Handler {
 		return func(c *request.Context) {
 
 			// origin header is always set by the browser
@@ -105,7 +134,6 @@ func corsHandler(allowedOrigins []string) middleware {
 			validOrigin := isAllowed(origin)
 
 			if c.Request.Method == http.MethodOptions {
-
 				// setting the ACAO header is the way to tell the browser to go ahead with the request
 				if validOrigin {
 					// do not set the configured origin(s), echo the received origin instead
@@ -123,7 +151,8 @@ func corsHandler(allowedOrigins []string) middleware {
 
 				c.Header().Set(headers.ContentLength, "0")
 
-				request.SendStatus(c, request.OKResponse)
+				c.Result.SetDefault(request.IDResponseValidOK)
+				c.Write()
 
 			} else if validOrigin {
 				// we need to check the origin and set the ACAO header in both the OPTIONS preflight and the actual request
@@ -131,7 +160,9 @@ func corsHandler(allowedOrigins []string) middleware {
 				h(c)
 
 			} else {
-				request.SendStatus(c, request.ForbiddenResponse(errors.New("origin: '"+origin+"' is not allowed")))
+				c.Result.SetWithError(request.IDResponseErrorsForbidden,
+					errors.New("origin: '"+origin+"' is not allowed"))
+				c.Write()
 			}
 		}
 	}

@@ -60,15 +60,16 @@ type route struct {
 	fn   func(*Config, publish.Reporter) (request.Handler, error)
 }
 
-func newMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, error) {
+// NewMuxer registers apm handlers to paths building up the APM Server API.
+func NewMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, error) {
 	pool := newContextPool()
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
 	routeMap := []route{
-		{rootPath, defaultHandler},
+		{rootPath, rootHandler},
 		{assetSourcemapPath, sourcemapHandler},
-		{acmPath, agentHandler},
+		{acmPath, agentConfigHandler},
 		{intakeRumPath, rumHandler},
 		{intakePath, backendHandler},
 	}
@@ -82,7 +83,7 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, er
 		mux.Handle(route.path, pool.handler(h))
 
 	}
-	if beaterConfig.Expvar.isEnabled() {
+	if beaterConfig.Expvar.IsEnabled() {
 		path := beaterConfig.Expvar.Url
 		logger.Infof("Path %s added to request handler", path)
 		mux.Handle(path, expvar.Handler())
@@ -90,17 +91,17 @@ func newMuxer(beaterConfig *Config, report publish.Reporter) (*http.ServeMux, er
 	return mux, nil
 }
 
-func apmHandler(fn func(request.ResultID) *monitoring.Int) []middleware {
-	return []middleware{
-		logHandler(),
-		monitoringHandler(fn),
-		panicHandler(),
+func apmHandler(fn func(request.ResultID) *monitoring.Int) []Middleware {
+	return []Middleware{
+		LogHandler(),
+		PanicHandler(),
+		MonitoringHandler(fn),
 	}
 }
 
 func backendHandler(cfg *Config, reporter publish.Reporter) (request.Handler, error) {
 	dec := systemMetadataDecoder(cfg, emptyDecoder)
-	h := newIntakeHandler(dec,
+	h := IntakeHandler(dec,
 		&stream.Processor{
 			Tconfig:      transform.Config{},
 			Mconfig:      model.Config{Experimental: cfg.Mode == ModeExperimental},
@@ -109,11 +110,11 @@ func backendHandler(cfg *Config, reporter publish.Reporter) (request.Handler, er
 		nil,
 		reporter)
 
-	return withMiddleware(
+	return WithMiddleware(
 		h,
-		append(apmHandler(intakeResultIDToMonitoringInt),
-			requestTimeHandler(),
-			authHandler(cfg.SecretToken))...), nil
+		append(apmHandler(IntakeResultIDToMonitoringInt),
+			RequestTimeHandler(),
+			RequireAuthorization(cfg.SecretToken))...), nil
 }
 
 func rumHandler(cfg *Config, reporter publish.Reporter) (request.Handler, error) {
@@ -128,7 +129,7 @@ func rumHandler(cfg *Config, reporter publish.Reporter) (request.Handler, error)
 	if err != nil {
 		return nil, err
 	}
-	h := newIntakeHandler(dec,
+	h := IntakeHandler(dec,
 		&stream.Processor{
 			Tconfig:      *tcfg,
 			Mconfig:      model.Config{Experimental: cfg.Mode == ModeExperimental},
@@ -137,12 +138,12 @@ func rumHandler(cfg *Config, reporter publish.Reporter) (request.Handler, error)
 		cache,
 		reporter)
 
-	return withMiddleware(
+	return WithMiddleware(
 		h,
-		append(apmHandler(intakeResultIDToMonitoringInt),
-			killSwitchHandler(cfg.RumConfig.isEnabled()),
-			requestTimeHandler(),
-			corsHandler(cfg.RumConfig.AllowOrigins))...), nil
+		append(apmHandler(IntakeResultIDToMonitoringInt),
+			KillSwitchHandler(cfg.RumConfig.IsEnabled()),
+			RequestTimeHandler(),
+			CorsHandler(cfg.RumConfig.AllowOrigins))...), nil
 }
 
 //TODO: have dedicated monitoring function (breaking change)
@@ -152,33 +153,34 @@ func sourcemapHandler(cfg *Config, reporter publish.Reporter) (request.Handler, 
 		return nil, err
 	}
 	dec := systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData)
-	h := newAssetHandler(dec, sourcemap.Processor, *tcfg, reporter)
 
-	return withMiddleware(
-		h,
-		append(apmHandler(intakeResultIDToMonitoringInt),
-			killSwitchHandler(cfg.RumConfig.isEnabled() && cfg.RumConfig.SourceMapping.isEnabled()),
-			authHandler(cfg.SecretToken))...), nil
+	return WithMiddleware(
+		AssetHandler(dec, sourcemap.Processor, *tcfg, reporter),
+		append(apmHandler(IntakeResultIDToMonitoringInt),
+			KillSwitchHandler(cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()),
+			RequireAuthorization(cfg.SecretToken))...), nil
 }
 
-func agentHandler(cfg *Config, _ publish.Reporter) (request.Handler, error) {
+func agentConfigHandler(cfg *Config, _ publish.Reporter) (request.Handler, error) {
 	var kbClient kibana.Client
 	if cfg.Kibana.Enabled() {
 		kbClient = kibana.NewConnectingClient(cfg.Kibana)
 	}
 
-	return withMiddleware(
-		agentConfigHandler(kbClient, cfg.AgentConfig, cfg.SecretToken),
-		append(apmHandler(acmResultIDToMonitoringInt),
-			killSwitchHandler(kbClient != nil),
-			authHandler(cfg.SecretToken))...), nil
+	return WithMiddleware(
+		AgentConfigHandler(kbClient, cfg.AgentConfig),
+		append(apmHandler(ACMResultIDToMonitoringInt),
+			KillSwitchHandler(kbClient != nil),
+			RequireAuthorization(cfg.SecretToken))...), nil
 }
 
 //TODO: have dedicated monitoring function (breaking change)
-func defaultHandler(cfg *Config, _ publish.Reporter) (request.Handler, error) {
-	return withMiddleware(
-		rootHandler(cfg.SecretToken),
-		apmHandler(intakeResultIDToMonitoringInt)...), nil
+func rootHandler(cfg *Config, _ publish.Reporter) (request.Handler, error) {
+	return WithMiddleware(
+		RootHandler(),
+		append(apmHandler(IntakeResultIDToMonitoringInt),
+			SetAuthorization(cfg.SecretToken))...), nil
+
 }
 
 func systemMetadataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.ReqDecoder {
@@ -190,7 +192,7 @@ func userMetaDataDecoder(beaterConfig *Config, d decoder.ReqDecoder) decoder.Req
 }
 
 func rumTransformConfig(beaterConfig *Config) (*transform.Config, error) {
-	smapper, err := beaterConfig.RumConfig.memoizedSmapMapper()
+	smapper, err := beaterConfig.RumConfig.MemoizedSmapMapper()
 	if err != nil {
 		return nil, err
 	}
