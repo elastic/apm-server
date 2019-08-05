@@ -92,9 +92,9 @@ func TestConfig(t *testing.T) {
 					CAs:         []string{"./ca.cert.pem"},
 					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
 					ClientAuth:  4}, //4=RequireAndVerifyClientCert
-				RumConfig: &rumConfig{
+				RumConfig: &RumConfig{
 					Enabled: &truthy,
-					EventRate: &eventRate{
+					EventRate: &EventRate{
 						Limit:   8000,
 						LruSize: 2000,
 					},
@@ -106,9 +106,9 @@ func TestConfig(t *testing.T) {
 					LibraryPattern:      "pattern-rum",
 					ExcludeFromGrouping: "group_pattern-rum",
 				},
-				Register: &registerConfig{
-					Ingest: &ingestConfig{
-						Pipeline: &pipelineConfig{
+				Register: &RegisterConfig{
+					Ingest: &IngestConfig{
+						Pipeline: &PipelineConfig{
 							Enabled:   &truthy,
 							Overwrite: &truthy,
 							Path:      "tmp",
@@ -137,7 +137,7 @@ func TestConfig(t *testing.T) {
 				WriteTimeout:    2000000000,
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
-				RumConfig: &rumConfig{
+				RumConfig: &RumConfig{
 					Enabled:      nil,
 					EventRate:    nil,
 					AllowOrigins: nil,
@@ -145,7 +145,7 @@ func TestConfig(t *testing.T) {
 						IndexPattern: "",
 					},
 				},
-				Register: &registerConfig{
+				Register: &RegisterConfig{
 					Ingest: nil,
 				},
 			},
@@ -199,16 +199,16 @@ func TestIsRumEnabled(t *testing.T) {
 		c       *Config
 		enabled bool
 	}{
-		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}}, enabled: false},
-		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, enabled: true},
+		{c: &Config{RumConfig: &RumConfig{Enabled: new(bool)}}, enabled: false},
+		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, enabled: true},
 	} {
-		assert.Equal(t, td.enabled, td.c.RumConfig.isEnabled())
+		assert.Equal(t, td.enabled, td.c.RumConfig.IsEnabled())
 
 	}
 }
 
 func TestDefaultRum(t *testing.T) {
-	c := defaultConfig("7.0.0")
+	c := DefaultConfig("7.0.0")
 	assert.Equal(t, c.RumConfig, defaultRum("7.0.0"))
 }
 
@@ -229,12 +229,12 @@ func TestMemoizedSmapMapper(t *testing.T) {
 		smapper bool
 		e       error
 	}{
-		{c: &Config{RumConfig: &rumConfig{}}, smapper: false, e: nil},
-		{c: &Config{RumConfig: &rumConfig{Enabled: new(bool)}}, smapper: false, e: nil},
-		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy}}, smapper: false, e: nil},
-		{c: &Config{RumConfig: &rumConfig{SourceMapping: &smapping}}, smapper: false, e: nil},
+		{c: &Config{RumConfig: &RumConfig{}}, smapper: false, e: nil},
+		{c: &Config{RumConfig: &RumConfig{Enabled: new(bool)}}, smapper: false, e: nil},
+		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, smapper: false, e: nil},
+		{c: &Config{RumConfig: &RumConfig{SourceMapping: &smapping}}, smapper: false, e: nil},
 		{c: &Config{
-			RumConfig: &rumConfig{
+			RumConfig: &RumConfig{
 				Enabled: &truthy,
 				SourceMapping: &SourceMapping{
 					Cache:        &Cache{Expiration: 1 * time.Minute},
@@ -243,11 +243,11 @@ func TestMemoizedSmapMapper(t *testing.T) {
 			}},
 			smapper: false,
 			e:       nil},
-		{c: &Config{RumConfig: &rumConfig{Enabled: &truthy, SourceMapping: &smapping}},
+		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy, SourceMapping: &smapping}},
 			smapper: true,
 			e:       nil},
 	} {
-		smapper, e := td.c.RumConfig.memoizedSmapMapper()
+		smapper, e := td.c.RumConfig.MemoizedSmapMapper()
 		if td.smapper {
 			assert.NotNil(t, smapper, fmt.Sprintf("Test number <%v> failed", idx))
 		} else {
@@ -260,22 +260,22 @@ func TestMemoizedSmapMapper(t *testing.T) {
 func TestPipeline(t *testing.T) {
 	truthy, falsy := true, false
 	cases := []struct {
-		c                  *pipelineConfig
+		c                  *PipelineConfig
 		enabled, overwrite bool
 	}{
 		{c: nil, enabled: false, overwrite: false},
-		{c: &pipelineConfig{}, enabled: true, overwrite: false}, //default values
-		{c: &pipelineConfig{Enabled: &falsy, Overwrite: &truthy},
+		{c: &PipelineConfig{}, enabled: true, overwrite: false}, //default values
+		{c: &PipelineConfig{Enabled: &falsy, Overwrite: &truthy},
 			enabled: false, overwrite: true},
-		{c: &pipelineConfig{Enabled: &truthy, Overwrite: &falsy},
+		{c: &PipelineConfig{Enabled: &truthy, Overwrite: &falsy},
 			enabled: true, overwrite: false},
 	}
 
 	for idx, test := range cases {
-		assert.Equal(t, test.enabled, test.c.isEnabled(),
-			fmt.Sprintf("<%v> isEnabled() expected %v", idx, test.enabled))
-		assert.Equal(t, test.overwrite, test.c.shouldOverwrite(),
-			fmt.Sprintf("<%v> shouldOverwrite() expected %v", idx, test.overwrite))
+		assert.Equal(t, test.enabled, test.c.IsEnabled(),
+			fmt.Sprintf("<%v> IsEnabled() expected %v", idx, test.enabled))
+		assert.Equal(t, test.overwrite, test.c.ShouldOverwrite(),
+			fmt.Sprintf("<%v> ShouldOverwrite() expected %v", idx, test.overwrite))
 	}
 }
 
@@ -314,7 +314,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := newConfig("9.9.9", ucfgCfg)
+				cfg, err := NewConfig("9.9.9", ucfgCfg)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
 			})
@@ -340,7 +340,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := newConfig("9.9.9", ucfgCfg)
+				cfg, err := NewConfig("9.9.9", ucfgCfg)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.VerificationMode, cfg.TLS.VerificationMode)
 			})
@@ -372,21 +372,21 @@ func TestTLSSettings(t *testing.T) {
 
 func TestAgentConfig(t *testing.T) {
 	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		cfg, err := newConfig("9.9.9",
+		cfg, err := NewConfig("9.9.9",
 			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}))
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("InvalidUnit", func(t *testing.T) {
-		cfg, err := newConfig("9.9.9",
+		cfg, err := NewConfig("9.9.9",
 			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}))
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		cfg, err := newConfig("9.9.9",
+		cfg, err := NewConfig("9.9.9",
 			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}))
 		require.NoError(t, err)
 		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)

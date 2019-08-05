@@ -26,6 +26,8 @@ import (
 
 	"golang.org/x/time/rate"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/headers"
@@ -47,75 +49,117 @@ var (
 	resultIDToCounter = map[request.ResultID]*monitoring.Int{}
 )
 
-func intakeResultIDToMonitoringInt(name request.ResultID) *monitoring.Int {
+// IntakeResultIDToMonitoringInt takes a request.ResultID and maps it to a monitoring counter. If the ID is UnsetID,
+// nil is returned.
+func IntakeResultIDToMonitoringInt(name request.ResultID) *monitoring.Int {
 	if i, ok := resultIDToCounter[name]; ok {
+		return i
+	}
+
+	//TODO: remove this to also count unset IDs as indicator that some ID has not been set
+	if name == request.IDUnset {
+		return nil
+	}
+
+	if i, ok := monitoring.Get(string(name)).(*monitoring.Int); ok {
+		mu.Lock()
+		defer mu.Unlock()
+		resultIDToCounter[name] = i
 		return i
 	}
 
 	mu.Lock()
 	defer mu.Unlock()
-	if i, ok := monitoring.Get(string(name)).(*monitoring.Int); ok {
-		resultIDToCounter[name] = i
-		return i
-	}
 	ct := counter(name)
 	resultIDToCounter[name] = ct
 	return ct
 }
 
-func statusCode(sr *stream.Result) (int, request.ResultID) {
-	var code int
-	var id request.ResultID
-	highestCode := http.StatusAccepted
-	monitoringID := request.IDResponseValidAccepted
-	for _, err := range sr.Errors {
-		switch err.Type {
-		case stream.MethodForbiddenErrType:
-			code = http.StatusBadRequest
-			id = request.IDResponseErrorsMethodNotAllowed
-		case stream.InputTooLargeErrType:
-			code = http.StatusBadRequest
-			id = request.IDResponseErrorsRequestTooLarge
-		case stream.InvalidInputErrType:
-			code = http.StatusBadRequest
-			id = request.IDResponseErrorsValidate
-		case stream.QueueFullErrType:
-			code = http.StatusServiceUnavailable
-			id = request.IDResponseErrorsFullQueue
-		case stream.ShuttingDownErrType:
-			code = http.StatusServiceUnavailable
-			id = request.IDResponseErrorsShuttingDown
-		case stream.RateLimitErrType:
-			code = http.StatusTooManyRequests
-			id = request.IDResponseErrorsRateLimit
-		default:
-			code = http.StatusInternalServerError
-			id = request.IDResponseErrorsInternal
+// IntakeHandler returns a request.Handler for managing intake requests for backend and rum events.
+func IntakeHandler(dec decoder.ReqDecoder, processor *stream.Processor, rlc *rlCache, report publish.Reporter) request.Handler {
+	return func(c *request.Context) {
+
+		serr := validateRequest(c.Request)
+		if serr != nil {
+			sendError(c, serr)
+			return
 		}
-		if code > highestCode {
-			highestCode = code
-			monitoringID = id
+
+		rl, serr := rateLimit(c.Request, rlc)
+		if serr != nil {
+			sendError(c, serr)
+			return
 		}
+
+		reader, serr := bodyReader(c.Request)
+		if serr != nil {
+			sendError(c, serr)
+			return
+		}
+
+		// extract metadata information from the request, like user-agent or remote address
+		reqMeta, err := dec(c.Request)
+		if err != nil {
+			sr := stream.Result{}
+			sr.Add(err)
+			sendResponse(c, &sr)
+			return
+		}
+		res := processor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
+
+		sendResponse(c, res)
 	}
-	return highestCode, monitoringID
 }
 
 func sendResponse(c *request.Context, sr *stream.Result) {
-	statusCode, id := statusCode(sr)
-	c.MonitoringID = id
-	if statusCode == http.StatusAccepted {
-		if _, ok := c.Request.URL.Query()["verbose"]; ok {
-			c.Send(sr, statusCode)
-		} else {
-			c.WriteHeader(statusCode)
+	code := http.StatusAccepted
+	id := request.IDResponseValidAccepted
+	err := errors.New(sr.Error())
+	var body interface{}
+
+	set := func(c int, i request.ResultID) {
+		if c > code {
+			code = c
+			id = i
 		}
-	} else {
+	}
+
+L:
+	for _, err := range sr.Errors {
+		switch err.Type {
+		case stream.MethodForbiddenErrType:
+			// TODO: remove exception case and use StatusMethodNotAllowed (breaking bugfix)
+			set(http.StatusBadRequest, request.IDResponseErrorsMethodNotAllowed)
+		case stream.InputTooLargeErrType:
+			// TODO: remove exception case and use StatusRequestEntityTooLarge (breaking bugfix)
+			set(http.StatusBadRequest, request.IDResponseErrorsRequestTooLarge)
+		case stream.InvalidInputErrType:
+			set(request.MapResultIDToStatus[request.IDResponseErrorsValidate].Code, request.IDResponseErrorsValidate)
+		case stream.RateLimitErrType:
+			set(request.MapResultIDToStatus[request.IDResponseErrorsRateLimit].Code, request.IDResponseErrorsRateLimit)
+		case stream.QueueFullErrType:
+			set(request.MapResultIDToStatus[request.IDResponseErrorsFullQueue].Code, request.IDResponseErrorsFullQueue)
+			break L
+		case stream.ShuttingDownErrType:
+			set(request.MapResultIDToStatus[request.IDResponseErrorsShuttingDown].Code, request.IDResponseErrorsShuttingDown)
+			break L
+		default:
+			set(request.MapResultIDToStatus[request.IDResponseErrorsInternal].Code, request.IDResponseErrorsInternal)
+		}
+	}
+
+	if code >= http.StatusBadRequest {
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
 		// https://golang.org/src/net/http/server.go#L1254
 		c.Header().Add(headers.Connection, "Close")
-		c.SendError(sr, sr.Error(), statusCode)
+		body = sr
+	} else if _, ok := c.Request.URL.Query()["verbose"]; ok {
+		body = sr
 	}
+
+	c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, body, err)
+	c.Write()
 }
 
 func sendError(c *request.Context, err *stream.Error) {
@@ -163,38 +207,4 @@ func bodyReader(r *http.Request) (io.ReadCloser, *stream.Error) {
 		}
 	}
 	return reader, nil
-}
-
-func newIntakeHandler(dec decoder.ReqDecoder, processor *stream.Processor, rlc *rlCache, report publish.Reporter) request.Handler {
-	return func(c *request.Context) {
-		serr := validateRequest(c.Request)
-		if serr != nil {
-			sendError(c, serr)
-			return
-		}
-
-		rl, serr := rateLimit(c.Request, rlc)
-		if serr != nil {
-			sendError(c, serr)
-			return
-		}
-
-		reader, serr := bodyReader(c.Request)
-		if serr != nil {
-			sendError(c, serr)
-			return
-		}
-
-		// extract metadata information from the request, like user-agent or remote address
-		reqMeta, err := dec(c.Request)
-		if err != nil {
-			sr := stream.Result{}
-			sr.Add(err)
-			sendResponse(c, &sr)
-			return
-		}
-		res := processor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
-
-		sendResponse(c, res)
-	}
 }

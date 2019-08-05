@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,6 +31,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/publish"
@@ -40,7 +40,7 @@ import (
 )
 
 func TestInvalidContentType(t *testing.T) {
-	h, err := backendHandler(defaultConfig("7.0.0"), nil)
+	h, err := backendHandler(DefaultConfig("7.0.0"), nil)
 	require.NoError(t, err)
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", intakePath, nil)
@@ -59,7 +59,7 @@ func TestEmptyRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	handler, err := backendHandler(defaultConfig("7.0.0"), nil)
+	handler, err := backendHandler(DefaultConfig("7.0.0"), nil)
 	require.NoError(t, err)
 	ctx := &request.Context{}
 	ctx.Reset(w, req)
@@ -69,13 +69,13 @@ func TestEmptyRequest(t *testing.T) {
 }
 
 func TestRequestIntegration(t *testing.T) {
-	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
-	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
-	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
-	responseAccepted := intakeResultIDToMonitoringInt(request.IDResponseValidAccepted)
-	validateCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsValidate)
-	serverShuttingDownCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsShuttingDown)
-	fullQueueCounter := intakeResultIDToMonitoringInt(request.IDResponseErrorsFullQueue)
+	requestCounter := IntakeResultIDToMonitoringInt(request.IDRequestCount)
+	responseSuccesses := IntakeResultIDToMonitoringInt(request.IDResponseValidCount)
+	responseErrors := IntakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
+	responseAccepted := IntakeResultIDToMonitoringInt(request.IDResponseValidAccepted)
+	validateCounter := IntakeResultIDToMonitoringInt(request.IDResponseErrorsValidate)
+	serverShuttingDownCounter := IntakeResultIDToMonitoringInt(request.IDResponseErrorsShuttingDown)
+	fullQueueCounter := IntakeResultIDToMonitoringInt(request.IDResponseErrorsFullQueue)
 
 	endpoints := []struct {
 		name, url string
@@ -103,7 +103,7 @@ func TestRequestIntegration(t *testing.T) {
 
 		for _, endpoint := range endpoints {
 			testname := name + endpoint.name
-			cfg := defaultConfig("7.0.0")
+			cfg := DefaultConfig("7.0.0")
 			rum := true
 			cfg.RumConfig.Enabled = &rum
 
@@ -132,11 +132,6 @@ func TestRequestIntegration(t *testing.T) {
 
 			t.Run(testname+"Header", func(t *testing.T) {
 				assert.Equal(t, "application/json", w.Header().Get(headers.ContentType))
-				contentLength := w.Header().Get(headers.ContentLength)
-				require.NotEmpty(t, contentLength)
-				cl, err := strconv.Atoi(contentLength)
-				require.NoError(t, err)
-				assert.True(t, cl > 0)
 			})
 
 			t.Run(testname+"Body", func(t *testing.T) {
@@ -178,7 +173,7 @@ func TestRequestIntegrationRUM(t *testing.T) {
 
 			ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "event_rate": m{"limit": 9}}})
 			require.NoError(t, err)
-			c, err := newConfig("7.0.0", ucfg)
+			c, err := NewConfig("7.0.0", ucfg)
 			require.NoError(t, err)
 			w, err := sendReq(c, rumHandler, intakeRumPath, test.path, nil)
 			require.NoError(t, err)
@@ -230,13 +225,13 @@ func TestWrongMethod(t *testing.T) {
 	req := httptest.NewRequest("GET", "/intake/v2/events", nil)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	w := httptest.NewRecorder()
-	handler, err := backendHandler(defaultConfig("7.0.0"), nil)
+	handler, err := backendHandler(DefaultConfig("7.0.0"), nil)
 	require.NoError(t, err)
 
 	ct := methodNotAllowedCounter.Get()
 	ctx := &request.Context{}
 	ctx.Reset(w, req)
-	withMiddleware(handler, monitoringHandler(monitoringFn))(ctx)
+	WithMiddleware(handler, MonitoringHandler(monitoringFn))(ctx)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, ct+1, methodNotAllowedCounter.Get())
@@ -261,12 +256,11 @@ func TestLineExceeded(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	w := httptest.NewRecorder()
 
-	nilReport := func(ctx context.Context, p publish.PendingReq) error { return nil }
-	c := defaultConfig("7.0.0")
+	c := DefaultConfig("7.0.0")
 
 	t.Run("OK", func(t *testing.T) {
 		assert.False(t, lineLimitExceededInTestData(c.MaxEventSize))
-		handler, err := backendHandler(defaultConfig("7.0.0"), nilReport)
+		handler, err := backendHandler(DefaultConfig("7.0.0"), beatertest.NilReporter)
 		require.NoError(t, err)
 		ctx := &request.Context{}
 		ctx.Reset(w, req)
@@ -286,10 +280,10 @@ func TestLineExceeded(t *testing.T) {
 			return nil
 		}
 
-		c := defaultConfig("7.0.0")
+		c := DefaultConfig("7.0.0")
 		c.MaxEventSize = 20
 		assert.True(t, lineLimitExceededInTestData(c.MaxEventSize))
-		handler, err := backendHandler(c, nilReport)
+		handler, err := backendHandler(c, beatertest.NilReporter)
 		require.NoError(t, err)
 
 		req = httptest.NewRequest("POST", "/intake/v2/events", bytes.NewBuffer(b))
@@ -300,73 +294,9 @@ func TestLineExceeded(t *testing.T) {
 		ct := requestTooLargeCounter.Get()
 		ctx := &request.Context{}
 		ctx.Reset(w, req)
-		withMiddleware(handler, monitoringHandler(monitoringFn))(ctx)
+		WithMiddleware(handler, MonitoringHandler(monitoringFn))(ctx)
 		assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 		assert.Equal(t, ct+1, requestTooLargeCounter.Get())
 		tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
-	})
-}
-
-func TestMonitoringHandler_IntakeBackend(t *testing.T) {
-	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
-	responseCounter := intakeResultIDToMonitoringInt(request.IDResponseCount)
-	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
-	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
-
-	t.Run("Error", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/intake/v2/events/")
-		withMiddleware(mockHandler403, monitoringHandler(intakeResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseErrors: 1,
-			intakeResultIDToMonitoringInt(request.IDResponseErrorsForbidden): 1})
-	})
-	t.Run("Accepted", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/intake/v2/events/")
-		withMiddleware(mockHandler202, monitoringHandler(intakeResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseSuccesses: 1,
-			intakeResultIDToMonitoringInt(request.IDResponseValidAccepted): 1})
-	})
-	t.Run("Idle", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/intake/v2/events")
-
-		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseSuccesses: 1})
-	})
-}
-
-func TestMonitoringHandler_IntakeRUM(t *testing.T) {
-	requestCounter := intakeResultIDToMonitoringInt(request.IDRequestCount)
-	responseCounter := intakeResultIDToMonitoringInt(request.IDResponseCount)
-	responseErrors := intakeResultIDToMonitoringInt(request.IDResponseErrorsCount)
-	responseSuccesses := intakeResultIDToMonitoringInt(request.IDResponseValidCount)
-
-	t.Run("Error", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/intake/v2/rum/events/")
-		withMiddleware(mockHandler403, monitoringHandler(intakeResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseErrors: 1,
-			intakeResultIDToMonitoringInt(request.IDResponseErrorsForbidden): 1})
-	})
-	t.Run("Accepted", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/intake/v2/rum/events/")
-		withMiddleware(mockHandler202, monitoringHandler(intakeResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseSuccesses: 1,
-			intakeResultIDToMonitoringInt(request.IDResponseValidAccepted): 1})
-	})
-	t.Run("Idle", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/intake/v2/rum/events")
-
-		withMiddleware(mockHandlerIdle, monitoringHandler(intakeResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1,
-			responseCounter: 1, responseSuccesses: 1})
 	})
 }

@@ -52,7 +52,7 @@ func TestBeatConfig(t *testing.T) {
 	}{
 		"default config": {
 			conf:       map[string]interface{}{},
-			beaterConf: defaultConfig("6.2.0"),
+			beaterConf: DefaultConfig("6.2.0"),
 		},
 		"overwrite default config": {
 			conf: map[string]interface{}{
@@ -120,9 +120,9 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
-				RumConfig: &rumConfig{
+				RumConfig: &RumConfig{
 					Enabled: &truthy,
-					EventRate: &eventRate{
+					EventRate: &EventRate{
 						Limit:   7200,
 						LruSize: 2000,
 					},
@@ -135,9 +135,9 @@ func TestBeatConfig(t *testing.T) {
 					ExcludeFromGrouping: "^grouping",
 					beatVersion:         "6.2.0",
 				},
-				Register: &registerConfig{
-					Ingest: &ingestConfig{
-						Pipeline: &pipelineConfig{
+				Register: &RegisterConfig{
+					Ingest: &IngestConfig{
+						Pipeline: &PipelineConfig{
 							Enabled:   &truthy,
 							Overwrite: &falsy,
 							Path:      filepath.Join("tmp", "definition.json"),
@@ -145,8 +145,8 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
-				AgentConfig: &agentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
-				pipeline:    defaultAPMPipeline,
+				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
+				Pipeline:    defaultAPMPipeline,
 			},
 		},
 		"merge config with default": {
@@ -195,9 +195,9 @@ func TestBeatConfig(t *testing.T) {
 					Enabled: &truthy,
 					Url:     "/debug/vars",
 				},
-				RumConfig: &rumConfig{
+				RumConfig: &RumConfig{
 					Enabled: &truthy,
-					EventRate: &eventRate{
+					EventRate: &EventRate{
 						Limit:   300,
 						LruSize: 1000,
 					},
@@ -212,17 +212,17 @@ func TestBeatConfig(t *testing.T) {
 					ExcludeFromGrouping: "^/webpack",
 					beatVersion:         "6.2.0",
 				},
-				Register: &registerConfig{
-					Ingest: &ingestConfig{
-						Pipeline: &pipelineConfig{
+				Register: &RegisterConfig{
+					Ingest: &IngestConfig{
+						Pipeline: &PipelineConfig{
 							Enabled: &falsy,
 							Path:    filepath.Join("ingest", "pipeline", "definition.json"),
 						},
 					},
 				},
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				AgentConfig: &agentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-				pipeline:    defaultAPMPipeline,
+				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+				Pipeline:    defaultAPMPipeline,
 			},
 		},
 	}

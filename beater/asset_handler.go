@@ -30,31 +30,36 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-func newAssetHandler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Config, report publish.Reporter) request.Handler {
+// AssetHandler returns a request.Handler for managing asset requests.
+func AssetHandler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Config, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
 		if c.Request.Method != "POST" {
-			request.SendStatus(c, request.MethodNotAllowedResponse)
+			c.Result.SetDefault(request.IDResponseErrorsMethodNotAllowed)
+			c.Write()
 			return
 		}
 
 		data, err := dec(c.Request)
 		if err != nil {
-			if strings.Contains(err.Error(), "request body too large") {
-				request.SendStatus(c, request.RequestTooLargeResponse)
-				return
+			if strings.Contains(err.Error(), request.MapResultIDToStatus[request.IDResponseErrorsRequestTooLarge].Keyword) {
+				c.Result.SetWithError(request.IDResponseErrorsRequestTooLarge, err)
+			} else {
+				c.Result.SetWithError(request.IDResponseErrorsDecode, err)
 			}
-			request.SendStatus(c, request.CannotDecodeResponse(err))
+			c.Write()
 			return
 		}
 
 		if err = processor.Validate(data); err != nil {
-			request.SendStatus(c, request.CannotValidateResponse(err))
+			c.Result.SetWithError(request.IDResponseErrorsValidate, err)
+			c.Write()
 			return
 		}
 
 		metadata, transformables, err := processor.Decode(data)
 		if err != nil {
-			request.SendStatus(c, request.CannotDecodeResponse(err))
+			c.Result.SetWithError(request.IDResponseErrorsDecode, err)
+			c.Write()
 			return
 		}
 
@@ -63,22 +68,21 @@ func newAssetHandler(dec decoder.ReqDecoder, processor asset.Processor, cfg tran
 			Config:      cfg,
 			Metadata:    *metadata,
 		}
-
 		req := publish.PendingReq{Transformables: transformables, Tcontext: tctx}
-		ctx := c.Request.Context()
-		span, ctx := apm.StartSpan(ctx, "Send", "Reporter")
+		span, ctx := apm.StartSpan(c.Request.Context(), "Send", "Reporter")
 		defer span.End()
 		req.Trace = !span.Dropped()
 
 		if err = report(ctx, req); err != nil {
 			if err == publish.ErrChannelClosed {
-				request.SendStatus(c, request.ServerShuttingDownResponse(err))
-				return
+				c.Result.SetWithError(request.IDResponseErrorsShuttingDown, err)
+			} else {
+				c.Result.SetWithError(request.IDResponseErrorsFullQueue, err)
 			}
-			request.SendStatus(c, request.FullQueueResponse(err))
-			return
+			c.Write()
 		}
 
-		request.SendStatus(c, request.AcceptedResponse)
+		c.Result.SetDefault(request.IDResponseValidAccepted)
+		c.Write()
 	}
 }

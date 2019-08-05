@@ -42,6 +42,7 @@ const (
 	errMsgInvalidACMCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 )
 
+// Config holds configuration information nested under the key `apm-server`
 type Config struct {
 	Host                string                  `config:"host"`
 	MaxHeaderSize       int                     `config:"max_header_size"`
@@ -56,23 +57,25 @@ type Config struct {
 	Expvar              *ExpvarConfig           `config:"expvar"`
 	AugmentEnabled      bool                    `config:"capture_personal_data"`
 	SelfInstrumentation *InstrumentationConfig  `config:"instrumentation"`
-	RumConfig           *rumConfig              `config:"rum"`
-	Register            *registerConfig         `config:"register"`
+	RumConfig           *RumConfig              `config:"rum"`
+	Register            *RegisterConfig         `config:"register"`
 	Mode                Mode                    `config:"mode"`
 	Kibana              *common.Config          `config:"kibana"`
-	AgentConfig         *agentConfig            `config:"agent.config"`
+	AgentConfig         *AgentConfig            `config:"agent.config"`
 
-	pipeline string
+	Pipeline string
 }
 
+// ExpvarConfig holds config information about exposing expvar
 type ExpvarConfig struct {
 	Enabled *bool  `config:"enabled"`
 	Url     string `config:"url"`
 }
 
-type rumConfig struct {
+// RumConfig holds config information related to the RUM endpoint
+type RumConfig struct {
 	Enabled             *bool          `config:"enabled"`
-	EventRate           *eventRate     `config:"event_rate"`
+	EventRate           *EventRate     `config:"event_rate"`
 	AllowOrigins        []string       `config:"allow_origins"`
 	LibraryPattern      string         `config:"library_pattern"`
 	ExcludeFromGrouping string         `config:"exclude_from_grouping"`
@@ -81,29 +84,35 @@ type rumConfig struct {
 	beatVersion string
 }
 
-type eventRate struct {
+// EventRate holds config information about event rate limiting
+type EventRate struct {
 	Limit   int `config:"limit"`
 	LruSize int `config:"lru_size"`
 }
 
-type registerConfig struct {
-	Ingest *ingestConfig `config:"ingest"`
+// RegisterConfig holds ingest config information
+type RegisterConfig struct {
+	Ingest *IngestConfig `config:"ingest"`
 }
 
-type ingestConfig struct {
-	Pipeline *pipelineConfig `config:"pipeline"`
+// IngestConfig holds config pipeline ingest information
+type IngestConfig struct {
+	Pipeline *PipelineConfig `config:"pipeline"`
 }
 
-type pipelineConfig struct {
+// PipelineConfig holds config information about registering ingest pipelines
+type PipelineConfig struct {
 	Enabled   *bool `config:"enabled"`
 	Overwrite *bool `config:"overwrite"`
 	Path      string
 }
 
-type agentConfig struct {
+// AgentConfig holds ACM config information
+type AgentConfig struct {
 	Cache *Cache `config:"cache"`
 }
 
+// SourceMapping holds sourecemap config information
 type SourceMapping struct {
 	Cache        *Cache `config:"cache"`
 	Enabled      *bool  `config:"enabled"`
@@ -113,10 +122,12 @@ type SourceMapping struct {
 	mapper   sourcemap.Mapper
 }
 
+// Cache holds config information about cache expiration
 type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
+// InstrumentationConfig holds config information about self instrumenting the APM Server
 type InstrumentationConfig struct {
 	Enabled     *bool   `config:"enabled"`
 	Environment *string `config:"environment"`
@@ -124,14 +135,19 @@ type InstrumentationConfig struct {
 	SecretToken string  `config:"secret_token"`
 }
 
-//Environment enumerates the APM Server env
+//Mode enumerates the APM Server env
 type Mode uint8
 
 const (
+	// ModeProduction is the default mode
 	ModeProduction Mode = iota
+
+	// ModeExperimental should only be used in development environments. It allows to circumvent some restrictions
+	// on the Intake API for faster development.
 	ModeExperimental
 )
 
+// Unpack parses the given string into a Mode value
 func (m *Mode) Unpack(s string) error {
 	if strings.ToLower(s) == "experimental" {
 		*m = ModeExperimental
@@ -141,8 +157,9 @@ func (m *Mode) Unpack(s string) error {
 	return nil
 }
 
-func newConfig(version string, ucfg *common.Config) (*Config, error) {
-	c := defaultConfig(version)
+// NewConfig creates a Config struct based on the default config and the given input params
+func NewConfig(version string, ucfg *common.Config) (*Config, error) {
+	c := DefaultConfig(version)
 
 	if ucfg.HasField("ssl") {
 		ssl, err := ucfg.Child("ssl", -1)
@@ -163,7 +180,7 @@ func newConfig(version string, ucfg *common.Config) (*Config, error) {
 	if float64(int(c.AgentConfig.Cache.Expiration.Seconds())) != c.AgentConfig.Cache.Expiration.Seconds() {
 		return nil, errors.New(errMsgInvalidACMCfg)
 	}
-	if c.RumConfig.isEnabled() {
+	if c.RumConfig.IsEnabled() {
 		if _, err := regexp.Compile(c.RumConfig.LibraryPattern); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `library_pattern`: %v", err.Error()))
 		}
@@ -175,38 +192,46 @@ func newConfig(version string, ucfg *common.Config) (*Config, error) {
 	return c, nil
 }
 
-func (c *Config) setSmapElasticsearch(esConfig *common.Config) {
-	if c != nil && c.RumConfig.isEnabled() && c.RumConfig.SourceMapping != nil {
+// SetSmapElasticsearch sets the Elasticsearch configuration for uploading sourcemaps
+func (c *Config) SetSmapElasticsearch(esConfig *common.Config) {
+	if c != nil && c.RumConfig.IsEnabled() && c.RumConfig.SourceMapping != nil {
 		c.RumConfig.SourceMapping.EsConfig = esConfig
 	}
 }
 
-func (c *ExpvarConfig) isEnabled() bool {
+// IsEnabled indicates whether expvar is enabled or not
+func (c *ExpvarConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
-func (c *rumConfig) isEnabled() bool {
+// IsEnabled indicates whether RUM endpoint is enabled or not
+func (c *RumConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled != nil && *c.Enabled)
 }
 
-func (s *SourceMapping) isEnabled() bool {
+// IsEnabled indicates whether sourcemap handling is enabled or not
+func (s *SourceMapping) IsEnabled() bool {
 	return s == nil || s.Enabled == nil || *s.Enabled
 }
 
-func (s *SourceMapping) isSetup() bool {
+// IsSetup indicates whether there is an Elasticsearch configured for sourcemap handling
+func (s *SourceMapping) IsSetup() bool {
 	return s != nil && (s.EsConfig != nil)
 }
 
-func (c *pipelineConfig) isEnabled() bool {
+// IsEnabled indicates whether pipeline registration is enabled or not
+func (c *PipelineConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
-func (c *pipelineConfig) shouldOverwrite() bool {
+// ShouldOverwrite indicates whether existing pipelines should be overwritten during registration process
+func (c *PipelineConfig) ShouldOverwrite() bool {
 	return c != nil && (c.Overwrite != nil && *c.Overwrite)
 }
 
-func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
-	if !c.isEnabled() || !c.SourceMapping.isEnabled() || !c.SourceMapping.isSetup() {
+// MemoizedSmapMapper creates the sourcemap mapper once and then caches it
+func (c *RumConfig) MemoizedSmapMapper() (sourcemap.Mapper, error) {
+	if !c.IsEnabled() || !c.SourceMapping.IsEnabled() || !c.SourceMapping.IsSetup() {
 		return nil, nil
 	}
 	if c.SourceMapping.mapper != nil {
@@ -226,7 +251,8 @@ func (c *rumConfig) memoizedSmapMapper() (sourcemap.Mapper, error) {
 	return c.SourceMapping.mapper, nil
 }
 
-func (c *InstrumentationConfig) isEnabled() bool {
+// IsEnabled indicates whether self instrumentation is enabled
+func (c *InstrumentationConfig) IsEnabled() bool {
 	// self instrumentation is disabled by default.
 	return c != nil && c.Enabled != nil && *c.Enabled
 }
@@ -236,9 +262,9 @@ func replaceVersion(pattern, version string) string {
 	return re.ReplaceAllLiteralString(pattern, version)
 }
 
-func defaultRum(beatVersion string) *rumConfig {
-	return &rumConfig{
-		EventRate: &eventRate{
+func defaultRum(beatVersion string) *RumConfig {
+	return &RumConfig{
+		EventRate: &EventRate{
 			Limit:   300,
 			LruSize: 1000,
 		},
@@ -255,7 +281,8 @@ func defaultRum(beatVersion string) *rumConfig {
 	}
 }
 
-func defaultConfig(beatVersion string) *Config {
+// DefaultConfig returns a config with default settings for `apm-server` config options.
+func DefaultConfig(beatVersion string) *Config {
 	pipeline := true
 	return &Config{
 		Host:            net.JoinHostPort("localhost", DefaultPort),
@@ -272,8 +299,8 @@ func defaultConfig(beatVersion string) *Config {
 			Enabled: new(bool),
 			Url:     "/debug/vars",
 		},
-		RumConfig: &rumConfig{
-			EventRate: &eventRate{
+		RumConfig: &RumConfig{
+			EventRate: &EventRate{
 				Limit:   300,
 				LruSize: 1000,
 			},
@@ -288,9 +315,9 @@ func defaultConfig(beatVersion string) *Config {
 			ExcludeFromGrouping: "^/webpack",
 			beatVersion:         beatVersion,
 		},
-		Register: &registerConfig{
-			Ingest: &ingestConfig{
-				Pipeline: &pipelineConfig{
+		Register: &RegisterConfig{
+			Ingest: &IngestConfig{
+				Pipeline: &PipelineConfig{
 					Enabled: &pipeline,
 					Path: paths.Resolve(paths.Home,
 						filepath.Join("ingest", "pipeline", "definition.json")),
@@ -298,7 +325,7 @@ func defaultConfig(beatVersion string) *Config {
 		},
 		Mode:        ModeProduction,
 		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		AgentConfig: &agentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-		pipeline:    defaultAPMPipeline,
+		AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+		Pipeline:    defaultAPMPipeline,
 	}
 }

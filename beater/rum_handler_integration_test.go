@@ -18,29 +18,30 @@
 package beater
 
 import (
-	"fmt"
-	"net/http"
-	"runtime/debug"
+	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
 )
 
-func panicHandler() middleware {
-	return func(h request.Handler) request.Handler {
-		return func(c *request.Context) {
+func TestRumHandler_MonitoringMiddleware(t *testing.T) {
+	h, err := rumHandler(DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	require.NoError(t, err)
+	c, _ := beatertest.DefaultContextWithResponseRecorder()
 
-			defer func() {
-				if r := recover(); r != nil {
-					var ok bool
-					var err error
-					if err, ok = r.(error); !ok {
-						err = fmt.Errorf("internal server error %+v", r)
-					}
-					c.Stacktrace = string(debug.Stack())
-					c.SendError(nil, fmt.Sprintf("panic handling request: %s", err.Error()), http.StatusInternalServerError)
-				}
-			}()
-			h(c)
-		}
-	}
+	// send GET request resulting in 403 Forbidden error as RUM is disabled by default
+	expected := map[request.ResultID]int{
+		request.IDRequestCount:            1,
+		request.IDResponseCount:           1,
+		request.IDResponseErrorsCount:     1,
+		request.IDResponseErrorsForbidden: 1}
+
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, serverMetrics, IntakeResultIDToMonitoringInt)
+	assert.True(t, equal, result)
 }
+
+//TODO: add more integration tests for the actual middleware

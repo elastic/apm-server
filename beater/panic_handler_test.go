@@ -18,44 +18,76 @@
 package beater
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/pkg/errors"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/request"
 )
 
 func TestPanicHandler(t *testing.T) {
 
-	setupContext := func() *request.Context {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := &request.Context{}
-		c.Reset(w, r)
-		return c
-	}
-
 	t.Run("NoPanic", func(t *testing.T) {
-		h := func(c *request.Context) { c.WriteHeader(http.StatusAccepted) }
-		c := setupContext()
-		withMiddleware(h, panicHandler())(c)
+		c, w := beatertest.DefaultContextWithResponseRecorder()
+		PanicHandler()(beatertest.Handler403)(c)
 
-		require.Equal(t, http.StatusAccepted, c.StatusCode)
-		assert.Empty(t, c.Err)
-		assert.Empty(t, c.Stacktrace)
+		// response assertions
+		assert.Equal(t, http.StatusForbidden, w.Code)
+		assert.Equal(t, "", w.Body.String())
+		// result assertions e.g. for logging
+		assert.Nil(t, c.Result.Err)
+		assert.Empty(t, c.Result.Stacktrace)
 	})
 
 	t.Run("HandlePanic", func(t *testing.T) {
-		h := func(c *request.Context) { panic("panic xyz") }
-		c := setupContext()
-		withMiddleware(h, panicHandler())(c)
-		require.Equal(t, http.StatusInternalServerError, c.StatusCode)
-		assert.Contains(t, c.Err, "panic xyz")
-		assert.NotNil(t, c.Stacktrace)
+		h := func(c *request.Context) { panic(errors.New("panic xyz")) }
+		c, w := beatertest.DefaultContextWithResponseRecorder()
+		PanicHandler()(h)(c)
+
+		// response assertions
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, beatertest.ResultErrWrap(keywordPanic), w.Body.String())
+
+		// result assertions e.g. for logging
+		assert.NotNil(t, c.Result.Err)
+		assert.NotEmpty(t, c.Result.Stacktrace)
+		assert.Equal(t, keywordPanic, c.Result.Body)
 	})
 
+	t.Run("SecondPanic", func(t *testing.T) {
+		w := &writerPanic{}
+		c := &request.Context{}
+		c.Reset(w, httptest.NewRequest(http.MethodGet, "/", nil))
+		PanicHandler()(beatertest.Handler202)(c)
+
+		// response assertions: cannot even write to writer, as it panics
+		assert.Equal(t, 0, w.StatusCode)
+		assert.Empty(t, "", w.Body.String())
+
+		// result assertions e.g. for logging
+		assert.NotNil(t, c.Result.Err)
+		assert.NotEmpty(t, c.Result.Stacktrace)
+		assert.Equal(t, keywordPanic, c.Result.Body)
+	})
+}
+
+type writerPanic struct {
+	StatusCode int
+	Body       bytes.Buffer
+}
+
+func (w *writerPanic) Header() http.Header {
+	panic(errors.New("panic returning header"))
+}
+func (w *writerPanic) Write(b []byte) (int, error) {
+	panic(errors.New("panic writing"))
+}
+func (w *writerPanic) WriteHeader(statusCode int) {
+	panic(errors.New("panic writing header"))
 }

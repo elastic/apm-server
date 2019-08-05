@@ -15,40 +15,27 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package beatertest
 
 import (
 	"net/http"
 
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	"github.com/elastic/apm-server/beater/request"
 )
 
-// MonitoringHandler returns a middleware that increases monitoring counters for collecting metrics
-// about request processing. It takes a function as input parameter that maps a request.ResultID to a counter.
-func MonitoringHandler(fn func(id request.ResultID) *monitoring.Int) Middleware {
-	return func(h request.Handler) request.Handler {
-		inc := func(counter *monitoring.Int) {
-			if counter == nil {
-				return
-			}
-			counter.Inc()
-		}
-		return func(c *request.Context) {
-			inc(fn(request.IDRequestCount))
-
-			h(c)
-
-			inc(fn(request.IDResponseCount))
-			if c.Result.StatusCode >= http.StatusBadRequest {
-				inc(fn(request.IDResponseErrorsCount))
-			} else {
-				inc(fn(request.IDResponseValidCount))
-			}
-
-			inc(fn(c.Result.ID))
-		}
-
-	}
+// Handler403 sets a 403 ID and status code to the context's response and calls Write()
+func Handler403(c *request.Context) {
+	c.Result.ID = request.IDResponseErrorsForbidden
+	c.Result.StatusCode = http.StatusForbidden
+	c.Write()
 }
+
+// Handler202 sets a 202 ID and status code to the context's response and calls Write()
+func Handler202(c *request.Context) {
+	c.Result.ID = request.IDResponseValidAccepted
+	c.Result.StatusCode = http.StatusAccepted
+	c.Write()
+}
+
+// HandlerIdle doesn't do anything but implement the request.Handler type
+func HandlerIdle(c *request.Context) {}

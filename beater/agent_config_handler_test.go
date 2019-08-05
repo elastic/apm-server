@@ -29,11 +29,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
@@ -41,11 +41,12 @@ import (
 	"github.com/elastic/apm-server/tests"
 )
 
+type m map[string]interface{}
+
 var (
 	mockVersion = *common.MustNewVersion("7.3.0")
 	mockEtag    = "1c9588f5a4da71cdef992981a9c9735c"
 	emptyEtag   = fmt.Sprintf("%x", md5.New().Sum([]byte{}))
-	errWrap     = func(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
 	successBody = `{"sampling_rate":"0.5"}` + "\n"
 	emptyBody   = `{}` + "\n"
 
@@ -112,8 +113,8 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errWrap(agentcfg.ErrMsgSendToKibanaFailed),
-			respBodyToken:          errWrap(fmt.Sprintf("%s: testerror", agentcfg.ErrMsgSendToKibanaFailed)),
+			respBody:               beatertest.ResultErrWrap(agentcfg.ErrMsgSendToKibanaFailed),
+			respBodyToken:          beatertest.ResultErrWrap(fmt.Sprintf("%s: testerror", agentcfg.ErrMsgSendToKibanaFailed)),
 		},
 
 		"MultipleConfigs": {
@@ -122,8 +123,8 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errWrap(agentcfg.ErrMsgMultipleChoices),
-			respBodyToken:          errWrap(fmt.Sprintf("%s: {\\\"s1\\\":1}", agentcfg.ErrMsgMultipleChoices)),
+			respBody:               beatertest.ResultErrWrap(agentcfg.ErrMsgMultipleChoices),
+			respBodyToken:          beatertest.ResultErrWrap(fmt.Sprintf("%s: {\\\"s1\\\":1}", agentcfg.ErrMsgMultipleChoices)),
 		},
 
 		"NoConnection": {
@@ -131,26 +132,27 @@ var (
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errWrap(errMsgNoKibanaConnection),
-			respBodyToken:          errWrap(errMsgNoKibanaConnection),
+			respBody:               beatertest.ResultErrWrap(msgNoKibanaConnection),
+			respBodyToken:          beatertest.ResultErrWrap(msgNoKibanaConnection),
 		},
 
 		"InvalidVersion": {
-			kbClient:               tests.MockKibana(http.StatusServiceUnavailable, m{}, *common.MustNewVersion("7.2.0"), true),
+			kbClient: tests.MockKibana(http.StatusServiceUnavailable, m{},
+				*common.MustNewVersion("7.2.0"), true),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errWrap(errMsgKibanaVersionNotCompatible),
-			respBodyToken: errWrap("min required Kibana version 7.3.0," +
-				" configured Kibana version {version:7.2.0 Major:7 Minor:2 Bugfix:0 Meta:}"),
+			respBody:               beatertest.ResultErrWrap(msgKibanaVersionNotCompatible),
+			respBodyToken: beatertest.ResultErrWrap(fmt.Sprintf("%s: min version 7.3.0, configured version 7.2.0",
+				msgKibanaVersionNotCompatible)),
 		},
 
 		"NoService": {
 			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusBadRequest,
-			respBody:               errWrap(errMsgInvalidQuery),
-			respBodyToken:          errWrap(`service.name is required`),
+			respBody:               beatertest.ResultErrWrap(msgInvalidQuery),
+			respBodyToken:          beatertest.ResultErrWrap(`service.name is required`),
 			respCacheControlHeader: "max-age=300, must-revalidate",
 		},
 
@@ -159,27 +161,27 @@ var (
 			method:                 http.MethodPut,
 			respStatus:             http.StatusMethodNotAllowed,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               errWrap(errMsgMethodUnsupported),
-			respBodyToken:          errWrap(fmt.Sprintf("%s: PUT", errMsgMethodUnsupported)),
+			respBody:               beatertest.ResultErrWrap(msgMethodUnsupported),
+			respBodyToken:          beatertest.ResultErrWrap(fmt.Sprintf("%s: PUT", msgMethodUnsupported)),
 		},
 	}
 )
 
 func TestAgentConfigHandler(t *testing.T) {
-	var cfg = agentConfig{Cache: &Cache{Expiration: 4 * time.Second}}
+	var cfg = AgentConfig{Cache: &Cache{Expiration: 4 * time.Second}}
 
 	for name, tc := range testcases {
 
-		runTest := func(t *testing.T, body, token string) {
-			h := agentConfigHandler(tc.kbClient, &cfg, token)
+		runTest := func(t *testing.T, body string, tokenSet bool) {
+			h := AgentConfigHandler(tc.kbClient, &cfg)
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
 			for k, v := range tc.requestHeader {
 				r.Header.Set(k, v)
 			}
-			r.Header.Set("Authorization", "Bearer "+token)
 			ctx := &request.Context{}
 			ctx.Reset(w, r)
+			ctx.TokenSet = tokenSet
 			h(ctx)
 
 			require.Equal(t, tc.respStatus, w.Code)
@@ -195,28 +197,27 @@ func TestAgentConfigHandler(t *testing.T) {
 		}
 
 		t.Run(name+"NoSecretToken", func(t *testing.T) {
-			runTest(t, tc.respBody, "")
+			runTest(t, tc.respBody, false)
 		})
 
 		t.Run(name+"WithSecretToken", func(t *testing.T) {
-			runTest(t, tc.respBodyToken, "1234")
+			runTest(t, tc.respBodyToken, true)
 		})
 	}
 }
-
-func TestAgentConfigDisabled(t *testing.T) {
-	cfg := agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(nil, &cfg, "")
+func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
+	cfg := AgentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
+	h := AgentConfigHandler(nil, &cfg)
 
 	w := httptest.NewRecorder()
 	ctx := &request.Context{}
 	ctx.Reset(w, httptest.NewRequest(http.MethodGet, "/config", nil))
-	withMiddleware(h, killSwitchHandler(false))(ctx)
+	h(ctx)
 
-	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
 }
 
-func TestAgentConfigHandlerPostOk(t *testing.T) {
+func TestAgentConfigHandler_PostOk(t *testing.T) {
 
 	kb := tests.MockKibana(http.StatusOK, m{
 		"_id": "1",
@@ -227,8 +228,8 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 		},
 	}, mockVersion, true)
 
-	var cfg = agentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
-	h := agentConfigHandler(kb, &cfg, "")
+	var cfg = AgentConfig{Cache: &Cache{Expiration: time.Nanosecond}}
+	h := AgentConfigHandler(kb, &cfg)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/config", convert.ToReader(m{
@@ -240,27 +241,14 @@ func TestAgentConfigHandlerPostOk(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 }
 
-func TestMonitoringHandlerACM(t *testing.T) {
-	requestCounter := acmResultIDToMonitoringInt(request.IDRequestCount)
-
-	t.Run("Error", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/config/v1/agents?service.name=xyz")
-		withMiddleware(mockHandler403, monitoringHandler(acmResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
-	})
-	t.Run("Accepted", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/config/v1/agents")
-		withMiddleware(mockHandler202, monitoringHandler(acmResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
-	})
-	t.Run("Idle", func(t *testing.T) {
-		testResetCounter()
-		c := setupContext("/config/v1/agents/")
-		withMiddleware(mockHandlerIdle, monitoringHandler(acmResultIDToMonitoringInt))(c)
-		testCounter(t, map[*monitoring.Int]int64{requestCounter: 1})
-	})
+func TestACMResultIdToMonitoringInt(t *testing.T) {
+	for _, id := range beatertest.AllRequestResultIDs() {
+		if id == request.IDRequestCount {
+			assert.NotNil(t, ACMResultIDToMonitoringInt(id))
+		} else {
+			assert.Nil(t, ACMResultIDToMonitoringInt(id))
+		}
+	}
 }
 
 func target(params map[string]string) string {
