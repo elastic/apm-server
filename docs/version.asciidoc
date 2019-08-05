@@ -14,7 +14,7 @@
 :java-branch: 1.x
 :rum-branch: 4.x
 :node-branch: 2.x
-:py-branch: 4.x
+:py-branch: 5.x
 :ruby-branch: 2.x
 :dotnet-branch: current
 
