@@ -30,7 +30,7 @@ type testURLConfig struct {
 	Hosts urls `config:"hosts"`
 }
 
-var defaultTestUrlConfig = testURLConfig{
+var defaultTestURLConfig = testURLConfig{
 	Hosts: urls{&url.URL{Scheme: "http", Host: "elastic.co"}},
 }
 
@@ -44,7 +44,7 @@ func TestConfigURLs(t *testing.T) {
 		{
 			// use default
 			cfg:  map[string][]interface{}{"hosts": nil},
-			want: &defaultTestUrlConfig,
+			want: &defaultTestURLConfig,
 		},
 		{
 			// invalid URL
@@ -72,7 +72,7 @@ func TestConfigURLs(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		got := defaultTestUrlConfig
+		got := defaultTestURLConfig
 		if c.got != nil {
 			got = *c.got
 		}
@@ -87,14 +87,14 @@ func TestConfigURLs(t *testing.T) {
 
 	{
 		// string instead of list of host strings
-		got := defaultTestUrlConfig
+		got := defaultTestURLConfig
 		err := ucfg.MustNewFrom(map[string]interface{}{"hosts": "http://single"}).Unpack(&got)
 		require.Error(t, err)
 	}
 
 	{
 		// non-string instead of list of host strings
-		got := defaultTestUrlConfig
+		got := defaultTestURLConfig
 		err := ucfg.MustNewFrom(map[string]int{"hosts": 5}).Unpack(&got)
 		require.Error(t, err)
 	}
