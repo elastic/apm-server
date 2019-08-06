@@ -45,12 +45,12 @@ func TestDecodeSpan(t *testing.T) {
 	name, spType := "foo", "db"
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
-	instance, statement, dbType, user := "db01", "select *", "sql", "joe"
+	instance, statement, dbType, user, link := "db01", "select *", "sql", "joe", "other.db.com"
 	context := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag.key": 17},
 		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
-		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user},
+		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user, "link": link},
 	}
 	subtype := "postgresql"
 	action, action2 := "query", "query.custom"
@@ -210,7 +210,7 @@ func TestDecodeSpan(t *testing.T) {
 				ParentId:      parentId,
 				TransactionId: &transactionId,
 				Http:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
+				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user, Link: &link},
 			},
 		},
 	} {
@@ -230,8 +230,8 @@ func TestDecodeSpan(t *testing.T) {
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
-	serviceName := "myService"
-	service := metadata.Service{Name: &serviceName}
+	serviceName, env := "myService", "staging"
+	service := metadata.Service{Name: &serviceName, Environment: &env}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "myspansubtype"
 	action := "myspanquery"
@@ -250,7 +250,7 @@ func TestSpanTransform(t *testing.T) {
 			Event: Event{Timestamp: timestamp},
 			Output: common.MapStr{
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": "myService"},
+				"service":   common.MapStr{"name": serviceName, "environment": env},
 				"span": common.MapStr{
 					"duration": common.MapStr{"us": 0},
 					"name":     "",
@@ -307,7 +307,7 @@ func TestSpanTransform(t *testing.T) {
 				},
 				"labels":    common.MapStr{"label.a": 12},
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": "myService"},
+				"service":   common.MapStr{"name": serviceName, "environment": env},
 				"timestamp": common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
 				"trace":     common.MapStr{"id": traceId},
 				"parent":    common.MapStr{"id": parentId},

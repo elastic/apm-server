@@ -1195,6 +1195,17 @@ type: boolean
 
 --
 
+
+*`span.db.link`*::
++
+--
+Database link.
+
+
+type: keyword
+
+--
+
 [[exported-fields-apm-transaction]]
 == APM Transaction fields
 

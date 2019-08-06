@@ -90,9 +90,10 @@ func (s *Service) MinimalFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
-	f := common.MapStr{}
-	utility.Set(f, "name", s.Name)
-	return f
+	svc := common.MapStr{}
+	utility.Set(svc, "name", s.Name)
+	utility.Set(svc, "environment", s.Environment)
+	return svc
 }
 
 func (s *Service) Fields() common.MapStr {
@@ -101,7 +102,6 @@ func (s *Service) Fields() common.MapStr {
 	}
 	svc := s.MinimalFields()
 	utility.Set(svc, "version", s.Version)
-	utility.Set(svc, "environment", s.Environment)
 
 	lang := common.MapStr{}
 	utility.Set(lang, "name", s.Language.Name)

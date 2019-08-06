@@ -14,6 +14,7 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "staging",
                 "name": "backendspans"
             },
             "span": {
@@ -50,6 +51,7 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "prod",
                 "name": "backendspans"
             },
             "span": {
@@ -93,6 +95,7 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "staging",
                 "name": "backendspans"
             },
             "span": {
@@ -131,6 +134,7 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "staging",
                 "name": "backendspans"
             },
             "span": {
@@ -169,12 +173,14 @@
                 "name": "transaction"
             },
             "service": {
+                "environment": "staging",
                 "name": "service1"
             },
             "span": {
                 "action": "query",
                 "db": {
                     "instance": "customers",
+                    "link": "other.db.com",
                     "statement": "SELECT * FROM product_types WHERE user_id=?",
                     "type": "sql",
                     "user": {
