@@ -48,7 +48,7 @@ func TestWithMiddleware(t *testing.T) {
 		}
 	}
 	c, _ := beatertest.DefaultContextWithResponseRecorder()
-	WithMiddleware(h, m1, m2)(c)
+	Wrap(h, m1, m2)(c)
 	require.NotNil(t, c.Result.Keyword)
 	assert.Equal(t, "[m1.1][m2.1][h][m2.2][m1.2]", c.Result.Keyword)
 }

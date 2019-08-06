@@ -18,7 +18,7 @@
 package intake
 
 import (
-	"sync"
+	"fmt"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
@@ -28,38 +28,32 @@ import (
 var (
 	// MonitoringRegistry monitoring registry for Intake API events
 	MonitoringRegistry = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
-
-	counter = func(s request.ResultID) *monitoring.Int {
-		return monitoring.NewInt(MonitoringRegistry, string(s))
-	}
-
-	resultIDToCounter = map[request.ResultID]*monitoring.Int{}
-	// sync mutex for resultIDToCounter
-	mu sync.Mutex
+	resultIDToCounter  = fillResultIDToCounter()
 )
 
 // ResultIDToMonitoringInt takes a request.ResultID and maps it to a monitoring counter. If the ID is UnsetID,
 // nil is returned.
 func ResultIDToMonitoringInt(name request.ResultID) *monitoring.Int {
+	m := resultIDToCounter
+	fmt.Println(len(m))
 	if i, ok := resultIDToCounter[name]; ok {
 		return i
 	}
+	return nil
+}
 
-	//TODO: remove this to also count unset IDs as indicator that some ID has not been set
-	if name == request.IDUnset {
-		return nil
+func fillResultIDToCounter() map[request.ResultID]*monitoring.Int {
+	counter := func(s request.ResultID) *monitoring.Int {
+		return monitoring.NewInt(MonitoringRegistry, string(s))
 	}
 
-	if i, ok := monitoring.Get(string(name)).(*monitoring.Int); ok {
-		mu.Lock()
-		defer mu.Unlock()
-		resultIDToCounter[name] = i
-		return i
+	m := map[request.ResultID]*monitoring.Int{}
+	for id := range request.MapResultIDToStatus {
+		if id == request.IDUnset {
+			//TODO: remove this to also count unset IDs as indicator that some ID has not been set
+			continue
+		}
+		m[id] = counter(id)
 	}
-
-	mu.Lock()
-	defer mu.Unlock()
-	ct := counter(name)
-	resultIDToCounter[name] = ct
-	return ct
+	return m
 }

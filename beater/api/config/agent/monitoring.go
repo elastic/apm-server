@@ -34,10 +34,8 @@ var (
 	//}
 
 	// reflects current behavior
-	countRequest = intake.ResultIDToMonitoringInt(request.IDRequestCount)
-
 	mapping = map[request.ResultID]*monitoring.Int{
-		request.IDRequestCount: countRequest,
+		request.IDRequestCount: intake.ResultIDToMonitoringInt(request.IDRequestCount),
 	}
 )
 

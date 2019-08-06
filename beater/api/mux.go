@@ -117,7 +117,7 @@ func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Hand
 		},
 		nil,
 		reporter)
-	return middleware.WithMiddleware(h, backendMiddleware(cfg)...), nil
+	return middleware.Wrap(h, backendMiddleware(cfg)...), nil
 }
 
 func backendMiddleware(cfg *config.Config) []middleware.Middleware {
@@ -143,7 +143,7 @@ func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler,
 		},
 		cache,
 		reporter)
-	return middleware.WithMiddleware(h, rumMiddleware(cfg)...), nil
+	return middleware.Wrap(h, rumMiddleware(cfg)...), nil
 }
 
 func rumMiddleware(cfg *config.Config) []middleware.Middleware {
@@ -159,7 +159,7 @@ func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Ha
 		return nil, err
 	}
 	h := sourcemap.Handler(systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData), psourcemap.Processor, *tcfg, reporter)
-	return middleware.WithMiddleware(h, sourcemapMiddleware(cfg)...), nil
+	return middleware.Wrap(h, sourcemapMiddleware(cfg)...), nil
 }
 
 //TODO: have dedicated monitoring function (breaking change)
@@ -175,7 +175,7 @@ func configAgentHandler(cfg *config.Config, _ publish.Reporter) (request.Handler
 		kbClient = kibana.NewConnectingClient(cfg.Kibana)
 	}
 	h := agent.Handler(kbClient, cfg.AgentConfig)
-	return middleware.WithMiddleware(h, agentConfigMiddleware(cfg)...), nil
+	return middleware.Wrap(h, agentConfigMiddleware(cfg)...), nil
 }
 
 func agentConfigMiddleware(cfg *config.Config) []middleware.Middleware {
@@ -185,7 +185,7 @@ func agentConfigMiddleware(cfg *config.Config) []middleware.Middleware {
 }
 
 func rootHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
-	return middleware.WithMiddleware(root.Handler(), rootMiddleware(cfg)...), nil
+	return middleware.Wrap(root.Handler(), rootMiddleware(cfg)...), nil
 }
 
 //TODO: have dedicated monitoring function (breaking change)

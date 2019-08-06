@@ -92,5 +92,4 @@ func clearRegistry(r *monitoring.Registry, fn func(id request.ResultID) *monitor
 			i.Set(0)
 		}
 	}
-	r.Clear()
 }

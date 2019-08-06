@@ -43,7 +43,7 @@ func TestOPTIONS(t *testing.T) {
 	rumEnabled := true
 	cfg.RumConfig.Enabled = &rumEnabled
 	cfg.RumConfig.AllowOrigins = []string{"*"}
-	h := middleware.WithMiddleware(
+	h := middleware.Wrap(
 		func(c *request.Context) {
 			requestTaken <- struct{}{}
 			<-done
