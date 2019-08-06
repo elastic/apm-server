@@ -18,8 +18,6 @@
 package intake
 
 import (
-	"fmt"
-
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/request"
@@ -34,8 +32,6 @@ var (
 // ResultIDToMonitoringInt takes a request.ResultID and maps it to a monitoring counter. If the ID is UnsetID,
 // nil is returned.
 func ResultIDToMonitoringInt(name request.ResultID) *monitoring.Int {
-	m := resultIDToCounter
-	fmt.Println(len(m))
 	if i, ok := resultIDToCounter[name]; ok {
 		return i
 	}
