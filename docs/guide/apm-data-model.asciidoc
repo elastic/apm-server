@@ -207,7 +207,7 @@ v|*Go:* {apm-go-ref-v}/api.html#context-set-tag[`SetTag`]
 *Java:* {apm-java-ref-v}/public-api.html#api-transaction-add-tag[`addLabel`]
 *.NET:* {apm-dotnet-ref-v}/public-api.html#api-transaction-tags[`Tags`]
 *Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-tag[`setTag`] \| {apm-node-ref-v}/agent-api.html#apm-add-tags[`addTags`]
-*Python:* {apm-py-ref-v}/api.html#api-tag[`tag`]
+*Python:* {apm-py-ref-v}/api.html#api-label[`elasticapm.label()`]
 *Ruby:* {apm-ruby-ref-v}/api.html#api-agent-set-tag[`set_tag`]
 *Rum:* {apm-rum-ref-v}/agent-api.html#apm-add-tags[`addTags`]
 |===
