@@ -317,7 +317,7 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	tctx := &transform.Context{
-		Config:      transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Config:      transform.Config{SourcemapMapper: &sourcemap.SmapMapper{}},
 		Metadata:    metadata.Metadata{Service: &service},
 		RequestTime: timestamp,
 	}

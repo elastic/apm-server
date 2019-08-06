@@ -79,9 +79,9 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 
 	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = (*st)[idx]
-		if tctx.Config.SmapMapper != nil && tctx.Metadata.Service != nil {
+		if tctx.Config.SourcemapMapper != nil && tctx.Metadata.Service != nil {
 			var errMsg string
-			fct, errMsg = fr.applySourcemap(tctx.Config.SmapMapper, tctx.Metadata.Service, fct)
+			fct, errMsg = fr.applySourcemap(tctx.Config.SourcemapMapper, tctx.Metadata.Service, fct)
 			sourcemapErrorSet[errMsg] = struct{}{}
 		}
 		frames[idx] = fr.Transform(tctx)

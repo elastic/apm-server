@@ -76,7 +76,6 @@ const (
 var (
 	// MapResultIDToStatus takes a ResultID and maps it to a status
 	MapResultIDToStatus = map[ResultID]Status{
-		IDUnset:                            {Code: 0, Keyword: ""},
 		IDResponseValidOK:                  {Code: http.StatusOK, Keyword: "request ok"},
 		IDResponseValidAccepted:            {Code: http.StatusAccepted, Keyword: "request accepted"},
 		IDResponseValidNotModified:         {Code: http.StatusNotModified, Keyword: "not modified"},
@@ -93,6 +92,12 @@ var (
 		IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
 		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
+
+		IDUnset:               {Code: 0, Keyword: ""},
+		IDRequestCount:        {Code: 0, Keyword: ""},
+		IDResponseCount:       {Code: 0, Keyword: ""},
+		IDResponseErrorsCount: {Code: 0, Keyword: ""},
+		IDResponseValidCount:  {Code: 0, Keyword: ""},
 	}
 )
 

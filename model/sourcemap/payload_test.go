@@ -108,7 +108,7 @@ func TestInvalidateCache(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, mapping)
 
-	conf := transform.Config{SmapMapper: &smapMapper}
+	conf := transform.Config{SourcemapMapper: &smapMapper}
 	tctx := &transform.Context{Config: conf}
 
 	sourcemap, err := DecodeSourcemap(data)

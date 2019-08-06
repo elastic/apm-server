@@ -39,5 +39,5 @@ type Context struct {
 type Config struct {
 	LibraryPattern      *regexp.Regexp
 	ExcludeFromGrouping *regexp.Regexp
-	SmapMapper          sourcemap.Mapper
+	SourcemapMapper     sourcemap.Mapper
 }

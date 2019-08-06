@@ -25,3 +25,10 @@ import (
 
 // NilReporter is a noop implementation of the reporter interface
 func NilReporter(ctx context.Context, p publish.PendingReq) error { return nil }
+
+// ErrorReporterFn returns a function implementing the reporter interface, returning given error
+func ErrorReporterFn(err error) func(ctx context.Context, p publish.PendingReq) error {
+	return func(ctx context.Context, p publish.PendingReq) error {
+		return err
+	}
+}
