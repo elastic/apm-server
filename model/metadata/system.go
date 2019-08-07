@@ -26,6 +26,7 @@ import (
 
 type System struct {
 	Hostname     *string
+	Name         *string
 	Architecture *string
 	Platform     *string
 	IP           *string
@@ -45,6 +46,7 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	decoder := utility.ManualDecoder{}
 	system := System{
 		Hostname:     decoder.StringPtr(raw, "hostname"),
+		Name:         decoder.StringPtr(raw, "name"),
 		Platform:     decoder.StringPtr(raw, "platform"),
 		Architecture: decoder.StringPtr(raw, "architecture"),
 		IP:           decoder.StringPtr(raw, "ip"),
@@ -56,6 +58,13 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 		return nil, err
 	}
 	return &system, decoder.Err
+}
+
+func (s *System) name() *string {
+	if s != nil && s.Name != nil {
+		return s.Name
+	}
+	return s.hostname()
 }
 
 func (s *System) hostname() *string {
@@ -88,6 +97,7 @@ func (s *System) fields() common.MapStr {
 	}
 	system := common.MapStr{}
 	utility.Set(system, "hostname", s.hostname())
+	utility.Set(system, "name", s.name())
 	utility.Set(system, "architecture", s.Architecture)
 	if s.Platform != nil {
 		utility.Set(system, "os", common.MapStr{"platform": s.Platform})

@@ -30,7 +30,7 @@ import (
 func TestSystemTransform(t *testing.T) {
 
 	architecture := "x64"
-	hostname := "a.b.com"
+	hostname, name := "a.b.com", "foo"
 	platform := "darwin"
 	ip := "127.0.0.1"
 	empty := ""
@@ -55,12 +55,14 @@ func TestSystemTransform(t *testing.T) {
 			System: System{
 				Architecture: &architecture,
 				Hostname:     &hostname,
+				Name:         &name,
 				Platform:     &platform,
 				IP:           &ip,
 			},
 			Output: common.MapStr{
 				"architecture": architecture,
 				"hostname":     hostname,
+				"name":         name,
 				"ip":           ip,
 				"os": common.MapStr{
 					"platform": platform,
@@ -75,6 +77,7 @@ func TestSystemTransform(t *testing.T) {
 			Output: common.MapStr{
 				"architecture": architecture,
 				"hostname":     hostname,
+				"name":         hostname,
 			},
 		},
 		// nodename and podname
@@ -88,17 +91,19 @@ func TestSystemTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"hostname": nodename,
+				"name":     nodename,
 			},
 		},
 		// podname
 		{
 			System: System{
 				Hostname: &hostname,
+				Name:     &name,
 				Kubernetes: &Kubernetes{
 					PodName: &podname,
 				},
 			},
-			Output: common.MapStr{},
+			Output: common.MapStr{"name": name},
 		},
 		// poduid
 		{
@@ -128,6 +133,7 @@ func TestSystemTransform(t *testing.T) {
 			},
 			Output: common.MapStr{
 				"hostname": hostname,
+				"name":     hostname,
 			},
 		},
 	}
@@ -139,7 +145,7 @@ func TestSystemTransform(t *testing.T) {
 }
 
 func TestSystemDecode(t *testing.T) {
-	host, arch, platform, ip := "host", "amd", "osx", "127.0.0.1"
+	host, name, arch, platform, ip := "host", "custom hostname", "amd", "osx", "127.0.0.1"
 	inpErr := errors.New("some error")
 	for _, test := range []struct {
 		input         interface{}
@@ -160,6 +166,13 @@ func TestSystemDecode(t *testing.T) {
 			},
 			err: nil,
 			s:   &System{Hostname: &host, Architecture: &arch, Platform: &platform, IP: &ip},
+		},
+		{
+			input: map[string]interface{}{
+				"hostname": host, "name": name,
+			},
+			err: nil,
+			s:   &System{Hostname: &host, Name: &name},
 		},
 	} {
 		sys, err := DecodeSystem(test.input, test.inputErr)

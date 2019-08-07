@@ -611,6 +611,16 @@ type: keyword
 
 --
 
+*`host.name`*::
++
+--
+Name of the host the event was recorded on. It can contain same information as host.hostname or a name specified by the user.
+
+
+type: keyword
+
+--
+
 *`host.ip`*::
 +
 --
