@@ -119,8 +119,11 @@ pipeline {
               deleteDir()
               unstash 'source'
               golang(){
-                dir("${BASE_DIR}"){
-                  sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                dir(BASE_DIR){
+                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                    sleep randomNumber(min: 5, max: 10)
+                    sh(label: 'Linux build', script: './script/jenkins/build.sh')
+                  }
                 }
               }
             }
@@ -140,8 +143,11 @@ pipeline {
             withGithubNotify(context: 'Build - Windows') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
+              dir(BASE_DIR){
+                retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                  sleep randomNumber(min: 5, max: 10)
+                  powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
+                }
               }
             }
           }
@@ -170,8 +176,11 @@ pipeline {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
+              dir(BASE_DIR){
+                retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                  sleep randomNumber(min: 5, max: 10)
+                  sh(label: 'Run Unit tests', script: './script/jenkins/unit-test.sh')
+                }
               }
             }
           }
@@ -203,8 +212,11 @@ pipeline {
             withGithubNotify(context: 'System Tests', tab: 'tests') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
+              dir(BASE_DIR){
+                retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                  sleep randomNumber(min: 5, max: 10)
+                  sh(label: 'Run Linux tests', script: './script/jenkins/linux-test.sh')
+                }
               }
             }
           }
@@ -238,8 +250,11 @@ pipeline {
             withGithubNotify(context: 'Test - Windows', tab: 'tests') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
+              dir(BASE_DIR){
+                retry(2) { // Retry in case there are any errors to avoid temporary glitches
+                  sleep randomNumber(min: 5, max: 10)
+                  powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
+                }
               }
             }
           }
