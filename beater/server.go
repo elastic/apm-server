@@ -81,7 +81,7 @@ func run(logger *logp.Logger, server *http.Server, lis net.Listener, cfg *config
 	switch cfg.RumConfig.IsEnabled() {
 	case true:
 		logger.Info("RUM endpoints enabled!")
-		for _, s := range config.RumConfig.AllowOrigins {
+		for _, s := range cfg.RumConfig.AllowOrigins {
 			if s == "*" {
 				logger.Warn("CORS related setting `apm-server.rum.allow_origins` allows all origins. Consider more restrictive setting for production use.")
 				break
