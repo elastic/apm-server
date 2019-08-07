@@ -54,6 +54,9 @@
               count: 2
               description: Indicator whether the error was caught somewhere in the code or not.
 
+            - name: parent
+              type: long
+              description: Parent exception index (0 based); if omitted the previous (depth-first) entry is the parent.
 
         - name: log
           type: group

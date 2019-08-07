@@ -99,6 +99,8 @@ type Exception struct {
 	Stacktrace m.Stacktrace
 	Type       *string
 	Handled    *bool
+	Cause      []Exception
+	Parent     *int
 }
 
 type Log struct {
@@ -146,25 +148,8 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		TransactionType:    decoder.StringPtr(raw, "type", "transaction"),
 	}
 
-	var stacktr *m.Stacktrace
 	ex := decoder.MapStr(raw, "exception")
-	exMsg := decoder.StringPtr(ex, "message")
-	exType := decoder.StringPtr(ex, "type")
-	if exMsg != nil || exType != nil {
-		e.Exception = &Exception{
-			Message:    exMsg,
-			Type:       exType,
-			Code:       decoder.Interface(ex, "code"),
-			Module:     decoder.StringPtr(ex, "module"),
-			Attributes: decoder.Interface(ex, "attributes"),
-			Handled:    decoder.BoolPtr(ex, "handled"),
-			Stacktrace: m.Stacktrace{},
-		}
-		stacktr, decoder.Err = m.DecodeStacktrace(ex["stacktrace"], decoder.Err)
-		if stacktr != nil {
-			e.Exception.Stacktrace = *stacktr
-		}
-	}
+	e.Exception = decodeException(&decoder)(ex)
 
 	log := decoder.MapStr(raw, "log")
 	logMsg := decoder.StringPtr(log, "message")
@@ -176,9 +161,10 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			LoggerName:   decoder.StringPtr(log, "logger_name"),
 			Stacktrace:   m.Stacktrace{},
 		}
-		stacktr, decoder.Err = m.DecodeStacktrace(log["stacktrace"], decoder.Err)
-		if stacktr != nil {
-			e.Log.Stacktrace = *stacktr
+		var stacktrace *m.Stacktrace
+		stacktrace, decoder.Err = m.DecodeStacktrace(log["stacktrace"], decoder.Err)
+		if stacktrace != nil {
+			e.Log.Stacktrace = *stacktrace
 		}
 	}
 	if decoder.Err != nil {
@@ -294,33 +280,35 @@ func (e *Event) addException(tctx *transform.Context) {
 	if e.Exception == nil {
 		return
 	}
-	ex := common.MapStr{}
-	utility.Set(ex, "message", e.Exception.Message)
-	utility.Set(ex, "module", e.Exception.Module)
-	utility.Set(ex, "attributes", e.Exception.Attributes)
-	utility.Set(ex, "type", e.Exception.Type)
-	utility.Set(ex, "handled", e.Exception.Handled)
 
-	switch code := e.Exception.Code.(type) {
-	case int:
-		utility.Set(ex, "code", strconv.Itoa(code))
-	case float64:
-		utility.Set(ex, "code", fmt.Sprintf("%.0f", code))
-	case string:
-		utility.Set(ex, "code", code)
-	case json.Number:
-		utility.Set(ex, "code", code.String())
+	var chain []common.MapStr
+	for _, exception := range flattenExceptionChain(e.Exception) {
+		ex := common.MapStr{}
+		utility.Set(ex, "message", exception.Message)
+		utility.Set(ex, "module", exception.Module)
+		utility.Set(ex, "attributes", exception.Attributes)
+		utility.Set(ex, "type", exception.Type)
+		utility.Set(ex, "handled", exception.Handled)
+		utility.Set(ex, "parent", exception.Parent)
+
+		switch code := exception.Code.(type) {
+		case int:
+			utility.Set(ex, "code", strconv.Itoa(code))
+		case float64:
+			utility.Set(ex, "code", fmt.Sprintf("%.0f", code))
+		case string:
+			utility.Set(ex, "code", code)
+		case json.Number:
+			utility.Set(ex, "code", code.String())
+		}
+
+		st := exception.Stacktrace.Transform(tctx)
+		utility.Set(ex, "stacktrace", st)
+
+		chain = append(chain, ex)
 	}
 
-	st := e.Exception.Stacktrace.Transform(tctx)
-	utility.Set(ex, "stacktrace", st)
-
-	// NOTE(axw) error.exception is an array of objects.
-	// For now, the array holds just one exception. Later,
-	// the array will hold each of the elements of a chained
-	// exception, starting with the outermost exception and
-	// ending with the root cause.
-	e.add("exception", []common.MapStr{ex})
+	e.add("exception", chain)
 }
 
 func (e *Event) addLog(tctx *transform.Context) {
@@ -377,20 +365,21 @@ func (k *groupingKey) String() string {
 // same grouping key can be collapsed together.
 func (e *Event) calcGroupingKey() string {
 	k := newGroupingKey()
+	var stacktrace m.Stacktrace
 
-	var st m.Stacktrace
-	if e.Exception != nil {
-		k.add(e.Exception.Type)
-		st = e.Exception.Stacktrace
+	for _, ex := range flattenExceptionChain(e.Exception) {
+		k.add(ex.Type)
+		stacktrace = append(stacktrace, ex.Stacktrace...)
 	}
+
 	if e.Log != nil {
 		k.add(e.Log.ParamMessage)
-		if st == nil || len(st) == 0 {
-			st = e.Log.Stacktrace
+		if stacktrace == nil || len(stacktrace) == 0 {
+			stacktrace = e.Log.Stacktrace
 		}
 	}
 
-	for _, fr := range st {
+	for _, fr := range stacktrace {
 		if fr.ExcludeFromGrouping {
 			continue
 		}
@@ -417,4 +406,56 @@ func addStacktraceCounter(st m.Stacktrace) {
 		stacktraceCounter.Inc()
 		frameCounter.Add(int64(frames))
 	}
+}
+
+type exceptionDecoder func(map[string]interface{}) *Exception
+
+func decodeException(decoder *utility.ManualDecoder) exceptionDecoder {
+	var decode exceptionDecoder
+	decode = func(exceptionTree map[string]interface{}) *Exception {
+		exMsg := decoder.StringPtr(exceptionTree, "message")
+		exType := decoder.StringPtr(exceptionTree, "type")
+		if exMsg != nil || exType != nil {
+			ex := Exception{
+				Message:    exMsg,
+				Type:       exType,
+				Code:       decoder.Interface(exceptionTree, "code"),
+				Module:     decoder.StringPtr(exceptionTree, "module"),
+				Attributes: decoder.Interface(exceptionTree, "attributes"),
+				Handled:    decoder.BoolPtr(exceptionTree, "handled"),
+				Parent:     decoder.IntPtr(exceptionTree, "parent"),
+				Stacktrace: m.Stacktrace{},
+			}
+			var stacktrace *m.Stacktrace
+			stacktrace, decoder.Err = m.DecodeStacktrace(exceptionTree["stacktrace"], decoder.Err)
+			if stacktrace != nil {
+				ex.Stacktrace = *stacktrace
+			}
+			for _, cause := range decoder.InterfaceArr(exceptionTree, "cause") {
+				e, _ := cause.(map[string]interface{})
+				nested := decode(e)
+				if nested != nil {
+					ex.Cause = append(ex.Cause, *nested)
+				}
+			}
+			return &ex
+		}
+		return nil
+	}
+	return decode
+}
+
+func flattenExceptionChain(e *Exception) []Exception {
+	if e == nil {
+		return []Exception{}
+	}
+	copy := *e
+	cause := copy.Cause
+	copy.Cause = nil
+	result := []Exception{copy}
+	for _, exception := range cause {
+		nested := flattenExceptionChain(&exception)
+		result = append(result, nested...)
+	}
+	return result
 }
