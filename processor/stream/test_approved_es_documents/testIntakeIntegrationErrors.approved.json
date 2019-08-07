@@ -93,9 +93,22 @@
                             }
                         ],
                         "type": "DbError"
+                    },
+                    {
+                        "message": "something wrong writing a file",
+                        "type": "InternalDbError"
+                    },
+                    {
+                        "message": "disk spinning way too fast",
+                        "type": "VeryInternalDbError"
+                    },
+                    {
+                        "message": "on top of it, internet doesn't work",
+                        "parent": 0,
+                        "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
+                "grouping_key": "54c66a6c750b186b2f99d54084934292",
                 "id": "0123456789012345",
                 "log": {
                     "level": "warning",

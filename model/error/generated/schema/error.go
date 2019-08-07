@@ -32,7 +32,7 @@ const ModelSchema = `{
             "type": ["integer", "null"]
         }
     } },
-        {  
+        {
             "properties": {
                 "id": {
                     "type": ["string"],
@@ -40,7 +40,7 @@ const ModelSchema = `{
                     "maxLength": 1024
                 },
                 "trace_id": {
-                    "description": "Hex encoded 128 random bits ID of the correlated trace. Must be present if transaction_id and parent_id are set.", 
+                    "description": "Hex encoded 128 random bits ID of the correlated trace. Must be present if transaction_id and parent_id are set.",
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
@@ -50,7 +50,7 @@ const ModelSchema = `{
                     "maxLength": 1024
                 },
                 "parent_id": {
-                    "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.", 
+                    "description": "Hex encoded 64 random bits ID of the parent transaction or span. Must be present if trace_id and transaction_id are set.",
                     "type": ["string", "null"],
                     "maxLength": 1024
                 },
@@ -451,6 +451,19 @@ const ModelSchema = `{
                         "handled": {
                             "type": ["boolean", "null"],
                             "description": "Indicator whether the error was caught somewhere in the code or not."
+                        },
+                        "cause": {
+                            "type": ["array", "null"],
+                            "items": {
+                                "type": ["object", "null"],
+                                "description": "Recursive exception object"
+                            },
+                            "minItems": 0,
+                            "description": "Exception tree"
+                        },
+                        "parent": {
+                            "type": ["integer", "null"],
+                            "description": "Parent exception index (0 based); if omitted the previous (depth-first) entry is the parent"
                         }
                     },
                     "anyOf": [
