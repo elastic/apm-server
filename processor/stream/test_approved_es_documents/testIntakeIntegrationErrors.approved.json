@@ -173,6 +173,7 @@
                 "architecture": "x64",
                 "hostname": "node-name",
                 "ip": "192.0.0.1",
+                "name": "prod.example",
                 "os": {
                     "platform": "darwin"
                 }
@@ -314,6 +315,7 @@
                 "architecture": "x64",
                 "hostname": "node-name",
                 "ip": "192.0.0.1",
+                "name": "prod.example",
                 "os": {
                     "platform": "darwin"
                 }
@@ -390,6 +392,7 @@
                 "architecture": "x64",
                 "hostname": "node-name",
                 "ip": "192.0.0.1",
+                "name": "prod.example",
                 "os": {
                     "platform": "darwin"
                 }
@@ -471,6 +474,7 @@
                 "architecture": "x64",
                 "hostname": "node-name",
                 "ip": "192.0.0.1",
+                "name": "prod.example",
                 "os": {
                     "platform": "darwin"
                 }

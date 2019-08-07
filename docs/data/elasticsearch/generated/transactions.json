@@ -13,6 +13,7 @@
                 "architecture": "x64",
                 "hostname": "node-name",
                 "ip": "192.0.0.1",
+                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -100,6 +101,7 @@
                 "architecture": "x64",
                 "hostname": "node-name",
                 "ip": "192.0.0.1",
+                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -274,6 +276,7 @@
                 "architecture": "x64",
                 "hostname": "node-name",
                 "ip": "192.0.0.1",
+                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }

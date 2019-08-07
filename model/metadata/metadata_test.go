@@ -146,7 +146,7 @@ func TestMetadata_Set(t *testing.T) {
 			output: common.MapStr{
 				"foo":     "bar",
 				"agent":   common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-				"host":    common.MapStr{"hostname": host},
+				"host":    common.MapStr{"hostname": host, "name": host},
 				"process": common.MapStr{"pid": pid},
 				"service": common.MapStr{
 					"name": "myservice",
