@@ -20,6 +20,8 @@ package sourcemap
 import (
 	"strings"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/beater/request"
@@ -28,6 +30,12 @@ import (
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
+)
+
+var (
+	// MonitoringMap holds a mapping for request.IDs to monitoring counters
+	MonitoringMap = request.MonitoringMapForRegistry(registry)
+	registry      = monitoring.Default.NewRegistry("apm-server.sourcemap", monitoring.PublishExpvar)
 )
 
 // Handler returns a request.Handler for managing asset requests.

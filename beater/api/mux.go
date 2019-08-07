@@ -100,11 +100,11 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	return mux, nil
 }
 
-func apmMiddleware(fn func(request.ResultID) *monitoring.Int) []middleware.Middleware {
+func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	return []middleware.Middleware{
 		middleware.LogMiddleware(),
 		middleware.RecoverPanicMiddleware(),
-		middleware.MonitoringMiddleware(fn),
+		middleware.MonitoringMiddleware(m),
 	}
 }
 
@@ -121,7 +121,7 @@ func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Hand
 }
 
 func backendMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.ResultIDToMonitoringInt),
+	return append(apmMiddleware(intake.MonitoringMap),
 		middleware.RequestTimeMiddleware(),
 		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
 }
@@ -147,7 +147,7 @@ func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler,
 }
 
 func rumMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.ResultIDToMonitoringInt),
+	return append(apmMiddleware(intake.MonitoringMap),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()),
 		middleware.RequestTimeMiddleware(),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins))
@@ -162,9 +162,8 @@ func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Ha
 	return middleware.Wrap(h, sourcemapMiddleware(cfg)...), nil
 }
 
-//TODO: have dedicated monitoring function (breaking change)
 func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.ResultIDToMonitoringInt),
+	return append(apmMiddleware(sourcemap.MonitoringMap),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()),
 		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
 }
@@ -179,7 +178,7 @@ func configAgentHandler(cfg *config.Config, _ publish.Reporter) (request.Handler
 }
 
 func agentConfigMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(agent.ResultIDToMonitoringInt),
+	return append(apmMiddleware(agent.MonitoringMap),
 		middleware.KillSwitchMiddleware(cfg.Kibana.Enabled()),
 		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
 }
@@ -188,9 +187,8 @@ func rootHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error
 	return middleware.Wrap(root.Handler(), rootMiddleware(cfg)...), nil
 }
 
-//TODO: have dedicated monitoring function (breaking change)
 func rootMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.ResultIDToMonitoringInt),
+	return append(apmMiddleware(root.MonitoringMap),
 		middleware.SetAuthorizationMiddleware(cfg.SecretToken))
 }
 

@@ -23,6 +23,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"golang.org/x/time/rate"
 
 	"github.com/pkg/errors"
@@ -33,6 +35,12 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/utility"
+)
+
+var (
+	// MonitoringMap holds a mapping for request.IDs to monitoring counters
+	MonitoringMap = request.MonitoringMapForRegistry(registry)
+	registry      = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
 )
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.

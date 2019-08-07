@@ -81,7 +81,7 @@ func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseErrorsCount:            1,
 		request.IDResponseErrorsMethodNotAllowed: 1}
 
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringRegistry, intake.ResultIDToMonitoringInt)
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringMap)
 	assert.True(t, equal, result)
 }
 
