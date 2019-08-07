@@ -28,7 +28,8 @@
             },
             "host": {
                 "hostname": "node-name",
-                "ip": "127.0.0.1"
+                "ip": "127.0.0.1",
+                "name": "node-name"
             },
             "kubernetes": {
                 "namespace": "namespace1",
@@ -143,7 +144,8 @@
             },
             "host": {
                 "hostname": "node-name",
-                "ip": "127.0.0.1"
+                "ip": "127.0.0.1",
+                "name": "node-name"
             },
             "kubernetes": {
                 "namespace": "namespace1",
@@ -227,7 +229,8 @@
             },
             "host": {
                 "hostname": "node-name",
-                "ip": "127.0.0.1"
+                "ip": "127.0.0.1",
+                "name": "node-name"
             },
             "kubernetes": {
                 "namespace": "namespace1",

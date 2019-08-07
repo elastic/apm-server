@@ -9,7 +9,12 @@
             "maxLength": 1024
         },
         "hostname": {
-            "description": "Hostname of the system the agent is running on.",
+            "description": "Hostname of the system the agent is running on. Will be ignored if kubernetes information is set.",
+            "type": ["string", "null"],
+            "maxLength": 1024
+        },
+        "name": {
+            "description": "Name of the system the agent is running on. Will be set to hostname or derived from kubernetes information if not provided.",
             "type": ["string", "null"],
             "maxLength": 1024
         },

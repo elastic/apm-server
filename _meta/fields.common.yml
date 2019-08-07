@@ -396,6 +396,13 @@
             The hostname of the host the event was recorded on.
           overwrite: true
 
+        - name: name
+          type: keyword
+          description: >
+            Name of the host the event was recorded on.
+            It can contain same information as host.hostname or a name specified by the user.
+          overwrite: true
+
         - name: ip
           type: ip
           description: >
