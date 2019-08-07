@@ -43,6 +43,8 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 	return tests.NewSet(
 		tests.Group("error.exception.attributes"),
 		tests.Group("error.exception.stacktrace"),
+		tests.Group("error.exception.cause"),
+		tests.Group("error.exception.parent"),
 		tests.Group("error.log.stacktrace"),
 		tests.Group("context"),
 		tests.Group("error.page"),
@@ -73,6 +75,7 @@ func errorPayloadAttrsNotInJsonSchema() *tests.Set {
 		"error.log.stacktrace.vars.key",
 		"error.exception.stacktrace.vars.key",
 		"error.exception.attributes.foo",
+		tests.Group("error.exception.cause."),
 		tests.Group("error.context.custom"),
 		tests.Group("error.context.request.env"),
 		tests.Group("error.context.request.cookies"),
@@ -145,7 +148,11 @@ func TestErrorPayloadAttrsMatchFields(t *testing.T) {
 func TestErrorPayloadAttrsMatchJsonSchema(t *testing.T) {
 	errorProcSetup().PayloadAttrsMatchJsonSchema(t,
 		errorPayloadAttrsNotInJsonSchema(),
-		tests.NewSet("error.context.user.email", "error.context.experimental"))
+		tests.NewSet(
+			"error.context.user.email",
+			"error.context.experimental",
+			"error.exception.parent", // it will never be present in the top (first) exception
+		))
 }
 
 func TestErrorAttrsPresenceInError(t *testing.T) {
@@ -168,7 +175,7 @@ func TestErrorKeywordLimitationOnErrorAttributes(t *testing.T) {
 func TestPayloadDataForError(t *testing.T) {
 	//// add test data for testing
 	//// * specific edge cases
-	//// * multiple allowed dataypes
+	//// * multiple allowed data types
 	//// * regex pattern, time formats
 	//// * length restrictions, other than keyword length restrictions
 	errorProcSetup().DataValidation(t,
