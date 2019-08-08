@@ -111,6 +111,8 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 		{Template: "system.kubernetes.", Mapping: "kubernetes."},           // move system.kubernetes.*
 		{Template: "system.kubernetes", Mapping: ""},                       // delete system.kubernetes
 		{Template: "system.platform", Mapping: "host.os.platform"},
+		{Template: "system.configured_hostname", Mapping: "host.name"},
+		{Template: "system.detected_hostname", Mapping: "host.hostname"},
 		{Template: "system", Mapping: "host"},
 		{Template: "service.agent", Mapping: "agent"},
 		{Template: "user.username", Mapping: "user.name"},
@@ -148,6 +150,7 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			{Template: "container.", Mapping: "system.container."},
 			{Template: "kubernetes.", Mapping: "system.kubernetes."},
 			{Template: "host.os.platform", Mapping: "system.platform"},
+			{Template: "host.name", Mapping: "system.configured_hostname"},
 			{Template: "host.", Mapping: "system."},
 			{Template: "user.name", Mapping: "user.username"},
 			//{Template: "url.", Mapping:"context.request.url."},

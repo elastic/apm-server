@@ -53,11 +53,11 @@ func TestSystemTransform(t *testing.T) {
 		},
 		{
 			System: System{
-				Architecture: &architecture,
-				Hostname:     &hostname,
-				Name:         &name,
-				Platform:     &platform,
-				IP:           &ip,
+				Architecture:       &architecture,
+				DetectedHostname:   &hostname,
+				ConfiguredHostname: &name,
+				Platform:           &platform,
+				IP:                 &ip,
 			},
 			Output: common.MapStr{
 				"architecture": architecture,
@@ -71,8 +71,8 @@ func TestSystemTransform(t *testing.T) {
 		},
 		{
 			System: System{
-				Architecture: &architecture,
-				Hostname:     &hostname,
+				Architecture:     &architecture,
+				DetectedHostname: &hostname,
 			},
 			Output: common.MapStr{
 				"architecture": architecture,
@@ -80,10 +80,24 @@ func TestSystemTransform(t *testing.T) {
 				"name":         hostname,
 			},
 		},
+		// nodename and configured_hostname
+		{
+			System: System{
+				ConfiguredHostname: &hostname,
+				Kubernetes: &Kubernetes{
+					NodeName: &nodename,
+					PodName:  &podname,
+				},
+			},
+			Output: common.MapStr{
+				"hostname": nodename,
+				"name":     hostname,
+			},
+		},
 		// nodename and podname
 		{
 			System: System{
-				Hostname: &hostname,
+				DetectedHostname: &hostname,
 				Kubernetes: &Kubernetes{
 					NodeName: &nodename,
 					PodName:  &podname,
@@ -97,8 +111,8 @@ func TestSystemTransform(t *testing.T) {
 		// podname
 		{
 			System: System{
-				Hostname: &hostname,
-				Name:     &name,
+				DetectedHostname:   &hostname,
+				ConfiguredHostname: &name,
 				Kubernetes: &Kubernetes{
 					PodName: &podname,
 				},
@@ -108,7 +122,7 @@ func TestSystemTransform(t *testing.T) {
 		// poduid
 		{
 			System: System{
-				Hostname: &hostname,
+				DetectedHostname: &hostname,
 				Kubernetes: &Kubernetes{
 					PodUID: &podname, // any string
 				},
@@ -118,7 +132,7 @@ func TestSystemTransform(t *testing.T) {
 		// namespace
 		{
 			System: System{
-				Hostname: &hostname,
+				DetectedHostname: &hostname,
 				Kubernetes: &Kubernetes{
 					Namespace: &podname, // any string
 				},
@@ -128,8 +142,8 @@ func TestSystemTransform(t *testing.T) {
 		// non-nil kubernetes, currently not possible via intake
 		{
 			System: System{
-				Hostname:   &hostname,
-				Kubernetes: &Kubernetes{},
+				DetectedHostname: &hostname,
+				Kubernetes:       &Kubernetes{},
 			},
 			Output: common.MapStr{
 				"hostname": hostname,
@@ -158,21 +172,28 @@ func TestSystemDecode(t *testing.T) {
 		{
 			input: map[string]interface{}{"hostname": 1},
 			err:   utility.ErrFetch,
-			s:     &System{Hostname: nil, Architecture: nil, Platform: nil, IP: nil},
+			s:     &System{DetectedHostname: nil, Architecture: nil, Platform: nil, IP: nil},
 		},
 		{
 			input: map[string]interface{}{
 				"hostname": host, "architecture": arch, "platform": platform, "ip": ip,
 			},
 			err: nil,
-			s:   &System{Hostname: &host, Architecture: &arch, Platform: &platform, IP: &ip},
+			s:   &System{DetectedHostname: &host, Architecture: &arch, Platform: &platform, IP: &ip},
 		},
 		{
 			input: map[string]interface{}{
-				"hostname": host, "name": name,
+				"hostname": host, "configured_hostname": name,
 			},
 			err: nil,
-			s:   &System{Hostname: &host, Name: &name},
+			s:   &System{ConfiguredHostname: &name},
+		},
+		{
+			input: map[string]interface{}{
+				"hostname": host, "detected_hostname": name,
+			},
+			err: nil,
+			s:   &System{DetectedHostname: &name},
 		},
 	} {
 		sys, err := DecodeSystem(test.input, test.inputErr)
