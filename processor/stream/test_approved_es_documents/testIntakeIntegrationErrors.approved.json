@@ -93,9 +93,29 @@
                             }
                         ],
                         "type": "DbError"
+                    },
+                    {
+                        "message": "something wrong writing a file",
+                        "type": "InternalDbError"
+                    },
+                    {
+                        "message": "disk spinning way too fast",
+                        "stacktrace": [
+                            {
+                                "abs_path": "/somewhere/deep/in/the/mountains.py",
+                                "exclude_from_grouping": false,
+                                "filename": "/deep/in/the/mountains.py"
+                            }
+                        ],
+                        "type": "VeryInternalDbError"
+                    },
+                    {
+                        "message": "on top of it, internet doesn't work",
+                        "parent": 0,
+                        "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "50f62f37edffc4630c6655ba3ecfcf46",
+                "grouping_key": "f280b2f0f0a6bb17e81f8897f6ffa08a",
                 "id": "0123456789012345",
                 "log": {
                     "level": "warning",
@@ -528,96 +548,6 @@
                 "id": "1234567890987654",
                 "sampled": true,
                 "type": "request"
-            },
-            "user": {
-                "email": "bar@example.com",
-                "id": "123",
-                "name": "bar"
-            }
-        },
-        {
-            "@timestamp": "2018-08-09T14:59:05.999Z",
-            "agent": {
-                "ephemeral_id": "abcdef123",
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "container": {
-                "id": "container-id"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "Cannot read property 'baz' no defined",
-                        "type": "DbError"
-                    },
-                    {
-                        "message": "something wrong writing a file",
-                        "type": "InternalDbError"
-                    },
-                    {
-                        "message": "disk spinning way too fast",
-                        "type": "VeryInternalDbError"
-                    },
-                    {
-                        "message": "on top of it, internet doesn't work",
-                        "parent": 0,
-                        "type": "ConnectionError"
-                    }
-                ],
-                "grouping_key": "50c8ffc1d46332f553ca7263409146e8",
-                "id": "cdefab0123456789"
-            },
-            "host": {
-                "architecture": "x64",
-                "hostname": "node-name",
-                "ip": "192.0.0.1",
-                "os": {
-                    "platform": "darwin"
-                }
-            },
-            "kubernetes": {
-                "namespace": "namespace1",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "pod-name",
-                    "uid": "pod-uid"
-                }
-            },
-            "process": {
-                "args": [
-                    "node",
-                    "server.js"
-                ],
-                "pid": 1234,
-                "ppid": 6789,
-                "title": "node"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
-            "service": {
-                "environment": "staging",
-                "framework": {
-                    "name": "Express",
-                    "version": "1.2.3"
-                },
-                "language": {
-                    "name": "ecmascript",
-                    "version": "8"
-                },
-                "name": "1234_service-12a3",
-                "runtime": {
-                    "name": "node",
-                    "version": "8.0.0"
-                },
-                "version": "5.1.3"
-            },
-            "timestamp": {
-                "us": 1533826745999000
             },
             "user": {
                 "email": "bar@example.com",
