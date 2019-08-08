@@ -100,13 +100,6 @@
                     },
                     {
                         "message": "disk spinning way too fast",
-                        "stacktrace": [
-                            {
-                                "abs_path": "/somewhere/deep/in/the/mountains.py",
-                                "exclude_from_grouping": false,
-                                "filename": "/deep/in/the/mountains.py"
-                            }
-                        ],
                         "type": "VeryInternalDbError"
                     },
                     {
@@ -115,7 +108,7 @@
                         "type": "ConnectionError"
                     }
                 ],
-                "grouping_key": "f280b2f0f0a6bb17e81f8897f6ffa08a",
+                "grouping_key": "54c66a6c750b186b2f99d54084934292",
                 "id": "0123456789012345",
                 "log": {
                     "level": "warning",
