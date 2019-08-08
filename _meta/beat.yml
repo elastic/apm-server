@@ -30,7 +30,7 @@ apm-server:
   # Authorization token for sending data to the APM server. If a token is set, the
   # agents must send it in the following format: Authorization: Bearer <secret-token>.
   # It is recommended to use an authorization token in combination with SSL enabled,
-  # and save the token in the apm-server keystore. The token is not used for RUM endpoints.
+  # and save the token in the apm-server keystore. The token is not used for the RUM endpoint.
   #secret_token:
 
   # Enable secure communication between APM agents and the server. By default ssl is disabled.
