@@ -428,7 +428,11 @@ func decodeException(decoder *utility.ManualDecoder) exceptionDecoder {
 			ex.Stacktrace = *stacktrace
 		}
 		for _, cause := range decoder.InterfaceArr(exceptionTree, "cause") {
-			e, _ := cause.(map[string]interface{})
+			e, ok := cause.(map[string]interface{})
+			if !ok {
+				decoder.Err = errors.New("cause must be an exception")
+				return nil
+			}
 			nested := decode(e)
 			if nested != nil {
 				ex.Cause = append(ex.Cause, *nested)

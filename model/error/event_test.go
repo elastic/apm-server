@@ -362,6 +362,21 @@ func TestDecodingAnomalies(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
+	t.Run("wrong cause type", func(t *testing.T) {
+		badException := map[string]interface{}{
+			"id": "id",
+			"exception": map[string]interface{}{
+				"message": "message0",
+				"type":    "type0",
+				"cause":   []interface{}{7.4},
+			},
+		}
+		result, err := DecodeEvent(badException, m.Config{}, nil)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "cause must be an exception")
+		assert.Nil(t, result)
+	})
+
 	t.Run("handle nil exceptions", func(t *testing.T) {
 		emptyCauses := map[string]interface{}{
 			"exception": map[string]interface{}{
