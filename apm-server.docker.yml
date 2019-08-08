@@ -30,7 +30,7 @@ apm-server:
   # Authorization token for sending data to the APM server. If a token is set, the
   # agents must send it in the following format: Authorization: Bearer <secret-token>.
   # It is recommended to use an authorization token in combination with SSL enabled,
-  # and save the token in the apm-server keystore. The token is not used for RUM endpoints.
+  # and save the token in the apm-server keystore. The token is not used for the RUM endpoint.
   #secret_token:
 
   # Enable secure communication between APM agents and the server. By default ssl is disabled.
@@ -109,7 +109,7 @@ apm-server:
     # to all error and transaction documents sent to the RUM endpoint.
     #source_mapping:
 
-      # Sourcemapping is enabled by default for RUM events.
+      # Sourcemapping is enabled by default.
       #enabled: true
 
       # Source maps are always fetched from Elasticsearch, by default using the output.elasticsearch configuration.
@@ -142,7 +142,7 @@ apm-server:
   # or the IP and User Agent of the real user (RUM requests).
   #capture_personal_data: true
 
-  # Enable APM Server golang expvar support (https://golang.org/pkg/expvar/).
+  # Enable APM Server Golang expvar support (https://golang.org/pkg/expvar/).
   #expvar:
     #enabled: false
 
