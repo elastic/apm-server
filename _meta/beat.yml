@@ -142,7 +142,7 @@ apm-server:
   # or the IP and User Agent of the real user (RUM requests).
   #capture_personal_data: true
 
-  # Enable APM Server golang expvar support (https://golang.org/pkg/expvar/).
+  # Enable APM Server Golang expvar support (https://golang.org/pkg/expvar/).
   #expvar:
     #enabled: false
 
