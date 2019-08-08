@@ -1031,15 +1031,6 @@ type: boolean
 
 --
 
-*`error.exception.parent`*::
-+
---
-Parent exception index (0 based); if omitted the previous (depth-first) entry is the parent.
-
-type: long
-
---
-
 [float]
 === log
 

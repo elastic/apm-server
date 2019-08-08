@@ -234,14 +234,15 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.add("id", e.Id)
 	e.add("page", e.Page.Fields())
 
-	e.addException(tctx)
+	exceptionChain := flattenExceptionChain(e.Exception)
+	e.addException(tctx, exceptionChain)
 	e.addLog(tctx)
 
 	e.updateCulprit(tctx)
 	e.add("culprit", e.Culprit)
 	e.add("custom", e.Custom.Fields())
 
-	e.addGroupingKey()
+	e.add("grouping_key", e.calcGroupingKey(exceptionChain))
 
 	return e.data
 }
@@ -276,13 +277,9 @@ func findSmappedNonLibraryFrame(frames []*m.StacktraceFrame) *m.StacktraceFrame 
 	return nil
 }
 
-func (e *Event) addException(tctx *transform.Context) {
-	if e.Exception == nil {
-		return
-	}
-
-	var chain []common.MapStr
-	for _, exception := range flattenExceptionChain(e.Exception) {
+func (e *Event) addException(tctx *transform.Context, chain []Exception) {
+	var result []common.MapStr
+	for _, exception := range chain {
 		ex := common.MapStr{}
 		utility.Set(ex, "message", exception.Message)
 		utility.Set(ex, "module", exception.Module)
@@ -305,10 +302,10 @@ func (e *Event) addException(tctx *transform.Context) {
 		st := exception.Stacktrace.Transform(tctx)
 		utility.Set(ex, "stacktrace", st)
 
-		chain = append(chain, ex)
+		result = append(result, ex)
 	}
 
-	e.add("exception", chain)
+	e.add("exception", result)
 }
 
 func (e *Event) addLog(tctx *transform.Context) {
@@ -324,10 +321,6 @@ func (e *Event) addLog(tctx *transform.Context) {
 	utility.Set(log, "stacktrace", st)
 
 	e.add("log", log)
-}
-
-func (e *Event) addGroupingKey() {
-	e.add("grouping_key", e.calcGroupingKey())
 }
 
 type groupingKey struct {
@@ -363,18 +356,18 @@ func (k *groupingKey) String() string {
 
 // calcGroupingKey computes a value for deduplicating errors - events with
 // same grouping key can be collapsed together.
-func (e *Event) calcGroupingKey() string {
+func (e *Event) calcGroupingKey(chain []Exception) string {
 	k := newGroupingKey()
 	var stacktrace m.Stacktrace
 
-	for _, ex := range flattenExceptionChain(e.Exception) {
+	for _, ex := range chain {
 		k.add(ex.Type)
 		stacktrace = append(stacktrace, ex.Stacktrace...)
 	}
 
 	if e.Log != nil {
 		k.add(e.Log.ParamMessage)
-		if stacktrace == nil || len(stacktrace) == 0 {
+		if len(stacktrace) == 0 {
 			stacktrace = e.Log.Stacktrace
 		}
 	}
@@ -387,11 +380,12 @@ func (e *Event) calcGroupingKey() string {
 		k.add(fr.Function)
 	}
 	if k.empty {
-		if e.Exception != nil {
-			k.add(e.Exception.Message)
-		} else if e.Log != nil {
-			k.add(&e.Log.Message)
+		for _, ex := range chain {
+			k.add(ex.Message)
 		}
+	}
+	if k.empty && e.Log != nil {
+		k.add(&e.Log.Message)
 	}
 
 	return k.String()
@@ -415,32 +409,32 @@ func decodeException(decoder *utility.ManualDecoder) exceptionDecoder {
 	decode = func(exceptionTree map[string]interface{}) *Exception {
 		exMsg := decoder.StringPtr(exceptionTree, "message")
 		exType := decoder.StringPtr(exceptionTree, "type")
-		if exMsg != nil || exType != nil {
-			ex := Exception{
-				Message:    exMsg,
-				Type:       exType,
-				Code:       decoder.Interface(exceptionTree, "code"),
-				Module:     decoder.StringPtr(exceptionTree, "module"),
-				Attributes: decoder.Interface(exceptionTree, "attributes"),
-				Handled:    decoder.BoolPtr(exceptionTree, "handled"),
-				Parent:     decoder.IntPtr(exceptionTree, "parent"),
-				Stacktrace: m.Stacktrace{},
-			}
-			var stacktrace *m.Stacktrace
-			stacktrace, decoder.Err = m.DecodeStacktrace(exceptionTree["stacktrace"], decoder.Err)
-			if stacktrace != nil {
-				ex.Stacktrace = *stacktrace
-			}
-			for _, cause := range decoder.InterfaceArr(exceptionTree, "cause") {
-				e, _ := cause.(map[string]interface{})
-				nested := decode(e)
-				if nested != nil {
-					ex.Cause = append(ex.Cause, *nested)
-				}
-			}
-			return &ex
+		if decoder.Err != nil || (exMsg == nil && exType == nil) {
+			return nil
 		}
-		return nil
+		ex := Exception{
+			Message:    exMsg,
+			Type:       exType,
+			Code:       decoder.Interface(exceptionTree, "code"),
+			Module:     decoder.StringPtr(exceptionTree, "module"),
+			Attributes: decoder.Interface(exceptionTree, "attributes"),
+			Handled:    decoder.BoolPtr(exceptionTree, "handled"),
+			Parent:     decoder.IntPtr(exceptionTree, "parent"),
+			Stacktrace: m.Stacktrace{},
+		}
+		var stacktrace *m.Stacktrace
+		stacktrace, decoder.Err = m.DecodeStacktrace(exceptionTree["stacktrace"], decoder.Err)
+		if stacktrace != nil {
+			ex.Stacktrace = *stacktrace
+		}
+		for _, cause := range decoder.InterfaceArr(exceptionTree, "cause") {
+			e, _ := cause.(map[string]interface{})
+			nested := decode(e)
+			if nested != nil {
+				ex.Cause = append(ex.Cause, *nested)
+			}
+		}
+		return &ex
 	}
 	return decode
 }

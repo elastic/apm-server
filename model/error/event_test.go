@@ -320,15 +320,15 @@ func TestHandleExceptionTree(t *testing.T) {
 	event := result.(*Event)
 	exceptions := flattenExceptionChain(event.Exception)
 
-	assert.Equal(t, len(exceptions), 7)
+	assert.Len(t, exceptions, 7)
 	for i, ex := range exceptions {
-		assert.Equal(t, fmt.Sprintf("message%d", i), *ex.Message, *ex.Message)
-		assert.Equal(t, fmt.Sprintf("type%d", i), *ex.Type, *ex.Type)
+		assert.Equal(t, fmt.Sprintf("message%d", i), *ex.Message)
+		assert.Equal(t, fmt.Sprintf("type%d", i), *ex.Type)
 		assert.Nil(t, ex.Cause)
 	}
-	assert.Equal(t, 0, *exceptions[2].Parent, *exceptions[2].Parent)
-	assert.Equal(t, 3, *exceptions[5].Parent, *exceptions[5].Parent)
-	assert.Equal(t, 0, *exceptions[6].Parent, *exceptions[6].Parent)
+	assert.Equal(t, 0, *exceptions[2].Parent)
+	assert.Equal(t, 3, *exceptions[5].Parent)
+	assert.Equal(t, 0, *exceptions[6].Parent)
 }
 
 func TestDecodingAnomalies(t *testing.T) {
@@ -785,7 +785,7 @@ func TestCulprit(t *testing.T) {
 func TestEmptyGroupingKey(t *testing.T) {
 	emptyGroupingKey := hex.EncodeToString(md5.New().Sum(nil))
 	e := Event{}
-	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey())
+	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 }
 
 func TestExplicitGroupingKey(t *testing.T) {
@@ -804,7 +804,7 @@ func TestExplicitGroupingKey(t *testing.T) {
 	}
 
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
-		assert.Equal(t, groupingKey, e.calcGroupingKey(), "grouping_key mismatch", idx)
+		assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)), "grouping_key mismatch", idx)
 	}
 }
 
@@ -824,8 +824,8 @@ func TestFramesUsableForGroupingKey(t *testing.T) {
 	exMsg := "base exception"
 	e1 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st1}}
 	e2 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st2}}
-	key1 := e1.calcGroupingKey()
-	key2 := e2.calcGroupingKey()
+	key1 := e1.calcGroupingKey(flattenExceptionChain(e1.Exception))
+	key2 := e2.calcGroupingKey(flattenExceptionChain(e2.Exception))
 	assert.NotEqual(t, key1, key2)
 }
 
@@ -836,10 +836,10 @@ func TestFallbackGroupingKey(t *testing.T) {
 	groupingKey := hex.EncodeToString(md5With(filename))
 
 	e := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey())
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 
 	e = Event{Exception: baseException(), Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: &lineno, Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey())
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 }
 
 func TestNoFallbackGroupingKey(t *testing.T) {
@@ -855,7 +855,7 @@ func TestNoFallbackGroupingKey(t *testing.T) {
 			{Lineno: &lineno, Module: &module, Filename: filename, Function: &function},
 		}),
 	}
-	assert.Equal(t, groupingKey, e.calcGroupingKey())
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 }
 
 func TestGroupableEvents(t *testing.T) {
@@ -965,7 +965,8 @@ func TestGroupableEvents(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		sameGroup := test.e1.calcGroupingKey() == test.e2.calcGroupingKey()
+		sameGroup := test.e1.calcGroupingKey(flattenExceptionChain(test.e1.Exception)) ==
+			test.e2.calcGroupingKey(flattenExceptionChain(test.e2.Exception))
 		assert.Equal(t, test.result, sameGroup,
 			"grouping_key mismatch", idx)
 	}
