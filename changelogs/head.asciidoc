@@ -10,6 +10,7 @@
 - Add config option to disable sourcemapping {pull}2488[2488].
 - Store service environment for spans {pull}2500[2500].
 - Index span.db.link field as keyword {pull}2504[2504].
+- Add support for exception trees with cause attribute {pull}2532[2532].
 
 [float]
 ==== Removed
