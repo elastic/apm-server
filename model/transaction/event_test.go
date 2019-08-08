@@ -302,10 +302,12 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	serviceName := "myservice"
 	metadataLabels := common.MapStr{"a": true}
 	service := metadata.Service{Name: &serviceName}
-	system := &metadata.System{
-		Hostname:     &hostname,
-		Architecture: &architecture,
-		Platform:     &platform,
+	system := func() *metadata.System {
+		return &metadata.System{
+			Hostname:     &hostname,
+			Architecture: &architecture,
+			Platform:     &platform,
+		}
 	}
 
 	txValid := Event{Timestamp: timestamp}
@@ -331,6 +333,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"host": common.MapStr{
 			"architecture": architecture,
 			"hostname":     hostname,
+			"name":         hostname,
 			"os": common.MapStr{
 				"platform": platform,
 			},
@@ -370,6 +373,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"host": common.MapStr{
 			"architecture": "darwin",
 			"hostname":     "a.b.c",
+			"name":         "jane",
 			"os": common.MapStr{
 				"platform": "x64",
 			},
@@ -441,7 +445,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 
 		{
 			Metadata: metadata.NewMetadata(
-				&service, system,
+				&service, system(),
 				nil, nil, metadataLabels,
 			),
 			Event:  &txValid,
@@ -450,7 +454,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 		{
 			Metadata: metadata.NewMetadata(
-				&service, system,
+				&service, func() *metadata.System { s := system(); s.Name = &name; return s }(),
 				nil, nil, metadataLabels,
 			),
 			Event:  &txWithContext,
