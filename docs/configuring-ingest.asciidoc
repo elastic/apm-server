@@ -9,20 +9,42 @@ to pre-process documents before indexing them in Elasticsearch.
 
 A pipeline is a definition of a series of processors that operate on your data.
 For example, a pipeline can define one processor to remove a field, and another to rename a field.
-Using pipelines involves two steps:
+
+[[default-pipeline]]
+[float]
+=== Default ingest pipeline
+
+// The content within the "default-pipeline" tag is reused elsewhere. Keep that in mind when editing it.
+// tag::default-pipeline[]
+By default, <<register.ingest.pipeline.enabled,`register.ingest.pipeline.enabled`>> is set to `true`.
+This loads the default pipeline definition to Elasticsearch on APM Server startup.
+
+The default pipeline is `apm`. It adds user agent information to events and processes Geo-IP data,
+which is especially useful for Elastic's {apm-rum-ref-v}/index.html[JavaScript RUM Agent].
+You can view the pipeline configuration by navigating to the APM Server's home directory and then
+viewing `ingest/pipeline/definition.json`.
+
+To disable this, or any other pipeline, set `output.elasticsearch.pipeline: _none`.
+// end::default-pipeline[]
+
+[[custom-pipelines]]
+[float]
+=== Custom pipelines
+
+Using custom pipelines involves two steps:
 
 . First, you need to <<register-pipelines,register a pipeline>> in Elasticsearch.
 . Then, the pipeline needs to be <<apply-pipelines, applied during data ingestion>>.
 
 [[register-pipelines]]
 [float]
-=== Register pipelines in Elasticsearch
+==== Register pipelines in Elasticsearch
 To register a pipeline in Elasticsearch, you can either configure APM Server to
 register pipelines on startup, or you can manually upload a pipeline definition.
 
 [[register-pipelines-apm-server]]
 [float]
-==== Register pipelines on APM Server startup
+===== Register pipelines on APM Server startup
 Automatic pipeline registration requires `output.elasticsearch` to be enabled and configured.
 
 Navigate to APM Server's home directory and find the default pipeline configuration at
@@ -30,12 +52,11 @@ Navigate to APM Server's home directory and find the default pipeline configurat
 To add, change, or remove pipelines in Elasticsearch,
 change the definitions in this file and restart your APM Server or run `apm-server setup --pipelines`.
 
-By default, pipeline registration is disabled.
-See how to <<register.ingest.pipeline.enabled,configure pipeline registration>>.
+By default, pipeline registration is <<register.ingest.pipeline.enabled,enabled>>. 
 
 [[register-pipelines-manual]]
 [float]
-==== Manually upload pipeline definitions
+===== Manually upload pipeline definitions
 
 You can manually upload pipeline definitions by describing them in a file.
 Consider the following sample pipeline in a file named `pipeline.json`.
@@ -62,12 +83,11 @@ To register this pipeline, run:
 curl -H 'Content-Type: application/json' -XPUT 'http://localhost:9200/_ingest/pipeline/test-pipeline' -d @pipeline.json
 ------------------------------------------------------------------------------
 
-
 [[apply-pipelines]]
 [float]
-=== Apply pipelines during data ingestion
+==== Apply pipelines during data ingestion
 To specify which pipelines to apply during data ingestion,
-add the pipeline IDs to the `pipelines` option under `elasticsearch` in the +apm-server.yml+ file:
+add the pipeline IDs to the `pipelines` option under `output.elasticsearch` in the +apm-server.yml+ file:
 
 [source,yaml]
 ------------------------------------------------------------------------------
@@ -76,5 +96,5 @@ output.elasticsearch:
   - pipeline: "test-pipeline"
 ------------------------------------------------------------------------------
 
-TIP: More information on defining a pre-processing pipeline is available in the
-{ref}/ingest.html[ingest node] documentation.
+TIP: More information and examples for applying pipelines is available in the Elasticsearch output
+<<pipeline-option-es,pipeline>> documentation.
