@@ -22,7 +22,7 @@ This loads the default pipeline definition to Elasticsearch on APM Server startu
 The default pipeline is `apm`. It adds user agent information to events and processes Geo-IP data,
 which is especially useful for Elastic's {apm-rum-ref-v}/index.html[JavaScript RUM Agent].
 You can view the pipeline configuration by navigating to the APM Server's home directory and then
-`ingest/pipeline/definition.json`.
+viewing `ingest/pipeline/definition.json`.
 
 To disable this, or any other pipeline, set `output.elasticsearch.pipeline: _none`.
 // end::default-pipeline[]
