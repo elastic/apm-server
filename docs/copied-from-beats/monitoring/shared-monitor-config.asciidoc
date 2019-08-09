@@ -16,19 +16,19 @@
 <titleabbrev>Configuration options</titleabbrev>
 ++++
 
-You can specify the following options in the `xpack.monitoring` section of the
+You can specify the following options in the X-pack Monitoring section of the
 +{beatname_lc}.yml+ config file:
 
 [float]
-=== `enabled`
+=== `monitoring.enabled`
 
-The `enabled` config is a boolean setting to enable or disable {monitoring}.
+The `monitoring.enabled` config is a boolean setting to enable or disable {monitoring}.
 If set to `true`, monitoring is enabled.
 
 The default value is `false`.
 
 [float]
-=== `elasticsearch`
+=== `monitoring.elasticsearch`
 
 The {es} instances that you want to ship your {beatname_uc} metrics to. This
 configuration option contains the following fields:

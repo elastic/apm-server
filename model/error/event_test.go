@@ -60,7 +60,7 @@ func (e *Exception) withType(etype string) *Exception {
 }
 
 func (e *Exception) withFrames(frames []*m.StacktraceFrame) *Exception {
-	e.Stacktrace = m.Stacktrace(frames)
+	e.Stacktrace = frames
 	return e
 }
 
@@ -74,7 +74,7 @@ func (l *Log) withParamMsg(msg string) *Log {
 }
 
 func (l *Log) withFrames(frames []*m.StacktraceFrame) *Log {
-	l.Stacktrace = m.Stacktrace(frames)
+	l.Stacktrace = frames
 	return l
 }
 
@@ -290,6 +290,114 @@ func TestErrorEventDecode(t *testing.T) {
 			assert.Equal(t, test.err, err)
 		})
 	}
+}
+
+func TestHandleExceptionTree(t *testing.T) {
+	errorEvent := map[string]interface{}{
+		"exception": map[string]interface{}{
+			"message": "message0",
+			"type":    "type0",
+			"stacktrace": []interface{}{
+				map[string]interface{}{
+					"filename": "file0",
+				},
+			},
+			"cause": []interface{}{
+				map[string]interface{}{"message": "message1", "type": "type1"},
+				map[string]interface{}{"message": "message2", "type": "type2", "parent": json.Number("0"), "cause": []interface{}{
+					map[string]interface{}{"message": "message3", "type": "type3", "cause": []interface{}{
+						map[string]interface{}{"message": "message4", "type": "type4"},
+						map[string]interface{}{"message": "message5", "type": "type5", "parent": json.Number("3")},
+					}},
+				}},
+				map[string]interface{}{"message": "message6", "type": "type6", "parent": json.Number("0")},
+			},
+		},
+	}
+	result, err := DecodeEvent(errorEvent, m.Config{}, nil)
+	require.NoError(t, err)
+
+	event := result.(*Event)
+	exceptions := flattenExceptionChain(event.Exception)
+
+	assert.Len(t, exceptions, 7)
+	for i, ex := range exceptions {
+		assert.Equal(t, fmt.Sprintf("message%d", i), *ex.Message)
+		assert.Equal(t, fmt.Sprintf("type%d", i), *ex.Type)
+		assert.Nil(t, ex.Cause)
+	}
+	assert.Equal(t, 0, *exceptions[2].Parent)
+	assert.Equal(t, 3, *exceptions[5].Parent)
+	assert.Equal(t, 0, *exceptions[6].Parent)
+}
+
+func TestDecodingAnomalies(t *testing.T) {
+
+	t.Run("exception decoder doesn't erase existing errors", func(t *testing.T) {
+		badID := map[string]interface{}{
+			"id": 7.4,
+			"exception": map[string]interface{}{
+				"message": "message0",
+				"type":    "type0",
+			},
+		}
+		result, err := DecodeEvent(badID, m.Config{}, nil)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("exception decoding error bubbles up", func(t *testing.T) {
+		badException := map[string]interface{}{
+			"id": "id",
+			"exception": map[string]interface{}{
+				"message": "message0",
+				"type":    "type0",
+				"cause": []interface{}{
+					map[string]interface{}{"message": "message1", "type": 7.4},
+				},
+			},
+		}
+		result, err := DecodeEvent(badException, m.Config{}, nil)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("wrong cause type", func(t *testing.T) {
+		badException := map[string]interface{}{
+			"id": "id",
+			"exception": map[string]interface{}{
+				"message": "message0",
+				"type":    "type0",
+				"cause":   []interface{}{7.4},
+			},
+		}
+		result, err := DecodeEvent(badException, m.Config{}, nil)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "cause must be an exception")
+		assert.Nil(t, result)
+	})
+
+	t.Run("handle nil exceptions", func(t *testing.T) {
+		emptyCauses := map[string]interface{}{
+			"exception": map[string]interface{}{
+				"message": "message0",
+				"type":    "type0",
+				"cause": []interface{}{
+					map[string]interface{}{"message": "message1", "type": "type1", "cause": []interface{}{}},
+					map[string]interface{}{},
+				},
+			},
+		}
+		result, err := DecodeEvent(emptyCauses, m.Config{}, nil)
+		require.NoError(t, err)
+		assert.NotNil(t, result)
+
+		event := result.(*Event)
+		assert.Equal(t, *event.Exception.Message, "message0")
+		assert.Len(t, event.Exception.Cause, 1)
+		assert.Equal(t, *event.Exception.Cause[0].Message, "message1")
+		assert.Nil(t, event.Exception.Cause[0].Cause)
+	})
 }
 
 func TestEventFields(t *testing.T) {
@@ -692,7 +800,7 @@ func TestCulprit(t *testing.T) {
 func TestEmptyGroupingKey(t *testing.T) {
 	emptyGroupingKey := hex.EncodeToString(md5.New().Sum(nil))
 	e := Event{}
-	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey())
+	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 }
 
 func TestExplicitGroupingKey(t *testing.T) {
@@ -711,7 +819,7 @@ func TestExplicitGroupingKey(t *testing.T) {
 	}
 
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
-		assert.Equal(t, groupingKey, e.calcGroupingKey(), "grouping_key mismatch", idx)
+		assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)), "grouping_key mismatch", idx)
 	}
 }
 
@@ -731,8 +839,8 @@ func TestFramesUsableForGroupingKey(t *testing.T) {
 	exMsg := "base exception"
 	e1 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st1}}
 	e2 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st2}}
-	key1 := e1.calcGroupingKey()
-	key2 := e2.calcGroupingKey()
+	key1 := e1.calcGroupingKey(flattenExceptionChain(e1.Exception))
+	key2 := e2.calcGroupingKey(flattenExceptionChain(e2.Exception))
 	assert.NotEqual(t, key1, key2)
 }
 
@@ -743,10 +851,10 @@ func TestFallbackGroupingKey(t *testing.T) {
 	groupingKey := hex.EncodeToString(md5With(filename))
 
 	e := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey())
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 
 	e = Event{Exception: baseException(), Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: &lineno, Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey())
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 }
 
 func TestNoFallbackGroupingKey(t *testing.T) {
@@ -762,7 +870,7 @@ func TestNoFallbackGroupingKey(t *testing.T) {
 			{Lineno: &lineno, Module: &module, Filename: filename, Function: &function},
 		}),
 	}
-	assert.Equal(t, groupingKey, e.calcGroupingKey())
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
 }
 
 func TestGroupableEvents(t *testing.T) {
@@ -872,7 +980,8 @@ func TestGroupableEvents(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		sameGroup := test.e1.calcGroupingKey() == test.e2.calcGroupingKey()
+		sameGroup := test.e1.calcGroupingKey(flattenExceptionChain(test.e1.Exception)) ==
+			test.e2.calcGroupingKey(flattenExceptionChain(test.e2.Exception))
 		assert.Equal(t, test.result, sameGroup,
 			"grouping_key mismatch", idx)
 	}
