@@ -235,8 +235,8 @@ IMPORTANT: Setting a circular object, large object, or a non JSON serializable o
 
 |===
 |*Custom context API links*
-v|*Go:* _coming soon_
-*Java:* _coming soon_
+v|*Go:* {apm-go-ref-v}/api.html#context-set-custom[`SetCustom`]
+*Java:* {apm-java-ref-v}/public-api.html#api-transaction-add-custom-context[`addCustomContext`]
 *.NET:* _coming soon_
 *Node.js:* {apm-node-ref-v}/agent-api.html#apm-set-custom-context[`setCustomContext`]
 *Python:* {apm-py-ref-v}/api.html#api-set-custom-context[`set_custom_context`]
