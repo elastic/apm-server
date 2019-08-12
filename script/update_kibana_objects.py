@@ -42,7 +42,7 @@ def main():
     - `make update` must have been run previously
     """
 
-    apm_dir = os.path.join(os.environ['HOME'], "go/src/github.com/elastic/apm-server")
+    apm_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
     os.chdir(apm_dir)
     export = exec("./apm-server export index-pattern")
     index_pattern = json.loads(export)["objects"][0]
