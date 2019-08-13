@@ -16,7 +16,7 @@ The chart below outlines the compatibility between different versions of the APM
 
 // .NET
 .1+|**.NET Agent**
-|`1.0.0-beta1` |>= `6.5`
+|`1.x` |>= `6.5`
 
 // Node
 .2+|**Node.js Agent**
@@ -24,9 +24,10 @@ The chart below outlines the compatibility between different versions of the APM
 |`2.x` |>= `6.5`
 
 // Python
-.2+|**Python Agent**
+.3+|**Python Agent**
 |`2.x`, `3.x` |`6.2`-`6.x`
 |`4.x` |>= `6.5`
+|`5.x` |>= `6.6`
 
 // Ruby
 .2+|**Ruby Agent**
