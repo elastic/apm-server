@@ -13,13 +13,12 @@ def exec(cmd):
     """
     Executes the given command and returns its result as a string
     """
-    proc = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    code = proc.returncode
-    if err:
-        print(err)
-    if code > 0:
-        sys.exit(code)
+    try:
+        out = subprocess.check_output(shlex.split(cmd))
+    except subprocess.CalledProcessError as e:
+        print(e)
+        sys.exit(1)
+
     return out.decode("utf-8")
 
 
@@ -37,14 +36,12 @@ def main():
     Updates the index pattern in kibana according to the current checked out branch in apm-server
 
     NOTES:
-    - HOME environment variable must be set
-    - apm-server can't be in detached head state
-    - `make update` must have been run previously
+    - apm-server should be on master or a release branch, and can't be in detached head state
+    - `make && make update` must have been run previously
     """
 
-    apm_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-    os.chdir(apm_dir)
-    export = exec("./apm-server export index-pattern")
+    apm_bin = os.path.abspath(os.path.join(os.path.dirname(__file__), "../apm-server"))
+    export = exec(apm_bin + " export index-pattern")
     index_pattern = json.loads(export)["objects"][0]
 
     remote_branch = exec("git rev-parse --abbrev-ref --symbolic-full-name @{u}")
@@ -80,7 +77,8 @@ def main():
     call('git commit -m "update apm index pattern"')
     call("git push origin update-apm-index-pattern-" + branch)
 
-    shutil.rmtree(dirpath)
+    print("removing " + path)
+    shutil.rmtree(path)
 
 
 if __name__ == '__main__':
