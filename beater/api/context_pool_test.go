@@ -35,7 +35,7 @@ func TestContextPool(t *testing.T) {
 
 	p := newContextPool()
 
-	// mockhHandler adds the context and it's request to dedicated slices
+	// mockhHandler adds the context and its request to dedicated slices
 	var contexts, requests []interface{}
 	var mu sync.Mutex
 	mockHandler := func(c *request.Context) {
@@ -76,6 +76,7 @@ func TestContextPool(t *testing.T) {
 		}
 		return len(l)
 	}
-	assert.Equal(t, runs*concRuns, countUnique(requests))
-	assert.True(t, countUnique(contexts) < runs*concRuns) // contexts get reused, but not deterministic how many exactly
+	totalRequests := runs * concRuns
+	assert.Equal(t, totalRequests, countUnique(requests))
+	assert.True(t, countUnique(contexts) < totalRequests) // contexts get reused, but not deterministic how many exactly
 }
