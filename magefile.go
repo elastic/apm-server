@@ -154,6 +154,7 @@ func TestPackagesInstall() error {
 		args = append(args, "-v")
 	}
 	args = append(args, mage.MustExpand("tests/packaging/package_test.go"))
+	args = append(args, "-timeout", "20m")
 	args = append(args, "-files", mage.MustExpand("{{.PWD}}/build/distributions/*"))
 	args = append(args, "-tags=package")
 
