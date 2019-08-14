@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 import tempfile
 import shlex
@@ -31,12 +32,11 @@ def call(cmd):
         sys.exit(code)
 
 
-def main():
+def main(branch):
     """
-    Updates the index pattern in kibana according to the current checked out branch in apm-server
+    Updates the index pattern in kibana in the specified branch (default "master")
 
     NOTES:
-    - apm-server should be on master or a release branch, and can't be in detached head state
     - `make && make update` must have been run previously
     """
 
@@ -44,8 +44,6 @@ def main():
     export = exec(apm_bin + " export index-pattern")
     index_pattern = json.loads(export)["objects"][0]
 
-    remote_branch = exec("git rev-parse --abbrev-ref --symbolic-full-name @{u}")
-    _, branch = remote_branch.split("/")
     remote_url = exec("git config remote.origin.url")
     gh_user = remote_url.split(":")[1].split("/")[0]
     print("branch: " + branch)
@@ -82,4 +80,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-b', default='master')
+    args = parser.parse_args()
+    main(args.branch)
