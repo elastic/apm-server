@@ -18,8 +18,8 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
@@ -29,14 +29,13 @@ import (
 )
 
 var (
-	supportedHeaders = fmt.Sprintf("%s, %s, %s", headers.ContentType, headers.ContentEncoding, headers.Accept)
-	supportedMethods = fmt.Sprintf("%s, %s", http.MethodPost, http.MethodOptions)
+	supportedHeaders = strings.Join([]string{headers.ContentType, headers.ContentEncoding, headers.Accept}, ", ")
+	supportedMethods = strings.Join([]string{http.MethodPost, http.MethodOptions}, ", ")
 )
 
 // CORSMiddleware returns a middleware serving preflight OPTION requests and terminating requests if they do not
 // match the required valid origin.
 func CORSMiddleware(allowedOrigins []string) Middleware {
-
 	var isAllowed = func(origin string) bool {
 		for _, allowed := range allowedOrigins {
 			if glob.Glob(allowed, origin) {
@@ -48,7 +47,6 @@ func CORSMiddleware(allowedOrigins []string) Middleware {
 
 	return func(h request.Handler) request.Handler {
 		return func(c *request.Context) {
-
 			// origin header is always set by the browser
 			origin := c.Request.Header.Get(headers.Origin)
 			validOrigin := isAllowed(origin)
