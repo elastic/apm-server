@@ -130,6 +130,11 @@ func (r *Result) Reset() {
 	r.Stacktrace = ""
 }
 
+// Failure returns a bool indicating whether it is describing a successful result or not
+func (r *Result) Failure() bool {
+	return r.StatusCode >= http.StatusBadRequest
+}
+
 // SetDefault derives information about the result solely from the ID.
 func (r *Result) SetDefault(id ResultID) {
 	r.set(id, nil, nil)
@@ -168,11 +173,6 @@ func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface
 	}
 }
 
-// Failure returns a bool indicating whether it is describing a successful result or not
-func (r *Result) Failure() bool {
-	return r.StatusCode >= http.StatusBadRequest
-}
-
 func (r *Result) set(id ResultID, body interface{}, err error) {
 	if r == nil {
 		return
@@ -184,7 +184,6 @@ func (r *Result) set(id ResultID, body interface{}, err error) {
 		statusCode = status.Code
 		keyword = status.Keyword
 	} else {
-
 		statusCode = MapResultIDToStatus[IDResponseErrorsInternal].Code
 		keyword = MapResultIDToStatus[IDResponseErrorsInternal].Keyword
 	}
