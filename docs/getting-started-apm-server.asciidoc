@@ -1,22 +1,39 @@
 [[getting-started-apm-server]]
 == Getting Started With APM Server
 
-To get started with your own APM Server setup, install and configure these related products:
+// This section was copied from the APM Overview
+// Switch to tagged regions when available
+The easiest way to get started with APM Server is by using our
+https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
+Elastic Cloud. The {es} Service is available on both AWS and GCP,
+and automatically configures APM Server to work with {es} and {kib}.
+
+[float]
+=== Hosted Elasticsearch Service
+
+Skip managing your own {es}, {kib}, and APM Server by using our
+https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
+Elastic Cloud.
+
+image::images/apm-architecture-cloud.png[Install Elastic APM on cloud]
+
+https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free],
+then jump to <<apm-server-configuration>>.
+
+[float]
+=== Install the stack yourself
+
+If you'd rather install the stack yourself, first see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
+
+image::images/apm-architecture-diy.png[Install Elastic APM yourself]
+
+We recommend you use the same version of Elasticsearch, Kibana, and APM Server:
 
 * *{es}* for storing and indexing data.
-* *{kib}* for the UI.
+* *{kib}* for visualizing with the APM UI.
 
 See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}]
 for more information about installing these products.
-
-[TIP]
-==============
-You can skip having to install {es} and {kib} by using our
-https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on Elastic Cloud.
-The {es} Service is available on both AWS and GCP.
-https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free].
-==============
-
 After installing the {stack}, read the following topics to learn how to install,
 configure, and run APM Server:
 
@@ -36,16 +53,12 @@ configure, and run APM Server:
 See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}].
 
 To download and install {beatname_uc}, use the commands below that work with your system.
+If you use Apt or Yum, you can <<setup-repositories,install {beatname_uc} from our repositories>>
+to update to the newest version more easily.
 
 ifeval::["{release-state}"!="unreleased"]
-[NOTE]
-==================================================
-If you use Apt or Yum, you can <<setup-repositories,install {beatname_uc} from our
-repositories>> to update to the newest version more easily.
-
-See our https://www.elastic.co/downloads/beats/{beatname_lc}[download page] for
-other installation options, such as 32-bit images.
-==================================================
+NOTE: See our https://www.elastic.co/downloads/apm[download page]
+for other installation options, such as 32-bit images.
 endif::[]
 
 [[deb]]
@@ -169,6 +182,26 @@ endif::[]
 
 [[apm-server-configuration]]
 === Step 2: Configure APM Server
+
+[float]
+==== Configure Elastic Cloud
+
+If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
+Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
+
+Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
+
+[float]
+==== Configure a self installation
+
+If you've installed APM Server yourself, you can edit the `apm-server.yml` configuration file to make changes.
+More information is available in {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
+
+Don't forget to also read about
+{apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
+{apm-server-ref-v}/monitoring.html[monitoring APM Server].
+
+// --------
 
 include::./copied-from-beats/shared-configuring.asciidoc[]
 
