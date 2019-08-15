@@ -25,9 +25,9 @@ then jump to <<apm-server-configuration>>.
 
 If you'd rather install the stack yourself, first see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
 
-image::images/apm-architecture-diy.png[Install Elastic APM yourself]
-
 We recommend you use the same version of Elasticsearch, Kibana, and APM Server:
+
+image::images/apm-architecture-diy.png[Install Elastic APM yourself]
 
 * *{es}* for storing and indexing data.
 * *{kib}* for visualizing with the APM UI.
@@ -35,7 +35,7 @@ We recommend you use the same version of Elasticsearch, Kibana, and APM Server:
 See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}]
 for more information about installing these products.
 After installing the {stack}, read the following topics to learn how to install,
-configure, and run APM Server:
+configure, and start APM Server:
 
 * <<installing>>
 * <<apm-server-configuration>>
@@ -186,34 +186,21 @@ endif::[]
 [float]
 ==== Configure Elastic Cloud
 
-If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
+If you're running APM Server in Elastic cloud,
+you can configure your own user settings right in the Elasticsearch Service Console.
 Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
 
-Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
+A full list of configuration options is available in Elastic Cloud's
+{cloud}/ec-manage-apm-settings.html[Add APM user settings].
 
 [float]
 ==== Configure a self installation
 
-If you've installed APM Server yourself, you can edit the `apm-server.yml` configuration file to make changes.
-More information is available in {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
-
-Don't forget to also read about
-{apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
-{apm-server-ref-v}/monitoring.html[monitoring APM Server].
-
-// --------
-
-include::./copied-from-beats/shared-configuring.asciidoc[]
-
-Use the configuration file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
-or if you need to specify credentials:
-
-* {apm-server-ref-v}/configuration-process.html[General configuration options]
-* {apm-server-ref-v}/elasticsearch-output.html[Configure the Elasticsearch output]
-
-// See <<configuring-howto-apm-server>> for more configuration options.
-
-// Other important config settings can be included or linked to here
+If you've installed APM Server yourself,
+you can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
+The location of the file varies by platform. To locate the file, see <<director-layout>>.
+All available configuration options are outlined in
+{apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
 
 [float]
 [[index-template-config]]
