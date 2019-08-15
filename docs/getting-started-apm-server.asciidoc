@@ -178,6 +178,8 @@ or if you need to specify credentials:
 * {apm-server-ref-v}/configuration-process.html[General configuration options]
 * {apm-server-ref-v}/elasticsearch-output.html[Configure the Elasticsearch output]
 
+// See <<configuring-howto-apm-server>> for more configuration options.
+
 // Other important config settings can be included or linked to here
 
 [float]
@@ -213,6 +215,11 @@ To start APM Server, run:
 ----------------------------------
 ./apm-server -e
 ----------------------------------
+
+
+NOTE: The `-e` <<global-flags,global flag>> above enables logging to stderr and disables syslog/file output.
+Remove this flag if you've enabled logging in the configuration file.
+For linux systems, see <<running-with-systemd,APM Server status and logs>>.
 
 You should see APM Server start up.
 It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
