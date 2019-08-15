@@ -1,5 +1,5 @@
 :stack-version: 7.3.0
-:major-version: 7.3
+:major-version: 7.x
 :doc-branch: 7.3
 :branch: {doc-branch}
 :go-version: 1.12.4
