@@ -189,7 +189,7 @@ endif::[]
 
 If you've installed APM Server yourself,
 you can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
-The location of the file varies by platform. To locate the file, see <<director-layout>>.
+The location of the file varies by platform. To locate the file, see <<directory-layout>>.
 All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
 
