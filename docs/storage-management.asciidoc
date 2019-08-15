@@ -237,12 +237,6 @@ See {ref}/docs-delete-by-query.html[delete by query] for further information on 
 Select the indices you want to delete, and click **Manage indices** to see the available actions.
 Then click **delete indices**.
 
-[role="xpack"]
-[[manual-ilm-setup]]
-== Manual index lifecycle management
-
-include::./ilm-setup.asciidoc[]
-
 [[manage-indices-kibana]]
 == Manage Indices via Kibana
 
