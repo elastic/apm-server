@@ -28,8 +28,6 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-//TODO (simi): how to test this?
-
 // LogMiddleware returns a middleware taking care of logging processing a request in the middleware and the request handler
 func LogMiddleware() Middleware {
 	logger := logp.NewLogger(logs.Request)

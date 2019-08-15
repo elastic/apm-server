@@ -75,9 +75,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Panic", func(t *testing.T) {
 		checkMonitoring(t,
-			RecoverPanicMiddleware()(func(_ *request.Context) {
-				panic("test panic")
-			}),
+			RecoverPanicMiddleware()(beatertest.HandlerPanic),
 			map[request.ResultID]int{
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,
