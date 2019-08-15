@@ -18,7 +18,11 @@ Elastic Cloud.
 image::images/apm-architecture-cloud.png[Install Elastic APM on cloud]
 
 https://www.elastic.co/cloud/elasticsearch-service/signup[Try out the {es} Service for free],
-then jump to <<apm-server-configuration>>.
+and then begin configuring your own user settings right in the Elasticsearch Service Console.
+Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
+
+A full list of configuration options is available in Elastic Cloud's
+{cloud}/ec-manage-apm-settings.html[Add APM user settings].
 
 [float]
 === Install the stack yourself
@@ -183,19 +187,6 @@ endif::[]
 [[apm-server-configuration]]
 === Step 2: Configure APM Server
 
-[float]
-==== Configure Elastic Cloud
-
-If you're running APM Server in Elastic cloud,
-you can configure your own user settings right in the Elasticsearch Service Console.
-Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
-
-A full list of configuration options is available in Elastic Cloud's
-{cloud}/ec-manage-apm-settings.html[Add APM user settings].
-
-[float]
-==== Configure a self installation
-
 If you've installed APM Server yourself,
 you can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
 The location of the file varies by platform. To locate the file, see <<director-layout>>.
@@ -204,7 +195,7 @@ All available configuration options are outlined in
 
 [float]
 [[index-template-config]]
-==== Index template configuration
+===== Index template configuration
 
 In Elasticsearch, {ref}/indices-templates.html[index templates] are used to define settings
 and mappings that determine how fields should be analyzed.
@@ -236,13 +227,12 @@ To start APM Server, run:
 ./apm-server -e
 ----------------------------------
 
-
 NOTE: The `-e` <<global-flags,global flag>> above enables logging to stderr and disables syslog/file output.
 Remove this flag if you've enabled logging in the configuration file.
 For linux systems, see <<running-with-systemd,APM Server status and logs>>.
 
 You should see APM Server start up.
-It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
+It will try to connect to Elasticsearch on localhost port `9200` and expose an API to agents on port `8200`.
 You can change the defaults by supplying a different address on the command line:
 
 [source,bash]
@@ -272,13 +262,22 @@ See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
 [[next-steps]]
 === Step 4: Next steps
 
-?? Quick note about installing/running agents now?
-?? Quick note about kibana UI?
-?? 
+// Use a tagged region to pull APM Agent information from the APM Overview
+You're now ready to install and configure APM Agents!
+
+* {apm-go-ref-v}/introduction.html[Go agent]
+* {apm-java-ref-v}/intro.html[Java agent]
+* {apm-dotnet-ref-v}/intro.html[.NET agent]
+* {apm-node-ref-v}/intro.html[Node.js agent]
+* {apm-py-ref-v}/getting-started.html[Python agent]
+* {apm-ruby-ref-v}/introduction.html[Ruby agent]
+* {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
+
+Once you have at least one Agent sending data to APM Server,
+you can start visualizing your data in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
 
 // Shared APM & YUM
 include::./copied-from-beats/repositories.asciidoc[]
 
 // Shared docker
-
 include::./copied-from-beats/shared-docker.asciidoc[]
