@@ -494,7 +494,8 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         # delete sourcemap from ES
         # fetching from ES would lead to an error afterwards
         self.es.indices.delete(index=self.index_smap, ignore=[400, 404])
-        self.wait_until(lambda: not self.es.indices.exists(self.index_smap))
+        self.es.indices.delete(index="{}-000001".format(self.index_error), ignore=[400, 404])
+        self.es.indices.refresh()
 
         # insert document,
         # fetching sourcemap without errors, so it must be fetched from cache
@@ -633,8 +634,8 @@ class ExperimentalBaseTest(ElasticTest):
         self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"), max_timeout=10)
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
-        self.wait_until(lambda: self.log_contains("3 events have been published"), max_timeout=10)
-        time.sleep(1)
+        self.wait_until(lambda: self.log_contains("events have been published"), max_timeout=10)
+        time.sleep(2)
         self.assert_no_logged_warnings()
 
         for idx in [self.index_transaction, self.index_span, self.index_error]:
@@ -649,7 +650,7 @@ class ExperimentalBaseTest(ElasticTest):
 
 
 class ProductionModeTest(ExperimentalBaseTest):
-    config_overrides = {"mode": "production"}
+    config_overrides = {"mode": "production", "queue_flush": 2048}
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_experimental_key_indexed(self):
@@ -657,7 +658,7 @@ class ProductionModeTest(ExperimentalBaseTest):
 
 
 class ExperimentalModeTest(ExperimentalBaseTest):
-    config_overrides = {"mode": "experimental"}
+    config_overrides = {"mode": "experimental", "queue_flush": 2048}
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_experimental_key_indexed(self):

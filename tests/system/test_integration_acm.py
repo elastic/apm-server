@@ -16,6 +16,14 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         "acm_cache_expiration": "1s",
     }
 
+    def config(self):
+        cfg = super(ElasticTest, self).config()
+        cfg.update({
+            "kibana_host": self.get_kibana_url(),
+        })
+        cfg.update(self.config_overrides)
+        return cfg
+
     def create_service_config(self, settings, name, env=None, _id="new"):
         data = {
             "service": {"name": name},

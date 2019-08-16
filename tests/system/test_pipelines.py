@@ -158,7 +158,8 @@ class MissingPipelineTest(ElasticTest):
 class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
 
     config_overrides = {
-        "register_pipeline_overwrite": "false"
+        "register_pipeline_overwrite": "false",
+        "queue_flush": 2048,
     }
 
     def setUp(self):
@@ -178,7 +179,8 @@ class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 class PipelineEnableRegisterOverwriteTest(ElasticTest):
     config_overrides = {
-        "register_pipeline_overwrite": "true"
+        "register_pipeline_overwrite": "true",
+        "queue_flush": 2048,
     }
 
     def setUp(self):
@@ -191,9 +193,8 @@ class PipelineEnableRegisterOverwriteTest(ElasticTest):
         self.wait_until(lambda: es.ingest.get_pipeline("apm"))
 
     def test_pipeline_overwritten(self):
-        loaded_msg = "Pipeline successfully registered"
+        loaded_msg = "Registered Ingest Pipelines successfully"
         self.wait_until(lambda: self.log_contains(loaded_msg))
         pipeline_id = "apm"
-        pipeline = self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id),
-                                   name="fetching pipeline {}".format(pipeline_id))
-        assert pipeline[pipeline_id]['description'] == "Default enrichment for APM events"
+        self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == "Default enrichment for APM events",
+                        name="fetching pipeline {}".format(pipeline_id))
