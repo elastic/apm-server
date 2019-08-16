@@ -1,4 +1,4 @@
-:stack-version: 7.3.0
+:stack-version: 7.3.1
 :major-version: 7.x
 :doc-branch: 7.3
 :branch: {doc-branch}
