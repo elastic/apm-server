@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/apm-server/beater/beatertest"
 )
 
-//TODO: check if it is breaking to return 404 body not always in plain text
 func TestRootHandler(t *testing.T) {
 	t.Run("404", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/abc/xyz")

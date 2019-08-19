@@ -77,7 +77,6 @@ func TestIntakeHandler(t *testing.T) {
 		},
 		"Decoder": {
 			path: "errors.ndjson",
-			//TODO simi: check status code
 			dec: func(*http.Request) (map[string]interface{}, error) {
 				return nil, errors.New("cannot decode `xyz`")
 			},
