@@ -778,12 +778,12 @@ type: text
 Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
 
+--
+
 *`transaction.name.keyword`*::
 +
 --
 type: keyword
-
---
 
 --
 

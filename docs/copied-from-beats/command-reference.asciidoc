@@ -579,7 +579,7 @@ endif::[]
 *EXAMPLE*
 
 ["source","sh",subs="attributes"]
------
+----
 {beatname_lc} version
 ----
 
