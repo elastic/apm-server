@@ -43,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/tests/loader"
 )
 
-type m = map[string]interface{}
+type m map[string]interface{}
 
 func TestServerOk(t *testing.T) {
 	apm, teardown, err := setupServer(t, nil, nil, nil)

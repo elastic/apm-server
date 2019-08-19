@@ -73,6 +73,18 @@ func TestMonitoringHandler(t *testing.T) {
 			mockMonitoringFn)
 	})
 
+	t.Run("Panic", func(t *testing.T) {
+		checkMonitoring(t,
+			RecoverPanicMiddleware()(beatertest.HandlerPanic),
+			map[request.ResultID]int{
+				request.IDRequestCount:           1,
+				request.IDResponseCount:          1,
+				request.IDResponseErrorsCount:    1,
+				request.IDResponseErrorsInternal: 1,
+			},
+			mockMonitoringFn)
+	})
+
 	t.Run("Nil", func(t *testing.T) {
 		checkMonitoring(t,
 			beatertest.HandlerIdle,

@@ -37,5 +37,10 @@ func Handler202(c *request.Context) {
 	c.Write()
 }
 
+// HandlerPanic panics on request
+func HandlerPanic(_ *request.Context) {
+		panic("panic on Handle")
+}
+
 // HandlerIdle doesn't do anything but implement the request.Handler type
 func HandlerIdle(c *request.Context) {}

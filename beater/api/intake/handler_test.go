@@ -75,6 +75,30 @@ func TestIntakeHandler(t *testing.T) {
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
 		},
+		"CompressedBodyReaderDeflate": {
+			path: "errors.ndjson",
+			r: func() *http.Request {
+				data, err := loader.LoadDataAsBytes("../testdata/intake-v2/errors.ndjson")
+				require.NoError(t, err)
+				req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(data))
+				req.Header.Set(headers.ContentType, "application/x-ndjson")
+				req.Header.Set(headers.ContentEncoding, "deflate")
+				return req
+			}(),
+			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
+		},
+		"CompressedBodyReaderGzip": {
+			path: "errors.ndjson",
+			r: func() *http.Request {
+				data, err := loader.LoadDataAsBytes("../testdata/intake-v2/errors.ndjson")
+				require.NoError(t, err)
+				req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(data))
+				req.Header.Set(headers.ContentType, "application/x-ndjson")
+				req.Header.Set(headers.ContentEncoding, "gzip")
+				return req
+			}(),
+			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
+		},
 		"Decoder": {
 			path: "errors.ndjson",
 			dec: func(*http.Request) (map[string]interface{}, error) {
