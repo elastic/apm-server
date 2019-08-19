@@ -40,8 +40,6 @@ docker run {dockerimage} setup --dashboards
 
 *win:*
 
-endif::allplatforms[]
-
 Open a PowerShell prompt as an Administrator (right-click the PowerShell icon
 and select *Run As Administrator*).
 
