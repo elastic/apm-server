@@ -67,7 +67,7 @@ docker run {dockerimage} setup --dashboards
 
 *win:*
 
-endif::allplatforms[]
+endif::[]
 
 Open a PowerShell prompt as an Administrator (right-click the PowerShell icon
 and select *Run As Administrator*).
@@ -136,7 +136,7 @@ docker run {dockerimage} setup -e \
 
 *win:*
 
-endif::allplatforms[]
+endif::[]
 
 Open a PowerShell prompt as an Administrator (right-click the PowerShell icon
 and select *Run As Administrator*).
