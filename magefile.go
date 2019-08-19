@@ -43,7 +43,7 @@ func init() {
 	})
 
 	mage.BeatDescription = "Elastic APM Server"
-	mage.BeatURL = "https://www.elastic.co/solutions/apm"
+	mage.BeatURL = "https://www.elastic.co/products/apm"
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
