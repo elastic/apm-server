@@ -669,6 +669,8 @@ example: Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.
 Unparsed version of the user_agent.
 
 
+--
+
 *`user_agent.original.text`*::
 +
 --
@@ -676,8 +678,6 @@ type: text
 
 Software agent acting in behalf of a user, eg. a web browser / OS combination.
 
-
---
 
 --
 
@@ -1094,12 +1094,12 @@ type: keyword
 Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 
 
+--
+
 *`transaction.name.text`*::
 +
 --
 type: text
-
---
 
 --
 
