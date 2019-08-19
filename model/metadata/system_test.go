@@ -18,186 +18,181 @@
 package metadata
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/common"
 )
 
-func TestSystemTransform(t *testing.T) {
-
-	architecture := "x64"
-	hostname, name := "a.b.com", "foo"
-	platform := "darwin"
-	ip := "127.0.0.1"
+func TestSystem(t *testing.T) {
+	host, configured, detected := "host", "custom hostname", "detected hostname"
+	arch, platform, ip, containerID, namespace := "amd", "osx", "127.0.0.1", "1234", "staging"
 	empty := ""
-	nodename := "a.node"
-	podname := "a.pod"
+	nodename, podname, podUID := "a.node", "a.pod", "b.podID"
 
-	tests := []struct {
-		System System
-		Output common.MapStr
-	}{
-		{
-			System: System{},
-			Output: common.MapStr{},
-		},
-		{
-			System: System{
-				IP: &empty,
-			},
-			Output: common.MapStr{},
-		},
-		{
-			System: System{
-				Architecture:       &architecture,
-				DetectedHostname:   &hostname,
-				ConfiguredHostname: &name,
-				Platform:           &platform,
-				IP:                 &ip,
-			},
-			Output: common.MapStr{
-				"architecture": architecture,
-				"hostname":     hostname,
-				"name":         name,
-				"ip":           ip,
-				"os": common.MapStr{
-					"platform": platform,
-				},
-			},
-		},
-		{
-			System: System{
-				Architecture:     &architecture,
-				DetectedHostname: &hostname,
-			},
-			Output: common.MapStr{
-				"architecture": architecture,
-				"hostname":     hostname,
-				"name":         hostname,
-			},
-		},
-		// nodename and configured_hostname
-		{
-			System: System{
-				ConfiguredHostname: &hostname,
-				Kubernetes: &Kubernetes{
-					NodeName: &nodename,
-					PodName:  &podname,
-				},
-			},
-			Output: common.MapStr{
-				"hostname": nodename,
-				"name":     hostname,
-			},
-		},
-		// nodename and podname
-		{
-			System: System{
-				DetectedHostname: &hostname,
-				Kubernetes: &Kubernetes{
-					NodeName: &nodename,
-					PodName:  &podname,
-				},
-			},
-			Output: common.MapStr{
-				"hostname": nodename,
-				"name":     nodename,
-			},
-		},
-		// podname
-		{
-			System: System{
-				DetectedHostname:   &hostname,
-				ConfiguredHostname: &name,
-				Kubernetes: &Kubernetes{
-					PodName: &podname,
-				},
-			},
-			Output: common.MapStr{"name": name},
-		},
-		// poduid
-		{
-			System: System{
-				DetectedHostname: &hostname,
-				Kubernetes: &Kubernetes{
-					PodUID: &podname, // any string
-				},
-			},
-			Output: common.MapStr{},
-		},
-		// namespace
-		{
-			System: System{
-				DetectedHostname: &hostname,
-				Kubernetes: &Kubernetes{
-					Namespace: &podname, // any string
-				},
-			},
-			Output: common.MapStr{},
-		},
-		// non-nil kubernetes, currently not possible via intake
-		{
-			System: System{
-				DetectedHostname: &hostname,
-				Kubernetes:       &Kubernetes{},
-			},
-			Output: common.MapStr{
-				"hostname": hostname,
-				"name":     hostname,
-			},
-		},
-	}
-
-	for _, test := range tests {
-		output := test.System.fields()
-		assert.Equal(t, test.Output, output)
-	}
-}
-
-func TestSystemDecode(t *testing.T) {
-	host, name, arch, platform, ip := "host", "custom hostname", "amd", "osx", "127.0.0.1"
 	inpErr := errors.New("some error")
-	for _, test := range []struct {
+	for name, test := range map[string]struct {
 		input         interface{}
 		inputErr, err error
 		s             *System
 	}{
-		{input: nil, err: nil, s: nil},
-		{input: nil, inputErr: inpErr, err: inpErr, s: nil},
-		{input: "", err: errors.New("invalid type for system"), s: nil},
-		{
+		"nil":         {input: nil, err: nil, s: nil},
+		"inputError":  {input: nil, inputErr: inpErr, err: inpErr, s: nil},
+		"invalidType": {input: "", err: errors.New("invalid type for system"), s: nil},
+		"empty":       {input: map[string]interface{}{}, s: &System{}},
+		"fetchError": {
 			input: map[string]interface{}{"hostname": 1},
 			err:   utility.ErrFetch,
 			s:     &System{DetectedHostname: nil, Architecture: nil, Platform: nil, IP: nil},
 		},
-		{
-			input: map[string]interface{}{
-				"hostname": host, "architecture": arch, "platform": platform, "ip": ip,
-			},
-			err: nil,
-			s:   &System{DetectedHostname: &host, Architecture: &arch, Platform: &platform, IP: &ip},
+		"empty ip": {
+			input: map[string]interface{}{"ip": ""},
+			s:     &System{IP: &empty},
 		},
-		{
-			input: map[string]interface{}{
-				"hostname": host, "configured_hostname": name,
-			},
-			err: nil,
-			s:   &System{ConfiguredHostname: &name},
+		"hostname": {
+			input: map[string]interface{}{"hostname": host},
+			s:     &System{DetectedHostname: &host},
 		},
-		{
+		"detected hostname": {
 			input: map[string]interface{}{
-				"hostname": host, "detected_hostname": name,
+				"hostname": host, "detected_hostname": detected,
+			},
+			s: &System{DetectedHostname: &detected},
+		},
+		"ignored hostname": {
+			input: map[string]interface{}{
+				"hostname": host, "configured_hostname": configured,
+			},
+			s: &System{ConfiguredHostname: &configured},
+		},
+		"k8s nodename with hostname": {
+			input: map[string]interface{}{
+				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
+				"hostname":   host,
+			},
+			s: &System{Kubernetes: &Kubernetes{NodeName: &nodename}, DetectedHostname: &host},
+		},
+		"k8s nodename with configured hostname": {
+			input: map[string]interface{}{
+				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
+				"hostname":   host, "configured_hostname": configured,
+			},
+			s: &System{Kubernetes: &Kubernetes{NodeName: &nodename}, ConfiguredHostname: &configured},
+		},
+		"k8s nodename with detected hostname": {
+			input: map[string]interface{}{
+				"kubernetes": map[string]interface{}{"node": map[string]interface{}{"name": nodename}},
+				"hostname":   host, "detected_hostname": detected,
+			},
+			s: &System{Kubernetes: &Kubernetes{NodeName: &nodename}, DetectedHostname: &detected},
+		},
+		"k8s podname": {
+			input: map[string]interface{}{
+				"kubernetes":        map[string]interface{}{"pod": map[string]interface{}{"name": podname}},
+				"detected_hostname": detected,
+			},
+			s: &System{Kubernetes: &Kubernetes{PodName: &podname}, DetectedHostname: &detected},
+		},
+		"k8s podUID": {
+			input: map[string]interface{}{
+				"kubernetes":        map[string]interface{}{"pod": map[string]interface{}{"uid": podUID}},
+				"detected_hostname": detected,
+			},
+			s: &System{Kubernetes: &Kubernetes{PodUID: &podUID}, DetectedHostname: &detected},
+		},
+		"k8s_namespace": {
+			input: map[string]interface{}{
+				"kubernetes":        map[string]interface{}{"namespace": namespace},
+				"detected_hostname": detected,
+			},
+			s: &System{Kubernetes: &Kubernetes{Namespace: &namespace}, DetectedHostname: &detected},
+		},
+		"k8s podname with configured hostname": {
+			input: map[string]interface{}{
+				"kubernetes":          map[string]interface{}{"pod": map[string]interface{}{"name": podname}},
+				"detected_hostname":   detected,
+				"configured_hostname": configured,
+			},
+			s: &System{Kubernetes: &Kubernetes{PodName: &podname}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+		},
+		"k8s podUID with configured hostname": {
+			input: map[string]interface{}{
+				"kubernetes":          map[string]interface{}{"pod": map[string]interface{}{"uid": podUID}},
+				"detected_hostname":   detected,
+				"configured_hostname": configured,
+			},
+			s: &System{Kubernetes: &Kubernetes{PodUID: &podUID}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+		},
+		"k8s namespace with configured hostname": {
+			input: map[string]interface{}{
+				"kubernetes":          map[string]interface{}{"namespace": namespace},
+				"detected_hostname":   detected,
+				"configured_hostname": configured,
+			},
+			s: &System{Kubernetes: &Kubernetes{Namespace: &namespace}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+		},
+		"k8s empty": {
+			input: map[string]interface{}{
+				"kubernetes":          map[string]interface{}{},
+				"detected_hostname":   detected,
+				"configured_hostname": configured,
+			},
+			s: &System{Kubernetes: &Kubernetes{}, DetectedHostname: &detected, ConfiguredHostname: &configured},
+		},
+		"full": {
+			input: map[string]interface{}{
+				"platform":     platform,
+				"architecture": arch,
+				"ip":           ip,
+				"container":    map[string]interface{}{"id": containerID},
+				"kubernetes": map[string]interface{}{
+					"namespace": namespace,
+					"node":      map[string]interface{}{"name": nodename},
+					"pod": map[string]interface{}{
+						"uid":  podUID,
+						"name": podname,
+					},
+				},
+				"hostname":            host,
+				"configured_hostname": configured,
+				"detected_hostname":   detected,
 			},
 			err: nil,
-			s:   &System{DetectedHostname: &name},
+			s: &System{
+				DetectedHostname:   &detected,
+				ConfiguredHostname: &configured,
+				Architecture:       &arch,
+				Platform:           &platform,
+				IP:                 &ip,
+				Container:          &Container{ID: containerID},
+				Kubernetes:         &Kubernetes{Namespace: &namespace, NodeName: &nodename, PodName: &podname, PodUID: &podUID},
+			},
 		},
 	} {
-		sys, err := DecodeSystem(test.input, test.inputErr)
-		assert.Equal(t, test.s, sys)
-		assert.Equal(t, test.err, err)
+
+		t.Run("Decode"+name, func(t *testing.T) {
+			system, err := DecodeSystem(test.input, test.inputErr)
+			assert.Equal(t, test.s, system)
+			assert.Equal(t, test.err, err)
+		})
+
+		if test.err == nil {
+			t.Run("Transform"+name, func(t *testing.T) {
+				system, err := DecodeSystem(test.input, test.inputErr)
+				require.NoError(t, err)
+				resultName := fmt.Sprintf("test_approved_system/transform_%s", strings.ReplaceAll(name, " ", "_"))
+				resultJSON, err := json.Marshal(system.fields())
+				require.NoError(t, err)
+				approvals.AssertApproveResult(t, resultName, resultJSON)
+			})
+		}
 	}
 }

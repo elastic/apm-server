@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
+	"github.com/elastic/apm-server/tests/approvals"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -72,7 +73,7 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		for _, transformable := range payload {
 			events = append(events, transformable.Transform(&tctx)...)
 		}
-		verifyErr := tests.ApproveEvents(events, info.Name, ignored)
+		verifyErr := approvals.ApproveEvents(events, info.Name, ignored)
 		if verifyErr != nil {
 			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
 		}

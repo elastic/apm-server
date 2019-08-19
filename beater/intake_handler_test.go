@@ -35,7 +35,7 @@ import (
 
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
@@ -158,7 +158,7 @@ func TestRequestIntegration(t *testing.T) {
 				}
 
 				body := w.Body.Bytes()
-				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+name, body)
+				approvals.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegration"+name, body)
 			})
 		}
 	}
@@ -187,7 +187,7 @@ func TestRequestIntegrationRUM(t *testing.T) {
 			require.Equal(t, test.code, w.Code, w.Body.String())
 			if test.code != http.StatusAccepted {
 				body := w.Body.Bytes()
-				tests.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegrationRum"+test.name, body)
+				approvals.AssertApproveResult(t, "test_approved_stream_result/TestRequestIntegrationRum"+test.name, body)
 			}
 		})
 	}
@@ -277,5 +277,5 @@ func TestLineExceeded(t *testing.T) {
 	handler.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 	assert.Equal(t, ct+1, requestTooLargeCounter.Get())
-	tests.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
+	approvals.AssertApproveResult(t, "test_approved_stream_result/TestLineExceeded", w.Body.Bytes())
 }
