@@ -188,7 +188,7 @@ docker run {dockerimage} setup --template{disable_logstash} -E 'output.elasticse
 
 *win:*
 
-endif::allplatforms[]
+endif::[]
 
 Open a PowerShell prompt as an Administrator (right-click the PowerShell icon
 and select *Run As Administrator*).
@@ -255,7 +255,7 @@ ifdef::allplatforms[]
 +
 *win:*
 +
-endif::allplatforms[]
+endif::[]
 ["source","sh",subs="attributes"]
 ----
 PS > .{backslash}{beatname_lc}.exe export template --es.version {stack-version} | Out-File -Encoding UTF8 {beatname_lc}.template.json
