@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/tests/loader"

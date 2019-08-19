@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"golang.org/x/time/rate"
 
 	conf "github.com/elastic/apm-server/config"
