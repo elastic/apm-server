@@ -39,7 +39,7 @@ func Handler202(c *request.Context) {
 
 // HandlerPanic panics on request
 func HandlerPanic(_ *request.Context) {
-		panic("panic on Handle")
+	panic("panic on Handle")
 }
 
 // HandlerIdle doesn't do anything but implement the request.Handler type
