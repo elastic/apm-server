@@ -43,7 +43,7 @@ ifdef::allplatforms[]
 
 include::../../libbeat/docs/step-test-config.asciidoc[]
 
-endif::allplatforms[]
+endif::[]
 
 ifdef::win[]
 
