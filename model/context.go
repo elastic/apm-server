@@ -170,6 +170,18 @@ func (h *Http) Fields() common.MapStr {
 	return fields
 }
 
+func (h *Http) ClientFields(fields common.MapStr) common.MapStr {
+	if fields != nil && fields["ip"] != nil {
+		return fields
+	}
+	if h == nil ||
+		h.Request == nil || h.Request.Socket == nil ||
+		h.Request.Socket.RemoteAddress == nil || *h.Request.Socket.RemoteAddress == "" {
+		return fields
+	}
+	return common.MapStr{"ip": *h.Request.Socket.RemoteAddress}
+}
+
 func (h *Http) UserAgent() string {
 	if h == nil || h.Request == nil {
 		return ""
