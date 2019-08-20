@@ -40,20 +40,26 @@ Sites with many concurrent clients should consider increasing this limit.
 Defaults to 1000.
 
 [float]
+[[rum-allow-origins]]
 ==== `allow_origins`
 Comma separated list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
 This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
 An origin is made of a protocol scheme, host and port, without the URL path.
+// added to make the build pass. Can delete
+[[_literal_allow_origins_literal]]
 Default value is set to `['*']`, which allows everything.
 
 [float]
+[[rum-library-pattern]]
 ==== `library_pattern`
 RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
 If the RegExp matches, the stacktrace frame is considered to be a library frame.
 When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
 of the first non library frame.
 This aims to provide an entry point for identifying issues.
+// added to make the build pass. Can delete
+[[_literal_library_pattern_literal]]
 Default value is `"node_modules|bower_components|~"`.
 
 [float]
