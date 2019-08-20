@@ -280,7 +280,7 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 
 	for idx, test := range tests {
 		tctx := &transform.Context{
-			Config:   transform.Config{SmapMapper: &FakeMapper{}},
+			Config:   transform.Config{SourcemapMapper: &FakeMapper{}},
 			Metadata: metadata.Metadata{Service: &service},
 		}
 
