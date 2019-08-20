@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
+// Context holds all information sent under key context
 type Context struct {
 	Http         *Http
 	Url          *Url
@@ -40,12 +41,14 @@ type Context struct {
 	Experimental interface{}
 }
 
+// Http bundles information related to an http request and its response
 type Http struct {
 	Version  *string
 	Request  *Req
 	Response *Resp
 }
 
+// Url describes request URL and its components
 type Url struct {
 	Original *string
 	Scheme   *string
@@ -57,14 +60,19 @@ type Url struct {
 	Fragment *string
 }
 
+// Page consists of Url string and referer
 type Page struct {
 	Url     *string
 	Referer *string
 }
 
+// Labels holds user defined information nested under key tags
 type Labels common.MapStr
+
+// Custom holds user defined information nested under key custom
 type Custom common.MapStr
 
+// Req bundles information related to an http request
 type Req struct {
 	Method  string
 	Body    interface{}
@@ -74,11 +82,13 @@ type Req struct {
 	Cookies interface{}
 }
 
+// Socket indicates whether an http request was encrypted and the initializers remote address
 type Socket struct {
 	RemoteAddress *string
 	Encrypted     *bool
 }
 
+// Resp bundles information related to an http requests response
 type Resp struct {
 	Finished    *bool
 	StatusCode  *int
@@ -86,6 +96,7 @@ type Resp struct {
 	Headers     http.Header
 }
 
+// DecodeContext parses all information from input, nested under key context and returns an instance of Context.
 func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	if input == nil || err != nil {
 		return nil, err
@@ -132,16 +143,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 
 }
 
-func addUserAgent(user *metadata.User, h *Http) *metadata.User {
-	if ua := h.UserAgent(); ua != "" {
-		if user == nil {
-			user = &metadata.User{}
-		}
-		user.UserAgent = &ua
-	}
-	return user
-}
-
+// Fields returns common.MapStr holding transformed data for attribute url.
 func (url *Url) Fields() common.MapStr {
 	if url == nil {
 		return nil
@@ -158,6 +160,7 @@ func (url *Url) Fields() common.MapStr {
 	return fields
 }
 
+// Fields returns common.MapStr holding transformed data for attribute http.
 func (h *Http) Fields() common.MapStr {
 	if h == nil {
 		return nil
@@ -170,6 +173,8 @@ func (h *Http) Fields() common.MapStr {
 	return fields
 }
 
+// ClientFields returns common.MapStr holding transformed data for attribute client. If given data include IP information,
+// data are returned unchanged, otherwise IP information will be extracted from http data if possible.
 func (h *Http) ClientFields(fields common.MapStr) common.MapStr {
 	if fields != nil && fields["ip"] != nil {
 		return fields
@@ -182,6 +187,7 @@ func (h *Http) ClientFields(fields common.MapStr) common.MapStr {
 	return common.MapStr{"ip": *h.Request.Socket.RemoteAddress}
 }
 
+// UserAgent parses User Agent information from attribute http.
 func (h *Http) UserAgent() string {
 	if h == nil || h.Request == nil {
 		return ""
@@ -190,6 +196,7 @@ func (h *Http) UserAgent() string {
 	return dec.UserAgentHeader(h.Request.Headers)
 }
 
+// Fields returns common.MapStr holding transformed data for attribute page.
 func (page *Page) Fields() common.MapStr {
 	if page == nil {
 		return nil
@@ -200,6 +207,7 @@ func (page *Page) Fields() common.MapStr {
 	return fields
 }
 
+// Fields returns common.MapStr holding transformed data for attribute label.
 func (labels *Labels) Fields() common.MapStr {
 	if labels == nil {
 		return nil
@@ -207,11 +215,22 @@ func (labels *Labels) Fields() common.MapStr {
 	return common.MapStr(*labels)
 }
 
+// Fields returns common.MapStr holding transformed data for attribute custom.
 func (custom *Custom) Fields() common.MapStr {
 	if custom == nil {
 		return nil
 	}
 	return common.MapStr(*custom)
+}
+
+func addUserAgent(user *metadata.User, h *Http) *metadata.User {
+	if ua := h.UserAgent(); ua != "" {
+		if user == nil {
+			user = &metadata.User{}
+		}
+		user.UserAgent = &ua
+	}
+	return user
 }
 
 func decodeUrl(raw common.MapStr, err error) (*Url, error) {
