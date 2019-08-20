@@ -543,7 +543,7 @@ func TestEventFields(t *testing.T) {
 
 	s := "myservice"
 	tctx := &transform.Context{
-		Config: transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Config: transform.Config{SourcemapMapper: &sourcemap.SmapMapper{}},
 		Metadata: metadata.Metadata{
 			Service: &metadata.Service{Name: &s},
 		},
@@ -681,7 +681,7 @@ func TestEvents(t *testing.T) {
 	me := metadata.NewMetadata(&service, nil, nil, &metadata.User{Id: &uid}, metadataLabels)
 	tctx := &transform.Context{
 		Metadata:    *me,
-		Config:      transform.Config{SmapMapper: &sourcemap.SmapMapper{}},
+		Config:      transform.Config{SourcemapMapper: &sourcemap.SmapMapper{}},
 		RequestTime: timestamp,
 	}
 
@@ -722,13 +722,13 @@ func TestCulprit(t *testing.T) {
 		},
 		{
 			event:   Event{Culprit: &c},
-			config:  transform.Config{SmapMapper: &mapper},
+			config:  transform.Config{SourcemapMapper: &mapper},
 			culprit: "foo",
 			msg:     "No Stacktrace Frame given.",
 		},
 		{
 			event:   Event{Culprit: &c, Log: &Log{Stacktrace: st}},
-			config:  transform.Config{SmapMapper: &mapper},
+			config:  transform.Config{SourcemapMapper: &mapper},
 			culprit: "foo",
 			msg:     "Log.StacktraceFrame has no updated frame",
 		},
@@ -744,7 +744,7 @@ func TestCulprit(t *testing.T) {
 					},
 				},
 			},
-			config:  transform.Config{SmapMapper: &mapper},
+			config:  transform.Config{SourcemapMapper: &mapper},
 			culprit: "f",
 			msg:     "Adapt culprit to first valid Log.StacktraceFrame information.",
 		},
@@ -753,7 +753,7 @@ func TestCulprit(t *testing.T) {
 				Culprit:   &c,
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SmapMapper: &mapper},
+			config:  transform.Config{SourcemapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Adapt culprit to first valid Exception.StacktraceFrame information.",
 		},
@@ -763,7 +763,7 @@ func TestCulprit(t *testing.T) {
 				Log:       &Log{Stacktrace: st},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SmapMapper: &mapper},
+			config:  transform.Config{SourcemapMapper: &mapper},
 			culprit: "f in fct",
 			msg:     "Log and Exception StacktraceFrame given, only one changes culprit.",
 		},
@@ -781,7 +781,7 @@ func TestCulprit(t *testing.T) {
 				},
 				Exception: &Exception{Stacktrace: stUpdate},
 			},
-			config:  transform.Config{SmapMapper: &mapper},
+			config:  transform.Config{SourcemapMapper: &mapper},
 			culprit: "a in fct",
 			msg:     "Log Stacktrace is prioritized over Exception StacktraceFrame",
 		},
@@ -1007,7 +1007,7 @@ func TestSourcemapping(t *testing.T) {
 		},
 	}}
 	tctx := &transform.Context{
-		Config: transform.Config{SmapMapper: nil},
+		Config: transform.Config{SourcemapMapper: nil},
 		Metadata: metadata.Metadata{
 			Service: &metadata.Service{Name: &empty},
 		},
@@ -1022,7 +1022,7 @@ func TestSourcemapping(t *testing.T) {
 	}}
 	mapper := sourcemap.SmapMapper{Accessor: &fakeAcc{}}
 
-	tctx.Config = transform.Config{SmapMapper: &mapper}
+	tctx.Config = transform.Config{SourcemapMapper: &mapper}
 	trWithSmap := event2.fields(tctx)
 
 	assert.Equal(t, 1, *event.Exception.Stacktrace[0].Lineno)

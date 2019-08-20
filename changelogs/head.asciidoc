@@ -3,6 +3,8 @@
 
 [float]
 ==== Bug fixes
+- Return 404 json error on requests to non existing paths {pull}2526[2526].
+- Remove additional nesting of error values in logs {pull}2526[2526].
 
 [float]
 ==== Added

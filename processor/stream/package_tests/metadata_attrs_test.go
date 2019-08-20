@@ -159,7 +159,7 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 }
 
 func TestInvalidPayloadsForMetadata(t *testing.T) {
-	type val = []interface{}
+	type val []interface{}
 
 	payloadData := []tests.SchemaTestData{
 		{Key: "metadata.service.name",

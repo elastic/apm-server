@@ -30,7 +30,7 @@ import (
 	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/beater"
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/dev-tools/mage"
 )
 
@@ -43,7 +43,7 @@ func init() {
 	})
 
 	mage.BeatDescription = "Elastic APM Server"
-	mage.BeatURL = "https://www.elastic.co/solutions/apm"
+	mage.BeatURL = "https://www.elastic.co/products/apm"
 	mage.BeatIndexPrefix = "apm"
 	mage.XPackDir = "x-pack"
 	mage.BeatUser = "apm-server"
@@ -98,7 +98,7 @@ func shortConfigFileParams() mage.ConfigFileParams {
 		},
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "localhost:9200",
-			"listen_hostport":        "localhost:" + beater.DefaultPort,
+			"listen_hostport":        "localhost:" + config.DefaultPort,
 		},
 	}
 }
@@ -110,7 +110,7 @@ func dockerConfigFileParams() mage.ConfigFileParams {
 		},
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "elasticsearch:9200",
-			"listen_hostport":        "0.0.0.0:" + beater.DefaultPort,
+			"listen_hostport":        "0.0.0.0:" + config.DefaultPort,
 		},
 	}
 }
@@ -154,6 +154,7 @@ func TestPackagesInstall() error {
 		args = append(args, "-v")
 	}
 	args = append(args, mage.MustExpand("tests/packaging/package_test.go"))
+	args = append(args, "-timeout", "20m")
 	args = append(args, "-files", mage.MustExpand("{{.PWD}}/build/distributions/*"))
 	args = append(args, "-tags=package")
 
@@ -231,7 +232,7 @@ func customizePackaging() {
 			delete(args.Spec.Files, "{{.BeatName}}.reference.yml")
 			args.Spec.ReplaceFile("README.md", readmeTemplate)
 			args.Spec.Files[ingestTarget] = ingest
-			args.Spec.ExtraVars["expose_ports"] = beater.DefaultPort
+			args.Spec.ExtraVars["expose_ports"] = config.DefaultPort
 			args.Spec.ExtraVars["repository"] = "docker.elastic.co/apm"
 
 		case mage.Deb, mage.RPM:

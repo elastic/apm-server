@@ -30,6 +30,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -47,12 +48,11 @@ func TestBeatConfig(t *testing.T) {
 
 	tests := map[string]struct {
 		conf       map[string]interface{}
-		beaterConf *Config
-		SmapIndex  string
+		beaterConf *config.Config
 	}{
 		"default config": {
 			conf:       map[string]interface{}{},
-			beaterConf: defaultConfig("6.2.0"),
+			beaterConf: config.DefaultConfig("6.2.0"),
 		},
 		"overwrite default config": {
 			conf: map[string]interface{}{
@@ -102,7 +102,7 @@ func TestBeatConfig(t *testing.T) {
 				"kibana":                        map[string]interface{}{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
 			},
-			beaterConf: &Config{
+			beaterConf: &config.Config{
 				Host:            "localhost:3000",
 				MaxHeaderSize:   8,
 				MaxEventSize:    100,
@@ -116,28 +116,28 @@ func TestBeatConfig(t *testing.T) {
 					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
 					ClientAuth:  0},
 				AugmentEnabled: true,
-				Expvar: &ExpvarConfig{
+				Expvar: &config.ExpvarConfig{
 					Enabled: &truthy,
-					Url:     "/debug/vars",
+					URL:     "/debug/vars",
 				},
-				RumConfig: &rumConfig{
+				RumConfig: &config.RumConfig{
 					Enabled: &truthy,
-					EventRate: &eventRate{
+					EventRate: &config.EventRate{
 						Limit:   7200,
 						LruSize: 2000,
 					},
 					AllowOrigins: []string{"example*"},
-					SourceMapping: &SourceMapping{
-						Cache:        &Cache{Expiration: 8 * time.Minute},
+					SourceMapping: &config.SourceMapping{
+						Cache:        &config.Cache{Expiration: 8 * time.Minute},
 						IndexPattern: "apm-test*",
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
-					beatVersion:         "6.2.0",
+					BeatVersion:         "6.2.0",
 				},
-				Register: &registerConfig{
-					Ingest: &ingestConfig{
-						Pipeline: &pipelineConfig{
+				Register: &config.RegisterConfig{
+					Ingest: &config.IngestConfig{
+						Pipeline: &config.PipelineConfig{
 							Enabled:   &truthy,
 							Overwrite: &falsy,
 							Path:      filepath.Join("tmp", "definition.json"),
@@ -145,8 +145,8 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
-				AgentConfig: &agentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
-				pipeline:    defaultAPMPipeline,
+				AgentConfig: &config.AgentConfig{Cache: &config.Cache{Expiration: 2 * time.Minute}},
+				Pipeline:    config.DefaultAPMPipeline,
 			},
 		},
 		"merge config with default": {
@@ -177,7 +177,7 @@ func TestBeatConfig(t *testing.T) {
 					},
 				},
 			},
-			beaterConf: &Config{
+			beaterConf: &config.Config{
 				Host:            "localhost:3000",
 				MaxHeaderSize:   1048576,
 				MaxEventSize:    307200,
@@ -191,38 +191,38 @@ func TestBeatConfig(t *testing.T) {
 					Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
 					ClientAuth:  3},
 				AugmentEnabled: true,
-				Expvar: &ExpvarConfig{
+				Expvar: &config.ExpvarConfig{
 					Enabled: &truthy,
-					Url:     "/debug/vars",
+					URL:     "/debug/vars",
 				},
-				RumConfig: &rumConfig{
+				RumConfig: &config.RumConfig{
 					Enabled: &truthy,
-					EventRate: &eventRate{
+					EventRate: &config.EventRate{
 						Limit:   300,
 						LruSize: 1000,
 					},
 					AllowOrigins: []string{"*"},
-					SourceMapping: &SourceMapping{
-						Cache: &Cache{
+					SourceMapping: &config.SourceMapping{
+						Cache: &config.Cache{
 							Expiration: 7 * time.Second,
 						},
 						IndexPattern: "apm-*-sourcemap*",
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
-					beatVersion:         "6.2.0",
+					BeatVersion:         "6.2.0",
 				},
-				Register: &registerConfig{
-					Ingest: &ingestConfig{
-						Pipeline: &pipelineConfig{
+				Register: &config.RegisterConfig{
+					Ingest: &config.IngestConfig{
+						Pipeline: &config.PipelineConfig{
 							Enabled: &falsy,
 							Path:    filepath.Join("ingest", "pipeline", "definition.json"),
 						},
 					},
 				},
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				AgentConfig: &agentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-				pipeline:    defaultAPMPipeline,
+				AgentConfig: &config.AgentConfig{Cache: &config.Cache{Expiration: 30 * time.Second}},
+				Pipeline:    config.DefaultAPMPipeline,
 			},
 		},
 	}
@@ -392,7 +392,7 @@ func (bt *beater) wait() error {
 	}
 }
 
-func (bt *beater) smapElasticsearchHosts() []string {
+func (bt *beater) sourcemapElasticsearchHosts() []string {
 	var content map[string]interface{}
 	if err := bt.config.RumConfig.SourceMapping.EsConfig.Unpack(&content); err != nil {
 		return nil

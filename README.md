@@ -5,7 +5,7 @@
 
 The APM Server receives data from the Elastic APM agents and stores the data into Elasticsearch.
 
-[Read more about Elastic APM](https://www.elastic.co/solutions/apm).
+[Read more about Elastic APM](https://www.elastic.co/products/apm).
 
 Please take questions or feedback to the [Discuss forum](https://discuss.elastic.co/c/apm) for APM.
 
