@@ -25,8 +25,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/yudai/gojsondiff/formatter"
+
+	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func main() {

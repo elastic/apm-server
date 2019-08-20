@@ -34,9 +34,13 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 )
 
+// ApprovedSuffix signals a file has been reviewed and approved
 const ApprovedSuffix = ".approved.json"
+
+// ReceivedSuffix signals a file has changed and not yet been approved
 const ReceivedSuffix = ".received.json"
 
+// AssertApproveResult tests that given result equals an already approved result, and fails otherwise.
 func AssertApproveResult(t *testing.T, name string, actualResult []byte) {
 	var resultmap map[string]interface{}
 	err := json.Unmarshal(actualResult, &resultmap)
@@ -48,6 +52,7 @@ func AssertApproveResult(t *testing.T, name string, actualResult []byte) {
 	}
 }
 
+// ApproveEvents iterates over given events and ensures per event that data are approved.
 func ApproveEvents(events []beat.Event, name string, ignored map[string]string) error {
 	// extract Fields and write to received.json
 	eventFields := make([]common.MapStr, len(events))
@@ -60,6 +65,8 @@ func ApproveEvents(events []beat.Event, name string, ignored map[string]string) 
 	return ApproveJson(receivedJson, name, ignored)
 }
 
+// ApproveJson iterates over received data and verifies them against already approved data. If data differ a message
+// will be print suggesting how to proceed with approval procedure.
 func ApproveJson(received map[string]interface{}, name string, ignored map[string]string) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
@@ -101,6 +108,7 @@ func ignoredKey(data *map[string]interface{}, ignored map[string]string) {
 	}
 }
 
+// Compare compares given data to approved data and returns diff if not equal.
 func Compare(path string, ignored map[string]string) (map[string]interface{}, []byte, gojsondiff.Diff, error) {
 	rec, err := ioutil.ReadFile(path + ReceivedSuffix)
 	if err != nil {
