@@ -1,0 +1,8 @@
+{
+    "accepted": 0,
+    "errors": [
+        {
+            "message": "zlib: invalid header"
+        }
+    ]
+}
