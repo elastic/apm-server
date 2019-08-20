@@ -25,7 +25,6 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :no-processors:
 :no-indices-rules:
 :no_dashboards:
-:requires-sudo: no
 :apm-server:
 :deb_os:
 :rpm_os:
