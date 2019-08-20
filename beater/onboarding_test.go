@@ -25,13 +25,15 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm"
 
+	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
 func TestNotifyUpServerDown(t *testing.T) {
-	config := defaultConfig("7.0.0")
+	config := config.DefaultConfig("7.0.0")
 	var saved beat.Event
 	var publisher = func(e beat.Event) { saved = e }
 
@@ -40,7 +42,7 @@ func TestNotifyUpServerDown(t *testing.T) {
 	defer lis.Close()
 	config.Host = lis.Addr().String()
 
-	server, err := newServer(config, apm.DefaultTracer, nopReporter)
+	server, err := newServer(config, apm.DefaultTracer, beatertest.NilReporter)
 	require.NoError(t, err)
 	go run(logp.NewLogger("onboarding_test"), server, lis, config)
 

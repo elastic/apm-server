@@ -106,7 +106,7 @@ func TestKeywordLimitationOnSourcemapAttributes(t *testing.T) {
 }
 
 func TestPayloadDataForSourcemap(t *testing.T) {
-	type val = []interface{}
+	type val []interface{}
 	payloadData := []tests.SchemaTestData{
 		// add test data for testing
 		// * specific edge cases
