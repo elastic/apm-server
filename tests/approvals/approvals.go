@@ -46,7 +46,7 @@ func AssertApproveResult(t *testing.T, name string, actualResult []byte) {
 	err := json.Unmarshal(actualResult, &resultmap)
 	require.NoError(t, err)
 
-	verifyErr := ApproveJson(resultmap, name, map[string]string{})
+	verifyErr := ApproveJSON(resultmap, name, map[string]string{})
 	if verifyErr != nil {
 		assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
 	}
@@ -61,13 +61,13 @@ func ApproveEvents(events []beat.Event, name string, ignored map[string]string) 
 		eventFields[idx]["@timestamp"] = event.Timestamp
 	}
 
-	receivedJson := map[string]interface{}{"events": eventFields}
-	return ApproveJson(receivedJson, name, ignored)
+	receivedJSON := map[string]interface{}{"events": eventFields}
+	return ApproveJSON(receivedJSON, name, ignored)
 }
 
-// ApproveJson iterates over received data and verifies them against already approved data. If data differ a message
+// ApproveJSON iterates over received data and verifies them against already approved data. If data differ a message
 // will be print suggesting how to proceed with approval procedure.
-func ApproveJson(received map[string]interface{}, name string, ignored map[string]string) error {
+func ApproveJSON(received map[string]interface{}, name string, ignored map[string]string) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
 	receivedPath := path + ReceivedSuffix
