@@ -1,0 +1,8 @@
+{
+    "accepted": 0,
+    "errors": [
+        {
+            "message": "event exceeded the permitted size."
+        }
+    ]
+}

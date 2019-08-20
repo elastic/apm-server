@@ -216,7 +216,7 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
         self.assertDictContainsSubset({
             "level": "error",
             "message": "error handling request",
-            "error": {"error": "invalid token"},
+            "error": "invalid token",
             "response_code": 401,
         }, config_request_logs[0])
         self.assertDictContainsSubset({
@@ -243,6 +243,6 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
         self.assertDictContainsSubset({
             "level": "error",
             "message": "error handling request",
-            "error": {"error": "forbidden request: endpoint is disabled"},
+            "error": "forbidden request: endpoint is disabled",
             "response_code": 403,
         }, config_request_logs[0])

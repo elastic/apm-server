@@ -24,10 +24,11 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 
+	"github.com/elastic/apm-server/beater/config"
 	logs "github.com/elastic/apm-server/log"
 )
 
-func notifyListening(config *Config, pubFct func(beat.Event)) {
+func notifyListening(config *config.Config, pubFct func(beat.Event)) {
 	logp.NewLogger(logs.Onboarding).Info("Publishing onboarding document")
 	event := beat.Event{
 		Timestamp: time.Now(),
