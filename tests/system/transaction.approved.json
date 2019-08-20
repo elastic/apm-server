@@ -132,6 +132,20 @@
                 },
                 "version": "1.1"
             },
+            "client": {
+                "ip": "12.53.12.1",
+                "geo": {
+                    "region_iso_code": "US-IN",
+                    "country_iso_code": "US",
+                    "city_name": "Indianapolis",
+                    "location": {
+                        "lat": 39.9115,
+                        "lon": -86.0706
+                    },
+                    "continent_name": "North America",
+                    "region_name": "Indiana"
+                }
+            },
             "labels": {
                 "number_code": 2,
                 "bool_error": false,
