@@ -92,7 +92,7 @@ ifeval::[("{beatname_lc}"=="functionbeat")]
 |<<package-command,`package`>> |{package-command-short-desc}.
 |<<remove-command,`remove`>> |{remove-command-short-desc}.
 endif::[]
-ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat")]
+ifndef::apm-server[]
 |<<modules-command,`modules`>> |{modules-command-short-desc}.
 endif::[]
 |<<run-command,`run`>> |{run-command-short-desc}.
@@ -389,7 +389,7 @@ Shows help for the `remove` command.
 -----
 endif::[]
 
-ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat")]
+ifndef::apm-server[]
 [[modules-command]]
 ==== `modules` command
 
