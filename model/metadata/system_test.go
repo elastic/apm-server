@@ -62,12 +62,16 @@ func TestSystem(t *testing.T) {
 			s:     &System{DetectedHostname: &host},
 		},
 		"detected hostname": {
+			// in practice either hostname or detected_hostname should be sent, but in theory both can be sent, so
+			// testing that the server does process the proper one in such a case.
 			input: map[string]interface{}{
 				"hostname": host, "detected_hostname": detected,
 			},
 			s: &System{DetectedHostname: &detected},
 		},
 		"ignored hostname": {
+			// in practice either hostname or configured_hostname should be sent, but in theory both can be sent, so
+			// testing that the server does process the proper one in such a case.
 			input: map[string]interface{}{
 				"hostname": host, "configured_hostname": configured,
 			},
@@ -147,6 +151,13 @@ func TestSystem(t *testing.T) {
 			},
 			s: &System{Kubernetes: &Kubernetes{}, DetectedHostname: &detected, ConfiguredHostname: &configured},
 		},
+		"full hostname info": {
+			input: map[string]interface{}{
+				"detected_hostname":   detected,
+				"configured_hostname": configured,
+			},
+			s: &System{DetectedHostname: &detected, ConfiguredHostname: &configured},
+		},
 		"full": {
 			input: map[string]interface{}{
 				"platform":     platform,
@@ -161,7 +172,6 @@ func TestSystem(t *testing.T) {
 						"name": podname,
 					},
 				},
-				"hostname":            host,
 				"configured_hostname": configured,
 				"detected_hostname":   detected,
 			},
@@ -178,21 +188,17 @@ func TestSystem(t *testing.T) {
 		},
 	} {
 
-		t.Run("Decode"+name, func(t *testing.T) {
+		t.Run(name, func(t *testing.T) {
 			system, err := DecodeSystem(test.input, test.inputErr)
-			assert.Equal(t, test.s, system)
 			assert.Equal(t, test.err, err)
-		})
+			assert.Equal(t, test.s, system)
 
-		if test.err == nil {
-			t.Run("Transform"+name, func(t *testing.T) {
-				system, err := DecodeSystem(test.input, test.inputErr)
-				require.NoError(t, err)
+			if test.err == nil {
 				resultName := fmt.Sprintf("test_approved_system/transform_%s", strings.ReplaceAll(name, " ", "_"))
 				resultJSON, err := json.Marshal(system.fields())
 				require.NoError(t, err)
 				approvals.AssertApproveResult(t, resultName, resultJSON)
-			})
-		}
+			}
+		})
 	}
 }
