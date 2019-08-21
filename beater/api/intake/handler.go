@@ -23,11 +23,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elastic/beats/libbeat/monitoring"
-
+	"github.com/pkg/errors"
 	"golang.org/x/time/rate"
 
-	"github.com/pkg/errors"
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"

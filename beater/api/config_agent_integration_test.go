@@ -22,11 +22,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/common"
-
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/beatertest"

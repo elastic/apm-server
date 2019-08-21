@@ -20,9 +20,9 @@ package sourcemap
 import (
 	"strings"
 
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	"go.elastic.co/apm"
+
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"

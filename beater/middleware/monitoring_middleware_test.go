@@ -87,7 +87,7 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseErrorsCount:    1,
 				request.IDResponseErrorsInternal: 1,
 			},
-			mockMonitoringFn)
+			mockMonitoring)
 	})
 
 	t.Run("Nil", func(t *testing.T) {

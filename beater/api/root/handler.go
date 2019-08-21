@@ -20,9 +20,8 @@ package root
 import (
 	"time"
 
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/request"
