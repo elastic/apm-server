@@ -113,7 +113,7 @@
                     },
                     {
                         "message": "on top of it, internet doesn't work",
-                        "parent": 0,
+                        "parent": 1,
                         "type": "ConnectionError"
                     }
                 ],
