@@ -65,7 +65,7 @@ endif::[]
 <<keystore-command,`keystore`>>::
 {keystore-command-short-desc}.
 
-ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat")]
+ifndef::apm-server[]
 
 <<modules-command,`modules`>>::
 {modules-command-short-desc}.
@@ -223,7 +223,7 @@ Shows help for the `keystore` command.
 see <<keystore>> for more examples.
 
 
-ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat")]
+ifndef::apm-server[]
 
 [[modules-command]]
 ==== `modules` command
