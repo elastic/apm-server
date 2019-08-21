@@ -81,7 +81,7 @@ endif::[]
 |<<export-command,`export`>> |{export-command-short-desc}.
 |<<help-command,`help`>> |{help-command-short-desc}.
 |<<keystore-command,`keystore`>> |{keystore-command-short-desc}.
-ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat")]
+ifndef::apm-server[]
 |<<modules-command,`modules`>> |{modules-command-short-desc}.
 endif::[]
 |<<run-command,`run`>> |{run-command-short-desc}.
@@ -253,7 +253,7 @@ Shows help for the `keystore` command.
 see <<keystore>> for more examples.
 
 
-ifeval::[("{beatname_lc}"=="filebeat") or ("{beatname_lc}"=="metricbeat")]
+ifndef::apm-server[]
 
 [[modules-command]]
 ==== `modules` command
