@@ -19,6 +19,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :sample_date_2: 2018.05.12
 :deprecate_dashboard_loading: 6.4.0
 :repo: apm-server
+:apm-server:
 
 ifdef::env-github[]
 NOTE: For the best reading experience,
