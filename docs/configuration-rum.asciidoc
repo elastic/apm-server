@@ -40,6 +40,7 @@ Sites with many concurrent clients should consider increasing this limit.
 Defaults to 1000.
 
 [float]
+[[rum-allow-origins]]
 ==== `allow_origins`
 Comma separated list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
@@ -48,6 +49,7 @@ An origin is made of a protocol scheme, host and port, without the URL path.
 Default value is set to `['*']`, which allows everything.
 
 [float]
+[[rum-library-pattern]]
 ==== `library_pattern`
 RegExp to be matched against a stacktrace frame's `file_name` and `abs_path` attributes.
 If the RegExp matches, the stacktrace frame is considered to be a library frame.

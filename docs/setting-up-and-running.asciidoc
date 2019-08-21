@@ -9,6 +9,9 @@ You _can_ run it on the same machines as Elasticsearch,
 but this is not recommended,
 as the processes will be competing for resources.
 
+// This needs to be added to allow a link from monitoring-metricbeat.asciidoc to work
+// Update this when redoing the installation section
+[id="{beatname_lc}-starting"]
 To start APM Server, run:
 
 [source,bash]
