@@ -304,13 +304,13 @@ func TestHandleExceptionTree(t *testing.T) {
 			},
 			"cause": []interface{}{
 				map[string]interface{}{"message": "message1", "type": "type1"},
-				map[string]interface{}{"message": "message2", "type": "type2", "parent": json.Number("0"), "cause": []interface{}{
+				map[string]interface{}{"message": "message2", "type": "type2", "cause": []interface{}{
 					map[string]interface{}{"message": "message3", "type": "type3", "cause": []interface{}{
 						map[string]interface{}{"message": "message4", "type": "type4"},
-						map[string]interface{}{"message": "message5", "type": "type5", "parent": json.Number("3")},
+						map[string]interface{}{"message": "message5", "type": "type5"},
 					}},
 				}},
-				map[string]interface{}{"message": "message6", "type": "type6", "parent": json.Number("0")},
+				map[string]interface{}{"message": "message6", "type": "type6"},
 			},
 		},
 	}
@@ -318,7 +318,7 @@ func TestHandleExceptionTree(t *testing.T) {
 	require.NoError(t, err)
 
 	event := result.(*Event)
-	exceptions := flattenExceptionChain(event.Exception)
+	exceptions := flattenExceptionTree(event.Exception)
 
 	assert.Len(t, exceptions, 7)
 	for i, ex := range exceptions {
@@ -800,7 +800,7 @@ func TestCulprit(t *testing.T) {
 func TestEmptyGroupingKey(t *testing.T) {
 	emptyGroupingKey := hex.EncodeToString(md5.New().Sum(nil))
 	e := Event{}
-	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
+	assert.Equal(t, emptyGroupingKey, e.calcGroupingKey(flattenExceptionTree(e.Exception)))
 }
 
 func TestExplicitGroupingKey(t *testing.T) {
@@ -819,7 +819,7 @@ func TestExplicitGroupingKey(t *testing.T) {
 	}
 
 	for idx, e := range []Event{e1, e2, e3, e4, e5} {
-		assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)), "grouping_key mismatch", idx)
+		assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionTree(e.Exception)), "grouping_key mismatch", idx)
 	}
 }
 
@@ -839,8 +839,8 @@ func TestFramesUsableForGroupingKey(t *testing.T) {
 	exMsg := "base exception"
 	e1 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st1}}
 	e2 := Event{Exception: &Exception{Message: &exMsg, Stacktrace: st2}}
-	key1 := e1.calcGroupingKey(flattenExceptionChain(e1.Exception))
-	key2 := e2.calcGroupingKey(flattenExceptionChain(e2.Exception))
+	key1 := e1.calcGroupingKey(flattenExceptionTree(e1.Exception))
+	key2 := e2.calcGroupingKey(flattenExceptionTree(e2.Exception))
 	assert.NotEqual(t, key1, key2)
 }
 
@@ -851,10 +851,10 @@ func TestFallbackGroupingKey(t *testing.T) {
 	groupingKey := hex.EncodeToString(md5With(filename))
 
 	e := Event{Exception: baseException().withFrames([]*m.StacktraceFrame{{Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionTree(e.Exception)))
 
 	e = Event{Exception: baseException(), Log: baseLog().withFrames([]*m.StacktraceFrame{{Lineno: &lineno, Filename: filename}})}
-	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionTree(e.Exception)))
 }
 
 func TestNoFallbackGroupingKey(t *testing.T) {
@@ -870,7 +870,7 @@ func TestNoFallbackGroupingKey(t *testing.T) {
 			{Lineno: &lineno, Module: &module, Filename: filename, Function: &function},
 		}),
 	}
-	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionChain(e.Exception)))
+	assert.Equal(t, groupingKey, e.calcGroupingKey(flattenExceptionTree(e.Exception)))
 }
 
 func TestGroupableEvents(t *testing.T) {
@@ -980,8 +980,8 @@ func TestGroupableEvents(t *testing.T) {
 	}
 
 	for idx, test := range tests {
-		sameGroup := test.e1.calcGroupingKey(flattenExceptionChain(test.e1.Exception)) ==
-			test.e2.calcGroupingKey(flattenExceptionChain(test.e2.Exception))
+		sameGroup := test.e1.calcGroupingKey(flattenExceptionTree(test.e1.Exception)) ==
+			test.e2.calcGroupingKey(flattenExceptionTree(test.e2.Exception))
 		assert.Equal(t, test.result, sameGroup,
 			"grouping_key mismatch", idx)
 	}
