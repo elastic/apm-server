@@ -17,6 +17,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :libbeat: http://www.elastic.co/guide/en/beats/libbeat/{doc-branch}
 :logstashdoc: https://www.elastic.co/guide/en/logstash/{doc-branch}
 :elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/{doc-branch}
+:apm-server:
 
 ifdef::env-github[]
 NOTE: For the best reading experience,
