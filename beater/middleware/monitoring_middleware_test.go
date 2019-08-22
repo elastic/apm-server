@@ -28,15 +28,20 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
+var (
+	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring", monitoring.PublishExpvar)
+	mockMonitoringNil      = map[request.ResultID]*monitoring.Int{}
+	mockMonitoring         = request.MonitoringMapForRegistry(mockMonitoringRegistry)
+)
+
 func TestMonitoringHandler(t *testing.T) {
 	checkMonitoring := func(t *testing.T,
 		h func(*request.Context),
 		expected map[request.ResultID]int,
-		fn func(id request.ResultID) *monitoring.Int,
+		m map[request.ResultID]*monitoring.Int,
 	) {
 		c, _ := beatertest.DefaultContextWithResponseRecorder()
-		equal, result := beatertest.CompareMonitoringInt(MonitoringMiddleware(fn)(h),
-			c, expected, mockMonitoringRegistry, fn)
+		equal, result := beatertest.CompareMonitoringInt(MonitoringMiddleware(m)(h), c, expected, m)
 		assert.True(t, equal, result)
 	}
 
@@ -48,7 +53,7 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseCount:           1,
 				request.IDResponseErrorsCount:     1,
 				request.IDResponseErrorsForbidden: 1},
-			mockMonitoringFn)
+			mockMonitoring)
 	})
 
 	t.Run("Accepted", func(t *testing.T) {
@@ -59,7 +64,7 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseCount:         1,
 				request.IDResponseValidCount:    1,
 				request.IDResponseValidAccepted: 1},
-			mockMonitoringFn)
+			mockMonitoring)
 	})
 
 	t.Run("Idle", func(t *testing.T) {
@@ -70,7 +75,7 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseCount:      1,
 				request.IDResponseValidCount: 1,
 				request.IDUnset:              1},
-			mockMonitoringFn)
+			mockMonitoring)
 	})
 
 	t.Run("Panic", func(t *testing.T) {
@@ -82,34 +87,13 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseErrorsCount:    1,
 				request.IDResponseErrorsInternal: 1,
 			},
-			mockMonitoringFn)
+			mockMonitoring)
 	})
 
 	t.Run("Nil", func(t *testing.T) {
 		checkMonitoring(t,
 			beatertest.HandlerIdle,
 			map[request.ResultID]int{},
-			mockMonitoringNilFn)
+			mockMonitoringNil)
 	})
-}
-
-var (
-	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring", monitoring.PublishExpvar)
-	mockMonitoringMap      = map[request.ResultID]*monitoring.Int{}
-	mockCounterFn          = func(s string) *monitoring.Int {
-		return monitoring.NewInt(mockMonitoringRegistry, s)
-	}
-)
-
-func mockMonitoringFn(name request.ResultID) *monitoring.Int {
-	if i, ok := mockMonitoringMap[name]; ok {
-		return i
-	}
-	ct := mockCounterFn(string(name))
-	mockMonitoringMap[name] = ct
-	return ct
-}
-
-func mockMonitoringNilFn(id request.ResultID) *monitoring.Int {
-	return nil
 }

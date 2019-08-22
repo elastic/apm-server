@@ -22,9 +22,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/version"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 )

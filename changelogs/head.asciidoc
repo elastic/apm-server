@@ -5,6 +5,7 @@
 ==== Bug fixes
 - Return 404 json error on requests to non existing paths {pull}2526[2526].
 - Remove additional nesting of error values in logs {pull}2526[2526].
+- Remove requests to root, assets and agent config API from monitoring counters for Intake API {pull}2527[2527].
 
 [float]
 ==== Added
@@ -13,6 +14,7 @@
 - Store service environment for spans {pull}2500[2500].
 - Index span.db.link field as keyword {pull}2504[2504].
 - Add support for exception trees with cause attribute {pull}2541[2541].
+- Use dedicated monitoring counters for all APIs {pull}2527[2527].
 - Index `http.request.socket.remote_address` as `client.ip` {pull}2588[2588].
 
 [float]
