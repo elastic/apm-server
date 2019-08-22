@@ -20,6 +20,8 @@ package request
 import (
 	"net/http"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/pkg/errors"
 )
 
@@ -92,12 +94,6 @@ var (
 		IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
 		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
-
-		IDUnset:               {Code: 0, Keyword: ""},
-		IDRequestCount:        {Code: 0, Keyword: ""},
-		IDResponseCount:       {Code: 0, Keyword: ""},
-		IDResponseErrorsCount: {Code: 0, Keyword: ""},
-		IDResponseValidCount:  {Code: 0, Keyword: ""},
 	}
 )
 
@@ -118,6 +114,26 @@ type Result struct {
 	Body       interface{}
 	Err        error
 	Stacktrace string
+}
+
+// MonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry.
+func MonitoringMapForRegistry(r *monitoring.Registry) map[ResultID]*monitoring.Int {
+	m := map[ResultID]*monitoring.Int{}
+	counter := func(s ResultID) *monitoring.Int {
+		return monitoring.NewInt(r, string(s))
+	}
+
+	// add all ids with response states
+	for id := range MapResultIDToStatus {
+		m[id] = counter(id)
+	}
+
+	// add generic ids
+	for _, id := range []ResultID{IDUnset, IDRequestCount, IDResponseCount, IDResponseErrorsCount, IDResponseValidCount} {
+		m[id] = counter(id)
+	}
+
+	return m
 }
 
 // Reset sets result to it's empty values
