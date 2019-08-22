@@ -420,7 +420,7 @@ pipeline {
     }
   }
   post {
-    node('linux && immutable') {
+    cleanup {
       notifyBuildResult()
     }
   }
