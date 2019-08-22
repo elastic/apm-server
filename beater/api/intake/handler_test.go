@@ -28,7 +28,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/beatertest"
