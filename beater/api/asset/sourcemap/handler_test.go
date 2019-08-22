@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/beatertest"

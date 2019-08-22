@@ -22,14 +22,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/common"
-
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/elastic/apm-server/beater/api/config/agent"
-	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -94,8 +92,12 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 	require.NoError(t, err)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
 
-	expected := map[request.ResultID]int{request.IDRequestCount: 1}
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringRegistry, agent.ResultIDToMonitoringInt)
+	expected := map[request.ResultID]int{
+		request.IDRequestCount:            1,
+		request.IDResponseCount:           1,
+		request.IDResponseErrorsCount:     1,
+		request.IDResponseErrorsForbidden: 1}
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, agent.MonitoringMap)
 	assert.True(t, equal, result)
 
 }

@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/pkg/errors"
@@ -84,4 +86,13 @@ func TestResult_Failure(t *testing.T) {
 	assert.False(t, (&Result{StatusCode: http.StatusPermanentRedirect}).Failure())
 	assert.True(t, (&Result{StatusCode: http.StatusBadRequest}).Failure())
 	assert.True(t, (&Result{StatusCode: http.StatusServiceUnavailable}).Failure())
+}
+
+func TestMonitoringMapForRegistry(t *testing.T) {
+	mockRegistry := monitoring.Default.NewRegistry("mock", monitoring.PublishExpvar)
+	m := MonitoringMapForRegistry(mockRegistry)
+	assert.Equal(t, 21, len(m))
+	for id := range m {
+		assert.Equal(t, int64(0), m[id].Get())
+	}
 }
