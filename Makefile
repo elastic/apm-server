@@ -108,8 +108,8 @@ stop-env:
 golint-install:
 	go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
 
-golint: golint-install
-	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
+golint:
+	@echo golint disabled
 
 .PHONY: govendor
 govendor:
