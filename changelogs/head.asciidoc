@@ -21,4 +21,3 @@
 ==== Removed
 
 https://github.com/elastic/apm-server/compare/7.3\...master[View commits]
-g
