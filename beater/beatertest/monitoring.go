@@ -31,17 +31,16 @@ func CompareMonitoringInt(
 	handler func(c *request.Context),
 	c *request.Context,
 	expected map[request.ResultID]int,
-	registry *monitoring.Registry,
-	mapFn func(id request.ResultID) *monitoring.Int,
+	m map[request.ResultID]*monitoring.Int,
 ) (bool, string) {
 
-	clearRegistry(registry, mapFn)
+	clearRegistry(m)
 	handler(c)
 
 	var result string
 	for _, id := range AllRequestResultIDs() {
 		monitoringIntVal := int64(0)
-		monitoringInt := mapFn(id)
+		monitoringInt := m[id]
 		if monitoringInt != nil {
 			monitoringIntVal = monitoringInt.Get()
 		}
@@ -59,35 +58,17 @@ func CompareMonitoringInt(
 
 // AllRequestResultIDs returns all registered request.ResultIDs (needs to be manually maintained)
 func AllRequestResultIDs() []request.ResultID {
-	return []request.ResultID{
-		request.IDUnset,
-		request.IDRequestCount,
-		request.IDResponseCount,
-		request.IDResponseErrorsCount,
-		request.IDResponseValidCount,
-		request.IDResponseValidNotModified,
-		request.IDResponseValidOK,
-		request.IDResponseValidAccepted,
-		request.IDResponseErrorsForbidden,
-		request.IDResponseErrorsUnauthorized,
-		request.IDResponseErrorsNotFound,
-		request.IDResponseErrorsInvalidQuery,
-		request.IDResponseErrorsRequestTooLarge,
-		request.IDResponseErrorsDecode,
-		request.IDResponseErrorsValidate,
-		request.IDResponseErrorsRateLimit,
-		request.IDResponseErrorsMethodNotAllowed,
-		request.IDResponseErrorsFullQueue,
-		request.IDResponseErrorsShuttingDown,
-		request.IDResponseErrorsServiceUnavailable,
-		request.IDResponseErrorsInternal}
+	var ids []request.ResultID
+	for k := range request.MapResultIDToStatus {
+		ids = append(ids, k)
+	}
+	return ids
 }
 
 // clearRegistry sets all counters to 0 and removes all registered counters from the registry
 // Only use this in test environments
-func clearRegistry(r *monitoring.Registry, fn func(id request.ResultID) *monitoring.Int) {
-	for _, id := range AllRequestResultIDs() {
-		i := fn(id)
+func clearRegistry(m map[request.ResultID]*monitoring.Int) {
+	for _, i := range m {
 		if i != nil {
 			i.Set(0)
 		}
