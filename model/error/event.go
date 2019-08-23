@@ -234,7 +234,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 	e.add("id", e.Id)
 	e.add("page", e.Page.Fields())
 
-	exceptionChain := flattenExceptionChain(e.Exception)
+	exceptionChain := flattenExceptionTree(e.Exception)
 	e.addException(tctx, exceptionChain)
 	e.addLog(tctx)
 
@@ -419,7 +419,6 @@ func decodeException(decoder *utility.ManualDecoder) exceptionDecoder {
 			Module:     decoder.StringPtr(exceptionTree, "module"),
 			Attributes: decoder.Interface(exceptionTree, "attributes"),
 			Handled:    decoder.BoolPtr(exceptionTree, "handled"),
-			Parent:     decoder.IntPtr(exceptionTree, "parent"),
 			Stacktrace: m.Stacktrace{},
 		}
 		var stacktrace *m.Stacktrace
@@ -443,17 +442,29 @@ func decodeException(decoder *utility.ManualDecoder) exceptionDecoder {
 	return decode
 }
 
-func flattenExceptionChain(e *Exception) []Exception {
-	if e == nil {
+// flattenExceptionTree recursively traverses the causes of an exception to return a slice of exceptions.
+// Tree traversal is Depth First.
+// The parent of a exception in the resulting slice is at the position indicated by the `parent` property
+// (0 index based), or the preceding exception if `parent` is nil.
+// The resulting exceptions always have `nil` cause.
+func flattenExceptionTree(exception *Exception) []Exception {
+	var recur func(Exception, int) []Exception
+
+	recur = func(e Exception, posId int) []Exception {
+		causes := e.Cause
+		e.Cause = nil
+		result := []Exception{e}
+		for idx, cause := range causes {
+			if idx > 0 {
+				cause.Parent = &posId
+			}
+			result = append(result, recur(cause, posId+len(result))...)
+		}
+		return result
+	}
+
+	if exception == nil {
 		return []Exception{}
 	}
-	copy := *e
-	cause := copy.Cause
-	copy.Cause = nil
-	result := []Exception{copy}
-	for _, exception := range cause {
-		nested := flattenExceptionChain(&exception)
-		result = append(result, nested...)
-	}
-	return result
+	return recur(*exception, 0)
 }
