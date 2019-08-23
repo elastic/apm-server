@@ -39,9 +39,9 @@ func TestPanicHandler(t *testing.T) {
 
 		// response assertions
 		assert.Equal(t, http.StatusForbidden, w.Code)
-		assert.Equal(t, "", w.Body.String())
+		assert.Equal(t, beatertest.ResultErrWrap("forbidden request"), w.Body.String())
 		// result assertions e.g. for logging
-		assert.Nil(t, c.Result.Err)
+		assert.NotNil(t, c.Result.Err)
 		assert.Empty(t, c.Result.Stacktrace)
 	})
 
