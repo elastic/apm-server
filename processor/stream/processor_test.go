@@ -35,6 +35,7 @@ import (
 
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/utility"
 )
@@ -43,7 +44,7 @@ func assertApproveResult(t *testing.T, actualResponse *Result, name string) {
 	resultName := fmt.Sprintf("test_approved_stream_result/testIntegrationResult%s", name)
 	resultJSON, err := json.Marshal(actualResponse)
 	require.NoError(t, err)
-	tests.AssertApproveResult(t, resultName, resultJSON)
+	approvals.AssertApproveResult(t, resultName, resultJSON)
 }
 
 func TestHandlerReadStreamError(t *testing.T) {
@@ -95,7 +96,7 @@ func TestIntegrationESOutput(t *testing.T) {
 			events = append(events, transformable.Transform(p.Tcontext)...)
 		}
 		name := ctx.Value("name").(string)
-		verifyErr := tests.ApproveEvents(events, name, nil)
+		verifyErr := approvals.ApproveEvents(events, name, nil)
 		if verifyErr != nil {
 			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
 		}
@@ -150,7 +151,7 @@ func TestIntegrationRum(t *testing.T) {
 			events = append(events, transformable.Transform(p.Tcontext)...)
 		}
 		name := ctx.Value("name").(string)
-		verifyErr := tests.ApproveEvents(events, name, nil)
+		verifyErr := approvals.ApproveEvents(events, name, nil)
 		if verifyErr != nil {
 			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
 		}

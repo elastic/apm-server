@@ -15,7 +15,7 @@
 - Add support for exception trees with cause attribute {pull}2541[2541].
 - Use dedicated monitoring counters for all APIs {pull}2527[2527].
 - Adapt log info to use keyword over generic information {pull}2528[2528].
-
+- Add support for host.name, adapt Intake API to accept detected and configured host information {pull}2531[2531],{pull}2540[2540].
 
 [float]
 ==== Removed

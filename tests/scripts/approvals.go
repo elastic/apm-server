@@ -27,7 +27,7 @@ import (
 
 	"github.com/yudai/gojsondiff/formatter"
 
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func main() {
@@ -36,11 +36,11 @@ func main() {
 
 func approval() int {
 	cwd, _ := os.Getwd()
-	receivedFiles := findFiles(cwd, tests.ReceivedSuffix)
+	receivedFiles := findFiles(cwd, approvals.ReceivedSuffix)
 
 	for _, rf := range receivedFiles {
-		path := strings.Replace(rf, tests.ReceivedSuffix, "", 1)
-		_, approved, d, err := tests.Compare(path, map[string]string{})
+		path := strings.Replace(rf, approvals.ReceivedSuffix, "", 1)
+		_, approved, d, err := approvals.Compare(path, map[string]string{})
 
 		if err != nil {
 			fmt.Println("Could not create diff ", err)
@@ -63,7 +63,7 @@ func approval() int {
 		input, _, _ := reader.ReadRune()
 		switch input {
 		case 'y':
-			approvedPath := strings.Replace(rf, tests.ReceivedSuffix, tests.ApprovedSuffix, 1)
+			approvedPath := strings.Replace(rf, approvals.ReceivedSuffix, approvals.ApprovedSuffix, 1)
 			os.Rename(rf, approvedPath)
 		}
 	}

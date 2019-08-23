@@ -25,11 +25,11 @@ import (
 )
 
 type System struct {
-	Hostname     *string
-	Name         *string
-	Architecture *string
-	Platform     *string
-	IP           *string
+	DetectedHostname   *string
+	ConfiguredHostname *string
+	Architecture       *string
+	Platform           *string
+	IP                 *string
 
 	Container  *Container
 	Kubernetes *Kubernetes
@@ -45,8 +45,6 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	}
 	decoder := utility.ManualDecoder{}
 	system := System{
-		Hostname:     decoder.StringPtr(raw, "hostname"),
-		Name:         decoder.StringPtr(raw, "name"),
 		Platform:     decoder.StringPtr(raw, "platform"),
 		Architecture: decoder.StringPtr(raw, "architecture"),
 		IP:           decoder.StringPtr(raw, "ip"),
@@ -57,12 +55,21 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	if system.Kubernetes, err = DecodeKubernetes(raw["kubernetes"], err); err != nil {
 		return nil, err
 	}
+	detectedHostname := decoder.StringPtr(raw, "detected_hostname")
+	configuredHostname := decoder.StringPtr(raw, "configured_hostname")
+	if detectedHostname != nil || configuredHostname != nil {
+		system.DetectedHostname = detectedHostname
+		system.ConfiguredHostname = configuredHostname
+	} else {
+		system.DetectedHostname = decoder.StringPtr(raw, "hostname")
+	}
+
 	return &system, decoder.Err
 }
 
 func (s *System) name() *string {
-	if s != nil && s.Name != nil {
-		return s.Name
+	if s != nil && s.ConfiguredHostname != nil {
+		return s.ConfiguredHostname
 	}
 	return s.hostname()
 }
@@ -73,7 +80,7 @@ func (s *System) hostname() *string {
 	}
 
 	if s.Kubernetes == nil {
-		return s.Hostname
+		return s.DetectedHostname
 	}
 
 	// if system.kubernetes.node.name is set in the metadata, set host.hostname in the event to its value
@@ -88,7 +95,7 @@ func (s *System) hostname() *string {
 	}
 
 	// Otherwise set host.hostname to system.hostname
-	return s.Hostname
+	return s.DetectedHostname
 }
 
 func (s *System) fields() common.MapStr {

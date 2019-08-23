@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
@@ -53,7 +53,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 		h(c)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		tests.AssertApproveResult(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -66,7 +66,7 @@ func TestRootHandler_PanicMiddleware(t *testing.T) {
 	h(c)
 
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	tests.AssertApproveResult(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
+	approvals.AssertApproveResult(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
