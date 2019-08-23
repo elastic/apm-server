@@ -7,6 +7,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "client": {
+                "ip": "12.53.12.1"
+            },
             "container": {
                 "id": "container-id"
             },
