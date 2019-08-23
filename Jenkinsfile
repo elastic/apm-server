@@ -10,7 +10,7 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
-    GITHUB_CHECK_ITS_NAME = 'Integration Tests'
+    GITHUB_CHECK_ITS_NAME = 'APM Integration Tests'
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
   }
   options {
@@ -320,7 +320,7 @@ pipeline {
         }*/
       }
     }
-    stage('Integration Tests') {
+    stage('APM Integration Tests') {
       agent none
       when {
         beforeAgent true
@@ -333,7 +333,7 @@ pipeline {
         }
       }
       steps {
-        log(level: 'INFO', text: 'Launching Async ITs')
+        log(level: 'INFO', text: "Launching Async ${env.GITHUB_CHECK_ITS_NAME}")
         build(job: env.ITS_PIPELINE, propagate: false, wait: false,
               parameters: [string(name: 'AGENT_INTEGRATION_TEST', value: 'All'),
                            string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}"),
