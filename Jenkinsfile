@@ -269,6 +269,33 @@ pipeline {
           }
         }
         /**
+        Checks if kibana objects are updated.
+        */
+        stage('Check kibana Obj. Updated') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+          }
+          when {
+            beforeAgent true
+            expression { return params.kibana_update_ci }
+          }
+          steps {
+            withGithubNotify(context: 'Sync Kibana') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
+                  sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
+                }
+              }
+            }
+          }
+        }
+        /**
         updates beats updates the framework part and go parts of beats.
         Then build and test.
         Finally archive the results.
@@ -291,33 +318,6 @@ pipeline {
                 }
               }
         }*/
-      }
-    }
-    /**
-    Checks if kibana objects are updated.
-    */
-    stage('Check kibana Obj. Updated') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        expression { return params.kibana_update_ci }
-      }
-      steps {
-        withGithubNotify(context: 'Sync Kibana') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-              sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
-            }
-          }
-        }
       }
     }
     stage('Integration Tests') {
