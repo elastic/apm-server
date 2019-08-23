@@ -22,19 +22,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/common"
-
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/elastic/apm-server/beater/api/config/agent"
-	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
@@ -44,7 +42,7 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 		rec := requestToConfigAgentHandler(t, cfg)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		tests.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
@@ -57,7 +55,7 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 		h(c)
 
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		tests.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -66,7 +64,7 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 		rec := requestToConfigAgentHandler(t, config.DefaultConfig(beatertest.MockBeatVersion()))
 
 		assert.Equal(t, http.StatusForbidden, rec.Code)
-		tests.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 
 	})
 
@@ -74,7 +72,7 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 		rec := requestToConfigAgentHandler(t, configEnabledConfigAgent())
 
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		tests.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -86,7 +84,7 @@ func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	tests.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
+	approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
@@ -94,8 +92,12 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 	require.NoError(t, err)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
 
-	expected := map[request.ResultID]int{request.IDRequestCount: 1}
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringRegistry, agent.ResultIDToMonitoringInt)
+	expected := map[request.ResultID]int{
+		request.IDRequestCount:            1,
+		request.IDResponseCount:           1,
+		request.IDResponseErrorsCount:     1,
+		request.IDResponseErrorsForbidden: 1}
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, agent.MonitoringMap)
 	assert.True(t, equal, result)
 
 }

@@ -9,12 +9,17 @@
             "maxLength": 1024
         },
         "hostname": {
-            "description": "Hostname of the system the agent is running on. Will be ignored if kubernetes information is set.",
+            "description": "Deprecated. Hostname of the system the agent is running on. Will be ignored if kubernetes information is set.",
             "type": ["string", "null"],
             "maxLength": 1024
         },
-        "name": {
-            "description": "Name of the system the agent is running on. Will be set to hostname or derived from kubernetes information if not provided.",
+        "detected_hostname": {
+            "description": "Hostname of the host the monitored service is running on. It normally contains what the hostname command returns on the host machine. Will be ignored if kubernetes information is set, otherwise should always be set.",
+            "type": ["string", "null"],
+            "maxLength": 1024
+        },
+        "configured_hostname": {
+            "description": "Name of the host the monitored service is running on. It should only be set when configured by the user. If empty, will be set to detected_hostname or derived from kubernetes information if provided.",
             "type": ["string", "null"],
             "maxLength": 1024
         },

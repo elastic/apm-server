@@ -28,7 +28,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/beatertest"
@@ -39,7 +38,7 @@ import (
 	"github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
 )
@@ -155,7 +154,7 @@ func TestIntakeHandler(t *testing.T) {
 				assert.NotNil(t, tc.w.Body.Len())
 			}
 			body := tc.w.Body.Bytes()
-			tests.AssertApproveResult(t, "test_approved/"+name, body)
+			approvals.AssertApproveResult(t, "test_approved/"+name, body)
 		})
 	}
 }

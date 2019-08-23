@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/api/intake"
@@ -31,7 +30,7 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
@@ -41,7 +40,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 		rec := requestToIntakeBackendHandler(t, cfg)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		tests.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
@@ -54,7 +53,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 		h(c)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		tests.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -66,7 +65,7 @@ func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	tests.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+	approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
 }
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
@@ -81,7 +80,7 @@ func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseErrorsCount:            1,
 		request.IDResponseErrorsMethodNotAllowed: 1}
 
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringRegistry, intake.ResultIDToMonitoringInt)
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringMap)
 	assert.True(t, equal, result)
 }
 
