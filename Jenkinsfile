@@ -320,7 +320,7 @@ pipeline {
         }*/
       }
     }
-    stage(env.GITHUB_CHECK_ITS_NAME) {
+    stage("${env.GITHUB_CHECK_ITS_NAME}") {
       agent none
       when {
         beforeAgent true
