@@ -320,7 +320,7 @@ pipeline {
         }*/
       }
     }
-    stage("${env.GITHUB_CHECK_ITS_NAME}") {
+    stage('APM Integration Tests') {
       agent none
       when {
         beforeAgent true
