@@ -11,6 +11,8 @@ pipeline {
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
+    GITHUB_CHECK_ITS_NAME = 'APM Integration Tests'
+    ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -323,6 +325,29 @@ pipeline {
                 }
               }
         }*/
+      }
+    }
+    stage('APM Integration Tests') {
+      agent none
+      when {
+        beforeAgent true
+        allOf {
+          anyOf {
+            environment name: 'GIT_BUILD_CAUSE', value: 'pr'
+            expression { return !params.Run_As_Master_Branch }
+          }
+          expression { return params.its_ci }
+        }
+      }
+      steps {
+        log(level: 'INFO', text: "Launching Async ${env.GITHUB_CHECK_ITS_NAME}")
+        build(job: env.ITS_PIPELINE, propagate: false, wait: false,
+              parameters: [string(name: 'AGENT_INTEGRATION_TEST', value: 'All'),
+                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}"),
+                           string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
+                           string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
+                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
+        githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: "${env.JENKINS_URL}search/?q=${env.ITS_PIPELINE.replaceAll('/','+')}")
       }
     }
     /**
