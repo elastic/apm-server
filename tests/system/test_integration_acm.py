@@ -52,7 +52,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         assert r1.status_code == 400, r1.status_code
         expect_log.append({
             "level": "error",
-            "message": "error handling request",
+            "message": "invalid query",
             "error": "service.name is required",
             "response_code": 400,
         })
@@ -65,7 +65,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         assert r2.status_code == 200, r2.status_code
         expect_log.append({
             "level": "info",
-            "message": "handled request",
+            "message": "request ok",
             "response_code": 200,
         })
         self.assertDictEqual({}, r2.json())
@@ -84,7 +84,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         # TODO (gr): validate Cache-Control header - https://github.com/elastic/apm-server/issues/2438
         expect_log.append({
             "level": "info",
-            "message": "handled request",
+            "message": "request ok",
             "response_code": 200,
         })
         self.assertDictEqual({"transaction_sample_rate": "0.05"}, r3.json())
@@ -99,7 +99,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         assert r3_again.status_code == 304, r3_again.status_code
         expect_log.append({
             "level": "info",
-            "message": "handled request",
+            "message": "not modified",
             "response_code": 304,
         })
 
@@ -113,7 +113,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         assert r4.status_code == 200, r4.status_code
         expect_log.append({
             "level": "info",
-            "message": "handled request",
+            "message": "request ok",
             "response_code": 200,
         })
         self.assertDictEqual({}, r4.json())
@@ -136,7 +136,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         self.assertDictEqual({"transaction_sample_rate": "0.15"}, r5.json())
         expect_log.append({
             "level": "info",
-            "message": "handled request",
+            "message": "request ok",
             "response_code": 200,
         })
 
@@ -153,7 +153,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         assert r5_again.status_code == 304, r5_again.status_code
         expect_log.append({
             "level": "info",
-            "message": "handled request",
+            "message": "not modified",
             "response_code": 304,
         })
 
@@ -177,7 +177,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         self.assertDictEqual({"transaction_sample_rate": "0.99"}, r5_post_update.json())
         expect_log.append({
             "level": "info",
-            "message": "handled request",
+            "message": "request ok",
             "response_code": 200,
         })
 
@@ -215,13 +215,13 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
         assert len(config_request_logs) == 2, config_request_logs
         self.assertDictContainsSubset({
             "level": "error",
-            "message": "error handling request",
+            "message": "invalid token",
             "error": "invalid token",
             "response_code": 401,
         }, config_request_logs[0])
         self.assertDictContainsSubset({
             "level": "error",
-            "message": "error handling request",
+            "message": "unable to retrieve connection to Kibana",
             "response_code": 503,
         }, config_request_logs[1])
 
@@ -242,7 +242,7 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
         self.assertDictContainsSubset({
             "level": "error",
-            "message": "error handling request",
+            "message": "forbidden request",
             "error": "forbidden request: endpoint is disabled",
             "response_code": 403,
         }, config_request_logs[0])
