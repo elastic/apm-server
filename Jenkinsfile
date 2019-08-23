@@ -110,7 +110,7 @@ pipeline {
         }
       }
     }
-    stage('Build'){
+    stage('Build and Test'){
       failFast false
       parallel {
         /**
@@ -139,33 +139,39 @@ pipeline {
           }
         }
         /**
-        Build on a windows environment.
+        Build and Test on a windows environment.
         */
-        stage('windows build') {
+        stage('windows build-test') {
           agent { label 'windows-2019-immutable' }
-          options { skipDefaultCheckout() }
+          options {
+            skipDefaultCheckout()
+            warnError('Windows execution failed')
+          }
           when {
             beforeAgent true
             expression { return params.windows_ci }
           }
           steps {
-            withGithubNotify(context: 'Build - Windows') {
+            withGithubNotify(context: 'Build-Test - Windows') {
               deleteDir()
               unstash 'source'
               dir(BASE_DIR){
                 retry(2) { // Retry in case there are any errors to avoid temporary glitches
                   sleep randomNumber(min: 5, max: 10)
                   powershell(label: 'Windows build', script: '.\\script\\jenkins\\windows-build.ps1')
+                  powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
                 }
               }
             }
           }
+          post {
+            always {
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/build/junit-report.xml,${BASE_DIR}/build/TEST-*.xml")
+            }
+          }
         }
-      }
-    }
-    stage('Test') {
-      failFast false
-      parallel {
         /**
           Run unit tests and report junit results.
         */
@@ -239,34 +245,6 @@ pipeline {
           }
         }
         /**
-        Run tests on a windows environment.
-        Finally archive the results.
-        */
-        stage('windows test') {
-          agent { label 'windows-2019-immutable' }
-          options { skipDefaultCheckout() }
-          when {
-            beforeAgent true
-            expression { return params.windows_ci }
-          }
-          steps {
-            withGithubNotify(context: 'Test - Windows', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                powershell(label: 'Run Window tests', script: '.\\script\\jenkins\\windows-test.ps1')
-              }
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-report.xml,${BASE_DIR}/build/TEST-*.xml")
-            }
-          }
-        }
-        /**
         Runs benchmarks on the current version and compare it with the previous ones.
         Finally archive the results.
         */
@@ -300,6 +278,33 @@ pipeline {
           }
         }
         /**
+        Checks if kibana objects are updated.
+        */
+        stage('Check kibana Obj. Updated') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+          }
+          when {
+            beforeAgent true
+            expression { return params.kibana_update_ci }
+          }
+          steps {
+            withGithubNotify(context: 'Sync Kibana') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
+                  sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
+                }
+              }
+            }
+          }
+        }
+        /**
         updates beats updates the framework part and go parts of beats.
         Then build and test.
         Finally archive the results.
@@ -322,33 +327,6 @@ pipeline {
                 }
               }
         }*/
-      }
-    }
-    /**
-    Checks if kibana objects are updated.
-    */
-    stage('Check kibana Obj. Updated') {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-        GOPATH = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        expression { return params.kibana_update_ci }
-      }
-      steps {
-        withGithubNotify(context: 'Sync Kibana') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            catchError(buildResult: 'SUCCESS', message: 'Sync Kibana is not updated', stageResult: 'UNSTABLE') {
-              sh(label: 'Test Sync', script: './script/jenkins/sync.sh')
-            }
-          }
-        }
       }
     }
     stage('Integration Tests') {

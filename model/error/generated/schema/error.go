@@ -460,10 +460,6 @@ const ModelSchema = `{
                             },
                             "minItems": 0,
                             "description": "Exception tree"
-                        },
-                        "parent": {
-                            "type": ["integer", "null"],
-                            "description": "Parent exception index (0 based); if omitted the previous (depth-first) entry is the parent"
                         }
                     },
                     "anyOf": [

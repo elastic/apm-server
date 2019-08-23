@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -124,7 +124,7 @@ func TestPublishIntegration(t *testing.T) {
 			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", tc.payload))
 			require.NoError(t, err)
 			docs := testPublish(t, apm, events, api.IntakePath, bytes.NewReader(b))
-			tests.AssertApproveResult(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
+			approvals.AssertApproveResult(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
 		})
 	}
 }

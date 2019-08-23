@@ -25,12 +25,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/api/intake"
+	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
-	"github.com/elastic/apm-server/tests"
+	"github.com/elastic/apm-server/tests/approvals"
 )
 
 func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
@@ -40,7 +40,7 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 		rec := requestToSourcemapHandler(t, cfg)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		tests.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
@@ -53,7 +53,7 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 		h(c)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		tests.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -62,7 +62,7 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 		rec := requestToSourcemapHandler(t, config.DefaultConfig(beatertest.MockBeatVersion()))
 
 		assert.Equal(t, http.StatusForbidden, rec.Code)
-		tests.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("OffSourcemap", func(t *testing.T) {
@@ -73,14 +73,14 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 		rec := requestToSourcemapHandler(t, cfg)
 
 		assert.Equal(t, http.StatusForbidden, rec.Code)
-		tests.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("On", func(t *testing.T) {
 		rec := requestToSourcemapHandler(t, cfgEnabledRUM())
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		tests.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 }
 
@@ -92,7 +92,7 @@ func TestSourcemapHandler_PanicMiddleware(t *testing.T) {
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	tests.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
+	approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 }
 
 func TestSourcemapHandler_MonitoringMiddleware(t *testing.T) {
@@ -107,7 +107,7 @@ func TestSourcemapHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseErrorsCount:     1,
 		request.IDResponseErrorsForbidden: 1}
 
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringRegistry, intake.ResultIDToMonitoringInt)
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, sourcemap.MonitoringMap)
 	assert.True(t, equal, result)
 }
 

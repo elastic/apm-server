@@ -13,6 +13,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "client": {
+                "ip": "12.53.12.1"
+            },
             "container": {
                 "id": "container-id"
             },
@@ -113,7 +116,7 @@
                     },
                     {
                         "message": "on top of it, internet doesn't work",
-                        "parent": 0,
+                        "parent": 1,
                         "type": "ConnectionError"
                     }
                 ],
