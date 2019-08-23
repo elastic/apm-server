@@ -5,9 +5,9 @@ import groovy.transform.Field
 
 /**
 This is the git commit sha which it's required to be used in different stages.
-It does store the env GIT_BASE_COMMIT
+It does store the env GIT_SHA
 */
-@Field def gitBaseCommit
+@Field def gitCommit
 
 pipeline {
   agent none
@@ -63,7 +63,7 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true)
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          gitBaseCommit = env.GIT_BASE_COMMIT
+          gitCommit = env.GIT_SHA
           dir("${BASE_DIR}"){
             env.GO_VERSION = readFile(".go-version").trim()
             def regexps =[
@@ -345,10 +345,10 @@ pipeline {
         log(level: 'INFO', text: 'Launching Async ITs')
         build(job: env.ITS_PIPELINE, propagate: false, wait: false,
               parameters: [string(name: 'AGENT_INTEGRATION_TEST', value: 'All'),
-                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${gitBaseCommit}"),
+                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${gitCommit}"),
                            string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
                            string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
-                           string(name: 'GITHUB_CHECK_SHA1', value: gitBaseCommit)])
+                           string(name: 'GITHUB_CHECK_SHA1', value: gitCommit)])
         githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: "${env.JENKINS_URL}search/?q=${env.ITS_PIPELINE.replaceAll('/','+')}")
       }
     }
