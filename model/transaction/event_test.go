@@ -304,9 +304,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	service := metadata.Service{Name: &serviceName}
 	system := func() *metadata.System {
 		return &metadata.System{
-			Hostname:     &hostname,
-			Architecture: &architecture,
-			Platform:     &platform,
+			DetectedHostname: &hostname,
+			Architecture:     &architecture,
+			Platform:         &platform,
 		}
 	}
 
@@ -454,7 +454,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		},
 		{
 			Metadata: metadata.NewMetadata(
-				&service, func() *metadata.System { s := system(); s.Name = &name; return s }(),
+				&service, func() *metadata.System { s := system(); s.ConfiguredHostname = &name; return s }(),
 				nil, nil, metadataLabels,
 			),
 			Event:  &txWithContext,
