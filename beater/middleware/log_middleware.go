@@ -36,7 +36,9 @@ func LogMiddleware() Middleware {
 		return func(c *request.Context) {
 			reqID, err := uuid.NewV4()
 			if err != nil {
-				c.Result.SetWithError(request.IDResponseErrorsInternal, err)
+				id := request.IDResponseErrorsInternal
+				logger.Errorw(request.MapResultIDToStatus[id].Keyword, "error", err)
+				c.Result.SetWithError(id, err)
 				c.Write()
 			}
 
@@ -55,20 +57,25 @@ func LogMiddleware() Middleware {
 				reqLogger.Warn("multiple write attempts")
 			}
 
-			keysAndValues := []interface{}{"response_code", c.Result.StatusCode}
-			if c.Result.Failure() {
-				if c.Result.Err != nil {
-					keysAndValues = append(keysAndValues, "error", c.Result.Err.Error())
-				}
-				if c.Result.Stacktrace != "" {
-					keysAndValues = append(keysAndValues, "stacktrace", c.Result.Stacktrace)
-				}
-				reqLogger.Errorw("error handling request", keysAndValues...)
-				return
+			keyword := c.Result.Keyword
+			if keyword == "" {
+				keyword = "handled request"
 			}
 
-			//TODO: log body if log level is debug
-			reqLogger.Infow("handled request", keysAndValues...)
+			keysAndValues := []interface{}{"response_code", c.Result.StatusCode}
+			if c.Result.Err != nil {
+				keysAndValues = append(keysAndValues, "error", c.Result.Err.Error())
+			}
+			if c.Result.Stacktrace != "" {
+				keysAndValues = append(keysAndValues, "stacktrace", c.Result.Stacktrace)
+			}
+
+			if c.Result.Failure() {
+				reqLogger.Errorw(keyword, keysAndValues...)
+			} else {
+				reqLogger.Infow(keyword, keysAndValues...)
+			}
+
 		}
 	}
 }

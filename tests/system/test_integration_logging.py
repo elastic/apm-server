@@ -26,7 +26,7 @@ class LoggingIntegrationTest(ElasticTest):
             req = intake_request_logs[0]
             self.assertDictContainsSubset({
                 "level": "info",
-                "message": "handled request",
+                "message": "request accepted",
                 "response_code": 202,
             }, req)
 
@@ -42,7 +42,7 @@ class LoggingIntegrationTest(ElasticTest):
             req = intake_request_logs[0]
             self.assertDictContainsSubset({
                 "level": "error",
-                "message": "error handling request",
+                "message": "data validation error",
                 "response_code": 400,
             }, req)
             error = req.get("error")
@@ -67,7 +67,7 @@ class LoggingIntegrationEventSizeTest(ElasticTest):
             req = intake_request_logs[0]
             self.assertDictContainsSubset({
                 "level": "error",
-                "message": "error handling request",
+                "message": "request body too large",
                 "response_code": 400,
             }, req)
             error = req.get("error")
