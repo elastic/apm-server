@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/pkg/errors"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
@@ -42,27 +44,42 @@ func TestLogMiddleware(t *testing.T) {
 		level         zapcore.Level
 		handler       request.Handler
 		code          int
+		error         error
+		stacktrace    bool
 	}{
 		{
 			name:    "Accepted",
-			message: "handled request",
+			message: "request accepted",
 			level:   zapcore.InfoLevel,
 			handler: beatertest.Handler202,
 			code:    http.StatusAccepted,
 		},
 		{
 			name:    "Error",
-			message: "error handling request",
+			message: "forbidden request",
 			level:   zapcore.ErrorLevel,
 			handler: beatertest.Handler403,
 			code:    http.StatusForbidden,
+			error:   errors.New("forbidden request"),
 		},
 		{
-			name:    "Panic",
-			message: "error handling request",
+			name:       "Panic",
+			message:    "internal error",
+			level:      zapcore.ErrorLevel,
+			handler:    RecoverPanicMiddleware()(beatertest.HandlerPanic),
+			code:       http.StatusInternalServerError,
+			error:      errors.New("panic on Handle"),
+			stacktrace: true,
+		},
+		{
+			name:    "Error without keyword",
+			message: "handled request",
 			level:   zapcore.ErrorLevel,
-			handler: RecoverPanicMiddleware()(beatertest.HandlerPanic),
-			code:    http.StatusInternalServerError,
+			handler: func(c *request.Context) {
+				c.Result.StatusCode = http.StatusForbidden
+				c.Write()
+			},
+			code: http.StatusForbidden,
 		},
 	}
 
@@ -87,6 +104,12 @@ func TestLogMiddleware(t *testing.T) {
 				assert.Equal(t, c.Request.Header.Get(headers.UserAgent), ec["user-agent"])
 				// zap encoded type
 				assert.Equal(t, tc.code, int(ec["response_code"].(int64)))
+				if tc.error != nil {
+					assert.Equal(t, tc.error.Error(), ec["error"])
+				}
+				if tc.stacktrace {
+					assert.NotZero(t, ec["stacktrace"])
+				}
 			}
 		})
 	}
