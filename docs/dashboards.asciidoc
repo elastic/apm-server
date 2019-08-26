@@ -6,7 +6,7 @@ From APM Server and Kibana 6.4 on you can load dashboards directly via the
 
 ==== Setup via APM Server
 
-deprecated[{deprecate_dashboard_loading}]
+deprecated[6.4.0]
 
 Loading via APM Server requires a <<setup-kibana-endpoint,Kibana endpoint configuration>>. 
 If you are accessing a secured Kibana instance, make sure you've configured credentials.

@@ -2,10 +2,6 @@
 [[securing-beats]]
 == Configure {beatname_uc} to use {security}
 
-++++
-<titleabbrev>Use {security}</titleabbrev>
-++++
-
 If you want {beatname_uc} to connect to a cluster that has
 {securitydoc}/xpack-security.html[{security}] enabled, there are extra
 configuration steps:
