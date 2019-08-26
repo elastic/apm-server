@@ -9,7 +9,9 @@ package defaults
 
 import (
 	"log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/endpoints"
@@ -53,8 +55,17 @@ func Config() aws.Config {
 // HTTPClient will return a new HTTP Client configured for the SDK.
 //
 // Does not use http.DefaultClient nor http.DefaultTransport.
-func HTTPClient() aws.HTTPClient {
-	return aws.NewBuildableHTTPClient()
+func HTTPClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			MaxIdleConns:          100,
+			MaxIdleConnsPerHost:   10,
+			IdleConnTimeout:       30 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 5 * time.Second,
+		},
+	}
 }
 
 // Handlers returns the default request handlers.
