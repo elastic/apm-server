@@ -11,11 +11,9 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"net"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
@@ -36,19 +34,6 @@ type Client struct {
 //     // Create a Client client from just a config.
 //     svc := ec2metadata.New(cfg)
 func New(config aws.Config) *Client {
-	if c, ok := config.HTTPClient.(*aws.BuildableHTTPClient); ok {
-		// TODO consider moving this to a client configuration via client builder
-		// instead automatically being set.
-
-		// Use a custom Dial timeout for the EC2 Metadata service to account
-		// for the possibility the application might not be running in an
-		// environment with the service present. The client should fail fast in
-		// this case.
-		config.HTTPClient = c.WithDialerOptions(func(d *net.Dialer) {
-			d.Timeout = 5 * time.Second
-		})
-	}
-
 	svc := &Client{
 		Client: aws.NewClient(
 			config,
@@ -85,6 +70,10 @@ func New(config aws.Config) *Client {
 	}
 
 	return svc
+}
+
+func httpClientZero(c *http.Client) bool {
+	return c == nil || (c.Transport == nil && c.CheckRedirect == nil && c.Jar == nil && c.Timeout == 0)
 }
 
 type metadataOutput struct {
