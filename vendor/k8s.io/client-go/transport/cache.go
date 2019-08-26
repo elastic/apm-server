@@ -39,14 +39,13 @@ const idleConnsPerHost = 25
 var tlsCache = &tlsTransportCache{transports: make(map[tlsCacheKey]*http.Transport)}
 
 type tlsCacheKey struct {
-	insecure           bool
-	caData             string
-	certData           string
-	keyData            string
-	getCert            string
-	serverName         string
-	dial               string
-	disableCompression bool
+	insecure   bool
+	caData     string
+	certData   string
+	keyData    string
+	getCert    string
+	serverName string
+	dial       string
 }
 
 func (t tlsCacheKey) String() string {
@@ -54,7 +53,7 @@ func (t tlsCacheKey) String() string {
 	if len(t.keyData) > 0 {
 		keyText = "<redacted>"
 	}
-	return fmt.Sprintf("insecure:%v, caData:%#v, certData:%#v, keyData:%s, getCert: %s, serverName:%s, dial:%s disableCompression:%t", t.insecure, t.caData, t.certData, keyText, t.getCert, t.serverName, t.dial, t.disableCompression)
+	return fmt.Sprintf("insecure:%v, caData:%#v, certData:%#v, keyData:%s, getCert: %s, serverName:%s, dial:%s", t.insecure, t.caData, t.certData, keyText, t.getCert, t.serverName, t.dial)
 }
 
 func (c *tlsTransportCache) get(config *Config) (http.RoundTripper, error) {
@@ -96,7 +95,6 @@ func (c *tlsTransportCache) get(config *Config) (http.RoundTripper, error) {
 		TLSClientConfig:     tlsConfig,
 		MaxIdleConnsPerHost: idleConnsPerHost,
 		DialContext:         dial,
-		DisableCompression:  config.DisableCompression,
 	})
 	return c.transports[key], nil
 }
@@ -108,13 +106,12 @@ func tlsConfigKey(c *Config) (tlsCacheKey, error) {
 		return tlsCacheKey{}, err
 	}
 	return tlsCacheKey{
-		insecure:           c.TLS.Insecure,
-		caData:             string(c.TLS.CAData),
-		certData:           string(c.TLS.CertData),
-		keyData:            string(c.TLS.KeyData),
-		getCert:            fmt.Sprintf("%p", c.TLS.GetCert),
-		serverName:         c.TLS.ServerName,
-		dial:               fmt.Sprintf("%p", c.Dial),
-		disableCompression: c.DisableCompression,
+		insecure:   c.TLS.Insecure,
+		caData:     string(c.TLS.CAData),
+		certData:   string(c.TLS.CertData),
+		keyData:    string(c.TLS.KeyData),
+		getCert:    fmt.Sprintf("%p", c.TLS.GetCert),
+		serverName: c.TLS.ServerName,
+		dial:       fmt.Sprintf("%p", c.Dial),
 	}, nil
 }
