@@ -2,7 +2,6 @@ import os
 from nose.plugins.attrib import attr
 import unittest
 import logging
-import time
 from elasticsearch import Elasticsearch, NotFoundError, RequestError
 from apmserver import BaseTest, ElasticTest
 from nose.tools import raises

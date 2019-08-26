@@ -208,12 +208,7 @@ class ElasticTest(ServerBaseTest):
                               headers={'content-type': 'application/x-ndjson'})
         assert r.status_code == 202, r.status_code
 
-        # make sure template is loaded
-        # self.wait_until(
-        #    lambda: self.log_contains("Finished loading index template"),
-        #    max_timeout=max_timeout)
-        #self.wait_until(lambda: self.es.indices.exists(query_index))
-        # Quick wait to give documents some time to be sent to the index
+        # Wait to give documents some time to be sent to the index
         # This is not required but speeds up the tests
         time.sleep(2)
         self.es.indices.refresh(index=query_index)
@@ -303,6 +298,7 @@ class ClientSideBaseTest(ServerBaseTest):
                                 'bundle_filepath': bundle_filepath,
                                 'service_name': service_name
                                 })
+        # Wait to give documents some time to be sent to the index before refresh
         time.sleep(2)
         self.es.indices.refresh()
         return r
