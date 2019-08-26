@@ -119,7 +119,7 @@ output.elasticsearch.index: "customname-%{[beat.version]}-%{+yyyy.MM.dd}"
 setup.template.name: "customname"
 setup.template.pattern: "customname-*"
 -----
-+
+
 Also ensure to change the index name accordingly in the Kibana dashboards,
 when loading via the Kibana UI.
 

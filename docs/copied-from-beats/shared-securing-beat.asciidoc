@@ -10,7 +10,7 @@ the Elastic stack:
 
 * <<securing-communication-elasticsearch>>
 * <<configuring-ssl-logstash>>
-* <<securing-beats>>
+* <<securing-beats, Use {security}>>
 * <<linux-seccomp>>
 
 ifdef::beat-specific-security[]

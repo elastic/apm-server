@@ -53,7 +53,7 @@ https://github.com/elastic/apm-server/compare/v6.1.4\...v6.2.0[View commits]
 - Move process related fields to their own namespace {pull}445[445].
 - Rename Kibana directories according to changed structure in beats framework. {pull}454[454]
 - Change config option `max_header_bytes` to `max_header_size` {pull}492[492].
-- Change config option `frontend.sourcemapping.index` to `frontend.source_mapping.index_pattern` and remove adding a '*' by default.{pull}492[492].
+- Change config option `frontend.sourcemapping.index` to `frontend.source_mapping.index_pattern` and remove adding a '*' by default. {pull}492[492].
 - Remove untested config options from config yml files {pull}496[496]
 
 [float]
