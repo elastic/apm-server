@@ -17,7 +17,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :sample_date_0: 2018.05.10
 :sample_date_1: 2018.05.11
 :sample_date_2: 2018.05.12
-:deprecate_dashboard_loading: 6.4.0
+:deprecate_dashboard_loading:
 :repo: apm-server
 :apm-server:
 
