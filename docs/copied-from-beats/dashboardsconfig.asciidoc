@@ -13,7 +13,7 @@
 == Load the Kibana dashboards
 ifdef::deprecate_dashboard_loading[]
 
-deprecated[{deprecate_dashboard_loading}]
+deprecated[6.4.0]
 
 endif::[]
 
