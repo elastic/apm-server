@@ -19,13 +19,3 @@ No significant changes.
 https://github.com/elastic/apm-server/compare/v7.0.1\...v7.1.0[View commits]
 
 No significant changes.
-////
-[float]
-==== Added
-
-[float]
-==== Removed
-
-[float]
-==== Bug fixes
-////
