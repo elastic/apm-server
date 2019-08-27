@@ -16,7 +16,7 @@ please also have a look at the documentation for
 * {apm-py-ref}/index.html[APM Python Agent]
 * {ref}/index.html[Elasticsearch]
 
-See how to {apm-get-started}/index.html[Get Started] with the Elastic APM system.
+See how to {apm-get-started-ref}/index.html[Get Started] with the Elastic APM system.
 
 A single APM server can handle data from multiple services.
 APM Server works by exposing an HTTP server to which agents post the APM data they collect.
