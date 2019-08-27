@@ -17,7 +17,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :logstashdoc: https://www.elastic.co/guide/en/logstash/{doc-branch}
 :elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/{doc-branch}
 :securitydoc: https://www.elastic.co/guide/en/elastic-stack-overview/{doc-branch}
-:deprecate_dashboard_loading: 6.4.0
+:deprecate_dashboard_loading:
 :apm-server:
 
 ifdef::env-github[]

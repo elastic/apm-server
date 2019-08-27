@@ -213,7 +213,7 @@ for more information about the environment variables.
 ===== `index`
 
 The index name to write events to. The default is
-+"{beatname_lc}-%\{[beat.version]\}-%\{+yyyy.MM.dd\}"+ (for example,
++"{beatname_lc}-%{[beat.version]}-%{+yyyy.MM.dd}"+ (for example,
 +"{beatname_lc}-{version}-2017.04.26"+). If you change this setting, you also
 need to configure the `setup.template.name` and `setup.template.pattern` options
 (see <<configuration-template>>).
@@ -223,7 +223,7 @@ you also need to set the `setup.dashboards.index` option (see <<configuration-da
 
 ifdef::deprecate_dashboard_loading[]
 
-deprecated[{deprecate_dashboard_loading}]
+deprecated:[6.4.0]
 
 endif::[]
 
