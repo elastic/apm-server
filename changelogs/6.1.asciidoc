@@ -75,4 +75,4 @@ https://github.com/elastic/apm-server/compare/v6.0.1\...v6.1.0[View commits]
 - Show transaction.result in Requests per Minute {pull}226[226].
 - Added Kibana 5.6 compatible dashboards {pull}208[208].
 - Send document to output on start of server {pull}117[117].
-- Log frontend status at startup  {pull}284[284].
+- Log frontend status at startup {pull}284[284].
