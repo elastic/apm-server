@@ -102,7 +102,7 @@ _15 spans with 15 frames each_ |300 events/second |600 events/second |2400 event
 _30 spans with 30 frames each_ |150 events/second |300 events/second |1400 events/second
 |=======================================================================
 
-In other words, a 512 Mb instance can process \~3 Mbs per second,
+In other words, a 512 Mb instance can process ~3 Mbs per second,
 while an 8 Gb instance can process ~20 Mbs per second.
 
 APM Server is CPU bound, so it scales better from 2 Gb to 8 Gb than it does from 512 Mb to 2 Gb.
