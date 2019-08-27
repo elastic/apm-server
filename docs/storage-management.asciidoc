@@ -166,7 +166,7 @@ With the curator command line interface you can, for instance, see all your exis
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
+curator_cli --host localhost show_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-"}]'
 
 apm-{stack-version}-error-{sample_date_0}
 apm-{stack-version}-error-{sample_date_1}
@@ -184,7 +184,7 @@ And then delete any span indices older than 1 day:
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
+curator_cli --host localhost delete_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"}, {"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"}]'
 
 INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
 INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
