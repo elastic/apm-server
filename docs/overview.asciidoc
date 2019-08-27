@@ -30,7 +30,7 @@ please also have a look at the documentation for
 * {apm-py-ref}/index.html[APM Python Agent]
 * {ref}/index.html[Elasticsearch]
 
-See how to {apm-overview-ref-v}/index.html[Get Started] with the Elastic APM system.
+See how to {apm-get-started-ref}/index.html[Get Started] with the Elastic APM system.
 
 [[why-separate-component]]
 === Why is APM Server a separate component?
