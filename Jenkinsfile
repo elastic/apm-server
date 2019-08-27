@@ -22,7 +22,7 @@ pipeline {
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
   }
   options {
-    timeout(time: 2, unit: 'HOURS')
+    timeout(time: 1, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
@@ -256,9 +256,9 @@ pipeline {
             allOf {
               anyOf {
                 branch 'master'
-                branch "\\d+\\.\\d+"
-                branch "v\\d?"
-                tag "v\\d+\\.\\d+\\.\\d+*"
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                branch pattern: 'v\\d?', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return params.Run_As_Master_Branch }
               }
               expression { return params.bench_ci }
@@ -369,9 +369,9 @@ pipeline {
         allOf {
           anyOf {
             branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
+            branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+            branch pattern: 'v\\d?', comparator: 'REGEXP'
+            tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
             expression { return params.Run_As_Master_Branch }
             expression { return env.BEATS_UPDATED != "false" }
           }
