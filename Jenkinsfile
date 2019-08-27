@@ -1,16 +1,8 @@
 #!/usr/bin/env groovy
 @Library('apm@current') _
 
-import groovy.transform.Field
-
-/**
-This is the git commit sha which it's required to be used in different stages.
-It does store the env GIT_BASE_COMMIT
-*/
-@Field def gitCommit
-
 pipeline {
-  agent none
+  agent any
   environment {
     BASE_DIR = "src/github.com/elastic/apm-server"
     NOTIFY_TO = credentials('notify-to')
@@ -67,7 +59,6 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          gitCommit = env.GIT_BASE_COMMIT
           dir("${BASE_DIR}"){
             env.GO_VERSION = readFile(".go-version")
             if(env.CHANGE_TARGET){
@@ -352,10 +343,10 @@ pipeline {
         log(level: 'INFO', text: "Launching Async ${env.GITHUB_CHECK_ITS_NAME}")
         build(job: env.ITS_PIPELINE, propagate: false, wait: false,
               parameters: [string(name: 'AGENT_INTEGRATION_TEST', value: 'All'),
-                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${gitCommit}"),
+                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}"),
                            string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
                            string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
-                           string(name: 'GITHUB_CHECK_SHA1', value: gitCommit)])
+                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
         githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: "${env.JENKINS_URL}search/?q=${env.ITS_PIPELINE.replaceAll('/','+')}")
       }
     }
