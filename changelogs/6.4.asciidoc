@@ -52,5 +52,5 @@ https://github.com/elastic/apm-server/compare/v6.3.2\...v6.4.0[View commits]
 - Add source_mapping.elasticsearch configuration option {pull}1114[1114].
 - Add /v1/metrics endpoint {pull}1000[1000] {pull}1121[1121].
 - Push onboarding doc to separate ES index {pull}1159[1159].
-- Deprecate usage of `apm-server setup` for dashboards and index-pattern {pull}1142[1142],{pull}1261[1261].
+- Deprecate usage of `apm-server setup` for dashboards and index-pattern {pull}1142[1142], {pull}1261[1261].
 - Disable metrics logging by default {pull}1127[1127].

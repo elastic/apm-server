@@ -434,7 +434,7 @@ endif::[]
 
 *`--setup`*::
 ifdef::deprecate_dashboard_loading[]
-deprecated[{deprecate_dashboard_loading}]
+deprecated:[6.4.0]
 endif::[]
 +
 ifdef::has_ml_jobs[]
@@ -520,7 +520,7 @@ endif::[]
 ifdef::deprecate_dashboard_loading[]
 *`--dashboards`*::
 
-deprecated[{deprecate_dashboard_loading}]
+deprecated:[6.4.0]
 +
 Sets up the Kibana dashboards only.
 endif::[]
