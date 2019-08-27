@@ -282,3 +282,27 @@ func prepareIngestPackaging() error {
 func DumpVariables() error {
 	return mage.DumpVariables()
 }
+
+func Check() error {
+	fmt.Println(">> check: Checking source code for common problems")
+
+	mg.Deps(mage.GoVet, mage.CheckNosetestsNotExecutable, mage.CheckYAMLNotExecutable)
+
+	changes, err := mage.GitDiffIndex()
+	if err != nil {
+		return errors.Wrap(err, "failed to diff the git index")
+	}
+	if len(changes) > 0 {
+		if mg.Verbose() {
+			mage.GitDiff()
+		}
+		return errors.Errorf("some files are not up-to-date. "+
+			"Run 'mage fmt update' then review and commit the changes. "+
+			"Modified: %v", changes)
+	}
+	return nil
+}
+
+func Fmt() {
+	mg.Deps(mage.Format)
+}
