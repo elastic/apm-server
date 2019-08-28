@@ -8,6 +8,8 @@ jenkins_setup
 export OUT_FILE="build/test-report.out"
 export COV_DIR="build/coverage"
 
+mkdir -p {COV_DIR}
+
 make update prepare-tests test-deps
 
 (gotestcover -race -coverprofile=${COV_DIR}/unit.cov -v ./... 2>&1 | tee ${OUT_FILE}) || echo -e "\033[31;49mTests FAILED\033[0m"
