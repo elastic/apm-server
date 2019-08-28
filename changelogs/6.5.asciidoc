@@ -49,7 +49,7 @@ https://github.com/elastic/apm-server/compare/v6.4.2\...v6.5.0[View commits]
 ==== Added
 
 - Provide basic server information at `/` {pull}1197[1197].
-- Add pipeline registration and pipeline usage {pull}1258[1258],{pull}1296[1296].
+- Add pipeline registration and pipeline usage {pull}1258[1258], {pull}1296[1296].
 - Allow sending `tags` for `spans`, that get indexed in ES {pull}1156[1156].
 - Add apm-server monitoring {pull}1382[1382].
 - Enable sending instrumentation to a remote APM Server with `instrumentation.hosts` {pull}1389[1389].
