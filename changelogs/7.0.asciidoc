@@ -68,7 +68,7 @@ Also see:
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
 - Rename `transaction.span_count.dropped.total` to `transaction.span_count.dropped` {pull}1809[1809].
 - Rename `span.hex_id` to `span.id` {pull}1811[1811].
 - Index `error.exception` as array of objects {pull}1825[1825]
@@ -104,7 +104,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2\...v7.0.0-beta1[View
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
 
 [float]
 ==== Added
