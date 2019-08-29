@@ -228,6 +228,7 @@ def create_notice(filename, beat, copyright, vendor_dirs, csvfile, overrides=Non
 
 
 APACHE2_LICENSE_TITLES = [
+    "Apache License 2.0",
     "Apache License Version 2.0",
     "Apache License, Version 2.0",
     re.sub(r"\s+", " ", """Apache License
@@ -392,6 +393,11 @@ if __name__ == "__main__":
         if 'vendor' in dirs:
             vendor_dirs.append(os.path.join(root, 'vendor'))
             dirs.remove('vendor')   # don't walk down into sub-vendors
+
+        if 'dev-tools' in dirs:
+            print(dirs)
+        if 'dev-tools' in root:
+            print(root)
 
         for exclude in excludes:
             if exclude in dirs:
