@@ -1,19 +1,7 @@
 {
 	"comment": "",
-	"ignore": "test",
+    "ignore": "test appengine",
 	"package": [
-		{
-			"path": "appengine",
-			"revision": ""
-		},
-		{
-			"path": "appengine_internal",
-			"revision": ""
-		},
-		{
-			"path": "appengine_internal/base",
-			"revision": ""
-		},
 		{
 			"checksumSHA1": "kwUfnTXFn6mjfw31/cmVIizn/Q4=",
 			"path": "github.com/Bowery/prompt",
