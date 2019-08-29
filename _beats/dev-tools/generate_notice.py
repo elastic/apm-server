@@ -394,11 +394,6 @@ if __name__ == "__main__":
             vendor_dirs.append(os.path.join(root, 'vendor'))
             dirs.remove('vendor')   # don't walk down into sub-vendors
 
-        if 'dev-tools' in dirs:
-            print(dirs)
-        if 'dev-tools' in root:
-            print(root)
-
         for exclude in excludes:
             if exclude in dirs:
                 dirs.remove(exclude)
