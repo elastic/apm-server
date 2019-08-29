@@ -109,10 +109,6 @@ class ClientSideTest(ClientSideBaseTest):
         r = self.request_intake()
         assert r.status_code == 202, r.status_code
 
-    def test_sourcemap_upload(self):
-        r = self.upload_sourcemap(file_name='bundle.js.map')
-        assert r.status_code == 202, r.status_code
-
     def test_sourcemap_upload_fail(self):
         path = self._beat_path_join(
             'testdata',
