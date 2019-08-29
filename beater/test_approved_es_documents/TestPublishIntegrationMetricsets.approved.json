@@ -5,7 +5,7 @@
                 "beat": "apm-test",
                 "pipeline": "apm",
                 "type": "_doc",
-                "version": "7.4.0"
+                "version": "7.5.0"
             },
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "agent": {
@@ -20,7 +20,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.0.1"
+                "version": "1.1.0"
             },
             "float_gauge": 9.16,
             "integer_gauge": 42767,
@@ -50,7 +50,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.4.0",
+                "version": "7.5.0",
                 "version_major": 7
             },
             "process": {
@@ -107,7 +107,7 @@
                 "beat": "apm-test",
                 "pipeline": "apm",
                 "type": "_doc",
-                "version": "7.4.0"
+                "version": "7.5.0"
             },
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "agent": {
@@ -115,7 +115,7 @@
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.0.1"
+                "version": "1.1.0"
             },
             "go": {
                 "memstats": {
@@ -135,7 +135,7 @@
                 "hostname": "",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "test-apm-server",
-                "version": "7.4.0",
+                "version": "7.5.0",
                 "version_major": 7
             },
             "process": {
