@@ -43,6 +43,7 @@ update-beats: govendor
 	@govendor fetch github.com/elastic/beats/licenses@$(BEATS_VERSION)
 	@govendor fetch github.com/elastic/beats/x-pack/libbeat/cmd@$(BEATS_VERSION)
 	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
+	@$(MAKE) rm-empty-folders
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
 
@@ -181,3 +182,7 @@ import-dashboards:
 .PHONY: check-changelogs
 check-changelogs: ## @testing Checks the changelogs for certain branches.
 	@python script/check_changelogs.py
+
+.PHONY: rm-empty-folders
+rm-empty-folders:
+	find vendor/ -type d -empty -delete
