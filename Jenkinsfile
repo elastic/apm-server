@@ -189,9 +189,15 @@ pipeline {
           }
           post {
             always {
+              coverageReport("${BASE_DIR}/build/coverage")
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml")
+                testResults: "${BASE_DIR}/build/junit-*.xml"
+              )
+              catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
+                tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
+              }
+              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -222,16 +228,9 @@ pipeline {
           }
           post {
             always {
-              coverageReport("${BASE_DIR}/build/coverage")
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml,${BASE_DIR}/build/TEST-*.xml"
-              )
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                 tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
-                tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
               }
-              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }

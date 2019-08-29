@@ -220,6 +220,9 @@ class TestCommandSetupIndexManagement(BaseTest):
 
 
 class TestRunIndexManagementDefault(ElasticTest):
+
+    config_overrides = {"queue_flush": 2048}
+
     def setUp(self):
         super(TestRunIndexManagementDefault, self).setUp()
 
@@ -236,6 +239,9 @@ class TestRunIndexManagementDefault(ElasticTest):
 
 
 class TestRunIndexManagementWithoutILM(ElasticTest):
+
+    config_overrides = {"queue_flush": 2048}
+
     def setUp(self):
         super(TestRunIndexManagementWithoutILM, self).setUp()
 

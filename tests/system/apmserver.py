@@ -81,6 +81,7 @@ class ServerSetUpBaseTest(BaseTest):
 
     def config(self):
         return {"ssl_enabled": "false",
+                "queue_flush": 0,
                 "path": os.path.abspath(self.working_dir) + "/log/*"}
 
     def setUp(self):
@@ -149,7 +150,7 @@ class ElasticTest(ServerBaseTest):
         cfg.update({
             "elasticsearch_host": self.get_elasticsearch_url(),
             "file_enabled": "false",
-            "kibana_host": self.get_kibana_url(),
+            "kibana_enabled": "false",
         })
         cfg.update(self.config_overrides)
         return cfg
@@ -207,14 +208,9 @@ class ElasticTest(ServerBaseTest):
                               headers={'content-type': 'application/x-ndjson'})
         assert r.status_code == 202, r.status_code
 
-        # make sure template is loaded
-        self.wait_until(
-            lambda: self.log_contains("Finished loading index template"),
-            max_timeout=max_timeout)
-        self.wait_until(lambda: self.es.indices.exists(query_index))
-        # Quick wait to give documents some time to be sent to the index
+        # Wait to give documents some time to be sent to the index
         # This is not required but speeds up the tests
-        time.sleep(0.1)
+        time.sleep(2)
         self.es.indices.refresh(index=query_index)
 
         self.wait_until(
@@ -269,6 +265,7 @@ class ClientSideBaseTest(ServerBaseTest):
     def config(self):
         cfg = super(ClientSideBaseTest, self).config()
         cfg.update({"enable_rum": "true",
+                    "kibana_enabled": "false",
                     "smap_cache_expiration": "200"})
         cfg.update(self.config_overrides)
         return cfg
@@ -301,6 +298,9 @@ class ClientSideBaseTest(ServerBaseTest):
                                 'bundle_filepath': bundle_filepath,
                                 'service_name': service_name
                                 })
+        # Wait to give documents some time to be sent to the index before refresh
+        time.sleep(2)
+        self.es.indices.refresh()
         return r
 
 
