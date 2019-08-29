@@ -375,7 +375,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: 9870f90441187233027fda006105cc105f3aa07f
+Revision: fed669d3c21670631b27aff352fe41b1323e9268
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -474,7 +474,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/go-windows
-Revision: bb1581babc04d5cb29a2bfa7a9ac6781c730c8dd
+Revision: 8c929792e70203792e3baf128c380e28754ae8b5
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/go-windows/LICENSE.txt:
 --------------------------------------------------------------------
@@ -482,14 +482,14 @@ Apache License 2.0
 
 -------NOTICE.txt-----
 Elastic go-windows
-Copyright 2017-2018 Elasticsearch B.V.
+Copyright 2017-2019 Elasticsearch B.V.
 
 This product includes software developed at
 Elasticsearch, B.V. (https://www.elastic.co/).
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/gosigar
-Revision: f48d9dc84bc636d361c33fab2d7d753b705fd373
+Revision: 7aef3366157f2bfdf3e068f73ce7193573e88e0c
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/gosigar/LICENSE:
 --------------------------------------------------------------------
