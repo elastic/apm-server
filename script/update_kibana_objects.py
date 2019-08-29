@@ -56,6 +56,7 @@ def main(branch):
     call("git remote add elastic git@github.com:elastic/kibana.git")
     call("git fetch elastic " + branch)
     call("git checkout -b update-apm-index-pattern-" + branch + " elastic/" + branch)
+    call("git pull")
 
     kibana_file_path = "src/legacy/core_plugins/kibana/server/tutorials/apm/index_pattern.json"
 
@@ -73,7 +74,7 @@ def main(branch):
 
     call("git add " + kibana_file_path)
     call('git commit -m "update apm index pattern"')
-    call("git push origin update-apm-index-pattern-" + branch)
+    call("git push --force origin update-apm-index-pattern-" + branch)
 
     print("removing " + path)
     shutil.rmtree(path)
@@ -81,6 +82,6 @@ def main(branch):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', default='master')
+    parser.add_argument('-b', default='master', dest='branch')
     args = parser.parse_args()
     main(args.branch)
