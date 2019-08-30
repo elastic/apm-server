@@ -374,8 +374,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
-Version: 7.x
-Revision: c2803f9431f16ad96fc5cb974a3328ea2be51146
+Version: 7.4
+Revision: d98fc2940be3a9acba785a20bdf175cbb296ca9f
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
