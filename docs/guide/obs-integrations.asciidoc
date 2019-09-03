@@ -1,0 +1,25 @@
+[[observability-integrations]]
+== Observability integrations
+
+Elastic APM supports integrations with other observability solutions.
+
+// remove float tag once other integrations are added
+[float]
+[[apm-logging-integration]]
+=== Logging integration
+
+Many services use logging frameworks to help record, format, and append an application's logs.
+Elastic APM now offers a way to make your application logs even more useful,
+by integrating with the most popular logging frameworks in their respective langues.
+This means you can easily inject trace information into your logs, allowing you to explore logs in the Log app and jump straight into the corresponding APM traces -- all while preserving the trace context.
+
+|===
+|**Agent support**
+v|Go: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
+Java: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
+// .NET {apm-dotnet-ref-v}/[]
+// Node.js: {apm-node-ref-v}/[]
+// Python: {apm-py-ref-v}/[]
+// Ruby: {apm-ruby-ref-v}/[]
+// Rum: {apm-rum-ref-v}/[]
+|===
