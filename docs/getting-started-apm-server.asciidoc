@@ -43,7 +43,7 @@ configure, and start APM Server:
 
 * <<installing>>
 * <<apm-server-configuration>>
-* <<start-apm-server>>
+* <<apm-server-starting>>
 * <<next-steps>>
 
 // *******************************************************
@@ -212,7 +212,7 @@ More information is available in <<load-template-auto, configure template loadin
 // STEP 3
 // *******************************************************
 
-[[start-apm-server]]
+[[apm-server-starting]]
 === Step 3: Start APM Server
 
 In a production environment, you would put APM Server on its own machines,
