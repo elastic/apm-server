@@ -7,7 +7,6 @@
 * <<sizing-guide, Storage and sizing guide>>
 * <<processing-performance, Processing and performance>>
 * <<reduce-storage, Reduce storage usage>>
-* <<manual-ilm-setup,Manual index lifecycle management>>
 * <<manage-indices-kibana, Manage APM indices via Kibana>>
 * <<update-existing-data, Update existing data>>
 --
@@ -152,9 +151,9 @@ deleting data collected for specific services or customers,
 or deleting specific indices.
 
 Depending on your use case,
-you can delete data periodically with <<manual-ilm-setup,index lifecycle management>>,
-{curator-ref-current}[Curator], by using the {ref}/docs-delete-by-query.html[Delete By Query API],
-or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
+you can delete data periodically with <<delete-data-ilm,index lifecycle management>>,
+{curator-ref-current}[Curator], the {ref}/docs-delete-by-query.html[Delete By Query API],
+or in the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
 [float]
 [[delete-data-ilm]]
@@ -162,7 +161,7 @@ or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
 Index Lifecycle management (ILM) enables you to automate how you want to manage your indices over time.
 You can base actions on factors such as shard size and performance requirements.
-Learn more in <<manual-ilm-setup,manual index lifecycle management>>.
+Learn more in <<ilm>>.
 
 [float]
 [[delete-data-periodically]]

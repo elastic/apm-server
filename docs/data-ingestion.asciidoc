@@ -13,8 +13,6 @@ This section explains how to adapt data ingestion according to your needs.
 [[tune-apm-server]]
 == Tune APM Server
 
-Tuning topics:
-
 * <<tune-output-config>>
 * <<adjust-queue-size>>
 * <<add-apm-server-instances>>
@@ -89,7 +87,7 @@ Increasing the <<event_rate.limit,`event_rate.limit`>> default value will help a
 
 The Elasticsearch reference provides insight on tuning Elasticsearch.
 
-{ref}/tune-for-indexing-speed.html[Tune for indexing speed] can provide information on:
+{ref}/tune-for-indexing-speed.html[Tune for indexing speed] provides information on:
 
 * Refresh interval
 * Disabling swapping
@@ -97,7 +95,7 @@ The Elasticsearch reference provides insight on tuning Elasticsearch.
 * Considerations regarding faster hardware
 * Setting the indexing buffer size
 
-{ref}/tune-for-disk-usage.html[Tune for disk usage] can provide information on:
+{ref}/tune-for-disk-usage.html[Tune for disk usage] provides information on:
 
 * Disabling unneeded features
 * Shard size
