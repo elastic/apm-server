@@ -15,6 +15,7 @@
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
         discover-tags: false
+        notification-context: 'apm-ci'
         property-strategies:
           all-branches:
           - suppress-scm-triggering: true
