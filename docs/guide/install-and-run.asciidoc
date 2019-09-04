@@ -3,7 +3,7 @@
 
 The easiest way to get started with Elastic APM is by using our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
-Elastic Cloud. The {es} Service is available on both AWS and GCP,
+Elastic Cloud. The {es} Service is available on AWS, GCP, and Azure,
 and automatically configures APM Server to work with {es} and {kib}.
 
 Alternatively, you can <<before-installation,install the stack yourself>>.

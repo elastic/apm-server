@@ -5,7 +5,7 @@
 // Switch to tagged regions when available
 The easiest way to get started with APM Server is by using our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
-Elastic Cloud. The {es} Service is available on both AWS and GCP,
+Elastic Cloud. The {es} Service is available on AWS, GCP, and Azure,
 and automatically configures APM Server to work with {es} and {kib}.
 
 [float]
@@ -58,7 +58,7 @@ NOTE: *Before you begin*: If you haven't installed the {stack}, do that now.
 See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}].
 
 To download and install {beatname_uc}, use the commands below that work with your system.
-If you use Apt or Yum, you can <<setup-repositories,install {beatname_uc} from our repositories>>
+If you use `apt` or `yum`, you can <<setup-repositories,install {beatname_uc} from our repositories>>
 to update to the newest version more easily.
 
 ifeval::["{release-state}"!="unreleased"]
@@ -86,7 +86,7 @@ sudo dpkg -i apm-server-{version}-amd64.deb
 endif::[]
 
 [[rpm]]
-*rpm:*
+*RPM:*
 
 ifeval::["{release-state}"=="unreleased"]
 
@@ -104,8 +104,26 @@ sudo rpm -vi apm-server-{version}-x86_64.rpm
 
 endif::[]
 
+[[linux]]
+*Other Linux:*
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+["source","sh",subs="attributes"]
+------------------------------------------------
+curl -L -O {downloads}/apm-server-{version}-linux-x86_64.tar.gz
+tar xzvf apm-server-{version}-linux-x86_64.tar.gz
+------------------------------------------------
+endif::[]
+
 [[mac]]
-*mac:*
+*Mac:*
 
 ifeval::["{release-state}"=="unreleased"]
 
@@ -123,31 +141,8 @@ tar xzvf apm-server-{version}-darwin-x86_64.tar.gz
 
 endif::[]
 
-[[linux]]
-*linux:*
-
-ifeval::["{release-state}"=="unreleased"]
-
-Version {version} of APM Server has not yet been released.
-
-endif::[]
-
-ifeval::["{release-state}"!="unreleased"]
-
-["source","sh",subs="attributes"]
-------------------------------------------------
-curl -L -O {downloads}/apm-server-{version}-linux-x86_64.tar.gz
-tar xzvf apm-server-{version}-linux-x86_64.tar.gz
-------------------------------------------------
-endif::[]
-
-[[docker]]
-*docker:*
-
-See <<running-on-docker, Running on Docker>> for deploying Docker containers.
-
 [[installing-on-windows]]
-*win:*
+*Windows:*
 
 ifeval::["{release-state}"=="unreleased"]
 
@@ -181,6 +176,11 @@ For example: `PowerShell.exe -ExecutionPolicy UnRestricted -File .\install-servi
 
 endif::[]
 
+[[docker]]
+*Docker:*
+
+See <<running-on-docker, Running on Docker>> for deploying Docker containers.
+
 // *******************************************************
 // STEP 2
 // *******************************************************
@@ -190,7 +190,7 @@ endif::[]
 
 If you've installed APM Server yourself,
 you can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
-The location of this file varies by platform -- see <<directory-layout>> for help with locating it.
+The location of this file varies by platform. See <<directory-layout>> for help with locating it.
 
 All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
@@ -199,14 +199,25 @@ All available configuration options are outlined in
 [[index-template-config]]
 ==== Index template configuration
 
-In Elasticsearch, {ref}/indices-templates.html[index templates] are used to define settings
-and mappings that determine how fields should be analyzed.
+IMPORTANT: The {kibana-ref}/xpack-apm.html[Kibana APM UI] relies on specific mappings.
+Changing the default mapping might break the APM UI.
+
+In Elasticsearch, {ref}/indices-templates.html[index templates]
+are used to define field settings and mappings.
 
 The recommended index template file for {beatname_uc} is installed by the {beatname_uc} packages.
 If you accept the default configuration in the +{beatname_lc}.yml+ configuration file,
-{beatname_uc} loads the template automatically after successfully connecting to Elasticsearch.
-If the template already exists,
-it's not overwritten unless you configure {beatname_uc} to do so.
+{beatname_uc} will load the template automatically after successfully connecting to Elasticsearch.
+If a template already exists, it will not be overwritten unless you configure {beatname_uc} to do so.
+Users can run `apm-server -e setup template` to force a template overwrite.
+
+To see the template bundled with {beatname_uc}, run `apm-server export template`.
+You can then compare the response with the actual template in your elasticsearch instance.
+
+NOTE: Index templates cannot be applied retroactively.
+They are only applied at index creation time.
+Changing a template will have no impact on existing indices.
+This means you need to ensure the correct index template is loaded from day one.
 
 More information is available in <<load-template-auto, configure template loading>>.
 
