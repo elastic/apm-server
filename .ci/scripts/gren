@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-set -e
-docker run --rm -t -v "$(pwd):/app" -u "$(id -u):$(id -g)" docker.elastic.co/observability-ci/gren "$@"
