@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-set -e
-docker run --rm -t -v "$PWD:/mnt" -u "$(id -u):$(id -g)" docker.elastic.co/observability-ci/shellcheck "$@"
