@@ -15,7 +15,9 @@ A source map library helps by mapping the minified files back to the the origina
 
 APM Server provides a <<sourcemap-api,Source Map API>> for uploading source maps.
 
-Source maps are then automatically applied to all incoming transactions and errors.
+By default, <<config-sourcemapping-enabled>> is set to `true`.
+This means if a source map has previously been uploaded,
+source mapping will automatically be applied all incoming transactions and errors.
 
 Source maps are cached in memory for as long as the <<rum-sourcemap-cache,cache expiration>> setting indicates.
 
