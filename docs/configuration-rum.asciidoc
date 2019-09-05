@@ -13,6 +13,7 @@ apm-server.rum.event_rate.lru_size: 1000
 apm-server.rum.allow_origins: ['*']
 apm-server.rum.library_pattern: "node_modules|bower_components|~"
 apm-server.rum.exclude_from_grouping: "^/webpack"
+apm-server.rum.source_mapping.enabled: true
 apm-server.rum.source_mapping.cache.expiration: 5m
 apm-server.rum.source_mapping.index_pattern: "apm-*-sourcemap*"
 ----
@@ -63,6 +64,12 @@ Default value is `"node_modules|bower_components|~"`.
 RegExp to be matched against a stacktrace frame's `file_name`.
 If the RegExp matches, the stacktrace frame is excluded from being used for calculating error groups.
 The default pattern excludes stacktrace frames that have a filename starting with `/webpack`.
+
+[[config-sourcemapping-enabled]]
+[float]
+==== `source_mapping.enabled`
+Used to enable/disable <<sourcemaps,sourcemapping>> for RUM events.
+Defaults to `true`.
 
 [[config-sourcemapping-elasticsearch]]
 [float]
