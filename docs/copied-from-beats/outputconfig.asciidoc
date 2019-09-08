@@ -723,6 +723,7 @@ include::./shared-logstash-config.asciidoc[]
 Every event sent to Logstash contains the following metadata fields that you can
 use in Logstash for indexing and filtering:
 
+ifndef::apm-server[]
 ["source","json",subs="attributes"]
 ------------------------------------------------------------------------------
 {
@@ -739,6 +740,31 @@ for more about the `@metadata` field.
 <2> The default is {beat_default_index_prefix}. To change this value, set the
 <<logstash-index,`index`>> option in the {beatname_uc} config file.
 <3> The current version of {beatname_uc}.
+endif::[]
+
+ifdef::apm-server[]
+["source","json",subs="attributes"]
+------------------------------------------------------------------------------
+{
+    ...
+    "@metadata": { <1>
+      "beat": "{beat_default_index_prefix}", <2>
+      "pipeline":"apm", <3>
+      "ip_address":"127.0.0.1", <4>
+      "version": "{stack-version}" <5>
+   }
+    }
+}
+------------------------------------------------------------------------------
+<1> {beatname_uc} uses the `@metadata` field to send metadata to Logstash. See the
+{logstash-ref}/event-dependent-configuration.html#metadata[Logstash documentation]
+for more about the `@metadata` field.
+<2> The default is {beat_default_index_prefix}. To change this value, set the
+<<logstash-index,`index`>> option in the {beatname_uc} config file.
+<3> The pipeline
+<4> The IP address of APM Server 
+<3> The current version of {beatname_uc}.
+endif::[]
 
 You can access this metadata from within the Logstash config file to set values
 dynamically based on the contents of the metadata.
@@ -832,7 +858,12 @@ You can specify the following options in the `logstash` section of the
 The enabled config is a boolean setting to enable or disable the output. If set
 to false, the output is disabled.
 
-The default value is true.
+ifndef:apm-server[]
+The default value is `true`.
+endif::[]
+ifdef:apm-server[]
+The default value is `false`.
+endif::[]
 
 [[hosts]]
 ===== `hosts`
