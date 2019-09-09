@@ -761,8 +761,8 @@ ifdef::apm-server[]
 for more about the `@metadata` field.
 <2> The default is {beat_default_index_prefix}. To change this value, set the
 <<logstash-index,`index`>> option in the {beatname_uc} config file.
-<3> The pipeline
-<4> The IP address of APM Server 
+<3> Why am I seeing pipeline here?
+<4> The IP address of APM Server .
 <3> The current version of {beatname_uc}.
 endif::[]
 
@@ -800,34 +800,39 @@ ifdef::apm-server[]
 [source,logstash]
 ------
 input {
-  beats {
-    port => 5044
-  }
+    beats {
+        port => 5044
+    }
 }
 
 filter {
-  if [@metadata][beat] == "apm-server" { <1>
-    if [processor][event] == "sourcemap" {
-      mutate { add_field => { "[@metadata][index]" => "apm-%{[@metadata][version]}-sourcemap" } } <2>
-    } else {
-      mutate { add_field => { "[@metadata][index]" => "apm-%{[@metadata][version]}-%{[processor][event]}" } } <3>
+    if [@metadata][beat] == "apm" {
+        if [processor][event] == "sourcemap" {
+            mutate {
+                add_field => { "[@metadata][index]" => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}" } <1>
+            }
+        } else {
+            mutate {
+                add_field => { "[@metadata][index]" => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}-%{+yyyy.MM.dd}" } <2>
+            }
+        }
     }
-  } else {
-    mutate { add_field => { "[@metadata][index]" => "%{[@metadata][beat]}-%{[@metadata][version]}" } } <4>
-  }
 }
 
 output {
-  elasticsearch {
-    hosts => ["http://localhost:9200"]
-    index => "%{[@metadata][index]}"
-  }
+    elasticsearch {
+        hosts => ["http://localhost:9200"]
+        index => "%{[@metadata][index]}"
+    }
 }
 ------
-<1> Checks for data coming from APM Server
-<2> Sourcemap indices are 
-<3>
-<4> Default output index for non APM data 
+<1> Creates a new field named `@metadata.index`.
+`%{[@metadata][beat]}` sets the first part of the index name to the value of the `beat` metadata field.
+`%{[@metadata][version]}` sets the second part to {beatname_uc}'s version.
+`%{[processor][event]}` sets the final part based on the APM event type.
+For example: +{beat_default_index_prefix}-{version}-sourcemap+.
+<2> In addition to the above rules, this pattern appends a date to the `index` name so Logstash creates a new index each day.
+For example: +{beat_default_index_prefix}-{version}-transaction-{sample_date_0}+.
 endif::[]
 
 Events indexed into Elasticsearch with the Logstash configuration shown here
@@ -858,12 +863,7 @@ You can specify the following options in the `logstash` section of the
 The enabled config is a boolean setting to enable or disable the output. If set
 to false, the output is disabled.
 
-ifndef:apm-server[]
 The default value is `true`.
-endif::[]
-ifdef:apm-server[]
-The default value is `false`.
-endif::[]
 
 [[hosts]]
 ===== `hosts`
