@@ -762,8 +762,8 @@ for more about the `@metadata` field.
 <2> The default is {beat_default_index_prefix}. To change this value, set the
 <<logstash-index,`index`>> option in the {beatname_uc} config file.
 <3> Why am I seeing pipeline here?
-<4> The IP address of APM Server .
-<3> The current version of {beatname_uc}.
+<4> The IP address of APM Server.
+<5> The current version of {beatname_uc}.
 endif::[]
 
 You can access this metadata from within the Logstash config file to set values
@@ -843,9 +843,27 @@ NOTE: If ILM is not being used, set `index` to `%{[@metadata][beat]}-%{[@metadat
 endif::[]
 
 ifdef::apm-server[]
-NOTE: If ILM is not being used, set `index` to `%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}` instead so Logstash creates an index per day, based on the `@timestamp` value of the events coming from Beats.
-endif::[]
+==== Logstash and ILM
 
+When used with {apm-server-ref}/manual-ilm-setup.html[Index lifecycle management], Logstash does not need to create a new index each day.
+Here's a sample Logstash configuration file that would accomplish this:
+
+[source,logstash]
+------
+input {
+    beats {
+        port => 5044
+    }
+}
+
+output {
+    elasticsearch {
+        hosts => ["http://localhost:9200"]
+        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}"
+    }
+}
+------
+endif::[]
 
 ==== Compatibility
 
