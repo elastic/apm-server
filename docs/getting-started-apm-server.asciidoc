@@ -188,6 +188,17 @@ See <<running-on-docker, Running on Docker>> for deploying Docker containers.
 [[apm-server-configuration]]
 === Step 2: Configure APM Server
 
+[float]
+==== Elastic Cloud
+
+If you're running APM Server in Elastic cloud, you can configure your own user settings right in the Elasticsearch Service Console.
+Any changes are automatically appended to the `apm-server.yml` configuration file for your instance.
+
+Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
+
+[float]
+==== Self installation
+
 If you've installed APM Server yourself,
 you can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
 The location of this file varies by platform. See <<directory-layout>> for help with locating it.
@@ -197,7 +208,7 @@ All available configuration options are outlined in
 
 [float]
 [[index-template-config]]
-==== Index template configuration
+===== Index template configuration
 
 IMPORTANT: The {kibana-ref}/xpack-apm.html[Kibana APM UI] relies on specific mappings.
 Changing the default mapping might break the APM UI.
