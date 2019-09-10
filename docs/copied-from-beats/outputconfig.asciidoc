@@ -750,9 +750,7 @@ ifdef::apm-server[]
     "@metadata": { <1>
       "beat": "{beat_default_index_prefix}", <2>
       "pipeline":"apm", <3>
-      "ip_address":"127.0.0.1", <4>
-      "version": "{stack-version}" <5>
-   }
+      "version": "{stack-version}" <4>
     }
 }
 ------------------------------------------------------------------------------
@@ -761,9 +759,9 @@ ifdef::apm-server[]
 for more about the `@metadata` field.
 <2> The default is {beat_default_index_prefix}. To change this value, set the
 <<logstash-index,`index`>> option in the {beatname_uc} config file.
-<3> Why am I seeing pipeline here?
-<4> The IP address of APM Server.
-<5> The current version of {beatname_uc}.
+<3> The default pipeline configuration: `apm`. Additional pipelines can be enabled
+with a {logstash-ref}/use-ingest-pipelines.html[Logstash pipeline config].
+<4> The current version of {beatname_uc}.
 endif::[]
 
 You can access this metadata from within the Logstash config file to set values
