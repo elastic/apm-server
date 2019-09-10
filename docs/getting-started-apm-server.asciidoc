@@ -52,7 +52,7 @@ configure, and start APM Server:
 // *******************************************************
 
 [[installing]]
-=== Step 1: Install APM Server
+=== Step 1: Install
 
 NOTE: *Before you begin*: If you haven't installed the {stack}, do that now.
 See {stack-gs}/get-started-elastic-stack.html[Getting started with the {stack}].
@@ -186,7 +186,7 @@ See <<running-on-docker, Running on Docker>> for deploying Docker containers.
 // *******************************************************
 
 [[apm-server-configuration]]
-=== Step 2: Configure APM Server
+=== Step 2: Setup and configure
 
 [float]
 ==== Elastic Cloud
@@ -206,15 +206,22 @@ The location of this file varies by platform. See <<directory-layout>> for help 
 All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
 
+It is also recommend that you run the {beatname_uc} `setup` command.
+This command sets up the initial environment, including the ES index template,
+and ILM write alias:
+
+// This include attribute uses tagged regions to pull the **setup-command** instructions
+// in from command-reference.asciidoc. There is also a tagged region for **attributes**
+// as these are defined locally in the command reference file, but must also be accessed here.
+include::./copied-from-beats/command-reference.asciidoc[tag=attributes]
+include::./copied-from-beats/command-reference.asciidoc[tag=setup-command-tag]
+
 [float]
 [[index-template-config]]
 ===== Index template configuration
 
 IMPORTANT: The {kibana-ref}/xpack-apm.html[Kibana APM UI] relies on specific mappings.
 Changing the default mapping might break the APM UI.
-
-In Elasticsearch, {ref}/indices-templates.html[index templates]
-are used to define field settings and mappings.
 
 The recommended index template file for {beatname_uc} is installed by the {beatname_uc} packages.
 If you accept the default configuration in the +{beatname_lc}.yml+ configuration file,
@@ -237,7 +244,7 @@ More information is available in <<load-template-auto, configure template loadin
 // *******************************************************
 
 [[apm-server-starting]]
-=== Step 3: Start APM Server
+=== Step 3: Start
 
 In a production environment, you would put APM Server on its own machines,
 similar to how you run Elasticsearch.
