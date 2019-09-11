@@ -6,13 +6,29 @@ Example config file:
 ["source","yaml"]
 ----
 apm-server:
-  host: "localhost:8200"
+  hosts: ["localhost:8200"]
   rum:
     enabled: true
+
+output:
+  elasticsearch:
+    hosts: ElasticsearchAddress:9200
 
 queue.mem.events: 4096
 
 max_procs: 4
+----
+
+NOTE: If you are using an X-Pack secured version of Elastic Stack,
+you need to specify credentials in the config file before you run the commands that set up and start APM Server.
+For example:
+
+[source,yaml]
+----
+output.elasticsearch:
+  hosts: ["ElasticsearchAddress:9200"]
+  username: "elastic"
+  password: "elastic"
 ----
 
 [float]
