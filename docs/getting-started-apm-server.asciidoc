@@ -186,7 +186,7 @@ See <<running-on-docker, Running on Docker>> for deploying Docker containers.
 // *******************************************************
 
 [[apm-server-configuration]]
-=== Step 2: Setup and configure
+=== Step 2: Set up and configure
 
 [float]
 ==== Elastic Cloud
@@ -199,16 +199,34 @@ Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user s
 [float]
 ==== Self installation
 
-If you've installed APM Server yourself,
-you can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
-The location of this file varies by platform. See <<directory-layout>> for help with locating it.
+Once you've installed {beatname_uc}, you can set up and configure it according to your needs.
 
-All available configuration options are outlined in
-{apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
+[float]
+[[index-template-config]]
+===== Set up
 
-It is also recommend that you run the {beatname_uc} `setup` command.
-This command sets up the initial environment, including the ES index template,
-and ILM write alias:
+It is recommend that you run the `setup` command before starting {beatname_uc}.
+
+The `setup` command sets up the initial environment, including the Elasticsearch index template,
+and ILM write alias. In Elasticsearch, {ref}/indices-templates.html[index templates]
+are used to define field settings and mappings.
+
+IMPORTANT: The {kibana-ref}/xpack-apm.html[Kibana APM UI] relies on specific mappings.
+Changing the default mapping or failing to setup the initial mapping may break the APM UI.
+
+The recommended index template file for {beatname_uc} is installed by the {beatname_uc} packages.
+To see the template that comes bundled with {beatname_uc}, run `apm-server export template`.
+If you accept the default configuration,
+{beatname_uc} will load the template automatically after successfully connecting to Elasticsearch.
+If a template already exists, it will not be overwritten unless you've explicitly configured {beatname_uc} to do so.
+Running `apm-server -e setup template` will force a template overwrite.
+
+NOTE: Index templates cannot be applied retroactively.
+They are only applied at index creation time.
+Changing a template will have no impact on existing indices.
+This means you need to ensure the correct index template is loaded from day one.
+
+Full details on the `setup` command are below:
 
 // This include attribute uses tagged regions to pull the **setup-command** instructions
 // in from command-reference.asciidoc. There is also a tagged region for **attributes**
@@ -217,27 +235,12 @@ include::./copied-from-beats/command-reference.asciidoc[tag=attributes]
 include::./copied-from-beats/command-reference.asciidoc[tag=setup-command-tag]
 
 [float]
-[[index-template-config]]
-===== Index template configuration
+===== Configure
 
-IMPORTANT: The {kibana-ref}/xpack-apm.html[Kibana APM UI] relies on specific mappings.
-Changing the default mapping might break the APM UI.
-
-The recommended index template file for {beatname_uc} is installed by the {beatname_uc} packages.
-If you accept the default configuration in the +{beatname_lc}.yml+ configuration file,
-{beatname_uc} will load the template automatically after successfully connecting to Elasticsearch.
-If a template already exists, it will not be overwritten unless you configure {beatname_uc} to do so.
-Users can run `apm-server -e setup template` to force a template overwrite.
-
-To see the template bundled with {beatname_uc}, run `apm-server export template`.
-You can then compare the response with the actual template in your elasticsearch instance.
-
-NOTE: Index templates cannot be applied retroactively.
-They are only applied at index creation time.
-Changing a template will have no impact on existing indices.
-This means you need to ensure the correct index template is loaded from day one.
-
-More information is available in <<load-template-auto, configure template loading>>.
+You can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
+The location of this file varies by platform, but the <<directory-layout>> will help you locate it.
+All available configuration options are outlined in
+{apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
 
 // *******************************************************
 // STEP 3

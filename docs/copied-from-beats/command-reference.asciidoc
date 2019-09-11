@@ -597,7 +597,6 @@ Or:
 
 {setup-command-short-desc}
 
-tag::setup-command-tag[]
 * The index template ensures that fields are mapped correctly in Elasticsearch.
 If index lifecycle management is enabled it also ensures that the defined ILM policy
 and write alias are connected to the indices matching the index template.
@@ -619,6 +618,7 @@ This command sets up the environment without actually running
 
 *SYNOPSIS*
 
+tag::setup-command-tag[]
 ["source","sh",subs="attributes"]
 ----
 {beatname_lc} setup [FLAGS]
