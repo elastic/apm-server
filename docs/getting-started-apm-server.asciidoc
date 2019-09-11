@@ -24,7 +24,7 @@ A full list of configuration options is available in Elastic Cloud's
 {cloud}/ec-manage-apm-settings.html[Add APM user settings].
 
 [float]
-=== Install the stack yourself
+=== Install and manage the stack yourself
 
 If you'd rather install the stack yourself, first see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
 
