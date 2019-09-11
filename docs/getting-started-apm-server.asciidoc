@@ -197,13 +197,8 @@ Any changes are automatically appended to the `apm-server.yml` configuration fil
 Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user settings] documentation.
 
 [float]
-==== Self installation
-
-Once you've installed {beatname_uc}, you can set up and configure it according to your needs.
-
-[float]
 [[index-template-config]]
-===== Set up
+==== Self installation
 
 It is recommend that you run the `setup` command before starting {beatname_uc}.
 
@@ -234,10 +229,7 @@ Full details on the `setup` command are below:
 include::./copied-from-beats/command-reference.asciidoc[tag=attributes]
 include::./copied-from-beats/command-reference.asciidoc[tag=setup-command-tag]
 
-[float]
-===== Configure
-
-You can edit the `apm-server.yml` configuration file to customize APM Server to your needs.
+Once APM Server has been set up, you can edit the `apm-server.yml` configuration file to customize it to your needs.
 The location of this file varies by platform, but the <<directory-layout>> will help you locate it.
 All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
