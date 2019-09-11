@@ -11,24 +11,27 @@ If you have issues installing or running APM Server,
 read the following tips:
 
 * <<common-problems>>
-* <<getting-help>>
 * <<enable-apm-server-debugging>>
+* <<getting-help>>
 
-//sets block macro for getting-help.asciidoc included in next section
+Other sections in the documentation may also be helpful:
+
+* <<sizing-guide, Storage and sizing guide>>
+* <<processing-performance, Processing and performance>>
+* <<tune-apm-server, Tune APM Server>>
+* <<tune-es, Tune Elasticsearch>>
+* {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix]
 
 --
 
 include::common-problems.asciidoc[]
 
+[[enable-apm-server-debugging]]
+== Debug
+
+include::copied-from-beats/debugging.asciidoc[]
 
 [[getting-help]]
 == Get help
 
 include::copied-from-beats/getting-help.asciidoc[]
-
-//sets block macro for debugging.asciidoc included in next section
-
-[[enable-apm-server-debugging]]
-== Debug
-
-include::copied-from-beats/debugging.asciidoc[]
