@@ -164,7 +164,7 @@ Repeat the previous steps for each index that will be using ILM.
 
 . *Modify APM Server's configuration.*
 +
-Finally, modify the default index configuration in <<apm-server-configuration,`apm-server.yml`>>.
+Finally, modify the default index configuration in <<configuration-process,`apm-server.yml`>>.
 Trim off the date template from each index you are setting up ILM for,
 so that APM Server is always writing events to the same place.
 The name of your modified index configuration must match the `is_write_index` alias created previously
