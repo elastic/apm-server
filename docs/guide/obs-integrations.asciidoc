@@ -38,7 +38,7 @@ https://www.elastic.co/products/beats/filebeat[{filebeat}] is Elastic's log ship
 You can get started by selecting *Add log data* from the {kib} homepage and following the links.
 
 [role="screenshot"]
-image::add-data.png[]
+image::images/add-data.png[]
 
 If your data source isn't on the list, you can follow the
 {filebeat-ref}/filebeat-modules-quickstart.html[{filebeat} modules quick start]
