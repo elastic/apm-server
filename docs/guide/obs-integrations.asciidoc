@@ -13,13 +13,82 @@ Elastic APM now offers a way to make your application logs even more useful,
 by integrating with the most popular logging frameworks in their respective langues.
 This means you can easily inject trace information into your logs, allowing you to explore logs in the Log app and jump straight into the corresponding APM traces -- all while preserving the trace context.
 
-|===
-|**Agent support**
-v|Go: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
-Java: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
-// .NET {apm-dotnet-ref-v}/[]
-// Node.js: {apm-node-ref-v}/[]
-// Python: {apm-py-ref-v}/[]
-// Ruby: {apm-ruby-ref-v}/[]
-// Rum: {apm-rum-ref-v}/[]
-|===
+To get started:
+
+. Enable log correlation in your APM Agent(s) and decorate your logs with the `trace.id field`.
+. Ingest your logs into Elasticsearch
+
+[float]
+==== Enable Agent support
+
+The following agents currently support log correlation:
+
+* *Go: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
+* Java: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
+// * .NET {apm-dotnet-ref-v}/[]
+// * Node.js: {apm-node-ref-v}/[]
+// * Python: {apm-py-ref-v}/[]
+// * Ruby: {apm-ruby-ref-v}/[]
+// * Rum: {apm-rum-ref-v}/[]
+
+[float]
+==== Ingest your logs into Elasticsearch
+
+https://www.elastic.co/products/beats/filebeat[{filebeat}] is Elastic's log shipper.
+You can get started by selecting *Add log data* from the {kib} homepage and following the links.
+
+[role="screenshot"]
+image::add-data.png[]
+
+If your data source isn't on the list, you can follow the
+{filebeat-ref}/filebeat-modules-quickstart.html[{filebeat} modules quick start]
+and enable modules for the logs you want to collect.
+If there is no module for the logs you want to collect, see the
+{filebeat-ref}/filebeat-getting-started.html[{filebeat} getting started]
+to learn how to configure inputs.
+
+For either approach, you'll need to enable modules in {filebeat} to populate the Logs app with data.
+
+[float]
+===== Which modules and configuration options do I enable?
+
+To populate the *Hosts* view and add logs, enable:
+
+* {filebeat-ref}/filebeat-module-system.html[{filebeat} `system` module]
+* {filebeat-ref}/filebeat-modules.html[Other {filebeat} modules] needed for your environment, such as `apache2`, `redis`, and so on
+
+To populate the *Docker* view and add logs, enable:
+
+* {filebeat-ref}/filebeat-input-docker.html[{filebeat} `docker` input]
+* {filebeat-ref}/add-docker-metadata.html[{filebeat} `add_docker_metadata` processor]
+
+To populate the *Kubernetes* view and add logs, enable:
+
+* {filebeat-ref}/filebeat-input-docker.html[{filebeat} `docker` input]
+* {filebeat-ref}/add-kubernetes-metadata.html[{filebeat} `add_kubernetes_metadata` processor]
+
+[float]
+===== Which fields are used for the metrics on the Infrastructure home page?
+
+The metrics listed below are provided by the Beats Shippers.
+Each system type requires their corresponding identity field to be in the same event document:
+
+* Hosts require `host.name`
+* Docker containers require `container.id`
+* Kubernetes pods require `kubernetes.pod.uid`
+
+For the metrics detail page, `event.dataset` is a required field.
+This field is a combination of `metricset.module`, which is the Metricbeat module name,
+and `metricset.name`, which is the sub module name.
+
+==== Want more information?
+
+Want more information? Check out the 
+{infra-guide}/install-infrastructure-monitoring.html[Install infrastructure monitoring] and
+{kibana-ref}/logs-ui-settings-kb.html[{logs-ui} UI Settings] documentation.
+
+// Structured, semi-structured, un-structured logs
+
+// As it currently stands, the APM UI links to the Logs UI with an exact match lookup on trace.id. This means that any setup that doesn't leverage structured logs won't find any correlating logs.
+
+// Would it be an option to update the APM->Logs link to something akin to message:sometraceid OR trace.id:sometraceid? That would make it much easier to getting started with using this feature without having to first introduce structured logging of some kind.
