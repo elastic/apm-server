@@ -81,6 +81,94 @@ func TestResult_Set(t *testing.T) {
 	})
 }
 
+func TestResult_SetDefault(t *testing.T) {
+	t.Run("StatusAccepted", func(t *testing.T) {
+		id := IDResponseValidAccepted
+		r := Result{}
+		r.Reset()
+		r.SetDefault(id)
+		assert.Equal(t, id, r.ID)
+		assert.Equal(t, http.StatusAccepted, r.StatusCode)
+		assert.Equal(t, MapResultIDToStatus[id].Keyword, r.Keyword)
+		assert.Equal(t, nil, r.Body)
+		assert.Equal(t, nil, r.Err)
+		assert.Equal(t, "", r.Stacktrace)
+	})
+
+	t.Run("StatusForbidden", func(t *testing.T) {
+		id := IDResponseErrorsForbidden
+		r := Result{}
+		r.Reset()
+		r.SetDefault(id)
+		assert.Equal(t, id, r.ID)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+		assert.Equal(t, MapResultIDToStatus[id].Keyword, r.Keyword)
+		assert.Equal(t, r.Keyword, r.Body)
+		assert.Equal(t, r.Keyword, r.Err.Error())
+		assert.Equal(t, "", r.Stacktrace)
+	})
+}
+
+func TestResult_SetWithBody(t *testing.T) {
+	t.Run("StatusAccepted", func(t *testing.T) {
+		id := IDResponseValidAccepted
+		body := "some body"
+		r := Result{}
+		r.Reset()
+		r.SetWithBody(id, body)
+		assert.Equal(t, id, r.ID)
+		assert.Equal(t, http.StatusAccepted, r.StatusCode)
+		assert.Equal(t, MapResultIDToStatus[id].Keyword, r.Keyword)
+		assert.Equal(t, body, r.Body)
+		assert.Equal(t, nil, r.Err)
+		assert.Equal(t, "", r.Stacktrace)
+	})
+
+	t.Run("StatusForbidden", func(t *testing.T) {
+		id := IDResponseErrorsForbidden
+		body := "some body"
+		r := Result{}
+		r.Reset()
+		r.SetWithBody(id, body)
+		assert.Equal(t, id, r.ID)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+		assert.Equal(t, MapResultIDToStatus[id].Keyword, r.Keyword)
+		assert.Equal(t, body, r.Body)
+		assert.Equal(t, r.Keyword, r.Err.Error())
+		assert.Equal(t, "", r.Stacktrace)
+	})
+}
+
+func TestResult_SetWithError(t *testing.T) {
+	t.Run("StatusAccepted", func(t *testing.T) {
+		id := IDResponseValidAccepted
+		r := Result{}
+		r.Reset()
+		r.SetWithError(id, nil)
+		assert.Equal(t, id, r.ID)
+		assert.Equal(t, http.StatusAccepted, r.StatusCode)
+		assert.Equal(t, MapResultIDToStatus[id].Keyword, r.Keyword)
+		assert.Equal(t, nil, r.Body)
+		assert.Equal(t, nil, r.Err)
+		assert.Equal(t, "", r.Stacktrace)
+	})
+
+	t.Run("StatusForbidden", func(t *testing.T) {
+		id := IDResponseErrorsForbidden
+		err := errors.New("some error")
+		r := Result{}
+		r.Reset()
+		r.SetWithError(id, err)
+		assert.Equal(t, id, r.ID)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+		assert.Equal(t, MapResultIDToStatus[id].Keyword, r.Keyword)
+		wrappedErr := errors.Wrap(err, r.Keyword).Error()
+		assert.Equal(t, wrappedErr, r.Body)
+		assert.Equal(t, wrappedErr, r.Err.Error())
+		assert.Equal(t, "", r.Stacktrace)
+	})
+}
+
 func TestResult_Failure(t *testing.T) {
 	assert.False(t, (&Result{StatusCode: http.StatusOK}).Failure())
 	assert.False(t, (&Result{StatusCode: http.StatusPermanentRedirect}).Failure())
