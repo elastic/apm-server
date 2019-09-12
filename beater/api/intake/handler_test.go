@@ -25,6 +25,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/elastic/apm-server/beater/api/ratelimit"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -139,8 +141,11 @@ func TestIntakeHandler(t *testing.T) {
 		// setup
 		tc.setup(t)
 
+		if tc.rlc != nil {
+			tc.c.RateLimitManager = tc.rlc
+		}
 		// call handler
-		h := Handler(tc.dec, tc.processor, tc.rlc, tc.reporter)
+		h := Handler(tc.dec, tc.processor, tc.reporter)
 		h(tc.c)
 
 		t.Run(name+"ID", func(t *testing.T) {
@@ -168,7 +173,7 @@ type testcaseIntakeHandler struct {
 	r         *http.Request
 	dec       decoder.ReqDecoder
 	processor *stream.Processor
-	rlc       RateLimiterManager
+	rlc       ratelimit.Manager
 	reporter  func(ctx context.Context, p publish.PendingReq) error
 	path      string
 
@@ -211,10 +216,10 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 
 type mockBlockingRateLimiter struct{}
 
-func (m *mockBlockingRateLimiter) RateLimiter(key string) (*rate.Limiter, bool) {
+func (m *mockBlockingRateLimiter) Acquire(key string) (*rate.Limiter, bool) {
 	return rate.NewLimiter(rate.Limit(0), 0), true
 }
 
-func emptyDec(*http.Request) (map[string]interface{}, error) {
+func emptyDec(_ *http.Request) (map[string]interface{}, error) {
 	return map[string]interface{}{}, nil
 }
