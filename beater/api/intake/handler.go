@@ -81,9 +81,6 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimite
 func sendResponse(c *request.Context, sr *stream.Result) {
 	code := http.StatusAccepted
 	id := request.IDResponseValidAccepted
-	err := errors.New(sr.Error())
-	var body interface{}
-
 	set := func(c int, i request.ResultID) {
 		if c > code {
 			code = c
@@ -115,6 +112,7 @@ L:
 		}
 	}
 
+	var body interface{}
 	if code >= http.StatusBadRequest {
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
@@ -124,7 +122,10 @@ L:
 	} else if _, ok := c.Request.URL.Query()["verbose"]; ok {
 		body = sr
 	}
-
+	var err error
+	if errMsg := sr.Error(); errMsg != "" {
+		err = errors.New(errMsg)
+	}
 	c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, body, err)
 	c.Write()
 }

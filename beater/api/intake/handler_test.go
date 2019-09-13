@@ -152,6 +152,9 @@ func TestIntakeHandler(t *testing.T) {
 
 			if tc.code == http.StatusAccepted {
 				assert.NotNil(t, tc.w.Body.Len())
+				assert.Nil(t, tc.c.Result.Err)
+			} else {
+				assert.NotNil(t, tc.c.Result.Err)
 			}
 			body := tc.w.Body.Bytes()
 			approvals.AssertApproveResult(t, "test_approved/"+name, body)
