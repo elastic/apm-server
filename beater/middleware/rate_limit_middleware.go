@@ -25,6 +25,7 @@ import (
 
 const burstMultiplier = 3
 
+// RateLimitMiddleware adds a rate limiter per IP to the request context
 func RateLimitMiddleware(cfg *config.EventRate) Middleware {
 	cache, err := ratelimit.NewLRUCache(cfg.LruSize, cfg.Limit, burstMultiplier)
 
