@@ -8,6 +8,10 @@ The following topics provide information about securing the {beatname_uc}
 process and securing communication between {beatname_uc} and other products in
 the Elastic stack:
 
+ifdef::apm-server[]
+* <<security-overview>>
+* <<secure-communication-agents>>
+endif::[]
 * <<securing-communication-elasticsearch>>
 ifndef::only-elasticsearch[]
 * <<configuring-ssl-logstash>>
@@ -24,6 +28,14 @@ endif::[]
 //sets block macro for https.asciidoc included in next section
 
 --
+
+ifdef::apm-server[]
+include::./security.asciidoc[]
+endif::[]
+
+ifdef::apm-server[]
+:leveloffset: +1
+endif::[]
 
 [[securing-communication-elasticsearch]]
 == Secure communication with Elasticsearch
@@ -44,3 +56,7 @@ include::./security/securing-beats.asciidoc[]
 ifndef::only-elasticsearch[]
 include::./security/linux-seccomp.asciidoc[]
 endif::only-elasticsearch[]
+
+ifdef::apm-server[]
+:leveloffset: -1
+endif::[]

@@ -25,7 +25,15 @@ include::./copied-from-beats/outputconfig.asciidoc[]
 
 include::./configuring-ingest.asciidoc[]
 
-include::./copied-from-beats/shared-ssl-config.asciidoc[]
+[[configuration-ssl-landing]]
+== SSL/TLS settings
+
+SSL/TLS is available for both APM Agent to APM Server communication,
+and APM Server communication with any output that supports SSL, like {es}, {ls}, or Kafka.
+
+See <<configuration-ssl,Securing APM Server>> for more information.
+
+// include::./copied-from-beats/shared-ssl-config.asciidoc[]
 
 include::./template-config.asciidoc[]
 
