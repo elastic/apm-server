@@ -1,18 +1,70 @@
-// Licensed to Elasticsearch B.V. under one or more contributor
-// license agreements. See the NOTICE file distributed with
-// this work for additional information regarding copyright
-// ownership. Elasticsearch B.V. licenses this file to you under
-// the Apache License, Version 2.0 (the "License"); you may
-// not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
+// Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
+// or more contributor license agreements. Licensed under the Elastic License;
+// you may not use this file except in compliance with the Elastic License.
+
+/*
+The Kibana CM Api returns a configuration format which cannot be ingested directly by our
+configuration parser, it need to be transformed from the generic format into an adapted format
+which is dependant on the type of configuration.
+
+
+Translations:
+
+Type: output
+
+{
+	  "success": true,
+    "list": [
+
+        {
+            "config": {
+              "_sub_type": "elasticsearch"
+              "_id": "12312341231231"
+              "hosts": [ "localhost" ],
+              "password": "foobar"
+              "username": "elastic"
+            },
+            "type": "output"
+        }
+    ]
+}
+
+YAML representation:
+
+{
+	"elasticsearch": {
+		"hosts": [ "localhost" ],
+		"password": "foobar"
+		"username": "elastic"
+	}
+}
+
+
+Type: *.modules
+
+{
+	  "success": true,
+    "list": [
+        {
+            "config": {
+              "_sub_type": "system"
+              "_id": "12312341231231"
+							"path" "foobar"
+            },
+            "type": "filebeat.module"
+        }
+    ]
+}
+
+YAML representation:
+
+[
+{
+	"module": "system"
+	"path": "foobar"
+}
+]
+
+*/
 
 package api
