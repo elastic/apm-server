@@ -456,38 +456,49 @@
 			"revisionTime": "2019-09-12T18:01:11Z"
 		},
 		{
-			"checksumSHA1": "2oeluLsV3EQS1b0kjmgLc/i2d7E=",
+			"checksumSHA1": "tSXR3pIWOvVv0vd1HgciU6/xQZ4=",
+			"origin": "github.com/andrewkroh/goja",
 			"path": "github.com/dop251/goja",
-			"revision": "aa89e6a4c7339be720f99bae0a56a8f6055b5b3e",
-			"revisionTime": "2019-09-12T22:33:29Z"
+			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
+			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
 			"checksumSHA1": "M7PWqP2fxWLpKwoSTa9UEsjXO84=",
+			"origin": "github.com/andrewkroh/goja/ast",
 			"path": "github.com/dop251/goja/ast",
-			"revision": "aa89e6a4c7339be720f99bae0a56a8f6055b5b3e",
-			"revisionTime": "2019-09-12T22:33:29Z"
+			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
+			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
 			"checksumSHA1": "YC5Zv9wxNXg5keMD1TaT1bxi7RM=",
+			"origin": "github.com/andrewkroh/goja/file",
 			"path": "github.com/dop251/goja/file",
-			"revision": "aa89e6a4c7339be720f99bae0a56a8f6055b5b3e",
-			"revisionTime": "2019-09-12T22:33:29Z"
+			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
+			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
-			"checksumSHA1": "Vl+nTuCvNE4pbG9b/JSn517NNRI=",
+			"checksumSHA1": "oR98Abi3BZfT5dw02gDIWdZwvFc=",
+			"origin": "github.com/andrewkroh/goja/parser",
 			"path": "github.com/dop251/goja/parser",
-			"revision": "aa89e6a4c7339be720f99bae0a56a8f6055b5b3e",
-			"revisionTime": "2019-09-12T22:33:29Z"
+			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
+			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
-			"checksumSHA1": "mtsrhsORq3TDrX83YYva/1ymcS8=",
+			"checksumSHA1": "e5dVrjv6qkrLCwv6C849Em3a35I=",
+			"origin": "github.com/andrewkroh/goja/token",
 			"path": "github.com/dop251/goja/token",
-			"revision": "aa89e6a4c7339be720f99bae0a56a8f6055b5b3e",
-			"revisionTime": "2019-09-12T22:33:29Z"
+			"revision": "dd2ac4456e2073f116d6b88741d513addabe0326",
+			"revisionTime": "2019-01-28T17:26:24Z"
 		},
 		{
 			"checksumSHA1": "uamJV//FmbK8VqZ8BmZ0Wzi0zM4=",
 			"path": "github.com/dop251/goja_nodejs/require",
+			"revision": "adff31b136e6b7e044712aab7236a775e1bd085e",
+			"revisionTime": "2017-10-11T08:15:05Z"
+		},
+		{
+			"checksumSHA1": "TB6Dp0Oqeu7i+qPLv5DukMEqlvE=",
+			"path": "github.com/dop251/goja_nodejs/util",
 			"revision": "adff31b136e6b7e044712aab7236a775e1bd085e",
 			"revisionTime": "2017-10-11T08:15:05Z"
 		},
