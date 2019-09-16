@@ -27,13 +27,12 @@ type Middleware func(request.Handler) (request.Handler, error)
 // Wrap wraps a request.Handler into given middleware functions,
 // maintaining order from the last to the first middleware
 func Wrap(h request.Handler, m ...Middleware) (request.Handler, error) {
-	var err error
 	for i := len(m) - 1; i >= 0; i-- {
 		var e error
 		h, e = m[i](h)
-		if err == nil && e != nil {
-			err = e
+		if e != nil {
+			return nil, e
 		}
 	}
-	return h, err
+	return h, nil
 }

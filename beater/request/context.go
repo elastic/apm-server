@@ -56,7 +56,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Logger = nil
 	c.TokenSet = false
 	c.Authorized = false
-	// TODO i guess i should not do reset the rate limit manager ??
+	c.RateLimitManager = nil
 	c.Result.Reset()
 
 	c.w = w

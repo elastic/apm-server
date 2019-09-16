@@ -141,9 +141,9 @@ func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler,
 func rumMiddleware(cfg *config.Config) []middleware.Middleware {
 	return append(apmMiddleware(intake.MonitoringMap),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()),
+		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.RequestTimeMiddleware(),
-		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins),
-		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate))
+		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins))
 }
 
 func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
