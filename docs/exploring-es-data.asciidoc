@@ -13,7 +13,7 @@ apm-%{[version]}-metric-%{+yyyy.MM.dd}
 apm-%{[version]}-sourcemap
 ------------------------------------------------------------
 
-If you're unfamiliar with the data types shown above, they are described in the {apm-overview-ref-v}/apm-data-model.html[APM data model].
+If you're unfamiliar with the data types shown above, they are described in the {apm-overview-ref}/apm-data-model.html[APM data model].
 
 TIP: If your APM data is being stored in a different format, you may be using an outdated `apm-server.yml` file. You must update your `apm-server.yml` file in order to take advantage of the new format of indices.
 

@@ -44,7 +44,7 @@ APM Server::
 [[breaking-remove-v1]]
 **Removed deprecated Intake v1 API endpoints.** Before upgrading APM Server,
 ensure all APM agents are upgraded to a version that supports APM Server >= 6.5.
-View the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix]
+View the {apm-overview-ref}/agent-server-compatibility.html[agent/server compatibility matrix]
 to determine if your agent versions are compatible. 
 +
 [[breaking-ecs]]
@@ -53,7 +53,7 @@ APM has aligned with the field names defined in the
 https://github.com/elastic/ecs[Elastic Common Schema (ECS)].
 Utilizing this common schema will allow for easier data correlation within Elasticsearch.
 +
-See the {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[ECS field changes]
+See the {apm-overview-ref}/breaking-7.0.0.html#breaking-ecs[ECS field changes]
 table for full details on which fields have changed.
 
 APM UI::

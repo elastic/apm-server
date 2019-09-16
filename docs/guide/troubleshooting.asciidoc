@@ -8,10 +8,10 @@ If you run into trouble, there are three places you can look for help.
 
 The APM Server and some of the APM agents have troubleshooting guides:
 
-* {apm-server-ref-v}/troubleshooting.html[Server troubleshooting]
-* {apm-java-ref-v}/trouble-shooting.html[Java agent troubleshooting]
-* {apm-node-ref-v}/troubleshooting.html[Node.js agent troubleshooting]
-* {apm-rum-ref-v}/troubleshooting.html[RUM troubleshooting]
+* {apm-server-ref}/troubleshooting.html[Server troubleshooting]
+* {apm-java-ref}/trouble-shooting.html[Java agent troubleshooting]
+* {apm-node-ref}/troubleshooting.html[Node.js agent troubleshooting]
+* {apm-rum-ref}/troubleshooting.html[RUM troubleshooting]
 
 [float]
 === Elastic Support

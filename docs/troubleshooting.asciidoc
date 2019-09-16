@@ -20,7 +20,7 @@ Other sections in the documentation may also be helpful:
 * <<processing-performance, Processing and performance>>
 * <<tune-apm-server, Tune APM Server>>
 * <<tune-es, Tune Elasticsearch>>
-* {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix]
+* {apm-overview-ref}/agent-server-compatibility.html[Agent/Server compatibility matrix]
 
 --
 

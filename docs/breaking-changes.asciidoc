@@ -10,9 +10,9 @@ As such, any breaking change in libbeat is also considered to be a breaking chan
 ==== 7.0
 * Removed deprecated Intake v1 API endpoints.
 Upgrade agents to a version that supports APM Server >= 6.5.
-{apm-overview-ref-v}/breaking-7.0.0.html#breaking-remove-v1[More information].
+{apm-overview-ref}/breaking-7.0.0.html#breaking-remove-v1[More information].
 * Moved fields in Elasticsearch to be compliant with the Elastic Common Schema (ECS).
-{apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information and changed fields].
+{apm-overview-ref}/breaking-7.0.0.html#breaking-ecs[More information and changed fields].
 * {beats-ref}/breaking-changes-7.0.html[Breaking changes in libbeat]
 
 [float]

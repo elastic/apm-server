@@ -20,7 +20,7 @@ This section explains how to adapt data ingestion according to your needs.
 * <<adjust-event-rate>>
 
 TIP: APM Server version 7.0 introduces breaking changes with older versions of APM agents.
-Check the {apm-overview-ref-v}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
+Check the {apm-overview-ref}/agent-server-compatibility.html[agent/server compatibility matrix] for compatibility information.
 
 [[tune-output-config]]
 [float]

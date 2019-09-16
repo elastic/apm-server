@@ -8,22 +8,22 @@ The following pages have moved or been deleted.
 [role="exclude",id="event-types"]
 === Event types
 
-This page has moved. Please see {apm-overview-ref-v}/apm-data-model.html[APM data model].
+This page has moved. Please see {apm-overview-ref}/apm-data-model.html[APM data model].
 
 [role="exclude",id="errors"]
 === Errors
 
-This page has moved. Please see {apm-overview-ref-v}/errors.html[Errors].
+This page has moved. Please see {apm-overview-ref}/errors.html[Errors].
 
 [role="exclude",id="transactions"]
 === Transactions
 
-This page has moved. Please see {apm-overview-ref-v}/transactions.html[Transactions].
+This page has moved. Please see {apm-overview-ref}/transactions.html[Transactions].
 
 [role="exclude",id="transactions-spans"]
 === Spans
 
-This page has moved. Please see {apm-overview-ref-v}/transaction-spans.html[Spans].
+This page has moved. Please see {apm-overview-ref}/transaction-spans.html[Spans].
 
 // Error API
 

@@ -63,21 +63,21 @@ Install Kibana, start it up, and open up the web interface:
 
 Install, set up, and run APM Server.
 
-. {apm-server-ref-v}/installing.html[Install APM Server].
-. {apm-server-ref-v}/setting-up-and-running.html[Set up and Run APM Server].
+. {apm-server-ref}/installing.html[Install APM Server].
+. {apm-server-ref}/setting-up-and-running.html[Set up and Run APM Server].
 
 Next, use the config file if you need to change the default configuration that APM Server uses to connect to Elasticsearch,
 or if you need to specify credentials:
 
-* {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
-** {apm-server-ref-v}/configuration-process.html[General configuration options]
-** {apm-server-ref-v}/elasticsearch-output.html[Configure the Elasticsearch output]
+* {apm-server-ref}/configuring-howto-apm-server.html[Configuring APM Server]
+** {apm-server-ref}/configuration-process.html[General configuration options]
+** {apm-server-ref}/elasticsearch-output.html[Configure the Elasticsearch output]
 
 [[secure-api-access]]
 If you do change the listen address from `localhost` to something that is accessible from outside of the machine,
 we recommend setting up firewall rules to ensure that only your own systems can access the API.
 Alternatively,
-you can use a {apm-server-ref-v}/securing-apm-server.html[secret token and TLS].
+you can use a {apm-server-ref}/securing-apm-server.html[secret token and TLS].
 
 If you have APM Server running on the same host as your service,
 you can configure it to listen on a Unix domain socket.
@@ -85,7 +85,7 @@ you can configure it to listen on a Unix domain socket.
 [[more-information]]
 TIP: For detailed instructions on how to install and secure APM Server in your server environment,
 including details on how to run APM Server in a highly available environment,
-please see the full {apm-server-ref-v}/index.html[APM Server documentation].
+please see the full {apm-server-ref}/index.html[APM Server documentation].
 
 [[agents]]
 === Step 4: Install APM agents
@@ -101,38 +101,38 @@ and configuring it with the address of your APM Server, a secret token (if neces
 
 .2+|Go
 2+|The Go agent automatically instruments Gorilla and Gin, and has support for Go’s built-in net/http and database/sql drivers.
-|{apm-go-ref-v}/supported-tech.html[Supported technologies]
-|{apm-go-ref-v}/getting-started.html[Getting started with the Go Agent]
+|{apm-go-ref}/supported-tech.html[Supported technologies]
+|{apm-go-ref}/getting-started.html[Getting started with the Go Agent]
 
 .2+|Java
 2+|The Java agent automatically instruments Servlet API, Spring MVC, and Spring Boot out of the box.
-|{apm-java-ref-v}/supported-technologies-details.html[Supported technologies]
-|{apm-java-ref-v}/setup.html[Set up the Java Agent]
+|{apm-java-ref}/supported-technologies-details.html[Supported technologies]
+|{apm-java-ref}/setup.html[Set up the Java Agent]
 
 .2+|.NET
 2+|The .NET agent automatically instruments ASP.NET Core applications, while .NET Framework applications can be instrumented with the public API.
-|{apm-dotnet-ref-v}/setup.html[Set up the .NET Agent]
+|{apm-dotnet-ref}/setup.html[Set up the .NET Agent]
 |
 
 .2+|Node.js
 2+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
-|{apm-node-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-node-ref-v}/intro.html#get-started[Get started with the Node.js Agent]
+|{apm-node-ref}/supported-technologies.html[Supported technologies]
+|{apm-node-ref}/intro.html#get-started[Get started with the Node.js Agent]
 
 .2+|Python
 2+|The Python agent automatically instruments Django and Flask out of the box.
-|{apm-py-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-py-ref-v}/getting-started.html[Getting Started with the Python Agent]
+|{apm-py-ref}/supported-technologies.html[Supported technologies]
+|{apm-py-ref}/getting-started.html[Getting Started with the Python Agent]
 
 .2+|Ruby
 2+|The Ruby agent automatically instruments Rails out of the box.
-|{apm-ruby-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-ruby-ref-v}/introduction.html#framework-support[Getting started with the Ruby Agent]
+|{apm-ruby-ref}/supported-technologies.html[Supported technologies]
+|{apm-ruby-ref}/introduction.html#framework-support[Getting started with the Ruby Agent]
 
 .2+|RUM
 2+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.
-|{apm-rum-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-rum-ref-v}/getting-started.html[Getting started with the RUM Agent]
+|{apm-rum-ref}/supported-technologies.html[Supported technologies]
+|{apm-rum-ref}/getting-started.html[Getting started with the RUM Agent]
 
 |=======================================================================
 
@@ -170,13 +170,13 @@ environment names, sampling rates, instrumentations, metrics, and more.
 |*Agent configuration documentation*
 a|
 
-* {apm-go-ref-v}/configuration.html[Go Agent configuration]
-* {apm-java-ref-v}/configuration.html[Java Agent configuration]
-* {apm-dotnet-ref-v}/configuration.html[.NET Agent configuration]
+* {apm-go-ref}/configuration.html[Go Agent configuration]
+* {apm-java-ref}/configuration.html[Java Agent configuration]
+* {apm-dotnet-ref}/configuration.html[.NET Agent configuration]
 * {apm-node-ref}/configuring-the-agent.html[Node.js Agent configuration]
-* {apm-py-ref-v}/configuration.html[Python Agent configuration]
-* {apm-ruby-ref-v}/configuration.html[Ruby Agent configuration]
-* {apm-rum-ref-v}/configuration.html[RUM Agent configuration]
+* {apm-py-ref}/configuration.html[Python Agent configuration]
+* {apm-ruby-ref}/configuration.html[Ruby Agent configuration]
+* {apm-rum-ref}/configuration.html[RUM Agent configuration]
 |===
 
 [float]
@@ -191,8 +191,8 @@ Full details are available in the {cloud}/ec-manage-apm-settings.html[APM user s
 ==== Configure a self installation
 
 If you've installed APM Server yourself, you can edit the `apm-server.yml` configuration file to make changes.
-More information is available in {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
+More information is available in {apm-server-ref}/configuring-howto-apm-server.html[configuring APM Server].
 
 Don't forget to also read about
-{apm-server-ref-v}/securing-apm-server.html[securing APM Server], and
-{apm-server-ref-v}/monitoring.html[monitoring APM Server].
+{apm-server-ref}/securing-apm-server.html[securing APM Server], and
+{apm-server-ref}/monitoring.html[monitoring APM Server].

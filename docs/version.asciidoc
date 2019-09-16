@@ -1,33 +1,9 @@
-// stack-version can be:    7.0.1, 8.0.0-alpha1, 8.1.0, etc.
-// major-version can be:    8.x, 7.x, 6.x, etc.
-// doc-branch can be:       master, 8.0, 8.1, etc.
-// release-state is only:   released | prerelease | unreleased
 
-:stack-version: 8.0.0
-:major-version: 8.x
-:doc-branch: master
-:branch: {doc-branch}
+// Docs copied from Beats use stack-version and doc-branch instead of version
+:stack-version: {version}
+:doc-branch: {version}
+
 :go-version: 1.12.9
-:release-state: unreleased
 :python: 2.7.9
 :docker: 1.12
 :docker-compose: 1.11
-
-// APM Agent versions
-:server-branch: {doc-branch}
-:go-branch: 1.x
-:java-branch: 1.x
-:rum-branch: 4.x
-:node-branch: 2.x
-:py-branch: 5.x
-:ruby-branch: 2.x
-:dotnet-branch: 1.x
-
-// Agent links
-:apm-py-ref-v:         https://www.elastic.co/guide/en/apm/agent/python/{py-branch}
-:apm-node-ref-v:       https://www.elastic.co/guide/en/apm/agent/nodejs/{node-branch}
-:apm-rum-ref-v:        https://www.elastic.co/guide/en/apm/agent/rum-js/{rum-branch}
-:apm-ruby-ref-v:       https://www.elastic.co/guide/en/apm/agent/ruby/{ruby-branch}
-:apm-java-ref-v:       https://www.elastic.co/guide/en/apm/agent/java/{java-branch}
-:apm-go-ref-v:         https://www.elastic.co/guide/en/apm/agent/go/{go-branch}
-:apm-dotnet-ref-v:     https://www.elastic.co/guide/en/apm/agent/dotnet/{dotnet-branch}
