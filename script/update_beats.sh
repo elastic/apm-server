@@ -28,6 +28,7 @@ rsync -crpv --delete \
     --exclude="dev-tools/jenkins_intake.sh" \
     --exclude="dev-tools/packaging/preference-pane/***" \
     --exclude="dev-tools/mage/***" \
+    --exclude="libbeat/processors/script/***" \
     --include="dev-tools/cmd/dashboards" \
     --include="dev-tools/***" \
     --include="script/***" \

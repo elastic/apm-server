@@ -783,11 +783,8 @@ func (c *compiler) compileSwitchStatement(v *ast.SwitchStatement, needResult boo
 		c.compileStatements(s.Consequent, nr)
 	}
 	if jumpNoMatch != -1 {
-		if needResult {
-			c.emit(jump(2))
-		}
 		c.p.code[jumpNoMatch] = jump(len(c.p.code) - jumpNoMatch)
-		if needResult {
+		if len(v.Body) == 0 && needResult {
 			c.emit(loadUndef)
 		}
 	}
