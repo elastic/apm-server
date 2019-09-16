@@ -151,9 +151,6 @@
                 },
                 "name": "1234_service-12a3"
             },
-            "timestamp": {
-                "us": 1547070053000000
-            },
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
