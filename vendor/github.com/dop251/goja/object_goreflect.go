@@ -18,7 +18,7 @@ type FieldNameMapper interface {
 	// If this method returns "" the field becomes hidden.
 	FieldName(t reflect.Type, f reflect.StructField) string
 
-	// MethodName returns a JavaScript name for the given method in the given type.
+	// FieldName returns a JavaScript name for the given method in the given type.
 	// If this method returns "" the method becomes hidden.
 	MethodName(t reflect.Type, m reflect.Method) string
 }
@@ -216,23 +216,25 @@ func (r *Runtime) checkHostObjectPropertyDescr(name string, descr propertyDescr,
 }
 
 func (o *objectGoReflect) defineOwnProperty(n Value, descr propertyDescr, throw bool) bool {
-	if o.value.Kind() == reflect.Struct {
-		name := n.String()
-		if v := o._getField(name); v.IsValid() {
-			if !o.val.runtime.checkHostObjectPropertyDescr(name, descr, throw) {
-				return false
+	name := n.String()
+	if ast.IsExported(name) {
+		if o.value.Kind() == reflect.Struct {
+			if v := o._getField(name); v.IsValid() {
+				if !o.val.runtime.checkHostObjectPropertyDescr(name, descr, throw) {
+					return false
+				}
+				val := descr.Value
+				if val == nil {
+					val = _undefined
+				}
+				vv, err := o.val.runtime.toReflectValue(val, v.Type())
+				if err != nil {
+					o.val.runtime.typeErrorResult(throw, "Go struct conversion error: %v", err)
+					return false
+				}
+				v.Set(vv)
+				return true
 			}
-			val := descr.Value
-			if val == nil {
-				val = _undefined
-			}
-			vv, err := o.val.runtime.toReflectValue(val, v.Type())
-			if err != nil {
-				o.val.runtime.typeErrorResult(throw, "Go struct conversion error: %v", err)
-				return false
-			}
-			v.Set(vv)
-			return true
 		}
 	}
 
@@ -240,6 +242,9 @@ func (o *objectGoReflect) defineOwnProperty(n Value, descr propertyDescr, throw 
 }
 
 func (o *objectGoReflect) _has(name string) bool {
+	if !ast.IsExported(name) {
+		return false
+	}
 	if o.value.Kind() == reflect.Struct {
 		if v := o._getField(name); v.IsValid() {
 			return true
@@ -420,37 +425,34 @@ func (r *Runtime) buildFieldInfo(t reflect.Type, index []int, info *reflectTypeI
 		}
 		if r.fieldNameMapper != nil {
 			name = r.fieldNameMapper.FieldName(t, field)
-		}
-
-		if name != "" {
-			if inf, exists := info.Fields[name]; !exists {
-				info.FieldNames = append(info.FieldNames, name)
-			} else {
-				if len(inf.Index) <= len(index) {
-					continue
-				}
+			if name == "" {
+				continue
 			}
 		}
 
-		if name != "" || field.Anonymous {
-			idx := make([]int, len(index)+1)
-			copy(idx, index)
-			idx[len(idx)-1] = i
-
-			if name != "" {
-				info.Fields[name] = reflectFieldInfo{
-					Index:     idx,
-					Anonymous: field.Anonymous,
-				}
+		if inf, exists := info.Fields[name]; !exists {
+			info.FieldNames = append(info.FieldNames, name)
+		} else {
+			if len(inf.Index) <= len(index) {
+				continue
 			}
-			if field.Anonymous {
-				typ := field.Type
-				for typ.Kind() == reflect.Ptr {
-					typ = typ.Elem()
-				}
-				if typ.Kind() == reflect.Struct {
-					r.buildFieldInfo(typ, idx, info)
-				}
+		}
+
+		idx := make([]int, len(index)+1)
+		copy(idx, index)
+		idx[len(idx)-1] = i
+
+		info.Fields[name] = reflectFieldInfo{
+			Index:     idx,
+			Anonymous: field.Anonymous,
+		}
+		if field.Anonymous {
+			typ := field.Type
+			for typ.Kind() == reflect.Ptr {
+				typ = typ.Elem()
+			}
+			if typ.Kind() == reflect.Struct {
+				r.buildFieldInfo(typ, idx, info)
 			}
 		}
 	}
@@ -503,7 +505,7 @@ func (r *Runtime) typeInfo(t reflect.Type) (info *reflectTypeInfo) {
 	return
 }
 
-// SetFieldNameMapper sets a custom field name mapper for Go types. It can be called at any time, however
+// Sets a custom field name mapper for Go types. It can be called at any time, however
 // the mapping for any given value is fixed at the point of creation.
 // Setting this to nil restores the default behaviour which is all exported fields and methods are mapped to their
 // original unchanged names.
