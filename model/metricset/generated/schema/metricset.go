@@ -108,8 +108,7 @@ const ModelSchema = `{
                 }
             },
             "required": ["samples"]
-        },
-        {"required": ["timestamp"], "properties": {"timestamp": { "type": "integer" }}}
+        }
     ]
 }
 `
