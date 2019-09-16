@@ -31,9 +31,7 @@ include::./configuring-ingest.asciidoc[]
 SSL/TLS is available for both APM Agent to APM Server communication,
 and APM Server communication with any output that supports SSL, like {es}, {ls}, or Kafka.
 
-See <<configuration-ssl,Securing APM Server>> for more information.
-
-// include::./copied-from-beats/shared-ssl-config.asciidoc[]
+See <<securing-apm-server,Securing APM Server>> for more information.
 
 include::./template-config.asciidoc[]
 

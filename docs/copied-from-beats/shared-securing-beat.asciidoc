@@ -9,13 +9,16 @@ process and securing communication between {beatname_uc} and other products in
 the Elastic stack:
 
 ifdef::apm-server[]
-* <<security-overview>>
 * <<secure-communication-agents>>
 endif::[]
 * <<securing-communication-elasticsearch>>
 ifndef::only-elasticsearch[]
 * <<configuring-ssl-logstash>>
 endif::only-elasticsearch[]
+ifdef::apm-server[]
+* <<configuration-ssl>>
+* <<agent-server-ssl>>
+endif::[]
 * <<securing-beats>>
 ifndef::only-elasticsearch[]
 * <<linux-seccomp>>
@@ -25,17 +28,13 @@ ifdef::beat-specific-security[]
 include::{beat-specific-security}[]
 endif::[]
 
-//sets block macro for https.asciidoc included in next section
-
 --
 
 ifdef::apm-server[]
-include::./security.asciidoc[]
+include::../secure-communication-agents.asciidoc[]
 endif::[]
 
-ifdef::apm-server[]
-:leveloffset: +1
-endif::[]
+//sets block macro for https.asciidoc included in next section
 
 [[securing-communication-elasticsearch]]
 == Secure communication with Elasticsearch
@@ -51,12 +50,13 @@ ifndef::only-elasticsearch[]
 include::./shared-ssl-logstash-config.asciidoc[]
 endif::only-elasticsearch[]
 
+ifdef::apm-server[]
+include::shared-ssl-config.asciidoc[]
+include::../ssl-input-settings.asciidoc[]
+endif::[]
+
 include::./security/securing-beats.asciidoc[]
 
 ifndef::only-elasticsearch[]
 include::./security/linux-seccomp.asciidoc[]
 endif::only-elasticsearch[]
-
-ifdef::apm-server[]
-:leveloffset: -1
-endif::[]

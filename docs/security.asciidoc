@@ -5,12 +5,3 @@
 APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
 you should be careful about who can connect to it.
 Firewall rules are recommended to ensure only authorized systems can connect.
-
-// The file shared-ssl-config.asciidoc has a level 1 Heading.
-// To make sure it can be included, we increase the level offset.
-// After including the file, we must reset the level offset.
-:leveloffset: +1
-include::./copied-from-beats/shared-ssl-config.asciidoc[]
-:leveloffset: -1
-
-include::secure-communication-agents.asciidoc[]
