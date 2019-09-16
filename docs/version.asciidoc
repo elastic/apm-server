@@ -1,3 +1,5 @@
+// Use shared version file
+include::{asciidoc-dir}/../../shared/versions/stack/{source_branch}.asciidoc[]
 
 // Docs copied from Beats use stack-version and doc-branch instead of version
 :stack-version: {version}
