@@ -86,7 +86,7 @@
             }
         },
         {
-            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "@timestamp": "2018-08-01T10:00:00Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
