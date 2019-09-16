@@ -29,13 +29,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/tests/approvals"
-	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	jsonoutput "github.com/elastic/beats/libbeat/outputs/codec/json"
 	"github.com/elastic/beats/libbeat/version"
+
+	"github.com/elastic/apm-server/beater/api"
+	"github.com/elastic/apm-server/tests/approvals"
+	"github.com/elastic/apm-server/tests/loader"
 )
 
 func collectEvents(events <-chan beat.Event, timeout time.Duration) []beat.Event {
@@ -56,6 +57,9 @@ var timestampOverride = time.Date(2019, 1, 9, 21, 40, 53, 690, time.UTC)
 func adjustMissingTimestamp(event *beat.Event) {
 	if time.Since(event.Timestamp) < 5*time.Minute {
 		event.Timestamp = timestampOverride
+		if event.Fields["processor"].(common.MapStr)["name"] == "metric" {
+			return
+		}
 		event.Fields.Put("timestamp.us", timestampOverride.UnixNano()/1000)
 	}
 }
