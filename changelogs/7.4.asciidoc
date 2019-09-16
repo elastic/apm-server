@@ -16,6 +16,7 @@ https://github.com/elastic/apm-server/compare/v7.3.1\...v7.4.0[View commits]
 - Return 404 json error on requests to non existing paths {pull}2526[2526].
 - Remove additional nesting of error values in logs {pull}2526[2526].
 - Remove requests to root, assets and agent config API from monitoring counters for Intake API {pull}2527[2527].
+- Make metricset timestamp optional {pull}2711[2711].
 
 [float]
 ==== Added
@@ -28,4 +29,3 @@ https://github.com/elastic/apm-server/compare/v7.3.1\...v7.4.0[View commits]
 - Add support for host.name, adapt Intake API to accept detected and configured host information {pull}2531[2531], {pull}2540[2540].
 - Index `http.request.socket.remote_address` as `client.ip` {pull}2588[2588].
 - Upgrade Go to 1.12.9 {pull}2635[2635].
-- Make metricset timestamp optional {pull}2711[2711].
