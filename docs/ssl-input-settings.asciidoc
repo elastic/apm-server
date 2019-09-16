@@ -61,20 +61,19 @@ The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key e
 ==== `client_authentication`
 
 This configures what types of client authentication are supported. The valid options
-are `none`, `optional`, and `required`. When `certificate_authorities` is set it will
-default to `required` otherwise it will be set to `none`.
+are `none`, `optional`, and `required`. The default is `optional`.
+If `certificate_authorities` has been specified, this setting will automatically change to `required`.
 
 * `none` - Disables client authentication.
 * `optional` - When a client certificate is given, the server will verify it.
-* `required` - Will require clients to provide a valid certificate.
+* `required` - Requires clients to provide a valid certificate.
 
 [float]
 ==== `verification_mode`
 
 This option controls whether the client verifies server certificates and host
-names. Valid values are `none` and `full`. If `verification_mode` is set
-to `none`, all server host names and certificates are accepted. In this mode,
-TLS-based connections are susceptible to man-in-the-middle attacks. Use this
+names. Valid values are `none` and `full`. If `none` is used,
+SSL-based connections are susceptible to man-in-the-middle attacks. Use this
 option for testing only.
 
 The default is `full`.
