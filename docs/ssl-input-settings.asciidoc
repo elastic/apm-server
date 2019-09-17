@@ -11,13 +11,6 @@ The `enabled` setting can be used to enable the ssl configuration by setting
 it to `true`. The default value is `false`.
 
 [float]
-==== `certificate_authorities`
-
-The list of root certificates for verifying client certificates.
-If `certificate_authorities` is empty or not set, the trusted certificate authorities of the host system are used.
-Required if `apm-server.enabled` is `true`.
-
-[float]
 ==== `certificate`
 
 The path to the file containing the certificate for Server authentication.
@@ -28,6 +21,12 @@ Required if `apm-server.enabled` is `true`.
 
 The path to the file containing the Server certificate key.
 Required if `apm-server.enabled` is `true`.
+
+[float]
+==== `certificate_authorities`
+
+The list of root certificates for verifying client certificates.
+If `certificate_authorities` is empty or not set, the trusted certificate authorities of the host system are used.
 
 [float]
 ==== `key_passphrase`

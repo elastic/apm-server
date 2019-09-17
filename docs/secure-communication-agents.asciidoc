@@ -45,17 +45,18 @@ Each Agent has a configuration for setting the value of the secret token:
 [float]
 === SSL/TLS communication in APM Server
 
-To enable SSL/TLS, you need both a private key and a certificate issued by a certification authority (CA).
+To enable SSL/TLS, you need to enable SSL and provide both a private key and a certificate
+issued by a certification authority (CA).
 You can then specify the path to those files in your configuration properties.
 This will make APM Server serve HTTPS requests instead of HTTP.
 
-Here's a basic output config with secure communication enabled:
+Here's a basic APM Server SSL config with secure communication enabled:
 
 [source,yaml]
 ----
+apm-server.ssl.enabled: true
 apm-server.ssl.key: "/etc/pki/key.pem"
 apm-server.ssl.certificate: "/etc/pki/client.pem"
-output.elasticsearch.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
 ----
 
 A full list of configuration options is available in <<agent-server-ssl>>.
@@ -64,7 +65,7 @@ A full list of configuration options is available in <<agent-server-ssl>>.
 [float]
 === HTTPS communication in APM Agents
 
-To enable secure communication in your Agents, you simply need to update the configured server URL to use `HTTPS` instead of `HTTP`.
+To enable secure communication in your Agents, you need to update the configured server URL to use `HTTPS` instead of `HTTP`.
 
 * *Go Agent*: {apm-go-ref}/configuration.html#config-server-url[`ELASTIC_APM_SERVER_URL`]
 * *Java Agent*: {apm-java-ref}/config-reporter.html#config-server-urls[`server_urls`]
@@ -74,7 +75,6 @@ To enable secure communication in your Agents, you simply need to update the con
 * *Ruby Agent*: {apm-ruby-ref}/configuration.html#config-server-url[`server_url`]
 
 Some Agents also allow you to specify a custom certificate authority for connecting to APM Server.
-This allows you to enable encryption and verify that you are sending data to the correct APM Server.
 
 * *Go Agent*: {apm-go-ref}/configuration.html#config-server-cert[`ELASTIC_APM_SERVER_CERT`]
 // * *.NET Agent*: {apm-dotnet-ref}/

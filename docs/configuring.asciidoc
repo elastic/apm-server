@@ -8,7 +8,7 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 * <<configuration-process>>
 * <<configuring-output>>
 * <<configuring-ingest-node>>
-* <<configuration-ssl>>
+* <<configuration-ssl-landing>>
 * <<configuration-template>>
 * <<ilm>>
 * <<configuration-logging>>
