@@ -29,12 +29,12 @@ import (
 func TestKillSwitchMiddleware(t *testing.T) {
 	t.Run("On", func(t *testing.T) {
 		c, rec := beatertest.DefaultContextWithResponseRecorder()
-		KillSwitchMiddleware(true)(beatertest.Handler202)(c)
+		Apply(KillSwitchMiddleware(true), beatertest.Handler202)(c)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("Off", func(t *testing.T) {
 		c, rec := beatertest.DefaultContextWithResponseRecorder()
-		KillSwitchMiddleware(false)(beatertest.Handler202)(c)
+		Apply(KillSwitchMiddleware(false), beatertest.Handler202)(c)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
 	})
 }

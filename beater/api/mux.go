@@ -56,8 +56,6 @@ const (
 
 	// AssetSourcemapPath defines the path to upload sourcemaps
 	AssetSourcemapPath = "/assets/v1/sourcemaps"
-
-	burstMultiplier = 3
 )
 
 var (
@@ -115,9 +113,8 @@ func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Hand
 			Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
 			MaxEventSize: cfg.MaxEventSize,
 		},
-		nil,
 		reporter)
-	return middleware.Wrap(h, backendMiddleware(cfg)...), nil
+	return middleware.Wrap(h, backendMiddleware(cfg)...)
 }
 
 func backendMiddleware(cfg *config.Config) []middleware.Middleware {
@@ -131,24 +128,20 @@ func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler,
 	if err != nil {
 		return nil, err
 	}
-	cache, err := intake.NewRateLimitLRUCache(cfg.RumConfig.EventRate.LruSize, cfg.RumConfig.EventRate.Limit, burstMultiplier)
-	if err != nil {
-		return nil, err
-	}
 	h := intake.Handler(userMetaDataDecoder(cfg, emptyDecoder),
 		&stream.Processor{
 			Tconfig:      *tcfg,
 			Mconfig:      model.Config{Experimental: cfg.Mode == config.ModeExperimental},
 			MaxEventSize: cfg.MaxEventSize,
 		},
-		cache,
 		reporter)
-	return middleware.Wrap(h, rumMiddleware(cfg)...), nil
+	return middleware.Wrap(h, rumMiddleware(cfg)...)
 }
 
 func rumMiddleware(cfg *config.Config) []middleware.Middleware {
 	return append(apmMiddleware(intake.MonitoringMap),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()),
+		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.RequestTimeMiddleware(),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins))
 }
@@ -159,7 +152,7 @@ func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Ha
 		return nil, err
 	}
 	h := sourcemap.Handler(systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData), psourcemap.Processor, *tcfg, reporter)
-	return middleware.Wrap(h, sourcemapMiddleware(cfg)...), nil
+	return middleware.Wrap(h, sourcemapMiddleware(cfg)...)
 }
 
 func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
@@ -174,7 +167,7 @@ func configAgentHandler(cfg *config.Config, _ publish.Reporter) (request.Handler
 		kbClient = kibana.NewConnectingClient(cfg.Kibana)
 	}
 	h := agent.Handler(kbClient, cfg.AgentConfig)
-	return middleware.Wrap(h, agentConfigMiddleware(cfg)...), nil
+	return middleware.Wrap(h, agentConfigMiddleware(cfg)...)
 }
 
 func agentConfigMiddleware(cfg *config.Config) []middleware.Middleware {
@@ -184,7 +177,7 @@ func agentConfigMiddleware(cfg *config.Config) []middleware.Middleware {
 }
 
 func rootHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
-	return middleware.Wrap(root.Handler(), rootMiddleware(cfg)...), nil
+	return middleware.Wrap(root.Handler(), rootMiddleware(cfg)...)
 }
 
 func rootMiddleware(cfg *config.Config) []middleware.Middleware {

@@ -45,7 +45,7 @@ func CORSMiddleware(allowedOrigins []string) Middleware {
 		return false
 	}
 
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			// origin header is always set by the browser
 			origin := c.Request.Header.Get(headers.Origin)
@@ -82,6 +82,6 @@ func CORSMiddleware(allowedOrigins []string) Middleware {
 					errors.New("origin: '"+origin+"' is not allowed"))
 				c.Write()
 			}
-		}
+		}, nil
 	}
 }

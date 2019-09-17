@@ -28,7 +28,7 @@ import (
 // MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics
 // about request processing. As input parameter it takes a map capable of mapping a request.ResultID to a counter.
 func MonitoringMiddleware(m map[request.ResultID]*monitoring.Int) Middleware {
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 		inc := func(id request.ResultID) {
 			if counter, ok := m[id]; ok {
 				counter.Inc()
@@ -47,7 +47,7 @@ func MonitoringMiddleware(m map[request.ResultID]*monitoring.Int) Middleware {
 			}
 
 			inc(c.Result.ID)
-		}
+		}, nil
 
 	}
 }
