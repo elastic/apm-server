@@ -10,19 +10,24 @@ Elastic APM supports integrations with other observability solutions.
 
 Many applications use logging frameworks to help record, format, and append an application's logs.
 Elastic APM now offers a way to make your application logs even more useful,
-by integrating with the most popular logging frameworks in their respective langues.
-This means you can easily inject trace information into your logs, allowing you to explore logs in the Log app and jump straight into the corresponding APM traces -- all while preserving the trace context.
+by integrating with the most popular logging frameworks in their respective languages.
+This means you can easily inject trace information into your logs,
+allowing you to explore logs in the Log app and jump straight into the corresponding APM traces -- all while preserving the trace context.
 
 To get started:
 
-. Enable log correlation in your APM Agent(s) and decorate your logs with the `trace.id` or `transaction.id` fields.
-Some Agents even support the `span.id` field.
+. Enable Agent support 
 . Ingest your logs into Elasticsearch
 
 [float]
 ==== Enable Agent support
 
-The following agents currently support log correlation:
+You must first enable log correlation in your APM Agent(s) and decorate your logs with the `trace.id` or `transaction.id` fields.
+Certain Agents even support the `span.id` field.
+Some of the Agent's supported logging frameworks will automatically decorate your logs with these fields.
+For others, it will need to be done manually.
+
+Take a look at the relevant Agent documentation for further information:
 
 * *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
 * *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
@@ -35,18 +40,44 @@ The following agents currently support log correlation:
 [float]
 ==== Ingest your logs into Elasticsearch
 
-https://www.elastic.co/products/beats/filebeat[{filebeat}] is Elastic's log shipper.
+Once your logs have been decorated with the appropriate fields, you need to ingest them into Elasticsearch.
 
-Because logging formats can vary between and even within each programming language,
-there is no one-size-fits-all approach for ingesting logs into Elasticsearch.
+Filebeat is Elastic's log shipper.
+The {filebeat-ref}/filebeat-getting-started.html[Filebeat getting started]
+guide will walk you through the setup process.
+
+Because supported logging frameworks and formats can vary greatly between different programming language,
+there is no one-size-fits-all approach for ingesting your logs into Elasticsearch.
+
+For structured logs, 
+
+You'll want to install and run Filebeat.
+Send the logs to the same Elastic Stack that is receiving APM data.
+Modify the `filebeat.yml` configuration as follows:
+
+* Set the `filebeat.inputs` to point to the source of your logs
+* Point Filebeat to Elasticsearch
+  * If you're using Elastic cloud, set `cloud.id` and `cloud.auth`.
+  * If your using a manual setup, use `output.elasticsearch.hosts`.
+* Add a `decode_json_fields` processor, so `processors` looks as follows:
+
+[source,yml]
+----
+processors:
+- add_host_metadata: ~
+- decode_json_fields:
+    fields: ["message"]
+    target: ""
+    overwrite_keys: true
+----
 
 
 
 
 
 
-One approach would be to add APM identifiers in an easy-to-parse manner.
-In Python this could be accomplised like this:
+For unstructured logs, you'll want to add APM identifiers in any easy to parse manner.
+In Python, this could be accomplished like this:
 
 [source,python]
 ----
@@ -80,67 +111,5 @@ This conversation was marked as resolved by basepi
 }
 ----
 
-
-
-
-// 88888888888888888888
-// Just notes and copy pasta below here...
-
-
-You can get started by selecting *Add log data* from the {kib} homepage and following the links.
-
-[role="screenshot"]
-image::images/add-data.png[]
-
-If your data source isn't on the list, you can follow the
-{filebeat-ref}/filebeat-modules-quickstart.html[{filebeat} modules quick start]
-and enable modules for the logs you want to collect.
-If there is no module for the logs you want to collect, see the
-{filebeat-ref}/filebeat-getting-started.html[{filebeat} getting started]
-to learn how to configure inputs.
-
-For either approach, you'll need to enable modules in {filebeat} to populate the Logs app with data.
-
-[float]
-===== Which modules and configuration options do I enable?
-
-To populate the *Hosts* view and add logs, enable:
-
-* {filebeat-ref}/filebeat-module-system.html[{filebeat} `system` module]
-* {filebeat-ref}/filebeat-modules.html[Other {filebeat} modules] needed for your environment, such as `apache2`, `redis`, and so on
-
-To populate the *Docker* view and add logs, enable:
-
-* {filebeat-ref}/filebeat-input-docker.html[{filebeat} `docker` input]
-* {filebeat-ref}/add-docker-metadata.html[{filebeat} `add_docker_metadata` processor]
-
-To populate the *Kubernetes* view and add logs, enable:
-
-* {filebeat-ref}/filebeat-input-docker.html[{filebeat} `docker` input]
-* {filebeat-ref}/add-kubernetes-metadata.html[{filebeat} `add_kubernetes_metadata` processor]
-
-[float]
-===== Which fields are used for the metrics on the Infrastructure home page?
-
-The metrics listed below are provided by the Beats Shippers.
-Each system type requires their corresponding identity field to be in the same event document:
-
-* Hosts require `host.name`
-* Docker containers require `container.id`
-* Kubernetes pods require `kubernetes.pod.uid`
-
-For the metrics detail page, `event.dataset` is a required field.
-This field is a combination of `metricset.module`, which is the Metricbeat module name,
-and `metricset.name`, which is the sub module name.
-
-==== Want more information?
-
-Want more information? Check out the 
-{infra-guide}/install-infrastructure-monitoring.html[Install infrastructure monitoring] and
-{kibana-ref}/logs-ui-settings-kb.html[{logs-ui} UI Settings] documentation.
-
-// Structured, semi-structured, un-structured logs
-
-// As it currently stands, the APM UI links to the Logs UI with an exact match lookup on trace.id. This means that any setup that doesn't leverage structured logs won't find any correlating logs.
-
-// Would it be an option to update the APM->Logs link to something akin to message:sometraceid OR trace.id:sometraceid? That would make it much easier to getting started with using this feature without having to first introduce structured logging of some kind.
+NOTE: Depending on how you've added APM data to your logs,
+you may need to tweak this grok pattern in order to work for your setup.
