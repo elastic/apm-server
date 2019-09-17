@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/elastic/apm-server/beater/api/ratelimit"
+
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/beats/libbeat/logp"
@@ -38,14 +40,14 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Request              *http.Request
-	Logger               *logp.Logger
-	TokenSet, Authorized bool
-
-	Result Result
-
-	w             http.ResponseWriter
-	writeAttempts int
+	Request          *http.Request
+	Logger           *logp.Logger
+	RateLimitManager ratelimit.Manager
+	TokenSet         bool
+	Authorized       bool
+	Result           Result
+	w                http.ResponseWriter
+	writeAttempts    int
 }
 
 // Reset allows to reuse a context by removing all request specific information
@@ -54,7 +56,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Logger = nil
 	c.TokenSet = false
 	c.Authorized = false
-
+	c.RateLimitManager = nil
 	c.Result.Reset()
 
 	c.w = w

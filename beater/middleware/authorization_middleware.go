@@ -28,7 +28,7 @@ import (
 
 // RequireAuthorizationMiddleware returns a Middleware to only let authorized requests pass through
 func RequireAuthorizationMiddleware(token string) Middleware {
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			c.TokenSet = tokenSet(token)
 
@@ -41,19 +41,19 @@ func RequireAuthorizationMiddleware(token string) Middleware {
 
 			c.Authorized = true
 			h(c)
-		}
+		}, nil
 	}
 }
 
 // SetAuthorizationMiddleware returns a middleware setting authorization information in the context without terminating the
 // request if it is not authorized
 func SetAuthorizationMiddleware(token string) Middleware {
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			c.Authorized = isAuthorized(c.Request, token)
 			c.TokenSet = tokenSet(token)
 			h(c)
-		}
+		}, nil
 	}
 }
 

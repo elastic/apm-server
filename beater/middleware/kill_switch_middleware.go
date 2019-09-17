@@ -27,7 +27,7 @@ const errDisabledMsg = "endpoint is disabled"
 
 // KillSwitchMiddleware returns a Middleware checking whether the path for the request is enabled
 func KillSwitchMiddleware(enabled bool) Middleware {
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			if enabled {
 				h(c)
@@ -35,6 +35,6 @@ func KillSwitchMiddleware(enabled bool) Middleware {
 				c.Result.SetWithError(request.IDResponseErrorsForbidden, errors.New(errDisabledMsg))
 				c.Write()
 			}
-		}
+		}, nil
 	}
 }
