@@ -16,12 +16,14 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - Default of output.kafka.metadata.full is set to false by now. This reduced the amount of metadata to be queried from a kafka cluster. {pull}12738[12738]
 - Fixed a crash under Windows when fetching processes information. {pull}12833[12833]
 - Update to Golang 1.12.7. {pull}12931[12931]
+- Remove `in_cluster` configuration parameter for Kuberentes, now in-cluster configuration is used only if no other kubeconfig is specified {pull}13051[13051]
 
 *Auditbeat*
 
 - Auditd module: Normalized value of `event.category` field from `user-login` to `authentication`. {pull}11432[11432]
 - Auditd module: Unset `auditd.session` and `user.audit.id` fields are removed from audit events. {issue}11431[11431] {pull}11815[11815]
 - Socket dataset: Exclude localhost by default {pull}11993[11993]
+- Socket dataset: New implementation using Kprobes for finer-grained monitoring and UDP support. {pull}13058[13058]
 
 *Filebeat*
 
@@ -29,6 +31,7 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - `convert_timezone` option is removed and locale is always added to the event so timezone is used when parsing the timestamp, this behaviour can be overriden with processors. {pull}12410[12410]
 - Fix a race condition in the TCP input when close the client socket. {pull}13038[13038]
 - cisco/asa fileset: Renamed log.original to event.original and cisco.asa.list_id to cisco.asa.rule_name. {pull}13286[13286]
+- cisco/asa fileset: Fix parsing of 302021 message code. {pull}13476[13476]
 
 *Heartbeat*
 
@@ -57,6 +60,8 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 *Winlogbeat*
 
 *Functionbeat*
+
+- Separate management and functions in Functionbeat. {pull}12939[12939]
 
 ==== Bugfixes
 
@@ -133,16 +138,20 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - Syslog input will now omit the `process` object from events if it is empty. {pull}12700[12700]
 - Fix multiline pattern in Postgres which was too permissive {issue}12078[12078] {pull}13069[13069]
 - Allow path variables to be used in files loaded from modules.d. {issue}13184[13184]
+- Fix filebeat autodiscover fileset hint for container input. {pull}13296[13296]
 - Fix incorrect references to index patterns in AWS and CoreDNS dashboards. {pull}13303[13303]
 - Fix timezone parsing of system module ingest pipelines. {pull}13308[13308]
-- Change iis url.path grok pattern from URIPATH to NOTSPACE. {issue}12710[12710] {pull}13225[13225]
+- Fix timezone parsing of elasticsearch module ingest pipelines. {pull}13367[13367]
+- Change iis url path grok pattern from URIPATH to NOTSPACE. {issue}12710[12710] {pull}13225[13225] {issue}7951[7951] {pull}13378[13378]
 - Add timezone information to apache error fileset. {issue}12772[12772] {pull}13304[13304]
+- Fix timezone parsing of nginx module ingest pipelines. {pull}13369[13369]
 - Fix incorrect field references in envoyproxy dashboard {issue}13420[13420] {pull}13421[13421]
 
 *Heartbeat*
 
 - Fix NPEs / resource leaks when executing config checks. {pull}11165[11165]
 - Fix duplicated IPs on `mode: all` monitors. {pull}12458[12458]
+- Fix integer comparison on JSON responses. {pull}13348[13348]
 
 *Journalbeat*
 
@@ -180,6 +189,10 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - Fix redis key metricset dashboard references to index pattern. {pull}13303[13303]
 - Check if fields in DBInstance is nil in rds metricset. {pull}13294[13294] {issue}13037[13037]
 - Fix silent failures in kafka and prometheus module. {pull}13353[13353] {issue}13252[13252]
+- Fix issue with aws cloudwatch module where dimensions and/or namespaces that contain space are not being parsed correctly {pull}13389[13389]
+- Fix module-level fields in Kubernetes metricsets. {pull}13433[13433] {pull}13544[13544]
+- Fix panic in Redis Key metricset when collecting information from a removed key. {pull}13426[13426]
+- Fix reporting empty events in cloudwatch metricset. {pull}13458[13458]
 
 *Packetbeat*
 
@@ -236,6 +249,7 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - add_host_metadata is no GA. {pull}13148[13148]
 - Add `registered_domain` processor for deriving the registered domain from a given FQDN. {pull}13326[13326]
 - Add support for RFC3339 time zone offsets in JSON output. {pull}13227[13227]
+- Added `monitoring.cluster_uuid` setting to associate Beat data with specified ES cluster in Stack Monitoring UI. {pull}13182[13182]
 
 *Auditbeat*
 
@@ -343,6 +357,8 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - Add `metricset.period` field with the configured fetching period. {pull}13242[13242] {issue}12616[12616]
 - Add rate metrics for ec2 metricset. {pull}13203[13203]
 - Add Performance metricset to Oracle module {pull}12547[12547]
+- Use DefaultMetaGeneratorConfig in MetadataEnrichers to initialize configurations {pull}13414[13414]
+- Add module for statsd. {pull}13109[13109]
 
 *Packetbeat*
 
@@ -355,6 +371,8 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - Configurable Amazon endpoint. {pull}12369[12369]
 - Add timeout option to reference configuration. {pull}13351[13351]
 - Configurable tags for Lambda functions. {pull}13352[13352]
+- Add input for Cloudwatch logs through Kinesis. {pull}13317[13317]
+- Enable Logstash output. {pull}13345[13345]
 
 *Winlogbeat*
 
@@ -365,6 +383,7 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 - Add `event.category: process` and `event.type: process_start/process_end` to Sysmon process events (event ID 1 and 5). {pull}13047[13047]
 - Add support for event ID 4672 to the Security module. {pull}12975[12975]
 - Add support for event ID 22 (DNS query) to the Sysmon module. {pull}12960[12960]
+- Add certain winlog.event_data.* fields to the index template. {issue}13700[13700] {pull}13704[13704]
 
 ==== Deprecated
 
