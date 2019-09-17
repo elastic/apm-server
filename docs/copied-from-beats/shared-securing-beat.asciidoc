@@ -15,10 +15,6 @@ endif::[]
 ifndef::only-elasticsearch[]
 * <<configuring-ssl-logstash>>
 endif::only-elasticsearch[]
-ifdef::apm-server[]
-* <<configuration-ssl>>
-* <<agent-server-ssl>>
-endif::[]
 * <<securing-beats>>
 ifndef::only-elasticsearch[]
 * <<linux-seccomp>>
@@ -45,15 +41,10 @@ include::./https.asciidoc[]
 
 ifndef::only-elasticsearch[]
 [[configuring-ssl-logstash]]
-== Secure communication with Logstash by using SSL
+== Secure communication with Logstash
 
 include::./shared-ssl-logstash-config.asciidoc[]
 endif::only-elasticsearch[]
-
-ifdef::apm-server[]
-include::shared-ssl-config.asciidoc[]
-include::../ssl-input-settings.asciidoc[]
-endif::[]
 
 include::./security/securing-beats.asciidoc[]
 

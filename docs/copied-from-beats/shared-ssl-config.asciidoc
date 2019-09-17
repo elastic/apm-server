@@ -5,9 +5,6 @@ endif::apm-server[]
 ifdef::apm-server[]
 == SSL output settings
 
-NOTE: This page explains SSL settings for {beatname_uc} *outputs*.
-See <<agent-server-ssl>> for information on SSL settings for {beatname_uc} *inputs*.
-
 You can specify SSL options with any output that supports SSL, like {es}, {ls}, or Kafka.
 endif::[]
 

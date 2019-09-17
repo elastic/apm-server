@@ -1,8 +1,5 @@
 [[agent-server-ssl]]
-== SSL input settings
-
-NOTE: This page explains SSL settings for {beatname_uc} *inputs*.
-See <<configuration-ssl>> for information on SSL settings for {beatname_uc} *outputs*.
+=== SSL input settings
 
 You can specify the following options in the `apm-server.ssl` section of the +{beatname_lc}.yml+ config file.
 They apply to SSL/TLS communication between the APM Server and APM Agents.
