@@ -8,14 +8,15 @@ Elastic APM supports integrations with other observability solutions.
 [[apm-logging-integration]]
 === Logging integration
 
-Many services use logging frameworks to help record, format, and append an application's logs.
+Many applications use logging frameworks to help record, format, and append an application's logs.
 Elastic APM now offers a way to make your application logs even more useful,
 by integrating with the most popular logging frameworks in their respective langues.
 This means you can easily inject trace information into your logs, allowing you to explore logs in the Log app and jump straight into the corresponding APM traces -- all while preserving the trace context.
 
 To get started:
 
-. Enable log correlation in your APM Agent(s) and decorate your logs with the `trace.id field`.
+. Enable log correlation in your APM Agent(s) and decorate your logs with the `trace.id` or `transaction.id` fields.
+Some Agents even support the `span.id` field.
 . Ingest your logs into Elasticsearch
 
 [float]
@@ -23,18 +24,69 @@ To get started:
 
 The following agents currently support log correlation:
 
-* *Go: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
-* Java: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
-// * .NET {apm-dotnet-ref-v}/[]
-// * Node.js: {apm-node-ref-v}/[]
-// * Python: {apm-py-ref-v}/[]
-// * Ruby: {apm-ruby-ref-v}/[]
-// * Rum: {apm-rum-ref-v}/[]
+* *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
+* *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
+// * *.NET*: {apm-dotnet-ref-v}/[]
+// * *Node.js*: {apm-node-ref-v}/[]
+// * *Python*: {apm-py-ref-v}/[]
+// * *Ruby*: {apm-ruby-ref-v}/[]
+// * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
 ==== Ingest your logs into Elasticsearch
 
 https://www.elastic.co/products/beats/filebeat[{filebeat}] is Elastic's log shipper.
+
+Because logging formats can vary between and even within each programming language,
+there is no one-size-fits-all approach for ingesting logs into Elasticsearch.
+
+
+
+
+
+
+One approach would be to add APM identifiers in an easy-to-parse manner.
+In Python this could be accomplised like this:
+
+[source,python]
+----
+import logging
+format_string = (
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s "
+    "| elasticapm "
+    "transaction.id=%(elasticapm_transaction_id) "
+    "trace.id=%(elasticapm_trace_id) "
+    "span.id=%(elasticapm_span_id)"
+)
+formatter = logging.Formatter(format_string)
+----
+
+Then, you'd be able to use Elasticsearch's {ref}/grok-processor.html[Grok Processor]
+to extract the structured fields out of the text:
+
+[source, json]
+----
+{
+  "description" : "...",
+  "processors": [
+    {
+      "grok": {
+        "field": "message",
+        "patterns": ["%{GREEDYDATA:msg} | elasticapm transaction.id=%{DATA:transaction.id} trace.id=%{DATA:trace.id} span.id=%{DATA:span.id}"]
+This conversation was marked as resolved by basepi
+      }
+    }
+  ]
+}
+----
+
+
+
+
+// 88888888888888888888
+// Just notes and copy pasta below here...
+
+
 You can get started by selecting *Add log data* from the {kib} homepage and following the links.
 
 [role="screenshot"]
