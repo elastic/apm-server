@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -107,7 +106,7 @@ func TestSourcemapHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseErrorsCount:     1,
 		request.IDResponseErrorsForbidden: 1}
 
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, sourcemap.MonitoringMap)
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, registrySourcemapMonitoring)
 	assert.True(t, equal, result)
 }
 

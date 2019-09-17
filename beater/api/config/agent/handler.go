@@ -26,7 +26,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/config"
@@ -48,10 +47,6 @@ const (
 )
 
 var (
-	// MonitoringMap holds a mapping for request.IDs to monitoring counters
-	MonitoringMap = request.MonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.acm", monitoring.PublishExpvar)
-
 	errMsgKibanaDisabled     = errors.New(msgKibanaDisabled)
 	errMsgNoKibanaConnection = errors.New(msgNoKibanaConnection)
 

@@ -21,16 +21,9 @@ import (
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/request"
-)
-
-var (
-	// MonitoringMap holds a mapping for request.IDs to monitoring counters
-	MonitoringMap = request.MonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.root", monitoring.PublishExpvar)
 )
 
 // Handler returns error if route does not exist,

@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/api/root"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -81,7 +80,7 @@ func TestRootHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseValidCount: 1,
 		request.IDResponseValidOK:    1}
 
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, root.MonitoringMap)
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, registryRootMonitoring)
 	assert.True(t, equal, result)
 }
 

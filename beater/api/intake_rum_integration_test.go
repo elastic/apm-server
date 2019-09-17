@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -118,7 +117,7 @@ func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseErrorsCount:     1,
 		request.IDResponseErrorsForbidden: 1}
 
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringMap)
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, registryIntakeMonitoring)
 	assert.True(t, equal, result)
 }
 

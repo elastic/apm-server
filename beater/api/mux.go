@@ -24,6 +24,8 @@ import (
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/beats/libbeat/logp"
+
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
@@ -39,7 +41,6 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 const (
@@ -60,6 +61,11 @@ const (
 
 var (
 	emptyDecoder = func(*http.Request) (map[string]interface{}, error) { return map[string]interface{}{}, nil }
+
+	registryIntakeMonitoring      = monitoring.Default.NewRegistry("apm-server.server", monitoring.PublishExpvar)
+	registrySourcemapMonitoring   = monitoring.Default.NewRegistry("apm-server.sourcemap", monitoring.PublishExpvar)
+	registryAgentConfigMonitoring = monitoring.Default.NewRegistry("apm-server.acm", monitoring.PublishExpvar)
+	registryRootMonitoring        = monitoring.Default.NewRegistry("apm-server.root", monitoring.PublishExpvar)
 )
 
 type route struct {
@@ -98,11 +104,11 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	return mux, nil
 }
 
-func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func apmMiddleware(registry *monitoring.Registry) []middleware.Middleware {
 	return []middleware.Middleware{
 		middleware.LogMiddleware(),
 		middleware.RecoverPanicMiddleware(),
-		middleware.MonitoringMiddleware(m),
+		middleware.MonitoringMiddleware(registry),
 	}
 }
 
@@ -118,7 +124,7 @@ func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Hand
 }
 
 func backendMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.MonitoringMap),
+	return append(apmMiddleware(registryIntakeMonitoring),
 		middleware.RequestTimeMiddleware(),
 		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
 }
@@ -139,7 +145,7 @@ func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler,
 }
 
 func rumMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.MonitoringMap),
+	return append(apmMiddleware(registryIntakeMonitoring),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()),
 		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.RequestTimeMiddleware(),
@@ -156,7 +162,7 @@ func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Ha
 }
 
 func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(sourcemap.MonitoringMap),
+	return append(apmMiddleware(registrySourcemapMonitoring),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()),
 		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
 }
@@ -171,7 +177,7 @@ func configAgentHandler(cfg *config.Config, _ publish.Reporter) (request.Handler
 }
 
 func agentConfigMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(agent.MonitoringMap),
+	return append(apmMiddleware(registryAgentConfigMonitoring),
 		middleware.KillSwitchMiddleware(cfg.Kibana.Enabled()),
 		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
 }
@@ -181,7 +187,7 @@ func rootHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error
 }
 
 func rootMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(root.MonitoringMap),
+	return append(apmMiddleware(registryRootMonitoring),
 		middleware.SetAuthorizationMiddleware(cfg.SecretToken))
 }
 

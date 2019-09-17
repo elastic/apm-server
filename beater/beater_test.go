@@ -30,7 +30,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -41,6 +40,8 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/processing"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func TestBeatConfig(t *testing.T) {

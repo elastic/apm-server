@@ -27,7 +27,6 @@ import (
 
 	"github.com/elastic/beats/libbeat/common"
 
-	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -97,7 +96,8 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 		request.IDResponseCount:           1,
 		request.IDResponseErrorsCount:     1,
 		request.IDResponseErrorsForbidden: 1}
-	equal, result := beatertest.CompareMonitoringInt(h, c, expected, agent.MonitoringMap)
+
+	equal, result := beatertest.CompareMonitoringInt(h, c, expected, registryAgentConfigMonitoring)
 	assert.True(t, equal, result)
 
 }

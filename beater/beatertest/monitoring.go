@@ -31,17 +31,18 @@ func CompareMonitoringInt(
 	handler func(c *request.Context),
 	c *request.Context,
 	expected map[request.ResultID]int,
-	m map[request.ResultID]*monitoring.Int,
+	registry *monitoring.Registry,
 ) (bool, string) {
 
-	clearRegistry(m)
+	ClearRegistry(registry)
+
 	handler(c)
 
 	var result string
 	for _, id := range AllRequestResultIDs() {
 		monitoringIntVal := int64(0)
-		monitoringInt := m[id]
-		if monitoringInt != nil {
+		monitoringInt, ok := registry.Get(string(id)).(*monitoring.Int)
+		if ok {
 			monitoringIntVal = monitoringInt.Get()
 		}
 		expectedVal := int64(0)
@@ -62,14 +63,22 @@ func AllRequestResultIDs() []request.ResultID {
 	for k := range request.MapResultIDToStatus {
 		ids = append(ids, k)
 	}
+	// add generic ids
+	ids = append(ids, []request.ResultID{
+		request.IDUnset,
+		request.IDRequestCount,
+		request.IDResponseCount,
+		request.IDResponseErrorsCount,
+		request.IDResponseValidCount}...)
 	return ids
 }
 
-// clearRegistry sets all counters to 0 and removes all registered counters from the registry
+// ClearRegistry sets all counters to 0 and removes all registered counters from the registry
 // Only use this in test environments
-func clearRegistry(m map[request.ResultID]*monitoring.Int) {
-	for _, i := range m {
-		if i != nil {
+func ClearRegistry(registry *monitoring.Registry) {
+	for _, id := range AllRequestResultIDs() {
+		i, ok := registry.Get(string(id)).(*monitoring.Int)
+		if ok {
 			i.Set(0)
 		}
 	}

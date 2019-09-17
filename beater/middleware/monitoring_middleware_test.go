@@ -28,20 +28,16 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-var (
-	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring", monitoring.PublishExpvar)
-	mockMonitoringNil      = map[request.ResultID]*monitoring.Int{}
-	mockMonitoring         = request.MonitoringMapForRegistry(mockMonitoringRegistry)
-)
-
 func TestMonitoringHandler(t *testing.T) {
+
+	mockMonitoringRegistry := monitoring.Default.NewRegistry("mock.monitoring", monitoring.PublishExpvar)
 	checkMonitoring := func(t *testing.T,
 		h func(*request.Context),
 		expected map[request.ResultID]int,
-		m map[request.ResultID]*monitoring.Int,
 	) {
+		beatertest.ClearRegistry(mockMonitoringRegistry)
 		c, _ := beatertest.DefaultContextWithResponseRecorder()
-		equal, result := beatertest.CompareMonitoringInt(Apply(MonitoringMiddleware(m), h), c, expected, m)
+		equal, result := beatertest.CompareMonitoringInt(Apply(MonitoringMiddleware(mockMonitoringRegistry), h), c, expected, mockMonitoringRegistry)
 		assert.True(t, equal, result)
 	}
 
@@ -52,8 +48,7 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDRequestCount:            1,
 				request.IDResponseCount:           1,
 				request.IDResponseErrorsCount:     1,
-				request.IDResponseErrorsForbidden: 1},
-			mockMonitoring)
+				request.IDResponseErrorsForbidden: 1})
 	})
 
 	t.Run("Accepted", func(t *testing.T) {
@@ -63,8 +58,7 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDRequestCount:          1,
 				request.IDResponseCount:         1,
 				request.IDResponseValidCount:    1,
-				request.IDResponseValidAccepted: 1},
-			mockMonitoring)
+				request.IDResponseValidAccepted: 1})
 	})
 
 	t.Run("Idle", func(t *testing.T) {
@@ -74,8 +68,7 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDRequestCount:       1,
 				request.IDResponseCount:      1,
 				request.IDResponseValidCount: 1,
-				request.IDUnset:              1},
-			mockMonitoring)
+				request.IDUnset:              1})
 	})
 
 	t.Run("Panic", func(t *testing.T) {
@@ -85,15 +78,6 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,
 				request.IDResponseErrorsCount:    1,
-				request.IDResponseErrorsInternal: 1,
-			},
-			mockMonitoring)
-	})
-
-	t.Run("Nil", func(t *testing.T) {
-		checkMonitoring(t,
-			beatertest.HandlerIdle,
-			map[request.ResultID]int{},
-			mockMonitoringNil)
+				request.IDResponseErrorsInternal: 1})
 	})
 }
