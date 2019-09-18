@@ -66,7 +66,7 @@ func TestLogMiddleware(t *testing.T) {
 			name:       "Panic",
 			message:    "internal error",
 			level:      zapcore.ErrorLevel,
-			handler:    RecoverPanicMiddleware()(beatertest.HandlerPanic),
+			handler:    Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
 			code:       http.StatusInternalServerError,
 			error:      errors.New("panic on Handle"),
 			stacktrace: true,
@@ -87,7 +87,7 @@ func TestLogMiddleware(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, rec := beatertest.DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.UserAgent, tc.name)
-			LogMiddleware()(tc.handler)(c)
+			Apply(LogMiddleware(), tc.handler)(c)
 			assert.Equal(t, tc.code, rec.Code)
 			for i, entry := range logp.ObserverLogs().TakeAll() {
 				// expect only one log entry per request

@@ -33,22 +33,29 @@ func TestWithMiddleware(t *testing.T) {
 		c.Result.Keyword += s
 	}
 	h := func(c *request.Context) { addKeyword(c, "[h]") }
-	m1 := func(h request.Handler) request.Handler {
+	m1 := func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			addKeyword(c, "[m1.1]")
 			h(c)
 			addKeyword(c, "[m1.2]")
-		}
+		}, nil
 	}
-	m2 := func(h request.Handler) request.Handler {
+	m2 := func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			addKeyword(c, "[m2.1]")
 			h(c)
 			addKeyword(c, "[m2.2]")
-		}
+		}, nil
 	}
 	c, _ := beatertest.DefaultContextWithResponseRecorder()
-	Wrap(h, m1, m2)(c)
+	h, e := Wrap(h, m1, m2)
+	require.NoError(t, e)
+	h(c)
 	require.NotNil(t, c.Result.Keyword)
 	assert.Equal(t, "[m1.1][m2.1][h][m2.2][m1.2]", c.Result.Keyword)
+}
+
+func Apply(m Middleware, h request.Handler) request.Handler {
+	r, _ := m(h)
+	return r
 }

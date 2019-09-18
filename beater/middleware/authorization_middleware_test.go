@@ -52,7 +52,7 @@ func TestRequireAuthorizationMiddleware(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			c, rec := beatertest.DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.Authorization, "Bearer "+tc.requestToken)
-			RequireAuthorizationMiddleware(tc.serverToken)(beatertest.Handler202)(c)
+			Apply(RequireAuthorizationMiddleware(tc.serverToken), beatertest.Handler202)(c)
 
 			assert.Equal(t, tc.authorized, c.Authorized)
 			assert.Equal(t, tc.tokenSet, c.TokenSet)
@@ -73,7 +73,7 @@ func TestSetAuthorizationMiddleware(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			c, rec := beatertest.DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.Authorization, "Bearer "+tc.requestToken)
-			SetAuthorizationMiddleware(tc.serverToken)(beatertest.Handler202)(c)
+			Apply(SetAuthorizationMiddleware(tc.serverToken), beatertest.Handler202)(c)
 
 			assert.Equal(t, tc.authorized, c.Authorized)
 			assert.Equal(t, tc.tokenSet, c.TokenSet)

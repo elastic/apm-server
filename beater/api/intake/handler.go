@@ -23,6 +23,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/elastic/apm-server/beater/api/ratelimit"
+
 	"github.com/pkg/errors"
 	"golang.org/x/time/rate"
 
@@ -43,7 +45,7 @@ var (
 )
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimiterManager, report publish.Reporter) request.Handler {
+func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
 
 		serr := validateRequest(c.Request)
@@ -52,7 +54,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimite
 			return
 		}
 
-		rl, serr := rateLimit(c.Request, rlm)
+		rateLimiter, serr := rateLimit(c.Request, c.RateLimitManager)
 		if serr != nil {
 			sendError(c, serr)
 			return
@@ -72,7 +74,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimite
 			sendResponse(c, &sr)
 			return
 		}
-		res := processor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
+		res := processor.HandleStream(c.Request.Context(), rateLimiter, reqMeta, reader, report)
 
 		sendResponse(c, res)
 	}
@@ -152,18 +154,18 @@ func validateRequest(r *http.Request) *stream.Error {
 	return nil
 }
 
-func rateLimit(r *http.Request, rlm RateLimiterManager) (*rate.Limiter, *stream.Error) {
-	if rlm == nil {
+func rateLimit(r *http.Request, manager ratelimit.Manager) (*rate.Limiter, *stream.Error) {
+	if manager == nil {
 		return nil, nil
 	}
-	if rl, ok := rlm.RateLimiter(utility.RemoteAddr(r)); ok {
-		if !rl.Allow() {
+	if rateLimit, ok := manager.Acquire(utility.RemoteAddr(r)); ok {
+		if !rateLimit.Allow() {
 			return nil, &stream.Error{
 				Type:    stream.RateLimitErrType,
 				Message: "rate limit exceeded",
 			}
 		}
-		return rl, nil
+		return rateLimit, nil
 	}
 	return nil, nil
 }
