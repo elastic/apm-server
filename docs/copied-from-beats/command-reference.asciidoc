@@ -680,7 +680,7 @@ ifeval::["{beatname_lc}"!="filebeat"]
 {beatname_lc} setup --machine-learning
 {beatname_lc} setup --template
 -----
-endif::no_dashboards[]
+endif::[]
 
 ifndef::apm-server[]
 ifdef::no_dashboards[]
