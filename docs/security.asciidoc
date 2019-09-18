@@ -1,30 +1,9 @@
-[[security-overview]]
-[float]
-=== Security Overview
+A reference of all available <<configuration-ssl-landing,SSL configuration settings>> is also available.
 
-APM Server exposes an HTTP endpoint and as with anything that opens ports on your servers,
+[float]
+[[security-overview]]
+== Security Overview
+
+APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
 you should be careful about who can connect to it.
 Firewall rules are recommended to ensure only authorized systems can connect.
-
-[[secret-token]]
-[float]
-==== Secret token
-
-You can configure a secret token to authorize requests to the APM Server,
-and ensure that only your agents can send data to your APM servers.
-Both the agents and the APM servers have to be configured with the same secret token.
-
-NOTE: Secret tokens provide security only when used in combination with SSL/TLS.
-Secret tokens are not applicable for RUM, as they would be publicly exposed.
-
-[[ssl-setup]]
-[float]
-==== SSL/TLS setup
-
-To enable SSL/TLS you need a private key and a certificate issued by a certification authority (CA).
-You can then specify the path to those files in your configuration properties:
-`apm-server.ssl.key` and `apm-server.ssl.certificate` respectively.
-This will make the APM Server serve HTTPS requests instead of HTTP.
-Don't forget, you also need to enable SSL in the agent.
-For agent specific details on enabling SSL/TLS,
-please see the {apm-agents-ref}/index.html[agent documentation].
