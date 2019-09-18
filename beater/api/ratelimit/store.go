@@ -18,19 +18,17 @@
 package ratelimit
 
 import (
+	"net/http"
 	"sync"
+
+	"github.com/elastic/apm-server/utility"
 
 	"github.com/hashicorp/golang-lru/simplelru"
 	"github.com/pkg/errors"
 	"golang.org/x/time/rate"
 )
 
-// Manager interface defines a method to retrieve a rate.Limiter for a key
-type Manager interface {
-	Acquire(string) (*rate.Limiter, bool)
-}
-
-// LRUCache is a simple lru cache holding N=size rate limiter entities. Every
+// Store is a simple lru cache holding N=size rate limiter entities. Every
 // rate limiter entity allows N=rateLimit hits per key (=IP) per second, and has a
 // burst queue of limit*5.
 // As the used lru cache is of a fixed size, cache entries can get evicted, in
@@ -39,7 +37,7 @@ type Manager interface {
 // cache is full. The purpose is to avoid bypassing the rate limiting by sending
 // requests from cache_size*2 unique keys, which would lead to evicted keys and
 // the creation of new rate limiter entities with full allowance.
-type LRUCache struct {
+type Store struct {
 	cache          *simplelru.LRU
 	limit          int
 	burstFactor    int
@@ -47,47 +45,52 @@ type LRUCache struct {
 	evictedLimiter *rate.Limiter
 }
 
-// NewLRUCache returns a new instance of the LRUCache
-func NewLRUCache(size, rateLimit, burstFactor int) (*LRUCache, error) {
+// NewStore returns a new instance of the Store
+func NewStore(size, rateLimit, burstFactor int) (*Store, error) {
 	if size <= 0 || rateLimit < 0 {
-		return nil, errors.New("cache initialization: size and rateLimit must be greater than zero")
+		return nil, errors.New("cache initialization: size must be greater than zero")
 	}
 
-	lru := LRUCache{limit: rateLimit, burstFactor: burstFactor}
+	store := Store{limit: rateLimit, burstFactor: burstFactor}
 
 	var onEvicted = func(_ interface{}, value interface{}) {
-		lru.evictedLimiter = *value.(**rate.Limiter)
+		store.evictedLimiter = *value.(**rate.Limiter)
 	}
 
 	c, err := simplelru.NewLRU(size, simplelru.EvictCallback(onEvicted))
 	if err != nil {
 		return nil, err
 	}
-	lru.cache = c
-	return &lru, nil
+	store.cache = c
+	return &store, nil
 }
 
-// Acquire returns a rate.Limiter instance for the given key
-func (lru *LRUCache) Acquire(key string) (*rate.Limiter, bool) {
+// acquire returns a rate.Limiter instance for the given key
+func (s *Store) acquire(key string) (*rate.Limiter, bool) {
 	// fetch the rate limiter from the cache, if a cache is given
-	if lru == nil || lru.cache == nil || lru.limit == -1 {
+	if s == nil || s.cache == nil {
 		return nil, false
 	}
 
 	// lock get and add action for cache to allow proper eviction handling without
 	// race conditions.
-	lru.mu.Lock()
-	defer lru.mu.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	if l, ok := lru.cache.Get(key); ok {
+	if l, ok := s.cache.Get(key); ok {
 		return *l.(**rate.Limiter), true
 	}
 
 	var limiter *rate.Limiter
-	if evicted := lru.cache.Add(key, &limiter); evicted {
-		limiter = lru.evictedLimiter
+	if evicted := s.cache.Add(key, &limiter); evicted {
+		limiter = s.evictedLimiter
 	} else {
-		limiter = rate.NewLimiter(rate.Limit(lru.limit), lru.limit*lru.burstFactor)
+		limiter = rate.NewLimiter(rate.Limit(s.limit), s.limit*s.burstFactor)
 	}
 	return limiter, true
+}
+
+// PerIP returns a rate limiter per request IP
+func (s *Store) PerIP(r *http.Request) (*rate.Limiter, bool) {
+	return s.acquire(utility.RemoteAddr(r))
 }

@@ -34,7 +34,7 @@ func TestCacheInitFails(t *testing.T) {
 		{0, 1},
 		{1, -1},
 	} {
-		c, err := NewLRUCache(test.size, test.limit, 3)
+		c, err := NewStore(test.size, test.limit, 3)
 		assert.Error(t, err)
 		assert.Nil(t, c)
 	}
@@ -44,24 +44,24 @@ func TestCacheEviction(t *testing.T) {
 	cacheSize := 2
 	limit := 1 //multiplied times BurstMultiplier 3
 
-	rlc, err := NewLRUCache(cacheSize, limit, 3)
+	rlc, err := NewStore(cacheSize, limit, 3)
 	require.NoError(t, err)
 
 	// add new limiter
-	rlA, _ := rlc.Acquire("a")
+	rlA, _ := rlc.acquire("a")
 	rlA.AllowN(time.Now(), 3)
 
 	// add new limiter
-	rlB, _ := rlc.Acquire("b")
+	rlB, _ := rlc.acquire("b")
 	rlB.AllowN(time.Now(), 2)
 
 	// reuse evicted limiter rlA
-	rlC, _ := rlc.Acquire("c")
+	rlC, _ := rlc.acquire("c")
 	assert.False(t, rlC.Allow())
 	assert.Equal(t, rlC, rlc.evictedLimiter)
 
 	// reuse evicted limiter rlB
-	rlD, _ := rlc.Acquire("a")
+	rlD, _ := rlc.acquire("a")
 	assert.True(t, rlD.Allow())
 	assert.False(t, rlD.Allow())
 	assert.Equal(t, rlD, rlc.evictedLimiter)
@@ -73,27 +73,22 @@ func TestCacheEviction(t *testing.T) {
 }
 
 func TestCacheOk(t *testing.T) {
-	var rlc *LRUCache
-	_, ok := rlc.Acquire("a")
+	var rlc *Store
+	_, ok := rlc.acquire("a")
 	assert.False(t, ok)
 
-	var cache = func() *LRUCache {
-		rlc, err := NewLRUCache(1, 1, 1)
+	var cache = func() *Store {
+		rlc, err := NewStore(1, 1, 1)
 		require.NoError(t, err)
 		return rlc
 	}
 
 	rlc = cache()
-	rlc.limit = -1
-	_, ok = rlc.Acquire("a")
-	assert.False(t, ok)
-
-	rlc = cache()
 	rlc.cache = nil
-	_, ok = rlc.Acquire("a")
+	_, ok = rlc.acquire("a")
 	assert.False(t, ok)
 
 	rlc = cache()
-	_, ok = rlc.Acquire("a")
+	_, ok = rlc.acquire("a")
 	assert.True(t, ok)
 }
