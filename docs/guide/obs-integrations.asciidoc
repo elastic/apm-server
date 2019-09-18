@@ -12,22 +12,24 @@ Many applications use logging frameworks to help record, format, and append an a
 Elastic APM now offers a way to make your application logs even more useful,
 by integrating with the most popular logging frameworks in their respective languages.
 This means you can easily inject trace information into your logs,
-allowing you to explore logs in the Log app and jump straight into the corresponding APM traces -- all while preserving the trace context.
+allowing you to explore logs in the Log app, then jump straight into the corresponding APM traces -- all while preserving the trace context.
 
 To get started:
 
-. Enable Agent support 
+. Enable APM Agent support 
 . Ingest your logs into Elasticsearch
 
 [float]
-==== Enable Agent support
+==== Enable APM Agent support
 
-You must first enable log correlation in your APM Agent(s) and decorate your logs with the `trace.id` or `transaction.id` fields.
-Certain Agents even support the `span.id` field.
-Some of the Agent's supported logging frameworks will automatically decorate your logs with these fields.
-For others, it will need to be done manually.
+// temporary attribute for ECS 1.1
+// Remove after 7.4 release
+:ecs-ref: https://www.elastic.co/guide/en/ecs/1.1
 
-Take a look at the relevant Agent documentation for further information:
+You must first enable log correlation in your APM Agent(s) and decorate your logs with the
+{ecs-ref}/ecs-tracing.html[`trace.id`] or {ecs-ref}/ecs-tracing.html[`transaction.id`] fields.
+Certain Agents also support the `span.id` field.
+This process will differ by Agent, so head over to the relevant Agent documentation to learn more:
 
 * *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
 * *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
@@ -40,44 +42,80 @@ Take a look at the relevant Agent documentation for further information:
 [float]
 ==== Ingest your logs into Elasticsearch
 
-Once your logs have been decorated with the appropriate fields, you need to ingest them into Elasticsearch.
-
-Filebeat is Elastic's log shipper.
+Once your logs contain the appropriate fields, you need to ingest them into Elasticsearch.
+Luckily, we've got a tool for that -- Filebeat is Elastic's log shipper.
 The {filebeat-ref}/filebeat-getting-started.html[Filebeat getting started]
 guide will walk you through the setup process.
 
-Because supported logging frameworks and formats can vary greatly between different programming language,
+Because logging frameworks and formats vary greatly between different programming languages,
 there is no one-size-fits-all approach for ingesting your logs into Elasticsearch.
+The following tips should hopefully get you going in the right direction:
 
-For structured logs, 
+**Download Filebeat**
 
-You'll want to install and run Filebeat.
-Send the logs to the same Elastic Stack that is receiving APM data.
-Modify the `filebeat.yml` configuration as follows:
+There are many ways to download and get started with Filebeat.
+Read the {filebeat-ref}/filebeat-installation.html[Filebeat Installation] guide to determine which is best for you.
 
-* Set the `filebeat.inputs` to point to the source of your logs
-* Point Filebeat to Elasticsearch
+**Configure Filebeat**
+
+Modify the {filebeat-ref}/filebeat-configuration.html[`filebeat.yml`] configuration file to your needs.
+Here are some recommendations:
+
+* Set `filebeat.inputs` to point to the source of your logs
+* Point Filebeat to the same Elastic Stack that is receiving your APM data
   * If you're using Elastic cloud, set `cloud.id` and `cloud.auth`.
   * If your using a manual setup, use `output.elasticsearch.hosts`.
-* Add a `decode_json_fields` processor, so `processors` looks as follows:
 
 [source,yml]
 ----
-processors:
-- add_host_metadata: ~
-- decode_json_fields:
-    fields: ["message"]
-    target: ""
-    overwrite_keys: true
+filebeat.inputs:
+- type: log <1>
+  paths: <2>
+    - /var/log/*.log
+cloud.id: "staging:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbyRjZWMNjN2Q3YTllOTYyNTc0Mw==" <3>
+cloud.auth: "elastic:YOUR_PASSWORD" <4>
 ----
+<1> Configures the `log` input
+<2> Path(s) that must be crawled to fetch the log lines
+<3> Used to resolve the Elasticsearch and Kibana URLs for Elastic Cloud
+<4> Authorization token for Elastic Cloud
 
+**JSON logs**
 
+For JSON logs you can use the {filebeat-ref}filebeat-input-log.html[`log` input] to read lines from log files.
+Here's what a sample configuration might look like:
 
+[source,yml]
+----
+filebeat.inputs:
+  json.keys_under_root: true <1>
+  json.add_error_key: true <2>
+  json.message_key: message <3>
+----
+<1> `true` copies JSON keys to the top level in the output document
+<2> Tells Filebeat to add an `error.message` and `error.type: json` key in case of JSON unmarshalling errors
+<3> Specifies the JSON key on which to apply line filtering and multiline settings
 
+// For JSON logs you'll need to use the {filebeat-ref}/decode-json-fields.html[decode_json_fields] processor.
+//
+// [source,yml]
+// ----
+// processors:
+// - decode_json_fields:
+//     fields: ["message"] <1>
+//     target: "" <2>
+//     overwrite_keys: true <3>
+// ----
+// <1> The fields containing JSON strings to decode
+// <2> The field under which the decoded JSON will be written. `""` merges the decoded JSON
+// fields into the root of the event.
+// <3> Specifies whether the keys that already exist in the event are overwritten.
 
+**Parsing unstructured logs**
 
-For unstructured logs, you'll want to add APM identifiers in any easy to parse manner.
-In Python, this could be accomplished like this:
+For unstructured logs, you'll want to add APM identifiers to your logs in any easy to parse manner.
+In some supported frameworks, this already done for you. If you're using a framework that isn't supported,
+consider the following example:
 
 [source,python]
 ----
@@ -93,7 +131,7 @@ formatter = logging.Formatter(format_string)
 ----
 
 Then, you'd be able to use Elasticsearch's {ref}/grok-processor.html[Grok Processor]
-to extract the structured fields out of the text:
+to create a pattern which extracts the structured fields out of your text logs:
 
 [source, json]
 ----
@@ -102,14 +140,27 @@ to extract the structured fields out of the text:
   "processors": [
     {
       "grok": {
-        "field": "message",
-        "patterns": ["%{GREEDYDATA:msg} | elasticapm transaction.id=%{DATA:transaction.id} trace.id=%{DATA:trace.id} span.id=%{DATA:span.id}"]
-This conversation was marked as resolved by basepi
+        "field": "message", <1>
+        "patterns": ["%{GREEDYDATA:msg} | elasticapm transaction.id=%{DATA:transaction.id} trace.id=%{DATA:trace.id} span.id=%{DATA:span.id}"] <2>
       }
     }
   ]
 }
 ----
+<1> The field to use for grok expression parsing
+<2> An ordered list of grok expression to match and extract named captures with
 
 NOTE: Depending on how you've added APM data to your logs,
 you may need to tweak this grok pattern in order to work for your setup.
+
+If your logs contain messages that span multiple lines of text (common in Java stack traces),
+you'll also need to configure {filebeat-ref}/multiline-examples.html[multiline settings].
+
+The following example shows how to configure Filebeat to handle a multiline message where the first line of the message begins with a bracket ([).
+
+[source,yml]
+----
+multiline.pattern: '^\['
+multiline.negate: true
+multiline.match: after
+----
