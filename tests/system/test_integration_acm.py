@@ -47,7 +47,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
 
         # missing service.name
         r1 = requests.get(self.agent_config_url,
-                          headers={"Content-Type": "application/x-ndjson"},
+                          headers={"Content-Type": "application/json"},
                           )
         assert r1.status_code == 400, r1.status_code
         expect_log.append({
@@ -60,7 +60,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         # no configuration for service
         r2 = requests.get(self.agent_config_url,
                           params={"service.name": service_name + "_cache_bust"},
-                          headers={"Content-Type": "application/x-ndjson"},
+                          headers={"Content-Type": "application/json"},
                           )
         assert r2.status_code == 200, r2.status_code
         expect_log.append({
@@ -79,7 +79,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         # yes configuration for service
         r3 = requests.get(self.agent_config_url,
                           params={"service.name": service_name},
-                          headers={"Content-Type": "application/x-ndjson"})
+                          headers={"Content-Type": "application/json"})
         assert r3.status_code == 200, r3.status_code
         # TODO (gr): validate Cache-Control header - https://github.com/elastic/apm-server/issues/2438
         expect_log.append({
@@ -93,7 +93,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
         r3_again = requests.get(self.agent_config_url,
                                 params={"service.name": service_name},
                                 headers={
-                                    "Content-Type": "application/x-ndjson",
+                                    "Content-Type": "application/json",
                                     "If-None-Match": r3.headers["Etag"],
                                 })
         assert r3_again.status_code == 304, r3_again.status_code
@@ -109,7 +109,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                               "service.name": service_name,
                               "service.environment": bad_service_env,
                           },
-                          headers={"Content-Type": "application/x-ndjson"})
+                          headers={"Content-Type": "application/json"})
         assert r4.status_code == 200, r4.status_code
         expect_log.append({
             "level": "info",
@@ -131,7 +131,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                               "service.name": service_name,
                               "service.environment": service_env,
                           },
-                          headers={"Content-Type": "application/x-ndjson"})
+                          headers={"Content-Type": "application/json"})
         assert r5.status_code == 200, r5.status_code
         self.assertDictEqual({"transaction_sample_rate": "0.15"}, r5.json())
         expect_log.append({
@@ -147,7 +147,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                                     "service.environment": service_env,
                                 },
                                 headers={
-                                    "Content-Type": "application/x-ndjson",
+                                    "Content-Type": "application/json",
                                     "If-None-Match": r5.headers["Etag"],
                                 })
         assert r5_again.status_code == 304, r5_again.status_code
@@ -170,7 +170,7 @@ class AgentConfigurationIntegrationTest(ElasticTest):
                                           "service.environment": service_env,
                                       },
                                       headers={
-                                          "Content-Type": "application/x-ndjson",
+                                          "Content-Type": "application/json",
                                           "If-None-Match": r5.headers["Etag"],
                                       })
         assert r5_post_update.status_code == 200, r5_post_update.status_code
@@ -199,14 +199,14 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
     def test_config_requests(self):
         r1 = requests.get(self.agent_config_url,
                           headers={
-                              "Content-Type": "application/x-ndjson",
+                              "Content-Type": "application/json",
                           })
         assert r1.status_code == 401, r1.status_code
 
         r2 = requests.get(self.agent_config_url,
                           params={"service.name": "foo"},
                           headers={
-                              "Content-Type": "application/x-ndjson",
+                              "Content-Type": "application/json",
                               "Authorization": "Bearer " + self.config_overrides["secret_token"],
                           })
         assert r2.status_code == 503, r2.status_code
@@ -236,7 +236,7 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
     def test_log_kill_switch_active(self):
         r = requests.get(self.agent_config_url,
                          headers={
-                             "Content-Type": "application/x-ndjson",
+                             "Content-Type": "application/json",
                          })
         assert r.status_code == 403, r.status_code
         config_request_logs = list(self.logged_requests(url="/config/v1/agents"))
