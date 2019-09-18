@@ -151,7 +151,7 @@ deleting data collected for specific services or customers,
 or deleting specific indices.
 
 Depending on your use case,
-you can delete data periodically with <<delete-data-ilm,index lifecycle management>>,
+you can delete data periodically with
 {curator-ref-current}[Curator], the {ref}/docs-delete-by-query.html[Delete By Query API],
 or in the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
 
