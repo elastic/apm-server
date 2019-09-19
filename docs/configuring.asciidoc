@@ -8,7 +8,7 @@ include::./copied-from-beats/shared-configuring.asciidoc[]
 * <<configuration-process>>
 * <<configuring-output>>
 * <<configuring-ingest-node>>
-* <<configuration-ssl>>
+* <<configuration-ssl-landing>>
 * <<configuration-template>>
 * <<configuration-logging>>
 * <<configuration-rum>>
@@ -23,7 +23,28 @@ include::./copied-from-beats/outputconfig.asciidoc[]
 
 include::./configuring-ingest.asciidoc[]
 
+[[configuration-ssl-landing]]
+== SSL/TLS settings
+
+SSL/TLS is available for:
+
+* <<agent-server-ssl,APM Server **inputs**>> (APM Agents)
+* <<configuration-ssl,APM Server **outputs**>> that support SSL, like {es}, {ls}, or Kafka.
+
+Additional information on getting started with SSL/TLS is available in <<securing-apm-server>>.
+
+// The leveloffset attribute pushes all headings in the included document down by
+// the specified number of levels. It is required here because the shared Beats
+// documentation was created as a level 1 heading. In the APM book, this level
+// would break the DTD. Using leveloffset +1, we can include this file here.
+// It's important too reset the level heading after including the file.
+:leveloffset: +1
 include::./copied-from-beats/shared-ssl-config.asciidoc[]
+:leveloffset: -1
+
+include::ssl-input-settings.asciidoc[]
+
+See <<securing-apm-server,Securing APM Server>> for more information.
 
 include::./template-config.asciidoc[]
 
