@@ -82,7 +82,7 @@ cloud.auth: "elastic:YOUR_PASSWORD" <4>
 
 **JSON logs**
 
-For JSON logs you can use the {filebeat-ref}filebeat-input-log.html[`log` input] to read lines from log files.
+For JSON logs you can use the {filebeat-ref}/filebeat-input-log.html[`log` input] to read lines from log files.
 Here's what a sample configuration might look like:
 
 [source,yml]
