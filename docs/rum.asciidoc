@@ -26,9 +26,9 @@ Source maps are cached in memory for as long as the <<rum-sourcemap-cache,cache 
 APM Server needs to find the correct source map for every `stack trace frame` in an event.
 To do so, it tries the following:
 
-* compare the event's `service.name` with the source map's `service_name`
-* compare the event's `service.version` with the source map's `service_version`
-* compare the stack trace frame's `abs_path` with the source map's `bundle_filepath`
+* Compare the event's `service.name` with the source map's `service_name`
+* Compare the event's `service.version` with the source map's `service_version`
+* Compare the stack trace frame's `abs_path` with the source map's `bundle_filepath`
 
 If a source map is found, the following attributes in the `stack trace frames` are overwritten:
 
@@ -36,9 +36,9 @@ If a source map is found, the following attributes in the `stack trace frames` a
 * `function`
 * `line number`
 * `column number`
-* `abs path`: is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name
+* `abs path` is https://golang.org/pkg/path/#Clean[cleaned] to be the shortest path name equivalent to the given path name.
 
 If multiple source maps are found,
 the one with the latest upload timestamp is used.
 
-See how an <<sourcemap-example, example source map>> looks like in Elasticsearch.
+See what an <<sourcemap-example, example source map>> looks like in Elasticsearch.
