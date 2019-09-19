@@ -33,6 +33,8 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :win_os:
 :linux_os:
 
+:downloads: https://artifacts.elastic.co/downloads/apm-server
+
 ifdef::env-github[]
 NOTE: For the best reading experience,
 please view this documentation at https://www.elastic.co/guide/en/apm/server[elastic.co]
@@ -43,11 +45,11 @@ endif::[]
 
 include::./overview.asciidoc[]
 
-include::./installing.asciidoc[]
-
-include::./upgrading.asciidoc[]
+include::./getting-started-apm-server.asciidoc[]
 
 include::./setting-up-and-running.asciidoc[]
+
+include::./upgrading.asciidoc[]
 
 :beat-specific-output-config: ./../configuring-output-after.asciidoc
 include::./configuring.asciidoc[]
