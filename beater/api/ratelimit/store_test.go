@@ -18,6 +18,7 @@
 package ratelimit
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -37,6 +38,7 @@ func TestCacheInitFails(t *testing.T) {
 		c, err := NewStore(test.size, test.limit, 3)
 		assert.Error(t, err)
 		assert.Nil(t, c)
+		assert.Nil(t, c.ForIP(&http.Request{}))
 	}
 }
 
@@ -44,51 +46,53 @@ func TestCacheEviction(t *testing.T) {
 	cacheSize := 2
 	limit := 1 //multiplied times BurstMultiplier 3
 
-	rlc, err := NewStore(cacheSize, limit, 3)
+	store, err := NewStore(cacheSize, limit, 3)
 	require.NoError(t, err)
 
 	// add new limiter
-	rlA, _ := rlc.acquire("a")
+	rlA := store.acquire("a")
 	rlA.AllowN(time.Now(), 3)
 
 	// add new limiter
-	rlB, _ := rlc.acquire("b")
+	rlB := store.acquire("b")
 	rlB.AllowN(time.Now(), 2)
 
 	// reuse evicted limiter rlA
-	rlC, _ := rlc.acquire("c")
+	rlC := store.acquire("c")
 	assert.False(t, rlC.Allow())
-	assert.Equal(t, rlC, rlc.evictedLimiter)
+	assert.Equal(t, rlC, store.evictedLimiter)
 
 	// reuse evicted limiter rlB
-	rlD, _ := rlc.acquire("a")
+	rlD := store.acquire("a")
 	assert.True(t, rlD.Allow())
 	assert.False(t, rlD.Allow())
-	assert.Equal(t, rlD, rlc.evictedLimiter)
+	assert.Equal(t, rlD, store.evictedLimiter)
 	// check that limiter are independent
 	assert.True(t, rlD != rlC)
-	rlc.evictedLimiter = nil
+	store.evictedLimiter = nil
 	assert.NotNil(t, rlD)
 	assert.NotNil(t, rlC)
 }
 
 func TestCacheOk(t *testing.T) {
-	var rlc *Store
-	_, ok := rlc.acquire("a")
-	assert.False(t, ok)
+	store, err := NewStore(1, 1, 1)
+	require.NoError(t, err)
+	limiter := store.acquire("a")
+	assert.NotNil(t, limiter)
+}
 
-	var cache = func() *Store {
-		rlc, err := NewStore(1, 1, 1)
-		require.NoError(t, err)
-		return rlc
+func TestRateLimitPerIP(t *testing.T) {
+	store, err := NewStore(2, 1, 1)
+	require.NoError(t, err)
+
+	var reqFrom = func(ip string) *http.Request {
+		r := http.Request{}
+		r.Header = http.Header{}
+		r.Header.Set("X-Real-Ip", ip)
+		return &r
 	}
-
-	rlc = cache()
-	rlc.cache = nil
-	_, ok = rlc.acquire("a")
-	assert.False(t, ok)
-
-	rlc = cache()
-	_, ok = rlc.acquire("a")
-	assert.True(t, ok)
+	assert.True(t, store.ForIP(reqFrom("10.10.10.1")).Allow())
+	assert.False(t, store.ForIP(reqFrom("10.10.10.1")).Allow())
+	assert.True(t, store.ForIP(reqFrom("10.10.10.2")).Allow())
+	assert.False(t, store.ForIP(reqFrom("10.10.10.3")).Allow())
 }

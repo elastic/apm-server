@@ -28,17 +28,15 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// Store is a simple lru cache holding N=size rate limiter entities. Every
-// rate limiter entity allows N=rateLimit hits per key (=IP) per second, and has a
-// burst queue of limit*5.
-// As the used lru cache is of a fixed size, cache entries can get evicted, in
-// which case the evicted limiter is reused as the new rate limiter for the
-// current key. This adds a certain random factor to the rate limiting in case the
-// cache is full. The purpose is to avoid bypassing the rate limiting by sending
-// requests from cache_size*2 unique keys, which would lead to evicted keys and
+// Store is a LRU cache holding cache_size rate limiters,
+// allowing N hits per cache key.
+// Evicted rate limiters are reused for the current key.
+// This adds a random factor to the rate limiting if the cache is full.
+// The purpose is to avoid bypassing the rate limiting by sending
+// requests from cache_size*2 unique keys, which would lead to
 // the creation of new rate limiter entities with full allowance.
 type Store struct {
-	cache          *simplelru.LRU
+	cache          simplelru.LRU
 	limit          int
 	burstFactor    int
 	mu             sync.Mutex //guards limiter in cache
@@ -61,16 +59,12 @@ func NewStore(size, rateLimit, burstFactor int) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	store.cache = c
+	store.cache = *c
 	return &store, nil
 }
 
 // acquire returns a rate.Limiter instance for the given key
-func (s *Store) acquire(key string) (*rate.Limiter, bool) {
-	// fetch the rate limiter from the cache, if a cache is given
-	if s == nil || s.cache == nil {
-		return nil, false
-	}
+func (s *Store) acquire(key string) *rate.Limiter {
 
 	// lock get and add action for cache to allow proper eviction handling without
 	// race conditions.
@@ -78,7 +72,7 @@ func (s *Store) acquire(key string) (*rate.Limiter, bool) {
 	defer s.mu.Unlock()
 
 	if l, ok := s.cache.Get(key); ok {
-		return *l.(**rate.Limiter), true
+		return *l.(**rate.Limiter)
 	}
 
 	var limiter *rate.Limiter
@@ -87,10 +81,13 @@ func (s *Store) acquire(key string) (*rate.Limiter, bool) {
 	} else {
 		limiter = rate.NewLimiter(rate.Limit(s.limit), s.limit*s.burstFactor)
 	}
-	return limiter, true
+	return limiter
 }
 
-// PerIP returns a rate limiter per request IP
-func (s *Store) PerIP(r *http.Request) (*rate.Limiter, bool) {
+// ForIP returns a rate limiter for the given request IP
+func (s *Store) ForIP(r *http.Request) *rate.Limiter {
+	if s == nil {
+		return nil
+	}
 	return s.acquire(utility.RemoteAddr(r))
 }
