@@ -1,115 +1,24 @@
 
 [[setting-up-and-running]]
-== Setting up and running APM Server
+== Setting up APM Server
 
-In a production environment,
-you would put APM Server on its own machines,
-similar to how you run Elasticsearch.
-You _can_ run it on the same machines as Elasticsearch,
-but this is not recommended,
-as the processes will be competing for resources.
+Before reading this section, see the <<getting-started-apm-server,getting started documentation>>
+for basic installation and running instructions.
 
-// This needs to be added to allow a link from monitoring-metricbeat.asciidoc to work
-// Update this when redoing the installation section
-[id="{beatname_lc}-starting"]
-To start APM Server, run:
+This section includes additional information on how to set up and run APM Server, including:
 
-[source,bash]
-----------------------------------
-./apm-server -e
-----------------------------------
+* <<directory-layout>>
+* <<keystore>>
+* <<command-line-options>>
+* <<high-availability>>
+* <<running-on-docker>>
 
-NOTE: The `-e` <<global-flags,global flag>> enables logging to stderr and disables syslog/file output.
-Remove this flag if you've enabled logging in the configuration file.
-For linux systems, see <<running-with-systemd,APM Server status and logs>>.
-
-You should see APM Server start up.
-It will try to connect to Elasticsearch on localhost port 9200 and expose an API to agents on port 8200.
-You can change the defaults by supplying a different address on the command line:
-
-[source,bash]
-----------------------------------
-./apm-server -e -E output.elasticsearch.hosts=ElasticsearchAddress:9200 -E apm-server.host=localhost:8200
-----------------------------------
-
-[float]
-[[running-deb-rpm]]
-=== Debian Package / RPM
-
-The Debian package and RPM installations of APM Server create an `apm-server` user.
-To start the APM Server in this case, run:
-
-[source,bash]
-----------------------------------
-sudo -u apm-server apm-server [<argument...>]
-----------------------------------
-
-By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
-See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
-
-[float]
-[[running-brew]]
-=== Brew
-
-To start APM Server, run:
-
-["source","sh"]
------
-apm-server -e
------
-
-To have launchd start APM Server and restart it at login, run:
-
-["source","sh"]
------
-brew services start elastic/tap/apm-server-full
------
-
-[[apm-server-configuration]]
-=== Configuration file
-To configure APM Server, you can also update the `apm-server.yml` configuration file.
-
-For rpm and deb,
-you’ll find the configuration file at +/etc/{beatname_lc}/{beatname_lc}.yml+.
-For mac and win, look in the archive that you extracted.
-
-See {beats-ref}/config-file-format.html[Config File Format] in _Beats Platform Reference_ for more about the structure of the config file.
-
-[source,yaml]
-----------------------------------
-apm-server:
-  host: localhost:8200
-
-output:
-  elasticsearch:
-    hosts: ElasticsearchAddress:9200
-----------------------------------
-
-The output section, like in other Beats, contains settings describing how and where to store the data.
-
-NOTE: If you are using an X-Pack secured version of Elastic Stack,
-you need to specify credentials in the config file before you run the commands that set up and start APM Server.
-For example:
-
-[source,yaml]
-----
-output.elasticsearch:
-  hosts: ["ElasticsearchAddress:9200"]
-  username: "elastic"
-  password: "elastic"
-----
-
-See <<configuring-howto-apm-server>> for more configuration options.
-
-
-include::./high-availability.asciidoc[]
+include::./copied-from-beats/shared-directory-layout.asciidoc[]
 
 include::./copied-from-beats/keystore.asciidoc[]
 
 include::./copied-from-beats/command-reference.asciidoc[]
 
-include::./copied-from-beats/shared-directory-layout.asciidoc[]
-
-include::./copied-from-beats/shared-docker.asciidoc[]
+include::./high-availability.asciidoc[]
 
 include::./copied-from-beats/shared-systemd.asciidoc[]
