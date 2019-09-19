@@ -17,20 +17,43 @@ then jump straight into the corresponding APM traces -- all while preserving the
 
 To get started:
 
-. Enable APM Agent support 
+. Enable log correlation
+. Add APM identifiers to your logs
 . Ingest your logs into Elasticsearch
 
 [float]
-==== Enable APM Agent support
+==== Enable Log correlation
 
 // temporary attribute for ECS 1.1
 // Remove after 7.4 release
 :ecs-ref: https://www.elastic.co/guide/en/ecs/1.1
 
-You must first enable log correlation in your APM Agent(s) and decorate your logs with the
-{ecs-ref}/ecs-tracing.html[`trace.id`] or {ecs-ref}/ecs-tracing.html[`transaction.id`] fields.
-Certain Agents also support the `span.id` field.
-This process will differ by Agent, so head over to the relevant Agent documentation to learn more:
+You must first enable log correlation in your APM Agents:
+
+* *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
+* *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
+// * *.NET*: {apm-dotnet-ref-v}/[]
+// * *Node.js*: {apm-node-ref-v}/[]
+// * *Python*: {apm-py-ref-v}/[]
+// * *Ruby*: {apm-ruby-ref-v}/[]
+// * *Rum*: {apm-rum-ref-v}/[]
+
+[float]
+==== Add APM identifiers to your logs
+
+Once log correlation is enabled, 
+you must ensure your logs contain APM identifiers.
+In some supported frameworks, this is already done for you.
+In other scenarios, like for unstructured logs,
+you'll need to add APM identifiers to your logs in any easy to parse manner.
+
+The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] and
+{ecs-ref}/ecs-tracing.html[`transaction.id`]. Certain Agents also support the `span.id` field.
+
+This process for adding these fields will differ based the Agent you're using, the logging framework, 
+and the type and structure of your logs.
+
+See the relevant Agent documentation to learn more:
 
 * *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
 * *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
@@ -43,7 +66,7 @@ This process will differ by Agent, so head over to the relevant Agent documentat
 [float]
 ==== Ingest your logs into Elasticsearch
 
-Once your logs contain the appropriate fields, you need to ingest them into Elasticsearch.
+Once your logs contain the appropriate identifiers (fields), you need to ingest them into Elasticsearch.
 Luckily, we've got a tool for that -- Filebeat is Elastic's log shipper.
 The {filebeat-ref}/filebeat-getting-started.html[Filebeat getting started]
 guide will walk you through the setup process.
@@ -113,13 +136,6 @@ filebeat.inputs:
 // <3> Specifies whether the keys that already exist in the event are overwritten.
 
 **Parsing unstructured logs**
-
-For unstructured logs, you'll want to add APM identifiers to your logs in any easy to parse manner.
-In some supported frameworks, this already done for you. In most scenarios though,
-you'll need to add the data yourself.
-
-The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] and
-{ecs-ref}/ecs-tracing.html[`transaction.id`]. Certain Agents also support the `span.id` field.
 
 Consider the following log that is decorated with the `transaction.id` and `trace.id` fields:
 
