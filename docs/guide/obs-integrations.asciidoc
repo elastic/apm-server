@@ -114,23 +114,20 @@ filebeat.inputs:
 **Parsing unstructured logs**
 
 For unstructured logs, you'll want to add APM identifiers to your logs in any easy to parse manner.
-In some supported frameworks, this already done for you. If you're using a framework that isn't supported,
-consider the following example:
+In some supported frameworks, this already done for you. In most scenarios though,
+you'll need to add the data yourself.
 
-[source,python]
+The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] and
+{ecs-ref}/ecs-tracing.html[`transaction.id`]. Certain Agents also support the `span.id` field.
+
+Consider the following log that is decorated with the `transaction.id` and `trace.id` fields:
+
+[source,log]
 ----
-import logging
-format_string = (
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s "
-    "| elasticapm "
-    "transaction.id=%(elasticapm_transaction_id) "
-    "trace.id=%(elasticapm_trace_id) "
-    "span.id=%(elasticapm_span_id)"
-)
-formatter = logging.Formatter(format_string)
+2019-09-18 21:29:49,525 - django.server - ERROR - "GET / HTTP/1.1" 500 27 | elasticapm transaction.id=fcfbbe447b9b6b5a trace.id=f965f4cc5b59bdc62ae349004eece70c span.id=None
 ----
 
-Then, you'd be able to use Elasticsearch's {ref}/grok-processor.html[Grok Processor]
+Once ingested into Elasticsearch, you'd be able to use Elasticsearch's {ref}/grok-processor.html[Grok Processor]
 to create a pattern which extracts the structured fields out of your text logs:
 
 [source, json]
@@ -148,10 +145,15 @@ to create a pattern which extracts the structured fields out of your text logs:
 }
 ----
 <1> The field to use for grok expression parsing
-<2> An ordered list of grok expression to match and extract named captures with
+<2> An ordered list of grok expression to match and extract named captures with:
+`%{DATA:transaction.id}` captures the value of `transaction.id`,
+`%{DATA:trace.id}` captures the value or `trace.id`, and
+`%{DATA:span.id}` captures the value of `span.id`.
+
 
 NOTE: Depending on how you've added APM data to your logs,
 you may need to tweak this grok pattern in order to work for your setup.
+This example is based on the sample log above.
 
 If your logs contain messages that span multiple lines of text (common in Java stack traces),
 you'll also need to configure {filebeat-ref}/multiline-examples.html[multiline settings].
