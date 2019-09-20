@@ -163,7 +163,7 @@ Then, configure Filebeat to use the processor in `filebeat.yml`:
 [source, json]
 ----
 output.elasticsearch:
-  pipeline: "test-pipeline"
+  pipeline: "log-correlation"
 ----
 
 If your logs contain messages that span multiple lines of text (common in Java stack traces),
