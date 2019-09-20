@@ -137,7 +137,7 @@ Here's an example:
 ----
 PUT _ingest/pipeline/log-correlation
 {
-  "description" : "...",
+  "description": "Parses the log correlation IDs out of the raw plain-text log",
   "processors": [
     {
       "grok": {
