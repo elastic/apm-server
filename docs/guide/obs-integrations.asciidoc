@@ -28,9 +28,8 @@ To get started:
 // Remove after 7.4 release
 :ecs-ref: https://www.elastic.co/guide/en/ecs/1.1
 
-You must first enable log correlation in your APM Agents:
+Some Agents require you to first enable log correlation in the Agent:
 
-* *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
 * *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
 // * *.NET*: {apm-dotnet-ref-v}/[]
 // * *Node.js*: {apm-node-ref-v}/[]
@@ -120,21 +119,6 @@ filebeat.inputs:
 <2> Tells Filebeat to add an `error.message` and `error.type: json` key in case of JSON unmarshalling errors
 <3> Specifies the JSON key on which to apply line filtering and multiline settings
 
-// For JSON logs you'll need to use the {filebeat-ref}/decode-json-fields.html[decode_json_fields] processor.
-//
-// [source,yml]
-// ----
-// processors:
-// - decode_json_fields:
-//     fields: ["message"] <1>
-//     target: "" <2>
-//     overwrite_keys: true <3>
-// ----
-// <1> The fields containing JSON strings to decode
-// <2> The field under which the decoded JSON will be written. `""` merges the decoded JSON
-// fields into the root of the event.
-// <3> Specifies whether the keys that already exist in the event are overwritten.
-
 **Parsing unstructured logs**
 
 Consider the following log that is decorated with the `transaction.id` and `trace.id` fields:
@@ -144,11 +128,14 @@ Consider the following log that is decorated with the `transaction.id` and `trac
 2019-09-18 21:29:49,525 - django.server - ERROR - "GET / HTTP/1.1" 500 27 | elasticapm transaction.id=fcfbbe447b9b6b5a trace.id=f965f4cc5b59bdc62ae349004eece70c span.id=None
 ----
 
-Once ingested into Elasticsearch, you'd be able to use Elasticsearch's {ref}/grok-processor.html[Grok Processor]
-to create a pattern which extracts the structured fields out of your text logs:
+All that's needed now is an {filebeat-ref}/configuring-ingest-node.html[ingest node processor] to pre-process your logs and
+extract these structured fields before they are indexed in Elasticsearch.
+To do this, you'd need to create a pipeline that uses Elasticsearch's {ref}/grok-processor.html[Grok Processor].
+Here's an example:
 
 [source, json]
 ----
+PUT _ingest/pipeline/log-correlation
 {
   "description" : "...",
   "processors": [
@@ -167,10 +154,17 @@ to create a pattern which extracts the structured fields out of your text logs:
 `%{DATA:trace.id}` captures the value or `trace.id`, and
 `%{DATA:span.id}` captures the value of `span.id`.
 
-
 NOTE: Depending on how you've added APM data to your logs,
 you may need to tweak this grok pattern in order to work for your setup.
 This example is based on the sample log above.
+
+Then, configure Filebeat to use the processor in `filebeat.yml`:
+
+[source, json]
+----
+output.elasticsearch:
+  pipeline: "test-pipeline"
+----
 
 If your logs contain messages that span multiple lines of text (common in Java stack traces),
 you'll also need to configure {filebeat-ref}/multiline-examples.html[multiline settings].
