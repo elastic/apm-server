@@ -142,7 +142,7 @@ PUT _ingest/pipeline/log-correlation
     {
       "grok": {
         "field": "message", <1>
-        "patterns": ["%{GREEDYDATA:msg} | elasticapm transaction.id=%{DATA:transaction.id} trace.id=%{DATA:trace.id} span.id=%{DATA:span.id}"] <2>
+        "patterns": ["%{GREEDYDATA:message} | elasticapm transaction.id=%{DATA:transaction.id} trace.id=%{DATA:trace.id} span.id=%{DATA:span.id}"] <2>
       }
     }
   ]
@@ -156,7 +156,9 @@ PUT _ingest/pipeline/log-correlation
 
 NOTE: Depending on how you've added APM data to your logs,
 you may need to tweak this grok pattern in order to work for your setup.
-This example is based on the sample log above.
+In addition, it's possible to extract more structure out of your logs.
+Make sure to follow the {ecs-ref}/ecs-field-reference.html[Elastic Common Schema]
+when defining which fields you are storing in Elasticsearch.
 
 Then, configure Filebeat to use the processor in `filebeat.yml`:
 
