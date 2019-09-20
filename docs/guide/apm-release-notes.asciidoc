@@ -4,7 +4,7 @@
 This section summarizes the most important APM changes in each release.
 
 For a full list of changes, see the
-{apm-server-ref}/release-notes.html[APM Server Release Notes] or the
+{apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
 * <<release-highlights-7.3.0>>
@@ -93,7 +93,7 @@ image::images/apm-highlight-rum-maps.png[APM sample rate configuration in Kibana
 
 *APM Server*
 
-* Added support for {apm-server-ref}/ilm.html[index lifecycle management (ILM)]:
+* Added support for {apm-server-ref-v}/ilm.html[index lifecycle management (ILM)]:
 ILM enables you to automate how you want to manage your indices over time,
 by automating rollovers to a new index when the existing index reaches a specified size or age.
 * Added Geo-IP processing to the default ingest pipeline:
@@ -160,7 +160,7 @@ All agents now have <<opentracing,OpenTracing compatible bridges>>.
 [float]
 ==== New features
 
-Elastic APM now enables {apm-overview-ref}/distributed-tracing.html[distributed tracing].
+Elastic APM now enables {apm-overview-ref-v}/distributed-tracing.html[distributed tracing].
 
 *APM Server*
 

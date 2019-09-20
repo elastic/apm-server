@@ -1,7 +1,9 @@
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
-:version: {stack-version}
+:stack-version: {apm_server_version}
+:doc-branch: {apm_server_version}
+:version: {apm_server_version}
 :beatname_lc: apm-server
 :beatname_uc: APM Server
 :beatname_pkg: {beatname_lc}

@@ -14,10 +14,10 @@
 [[sizing-guide]]
 == Storage and sizing guide
 
-APM Server handles a few different kinds of {apm-overview-ref}/apm-data-model.html[events].
+APM Server handles a few different kinds of {apm-overview-ref-v}/apm-data-model.html[events].
 Since processing and storage costs are largely dominated by
-{apm-overview-ref}/transactions.html[transactions] and
-{apm-overview-ref}/transaction-spans.html[spans],
+{apm-overview-ref-v}/transactions.html[transactions] and
+{apm-overview-ref-v}/transaction-spans.html[spans],
 only those will be covered here.
 
 NOTE: When the sampling rate is very small, transactions will be the dominate storage cost.
@@ -85,8 +85,8 @@ Let's look at a simple example that makes the following assumptions:
 This leaves us with relevant variables like payload and instance sizes.
 See the table below for approximations.
 As a reminder, events are
-{apm-overview-ref}/transactions.html[transactions] and
-{apm-overview-ref}/transaction-spans.html[spans].
+{apm-overview-ref-v}/transactions.html[transactions] and
+{apm-overview-ref-v}/transaction-spans.html[spans].
 
 [options="header"]
 |=======================================================================

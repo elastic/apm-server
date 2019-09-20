@@ -16,35 +16,35 @@ This data is buffered for a short period and sent on to APM Server.
 
 Each agent has its own documentation:
 
-* {apm-go-ref}/introduction.html[Go agent]
-* {apm-java-ref}/intro.html[Java agent]
-* {apm-dotnet-ref}/intro.html[.NET agent]
-* {apm-node-ref}/intro.html[Node.js agent]
-* {apm-py-ref}/getting-started.html[Python agent]
-* {apm-ruby-ref}/introduction.html[Ruby agent]
-* {apm-rum-ref}/intro.html[JavaScript Real User Monitoring (RUM) agent]
+* {apm-go-ref-v}/introduction.html[Go agent]
+* {apm-java-ref-v}/intro.html[Java agent]
+* {apm-dotnet-ref-v}/intro.html[.NET agent]
+* {apm-node-ref-v}/intro.html[Node.js agent]
+* {apm-py-ref-v}/getting-started.html[Python agent]
+* {apm-ruby-ref-v}/introduction.html[Ruby agent]
+* {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
 [float]
 === APM Server
 
 APM Server is an open source application that receives performance data from your APM agents.
-It's a {apm-server-ref}/overview.html#why-separate-component[separate component by design],
+It's a {apm-server-ref-v}/overview.html#why-separate-component[separate component by design],
 which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.  
 
 After the APM Server has validated and processed events from the APM agents,
 the server transforms the data into Elasticsearch documents and stores them in corresponding
-{apm-server-ref}/exploring-es-data.html[Elasticsearch indices].
+{apm-server-ref-v}/exploring-es-data.html[Elasticsearch indices].
 In a matter of seconds you can start viewing your application performance data in the Kibana APM UI.
 
 // Todo: Change these links to include APM Server on Cloud installation
 // The easiest way to get started with Elastic APM is by using our
 // https://www.elastic.co/cloud/elasticsearch-service[hosted {es} Service] on
 // Elastic Cloud 
-The {apm-server-ref}/index.html[APM Server reference] provides everything you need when it comes to working with the server.
-Here you can learn about {apm-server-ref}/installing.html[installation],
-{apm-server-ref}/configuring-howto-apm-server.html[configuration],
-{apm-server-ref}/securing-apm-server.html[security],
-{apm-server-ref}/monitoring.html[monitoring], and more.
+The {apm-server-ref-v}/index.html[APM Server reference] provides everything you need when it comes to working with the server.
+Here you can learn about {apm-server-ref-v}/installing.html[installation],
+{apm-server-ref-v}/configuring-howto-apm-server.html[configuration],
+{apm-server-ref-v}/securing-apm-server.html[security],
+{apm-server-ref-v}/monitoring.html[monitoring], and more.
 
 [float]
 === Elasticsearch

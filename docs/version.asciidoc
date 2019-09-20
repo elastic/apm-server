@@ -1,9 +1,4 @@
-// Use shared version file
 include::{asciidoc-dir}/../../shared/versions/stack/{source_branch}.asciidoc[]
-
-// Docs copied from Beats use stack-version and doc-branch instead of version
-:stack-version: {version}
-:doc-branch: {version}
 
 :go-version: 1.12.9
 :python: 2.7.9
