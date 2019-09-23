@@ -30,10 +30,10 @@ For a full list of changes, see the
 
 // tag::notable-v74-highlights[]
 
-*APM UI*
+*APM app in Kibana*
 
-* Structured filters -- You now have the ability to filter transactions by type,
-result or host/agent name provide you with an easier and a powerful way to explore your APM data.
+* Structured filters -- Explore your APM data in new ways with our new local filters.
+With just a click, you can filter your transactions by type, result, host name, and/or agent name.
 
 [role="screenshot"]
 image::images/structured-filters.jpg[Structured filters in the APM UI]
@@ -46,13 +46,12 @@ image::images/geo-location.jpg[Geo-location visualization]
 
 *APM Agents*
 
-* Log integration -- Navigate from a distributed trace to relevant logs via the APM App UI without losing trace context.
-* RUM Angular instrumentation -- Out of the box {apm-rum-ref}/angular-integration.html[Angular instrumentation].
-Instrument your SPA written in Angular.js without the need to manually create or rename transactions.
-Check out the Angular integration doc and instrument your Angular SPA today!
+* Log integration -- Navigate from a distributed trace to any relevant logs -- without using trace context -- via the APM app.
+* RUM Angular instrumentation -- Out of the box {apm-rum-ref}/angular-integration.html[Angular instrumentation] is here!
+Instrument your single page applications written in Angular.js without the need to manually create or rename transactions.
 * JAVA ECS Logging library -- Easily convert your logs to ECS-compatible JSON without creating an additional pipeline.
-* .NET agent full framework support -- Out of the box instrumentation for .NET framework.
-This means you wont have to use APIs to get your ASP.NET web applications with Elastic APM, simply plug and play!
+* .NET agent full framework support -- Out of the box instrumentation for the .NET framework.
+Say goodbye to APIs, your ASP.NET web applications are now plug and play ready with Elastic APM.
 
 // end::notable-v74-highlights[]
 
