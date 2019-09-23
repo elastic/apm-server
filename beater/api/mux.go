@@ -46,7 +46,7 @@ const (
 	// RootPath defines the server's root path
 	RootPath = "/"
 
-	// ConfigAgent defines the path to query for agent config management
+	// AgentConfigPath defines the path to query for agent config management
 	AgentConfigPath = "/config/v1/agents"
 
 	// IntakePath defines the path to ingest monitored events

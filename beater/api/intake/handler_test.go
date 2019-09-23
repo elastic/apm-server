@@ -44,10 +44,9 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
-var rateLimit, _ = ratelimit.NewStore(1, 0, 0)
-
 func TestIntakeHandler(t *testing.T) {
-
+	var rateLimit, err = ratelimit.NewStore(1, 0, 0)
+	require.NoError(t, err)
 	for name, tc := range map[string]testcaseIntakeHandler{
 		"Method": {
 			path: "errors.ndjson",
