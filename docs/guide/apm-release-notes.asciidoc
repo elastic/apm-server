@@ -32,13 +32,15 @@ For a full list of changes, see the
 
 *APM app in Kibana*
 
-* Structured filters -- Explore your APM data in new ways with our new local filters.
+* {kibana-ref}/filters.html#local-filters[Structured filters]:
+Explore your APM data in new ways with our new local filters.
 With just a click, you can filter your transactions by type, result, host name, and/or agent name.
 
 [role="screenshot"]
 image::images/structured-filters.jpg[Structured filters in the APM UI]
 
-* Geo-location performance visualization chart -- Visualize performance information about your end users'
+* {kibana-ref}/transactions.html#rum-transaction-overview[Geo-location performance visualization chart]:
+Visualize performance information about your end users'
 experience based on their geo-location.
 
 [role="screenshot"]
@@ -46,11 +48,15 @@ image::images/geo-location.jpg[Geo-location visualization]
 
 *APM Agents*
 
-* Log integration -- Navigate from a distributed trace to any relevant logs -- without using trace context -- via the APM app.
-* RUM Angular instrumentation -- Out of the box {apm-rum-ref}/angular-integration.html[Angular instrumentation] is here!
+* {apm-overview-v}/observability-integrations.html[Log integration]:
+Navigate from a distributed trace to any relevant logs -- without using trace context -- via the APM app.
+* {apm-rum-ref}/angular-integration.html[RUM Angular instrumentation]:
+Out of the box Angular instrumentation is here!
 Instrument your single page applications written in Angular.js without the need to manually create or rename transactions.
-* JAVA ECS Logging library -- Easily convert your logs to ECS-compatible JSON without creating an additional pipeline.
-* .NET agent full framework support -- Out of the box instrumentation for the .NET framework.
+* https://github.com/elastic/java-ecs-logging[JAVA ECS Logging library]:
+Easily convert your logs to ECS-compatible JSON without creating an additional pipeline.
+* {apm-agent-dotnet}/supported-technologies.html[.NET agent full framework support]:
+Out of the box instrumentation for the .NET framework.
 Say goodbye to APIs, your ASP.NET web applications are now plug and play ready with Elastic APM.
 
 // end::notable-v74-highlights[]
