@@ -30,7 +30,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
@@ -46,7 +45,8 @@ import (
 )
 
 func TestIntakeHandler(t *testing.T) {
-
+	var rateLimit, err = ratelimit.NewStore(1, 0, 0)
+	require.NoError(t, err)
 	for name, tc := range map[string]testcaseIntakeHandler{
 		"Method": {
 			path: "errors.ndjson",
@@ -63,9 +63,9 @@ func TestIntakeHandler(t *testing.T) {
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
 		},
 		"RateLimit": {
-			path: "errors.ndjson",
-			rlc:  &mockBlockingRateLimiter{},
-			code: http.StatusTooManyRequests, id: request.IDResponseErrorsRateLimit,
+			path:      "errors.ndjson",
+			rateLimit: rateLimit,
+			code:      http.StatusTooManyRequests, id: request.IDResponseErrorsRateLimit,
 		},
 		"BodyReader": {
 			path: "errors.ndjson",
@@ -141,8 +141,8 @@ func TestIntakeHandler(t *testing.T) {
 		// setup
 		tc.setup(t)
 
-		if tc.rlc != nil {
-			tc.c.RateLimitManager = tc.rlc
+		if tc.rateLimit != nil {
+			tc.c.RateLimiter = tc.rateLimit
 		}
 		// call handler
 		h := Handler(tc.dec, tc.processor, tc.reporter)
@@ -173,7 +173,7 @@ type testcaseIntakeHandler struct {
 	r         *http.Request
 	dec       decoder.ReqDecoder
 	processor *stream.Processor
-	rlc       ratelimit.Manager
+	rateLimit *ratelimit.Store
 	reporter  func(ctx context.Context, p publish.PendingReq) error
 	path      string
 
@@ -212,12 +212,6 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	tc.w = httptest.NewRecorder()
 	tc.c = &request.Context{}
 	tc.c.Reset(tc.w, tc.r)
-}
-
-type mockBlockingRateLimiter struct{}
-
-func (m *mockBlockingRateLimiter) Acquire(key string) (*rate.Limiter, bool) {
-	return rate.NewLimiter(rate.Limit(0), 0), true
 }
 
 func emptyDec(_ *http.Request) (map[string]interface{}, error) {
