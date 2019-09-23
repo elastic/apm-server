@@ -47,7 +47,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg)...)
+		rumMiddleware(cfg, intake.MonitoringMap)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {

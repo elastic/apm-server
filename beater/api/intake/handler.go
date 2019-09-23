@@ -23,10 +23,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elastic/apm-server/beater/api/ratelimit"
-
 	"github.com/pkg/errors"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
@@ -35,7 +32,6 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -54,9 +50,11 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish
 			return
 		}
 
-		rateLimiter, serr := rateLimit(c.Request, c.RateLimitManager)
-		if serr != nil {
-			sendError(c, serr)
+		ipRateLimiter := c.RateLimiter.ForIP(c.Request)
+		ok := ipRateLimiter == nil || ipRateLimiter.Allow()
+		if !ok {
+			sendError(c, &stream.Error{
+				Type: stream.RateLimitErrType, Message: "rate limit exceeded"})
 			return
 		}
 
@@ -74,7 +72,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish
 			sendResponse(c, &sr)
 			return
 		}
-		res := processor.HandleStream(c.Request.Context(), rateLimiter, reqMeta, reader, report)
+		res := processor.HandleStream(c.Request.Context(), ipRateLimiter, reqMeta, reader, report)
 
 		sendResponse(c, res)
 	}
@@ -152,22 +150,6 @@ func validateRequest(r *http.Request) *stream.Error {
 		}
 	}
 	return nil
-}
-
-func rateLimit(r *http.Request, manager ratelimit.Manager) (*rate.Limiter, *stream.Error) {
-	if manager == nil {
-		return nil, nil
-	}
-	if rateLimit, ok := manager.Acquire(utility.RemoteAddr(r)); ok {
-		if !rateLimit.Allow() {
-			return nil, &stream.Error{
-				Type:    stream.RateLimitErrType,
-				Message: "rate limit exceeded",
-			}
-		}
-		return rateLimit, nil
-	}
-	return nil, nil
 }
 
 func bodyReader(r *http.Request) (io.ReadCloser, *stream.Error) {

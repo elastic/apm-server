@@ -46,8 +46,8 @@ const (
 	// RootPath defines the server's root path
 	RootPath = "/"
 
-	// ConfigAgent defines the path to query for agent config management
-	ConfigAgent = "/config/v1/agents"
+	// AgentConfigPath defines the path to query for agent config management
+	AgentConfigPath = "/config/v1/agents"
 
 	// IntakePath defines the path to ingest monitored events
 	IntakePath = "/intake/v2/events"
@@ -76,7 +76,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	routeMap := []route{
 		{RootPath, rootHandler},
 		{AssetSourcemapPath, sourcemapHandler},
-		{ConfigAgent, configAgentHandler},
+		{AgentConfigPath, backendAgentConfigHandler},
 		{IntakeRUMPath, rumHandler},
 		{IntakePath, backendHandler},
 	}
@@ -98,14 +98,6 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	return mux, nil
 }
 
-func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
-	return []middleware.Middleware{
-		middleware.LogMiddleware(),
-		middleware.RecoverPanicMiddleware(),
-		middleware.MonitoringMiddleware(m),
-	}
-}
-
 func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
 	h := intake.Handler(systemMetadataDecoder(cfg, emptyDecoder),
 		&stream.Processor{
@@ -114,13 +106,7 @@ func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Hand
 			MaxEventSize: cfg.MaxEventSize,
 		},
 		reporter)
-	return middleware.Wrap(h, backendMiddleware(cfg)...)
-}
-
-func backendMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.MonitoringMap),
-		middleware.RequestTimeMiddleware(),
-		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
+	return middleware.Wrap(h, backendMiddleware(cfg, intake.MonitoringMap)...)
 }
 
 func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
@@ -135,15 +121,7 @@ func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler,
 			MaxEventSize: cfg.MaxEventSize,
 		},
 		reporter)
-	return middleware.Wrap(h, rumMiddleware(cfg)...)
-}
-
-func rumMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(intake.MonitoringMap),
-		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()),
-		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate),
-		middleware.RequestTimeMiddleware(),
-		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins))
+	return middleware.Wrap(h, rumMiddleware(cfg, intake.MonitoringMap)...)
 }
 
 func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
@@ -155,29 +133,49 @@ func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Ha
 	return middleware.Wrap(h, sourcemapMiddleware(cfg)...)
 }
 
-func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(sourcemap.MonitoringMap),
-		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()),
-		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
+func backendAgentConfigHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
+	return agentConfigHandler(cfg, backendMiddleware(cfg, agent.MonitoringMap))
 }
 
-func configAgentHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
+func agentConfigHandler(cfg *config.Config, m []middleware.Middleware) (request.Handler, error) {
 	var kbClient kibana.Client
 	if cfg.Kibana.Enabled() {
 		kbClient = kibana.NewConnectingClient(cfg.Kibana)
 	}
 	h := agent.Handler(kbClient, cfg.AgentConfig)
-	return middleware.Wrap(h, agentConfigMiddleware(cfg)...)
-}
-
-func agentConfigMiddleware(cfg *config.Config) []middleware.Middleware {
-	return append(apmMiddleware(agent.MonitoringMap),
-		middleware.KillSwitchMiddleware(cfg.Kibana.Enabled()),
-		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
+	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled())
+	return middleware.Wrap(h, append(m, ks)...)
 }
 
 func rootHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
 	return middleware.Wrap(root.Handler(), rootMiddleware(cfg)...)
+}
+
+func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	return []middleware.Middleware{
+		middleware.LogMiddleware(),
+		middleware.RecoverPanicMiddleware(),
+		middleware.MonitoringMiddleware(m),
+		middleware.RequestTimeMiddleware(),
+	}
+}
+
+func backendMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	return append(apmMiddleware(m),
+		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
+}
+
+func rumMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	return append(apmMiddleware(m),
+		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate),
+		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins),
+		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()))
+}
+
+func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
+	enabled := cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()
+	return append(backendMiddleware(cfg, sourcemap.MonitoringMap),
+		middleware.KillSwitchMiddleware(enabled))
 }
 
 func rootMiddleware(cfg *config.Config) []middleware.Middleware {

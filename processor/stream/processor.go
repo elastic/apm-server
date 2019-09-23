@@ -185,17 +185,17 @@ func (p *Processor) HandleRawModel(rawModel map[string]interface{}) (transform.T
 
 // readBatch will read up to `batchSize` objects from the ndjson stream
 // it returns a slice of eventables and a bool that indicates if there might be more to read.
-func (p *Processor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
+func (p *Processor) readBatch(ctx context.Context, ipRateLimiter *rate.Limiter, batchSize int, reader StreamReader, response *Result) ([]transform.Transformable, bool) {
 	var (
 		err        error
 		rawModel   map[string]interface{}
 		eventables []transform.Transformable
 	)
 
-	if rl != nil {
+	if ipRateLimiter != nil {
 		// use provided rate limiter to throttle batch read
 		ctxT, cancel := context.WithTimeout(ctx, time.Second)
-		err = rl.WaitN(ctxT, batchSize)
+		err = ipRateLimiter.WaitN(ctxT, batchSize)
 		cancel()
 		if err != nil {
 			response.Add(&Error{
@@ -237,7 +237,8 @@ func (p *Processor) readBatch(ctx context.Context, rl *rate.Limiter, batchSize i
 	return eventables, reader.IsEOF()
 }
 
-func (p *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
+// HandleStream processes a stream of events
+func (p *Processor) HandleStream(ctx context.Context, ipRateLimiter *rate.Limiter, meta map[string]interface{}, reader io.Reader, report publish.Reporter) *Result {
 	res := &Result{}
 
 	buf, ok := p.bufferPool.Get().(*bufio.Reader)
@@ -275,7 +276,7 @@ func (p *Processor) HandleStream(ctx context.Context, rl *rate.Limiter, meta map
 
 	for {
 
-		transformables, done := p.readBatch(ctx, rl, batchSize, jsonReader, res)
+		transformables, done := p.readBatch(ctx, ipRateLimiter, batchSize, jsonReader, res)
 		if transformables != nil {
 			err := report(ctx, publish.PendingReq{
 				Transformables: transformables,
