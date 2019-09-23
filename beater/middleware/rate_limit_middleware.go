@@ -27,11 +27,11 @@ const burstMultiplier = 3
 
 // SetRateLimitMiddleware sets a rate limiter
 func SetRateLimitMiddleware(cfg *config.EventRate) Middleware {
-	cache, err := ratelimit.NewLRUCache(cfg.LruSize, cfg.Limit, burstMultiplier)
+	store, err := ratelimit.NewStore(cfg.LruSize, cfg.Limit, burstMultiplier)
 
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			c.RateLimitManager = cache
+			c.RateLimiter = store
 			h(c)
 		}, err
 	}

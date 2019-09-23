@@ -40,14 +40,14 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Request          *http.Request
-	Logger           *logp.Logger
-	RateLimitManager ratelimit.Manager
-	TokenSet         bool
-	Authorized       bool
-	Result           Result
-	w                http.ResponseWriter
-	writeAttempts    int
+	Request       *http.Request
+	Logger        *logp.Logger
+	RateLimiter   *ratelimit.Store
+	TokenSet      bool
+	Authorized    bool
+	Result        Result
+	w             http.ResponseWriter
+	writeAttempts int
 }
 
 // Reset allows to reuse a context by removing all request specific information
@@ -56,7 +56,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Logger = nil
 	c.TokenSet = false
 	c.Authorized = false
-	c.RateLimitManager = nil
+	c.RateLimiter = nil
 	c.Result.Reset()
 
 	c.w = w
