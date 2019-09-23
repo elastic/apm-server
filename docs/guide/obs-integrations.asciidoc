@@ -28,9 +28,13 @@ To get started:
 // Remove after 7.4 release
 :ecs-ref: https://www.elastic.co/guide/en/ecs/1.1
 
-Some Agents require you to first enable log correlation in the Agent:
+Some Agents require you to first enable log correlation in the Agent.
+This is done with a configuration variable, and is different for each Agent.
+See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent documentation] for further information.
 
-* *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
+// Not enough of the Agent docs are ready yet.
+// Commenting these out and will replace when ready.
+// * *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
 // * *.NET*: {apm-dotnet-ref-v}/[]
 // * *Node.js*: {apm-node-ref-v}/[]
 // * *Python*: {apm-py-ref-v}/[]
@@ -52,14 +56,16 @@ The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] 
 This process for adding these fields will differ based the Agent you're using, the logging framework, 
 and the type and structure of your logs.
 
-See the relevant Agent documentation to learn more:
+See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent documentation] to learn more.
 
-* *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
-* *Java*: {apm-java-ref-v}/config-logging.html#config-enable-log-correlation[`enable_log_correlation`]
+// Not enough of the Agent docs have been backported yet.
+// Commenting these out and will replace when ready.
+// * *Go*: {apm-go-ref-v}/supported-tech.html#supported-tech-logging[Logging frameworks]
+// * *Java*: {apm-java-ref-v}/[] NOT merged yet https://github.com/elastic/apm-agent-java/pull/854
 // * *.NET*: {apm-dotnet-ref-v}/[]
 // * *Node.js*: {apm-node-ref-v}/[]
 // * *Python*: {apm-py-ref-v}/[]
-// * *Ruby*: {apm-ruby-ref-v}/[]
+// * *Ruby*: {apm-ruby-ref-v}/[] Not backported yet https://www.elastic.co/guide/en/apm/agent/ruby/master/log-correlation.html
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
