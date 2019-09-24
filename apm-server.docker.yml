@@ -89,7 +89,7 @@ apm-server:
 
     #-- General RUM settings
 
-    # Comma separated list of permitted origins for real user monitoring.
+    # A list of permitted origins for real user monitoring.
     # User-agents will send an origin header that will be validated against this list.
     # An origin is made of a protocol scheme, host and port, without the url path.
     # Allowed origins in this setting can have * to match anything (eg.: http://*.example.com)

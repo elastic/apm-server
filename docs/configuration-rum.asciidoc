@@ -43,7 +43,7 @@ Defaults to 1000.
 [float]
 [[rum-allow-origins]]
 ==== `allow_origins`
-Comma separated list of permitted origins for RUM support.
+A list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
 This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
 An origin is made of a protocol scheme, host and port, without the URL path.
