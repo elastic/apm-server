@@ -32,7 +32,7 @@ For a full list of changes, see the
 
 *APM app in Kibana*
 
-* {kibana-ref}/filters.html#local-filters[Structured filters]:
+* {kibana-ref}/filters.html#contextual-filters[Contextual filters]:
 Explore your APM data in new ways with our new local filters.
 With just a click, you can filter your transactions by type, result, host name, and/or agent name.
 
