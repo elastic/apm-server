@@ -26,10 +26,10 @@ import (
 
 // RequestTimeMiddleware returns a Middleware setting the current time in the request's context.
 func RequestTimeMiddleware() Middleware {
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			c.Request = c.Request.WithContext(utility.ContextWithRequestTime(c.Request.Context(), time.Now()))
 			h(c)
-		}
+		}, nil
 	}
 }

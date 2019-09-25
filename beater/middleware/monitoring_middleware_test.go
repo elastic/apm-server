@@ -41,7 +41,7 @@ func TestMonitoringHandler(t *testing.T) {
 		m map[request.ResultID]*monitoring.Int,
 	) {
 		c, _ := beatertest.DefaultContextWithResponseRecorder()
-		equal, result := beatertest.CompareMonitoringInt(MonitoringMiddleware(m)(h), c, expected, m)
+		equal, result := beatertest.CompareMonitoringInt(Apply(MonitoringMiddleware(m), h), c, expected, m)
 		assert.True(t, equal, result)
 	}
 
@@ -80,7 +80,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 	t.Run("Panic", func(t *testing.T) {
 		checkMonitoring(t,
-			RecoverPanicMiddleware()(beatertest.HandlerPanic),
+			Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
 			map[request.ResultID]int{
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,

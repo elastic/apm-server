@@ -35,7 +35,7 @@ func TestPanicHandler(t *testing.T) {
 
 	t.Run("NoPanic", func(t *testing.T) {
 		c, w := beatertest.DefaultContextWithResponseRecorder()
-		RecoverPanicMiddleware()(beatertest.Handler403)(c)
+		Apply(RecoverPanicMiddleware(), beatertest.Handler403)(c)
 
 		// response assertions
 		assert.Equal(t, http.StatusForbidden, w.Code)
@@ -48,7 +48,7 @@ func TestPanicHandler(t *testing.T) {
 	t.Run("HandlePanic", func(t *testing.T) {
 		h := func(c *request.Context) { panic(errors.New("panic xyz")) }
 		c, w := beatertest.DefaultContextWithResponseRecorder()
-		RecoverPanicMiddleware()(h)(c)
+		Apply(RecoverPanicMiddleware(), h)(c)
 
 		// response assertions
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -64,7 +64,7 @@ func TestPanicHandler(t *testing.T) {
 		w := &writerPanic{}
 		c := &request.Context{}
 		c.Reset(w, httptest.NewRequest(http.MethodGet, "/", nil))
-		RecoverPanicMiddleware()(beatertest.Handler202)(c)
+		Apply(RecoverPanicMiddleware(), beatertest.Handler202)(c)
 
 		// response assertions: cannot even write to writer, as it panics
 		assert.Equal(t, 0, w.StatusCode)

@@ -42,12 +42,12 @@ func TestOPTIONS(t *testing.T) {
 	rumEnabled := true
 	cfg.RumConfig.Enabled = &rumEnabled
 	cfg.RumConfig.AllowOrigins = []string{"*"}
-	h := middleware.Wrap(
+	h, _ := middleware.Wrap(
 		func(c *request.Context) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg)...)
+		rumMiddleware(cfg, intake.MonitoringMap)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {

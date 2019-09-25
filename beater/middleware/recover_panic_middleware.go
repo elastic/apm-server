@@ -30,7 +30,7 @@ const keywordPanic = "panic handling request"
 // RecoverPanicMiddleware returns a middleware ensuring that the Server recovers from panics,
 // while trying to write an according response.
 func RecoverPanicMiddleware() Middleware {
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 
 			defer func() {
@@ -58,6 +58,6 @@ func RecoverPanicMiddleware() Middleware {
 				}
 			}()
 			h(c)
-		}
+		}, nil
 	}
 }

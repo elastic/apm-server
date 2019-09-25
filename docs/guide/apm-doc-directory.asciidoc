@@ -28,8 +28,8 @@ Each agent has its own documentation:
 === APM Server
 
 APM Server is an open source application that receives performance data from your APM agents.
-It's a {apm-server-ref-v}/why-separate-component.html[separate component by design],
-which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.
+It's a {apm-server-ref-v}/overview.html#why-separate-component[separate component by design],
+which helps keep the agents light, prevents certain security risks, and improves compatibility across the Elastic Stack.  
 
 After the APM Server has validated and processed events from the APM agents,
 the server transforms the data into Elasticsearch documents and stores them in corresponding
