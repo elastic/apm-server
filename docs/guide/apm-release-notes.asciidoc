@@ -48,14 +48,14 @@ image::images/geo-location.jpg[Geo-location visualization]
 
 *APM Agents*
 
-* {apm-overview-v}/observability-integrations.html[Log integration]:
+* {apm-overview-ref-v}/observability-integrations.html[Log integration]:
 Navigate from a distributed trace to any relevant logs -- without using trace context -- via the APM app.
 * {apm-rum-ref}/angular-integration.html[RUM Angular instrumentation]:
 Out of the box Angular instrumentation is here!
 Instrument your single page applications written in Angular.js without the need to manually create or rename transactions.
 * https://github.com/elastic/java-ecs-logging[JAVA ECS Logging library]:
 Easily convert your logs to ECS-compatible JSON without creating an additional pipeline.
-* {apm-agent-dotnet}/supported-technologies.html[.NET agent full framework support]:
+* {apm-dotnet-ref}/supported-technologies.html[.NET agent full framework support]:
 Out of the box instrumentation for the .NET framework.
 Say goodbye to APIs, your ASP.NET web applications are now plug and play ready with Elastic APM.
 
