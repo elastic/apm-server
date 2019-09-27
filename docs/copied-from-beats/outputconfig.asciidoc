@@ -20,7 +20,7 @@ endif::[]
 
 ifndef::only-elasticsearch[]
 You configure {beatname_uc} to write to a specific output by setting options
-in the `Outputs` section of the +{beatname_lc}.yml+ config file. Only a single
+in the Outputs section of the +{beatname_lc}.yml+ config file. Only a single
 output may be defined.
 
 The following topics describe how to configure each supported output:
@@ -283,7 +283,7 @@ to set the index:
 ------------------------------------------------------------------------------
 output.elasticsearch:
   hosts: ["http://localhost:9200"]
-  index: "apm-%{[observer.version]}-%{[processor.event]}-%{+yyyy.MM.dd}" <1>
+  index: "apm-%{[observer.version]}-%{[processor.event]}-%{+yyyy.MM.dd}\" <1>
 ------------------------------------------------------------------------------
 
 <1>  `observer` refers to {beatname_uc}. We recommend including
@@ -767,7 +767,7 @@ endif::[]
 You can access this metadata from within the Logstash config file to set values
 dynamically based on the contents of the metadata.
 
-For example, the following Logstash configuration file for version 7.x sets
+For example, the following Logstash configuration file tells
 Logstash to use the index reported by {beatname_uc} for indexing events
 into Elasticsearch:
 
@@ -1461,19 +1461,19 @@ See <<configuration-output-codec>> for more information.
 
 ===== `host_topology`
 
-deprecated[5.0.0]
+deprecated:[5.0.0]
 
 The Redis host to connect to when using topology map support. Topology map support is disabled if this option is not set.
 
 ===== `password_topology`
 
-deprecated[5.0.0]
+deprecated:[5.0.0]
 
 The password to use for authenticating with the Redis topology server. The default is no authentication.
 
 ===== `db_topology`
 
-deprecated[5.0.0]
+deprecated:[5.0.0]
 
 The Redis database number where the topology information is stored. The default is 1.
 
