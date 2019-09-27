@@ -28,5 +28,5 @@ do
   dest_dir="$html_dir/${name}/${index_path}"
   mkdir -p "$dest_dir"
   params="--chunk=1"
-  $docs_dir/build_docs $params --doc "$index" --out "$dest_dir"
+  $docs_dir/build_docs --asciidoctor $params --doc "$index" --out "$dest_dir"
 done
