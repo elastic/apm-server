@@ -55,7 +55,7 @@ include::{libbeat-dir}/docs/step-test-config.asciidoc[]
 endif::apm-server[]
 ifdef::apm-server[]
 
-include::./step-test-config.asciidoc[]
+include::./../step-test-config.asciidoc[]
 
 endif::apm-server[]
 endif::win-only[]
