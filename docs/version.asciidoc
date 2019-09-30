@@ -1,5 +1,5 @@
-// apm_server_version can be:    7.0.1, 8.0.0-alpha1, 8.1.0, etc.
-:apm_server_version: 8.0.0
+// doc-branch can be: master, 8.0, 8.1, etc.
+:doc-branch: master
 :go-version: 1.12.9
 :python: 2.7.9
 :docker: 1.12
