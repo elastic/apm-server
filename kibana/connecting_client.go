@@ -125,10 +125,10 @@ func (c *ConnectingClient) connect() error {
 	if c.client != nil {
 		return nil
 	}
-	kbClient, err := kibana.NewKibanaClient(c.cfg)
+	client, err := kibana.NewKibanaClient(c.cfg)
 	if err != nil {
 		return err
 	}
-	c.client = kbClient
+	c.client = client
 	return nil
 }

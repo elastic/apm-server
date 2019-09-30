@@ -21,6 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/beats/libbeat/logp"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -28,55 +30,54 @@ import (
 )
 
 var (
-	defaultDoc  = Doc{Settings: Settings{"a": "default"}}
-	externalDoc = Doc{Settings: Settings{"a": "b"}}
+	defaultResult  = Result{Source{Settings: Settings{"a": "default"}, Etag: "123"}}
+	externalResult = Result{Source{Settings: Settings{"a": "b"}, Etag: "123"}}
 )
 
 type cacheSetup struct {
-	q   Query
-	c   *cache
-	doc *Doc
+	query  Query
+	cache  *cache
+	result Result
 }
 
 func newCacheSetup(service string, exp time.Duration, init bool) cacheSetup {
 	setup := cacheSetup{
-		q:   Query{Service: Service{Name: service}},
-		c:   newCache(nil, exp),
-		doc: &defaultDoc,
+		query:  Query{Service: Service{Name: service}, Etag: "123"},
+		cache:  newCache(logp.NewLogger(""), exp),
+		result: defaultResult,
 	}
 	if init {
-		setup.c.add(setup.q.ID(), setup.doc)
+		setup.cache.gocache.SetDefault(setup.query.id(), setup.result)
 	}
 	return setup
 }
 
 func TestCache_fetchAndAdd(t *testing.T) {
 	exp := time.Second
-	for name, tc := range map[string]struct {
-		fn   func(query Query) (*Doc, error)
-		init bool
-
-		doc  *Doc
-		fail bool
+	for name, testCase := range map[string]struct {
+		fetchFunc  func() (Result, error)
+		init       bool
+		doc        Result
+		shouldFail bool
 	}{
-		"DocFromCache":         {fn: testFn, init: true, doc: &defaultDoc},
-		"DocFromFunctionFails": {fn: testFnErr, fail: true},
-		"DocFromFunction":      {fn: testFn, doc: &externalDoc},
-		"EmptyDocFromFunction": {fn: testFnSettingsNil, doc: &Doc{Settings: Settings{}}},
-		"NilDocFromFunction":   {fn: testFnNil},
+		"DocFromCache":         {fetchFunc: testFn, init: true, doc: defaultResult},
+		"DocFromFunctionFails": {fetchFunc: testFnErr, shouldFail: true},
+		"DocFromFunction":      {fetchFunc: testFn, doc: externalResult},
+		"EmptyDocFromFunction": {fetchFunc: testFnSettingsNil, doc: Result{Source{Settings: Settings{}}}},
+		"NilDocFromFunction":   {fetchFunc: testFnNil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			setup := newCacheSetup(name, exp, tc.init)
+			setup := newCacheSetup(name, exp, testCase.init)
 
-			doc, err := setup.c.fetchAndAdd(setup.q, tc.fn)
-			assert.Equal(t, tc.doc, doc)
-			if tc.fail {
+			doc, err := setup.cache.fetch(setup.query, testCase.fetchFunc)
+			assert.Equal(t, testCase.doc, doc)
+			if testCase.shouldFail {
 				require.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 				//ensure value is cached afterwards
-				cachedDoc, found := setup.c.fetch(setup.q.ID())
-				assert.True(t, found)
+				cachedDoc, error := setup.cache.fetch(setup.query, testCase.fetchFunc)
+				require.NoError(t, error)
 				assert.Equal(t, doc, cachedDoc)
 			}
 		})
@@ -85,13 +86,13 @@ func TestCache_fetchAndAdd(t *testing.T) {
 	t.Run("CacheKeyExpires", func(t *testing.T) {
 		exp := 100 * time.Millisecond
 		setup := newCacheSetup(t.Name(), exp, false)
-		doc, err := setup.c.fetchAndAdd(setup.q, testFn)
+		doc, err := setup.cache.fetch(setup.query, testFn)
 		require.NoError(t, err)
 		require.NotNil(t, doc)
 		time.Sleep(exp)
-		nilDoc, found := setup.c.fetch(setup.q.ID())
-		assert.False(t, found)
-		assert.Nil(t, nilDoc)
+		emptyDoc, error := setup.cache.fetch(setup.query, testFnNil)
+		require.NoError(t, error)
+		assert.Equal(t, emptyDoc, Result{})
 	})
 }
 
@@ -108,7 +109,7 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		exp := 5 * time.Minute
 		setup := newCacheSetup(b.Name(), exp, true)
 		for i := 0; i < b.N; i++ {
-			setup.c.fetchAndAdd(setup.q, testFn)
+			setup.cache.fetch(setup.query, testFn)
 		}
 	})
 
@@ -120,23 +121,23 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		q := Query{Service: Service{}}
 		for i := 0; i < b.N; i++ {
 			q.Service.Name = string(b.N)
-			setup.c.fetchAndAdd(q, testFn)
+			setup.cache.fetch(q, testFn)
 		}
 	})
 }
 
-func testFnErr(_ Query) (*Doc, error) {
-	return nil, errors.New("testFn fails")
+func testFnErr() (Result, error) {
+	return Result{}, errors.New("testFn fails")
 }
 
-func testFnNil(_ Query) (*Doc, error) {
-	return nil, nil
+func testFnNil() (Result, error) {
+	return Result{}, nil
 }
 
-func testFnSettingsNil(_ Query) (*Doc, error) {
-	return &Doc{Settings: Settings{}}, nil
+func testFnSettingsNil() (Result, error) {
+	return zeroResult(), nil
 }
 
-func testFn(_ Query) (*Doc, error) {
-	return &externalDoc, nil
+func testFn() (Result, error) {
+	return externalResult, nil
 }
