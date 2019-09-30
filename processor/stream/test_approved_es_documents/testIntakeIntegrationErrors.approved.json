@@ -281,6 +281,9 @@
                     "version": "1.2"
                 },
                 "name": "service1",
+                "node": {
+                    "name": "node-xyz"
+                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -370,6 +373,9 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-abc"
+                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -450,6 +456,9 @@
                     "version": "2.5"
                 },
                 "name": "service1",
+                "node": {
+                    "name": "node-abc"
+                },
                 "runtime": {
                     "name": "cruby",
                     "version": "2.5"
@@ -532,6 +541,9 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-abc"
+                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"

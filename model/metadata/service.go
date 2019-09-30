@@ -20,10 +20,12 @@ package metadata
 import (
 	"errors"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
 )
 
+//Service bundles together information related to the monitored service and the agent used for monitoring
 type Service struct {
 	Name        *string
 	Version     *string
@@ -32,26 +34,39 @@ type Service struct {
 	Runtime     Runtime
 	Framework   Framework
 	Agent       Agent
+	node        node
 }
 
+//Language has an optional version and name
 type Language struct {
 	Name    *string
 	Version *string
 }
+
+//Runtime has an optional version and name
 type Runtime struct {
 	Name    *string
 	Version *string
 }
+
+//Framework has an optional version and name
 type Framework struct {
 	Name    *string
 	Version *string
 }
+
+//Agent has an optional version, name and an ephemeral id
 type Agent struct {
 	Name        *string
 	Version     *string
 	EphemeralId *string
 }
 
+type node struct {
+	name *string
+}
+
+//DecodeService decodes a given input into a Service instance
 func DecodeService(input interface{}, err error) (*Service, error) {
 	if input == nil || err != nil {
 		return nil, err
@@ -82,10 +97,14 @@ func DecodeService(input interface{}, err error) (*Service, error) {
 			Name:    decoder.StringPtr(raw, "name", "runtime"),
 			Version: decoder.StringPtr(raw, "version", "runtime"),
 		},
+		node: node{
+			name: decoder.StringPtr(raw, "configured_name", "node"),
+		},
 	}
 	return &service, decoder.Err
 }
 
+//MinimalFields transforms a defined subset of a service instance into a common.MapStr
 func (s *Service) MinimalFields() common.MapStr {
 	if s == nil {
 		return nil
@@ -96,11 +115,13 @@ func (s *Service) MinimalFields() common.MapStr {
 	return svc
 }
 
-func (s *Service) Fields() common.MapStr {
+//Fields transforms a service instance into a common.MapStr
+func (s *Service) Fields(containerID, hostName string) common.MapStr {
 	if s == nil {
 		return nil
 	}
 	svc := s.MinimalFields()
+	utility.Set(svc, "node", s.node.fields(containerID, hostName))
 	utility.Set(svc, "version", s.Version)
 
 	lang := common.MapStr{}
@@ -121,11 +142,25 @@ func (s *Service) Fields() common.MapStr {
 	return svc
 }
 
+//AgentFields transforms all agent related information of a service into a common.MapStr
 func (s *Service) AgentFields() common.MapStr {
 	if s == nil {
 		return nil
 	}
 	return s.Agent.fields()
+}
+
+func (n *node) fields(containerID, hostName string) common.MapStr {
+	if n.name != nil && *n.name != "" {
+		return common.MapStr{"name": *n.name}
+	}
+	if containerID != "" {
+		return common.MapStr{"name": containerID}
+	}
+	if hostName != "" {
+		return common.MapStr{"name": hostName}
+	}
+	return nil
 }
 
 func (a *Agent) fields() common.MapStr {
