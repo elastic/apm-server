@@ -26,58 +26,36 @@ import (
 )
 
 const (
-	cleanupInterval time.Duration = 60 * time.Second
+	cleanupInterval = 60 * time.Second
 )
 
 type cache struct {
 	logger  *logp.Logger
-	exp     time.Duration
 	gocache *gocache.Cache
 }
 
 func newCache(logger *logp.Logger, exp time.Duration) *cache {
-	if logger == nil {
-		logger = logp.NewLogger("agentcfg")
-	}
-	logger.Infof("Cache creation with default expiration %v.", exp)
+	logger.Infof("Cache creation with expiration %v.", exp)
 	return &cache{
 		logger:  logger,
-		exp:     exp,
 		gocache: gocache.New(exp, cleanupInterval)}
 }
 
-func (c *cache) fetchAndAdd(q Query, fn func(Query) (*Doc, error)) (doc *Doc, err error) {
-	id := q.ID()
-
+func (c *cache) fetch(query Query, fetch func() (Result, error)) (Result, error) {
 	// return from cache if possible
-	doc, found := c.fetch(id)
-	if found {
-		return
+	value, found := c.gocache.Get(query.id())
+	if found && value != nil {
+		return value.(Result), nil
 	}
-
-	// call fn to retrieve resource from external source
-	doc, err = fn(q)
+	// retrieve resource from external source
+	result, err := fetch()
 	if err != nil {
-		return
+		return result, err
 	}
+	c.gocache.SetDefault(query.id(), result)
 
-	// add resource to cache
-	c.add(id, doc)
-	return
-}
-
-func (c *cache) add(id string, doc *Doc) {
-	c.gocache.SetDefault(id, doc)
-	if !c.logger.IsDebug() {
-		return
+	if c.logger.IsDebug() {
+		c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), query.id())
 	}
-	c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), id)
-}
-
-func (c *cache) fetch(id string) (*Doc, bool) {
-	val, found := c.gocache.Get(id)
-	if !found || val == nil {
-		return nil, found
-	}
-	return val.(*Doc), found
+	return result, nil
 }
