@@ -618,7 +618,7 @@ This command sets up the environment without actually running
 
 *SYNOPSIS*
 
-tag::setup-command-tag[]
+// tag::setup-command-tag[]
 ["source","sh",subs="attributes"]
 ----
 {beatname_lc} setup [FLAGS]
@@ -662,7 +662,7 @@ template, ILM policy, and write alias (if supported and configured).
 ifdef::apm-server[]
 *`--pipelines`*::
 Registers the <<configuring-ingest-node,pipeline>> definitions set in `ingest/pipeline/definition.json`.
-end::apm-server[]
+endif::apm-server[]
 
 *`--template`*::
 deprecated:[7.2]
@@ -722,7 +722,7 @@ ifdef::apm-server[]
 endif::apm-server[]
 
 endif::[]
-end::setup-command-tag[]
+// end::setup-command-tag[]
 
 [[test-command]]
 ==== `test` command
