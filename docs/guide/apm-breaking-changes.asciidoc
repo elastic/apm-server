@@ -27,7 +27,7 @@ Also see <<apm-release-notes>>.
 
 // tag::notable-v74-breaking-changes[]
 No breaking changes.
-// tag::notable-v74-breaking-changes[]
+// end::notable-v74-breaking-changes[]
 
 [[breaking-7.3.0]]
 === 7.3.0 APM Breaking changes
