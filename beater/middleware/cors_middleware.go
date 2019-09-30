@@ -67,6 +67,8 @@ func CORSMiddleware(allowedOrigins []string) Middleware {
 				c.Header().Set(headers.AccessControlAllowMethods, supportedMethods)
 				c.Header().Set(headers.AccessControlAllowHeaders, supportedHeaders)
 
+				c.Header().Set("Access-Control-Expose-Headers", headers.Etag)
+
 				c.Header().Set(headers.ContentLength, "0")
 
 				c.Result.SetDefault(request.IDResponseValidOK)

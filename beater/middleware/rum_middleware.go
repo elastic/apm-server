@@ -15,35 +15,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package agentcfg
+package middleware
 
-const (
-	// ServiceName keyword
-	ServiceName = "service.name"
-	// ServiceEnv keyword
-	ServiceEnv = "service.environment"
+import (
+	"github.com/elastic/apm-server/beater/request"
 )
 
-// Query represents an URL body or query params for agent configuration
-type Query struct {
-	Service Service `json:"service"`
-}
-
-// Service holds supported attributes for querying configuration
-type Service struct {
-	Name        string `json:"name"`
-	Environment string `json:"environment,omitempty"`
-}
-
-// NewQuery creates a Query struct
-func NewQuery(name, env string) Query {
-	return Query{Service{name, env}}
-}
-
-// ID returns the unique id for the query
-func (q Query) ID() string {
-	if q.Service.Environment == "" {
-		return q.Service.Name
+// SetRumFlagMiddleware sets a rum flag in the context
+func SetRumFlagMiddleware() Middleware {
+	return func(h request.Handler) (request.Handler, error) {
+		return func(c *request.Context) {
+			c.IsRum = true
+			h(c)
+		}, nil
 	}
-	return q.Service.Name + "_" + q.Service.Environment
 }
