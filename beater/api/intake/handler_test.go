@@ -142,7 +142,7 @@ func TestIntakeHandler(t *testing.T) {
 		tc.setup(t)
 
 		if tc.rateLimit != nil {
-			tc.c.RateLimiter = tc.rateLimit
+			tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
 		}
 		// call handler
 		h := Handler(tc.dec, tc.processor, tc.reporter)
