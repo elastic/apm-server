@@ -28,9 +28,5 @@ do
   dest_dir="$html_dir/${name}/${index_path}"
   mkdir -p "$dest_dir"
   params="--chunk=1"
-<<<<<<< HEAD
-  $docs_dir/build_docs.pl $params --doc "$index" -out "$dest_dir"
-=======
   $docs_dir/build_docs --asciidoctor $params --doc "$index" --out "$dest_dir"
->>>>>>> 6a8a7063... [docs] Break outputconfig.asciidoc into multiple files (#2744)
 done
