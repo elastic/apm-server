@@ -176,6 +176,37 @@ For example: `PowerShell.exe -ExecutionPolicy UnRestricted -File .\install-servi
 
 endif::[]
 
+[[brew]]
+*Homebrew*
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} of APM Server has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+You can install the Elastic Stack, including APM Server, on macOS with the
+https://brew.sh/[Homebrew] package manager. First, tap the Elastic Homebrew repository:
+
+[source,sh]
+-------------------------
+brew tap elastic/tap
+-------------------------
+
+Next, use `brew install` to install the default distribution of APM Server:
+
+[source,sh]
+-------------------------
+brew install elastic/tap/apm-server-full
+-------------------------
+
+This installs the most recently released default distribution of APM Server.
+To install the OSS distribution, specify `elastic/tap/apm-server-oss`.
+
+endif::[]
+
 [[docker]]
 *Docker:*
 
@@ -280,6 +311,24 @@ sudo -u apm-server apm-server [<argument...>]
 
 By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
 See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
+
+[float]
+[[running-brew]]
+==== Brew
+
+To start APM Server, run:
+
+["source","sh"]
+-----
+apm-server -e
+-----
+
+To have launchd start APM Server and restart it at login, run:
+
+["source","sh"]
+-----
+brew services start elastic/tap/apm-server-full
+-----
 
 // *******************************************************
 // STEP 4
