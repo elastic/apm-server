@@ -177,7 +177,7 @@ For example: `PowerShell.exe -ExecutionPolicy UnRestricted -File .\install-servi
 endif::[]
 
 [[brew]]
-*Homebrew*
+*Homebrew:*
 
 ifeval::["{release-state}"=="unreleased"]
 
