@@ -22,9 +22,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/idxmgmt/ilm"
 	libidxmgmt "github.com/elastic/beats/libbeat/idxmgmt"
 	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
+
+	"github.com/elastic/apm-server/idxmgmt/ilm"
 )
 
 const (
@@ -201,6 +202,10 @@ func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter) 
 		return false, nil
 	}
 	policy := ilmSupporter.Policy().Name
+	if ilmSupporter.Policy().Body == nil {
+		m.supporter.log.Infof("ILM policy %s not loaded.", policy)
+		return false, nil
+	}
 	policyCreated, err := ilmSupporter.Manager(m.clientHandler).EnsurePolicy(ilmFeature.overwrite)
 	if err != nil {
 		return policyCreated, err

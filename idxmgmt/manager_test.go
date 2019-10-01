@@ -157,12 +157,12 @@ func TestManager_Setup(t *testing.T) {
 	var testCasesEnabled = map[string]testCase{
 		"Default": {
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 3, aCt: 3,
+			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
 		},
 		"LoadTemplateAndILM": {
 			cfg:   common.MapStr{"apm-server.ilm.enabled": true},
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 3, aCt: 3,
+			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
 		},
 		"DisabledILM": {
 			cfg:   common.MapStr{"apm-server.ilm.enabled": false},
@@ -172,7 +172,7 @@ func TestManager_Setup(t *testing.T) {
 		"DisabledTemplate": {
 			cfg:   common.MapStr{"setup.template.enabled": false},
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			pCt: 3, aCt: 3,
+			pCt: 4, aCt: 3,
 		},
 		"DisabledTemplateAndILM": {
 			cfg:   common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
@@ -184,7 +184,7 @@ func TestManager_Setup(t *testing.T) {
 		},
 		"LoadModeDisabledTemplate": {
 			tLoad: libidxmgmt.LoadModeDisabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			pCt: 3, aCt: 3,
+			pCt: 4, aCt: 3,
 		},
 		"LoadModeDisabledTemplateAndILM": {
 			tLoad:   libidxmgmt.LoadModeDisabled,
@@ -305,6 +305,21 @@ func TestManager_Setup(t *testing.T) {
 		},
 	}
 
+	var testCasesPolicyNotConfigured = map[string]testCase{
+		"policyNotConfigured": {
+			cfg: common.MapStr{
+				"apm-server.ilm": map[string]interface{}{
+					"require_policy": false,
+					"setup": []map[string]string{
+						{"event_type": "error", "policy": "foo"},
+						{"event_type": "transaction", "policy": "bar"}},
+				}},
+			tLoad:   libidxmgmt.LoadModeEnabled,
+			ilmLoad: libidxmgmt.LoadModeEnabled,
+			tCt:     5, tWithILMCt: 4, pCt: 2, aCt: 3,
+		},
+	}
+
 	for _, test := range []map[string]testCase{
 		testCasesEnabled,
 		testCasesLoadModeUnset,
@@ -312,6 +327,7 @@ func TestManager_Setup(t *testing.T) {
 		testCasesLoadModeForce,
 		testCasesILMNotSupportedByES,
 		testCasesILMNotSupportedByIndexSettings,
+		testCasesPolicyNotConfigured,
 	} {
 		for name, tc := range test {
 			t.Run(name, func(t *testing.T) {
@@ -405,7 +421,7 @@ func (h *mockClientHandler) CreateAlias(alias libilm.Alias) error {
 }
 
 func (h *mockClientHandler) HasILMPolicy(name string) (bool, error) {
-	return name == existingILM, nil
+	return false, nil
 }
 
 func (h *mockClientHandler) CreateILMPolicy(policy libilm.Policy) error {

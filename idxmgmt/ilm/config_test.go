@@ -27,36 +27,133 @@ import (
 	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 )
 
-func TestConfig(t *testing.T) {
+func TestConfig_Default(t *testing.T) {
+	c, err := NewConfig(nil)
+	require.NoError(t, err)
+	defaultCfg := Config{
+		Mode:          libilm.ModeAuto,
+		Overwrite:     false,
+		RequirePolicy: true,
+		Policies: []Policy{
+			{EventType: "error", Policy: policyPool()[rollover1Day], Name: rollover1Day},
+			{EventType: "span", Policy: policyPool()[rollover1Day], Name: rollover1Day},
+			{EventType: "transaction", Policy: policyPool()[rollover7Days], Name: rollover7Days},
+			{EventType: "metric", Policy: policyPool()[rollover7Days], Name: rollover7Days},
+		},
+	}
+	assert.Equal(t, defaultCfg, c)
+}
 
-	t.Run("ValidInput", func(t *testing.T) {
-		for name, tc := range map[string]struct {
-			input string
-			mode  libilm.Mode
-		}{
-			"True":  {input: "true", mode: libilm.ModeEnabled},
-			"False": {input: "false", mode: libilm.ModeDisabled},
-			"Auto":  {input: "auto", mode: libilm.ModeAuto},
-		} {
-			t.Run(name, func(t *testing.T) {
-				inp, err := common.NewConfigFrom(map[string]string{"enabled": tc.input})
-				require.NoError(t, err)
-
-				var cfg Config
-				require.NoError(t, inp.Unpack(&cfg))
-				assert.Equal(t, tc.mode, cfg.Mode)
-			})
-		}
-	})
-
-	t.Run("Invalid Input", func(t *testing.T) {
-		for _, input := range []string{"invalid", ""} {
-			inp, err := common.NewConfigFrom(map[string]string{"enabled": input})
+func TestConfig_Mode(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg  m
+		mode libilm.Mode
+	}{
+		"default":  {m{}, libilm.ModeAuto},
+		"disabled": {m{"enabled": false}, libilm.ModeDisabled},
+		"enabled":  {m{"enabled": true}, libilm.ModeEnabled},
+	} {
+		t.Run(name, func(t *testing.T) {
+			ucfg := common.MustNewConfigFrom(tc.cfg)
+			c, err := NewConfig(ucfg)
 			require.NoError(t, err)
+			assert.Equal(t, tc.mode, c.Mode)
+		})
+	}
+}
 
-			var cfg Config
-			assert.Error(t, inp.Unpack(&cfg))
+func TestConfig_Overwrite(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg       m
+		overwrite bool
+	}{
+		"default": {m{}, false},
+		"enabled": {m{"overwrite": true}, true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			ucfg := common.MustNewConfigFrom(tc.cfg)
+			c, err := NewConfig(ucfg)
+			require.NoError(t, err)
+			assert.Equal(t, tc.overwrite, c.Overwrite)
+		})
+	}
+}
+
+func TestConfig_RequirePolicy(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg      m
+		required bool
+	}{
+		"default":      {m{}, true},
+		"not required": {m{"require_policy": false}, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			ucfg := common.MustNewConfigFrom(tc.cfg)
+			c, err := NewConfig(ucfg)
+			require.NoError(t, err)
+			assert.Equal(t, tc.required, c.RequirePolicy)
+		})
+	}
+}
+
+func TestConfig_Setup(t *testing.T) {
+
+	findPolicy := func(p []Policy, name string) map[string]interface{} {
+		for _, entry := range p {
+			if entry.EventType == name {
+				return entry.Policy
+			}
 		}
-	})
+		return nil
+	}
+	deletePolicy := m{"policy": m{"phases": m{"delete": nil}}}
+
+	for name, tc := range map[string]struct {
+		event  string
+		cfg    m
+		policy map[string]interface{}
+	}{
+		"assign different default policy": {
+			"error",
+			m{"setup": []m{{"event_type": "error", "policy": rollover7Days}}},
+			policyPool()[rollover7Days]},
+		"change default policy": {
+			"transaction",
+			m{"policies": map[string]m{rollover7Days: deletePolicy}},
+			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
+		"assign new policy": {
+			"span",
+			m{"setup": []m{{"event_type": "span", "policy": "delete-7-days"}},
+				"policies": map[string]m{"delete-7-days": deletePolicy}},
+			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
+		"reference missing policy": {
+			"span",
+			m{"require_policy": false, "setup": []m{{"event_type": "span", "policy": "foo"}}},
+			nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			ucfg := common.MustNewConfigFrom(tc.cfg)
+			c, err := NewConfig(ucfg)
+			require.NoError(t, err)
+			assert.Equal(t, tc.policy, findPolicy(c.Policies, tc.event))
+		})
+	}
+}
+
+func TestConfig_Invalid(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg    m
+		errMsg string
+	}{
+		"invalid event_type": {m{"setup": []m{{"event_type": "xyz", "policy": rollover7Days}}}, "event_type 'xyz' not supported"},
+		"invalid policy":     {m{"setup": []m{{"event_type": "span", "policy": "xyz"}}}, "policy 'xyz' not configured"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			ucfg := common.MustNewConfigFrom(tc.cfg)
+			_, err := NewConfig(ucfg)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.errMsg)
+		})
+	}
 
 }

@@ -101,7 +101,7 @@ func newSupporter(
 		st.isSet.CAS(false, true)
 	}
 
-	ilmSupporters, err := ilmSupporters(log, mode, info)
+	ilmSupporters, err := ilm.MakeDefaultSupporter(log, info, mode, ilmConfig, eventIdxNames(false))
 	if err != nil {
 		return nil, err
 	}
@@ -258,29 +258,4 @@ func checkTemplateESSettings(tmplCfg template.TemplateConfig, esIndexCfg *esInde
 		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
 	}
 	return nil
-}
-
-func ilmSupporters(log *logp.Logger, mode libilm.Mode, info beat.Info) ([]libilm.Supporter, error) {
-	var (
-		ilmSupporters []libilm.Supporter
-		err           error
-		ilmCfg        *common.Config
-	)
-
-	for event, index := range eventIdxNames(false) {
-		if ilmCfg, err = common.NewConfigFrom(common.MapStr{
-			"enabled":     ilm.ModeString(mode),
-			"event":       event,
-			"policy_name": idxStr(event, ""),
-			"alias_name":  index},
-		); err != nil {
-			return nil, errors.Wrapf(err, "error creating index-management config")
-		}
-		ilmSupporter, err := ilm.MakeDefaultSupporter(log, info, ilmCfg)
-		if err != nil {
-			return nil, err
-		}
-		ilmSupporters = append(ilmSupporters, ilmSupporter)
-	}
-	return ilmSupporters, nil
 }

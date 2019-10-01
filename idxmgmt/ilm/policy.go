@@ -17,69 +17,75 @@
 
 package ilm
 
-import "github.com/elastic/beats/libbeat/common"
+type m map[string]interface{}
 
-type m common.MapStr
+const (
+	rollover1Day  = "rollover-1-day"
+	rollover7Days = "rollover-7-days"
+)
 
-var eventPolicies = map[string]common.MapStr{
-	"error":       PolicyKeepMedium,
-	"span":        PolicyKeepMedium,
-	"transaction": PolicyKeep,
-	"metric":      PolicyKeep,
+func policyMapping() map[string]string {
+	return map[string]string{
+		"error":       rollover1Day,
+		"span":        rollover1Day,
+		"transaction": rollover7Days,
+		"metric":      rollover7Days,
+	}
 }
 
-//PolicyKeep should be used for indices queried max for 2 months
-var PolicyKeep = common.MapStr{
-	"policy": m{
-		"phases": m{
-			"hot": m{
-				"actions": m{
-					"rollover": m{
-						"max_size": "50gb",
-						"max_age":  "7d",
+func policyPool() policies {
+	return policies{
+		rollover7Days: {
+			"policy": m{
+				"phases": m{
+					"hot": m{
+						"actions": m{
+							"rollover": m{
+								"max_size": "50gb",
+								"max_age":  "7d",
+							},
+							"set_priority": m{
+								"priority": 100,
+							},
+						},
 					},
-					"set_priority": m{
-						"priority": 100,
+					"warm": m{
+						"min_age": "31d",
+						"actions": m{
+							"set_priority": m{
+								"priority": 50,
+							},
+							"readonly": m{},
+						},
 					},
-				},
-			},
-			"warm": m{
-				"min_age": "31d",
-				"actions": m{
-					"set_priority": m{
-						"priority": 50,
-					},
-					"readonly": m{},
 				},
 			},
 		},
-	},
-}
-
-//PolicyKeepMedium should be used for indices that need to be queried max for two weeks
-var PolicyKeepMedium = common.MapStr{
-	"policy": m{
-		"phases": m{
-			"hot": m{
-				"actions": m{
-					"rollover": m{
-						"max_size": "50gb",
-						"max_age":  "1d",
+		rollover1Day: {
+			"policy": m{
+				"phases": m{
+					"hot": m{
+						"actions": m{
+							"rollover": m{
+								"max_size": "50gb",
+								"max_age":  "1d",
+							},
+							"set_priority": m{
+								"priority": 100,
+							},
+						},
 					},
-					"set_priority": m{
-						"priority": 100,
+					"warm": m{
+						"min_age": "7d",
+						"actions": m{
+							"set_priority": m{
+								"priority": 50,
+							},
+							"readonly": m{},
+						},
 					},
-				},
-			},
-			"warm": m{
-				"min_age": "7d",
-				"actions": m{
-					"set_priority": m{
-						"priority": 50,
-					},
-					"readonly": m{},
 				},
 			},
 		},
-	},
+	}
 }
