@@ -561,10 +561,11 @@ func TestEvents(t *testing.T) {
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6,
 		time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
-	serviceName, agentName, version := "myservice", "go", "1.0"
+	serviceName, agentName, agentVersion := "myservice", "go", "1.0"
 	service := metadata.Service{
-		Name: &serviceName, Agent: metadata.Agent{Name: &agentName, Version: &version},
+		Name: &serviceName, Agent: metadata.Agent{Name: &agentName, Version: &agentVersion},
 	}
+	serviceVersion := "1.2.3"
 	exMsg := "exception message"
 	trId := "945254c5-67a5-417e-8a4e-aa29efcbfb79"
 	sampledTrue, sampledFalse := true, false
@@ -675,6 +676,19 @@ func TestEvents(t *testing.T) {
 				"timestamp":   common.MapStr{"us": timestampUs},
 			},
 			Msg: "Payload with Event with Context.",
+		},
+		{
+			Transformable: &Event{Timestamp: timestamp, Service: &metadata.Service{Version: &serviceVersion}},
+			Output: common.MapStr{
+				"service":   common.MapStr{"name": serviceName, "version": serviceVersion},
+				"labels":    common.MapStr{"label": 101},
+				"agent":     common.MapStr{"name": "go", "version": "1.0"},
+				"user":      common.MapStr{"id": uid},
+				"error":     common.MapStr{"grouping_key": "d41d8cd98f00b204e9800998ecf8427e"},
+				"processor": common.MapStr{"event": "error", "name": "error"},
+				"timestamp": common.MapStr{"us": timestampUs},
+			},
+			Msg: "Deep update service fields",
 		},
 	}
 

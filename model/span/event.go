@@ -26,14 +26,19 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
+)
+
+const (
+	spanDocType = "span"
 )
 
 var (
@@ -42,8 +47,6 @@ var (
 
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")
-
-	spanDocType = "span"
 
 	processorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")

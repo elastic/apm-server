@@ -56,6 +56,7 @@ var (
 const (
 	processorName = "error"
 	errorDocType  = "error"
+	emptyString   = ""
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
@@ -195,7 +196,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.Update(fields, "user", e.User.Fields())
 	utility.DeepUpdate(fields, "client", e.Http.ClientFields(e.User.ClientFields()))
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
-	utility.DeepUpdate(fields, "service", e.Service.Fields())
+	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
