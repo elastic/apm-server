@@ -83,7 +83,7 @@ func NewMetadata(service *Service, system *System, process *Process, user *User,
 func (m *Metadata) Set(fields common.MapStr) common.MapStr {
 	containerFields := m.System.containerFields()
 	hostFields := m.System.fields()
-	utility.Set(fields, "service", m.Service.Fields(fetch(containerFields, "id"), fetch(hostFields, "name")))
+	utility.Set(fields, "service", m.Service.Fields(get(containerFields, "id"), get(hostFields, "name")))
 	utility.Set(fields, "agent", m.Service.AgentFields())
 	utility.Set(fields, "host", hostFields)
 	utility.Set(fields, "process", m.Process.fields())
@@ -103,7 +103,7 @@ func (m *Metadata) SetMinimal(fields common.MapStr) common.MapStr {
 	return fields
 }
 
-func fetch(m common.MapStr, key string) string {
+func get(m common.MapStr, key string) string {
 	if val, ok := m[key].(string); ok {
 		return val
 	}

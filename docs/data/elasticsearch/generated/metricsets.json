@@ -49,7 +49,7 @@
                 },
                 "name": "1234_service-12a3",
                 "node": {
-                    "name": "service-a-node-1"
+                    "name": "node-1"
                 }
             },
             "short_counter": 227,
@@ -120,7 +120,7 @@
                 },
                 "name": "1234_service-12a3",
                 "node": {
-                    "name": "service-a-node-1"
+                    "name": "node-1"
                 }
             },
             "user": {

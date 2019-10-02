@@ -60,7 +60,7 @@
                 },
                 "name": "1234_service-12a3",
                 "node": {
-                    "name": "1234_service-12a3"
+                    "name": "node-123"
                 },
                 "runtime": {
                     "name": "node",
@@ -211,7 +211,7 @@
                 },
                 "name": "1234_service-12a3",
                 "node": {
-                    "name": "1234_service-12a3"
+                    "name": "node-123"
                 },
                 "runtime": {
                     "name": "node",
@@ -334,7 +334,7 @@
                 },
                 "name": "service1",
                 "node": {
-                    "name": "1234_service-12a3-yuewß"
+                    "name": "node-ABC"
                 },
                 "runtime": {
                     "name": "cruby",
