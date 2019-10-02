@@ -29,7 +29,7 @@ import (
 func TestDecodeMetadata(t *testing.T) {
 	pid := 1234
 	host := "host"
-	serviceName := "myservice"
+	serviceName, serviceNodeName := "myservice", "serviceABC"
 	uid := "12321"
 	mail := "user@email.com"
 	agentName := "elastic-node"
@@ -74,10 +74,11 @@ func TestDecodeMetadata(t *testing.T) {
 				},
 				"service": map[string]interface{}{
 					"name": "myservice",
+					"node": map[string]interface{}{
+						"configured_name": serviceNodeName},
 					"agent": map[string]interface{}{
 						"name":    agentName,
-						"version": agentVersion,
-					},
+						"version": agentVersion},
 				},
 				"system": map[string]interface{}{
 					"hostname": host,
@@ -90,11 +91,10 @@ func TestDecodeMetadata(t *testing.T) {
 				},
 			},
 			output: NewMetadata(
-				&Service{Name: &serviceName,
-					Agent: Agent{
-						Name:    &agentName,
-						Version: &agentVersion,
-					},
+				&Service{
+					Name:  &serviceName,
+					Agent: Agent{Name: &agentName, Version: &agentVersion},
+					node:  node{name: &serviceNodeName},
 				},
 				&System{DetectedHostname: &host},
 				&Process{Pid: pid},
@@ -113,7 +113,8 @@ func TestDecodeMetadata(t *testing.T) {
 func TestMetadata_Set(t *testing.T) {
 	pid := 1234
 	host := "host"
-	serviceName := "myservice"
+	containerID := "container-123"
+	serviceName, serviceNodeName := "myservice", "serviceABC"
 	uid := "12321"
 	mail := "user@email.com"
 	agentName := "elastic-node"
@@ -127,12 +128,13 @@ func TestMetadata_Set(t *testing.T) {
 			input: NewMetadata(
 				&Service{
 					Name: &serviceName,
+					node: node{name: &serviceNodeName},
 					Agent: Agent{
 						Name:    &agentName,
 						Version: &agentVersion,
 					},
 				},
-				&System{DetectedHostname: &host},
+				&System{DetectedHostname: &host, Container: &Container{ID: containerID}},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
 				nil,
@@ -144,15 +146,34 @@ func TestMetadata_Set(t *testing.T) {
 				},
 			},
 			output: common.MapStr{
-				"foo":     "bar",
-				"agent":   common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-				"host":    common.MapStr{"hostname": host, "name": host},
-				"process": common.MapStr{"pid": pid},
+				"foo":       "bar",
+				"agent":     common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"container": common.MapStr{"id": containerID},
+				"host":      common.MapStr{"hostname": host, "name": host},
+				"process":   common.MapStr{"pid": pid},
 				"service": common.MapStr{
 					"name": "myservice",
+					"node": common.MapStr{"name": serviceNodeName},
 				},
 				"user": common.MapStr{"id": "12321", "email": "user@email.com"},
 			},
+		},
+		{
+			input: NewMetadata(&Service{},
+				&System{DetectedHostname: &host, Container: &Container{ID: containerID}},
+				nil, nil, nil),
+			fields: common.MapStr{},
+			output: common.MapStr{
+				"host":      common.MapStr{"hostname": host, "name": host},
+				"container": common.MapStr{"id": containerID},
+				"service":   common.MapStr{"node": common.MapStr{"name": containerID}}},
+		},
+		{
+			input:  NewMetadata(&Service{}, &System{DetectedHostname: &host}, nil, nil, nil),
+			fields: common.MapStr{},
+			output: common.MapStr{
+				"host":    common.MapStr{"hostname": host, "name": host},
+				"service": common.MapStr{"node": common.MapStr{"name": host}}},
 		},
 	} {
 		assert.Equal(t, test.output, test.input.Set(test.fields))
@@ -162,7 +183,8 @@ func TestMetadata_Set(t *testing.T) {
 func TestMetadata_SetMinimal(t *testing.T) {
 	pid := 1234
 	host := "host"
-	serviceName := "myservice"
+	containerID := "container-123"
+	serviceName, serviceNodeName := "myservice", "serviceABC"
 	uid := "12321"
 	mail := "user@email.com"
 	agentName := "elastic-node"
@@ -176,22 +198,21 @@ func TestMetadata_SetMinimal(t *testing.T) {
 			input: NewMetadata(
 				&Service{
 					Name: &serviceName,
+					node: node{name: &serviceNodeName},
 					Agent: Agent{
 						Name:    &agentName,
 						Version: &agentVersion,
 					},
 				},
-				&System{DetectedHostname: &host},
+				&System{DetectedHostname: &host, Container: &Container{ID: containerID}},
 				&Process{Pid: pid},
 				&User{Id: &uid, Email: &mail},
 				nil,
 			),
 			fields: common.MapStr{},
 			output: common.MapStr{
-				"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-				"service": common.MapStr{
-					"name": "myservice",
-				},
+				"agent":   common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"service": common.MapStr{"name": "myservice"},
 			},
 		},
 		{
@@ -203,7 +224,7 @@ func TestMetadata_SetMinimal(t *testing.T) {
 						Version: &agentVersion,
 					},
 				},
-				&System{DetectedHostname: &host},
+				&System{DetectedHostname: &host, Container: &Container{ID: containerID}},
 				&Process{Pid: pid},
 				&User{Id: &uid},
 				common.MapStr{},
@@ -212,11 +233,9 @@ func TestMetadata_SetMinimal(t *testing.T) {
 				"foo": "bar",
 			},
 			output: common.MapStr{
-				"agent": common.MapStr{"version": "1.0.0", "name": "elastic-node"},
-				"foo":   "bar",
-				"service": common.MapStr{
-					"name": "myservice",
-				},
+				"agent":   common.MapStr{"version": "1.0.0", "name": "elastic-node"},
+				"foo":     "bar",
+				"service": common.MapStr{"name": "myservice"},
 			},
 		},
 	} {

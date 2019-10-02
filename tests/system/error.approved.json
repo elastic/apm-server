@@ -54,6 +54,9 @@
             },
             "service": {
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "myservice-node"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
@@ -139,6 +142,9 @@
             },
             "service": {
                 "name": "abc",
+                "node": {
+                    "name": "myservice-xz"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
@@ -458,6 +464,9 @@
             },
             "service": {
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "myservice-node"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
@@ -548,6 +557,9 @@
             },
             "service": {
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "myservice-node"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
