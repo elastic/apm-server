@@ -15,6 +15,12 @@ class IdxMgmt(object):
         self._client = client
         self._index = index
         self._event_indices = ["{}-{}".format(self._index, e) for e in ['error', 'span', 'transaction', 'metric']]
+        self.default_policies = {
+            "error": "rollover-1-day",
+            "span": "rollover-1-day",
+            "transaction": "rollover-7-days",
+            "metric": "rollover-7-days"
+        }
 
     def indices(self):
         return self._event_indices + [self._index]
@@ -25,9 +31,9 @@ class IdxMgmt(object):
         self.delete_policies()
 
     def delete_policies(self):
-        for e in self._event_indices:
+        for ev, p in self.default_policies.items():
             try:
-                self._client.transport.perform_request('DELETE', '/_ilm/policy/' + e)
+                self._client.transport.perform_request('DELETE', '/_ilm/policy/' + p)
             except NotFoundError:
                 pass
 
@@ -45,7 +51,7 @@ class IdxMgmt(object):
                 continue
             t = resp[idx][s][i]
             assert l in t, t
-            assert t[l]['name'] == idx, t[l]
+            assert t[l]['name'] is not None, t[l]
             assert t[l]['rollover_alias'] == idx, t[l]
 
     def assert_alias(self, loaded=False):
@@ -59,8 +65,8 @@ class IdxMgmt(object):
 
     def assert_policies(self, loaded=False):
         resp = self._client.transport.perform_request('GET', '/_ilm/policy')
-        for idx in self._event_indices:
-            assert idx in resp if loaded else idx not in resp
+        for ev, p in self.default_policies.items():
+            assert p in resp if loaded else p not in resp
 
     def assert_docs_written_to_alias(self, alias):
         assert 1 == 2

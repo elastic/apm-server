@@ -173,7 +173,7 @@ class TestExportTemplateWithILM(SubCommandTest):
                 template = json.load(f)
             assert template['index_patterns'] == [name + '*']
             assert template['settings']['index'] is not None
-            assert template['settings']['index']['lifecycle.name'] == name
+            assert template['settings']['index']['lifecycle.name'] is not None
             assert template['settings']['index']['lifecycle.rollover_alias'] == name
             assert 'mapping' not in template
             assert template['order'] == 2
@@ -201,14 +201,17 @@ class TestExportILMPolicy(SubCommandTest):
         """
         Test export default ilm policy
         """
-        for e in ['error', 'span', 'transaction', 'metric']:
-            name = "{}-{}".format(self.index_name, e)
-            file = os.path.join(self.dir, "policy", name + '.json')
-            with open(file) as f:
-                policy = json.load(f)
-            assert "hot" in policy["policy"]["phases"]
-            assert "warm" in policy["policy"]["phases"]
-            assert "delete" not in policy["policy"]["phases"]
+
+        assert os.path.exists(self.dir)
+        dir = os.path.join(self.dir, "policy")
+        for subdir, dirs, files in os.walk(dir):
+            assert len(files) == 2, files
+            for file in files:
+                with open(os.path.join(dir, file)) as f:
+                    policy = json.load(f)
+                assert "hot" in policy["policy"]["phases"]
+                assert "warm" in policy["policy"]["phases"]
+                assert "delete" not in policy["policy"]["phases"]
 
 
 class TestExportILMPolicyILMDisabled(TestExportILMPolicy):
