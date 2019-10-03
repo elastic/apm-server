@@ -3,7 +3,7 @@
         {
             "@timestamp": "2018-08-01T10:00:00Z",
             "agent": {
-                "name": "apm-js",
+                "name": "rum-js",
                 "version": "0.0.0"
             },
             "client": {
@@ -45,7 +45,7 @@
         {
             "@timestamp": "2018-08-01T10:00:00Z",
             "agent": {
-                "name": "apm-js",
+                "name": "rum-js",
                 "version": "0.0.0"
             },
             "parent": {
