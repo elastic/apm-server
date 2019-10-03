@@ -63,7 +63,7 @@ func NewConfig(ucfg *common.Config) (Config, error) {
 			policies[name] = prepare(policy)
 		}
 		//update policy name per event according to configuration
-		for _, entry := range cfg.Setup {
+		for _, entry := range cfg.Mapping {
 			if _, ok := policyMappings[entry.Event]; !ok {
 				return c, errors.Errorf("event_type '%s' not supported for ILM setup", entry.Event)
 			}
@@ -89,10 +89,10 @@ func defaultConfig() Config {
 }
 
 type config struct {
-	Setup []struct {
+	Mapping []struct {
 		Policy string `config:"policy"`
 		Event  string `config:"event_type"`
-	} `config:"setup"`
+	} `config:"mapping"`
 	Policies map[string]policy `config:"policies"`
 }
 

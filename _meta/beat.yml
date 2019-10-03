@@ -264,7 +264,7 @@ apm-server:
     #overwrite: false
 
     # The configured event types and policies will be merged with the default policies.
-    #setup:
+    #mapping:
       #- event_type: "error"
       #  policy: "rollover-1-day"
       #- event_type: "span"

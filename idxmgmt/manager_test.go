@@ -310,7 +310,7 @@ func TestManager_Setup(t *testing.T) {
 			cfg: common.MapStr{
 				"apm-server.ilm": map[string]interface{}{
 					"require_policy": false,
-					"setup": []map[string]string{
+					"mapping": []map[string]string{
 						{"event_type": "error", "policy": "foo"},
 						{"event_type": "transaction", "policy": "bar"}},
 				}},

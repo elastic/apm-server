@@ -96,7 +96,7 @@ func TestConfig_RequirePolicy(t *testing.T) {
 	}
 }
 
-func TestConfig_Setup(t *testing.T) {
+func TestConfig_Policies(t *testing.T) {
 
 	findPolicy := func(p []Policy, name string) map[string]interface{} {
 		for _, entry := range p {
@@ -115,7 +115,7 @@ func TestConfig_Setup(t *testing.T) {
 	}{
 		"assign different default policy": {
 			"error",
-			m{"setup": []m{{"event_type": "error", "policy": rollover7Days}}},
+			m{"mapping": []m{{"event_type": "error", "policy": rollover7Days}}},
 			policyPool()[rollover7Days]},
 		"change default policy": {
 			"transaction",
@@ -123,12 +123,12 @@ func TestConfig_Setup(t *testing.T) {
 			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
 		"assign new policy": {
 			"span",
-			m{"setup": []m{{"event_type": "span", "policy": "delete-7-days"}},
+			m{"mapping": []m{{"event_type": "span", "policy": "delete-7-days"}},
 				"policies": map[string]m{"delete-7-days": deletePolicy}},
 			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
 		"reference missing policy": {
 			"span",
-			m{"require_policy": false, "setup": []m{{"event_type": "span", "policy": "foo"}}},
+			m{"require_policy": false, "mapping": []m{{"event_type": "span", "policy": "foo"}}},
 			nil},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -145,8 +145,8 @@ func TestConfig_Invalid(t *testing.T) {
 		cfg    m
 		errMsg string
 	}{
-		"invalid event_type": {m{"setup": []m{{"event_type": "xyz", "policy": rollover7Days}}}, "event_type 'xyz' not supported"},
-		"invalid policy":     {m{"setup": []m{{"event_type": "span", "policy": "xyz"}}}, "policy 'xyz' not configured"},
+		"invalid event_type": {m{"mapping": []m{{"event_type": "xyz", "policy": rollover7Days}}}, "event_type 'xyz' not supported"},
+		"invalid policy":     {m{"mapping": []m{{"event_type": "span", "policy": "xyz"}}}, "policy 'xyz' not configured"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			ucfg := common.MustNewConfigFrom(tc.cfg)
