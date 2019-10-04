@@ -15,33 +15,35 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package add_cloud_metadata
+package mage
 
 import (
-	"github.com/elastic/beats/libbeat/common"
-	s "github.com/elastic/beats/libbeat/common/schema"
-	c "github.com/elastic/beats/libbeat/common/schema/mapstriface"
+	"path/filepath"
+
+	"github.com/pkg/errors"
+
+	"github.com/elastic/beats/dev-tools/mage/gotool"
 )
 
-// DigitalOcean Metadata Service
-var doMetadataFetcher = provider{
-	Name: "digitalocean",
+var (
+	// GoLicenserImportPath controls the import path used to install go-licenser.
+	GoLicenserImportPath = "github.com/elastic/go-licenser"
+)
 
-	Local: true,
+// InstallVendored uses go get to install a command from its vendored source
+func InstallVendored(importPath string) error {
+	beatDir, err := ElasticBeatsDir()
+	if err != nil {
+		return errors.Wrap(err, "failed to obtain beats repository path")
+	}
 
-	Create: func(provider string, config *common.Config) (metadataFetcher, error) {
-		doSchema := func(m map[string]interface{}) common.MapStr {
-			out, _ := s.Schema{
-				"instance": s.Object{
-					"id": c.StrFromNum("droplet_id"),
-				},
-				"region": c.Str("region"),
-			}.Apply(m)
-			return out
-		}
-		doMetadataURI := "/metadata/v1.json"
+	get := gotool.Get
+	return get(
+		get.Package(filepath.Join(beatDir, "vendor", importPath)),
+	)
+}
 
-		fetcher, err := newMetadataFetcher(config, provider, nil, metadataHost, doSchema, doMetadataURI)
-		return fetcher, err
-	},
+// InstallGoLicenser target installs go-licenser
+func InstallGoLicenser() error {
+	return InstallVendored(GoLicenserImportPath)
 }
