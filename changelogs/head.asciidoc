@@ -4,5 +4,6 @@
 [float]
 ==== Added
 - Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
+- Ensure only valid IP addresses are indexed in `client.ip` {pull}2772[2772].
 
 https://github.com/elastic/apm-server/compare/7.4\...master[View commits]
