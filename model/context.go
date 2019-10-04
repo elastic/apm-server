@@ -19,14 +19,21 @@ package model
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/elastic/apm-server/model/metadata"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
+)
+
+const (
+	dot   = "."
+	colon = ":"
 )
 
 // Context holds all information sent under key context
@@ -176,15 +183,15 @@ func (h *Http) Fields() common.MapStr {
 // ClientFields returns common.MapStr holding transformed data for attribute client. If given data include IP information,
 // data are returned unchanged, otherwise IP information will be extracted from http data if possible.
 func (h *Http) ClientFields(fields common.MapStr) common.MapStr {
-	if fields != nil && fields["ip"] != nil {
-		return fields
+	if ip, ok := fields["ip"]; ok {
+		return clientFields(fields, ip)
 	}
-	if h == nil ||
-		h.Request == nil || h.Request.Socket == nil ||
-		h.Request.Socket.RemoteAddress == nil || *h.Request.Socket.RemoteAddress == "" {
-		return fields
+
+	ip := ""
+	if h != nil && h.Request != nil && h.Request.Socket != nil && h.Request.Socket.RemoteAddress != nil {
+		ip = *h.Request.Socket.RemoteAddress
 	}
-	return common.MapStr{"ip": *h.Request.Socket.RemoteAddress}
+	return clientFields(common.MapStr{}, ip)
 }
 
 // UserAgent parses User Agent information from attribute http.
@@ -395,4 +402,29 @@ func (s *Socket) fields() common.MapStr {
 	utility.Set(fields, "encrypted", s.Encrypted)
 	utility.Set(fields, "remote_address", s.RemoteAddress)
 	return fields
+}
+
+func clientFields(m common.MapStr, inpIP interface{}) common.MapStr {
+	ip := parseIP(inpIP)
+	if ip == "" {
+		m.Delete("ip")
+		return m
+	}
+	m["ip"] = ip
+	return m
+}
+
+func parseIP(i interface{}) string {
+	input, ok := i.(string)
+	if !ok {
+		return ""
+	}
+	var ip net.IP
+	if ip = net.ParseIP(input); ip != nil {
+		return ip.String()
+	}
+	if strings.Contains(input, dot) && strings.Contains(input, colon) {
+		return net.ParseIP(strings.Split(input, colon)[0]).String()
+	}
+	return ""
 }
