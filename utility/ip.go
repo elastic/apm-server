@@ -28,3 +28,13 @@ import (
 func ExtractIP(r *http.Request) net.IP {
 	return net.ParseIP(RemoteAddr(r))
 }
+
+func ParseHost(inp string) string {
+	if ip := net.ParseIP(inp); ip != nil {
+		return ip.String()
+	}
+	if host, _, err := net.SplitHostPort(inp); err == nil {
+		return host
+	}
+	return ""
+}
