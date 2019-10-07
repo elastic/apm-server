@@ -15,33 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package add_cloud_metadata
+package gotool
 
-import (
-	"github.com/elastic/beats/libbeat/common"
-	s "github.com/elastic/beats/libbeat/common/schema"
-	c "github.com/elastic/beats/libbeat/common/schema/mapstriface"
-)
+type goGet func(opts ...ArgOpt) error
 
-// DigitalOcean Metadata Service
-var doMetadataFetcher = provider{
-	Name: "digitalocean",
+// Get runs `go get` and provides optionals for adding command line arguments.
+var Get goGet = runGoGet
 
-	Local: true,
-
-	Create: func(provider string, config *common.Config) (metadataFetcher, error) {
-		doSchema := func(m map[string]interface{}) common.MapStr {
-			out, _ := s.Schema{
-				"instance": s.Object{
-					"id": c.StrFromNum("droplet_id"),
-				},
-				"region": c.Str("region"),
-			}.Apply(m)
-			return out
-		}
-		doMetadataURI := "/metadata/v1.json"
-
-		fetcher, err := newMetadataFetcher(config, provider, nil, metadataHost, doSchema, doMetadataURI)
-		return fetcher, err
-	},
+func runGoGet(opts ...ArgOpt) error {
+	args := buildArgs(opts)
+	return runVGo("get", args)
 }
+
+func (goGet) Update() ArgOpt            { return flagBoolIf("-u", true) }
+func (goGet) Package(pkg string) ArgOpt { return posArg(pkg) }
