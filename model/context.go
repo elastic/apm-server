@@ -30,11 +30,6 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
-const (
-	dot   = "."
-	colon = ":"
-)
-
 // Context holds all information sent under key context
 type Context struct {
 	Http         *Http

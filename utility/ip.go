@@ -29,6 +29,7 @@ func ExtractIP(r *http.Request) net.IP {
 	return net.ParseIP(RemoteAddr(r))
 }
 
+//ParseHost parses the host part of a given IP address. If contained the port is removed.
 func ParseHost(inp string) string {
 	if ip := net.ParseIP(inp); ip != nil {
 		return ip.String()
