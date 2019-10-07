@@ -243,18 +243,18 @@ apm-server:
 
   # Index Lifecycle Mangement (ILM)
   #ilm:
-    # `ilm.enabled: "auto"`:
+    # `enabled: "auto"`
     # If a different output than Elasticsearch is configured, ILM will be disabled.
     # If Elasticsearch output is configured, but specific `index` or `indices` settings are configured, ILM will be
     # disabled, as it only works with default index settings.
     # If the configured Elasticsearch instance is not eligible for ILM, ILM will also be disabled.
     # If all preconditions are met, ILM will be enabled.
     #
-    # `ilm.enabled: "true"`:
+    # `enabled: "true"`
     # APM Server ignores any configured index settings. The configured output must be set to Elasticsearch and the
     # instance needs to support ILM. Otherwise APM Server cannot apply ILM and creates unmanaged indices.
     #
-    # `ilm.enabled: "false"`:
+    # `enabled: "false"`
     # ILM is disabled and the server creates unmanaged indices.
     #
     # Default value is `auto`.
@@ -262,6 +262,10 @@ apm-server:
 
     # Set `overwrite` to true for updating already existing ILM policies. Default value is `false`.
     #overwrite: false
+
+    # Set `require_policy` to `false` when policies are set up outside of APM Server but referenced here.
+    # Default value is `true`.
+    #require_policy: true
 
     # The configured event types and policies will be merged with the default policies.
     #mapping:
@@ -273,10 +277,6 @@ apm-server:
       #  policy: "rollover-7-days"
       #- event_type: "metric"
       #  policy: "rollover-7-days"
-
-    # Set `require_policy` to `false` when policies are set up outside of APM Server but referenced here.
-    # Default value is `true`.
-    #require_policy: true
 
     # Configured policies are added to all pre-defined default policies.
     # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.

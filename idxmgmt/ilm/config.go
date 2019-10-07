@@ -60,7 +60,7 @@ func NewConfig(ucfg *common.Config) (Config, error) {
 		}
 		// create a collection of default and configured policies
 		for name, policy := range cfg.Policies {
-			policies[name] = prepare(policy)
+			policies[name] = policy
 		}
 		//update policy name per event according to configuration
 		for _, entry := range cfg.Mapping {
@@ -93,7 +93,7 @@ type config struct {
 		Policy string `config:"policy"`
 		Event  string `config:"event_type"`
 	} `config:"mapping"`
-	Policies map[string]policy `config:"policies"`
+	Policies policies `config:"policies"`
 }
 
 type policies map[string]policy
@@ -102,33 +102,33 @@ type policy map[string]interface{}
 var errPolicyFmt = errors.New("input for ILM policies is in wrong format")
 
 func (p *policies) Unpack(i interface{}) error {
+	//prepare ensures maps are in the format elasticsearch expects for policy bodies,
+	var prepare func(map[string]interface{}) map[string]interface{}
+	prepare = func(m map[string]interface{}) map[string]interface{} {
+		for k, v := range m {
+			if v == nil {
+				//ensure nil values are replaced with an empty map,
+				// e.g. `delete: {}` instead of `delete: nil`
+				m[k] = map[string]interface{}{}
+			} else if val, ok := v.(map[string]interface{}); ok && val != nil {
+				m[k] = prepare(val)
+			}
+		}
+		return m
+	}
+
 	inp, ok := i.(map[string]interface{})
 	if !ok {
 		return errPolicyFmt
 	}
-	*p = map[string]policy{}
+	*p = policies{}
+
 	for k, v := range inp {
 		inpP, ok := v.(map[string]interface{})
 		if !ok {
 			return errPolicyFmt
 		}
-		(*p)[k] = policy(inpP)
+		(*p)[k] = prepare(policy(inpP))
 	}
 	return nil
-}
-
-//prepare ensures maps are in the format elasticsearch expects for policy bodies,
-//it replaces nil values with an empty map
-func prepare(bb map[string]interface{}) map[string]interface{} {
-	if bb == nil {
-		return bb
-	}
-	for k, v := range bb {
-		if v == nil {
-			bb[k] = map[string]interface{}{}
-		} else if val, ok := v.(map[string]interface{}); ok && val != nil {
-			bb[k] = prepare(val)
-		}
-	}
-	return bb
 }

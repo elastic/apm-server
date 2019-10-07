@@ -30,18 +30,16 @@ import (
 func TestConfig_Default(t *testing.T) {
 	c, err := NewConfig(nil)
 	require.NoError(t, err)
-	defaultCfg := Config{
-		Mode:          libilm.ModeAuto,
-		Overwrite:     false,
-		RequirePolicy: true,
-		Policies: []Policy{
-			{EventType: "error", Policy: policyPool()[rollover1Day], Name: rollover1Day},
-			{EventType: "span", Policy: policyPool()[rollover1Day], Name: rollover1Day},
-			{EventType: "transaction", Policy: policyPool()[rollover7Days], Name: rollover7Days},
-			{EventType: "metric", Policy: policyPool()[rollover7Days], Name: rollover7Days},
-		},
+	defaultPolicies := []Policy{
+		{EventType: "error", Policy: policyPool()[rollover1Day], Name: rollover1Day},
+		{EventType: "span", Policy: policyPool()[rollover1Day], Name: rollover1Day},
+		{EventType: "transaction", Policy: policyPool()[rollover7Days], Name: rollover7Days},
+		{EventType: "metric", Policy: policyPool()[rollover7Days], Name: rollover7Days},
 	}
-	assert.Equal(t, defaultCfg, c)
+	assert.Equal(t, libilm.ModeAuto, c.Mode)
+	assert.False(t, c.Overwrite)
+	assert.True(t, c.RequirePolicy)
+	assert.ObjectsAreEqual(defaultPolicies, c.Policies)
 }
 
 func TestConfig_Mode(t *testing.T) {
