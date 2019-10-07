@@ -4,6 +4,6 @@
 [float]
 ==== Added
 - Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
-- Index value from `client.ip` in `source.ip`for SIEM integration {pull}2771[2771].
+- Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
 
 https://github.com/elastic/apm-server/compare/7.4\...master[View commits]
