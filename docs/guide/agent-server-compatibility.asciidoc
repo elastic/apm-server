@@ -29,6 +29,7 @@ The chart below outlines the compatibility between different versions of the APM
 .3+|**Ruby Agent**
 |`1.x` |`6.4`-`6.x`
 |`2.x` |>= `6.5`
+|`3.x` |>= `6.5`
 
 // RUM
 .3+|**JavaScript RUM Agent**
