@@ -515,13 +515,22 @@
       dynamic: false
       type: group
       fields:
-
       - name: ip
         type: ip
         description: >
-          IP of the user where the event is recorded, typically a web browser.
-          This is obtained from the X-Forwarded-For header, of which the first entry is the IP of the original client.
-          This value however might not be necessarily trusted, as it can be forged by a malicious user.
+          IP address of the client of a recorded event.
+          This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
+        overwrite: true
+
+    - name: source
+      dynamic: false
+      type: group
+      fields:
+      - name: ip
+        type: ip
+        description: >
+          IP address of the source of a recorded event.
+          This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
         overwrite: true
 
     - name: user_agent
