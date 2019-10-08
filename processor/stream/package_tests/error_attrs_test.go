@@ -55,7 +55,7 @@ func errorPayloadAttrsNotInFields() *tests.Set {
 func errorFieldsNotInPayloadAttrs() *tests.Set {
 	return tests.NewSet(
 		"view errors", "error id icon",
-		"host.ip", "transaction.name",
+		"host.ip", "transaction.name", "source.ip",
 		tests.Group("observer"),
 		tests.Group("user"),
 		tests.Group("client"),

@@ -651,6 +651,7 @@ func TestEvents(t *testing.T) {
 				"agent":      common.MapStr{"name": "go", "version": "1.0"},
 				"user":       common.MapStr{"email": email},
 				"client":     common.MapStr{"ip": userIp},
+				"source":     common.MapStr{"ip": userIp},
 				"user_agent": common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{
