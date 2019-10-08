@@ -115,7 +115,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|Node.js
 2+|The Node.js agent automatically instruments Express, hapi, Koa, and Restify out of the box.
 |{apm-node-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-node-ref-v}/intro.html#get-started[Get started with the Node.js Agent]
+|{apm-node-ref-v}/set-up.html[Set up the Node.js Agent]
 
 .2+|Python
 2+|The Python agent automatically instruments Django and Flask out of the box.
