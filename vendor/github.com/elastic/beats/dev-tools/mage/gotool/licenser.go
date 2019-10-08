@@ -15,33 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package add_cloud_metadata
+package gotool
 
 import (
-	"github.com/elastic/beats/libbeat/common"
-	s "github.com/elastic/beats/libbeat/common/schema"
-	c "github.com/elastic/beats/libbeat/common/schema/mapstriface"
+	"github.com/magefile/mage/sh"
 )
 
-// DigitalOcean Metadata Service
-var doMetadataFetcher = provider{
-	Name: "digitalocean",
+type goLicenser func(opts ...ArgOpt) error
 
-	Local: true,
+// Licenser runs `go-licenser` and provides optionals for adding command line arguments.
+var Licenser goLicenser = runGoLicenser
 
-	Create: func(provider string, config *common.Config) (metadataFetcher, error) {
-		doSchema := func(m map[string]interface{}) common.MapStr {
-			out, _ := s.Schema{
-				"instance": s.Object{
-					"id": c.StrFromNum("droplet_id"),
-				},
-				"region": c.Str("region"),
-			}.Apply(m)
-			return out
-		}
-		doMetadataURI := "/metadata/v1.json"
-
-		fetcher, err := newMetadataFetcher(config, provider, nil, metadataHost, doSchema, doMetadataURI)
-		return fetcher, err
-	},
+func runGoLicenser(opts ...ArgOpt) error {
+	args := buildArgs(opts).build()
+	return sh.RunV("go-licenser", args...)
 }
+
+func (goLicenser) Check() ArgOpt                 { return flagBoolIf("-d", true) }
+func (goLicenser) License(license string) ArgOpt { return flagArgIf("-license", license) }
+func (goLicenser) Exclude(path string) ArgOpt    { return flagArgIf("-exclude", path) }
+func (goLicenser) Path(path string) ArgOpt       { return posArg(path) }

@@ -187,6 +187,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 		clientFields = e.Http.ClientFields()
 	}
 	utility.DeepUpdate(fields, "client", clientFields)
+	utility.DeepUpdate(fields, "source", clientFields)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
 	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())

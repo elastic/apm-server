@@ -56,6 +56,7 @@ func transactionFieldsNotInPayloadAttrs() *tests.Set {
 		"host.ip",
 		"transaction.duration.count",
 		"transaction.marks.*.*",
+		"source.ip",
 		tests.Group("observer"),
 		tests.Group("user"),
 		tests.Group("client"),
