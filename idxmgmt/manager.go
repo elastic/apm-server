@@ -112,7 +112,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		if err != nil {
 			return err
 		}
-		overwriteTemplate := templateFeature.overwrite || loaded
+		overwriteTemplate := templateFeature.overwrite || ilmFeature.overwrite || loaded
 
 		// (3) load event type specific template respecting index lifecycle information
 		if err := m.loadEventTemplate(templateFeature, ilmFeature, ilmSupporter, overwriteTemplate); err != nil {
@@ -135,8 +135,17 @@ func (m *manager) templateFeature(loadMode libidxmgmt.LoadMode) feature {
 }
 
 func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) feature {
-	if m.supporter.st.ilmEnabled.Load() {
-		f := newFeature(true, false, true, loadMode)
+	// Do not use configured `m.supporter.ilmConfig.Mode` to check if ilm is enabled.
+	// The configuration might be set to `true` or `auto` but preconditions are not met,
+	// e.g. ilm support by Elasticsearch
+	// In these cases the supporter holds an internal state `m.supporter.st.ilmEnabled` that is set to false.
+	// The originally configured value is preserved allowing to collect warnings and errors to be
+	// returned to the user.
+
+	// m.supporter.st.ilmEnabled.Load() only returns true for cases where
+	// ilm mode is configured `auto` or `true` and preconditions to enable ilm are true
+	if enabled := m.supporter.st.ilmEnabled.Load(); enabled {
+		f := newFeature(enabled, m.supporter.ilmConfig.Overwrite, true, loadMode)
 		if m.supporter.esIdxCfg.customized() {
 			f.warn = msgIdxCfgIgnored
 		}
@@ -148,6 +157,8 @@ func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) feature {
 		err       error
 		supported = true
 	)
+	// collect warnings when ilm is configured `auto` but it cannot be enabled
+	// collect error when ilm is configured `true` but it cannot be enabled as preconditions are not met
 	if m.supporter.ilmConfig.Mode == libilm.ModeAuto {
 		if m.supporter.esIdxCfg.customized() {
 			warn = msgIlmDisabledCfg
@@ -210,7 +221,7 @@ func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter) 
 	if err != nil {
 		return policyCreated, err
 	}
-	if !policyCreated {
+	if !policyCreated && !ilmFeature.overwrite {
 		m.supporter.log.Infof("ILM policy %s exists already.", policy)
 		return false, nil
 	}

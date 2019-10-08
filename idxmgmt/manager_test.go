@@ -19,6 +19,7 @@ package idxmgmt
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -157,22 +158,22 @@ func TestManager_Setup(t *testing.T) {
 	var testCasesEnabled = map[string]testCase{
 		"Default": {
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
+			tCt: 5, tWithILMCt: 4, pCt: 2, aCt: 3,
 		},
 		"LoadTemplateAndILM": {
 			cfg:   common.MapStr{"apm-server.ilm.enabled": true},
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
+			tCt: 5, tWithILMCt: 4, pCt: 2, aCt: 3,
 		},
 		"DisabledILM": {
 			cfg:   common.MapStr{"apm-server.ilm.enabled": false},
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5,
+			tCt: 4,
 		},
 		"DisabledTemplate": {
 			cfg:   common.MapStr{"setup.template.enabled": false},
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			pCt: 4, aCt: 3,
+			pCt: 2, aCt: 3,
 		},
 		"DisabledTemplateAndILM": {
 			cfg:   common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
@@ -180,15 +181,33 @@ func TestManager_Setup(t *testing.T) {
 		},
 		"LoadModeDisabledILM": {
 			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeDisabled,
-			tCt: 5, tWithILMCt: 4,
+			tCt: 4, tWithILMCt: 3,
 		},
 		"LoadModeDisabledTemplate": {
 			tLoad: libidxmgmt.LoadModeDisabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			pCt: 4, aCt: 3,
+			pCt: 2, aCt: 3,
 		},
 		"LoadModeDisabledTemplateAndILM": {
 			tLoad:   libidxmgmt.LoadModeDisabled,
 			ilmLoad: libidxmgmt.LoadModeDisabled,
+		},
+	}
+
+	var testCasesOverwrite = map[string]testCase{
+		"OverwriteILM": {
+			cfg:   common.MapStr{"apm-server.ilm.overwrite": true},
+			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
+		},
+		"OverwriteTemplate": {
+			cfg:   common.MapStr{"setup.template.overwrite": true},
+			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			tCt: 5, tWithILMCt: 4, pCt: 2, aCt: 3,
+		},
+		"OverwriteTemplateAndILM": {
+			cfg:   common.MapStr{"setup.template.overwrite": true, "apm-server.ilm.overwrite": true},
+			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
 		},
 	}
 
@@ -217,7 +236,7 @@ func TestManager_Setup(t *testing.T) {
 			ilmLoad: libidxmgmt.LoadModeOverwrite,
 			pCt:     4, aCt: 3,
 		},
-		"LoadModeOverwriteWhenDisabled": {
+		"LoadModeOverwrite": {
 			// used for `./apm-server setup template`, `apm-server setup index-managemet`
 			tLoad:   libidxmgmt.LoadModeOverwrite,
 			ilmLoad: libidxmgmt.LoadModeOverwrite,
@@ -255,21 +274,21 @@ func TestManager_Setup(t *testing.T) {
 			cfg:     common.MapStr{"apm-server.ilm.enabled": false},
 			tLoad:   libidxmgmt.LoadModeEnabled,
 			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     5,
+			tCt:     4,
 		},
 		"AutoAndUnsupportedILM": {
 			version: "6.2.0",
 			cfg:     common.MapStr{"apm-server.ilm.enabled": "auto"},
 			tLoad:   libidxmgmt.LoadModeEnabled,
 			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     5,
+			tCt:     4,
 		},
 		"EnabledAndUnsupportedILM": {
 			version: "6.2.0",
 			cfg:     common.MapStr{"apm-server.ilm.enabled": true},
 			tLoad:   libidxmgmt.LoadModeEnabled,
 			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     5,
+			tCt:     4,
 		},
 		"ForceModeWhenUnsupportedILM": {
 			version: "6.2.0",
@@ -288,7 +307,7 @@ func TestManager_Setup(t *testing.T) {
 				"output.elasticsearch.index": "custom"},
 			tLoad:   libidxmgmt.LoadModeEnabled,
 			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     5,
+			tCt:     4,
 		},
 		"ESIndicesConfigured": {
 			cfg: common.MapStr{
@@ -301,7 +320,7 @@ func TestManager_Setup(t *testing.T) {
 						"contains": map[string]interface{}{"processor.event": "metric"}}}}},
 			tLoad:   libidxmgmt.LoadModeEnabled,
 			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     5,
+			tCt:     4,
 		},
 	}
 
@@ -316,12 +335,13 @@ func TestManager_Setup(t *testing.T) {
 				}},
 			tLoad:   libidxmgmt.LoadModeEnabled,
 			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     5, tWithILMCt: 4, pCt: 2, aCt: 3,
+			tCt:     4, tWithILMCt: 3, pCt: 1, aCt: 3,
 		},
 	}
 
 	for _, test := range []map[string]testCase{
 		testCasesEnabled,
+		testCasesOverwrite,
 		testCasesLoadModeUnset,
 		testCasesLoadModeOverwrite,
 		testCasesLoadModeForce,
@@ -361,6 +381,14 @@ func TestManager_Setup(t *testing.T) {
 }
 
 type mockClientHandler struct {
+	// mockClientHandler loads templates, ilm templates, policies and aliases
+	// The handler generally treats them as non-existing in Elasticsearch.
+	// There are some exceptions to this rule to simulate the behavior related to the `overwrite` flag
+	// Existing instances are:
+	// * transaction event type specific template
+	// * transaction ilm alias
+	// * rollover-1-day policy
+
 	aliases, policies []string
 
 	tmplLoadCt, tmplLoadWithILMCt int
@@ -370,7 +398,8 @@ type mockClientHandler struct {
 	esVersion *common.Version
 }
 
-var existingILM = fmt.Sprintf("apm-%s-transaction", info.Version)
+var existingILMAlias = fmt.Sprintf("apm-%s-transaction", info.Version)
+var existingILMPolicy = "rollover-1-day"
 var ErrILMNotSupported = errors.New("ILM not supported")
 var esMinILMVersion = common.MustNewVersion("6.6.0")
 
@@ -379,6 +408,9 @@ func newMockClientHandler(esVersion string) *mockClientHandler {
 }
 
 func (h *mockClientHandler) Load(config template.TemplateConfig, _ beat.Info, fields []byte, migration bool) error {
+	if strings.Contains(config.Name, "transaction") && !config.Overwrite {
+		return nil
+	}
 	h.tmplLoadCt++
 	if config.Settings.Index != nil && config.Settings.Index["lifecycle.name"] != nil {
 		h.tmplLoadWithILMCt++
@@ -412,7 +444,7 @@ func (h *mockClientHandler) CheckILMEnabled(mode libilm.Mode) (bool, error) {
 }
 
 func (h *mockClientHandler) HasAlias(name string) (bool, error) {
-	return name == existingILM, nil
+	return name == existingILMAlias, nil
 }
 
 func (h *mockClientHandler) CreateAlias(alias libilm.Alias) error {
@@ -421,7 +453,8 @@ func (h *mockClientHandler) CreateAlias(alias libilm.Alias) error {
 }
 
 func (h *mockClientHandler) HasILMPolicy(name string) (bool, error) {
-	return false, nil
+	fmt.Println(name)
+	return name == existingILMPolicy, nil
 }
 
 func (h *mockClientHandler) CreateILMPolicy(policy libilm.Policy) error {

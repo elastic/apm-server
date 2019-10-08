@@ -260,7 +260,7 @@ apm-server:
     # Default value is `auto`.
     #enabled: "auto"
 
-    # Set `overwrite` to true for updating already existing ILM policies. Default value is `false`.
+    # Set `overwrite` to true for updating already existing ILM setup, including policies and templates. Default value is `false`.
     #overwrite: false
 
     # Set `require_policy` to `false` when policies are set up outside of APM Server but referenced here.
