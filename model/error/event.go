@@ -194,9 +194,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	tctx.Metadata.Set(fields)
 	// then add event specific information
 	utility.Update(fields, "user", e.User.Fields())
-	clientIP := e.Http.ClientFields(e.User.ClientFields())
-	utility.DeepUpdate(fields, "client", clientIP)
-	utility.DeepUpdate(fields, "source", clientIP)
+	clientFields := e.User.ClientFields()
+	if clientFields == nil {
+		clientFields = e.Http.ClientFields()
+	}
+	utility.DeepUpdate(fields, "client", clientFields)
+	utility.DeepUpdate(fields, "source", clientFields)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
 	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
