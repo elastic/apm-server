@@ -350,6 +350,20 @@ pipeline {
         GOPATH = "${env.WORKSPACE}"
         SNAPSHOT="true"
       }
+      when {
+        beforeAgent true
+        allOf {
+          anyOf {
+            branch 'master'
+            branch "\\d+\\.\\d+"
+            branch "v\\d?"
+            tag "v\\d+\\.\\d+\\.\\d+*"
+            expression { return params.Run_As_Master_Branch }
+            expression { return env.BEATS_UPDATED != "false" }
+          }
+          expression { return params.release_ci }
+        }
+      }
       steps {
         withGithubNotify(context: 'Release') {
           deleteDir()
@@ -360,6 +374,7 @@ pipeline {
           golang(){
             dir("${BASE_DIR}"){
               sh(label: 'Build packages', script: './script/jenkins/package.sh')
+              sh(label: 'Test packages install', script: './script/jenkins/test-install-packages.sh')
             }
           }
         }
@@ -367,6 +382,12 @@ pipeline {
       post {
         success {
           echo "Archive packages"
+          googleStorageUpload(bucket: "gs://${JOB_GCS_BUCKET}/snapshots",
+            credentialsId: "${JOB_GCS_CREDENTIALS}",
+            pathPrefix: "${BASE_DIR}/build/distributions/",
+            pattern: "${BASE_DIR}/build/distributions/**/*",
+            sharedPublicly: true,
+            showInline: true)
         }
       }
     }
