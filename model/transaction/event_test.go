@@ -370,6 +370,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	txWithContextEs := common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
 		"client":     common.MapStr{"ip": "63.23.123.4"},
+		"source":     common.MapStr{"ip": "63.23.123.4"},
 		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",

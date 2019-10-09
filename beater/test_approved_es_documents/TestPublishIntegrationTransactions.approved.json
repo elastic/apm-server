@@ -253,6 +253,9 @@
                 },
                 "version": "5.1.3"
             },
+            "source": {
+                "ip": "12.53.12.1"
+            },
             "timestamp": {
                 "us": 1496170407154000
             },
@@ -335,7 +338,10 @@
             },
             "http": {
                 "request": {
-                    "method": "post"
+                    "method": "post",
+                    "socket": {
+                        "remote_address": "192.0.1"
+                    }
                 }
             },
             "kubernetes": {

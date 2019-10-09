@@ -182,7 +182,12 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	// then merge event specific information
 	utility.Update(fields, "user", e.User.Fields())
-	utility.DeepUpdate(fields, "client", e.Http.ClientFields(e.User.ClientFields()))
+	clientFields := e.User.ClientFields()
+	if clientFields == nil {
+		clientFields = e.Http.ClientFields()
+	}
+	utility.DeepUpdate(fields, "client", clientFields)
+	utility.DeepUpdate(fields, "source", clientFields)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
 	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())

@@ -25,8 +25,9 @@ import (
 
 	"github.com/elastic/apm-server/model/metadata"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 // Context holds all information sent under key context
@@ -103,7 +104,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for fetching Context fields")
+		return nil, errors.New("invalid type for fetching Context out")
 	}
 
 	decoder := utility.ManualDecoder{}
@@ -175,16 +176,15 @@ func (h *Http) Fields() common.MapStr {
 
 // ClientFields returns common.MapStr holding transformed data for attribute client. If given data include IP information,
 // data are returned unchanged, otherwise IP information will be extracted from http data if possible.
-func (h *Http) ClientFields(fields common.MapStr) common.MapStr {
-	if fields != nil && fields["ip"] != nil {
-		return fields
+func (h *Http) ClientFields() common.MapStr {
+	ip := ""
+	if h != nil && h.Request != nil && h.Request.Socket != nil && h.Request.Socket.RemoteAddress != nil {
+		ip = utility.ParseHost(*h.Request.Socket.RemoteAddress)
 	}
-	if h == nil ||
-		h.Request == nil || h.Request.Socket == nil ||
-		h.Request.Socket.RemoteAddress == nil || *h.Request.Socket.RemoteAddress == "" {
-		return fields
+	if ip == "" {
+		return nil
 	}
-	return common.MapStr{"ip": *h.Request.Socket.RemoteAddress}
+	return common.MapStr{"ip": ip}
 }
 
 // UserAgent parses User Agent information from attribute http.
