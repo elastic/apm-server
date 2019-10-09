@@ -332,7 +332,10 @@
             },
             "http": {
                 "request": {
-                    "method": "post"
+                    "method": "post",
+                    "socket": {
+                        "remote_address": "192.0.1"
+                    }
                 }
             },
             "kubernetes": {
