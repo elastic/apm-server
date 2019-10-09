@@ -221,7 +221,7 @@ func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter) 
 	if err != nil {
 		return policyCreated, err
 	}
-	if !policyCreated && !ilmFeature.overwrite {
+	if !policyCreated {
 		m.supporter.log.Infof("ILM policy %s exists already.", policy)
 		return false, nil
 	}

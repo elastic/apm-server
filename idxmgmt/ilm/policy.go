@@ -22,66 +22,84 @@ type m map[string]interface{}
 const (
 	rollover1Day  = "rollover-1-day"
 	rollover7Days = "rollover-7-days"
+
+	policyStr      = "policy"
+	phasesStr      = "phases"
+	hotStr         = "hot"
+	warmStr        = "warm"
+	actionsStr     = "actions"
+	rolloverStr    = "rollover"
+	maxSizeStr     = "max_size"
+	maxAgeStr      = "max_age"
+	minAgeStr      = "min_age"
+	setPriorityStr = "set_priority"
+	priorityStr    = "priority"
+	readonlyStr    = "readonly"
+
+	errorEvent       = "error"
+	spanEvent        = "span"
+	transactionEvent = "transaction"
+	metricEvent      = "metric"
 )
 
 func policyMapping() map[string]string {
 	return map[string]string{
-		"error":       rollover1Day,
-		"span":        rollover1Day,
-		"transaction": rollover7Days,
-		"metric":      rollover7Days,
+		errorEvent:       rollover1Day,
+		spanEvent:        rollover1Day,
+		transactionEvent: rollover7Days,
+		metricEvent:      rollover7Days,
 	}
 }
 
 func policyPool() policies {
 	return policies{
 		rollover7Days: {
-			"policy": m{
-				"phases": m{
-					"hot": m{
-						"actions": m{
-							"rollover": m{
-								"max_size": "50gb",
-								"max_age":  "7d",
+			policyStr: m{
+				phasesStr: m{
+					hotStr: m{
+						actionsStr: m{
+							rolloverStr: m{
+								maxSizeStr: "50gb",
+								maxAgeStr:  "7d",
 							},
-							"set_priority": m{
-								"priority": 100,
+							setPriorityStr: m{
+								priorityStr: 100,
 							},
 						},
 					},
-					"warm": m{
-						"min_age": "31d",
-						"actions": m{
-							"set_priority": m{
-								"priority": 50,
+					warmStr: m{
+						minAgeStr: "31d",
+						actionsStr: m{
+							setPriorityStr: m{
+								priorityStr: 50,
 							},
-							"readonly": m{},
+							readonlyStr: m{},
 						},
 					},
 				},
 			},
 		},
 		rollover1Day: {
-			"policy": m{
-				"phases": m{
-					"hot": m{
-						"actions": m{
-							"rollover": m{
-								"max_size": "50gb",
-								"max_age":  "1d",
+			policyStr: m{
+				phasesStr: m{
+					hotStr: m{
+						actionsStr: m{
+							rolloverStr: m{
+								maxSizeStr: "50gb",
+								maxAgeStr:  "1d",
 							},
-							"set_priority": m{
-								"priority": 100,
+							setPriorityStr: m{
+								priorityStr: 100,
 							},
 						},
 					},
-					"warm": m{
-						"min_age": "7d",
-						"actions": m{
-							"set_priority": m{
-								"priority": 50,
+					warmStr: m{
+						minAgeStr: "7d",
+						actionsStr: m{
+							setPriorityStr: m{
+								priorityStr: 50,
 							},
-							"readonly": m{},
+							readonlyStr: m{},
 						},
 					},
 				},

@@ -35,67 +35,67 @@ import (
 
 func TestManager_VerifySetup(t *testing.T) {
 	for name, setup := range map[string]struct {
-		tmpl              bool
-		ilm               string
-		loadTmpl, loadILM libidxmgmt.LoadMode
-		version           string
-		esCfg             common.MapStr
+		templateEnabled       bool
+		ilmEnabled            string
+		loadTemplate, loadILM libidxmgmt.LoadMode
+		version               string
+		esCfg                 common.MapStr
 
 		ok   bool
 		warn string
 	}{
 		"LoadTemplateWithoutILM": {
-			ilm: "true", loadILM: libidxmgmt.LoadModeDisabled,
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeDisabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
 			warn: "whithout loading ILM policy and alias",
 		},
 		"LoadILMWithoutTemplate": {
-			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
-			loadTmpl: libidxmgmt.LoadModeEnabled,
-			warn:     "without loading template is not recommended",
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			loadTemplate: libidxmgmt.LoadModeEnabled,
+			warn:         "without loading template is not recommended",
 		},
 		"SetupTemplateDisabled": {
-			ilm: "false", loadILM: libidxmgmt.LoadModeEnabled,
-			loadTmpl: libidxmgmt.LoadModeEnabled,
-			warn:     "loading not enabled",
+			ilmEnabled: "false", loadILM: libidxmgmt.LoadModeEnabled,
+			loadTemplate: libidxmgmt.LoadModeEnabled,
+			warn:         "loading not enabled",
 		},
 		"SetupILMDisabled": {
-			ilm: "false", loadILM: libidxmgmt.LoadModeEnabled,
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
+			ilmEnabled: "false", loadILM: libidxmgmt.LoadModeEnabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
 			warn: "loading not enabled",
 		},
 		"LoadILMDisabled": {
-			ilm: "true", loadILM: libidxmgmt.LoadModeDisabled,
-			loadTmpl: libidxmgmt.LoadModeEnabled,
-			warn:     "loading not enabled",
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeDisabled,
+			loadTemplate: libidxmgmt.LoadModeEnabled,
+			warn:         "loading not enabled",
 		},
 		"LoadTemplateDisabled": {
-			ilm: "false", loadILM: libidxmgmt.LoadModeEnabled,
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeDisabled,
+			ilmEnabled: "false", loadILM: libidxmgmt.LoadModeEnabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeDisabled,
 			warn: "loading not enabled",
 		},
 		"ILMEnabledButUnsupported": {
-			version: "6.2.0",
-			ilm:     "true", loadILM: libidxmgmt.LoadModeEnabled,
-			loadTmpl: libidxmgmt.LoadModeEnabled,
-			warn:     msgErrIlmDisabledES,
+			version:    "6.2.0",
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			loadTemplate: libidxmgmt.LoadModeEnabled,
+			warn:         msgErrIlmDisabledES,
 		},
 		"ILMAutoButUnsupported": {
-			loadTmpl: libidxmgmt.LoadModeEnabled,
-			version:  "6.2.0",
-			tmpl:     true,
-			ilm:      "auto", loadILM: libidxmgmt.LoadModeEnabled,
+			loadTemplate:    libidxmgmt.LoadModeEnabled,
+			version:         "6.2.0",
+			templateEnabled: true,
+			ilmEnabled:      "auto", loadILM: libidxmgmt.LoadModeEnabled,
 			warn: msgIlmDisabledES,
 		},
 		"ILMAutoCustomIndex": {
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
-			ilm: "auto", loadILM: libidxmgmt.LoadModeEnabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
+			ilmEnabled: "auto", loadILM: libidxmgmt.LoadModeEnabled,
 			esCfg: common.MapStr{"output.elasticsearch.index": "custom"},
 			warn:  msgIlmDisabledCfg,
 		},
 		"ILMAutoCustomIndices": {
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
-			ilm: "auto", loadILM: libidxmgmt.LoadModeEnabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
+			ilmEnabled: "auto", loadILM: libidxmgmt.LoadModeEnabled,
 			esCfg: common.MapStr{"output.elasticsearch.indices": []common.MapStr{{
 				"index": "apm-custom-%{[observer.version]}-metric",
 				"when": map[string]interface{}{
@@ -103,29 +103,29 @@ func TestManager_VerifySetup(t *testing.T) {
 			warn: msgIlmDisabledCfg,
 		},
 		"ILMTrueCustomIndex": {
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
-			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
 			esCfg: common.MapStr{"output.elasticsearch.index": "custom"},
 			warn:  msgIdxCfgIgnored,
 		},
 		"LogstashOutput": {
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
-			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
 			esCfg: common.MapStr{
 				"output.elasticsearch.enabled": false,
 				"output.logstash.enabled":      true},
 			warn: "automatically disabled ILM",
 		},
 		"EverythingEnabled": {
-			tmpl: true, loadTmpl: libidxmgmt.LoadModeEnabled,
-			ilm: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
 			ok: true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := common.MapStr{
-				"apm-server.ilm.enabled": setup.ilm,
-				"setup.template.enabled": setup.tmpl,
+				"apm-server.ilm.enabled": setup.ilmEnabled,
+				"setup.template.enabled": setup.templateEnabled,
 			}
 			if setup.esCfg != nil {
 				c.DeepUpdate(setup.esCfg)
@@ -136,7 +136,7 @@ func TestManager_VerifySetup(t *testing.T) {
 				version = "7.0.0"
 			}
 			manager := support.Manager(newMockClientHandler(version), nil)
-			ok, warn := manager.VerifySetup(setup.loadTmpl, setup.loadILM)
+			ok, warn := manager.VerifySetup(setup.loadTemplate, setup.loadILM)
 			require.Equal(t, setup.ok, ok, warn)
 			assert.Contains(t, warn, setup.warn)
 		})
@@ -147,73 +147,74 @@ func TestManager_Setup(t *testing.T) {
 	fields := []byte("apm-server fields")
 
 	type testCase struct {
-		cfg            common.MapStr
-		tLoad, ilmLoad libidxmgmt.LoadMode
+		cfg                   common.MapStr
+		loadTemplate, loadILM libidxmgmt.LoadMode
 
-		tCt, tWithILMCt, pCt, aCt int
-		version                   string
-		err                       error
+		templateLoadedCt, templateWithILMLoadedCt int
+		policyLoadedCt, aliasLoadedCt             int
+		version                                   string
+		err                                       error
 	}
 
 	var testCasesEnabled = map[string]testCase{
 		"Default": {
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 2, aCt: 3,
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4, policyLoadedCt: 2, aliasLoadedCt: 3,
 		},
 		"LoadTemplateAndILM": {
-			cfg:   common.MapStr{"apm-server.ilm.enabled": true},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 2, aCt: 3,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": true},
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4, policyLoadedCt: 2, aliasLoadedCt: 3,
 		},
 		"DisabledILM": {
-			cfg:   common.MapStr{"apm-server.ilm.enabled": false},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 4,
+			cfg:          common.MapStr{"apm-server.ilm.enabled": false},
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 4,
 		},
 		"DisabledTemplate": {
-			cfg:   common.MapStr{"setup.template.enabled": false},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			pCt: 2, aCt: 3,
+			cfg:          common.MapStr{"setup.template.enabled": false},
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
+			policyLoadedCt: 2, aliasLoadedCt: 3,
 		},
 		"DisabledTemplateAndILM": {
-			cfg:   common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
+			cfg:          common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
 		},
 		"LoadModeDisabledILM": {
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeDisabled,
-			tCt: 4, tWithILMCt: 3,
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeDisabled,
+			templateLoadedCt: 4, templateWithILMLoadedCt: 3,
 		},
 		"LoadModeDisabledTemplate": {
-			tLoad: libidxmgmt.LoadModeDisabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			pCt: 2, aCt: 3,
+			loadTemplate: libidxmgmt.LoadModeDisabled, loadILM: libidxmgmt.LoadModeEnabled,
+			policyLoadedCt: 2, aliasLoadedCt: 3,
 		},
 		"LoadModeDisabledTemplateAndILM": {
-			tLoad:   libidxmgmt.LoadModeDisabled,
-			ilmLoad: libidxmgmt.LoadModeDisabled,
+			loadTemplate: libidxmgmt.LoadModeDisabled,
+			loadILM:      libidxmgmt.LoadModeDisabled,
 		},
 	}
 
 	var testCasesOverwrite = map[string]testCase{
 		"OverwriteILM": {
-			cfg:   common.MapStr{"apm-server.ilm.overwrite": true},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
+			cfg:          common.MapStr{"apm-server.ilm.overwrite": true},
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4, policyLoadedCt: 4, aliasLoadedCt: 3,
 		},
 		"OverwriteTemplate": {
-			cfg:   common.MapStr{"setup.template.overwrite": true},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 2, aCt: 3,
+			cfg:          common.MapStr{"setup.template.overwrite": true},
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4, policyLoadedCt: 2, aliasLoadedCt: 3,
 		},
 		"OverwriteTemplateAndILM": {
-			cfg:   common.MapStr{"setup.template.overwrite": true, "apm-server.ilm.overwrite": true},
-			tLoad: libidxmgmt.LoadModeEnabled, ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt: 5, tWithILMCt: 4, pCt: 4, aCt: 3,
+			cfg:          common.MapStr{"setup.template.overwrite": true, "apm-server.ilm.overwrite": true},
+			loadTemplate: libidxmgmt.LoadModeEnabled, loadILM: libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4, policyLoadedCt: 4, aliasLoadedCt: 3,
 		},
 	}
 
 	var testCasesLoadModeUnset = map[string]testCase{
 		"DefaultLoadModeUnset": {
-			tCt: 0, tWithILMCt: 0, pCt: 0, aCt: 0,
+			templateLoadedCt: 0, templateWithILMLoadedCt: 0, policyLoadedCt: 0, aliasLoadedCt: 0,
 		},
 	}
 
@@ -221,26 +222,26 @@ func TestManager_Setup(t *testing.T) {
 		// used for `./apm-server setup template`, `apm-server setup index-managemet`
 
 		"DisabledILMAndTemplateLoadModeOverwrite": {
-			cfg:     common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
-			tLoad:   libidxmgmt.LoadModeOverwrite,
-			ilmLoad: libidxmgmt.LoadModeOverwrite,
+			cfg:          common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
+			loadTemplate: libidxmgmt.LoadModeOverwrite,
+			loadILM:      libidxmgmt.LoadModeOverwrite,
 		},
 		"LoadModeOverwriteTemplateLoadModeDisabledILM": {
 			// used for `./apm-server setup template`
-			tLoad:   libidxmgmt.LoadModeOverwrite,
-			ilmLoad: libidxmgmt.LoadModeDisabled,
-			tCt:     5, tWithILMCt: 4,
+			loadTemplate:     libidxmgmt.LoadModeOverwrite,
+			loadILM:          libidxmgmt.LoadModeDisabled,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4,
 		},
 		"LoadModeOverwriteILMLoadModeDisabledTemplate": {
-			tLoad:   libidxmgmt.LoadModeDisabled,
-			ilmLoad: libidxmgmt.LoadModeOverwrite,
-			pCt:     4, aCt: 3,
+			loadTemplate:   libidxmgmt.LoadModeDisabled,
+			loadILM:        libidxmgmt.LoadModeOverwrite,
+			policyLoadedCt: 4, aliasLoadedCt: 3,
 		},
 		"LoadModeOverwrite": {
 			// used for `./apm-server setup template`, `apm-server setup index-managemet`
-			tLoad:   libidxmgmt.LoadModeOverwrite,
-			ilmLoad: libidxmgmt.LoadModeOverwrite,
-			tCt:     5, tWithILMCt: 4, pCt: 4, aCt: 3,
+			loadTemplate:     libidxmgmt.LoadModeOverwrite,
+			loadILM:          libidxmgmt.LoadModeOverwrite,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4, policyLoadedCt: 4, aliasLoadedCt: 3,
 		},
 	}
 
@@ -248,54 +249,54 @@ func TestManager_Setup(t *testing.T) {
 		// used for `./apm-server export template`
 
 		"LoadModeForceTemplateLoadModeDisabledILM": {
-			cfg:     common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
-			tLoad:   libidxmgmt.LoadModeForce,
-			ilmLoad: libidxmgmt.LoadModeDisabled,
-			tCt:     5,
+			cfg:              common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
+			loadTemplate:     libidxmgmt.LoadModeForce,
+			loadILM:          libidxmgmt.LoadModeDisabled,
+			templateLoadedCt: 5,
 		},
 		"LoadModeForceILMLoadModeDisabledTemplate": {
 			// used for `./apm-server export ilm-policy`
-			cfg:     common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
-			tLoad:   libidxmgmt.LoadModeDisabled,
-			ilmLoad: libidxmgmt.LoadModeForce,
-			pCt:     4, aCt: 3,
+			cfg:            common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
+			loadTemplate:   libidxmgmt.LoadModeDisabled,
+			loadILM:        libidxmgmt.LoadModeForce,
+			policyLoadedCt: 4, aliasLoadedCt: 3,
 		},
 		"LoadModeForceWhenDisabled": {
-			cfg:     common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
-			tLoad:   libidxmgmt.LoadModeForce,
-			ilmLoad: libidxmgmt.LoadModeForce,
-			tCt:     5, tWithILMCt: 4, pCt: 4, aCt: 3,
+			cfg:              common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
+			loadTemplate:     libidxmgmt.LoadModeForce,
+			loadILM:          libidxmgmt.LoadModeForce,
+			templateLoadedCt: 5, templateWithILMLoadedCt: 4, policyLoadedCt: 4, aliasLoadedCt: 3,
 		},
 	}
 
 	var testCasesILMNotSupportedByES = map[string]testCase{
 		"DisabledAndUnsupportedILM": {
-			version: "6.2.0",
-			cfg:     common.MapStr{"apm-server.ilm.enabled": false},
-			tLoad:   libidxmgmt.LoadModeEnabled,
-			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     4,
+			version:          "6.2.0",
+			cfg:              common.MapStr{"apm-server.ilm.enabled": false},
+			loadTemplate:     libidxmgmt.LoadModeEnabled,
+			loadILM:          libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 4,
 		},
 		"AutoAndUnsupportedILM": {
-			version: "6.2.0",
-			cfg:     common.MapStr{"apm-server.ilm.enabled": "auto"},
-			tLoad:   libidxmgmt.LoadModeEnabled,
-			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     4,
+			version:          "6.2.0",
+			cfg:              common.MapStr{"apm-server.ilm.enabled": "auto"},
+			loadTemplate:     libidxmgmt.LoadModeEnabled,
+			loadILM:          libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 4,
 		},
 		"EnabledAndUnsupportedILM": {
-			version: "6.2.0",
-			cfg:     common.MapStr{"apm-server.ilm.enabled": true},
-			tLoad:   libidxmgmt.LoadModeEnabled,
-			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     4,
+			version:          "6.2.0",
+			cfg:              common.MapStr{"apm-server.ilm.enabled": true},
+			loadTemplate:     libidxmgmt.LoadModeEnabled,
+			loadILM:          libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 4,
 		},
 		"ForceModeWhenUnsupportedILM": {
-			version: "6.2.0",
-			cfg:     common.MapStr{"apm-server.ilm.enabled": true},
-			tLoad:   libidxmgmt.LoadModeForce,
-			ilmLoad: libidxmgmt.LoadModeForce,
-			tCt:     5,
+			version:          "6.2.0",
+			cfg:              common.MapStr{"apm-server.ilm.enabled": true},
+			loadTemplate:     libidxmgmt.LoadModeForce,
+			loadILM:          libidxmgmt.LoadModeForce,
+			templateLoadedCt: 5,
 		},
 	}
 	var testCasesILMNotSupportedByIndexSettings = map[string]testCase{
@@ -305,9 +306,9 @@ func TestManager_Setup(t *testing.T) {
 				"setup.template.name":        "custom",
 				"setup.template.pattern":     "custom",
 				"output.elasticsearch.index": "custom"},
-			tLoad:   libidxmgmt.LoadModeEnabled,
-			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     4,
+			loadTemplate:     libidxmgmt.LoadModeEnabled,
+			loadILM:          libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 4,
 		},
 		"ESIndicesConfigured": {
 			cfg: common.MapStr{
@@ -318,9 +319,9 @@ func TestManager_Setup(t *testing.T) {
 					"index": "apm-custom-%{[observer.version]}-metric",
 					"when": map[string]interface{}{
 						"contains": map[string]interface{}{"processor.event": "metric"}}}}},
-			tLoad:   libidxmgmt.LoadModeEnabled,
-			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     4,
+			loadTemplate:     libidxmgmt.LoadModeEnabled,
+			loadILM:          libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 4,
 		},
 	}
 
@@ -333,9 +334,9 @@ func TestManager_Setup(t *testing.T) {
 						{"event_type": "error", "policy": "foo"},
 						{"event_type": "transaction", "policy": "bar"}},
 				}},
-			tLoad:   libidxmgmt.LoadModeEnabled,
-			ilmLoad: libidxmgmt.LoadModeEnabled,
-			tCt:     4, tWithILMCt: 3, pCt: 1, aCt: 3,
+			loadTemplate:     libidxmgmt.LoadModeEnabled,
+			loadILM:          libidxmgmt.LoadModeEnabled,
+			templateLoadedCt: 4, templateWithILMLoadedCt: 3, policyLoadedCt: 1, aliasLoadedCt: 3,
 		},
 	}
 
@@ -356,10 +357,10 @@ func TestManager_Setup(t *testing.T) {
 					version = "7.2.0"
 				}
 
-				ch := newMockClientHandler(version)
-				m := defaultSupporter(t, tc.cfg).Manager(ch, libidxmgmt.BeatsAssets(fields))
-				idxManager := m.(*manager)
-				err := idxManager.Setup(tc.tLoad, tc.ilmLoad)
+				clientHandler := newMockClientHandler(version)
+				m := defaultSupporter(t, tc.cfg).Manager(clientHandler, libidxmgmt.BeatsAssets(fields))
+				indexManager := m.(*manager)
+				err := indexManager.Setup(tc.loadTemplate, tc.loadILM)
 				if tc.err == nil {
 					require.NoError(t, err)
 				} else {
@@ -367,13 +368,13 @@ func TestManager_Setup(t *testing.T) {
 					assert.Equal(t, ErrILMNotSupported, err)
 				}
 
-				assert.Equal(t, tc.pCt, len(ch.policies), "policies")
-				assert.Equal(t, tc.aCt, len(ch.aliases), "aliases")
-				require.Equal(t, tc.tCt, ch.tmplLoadCt, "templates")
-				assert.Equal(t, tc.tWithILMCt, ch.tmplLoadWithILMCt, "ILM templates")
-				if tc.tCt > 0 {
-					assert.Equal(t, 1, ch.tmplLoadCt-ch.tmplOrderILMCt, "order template")
-					assert.Equal(t, tc.tCt-1, ch.tmplOrderILMCt, "order ILM template")
+				assert.Equal(t, tc.policyLoadedCt, len(clientHandler.policies), "policies")
+				assert.Equal(t, tc.aliasLoadedCt, len(clientHandler.aliases), "aliases")
+				require.Equal(t, tc.templateLoadedCt, clientHandler.templateLoadedCt, "templates")
+				assert.Equal(t, tc.templateWithILMLoadedCt, clientHandler.templateWithILMLoadedCt, "ILM templates")
+				if tc.templateLoadedCt > 0 {
+					assert.Equal(t, 1, clientHandler.templateLoadedCt-clientHandler.templateILMOrderCt, "order template")
+					assert.Equal(t, tc.templateLoadedCt-1, clientHandler.templateILMOrderCt, "order ILM template")
 				}
 			})
 		}
@@ -391,9 +392,9 @@ type mockClientHandler struct {
 
 	aliases, policies []string
 
-	tmplLoadCt, tmplLoadWithILMCt int
-	tmplOrderILMCt                int
-	tmplForce                     bool
+	templateLoadedCt, templateWithILMLoadedCt int
+	templateILMOrderCt                        int
+	templateForceLoad                         bool
 
 	esVersion *common.Version
 }
@@ -411,20 +412,20 @@ func (h *mockClientHandler) Load(config template.TemplateConfig, _ beat.Info, fi
 	if strings.Contains(config.Name, "transaction") && !config.Overwrite {
 		return nil
 	}
-	h.tmplLoadCt++
+	h.templateLoadedCt++
 	if config.Settings.Index != nil && config.Settings.Index["lifecycle.name"] != nil {
-		h.tmplLoadWithILMCt++
+		h.templateWithILMLoadedCt++
 		if len(fields) > 0 {
 			return errors.New("fields should be empty")
 		}
 	}
 	if config.Order == 2 {
-		h.tmplOrderILMCt++
+		h.templateILMOrderCt++
 	}
 	if config.Order != 1 && config.Order != 2 {
 		return errors.New("unexpected template order")
 	}
-	h.tmplForce = config.Overwrite
+	h.templateForceLoad = config.Overwrite
 	return nil
 }
 
@@ -453,7 +454,6 @@ func (h *mockClientHandler) CreateAlias(alias libilm.Alias) error {
 }
 
 func (h *mockClientHandler) HasILMPolicy(name string) (bool, error) {
-	fmt.Println(name)
 	return name == existingILMPolicy, nil
 }
 

@@ -29,11 +29,11 @@ type Config struct {
 	Mode          libilm.Mode `config:"enabled"`
 	Overwrite     bool        `config:"overwrite"`
 	RequirePolicy bool        `config:"require_policy"`
-	Policies      []Policy
+	Policies      []EventPolicy
 }
 
-//Policy binds together an ILM policy's name and body with an event type
-type Policy struct {
+//EventPolicy binds together an ILM policy's name and body with an event type
+type EventPolicy struct {
 	Policy    map[string]interface{}
 	EventType string
 	Name      string
@@ -45,25 +45,25 @@ func (c *Config) Enabled() bool {
 }
 
 //NewConfig returns an ILM config, where default configuration is merged with user configuration
-func NewConfig(ucfg *common.Config) (Config, error) {
+func NewConfig(inputConfig *common.Config) (Config, error) {
 	policies := policyPool()
 	policyMappings := policyMapping()
 	c := defaultConfig()
-	if ucfg != nil {
-		if err := ucfg.Unpack(&c); err != nil {
+	if inputConfig != nil {
+		if err := inputConfig.Unpack(&c); err != nil {
 			return Config{}, err
 		}
 
-		var cfg config
-		if err := ucfg.Unpack(&cfg); err != nil {
+		var tmpConfig config
+		if err := inputConfig.Unpack(&tmpConfig); err != nil {
 			return Config{}, err
 		}
 		// create a collection of default and configured policies
-		for name, policy := range cfg.Policies {
+		for name, policy := range tmpConfig.Policies {
 			policies[name] = policy
 		}
 		//update policy name per event according to configuration
-		for _, entry := range cfg.Mapping {
+		for _, entry := range tmpConfig.Mapping {
 			if _, ok := policyMappings[entry.Event]; !ok {
 				return c, errors.Errorf("event_type '%s' not supported for ILM setup", entry.Event)
 			}
@@ -79,7 +79,7 @@ func NewConfig(ucfg *common.Config) (Config, error) {
 			}
 			policy = nil
 		}
-		c.Policies = append(c.Policies, Policy{EventType: event, Policy: policy, Name: policyName})
+		c.Policies = append(c.Policies, EventPolicy{EventType: event, Policy: policy, Name: policyName})
 	}
 	return c, nil
 }
@@ -128,7 +128,7 @@ func (p *policies) Unpack(i interface{}) error {
 		if !ok {
 			return errPolicyFmt
 		}
-		(*p)[k] = prepare(policy(inpP))
+		(*p)[k] = prepare(inpP)
 	}
 	return nil
 }

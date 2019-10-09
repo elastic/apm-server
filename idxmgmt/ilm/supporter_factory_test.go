@@ -30,7 +30,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 	info := beat.Info{Beat: "mockapm", Version: "9.9.9"}
 
 	t.Run("missing index", func(t *testing.T) {
-		cfg := Config{Policies: []Policy{{EventType: "abc", Policy: map[string]interface{}{}}}}
+		cfg := Config{Policies: []EventPolicy{{EventType: "abc", Policy: map[string]interface{}{}}}}
 		indexNames := map[string]string{}
 		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
 		assert.Nil(t, s)
@@ -38,7 +38,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.Contains(t, err.Error(), "index name missing")
 	})
 	t.Run("invalid index name", func(t *testing.T) {
-		cfg := Config{Policies: []Policy{{EventType: "error", Policy: map[string]interface{}{}}}}
+		cfg := Config{Policies: []EventPolicy{{EventType: "error", Policy: map[string]interface{}{}}}}
 		indexNames := map[string]string{"error": "%{[xyz.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}"}
 		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
 		assert.Nil(t, s)
@@ -46,7 +46,7 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.Contains(t, err.Error(), "key not found")
 	})
 	t.Run("valid", func(t *testing.T) {
-		cfg := Config{Policies: []Policy{
+		cfg := Config{Policies: []EventPolicy{
 			{EventType: "error", Policy: map[string]interface{}{"a": "b"}, Name: "foo"},
 			{EventType: "transaction", Policy: map[string]interface{}{"b": "c"}},
 		}}

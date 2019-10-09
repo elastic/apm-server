@@ -30,7 +30,7 @@ import (
 func TestConfig_Default(t *testing.T) {
 	c, err := NewConfig(nil)
 	require.NoError(t, err)
-	defaultPolicies := []Policy{
+	defaultPolicies := []EventPolicy{
 		{EventType: "error", Policy: policyPool()[rollover1Day], Name: rollover1Day},
 		{EventType: "span", Policy: policyPool()[rollover1Day], Name: rollover1Day},
 		{EventType: "transaction", Policy: policyPool()[rollover7Days], Name: rollover7Days},
@@ -96,7 +96,7 @@ func TestConfig_RequirePolicy(t *testing.T) {
 
 func TestConfig_Policies(t *testing.T) {
 
-	findPolicy := func(p []Policy, name string) map[string]interface{} {
+	findPolicy := func(p []EventPolicy, name string) map[string]interface{} {
 		for _, entry := range p {
 			if entry.EventType == name {
 				return entry.Policy
