@@ -204,6 +204,9 @@
                     "region_name": "Indiana"
                 }
             },
+            "source": {
+                "ip": "12.53.12.1"
+            },
             "url": {
                 "domain": "www.example.com",
                 "fragment": "#hash",
