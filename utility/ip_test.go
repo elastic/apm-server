@@ -121,3 +121,19 @@ func BenchmarkExtractIP(b *testing.B) {
 		})
 	}
 }
+
+func TestParseHost(t *testing.T) {
+	for name, tc := range map[string]struct {
+		inp  string
+		host string
+	}{
+		"IPv4":         {inp: "192.0.0.1", host: "192.0.0.1"},
+		"IPv4WithPort": {inp: "192.0.0.1:8080", host: "192.0.0.1"},
+		"IPv6":         {inp: "2001:db8::68", host: "2001:db8::68"},
+		"Invalid":      {inp: "192.0.1", host: ""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.host, ParseHost(tc.inp))
+		})
+	}
+}
