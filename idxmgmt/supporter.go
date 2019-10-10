@@ -118,9 +118,11 @@ func newSupporter(
 	}, nil
 }
 
-// Enabled indicates whether template or ilm setup is set to enabled in config.
+// Enabled indicates whether or not a callback should be registered to take care of setup.
+// As long as ILM is enabled, this needs to return true, even if ilm.setup.enabled is set to false.
+// The callback will not set up anything for ILM in that case, but signal the index selector that the setup is finished.
 func (s *supporter) Enabled() bool {
-	return s.templateConfig.Enabled || s.ilmConfig.Enabled()
+	return s.templateConfig.Enabled || s.ilmConfig.Setup.Enabled || s.ilmConfig.Mode != libilm.ModeDisabled
 }
 
 // Manager instance takes only care of the setup.

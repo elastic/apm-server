@@ -81,6 +81,10 @@ apm-server:
   ilm.enabled: {{ ilm_enabled }}
   {% endif %}
 
+  {% if ilm_setup_enabled %}
+  ilm.setup.managed: {{ ilm_setup_enabled }}
+  {% endif %}
+
   {% if kibana_enabled is not none or kibana_host is not none %}
   kibana:
     {% if kibana_enabled is not none %}enabled: {{ kibana_enabled }}{% endif %}

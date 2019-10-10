@@ -30,66 +30,57 @@ import (
 func TestConfig_Default(t *testing.T) {
 	c, err := NewConfig(nil)
 	require.NoError(t, err)
-	defaultPolicies := []EventPolicy{
-		{EventType: "error", Policy: policyPool()[rollover1Day], Name: rollover1Day},
-		{EventType: "span", Policy: policyPool()[rollover1Day], Name: rollover1Day},
-		{EventType: "transaction", Policy: policyPool()[rollover7Days], Name: rollover7Days},
-		{EventType: "metric", Policy: policyPool()[rollover7Days], Name: rollover7Days},
-	}
 	assert.Equal(t, libilm.ModeAuto, c.Mode)
-	assert.False(t, c.Overwrite)
-	assert.True(t, c.RequirePolicy)
-	assert.ObjectsAreEqual(defaultPolicies, c.Policies)
+	assert.True(t, c.Setup.Enabled)
+	assert.True(t, c.Setup.RequirePolicy)
+	assert.ObjectsAreEqual(defaultPolicies(), c.Setup.Policies)
 }
 
 func TestConfig_Mode(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg  m
+		cfg  map[string]interface{}
 		mode libilm.Mode
 	}{
-		"default":  {m{}, libilm.ModeAuto},
-		"disabled": {m{"enabled": false}, libilm.ModeDisabled},
-		"enabled":  {m{"enabled": true}, libilm.ModeEnabled},
+		"default":  {map[string]interface{}{}, libilm.ModeAuto},
+		"disabled": {map[string]interface{}{"enabled": false}, libilm.ModeDisabled},
+		"enabled":  {map[string]interface{}{"enabled": true}, libilm.ModeEnabled},
 	} {
 		t.Run(name, func(t *testing.T) {
-			ucfg := common.MustNewConfigFrom(tc.cfg)
-			c, err := NewConfig(ucfg)
+			c, err := NewConfig(common.MustNewConfigFrom(tc.cfg))
 			require.NoError(t, err)
 			assert.Equal(t, tc.mode, c.Mode)
 		})
 	}
 }
 
-func TestConfig_Overwrite(t *testing.T) {
+func TestConfig_SetupEnabled(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg       m
-		overwrite bool
+		cfg     map[string]interface{}
+		enabled bool
 	}{
-		"default": {m{}, false},
-		"enabled": {m{"overwrite": true}, true},
+		"default":  {map[string]interface{}{}, true},
+		"disabled": {map[string]interface{}{"enabled": false}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			ucfg := common.MustNewConfigFrom(tc.cfg)
-			c, err := NewConfig(ucfg)
+			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.NoError(t, err)
-			assert.Equal(t, tc.overwrite, c.Overwrite)
+			assert.Equal(t, tc.enabled, c.Setup.Enabled)
 		})
 	}
 }
 
 func TestConfig_RequirePolicy(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg      m
+		cfg      map[string]interface{}
 		required bool
 	}{
-		"default":      {m{}, true},
-		"not required": {m{"require_policy": false}, false},
+		"default":      {map[string]interface{}{}, true},
+		"not required": {map[string]interface{}{"require_policy": false}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			ucfg := common.MustNewConfigFrom(tc.cfg)
-			c, err := NewConfig(ucfg)
+			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.NoError(t, err)
-			assert.Equal(t, tc.required, c.RequirePolicy)
+			assert.Equal(t, tc.required, c.Setup.RequirePolicy)
 		})
 	}
 }
@@ -104,54 +95,77 @@ func TestConfig_Policies(t *testing.T) {
 		}
 		return nil
 	}
-	deletePolicy := m{"policy": m{"phases": m{"delete": nil}}}
 
 	for name, tc := range map[string]struct {
 		event  string
-		cfg    m
+		cfg    map[string]interface{}
 		policy map[string]interface{}
 	}{
 		"assign different default policy": {
 			"error",
-			m{"mapping": []m{{"event_type": "error", "policy": rollover7Days}}},
+			map[string]interface{}{
+				"mapping": []map[string]interface{}{{"event_type": "error", "policy_name": rollover7Days}}},
 			policyPool()[rollover7Days]},
 		"change default policy": {
 			"transaction",
-			m{"policies": map[string]m{rollover7Days: deletePolicy}},
+			map[string]interface{}{
+				"policies": []map[string]interface{}{{
+					"name":   rollover7Days,
+					"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": nil}}}}},
 			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
 		"assign new policy": {
 			"span",
-			m{"mapping": []m{{"event_type": "span", "policy": "delete-7-days"}},
-				"policies": map[string]m{"delete-7-days": deletePolicy}},
+			map[string]interface{}{
+				"mapping": []map[string]interface{}{{"event_type": "span", "policy_name": "delete-7-days"}},
+				"policies": []map[string]interface{}{{
+					"name":   "delete-7-days",
+					"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": nil}}}}},
 			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
 		"reference missing policy": {
 			"span",
-			m{"require_policy": false, "mapping": []m{{"event_type": "span", "policy": "foo"}}},
+			map[string]interface{}{
+				"require_policy": false,
+				"mapping":        []map[string]interface{}{{"event_type": "span", "policy_name": "foo"}}},
 			nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			ucfg := common.MustNewConfigFrom(tc.cfg)
-			c, err := NewConfig(ucfg)
+			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.NoError(t, err)
-			assert.Equal(t, tc.policy, findPolicy(c.Policies, tc.event))
+			assert.Equal(t, tc.policy, findPolicy(c.Setup.Policies, tc.event))
+		})
+
+		t.Run("unmanaged "+name, func(t *testing.T) {
+			tc.cfg["enabled"] = false
+			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+			require.NoError(t, err)
+			assert.ObjectsAreEqual(defaultPolicies(), c.Setup.Policies)
+
 		})
 	}
 }
 
 func TestConfig_Invalid(t *testing.T) {
 	for name, tc := range map[string]struct {
-		cfg    m
+		cfg    map[string]interface{}
 		errMsg string
 	}{
-		"invalid event_type": {m{"mapping": []m{{"event_type": "xyz", "policy": rollover7Days}}}, "event_type 'xyz' not supported"},
-		"invalid policy":     {m{"mapping": []m{{"event_type": "span", "policy": "xyz"}}}, "policy 'xyz' not configured"},
+		"invalid event_type": {map[string]interface{}{"mapping": []map[string]interface{}{{"event_type": "xyz", "policy_name": rollover7Days}}}, "event_type 'xyz' not supported"},
+		"invalid policy":     {map[string]interface{}{"mapping": []map[string]interface{}{{"event_type": "span", "policy_name": "xyz"}}}, "policy 'xyz' not configured"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			ucfg := common.MustNewConfigFrom(tc.cfg)
-			_, err := NewConfig(ucfg)
+			_, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tc.errMsg)
 		})
 	}
 
+}
+
+func defaultPolicies() []EventPolicy {
+	return []EventPolicy{
+		{EventType: "error", Policy: policyPool()[rollover1Day], Name: rollover1Day},
+		{EventType: "span", Policy: policyPool()[rollover1Day], Name: rollover1Day},
+		{EventType: "transaction", Policy: policyPool()[rollover7Days], Name: rollover7Days},
+		{EventType: "metric", Policy: policyPool()[rollover7Days], Name: rollover7Days},
+	}
 }

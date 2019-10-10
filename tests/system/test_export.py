@@ -117,67 +117,6 @@ class TestExportTemplate(SubCommandTest):
         assert len(template['mappings']) > 0
         assert template['order'] == 1
 
-    def test_export_event_templates_to_file(self):
-        """
-        Test export default event templates without ILM
-        """
-        for e in ['error', 'span', 'transaction', 'metric']:
-            name = "{}-{}".format(self.index_name, e)
-            file = os.path.join(self.dir, "template", name + '.json')
-            with open(file) as f:
-                template = json.load(f)
-            assert template['index_patterns'] == [name + '*']
-            assert template['settings']['index'] == None
-            assert 'mapping' not in template
-            assert template['order'] == 2
-
-
-class TestExportTemplateWithILM(SubCommandTest):
-    """
-    Test export template with ilm
-    """
-
-    def start_args(self):
-        return {
-            "extra_args": ["export", "template", "--dir", self.dir,
-                           "-E", "apm-server.ilm.enabled=true",
-                           "-E", "output.elasticsearch.enabled=true"],
-        }
-
-    def setUp(self):
-        self.dir = os.path.abspath(os.path.join(self.beat_path, os.path.dirname(__file__), "test-export-template-ilm"))
-        super(TestExportTemplateWithILM, self).setUp()
-
-    def tearDown(self):
-        shutil.rmtree(self.dir)
-
-    def test_export_template_to_file(self):
-        """
-        Test export default ilm policy
-        """
-        file = os.path.join(self.dir, "template", self.index_name + '.json')
-        with open(file) as f:
-            template = json.load(f)
-        assert template['index_patterns'] == [self.index_name + '*']
-        assert len(template['mappings']) > 0
-        assert template['order'] == 1
-
-    def test_export_event_templates_to_file(self):
-        """
-        Test export default event templates
-        """
-        for e in ['error', 'span', 'transaction', 'metric']:
-            name = "{}-{}".format(self.index_name, e)
-            file = os.path.join(self.dir, "template", name + '.json')
-            with open(file) as f:
-                template = json.load(f)
-            assert template['index_patterns'] == [name + '*']
-            assert template['settings']['index'] is not None
-            assert template['settings']['index']['lifecycle.name'] is not None
-            assert template['settings']['index']['lifecycle.rollover_alias'] == name
-            assert 'mapping' not in template
-            assert template['order'] == 2
-
 
 class TestExportILMPolicy(SubCommandTest):
     """

@@ -260,28 +260,34 @@ apm-server:
     # Default value is `auto`.
     #enabled: "auto"
 
-    # Set `overwrite` to true for updating already existing ILM setup, including policies and templates. Default value is `false`.
-    #overwrite: false
+    #setup:
+      # Do only disable setup if you want to setup everything related to managed indices on your own.
+      # When setup is enabled, the APM Server creates aliases, event type specific settings and policies.
+      # This is also important when ILM itself is disabled, as the templates need to be changed accordingly.
+      # Be aware that if you turn off setup, you need to manually manage event type specific templates on your own.
+      # If you simply want to disable ILM, use the above setting `ilm.enabled`.
+      # Defaults to true.
+      #enabled: true
 
-    # Set `require_policy` to `false` when policies are set up outside of APM Server but referenced here.
-    # Default value is `true`.
-    #require_policy: true
+      # Set `require_policy` to `false` when policies are set up outside of APM Server but referenced here.
+      # Default value is `true`.
+      #require_policy: true
 
-    # The configured event types and policies will be merged with the default policies.
-    #mapping:
-      #- event_type: "error"
-      #  policy: "rollover-1-day"
-      #- event_type: "span"
-      #  policy: "rollover-1-day"
-      #- event_type: "transaction"
-      #  policy: "rollover-7-days"
-      #- event_type: "metric"
-      #  policy: "rollover-7-days"
+      # The configured event types and policies will be merged with the default policies.
+      #mapping:
+        #- event_type: "error"
+        #  policy_name: "rollover-1-day"
+        #- event_type: "span"
+        #  policy_name: "rollover-1-day"
+        #- event_type: "transaction"
+        #  policy_name: "rollover-7-days"
+        #- event_type: "metric"
+        #  policy_name: "rollover-7-days"
 
-    # Configured policies are added to all pre-defined default policies.
-    # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.
-    #policies:
-      #rollover-7-days:
+      # Configured policies are added to all pre-defined default policies.
+      # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.
+      #policies:
+        #name: "rollover-7-days"
         #policy:
           #phases:
             #hot:
@@ -297,7 +303,7 @@ apm-server:
                 #set_priority:
                   #priority: 50
                 #readonly: {}
-      #rollover-1-day:
+        #name: "rollover-1-day"
         #policy:
           #phases:
             #hot:

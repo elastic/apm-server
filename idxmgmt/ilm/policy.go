@@ -17,8 +17,6 @@
 
 package ilm
 
-type m map[string]interface{}
-
 const (
 	rollover1Day  = "rollover-1-day"
 	rollover7Days = "rollover-7-days"
@@ -51,55 +49,55 @@ func policyMapping() map[string]string {
 	}
 }
 
-func policyPool() policies {
-	return policies{
+func policyPool() map[string]policyBody {
+	return map[string]policyBody{
 		rollover7Days: {
-			policyStr: m{
-				phasesStr: m{
-					hotStr: m{
-						actionsStr: m{
-							rolloverStr: m{
+			policyStr: map[string]interface{}{
+				phasesStr: map[string]interface{}{
+					hotStr: map[string]interface{}{
+						actionsStr: map[string]interface{}{
+							rolloverStr: map[string]interface{}{
 								maxSizeStr: "50gb",
 								maxAgeStr:  "7d",
 							},
-							setPriorityStr: m{
+							setPriorityStr: map[string]interface{}{
 								priorityStr: 100,
 							},
 						},
 					},
-					warmStr: m{
+					warmStr: map[string]interface{}{
 						minAgeStr: "31d",
-						actionsStr: m{
-							setPriorityStr: m{
+						actionsStr: map[string]interface{}{
+							setPriorityStr: map[string]interface{}{
 								priorityStr: 50,
 							},
-							readonlyStr: m{},
+							readonlyStr: map[string]interface{}{},
 						},
 					},
 				},
 			},
 		},
 		rollover1Day: {
-			policyStr: m{
-				phasesStr: m{
-					hotStr: m{
-						actionsStr: m{
-							rolloverStr: m{
+			policyStr: map[string]interface{}{
+				phasesStr: map[string]interface{}{
+					hotStr: map[string]interface{}{
+						actionsStr: map[string]interface{}{
+							rolloverStr: map[string]interface{}{
 								maxSizeStr: "50gb",
 								maxAgeStr:  "1d",
 							},
-							setPriorityStr: m{
+							setPriorityStr: map[string]interface{}{
 								priorityStr: 100,
 							},
 						},
 					},
-					warmStr: m{
+					warmStr: map[string]interface{}{
 						minAgeStr: "7d",
-						actionsStr: m{
-							setPriorityStr: m{
+						actionsStr: map[string]interface{}{
+							setPriorityStr: map[string]interface{}{
 								priorityStr: 50,
 							},
-							readonlyStr: m{},
+							readonlyStr: map[string]interface{}{},
 						},
 					},
 				},

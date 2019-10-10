@@ -28,20 +28,22 @@ type feature struct {
 	err  error
 }
 
-func newFeature(enabled, overwrite, supported bool, mode libidxmgmt.LoadMode) feature {
+func newFeature(enabled, overwrite, load, supported bool, mode libidxmgmt.LoadMode) feature {
+	//TODO: check
 	if mode == libidxmgmt.LoadModeUnset {
 		mode = libidxmgmt.LoadModeDisabled
 	}
 	if mode >= libidxmgmt.LoadModeOverwrite {
 		overwrite = true
 	}
+	//TODO: check this breaking change!
 	if mode == libidxmgmt.LoadModeForce {
-		enabled = true
+		load = true
 	}
 	if !supported {
 		enabled = false
 	}
-	load := mode.Enabled() && enabled
+	load = load && mode.Enabled()
 	return feature{
 		enabled:   enabled,
 		overwrite: overwrite,

@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
+	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 )
 
 func TestMakeDefaultSupporter(t *testing.T) {
@@ -52,7 +53,8 @@ func TestMakeDefaultSupporter(t *testing.T) {
 		assert.True(t, s.Enabled())
 		assert.NotNil(t, s.log)
 		assert.True(t, s.templateConfig.Enabled)
-		assert.True(t, s.ilmConfig.Enabled())
+		assert.Equal(t, libilm.ModeAuto, s.ilmConfig.Mode)
+		assert.True(t, s.ilmConfig.Setup.Enabled)
 		assert.Equal(t, &esIndexConfig{}, s.esIdxCfg)
 	})
 
@@ -66,7 +68,8 @@ func TestMakeDefaultSupporter(t *testing.T) {
 			"output.elasticsearch.enabled": "true",
 		})
 		require.NoError(t, err)
-		assert.False(t, s.ilmConfig.Enabled())
+		assert.Equal(t, libilm.ModeDisabled, s.ilmConfig.Mode)
+		assert.True(t, s.ilmConfig.Setup.Enabled)
 	})
 	t.Run("SetupTemplateConfigConflicting", func(t *testing.T) {
 		s, err := buildSupporter(map[string]interface{}{
