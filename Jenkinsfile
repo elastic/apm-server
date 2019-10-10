@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent any
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR = "src/github.com/elastic/apm-server"
     NOTIFY_TO = credentials('notify-to')
@@ -44,7 +44,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout') {
-      agent { label 'master || immutable' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
@@ -88,7 +87,6 @@ pipeline {
     Validate that all updates were committed.
     */
     stage('Intake') {
-      agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -114,7 +112,6 @@ pipeline {
         Build on a linux environment.
         */
         stage('linux build') {
-          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           environment {
             PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -375,7 +372,6 @@ pipeline {
       build release packages.
     */
     stage('Release') {
-      agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
