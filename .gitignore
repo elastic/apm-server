@@ -1,4 +1,7 @@
-/.idea
+/.ci/docker/bats-core
+/.ci/docker/tests/test_helper
+/.ci/docker/target
+**/*.idea
 /build
 /data
 /logs
