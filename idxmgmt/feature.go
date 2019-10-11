@@ -29,14 +29,12 @@ type feature struct {
 }
 
 func newFeature(enabled, overwrite, load, supported bool, mode libidxmgmt.LoadMode) feature {
-	//TODO: check
 	if mode == libidxmgmt.LoadModeUnset {
 		mode = libidxmgmt.LoadModeDisabled
 	}
 	if mode >= libidxmgmt.LoadModeOverwrite {
 		overwrite = true
 	}
-	//TODO: check this breaking change!
 	if mode == libidxmgmt.LoadModeForce {
 		load = true
 	}

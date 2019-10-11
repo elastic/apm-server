@@ -2,6 +2,11 @@
 == APM Server version HEAD
 
 [float]
+==== Breaking Changes
+- Introduce `apm-server.ilm.setup.enabled` flag and ignore `setup.template.*` flags for ILM setup {pull}2764[2764].
+- Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
+
+[float]
 ==== Added
 - Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
 - Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
