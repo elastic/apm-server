@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -67,22 +68,30 @@ func Handler(kbClient kibana.Client, config *config.AgentConfig) request.Handler
 	return func(c *request.Context) {
 		// error handling
 		c.Header().Set(headers.CacheControl, errCacheControl)
+		authRequired := c.Authorization.AuthorizationRequired()
 
-		if valid := validateKbClient(c, kbClient, c.TokenSet); !valid {
+		query, queryErr := buildQuery(c.Request)
+		if queryErr != nil {
+			extractQueryError(c, queryErr, authRequired)
 			c.Write()
 			return
 		}
 
-		query, queryErr := buildQuery(c.Request)
-		if queryErr != nil {
-			extractQueryError(c, queryErr, c.TokenSet)
+		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeAgentConfig)
+		if !authorized {
+			c.Result.SetAuthorization(err)
+			c.Write()
+			return
+		}
+
+		if valid := validateKbClient(c, kbClient, authRequired); !valid {
 			c.Write()
 			return
 		}
 
 		cfg, upstreamEtag, err := fetcher.Fetch(query, nil)
 		if err != nil {
-			extractInternalError(c, err, c.TokenSet)
+			extractInternalError(c, err, authRequired)
 			c.Write()
 			return
 		}

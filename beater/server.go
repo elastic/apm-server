@@ -26,12 +26,13 @@ import (
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
 
-	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
+
+	"github.com/elastic/apm-server/beater/api"
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/publish"
 )
 
 func newServer(cfg *config.Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
@@ -100,8 +101,8 @@ func run(logger *logp.Logger, server *http.Server, lis net.Listener, cfg *config
 		logger.Info("SSL enabled.")
 		return server.ServeTLS(lis, "", "")
 	}
-	if cfg.SecretToken != "" {
-		logger.Warn("Secret token is set, but SSL is not enabled.")
+	if cfg.AuthConfig.APIKeyConfig.IsEnabled() || cfg.AuthConfig.BearerToken != "" {
+		logger.Warn("Authorization is configured, but SSL is not enabled.")
 	} else {
 		logger.Info("SSL disabled.")
 	}

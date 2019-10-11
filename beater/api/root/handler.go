@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/version"
 
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/request"
 )
 
@@ -36,6 +37,7 @@ var (
 // Handler returns error if route does not exist,
 // otherwise returns information about the server. The detail level differs for authorized and non-authorized requests.
 //TODO: only allow GET, HEAD requests (breaking change)
+//TODO: require authorization if configured (breaking change)
 func Handler() request.Handler {
 	serverInfo := common.MapStr{
 		"build_date": version.BuildTime().Format(time.RFC3339),
@@ -46,12 +48,19 @@ func Handler() request.Handler {
 	return func(c *request.Context) {
 		if c.Request.URL.Path != "/" {
 			c.Result.SetDefault(request.IDResponseErrorsNotFound)
-		} else {
-			c.Result.SetDefault(request.IDResponseValidOK)
-			if c.Authorized {
-				c.Result.Body = serverInfo
-			}
+			c.Write()
+			return
 		}
+
+		c.Result.SetDefault(request.IDResponseValidOK)
+		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeAccess)
+		if err != nil {
+			c.Result.Err = err
+		}
+		if authorized {
+			c.Result.Body = serverInfo
+		}
+
 		c.Write()
 	}
 }

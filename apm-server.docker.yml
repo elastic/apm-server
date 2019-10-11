@@ -27,12 +27,6 @@ apm-server:
   # Maximum number of new connections to accept simultaneously (0 means unlimited).
   #max_connections: 0
 
-  # Authorization token for sending data to the APM server. If a token is set, the
-  # agents must send it in the following format: Authorization: Bearer <secret-token>.
-  # It is recommended to use an authorization token in combination with SSL enabled,
-  # and save the token in the apm-server keystore. The token is not used for the RUM endpoint.
-  #secret_token:
-
   # Enable secure communication between APM agents and the server. By default ssl is disabled.
   #ssl:
     #enabled: false
@@ -73,6 +67,8 @@ apm-server:
     #ssl.verification_mode: full
 
   # Enable Real User Monitoring (RUM) Support. By default RUM is disabled.
+  # RUM does not support token based authorization. Enabled RUM endpoints will not require any authorization token that
+  # might be configured for other endpoints.
   #rum:
     #enabled: false
 
@@ -137,6 +133,91 @@ apm-server:
       # is changed, a matching index pattern needs to be specified here.
       #index_pattern: "apm-*-sourcemap*"
 
+  # Deprecated[7.5]: Use `authorization.bearer.token` key instead.
+  # If both, the `secret_token` and the `authorization.bearer.token` are configured, the `secret_token` will be ignored.
+  #secret_token: ""
+
+  # If any authorization method is configured, endpoints will require agents to send a valid authorization header with every request.
+  # An exception are RUM endpoints. They do not support any kind of token based authorization. RUM endpoints are disabled by default.
+  # It is recommended to use authorization tokens in combination with SSL enabled.
+  #authorization:
+    # If `bearer` and `api_key` auth is configured, requests satisfying one of the auth mechanisms are allowed.
+
+    # Configure a bearer token to be included with request.
+    # Authorization header format: Authorization: Bearer <token>
+    # No token configured by default.
+    #bearer:
+      #token: ""
+
+    # Configure API Key authorization by setting `api_key.enabled` to true. This requires agents to send an
+    # authorization header containing a valid Elasticsearch API key. The token must be the base64 encoding of "id:key"
+    # Authorization header format: Authorization: ApiKey <token>
+    # Disabled by default.
+    #api_key:
+      #enabled: false
+
+      #cache:
+        # Ensure the cache size is large enought to hold at least the amount of API keys used by your setup.
+        #size: 1000
+
+        # The `expiration` determines how long an API Key should be cached before fetching it again from Elasticsearch.
+        # Note that values configured without a time unit will be interpreted as seconds.
+        #expiration: 5m
+
+      # API keys need to be fetched from Elasticsearch. If nothing is configured, configuration settings from the
+      # output section will be reused.
+      # Note that configuration needs to point to a secured Elasticsearch cluster that is able to serve API key requests.
+      #elasticsearch:
+        #hosts: ["localhost:9200"]
+
+        #protocol: "http"
+
+        # Optional HTTP Path.
+        #path: ""
+
+        # Proxy server url.
+        #proxy_url: ""
+        #proxy_disable: false
+
+        # Configure http request timeout before failing an request to Elasticsearch.
+        #timeout: 10s
+
+        # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
+        #ssl.enabled: true
+
+        # Optional SSL configuration options. SSL is off by default, change the `protocol` option if you want to enable `https`.
+        # Configure SSL verification mode. If `none` is configured, all server hosts
+        # and certificates will be accepted. In this mode, SSL based connections are
+        # susceptible to man-in-the-middle attacks. Use only for testing. Default is
+        # `full`.
+        #ssl.verification_mode: full
+
+        # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
+        # 1.2 are enabled.
+        #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+
+        # List of root certificates for HTTPS server verifications.
+        #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+
+        # Certificate for SSL client authentication.
+        #ssl.certificate: "/etc/pki/client/cert.pem"
+
+        # Client Certificate Key
+        #ssl.key: "/etc/pki/client/cert.key"
+
+        # Optional passphrase for decrypting the Certificate Key.
+        # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
+        #ssl.key_passphrase: ''
+
+        # Configure cipher suites to be used for SSL connections.
+        #ssl.cipher_suites: []
+
+        # Configure curve types for ECDHE based cipher suites.
+        #ssl.curve_types: []
+
+        # Configure what types of renegotiation are supported. Valid options are
+        # never, once, and freely. Default is never.
+        #ssl.renegotiation: never
 
   # If true (default), APM Server captures the IP of the instrumented service
   # or the IP and User Agent of the real user (RUM requests).

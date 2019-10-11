@@ -1482,6 +1482,30 @@
 			"revisionTime": "2019-10-04T08:00:42Z"
 		},
 		{
+			"checksumSHA1": "j8frLn+7txS0tl6lHpxhCM0AW8I=",
+			"path": "github.com/elastic/go-elasticsearch/v8",
+			"revision": "5963931cb201fa3c2c7ff7b26b38850f93987060",
+			"revisionTime": "2019-09-10T07:50:00Z"
+		},
+		{
+			"checksumSHA1": "FuNqhGE1dvoQ/WEYnAUnzMPIj80=",
+			"path": "github.com/elastic/go-elasticsearch/v8/esapi",
+			"revision": "5963931cb201fa3c2c7ff7b26b38850f93987060",
+			"revisionTime": "2019-09-10T07:50:00Z"
+		},
+		{
+			"checksumSHA1": "HFf+Ly/xAxmu0z+KC85Omvn9je8=",
+			"path": "github.com/elastic/go-elasticsearch/v8/estransport",
+			"revision": "5963931cb201fa3c2c7ff7b26b38850f93987060",
+			"revisionTime": "2019-09-10T07:50:00Z"
+		},
+		{
+			"checksumSHA1": "S0HjQ885N/zvUQRMQ7fJ2Srta78=",
+			"path": "github.com/elastic/go-elasticsearch/v8/internal/version",
+			"revision": "5963931cb201fa3c2c7ff7b26b38850f93987060",
+			"revisionTime": "2019-09-10T07:50:00Z"
+		},
+		{
 			"checksumSHA1": "3jizmlZPCyo6FAZY8Trk9jA8NH4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-lumber/client/v2",
 			"path": "github.com/elastic/go-lumber/client/v2",

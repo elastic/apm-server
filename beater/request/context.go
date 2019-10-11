@@ -22,11 +22,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elastic/apm-server/beater/api/ratelimit"
-
-	"github.com/elastic/apm-server/beater/headers"
-	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/beats/libbeat/logp"
+
+	"github.com/elastic/apm-server/authorization"
+	"github.com/elastic/apm-server/beater/api/ratelimit"
+	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/log"
 )
 
 const (
@@ -43,19 +44,23 @@ type Context struct {
 	Request       *http.Request
 	Logger        *logp.Logger
 	RateLimiter   *ratelimit.Store
-	TokenSet      bool
-	Authorized    bool
+	Authorization Authorization
 	Result        Result
+
 	w             http.ResponseWriter
 	writeAttempts int
+}
+
+type Authorization interface {
+	AuthorizedFor(application, privilege string) (bool, error)
+	AuthorizationRequired() bool
 }
 
 // Reset allows to reuse a context by removing all request specific information
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Request = r
 	c.Logger = nil
-	c.TokenSet = false
-	c.Authorized = false
+	c.Authorization = &authorization.Allow{}
 	c.RateLimiter = nil
 	c.Result.Reset()
 

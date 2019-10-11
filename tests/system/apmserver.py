@@ -176,6 +176,7 @@ class ElasticTest(ServerBaseTest):
 
     def setUp(self):
         self.es = Elasticsearch([self.get_elasticsearch_url()])
+        self.es_secured = Elasticsearch([self.get_elasticsearch_secured_url()])
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
@@ -195,6 +196,16 @@ class ElasticTest(ServerBaseTest):
         self.es.ingest.delete_pipeline(id="*")
 
         super(ElasticTest, self).setUp()
+
+    def get_elasticsearch_secured_url(self):
+        """
+        Returns an elasticsearch.Elasticsearch instance built from the
+        env variables like the integration tests.
+        """
+        return "http://{host}:{port}".format(
+            host=os.getenv("ES_HOST", "localhost"),
+            port=os.getenv("ES_PORT", "9201"),
+        )
 
     def load_docs_with_template(self, data_path, url, endpoint, expected_events_count,
                                 query_index=None, max_timeout=10):

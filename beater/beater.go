@@ -106,9 +106,17 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 			}
 		}
 	}
-	if isElasticsearchOutput(b) &&
-		(b.Config.Output.Config().HasField("pipeline") || b.Config.Output.Config().HasField("pipelines")) {
-		beaterConfig.Pipeline = ""
+	if isElasticsearchOutput(b) {
+		if b.Config.Output.Config().HasField("pipeline") || b.Config.Output.Config().HasField("pipelines") {
+			beaterConfig.Pipeline = ""
+		}
+
+		if !beaterConfig.HasAPIKeyESConfigured() {
+			err := b.Config.Output.Config().Unpack(&beaterConfig.AuthConfig.APIKeyConfig.ESConfig)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	bt := &beater{
@@ -299,7 +307,7 @@ func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.T
 	lis := pipelistener.New()
 	selfTransport, err := transport.NewHTTPTransport()
 	selfTransport.SetServerURL(&url.URL{Scheme: "http", Host: "localhost"})
-	selfTransport.SetSecretToken(cfg.SecretToken)
+	selfTransport.SetSecretToken(cfg.AuthConfig.BearerToken)
 	if err != nil {
 		tracer.Close()
 		lis.Close()

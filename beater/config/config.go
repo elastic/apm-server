@@ -41,6 +41,7 @@ const (
 	DefaultAPMPipeline = "apm"
 
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
+	defaultAPIKeyApplication = "apm"
 )
 
 // Config holds configuration information nested under the key `apm-server`
@@ -52,7 +53,6 @@ type Config struct {
 	WriteTimeout        time.Duration           `config:"write_timeout"`
 	MaxEventSize        int                     `config:"max_event_size"`
 	ShutdownTimeout     time.Duration           `config:"shutdown_timeout"`
-	SecretToken         string                  `config:"secret_token"`
 	TLS                 *tlscommon.ServerConfig `config:"ssl"`
 	MaxConnections      int                     `config:"max_connections"`
 	Expvar              *ExpvarConfig           `config:"expvar"`
@@ -63,6 +63,8 @@ type Config struct {
 	Mode                Mode                    `config:"mode"`
 	Kibana              *common.Config          `config:"kibana"`
 	AgentConfig         *AgentConfig            `config:"agent.config"`
+	SecretToken         string                  `config:"secret_token"`
+	AuthConfig          *AuthConfig             `config:"authorization"`
 
 	Pipeline string
 }
@@ -128,6 +130,12 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
+// LimitedCache holds config information about cache expiration
+type LimitedCache struct {
+	Expiration time.Duration `config:"expiration"`
+	Size       int           `config:"size"`
+}
+
 // InstrumentationConfig holds config information about self instrumenting the APM Server
 type InstrumentationConfig struct {
 	Enabled     *bool   `config:"enabled"`
@@ -188,6 +196,10 @@ func NewConfig(version string, ucfg *common.Config) (*Config, error) {
 		if _, err := regexp.Compile(c.RumConfig.ExcludeFromGrouping); err != nil {
 			return nil, errors.New(fmt.Sprintf("Invalid regex for `exclude_from_grouping`: %v", err.Error()))
 		}
+	}
+
+	if c.SecretToken != "" && c.AuthConfig.BearerToken == "" {
+		c.AuthConfig.BearerToken = c.SecretToken
 	}
 
 	return c, nil
@@ -294,7 +306,6 @@ func DefaultConfig(beatVersion string) *Config {
 		WriteTimeout:    30 * time.Second,
 		MaxEventSize:    300 * 1024, // 300 kb
 		ShutdownTimeout: 5 * time.Second,
-		SecretToken:     "",
 		AugmentEnabled:  true,
 		Expvar: &ExpvarConfig{
 			Enabled: new(bool),
@@ -328,5 +339,6 @@ func DefaultConfig(beatVersion string) *Config {
 		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 		AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 		Pipeline:    DefaultAPMPipeline,
+		AuthConfig:  DefaultAuthConfig(),
 	}
 }

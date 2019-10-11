@@ -21,9 +21,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -47,15 +49,24 @@ var testcases = map[string]authTestdata{
 	},
 }
 
-func TestRequireAuthorizationMiddleware(t *testing.T) {
+func TestAuthorizationMiddlewareApplied(t *testing.T) {
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
 			c, rec := beatertest.DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.Authorization, "Bearer "+tc.requestToken)
-			Apply(RequireAuthorizationMiddleware(tc.serverToken), beatertest.Handler202)(c)
+			var means AuthMeans
+			if tc.serverToken != "" {
+				means = AuthMeans{"Bearer": &AuthMean{
+					Authorization: func(token string) request.Authorization {
+						return authorization.NewBearer(tc.serverToken, tc.requestToken)
+					}}}
+			}
 
-			assert.Equal(t, tc.authorized, c.Authorized)
-			assert.Equal(t, tc.tokenSet, c.TokenSet)
+			Apply(AuthorizationMiddleware(true, means, authorization.PrivilegeIntake), beatertest.Handler202)(c)
+
+			authorized, _ := c.Authorization.AuthorizedFor("", "")
+			assert.Equal(t, tc.authorized, authorized)
+			assert.Equal(t, tc.tokenSet, c.Authorization.AuthorizationRequired())
 
 			if tc.authorized {
 				assert.Equal(t, http.StatusAccepted, rec.Code)
@@ -68,39 +79,24 @@ func TestRequireAuthorizationMiddleware(t *testing.T) {
 	}
 }
 
-func TestSetAuthorizationMiddleware(t *testing.T) {
+func TestAuthorizationMiddlewareNotApplied(t *testing.T) {
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
 			c, rec := beatertest.DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.Authorization, "Bearer "+tc.requestToken)
-			Apply(SetAuthorizationMiddleware(tc.serverToken), beatertest.Handler202)(c)
+			var means AuthMeans
+			if tc.serverToken != "" {
+				means = AuthMeans{"Bearer": &AuthMean{
+					Authorization: func(token string) request.Authorization {
+						return authorization.NewBearer(tc.serverToken, tc.requestToken)
+					}}}
+			}
 
-			assert.Equal(t, tc.authorized, c.Authorized)
-			assert.Equal(t, tc.tokenSet, c.TokenSet)
+			h, err := AuthorizationMiddleware(false, means, authorization.PrivilegeIntake)(beatertest.Handler202)
+			require.NoError(t, err)
+			h(c)
+
 			assert.Equal(t, http.StatusAccepted, rec.Code)
 		})
 	}
-}
-
-func TestIsAuthorized(t *testing.T) {
-	reqAuth := func(auth string) *http.Request {
-		req, err := http.NewRequest(http.MethodPost, "_", nil)
-		assert.Nil(t, err)
-		req.Header.Add("Authorization", auth)
-		return req
-	}
-
-	reqNoAuth, err := http.NewRequest(http.MethodPost, "_", nil)
-	require.NoError(t, err)
-
-	// Successes
-	assert.True(t, isAuthorized(reqNoAuth, ""))
-	assert.True(t, isAuthorized(reqAuth("foo"), ""))
-	assert.True(t, isAuthorized(reqAuth("Bearer foo"), "foo"))
-
-	// Failures
-	assert.False(t, isAuthorized(reqNoAuth, "foo"))
-	assert.False(t, isAuthorized(reqAuth("Bearer bar"), "foo"))
-	assert.False(t, isAuthorized(reqAuth("Bearer foo extra"), "foo"))
-	assert.False(t, isAuthorized(reqAuth("foo"), "foo"))
 }

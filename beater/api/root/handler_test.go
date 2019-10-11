@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/version"
 
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/beatertest"
 )
 
@@ -40,6 +41,7 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("ok", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c.Authorization = &authorization.Deny{}
 		Handler()(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -48,6 +50,7 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("unauthorized", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c.Authorization = authorization.NewBearer("abc", "cdf")
 		Handler()(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -56,7 +59,7 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("authorized", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
-		c.Authorized = true
+		c.Authorization = authorization.NewBearer("abc", "abc")
 		Handler()(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)

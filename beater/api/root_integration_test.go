@@ -35,30 +35,26 @@ import (
 
 func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
-	cfg.SecretToken = "1234"
-	h, err := rootHandler(cfg, beatertest.NilReporter)
-	require.NoError(t, err)
+	cfg.AuthConfig.BearerToken = "1234"
 
 	t.Run("No auth", func(t *testing.T) {
-		c, rec := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
-		h(c)
-
+		rec, err := requestToMuxerWithPattern(cfg, RootPath)
+		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Empty(t, rec.Body.String())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
-		c, rec := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
-		c.Request.Header.Set(headers.Authorization, "Bearer 1234")
-		h(c)
-
+		h := map[string]string{headers.Authorization: "Bearer 1234"}
+		rec, err := requestToMuxerWithHeader(cfg, RootPath, http.MethodGet, h)
+		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathRoot(t.Name()), rec.Body.Bytes())
 	})
 }
 
 func TestRootHandler_PanicMiddleware(t *testing.T) {
-	h, err := rootHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := rootHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	rec := &beatertest.WriterPanicOnce{}
 	c := &request.Context{}
@@ -70,7 +66,7 @@ func TestRootHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
-	h, err := rootHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := rootHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
 

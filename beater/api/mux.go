@@ -22,24 +22,27 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
 	"github.com/elastic/apm-server/beater/api/root"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/middleware"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/kibana"
-	logs "github.com/elastic/apm-server/log"
+	"github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 const (
@@ -64,7 +67,8 @@ var (
 
 type route struct {
 	path      string
-	handlerFn func(*config.Config, publish.Reporter) (request.Handler, error)
+	authMeans middleware.AuthMeans
+	handlerFn func(*config.Config, middleware.AuthMeans, publish.Reporter) (request.Handler, error)
 }
 
 // NewMux registers apm handlers to paths building up the APM Server API.
@@ -73,16 +77,24 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	mux := http.NewServeMux()
 	logger := logp.NewLogger(logs.Handler)
 
+	backendAuthMeans, err := backendAuthMeans(beaterConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	routeMap := []route{
-		{RootPath, rootHandler},
-		{AssetSourcemapPath, sourcemapHandler},
-		{AgentConfigPath, backendAgentConfigHandler},
-		{IntakeRUMPath, rumHandler},
-		{IntakePath, backendHandler},
+		//If RUM starts to support API keys, the cache used in the root path needs to be changed.
+		{RootPath, backendAuthMeans, rootHandler},
+
+		{AssetSourcemapPath, backendAuthMeans, sourcemapHandler},
+		{AgentConfigPath, backendAuthMeans, backendAgentConfigHandler},
+		{IntakePath, backendAuthMeans, backendIntakeHandler},
+
+		{IntakeRUMPath, nil, rumIntakeHandler},
 	}
 
 	for _, route := range routeMap {
-		h, err := route.handlerFn(beaterConfig, report)
+		h, err := route.handlerFn(beaterConfig, route.authMeans, report)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +110,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	return mux, nil
 }
 
-func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
+func backendIntakeHandler(cfg *config.Config, auth middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
 	h := intake.Handler(systemMetadataDecoder(cfg, emptyDecoder),
 		&stream.Processor{
 			Tconfig:      transform.Config{},
@@ -106,10 +118,10 @@ func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Hand
 			MaxEventSize: cfg.MaxEventSize,
 		},
 		reporter)
-	return middleware.Wrap(h, backendMiddleware(cfg, intake.MonitoringMap)...)
+	return middleware.Wrap(h, backendMiddleware(auth, authorization.PrivilegeAccess, intake.MonitoringMap)...)
 }
 
-func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
+func rumIntakeHandler(cfg *config.Config, _ middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
 	tcfg, err := rumTransformConfig(cfg)
 	if err != nil {
 		return nil, err
@@ -124,17 +136,17 @@ func rumHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler,
 	return middleware.Wrap(h, rumMiddleware(cfg, intake.MonitoringMap)...)
 }
 
-func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
+func sourcemapHandler(cfg *config.Config, auth middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
 	tcfg, err := rumTransformConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
 	h := sourcemap.Handler(systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData), psourcemap.Processor, *tcfg, reporter)
-	return middleware.Wrap(h, sourcemapMiddleware(cfg)...)
+	return middleware.Wrap(h, sourcemapMiddleware(cfg, auth)...)
 }
 
-func backendAgentConfigHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
-	return agentConfigHandler(cfg, backendMiddleware(cfg, agent.MonitoringMap))
+func backendAgentConfigHandler(cfg *config.Config, auth middleware.AuthMeans, _ publish.Reporter) (request.Handler, error) {
+	return agentConfigHandler(cfg, backendMiddleware(auth, authorization.PrivilegeAccess, agent.MonitoringMap))
 }
 
 func agentConfigHandler(cfg *config.Config, m []middleware.Middleware) (request.Handler, error) {
@@ -147,8 +159,8 @@ func agentConfigHandler(cfg *config.Config, m []middleware.Middleware) (request.
 	return middleware.Wrap(h, append(m, ks)...)
 }
 
-func rootHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
-	return middleware.Wrap(root.Handler(), rootMiddleware(cfg)...)
+func rootHandler(cfg *config.Config, auth middleware.AuthMeans, _ publish.Reporter) (request.Handler, error) {
+	return middleware.Wrap(root.Handler(), rootMiddleware(auth)...)
 }
 
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
@@ -160,9 +172,9 @@ func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middlewa
 	}
 }
 
-func backendMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func backendMiddleware(auth middleware.AuthMeans, privilege string, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	return append(apmMiddleware(m),
-		middleware.RequireAuthorizationMiddleware(cfg.SecretToken))
+		middleware.AuthorizationMiddleware(true, auth, privilege))
 }
 
 func rumMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
@@ -172,15 +184,15 @@ func rumMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) [
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()))
 }
 
-func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
-	enabled := cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()
-	return append(backendMiddleware(cfg, sourcemap.MonitoringMap),
-		middleware.KillSwitchMiddleware(enabled))
+func sourcemapMiddleware(cfg *config.Config, auth middleware.AuthMeans) []middleware.Middleware {
+	return append(apmMiddleware(sourcemap.MonitoringMap),
+		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()),
+		middleware.AuthorizationMiddleware(true, auth, authorization.PrivilegeAccess))
 }
 
-func rootMiddleware(cfg *config.Config) []middleware.Middleware {
+func rootMiddleware(auth middleware.AuthMeans) []middleware.Middleware {
 	return append(apmMiddleware(root.MonitoringMap),
-		middleware.SetAuthorizationMiddleware(cfg.SecretToken))
+		middleware.AuthorizationMiddleware(false, auth, authorization.PrivilegeAccess))
 }
 
 func systemMetadataDecoder(beaterConfig *config.Config, d decoder.ReqDecoder) decoder.ReqDecoder {
@@ -201,4 +213,44 @@ func rumTransformConfig(beaterConfig *config.Config) (*transform.Config, error) 
 		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
 	}, nil
+}
+
+func backendAuthMeans(cfg *config.Config) (middleware.AuthMeans, error) {
+	auth := middleware.AuthMeans{}
+	addAuthBearer(cfg, &auth)
+	if err := addAuthAPIKey(cfg, &auth); err != nil {
+		return nil, err
+	}
+	return auth, nil
+}
+
+func addAuthAPIKey(cfg *config.Config, authMeans *middleware.AuthMeans) error {
+	if !cfg.AuthConfig.APIKeyConfig.IsEnabled() {
+		return nil
+	}
+	client, err := elasticsearch.Client(cfg.AuthConfig.APIKeyConfig.ESConfig.CommonConfig())
+	if err != nil {
+		return err
+	}
+
+	cache := authorization.NewAPIKeyCache(
+		cfg.AuthConfig.APIKeyConfig.Cache.Expiration,
+		cfg.AuthConfig.APIKeyConfig.Cache.Size,
+		client)
+
+	(*authMeans)[headers.APIKey] = &middleware.AuthMean{
+		Authorization: func(token string) request.Authorization {
+			return authorization.NewAPIKey(client, cache, token)
+		},
+	}
+	return nil
+}
+
+func addAuthBearer(cfg *config.Config, authMeans *middleware.AuthMeans) {
+	if cfg.AuthConfig.BearerToken != "" {
+		(*authMeans)[headers.Bearer] = &middleware.AuthMean{
+			Authorization: func(token string) request.Authorization {
+				return authorization.NewBearer(cfg.AuthConfig.BearerToken, token)
+			}}
+	}
 }

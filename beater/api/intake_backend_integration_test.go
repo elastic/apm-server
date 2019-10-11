@@ -36,8 +36,9 @@ import (
 func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := config.DefaultConfig(beatertest.MockBeatVersion())
-		cfg.SecretToken = "1234"
-		rec := requestToIntakeBackendHandler(t, cfg)
+		cfg.AuthConfig.BearerToken = "1234"
+		rec, err := requestToMuxerWithPattern(cfg, IntakePath)
+		require.NoError(t, err)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
@@ -45,20 +46,18 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := config.DefaultConfig(beatertest.MockBeatVersion())
-		cfg.SecretToken = "1234"
-		h, err := backendHandler(cfg, beatertest.NilReporter)
+		cfg.AuthConfig.BearerToken = "1234"
+		h := map[string]string{headers.Authorization: "Bearer 1234"}
+		rec, err := requestToMuxerWithHeader(cfg, IntakePath, http.MethodGet, h)
 		require.NoError(t, err)
-		c, rec := beatertest.DefaultContextWithResponseRecorder()
-		c.Request.Header.Set(headers.Authorization, "Bearer 1234")
-		h(c)
 
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
 	})
 }
 
 func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
-	h, err := backendHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := backendIntakeHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	rec := &beatertest.WriterPanicOnce{}
 	c := &request.Context{}
@@ -69,8 +68,7 @@ func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
-
-	h, err := backendHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := backendIntakeHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
 	// send GET request resulting in 405 MethodNotAllowed error
@@ -82,14 +80,6 @@ func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
 
 	equal, result := beatertest.CompareMonitoringInt(h, c, expected, intake.MonitoringMap)
 	assert.True(t, equal, result)
-}
-
-func requestToIntakeBackendHandler(t *testing.T, cfg *config.Config) *httptest.ResponseRecorder {
-	h, err := backendHandler(cfg, beatertest.NilReporter)
-	require.NoError(t, err)
-	c, rec := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
-	h(c)
-	return rec
 }
 
 func approvalPathIntakeBackend(f string) string {

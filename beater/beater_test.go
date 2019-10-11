@@ -30,7 +30,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -41,6 +40,8 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/processing"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func TestBeatConfig(t *testing.T) {
@@ -111,6 +112,12 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
+				AuthConfig: &config.AuthConfig{
+					BearerToken: "1234random",
+					APIKeyConfig: &config.APIKeyConfig{
+						Cache: &config.LimitedCache{Expiration: 5 * time.Minute, Size: 1000},
+					},
+				},
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
 					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
@@ -186,6 +193,12 @@ func TestBeatConfig(t *testing.T) {
 				WriteTimeout:    30000000000,
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
+				AuthConfig: &config.AuthConfig{
+					BearerToken: "1234random",
+					APIKeyConfig: &config.APIKeyConfig{
+						Cache: &config.LimitedCache{Expiration: 5 * time.Minute, Size: 1000},
+					},
+				},
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
 					Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},

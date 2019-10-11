@@ -24,6 +24,7 @@ const (
 	AccessControlAllowMethods = "Access-Control-Allow-Methods"
 	AccessControlAllowOrigin  = "Access-Control-Allow-Origin"
 	AccessControlMaxAge       = "Access-Control-Max-Age"
+	APIKey                    = "ApiKey"
 	Authorization             = "Authorization"
 	Bearer                    = "Bearer"
 	CacheControl              = "Cache-Control"
@@ -37,4 +38,6 @@ const (
 	UserAgent                 = "User-Agent"
 	Vary                      = "Vary"
 	XContentTypeOptions       = "X-Content-Type-Options"
+
+	ValueApplicationJson = "application/json"
 )

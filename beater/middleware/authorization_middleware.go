@@ -18,61 +18,58 @@
 package middleware
 
 import (
-	"crypto/subtle"
 	"net/http"
 	"strings"
 
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 )
 
-// RequireAuthorizationMiddleware returns a Middleware to only let authorized requests pass through
-func RequireAuthorizationMiddleware(token string) Middleware {
+type AuthMeans map[string]*AuthMean
+
+type AuthMean struct {
+	Authorization          func(string) request.Authorization
+	Application, Privilege string
+}
+
+// AuthorizationMiddleware returns a Middleware to only let authorized requests pass through
+func AuthorizationMiddleware(apply bool, means AuthMeans, privilege string) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			c.TokenSet = tokenSet(token)
-
-			if !isAuthorized(c.Request, token) {
-				c.Authorized = false
-				c.Result.SetDefault(request.IDResponseErrorsUnauthorized)
-				c.Write()
+			if len(means) <= 0 { //no authorization configured, allow all requests
+				h(c)
 				return
 			}
 
-			c.Authorized = true
+			method, token := fetchAuthHeader(c.Request)
+			authMean, ok := means[method]
+			if !ok {
+				if authMean, ok = means[headers.Bearer]; !ok {
+					authMean = &AuthMean{Authorization: func(string) request.Authorization { return &authorization.Deny{} }}
+				}
+			}
+			c.Authorization = authMean.Authorization(token)
+
+			if apply {
+				authorized, err := c.Authorization.AuthorizedFor("", privilege)
+				if !authorized {
+					c.Result.SetAuthorization(err)
+					c.Write()
+					return
+				}
+			}
+
 			h(c)
 		}, nil
 	}
 }
 
-// SetAuthorizationMiddleware returns a middleware setting authorization information in the context without terminating the
-// request if it is not authorized
-func SetAuthorizationMiddleware(token string) Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			c.Authorized = isAuthorized(c.Request, token)
-			c.TokenSet = tokenSet(token)
-			h(c)
-		}, nil
-	}
-}
-
-// isAuthorized checks the Authorization header. It must be in the form of:
-//   Authorization: Bearer <secret-token>
-// Bearer must be part of it.
-func isAuthorized(req *http.Request, token string) bool {
-	// No token configured
-	if !tokenSet(token) {
-		return true
-	}
+func fetchAuthHeader(req *http.Request) (string, string) {
 	header := req.Header.Get(headers.Authorization)
 	parts := strings.Split(header, " ")
-	if len(parts) != 2 || parts[0] != headers.Bearer {
-		return false
+	if len(parts) != 2 {
+		return "", ""
 	}
-	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(token)) == 1
-}
-
-func tokenSet(token string) bool {
-	return token != ""
+	return parts[0], parts[1]
 }

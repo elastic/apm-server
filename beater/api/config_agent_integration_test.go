@@ -38,57 +38,54 @@ import (
 func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
-		cfg.SecretToken = "1234"
-		rec := requestToConfigAgentHandler(t, cfg)
-
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
+		cfg.AuthConfig.BearerToken = "1234"
+		rec, err := requestToMuxerWithPattern(cfg, AgentConfigPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusUnauthorized, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
-		cfg.SecretToken = "1234"
-		h, err := backendAgentConfigHandler(cfg, beatertest.NilReporter)
+		cfg.AuthConfig.BearerToken = "1234"
+		h := map[string]string{headers.Authorization: "Bearer 1234"}
+		rec, err := requestToMuxerWithHeader(cfg, AgentConfigPath, http.MethodGet, h)
 		require.NoError(t, err)
-		c, rec := beatertest.DefaultContextWithResponseRecorder()
-		c.Request.Header.Set(headers.Authorization, "Bearer 1234")
-		h(c)
-
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 	})
 }
 
 func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("Off", func(t *testing.T) {
-		rec := requestToConfigAgentHandler(t, config.DefaultConfig(beatertest.MockBeatVersion()))
-
-		assert.Equal(t, http.StatusForbidden, rec.Code)
+		rec, err := requestToMuxerWithPattern(config.DefaultConfig(beatertest.MockBeatVersion()), AgentConfigPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 
 	})
 
 	t.Run("On", func(t *testing.T) {
-		rec := requestToConfigAgentHandler(t, configEnabledConfigAgent())
-
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+		rec, err := requestToMuxerWithPattern(configEnabledConfigAgent(), AgentConfigPath)
+		require.NoError(t, err)
+		require.NotEqual(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 	})
 }
 
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
-	h, err := backendAgentConfigHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := backendAgentConfigHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	rec := &beatertest.WriterPanicOnce{}
 	c := &request.Context{}
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
-	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
+	require.Equal(t, http.StatusInternalServerError, rec.StatusCode)
 	approvals.AssertApproveResult(t, approvalPathConfigAgent(t.Name()), rec.Body.Bytes())
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
-	h, err := backendAgentConfigHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := backendAgentConfigHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
 
@@ -100,14 +97,6 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 	equal, result := beatertest.CompareMonitoringInt(h, c, expected, agent.MonitoringMap)
 	assert.True(t, equal, result)
 
-}
-
-func requestToConfigAgentHandler(t *testing.T, cfg *config.Config) *httptest.ResponseRecorder {
-	h, err := backendAgentConfigHandler(cfg, beatertest.NilReporter)
-	require.NoError(t, err)
-	c, rec := beatertest.DefaultContextWithResponseRecorder()
-	h(c)
-	return rec
 }
 
 func configEnabledConfigAgent() *config.Config {

@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
@@ -55,6 +56,13 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish
 		if !ok {
 			sendError(c, &stream.Error{
 				Type: stream.RateLimitErrType, Message: "rate limit exceeded"})
+			return
+		}
+
+		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeIntake)
+		if !authorized {
+			c.Result.SetAuthorization(err)
+			c.Write()
 			return
 		}
 

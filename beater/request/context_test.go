@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/logp"
 
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 )
 
@@ -50,8 +51,7 @@ func TestContext_Reset(t *testing.T) {
 
 	assert.Equal(t, http.MethodHead, c.Request.Method)
 	assert.Empty(t, c.Logger)
-	assert.False(t, c.TokenSet)
-	assert.False(t, c.Authorized)
+	assert.Equal(t, &authorization.Allow{}, c.Authorization)
 
 	assert.Equal(t, w2, c.w)
 

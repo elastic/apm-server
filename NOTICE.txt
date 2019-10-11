@@ -512,6 +512,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --------------------------------------------------------------------
+Dependency: github.com/elastic/go-elasticsearch
+Revision: 5963931cb201fa3c2c7ff7b26b38850f93987060
+License type (autodetected): Apache-2.0
+./vendor/github.com/elastic/go-elasticsearch/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
+Dependency: github.com/elastic/go-elasticsearch/v8
+Revision: 5963931cb201fa3c2c7ff7b26b38850f93987060
+License type (autodetected): Apache-2.0
+./vendor/github.com/elastic/go-elasticsearch/v8/LICENSE:
+--------------------------------------------------------------------
+Apache License 2.0
+
+
+--------------------------------------------------------------------
 Dependency: github.com/elastic/go-lumber
 Revision: 616041e345fc33c97bc0eb0fa6b388aa07bca3e1
 License type (autodetected): Apache-2.0

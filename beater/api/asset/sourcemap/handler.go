@@ -24,6 +24,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/asset"
@@ -43,6 +44,13 @@ func Handler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Co
 	return func(c *request.Context) {
 		if c.Request.Method != "POST" {
 			c.Result.SetDefault(request.IDResponseErrorsMethodNotAllowed)
+			c.Write()
+			return
+		}
+
+		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeSourcemap)
+		if !authorized {
+			c.Result.SetAuthorization(err)
 			c.Write()
 			return
 		}

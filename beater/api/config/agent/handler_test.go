@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
@@ -130,6 +131,7 @@ var (
 		"NoConnection": {
 			kbClient:               tests.MockKibana(http.StatusServiceUnavailable, m{}, mockVersion, false),
 			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
 			respBody:               beatertest.ResultErrWrap(msgNoKibanaConnection),
@@ -140,6 +142,7 @@ var (
 			kbClient: tests.MockKibana(http.StatusServiceUnavailable, m{},
 				*common.MustNewVersion("7.2.0"), true),
 			method:                 http.MethodGet,
+			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
 			respBody:               beatertest.ResultErrWrap(msgKibanaVersionNotCompatible),
@@ -159,6 +162,7 @@ var (
 		"MethodNotAllowed": {
 			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodPut,
+			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusMethodNotAllowed,
 			respCacheControlHeader: "max-age=300, must-revalidate",
 			respBody:               beatertest.ResultErrWrap(msgMethodUnsupported),
@@ -181,7 +185,11 @@ func TestAgentConfigHandler(t *testing.T) {
 			}
 			ctx := &request.Context{}
 			ctx.Reset(w, r)
-			ctx.TokenSet = tokenSet
+			if tokenSet {
+				ctx.Authorization = authorization.NewBearer("abc", "abc")
+			} else {
+				ctx.Authorization = &authorization.Allow{}
+			}
 			h(ctx)
 
 			require.Equal(t, tc.respStatus, w.Code)
@@ -211,7 +219,7 @@ func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	ctx := &request.Context{}
-	ctx.Reset(w, httptest.NewRequest(http.MethodGet, "/config", nil))
+	ctx.Reset(w, httptest.NewRequest(http.MethodGet, target(map[string]string{"service.name": "opbeans-ruby"}), nil))
 	h(ctx)
 
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
