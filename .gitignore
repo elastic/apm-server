@@ -9,6 +9,7 @@
 **/*.received.json
 .DS_Store
 *.pyc
+*.swp
 /apm-server.iml
 /apm-server.keystore
 /approvals
