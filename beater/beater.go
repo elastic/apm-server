@@ -261,56 +261,60 @@ func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.T
 		os.Setenv("ELASTIC_APM_ACTIVE", "true")
 		logger.Infof("self instrumentation is enabled")
 	}
-
-	tracer, err := apm.NewTracer(info.Beat, info.Version)
-	if err != nil {
-		return nil, nil, err
-	}
-	// tracing disabled, setup complete
 	if !cfg.SelfInstrumentation.IsEnabled() {
-		return tracer, nil, nil
+		tracer, err := apm.NewTracer(info.Beat, info.Version)
+		return tracer, nil, err
 	}
 
-	if cfg.SelfInstrumentation.Environment != nil {
-		tracer.Service.Environment = *cfg.SelfInstrumentation.Environment
-	}
-	tracer.SetLogger(logp.NewLogger(logs.Tracing))
-
-	// tracing destined for external host
+	var tracerTransport transport.Transport
+	var lis net.Listener
 	if cfg.SelfInstrumentation.Hosts != nil {
+		// tracing destined for external host
 		t, err := transport.NewHTTPTransport()
 		if err != nil {
-			tracer.Close()
 			return nil, nil, err
 		}
 		t.SetServerURL(cfg.SelfInstrumentation.Hosts...)
 		t.SetSecretToken(cfg.SelfInstrumentation.SecretToken)
-		tracer.Transport = t
-		logger.Infof("self instrumentation directed to %s", cfg.SelfInstrumentation.Hosts[0])
-
-		return tracer, nil, nil
+		tracerTransport = t
+		logger.Infof("self instrumentation directed to %s", cfg.SelfInstrumentation.Hosts)
+	} else {
+		// Create an in-process net.Listener for the tracer. This enables us to:
+		// - avoid the network stack
+		// - avoid/ignore TLS for self-tracing
+		// - skip tracing when the requests come from the in-process transport
+		//   (i.e. to avoid recursive/repeated tracing.)
+		pipeListener := pipelistener.New()
+		selfTransport, err := transport.NewHTTPTransport()
+		if err != nil {
+			lis.Close()
+			return nil, nil, err
+		}
+		selfTransport.SetServerURL(&url.URL{Scheme: "http", Host: "localhost"})
+		selfTransport.SetSecretToken(cfg.SecretToken)
+		selfTransport.Client.Transport = &http.Transport{
+			DialContext:     pipeListener.DialContext,
+			MaxIdleConns:    100,
+			IdleConnTimeout: 90 * time.Second,
+		}
+		tracerTransport = selfTransport
+		lis = pipeListener
 	}
 
-	// Create an in-process net.Listener for the tracer. This enables us to:
-	// - avoid the network stack
-	// - avoid/ignore TLS for self-tracing
-	// - skip tracing when the requests come from the in-process transport
-	//   (i.e. to avoid recursive/repeated tracing.)
-	lis := pipelistener.New()
-	selfTransport, err := transport.NewHTTPTransport()
-	selfTransport.SetServerURL(&url.URL{Scheme: "http", Host: "localhost"})
-	selfTransport.SetSecretToken(cfg.SecretToken)
+	var environment string
+	if cfg.SelfInstrumentation.Environment != nil {
+		environment = *cfg.SelfInstrumentation.Environment
+	}
+	tracer, err := apm.NewTracerOptions(apm.TracerOptions{
+		ServiceName:        info.Beat,
+		ServiceVersion:     info.Version,
+		ServiceEnvironment: environment,
+		Transport:          tracerTransport,
+	})
 	if err != nil {
-		tracer.Close()
-		lis.Close()
 		return nil, nil, err
 	}
-	selfTransport.Client.Transport = &http.Transport{
-		DialContext:     lis.DialContext,
-		MaxIdleConns:    100,
-		IdleConnTimeout: 90 * time.Second,
-	}
-	tracer.Transport = selfTransport
+	tracer.SetLogger(logp.NewLogger(logs.Tracing))
 	return tracer, lis, nil
 }
 
