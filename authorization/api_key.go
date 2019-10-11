@@ -103,6 +103,10 @@ func (a *APIKey) AuthorizedFor(application string, privilege string) (bool, erro
 		return false, errors.Errorf("privilege '%s' is unsupported", privilege)
 	}
 
+	if application == "" {
+		application = appBackend
+	}
+
 	//fetch from cache
 	if allowed, found := a.fromCache(application, privilege); found {
 		return allowed, nil
@@ -150,7 +154,7 @@ func fromES(client *elasticsearch.Client, token string, application string) (map
 	}
 	hasPrivileges := esapi.SecurityHasPrivilegesRequest{
 		Body:   strings.NewReader(qb.string()),
-		Header: http.Header{headers.Authorization: []string{headers.APIKey + token}},
+		Header: http.Header{headers.Authorization: []string{headers.APIKey + " " + token}},
 	}
 	resp, err := hasPrivileges.Do(context.Background(), client)
 	if err != nil {
