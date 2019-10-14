@@ -104,13 +104,13 @@ func TestConfig_Policies(t *testing.T) {
 		"assign different default policy": {
 			"error",
 			map[string]interface{}{
-				"mapping": []map[string]interface{}{{"event_type": "error", "policy_name": rollover7Days}}},
-			policyPool()[rollover7Days]},
+				"mapping": []map[string]interface{}{{"event_type": "error", "policy_name": rollover30Days}}},
+			policyPool()[rollover30Days]},
 		"change default policy": {
 			"transaction",
 			map[string]interface{}{
 				"policies": []map[string]interface{}{{
-					"name":   rollover7Days,
+					"name":   rollover30Days,
 					"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": nil}}}}},
 			map[string]interface{}{"policy": map[string]interface{}{"phases": map[string]interface{}{"delete": map[string]interface{}{}}}}},
 		"assign new policy": {
@@ -149,7 +149,7 @@ func TestConfig_Invalid(t *testing.T) {
 		cfg    map[string]interface{}
 		errMsg string
 	}{
-		"invalid event_type": {map[string]interface{}{"mapping": []map[string]interface{}{{"event_type": "xyz", "policy_name": rollover7Days}}}, "event_type 'xyz' not supported"},
+		"invalid event_type": {map[string]interface{}{"mapping": []map[string]interface{}{{"event_type": "xyz", "policy_name": rollover30Days}}}, "event_type 'xyz' not supported"},
 		"invalid policy":     {map[string]interface{}{"mapping": []map[string]interface{}{{"event_type": "span", "policy_name": "xyz"}}}, "policy 'xyz' not configured"},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -162,10 +162,9 @@ func TestConfig_Invalid(t *testing.T) {
 }
 
 func defaultPolicies() []EventPolicy {
-	return []EventPolicy{
-		{EventType: "error", Policy: policyPool()[rollover1Day], Name: rollover1Day},
-		{EventType: "span", Policy: policyPool()[rollover1Day], Name: rollover1Day},
-		{EventType: "transaction", Policy: policyPool()[rollover7Days], Name: rollover7Days},
-		{EventType: "metric", Policy: policyPool()[rollover7Days], Name: rollover7Days},
+	var policies []EventPolicy
+	for event, policyName := range policyMapping() {
+		policies = append(policies, EventPolicy{EventType: event, Policy: policyPool()[policyName], Name: policyName})
 	}
+	return policies
 }
