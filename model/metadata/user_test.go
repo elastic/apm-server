@@ -66,37 +66,32 @@ func TestUserFields(t *testing.T) {
 
 func TestUserClientFields(t *testing.T) {
 	id := "1234"
-	ip := "127.0.0.1"
 	email := "test@mail.co"
 	name := "user123"
 	userAgent := "rum-1.0"
 
-	tests := []struct {
-		User   User
-		Output common.MapStr
+	for _, tc := range map[string]struct {
+		ip  string
+		out common.MapStr
 	}{
-		{
-			User:   User{},
-			Output: common.MapStr{},
-		},
-		{
-			User: User{
-				Id:        &id,
-				IP:        &ip,
-				Email:     &email,
-				Name:      &name,
-				UserAgent: &userAgent,
-			},
-			Output: common.MapStr{
-				"ip": "127.0.0.1",
-			},
-		},
+		"Empty":        {ip: "", out: nil},
+		"IPv4":         {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv4WithPort": {ip: "192.0.0.1:8080", out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv6":         {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
+		"Invalid":      {ip: "192.0.1", out: nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			u := User{IP: &tc.ip, Id: &id, Email: &email, Name: &name, UserAgent: &userAgent}
+			assert.Equal(t, tc.out, u.ClientFields())
+		})
 	}
 
-	for _, test := range tests {
-		output := test.User.ClientFields()
-		assert.Equal(t, test.Output, output)
-	}
+	t.Run("NilValues", func(t *testing.T) {
+		var u User
+		assert.Nil(t, u.ClientFields())
+		u = User{}
+		assert.Nil(t, u.ClientFields())
+	})
 }
 
 func TestUserAgentFields(t *testing.T) {

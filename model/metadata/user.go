@@ -21,8 +21,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 type User struct {
@@ -74,12 +75,14 @@ func (u *User) Fields() common.MapStr {
 }
 
 func (u *User) ClientFields() common.MapStr {
-	if u == nil {
+	ip := ""
+	if u != nil && u.IP != nil {
+		ip = utility.ParseHost(*u.IP)
+	}
+	if ip == "" {
 		return nil
 	}
-	user := common.MapStr{}
-	utility.Set(user, "ip", u.IP)
-	return user
+	return common.MapStr{"ip": ip}
 }
 
 func (u *User) UserAgentFields() common.MapStr {
