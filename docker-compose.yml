@@ -23,11 +23,31 @@ services:
       kibana: { condition: service_healthy }
 
   elasticsearch:
+    ports:
+      - 9200:9200
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: elasticsearch
+    environment:
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
+      - "discovery.type=single-node"
+      - "xpack.security.authc.anonymous.roles=remote_monitoring_collector"
+      - "xpack.security.authc.realms.file.file1.order=0"
+      - "xpack.security.authc.realms.native.native1.order=1"
+      - "xpack.security.enabled=true"
+      - "xpack.license.self_generated.type=trial"
+      - "xpack.monitoring.collection.enabled=true"
+    volumes:
+      - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
+      - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
+      - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
 
   kibana:
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: kibana
+    environment:
+      ELASTICSEARCH_PASSWORD: changeme
+      ELASTICSEARCH_URL: elasticsearch:9200
+      ELASTICSEARCH_USERNAME: kibana_system_user
+      STATUS_ALLOWANONYMOUS: "true"
