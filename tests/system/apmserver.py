@@ -47,6 +47,24 @@ class BaseTest(TestCase):
     def _beat_path_join(cls, *paths):
         return os.path.abspath(os.path.join(cls.beat_path, *paths))
 
+    @staticmethod
+    def get_elasticsearch_url(user="admin", password="changeme"):
+        """
+        Returns an elasticsearch.Elasticsearch instance built from the
+        env variables like the integration tests.
+        """
+        host = os.getenv("ES_HOST", "localhost")
+
+        # TODO: don't hard code credentials here
+        # TODO: don't inject this into the apm-server configuration?
+        if user and password:
+            host = user + ":" + password + "@" + host
+
+        return "http://{host}:{port}".format(
+            host=host,
+            port=os.getenv("ES_PORT", "9200"),
+        )
+
     def get_payload_path(self, name):
         return self._beat_path_join(
             'testdata',
