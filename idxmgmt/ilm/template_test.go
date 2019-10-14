@@ -26,9 +26,9 @@ import (
 )
 
 func TestTemplate_ILMEnabled(t *testing.T) {
-	tmpl := Template(true, false, true, "mock-apm", "mock-apm-keep")
+	tmpl := Template(true, true, "mock-apm", "mock-apm-keep")
 	expected := libtemplate.TemplateConfig{
-		Enabled:   false,
+		Enabled:   true,
 		Name:      "mock-apm",
 		Pattern:   "mock-apm*",
 		Overwrite: true,
@@ -44,7 +44,7 @@ func TestTemplate_ILMEnabled(t *testing.T) {
 }
 
 func TestTemplate_ILMDisabled(t *testing.T) {
-	tmpl := Template(false, true, false, "mock-apm", "mock-apm-keep")
+	tmpl := Template(false, false, "mock-apm", "mock-apm-keep")
 	expected := libtemplate.TemplateConfig{
 		Enabled:   true,
 		Name:      "mock-apm",
