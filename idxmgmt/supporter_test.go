@@ -79,23 +79,19 @@ func TestIndexSupport_Enabled(t *testing.T) {
 		},
 		"template enabled": {
 			expected: true,
-			cfg:      common.MapStr{"setup.template.enabled": true},
-		},
-		"template and ilm disabled": {
-			expected: false,
-			cfg:      common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": false},
+			cfg:      common.MapStr{"setup.template.enabled": true, "apm-server.ilm.setup.enabled": false},
 		},
 		"ilm enabled": {
 			expected: true,
-			cfg:      common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": true},
+			cfg:      common.MapStr{"setup.template.enabled": false, "apm-server.ilm.setup.enabled": false},
 		},
-		"ilm auto": {
+		"ilm managed": {
 			expected: true,
-			cfg:      common.MapStr{"setup.template.enabled": false, "apm-server.ilm.enabled": "auto"},
+			cfg:      common.MapStr{"setup.template.enabled": false, "apm-server.ilm.setup.enabled": true},
 		},
-		"ilm default": {
-			expected: true,
-			cfg:      common.MapStr{"setup.template.enabled": false},
+		"nothing enabled": {
+			expected: false,
+			cfg:      common.MapStr{"setup.template.enabled": false, "apm-server.ilm.setup.enabled": false, "apm-server.ilm.enabled": false},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

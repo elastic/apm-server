@@ -15,6 +15,12 @@ class IdxMgmt(object):
         self._client = client
         self._index = index
         self._event_indices = ["{}-{}".format(self._index, e) for e in ['error', 'span', 'transaction', 'metric']]
+        self.default_policies = {
+            "error": "rollover-1-day",
+            "span": "rollover-1-day",
+            "transaction": "rollover-7-days",
+            "metric": "rollover-7-days"
+        }
 
     def indices(self):
         return self._event_indices + [self._index]
@@ -25,42 +31,54 @@ class IdxMgmt(object):
         self.delete_policies()
 
     def delete_policies(self):
-        for e in self._event_indices:
+        for ev, p in self.default_policies.items():
             try:
-                self._client.transport.perform_request('DELETE', '/_ilm/policy/' + e)
+                self._client.transport.perform_request('DELETE', '/_ilm/policy/' + p)
             except NotFoundError:
                 pass
 
-    def assert_template(self, loaded=False, with_ilm=False):
-        resp = self._client.indices.get_template(name=self._index + '*', ignore=[404])
-        if not loaded:
+    def assert_template(self, loaded=1):
+        resp = self._client.indices.get_template(name=self._index, ignore=[404])
+        if loaded == 0:
             return self.assert_empty(resp)
 
-        assert len(resp) == len(self.indices()), resp
+        assert len(resp) == loaded, resp
         s, i, l = 'settings', 'index', 'lifecycle'
         assert l not in resp[self._index][s][i]
+
+    def assert_event_template(self, loaded=4, with_ilm=True):
+        resp = self._client.indices.get_template(name=self._index + '*', ignore=[404])
+
+        if self._index in resp:
+            loaded +=1
+        assert loaded == len(resp), len(resp)
+
+        if loaded == 1:
+            return
+
+        s, i, l = 'settings', 'index', 'lifecycle'
         for idx in self._event_indices:
             if not with_ilm:
                 assert i not in resp[idx][s], resp[idx]
                 continue
             t = resp[idx][s][i]
             assert l in t, t
-            assert t[l]['name'] == idx, t[l]
+            assert t[l]['name'] is not None, t[l]
             assert t[l]['rollover_alias'] == idx, t[l]
 
-    def assert_alias(self, loaded=False):
+    def assert_alias(self, loaded=4):
         resp = self._client.transport.perform_request('GET', '/_alias/' + self._index + '*')
-        if not loaded:
+        if loaded == 0:
             return self.assert_empty(resp)
 
-        assert len(resp) == len(self._event_indices), resp
+        assert len(resp) == loaded, resp
         for idx in self._event_indices:
             assert "{}-000001".format(idx) in resp, resp
 
-    def assert_policies(self, loaded=False):
+    def assert_policies(self, loaded=4):
         resp = self._client.transport.perform_request('GET', '/_ilm/policy')
-        for idx in self._event_indices:
-            assert idx in resp if loaded else idx not in resp
+        for ev, p in self.default_policies.items():
+            assert p in resp if loaded > 0 else p not in resp
 
     def assert_docs_written_to_alias(self, alias):
         assert 1 == 2
@@ -102,9 +120,24 @@ class TestCommandSetupIndexManagement(BaseTest):
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=True)
-        self.idxmgmt.assert_policies(loaded=True)
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_policies()
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    @attr('integration')
+    def test_setup_default_template_ilm_setup_disabled(self):
+        """
+        Test setup --index-management when ilm setup false
+        """
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.setup.enabled=false"])
+        assert exit_code == 0
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template(loaded=0)
+        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_policies(loaded=0)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -115,22 +148,10 @@ class TestCommandSetupIndexManagement(BaseTest):
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
-    def test_setup_template_enabled_ilm_enabled(self):
-        """
-        Test setup --index-management when template enabled and ilm enabled
-        """
-        exit_code = self.run_beat(extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=true"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=True)
-        self.idxmgmt.assert_policies(loaded=True)
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template(with_ilm=False)
+        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_policies(loaded=0)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -141,9 +162,10 @@ class TestCommandSetupIndexManagement(BaseTest):
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=False, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=True)
-        self.idxmgmt.assert_policies(loaded=True)
+        self.idxmgmt.assert_template(loaded=0)
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_policies()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -155,9 +177,10 @@ class TestCommandSetupIndexManagement(BaseTest):
                                               "-E", "apm-server.ilm.enabled=false",
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=False)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
+        self.idxmgmt.assert_template(loaded=0)
+        self.idxmgmt.assert_event_template(with_ilm=False)
+        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_policies(loaded=0)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -169,17 +192,19 @@ class TestCommandSetupIndexManagement(BaseTest):
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=true"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=True)
-        self.idxmgmt.assert_policies(loaded=True)
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_policies()
 
         # load with ilm disabled
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=False)
-        self.idxmgmt.assert_policies(loaded=True)  # policies do not get deleted
-        self.idxmgmt.assert_alias(loaded=True)  # aliases do not get deleted
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template(with_ilm=False)
+        self.idxmgmt.assert_alias() # policies do not get deleted
+        self.idxmgmt.assert_policies()  # aliases do not get deleted
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -191,17 +216,19 @@ class TestCommandSetupIndexManagement(BaseTest):
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=False)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template(with_ilm=False)
+        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_policies(loaded=0)
 
         # load with ilm enabled
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=true"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_policies(loaded=True)
-        self.idxmgmt.assert_alias(loaded=True)
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_policies()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -212,9 +239,10 @@ class TestCommandSetupIndexManagement(BaseTest):
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=True)
-        self.idxmgmt.assert_policies(loaded=True)
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_policies()
         # try deleting policy needs to raise an error as it is in use
         self.idxmgmt.delete_policies()
 
@@ -233,9 +261,10 @@ class TestRunIndexManagementDefault(ElasticTest):
     def test_template_loaded(self):
         self.wait_until(lambda: self.log_contains("Finished index management setup."),
                         max_timeout=5)
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=True)
-        self.idxmgmt.assert_policies(loaded=True)
+
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_policies()
 
 
 class TestRunIndexManagementWithoutILM(ElasticTest):
@@ -255,10 +284,33 @@ class TestRunIndexManagementWithoutILM(ElasticTest):
     def test_template_and_ilm_loaded(self):
         self.wait_until(lambda: self.log_contains("Finished index management setup."),
                         max_timeout=5)
-        self.idxmgmt.assert_template(loaded=True, with_ilm=False)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
 
+        self.idxmgmt.assert_event_template(with_ilm=False)
+        self.idxmgmt.assert_alias(0)
+        self.idxmgmt.assert_policies(0)
+
+
+class TestRunIndexManagementWithSetupDisabled(ElasticTest):
+
+    config_overrides = {"queue_flush": 2048}
+
+    def setUp(self):
+        super(TestRunIndexManagementWithSetupDisabled, self).setUp()
+
+        self.idxmgmt = IdxMgmt(self.es, self.index_name)
+        self.idxmgmt.delete()
+
+    def start_args(self):
+        return {"extra_args": ["-E", "apm-server.ilm.setup.enabled=false"]}
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_template_and_ilm_loaded(self):
+        self.wait_until(lambda: self.log_contains("Manage ILM setup is disabled."),
+                        max_timeout=5)
+
+        self.idxmgmt.assert_event_template(0)
+        self.idxmgmt.assert_alias(0)
+        self.idxmgmt.assert_policies(0)
 
 class TestCommandSetupTemplate(BaseTest):
     """
@@ -290,33 +342,12 @@ class TestCommandSetupTemplate(BaseTest):
         """
         exit_code = self.run_beat(extra_args=["setup", self.cmd])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
+        self.idxmgmt.assert_template()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
-    def test_setup_template_enabled_ilm_disabled(self):
-        """
-        Test setup --template when template enabled and ilm disabled
-        """
-        exit_code = self.run_beat(extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=false"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True)
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
-    def test_setup_template_enabled_ilm_enabled(self):
-        """
-        Test setup --template when template enabled and ilm enabled
-        """
-        exit_code = self.run_beat(extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=true"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
+        # do not setup ILM when running this command
+        self.idxmgmt.assert_event_template(0)
+        self.idxmgmt.assert_alias(0)
+        self.idxmgmt.assert_policies(0)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -327,64 +358,4 @@ class TestCommandSetupTemplate(BaseTest):
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "setup.template.enabled=false"])
         assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=False)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
-    def test_setup_template_disabled_ilm_disabled(self):
-        """
-        Test setup --template when template disabled and ilm disabled
-        """
-        exit_code = self.run_beat(extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=false",
-                                              "-E", "setup.template.enabled=false"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=False)
-        self.idxmgmt.assert_alias(loaded=False)
-        self.idxmgmt.assert_policies(loaded=False)
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
-    def test_enable_ilm(self):
-        """
-        Test setup --template when ilm was enabled and gets disabled
-        """
-        self.render_config()
-
-        # load with ilm enabled
-        exit_code = self.run_beat(logging_args=["-v", "-d", "*"],
-                                  extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=true"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
-
-        # load with ilm disabled
-        exit_code = self.run_beat(logging_args=["-v", "-d", "*"],
-                                  extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=false"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=False)
-
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
-    def test_setup_template_with_opts(self):
-        """
-        Test setup --index-management when ilm was disabled and gets enabled
-        """
-        self.render_config()
-
-        # load with ilm disabled
-        exit_code = self.run_beat(logging_args=["-v", "-d", "*"],
-                                  extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=false"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=False)
-
-        # load with ilm enabled
-        exit_code = self.run_beat(logging_args=["-v", "-d", "*"],
-                                  extra_args=["setup", self.cmd,
-                                              "-E", "apm-server.ilm.enabled=true"])
-        assert exit_code == 0
-        self.idxmgmt.assert_template(loaded=True, with_ilm=True)
+        self.idxmgmt.assert_template(loaded=0)
