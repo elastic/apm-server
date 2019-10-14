@@ -26,8 +26,8 @@ import (
 
 	"github.com/elastic/beats/libbeat/version"
 
-	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/middleware/authorization"
 )
 
 func TestRootHandler(t *testing.T) {

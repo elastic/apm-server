@@ -24,10 +24,9 @@ import (
 
 	"github.com/elastic/beats/libbeat/logp"
 
-	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/headers"
-	"github.com/elastic/apm-server/log"
+	logs "github.com/elastic/apm-server/log"
 )
 
 const (
@@ -53,14 +52,14 @@ type Context struct {
 
 type Authorization interface {
 	AuthorizedFor(application, privilege string) (bool, error)
-	AuthorizationRequired() bool
+	IsAuthorizationConfigured() bool
 }
 
 // Reset allows to reuse a context by removing all request specific information
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Request = r
 	c.Logger = nil
-	c.Authorization = &authorization.Allow{}
+	c.Authorization = &allow{}
 	c.RateLimiter = nil
 	c.Result.Reset()
 
@@ -150,4 +149,13 @@ func (c *Context) errOnWrite(err error) {
 		c.Logger = logp.NewLogger(logs.Response)
 	}
 	c.Logger.Errorw("write response", "error", err)
+}
+
+type allow struct{}
+
+func (*allow) AuthorizedFor(application, privilege string) (bool, error) {
+	return true, nil
+}
+func (*allow) IsAuthorizationConfigured() bool {
+	return false
 }

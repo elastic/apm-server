@@ -20,9 +20,17 @@ package api
 import (
 	"net/http"
 	"net/http/httptest"
+	"testing"
+
+	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/headers"
 )
 
 func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
@@ -46,4 +54,30 @@ func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseReco
 	h, _ := mux.Handler(r)
 	h.ServeHTTP(w, r)
 	return w, nil
+}
+
+func TestMux_backendAuthMeans(t *testing.T) {
+	t.Run("no auth config", func(t *testing.T) {
+		means, err := backendAuthMeans(config.DefaultConfig("8.0.0"))
+		assert.NoError(t, err)
+		assert.Empty(t, means)
+	})
+
+	t.Run("no elasticsearch config", func(t *testing.T) {
+		means, err := backendAuthMeans(&config.Config{AuthConfig: &config.AuthConfig{APIKeyConfig: &config.APIKeyConfig{Enabled: true}}})
+		assert.Error(t, err)
+		assert.Nil(t, means)
+	})
+
+	t.Run("valid auth config", func(t *testing.T) {
+		cfg := common.MustNewConfigFrom(`{"authorization":{"bearer.token":"1234","api_key":{"enabled":true,"elasticsearch":{"hosts":["localhost:9200"]}}}}`)
+		authorizationCfg := config.DefaultConfig("8.0.0")
+		require.NoError(t, cfg.Unpack(authorizationCfg))
+		means, err := backendAuthMeans(authorizationCfg)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(means))
+		assert.NotNil(t, means[headers.Bearer])
+		assert.NotNil(t, means[headers.APIKey])
+	})
+
 }

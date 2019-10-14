@@ -21,16 +21,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/middleware/authorization"
 	"github.com/elastic/apm-server/beater/request"
 )
 
 type AuthMeans map[string]*AuthMean
 
 type AuthMean struct {
-	Authorization          func(string) request.Authorization
-	Application, Privilege string
+	Authorization func(string) request.Authorization
 }
 
 // AuthorizationMiddleware returns a Middleware to only let authorized requests pass through

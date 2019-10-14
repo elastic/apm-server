@@ -20,6 +20,7 @@ package logs
 // logging selectors
 const (
 	Beater          = "beater"
+	Config          = "config"
 	Handler         = "handler"
 	Ilm             = "ilm"
 	IndexManagement = "index-management"

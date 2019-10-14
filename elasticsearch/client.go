@@ -39,11 +39,12 @@ const (
 )
 
 var (
-	invalidHosts = errors.New("invalid host configuration, must at least contain one hostname")
+	errInvalidHosts  = errors.New("`Hosts` must at least contain one hostname")
+	errConfigMissing = errors.New("config missing")
 )
 
 type Config struct {
-	Hosts        hosts             `config:"hosts" validate:"required"`
+	Hosts        Hosts             `config:"hosts" validate:"required"`
 	Protocol     string            `config:"protocol"`
 	Path         string            `config:"path"`
 	ProxyURL     string            `config:"proxy_url"`
@@ -51,38 +52,27 @@ type Config struct {
 	Timeout      time.Duration     `config:"timeout"`
 	TLS          *tlscommon.Config `config:"ssl"`
 }
-type hosts []string
+type Hosts []string
 
-func Client(cfg *common.Config) (*goelasticsearch.Client, error) {
-	// Ignored configurations
-	// - compressionLevel not supported
-	// - parameters
-	// - worker, index, indices, pipeline, bulkMaxSize
-	// - maxRetries, backoff, loadbalance, header: currently not supported in go-elasticsearch client
-	// - timeout might be retrieved from configured apm-server request timeout
-
-	//following logic is partially copied from libbeat
-
-	if cfg == nil {
-		return nil, nil
+func Client(config *Config) (*goelasticsearch.Client, error) {
+	if config == nil {
+		return nil, errConfigMissing
 	}
 
-	var config Config
-	if err := cfg.Unpack(&config); err != nil {
-		return nil, err
-	}
+	//following logic is inspired by libbeat functionality
+
 	var err error
-	proxy, err := httpProxyUrl(&config)
+	proxy, err := httpProxyUrl(config)
 	if err != nil {
 		return nil, err
 	}
 
-	addresses, err := addresses(&config)
+	addresses, err := addresses(config)
 	if err != nil {
 		return nil, err
 	}
 
-	dialer, tlsDialer, err := dialer(&config)
+	dialer, tlsDialer, err := dialer(config)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +87,9 @@ func Client(cfg *common.Config) (*goelasticsearch.Client, error) {
 	})
 }
 
-func (h hosts) Validate() error {
+func (h Hosts) Validate() error {
 	if len(h) == 0 {
-		return invalidHosts
+		return errInvalidHosts
 	}
 	return nil
 }

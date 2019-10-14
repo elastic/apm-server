@@ -19,6 +19,7 @@ package request
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/elastic/beats/libbeat/monitoring"
@@ -27,6 +28,22 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+func assertResultIsEmpty(t *testing.T, r Result) {
+	cType := reflect.TypeOf(r)
+	cVal := reflect.ValueOf(r)
+	for i := 0; i < cVal.NumField(); i++ {
+		val := cVal.Field(i).Interface()
+		switch cType.Field(i).Name {
+		case "ID":
+			assert.Equal(t, IDUnset, val)
+		case "StatusCode":
+			assert.Equal(t, http.StatusOK, val)
+		default:
+			assert.Empty(t, val)
+		}
+	}
+}
 
 func TestResult_Reset(t *testing.T) {
 	r := Result{
@@ -38,11 +55,12 @@ func TestResult_Reset(t *testing.T) {
 		Stacktrace: "bar",
 	}
 	r.Reset()
-	assert.Equal(t, r.ID, IDUnset)
-	assert.Equal(t, http.StatusOK, r.StatusCode)
-	for _, prop := range []interface{}{r.Keyword, r.Body, r.Err, r.Stacktrace} {
-		assert.Empty(t, prop)
-	}
+	assertResultIsEmpty(t, r)
+	//assert.Equal(t, r.ID, IDUnset)
+	//assert.Equal(t, http.StatusOK, r.StatusCode)
+	//for _, prop := range []interface{}{r.Keyword, r.Body, r.Err, r.Stacktrace} {
+	//	assert.Empty(t, prop)
+	//}
 }
 
 func TestResult_Set(t *testing.T) {

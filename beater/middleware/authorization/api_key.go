@@ -44,7 +44,7 @@ const (
 
 	appBackend = "apm-backend"
 
-	required   = true
+	enabled    = true
 	resources  = "*"
 	sep        = `","`
 	whitespace = " "
@@ -93,8 +93,8 @@ func NewAPIKey(
 		localCache: &localCache{store: map[string]privileges{}}}
 }
 
-func (*APIKey) AuthorizationRequired() bool {
-	return required
+func (*APIKey) IsAuthorizationConfigured() bool {
+	return enabled
 }
 
 func (a *APIKey) AuthorizedFor(application string, privilege string) (bool, error) {

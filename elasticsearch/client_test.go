@@ -23,24 +23,22 @@ import (
 	"os"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/common"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestClient(t *testing.T) {
-	//defaultHost := "localhost:9200"
-
 	t.Run("no config", func(t *testing.T) {
 		goESClient, err := Client(nil)
-		require.NoError(t, err)
+		assert.Error(t, err)
 		assert.Nil(t, goESClient)
 	})
 
-	t.Run("missing host", func(t *testing.T) {
-		_, err := Client(common.NewConfig())
-		require.Error(t, err)
+	t.Run("valid config", func(t *testing.T) {
+		cfg := Config{Hosts: Hosts{"localhost:9200", "localhost:9201"}}
+		goESClient, err := Client(&cfg)
+		require.NoError(t, err)
+		assert.NotNil(t, goESClient)
 	})
 }
 

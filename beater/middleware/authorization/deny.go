@@ -17,22 +17,12 @@
 
 package authorization
 
-import (
-	"crypto/subtle"
-)
+type Deny struct{}
 
-type Bearer struct {
-	authorized bool
+func (*Deny) AuthorizedFor(application, privilege string) (bool, error) {
+	return false, nil
 }
 
-func NewBearer(requiredToken, requestToken string) *Bearer {
-	return &Bearer{authorized: subtle.ConstantTimeCompare([]byte(requiredToken), []byte(requestToken)) == 1}
-}
-
-func (b *Bearer) AuthorizedFor(_, _ string) (bool, error) {
-	return b.authorized, nil
-}
-
-func (*Bearer) AuthorizationRequired() bool {
+func (*Deny) IsAuthorizationConfigured() bool {
 	return true
 }

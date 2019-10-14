@@ -29,9 +29,9 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/middleware/authorization"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
@@ -68,7 +68,7 @@ func Handler(kbClient kibana.Client, config *config.AgentConfig) request.Handler
 	return func(c *request.Context) {
 		// error handling
 		c.Header().Set(headers.CacheControl, errCacheControl)
-		authRequired := c.Authorization.AuthorizationRequired()
+		authRequired := c.Authorization.IsAuthorizationConfigured()
 
 		query, queryErr := buildQuery(c.Request)
 		if queryErr != nil {

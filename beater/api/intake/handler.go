@@ -27,8 +27,8 @@ import (
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/middleware/authorization"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"

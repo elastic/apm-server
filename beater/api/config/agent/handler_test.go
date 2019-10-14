@@ -32,10 +32,10 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
+	"github.com/elastic/apm-server/beater/middleware/authorization"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/convert"
 	"github.com/elastic/apm-server/kibana"
@@ -188,7 +188,7 @@ func TestAgentConfigHandler(t *testing.T) {
 			if tokenSet {
 				ctx.Authorization = authorization.NewBearer("abc", "abc")
 			} else {
-				ctx.Authorization = &authorization.Allow{}
+				ctx.Authorization = authorization.NewBearer("", "")
 			}
 			h(ctx)
 

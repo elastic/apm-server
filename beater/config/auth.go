@@ -21,6 +21,9 @@ import (
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
+
+	"github.com/elastic/apm-server/elasticsearch"
 )
 
 // AuthConfig holds config information related to authorization against the APM Server
@@ -31,48 +34,49 @@ type AuthConfig struct {
 }
 
 type APIKeyConfig struct {
-	Enabled  bool            `config:"enabled"`
-	Cache    *LimitedCache   `config:"cache"`
-	ESConfig *APIKeyESConfig `config:"elasticsearch"`
+	Enabled  bool                  `config:"enabled"`
+	Cache    *LimitedCache         `config:"cache"`
+	ESConfig *elasticsearch.Config `config:"elasticsearch"`
 }
-
-type APIKeyESConfig common.Config
 
 func (c *APIKeyConfig) IsEnabled() bool {
 	return c != nil && c.Enabled
 }
 
-func (c *Config) HasAPIKeyESConfigured() bool {
-	return c.AuthConfig != nil && c.AuthConfig.APIKeyConfig != nil && c.AuthConfig.APIKeyConfig.ESConfig == nil
-}
+func (c *AuthConfig) setup(log *logp.Logger, ucfg *common.Config, secretToken string, outputESCfg *common.Config) error {
+	if secretToken != "" {
+		if c.BearerToken == "" {
+			c.BearerToken = secretToken
+		} else {
+			log.Warn("Ignoring `apm-server.secret_token` as `apm-server.authorization.bearer.token` is configured.")
+		}
+	}
+	if !c.APIKeyConfig.IsEnabled() || outputESCfg == nil {
+		return nil
+	}
 
-// Unpack Elasticsearch configuration for API Key authorization
-func (c *APIKeyESConfig) Unpack(inp *common.Config) error {
-	cfg := common.MustNewConfigFrom(map[string]interface{}{
-		"hosts":    []string{"localhost:9200"},
-		"protocol": "http",
-		"timeout":  "10s",
-	})
-	if err := inp.Unpack(&cfg); err != nil {
+	// return if ES has been explicityl configured
+	if ucfg != nil {
+		if auth, err := ucfg.Child("authorization", -1); err == nil {
+			if api_key, err := auth.Child("api_key", -1); err == nil {
+				if api_key.HasField("elasticsearch") {
+					return nil
+				}
+			}
+		}
+	}
+
+	// set ES from configured output
+	if err := outputESCfg.Unpack(c.APIKeyConfig.ESConfig); err != nil {
 		return err
 	}
-	*c = APIKeyESConfig(*cfg)
 	return nil
 }
 
-func (c *APIKeyESConfig) CommonConfig() *common.Config {
-	if c == nil {
-		return nil
-	}
-	esCfg := common.Config(*c)
-	return &esCfg
-}
-
-func DefaultAuthConfig() *AuthConfig {
-	return &AuthConfig{
-		APIKeyConfig: &APIKeyConfig{
-			Enabled: false,
-			Cache:   &LimitedCache{Expiration: 5 * time.Minute, Size: 1000},
-		},
-	}
+func defaultAuthConfig() *AuthConfig {
+	return &AuthConfig{APIKeyConfig: &APIKeyConfig{
+		Enabled:  false,
+		Cache:    &LimitedCache{Expiration: 5 * time.Minute, Size: 1000},
+		ESConfig: &elasticsearch.Config{Hosts: []string{"localhost:9200"}, Protocol: "http", Timeout: 10 * time.Second},
+	}}
 }

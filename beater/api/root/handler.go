@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/version"
 
-	"github.com/elastic/apm-server/authorization"
+	"github.com/elastic/apm-server/beater/middleware/authorization"
 	"github.com/elastic/apm-server/beater/request"
 )
 

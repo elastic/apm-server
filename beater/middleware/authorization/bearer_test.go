@@ -23,14 +23,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeny_AuthorizationRequired(t *testing.T) {
-	handler := Deny{}
-	assert.True(t, handler.AuthorizationRequired())
+func TestBearer_AuthorizationRequired(t *testing.T) {
+	handler := NewBearer("", "")
+	assert.False(t, handler.IsAuthorizationConfigured())
+
+	handler = NewBearer("123", "")
+	assert.True(t, handler.IsAuthorizationConfigured())
 }
 
-func TestDeny_AuthorizedFor(t *testing.T) {
-	handler := Deny{}
-	authorized, err := handler.AuthorizedFor("", "")
-	assert.NoError(t, err)
-	assert.False(t, authorized)
+func TestBearer_AuthorizedFor(t *testing.T) {
+	for name, tc := range map[string]struct {
+		handler    *Bearer
+		authorized bool
+	}{
+		"no token":      {handler: &Bearer{}, authorized: false},
+		"empty token":   {handler: NewBearer("", ""), authorized: true},
+		"invalid token": {handler: NewBearer("abc", "abx"), authorized: false},
+		"valid token":   {handler: NewBearer("foo", "foo"), authorized: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			authorized, err := tc.handler.AuthorizedFor("", "")
+			assert.NoError(t, err)
+			assert.Equal(t, tc.authorized, authorized)
+		})
+	}
 }

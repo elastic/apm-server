@@ -22,10 +22,11 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/monitoring"
 
-	"github.com/elastic/apm-server/authorization"
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
@@ -33,11 +34,12 @@ import (
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/middleware"
+	"github.com/elastic/apm-server/beater/middleware/authorization"
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/kibana"
-	"github.com/elastic/apm-server/log"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model"
 	psourcemap "github.com/elastic/apm-server/processor/asset/sourcemap"
 	"github.com/elastic/apm-server/processor/stream"
@@ -228,9 +230,9 @@ func addAuthAPIKey(cfg *config.Config, authMeans *middleware.AuthMeans) error {
 	if !cfg.AuthConfig.APIKeyConfig.IsEnabled() {
 		return nil
 	}
-	client, err := elasticsearch.Client(cfg.AuthConfig.APIKeyConfig.ESConfig.CommonConfig())
+	client, err := elasticsearch.Client(cfg.AuthConfig.APIKeyConfig.ESConfig)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error connecting to Elasticsearch configured for API Key usage")
 	}
 
 	cache := authorization.NewAPIKeyCache(

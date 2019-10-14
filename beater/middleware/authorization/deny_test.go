@@ -23,14 +23,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAllow_AuthorizationRequired(t *testing.T) {
-	handler := Allow{}
-	assert.False(t, handler.AuthorizationRequired())
+func TestDeny_AuthorizationRequired(t *testing.T) {
+	handler := Deny{}
+	assert.True(t, handler.IsAuthorizationConfigured())
 }
 
-func TestAllow_AuthorizedFor(t *testing.T) {
-	handler := Allow{}
+func TestDeny_AuthorizedFor(t *testing.T) {
+	handler := Deny{}
 	authorized, err := handler.AuthorizedFor("", "")
 	assert.NoError(t, err)
-	assert.True(t, authorized)
+	assert.False(t, authorized)
 }
