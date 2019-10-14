@@ -173,3 +173,26 @@ func TestDecodeContext(t *testing.T) {
 		})
 	}
 }
+
+func TestHttp_ClientFields(t *testing.T) {
+	for name, tc := range map[string]struct {
+		ip  string
+		out common.MapStr
+	}{
+		"Empty":        {ip: "", out: nil},
+		"IPv4":         {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv4WithPort": {ip: "192.0.0.1:8080", out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv6":         {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
+		"Invalid":      {ip: "192.0.1", out: nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			http := Http{Request: &Req{Socket: &Socket{RemoteAddress: &tc.ip}}}
+			assert.Equal(t, tc.out, http.ClientFields())
+		})
+	}
+
+	t.Run("NilValues", func(t *testing.T) {
+		var h Http
+		assert.Nil(t, h.ClientFields())
+	})
+}
