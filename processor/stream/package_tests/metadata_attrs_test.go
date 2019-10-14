@@ -118,6 +118,7 @@ func TestMetadataPayloadAttrsMatchFields(t *testing.T) {
 		{Template: "user.username", Mapping: "user.name"},
 		{Template: "process.argv", Mapping: "process.args"},
 		{Template: "labels.*", Mapping: "labels"},
+		{Template: "service.node.configured_name", Mapping: "service.node.name"},
 	}
 	setup.EventFieldsMappedToTemplateFields(t, eventFields, mappingFields)
 }
@@ -153,6 +154,7 @@ func TestKeywordLimitationOnMetadataAttrs(t *testing.T) {
 			{Template: "host.name", Mapping: "system.configured_hostname"},
 			{Template: "host.", Mapping: "system."},
 			{Template: "user.name", Mapping: "user.username"},
+			{Template: "service.node.name", Mapping: "service.node.configured_name"},
 			//{Template: "url.", Mapping:"context.request.url."},
 		},
 	)

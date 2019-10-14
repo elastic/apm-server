@@ -47,7 +47,10 @@
                 "language": {
                     "name": "ecmascript"
                 },
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
             },
             "short_counter": 227,
             "span": {
@@ -115,7 +118,10 @@
                 "language": {
                     "name": "ecmascript"
                 },
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
             },
             "user": {
                 "email": "user@mail.com",

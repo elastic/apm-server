@@ -59,6 +59,9 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-123"
+                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -207,6 +210,9 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-123"
+                },
                 "runtime": {
                     "name": "node",
                     "version": "7.0"
@@ -330,6 +336,9 @@
                     "version": "2.5"
                 },
                 "name": "service1",
+                "node": {
+                    "name": "node-ABC"
+                },
                 "runtime": {
                     "name": "cruby",
                     "version": "2.5"

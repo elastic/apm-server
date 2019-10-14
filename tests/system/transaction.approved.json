@@ -54,6 +54,9 @@
             },
             "service": {
                 "name": "serviceabc",
+                "node": {
+                    "name": "special-name"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
@@ -267,6 +270,9 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "container-id"
+                },
                 "environment": "staging"
             },
             "transaction": {
@@ -362,6 +368,9 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "container-id"
+                },
                 "environment": "staging"
             },
             "transaction": {
@@ -456,7 +465,10 @@
                     "version": "8"
                 },
                 "environment": "staging",
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "container-id"
+                }
             },
             "transaction": {
                 "type": "request",

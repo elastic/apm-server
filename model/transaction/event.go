@@ -23,20 +23,22 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 const (
 	processorName      = "transaction"
 	transactionDocType = "transaction"
+	emptyString        = ""
 )
 
 var (
@@ -184,7 +186,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.DeepUpdate(fields, "client", clientIP)
 	utility.DeepUpdate(fields, "source", clientIP)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
-	utility.DeepUpdate(fields, "service", e.Service.Fields())
+	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
