@@ -139,7 +139,7 @@
         - name: name
           type: keyword
           description: >
-            Immutable unique name of the service emitting this event.
+            Immutable name of the service emitting this event.
           overwrite: true
 
         - name: version
@@ -152,6 +152,15 @@
           type: keyword
           description: >
             Service environment.
+
+        - name: node
+          type: group
+          fields:
+            - name: name
+              type: keyword
+              description: >
+                Unique meaningful name of the service node.
+              overwrite: true
 
         - name: language
           type: group

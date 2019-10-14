@@ -23,8 +23,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -36,17 +37,29 @@ var (
 )
 
 func TestServiceTransform(t *testing.T) {
-	serviceName := "myService"
+	serviceName, serviceNodeName := "myService", "abc"
 
 	tests := []struct {
-		Service     Service
-		Fields      common.MapStr
-		AgentFields common.MapStr
+		Service               Service
+		ContainerID, HostName string
+		Fields                common.MapStr
+		AgentFields           common.MapStr
 	}{
 		{
 			Service:     Service{},
 			AgentFields: common.MapStr{},
 			Fields:      common.MapStr{},
+		}, {
+			Service:     Service{},
+			ContainerID: "foo",
+			HostName:    "bar",
+			AgentFields: common.MapStr{},
+			Fields:      common.MapStr{"node": common.MapStr{"name": "foo"}},
+		}, {
+			Service:     Service{},
+			HostName:    "bar",
+			AgentFields: common.MapStr{},
+			Fields:      common.MapStr{"node": common.MapStr{"name": "bar"}},
 		},
 		{
 			Service: Service{
@@ -69,7 +82,10 @@ func TestServiceTransform(t *testing.T) {
 					Name:    &agentName,
 					Version: &agentVersion,
 				},
+				node: node{name: &serviceNodeName},
 			},
+			ContainerID: "foo",
+			HostName:    "bar",
 			AgentFields: common.MapStr{
 				"name":    "elastic-node",
 				"version": "1.0.0",
@@ -90,12 +106,13 @@ func TestServiceTransform(t *testing.T) {
 					"name":    "Express",
 					"version": "1.2.3",
 				},
+				"node": common.MapStr{"name": serviceNodeName},
 			},
 		},
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.Fields, test.Service.Fields())
+		assert.Equal(t, test.Fields, test.Service.Fields(test.ContainerID, test.HostName))
 		assert.Equal(t, test.AgentFields, test.Service.AgentFields())
 	}
 }

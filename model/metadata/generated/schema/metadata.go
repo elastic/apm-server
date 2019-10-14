@@ -106,6 +106,16 @@ const ModelSchema = `{
             "description": "Version of the service emitting this event",
             "type": ["string", "null"],
             "maxLength": 1024
+        },
+        "node": {
+            "description": "Unique meaningful name of the service node.",
+            "type": ["object", "null"],
+            "properties": {
+                "configured_name": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                }
+            }
         }
     },
             "type": "object",

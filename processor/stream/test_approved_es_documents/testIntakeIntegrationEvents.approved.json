@@ -46,7 +46,10 @@
                 "language": {
                     "name": "ecmascript"
                 },
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "container-id"
+                }
             },
             "timestamp": {
                 "us": 1533827045999000
@@ -128,7 +131,10 @@
                 "language": {
                     "name": "ecmascript"
                 },
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "container-id"
+                }
             },
             "timestamp": {
                 "us": 1535655207154000
@@ -196,7 +202,10 @@
                 "language": {
                     "name": "ecmascript"
                 },
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "container-id"
+                }
             }
         }
     ]

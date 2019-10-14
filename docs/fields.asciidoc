@@ -227,7 +227,7 @@ Service fields.
 *`service.name`*::
 +
 --
-Immutable unique name of the service emitting this event.
+Immutable name of the service emitting this event.
 
 
 type: keyword
@@ -248,6 +248,17 @@ type: keyword
 +
 --
 Service environment.
+
+
+type: keyword
+
+--
+
+
+*`service.node.name`*::
++
+--
+Unique meaningful name of the service node.
 
 
 type: keyword
