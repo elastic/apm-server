@@ -287,38 +287,38 @@ apm-server:
       # Configured policies are added to all pre-defined default policies.
       # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.
       #policies:
-        #name: "rollover-7-days"
-        #policy:
-          #phases:
-            #hot:
-              #actions:
-                #rollover:
-                  #max_size: "50gb"
-                  #max_age: "7d"
-                #set_priority:
-                  #priority: 100
-            #warm:
-              #min_age: "31d"
-              #actions:
-                #set_priority:
-                  #priority: 50
-                #readonly: {}
-        #name: "rollover-1-day"
-        #policy:
-          #phases:
-            #hot:
-              #actions:
-                #rollover:
-                  #max_size: "50gb"
-                  #max_age: "1d"
-                #set_priority:
-                  #priority: 100
-            #warm:
-              #min_age: "7d"
-              #actions:
-                #set_priority:
-                  #priority: 50
-                #readonly: {}
+        #- name: "rollover-7-days"
+          #policy:
+            #phases:
+              #hot:
+                #actions:
+                  #rollover:
+                    #max_size: "50gb"
+                    #max_age: "7d"
+                  #set_priority:
+                    #priority: 100
+              #warm:
+                #min_age: "31d"
+                #actions:
+                  #set_priority:
+                    #priority: 50
+                  #readonly: {}
+        #- name: "rollover-1-day"
+          #policy:
+            #phases:
+              #hot:
+                #actions:
+                  #rollover:
+                    #max_size: "50gb"
+                    #max_age: "1d"
+                  #set_priority:
+                    #priority: 100
+              #warm:
+                #min_age: "7d"
+                #actions:
+                  #set_priority:
+                    #priority: 50
+                  #readonly: {}
 
 
 #================================= General =================================

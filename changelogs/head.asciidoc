@@ -7,10 +7,8 @@
 - Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
 
 [float]
-==== Added
 - Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
 - Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
-- Ensure only valid IP addresses are indexed in `client.ip` {pull}2772[2772].
 - Make ILM policies configurable {pull}2764[2764].
 
 https://github.com/elastic/apm-server/compare/7.4\...master[View commits]
