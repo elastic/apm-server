@@ -12,5 +12,6 @@
 - Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
 - Make ILM policies configurable {pull}2764[2764].
 - Add support for agent config GA {pull}2747[2747].
+- Change ILM default policies to rollover after 30 days {pull}2798[2798].
 
 https://github.com/elastic/apm-server/compare/7.4\...master[View commits]

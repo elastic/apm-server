@@ -18,8 +18,7 @@
 package ilm
 
 const (
-	rollover1Day  = "rollover-1-day"
-	rollover7Days = "rollover-7-days"
+	rollover30Days = "apm-rollover-30-days"
 
 	policyStr      = "policy"
 	phasesStr      = "phases"
@@ -41,24 +40,23 @@ const (
 )
 
 func policyMapping() map[string]string {
-	return map[string]string{
-		errorEvent:       rollover1Day,
-		spanEvent:        rollover1Day,
-		transactionEvent: rollover7Days,
-		metricEvent:      rollover7Days,
+	m := map[string]string{}
+	for _, event := range []string{errorEvent, spanEvent, transactionEvent, metricEvent} {
+		m[event] = rollover30Days
 	}
+	return m
 }
 
 func policyPool() map[string]policyBody {
 	return map[string]policyBody{
-		rollover7Days: {
+		rollover30Days: {
 			policyStr: map[string]interface{}{
 				phasesStr: map[string]interface{}{
 					hotStr: map[string]interface{}{
 						actionsStr: map[string]interface{}{
 							rolloverStr: map[string]interface{}{
 								maxSizeStr: "50gb",
-								maxAgeStr:  "7d",
+								maxAgeStr:  "30d",
 							},
 							setPriorityStr: map[string]interface{}{
 								priorityStr: 100,
@@ -66,33 +64,7 @@ func policyPool() map[string]policyBody {
 						},
 					},
 					warmStr: map[string]interface{}{
-						minAgeStr: "31d",
-						actionsStr: map[string]interface{}{
-							setPriorityStr: map[string]interface{}{
-								priorityStr: 50,
-							},
-							readonlyStr: map[string]interface{}{},
-						},
-					},
-				},
-			},
-		},
-		rollover1Day: {
-			policyStr: map[string]interface{}{
-				phasesStr: map[string]interface{}{
-					hotStr: map[string]interface{}{
-						actionsStr: map[string]interface{}{
-							rolloverStr: map[string]interface{}{
-								maxSizeStr: "50gb",
-								maxAgeStr:  "1d",
-							},
-							setPriorityStr: map[string]interface{}{
-								priorityStr: 100,
-							},
-						},
-					},
-					warmStr: map[string]interface{}{
-						minAgeStr: "7d",
+						minAgeStr: "30d",
 						actionsStr: map[string]interface{}{
 							setPriorityStr: map[string]interface{}{
 								priorityStr: 50,

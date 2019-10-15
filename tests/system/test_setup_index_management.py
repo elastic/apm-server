@@ -15,12 +15,7 @@ class IdxMgmt(object):
         self._client = client
         self._index = index
         self._event_indices = ["{}-{}".format(self._index, e) for e in ['error', 'span', 'transaction', 'metric']]
-        self.default_policies = {
-            "error": "rollover-1-day",
-            "span": "rollover-1-day",
-            "transaction": "rollover-7-days",
-            "metric": "rollover-7-days"
-        }
+        self.default_policy = "apm-rollover-30-days"
 
     def indices(self):
         return self._event_indices + [self._index]
@@ -31,11 +26,10 @@ class IdxMgmt(object):
         self.delete_policies()
 
     def delete_policies(self):
-        for ev, p in self.default_policies.items():
-            try:
-                self._client.transport.perform_request('DELETE', '/_ilm/policy/' + p)
-            except NotFoundError:
-                pass
+        try:
+            self._client.transport.perform_request('DELETE', '/_ilm/policy/' + self.default_policy)
+        except NotFoundError:
+            pass
 
     def assert_template(self, loaded=1):
         resp = self._client.indices.get_template(name=self._index, ignore=[404])
@@ -50,7 +44,7 @@ class IdxMgmt(object):
         resp = self._client.indices.get_template(name=self._index + '*', ignore=[404])
 
         if self._index in resp:
-            loaded +=1
+            loaded += 1
         assert loaded == len(resp), len(resp)
 
         if loaded == 1:
@@ -75,10 +69,12 @@ class IdxMgmt(object):
         for idx in self._event_indices:
             assert "{}-000001".format(idx) in resp, resp
 
-    def assert_policies(self, loaded=4):
+    def assert_default_policy(self, loaded=True):
         resp = self._client.transport.perform_request('GET', '/_ilm/policy')
-        for ev, p in self.default_policies.items():
-            assert p in resp if loaded > 0 else p not in resp
+        assert self.default_policy in resp if loaded else self.default_policy not in resp
+
+    def fetch_policy(self, name):
+        return self._client.transport.perform_request('GET', '/_ilm/policy/' + name)
 
     def assert_docs_written_to_alias(self, alias):
         assert 1 == 2
@@ -123,7 +119,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
-        self.idxmgmt.assert_policies()
+        self.idxmgmt.assert_default_policy()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -137,7 +133,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(loaded=0)
         self.idxmgmt.assert_alias(loaded=0)
-        self.idxmgmt.assert_policies(loaded=0)
+        self.idxmgmt.assert_default_policy(loaded=False)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -151,7 +147,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(with_ilm=False)
         self.idxmgmt.assert_alias(loaded=0)
-        self.idxmgmt.assert_policies(loaded=0)
+        self.idxmgmt.assert_default_policy(loaded=False)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -165,7 +161,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template(loaded=0)
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
-        self.idxmgmt.assert_policies()
+        self.idxmgmt.assert_default_policy()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -180,7 +176,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template(loaded=0)
         self.idxmgmt.assert_event_template(with_ilm=False)
         self.idxmgmt.assert_alias(loaded=0)
-        self.idxmgmt.assert_policies(loaded=0)
+        self.idxmgmt.assert_default_policy(loaded=False)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -195,7 +191,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
-        self.idxmgmt.assert_policies()
+        self.idxmgmt.assert_default_policy()
 
         # load with ilm disabled
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
@@ -203,8 +199,8 @@ class TestCommandSetupIndexManagement(BaseTest):
         assert exit_code == 0
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(with_ilm=False)
-        self.idxmgmt.assert_alias() # policies do not get deleted
-        self.idxmgmt.assert_policies()  # aliases do not get deleted
+        self.idxmgmt.assert_alias()  # aliases do not get deleted
+        self.idxmgmt.assert_default_policy()  # policies do not get deleted
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -219,7 +215,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(with_ilm=False)
         self.idxmgmt.assert_alias(loaded=0)
-        self.idxmgmt.assert_policies(loaded=0)
+        self.idxmgmt.assert_default_policy(loaded=False)
 
         # load with ilm enabled
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
@@ -228,7 +224,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
-        self.idxmgmt.assert_policies()
+        self.idxmgmt.assert_default_policy()
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
@@ -242,7 +238,7 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
-        self.idxmgmt.assert_policies()
+        self.idxmgmt.assert_default_policy()
         # try deleting policy needs to raise an error as it is in use
         self.idxmgmt.delete_policies()
 
@@ -264,7 +260,7 @@ class TestRunIndexManagementDefault(ElasticTest):
 
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
-        self.idxmgmt.assert_policies()
+        self.idxmgmt.assert_default_policy()
 
 
 class TestRunIndexManagementWithoutILM(ElasticTest):
@@ -286,8 +282,43 @@ class TestRunIndexManagementWithoutILM(ElasticTest):
                         max_timeout=5)
 
         self.idxmgmt.assert_event_template(with_ilm=False)
-        self.idxmgmt.assert_alias(0)
-        self.idxmgmt.assert_policies(0)
+        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_default_policy(loaded=False)
+
+
+class TestILMConfiguredPolicies(ElasticTest):
+
+    config_overrides = {"queue_flush": 2048, "ilm_policies": True}
+
+    def setUp(self):
+        super(TestILMConfiguredPolicies, self).setUp()
+
+        self.idxmgmt = IdxMgmt(self.es, self.index_name)
+        self.idxmgmt.delete()
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_ilm_loaded(self):
+        self.wait_until(lambda: self.log_contains("Finished index management setup."),
+                        max_timeout=5)
+
+        self.idxmgmt.assert_event_template(with_ilm=True)
+        self.idxmgmt.assert_alias(loaded=4)
+        self.idxmgmt.assert_default_policy(loaded=True)
+
+        # check out configured policy in apm-server.yml.j2
+
+        # ensure default policy is changed
+        policy = self.idxmgmt.fetch_policy(self.idxmgmt.default_policy)
+        phases = policy[self.idxmgmt.default_policy]["policy"]["phases"]
+        assert len(phases) == 2
+        assert "hot" in phases
+        assert "delete" in phases
+
+        # ensure newly configured policy is loaded
+        policy = self.idxmgmt.fetch_policy("rollover-10-days")
+        phases = policy["rollover-10-days"]["policy"]["phases"]
+        assert len(phases) == 1
+        assert "hot" in phases
 
 
 class TestRunIndexManagementWithSetupDisabled(ElasticTest):
@@ -308,9 +339,10 @@ class TestRunIndexManagementWithSetupDisabled(ElasticTest):
         self.wait_until(lambda: self.log_contains("Manage ILM setup is disabled."),
                         max_timeout=5)
 
-        self.idxmgmt.assert_event_template(0)
-        self.idxmgmt.assert_alias(0)
-        self.idxmgmt.assert_policies(0)
+        self.idxmgmt.assert_event_template(loaded=0)
+        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_default_policy(loaded=False)
+
 
 class TestCommandSetupTemplate(BaseTest):
     """
@@ -345,9 +377,9 @@ class TestCommandSetupTemplate(BaseTest):
         self.idxmgmt.assert_template()
 
         # do not setup ILM when running this command
-        self.idxmgmt.assert_event_template(0)
-        self.idxmgmt.assert_alias(0)
-        self.idxmgmt.assert_policies(0)
+        self.idxmgmt.assert_event_template(loaded=0)
+        self.idxmgmt.assert_alias(loaded=0)
+        self.idxmgmt.assert_default_policy(loaded=False)
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     @attr('integration')
