@@ -31,48 +31,46 @@ import (
 	logs "github.com/elastic/apm-server/log"
 )
 
+const pattern = "000001"
+
 // MakeDefaultSupporter creates the ILM supporter for APM that is passed to libbeat.
-func MakeDefaultSupporter(log *logp.Logger, info beat.Info, cfg *common.Config) (libilm.Supporter, error) {
+func MakeDefaultSupporter(
+	log *logp.Logger,
+	info beat.Info,
+	mode libilm.Mode,
+	ilmConfig Config,
+	eventIndexNames map[string]string) ([]libilm.Supporter, error) {
+
 	if log == nil {
 		log = logp.NewLogger(logs.Ilm)
 	} else {
 		log = log.Named(logs.Ilm)
 	}
 
-	var ilmCfg Config
-	if err := cfg.Unpack(&ilmCfg); err != nil {
-		return nil, err
-	}
-	if ilmCfg.AliasName == nil || ilmCfg.PolicyName == nil {
-		return nil, errors.New("ilm alias and policy must be configured")
-	}
-	aliasName, err := applyStaticFmtstr(info, ilmCfg.AliasName)
-	if err != nil {
-		return nil, err
-	}
+	var supporters []libilm.Supporter
 
-	policyName, err := applyStaticFmtstr(info, ilmCfg.PolicyName)
-	if err != nil {
-		return nil, err
-	}
+	for _, p := range ilmConfig.Setup.Policies {
+		index, ok := eventIndexNames[p.EventType]
+		if !ok {
+			return nil, errors.Errorf("index name missing for event %s when building ILM supporter", p.EventType)
+		}
+		alias, err := applyStaticFmtstr(info, index)
+		if err != nil {
+			return nil, err
+		}
 
-	p, ok := eventPolicies[ilmCfg.Event]
-	if !ok {
-		return nil, errors.Errorf("policy for %s undefined", ilmCfg.Event)
+		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: alias, Pattern: pattern},
+			libilm.Policy{Name: p.Name, Body: p.Policy}, ilmConfig.Setup.Enabled, true)
+		supporters = append(supporters, supporter)
 	}
-	policy := libilm.Policy{
-		Name: policyName,
-		Body: p,
-	}
-	alias := libilm.Alias{
-		Name:    aliasName,
-		Pattern: pattern,
-	}
-
-	return libilm.NewStdSupport(log, ilmCfg.Mode, alias, policy, false, true), nil
+	return supporters, nil
 }
 
-func applyStaticFmtstr(info beat.Info, fmt *fmtstr.EventFormatString) (string, error) {
+func applyStaticFmtstr(info beat.Info, s string) (string, error) {
+	fmt, err := fmtstr.CompileEvent(s)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Run(&beat.Event{
 		Fields: common.MapStr{
 			// beat object was left in for backward compatibility reason for older configs.

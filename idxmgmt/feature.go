@@ -28,7 +28,7 @@ type feature struct {
 	err  error
 }
 
-func newFeature(enabled, overwrite, supported bool, mode libidxmgmt.LoadMode) feature {
+func newFeature(enabled, overwrite, load, supported bool, mode libidxmgmt.LoadMode) feature {
 	if mode == libidxmgmt.LoadModeUnset {
 		mode = libidxmgmt.LoadModeDisabled
 	}
@@ -36,12 +36,12 @@ func newFeature(enabled, overwrite, supported bool, mode libidxmgmt.LoadMode) fe
 		overwrite = true
 	}
 	if mode == libidxmgmt.LoadModeForce {
-		enabled = true
+		load = true
 	}
 	if !supported {
 		enabled = false
 	}
-	load := mode.Enabled() && enabled
+	load = load && mode.Enabled()
 	return feature{
 		enabled:   enabled,
 		overwrite: overwrite,

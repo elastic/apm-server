@@ -24,9 +24,9 @@ import (
 )
 
 //Template returns a template configuration with appropriate ILM settings
-func Template(ilmEnabled, templateEnabled, overwrite bool, name string, policy string) libtemplate.TemplateConfig {
+func Template(ilmEnabled, overwrite bool, name string, policy string) libtemplate.TemplateConfig {
 	template := libtemplate.TemplateConfig{
-		Enabled:   templateEnabled,
+		Enabled:   true,
 		Name:      name,
 		Pattern:   fmt.Sprintf("%s*", name),
 		Overwrite: overwrite,
