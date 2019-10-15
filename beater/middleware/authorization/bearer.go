@@ -21,21 +21,25 @@ import (
 	"crypto/subtle"
 )
 
+// Bearer implements the request.Authorization interface. It compares a required and a provided token.
 type Bearer struct {
 	authorized bool
 	enabled    bool
 }
 
+// NewBearer creates a Bearer instance based on the required and the provided token.
 func NewBearer(requiredToken, requestToken string) *Bearer {
 	return &Bearer{
 		authorized: subtle.ConstantTimeCompare([]byte(requiredToken), []byte(requestToken)) == 1,
 		enabled:    requiredToken != ""}
 }
 
+// AuthorizedFor will return true if the required and provided token are the same.
 func (b *Bearer) AuthorizedFor(_, _ string) (bool, error) {
 	return b.authorized, nil
 }
 
+// IsAuthorizationConfigured will return true if a non-empty token is required.
 func (b *Bearer) IsAuthorizationConfigured() bool {
 	return b.enabled
 }

@@ -60,7 +60,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish
 
 		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeIntake)
 		if !authorized {
-			c.Result.SetAuthorization(err)
+			c.Result.SetDeniedAuthorization(err)
 			c.Write()
 			return
 		}

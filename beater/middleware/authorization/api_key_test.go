@@ -26,13 +26,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/pkg/errors"
+
+	"github.com/elastic/go-elasticsearch/v8"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/beater/beatertest"
 )
 
 func TestAPIKey_AuthorizationRequired(t *testing.T) {
@@ -190,9 +189,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		applicationToTest := "service-abc"
 		privilegeToTest := PrivilegeAgentConfig
 
-		//privilegesFull := privileges{privilegeFull: true}
-		//privilegesIntake := privileges{privilegeFull: false, PrivilegeIntake: true,
-		//	PrivilegeAgentConfig: false, PrivilegeAccess: true, PrivilegeSourcemap: false}
+		privilegesFull := privileges{privilegeFull: true}
+		privilegesIntake := privileges{privilegeFull: false, PrivilegeIntake: true,
+			PrivilegeAgentConfig: false, PrivilegeAccess: true, PrivilegeSourcemap: false}
 		privilegesAgentConfig := privileges{privilegeFull: false, PrivilegeIntake: false,
 			PrivilegeAgentConfig: true, PrivilegeAccess: false, PrivilegeSourcemap: false}
 
@@ -201,19 +200,19 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 			privileges  privileges
 			authorized  bool
 		}{
-			//"applicationBackend": {
-			//	application: appBackend, privileges: privilegesFull, authorized: true},
-			//"application": {
-			//	application: applicationToTest, privileges: privilegesIntake},
-			//"applicationBackendAuthorized": {
-			//	application: appBackend, privileges: privilegesAgentConfig, authorized: true},
+			"applicationBackend": {
+				application: appBackend, privileges: privilegesFull, authorized: true},
+			"application": {
+				application: applicationToTest, privileges: privilegesIntake},
+			"applicationBackendAuthorized": {
+				application: appBackend, privileges: privilegesAgentConfig, authorized: true},
 			"applicationAuthorized": {
 				application: applicationToTest, privileges: privilegesAgentConfig, authorized: true},
 		} {
 			t.Run(name, func(t *testing.T) {
 				// setup
-				transport := &beatertest.MockESTransport{
-					RoundTripFn: func(req *http.Request) (*http.Response, error) {
+				transport := &mockESTransport{
+					roundTripFn: func(req *http.Request) (*http.Response, error) {
 						// read request body that is sent to Elasticsearch and return testcases privileges
 						// for all requested apps
 						decoder := json.NewDecoder(req.Body)
@@ -237,7 +236,7 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 						return &http.Response{StatusCode: http.StatusOK, Body: esResponse}, nil
 					},
 				}
-				client, err := beatertest.MockESClient(transport)
+				client, err := mockESClient(transport)
 				require.NoError(t, err)
 				globalCache := NewAPIKeyCache(time.Hour, 100, client)
 				token := "1234"
@@ -246,7 +245,7 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 				// fetch from Elasticsearch
 				authorized, err := handler.AuthorizedFor(tc.application, privilegeToTest)
 				require.NoError(t, err)
-				assert.Equal(t, 1, transport.Executed)
+				assert.Equal(t, 1, transport.executed)
 				assert.Equal(t, tc.authorized, authorized)
 
 				// results added to global cache
@@ -258,14 +257,14 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 				// no call to ES on second request
 				authorized, err = handler.AuthorizedFor(tc.application, privilegeToTest)
 				require.NoError(t, err)
-				assert.Equal(t, 1, transport.Executed)
+				assert.Equal(t, 1, transport.executed)
 				assert.Equal(t, tc.authorized, authorized)
 			})
 		}
 
 		t.Run("unauthorized", func(t *testing.T) {
 			// setup
-			client, transport, err := beatertest.MockESDefaultClient(http.StatusUnauthorized, nil)
+			client, transport, err := mockESDefaultClient(http.StatusUnauthorized, nil)
 			require.NoError(t, err)
 			globalCache := NewAPIKeyCache(time.Hour, 100, client)
 			token := "1234"
@@ -274,7 +273,7 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 			// fetch from Elasticsearch
 			authorized, err := handler.AuthorizedFor(applicationToTest, privilegeToTest)
 			require.NoError(t, err)
-			assert.Equal(t, 1, transport.Executed)
+			assert.Equal(t, 1, transport.executed)
 			assert.False(t, authorized)
 
 			// results added to cache, no additional call to ES
@@ -283,13 +282,13 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 
 			authorized, err = handler.AuthorizedFor(applicationToTest, privilegeToTest)
 			require.NoError(t, err)
-			assert.Equal(t, 1, transport.Executed)
+			assert.Equal(t, 1, transport.executed)
 			assert.False(t, authorized)
 		})
 
 		t.Run("error response", func(t *testing.T) {
 			// setup
-			client, transport, err := beatertest.MockESDefaultClient(http.StatusOK, nil)
+			client, transport, err := mockESDefaultClient(http.StatusOK, nil)
 			require.NoError(t, err)
 			globalCache := NewAPIKeyCache(time.Hour, 100, client)
 			token := "1234"
@@ -298,13 +297,13 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 			// fetch from Elasticsearch
 			authorized, err := handler.AuthorizedFor(applicationToTest, privilegeToTest)
 			require.Error(t, err)
-			assert.Equal(t, 1, transport.Executed)
+			assert.Equal(t, 1, transport.executed)
 			assert.False(t, authorized)
 
 			// results added to cache, no additional call to ES
 			authorized, err = handler.AuthorizedFor(applicationToTest, privilegeToTest)
 			require.Error(t, err)
-			assert.Equal(t, 2, transport.Executed)
+			assert.Equal(t, 2, transport.executed)
 			assert.False(t, authorized)
 		})
 
@@ -334,11 +333,11 @@ func TestAPIKeyCache(t *testing.T) {
 	t.Run("onEvict", func(t *testing.T) {
 		token, application := "foo bar", "abc"
 
-		setupCache := func(size int, statusCode int, esErr error) (*APIKeyCache, *beatertest.MockESTransport) {
+		setupCache := func(size int, statusCode int, esErr error) (*APIKeyCache, *mockESTransport) {
 			esPrivileges := map[string]map[string]privileges{application: {resources: map[string]bool{privilegeFull: true}}}
 			esResponse, err := mockESResponse(esPrivileges)
 			require.NoError(t, err)
-			client, transport, err := beatertest.MockESDefaultClient(statusCode, esResponse)
+			client, transport, err := mockESDefaultClient(statusCode, esResponse)
 			require.NoError(t, err)
 			return NewAPIKeyCache(time.Minute, size, client), transport
 		}
@@ -348,7 +347,7 @@ func TestAPIKeyCache(t *testing.T) {
 			c.add(token, application, privileges{privilegeFull: true})
 			c.store.Delete(c.id(token, application)) //calls evict function
 
-			require.Equal(t, 0, transport.Executed)
+			require.Equal(t, 0, transport.executed)
 			assert.Equal(t, 0, c.store.ItemCount())
 		})
 
@@ -357,7 +356,7 @@ func TestAPIKeyCache(t *testing.T) {
 			c.add(token, application, nil)
 			c.store.Delete(c.id(token, application)) //calls evict function
 
-			require.Equal(t, 0, transport.Executed)
+			require.Equal(t, 0, transport.executed)
 			assert.Equal(t, 0, c.store.ItemCount())
 		})
 
@@ -366,7 +365,7 @@ func TestAPIKeyCache(t *testing.T) {
 			c.add(token, application, privileges{privilegeFull: false})
 			c.store.Delete(c.id(token, application)) //calls evict function
 
-			require.Equal(t, 0, transport.Executed)
+			require.Equal(t, 0, transport.executed)
 			assert.Equal(t, 0, c.store.ItemCount())
 		})
 
@@ -375,7 +374,7 @@ func TestAPIKeyCache(t *testing.T) {
 			c.add(token, application, privileges{privilegeFull: false, PrivilegeAccess: true})
 			c.store.Delete(c.id(token, application)) //calls evict function
 
-			require.Equal(t, 1, transport.Executed)
+			require.Equal(t, 1, transport.executed)
 			require.Equal(t, 1, c.store.ItemCount())
 			privilegesAfterEviction := c.get(token, application)
 			require.NotNil(t, privilegesAfterEviction)
@@ -388,7 +387,7 @@ func TestAPIKeyCache(t *testing.T) {
 
 			c.store.Delete(c.id(token, application)) //calls evict function
 
-			assert.Equal(t, 1, transport.Executed)
+			assert.Equal(t, 1, transport.executed)
 			assert.Equal(t, 0, c.store.ItemCount())
 		})
 
@@ -397,7 +396,7 @@ func TestAPIKeyCache(t *testing.T) {
 			c.add(token, application, privileges{privilegeFull: false, PrivilegeAccess: true})
 			c.store.Delete(c.id(token, application)) //calls evict function
 
-			require.Equal(t, 1, transport.Executed)
+			require.Equal(t, 1, transport.executed)
 			assert.Equal(t, 0, c.store.ItemCount())
 		})
 	})
@@ -425,4 +424,32 @@ func mockESResponse(esPrivileges map[string]map[string]privileges) (io.ReadClose
 		return nil, err
 	}
 	return ioutil.NopCloser(bytes.NewReader(resp)), nil
+}
+
+type mockESTransport struct {
+	roundTripFn func(req *http.Request) (*http.Response, error)
+	executed    int
+}
+
+// RoundTrip implements http.RoundTripper interface
+func (t *mockESTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	t.executed++
+	return t.roundTripFn(req)
+}
+
+func mockESDefaultClient(statusCode int, body io.ReadCloser) (*elasticsearch.Client, *mockESTransport, error) {
+	if body == nil {
+		body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+	}
+	transport := &mockESTransport{
+		roundTripFn: func(_ *http.Request) (*http.Response, error) {
+			return &http.Response{StatusCode: statusCode, Body: body}, nil
+		},
+	}
+	client, err := mockESClient(transport)
+	return client, transport, err
+}
+
+func mockESClient(transport *mockESTransport) (*elasticsearch.Client, error) {
+	return elasticsearch.NewClient(elasticsearch.Config{Addresses: []string{}, Transport: transport})
 }

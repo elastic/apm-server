@@ -167,7 +167,8 @@ func (r *Result) SetWithBody(id ResultID, body interface{}) {
 	r.set(id, body, nil)
 }
 
-func (r *Result) SetAuthorization(err error) {
+// SetDeniedAuthorization sets the result when authorization is denied
+func (r *Result) SetDeniedAuthorization(err error) {
 	if err != nil {
 		id := IDResponseErrorsServiceUnavailable
 		status := MapResultIDToStatus[id]

@@ -86,7 +86,7 @@ func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
 
 		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeAgentConfig)
 		if !authorized {
-			c.Result.SetAuthorization(err)
+			c.Result.SetDeniedAuthorization(err)
 			return
 		}
 

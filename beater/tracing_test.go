@@ -50,7 +50,7 @@ func TestServerTracingEnabled(t *testing.T) {
 	for len(selfTransactions) < 2 {
 		select {
 		case e := <-txEvents:
-			if testTransactionIds.Contains(eventTransactionId(e)) {
+			if testTransactionIds.Contains(eventTransactionID(e)) {
 				continue
 			}
 			selfTransactions = append(selfTransactions, eventTransactionName(e))
@@ -97,8 +97,8 @@ func TestServerTracingExternal(t *testing.T) {
 	defer teardown()
 
 	// make a transaction request
-	baseUrl, client := apm.client(false)
-	req := makeTransactionRequest(t, baseUrl)
+	baseURL, client := apm.client(false)
+	req := makeTransactionRequest(t, baseURL)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	res, err := client.Do(req)
 	assert.NoError(t, err)
@@ -122,14 +122,14 @@ func TestServerTracingDisabled(t *testing.T) {
 	for {
 		select {
 		case e := <-txEvents:
-			assert.True(t, testTransactionIds.Contains(eventTransactionId(e)))
+			assert.True(t, testTransactionIds.Contains(eventTransactionID(e)))
 		case <-time.After(time.Second):
 			return
 		}
 	}
 }
 
-func eventTransactionId(event beat.Event) string {
+func eventTransactionID(event beat.Event) string {
 	transaction := event.Fields["transaction"].(common.MapStr)
 	return transaction["id"].(string)
 }
@@ -179,8 +179,8 @@ func setupTestServerInstrumentation(t *testing.T, enabled bool) (chan beat.Event
 	assert.Equal(t, "onboarding", e.Fields["processor"].(common.MapStr)["name"])
 
 	// Send a transaction request so we have something to trace.
-	baseUrl, client := beater.client(false)
-	req := makeTransactionRequest(t, baseUrl)
+	baseURL, client := beater.client(false)
+	req := makeTransactionRequest(t, baseURL)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	resp, err := client.Do(req)
 	assert.NoError(t, err)

@@ -50,7 +50,7 @@ func Handler(dec decoder.ReqDecoder, processor asset.Processor, cfg transform.Co
 
 		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeSourcemap)
 		if !authorized {
-			c.Result.SetAuthorization(err)
+			c.Result.SetDeniedAuthorization(err)
 			c.Write()
 			return
 		}

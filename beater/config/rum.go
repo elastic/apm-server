@@ -21,9 +21,10 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/sourcemap"
 )

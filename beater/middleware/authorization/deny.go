@@ -17,12 +17,15 @@
 
 package authorization
 
+// Deny implements the request.Authorization interface. It denies all authorization requests.
 type Deny struct{}
 
+// AuthorizedFor always returns false
 func (*Deny) AuthorizedFor(application, privilege string) (bool, error) {
 	return false, nil
 }
 
+// IsAuthorizationConfigured always returns true.
 func (*Deny) IsAuthorizationConfigured() bool {
 	return true
 }

@@ -247,19 +247,16 @@ func addAuthAPIKey(cfg *config.Config, authMeans *middleware.AuthMeans) error {
 		cfg.AuthConfig.APIKeyConfig.Cache.Size,
 		client)
 
-	(*authMeans)[headers.APIKey] = &middleware.AuthMean{
-		Authorization: func(token string) request.Authorization {
-			return authorization.NewAPIKey(client, cache, token)
-		},
+	(*authMeans)[headers.APIKey] = func(token string) request.Authorization {
+		return authorization.NewAPIKey(client, cache, token)
 	}
 	return nil
 }
 
 func addAuthBearer(cfg *config.Config, authMeans *middleware.AuthMeans) {
 	if cfg.AuthConfig.BearerToken != "" {
-		(*authMeans)[headers.Bearer] = &middleware.AuthMean{
-			Authorization: func(token string) request.Authorization {
-				return authorization.NewBearer(cfg.AuthConfig.BearerToken, token)
-			}}
+		(*authMeans)[headers.Bearer] = func(token string) request.Authorization {
+			return authorization.NewBearer(cfg.AuthConfig.BearerToken, token)
+		}
 	}
 }

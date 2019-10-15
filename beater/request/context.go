@@ -22,8 +22,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elastic/beats/libbeat/logp"
 	"golang.org/x/time/rate"
+
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
@@ -51,6 +52,8 @@ type Context struct {
 	writeAttempts int
 }
 
+// Authorization must check if a request is authorized to run a given privilege for the provided application.
+// It also needs to provide feedback if authorization is configured.
 type Authorization interface {
 	AuthorizedFor(application, privilege string) (bool, error)
 	IsAuthorizationConfigured() bool

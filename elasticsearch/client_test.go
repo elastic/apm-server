@@ -44,7 +44,7 @@ func TestClient(t *testing.T) {
 
 func TestClient_httpProxyUrl(t *testing.T) {
 	t.Run("proxy disabled", func(t *testing.T) {
-		proxy, err := httpProxyUrl(&Config{ProxyDisable: true})
+		proxy, err := httpProxyURL(&Config{ProxyDisable: true})
 		require.Nil(t, err)
 		assert.Nil(t, proxy)
 	})
@@ -54,7 +54,7 @@ func TestClient_httpProxyUrl(t *testing.T) {
 		os.Setenv("HTTP_PROXY", "proxy")
 
 		// create proxy function
-		proxy, err := httpProxyUrl(&Config{})
+		proxy, err := httpProxyURL(&Config{})
 		require.Nil(t, err)
 		// ensure proxy function is called and check url
 		url, err := proxy(httptest.NewRequest(http.MethodGet, "http://example.com", nil))
@@ -67,7 +67,7 @@ func TestClient_httpProxyUrl(t *testing.T) {
 		os.Setenv("HTTP_PROXY", "proxy")
 
 		// create proxy function from URL without `http` prefix
-		proxy, err := httpProxyUrl(&Config{ProxyURL: "foo"})
+		proxy, err := httpProxyURL(&Config{ProxyURL: "foo"})
 		require.Nil(t, err)
 		// ensure proxy function is called and check url
 		url, err := proxy(httptest.NewRequest(http.MethodGet, "http://example.com/", nil))
@@ -75,7 +75,7 @@ func TestClient_httpProxyUrl(t *testing.T) {
 		assert.Equal(t, "http://foo", url.String())
 
 		// create proxy function from URL with `http` prefix
-		proxy, err = httpProxyUrl(&Config{ProxyURL: "http://foo"})
+		proxy, err = httpProxyURL(&Config{ProxyURL: "http://foo"})
 		require.Nil(t, err)
 		// ensure proxy function is called and check url
 		url, err = proxy(httptest.NewRequest(http.MethodGet, "http://example.com/", nil))

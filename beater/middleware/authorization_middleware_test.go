@@ -50,37 +50,6 @@ func TestAuthorizationMiddleware(t *testing.T) {
 	})
 }
 
-type testAuth struct {
-	authConfigured  bool
-	validToken      bool
-	validPrivileges []string
-}
-
-func (a *testAuth) AuthorizedFor(app string, privilege string) (bool, error) {
-	if privilege == "error" {
-		return false, errors.New("some error")
-	}
-	return a.validToken && utility.Contains(privilege, a.validPrivileges), nil
-}
-func (a *testAuth) IsAuthorizationConfigured() bool {
-	return a.authConfigured
-}
-
-func means(serverToken, requestToken string) AuthMeans {
-	return AuthMeans{
-		headers.Bearer: &AuthMean{
-			Authorization: func(token string) request.Authorization {
-				return authorization.NewBearer(serverToken, token)
-			}},
-		headers.APIKey: &AuthMean{
-			Authorization: func(token string) request.Authorization {
-				return &testAuth{authConfigured: true, validToken: serverToken == requestToken,
-					validPrivileges: []string{"action:access"}}
-			},
-		},
-	}
-}
-
 var testcases = map[string]struct {
 	serverToken, requestToken, privilege string
 	header                               string
@@ -147,5 +116,33 @@ func TestAuthorizationMiddlewareNotApplied(t *testing.T) {
 			assert.Equal(t, tc.authorized, authorized)
 			assert.Equal(t, tc.authConfigured, c.Authorization.IsAuthorizationConfigured())
 		})
+	}
+}
+
+type testAuth struct {
+	authConfigured  bool
+	validToken      bool
+	validPrivileges []string
+}
+
+func (a *testAuth) AuthorizedFor(app string, privilege string) (bool, error) {
+	if privilege == "error" {
+		return false, errors.New("some error")
+	}
+	return a.validToken && utility.Contains(privilege, a.validPrivileges), nil
+}
+func (a *testAuth) IsAuthorizationConfigured() bool {
+	return a.authConfigured
+}
+
+func means(serverToken, requestToken string) AuthMeans {
+	return AuthMeans{
+		headers.Bearer: func(token string) request.Authorization {
+			return authorization.NewBearer(serverToken, token)
+		},
+		headers.APIKey: func(token string) request.Authorization {
+			return &testAuth{authConfigured: true, validToken: serverToken == requestToken,
+				validPrivileges: []string{"action:access"}}
+		},
 	}
 }

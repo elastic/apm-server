@@ -33,8 +33,8 @@ import (
 )
 
 const (
-	prefixHttp       = "http"
-	prefixHttpScheme = prefixHttp + "://"
+	prefixHTTP       = "http"
+	prefixHTTPSchema = prefixHTTP + "://"
 	esDefaultPort    = 9200
 )
 
@@ -43,6 +43,7 @@ var (
 	errConfigMissing = errors.New("config missing")
 )
 
+// Config holds all configurable fields that are used to create a Client
 type Config struct {
 	Hosts        Hosts             `config:"hosts" validate:"required"`
 	Protocol     string            `config:"protocol"`
@@ -52,8 +53,11 @@ type Config struct {
 	Timeout      time.Duration     `config:"timeout"`
 	TLS          *tlscommon.Config `config:"ssl"`
 }
+
+// Hosts is an array of host strings and needs to have at least one entry
 type Hosts []string
 
+// Client creates an elasticsearch client from given config
 func Client(config *Config) (*goelasticsearch.Client, error) {
 	if config == nil {
 		return nil, errConfigMissing
@@ -62,7 +66,7 @@ func Client(config *Config) (*goelasticsearch.Client, error) {
 	//following logic is inspired by libbeat functionality
 
 	var err error
-	proxy, err := httpProxyUrl(config)
+	proxy, err := httpProxyURL(config)
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +91,7 @@ func Client(config *Config) (*goelasticsearch.Client, error) {
 	})
 }
 
+// Validate ensures Hosts instance has at least one entry
 func (h Hosts) Validate() error {
 	if len(h) == 0 {
 		return errInvalidHosts
@@ -94,7 +99,7 @@ func (h Hosts) Validate() error {
 	return nil
 }
 
-func httpProxyUrl(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
+func httpProxyURL(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
 	if cfg.ProxyDisable {
 		return nil, nil
 	}
@@ -104,8 +109,8 @@ func httpProxyUrl(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
 	}
 
 	proxyStr := cfg.ProxyURL
-	if !strings.HasPrefix(proxyStr, prefixHttp) {
-		proxyStr = prefixHttpScheme + proxyStr
+	if !strings.HasPrefix(proxyStr, prefixHTTP) {
+		proxyStr = prefixHTTPSchema + proxyStr
 	}
 	u, err := url.Parse(proxyStr)
 	if err != nil {

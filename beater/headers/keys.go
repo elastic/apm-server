@@ -38,6 +38,4 @@ const (
 	UserAgent                 = "User-Agent"
 	Vary                      = "Vary"
 	XContentTypeOptions       = "X-Content-Type-Options"
-
-	ValueApplicationJson = "application/json"
 )

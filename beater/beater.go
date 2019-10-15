@@ -85,7 +85,7 @@ func checkConfig(logger *logp.Logger) error {
 	return nil
 }
 
-// Creates beater
+// New creates a beater instance using the provided configuration
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	logger := logp.NewLogger(logs.Beater)
 	if err := checkConfig(logger); err != nil {

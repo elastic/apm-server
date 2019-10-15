@@ -35,34 +35,41 @@ import (
 	"github.com/elastic/apm-server/utility"
 )
 
+// Privileges supported by the APIKey authorization implementation.
 const (
 	PrivilegeAccess      = "action:access"
 	PrivilegeSourcemap   = "action:sourcemap"
 	PrivilegeIntake      = "action:intake"
 	PrivilegeAgentConfig = "action:config"
 	privilegeFull        = "action:full"
+)
 
+const (
 	appBackend = "apm-backend"
-
 	enabled    = true
+
 	resources  = "*"
 	sep        = `","`
 	whitespace = " "
 
-	cleanupInterval time.Duration = 60 * time.Second
+	cleanupInterval = 60 * time.Second
 )
 
 var (
 	queryPrivileges = []string{privilegeFull, PrivilegeAccess, PrivilegeIntake, PrivilegeAgentConfig, PrivilegeSourcemap}
 )
 
+// APIKey implements the request.Authorization interface. It uses an external Elasticsearch instance to verify
+// api key privileges for applications.
 type APIKey struct {
 	esClient    *elasticsearch.Client
 	globalCache *APIKeyCache
 	localCache  *localCache
-	token       string
+	apiKey      string
 }
 
+// APIKeyCache is a cache to store fetched API Key privileges per apiKey and application.
+// The cache is passed in as a parameter when creating a new API Key authorization handler.
 type APIKeyCache struct {
 	store *gocache.Cache
 	size  int
@@ -84,19 +91,29 @@ type hasPrivilegesResponse struct {
 type privileges map[string]bool
 type queryBuilder map[string][]string
 
+// NewAPIKey creates a new instance of an APIKey handler. An Elasticsearch instance, a global cache instance and the
+// APIKey are required parameters.
 func NewAPIKey(
 	esClient *elasticsearch.Client,
 	cache *APIKeyCache,
-	token string,
+	apiKey string,
 ) *APIKey {
-	return &APIKey{esClient: esClient, globalCache: cache, token: token,
+	return &APIKey{esClient: esClient, globalCache: cache, apiKey: apiKey,
 		localCache: &localCache{store: map[string]privileges{}}}
 }
 
+// IsAuthorizationConfigured always returns true for API Key authorization
 func (*APIKey) IsAuthorizationConfigured() bool {
 	return enabled
 }
 
+// AuthorizedFor checks if the configured api key is authorized.
+// An api key is considered to be authorized when the api key has the requested privilege or the `privilegeFull` for
+// either the requested application or the generic `appBackend`.
+//
+// It first tries to get the information from a local cache. If not available, it fetches it from the global cache,
+// if also not available the privileges are fetched from the configured Elasticsearch client.
+// The information is pushed to the cache instances if necessary.
 func (a *APIKey) AuthorizedFor(application string, privilege string) (bool, error) {
 	//check that privilege is generally supported
 	if !utility.Contains(privilege, queryPrivileges) {
@@ -119,14 +136,14 @@ func (a *APIKey) AuthorizedFor(application string, privilege string) (bool, erro
 	}
 
 	//fetch from ES
-	privilegesPerApp, err := fromES(a.esClient, a.token, application)
+	privilegesPerApp, err := fromES(a.esClient, a.apiKey, application)
 	if err != nil {
 		return false, err
 	}
 	//add to cache
 	for app, priv := range privilegesPerApp {
 		a.localCache.add(app, priv)
-		a.globalCache.add(a.token, app, priv)
+		a.globalCache.add(a.apiKey, app, priv)
 	}
 
 	allowed, _ := a.fromCache(application, privilege)
@@ -135,35 +152,36 @@ func (a *APIKey) AuthorizedFor(application string, privilege string) (bool, erro
 
 func (a *APIKey) fromCache(application, privilege string) (allowed bool, exists bool) {
 	//from local cache
-	if _, allowed, exists = checkPrivileges(a.localCache, a.token, application, privilege); exists {
+	if _, allowed, exists = checkPrivileges(a.localCache, a.apiKey, application, privilege); exists {
 		return
 	}
 	// from global cache, ensuring to store privileges in local cache if they exist
 	var privileges privileges
-	privileges, allowed, exists = checkPrivileges(a.globalCache, a.token, application, privilege)
+	privileges, allowed, exists = checkPrivileges(a.globalCache, a.apiKey, application, privilege)
 	if exists {
 		a.localCache.add(application, privileges)
 	}
 	return
 }
 
-func fromES(client *elasticsearch.Client, token string, application string) (map[string]privileges, error) {
+func fromES(client *elasticsearch.Client, apiKey string, application string) (map[string]privileges, error) {
 	qb := queryBuilder{appBackend: queryPrivileges}
 	if application != appBackend {
 		qb[application] = queryPrivileges
 	}
 	hasPrivileges := esapi.SecurityHasPrivilegesRequest{
 		Body:   strings.NewReader(qb.string()),
-		Header: http.Header{headers.Authorization: []string{headers.APIKey + " " + token}},
+		Header: http.Header{headers.Authorization: []string{headers.APIKey + " " + apiKey}},
 	}
 	resp, err := hasPrivileges.Do(context.Background(), client)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		// return nil privileges for queried apps to ensure they are cached
 		privilegesPerApp := map[string]privileges{}
-		for app, _ := range qb {
+		for app := range qb {
 			privilegesPerApp[app] = privileges{}
 		}
 		return privilegesPerApp, nil
@@ -207,15 +225,15 @@ func (q queryBuilder) string() string {
 	return b.String()
 }
 
-func checkPrivileges(cache cache, token, application, privilege string) (privileges privileges, allowed bool, exists bool) {
+func checkPrivileges(cache cache, apiKey, application, privilege string) (privileges privileges, allowed bool, exists bool) {
 	if application != appBackend {
-		//check if token has privileges for default apm application
-		privileges = cache.get(token, appBackend)
+		//check if apiKey has privileges for default apm application
+		privileges = cache.get(apiKey, appBackend)
 		if allowed, exists = privileges.findWithFullPrivilege(privilege); allowed && exists {
 			return
 		}
 	}
-	privileges = cache.get(token, application)
+	privileges = cache.get(apiKey, application)
 	allowed, exists = privileges.findWithFullPrivilege(privilege)
 	return
 }
@@ -224,18 +242,19 @@ func (p privileges) findWithFullPrivilege(privilege string) (bool, bool) {
 	if p == nil {
 		return false, false
 	}
-	p1, _ := p[privilegeFull]
-	p2, _ := p[privilege]
-	return p1 || p2, true
+	return p[privilegeFull] || p[privilege], true
 }
 
 // Global Cache - threadsafe
 
+// NewAPIKeyCache creates an APIKeyCache instance with the given auto expiration and of given size.
+// The Elasticsearch client instance is used to refetch application privileges from Elasticsearch when tokens
+// are expired but had cached valid privileges.
 func NewAPIKeyCache(expiration time.Duration, size int, esClient *elasticsearch.Client) *APIKeyCache {
 	c := APIKeyCache{store: gocache.New(expiration, cleanupInterval), size: size}
 
-	// the onEvicted method ensures that privileges for valid tokens stay in cache
-	// this is helpful if cache is filled with malicious tokens, as valid tokens would not get
+	// the onEvicted method ensures that privileges for valid apiKey stay in cache
+	// this is helpful if cache is filled with malicious apiKey, as valid apiKey would not get
 	// displaced by invalid ones
 	c.store.OnEvicted(func(id string, val interface{}) {
 		if !c.full() {
@@ -258,15 +277,15 @@ func NewAPIKeyCache(expiration time.Duration, size int, esClient *elasticsearch.
 		}
 
 		//fetch from ES
-		token, application := c.splitID(id)
-		response, err := fromES(esClient, token, application)
+		apiKey, application := c.splitID(id)
+		response, err := fromES(esClient, apiKey, application)
 		if err != nil {
 			return
 		}
 		//add to globalCache
 		for application, privileges := range response {
 			if len(privileges) > 0 {
-				c.add(token, application, privileges)
+				c.add(apiKey, application, privileges)
 			}
 		}
 	})
@@ -278,21 +297,21 @@ func (c *APIKeyCache) full() bool {
 	return c.store.ItemCount()+1 >= c.size
 }
 
-func (c *APIKeyCache) get(token string, application string) privileges {
-	if val, exists := c.store.Get(c.id(token, application)); exists {
+func (c *APIKeyCache) get(apiKey string, application string) privileges {
+	if val, exists := c.store.Get(c.id(apiKey, application)); exists {
 		return val.(privileges)
 	}
 	return nil
 }
 
-func (c *APIKeyCache) add(token string, application string, privileges privileges) {
-	c.store.SetDefault(c.id(token, application), privileges)
+func (c *APIKeyCache) add(apiKey string, application string, privileges privileges) {
+	c.store.SetDefault(c.id(apiKey, application), privileges)
 }
 
-func (c *APIKeyCache) id(token, application string) string {
+func (c *APIKeyCache) id(apiKey, application string) string {
 	// no part of the application name can contain whitespaces
 	// according to https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-privileges.html#security-api-app-privileges-validation
-	return token + whitespace + application
+	return apiKey + whitespace + application
 }
 
 func (c *APIKeyCache) splitID(id string) (string, string) {

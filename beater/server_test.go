@@ -50,8 +50,8 @@ func TestServerOk(t *testing.T) {
 	require.NoError(t, err)
 	defer teardown()
 
-	baseUrl, client := apm.client(false)
-	req := makeTransactionRequest(t, baseUrl)
+	baseURL, client := apm.client(false)
+	req := makeTransactionRequest(t, baseURL)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	res, err := client.Do(req)
 	assert.NoError(t, err)
@@ -64,9 +64,9 @@ func TestServerRoot(t *testing.T) {
 	require.NoError(t, err)
 	defer teardown()
 
-	baseUrl, client := apm.client(false)
+	baseURL, client := apm.client(false)
 	rootRequest := func(path string, accept *string) *http.Response {
-		req, err := http.NewRequest(http.MethodGet, baseUrl+path, nil)
+		req, err := http.NewRequest(http.MethodGet, baseURL+path, nil)
 		require.NoError(t, err, "Failed to create test request object: %v", err)
 		if accept != nil {
 			req.Header.Add("Accept", *accept)
@@ -119,10 +119,10 @@ func TestServerRootWithToken(t *testing.T) {
 	apm, teardown, err := setupServer(t, ucfg, nil, nil)
 	require.NoError(t, err)
 	defer teardown()
-	baseUrl, client := apm.client(false)
+	baseURL, client := apm.client(false)
 
 	rootRequest := func(token *string) *http.Response {
-		req, err := http.NewRequest(http.MethodGet, baseUrl+"/", nil)
+		req, err := http.NewRequest(http.MethodGet, baseURL+"/", nil)
 		require.NoError(t, err, "Failed to create test request object: %v", err)
 		if token != nil {
 			req.Header.Add("Authorization", "Bearer "+*token)
@@ -164,8 +164,8 @@ func TestServerTcpNoPort(t *testing.T) {
 	require.NoError(t, err)
 	defer teardown()
 
-	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + api.RootPath)
+	baseURL, client := btr.client(false)
+	rsp, err := client.Get(baseURL + api.RootPath)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
 	}
@@ -192,8 +192,8 @@ func TestServerOkUnix(t *testing.T) {
 	require.NoError(t, err)
 	defer stop()
 
-	baseUrl, client := btr.client(false)
-	rsp, err := client.Get(baseUrl + api.RootPath)
+	baseURL, client := btr.client(false)
+	rsp, err := client.Get(baseURL + api.RootPath)
 	assert.NoError(t, err)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rsp.StatusCode, body(t, rsp))
@@ -205,8 +205,8 @@ func TestServerHealth(t *testing.T) {
 	require.NoError(t, err)
 	defer teardown()
 
-	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest(http.MethodGet, baseUrl+api.RootPath, nil)
+	baseURL, client := apm.client(false)
+	req, err := http.NewRequest(http.MethodGet, baseURL+api.RootPath, nil)
 	require.NoError(t, err)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
@@ -221,9 +221,9 @@ func TestServerRumSwitch(t *testing.T) {
 	require.NoError(t, err)
 	defer teardown()
 
-	baseUrl, client := apm.client(false)
+	baseURL, client := apm.client(false)
 
-	req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakeRUMPath, bytes.NewReader(testData))
+	req, err := http.NewRequest(http.MethodPost, baseURL+api.IntakeRUMPath, bytes.NewReader(testData))
 	require.NoError(t, err)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
@@ -288,9 +288,9 @@ func TestServerCORS(t *testing.T) {
 		var apm *beater
 		apm, teardown, err = setupServer(t, ucfg, nil, nil)
 		require.NoError(t, err)
-		baseUrl, client := apm.client(false)
+		baseURL, client := apm.client(false)
 
-		req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakeRUMPath, bytes.NewReader(testData))
+		req, err := http.NewRequest(http.MethodPost, baseURL+api.IntakeRUMPath, bytes.NewReader(testData))
 		req.Header.Set("Origin", test.origin)
 		req.Header.Set("Content-Type", "application/x-ndjson")
 		assert.NoError(t, err)
@@ -309,8 +309,8 @@ func TestServerNoContentType(t *testing.T) {
 	require.NoError(t, err)
 	defer teardown()
 
-	baseUrl, client := apm.client(false)
-	req := makeTransactionRequest(t, baseUrl)
+	baseURL, client := apm.client(false)
+	req := makeTransactionRequest(t, baseURL)
 	rsp, err := client.Do(req)
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode, body(t, rsp))
@@ -402,13 +402,13 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
 		require.NoError(t, err)
 	}
 
-	beatId, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
+	beatID, err := uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")
 	require.NoError(t, err)
 	info := beat.Info{
 		Beat:        "test-apm-server",
 		IndexPrefix: "test-apm-server",
 		Version:     version.GetDefaultVersion(),
-		ID:          beatId,
+		ID:          beatID,
 	}
 
 	var pub beat.Pipeline
@@ -443,8 +443,8 @@ var testData = func() []byte {
 	return b
 }()
 
-func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakePath, bytes.NewReader(testData))
+func makeTransactionRequest(t *testing.T, baseURL string) *http.Request {
+	req, err := http.NewRequest(http.MethodPost, baseURL+api.IntakePath, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}

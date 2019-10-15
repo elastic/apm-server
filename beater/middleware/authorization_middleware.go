@@ -26,11 +26,11 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-type AuthMeans map[string]*AuthMean
+// AuthMeans maps authorization header keywords and the configured AuthMean per authorization type.
+type AuthMeans map[string]AuthMean
 
-type AuthMean struct {
-	Authorization func(string) request.Authorization
-}
+// AuthMean is a function type returning an instance that implements the request.Authorization interface.
+type AuthMean func(string) request.Authorization
 
 // AuthorizationMiddleware returns a Middleware to only let authorized requests pass through
 func AuthorizationMiddleware(apply bool, means AuthMeans, privilege string) Middleware {
@@ -45,15 +45,15 @@ func AuthorizationMiddleware(apply bool, means AuthMeans, privilege string) Midd
 			authMean, ok := means[method]
 			if !ok {
 				if authMean, ok = means[headers.Bearer]; !ok {
-					authMean = &AuthMean{Authorization: func(string) request.Authorization { return &authorization.Deny{} }}
+					authMean = func(string) request.Authorization { return &authorization.Deny{} }
 				}
 			}
-			c.Authorization = authMean.Authorization(token)
+			c.Authorization = authMean(token)
 
 			if apply {
 				authorized, err := c.Authorization.AuthorizedFor("", privilege)
 				if !authorized {
-					c.Result.SetAuthorization(err)
+					c.Result.SetDeniedAuthorization(err)
 					c.Write()
 					return
 				}

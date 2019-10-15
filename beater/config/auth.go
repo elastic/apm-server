@@ -26,19 +26,21 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 )
 
-// AuthConfig holds config information related to authorization against the APM Server
-// It supports Bearer and API Key based authorization configuration
+// AuthConfig holds config information related to request authorization required by the APM Server.
+// It supports Bearer and API Key based authorization configuration.
 type AuthConfig struct {
 	BearerToken  string        `config:"bearer.token"`
 	APIKeyConfig *APIKeyConfig `config:"api_key"`
 }
 
+// APIKeyConfig holds configuration concerning API key authorization.
 type APIKeyConfig struct {
 	Enabled  bool                  `config:"enabled"`
 	Cache    *LimitedCache         `config:"cache"`
 	ESConfig *elasticsearch.Config `config:"elasticsearch"`
 }
 
+// IsEnabled returns true if API key authorization is enabled.
 func (c *APIKeyConfig) IsEnabled() bool {
 	return c != nil && c.Enabled
 }
@@ -58,8 +60,8 @@ func (c *AuthConfig) setup(log *logp.Logger, ucfg *common.Config, secretToken st
 	// return if ES has been explicityl configured
 	if ucfg != nil {
 		if auth, err := ucfg.Child("authorization", -1); err == nil {
-			if api_key, err := auth.Child("api_key", -1); err == nil {
-				if api_key.HasField("elasticsearch") {
+			if apiKey, err := auth.Child("api_key", -1); err == nil {
+				if apiKey.HasField("elasticsearch") {
 					return nil
 				}
 			}
