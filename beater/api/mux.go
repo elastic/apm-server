@@ -22,10 +22,9 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/pkg/errors"
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
@@ -53,6 +52,9 @@ const (
 
 	// AgentConfigPath defines the path to query for agent config management
 	AgentConfigPath = "/config/v1/agents"
+
+	// AgentConfigRUMPath defines the path to query for the RUM agent config management
+	AgentConfigRUMPath = "/config/v1/rum/agents"
 
 	// IntakePath defines the path to ingest monitored events
 	IntakePath = "/intake/v2/events"
@@ -85,13 +87,13 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	}
 
 	routeMap := []route{
-		//If RUM starts to support API keys, the cache used in the root path needs to be changed.
 		{RootPath, backendAuthMeans, rootHandler},
 
 		{AssetSourcemapPath, backendAuthMeans, sourcemapHandler},
 		{AgentConfigPath, backendAuthMeans, backendAgentConfigHandler},
 		{IntakePath, backendAuthMeans, backendIntakeHandler},
 
+		{AgentConfigRUMPath, nil, rumAgentConfigHandler},
 		{IntakeRUMPath, nil, rumIntakeHandler},
 	}
 
@@ -112,7 +114,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 	return mux, nil
 }
 
-func backendIntakeHandler(cfg *config.Config, auth middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
+func backendIntakeHandler(cfg *config.Config, means middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
 	h := intake.Handler(systemMetadataDecoder(cfg, emptyDecoder),
 		&stream.Processor{
 			Tconfig:      transform.Config{},
@@ -120,7 +122,7 @@ func backendIntakeHandler(cfg *config.Config, auth middleware.AuthMeans, reporte
 			MaxEventSize: cfg.MaxEventSize,
 		},
 		reporter)
-	return middleware.Wrap(h, backendMiddleware(auth, authorization.PrivilegeAccess, intake.MonitoringMap)...)
+	return middleware.Wrap(h, backendMiddleware(means, authorization.PrivilegeAccess, intake.MonitoringMap)...)
 }
 
 func rumIntakeHandler(cfg *config.Config, _ middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
@@ -138,17 +140,21 @@ func rumIntakeHandler(cfg *config.Config, _ middleware.AuthMeans, reporter publi
 	return middleware.Wrap(h, rumMiddleware(cfg, intake.MonitoringMap)...)
 }
 
-func sourcemapHandler(cfg *config.Config, auth middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
+func sourcemapHandler(cfg *config.Config, means middleware.AuthMeans, reporter publish.Reporter) (request.Handler, error) {
 	tcfg, err := rumTransformConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
 	h := sourcemap.Handler(systemMetadataDecoder(cfg, decoder.DecodeSourcemapFormData), psourcemap.Processor, *tcfg, reporter)
-	return middleware.Wrap(h, sourcemapMiddleware(cfg, auth)...)
+	return middleware.Wrap(h, sourcemapMiddleware(cfg, means)...)
 }
 
-func backendAgentConfigHandler(cfg *config.Config, auth middleware.AuthMeans, _ publish.Reporter) (request.Handler, error) {
-	return agentConfigHandler(cfg, backendMiddleware(auth, authorization.PrivilegeAccess, agent.MonitoringMap))
+func backendAgentConfigHandler(cfg *config.Config, means middleware.AuthMeans, _ publish.Reporter) (request.Handler, error) {
+	return agentConfigHandler(cfg, backendMiddleware(means, authorization.PrivilegeAccess, agent.MonitoringMap))
+}
+
+func rumAgentConfigHandler(cfg *config.Config, _ middleware.AuthMeans, _ publish.Reporter) (request.Handler, error) {
+	return agentConfigHandler(cfg, rumMiddleware(cfg, agent.MonitoringMap))
 }
 
 func agentConfigHandler(cfg *config.Config, m []middleware.Middleware) (request.Handler, error) {
@@ -161,8 +167,8 @@ func agentConfigHandler(cfg *config.Config, m []middleware.Middleware) (request.
 	return middleware.Wrap(h, append(m, ks)...)
 }
 
-func rootHandler(cfg *config.Config, auth middleware.AuthMeans, _ publish.Reporter) (request.Handler, error) {
-	return middleware.Wrap(root.Handler(), rootMiddleware(auth)...)
+func rootHandler(cfg *config.Config, means middleware.AuthMeans, _ publish.Reporter) (request.Handler, error) {
+	return middleware.Wrap(root.Handler(), rootMiddleware(means)...)
 }
 
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
@@ -181,7 +187,8 @@ func backendMiddleware(auth middleware.AuthMeans, privilege string, m map[reques
 
 func rumMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	return append(apmMiddleware(m),
-		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate),
+		middleware.SetRumFlagMiddleware(),
+		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins),
 		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()))
 }
@@ -232,7 +239,7 @@ func addAuthAPIKey(cfg *config.Config, authMeans *middleware.AuthMeans) error {
 	}
 	client, err := elasticsearch.Client(cfg.AuthConfig.APIKeyConfig.ESConfig)
 	if err != nil {
-		return errors.Wrap(err, "error connecting to Elasticsearch configured for API Key usage")
+		return err
 	}
 
 	cache := authorization.NewAPIKeyCache(

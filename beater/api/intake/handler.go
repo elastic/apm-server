@@ -51,8 +51,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish
 			return
 		}
 
-		ipRateLimiter := c.RateLimiter.ForIP(c.Request)
-		ok := ipRateLimiter == nil || ipRateLimiter.Allow()
+		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
 		if !ok {
 			sendError(c, &stream.Error{
 				Type: stream.RateLimitErrType, Message: "rate limit exceeded"})
@@ -80,7 +79,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish
 			sendResponse(c, &sr)
 			return
 		}
-		res := processor.HandleStream(c.Request.Context(), ipRateLimiter, reqMeta, reader, report)
+		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, reqMeta, reader, report)
 
 		sendResponse(c, res)
 	}

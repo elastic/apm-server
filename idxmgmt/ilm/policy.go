@@ -17,69 +17,63 @@
 
 package ilm
 
-import "github.com/elastic/beats/libbeat/common"
+const (
+	rollover30Days = "apm-rollover-30-days"
 
-type m common.MapStr
+	policyStr      = "policy"
+	phasesStr      = "phases"
+	hotStr         = "hot"
+	warmStr        = "warm"
+	actionsStr     = "actions"
+	rolloverStr    = "rollover"
+	maxSizeStr     = "max_size"
+	maxAgeStr      = "max_age"
+	minAgeStr      = "min_age"
+	setPriorityStr = "set_priority"
+	priorityStr    = "priority"
+	readonlyStr    = "readonly"
 
-var eventPolicies = map[string]common.MapStr{
-	"error":       PolicyKeepMedium,
-	"span":        PolicyKeepMedium,
-	"transaction": PolicyKeep,
-	"metric":      PolicyKeep,
+	errorEvent       = "error"
+	spanEvent        = "span"
+	transactionEvent = "transaction"
+	metricEvent      = "metric"
+)
+
+func policyMapping() map[string]string {
+	m := map[string]string{}
+	for _, event := range []string{errorEvent, spanEvent, transactionEvent, metricEvent} {
+		m[event] = rollover30Days
+	}
+	return m
 }
 
-//PolicyKeep should be used for indices queried max for 2 months
-var PolicyKeep = common.MapStr{
-	"policy": m{
-		"phases": m{
-			"hot": m{
-				"actions": m{
-					"rollover": m{
-						"max_size": "50gb",
-						"max_age":  "7d",
+func policyPool() map[string]policyBody {
+	return map[string]policyBody{
+		rollover30Days: {
+			policyStr: map[string]interface{}{
+				phasesStr: map[string]interface{}{
+					hotStr: map[string]interface{}{
+						actionsStr: map[string]interface{}{
+							rolloverStr: map[string]interface{}{
+								maxSizeStr: "50gb",
+								maxAgeStr:  "30d",
+							},
+							setPriorityStr: map[string]interface{}{
+								priorityStr: 100,
+							},
+						},
 					},
-					"set_priority": m{
-						"priority": 100,
+					warmStr: map[string]interface{}{
+						minAgeStr: "30d",
+						actionsStr: map[string]interface{}{
+							setPriorityStr: map[string]interface{}{
+								priorityStr: 50,
+							},
+							readonlyStr: map[string]interface{}{},
+						},
 					},
-				},
-			},
-			"warm": m{
-				"min_age": "31d",
-				"actions": m{
-					"set_priority": m{
-						"priority": 50,
-					},
-					"readonly": m{},
 				},
 			},
 		},
-	},
-}
-
-//PolicyKeepMedium should be used for indices that need to be queried max for two weeks
-var PolicyKeepMedium = common.MapStr{
-	"policy": m{
-		"phases": m{
-			"hot": m{
-				"actions": m{
-					"rollover": m{
-						"max_size": "50gb",
-						"max_age":  "1d",
-					},
-					"set_priority": m{
-						"priority": 100,
-					},
-				},
-			},
-			"warm": m{
-				"min_age": "7d",
-				"actions": m{
-					"set_priority": m{
-						"priority": 50,
-					},
-					"readonly": m{},
-				},
-			},
-		},
-	},
+	}
 }

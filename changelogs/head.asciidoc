@@ -2,9 +2,16 @@
 == APM Server version HEAD
 
 [float]
+==== Breaking Changes
+- Introduce `apm-server.ilm.setup.enabled` flag and ignore `setup.template.*` flags for ILM setup {pull}2764[2764].
+- Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
+
+[float]
 ==== Added
 - Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
 - Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
-- Ensure only valid IP addresses are indexed in `client.ip` {pull}2772[2772].
+- Make ILM policies configurable {pull}2764[2764].
+- Add support for agent config GA {pull}2747[2747].
+- Change ILM default policies to rollover after 30 days {pull}2798[2798].
 
 https://github.com/elastic/apm-server/compare/7.4\...master[View commits]

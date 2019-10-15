@@ -56,23 +56,30 @@ var (
 	errMsgKibanaDisabled     = errors.New(msgKibanaDisabled)
 	errMsgNoKibanaConnection = errors.New(msgNoKibanaConnection)
 
-	minKibanaVersion = common.MustNewVersion("7.3.0")
+	minKibanaVersion = common.MustNewVersion("7.5.0")
 	errCacheControl  = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 )
 
 // Handler returns a request.Handler for managing agent central configuration requests.
-func Handler(kbClient kibana.Client, config *config.AgentConfig) request.Handler {
+func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
 	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
-	fetcher := agentcfg.NewFetcher(kbClient, config.Cache.Expiration)
+	fetcher := agentcfg.NewFetcher(client, config.Cache.Expiration)
 
 	return func(c *request.Context) {
 		// error handling
 		c.Header().Set(headers.CacheControl, errCacheControl)
-		authRequired := c.Authorization.IsAuthorizationConfigured()
+		authConfigured := c.Authorization.IsAuthorizationConfigured()
 
-		query, queryErr := buildQuery(c.Request)
+		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
+		if !ok {
+			c.Result.SetDefault(request.IDResponseErrorsRateLimit)
+			c.Write()
+			return
+		}
+
+		query, queryErr := buildQuery(c)
 		if queryErr != nil {
-			extractQueryError(c, queryErr, authRequired)
+			extractQueryError(c, queryErr, authConfigured)
 			c.Write()
 			return
 		}
@@ -80,36 +87,35 @@ func Handler(kbClient kibana.Client, config *config.AgentConfig) request.Handler
 		authorized, err := c.Authorization.AuthorizedFor("", authorization.PrivilegeAgentConfig)
 		if !authorized {
 			c.Result.SetAuthorization(err)
+			return
+		}
+
+		if valid := validateClient(c, client, authConfigured); !valid {
 			c.Write()
 			return
 		}
 
-		if valid := validateKbClient(c, kbClient, authRequired); !valid {
-			c.Write()
-			return
-		}
-
-		cfg, upstreamEtag, err := fetcher.Fetch(query, nil)
+		result, err := fetcher.Fetch(query)
 		if err != nil {
-			extractInternalError(c, err, authRequired)
+			extractInternalError(c, err, authConfigured)
 			c.Write()
 			return
 		}
 
 		// configuration successfully fetched
 		c.Header().Set(headers.CacheControl, cacheControl)
-		etag := fmt.Sprintf("\"%s\"", upstreamEtag)
-		c.Header().Set(headers.Etag, etag)
-		if etag == c.Request.Header.Get(headers.IfNoneMatch) {
+		c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
+
+		if result.Source.Etag != "" && result.Source.Etag == ifNoneMatch(c) {
 			c.Result.SetDefault(request.IDResponseValidNotModified)
 		} else {
-			c.Result.SetWithBody(request.IDResponseValidOK, cfg)
+			c.Result.SetWithBody(request.IDResponseValidOK, result.Source.Settings)
 		}
 		c.Write()
 	}
 }
 
-func validateKbClient(c *request.Context, client kibana.Client, withAuth bool) bool {
+func validateClient(c *request.Context, client kibana.Client, withAuth bool) bool {
 	if client == nil {
 		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
 			http.StatusServiceUnavailable,
@@ -141,7 +147,10 @@ func validateKbClient(c *request.Context, client kibana.Client, withAuth bool) b
 	}
 	return true
 }
-func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
+
+func buildQuery(c *request.Context) (query agentcfg.Query, err error) {
+	r := c.Request
+
 	switch r.Method {
 	case http.MethodPost:
 		err = convert.FromReader(r.Body, &query)
@@ -158,6 +167,9 @@ func buildQuery(r *http.Request) (query agentcfg.Query, err error) {
 	if err == nil && query.Service.Name == "" {
 		err = errors.New(agentcfg.ServiceName + " is required")
 	}
+	query.IsRum = c.IsRum
+	query.Etag = ifNoneMatch(c)
+
 	return
 }
 
@@ -169,10 +181,6 @@ func extractInternalError(c *request.Context, err error, withAuth bool) {
 	case strings.Contains(msg, agentcfg.ErrMsgSendToKibanaFailed):
 		body = authErrMsg(msg, agentcfg.ErrMsgSendToKibanaFailed, withAuth)
 		keyword = agentcfg.ErrMsgSendToKibanaFailed
-
-	case strings.Contains(msg, agentcfg.ErrMsgMultipleChoices):
-		body = authErrMsg(msg, agentcfg.ErrMsgMultipleChoices, withAuth)
-		keyword = agentcfg.ErrMsgMultipleChoices
 
 	case strings.Contains(msg, agentcfg.ErrMsgReadKibanaResponse):
 		body = authErrMsg(msg, agentcfg.ErrMsgReadKibanaResponse, withAuth)
@@ -212,4 +220,11 @@ func authErrMsg(fullMsg, shortMsg string, withAuth bool) string {
 		return fullMsg
 	}
 	return shortMsg
+}
+
+func ifNoneMatch(c *request.Context) string {
+	if h := c.Request.Header.Get(headers.IfNoneMatch); h != "" {
+		return strings.Replace(h, "\"", "", -1)
+	}
+	return c.Request.URL.Query().Get(agentcfg.Etag)
 }

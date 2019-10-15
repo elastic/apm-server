@@ -23,6 +23,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elastic/apm-server/utility"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/logp"
@@ -34,7 +36,6 @@ import (
 // Error Messages used to signal fetching errors
 const (
 	ErrMsgSendToKibanaFailed = "sending request to kibana failed"
-	ErrMsgMultipleChoices    = "multiple configurations found"
 	ErrMsgReadKibanaResponse = "unable to read Kibana response body"
 )
 const endpoint = "/api/apm/settings/agent-configuration/search"
@@ -42,45 +43,32 @@ const endpoint = "/api/apm/settings/agent-configuration/search"
 // Fetcher holds static information and information shared between requests.
 // It implements the Fetch method to retrieve agent configuration information.
 type Fetcher struct {
-	docCache *cache
-	logger   *logp.Logger
-	kbClient kibana.Client
+	*cache
+	logger *logp.Logger
+	client kibana.Client
 }
 
 // NewFetcher returns a Fetcher instance.
-func NewFetcher(kbClient kibana.Client, cacheExp time.Duration) *Fetcher {
+func NewFetcher(client kibana.Client, cacheExpiration time.Duration) *Fetcher {
 	logger := logp.NewLogger("agentcfg")
 	return &Fetcher{
-		kbClient: kbClient,
-		logger:   logger,
-		docCache: newCache(logger, cacheExp),
+		client: client,
+		logger: logger,
+		cache:  newCache(logger, cacheExpiration),
 	}
 }
 
 // Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
-func (f *Fetcher) Fetch(q Query, err error) (map[string]string, string, error) {
-	req := func(query Query) (*Doc, error) {
-		resultBytes, err := f.request(convert.ToReader(query), err)
-		if err != nil {
-			return nil, err
-		}
-		return NewDoc(resultBytes)
+func (f *Fetcher) Fetch(query Query) (Result, error) {
+	req := func() (Result, error) {
+		return newResult(f.request(convert.ToReader(query)))
 	}
-
-	doc, err := f.docCache.fetchAndAdd(q, req)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return doc.Settings, doc.ID, nil
+	result, err := f.fetch(query, req)
+	return sanitize(query.IsRum, result), err
 }
 
-func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := f.kbClient.Send(http.MethodPost, endpoint, nil, nil, r)
+func (f *Fetcher) request(r io.Reader) ([]byte, error) {
+	resp, err := f.client.Send(http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrMsgSendToKibanaFailed)
 	}
@@ -91,13 +79,28 @@ func (f *Fetcher) request(r io.Reader, err error) ([]byte, error) {
 	}
 
 	result, err := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode == http.StatusMultipleChoices {
-		return nil, errors.Wrap(errors.New(string(result)), ErrMsgMultipleChoices)
-	} else if resp.StatusCode > http.StatusMultipleChoices {
+	if resp.StatusCode >= http.StatusBadRequest {
 		return nil, errors.New(string(result))
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, ErrMsgReadKibanaResponse)
 	}
 	return result, nil
+}
+
+func sanitize(isRum bool, result Result) Result {
+	if !isRum {
+		return result
+	}
+	hasRumData := utility.Contains(result.Source.Agent, RumAgent) || result.Source.Agent == ""
+	if !hasRumData {
+		return zeroResult()
+	}
+	settings := Settings{}
+	for k, v := range result.Source.Settings {
+		if utility.Contains(k, RumSettings) {
+			settings[k] = v
+		}
+	}
+	return Result{Source: Source{Etag: result.Source.Etag, Settings: settings}}
 }

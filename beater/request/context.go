@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"github.com/elastic/beats/libbeat/logp"
+	"golang.org/x/time/rate"
 
-	"github.com/elastic/apm-server/beater/api/ratelimit"
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
 )
@@ -42,8 +42,9 @@ var (
 type Context struct {
 	Request       *http.Request
 	Logger        *logp.Logger
-	RateLimiter   *ratelimit.Store
+	RateLimiter   *rate.Limiter
 	Authorization Authorization
+	IsRum         bool
 	Result        Result
 
 	w             http.ResponseWriter
@@ -59,8 +60,9 @@ type Authorization interface {
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Request = r
 	c.Logger = nil
-	c.Authorization = &allow{}
 	c.RateLimiter = nil
+	c.Authorization = &allow{}
+	c.IsRum = false
 	c.Result.Reset()
 
 	c.w = w
