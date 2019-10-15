@@ -26,6 +26,7 @@ import (
 	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 
 	"github.com/elastic/apm-server/idxmgmt/ilm"
+	"github.com/elastic/apm-server/utility"
 )
 
 const (
@@ -101,20 +102,22 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		return nil
 	}
 
+	var policiesLoaded []string
+	var err error
 	for _, ilmSupporter := range m.supporter.ilmSupporters {
 		//(2) load event type policies, respecting ILM settings
-		if _, err := m.loadPolicy(ilmFeature, ilmSupporter); err != nil {
+		if policiesLoaded, err = m.loadPolicy(ilmFeature, ilmSupporter, policiesLoaded); err != nil {
 			return err
 		}
 
 		// (3) load event type specific template respecting index lifecycle information
-		if err := m.loadEventTemplate(ilmFeature, ilmSupporter, ilmFeature.load); err != nil {
+		if err = m.loadEventTemplate(ilmFeature, ilmSupporter, ilmFeature.load); err != nil {
 			return err
 		}
 
 		//(4) load ilm write aliases
 		//    ensure write aliases are created AFTER template creation
-		if err := m.loadAlias(ilmFeature, ilmSupporter); err != nil {
+		if err = m.loadAlias(ilmFeature, ilmSupporter); err != nil {
 			return err
 		}
 	}
@@ -206,21 +209,21 @@ func (m *manager) loadEventTemplate(ilmFeature feature, ilmSupporter libilm.Supp
 	return nil
 }
 
-func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter) (bool, error) {
-	if !ilmFeature.enabled {
-		return false, nil
-	}
+func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter, policiesLoaded []string) ([]string, error) {
 	policy := ilmSupporter.Policy().Name
+	if !ilmFeature.enabled || utility.Contains(policy, policiesLoaded) {
+		return policiesLoaded, nil
+	}
 	if ilmSupporter.Policy().Body == nil {
 		m.supporter.log.Infof("ILM policy %s not loaded.", policy)
-		return false, nil
+		return policiesLoaded, nil
 	}
 	_, err := ilmSupporter.Manager(m.clientHandler).EnsurePolicy(ilmFeature.load)
 	if err != nil {
-		return false, err
+		return policiesLoaded, err
 	}
 	m.supporter.log.Infof("ILM policy %s successfully loaded.", policy)
-	return true, nil
+	return append(policiesLoaded, policy), nil
 }
 func (m *manager) loadAlias(ilmFeature feature, ilmSupporter libilm.Supporter) error {
 	if !ilmFeature.enabled {
