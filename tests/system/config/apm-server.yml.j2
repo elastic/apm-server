@@ -86,7 +86,7 @@ apm-server:
     - event_type: "error"
       policy_name: "rollover-10-days"
     - event_type: "span"
-      policy_name: "rollover-30-days"
+      policy_name: "apm-rollover-30-days"
 
   ilm.setup.policies:
     - name: "rollover-10-days"
@@ -99,7 +99,7 @@ apm-server:
                 max_age: "10d"
               set_priority:
                 priority: 100
-    - name: "rollover-30-days"
+    - name: "apm-rollover-30-days"
       policy:
         phases:
           hot:

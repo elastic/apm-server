@@ -308,8 +308,8 @@ class TestILMConfiguredPolicies(ElasticTest):
         # check out configured policy in apm-server.yml.j2
 
         # ensure default policy is changed
-        policy = self.idxmgmt.fetch_policy("rollover-30-days")
-        phases = policy["rollover-30-days"]["policy"]["phases"]
+        policy = self.idxmgmt.fetch_policy(self.idxmgmt.default_policy)
+        phases = policy[self.idxmgmt.default_policy]["policy"]["phases"]
         assert len(phases) == 2
         assert "hot" in phases
         assert "delete" in phases
