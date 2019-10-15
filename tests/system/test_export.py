@@ -144,7 +144,7 @@ class TestExportILMPolicy(SubCommandTest):
         assert os.path.exists(self.dir)
         dir = os.path.join(self.dir, "policy")
         for subdir, dirs, files in os.walk(dir):
-            assert len(files) == 2, files
+            assert len(files) == 1, files
             for file in files:
                 with open(os.path.join(dir, file)) as f:
                     policy = json.load(f)

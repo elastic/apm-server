@@ -212,7 +212,7 @@ func TestManager_SetupILM(t *testing.T) {
 	var testCasesSetupEnabled = map[string]testCase{
 		"Default": {
 			loadMode:            libidxmgmt.LoadModeEnabled,
-			templatesILMEnabled: 4, policiesLoaded: 4, aliasesLoaded: 3,
+			templatesILMEnabled: 4, policiesLoaded: 1, aliasesLoaded: 3,
 		},
 		"ILM disabled": {
 			cfg:                  common.MapStr{"apm-server.ilm.enabled": false},
@@ -221,11 +221,11 @@ func TestManager_SetupILM(t *testing.T) {
 		},
 		"LoadModeOverwrite": {
 			loadMode:            libidxmgmt.LoadModeOverwrite,
-			templatesILMEnabled: 4, policiesLoaded: 4, aliasesLoaded: 3,
+			templatesILMEnabled: 4, policiesLoaded: 1, aliasesLoaded: 3,
 		},
 		"LoadModeForce ILM enabled": {
 			loadMode:            libidxmgmt.LoadModeForce,
-			templatesILMEnabled: 4, policiesLoaded: 4, aliasesLoaded: 3,
+			templatesILMEnabled: 4, policiesLoaded: 1, aliasesLoaded: 3,
 		},
 		"LoadModeForce ILM disabled": {
 			cfg:                  common.MapStr{"apm-server.ilm.enabled": false},
@@ -253,7 +253,7 @@ func TestManager_SetupILM(t *testing.T) {
 		"SetupDisabled LoadModeForce ILM enabled": {
 			cfg:                 common.MapStr{"apm-server.ilm.setup.enabled": false},
 			loadMode:            libidxmgmt.LoadModeForce,
-			templatesILMEnabled: 4, policiesLoaded: 4, aliasesLoaded: 3,
+			templatesILMEnabled: 4, policiesLoaded: 1, aliasesLoaded: 3,
 		},
 		"SetupDisabled LoadModeForce ILM disabled": {
 			cfg:                  common.MapStr{"apm-server.ilm.setup.enabled": false, "apm-server.ilm.enabled": false},
@@ -344,8 +344,11 @@ func TestManager_SetupILM(t *testing.T) {
 						{"event_type": "error", "policy_name": "foo"},
 						{"event_type": "transaction", "policy_name": "bar"}},
 				}},
-			loadMode:            libidxmgmt.LoadModeEnabled,
-			templatesILMEnabled: 4, policiesLoaded: 2, aliasesLoaded: 3,
+			loadMode: libidxmgmt.LoadModeEnabled,
+			// templates for all event types are loaded
+			// span and metrics share the same default policy, one policy is loaded
+			// 1 alias already exists, 3 new ones are loaded
+			templatesILMEnabled: 4, policiesLoaded: 1, aliasesLoaded: 3,
 		},
 	}
 
