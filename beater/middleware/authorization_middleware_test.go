@@ -62,6 +62,8 @@ var testcases = map[string]struct {
 		serverToken: "1234", requestToken: "1234", header: headers.Bearer, authorized: true, authConfigured: true},
 	"invalidBearerToken": {
 		serverToken: "1234", requestToken: "xyz", header: headers.Bearer, authorized: false, authConfigured: true},
+	"invalidBearerHeader": {
+		serverToken: "1234", requestToken: "1234", header: "SomeBearer", authorized: false, authConfigured: true},
 	"validToken": {
 		serverToken: "1234", requestToken: "1234", privilege: "action:access", header: headers.APIKey, authorized: true, authConfigured: true},
 	"invalidToken": {
@@ -136,6 +138,9 @@ func (a *testAuth) IsAuthorizationConfigured() bool {
 }
 
 func means(serverToken, requestToken string) AuthMeans {
+	if serverToken == "" {
+		return nil
+	}
 	return AuthMeans{
 		headers.Bearer: func(token string) request.Authorization {
 			return authorization.NewBearer(serverToken, token)

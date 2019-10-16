@@ -41,14 +41,12 @@ func AuthorizationMiddleware(apply bool, means AuthMeans, privilege string) Midd
 				return
 			}
 
-			method, token := fetchAuthHeader(c.Request)
-			authMean, ok := means[method]
+			mean, token := fetchAuthHeader(c.Request)
+			authHandler, ok := means[mean]
 			if !ok {
-				if authMean, ok = means[headers.Bearer]; !ok {
-					authMean = func(string) request.Authorization { return &authorization.Deny{} }
-				}
+				authHandler = func(string) request.Authorization { return &authorization.Deny{} }
 			}
-			c.Authorization = authMean(token)
+			c.Authorization = authHandler(token)
 
 			if apply {
 				authorized, err := c.Authorization.AuthorizedFor("", privilege)
@@ -71,4 +69,8 @@ func fetchAuthHeader(req *http.Request) (string, string) {
 		return "", ""
 	}
 	return parts[0], parts[1]
+}
+
+func hasNoAuthHeader(mean, token string) bool {
+	return mean == "" && token == ""
 }

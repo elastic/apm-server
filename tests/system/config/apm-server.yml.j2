@@ -3,6 +3,11 @@
 apm-server:
   host: "localhost:8200"
   secret_token: {{ secret_token }}
+  authorization.bearer.token: {{ auth_bearer_token }}
+  {% if api_key %}
+  authorization.api_key.enabled: true
+  authorization.api_key.cache.size: {{ api_key_cache_size | default(1000) }}
+  {% endif %}
 
   {% if max_event_size %}
   # Maximum allowed size in bytes of a single event
@@ -42,11 +47,10 @@ apm-server:
   {% endif %}
 
   rum.enabled: {{ enable_rum }}
-  rum.rate_limit: 3
   rum.allow_origins: {{ allow_origins }}
   rum.library_pattern: "~/test|library"
   rum.exclude_from_grouping: "~/test"
-  rum.event_rate.limit: 16
+  rum.event_rate.limit: {{ rum_rate_limit | default(16) }}
 
   {% if rum_sourcemapping_disabled %}
   rum.source_mapping.enabled: false
@@ -120,6 +124,8 @@ apm-server:
     {% if kibana_host is not none %}host: {{ kibana_host }}{% endif %}
   {% endif %}
 {% if acm_cache_expiration is not none %}  agent.config.cache.expiration: {{ acm_cache_expiration }}{% endif %}
+
+
 
 
 ############################# Setup ##########################################
