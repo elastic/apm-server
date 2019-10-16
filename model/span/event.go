@@ -280,7 +280,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	// then add event specific information
 	utility.DeepUpdate(fields, "service", e.Service.MinimalFields())
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
-	utility.Set(fields, "labels", e.Labels)
+	// merges with metadata labels, overrides conflicting keys
+	utility.DeepUpdate(fields, "labels", e.Labels)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.AddId(fields, "transaction", e.TransactionId)
