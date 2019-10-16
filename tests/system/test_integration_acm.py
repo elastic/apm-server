@@ -278,6 +278,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
         "enable_rum": "true",
     }
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum(self):
         service_name = "rum-service"
         self.create_service_config({"transaction_sample_rate": 0.2}, service_name, agent="rum-js")
@@ -295,6 +296,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
                           headers={"Content-Type": "application/json"})
         assert r2.status_code == 304
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_after_rum(self):
         service_name = "backend-service"
         self.create_service_config({"transaction_sample_rate": 0.3}, service_name)
@@ -313,6 +315,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
         assert r2.status_code == 200, r2.status_code
         assert r2.json() == {"transaction_sample_rate": "0.3"}, r2.json()
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_after_backend(self):
         service_name = "backend-service"
         self.create_service_config({"transaction_sample_rate": 0.3}, service_name)
@@ -331,6 +334,7 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
         assert r2.status_code == 200, r2.status_code
         assert r2.json() == {}, r2.json()
 
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_all_agents(self):
         service_name = "any-service"
         self.create_service_config(
