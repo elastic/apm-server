@@ -15,6 +15,9 @@
             "ecs": {
                 "version": "1.1.0"
             },
+            "labels": {
+                "tag1": "label1"
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -68,6 +71,9 @@
             },
             "ecs": {
                 "version": "1.1.0"
+            },
+            "labels": {
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
@@ -186,6 +192,9 @@
             "ecs": {
                 "version": "1.1.0"
             },
+            "labels": {
+                "tag1": "label1"
+            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "hostname": "",
@@ -241,6 +250,9 @@
             },
             "ecs": {
                 "version": "1.1.0"
+            },
+            "labels": {
+                "tag1": "label1"
             },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
