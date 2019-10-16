@@ -6,6 +6,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "labels": {
+                "tag1": "label1"
+            },
             "parent": {
                 "id": "abcdef0123456789"
             },
@@ -42,6 +45,9 @@
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
+            },
+            "labels": {
+                "tag1": "label1"
             },
             "parent": {
                 "id": "0000000011111111"
@@ -126,6 +132,9 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
+            "labels": {
+                "tag1": "label1"
+            },
             "parent": {
                 "id": "ababcdcdefefabde"
             },
@@ -164,6 +173,9 @@
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
+            },
+            "labels": {
+                "tag1": "label1"
             },
             "parent": {
                 "id": "abcdef0123456789"
