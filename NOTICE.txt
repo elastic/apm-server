@@ -479,8 +479,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
-Version: 7.x
-Revision: 83952964f604efcfad81cd941abe4d4d96bf6eb9
+Version: 7.5
+Revision: c2038b4a86972a64f380738347e62ec07e43e8b6
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -2278,7 +2278,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Microsoft/go-winio
-Revision: f533f7a102197536779ea3a8cb881d639e21ec5a
+Revision: 6c72808b55902eae4c5943626030429ff20f3b63
 License type (autodetected): MIT
 ./vendor/github.com/Microsoft/go-winio/LICENSE:
 --------------------------------------------------------------------
