@@ -47,7 +47,7 @@ class IdxMgmt(object):
             loaded += 1
         assert loaded == len(resp), len(resp)
 
-        if loaded == 1:
+        if loaded <= 1:
             return
 
         s, i, l = 'settings', 'index', 'lifecycle'
