@@ -5,5 +5,5 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 
 [float]
 ==== Added
-
+- Adds support for global labels in spans {pull}2806[2806].
 
