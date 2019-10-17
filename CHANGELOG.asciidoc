@@ -1,3 +1,4 @@
+include::./changelogs/7.5.asciidoc[]
 include::./changelogs/7.4.asciidoc[]
 include::./changelogs/7.3.asciidoc[]
 include::./changelogs/7.2.asciidoc[]
