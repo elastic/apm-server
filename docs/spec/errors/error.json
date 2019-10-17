@@ -3,7 +3,7 @@
     "type": "object",
     "description": "An error or a logged error message captured by an agent occurring in a monitored service",
     "allOf": [
-        { "$ref": "../timestamp_epoch.json" },
+        { "$ref": "../../timestamp_epoch.json" },
         {
             "properties": {
                 "id": {
