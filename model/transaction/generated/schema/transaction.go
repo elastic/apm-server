@@ -172,7 +172,7 @@ const ModelSchema = `{
                     "type": ["boolean", "null"]
                 },
                 "remote_address": {
-                    "description": "The network address sending the request. Should not be parsed from any headers like 'Forwarded'.",
+                    "description": "The network address sending the request. Should be obtained through standard APIs and not parsed from any headers like 'Forwarded'.",
                     "type": ["string", "null"]
                 }
             }
