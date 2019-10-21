@@ -16,9 +16,9 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :dockerconfig: https://raw.githubusercontent.com/elastic/apm-server/{doc-branch}/apm-server.docker.yml
 :discuss_forum: apm
 :github_repo_name: apm-server
-:sample_date_0: 2019.03.10
-:sample_date_1: 2019.03.11
-:sample_date_2: 2019.03.12
+:sample_date_0: 2019.10.20
+:sample_date_1: 2019.10.21
+:sample_date_2: 2019.10.22
 :repo: apm-server
 :no_kibana:
 :no_ilm:
