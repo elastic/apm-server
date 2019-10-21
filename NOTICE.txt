@@ -480,7 +480,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: master
-Revision: e40fbdddcd4e44a16e9eb58f3ba138c6e61ef503
+Revision: 363e3494bdafc50c3447e7a73d94e4caf9fc3c8c
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -489,7 +489,7 @@ Apache License 2.0
 
 --------------------------------------------------------------------
 Dependency: github.com/elastic/ecs
-Revision: cc1d96bf3f70a8e6af1e436a0283ef22b6af3dd2
+Revision: 2eaac192a1ca67edab727d7d9d526c5142ae3eb5
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/ecs/LICENSE.txt:
 --------------------------------------------------------------------
@@ -2278,7 +2278,7 @@ SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Microsoft/go-winio
-Revision: f533f7a102197536779ea3a8cb881d639e21ec5a
+Revision: 6c72808b55902eae4c5943626030429ff20f3b63
 License type (autodetected): MIT
 ./vendor/github.com/Microsoft/go-winio/LICENSE:
 --------------------------------------------------------------------
