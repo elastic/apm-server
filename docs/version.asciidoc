@@ -3,7 +3,7 @@
 // doc-branch can be:       master, 8.0, 8.1, etc.
 // release-state is only:   released | prerelease | unreleased
 
-:stack-version: 7.4.1
+:stack-version: 7.4.0
 :major-version: 7.x
 :doc-branch: 7.4
 :branch: {doc-branch}
