@@ -24,6 +24,8 @@ import (
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/beats/libbeat/logp"
+
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
@@ -39,7 +41,6 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 const (
@@ -213,12 +214,12 @@ func userMetaDataDecoder(beaterConfig *config.Config, d decoder.ReqDecoder) deco
 }
 
 func rumTransformConfig(beaterConfig *config.Config) (*transform.Config, error) {
-	mapper, err := beaterConfig.RumConfig.MemoizedSourcemapMapper()
+	store, err := beaterConfig.RumConfig.MemoizedSourcemapStore()
 	if err != nil {
 		return nil, err
 	}
 	return &transform.Config{
-		SourcemapMapper:     mapper,
+		SourcemapStore:      store,
 		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
 	}, nil

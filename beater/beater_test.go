@@ -28,9 +28,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
@@ -41,6 +42,8 @@ import (
 	"github.com/elastic/beats/libbeat/publisher/processing"
 	"github.com/elastic/beats/libbeat/publisher/queue"
 	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func TestBeatConfig(t *testing.T) {
@@ -392,24 +395,13 @@ func (bt *beater) wait() error {
 	}
 }
 
-func (bt *beater) sourcemapElasticsearchHosts() []string {
-	var content map[string]interface{}
-	if err := bt.config.RumConfig.SourceMapping.EsConfig.Unpack(&content); err != nil {
-		return nil
-	}
-	hostsContent := content["hosts"].([]interface{})
-	hosts := make([]string, len(hostsContent))
-	for i := range hostsContent {
-		hosts[i] = hostsContent[i].(string)
-	}
-	return hosts
-}
-
 func setupBeater(t *testing.T, apmBeat *beat.Beat, ucfg *common.Config, beatConfig *beat.BeatConfig) (*beater, func(), error) {
 	// create our beater
 	beatBeater, err := New(apmBeat, ucfg)
-	assert.NoError(t, err)
-	assert.NotNil(t, beatBeater)
+	if err != nil {
+		return nil, nil, err
+	}
+	require.NotNil(t, beatBeater)
 
 	c := make(chan error)
 	// start it

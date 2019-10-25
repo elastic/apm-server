@@ -18,54 +18,48 @@
 package sourcemap
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/sourcemap/test"
 
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewSmapMapper(t *testing.T) {
-	mapper, err := NewSmapMapper(Config{})
-	assert.Nil(t, mapper)
-	assert.Error(t, err)
-	assert.Equal(t, (err.(Error)).Kind, InitError)
-
-	mapper, err = NewSmapMapper(getFakeConfig())
-	assert.NoError(t, err)
-	assert.NotNil(t, mapper)
-}
-
 func TestApply(t *testing.T) {
-	mapper, err := NewSmapMapper(getFakeConfig())
-	assert.NoError(t, err)
-	assert.NotNil(t, mapper)
+	// no sourcemapConsumer
+	_, _, _, _, _, _, _, ok := (&Mapper{}).Apply(0, 0)
+	assert.False(t, ok)
 
-	// error occurs
-	mapping, err := mapper.Apply(Id{}, 0, 0)
-	assert.Nil(t, mapping)
-	assert.Error(t, err)
-	assert.Equal(t, (err.(Error)).Kind, KeyError)
+	sourcemapConsumer, err := sourcemap.Parse("", []byte(test.ValidSourcemap))
+	require.NoError(t, err)
+	m := &Mapper{sourcemapConsumer: sourcemapConsumer}
 
-	// no mapping found in sourcemap
-	mapper.Accessor = &fakeAccessor{}
-	mapping, err = mapper.Apply(Id{Path: "bundle.js.map"}, 0, 0)
-	assert.Nil(t, mapping)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "No Sourcemap found")
-	assert.Equal(t, (err.(Error)).Kind, KeyError)
+	t.Run("notOK", func(t *testing.T) {
+		// nothing found for lineno and colno
+		file, fc, line, col, ctxLine, _, _, ok := m.Apply(0, 0)
+		require.False(t, ok)
+		assert.Zero(t, file)
+		assert.Zero(t, fc)
+		assert.Zero(t, line)
+		assert.Zero(t, col)
+		assert.Zero(t, ctxLine)
+	})
 
-	// mapping found in minified sourcemap
-	mapping, err = mapper.Apply(Id{Path: "bundle.js.map"}, 1, 7)
-	assert.NoError(t, err)
-	assert.NotNil(t, mapping)
-	assert.Equal(t, "webpack:///bundle.js", mapping.Filename)
-	assert.Equal(t, "", mapping.Function)
-	assert.Equal(t, 1, mapping.Lineno)
-	assert.Equal(t, 9, mapping.Colno)
-	assert.Equal(t, "bundle.js.map", mapping.Path)
+	t.Run("OK", func(t *testing.T) {
+		// mapping found in minified sourcemap
+		file, fc, line, col, ctxLine, preCtx, postCtx, ok := m.Apply(1, 7)
+		require.True(t, ok)
+		assert.Equal(t, "webpack:///bundle.js", file)
+		assert.Equal(t, "", fc)
+		assert.Equal(t, 1, line)
+		assert.Equal(t, 9, col)
+		assert.Equal(t, "/******/ (function(modules) { // webpackBootstrap", ctxLine)
+		assert.Equal(t, []string{}, preCtx)
+		assert.NotZero(t, postCtx)
+	})
 }
 
 func TestSubSlice(t *testing.T) {
@@ -94,16 +88,3 @@ func TestSubSlice(t *testing.T) {
 		assert.Equal(t, []string{}, subSlice(test.start, test.end, []string{}))
 	}
 }
-
-type fakeAccessor struct{}
-
-func (ac *fakeAccessor) Fetch(smapId Id) (*sourcemap.Consumer, error) {
-	current, _ := os.Getwd()
-	path := filepath.Join(current, "../testdata/sourcemap/", smapId.Path)
-	fileBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	return sourcemap.Parse("", fileBytes)
-}
-func (ac *fakeAccessor) Remove(smapId Id) {}

@@ -20,15 +20,18 @@ package model
 import (
 	"errors"
 
-	logs "github.com/elastic/apm-server/log"
-
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+
+	logs "github.com/elastic/apm-server/log"
 
 	"github.com/elastic/apm-server/transform"
 )
 
-var ErrInvalidStacktraceType = errors.New("invalid type for stacktrace")
+var (
+	errInvalidStacktraceType          = errors.New("invalid type for stacktrace")
+	msgServiceInvalidForSourcemapping = "Cannot apply sourcemap without a service name or service version"
+)
 
 type Stacktrace []*StacktraceFrame
 
@@ -38,7 +41,7 @@ func DecodeStacktrace(input interface{}, err error) (*Stacktrace, error) {
 	}
 	raw, ok := input.([]interface{})
 	if !ok {
-		return nil, ErrInvalidStacktraceType
+		return nil, errInvalidStacktraceType
 	}
 	st := make(Stacktrace, len(raw))
 	for idx, fr := range raw {
@@ -67,33 +70,44 @@ func (st *Stacktrace) Transform(tctx *transform.Context) []common.MapStr {
 	// - lineno
 	// - abs_path is set to the cleaned abs_path
 	// - sourcmeap.updated is set to true
+
+	if tctx.Config.SourcemapStore == nil {
+		return st.transform(tctx, noSourcemapping)
+	}
+	if tctx.Metadata.Service == nil || tctx.Metadata.Service.Name == nil || tctx.Metadata.Service.Version == nil {
+		logp.NewLogger(logs.Stacktrace).Warn(msgServiceInvalidForSourcemapping)
+		return st.transform(tctx, noSourcemapping)
+	}
+
+	var errMsg string
+	var sourcemapErrorSet = map[string]interface{}{}
+	logger := logp.NewLogger(logs.Stacktrace)
+	fct := "<anonymous>"
+	return st.transform(tctx, func(frame *StacktraceFrame) {
+		fct, errMsg = frame.applySourcemap(tctx.Config.SourcemapStore, tctx.Metadata.Service, fct)
+		if errMsg != "" {
+			if _, ok := sourcemapErrorSet[errMsg]; !ok {
+				logger.Warn(errMsg)
+				sourcemapErrorSet[errMsg] = nil
+			}
+		}
+	})
+}
+
+func (st *Stacktrace) transform(ctx *transform.Context, apply func(*StacktraceFrame)) []common.MapStr {
 	frameCount := len(*st)
 	if frameCount == 0 {
 		return nil
 	}
+
 	var fr *StacktraceFrame
 	frames := make([]common.MapStr, frameCount)
-
-	fct := "<anonymous>"
-	var sourcemapErrorSet = make(map[string]struct{})
-
 	for idx := frameCount - 1; idx >= 0; idx-- {
 		fr = (*st)[idx]
-		if tctx.Config.SourcemapMapper != nil && tctx.Metadata.Service != nil {
-			var errMsg string
-			fct, errMsg = fr.applySourcemap(tctx.Config.SourcemapMapper, tctx.Metadata.Service, fct)
-			sourcemapErrorSet[errMsg] = struct{}{}
-		}
-		frames[idx] = fr.Transform(tctx)
+		apply(fr)
+		frames[idx] = fr.Transform(ctx)
 	}
-	if len(sourcemapErrorSet) > 0 {
-		logger := logp.NewLogger(logs.Stacktrace)
-		for errMsg := range sourcemapErrorSet {
-			if errMsg != "" {
-				logger.Warn(errMsg)
-			}
-		}
-	}
-
 	return frames
 }
+
+func noSourcemapping(_ *StacktraceFrame) {}

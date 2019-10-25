@@ -40,6 +40,7 @@ import (
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/tests/loader"
 )
 
@@ -234,7 +235,8 @@ func TestServerRumSwitch(t *testing.T) {
 func TestServerSourcemapBadConfig(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "source_mapping": m{"elasticsearch": m{"hosts": []string{}}}}})
 	require.NoError(t, err)
-	_, teardown, err := setupServer(t, ucfg, nil, nil)
+	s, teardown, err := setupServer(t, ucfg, nil, nil)
+	require.Nil(t, s)
 	if err == nil {
 		defer teardown()
 	}
@@ -318,18 +320,17 @@ func TestServerNoContentType(t *testing.T) {
 }
 
 func TestServerSourcemapElasticsearch(t *testing.T) {
-	cases := []struct {
-		expected     []string
+	for name, tc := range map[string]struct {
+		expected     elasticsearch.Hosts
 		config       m
 		outputConfig m
 	}{
-		{
+		"nil": {
 			expected: nil,
 			config:   m{},
 		},
-		{
-			// source_mapping.elasticsearch.hosts set
-			expected: []string{"localhost:5200"},
+		"esConfigured": {
+			expected: elasticsearch.Hosts{"localhost:5200"},
 			config: m{
 				"rum": m{
 					"enabled":                            "true",
@@ -337,9 +338,8 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 				},
 			},
 		},
-		{
-			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = true
-			expected: []string{"localhost:5201"},
+		"esFromOutput": {
+			expected: elasticsearch.Hosts{"localhost:5201"},
 			config: m{
 				"rum": m{
 					"enabled": "true",
@@ -352,8 +352,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 				},
 			},
 		},
-		{
-			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = false
+		"esOutputDisabled": {
 			expected: nil,
 			config: m{
 				"rum": m{
@@ -367,24 +366,22 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 				},
 			},
 		},
-	}
-	for _, testCase := range cases {
-		ucfg, err := common.NewConfigFrom(testCase.config)
-		if !assert.NoError(t, err) {
-			continue
-		}
+	} {
+		t.Run(name, func(t *testing.T) {
+			ucfg, err := common.NewConfigFrom(tc.config)
+			require.NoError(t, err)
 
-		var beatConfig beat.BeatConfig
-		ocfg, err := common.NewConfigFrom(testCase.outputConfig)
-		if !assert.NoError(t, err) {
-			continue
-		}
-		beatConfig.Output.Unpack(ocfg)
-		apm, teardown, err := setupServer(t, ucfg, &beatConfig, nil)
-		if assert.NoError(t, err) {
-			assert.Equal(t, testCase.expected, apm.sourcemapElasticsearchHosts())
-		}
-		teardown()
+			var beatConfig beat.BeatConfig
+			ocfg, err := common.NewConfigFrom(tc.outputConfig)
+			require.NoError(t, err)
+			require.NoError(t, beatConfig.Output.Unpack(ocfg))
+			apm, teardown, err := setupServer(t, ucfg, &beatConfig, nil)
+			require.NoError(t, err)
+			if tc.expected != nil {
+				assert.Equal(t, tc.expected, apm.config.RumConfig.SourceMapping.ESConfig.Hosts)
+			}
+			teardown()
+		})
 	}
 }
 

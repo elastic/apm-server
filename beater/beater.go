@@ -85,30 +85,19 @@ func checkConfig(logger *logp.Logger) error {
 	return nil
 }
 
-// Creates beater
+// New creates a beater instance using the provided configuration
 func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	logger := logp.NewLogger(logs.Beater)
 	if err := checkConfig(logger); err != nil {
 		return nil, err
 	}
-	beaterConfig, err := config.NewConfig(b.Info.Version, ucfg)
+	var esOutputCfg *common.Config
+	if isElasticsearchOutput(b) {
+		esOutputCfg = b.Config.Output.Config()
+	}
+	beaterConfig, err := config.NewConfig(b.Info.Version, ucfg, esOutputCfg)
 	if err != nil {
 		return nil, err
-	}
-	if beaterConfig.RumConfig.IsEnabled() {
-		if b.Config != nil && beaterConfig.RumConfig.SourceMapping.EsConfig == nil {
-			// fall back to elasticsearch output configuration for sourcemap storage if possible
-			if isElasticsearchOutput(b) {
-				logger.Info("Falling back to elasticsearch output for sourcemap storage")
-				beaterConfig.SetSourcemapElasticsearch(b.Config.Output.Config())
-			} else {
-				logger.Info("Unable to determine sourcemap storage, sourcemaps will not be applied")
-			}
-		}
-	}
-	if isElasticsearchOutput(b) &&
-		(b.Config.Output.Config().HasField("pipeline") || b.Config.Output.Config().HasField("pipelines")) {
-		beaterConfig.Pipeline = ""
 	}
 
 	bt := &beater{

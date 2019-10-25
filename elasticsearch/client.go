@@ -35,7 +35,7 @@ import (
 const (
 	prefixHTTP       = "http"
 	prefixHTTPSchema = prefixHTTP + "://"
-	esDefaultPort    = 9200
+	defaultESPort    = 9200
 )
 
 var (
@@ -122,7 +122,7 @@ func httpProxyURL(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
 func addresses(cfg *Config) ([]string, error) {
 	var addresses []string
 	for _, host := range cfg.Hosts {
-		address, err := common.MakeURL(cfg.Protocol, cfg.Path, host, esDefaultPort)
+		address, err := common.MakeURL(cfg.Protocol, cfg.Path, host, defaultESPort)
 		if err != nil {
 			return nil, err
 		}

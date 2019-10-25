@@ -18,14 +18,27 @@
 package model
 
 import (
-	"errors"
+	"fmt"
 	"regexp"
+
+	"github.com/pkg/errors"
+
+	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/common"
+)
+
+const (
+	errMsgSourcemapColumnMandatory = "Colno mandatory for sourcemapping."
+	errMsgSourcemapLineMandatory   = "Lineno mandatory for sourcemapping."
+	errMsgSourcemapPathMandatory   = "AbsPath mandatory for sourcemapping."
+)
+
+var (
+	errInvalidStacktraceFrameType = errors.New("invalid type for stacktrace frame")
 )
 
 type StacktraceFrame struct {
@@ -63,15 +76,13 @@ type Original struct {
 	sourcemapCopied bool
 }
 
-var ErrInvalidStacktraceFrameType = errors.New("invalid type for stacktrace frame")
-
 func DecodeStacktraceFrame(input interface{}, err error) (*StacktraceFrame, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, ErrInvalidStacktraceFrameType
+		return nil, errInvalidStacktraceFrameType
 	}
 	decoder := utility.ManualDecoder{}
 	frame := StacktraceFrame{
@@ -156,50 +167,66 @@ func (s *StacktraceFrame) setLibraryFrame(pattern *regexp.Regexp) {
 	s.LibraryFrame = &libraryFrame
 }
 
-func (s *StacktraceFrame) applySourcemap(mapper sourcemap.Mapper, service *metadata.Service, prevFunction string) (string, string) {
+func (s *StacktraceFrame) applySourcemap(store *sourcemap.Store, service *metadata.Service, prevFunction string) (function string, errMsg string) {
+	function = prevFunction
+
+	var valid bool
+	if valid, errMsg = s.validForSourcemapping(); !valid {
+		s.updateError(errMsg)
+		return
+	}
+
 	s.setOriginalSourcemapData()
 
-	if s.Original.Colno == nil {
-		errMsg := "Colno mandatory for sourcemapping."
-		s.updateError(errMsg)
-		return prevFunction, errMsg
-	}
-	if s.Original.Lineno == nil {
-		errMsg := "Lineno mandatory for sourcemapping."
-		s.updateError(errMsg)
-		return prevFunction, errMsg
-	}
-
-	sourcemapId, errMsg := s.buildSourcemapId(service)
-	if errMsg != "" {
-		return prevFunction, errMsg
-	}
-	mapping, err := mapper.Apply(sourcemapId, *s.Original.Lineno, *s.Original.Colno)
+	path := utility.CleanUrlPath(*s.Original.AbsPath)
+	mapper, err := store.Fetch(*service.Name, *service.Version, path)
 	if err != nil {
-		e, isSourcemapError := err.(sourcemap.Error)
-		if !isSourcemapError || e.Kind == sourcemap.MapError || e.Kind == sourcemap.KeyError {
+		if errors.Cause(err) == sourcemap.ErrNoSourcemapFound {
 			s.updateError(err.Error())
 		}
-		return prevFunction, err.Error()
+		errMsg = err.Error()
+		return
 	}
 
-	if mapping.Filename != "" {
-		s.Filename = mapping.Filename
+	file, fct, line, col, ctxLine, preCtx, postCtx, ok := mapper.Apply(*s.Original.Lineno, *s.Original.Colno)
+	if !ok {
+		errMsg = fmt.Sprintf("No Sourcemap found for Lineno %v, Colno %v", *s.Original.Lineno, *s.Original.Colno)
+		s.updateError(errMsg)
+		return
 	}
 
-	s.Colno = &mapping.Colno
-	s.Lineno = &mapping.Lineno
-	s.AbsPath = &mapping.Path
+	if file != "" {
+		s.Filename = file
+	}
+
+	s.Colno = &col
+	s.Lineno = &line
+	s.AbsPath = &path
 	s.updateSmap(true)
 	s.Function = &prevFunction
-	s.ContextLine = &mapping.ContextLine
-	s.PreContext = mapping.PreContext
-	s.PostContext = mapping.PostContext
+	s.ContextLine = &ctxLine
+	s.PreContext = preCtx
+	s.PostContext = postCtx
 
-	if mapping.Function != "" {
-		return mapping.Function, ""
+	if fct != "" {
+		function = fct
+		return
 	}
-	return "<unknown>", ""
+	function = "<unknown>"
+	return
+}
+
+func (s *StacktraceFrame) validForSourcemapping() (bool, string) {
+	if s.Colno == nil {
+		return false, errMsgSourcemapColumnMandatory
+	}
+	if s.Lineno == nil {
+		return false, errMsgSourcemapLineMandatory
+	}
+	if s.AbsPath == nil {
+		return false, errMsgSourcemapPathMandatory
+	}
+	return true, ""
 }
 
 func (s *StacktraceFrame) setOriginalSourcemapData() {
@@ -213,20 +240,6 @@ func (s *StacktraceFrame) setOriginalSourcemapData() {
 	s.Original.Filename = s.Filename
 
 	s.Original.sourcemapCopied = true
-}
-
-func (s *StacktraceFrame) buildSourcemapId(service *metadata.Service) (sourcemap.Id, string) {
-	if service.Name == nil {
-		return sourcemap.Id{}, "Cannot apply sourcemap without a service name."
-	}
-	id := sourcemap.Id{ServiceName: *service.Name}
-	if service.Version != nil {
-		id.ServiceVersion = *service.Version
-	}
-	if s.AbsPath != nil {
-		id.Path = utility.CleanUrlPath(*s.AbsPath)
-	}
-	return id, ""
 }
 
 func (s *StacktraceFrame) updateError(errMsg string) {

@@ -15,41 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package sourcemap
+package config
 
-import (
-	"fmt"
-	"strings"
-)
-
-type Id struct {
-	ServiceName    string
-	ServiceVersion string
-	Path           string
+// RegisterConfig holds ingest config information
+type RegisterConfig struct {
+	Ingest *IngestConfig `config:"ingest"`
 }
 
-func (i *Id) Key() string {
-	info := []string{}
-	info = add(info, i.ServiceName)
-	info = add(info, i.ServiceVersion)
-	info = add(info, i.Path)
-	return strings.Join(info, "_")
+// IngestConfig holds config pipeline ingest information
+type IngestConfig struct {
+	Pipeline *PipelineConfig `config:"pipeline"`
 }
 
-func (i *Id) String() string {
-	return fmt.Sprintf("Service Name: '%s', Service Version: '%s' and Path: '%s'",
-		i.ServiceName,
-		i.ServiceVersion,
-		i.Path)
-}
-
-func (i *Id) Valid() bool {
-	return i.ServiceName != "" && i.ServiceVersion != "" && i.Path != ""
-}
-
-func add(a []string, s string) []string {
-	if s != "" {
-		a = append(a, s)
-	}
-	return a
+// PipelineConfig holds config information about registering ingest pipelines
+type PipelineConfig struct {
+	Enabled   *bool `config:"enabled"`
+	Overwrite *bool `config:"overwrite"`
+	Path      string
 }

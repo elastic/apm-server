@@ -18,91 +18,33 @@
 package sourcemap
 
 import (
-	"fmt"
 	"strings"
-	"time"
 
-	logs "github.com/elastic/apm-server/log"
-
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/go-sourcemap/sourcemap"
 )
 
 const sourcemapContentSnippetSize = 5
 
-type Mapper interface {
-	Apply(Id, int, int) (*Mapping, error)
-	NewSourcemapAdded(id Id)
+// Mapper holds a sourcemapper instance to be able to apply sourcemapping
+type Mapper struct {
+	sourcemapConsumer *sourcemap.Consumer
 }
 
-type SmapMapper struct {
-	Accessor Accessor
-	logger   *logp.Logger
-}
+// Apply sourcemapping for given line and column and return values after sourcemapping
+func (m *Mapper) Apply(lineno, colno int) (
+	file string, function string, line int, col int,
+	contextLine string, preContext []string, postContext []string, ok bool) {
 
-type Config struct {
-	CacheExpiration     time.Duration
-	ElasticsearchConfig *common.Config
-	Index               string
-}
-
-type Mapping struct {
-	Filename    string
-	Function    string
-	Colno       int
-	Lineno      int
-	Path        string
-	ContextLine string
-	PreContext  []string
-	PostContext []string
-}
-
-func NewSmapMapper(config Config) (*SmapMapper, error) {
-	accessor, err := NewSmapAccessor(config)
-	if err != nil {
-		return nil, err
-	}
-	return &SmapMapper{
-		Accessor: accessor,
-		logger:   logp.NewLogger(logs.Sourcemap),
-	}, nil
-}
-
-func (m *SmapMapper) Apply(id Id, lineno, colno int) (*Mapping, error) {
-	smapCons, err := m.Accessor.Fetch(id)
-	if err != nil {
-		return nil, err
+	if m.sourcemapConsumer == nil {
+		return
 	}
 
-	file, funct, line, col, ok := smapCons.Source(lineno, colno)
-	if !ok {
-		return nil, Error{
-			Msg: fmt.Sprintf("No Sourcemap found for id %v, Lineno %v, Colno %v",
-				id.String(), lineno, colno),
-			Kind: KeyError,
-		}
-	}
-	src := strings.Split(smapCons.SourceContent(file), "\n")
-	return &Mapping{
-		Filename: file,
-		Function: funct,
-		Lineno:   line,
-		Colno:    col,
-		Path:     id.Path,
-		// line is 1-based
-		ContextLine: strings.Join(subSlice(line-1, line, src), ""),
-		PreContext:  subSlice(line-1-sourcemapContentSnippetSize, line-1, src),
-		PostContext: subSlice(line, line+sourcemapContentSnippetSize, src),
-	}, nil
-}
-
-func (m *SmapMapper) NewSourcemapAdded(id Id) {
-	_, err := m.Accessor.Fetch(id)
-	if err == nil {
-		m.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
-			id.ServiceName, id.ServiceVersion, id.Path)
-	}
-	m.Accessor.Remove(id)
+	file, function, line, col, ok = m.sourcemapConsumer.Source(lineno, colno)
+	src := strings.Split(m.sourcemapConsumer.SourceContent(file), "\n")
+	contextLine = strings.Join(subSlice(line-1, line, src), "")
+	preContext = subSlice(line-1-sourcemapContentSnippetSize, line-1, src)
+	postContext = subSlice(line, line+sourcemapContentSnippetSize, src)
+	return
 }
 
 func subSlice(from, to int, content []string) []string {

@@ -254,7 +254,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 }
 
 func (e *Event) updateCulprit(tctx *transform.Context) {
-	if tctx.Config.SourcemapMapper == nil {
+	if tctx.Config.SourcemapStore == nil {
 		return
 	}
 	var fr *m.StacktraceFrame
