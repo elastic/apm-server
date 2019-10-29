@@ -139,11 +139,6 @@
                 "name": "java",
                 "version": "1.10.0-SNAPSHOT"
             },
-            "labels": {
-                "ab_testing": true,
-                "group": "experimental",
-                "segment": 5
-            },
             "parent": {
                 "id": "abcdef0123456789"
             },
