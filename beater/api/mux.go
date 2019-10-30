@@ -153,7 +153,11 @@ func agentConfigHandler(cfg *config.Config, middlewareFunc middlewareFunc) (requ
 		client = kibana.NewConnectingClient(cfg.Kibana)
 	}
 	h := agent.Handler(client, cfg.AgentConfig)
-	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled())
+	msg := "Agent remote configuration is disabled. " +
+		"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
+		"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
+		"If you are not using remote configuration, you can safely ignore this error."
+	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled(), msg)
 	return middleware.Wrap(h, append(middlewareFunc(cfg, agent.MonitoringMap), ks)...)
 }
 
@@ -176,17 +180,23 @@ func backendMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.In
 }
 
 func rumMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	msg := "RUM endpoint is disabled. " +
+		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
+		"If you are not using the RUM agent, you can safely ignore this error."
 	return append(apmMiddleware(m),
 		middleware.SetRumFlagMiddleware(),
 		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins),
-		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()))
+		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled(), msg))
 }
 
 func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
+	msg := "Sourcemap upload endpoint is disabled. " +
+		"Configure the `apm-server.rum` section in apm-server.yml to enable sourcemap uploads. " +
+		"If you are not using the RUM agent, you can safely ignore this error."
 	enabled := cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()
 	return append(backendMiddleware(cfg, sourcemap.MonitoringMap),
-		middleware.KillSwitchMiddleware(enabled))
+		middleware.KillSwitchMiddleware(enabled, msg))
 }
 
 func rootMiddleware(cfg *config.Config) []middleware.Middleware {

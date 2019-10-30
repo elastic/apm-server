@@ -1,3 +1,3 @@
 {
-    "error": "forbidden request: endpoint is disabled"
+    "error": "forbidden request: Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error."
 }

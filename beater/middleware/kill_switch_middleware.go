@@ -23,16 +23,14 @@ import (
 	"github.com/elastic/apm-server/beater/request"
 )
 
-const errDisabledMsg = "endpoint is disabled"
-
 // KillSwitchMiddleware returns a Middleware checking whether the path for the request is enabled
-func KillSwitchMiddleware(enabled bool) Middleware {
+func KillSwitchMiddleware(enabled bool, errorMessage string) Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			if enabled {
 				h(c)
 			} else {
-				c.Result.SetWithError(request.IDResponseErrorsForbidden, errors.New(errDisabledMsg))
+				c.Result.SetWithError(request.IDResponseErrorsForbidden, errors.New(errorMessage))
 				c.Write()
 			}
 		}, nil
