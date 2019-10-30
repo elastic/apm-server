@@ -209,7 +209,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
                          headers={"Content-Type": "application/json"}
                          )
         assert r.status_code == 403
-        assert r.json() == {'error': 'forbidden request: endpoint is disabled'}
+        assert "RUM endpoint is disabled" in r.json().get('error'), r.json()
 
 
 class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
@@ -268,7 +268,6 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
         self.assertDictContainsSubset({
             "level": "error",
             "message": "forbidden request",
-            "error": "forbidden request: endpoint is disabled",
             "response_code": 403,
         }, config_request_logs[0])
 
