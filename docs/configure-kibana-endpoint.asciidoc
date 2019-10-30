@@ -106,7 +106,7 @@ apm-server.kibana.host: "https://192.0.2.255:5601"
 apm-server.kibana.ssl.enabled: true
 apm-server.kibana.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
 apm-server.kibana.ssl.certificate: "/etc/pki/client/cert.pem"
-apm-server.kibana.ssl.key: "/etc/pki/client/cert.key
+apm-server.kibana.ssl.key: "/etc/pki/client/cert.key"
 ----
 
 For information on the additional SSL configuration options,
