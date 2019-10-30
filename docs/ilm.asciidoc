@@ -98,10 +98,17 @@ When `apm-server.ilm.enabled: false`, ILM is disabled regardless of the `apm-ser
 
 
 // NOTES
+*Policies*
 * Index lifecycle management will manage an index based on its defined policy
 * Policies only need to be created once, and will persist through version upgrades.
 
+*Templates*
+* An index template associates policies with indices
 * To use an index lifecycle policy, you need to specify it in the index template used to create the indices.
+
+*Aliases*
+* When a rollover action is is defined in a policy, you need to define an alias. This specifies which alias to rollover on behalf of the index
+
 // END NOTES
 
 [float]
