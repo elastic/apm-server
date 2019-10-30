@@ -38,6 +38,7 @@ type Config struct {
 //Setup holds information about how to setup ILM
 type Setup struct {
 	Enabled       bool `config:"enabled"`
+	Overwrite     bool `config:"overwrite"`
 	RequirePolicy bool `config:"require_policy"`
 	Policies      []EventPolicy
 }
@@ -74,7 +75,7 @@ func NewConfig(inputConfig *common.Config) (Config, error) {
 			policyPool[policy.Name] = policy.Body
 		}
 		//update policy name per event according to configuration
-		for _, entry := range tmpConfig.Mapping {
+		for _, entry := range tmpConfig.Templates {
 			if _, ok := policyMappings[entry.Event]; !ok {
 				return Config{}, errors.Errorf("event_type '%s' not supported for ILM setup", entry.Event)
 			}
@@ -103,7 +104,7 @@ func defaultConfig() Config {
 }
 
 type config struct {
-	Mapping []struct {
+	Templates []struct {
 		PolicyName string `config:"policy_name"`
 		Event      string `config:"event_type"`
 	} `config:"setup.mapping"`
