@@ -2,27 +2,27 @@
 [role="xpack"]
 == Index lifecycle management (ILM)
 
-Use the {ref}/getting-started-index-lifecycle-management.html[index lifecycle management (ILM)]
-feature in {es} to manage your APM Server indices as they age.
-With ILM, you can easily automate the management of your indices over time,
-by triggering rollovers to a new index when the existing index reaches a specified size or age.
+The {ref}/getting-started-index-lifecycle-management.html[index lifecycle management (ILM)]
+feature in {es} allows you to automate the management of your APM Server indices as they grow and age.
 
-You can view and edit index lifecycle policies on the [*Index lifecycle policies*] page in {kib}.
-For more information about working with the UI,
-see {kibana-ref}/index-lifecycle-policies.html[Index lifecycle policies].
+ILM is enabled for APM Server indices by default (v7.3+), and the <<ilm-default,default ILM policy>>
+will be applied as long as all of the following conditions are true:
 
-APM Server currently offers two ways to get started with ILM:
+* `output.elasticsearch` is enabled. 
+* The Elasticsearch instance supports ILM. 
+* Custom `index` or `indices` settings are not configured. 
 
-NOTE: If you're migrating from an existing setup,
+If you wish to define your own index lifecycle policies, see <<custom-ilm-configuration>>.
+
+IMPORTANT: If you're migrating from an existing setup,
 any indices present before ILM was configured will need to be managed manually.
-
-IMPORTANT: Changes to the default index lifecycle policy do not take effect until the current index has rolled over.
+In addition, changes to the default index lifecycle policy do not take effect until the current index has rolled over.
 
 [float]
 [[ilm-default]]
 === ILM default policy
 
-Index lifecycle management will manage an index based on its defined policy.
+Index lifecycle management manages an index based on its defined policy.
 The default ILM configuration applies *hot* and *warm* phase policies to all APM events:
 `span`, `transaction`, `error`, and `metric`.
 Cold and delete phases are not defined.
@@ -31,71 +31,135 @@ Cold and delete phases are not defined.
 * *Warm* -- Move to warm phase after 30 days: `min_age: 30d`, `priority: 50`
 
 [float]
-[[ilm-enable]]
-=== Enable ILM
+[[custom-ilm-configuration]]
+=== Custom ILM configuration
 
-ILM is enabled/disabled via the `apm-server.ilm` configuration options.
+* <<ilm-enable>>
+* <<custom-ilm-policy>>
+
+[float]
+[[ilm-enable]]
+==== Enable ILM
+
 You must configure both `apm-server.ilm.enabled` and `apm-server.ilm.setup.enabled` to enable ILM for APM Server indices.
 
 [float]
-==== `apm-server.ilm.enabled`
+===== `apm-server.ilm.enabled`
 
 Can be `auto`, `true`, or `false`. Defaults to `auto` in v7.3+.
 
 `"auto"`::
 
-`apm-server.ilm.enabled: "auto"` means APM Server will enable ILM only if all four of the conditions below are true.
-If *any* of the conditions are not met, ILM will not be enabled.
+APM Server will enable ILM only if all four of the conditions below are true.
+If any of the conditions are not met, ILM will be disabled.
 
 * `output.elasticsearch` is enabled. 
 * The Elasticsearch instance supports ILM. 
 * Custom `index` or `indices` settings are not configured. 
 * `apm-server.ilm.enabled: true`.
 
-// Old stuff. Need to get rid of it
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-// If any other output is configured, ILM will be disabled.
-// If it does not, ILM will be disabled.
-// If custom index settings are configured,
-// ILM will be disabled, as it only works with default index settings.
-// If `apm-server.ilm.enabled: false`, ILM will be disabled.
-// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 `true`::
 
-When explicitly enabling `apm-server.ilm.enabled: true`, APM Server will ignore any configured index settings.
-However, the configured output must still be Elasticsearch, the instance must still support ILM,
-and `apm-server.ilm.setup.enabled` must still be `true`.
-If not, APM Server will fall back to ordinary index management without ILM, and an error will be logged.
+APM Server will ignore any configured index settings and enable ILM if all three of the conditions below are true.
+If any of the conditions are not met, APM Server will disable ILM and an error will be logged.
+
+* `output.elasticsearch` is enabled. 
+* The Elasticsearch instance supports ILM. 
+* `apm-server.ilm.enabled: true`.
 
 `false`::
 
-ILM can be explicitly disabled by setting `apm-server.ilm.enabled: false`.
+Explicitly disables ILM.
 
 [float]
-==== `apm-server.ilm.setup.enabled`
+===== `apm-server.ilm.setup.enabled`
 
 Can be `true` or `false`. Defaults to `true`.
 
 `true`::
 
-When `apm-server.ilm.setup.enabled: true`, the outcome is dependent on the `apm-server.ilm.enabled` configuration:
+The outcome is dependent on the `apm-server.ilm.enabled` configuration:
 
-[cols="h,,"]
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>
+//      NEED MORE HERE
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+[options="header"]
 |====
-| `apm-server.ilm.enabled` |create policy |overwrite policy |create template |overwrite template |create alias
+|`apm-server.` `ilm.enabled` |create policy |overwrite policy |create template |overwrite template |create alias
 |`auto`/`true`  |true   |true   |true   |true   |true
 |`false`        |false  |false  |true   |true   |false
 |====
 
 `false`::
 
-When `apm-server.ilm.enabled: false`, ILM is disabled regardless of the `apm-server.ilm.enabled` setting.
+Disables ILM regardless of the `apm-server.ilm.enabled` setting.
+
+[float]
+[[custom-ilm-policy]]
+==== Custom ILM policies
+
+The default ILM policy can be viewed and edited in two places:
+
+* In your `apm-server.yml` configuration file.
+* On the *Index lifecycle policies* page in {kib} ({kibana-ref}/index-lifecycle-policies.html[more information]).
+
+You can uncomment the default policy and edit to your desire.
+
+// Policy phases and actions
+https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-policy-definition.html
+
+// Actions available in each phase
+https://www.elastic.co/guide/en/elasticsearch/reference/current/_actions.html
+
+Sample config:
+
+[source,yml]
+|====
+apm-server:
+    ilm:
+        enabled: "auto"
+        setup:
+            enabled: true
+            policies:
+                - name: "custom-apm-policy"
+                policy:
+                    phases:
+                        hot:
+                            actions:
+                            rollover:
+                                max_size: "50gb"
+                                max_age: "30d"
+                            set_priority:
+                                priority: 100
+                        warm:
+                            min_age: "30d"
+                            actions:
+                            set_priority:
+                                priority: 50
+                            readonly: {}
+                        cold:
+                            min_age: "60d"
+                            actions:
+                            set_priority:
+                                priority: 0
+                            freeze: {}
+                        delete:
+                            min_age: "90d"
+                            actions:
+                            delete: {}
+|====
+
+After starting up APM Server, you can confirm the policy was created using the GET lifecycle policy API:
+
+[source,js]
+-----------------------
+GET _ilm/policy
+-----------------------
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>
 //      TO DO BELOW HERE
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 
 // NOTES
 *Policies*
@@ -110,6 +174,17 @@ When `apm-server.ilm.enabled: false`, ILM is disabled regardless of the `apm-ser
 * When a rollover action is is defined in a policy, you need to define an alias. This specifies which alias to rollover on behalf of the index
 
 // END NOTES
+
+[float]
+[[ilm-settings]]
+=== ILM settings
+
+// stuff
+
+
+
+
+
 
 [float]
 [[ilm-setup]]
