@@ -75,7 +75,7 @@ func NewConfig(inputConfig *common.Config) (Config, error) {
 			policyPool[policy.Name] = policy.Body
 		}
 		//update policy name per event according to configuration
-		for _, entry := range tmpConfig.Templates {
+		for _, entry := range tmpConfig.Mapping {
 			if _, ok := policyMappings[entry.Event]; !ok {
 				return Config{}, errors.Errorf("event_type '%s' not supported for ILM setup", entry.Event)
 			}
@@ -104,7 +104,7 @@ func defaultConfig() Config {
 }
 
 type config struct {
-	Templates []struct {
+	Mapping []struct {
 		PolicyName string `config:"policy_name"`
 		Event      string `config:"event_type"`
 	} `config:"setup.mapping"`

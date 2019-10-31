@@ -273,8 +273,8 @@ apm-server:
       #require_policy: true
 
       # The configured event types and policies will be merged with the default setup. You only need to configure
-      # the templates that you want to customize.
-      #templates:
+      # the mappings that you want to customize.
+      #mapping:
         #- event_type: "error"
         #  policy_name: "apm-rollover-30-days"
         #- event_type: "span"
