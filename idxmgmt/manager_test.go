@@ -46,64 +46,64 @@ func TestManager_VerifySetup(t *testing.T) {
 		ok   bool
 		warn string
 	}{
-		//"SetupTemplateDisabled": {
-		//	loadTemplate: libidxmgmt.LoadModeEnabled,
-		//	warn:         "Template loading is disabled",
-		//},
+		"SetupTemplateDisabled": {
+			loadTemplate: libidxmgmt.LoadModeEnabled,
+			warn:         "Template loading is disabled",
+		},
 		"SetupILMDisabled": {
 			loadILM:         libidxmgmt.LoadModeEnabled,
 			ilmSetupEnabled: false,
 			warn:            "Manage ILM setup is disabled.",
 		},
-		//"LoadILMDisabled": {
-		//	loadILM:           libidxmgmt.LoadModeDisabled,
-		//	ilmSetupOverwrite: true,
-		//	warn:              "Manage ILM setup is disabled.",
-		//},
-		//"LoadTemplateDisabled": {
-		//	templateEnabled: true, loadTemplate: libidxmgmt.LoadModeDisabled,
-		//	warn: "Template loading is disabled",
-		//},
-		//"ILMEnabledButUnsupported": {
-		//	version:    "6.2.0",
-		//	ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
-		//	warn: msgErrIlmDisabledES,
-		//},
-		//"ILMAutoButUnsupported": {
-		//	version: "6.2.0",
-		//	loadILM: libidxmgmt.LoadModeEnabled,
-		//	warn:    msgIlmDisabledES,
-		//},
-		//"ILMAutoCustomIndex": {
-		//	loadILM: libidxmgmt.LoadModeEnabled,
-		//	esCfg:   common.MapStr{"output.elasticsearch.index": "custom"},
-		//	warn:    msgIlmDisabledCfg,
-		//},
-		//"ILMAutoCustomIndices": {
-		//	loadILM: libidxmgmt.LoadModeEnabled,
-		//	esCfg: common.MapStr{"output.elasticsearch.indices": []common.MapStr{{
-		//		"index": "apm-custom-%{[observer.version]}-metric",
-		//		"when": map[string]interface{}{
-		//			"contains": map[string]interface{}{"processor.event": "metric"}}}}},
-		//	warn: msgIlmDisabledCfg,
-		//},
-		//"ILMTrueCustomIndex": {
-		//	ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
-		//	esCfg: common.MapStr{"output.elasticsearch.index": "custom"},
-		//	warn:  msgIdxCfgIgnored,
-		//},
-		//"LogstashOutput": {
-		//	ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
-		//	esCfg: common.MapStr{
-		//		"output.elasticsearch.enabled": false,
-		//		"output.logstash.enabled":      true},
-		//	warn: "automatically disabled ILM",
-		//},
-		//"EverythingEnabled": {
-		//	templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
-		//	ilmSetupEnabled: true, ilmSetupOverwrite: true, loadILM: libidxmgmt.LoadModeEnabled,
-		//	ok: true,
-		//},
+		"LoadILMDisabled": {
+			loadILM:           libidxmgmt.LoadModeDisabled,
+			ilmSetupOverwrite: true,
+			warn:              "Manage ILM setup is disabled.",
+		},
+		"LoadTemplateDisabled": {
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeDisabled,
+			warn: "Template loading is disabled",
+		},
+		"ILMEnabledButUnsupported": {
+			version:    "6.2.0",
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			warn: msgErrIlmDisabledES,
+		},
+		"ILMAutoButUnsupported": {
+			version: "6.2.0",
+			loadILM: libidxmgmt.LoadModeEnabled,
+			warn:    msgIlmDisabledES,
+		},
+		"ILMAutoCustomIndex": {
+			loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg:   common.MapStr{"output.elasticsearch.index": "custom"},
+			warn:    msgIlmDisabledCfg,
+		},
+		"ILMAutoCustomIndices": {
+			loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg: common.MapStr{"output.elasticsearch.indices": []common.MapStr{{
+				"index": "apm-custom-%{[observer.version]}-metric",
+				"when": map[string]interface{}{
+					"contains": map[string]interface{}{"processor.event": "metric"}}}}},
+			warn: msgIlmDisabledCfg,
+		},
+		"ILMTrueCustomIndex": {
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg: common.MapStr{"output.elasticsearch.index": "custom"},
+			warn:  msgIdxCfgIgnored,
+		},
+		"LogstashOutput": {
+			ilmEnabled: "true", loadILM: libidxmgmt.LoadModeEnabled,
+			esCfg: common.MapStr{
+				"output.elasticsearch.enabled": false,
+				"output.logstash.enabled":      true},
+			warn: "automatically disabled ILM",
+		},
+		"EverythingEnabled": {
+			templateEnabled: true, loadTemplate: libidxmgmt.LoadModeEnabled,
+			ilmSetupEnabled: true, ilmSetupOverwrite: true, loadILM: libidxmgmt.LoadModeEnabled,
+			ok: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := common.MapStr{
