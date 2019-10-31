@@ -38,6 +38,7 @@ type Config struct {
 //Setup holds information about how to setup ILM
 type Setup struct {
 	Enabled       bool `config:"enabled"`
+	Overwrite     bool `config:"overwrite"`
 	RequirePolicy bool `config:"require_policy"`
 	Policies      []EventPolicy
 }
