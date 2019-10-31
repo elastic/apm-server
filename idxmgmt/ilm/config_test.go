@@ -32,6 +32,7 @@ func TestConfig_Default(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, libilm.ModeAuto, c.Mode)
 	assert.True(t, c.Setup.Enabled)
+	assert.False(t, c.Setup.Overwrite)
 	assert.True(t, c.Setup.RequirePolicy)
 	assert.ObjectsAreEqual(defaultPolicies(), c.Setup.Policies)
 }
@@ -58,13 +59,29 @@ func TestConfig_SetupEnabled(t *testing.T) {
 		cfg     map[string]interface{}
 		enabled bool
 	}{
-		"default":  {map[string]interface{}{}, true},
+		"enabled":  {map[string]interface{}{"enabled": true}, true},
 		"disabled": {map[string]interface{}{"enabled": false}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
 			require.NoError(t, err)
 			assert.Equal(t, tc.enabled, c.Setup.Enabled)
+		})
+	}
+}
+
+func TestConfig_SetupOverwrite(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg       map[string]interface{}
+		overwrite bool
+	}{
+		"overwrite":        {map[string]interface{}{"overwrite": true}, true},
+		"do not overwrite": {map[string]interface{}{"overwrite": false}, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c, err := NewConfig(common.MustNewConfigFrom(map[string]interface{}{"setup": tc.cfg}))
+			require.NoError(t, err)
+			assert.Equal(t, tc.overwrite, c.Setup.Overwrite)
 		})
 	}
 }
