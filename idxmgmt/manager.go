@@ -30,12 +30,13 @@ import (
 )
 
 const (
-	msgErrIlmDisabledES      = "automatically disabled ILM as not supported by configured Elasticsearch"
-	msgIlmDisabledES         = "Automatically disabled ILM as configured Elasticsearch not eligible for auto enabling."
-	msgIlmDisabledCfg        = "Automatically disabled ILM as custom index settings configured."
-	msgIdxCfgIgnored         = "Custom index configuration ignored when ILM is enabled."
-	msgIlmSetupDisabled      = "Manage ILM setup is disabled. "
-	msgTemplateSetupDisabled = "Template loading is disabled. "
+	msgErrIlmDisabledES          = "automatically disabled ILM as not supported by configured Elasticsearch"
+	msgIlmDisabledES             = "Automatically disabled ILM as configured Elasticsearch not eligible for auto enabling."
+	msgIlmDisabledCfg            = "Automatically disabled ILM as custom index settings configured."
+	msgIdxCfgIgnored             = "Custom index configuration ignored when ILM is enabled."
+	msgIlmSetupDisabled          = "Manage ILM setup is disabled. "
+	msgIlmSetupOverwriteDisabled = "Overwrite ILM setup is disabled. "
+	msgTemplateSetupDisabled     = "Template loading is disabled. "
 )
 
 type manager struct {
@@ -79,6 +80,9 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 	//(0) prepare template and ilm handlers, check if ILM is supported, fall back to ordinary index handling otherwise
 
 	ilmFeature := m.ilmFeature(loadILM)
+	if info := ilmFeature.information(); info != "" {
+		log.Info(info)
+	}
 	if warn := ilmFeature.warning(); warn != "" {
 		log.Warn(warn)
 	}
@@ -111,7 +115,7 @@ func (m *manager) Setup(loadTemplate, loadILM libidxmgmt.LoadMode) error {
 		}
 
 		// (3) load event type specific template respecting index lifecycle information
-		if err = m.loadEventTemplate(ilmFeature, ilmSupporter, ilmFeature.load); err != nil {
+		if err = m.loadEventTemplate(ilmFeature, ilmSupporter); err != nil {
 			return err
 		}
 
@@ -139,21 +143,28 @@ func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) feature {
 	// The originally configured value is preserved allowing to collect warnings and errors to be
 	// returned to the user.
 
-	var warn string
-	if !m.supporter.ilmConfig.Setup.Enabled {
-		warn = msgIlmSetupDisabled
+	warning := func(f feature) string {
+		if !f.load {
+			return msgIlmSetupDisabled
+		}
+		return ""
+	}
+	information := func(f feature) string {
+		if !f.overwrite {
+			return msgIlmSetupOverwriteDisabled
+		}
+		return ""
 	}
 	// m.supporter.st.ilmEnabled.Load() only returns true for cases where
 	// ilm mode is configured `auto` or `true` and preconditions to enable ilm are true
 	if enabled := m.supporter.st.ilmEnabled.Load(); enabled {
-		f := newFeature(enabled, m.supporter.ilmConfig.Setup.Enabled,
+		f := newFeature(enabled, m.supporter.ilmConfig.Setup.Overwrite,
 			m.supporter.ilmConfig.Setup.Enabled, true, loadMode)
-		if warn != "" {
-			f.warn = warn
-		}
+		f.warn = warning(f)
 		if m.supporter.esIdxCfg.customized() {
 			f.warn += msgIdxCfgIgnored
 		}
+		f.info = information(f)
 		return f
 	}
 
@@ -163,19 +174,23 @@ func (m *manager) ilmFeature(loadMode libidxmgmt.LoadMode) feature {
 	)
 	// collect warnings when ilm is configured `auto` but it cannot be enabled
 	// collect error when ilm is configured `true` but it cannot be enabled as preconditions are not met
+	var warn string
 	if m.supporter.ilmConfig.Mode == libilm.ModeAuto {
 		if m.supporter.esIdxCfg.customized() {
-			warn += msgIlmDisabledCfg
+			warn = msgIlmDisabledCfg
 		} else {
-			warn += msgIlmDisabledES
+			warn = msgIlmDisabledES
 			supported = false
 		}
 	} else if m.supporter.ilmConfig.Mode == libilm.ModeEnabled {
 		err = errors.New(msgErrIlmDisabledES)
 		supported = false
 	}
-	f := newFeature(false, m.supporter.ilmConfig.Setup.Enabled, m.supporter.ilmConfig.Setup.Enabled, supported, loadMode)
-	f.warn, f.err = warn, err
+	f := newFeature(false, m.supporter.ilmConfig.Setup.Overwrite, m.supporter.ilmConfig.Setup.Enabled, supported, loadMode)
+	f.warn = warning(f)
+	f.warn += warn
+	f.info = information(f)
+	f.err = err
 	return f
 }
 
@@ -197,8 +212,8 @@ func (m *manager) loadTemplate(templateFeature, ilmFeature feature) error {
 	return nil
 }
 
-func (m *manager) loadEventTemplate(ilmFeature feature, ilmSupporter libilm.Supporter, overwrite bool) error {
-	templateCfg := ilm.Template(ilmFeature.enabled, overwrite,
+func (m *manager) loadEventTemplate(feature feature, ilmSupporter libilm.Supporter) error {
+	templateCfg := ilm.Template(feature.enabled, feature.overwrite,
 		ilmSupporter.Alias().Name,
 		ilmSupporter.Policy().Name)
 
@@ -218,7 +233,7 @@ func (m *manager) loadPolicy(ilmFeature feature, ilmSupporter libilm.Supporter, 
 		m.supporter.log.Infof("ILM policy %s not loaded.", policy)
 		return policiesLoaded, nil
 	}
-	_, err := ilmSupporter.Manager(m.clientHandler).EnsurePolicy(ilmFeature.load)
+	_, err := ilmSupporter.Manager(m.clientHandler).EnsurePolicy(ilmFeature.overwrite)
 	if err != nil {
 		return policiesLoaded, err
 	}
