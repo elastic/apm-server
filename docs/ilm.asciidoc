@@ -6,7 +6,7 @@ The {ref}/getting-started-index-lifecycle-management.html[index lifecycle manage
 feature in {es} allows you to automate the management of your APM Server indices as they grow and age.
 
 ILM is enabled for APM Server indices by default (v7.3+), and the <<ilm-default,default ILM policy>>
-will be applied as long as all of the following conditions are true:
+will be applied to all APM indices as long as all of the following conditions are true:
 
 * `output.elasticsearch` is enabled. 
 * The Elasticsearch instance supports ILM. 
@@ -83,11 +83,7 @@ Explicitly disables ILM.
 [[ilm-setup]]
 ==== Set up ILM
 
-// Introducing a breaking change
-// Not taking care of setup.temp.enabled TRUE
-// set.temp.over FALSE
-
-APM Server can handle all of the setup required for ILM:
+By default, APM Server will handle all of the setup required for ILM:
 
 [source,yml]
 ----
@@ -111,22 +107,12 @@ apm-server:
 [float]
 ===== `apm-server.ilm.setup.enabled`
 
-// Get rid of this
-// In other words:
-
-// [options="header"]
-// |====
-// |`apm-server.` `ilm.enabled` |create policy |overwrite policy |create template |overwrite template |create alias
-// |`auto`/`true`  |true   |true   |true   |true   |true
-// |`false`        |false  |false  |true   |true   |false
-// |====
-
 Defaults to `true`.
 
-* *`true`*
-+
-APM Server will create an ILM specific template per event type.
+When `true`, APM Server will create an ILM specific index template for each APM Server event type.
 This is required to map ILM aliases and policies to indices.
+
+* *`true`*
 +
 ** If `apm-server.ilm.enabled: true`, APM Server will create aliases and ILM policies as well.
 ** If `apm-server.ilm.enabled: false`, APM Server will create only the templates. No lifecycle management policies or aliases will be created.
@@ -141,20 +127,17 @@ If you simply want to disable ILM, use `apm-server.ilm.enabled: false` instead.
 [float]
 ===== `apm-server.ilm.setup.overwrite`
 
-// to do
+Defaults to `false`. When `false`, APM Server will not overwrite any existing policies or ILM related templates.
+When first setting up ILM, your initial tempalte and polciy will be applied.
+*You must set this to `true` when customizing your policies and template for them to be applied.*
 
 [float]
 ===== `apm-server.ilm.setup.require_policy`
 
-Defaults to `true`, which means that a policy must be defined in `apm-server.yml`.
-Changing this to `false` allows you to manually set up ILM policies and templates outside of APM Server e.g. with Elasticsearch APIs.
+Defaults to `true`, which means that an ILM policy must be defined in `apm-server.yml`.
+Changing this to `false` allows you to manually set up ILM policies and templates outside of APM Server,
+e.g., with Elasticsearch APIs.
 APM Server will still make use of ILM and connect your template with the defined mapping.
-
-// Allow users to manually set up ILM policies and templates outside of APM Server (using ES API or chef)
-// But you still want to make use of ILM within the ILM setup and connect it with the mapping
-// Flase still sets up the template, but we don't try to set up the template
-
-// to do
 
 [float]
 ===== `apm-server.ilm.setup.mapping`
@@ -164,38 +147,28 @@ If you attempt to map an index lifecycle policy to a different event type,
 or one of the event types is missing form this mapping, APM Server will not start.
 
 Policies defined must be mapped to an event type. If they are not, they will not be sent to Elasticsearch.
-// Map an event type to a policy name.
-// THere are a couple validations. If you use an event type that we're not aware of, the server will not start and will print an error
-// If you use a policy name that isn't configed below, or is empty, or missing, apm server wont start
-
-// If you configure 10 policies, but you only map 2, then only those 2 will be sent to ES
-
-// to do
 
 [float]
 [[custom-ilm-policy]]
 ==== Create a custom ILM policy
 
-// Define as many policies as you want. Just define the name and policy itself.
-// We take the policy, we don't run any validations on it, we take the policy and we throw it into ES. If
-// it's not valid, ES throws a 400 and APM Server won't connect
+Policies only need to be created once and will persist through version upgrades.
+You can define as many policies as you'd like.
+Just make sure to include the policy name in the `ilm.setup.mapping`.
+If your policy isn't mapped to event type, it will not be sent to Elasticsearch.
+
+APM Server doesn't do any validation on policies.
+Instead, if something is incorrectly defined, Elasticsearch will respond with `400` and APM Server wont connect.
 
 The default ILM policy can be viewed and edited in two places:
 
 * In your `apm-server.yml` configuration file.
 * On the *Index lifecycle policies* page in {kib} ({kibana-ref}/index-lifecycle-policies.html[more information]).
 
-You can uncomment the default policy and edit to your desire.
+Head on over to the Elasticsearch documentation to learn more about all available policy 
+{es-ref}/ilm-policy-definition.html[phases] and {es-ref}/_actions.html[actions].
 
-Defining something incorrectly will cause APM Server to fail to connect to ES.
-
-// Policy phases and actions
-https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-policy-definition.html
-
-// Actions available in each phase
-https://www.elastic.co/guide/en/elasticsearch/reference/current/_actions.html
-
-After starting up APM Server, you can confirm the policy was created using the GET lifecycle policy API:
+After starting up APM Server, you can confirm the policy was created and applied by using the GET lifecycle policy API:
 
 [source,js]
 -----------------------
@@ -208,6 +181,10 @@ GET _ilm/policy
 
 Here's what a custom ILM configuration might look like.
 The example below creates two different policies, one for `errors & `spans`, and another for `transactions` & `metrics`.
+The `apm-err-span-policy` applies all four phases to its index lifecycle, including a cold phase with frozen indices,
+and a delete phase after 30 days.
+The `apm-trans-metrics-policy` retains data for a longer period of time,
+and only defines hot, warm, and cold phases.
 
 [source,yml]
 ----
@@ -275,106 +252,3 @@ apm-server:
                 priority: 0
               freeze: {}
 ----
-
-
-
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>
-//      TO DO BELOW HERE
-// <<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-// NOTES
-*Policies*
-* Index lifecycle management will manage an index based on its defined policy
-* Policies only need to be created once, and will persist through version upgrades.
-
-*Templates*
-* An index template associates policies with indices
-* To use an index lifecycle policy, you need to specify it in the index template used to create the indices.
-
-*Aliases*
-* When a rollover action is is defined in a policy, you need to define an alias. This specifies which alias to rollover on behalf of the index
-
-// END NOTES
-
-[float]
-[[ilm-settings]]
-=== ILM settings
-
-// stuff
-
-
-
-
-
-
-[float]
-// [[ilm-setup]]
-=== ILM default policy setup
-
-It is recommended to set up index lifecycle management (ILM) before starting APM Server.
-This excludes setup from the ingestion process, which allows you to ensure ILM is set up correctly before using APM.
-
-Run the <<setup-command>> with the ` --index-management` flag to set up the default ILM policy:
-
-[source,js]
------------------------
-./apm-server setup --index-management
------------------------
-// CONSOLE
-
-You can confirm the policy was created with the GET lifecycle policy API.
-Here's what the transaction response looks like:
-
-[source,js]
------------------------
-GET _ilm/policy
-{
-    "apm-7.2.0-transaction": {
-        "version": 1,
-        "modified_date": "2019-05-28T15:55:26.791Z",
-        "policy": {
-            "phases": {
-                "warm": {
-                    "min_age": "31d",<1>
-                    "actions": {
-                        "readonly": {},
-                        "set_priority": {
-                            "priority": 50
-                        }
-                    }
-                },
-                "hot": {
-                    "min_age": "0ms",
-                    "actions": {
-                        "rollover": {
-                            "max_size": "50gb",<2>
-                            "max_age": "7d"<3>
-                        },
-                        "set_priority": {
-                            "priority": 100<4>
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
------------------------
-// CONSOLE
-<1> Move to warm phase after _31 days_
-<2> Rollover after _50gb_
-<3> Rollover after _7 days_
-<4> Priority for recovering your indices after a node restart. Higher priorities are recovered first.
-
-Your indices are now configured to use index lifecycle management. Go ahead and <<setting-up-and-running,run APM Server>>.
-
-[float]
-=== ILM default policy upgrades
-
-If you decide to customize the default ILM policy, any customizations will be overwritten when you upgrade APM Server.
-Default policies are also subject to change in future releases
-
-// Policies are versioned so they can change.
-// Indices are versioned so they can change.
-// An upgrade creates new templates, policies, and indices.
-// If you customize anything, it will revert back to the default during an upgrade
