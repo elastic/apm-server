@@ -16,8 +16,6 @@ If you wish to define your own index lifecycle policies, see <<custom-ilm-config
 
 IMPORTANT: If you're migrating from an existing setup,
 any indices present before ILM was configured will need to be managed manually.
-// IS THIS STILL TRUE? Need to test
-In addition, changes to the default index lifecycle policy do not take effect until the current index has rolled over.
 
 [float]
 [[ilm-default]]
@@ -28,7 +26,9 @@ The default ILM configuration applies *hot* and *warm* phase policies to all APM
 `span`, `transaction`, `error`, and `metric`.
 Cold and delete phases are not defined.
 
-* *Hot* -- Rollover data when the index reaches a maximum size of 50gb or a maximum age of 30 days: `max_size: 50gb`, `max_age: 30d`, `priority: 100`
+* *Hot* -- Rollover data when the index reaches a maximum size of 50gb or a maximum age of 30 days:
+`max_size: 50gb`, `max_age: 30d`, `priority: 100`
+
 * *Warm* -- Move to warm phase after 30 days: `min_age: 30d`, `priority: 50`
 
 [float]
@@ -66,7 +66,6 @@ If any of the conditions are not met, ILM will be disabled.
 ** `output.elasticsearch` is enabled. 
 ** The Elasticsearch instance supports ILM. 
 ** Custom `index` or `indices` settings are not configured. 
-// * `apm-server.ilm.setup.enabled: true`.
 
 * *`true`*
 +
@@ -75,7 +74,6 @@ If any of the conditions are not met, APM Server will disable ILM, create unmana
 +
 ** `output.elasticsearch` is enabled. 
 ** The Elasticsearch instance supports ILM. 
-// * `apm-server.ilm.setup.enabled: true`.
 
 * *`false`*
 +
@@ -84,6 +82,10 @@ Explicitly disables ILM.
 [float]
 [[ilm-setup]]
 ==== Set up ILM
+
+// Introducing a breaking change
+// Not taking care of setup.temp.enabled TRUE
+// set.temp.over FALSE
 
 APM Server can handle all of the setup required for ILM:
 
@@ -119,11 +121,11 @@ apm-server:
 // |`false`        |false  |false  |true   |true   |false
 // |====
 
-Can be `true` or `false`. Defaults to `true`.
+Defaults to `true`.
 
 * *`true`*
 +
-When `true`, APM Server will create an ILM specific template per event type.
+APM Server will create an ILM specific template per event type.
 This is required to map ILM aliases and policies to indices.
 +
 ** If `apm-server.ilm.enabled: true`, APM Server will create aliases and ILM policies as well.
@@ -144,16 +146,39 @@ If you simply want to disable ILM, use `apm-server.ilm.enabled: false` instead.
 [float]
 ===== `apm-server.ilm.setup.require_policy`
 
+Defaults to `true`, which means that a policy must be defined in `apm-server.yml`.
+Changing this to `false` allows you to manually set up ILM policies and templates outside of APM Server e.g. with Elasticsearch APIs.
+APM Server will still make use of ILM and connect your template with the defined mapping.
+
+// Allow users to manually set up ILM policies and templates outside of APM Server (using ES API or chef)
+// But you still want to make use of ILM within the ILM setup and connect it with the mapping
+// Flase still sets up the template, but we don't try to set up the template
+
 // to do
 
 [float]
-===== `apm-server.ilm.setup.templates`
+===== `apm-server.ilm.setup.mapping`
+
+Maps each event type to the named policy. APM Server event types can only be `error`, `span`, `transaction`, and `metric`.
+If you attempt to map an index lifecycle policy to a different event type,
+or one of the event types is missing form this mapping, APM Server will not start.
+
+Policies defined must be mapped to an event type. If they are not, they will not be sent to Elasticsearch.
+// Map an event type to a policy name.
+// THere are a couple validations. If you use an event type that we're not aware of, the server will not start and will print an error
+// If you use a policy name that isn't configed below, or is empty, or missing, apm server wont start
+
+// If you configure 10 policies, but you only map 2, then only those 2 will be sent to ES
 
 // to do
 
 [float]
 [[custom-ilm-policy]]
 ==== Create a custom ILM policy
+
+// Define as many policies as you want. Just define the name and policy itself.
+// We take the policy, we don't run any validations on it, we take the policy and we throw it into ES. If
+// it's not valid, ES throws a 400 and APM Server won't connect
 
 The default ILM policy can be viewed and edited in two places:
 
@@ -181,7 +206,8 @@ GET _ilm/policy
 [[example-ilm-config]]
 ==== Example ILM configuration
 
-// needs more stuffs
+Here's what a custom ILM configuration might look like.
+The example below creates two different policies, one for `errors & `spans`, and another for `transactions` & `metrics`.
 
 [source,yml]
 ----
@@ -189,9 +215,44 @@ apm-server:
   ilm:
     enabled: "auto"
     setup:
+      mapping:
+        - event_type: "error"
+          policy_name: "apm-err-span-policy"
+        - event_type: "span"
+          policy_name: "apm-err-span-policy"
+        - event_type: "transaction"
+          policy_name: "apm-trans-metrics-policy"
+        - event_type: "metric"
+          policy_name: "apm-trans-metrics-policy"
       enabled: true
       policies:
-        - name: "custom-apm-policy"
+        - name: "apm-err-span-policy"
+        policy:
+          phases:
+            hot:
+              actions:
+              rollover:
+                max_size: "50gb"
+                max_age: "1d"
+              set_priority:
+                priority: 100
+            warm:
+              min_age: "7d"
+              actions:
+              set_priority:
+                priority: 50
+              readonly: {}
+            cold:
+              min_age: "14d"
+              actions:
+              set_priority:
+                priority: 0
+              freeze: {}
+            delete:
+              min_age: "30d"
+              actions:
+              delete: {}
+        - name: "apm-trans-metrics-policy"
         policy:
           phases:
             hot:
@@ -213,10 +274,6 @@ apm-server:
               set_priority:
                 priority: 0
               freeze: {}
-            delete:
-              min_age: "90d"
-              actions:
-              delete: {}
 ----
 
 
