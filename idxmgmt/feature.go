@@ -25,6 +25,7 @@ type feature struct {
 	enabled, overwrite, load, supported bool
 
 	warn string
+	info string
 	err  error
 }
 
@@ -51,6 +52,10 @@ func newFeature(enabled, overwrite, load, supported bool, mode libidxmgmt.LoadMo
 
 func (f *feature) warning() string {
 	return f.warn
+}
+
+func (f *feature) information() string {
+	return f.info
 }
 
 func (f *feature) error() error {
