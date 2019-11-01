@@ -253,13 +253,13 @@ apm-server:
     #enabled: "auto"
 
     #setup:
-      # Do only disable setup if you want to set up everything related to index management on your own.
-      # When setup is enabled, the APM Server creates
+      # Only disable setup if you want to set up everything related to index management on your own.
+      # When setup is enabled, the APM Server creates:
       # - aliases and ILM policies if `apm-server.ilm.enabled` resolves to `true`.
-      # - ILM specific template per event type. This is required to map ILM aliases and policies to indices. In case
-      #   ILM is disabled, the templates will be created without any lifecycle management settings.
+      # - An ILM specific template per event type. This is required to map ILM aliases and policies to indices. In case
+      # ILM is disabled, the templates will be created without any lifecycle management settings.
       # Be aware that if you turn off setup, you need to manually manage event type specific templates on your own.
-      # If you simply want to disable ILM, use the above setting `apm-server.ilm.enabled`.
+      # If you simply want to disable ILM, use the above setting, `apm-server.ilm.enabled`, instead.
       # Defaults to true.
       #enabled: true
 
