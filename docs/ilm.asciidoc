@@ -57,9 +57,10 @@ _Successful if:_ A policy and template do not exist.
 
 _Example:_ Your first time starting APM Server
 
-|_Configure these options_
-<<ilm-enabled-config,`ilm.enabled:true`>>
-<<ilm-setup-config,`ilm.setup.enabled:true`>>
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:true`>>
+  <<ilm-setup-config,`ilm.setup.enabled:true`>>
 
 |_Details:_
 Create managed indices. Policies and templates are written to Elasticsearch.
@@ -68,19 +69,21 @@ _Successful if:_ A policy and template already exists.
 
 _Example:_ You’re customizing a policy that’s already been sent to Elasticsearch.
 
-|_Configure these options_
-<<ilm-enabled-config,`ilm.enabled:true`>>
-<<ilm-setup-config,`ilm.setup.enabled:true`>>
-<<ilm-setup-overwrite-config,`ilm.setup.overwrite:true`>>
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:true`>>
+  <<ilm-setup-config,`ilm.setup.enabled:true`>>
+  <<ilm-setup-overwrite-config,`ilm.setup.overwrite:true`>>
 
 2+|*Disable ILM && Disable ILM setup.*
 
 |_Details:_
 Create unmanaged indices. Don’t write policies and templates to Elasticsearch.
 
-|_Configure these options_
-<<ilm-enabled-config,`ilm.enabled:false`>>
-<<ilm-setup-config,`ilm.setup.enabled:false`>>
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:false`>>
+  <<ilm-setup-config,`ilm.setup.enabled:false`>>
 
 2+|*Enable ILM && Disable ILM setup.*
 
@@ -89,9 +92,10 @@ Create managed indices. No policies and templates will be created by APM Server.
 
 _Example:_ You're creating your policies and templates elsewhere, e.g., with Elasticsearch APIs.
 
-|_Configure these options_
-<<ilm-enabled-config,`ilm.enabled:true`>>
-<<ilm-setup-config,`ilm.setup.enabled:false`>>
+|_Configure these options:_
+
+  <<ilm-enabled-config,`ilm.enabled:true`>>
+  <<ilm-setup-config,`ilm.setup.enabled:false`>>
 |=======================================================================
 
 [float]
