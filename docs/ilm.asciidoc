@@ -40,6 +40,96 @@ you must first ensure that ILM and ILM setup are enabled.
 You can then create a custom policy and map it to the correct APM event types.
 All of this can be done directly from the `apm-server.yml` file.
 
+The following table can help you determine which options to configure when enabling,
+setting up, or disabling up ILM:
+
+[options="header"]
+|=======================================================================
+|Goal |Scenario / Details | Configure these options
+
+.2+|Enable ILM.
+Enable ILM setup.
+|Create managed indices. Both policies & templates are written to ES.
+
+A policy and template do not exist.
+
+Example: Your first time starting APM Server
+
+|`ilm.enabled:true`
+`ilm.setup.enabled:true`
+
+|Create managed indices. Both policies & templates are written to ES.
+
+A policy and template already exists.
+
+Example: You’re customizing a policy that’s already been sent to ES.
+
+|`ilm.enabled:true`
+`ilm.setup.enabled:true`
+`ilm.setup.overwrite:true`
+
+|Disable ILM.
+Disable ILM setup.
+
+|Create unmanaged indices. Don’t write policies and templates to ES.
+|`ilm.enabled:false`
+`ilm.setup.enabled:false`
+
+|Enable ILM.
+Disable ILM setup.
+
+|Create managed indices. No policies and templates will be created by APM Server. These can still be created elsewhere, e.g., with ES APIs.
+|`ilm.enabled:true`
+`ilm.setup.enabled:false`
+|=======================================================================
+
+// ALTERNATE CHART HERE
+
+// [options="header"]
+|=======================================================================
+2+|*Enable ILM. Enable ILM setup.*
+|_Details:_
+Create managed indices. Policies and templates are written to Elasticsearch.
+
+_Successful if:_ A policy and template do not exist.
+
+_Example:_ Your first time starting APM Server
+
+|_Configure these options_
+`ilm.enabled:true`
+`ilm.setup.enabled:true`
+
+|_Details:_
+Create managed indices. Policies and templates are written to Elasticsearch.
+
+_Successful if:_ A policy and template already exists.
+
+_Example:_ You’re customizing a policy that’s already been sent to Elasticsearch.
+
+|_Configure these options_
+`ilm.enabled:true`
+`ilm.setup.enabled:true`
+`ilm.setup.overwrite:true`
+
+2+|*Disable ILM. Disable ILM setup.*
+
+|_Details:_
+Create unmanaged indices. Don’t write policies and templates to Elasticsearch.
+
+|_Configure these options_
+`ilm.enabled:false`
+`ilm.setup.enabled:false`
+
+2+|*Enable ILM. Disable ILM setup.*
+
+|_Details:_
+Create managed indices. No policies and templates will be created by APM Server. These can still be created elsewhere, e.g., with Elasticsearch APIs.
+
+|_Configure these options_
+`ilm.enabled:true`
+`ilm.setup.enabled:false`
+|=======================================================================
+
 * <<ilm-enable>>
 * <<ilm-setup>>
 * <<custom-ilm-policy>>
