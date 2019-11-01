@@ -5,7 +5,7 @@
 The {ref}/getting-started-index-lifecycle-management.html[index lifecycle management (ILM)]
 feature in {es} allows you to automate the management of your APM Server indices as they grow and age.
 
-ILM is enabled for APM Server indices by default (v7.3+), and the <<ilm-default,default ILM policy>>
+ILM is enabled by default in v7.3+, and the <<ilm-default,default ILM policy>>
 will be applied to all APM indices as long as all of the following conditions are true:
 
 * `output.elasticsearch` is enabled. 
@@ -34,6 +34,11 @@ Cold and delete phases are not defined.
 [float]
 [[custom-ilm-configuration]]
 === Custom configuration
+
+If you'd like APM Server to assist you in creating a custom index lifecycle policy,
+you must first ensure that ILM and ILM setup are enabled.
+You can then create a custom policy and map it to the correct APM event types.
+All of this can be done directly from the `apm-server.yml` file.
 
 * <<ilm-enable>>
 * <<ilm-setup>>
@@ -83,7 +88,8 @@ Explicitly disables ILM.
 [[ilm-setup]]
 ==== Set up ILM
 
-By default, APM Server will handle all of the setup required for ILM:
+ILM setup can be customized with the `apm-server.ilm.setup` configuration options.
+The default configuration enables APM Server to handle all of the setup required for ILM:
 
 [source,yml]
 ----
@@ -188,7 +194,6 @@ and only defines hot, warm, and cold phases.
 
 [source,yml]
 ----
-apm-server:
   ilm:
     enabled: "auto"
     setup:
@@ -204,51 +209,51 @@ apm-server:
       enabled: true
       policies:
         - name: "apm-err-span-policy"
-        policy:
-          phases:
-            hot:
-              actions:
-              rollover:
-                max_size: "50gb"
-                max_age: "1d"
-              set_priority:
-                priority: 100
-            warm:
-              min_age: "7d"
-              actions:
-              set_priority:
-                priority: 50
-              readonly: {}
-            cold:
-              min_age: "14d"
-              actions:
-              set_priority:
-                priority: 0
-              freeze: {}
-            delete:
-              min_age: "30d"
-              actions:
-              delete: {}
+          policy:
+            phases:
+              hot:
+                actions:
+                  rollover:
+                    max_size: "50gb"
+                    max_age: "1d"
+                  set_priority:
+                    priority: 100
+              warm:
+                min_age: "7d"
+                actions:
+                  set_priority:
+                    priority: 50
+                  readonly: {}
+              cold:
+                min_age: "30d"
+                actions:
+                  set_priority:
+                    priority: 0
+                  freeze: {}
+              delete:
+                min_age: "60d"
+                actions:
+                  delete: {}
         - name: "apm-trans-metrics-policy"
-        policy:
-          phases:
-            hot:
-              actions:
-              rollover:
-                max_size: "50gb"
-                max_age: "30d"
-              set_priority:
-                priority: 100
-            warm:
-              min_age: "30d"
-              actions:
-              set_priority:
-                priority: 50
-              readonly: {}
-            cold:
-              min_age: "60d"
-              actions:
-              set_priority:
-                priority: 0
-              freeze: {}
+          policy:
+            phases:
+              hot:
+                actions:
+                  rollover:
+                    max_size: "50gb"
+                    max_age: "30d"
+                  set_priority:
+                    priority: 100
+              warm:
+                min_age: "60d"
+                actions:
+                  set_priority:
+                    priority: 50
+                  readonly: {}
+              cold:
+                min_age: "90d"
+                actions:
+                  set_priority:
+                    priority: 0
+                  freeze: {}
 ----
