@@ -16,11 +16,11 @@ $env:TEST_COVERAGE = "true"
 $env:RACE_DETECTOR = "true"
 
 # Install mage from vendor.
-& go install github.com/elastic/apm-server/vendor/github.com/magefile/mage
+& go install github.com/elastic/apm-server/vendor/github.com/magefile/mage 2>&1 | %{ "$_" }
 
 echo "Fetching testing dependencies"
 # TODO (elastic/beats#5050): Use a vendored copy of this.
-& go get github.com/docker/libcompose
+& go get github.com/docker/libcompose 2>&1 | %{ "$_" }
 
 if (Test-Path "build") { Remove-Item -Recurse -Force build }
 New-Item -ItemType directory -Path build\coverage | Out-Null
@@ -28,7 +28,7 @@ New-Item -ItemType directory -Path build\system-tests | Out-Null
 New-Item -ItemType directory -Path build\system-tests\run | Out-Null
 
 echo "Building fields.yml"
-& mage fields
+& mage fields 2>&1 | %{ "$_" }
 
 echo "Building $env:beat"
-& mage build
+& mage build 2>&1 | %{ "$_" }
