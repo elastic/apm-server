@@ -174,7 +174,6 @@ func Update() error {
 }
 
 func Fields() error {
-	panic(errors.Errorf("force error for testing purposes"))
 	return mage.GenerateFieldsYAML("model")
 }
 
