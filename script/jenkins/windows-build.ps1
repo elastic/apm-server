@@ -48,3 +48,7 @@ exec { mage fields }
 
 echo "Building $env:beat"
 exec { mage build } "Build FAILURE"
+
+
+echo "Force exit 1"
+exit 1
