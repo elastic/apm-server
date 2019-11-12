@@ -71,6 +71,18 @@ pipeline {
         }
       }
     }
+    stage('changeset') {
+      options { skipDefaultCheckout() }
+      when {
+        beforeAgent true
+        not {
+          changeset '**/*.asciidoc'
+        }
+      }
+      steps {
+        error "changeset doesn't contain any asciidoc files"
+      }
+    }
     /**
     Updating generated files for Beat.
     Checks the GO environment.
