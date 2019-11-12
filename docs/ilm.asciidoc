@@ -3,7 +3,7 @@
 == Index lifecycle management (ILM)
 
 The {ref}/getting-started-index-lifecycle-management.html[index lifecycle management (ILM)]
-feature in {es} allows you to automate the management of your APM Server indices as they grow and age.
+feature in {es} allows you to automate the lifecycle of your APM Server indices as they grow and age.
 
 ILM is enabled by default in v7.3+, and the <<ilm-default,default ILM policy>>
 will be applied to all APM indices as long as all of the following conditions are true:
@@ -22,7 +22,7 @@ This means any indices present before ILM was configured will need to be managed
 === Default policy
 
 ILM manages an index based on its defined policy.
-The default ILM configuration applies *hot* and *warm* phase policies to all APM events:
+The default ILM configuration applies *hot* and *warm* phases to all APM events:
 `span`, `transaction`, `error`, and `metric`.
 Cold and delete phases are not defined.
 
@@ -182,7 +182,7 @@ apm-server:
 
 Defaults to `true`.
 
-When `true`, APM Server will create an ILM specific index template for each APM Server event type.
+When `true`, APM Server will create an ILM specific index template for each APM event type.
 This is required to map ILM aliases and policies to indices.
 
 When `false`, ILM setup is disabled. No policies, templates, or aliases will be created by APM Server.
@@ -211,7 +211,7 @@ APM Server will still make use of ILM and connect your template with the defined
 [[ilm-setup-mapping-config]]
 ===== `apm-server.ilm.setup.mapping`
 
-Maps each event type to the named policy. APM Server event types can only be `error`, `span`, `transaction`, and `metric`.
+Maps each event type to the named policy. APM event types can only be `error`, `span`, `transaction`, and `metric`.
 Policies defined must be mapped to an event type. If they are not, they will not be sent to Elasticsearch.
 If you attempt to map an index lifecycle policy to a different event type, APM Server will not start.
 If you only map a subset of APM event types, the default values will be used for omitted event types.
@@ -224,7 +224,7 @@ Policies only need to be created once and will persist through version upgrades.
 Any change in existing ILM policies will only take place once the next phase is entered.
 You can define as many policies as you'd like.
 Just make sure to include the policy name in the `ilm.setup.mapping`.
-If your policy isn't mapped to event type, it will not be sent to Elasticsearch.
+If your policy isn't mapped to an event type, it will not be sent to Elasticsearch.
 
 APM Server doesn't do any validation on policies.
 Instead, if something is incorrectly defined, Elasticsearch will respond with `400` and APM Server won't connect.
