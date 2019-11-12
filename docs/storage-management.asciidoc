@@ -176,27 +176,27 @@ With the curator command line interface you can, for instance, see all your exis
 ------------------------------------------------------------
 curator_cli --host localhost show_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-"}]'
 
-apm-{stack-version}-error-{sample_date_0}
-apm-{stack-version}-error-{sample_date_1}
-apm-{stack-version}-error-{sample_date_2}
-apm-{stack-version}-sourcemap
-apm-{stack-version}-span-{sample_date_0}
-apm-{stack-version}-span-{sample_date_1}
-apm-{stack-version}-span-{sample_date_2}
-apm-{stack-version}-transaction-{sample_date_0}
-apm-{stack-version}-transaction-{sample_date_1}
-apm-{stack-version}-transaction-{sample_date_2}
+apm-{version}-error-{sample_date_0}
+apm-{version}-error-{sample_date_1}
+apm-{version}-error-{sample_date_2}
+apm-{version}-sourcemap
+apm-{version}-span-{sample_date_0}
+apm-{version}-span-{sample_date_1}
+apm-{version}-span-{sample_date_2}
+apm-{version}-transaction-{sample_date_0}
+apm-{version}-transaction-{sample_date_1}
+apm-{version}-transaction-{sample_date_2}
 ------------------------------------------------------------
 
 And then delete any span indices older than 1 day:
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-curator_cli --host localhost delete_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"}, {"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"}]'
+curator_cli --host localhost delete_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-{version}-span-"}, {"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"}]'
 
-INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
-INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
-INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
+INFO      Deleting selected indices: [apm-{version}-span-{sample_date_0}, apm-{version}-span-{sample_date_1}]
+INFO      ---deleting index apm-{version}-span-{sample_date_0}
+INFO      ---deleting index apm-{version}-span-{sample_date_1}
 INFO      "delete_indices" action completed.
 ------------------------------------------------------------
 
