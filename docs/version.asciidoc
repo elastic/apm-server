@@ -8,10 +8,10 @@
 include::{asciidoc-dir}/../../shared/versions/stack/{source_branch}.asciidoc[]
 
 // Agent links
-:apm-py-ref-v:         https://www.elastic.co/guide/en/apm/agent/python/{apm-py-branch}
-:apm-node-ref-v:       https://www.elastic.co/guide/en/apm/agent/nodejs/{apm-node-branch}
-:apm-rum-ref-v:        https://www.elastic.co/guide/en/apm/agent/rum-js/{apm-rum-branch}
-:apm-ruby-ref-v:       https://www.elastic.co/guide/en/apm/agent/ruby/{apm-ruby-branch}
-:apm-java-ref-v:       https://www.elastic.co/guide/en/apm/agent/java/{apm-java-branch}
-:apm-go-ref-v:         https://www.elastic.co/guide/en/apm/agent/go/{apm-go-branch}
-:apm-dotnet-ref-v:     https://www.elastic.co/guide/en/apm/agent/dotnet/{apm-dotnet-branch}
+:apm-py-ref-v:         https://www.elastic.co/guide/en/apm/agent/python/{py-branch}
+:apm-node-ref-v:       https://www.elastic.co/guide/en/apm/agent/nodejs/{node-branch}
+:apm-rum-ref-v:        https://www.elastic.co/guide/en/apm/agent/rum-js/{rum-branch}
+:apm-ruby-ref-v:       https://www.elastic.co/guide/en/apm/agent/ruby/{ruby-branch}
+:apm-java-ref-v:       https://www.elastic.co/guide/en/apm/agent/java/{java-branch}
+:apm-go-ref-v:         https://www.elastic.co/guide/en/apm/agent/go/{go-branch}
+:apm-dotnet-ref-v:     https://www.elastic.co/guide/en/apm/agent/dotnet/{dotnet-branch}
