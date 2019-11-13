@@ -22,10 +22,10 @@ The list below covers the major changes between 7.0.0-rc2 and master only.
 
 - Move Fields from package libbeat/common to libbeat/mapping. {pull}11198[11198]
 - For "metricbeat style" generated custom beats, the mage target `GoTestIntegration` has changed to `GoIntegTest` and `GoTestUnit` has changed to `GoUnitTest`. {pull}13341[13341]
-- Build docker and kubernetes features only on supported platforms. {pull}13509[13509]
-- Need to register new processors to be used in the JS processor in their `init` functions. {pull}13509[13509]
 
 ==== Bugfixes
+
+- Stop using `mage:import` in community beats. This was ignoring the vendorized beats directory for some mage targets, using the code available in GOPATH, this causes inconsistencies and compilation problems if the version of the code in the GOPATH is different to the vendored one. Use of `mage:import` will continue to be unsupported in custom beats till beats is migrated to go modules, or mage supports vendored dependencies. {issue}13998[13998] {pull}14162[14162]
 
 ==== Added
 
@@ -53,4 +53,3 @@ The list below covers the major changes between 7.0.0-rc2 and master only.
 - Add checks for types and formats used in fields definitions in `fields.yml` files. {pull}13188[13188]
 - Makefile included in generator copies files from beats repository using `git archive` instead of cp. {pull}13193[13193]
 - Strip debug symbols from binaries to reduce binary sizes. {issue}12768[12768]
-- Compare event by event in `testadata` framework to avoid sorting problems {pull}13747[13747]
