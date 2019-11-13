@@ -23,24 +23,21 @@ import (
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/idxmgmt"
-	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/template"
 
 	"github.com/elastic/apm-server/idxmgmt/ilm"
+	logs "github.com/elastic/apm-server/log"
 )
 
 // functionality largely copied from libbeat
 
 // MakeDefaultSupporter creates the index management supporter for APM that is passed to libbeat.
 func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.Config) (idxmgmt.Supporter, error) {
-
-	const logName = "index-management"
-
 	cfg := struct {
-		ILMEnabled libilm.Mode            `config:"apm-server.ilm.enabled"`
-		Template   *common.Config         `config:"setup.template"`
-		Output     common.ConfigNamespace `config:"output"`
+		ILM      *common.Config         `config:"apm-server.ilm"`
+		Template *common.Config         `config:"setup.template"`
+		Output   common.ConfigNamespace `config:"output"`
 	}{}
 	if configRoot != nil {
 		if err := configRoot.Unpack(&cfg); err != nil {
@@ -48,17 +45,20 @@ func MakeDefaultSupporter(log *logp.Logger, info beat.Info, configRoot *common.C
 		}
 	}
 
-	ilmConfig := ilm.Config{Mode: cfg.ILMEnabled}
-
 	tmplConfig, err := unpackTemplateConfig(cfg.Template)
 	if err != nil {
 		return nil, fmt.Errorf("unpacking template config fails: %+v", err)
 	}
 
+	ilmConfig, err := ilm.NewConfig(cfg.ILM)
+	if err != nil {
+		return nil, fmt.Errorf("creating ILM config fails: %v", err)
+	}
+
 	if log == nil {
-		log = logp.NewLogger(logName)
+		log = logp.NewLogger(logs.IndexManagement)
 	} else {
-		log = log.Named(logName)
+		log = log.Named(logs.IndexManagement)
 	}
 	return newSupporter(log, info, tmplConfig, ilmConfig, cfg.Output)
 }

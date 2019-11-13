@@ -22,7 +22,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elastic/apm-server/beater/api/ratelimit"
+	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
@@ -42,9 +42,10 @@ var (
 type Context struct {
 	Request       *http.Request
 	Logger        *logp.Logger
-	RateLimiter   *ratelimit.Store
+	RateLimiter   *rate.Limiter
 	TokenSet      bool
 	Authorized    bool
+	IsRum         bool
 	Result        Result
 	w             http.ResponseWriter
 	writeAttempts int
@@ -56,9 +57,9 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Logger = nil
 	c.TokenSet = false
 	c.Authorized = false
+	c.IsRum = false
 	c.RateLimiter = nil
 	c.Result.Reset()
-
 	c.w = w
 	c.writeAttempts = 0
 }

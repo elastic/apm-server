@@ -107,8 +107,8 @@ roles needed depend on the method used to collect monitoring data.
 
 For <<monitoring-internal-collection,internal collection>>, {security}
 provides the +{beat_default_index_prefix}_system+
-{stack-ov}/built-in-users.html[built-in user] and
-+{beat_default_index_prefix}_system+ {stack-ov}/built-in-roles.html[built-in
+{ref}/built-in-users.html[built-in user] and
++{beat_default_index_prefix}_system+ {ref}/built-in-roles.html[built-in
 role] for sending monitoring information. You can use the built-in user, or
 create a user who has the privileges needed to send monitoring information.
 
@@ -145,9 +145,9 @@ ifndef::serverless[]
 ===== {metricbeat} collection
 
 For <<monitoring-metricbeat-collection,{metricbeat} collection>>, {security}
-provides the `remote_monitoring_user` {stack-ov}/built-in-users.html[built-in
+provides the `remote_monitoring_user` {ref}/built-in-users.html[built-in
 user], and the `remote_monitoring_collector` and `remote_monitoring_agent`
-{stack-ov}/built-in-roles.html[built-in roles] for collecting and sending
+{ref}/built-in-roles.html[built-in roles] for collecting and sending
 monitoring information. You can use the built-in user, or
 create a user who has the privileges needed to collect and send monitoring
 information.
@@ -316,9 +316,9 @@ endif::apm-server[]
 ==== Learn more about users and roles
 
 Want to learn more about creating users and roles? See
-{stack-ov}/elasticsearch-security.html[Securing the {stack}]. Also see:
+{ref}/secure-cluster.html[Secure a cluster]. Also see:
 
-* {stack-ov}/security-privileges.html[Security privileges] for a description of
+* {ref}/security-privileges.html[Security privileges] for a description of
 available privileges
-* {stack-ov}/built-in-roles.html[Built-in roles] for a description of roles that
+* {ref}/built-in-roles.html[Built-in roles] for a description of roles that
 you can assign to users

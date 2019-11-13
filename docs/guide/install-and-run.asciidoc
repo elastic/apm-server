@@ -127,7 +127,7 @@ and configuring it with the address of your APM Server, a secret token (if neces
 .2+|Ruby
 2+|The Ruby agent automatically instruments Rails out of the box.
 |{apm-ruby-ref-v}/supported-technologies.html[Supported technologies]
-|{apm-ruby-ref-v}/introduction.html#framework-support[Getting started with the Ruby Agent]
+|{apm-ruby-ref-v}/set-up.html[Set up the Ruby Agent]
 
 .2+|RUM
 2+|Real User Monitoring (RUM) captures user interactions with clients such as web browsers.

@@ -49,6 +49,9 @@ const (
 	// AgentConfigPath defines the path to query for agent config management
 	AgentConfigPath = "/config/v1/agents"
 
+	// AgentConfigRUMPath defines the path to query for the RUM agent config management
+	AgentConfigRUMPath = "/config/v1/rum/agents"
+
 	// IntakePath defines the path to ingest monitored events
 	IntakePath = "/intake/v2/events"
 	// IntakeRUMPath defines the path to ingest monitored RUM events
@@ -77,6 +80,7 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		{RootPath, rootHandler},
 		{AssetSourcemapPath, sourcemapHandler},
 		{AgentConfigPath, backendAgentConfigHandler},
+		{AgentConfigRUMPath, rumAgentConfigHandler},
 		{IntakeRUMPath, rumHandler},
 		{IntakePath, backendHandler},
 	}
@@ -134,17 +138,27 @@ func sourcemapHandler(cfg *config.Config, reporter publish.Reporter) (request.Ha
 }
 
 func backendAgentConfigHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
-	return agentConfigHandler(cfg, backendMiddleware(cfg, agent.MonitoringMap))
+	return agentConfigHandler(cfg, backendMiddleware)
 }
 
-func agentConfigHandler(cfg *config.Config, m []middleware.Middleware) (request.Handler, error) {
-	var kbClient kibana.Client
+func rumAgentConfigHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
+	return agentConfigHandler(cfg, rumMiddleware)
+}
+
+type middlewareFunc func(*config.Config, map[request.ResultID]*monitoring.Int) []middleware.Middleware
+
+func agentConfigHandler(cfg *config.Config, middlewareFunc middlewareFunc) (request.Handler, error) {
+	var client kibana.Client
 	if cfg.Kibana.Enabled() {
-		kbClient = kibana.NewConnectingClient(cfg.Kibana)
+		client = kibana.NewConnectingClient(cfg.Kibana)
 	}
-	h := agent.Handler(kbClient, cfg.AgentConfig)
-	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled())
-	return middleware.Wrap(h, append(m, ks)...)
+	h := agent.Handler(client, cfg.AgentConfig)
+	msg := "Agent remote configuration is disabled. " +
+		"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
+		"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
+		"If you are not using remote configuration, you can safely ignore this error."
+	ks := middleware.KillSwitchMiddleware(cfg.Kibana.Enabled(), msg)
+	return middleware.Wrap(h, append(middlewareFunc(cfg, agent.MonitoringMap), ks)...)
 }
 
 func rootHandler(cfg *config.Config, _ publish.Reporter) (request.Handler, error) {
@@ -166,16 +180,23 @@ func backendMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.In
 }
 
 func rumMiddleware(cfg *config.Config, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+	msg := "RUM endpoint is disabled. " +
+		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
+		"If you are not using the RUM agent, you can safely ignore this error."
 	return append(apmMiddleware(m),
-		middleware.SetRateLimitMiddleware(cfg.RumConfig.EventRate),
+		middleware.SetRumFlagMiddleware(),
+		middleware.SetIPRateLimitMiddleware(cfg.RumConfig.EventRate),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins),
-		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled()))
+		middleware.KillSwitchMiddleware(cfg.RumConfig.IsEnabled(), msg))
 }
 
 func sourcemapMiddleware(cfg *config.Config) []middleware.Middleware {
+	msg := "Sourcemap upload endpoint is disabled. " +
+		"Configure the `apm-server.rum` section in apm-server.yml to enable sourcemap uploads. " +
+		"If you are not using the RUM agent, you can safely ignore this error."
 	enabled := cfg.RumConfig.IsEnabled() && cfg.RumConfig.SourceMapping.IsEnabled()
 	return append(backendMiddleware(cfg, sourcemap.MonitoringMap),
-		middleware.KillSwitchMiddleware(enabled))
+		middleware.KillSwitchMiddleware(enabled, msg))
 }
 
 func rootMiddleware(cfg *config.Config) []middleware.Middleware {

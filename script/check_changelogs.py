@@ -28,7 +28,7 @@ def main():
     cl_dir = 'changelogs'
     for cl in sorted(os.listdir(cl_dir)):
         version, _ = os.path.splitext(cl)
-        if version == 'head':
+        if version in ['head', "6.0", "6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "7.0", "7.1", "7.2"]:
             continue
         parsed_version = parse_version(version)
         with open(os.path.join(cl_dir, cl), mode='rb') as f:

@@ -240,6 +240,7 @@ func TestSpanTransform(t *testing.T) {
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user := "db01", "select *", "sql", "jane"
+	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
 
 	tests := []struct {
 		Event  Event
@@ -256,6 +257,7 @@ func TestSpanTransform(t *testing.T) {
 					"name":     "",
 					"type":     "",
 				},
+				"labels":    metadataLabels,
 				"timestamp": common.MapStr{"us": timestampUs},
 			},
 			Msg: "Span without a Stacktrace",
@@ -305,7 +307,7 @@ func TestSpanTransform(t *testing.T) {
 						"method":   "get",
 					},
 				},
-				"labels":    common.MapStr{"label.a": 12},
+				"labels":    common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"service":   common.MapStr{"name": serviceName, "environment": env},
 				"timestamp": common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
@@ -318,7 +320,7 @@ func TestSpanTransform(t *testing.T) {
 
 	tctx := &transform.Context{
 		Config:      transform.Config{SourcemapMapper: &sourcemap.SmapMapper{}},
-		Metadata:    metadata.Metadata{Service: &service},
+		Metadata:    metadata.Metadata{Service: &service, Labels: metadataLabels},
 		RequestTime: timestamp,
 	}
 	for _, test := range tests {

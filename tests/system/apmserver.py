@@ -94,6 +94,7 @@ class BaseTest(TestCase):
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
     agent_config_url = "{}/{}".format(host, "config/v1/agents")
+    rum_agent_config_url = "{}/{}".format(host, "config/v1/rum/agents")
     intake_url = "{}/{}".format(host, 'intake/v2/events')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 

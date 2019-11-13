@@ -1,9 +1,9 @@
 [[release-notes-head]]
 == APM Server version HEAD
 
+https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
+
 [float]
 ==== Added
-- Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
-- Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
+- Adds support for global labels in spans {pull}2806[2806].
 
-https://github.com/elastic/apm-server/compare/7.4\...master[View commits]

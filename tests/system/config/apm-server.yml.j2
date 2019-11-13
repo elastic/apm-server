@@ -81,6 +81,39 @@ apm-server:
   ilm.enabled: {{ ilm_enabled }}
   {% endif %}
 
+  {% if ilm_policies %}
+  ilm.setup.mapping:
+    - event_type: "error"
+      policy_name: "rollover-10-days"
+    - event_type: "span"
+      policy_name: "apm-rollover-30-days"
+
+  ilm.setup.policies:
+    - name: "rollover-10-days"
+      policy:
+        phases:
+          hot:
+            actions:
+              rollover:
+                max_size: "50gb"
+                max_age: "10d"
+              set_priority:
+                priority: 100
+    - name: "apm-rollover-30-days"
+      policy:
+        phases:
+          hot:
+            actions:
+              rollover:
+                max_size: "50gb"
+                max_age: "30d"
+              set_priority:
+                priority: 100
+          delete:
+            actions:
+              delete: {}
+  {% endif %}
+
   {% if kibana_enabled is not none or kibana_host is not none %}
   kibana:
     {% if kibana_enabled is not none %}enabled: {{ kibana_enabled }}{% endif %}

@@ -27,6 +27,50 @@ apm-server:
   # Maximum number of new connections to accept simultaneously (0 means unlimited).
   #max_connections: 0
 
+  # If true (default), APM Server captures the IP of the instrumented service
+  # or the IP and User Agent of the real user (RUM requests).
+  #capture_personal_data: true
+
+  # Enable APM Server Golang expvar support (https://golang.org/pkg/expvar/).
+  #expvar:
+    #enabled: false
+
+    # Url to expose expvar.
+    #url: "/debug/vars"
+
+  # Instrumentation support for the server's HTTP endpoints and event publisher.
+  #instrumentation:
+    # Set to true to enable instrumentation of the APM Server itself.
+    #enabled: false
+
+    # Environment in which the APM Server is running on (eg: staging, production, etc.)
+    #environment: ""
+
+    # Remote hosts to report instrumentation results to.
+    #hosts:
+    #  - http://remote-apm-server:8200
+
+    # secret_token for the remote apm-servers.
+    #secret_token:
+
+  # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
+  # Using pipelines involves two steps:
+  # (1) registering a pipeline
+  # (2) applying a pipeline during data ingestion (see `output.elasticsearch.pipeline`)
+  #
+  # You can manually register a pipeline, or use this configuration option to ensure
+  # the pipeline is loaded and registered at the configured Elasticsearch instances.
+  # Find the default pipeline configuration at `ingest/pipeline/definition.json`.
+  # Automatic pipeline registration requires the `output.elasticsearch` to be enabled and configured.
+  #register.ingest.pipeline:
+    # Registers APM pipeline definition in Elasticsearch on APM Server startup. Defaults to true.
+    #enabled: true
+    # Overwrites existing APM pipeline definition in Elasticsearch. Defaults to false.
+    #overwrite: false
+
+
+  #---------------------------- APM Server - Secure Communication with Agents ----------------------------
+
   # Authorization token for sending data to the APM server. If a token is set, the
   # agents must send it in the following format: Authorization: Bearer <secret-token>.
   # It is recommended to use an authorization token in combination with SSL enabled,
@@ -71,6 +115,8 @@ apm-server:
     # certificates will be accepted. In this mode, SSL-based connections are
     # susceptible to man-in-the-middle attacks. Use only for testing. Default is `full`.
     #ssl.verification_mode: full
+
+  #---------------------------- APM Server - RUM Real User Monitoring ----------------------------
 
   # Enable Real User Monitoring (RUM) Support. By default RUM is disabled.
   #rum:
@@ -137,61 +183,7 @@ apm-server:
       # is changed, a matching index pattern needs to be specified here.
       #index_pattern: "apm-*-sourcemap*"
 
-
-  # If true (default), APM Server captures the IP of the instrumented service
-  # or the IP and User Agent of the real user (RUM requests).
-  #capture_personal_data: true
-
-  # Enable APM Server Golang expvar support (https://golang.org/pkg/expvar/).
-  #expvar:
-    #enabled: false
-
-    # Url to expose expvar.
-    #url: "/debug/vars"
-
-  # Instrumentation support for the server's HTTP endpoints and event publisher.
-  #instrumentation:
-    # Set to true to enable instrumentation of the APM Server itself.
-    #enabled: false
-
-    # Environment in which the APM Server is running on (eg: staging, production, etc.)
-    #environment: ""
-
-    # Remote hosts to report instrumentation results to.
-    #hosts:
-    #  - http://remote-apm-server:8200
-
-    # secret_token for the remote apm-servers.
-    #secret_token:
-
-  # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
-  # Using pipelines involves two steps:
-  # (1) registering a pipeline
-  # (2) applying a pipeline during data ingestion (see `output.elasticsearch.pipeline`)
-  #
-  # You can manually register a pipeline, or use this configuration option to ensure
-  # the pipeline is loaded and registered at the configured Elasticsearch instances.
-  # Find the default pipeline configuration at `ingest/pipeline/definition.json`.
-  # Automatic pipeline registration requires the `output.elasticsearch` to be enabled and configured.
-  #register.ingest.pipeline:
-    # Registers APM pipeline definition in Elasticsearch on APM Server startup. Defaults to true.
-    #enabled: true
-    # Overwrites existing APM pipeline definition in Elasticsearch. Defaults to false.
-    #overwrite: false
-
-  # When ilm is set to `auto`, the APM Server checks a couple of preconditions:
-  # If a different output than Elasticsearch is configured, ILM will be disabled.
-  # If Elasticsearch output is configured, but specific `index` or `indices` settings are configured, ILM will be
-  # disabled, as it only works with default index settings.
-  # If the configured Elasticsearch instance is not eligible for ILM, ILM will also be disabled.
-  # If all preconditions are met, ILM will be enabled.
-  #
-  # When ILM is set to `true`, the APM Server ignores any configured index settings.
-  # For ILM to be applied, The configured output must be set to Elasticsearch and the instance
-  # needs to support ILM. Otherwise APM Server falls back to ordinary index management without ILM.
-  #
-  # Defaults to "auto". Disable ILM by setting it to `false`.
-  #ilm.enabled: "auto"
+  #---------------------------- APM Server - Agent Configuration ----------------------------
 
   # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
   # Specify cache key expiration via this setting. Default is 30 seconds.
@@ -246,6 +238,72 @@ apm-server:
 
     # Configure curve types for ECDHE based cipher suites.
     #ssl.curve_types: []
+
+  #---------------------------- APM Server - ILM Index Lifecycle Management ----------------------------
+
+  #ilm:
+    # Supported values are `auto`, `true` and `false`.
+    # `true`: Make use of Elasticsearch's Index Lifecycle Management for APM indices. If no Elasticsearch output is
+    # configured or the configured instance does not support ILM, APM Server cannot apply ILM and must create
+    # unmanaged indices instead.
+    # `false`: APM Server does not make use of Index Lifecycle Management in Elasticsearch.
+    # `auto`: If an Elasticsearch output is configured with default index and indices settings, and the configured
+    # Elasticsearch instance supports ILM, `auto` will resolve to `true`. Otherwise `auto` will resolve to `false`.
+    # Default value is `auto`.
+    #enabled: "auto"
+
+    #setup:
+      # Do only disable setup if you want to set up everything related to index management on your own.
+      # When setup is enabled, the APM Server creates
+      # - aliases and ILM policies if `apm-server.ilm.enabled` resolves to `true`.
+      # - ILM specific template per event type. This is required to map ILM aliases and policies to indices. In case
+      #   ILM is disabled, the templates will be created without any lifecycle management settings.
+      # Be aware that if you turn off setup, you need to manually manage event type specific templates on your own.
+      # If you simply want to disable ILM, use the above setting `apm-server.ilm.enabled`.
+      # Defaults to true.
+      #enabled: true
+
+      # Configure whether or not existing policies and ILM related templates should be updated. This needs to be
+      # set to true when customizing your policies.
+      # Defaults to false.
+      #overwrite: false
+
+      # Set `require_policy` to `false` when policies are set up outside of APM Server but referenced here.
+      # Default value is `true`.
+      #require_policy: true
+
+      # The configured event types and policies will be merged with the default setup. You only need to configure
+      # the mappings that you want to customize.
+      #mapping:
+        #- event_type: "error"
+        #  policy_name: "apm-rollover-30-days"
+        #- event_type: "span"
+        #  policy_name: "apm-rollover-30-days"
+        #- event_type: "transaction"
+        #  policy_name: "apm-rollover-30-days"
+        #- event_type: "metric"
+        #  policy_name: "apm-rollover-30-days"
+
+      # Configured policies are added to pre-defined default policies.
+      # If a policy with the same name as a default policy is configured, the configured policy overwrites the default policy.
+      #policies:
+        #- name: "apm-rollover-30-days"
+          #policy:
+            #phases:
+              #hot:
+                #actions:
+                  #rollover:
+                    #max_size: "50gb"
+                    #max_age: "30d"
+                  #set_priority:
+                    #priority: 100
+              #warm:
+                #min_age: "30d"
+                #actions:
+                  #set_priority:
+                    #priority: 50
+                  #readonly: {}
+
 
 #================================= General =================================
 

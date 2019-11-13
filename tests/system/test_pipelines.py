@@ -88,7 +88,7 @@ class PipelineRegisterTest(ElasticTest):
                 assert ua["original"] == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 " \
                                          "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
                 assert ua["name"] == "Chrome"
-                assert ua["version"] == "51.0.2704"
+                assert ua["version"] == "51.0.2704.103"
                 assert ua["os"]["name"] == "Mac OS X"
                 assert ua["os"]["version"] == "10.10.5"
                 assert ua["os"]["full"] == "Mac OS X 10.10.5"
