@@ -127,7 +127,7 @@ apm-server:
 [[ilm-enabled-config]]
 ===== `ilm.enabled`
 
-Can be `"auto"`, `true`, or `false`. Defaults to `"auto"` in v7.3+.
+Can be `"auto"`, `"true"`, or `"false"`. Defaults to `"auto"` in v7.3+.
 
 * *`"auto"`*
 +
@@ -138,7 +138,7 @@ If any of the conditions are not met, ILM will be disabled.
 ** The Elasticsearch instance supports ILM. 
 ** Custom `index` or `indices` settings are not configured. 
 
-* *`true`*
+* *`"true"`*
 +
 APM Server will ignore any configured index settings and enable ILM if both of the conditions below are true.
 If any of the conditions are not met, APM Server will disable ILM, create unmanaged indices, and an error will be logged.
@@ -146,7 +146,7 @@ If any of the conditions are not met, APM Server will disable ILM, create unmana
 ** `output.elasticsearch` is enabled. 
 ** The Elasticsearch instance supports ILM. 
 
-* *`false`*
+* *`"false"`*
 +
 Explicitly disables ILM.
 
