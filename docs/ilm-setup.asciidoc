@@ -67,42 +67,42 @@ PUT _ilm/policy/apm_span_policy
 +
 To use the index lifecycle management policy created in the previous step,
 you need to specify it in the index template used to create the indices.
-The following template associates `apm_span_policy` with indices created from the +apm-{stack-version}-span-ilm+ template.
+The following template associates `apm_span_policy` with indices created from the +apm-{version}-span-ilm+ template.
 +
-NOTE: Because we're utilizing the current stack-version ({stack-version}) in this step,
+NOTE: Because we're utilizing the current stack-version ({version}) in this step,
 this action will need to be performed as a part of each version upgrade.
 +
 --
 ["source","js",subs="attributes"]
 -----------------------
-PUT _template/apm-{stack-version}-span-ilm
+PUT _template/apm-{version}-span-ilm
 {
   "order": 2,
-  "index_patterns": ["apm-{stack-version}-span-*"], <1>
+  "index_patterns": ["apm-{version}-span-*"], <1>
   "settings": {
     "index.lifecycle.name": "apm_span_policy", <2>
-    "index.lifecycle.rollover_alias": "apm-{stack-version}-span"
+    "index.lifecycle.rollover_alias": "apm-{version}-span"
   }
 }
 -----------------------
 // CONSOLE
-<1> This template applies to all indices with the prefix +apm-{stack-version}-span-+
+<1> This template applies to all indices with the prefix +apm-{version}-span-+
 <2> Associates `apm_span_policy` with all indices created with this template
 --
 
 . *Create the index and alias.*
 +
-Now we can create the first index: +apm-{stack-version}-span-000001+.
+Now we can create the first index: +apm-{version}-span-000001+.
 +
 NOTE: This action will need to be performed as a part of each version upgrade.
 +
 --
 ["source","js",subs="attributes"]
 -----------------------
-PUT apm-{stack-version}-span-000001 <1>
+PUT apm-{version}-span-000001 <1>
 {
   "aliases": {
-    "apm-{stack-version}-span":{
+    "apm-{version}-span":{
       "is_write_index": true <2>
     }
   }
@@ -129,15 +129,15 @@ The response should be similar to this:
 ["source","js",subs="attributes"]
 -----------------------
 {
-  "apm-{stack-version}-span-000001" : {
+  "apm-{version}-span-000001" : {
     "settings" : {
       "index" : {
         "lifecycle" : {
           "name" : "apm_span_policy",
-          "rollover_alias" : "apm-{stack-version}-span"
+          "rollover_alias" : "apm-{version}-span"
         },
         "number_of_shards" : "1",
-        "provided_name" : "apm-{stack-version}-span-000001",
+        "provided_name" : "apm-{version}-span-000001",
         "creation_date" : "1553024227938",
         "number_of_replicas" : "1",
         "uuid" : "6b5l-H7QTRK95FAodAN-wg",
@@ -177,27 +177,27 @@ This means you'll need to configure all of your indices in the file, even if som
 -----------------------
 output.elasticsearch:
   indices:
-    - index: "apm-{stack-version}-sourcemap"
+    - index: "apm-{version}-sourcemap"
       when.contains:
         processor.event: "sourcemap"
     
-    - index: "apm-{stack-version}-error"
+    - index: "apm-{version}-error"
       when.contains:
         processor.event: "error"
     
-    - index: "apm-{stack-version}-transaction"
+    - index: "apm-{version}-transaction"
       when.contains:
         processor.event: "transaction"
 
-    - index: "apm-{stack-version}-span"
+    - index: "apm-{version}-span"
       when.contains:
         processor.event: "span"
     
-    - index: "apm-{stack-version}-metric"
+    - index: "apm-{version}-metric"
       when.contains:
         processor.event: "metric"
     
-    - index: "apm-{stack-version}-onboarding"
+    - index: "apm-{version}-onboarding"
       when.contains:
         processor.event: "onboarding"
 -----------------------
