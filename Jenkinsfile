@@ -71,16 +71,48 @@ pipeline {
         }
       }
     }
-    stage('changeset') {
+    stage('changeset1') {
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
-        not {
-          changeset '**/*.asciidoc'
+        allOf {
+          not { changeset '**/*.asciidoc' }
+          changeset '**/*.*'
         }
       }
       steps {
-        error "changeset doesn't contain any asciidoc files"
+        error "changeset1 doesn't contain any asciidoc files"
+      }
+    }
+    stage('changeset2') {
+      options { skipDefaultCheckout() }
+      when {
+        beforeAgent true
+        changeset '**/*.*[!asciidoc]'
+      }
+      steps {
+        error "changeset2 doesn't contain any asciidoc files"
+      }
+    }
+    stage('changeset3') {
+      options { skipDefaultCheckout() }
+      steps {
+        script {
+            def changeLogSets = currentBuild.rawBuild.changeSets
+            for (int i = 0; i < changeLogSets.size(); i++) {
+                def entries = changeLogSets[i].items
+                for (int j = 0; j < entries.length; j++) {
+                    def entry = entries[j]
+                    echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
+                    def files = new ArrayList(entry.affectedFiles)
+                    for (int k = 0; k < files.size(); k++) {
+                        def file = files[k]
+                        echo "  ${file.editType.name} ${file.path}"
+                    }
+                }
+            }
+        }
+        error 'ended'
       }
     }
     /**
