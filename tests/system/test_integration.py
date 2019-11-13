@@ -554,7 +554,7 @@ class SourcemappingCacheIntegrationTest(ClientSideElasticTest):
                                      self.intake_url,
                                      'error',
                                      1)
-        self.check_rum_error_sourcemap(False, expected_err="No Sourcemap available for")
+        self.check_rum_error_sourcemap(False, expected_err="No Sourcemap available")
 
 
 class SourcemappingDisabledIntegrationTest(ClientSideElasticTest):
