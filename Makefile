@@ -26,6 +26,12 @@ GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/li
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
+ES_USER?=apm_user
+ES_PASS?=changeme
+KIBANA_ES_USER?=kibana_system_user
+KIBANA_ES_PASS?=changeme
+
+
 # overwrite some beats targets cleanly
 .OVER := original-
 
