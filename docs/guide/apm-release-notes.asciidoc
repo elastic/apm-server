@@ -30,7 +30,11 @@ For a full list of changes, see the
 === APM version 7.5.0
 
 // tag::notable-v75-highlights[]
-Release highlights here
+
+to do -- needs more information
+* Aggregate Service Breakdown Charts
+* New Agent central config options
+* JVM metrics
 // end::notable-v75-highlights[]
 
 [[release-highlights-7.4.0]]

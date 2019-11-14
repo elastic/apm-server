@@ -27,7 +27,10 @@ Also see <<apm-release-notes>>.
 === 7.5.0 APM Breaking changes
 
 // tag::notable-v75-breaking-changes[]
-Breaking changes here.
+
+to do -- needs more information
+- Introduce dedicated ILM setup flags and ignore `setup.template.*` flags for ILM {pull}2764[2764],{pull}2877[2877].
+- Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
 // tag::notable-v75-breaking-changes[]
 
 [[breaking-7.4.0]]
