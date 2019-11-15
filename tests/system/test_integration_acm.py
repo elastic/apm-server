@@ -296,6 +296,24 @@ class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
         assert r2.status_code == 304
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    def test_rum_current_name(self):
+        service_name = "rum-service"
+        self.create_service_config({"transaction_sample_rate": 0.2}, service_name, agent="js-base")
+
+        r1 = requests.get(self.rum_agent_config_url,
+                          params={"service.name": service_name},
+                          headers={"Content-Type": "application/json"})
+
+        assert r1.status_code == 200
+        assert r1.json() == {'transaction_sample_rate': '0.2'}
+        etag = r1.headers["Etag"].replace('"', '')  # RUM will send it without double quotes
+
+        r2 = requests.get(self.rum_agent_config_url,
+                          params={"service.name": service_name, "ifnonematch": etag},
+                          headers={"Content-Type": "application/json"})
+        assert r2.status_code == 304
+
+    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_after_rum(self):
         service_name = "backend-service"
         self.create_service_config({"transaction_sample_rate": 0.3}, service_name)
