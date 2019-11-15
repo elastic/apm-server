@@ -75,7 +75,7 @@ pipeline {
       options { skipDefaultCheckout() }
       when {
         expression {
-          isGitRegionMatch(patterns: [ '**/*.asciidoc' ])
+          dir(BASE_DIR) { isGitRegionMatch(patterns: [ '**/*.asciidoc' ]) }
         }
       }
       steps {
@@ -86,7 +86,7 @@ pipeline {
       options { skipDefaultCheckout() }
       when {
         expression {
-          isGitRegionMatch(patterns: [ '**/*.asciidoc', '**/Jenkinsfile' ])
+          dir(BASE_DIR) { isGitRegionMatch(patterns: [ '**/*.asciidoc', '**/Jenkinsfile' ]) }
         }
       }
       steps {
