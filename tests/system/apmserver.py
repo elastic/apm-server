@@ -197,7 +197,7 @@ class ElasticTest(ServerBaseTest):
         return result
 
     def setUp(self):
-        self.es = Elasticsearch([self.get_elasticsearch_url()])
+        self.es = Elasticsearch([self.get_elasticsearch_url()], timeout=30)
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
@@ -211,8 +211,8 @@ class ElasticTest(ServerBaseTest):
 
         # truncate, don't delete agent configuration index since it's only created when kibana starts up
         self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
-                                ignore_unavailable=True, wait_for_completion=True)
-        self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0)
+                                ignore_unavailable=True, wait_for_completion=False)
+        self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0, max_timeout=30)
         # Cleanup pipelines
         self.es.ingest.delete_pipeline(id="*")
 
