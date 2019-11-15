@@ -63,11 +63,6 @@ class BaseTest(TestCase):
         if user and password:
             host = user + ":" + password + "@" + host
 
-        print("------------------------- SIMI")
-        print("http://{host}:{port}".format(
-            host=host,
-            port=os.getenv("ES_PORT", "9200"),
-        ))
         return "http://{host}:{port}".format(
             host=host,
             port=os.getenv("ES_PORT", "9200"),
