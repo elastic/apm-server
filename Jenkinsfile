@@ -69,7 +69,7 @@ pipeline {
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
 
             // Skip all the stages except docs for PR's with asciidoc changes only
-            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '**/*.asciidoc', 'Jenkinsfile' ], shouldMatchAll: true)
+            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '.*.asciidoc', 'Jenkinsfile' ], shouldMatchAll: false)
           }
         }
       }
