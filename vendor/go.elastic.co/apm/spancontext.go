@@ -65,16 +65,29 @@ func (c *SpanContext) reset() {
 	}
 }
 
-// SetTag sets a tag in the context. Invalid characters
-// ('.', '*', and '"') in the key will be replaced with
-// an underscore.
+// SetTag calls SetLabel(key, value).
+//
+// SetTag is deprecated, and will be removed in a future major version.
 func (c *SpanContext) SetTag(key, value string) {
+	c.SetLabel(key, value)
+}
+
+// SetLabel sets a label in the context.
+//
+// Invalid characters ('.', '*', and '"') in the key will be replaced with
+// underscores.
+//
+// If the value is numerical or boolean, then it will be sent to the server
+// as a JSON number or boolean; otherwise it will converted to a string, using
+// `fmt.Sprint` if necessary. String values longer than 1024 characters will
+// be truncated.
+func (c *SpanContext) SetLabel(key string, value interface{}) {
 	// Note that we do not attempt to de-duplicate the keys.
 	// This is OK, since json.Unmarshal will always take the
 	// final instance.
-	c.model.Tags = append(c.model.Tags, model.StringMapItem{
-		Key:   cleanTagKey(key),
-		Value: truncateString(value),
+	c.model.Tags = append(c.model.Tags, model.IfaceMapItem{
+		Key:   cleanLabelKey(key),
+		Value: makeLabelValue(value),
 	})
 }
 

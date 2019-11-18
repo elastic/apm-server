@@ -26,3 +26,29 @@ type Logger interface {
 	// Errorf logs a message at error level.
 	Errorf(format string, args ...interface{})
 }
+
+// WarningLogger extends Logger with a Warningf method.
+//
+// TODO(axw) this will be removed in v2.0.0, and the
+// Warningf method will be added directly to Logger.
+type WarningLogger interface {
+	Logger
+
+	// Warningf logs a message at warning level.
+	Warningf(format string, args ...interface{})
+}
+
+func makeWarningLogger(l Logger) WarningLogger {
+	if wl, ok := l.(WarningLogger); ok {
+		return wl
+	}
+	return debugWarningLogger{Logger: l}
+}
+
+type debugWarningLogger struct {
+	Logger
+}
+
+func (l debugWarningLogger) Warningf(format string, args ...interface{}) {
+	l.Debugf(format, args...)
+}

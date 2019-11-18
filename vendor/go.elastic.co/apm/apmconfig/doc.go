@@ -15,17 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmstrings
-
-// Truncate returns s truncated at n runes, and the number
-// of runes in the resulting string (<= n).
-func Truncate(s string, n int) (string, int) {
-	var j int
-	for i := range s {
-		if j == n {
-			return s[:i], n
-		}
-		j++
-	}
-	return s, j
-}
+// Package apmconfig provides an API for watching agent config
+// changes.
+package apmconfig

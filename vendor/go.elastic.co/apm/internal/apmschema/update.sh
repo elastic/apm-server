@@ -17,10 +17,14 @@ FILES=( \
     "process.json" \
     "request.json" \
     "service.json" \
+    "span_subtype.json" \
+    "span_type.json" \
     "stacktrace_frame.json" \
     "system.json" \
     "tags.json" \
     "timestamp_epoch.json" \
+    "transaction_name.json" \
+    "transaction_type.json" \
     "user.json" \
 )
 
