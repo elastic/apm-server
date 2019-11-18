@@ -28,9 +28,22 @@ Also see <<apm-release-notes>>.
 
 // tag::notable-v75-breaking-changes[]
 
-to do -- needs more information
-- Introduce dedicated ILM setup flags and ignore `setup.template.*` flags for ILM {pull}2764[2764],{pull}2877[2877].
-- Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
+APM Server::
++
+* Introduced dedicated `apm-server.ilm.setup.*` flags.
+This means you can now customize ILM behavior from within the APM Server configuration.
+As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
+See {apm-server-ref}/ilm.html#ilm-setup[set up ILM] for more information.
++
+* By default, ILM policies will not longer be versioned.
+All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.
+See {apm-server-ref}/ilm.html#ilm-default[default policy] for more information.
+
+APM::
++
+* To make use of all the new features introduced in 7.5,
+you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
+
 // tag::notable-v75-breaking-changes[]
 
 [[breaking-7.4.0]]
