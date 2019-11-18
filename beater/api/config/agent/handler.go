@@ -97,6 +97,7 @@ func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
 		// configuration successfully fetched
 		c.Header().Set(headers.CacheControl, cacheControl)
 		c.Header().Set(headers.Etag, fmt.Sprintf("\"%s\"", result.Source.Etag))
+		c.Header().Set(headers.AccessControlExposeHeaders, headers.Etag)
 
 		if result.Source.Etag != "" && result.Source.Etag == ifNoneMatch(c) {
 			c.Result.SetDefault(request.IDResponseValidNotModified)
