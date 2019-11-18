@@ -52,9 +52,8 @@ func TestStore_Fetch(t *testing.T) {
 			store.add(key, nilConsumer)
 
 			mapper, err := store.Fetch(serviceName, serviceVersion, path)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "No Sourcemap available")
-			require.Nil(t, mapper)
+			assert.Nil(t, mapper)
+			assert.Nil(t, err)
 		})
 
 		t.Run("sourcemapConsumer", func(t *testing.T) {
@@ -75,7 +74,7 @@ func TestStore_Fetch(t *testing.T) {
 		mapper, err := store.Fetch(serviceName, serviceVersion, path)
 		require.NoError(t, err)
 		require.NotNil(t, mapper)
-		assert.NotNil(t, mapper.sourcemapConsumer)
+		require.NotNil(t, mapper.sourcemapConsumer)
 
 		// ensure sourcemap is added to cache
 		cached, found := store.cache.Get(key)
@@ -83,9 +82,27 @@ func TestStore_Fetch(t *testing.T) {
 		assert.Equal(t, mapper.sourcemapConsumer, cached)
 	})
 
+	t.Run("notFoundInES", func(t *testing.T) {
+
+		store := testStore(t, test.ESClientWithSourcemapNotFound(t))
+		//not cached
+		cached, found := store.cache.Get(key)
+		require.False(t, found)
+		require.Nil(t, cached)
+
+		//fetch nil value, leading to error
+		mapper, err := store.Fetch(serviceName, serviceVersion, path)
+		require.Nil(t, err)
+		require.Nil(t, mapper)
+
+		// ensure nil value is added to cache
+		cached, found = store.cache.Get(key)
+		assert.True(t, found)
+		assert.Nil(t, cached)
+	})
+
 	t.Run("invalidFromES", func(t *testing.T) {
 		for name, client := range map[string]*elasticsearch.Client{
-			"notFound":           test.ESClientWithSourcemapNotFound(t),
 			"invalid":            test.ESClientWithInvalidSourcemap(t),
 			"unsupportedVersion": test.ESClientWithUnsupportedSourcemap(t),
 		} {
@@ -94,7 +111,7 @@ func TestStore_Fetch(t *testing.T) {
 				//not cached
 				cached, found := store.cache.Get(key)
 				require.False(t, found)
-				assert.Nil(t, cached)
+				require.Nil(t, cached)
 
 				//fetch nil value, leading to error
 				mapper, err := store.Fetch(serviceName, serviceVersion, path)

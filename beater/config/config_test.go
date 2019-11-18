@@ -141,7 +141,7 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
-				Pipeline:    DefaultAPMPipeline,
+				Pipeline:    defaultAPMPipeline,
 			},
 		},
 		"merge config with default": {
@@ -217,7 +217,7 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-				Pipeline:    DefaultAPMPipeline,
+				Pipeline:    defaultAPMPipeline,
 			},
 		},
 	}

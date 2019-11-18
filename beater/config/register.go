@@ -17,6 +17,16 @@
 
 package config
 
+import (
+	"path/filepath"
+
+	"github.com/elastic/beats/libbeat/paths"
+)
+
+const (
+	defaultAPMPipeline = "apm"
+)
+
 // RegisterConfig holds ingest config information
 type RegisterConfig struct {
 	Ingest *IngestConfig `config:"ingest"`
@@ -32,4 +42,25 @@ type PipelineConfig struct {
 	Enabled   *bool `config:"enabled"`
 	Overwrite *bool `config:"overwrite"`
 	Path      string
+}
+
+// IsEnabled indicates whether pipeline registration is enabled or not
+func (c *PipelineConfig) IsEnabled() bool {
+	return c != nil && (c.Enabled == nil || *c.Enabled)
+}
+
+// ShouldOverwrite indicates whether existing pipelines should be overwritten during registration process
+func (c *PipelineConfig) ShouldOverwrite() bool {
+	return c != nil && (c.Overwrite != nil && *c.Overwrite)
+}
+
+func defaultRegisterConfig(pipelineEnabled bool) *RegisterConfig {
+	return &RegisterConfig{
+		Ingest: &IngestConfig{
+			Pipeline: &PipelineConfig{
+				Enabled: &pipelineEnabled,
+				Path: paths.Resolve(paths.Home,
+					filepath.Join("ingest", "pipeline", "definition.json")),
+			}},
+	}
 }

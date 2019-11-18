@@ -92,6 +92,8 @@ func (c *RumConfig) MemoizedSourcemapStore() (*sourcemap.Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	// the index pattern by default contains a variable `observer.version` that needs to be replaced with the
+	// concrete apm-server version.
 	index := replaceVersion(c.SourceMapping.IndexPattern, c.BeatVersion)
 	store, err := sourcemap.NewStore(esClient, index, c.SourceMapping.Cache.Expiration)
 	if err != nil {
@@ -133,6 +135,10 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 
 func (s *SourceMapping) isSetup() bool {
 	return s != nil && (s.ESConfig != nil)
+}
+
+func replaceVersion(pattern, version string) string {
+	return regexObserverVersion.ReplaceAllLiteralString(pattern, version)
 }
 
 func defaultRum(beatVersion string) *RumConfig {

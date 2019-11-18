@@ -33,11 +33,6 @@ import (
 	logs "github.com/elastic/apm-server/log"
 )
 
-var (
-	//ErrNoSourcemapFound indicates that no sourcemap exists for provided criteria
-	ErrNoSourcemapFound = errors.New("No Sourcemap available")
-)
-
 const (
 	minCleanupIntervalSeconds float64 = 60
 )
@@ -77,7 +72,7 @@ func (s *Store) Fetch(name string, version string, path string) (*Mapper, error)
 		if ok && sourcemapConsumer != nil {
 			return &Mapper{sourcemapConsumer: sourcemapConsumer}, nil
 		}
-		return nil, errNoSourcemap(name, version, path)
+		return nil, nil
 	}
 
 	// fetch from Elasticsearch and ensure caching for all non-temporary results
@@ -91,7 +86,7 @@ func (s *Store) Fetch(name string, version string, path string) (*Mapper, error)
 
 	if sourcemapStr == emptyResult {
 		s.add(key, nil)
-		return nil, errNoSourcemap(name, version, path)
+		return nil, nil
 	}
 
 	consumer, err := sourcemap.Parse("", []byte(sourcemapStr))
@@ -131,8 +126,4 @@ func key(s []string) string {
 
 func cleanupInterval(ttl time.Duration) time.Duration {
 	return time.Duration(math.Max(ttl.Seconds(), minCleanupIntervalSeconds)) * time.Second
-}
-
-func errNoSourcemap(name, version, path string) error {
-	return errors.Wrapf(ErrNoSourcemapFound, "ServiceName %s, ServiceVersion %s, Path %s.", name, version, path)
 }

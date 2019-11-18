@@ -35,29 +35,7 @@ import (
 )
 
 const (
-	boolStr                    = "bool"
-	boostStr                   = "boost"
-	descStr                    = "desc"
-	mustStr                    = "must"
-	orderStr                   = "order"
-	processorNameStr           = "processor.name"
-	queryStr                   = "query"
-	scoreStr                   = "_score"
-	shouldStr                  = "should"
-	sizeStr                    = "size"
-	sortStr                    = "sort"
-	sourcemapStr               = "sourcemap"
-	sourcemapBundleFilepathStr = "sourcemap.bundle_filepath"
-	sourcemapServiceNameStr    = "sourcemap.service.name"
-	sourcemapServiceVersionStr = "sourcemap.service.version"
-	sourcemapSourcemapStr      = "sourcemap.sourcemap"
-	sourceStr                  = "_source"
-	termStr                    = "term"
-	timestampStr               = "@timestamp"
-	valueStr                   = "value"
-
-	emptyResult = ""
-
+	emptyResult          = ""
 	errMsgParseSourcemap = "Could not parse Sourcemap."
 )
 
@@ -151,38 +129,38 @@ func parse(response *esapi.Response, name, version, path string, logger *logp.Lo
 
 func query(name, version, path string) map[string]interface{} {
 	return map[string]interface{}{
-		queryStr: map[string]interface{}{
-			boolStr: map[string]interface{}{
-				mustStr: []map[string]interface{}{
-					{termStr: map[string]interface{}{processorNameStr: sourcemapStr}},
-					{termStr: map[string]interface{}{sourcemapServiceNameStr: name}},
-					{termStr: map[string]interface{}{sourcemapServiceVersionStr: version}},
-					{boolStr: map[string]interface{}{
-						shouldStr: []map[string]interface{}{
-							{termStr: map[string]interface{}{sourcemapBundleFilepathStr: map[string]interface{}{
-								valueStr: path,
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					{"term": map[string]interface{}{"processor.name": "sourcemap"}},
+					{"term": map[string]interface{}{"sourcemap.service.name": name}},
+					{"term": map[string]interface{}{"sourcemap.service.version": version}},
+					{"bool": map[string]interface{}{
+						"should": []map[string]interface{}{
+							{"term": map[string]interface{}{"sourcemap.bundle_filepath": map[string]interface{}{
+								"value": path,
 								// prefer full url match
-								boostStr: 2.0,
+								"boost": 2.0,
 							}}},
-							{termStr: map[string]interface{}{sourcemapBundleFilepathStr: utility.UrlPath(path)}},
+							{"term": map[string]interface{}{"sourcemap.bundle_filepath": utility.UrlPath(path)}},
 						},
 					}},
 				},
 			},
 		},
-		sizeStr: 1,
-		sortStr: []map[string]interface{}{
+		"size": 1,
+		"sort": []map[string]interface{}{
 			{
-				scoreStr: map[string]interface{}{
-					orderStr: descStr,
+				"_score": map[string]interface{}{
+					"order": "desc",
 				},
 			},
 			{
-				timestampStr: map[string]interface{}{
-					orderStr: descStr,
+				"@timestamp": map[string]interface{}{
+					"order": "desc",
 				},
 			},
 		},
-		sourceStr: sourcemapSourcemapStr,
+		"_source": "sourcemap.sourcemap",
 	}
 }

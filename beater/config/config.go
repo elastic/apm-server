@@ -19,7 +19,6 @@ package config
 
 import (
 	"net"
-	"path/filepath"
 	"regexp"
 	"time"
 
@@ -28,7 +27,6 @@ import (
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/paths"
 
 	logs "github.com/elastic/apm-server/log"
 )
@@ -36,8 +34,6 @@ import (
 const (
 	// DefaultPort of APM Server
 	DefaultPort = "8200"
-	// DefaultAPMPipeline is set to apm but can be user overwritten
-	DefaultAPMPipeline = "apm"
 
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 )
@@ -84,12 +80,6 @@ type AgentConfig struct {
 // Cache holds config information about cache expiration
 type Cache struct {
 	Expiration time.Duration `config:"expiration"`
-}
-
-// LimitedCache holds config information about cache expiration
-type LimitedCache struct {
-	Expiration time.Duration `config:"expiration"`
-	Size       int           `config:"size"`
 }
 
 // InstrumentationConfig holds config information about self instrumenting the APM Server
@@ -141,29 +131,14 @@ func (c *ExpvarConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
-// IsEnabled indicates whether pipeline registration is enabled or not
-func (c *PipelineConfig) IsEnabled() bool {
-	return c != nil && (c.Enabled == nil || *c.Enabled)
-}
-
-// ShouldOverwrite indicates whether existing pipelines should be overwritten during registration process
-func (c *PipelineConfig) ShouldOverwrite() bool {
-	return c != nil && (c.Overwrite != nil && *c.Overwrite)
-}
-
 // IsEnabled indicates whether self instrumentation is enabled
 func (c *InstrumentationConfig) IsEnabled() bool {
 	// self instrumentation is disabled by default.
 	return c != nil && c.Enabled != nil && *c.Enabled
 }
 
-func replaceVersion(pattern, version string) string {
-	return regexObserverVersion.ReplaceAllLiteralString(pattern, version)
-}
-
 // DefaultConfig returns a config with default settings for `apm-server` config options.
 func DefaultConfig(beatVersion string) *Config {
-	pipeline := true
 	return &Config{
 		Host:            net.JoinHostPort("localhost", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
@@ -178,18 +153,11 @@ func DefaultConfig(beatVersion string) *Config {
 			Enabled: new(bool),
 			URL:     "/debug/vars",
 		},
-		RumConfig: defaultRum(beatVersion),
-		Register: &RegisterConfig{
-			Ingest: &IngestConfig{
-				Pipeline: &PipelineConfig{
-					Enabled: &pipeline,
-					Path: paths.Resolve(paths.Home,
-						filepath.Join("ingest", "pipeline", "definition.json")),
-				}},
-		},
+		RumConfig:   defaultRum(beatVersion),
+		Register:    defaultRegisterConfig(true),
 		Mode:        ModeProduction,
 		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 		AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-		Pipeline:    DefaultAPMPipeline,
+		Pipeline:    defaultAPMPipeline,
 	}
 }
