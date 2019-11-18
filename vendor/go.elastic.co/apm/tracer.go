@@ -28,8 +28,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.elastic.co/apm/internal/apmconfig"
+	"go.elastic.co/apm/apmconfig"
 	"go.elastic.co/apm/internal/apmlog"
+	"go.elastic.co/apm/internal/configutil"
 	"go.elastic.co/apm/internal/iochan"
 	"go.elastic.co/apm/internal/ringbuffer"
 	"go.elastic.co/apm/internal/wildcard"
@@ -58,12 +59,41 @@ var (
 )
 
 func init() {
-	var opts options
-	opts.init(true)
+	var opts TracerOptions
+	opts.initDefaults(true)
 	DefaultTracer = newTracer(opts)
 }
 
-type options struct {
+// TracerOptions holds initial tracer options, for passing to NewTracerOptions.
+type TracerOptions struct {
+	// ServiceName holds the service name.
+	//
+	// If ServiceName is empty, the service name will be defined using the
+	// ELASTIC_APM_SERVICE_NAME environment variable, or if that is not set,
+	// the executable name.
+	ServiceName string
+
+	// ServiceVersion holds the service version.
+	//
+	// If ServiceVersion is empty, the service version will be defined using
+	// the ELASTIC_APM_SERVICE_VERSION environment variable.
+	ServiceVersion string
+
+	// ServiceEnvironment holds the service environment.
+	//
+	// If ServiceEnvironment is empty, the service environment will be defined
+	// using the ELASTIC_APM_ENVIRONMENT environment variable.
+	ServiceEnvironment string
+
+	// Transport holds the transport to use for sending events.
+	//
+	// If Transport is nil, transport.Default will be used.
+	//
+	// If Transport implements apmconfig.Watcher, the tracer will begin watching
+	// for remote changes immediately. This behaviour can be disabled by setting
+	// the environment variable ELASTIC_APM_CENTRAL_CONFIG=false.
+	Transport transport.Transport
+
 	requestDuration       time.Duration
 	metricsInterval       time.Duration
 	maxSpans              int
@@ -76,13 +106,19 @@ type options struct {
 	captureHeaders        bool
 	captureBody           CaptureBodyMode
 	spanFramesMinDuration time.Duration
-	serviceName           string
-	serviceVersion        string
-	serviceEnvironment    string
+	stackTraceLimit       int
 	active                bool
+	configWatcher         apmconfig.Watcher
+	breakdownMetrics      bool
+	propagateLegacyHeader bool
+	profileSender         profileSender
+	cpuProfileInterval    time.Duration
+	cpuProfileDuration    time.Duration
+	heapProfileInterval   time.Duration
 }
 
-func (opts *options) init(continueOnError bool) error {
+// initDefaults updates opts with default values.
+func (opts *TracerOptions) initDefaults(continueOnError bool) error {
 	var errs []error
 	failed := func(err error) bool {
 		if err == nil {
@@ -146,9 +182,46 @@ func (opts *options) init(continueOnError bool) error {
 		spanFramesMinDuration = defaultSpanFramesMinDuration
 	}
 
+	stackTraceLimit, err := initialStackTraceLimit()
+	if failed(err) {
+		stackTraceLimit = defaultStackTraceLimit
+	}
+
 	active, err := initialActive()
 	if failed(err) {
 		active = true
+	}
+
+	centralConfigEnabled, err := initialCentralConfigEnabled()
+	if failed(err) {
+		centralConfigEnabled = true
+	}
+
+	breakdownMetricsEnabled, err := initialBreakdownMetricsEnabled()
+	if failed(err) {
+		breakdownMetricsEnabled = true
+	}
+
+	propagateLegacyHeader, err := initialUseElasticTraceparentHeader()
+	if failed(err) {
+		propagateLegacyHeader = true
+	}
+
+	cpuProfileInterval, cpuProfileDuration, err := initialCPUProfileIntervalDuration()
+	if failed(err) {
+		cpuProfileInterval = 0
+		cpuProfileDuration = 0
+	}
+	heapProfileInterval, err := initialHeapProfileInterval()
+	if failed(err) {
+		heapProfileInterval = 0
+	}
+
+	if opts.ServiceName != "" {
+		err := validateServiceName(opts.ServiceName)
+		if failed(err) {
+			opts.ServiceName = ""
+		}
 	}
 
 	if len(errs) != 0 && !continueOnError {
@@ -167,11 +240,38 @@ func (opts *options) init(continueOnError bool) error {
 	opts.sampler = sampler
 	opts.sanitizedFieldNames = initialSanitizedFieldNames()
 	opts.disabledMetrics = initialDisabledMetrics()
+	opts.breakdownMetrics = breakdownMetricsEnabled
 	opts.captureHeaders = captureHeaders
 	opts.captureBody = captureBody
 	opts.spanFramesMinDuration = spanFramesMinDuration
-	opts.serviceName, opts.serviceVersion, opts.serviceEnvironment = initialService()
+	opts.stackTraceLimit = stackTraceLimit
 	opts.active = active
+	opts.propagateLegacyHeader = propagateLegacyHeader
+	if opts.Transport == nil {
+		opts.Transport = transport.Default
+	}
+	if centralConfigEnabled {
+		if cw, ok := opts.Transport.(apmconfig.Watcher); ok {
+			opts.configWatcher = cw
+		}
+	}
+	if ps, ok := opts.Transport.(profileSender); ok {
+		opts.profileSender = ps
+		opts.cpuProfileInterval = cpuProfileInterval
+		opts.cpuProfileDuration = cpuProfileDuration
+		opts.heapProfileInterval = heapProfileInterval
+	}
+
+	serviceName, serviceVersion, serviceEnvironment := initialService()
+	if opts.ServiceName == "" {
+		opts.ServiceName = serviceName
+	}
+	if opts.ServiceVersion == "" {
+		opts.ServiceVersion = serviceVersion
+	}
+	if opts.ServiceEnvironment == "" {
+		opts.ServiceEnvironment = serviceEnvironment
+	}
 	return nil
 }
 
@@ -213,25 +313,17 @@ type Tracer struct {
 	forceFlush        chan chan<- struct{}
 	forceSendMetrics  chan chan<- struct{}
 	configCommands    chan tracerConfigCommand
+	configWatcher     chan apmconfig.Watcher
 	events            chan tracerEvent
+	breakdownMetrics  *breakdownMetrics
+	profileSender     profileSender
 
 	statsMu sync.Mutex
 	stats   TracerStats
 
-	maxSpansMu sync.RWMutex
-	maxSpans   int
-
-	spanFramesMinDurationMu sync.RWMutex
-	spanFramesMinDuration   time.Duration
-
-	samplerMu sync.RWMutex
-	sampler   Sampler
-
-	captureHeadersMu sync.RWMutex
-	captureHeaders   bool
-
-	captureBodyMu sync.RWMutex
-	captureBody   CaptureBodyMode
+	// instrumentationConfig_ must only be accessed and mutated
+	// using Tracer.instrumentationConfig() and Tracer.setInstrumentationConfig().
+	instrumentationConfigInternal *instrumentationConfig
 
 	errorDataPool       sync.Pool
 	spanDataPool        sync.Pool
@@ -239,50 +331,75 @@ type Tracer struct {
 }
 
 // NewTracer returns a new Tracer, using the default transport,
-// initializing a Service with the specified name and version,
-// or taking the service name and version from the environment
-// if unspecified.
-//
-// If serviceName is empty, then the service name will be defined
-// using the ELASTIC_APM_SERVER_NAME environment variable.
+// and with the specified service name and version if specified.
+// This is equivalent to calling NewTracerOptions with a
+// TracerOptions having ServiceName and ServiceVersion set to
+// the provided arguments.
 func NewTracer(serviceName, serviceVersion string) (*Tracer, error) {
-	var opts options
-	if err := opts.init(false); err != nil {
+	return NewTracerOptions(TracerOptions{
+		ServiceName:    serviceName,
+		ServiceVersion: serviceVersion,
+	})
+}
+
+// NewTracerOptions returns a new Tracer using the provided options.
+// See TracerOptions for details on the options, and their default
+// values.
+func NewTracerOptions(opts TracerOptions) (*Tracer, error) {
+	if err := opts.initDefaults(false); err != nil {
 		return nil, err
-	}
-	if serviceName != "" {
-		if err := validateServiceName(serviceName); err != nil {
-			return nil, err
-		}
-		opts.serviceName = serviceName
-		opts.serviceVersion = serviceVersion
 	}
 	return newTracer(opts), nil
 }
 
-func newTracer(opts options) *Tracer {
+func newTracer(opts TracerOptions) *Tracer {
 	t := &Tracer{
-		Transport:             transport.Default,
-		process:               &currentProcess,
-		system:                &localSystem,
-		closing:               make(chan struct{}),
-		closed:                make(chan struct{}),
-		forceFlush:            make(chan chan<- struct{}),
-		forceSendMetrics:      make(chan chan<- struct{}),
-		configCommands:        make(chan tracerConfigCommand),
-		events:                make(chan tracerEvent, tracerEventChannelCap),
-		active:                1,
-		maxSpans:              opts.maxSpans,
-		sampler:               opts.sampler,
-		captureHeaders:        opts.captureHeaders,
-		captureBody:           opts.captureBody,
-		spanFramesMinDuration: opts.spanFramesMinDuration,
-		bufferSize:            opts.bufferSize,
-		metricsBufferSize:     opts.metricsBufferSize,
+		Transport:         opts.Transport,
+		process:           &currentProcess,
+		system:            &localSystem,
+		closing:           make(chan struct{}),
+		closed:            make(chan struct{}),
+		forceFlush:        make(chan chan<- struct{}),
+		forceSendMetrics:  make(chan chan<- struct{}),
+		configCommands:    make(chan tracerConfigCommand),
+		configWatcher:     make(chan apmconfig.Watcher),
+		events:            make(chan tracerEvent, tracerEventChannelCap),
+		active:            1,
+		breakdownMetrics:  newBreakdownMetrics(),
+		bufferSize:        opts.bufferSize,
+		metricsBufferSize: opts.metricsBufferSize,
+		profileSender:     opts.profileSender,
+		instrumentationConfigInternal: &instrumentationConfig{
+			local: make(map[string]func(*instrumentationConfigValues)),
+		},
 	}
-	t.Service.Name = opts.serviceName
-	t.Service.Version = opts.serviceVersion
-	t.Service.Environment = opts.serviceEnvironment
+	t.Service.Name = opts.ServiceName
+	t.Service.Version = opts.ServiceVersion
+	t.Service.Environment = opts.ServiceEnvironment
+	t.breakdownMetrics.enabled = opts.breakdownMetrics
+
+	// Initialise local transaction config.
+	t.setLocalInstrumentationConfig(envCaptureBody, func(cfg *instrumentationConfigValues) {
+		cfg.captureBody = opts.captureBody
+	})
+	t.setLocalInstrumentationConfig(envCaptureHeaders, func(cfg *instrumentationConfigValues) {
+		cfg.captureHeaders = opts.captureHeaders
+	})
+	t.setLocalInstrumentationConfig(envMaxSpans, func(cfg *instrumentationConfigValues) {
+		cfg.maxSpans = opts.maxSpans
+	})
+	t.setLocalInstrumentationConfig(envTransactionSampleRate, func(cfg *instrumentationConfigValues) {
+		cfg.sampler = opts.sampler
+	})
+	t.setLocalInstrumentationConfig(envSpanFramesMinDuration, func(cfg *instrumentationConfigValues) {
+		cfg.spanFramesMinDuration = opts.spanFramesMinDuration
+	})
+	t.setLocalInstrumentationConfig(envStackTraceLimit, func(cfg *instrumentationConfigValues) {
+		cfg.stackTraceLimit = opts.stackTraceLimit
+	})
+	t.setLocalInstrumentationConfig(envUseElasticTraceparentHeader, func(cfg *instrumentationConfigValues) {
+		cfg.propagateLegacyHeader = opts.propagateLegacyHeader
+	})
 
 	if !opts.active {
 		t.active = 0
@@ -292,6 +409,9 @@ func newTracer(opts options) *Tracer {
 
 	go t.loop()
 	t.configCommands <- func(cfg *tracerConfig) {
+		cfg.cpuProfileInterval = opts.cpuProfileInterval
+		cfg.cpuProfileDuration = opts.cpuProfileDuration
+		cfg.heapProfileInterval = opts.heapProfileInterval
 		cfg.metricsInterval = opts.metricsInterval
 		cfg.requestDuration = opts.requestDuration
 		cfg.requestSize = opts.requestSize
@@ -304,6 +424,9 @@ func newTracer(opts options) *Tracer {
 			cfg.logger = apmlog.DefaultLogger
 		}
 	}
+	if opts.configWatcher != nil {
+		t.configWatcher <- opts.configWatcher
+	}
 	return t
 }
 
@@ -313,12 +436,15 @@ type tracerConfig struct {
 	requestSize             int
 	requestDuration         time.Duration
 	metricsInterval         time.Duration
-	logger                  Logger
+	logger                  WarningLogger
 	metricsGatherers        []MetricsGatherer
 	contextSetter           stacktrace.ContextSetter
 	preContext, postContext int
 	sanitizedFieldNames     wildcard.Matchers
 	disabledMetrics         wildcard.Matchers
+	cpuProfileDuration      time.Duration
+	cpuProfileInterval      time.Duration
+	heapProfileInterval     time.Duration
 }
 
 type tracerConfigCommand func(*tracerConfig)
@@ -385,12 +511,15 @@ func (t *Tracer) SetContextSetter(setter stacktrace.ContextSetter) {
 // SetLogger sets the Logger to be used for logging the operation of
 // the tracer.
 //
+// If logger implements WarningLogger, its Warningf method will be used
+// for logging warnings. Otherwise, warnings will logged using Debugf.
+//
 // The tracer is initialized with a default logger configured with the
 // environment variables ELASTIC_APM_LOG_FILE and ELASTIC_APM_LOG_LEVEL.
 // Calling SetLogger will replace the default logger.
 func (t *Tracer) SetLogger(logger Logger) {
 	t.sendConfigCommand(func(cfg *tracerConfig) {
-		cfg.logger = logger
+		cfg.logger = makeWarningLogger(logger)
 	})
 }
 
@@ -404,7 +533,7 @@ func (t *Tracer) SetSanitizedFieldNames(patterns ...string) error {
 	if len(patterns) != 0 {
 		matchers = make(wildcard.Matchers, len(patterns))
 		for i, p := range patterns {
-			matchers[i] = apmconfig.ParseWildcardPattern(p)
+			matchers[i] = configutil.ParseWildcardPattern(p)
 		}
 	}
 	t.sendConfigCommand(func(cfg *tracerConfig) {
@@ -440,6 +569,25 @@ func (t *Tracer) RegisterMetricsGatherer(g MetricsGatherer) func() {
 	}
 }
 
+// SetConfigWatcher sets w as the config watcher.
+//
+// By default, the tracer will be configured to use the transport for
+// watching config, if the transport implements apmconfig.Watcher. This
+// can be overridden by calling SetConfigWatcher.
+//
+// If w is nil, config watching will be stopped.
+//
+// Calling SetConfigWatcher will discard any previously observed remote
+// config, reverting to local config until a config change from w is
+// observed.
+func (t *Tracer) SetConfigWatcher(w apmconfig.Watcher) {
+	select {
+	case t.configWatcher <- w:
+	case <-t.closing:
+	case <-t.closed:
+	}
+}
+
 func (t *Tracer) sendConfigCommand(cmd tracerConfigCommand) {
 	select {
 	case t.configCommands <- cmd:
@@ -448,43 +596,58 @@ func (t *Tracer) sendConfigCommand(cmd tracerConfigCommand) {
 	}
 }
 
-// SetSampler sets the sampler the tracer. It is valid to pass nil,
-// in which case all transactions will be sampled.
+// SetSampler sets the sampler the tracer.
+//
+// It is valid to pass nil, in which case all transactions will be sampled.
+//
+// Configuration via Kibana takes precedence over local configuration, so
+// if sampling has been configured via Kibana, this call will not have any
+// effect until/unless that configuration has been removed.
 func (t *Tracer) SetSampler(s Sampler) {
-	t.samplerMu.Lock()
-	t.sampler = s
-	t.samplerMu.Unlock()
+	t.setLocalInstrumentationConfig(envTransactionSampleRate, func(cfg *instrumentationConfigValues) {
+		cfg.sampler = s
+	})
 }
 
 // SetMaxSpans sets the maximum number of spans that will be added
-// to a transaction before dropping spans. If set to a non-positive
-// value, the number of spans is unlimited.
+// to a transaction before dropping spans.
+//
+// Passing in zero will disable all spans, while negative values will
+// permit an unlimited number of spans.
 func (t *Tracer) SetMaxSpans(n int) {
-	t.maxSpansMu.Lock()
-	t.maxSpans = n
-	t.maxSpansMu.Unlock()
+	t.setLocalInstrumentationConfig(envMaxSpans, func(cfg *instrumentationConfigValues) {
+		cfg.maxSpans = n
+	})
 }
 
 // SetSpanFramesMinDuration sets the minimum duration for a span after which
 // we will capture its stack frames.
 func (t *Tracer) SetSpanFramesMinDuration(d time.Duration) {
-	t.spanFramesMinDurationMu.Lock()
-	t.spanFramesMinDuration = d
-	t.spanFramesMinDurationMu.Unlock()
+	t.setLocalInstrumentationConfig(envMaxSpans, func(cfg *instrumentationConfigValues) {
+		cfg.spanFramesMinDuration = d
+	})
+}
+
+// SetStackTraceLimit sets the the maximum number of stack frames to collect
+// for each stack trace. If limit is negative, then all frames will be collected.
+func (t *Tracer) SetStackTraceLimit(limit int) {
+	t.setLocalInstrumentationConfig(envMaxSpans, func(cfg *instrumentationConfigValues) {
+		cfg.stackTraceLimit = limit
+	})
 }
 
 // SetCaptureHeaders enables or disables capturing of HTTP headers.
 func (t *Tracer) SetCaptureHeaders(capture bool) {
-	t.captureHeadersMu.Lock()
-	t.captureHeaders = capture
-	t.captureHeadersMu.Unlock()
+	t.setLocalInstrumentationConfig(envMaxSpans, func(cfg *instrumentationConfigValues) {
+		cfg.captureHeaders = capture
+	})
 }
 
 // SetCaptureBody sets the HTTP request body capture mode.
 func (t *Tracer) SetCaptureBody(mode CaptureBodyMode) {
-	t.captureBodyMu.Lock()
-	t.captureBody = mode
-	t.captureBodyMu.Unlock()
+	t.setLocalInstrumentationConfig(envMaxSpans, func(cfg *instrumentationConfigValues) {
+		cfg.captureBody = mode
+	})
 }
 
 // SendMetrics forces the tracer to gather and send metrics immediately,
@@ -556,6 +719,7 @@ func (t *Tracer) loop() {
 		}
 	}()
 
+	var breakdownMetricsLimitWarningLogged bool
 	var stats TracerStats
 	var metrics Metrics
 	var sentMetrics chan<- struct{}
@@ -567,6 +731,18 @@ func (t *Tracer) loop() {
 	if !metricsTimer.Stop() {
 		<-metricsTimer.C
 	}
+
+	var lastConfigChange map[string]string
+	var configChanges <-chan apmconfig.Change
+	var stopConfigWatcher func()
+	defer func() {
+		if stopConfigWatcher != nil {
+			stopConfigWatcher()
+		}
+	}()
+
+	cpuProfilingState := newCPUProfilingState(t.profileSender)
+	heapProfilingState := newHeapProfilingState(t.profileSender)
 
 	var cfg tracerConfig
 	buffer := ringbuffer.New(t.bufferSize)
@@ -597,6 +773,8 @@ func (t *Tracer) loop() {
 		case cmd := <-t.configCommands:
 			oldMetricsInterval := cfg.metricsInterval
 			cmd(&cfg)
+			cpuProfilingState.updateConfig(cfg.cpuProfileInterval, cfg.cpuProfileDuration)
+			heapProfilingState.updateConfig(cfg.heapProfileInterval, 0)
 			if !gatheringMetrics && cfg.metricsInterval != oldMetricsInterval {
 				if metricsTimerStart.IsZero() {
 					if cfg.metricsInterval > 0 {
@@ -620,9 +798,52 @@ func (t *Tracer) loop() {
 				}
 			}
 			continue
+		case cw := <-t.configWatcher:
+			if configChanges != nil {
+				stopConfigWatcher()
+				t.updateRemoteConfig(cfg.logger, lastConfigChange, nil)
+				lastConfigChange = nil
+				configChanges = nil
+			}
+			if cw == nil {
+				continue
+			}
+			var configWatcherContext context.Context
+			var watchParams apmconfig.WatchParams
+			watchParams.Service.Name = t.Service.Name
+			watchParams.Service.Environment = t.Service.Environment
+			configWatcherContext, stopConfigWatcher = context.WithCancel(ctx)
+			configChanges = cw.WatchConfig(configWatcherContext, watchParams)
+			// Silence go vet's "possible context leak" false positive.
+			// We call a previous stopConfigWatcher before reassigning
+			// the variable, and we have a defer at the top level of the
+			// loop method that will call the final stopConfigWatcher
+			// value on method exit.
+			_ = stopConfigWatcher
+			continue
+		case change, ok := <-configChanges:
+			if !ok {
+				configChanges = nil
+				continue
+			}
+			if change.Err != nil {
+				if cfg.logger != nil {
+					cfg.logger.Errorf("config request failed: %s", change.Err)
+				}
+			} else {
+				t.updateRemoteConfig(cfg.logger, lastConfigChange, change.Attrs)
+				lastConfigChange = change.Attrs
+			}
+			continue
 		case event := <-t.events:
 			switch event.eventType {
 			case transactionEvent:
+				if !t.breakdownMetrics.recordTransaction(event.tx.TransactionData) {
+					if !breakdownMetricsLimitWarningLogged && cfg.logger != nil {
+						cfg.logger.Warningf("%s", breakdownMetricsLimitWarning)
+						breakdownMetricsLimitWarningLogged = true
+					}
+				}
 				modelWriter.writeTransaction(event.tx.Transaction, event.tx.TransactionData)
 			case spanEvent:
 				modelWriter.writeSpan(event.span.Span, event.span.SpanData)
@@ -653,12 +874,26 @@ func (t *Tracer) loop() {
 				metricsTimerStart = time.Now()
 				metricsTimer.Reset(cfg.metricsInterval)
 			}
+		case <-cpuProfilingState.timer.C:
+			cpuProfilingState.start(ctx, cfg.logger, t.metadataReader())
+		case <-cpuProfilingState.finished:
+			cpuProfilingState.resetTimer()
+		case <-heapProfilingState.timer.C:
+			heapProfilingState.start(ctx, cfg.logger, t.metadataReader())
+		case <-heapProfilingState.finished:
+			heapProfilingState.resetTimer()
 		case flushed = <-t.forceFlush:
 			// Drain any objects buffered in the channels.
 			for n := len(t.events); n > 0; n-- {
 				event := <-t.events
 				switch event.eventType {
 				case transactionEvent:
+					if !t.breakdownMetrics.recordTransaction(event.tx.TransactionData) {
+						if !breakdownMetricsLimitWarningLogged && cfg.logger != nil {
+							cfg.logger.Warningf("%s", breakdownMetricsLimitWarning)
+							breakdownMetricsLimitWarningLogged = true
+						}
+					}
 					modelWriter.writeTransaction(event.tx.Transaction, event.tx.TransactionData)
 				case spanEvent:
 					modelWriter.writeSpan(event.span.Span, event.span.SpanData)
@@ -846,16 +1081,33 @@ func (t *Tracer) loop() {
 // first request is made.
 func (t *Tracer) jsonRequestMetadata() []byte {
 	var json fastjson.Writer
-	service := makeService(t.Service.Name, t.Service.Version, t.Service.Environment)
-	json.RawString(`{"metadata":{`)
-	json.RawString(`"system":`)
-	t.system.MarshalFastJSON(&json)
-	json.RawString(`,"process":`)
-	t.process.MarshalFastJSON(&json)
-	json.RawString(`,"service":`)
-	service.MarshalFastJSON(&json)
-	json.RawString("}}\n")
+	json.RawString(`{"metadata":`)
+	t.encodeRequestMetadata(&json)
+	json.RawString("}\n")
 	return json.Bytes()
+}
+
+// metadataReader returns an io.Reader that holds the JSON-encoded metadata,
+// suitable for including in a profile request.
+func (t *Tracer) metadataReader() io.Reader {
+	var metadata fastjson.Writer
+	t.encodeRequestMetadata(&metadata)
+	return bytes.NewReader(metadata.Bytes())
+}
+
+func (t *Tracer) encodeRequestMetadata(json *fastjson.Writer) {
+	service := makeService(t.Service.Name, t.Service.Version, t.Service.Environment)
+	json.RawString(`{"system":`)
+	t.system.MarshalFastJSON(json)
+	json.RawString(`,"process":`)
+	t.process.MarshalFastJSON(json)
+	json.RawString(`,"service":`)
+	service.MarshalFastJSON(json)
+	if len(globalLabels) > 0 {
+		json.RawString(`,"labels":`)
+		globalLabels.MarshalFastJSON(json)
+	}
+	json.RawByte('}')
 }
 
 // gatherMetrics gathers metrics from each of the registered
@@ -873,6 +1125,9 @@ func (t *Tracer) gatherMetrics(ctx context.Context, gatherers []MetricsGatherer,
 	}
 	go func() {
 		group.Wait()
+		for _, m := range m.transactionGroupMetrics {
+			m.Timestamp = timestamp
+		}
 		for _, m := range m.metrics {
 			m.Timestamp = timestamp
 		}

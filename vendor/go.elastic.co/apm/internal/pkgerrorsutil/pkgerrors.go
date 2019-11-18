@@ -35,7 +35,7 @@ var (
 )
 
 // AppendStacktrace appends stack frames to out, based on stackTrace.
-func AppendStacktrace(stackTrace errors.StackTrace, out *[]stacktrace.Frame) {
+func AppendStacktrace(stackTrace errors.StackTrace, out *[]stacktrace.Frame, limit int) {
 	// github.com/pkg/errors 0.8.x and earlier represent
 	// stack frames as uintptr; 0.9.0 and later represent
 	// them as runtime.Frames.
@@ -47,8 +47,11 @@ func AppendStacktrace(stackTrace errors.StackTrace, out *[]stacktrace.Frame) {
 		for i, frame := range stackTrace {
 			pc[i] = *(*uintptr)(unsafe.Pointer(&frame))
 		}
-		*out = stacktrace.AppendCallerFrames(*out, pc, -1)
+		*out = stacktrace.AppendCallerFrames(*out, pc, limit)
 	} else if errorsStackTraceFrame {
+		if limit >= 0 && len(stackTrace) > limit {
+			stackTrace = stackTrace[:limit]
+		}
 		for _, frame := range stackTrace {
 			rf := (*runtime.Frame)(unsafe.Pointer(&frame))
 			*out = append(*out, stacktrace.RuntimeFrame(*rf))

@@ -1,6 +1,52 @@
 # Changelog
 
-## [Unreleased](https://github.com/elastic/apm-agent-go/compare/v1.2.0...master)
+## [Unreleased](https://github.com/elastic/apm-agent-go/compare/v1.6.0...master)
+
+## [v1.6.0](https://github.com/elastic/apm-agent-go/releases/tag/v1.6.0)
+
+ - module/apmhttp: add WithClientRequestName option (#609)
+ - module/apmhttp: add WithPanicPropagation function (#611)
+ - module/apmgoredis: add Client.RedisClient (#613)
+ - Introduce apm.TraceFormatter, for formatting trace IDs (#635)
+ - Report error cause(s), add support for errors.Unwrap (#638)
+ - Setting `ELASTIC_APM_TRANSACTION_MAX_SPANS` to 0 now disables all spans (#640)
+ - module/apmzerolog: add Writer.MinLevel (#641)
+ - Introduce SetLabel and deprecate SetTag (#642)
+ - Support central config for `ELASTIC_APM_CAPTURE_BODY` and `ELASTIC_APM_TRANSACTION_MAX_SPANS` (#648)
+ - module/apmgorm: sql.ErrNoRows is no longer reported as an error (#645)
+ - Server URL path is cleaned/canonicalizsed in order to avoid 301 redirects (#658)
+ - `context.request.socket.remote_address` now reports the peer address (#662)
+ - Experimental support for periodic CPU/heap profiling (#666)
+ - module/apmnegroni: introduce tracing Negroni middleware (#671)
+ - Unescape hyphens in k8s pod UIDs when the systemd cgroup driver is used (#672)
+ - Read and propagate the standard W3C "traceparent" header (#674)
+
+## [v1.5.0](https://github.com/elastic/apm-agent-go/releases/tag/v1.5.0)
+
+ - Add Context.SetCustom (#581)
+ - Add support for extracting UUID-like container IDs (#577)
+ - Introduce transaction/span breakdown metrics (#564)
+ - Optimised HTTP request body capture (#592)
+ - Fixed transaction encoding to drop tags (and other context) for non-sampled transactions (#593)
+ - Introduce central config polling (#591)
+ - Fixed apmgrpc client interceptor, propagating trace context for non-sampled transactions (#602)
+
+## [v1.4.0](https://github.com/elastic/apm-agent-go/releases/tag/v1.4.0)
+
+ - Update opentracing-go dependency to v1.1.0
+ - Update HTTP routers to return "<METHOD> unknown route" if route cannot be matched (#486)
+ - module/apmchi: introduce instrumentation for go-chi/chi router (#495)
+ - module/apmgoredis: introduce instrumentation for the go-redis/redis client (#505)
+ - module/apmsql: exposed the QuerySignature function (#515)
+ - module/apmgopg: introduce instrumentation for the go-pg/pg ORM (#516)
+ - module/apmmongo: set minimum Go version to Go 1.10 (#522)
+ - internal/sqlscanner: bug fix for multi-byte rune handling (#535)
+ - module/apmgrpc: added WithServerRequestIgnorer server option (#531)
+ - Introduce `ELASTIC_APM_GLOBAL_LABELS` config (#539)
+ - module/apmgorm: register `row_query` callbacks (#532)
+ - Introduce `ELASTIC_APM_STACK_TRACE_LIMIT` config (#559)
+ - Include agent name/version and Go version in User-Agent (#560)
+ - Truncate `error.culprit` at 1024 chars (#561)
 
 ## [v1.3.0](https://github.com/elastic/apm-agent-go/releases/tag/v1.3.0)
 

@@ -56,11 +56,12 @@ func Wrap(h http.Handler, o ...ServerOption) http.Handler {
 //
 // The http.Request's context will be updated with the transaction.
 type handler struct {
-	handler        http.Handler
-	tracer         *apm.Tracer
-	recovery       RecoveryFunc
-	requestName    RequestNameFunc
-	requestIgnorer RequestIgnorerFunc
+	handler          http.Handler
+	tracer           *apm.Tracer
+	recovery         RecoveryFunc
+	panicPropagation bool
+	requestName      RequestNameFunc
+	requestIgnorer   RequestIgnorerFunc
 }
 
 // ServeHTTP delegates to h.Handler, tracing the transaction with
@@ -77,12 +78,20 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w, resp := WrapResponseWriter(w)
 	defer func() {
 		if v := recover(); v != nil {
-			if resp.StatusCode == 0 {
+			if h.panicPropagation {
+				defer panic(v)
+				// 500 status code will be set only for APM transaction
+				// to allow other middleware to choose a different response code
+				if resp.StatusCode == 0 {
+					resp.StatusCode = http.StatusInternalServerError
+				}
+			} else if resp.StatusCode == 0 {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 			h.recovery(w, req, resp, body, tx, v)
 		}
 		SetTransactionContext(tx, req, resp, body)
+		body.Discard()
 	}()
 	h.handler.ServeHTTP(w, req)
 	if resp.StatusCode == 0 {
@@ -96,16 +105,23 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // If the transaction is not ignored, the request will be
 // returned with the transaction added to its context.
 func StartTransaction(tracer *apm.Tracer, name string, req *http.Request) (*apm.Transaction, *http.Request) {
-	var opts apm.TransactionOptions
-	if values := req.Header[TraceparentHeader]; len(values) == 1 && values[0] != "" {
-		if c, err := ParseTraceparentHeader(values[0]); err == nil {
-			opts.TraceContext = c
-		}
+	traceContext, ok := getRequestTraceparent(req, ElasticTraceparentHeader)
+	if !ok {
+		traceContext, _ = getRequestTraceparent(req, W3CTraceparentHeader)
 	}
-	tx := tracer.StartTransactionOptions(name, "request", opts)
+	tx := tracer.StartTransactionOptions(name, "request", apm.TransactionOptions{TraceContext: traceContext})
 	ctx := apm.ContextWithTransaction(req.Context(), tx)
 	req = RequestWithContext(ctx, req)
 	return tx, req
+}
+
+func getRequestTraceparent(req *http.Request, header string) (apm.TraceContext, bool) {
+	if values := req.Header[header]; len(values) == 1 && values[0] != "" {
+		if c, err := ParseTraceparentHeader(values[0]); err == nil {
+			return c, true
+		}
+	}
+	return apm.TraceContext{}, false
 }
 
 // SetTransactionContext sets tx.Result and, if the transaction is being
@@ -256,6 +272,15 @@ func WithRecovery(r RecoveryFunc) ServerOption {
 	}
 	return func(h *handler) {
 		h.recovery = r
+	}
+}
+
+// WithPanicPropagation returns a ServerOption which enable panic propagation.
+// Any panic will be recovered and recorded as an error in a transaction, then
+// panic will be caused again.
+func WithPanicPropagation() ServerOption {
+	return func(h *handler) {
+		h.panicPropagation = true
 	}
 }
 

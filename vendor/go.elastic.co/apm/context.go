@@ -26,6 +26,8 @@ import (
 )
 
 // Context provides methods for setting transaction and error context.
+//
+// NOTE this is entirely unrelated to the standard library's context.Context.
 type Context struct {
 	model            model.Context
 	request          model.Request
@@ -46,6 +48,7 @@ func (c *Context) build() *model.Context {
 	case c.model.User != nil:
 	case c.model.Service != nil:
 	case len(c.model.Tags) != 0:
+	case len(c.model.Custom) != 0:
 	default:
 		return nil
 	}
@@ -55,7 +58,8 @@ func (c *Context) build() *model.Context {
 func (c *Context) reset() {
 	*c = Context{
 		model: model.Context{
-			Tags: c.model.Tags[:0],
+			Custom: c.model.Custom[:0],
+			Tags:   c.model.Tags[:0],
 		},
 		captureBodyMask: c.captureBodyMask,
 		request: model.Request{
@@ -67,16 +71,44 @@ func (c *Context) reset() {
 	}
 }
 
-// SetTag sets a tag in the context. Invalid characters
-// ('.', '*', and '"') in the key will be replaced with
-// an underscore.
+// SetTag calls SetLabel(key, value).
+//
+// SetTag is deprecated, and will be removed in a future major version.
 func (c *Context) SetTag(key, value string) {
+	c.SetLabel(key, value)
+}
+
+// SetLabel sets a label in the context.
+//
+// Invalid characters ('.', '*', and '"') in the key will be replaced with
+// underscores.
+//
+// If the value is numerical or boolean, then it will be sent to the server
+// as a JSON number or boolean; otherwise it will converted to a string, using
+// `fmt.Sprint` if necessary. String values longer than 1024 characters will
+// be truncated.
+func (c *Context) SetLabel(key string, value interface{}) {
 	// Note that we do not attempt to de-duplicate the keys.
 	// This is OK, since json.Unmarshal will always take the
 	// final instance.
-	c.model.Tags = append(c.model.Tags, model.StringMapItem{
-		Key:   cleanTagKey(key),
-		Value: truncateString(value),
+	c.model.Tags = append(c.model.Tags, model.IfaceMapItem{
+		Key:   cleanLabelKey(key),
+		Value: makeLabelValue(value),
+	})
+}
+
+// SetCustom sets custom context.
+//
+// Invalid characters ('.', '*', and '"') in the key will be
+// replaced with an underscore. The value may be any JSON-encodable
+// value.
+func (c *Context) SetCustom(key string, value interface{}) {
+	// Note that we do not attempt to de-duplicate the keys.
+	// This is OK, since json.Unmarshal will always take the
+	// final instance.
+	c.model.Custom = append(c.model.Custom, model.IfaceMapItem{
+		Key:   cleanLabelKey(key),
+		Value: value,
 	})
 }
 
@@ -128,14 +160,9 @@ func (c *Context) SetHTTPRequest(req *http.Request) {
 		httpVersion = fmt.Sprintf("%d.%d", req.ProtoMajor, req.ProtoMinor)
 	}
 
-	var forwarded *apmhttputil.ForwardedHeader
-	if fwd := req.Header.Get("Forwarded"); fwd != "" {
-		parsed := apmhttputil.ParseForwarded(fwd)
-		forwarded = &parsed
-	}
 	c.request = model.Request{
 		Body:        c.request.Body,
-		URL:         apmhttputil.RequestURL(req, forwarded),
+		URL:         apmhttputil.RequestURL(req),
 		Method:      truncateString(req.Method),
 		HTTPVersion: httpVersion,
 		Cookies:     req.Cookies(),
@@ -156,7 +183,7 @@ func (c *Context) SetHTTPRequest(req *http.Request) {
 
 	c.requestSocket = model.RequestSocket{
 		Encrypted:     req.TLS != nil,
-		RemoteAddress: apmhttputil.RemoteAddr(req, forwarded),
+		RemoteAddress: apmhttputil.RemoteAddr(req),
 	}
 	if c.requestSocket != (model.RequestSocket{}) {
 		c.request.Socket = &c.requestSocket
