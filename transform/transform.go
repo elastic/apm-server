@@ -21,9 +21,10 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/elastic/beats/libbeat/beat"
+
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
-	"github.com/elastic/beats/libbeat/beat"
 )
 
 type Transformable interface {
@@ -39,5 +40,5 @@ type Context struct {
 type Config struct {
 	LibraryPattern      *regexp.Regexp
 	ExcludeFromGrouping *regexp.Regexp
-	SourcemapMapper     sourcemap.Mapper
+	SourcemapStore      *sourcemap.Store
 }

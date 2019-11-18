@@ -24,9 +24,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/sourcemap/test"
+	"github.com/elastic/apm-server/transform"
 )
 
 func TestStacktraceDecode(t *testing.T) {
@@ -41,7 +43,7 @@ func TestStacktraceDecode(t *testing.T) {
 		{input: "", err: errors.New("invalid type for stacktrace"), s: nil},
 		{
 			input: []interface{}{"foo"},
-			err:   ErrInvalidStacktraceFrameType,
+			err:   errInvalidStacktraceFrameType,
 			s:     &Stacktrace{nil},
 		},
 		{
@@ -155,23 +157,21 @@ func TestStacktraceTransform(t *testing.T) {
 }
 
 func TestStacktraceTransformWithSourcemapping(t *testing.T) {
-	colno := 1
-	l4, l5, l6, l8 := 4, 5, 6, 8
-	fct := "original function"
-	absPath, serviceName := "original path", "service1"
-	service := metadata.Service{Name: &serviceName}
+	int1, int6, int7, int67 := 1, 6, 7, 67
+	fct1, fct2 := "function foo", "function bar"
+	absPath, serviceName, serviceVersion := "/../a/c", "service1", "2.4.1"
+	service := metadata.Service{Name: &serviceName, Version: &serviceVersion}
 
-	tests := []struct {
+	for name, tc := range map[string]struct {
 		Stacktrace Stacktrace
 		Output     []common.MapStr
 		Msg        string
 	}{
-		{
+		"emptyStacktrace": {
 			Stacktrace: Stacktrace{},
 			Output:     nil,
-			Msg:        "Empty Stacktrace",
 		},
-		{
+		"emptyFrame": {
 			Stacktrace: Stacktrace{&StacktraceFrame{}},
 			Output: []common.MapStr{
 				{"filename": "",
@@ -182,10 +182,9 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 					},
 				},
 			},
-			Msg: "Stacktrace with empty Frame",
 		},
-		{
-			Stacktrace: Stacktrace{&StacktraceFrame{Colno: &colno}},
+		"noLineno": {
+			Stacktrace: Stacktrace{&StacktraceFrame{Colno: &int1}},
 			Output: []common.MapStr{
 				{"filename": "",
 					"line":                  common.MapStr{"column": 1},
@@ -196,97 +195,115 @@ func TestStacktraceTransformWithSourcemapping(t *testing.T) {
 					},
 				},
 			},
-			Msg: "Stacktrace with no lineno",
 		},
-		{
+		"sourcemapApplied": {
 			Stacktrace: Stacktrace{
 				&StacktraceFrame{
-					Colno:    &colno,
-					Lineno:   &l4,
+					Colno:    &int7,
+					Lineno:   &int1,
 					Filename: "original filename",
-					Function: &fct,
-					AbsPath:  &absPath,
-				},
-				&StacktraceFrame{Colno: &colno, Lineno: &l6, Function: &fct, AbsPath: &absPath},
-				&StacktraceFrame{Colno: &colno, Lineno: &l8, Function: &fct, AbsPath: &absPath},
-				&StacktraceFrame{
-					Colno:    &colno,
-					Lineno:   &l5,
-					Filename: "original filename",
-					Function: &fct,
+					Function: &fct1,
 					AbsPath:  &absPath,
 				},
 				&StacktraceFrame{
-					Colno:    &colno,
-					Lineno:   &l4,
-					Filename: "/webpack",
+					Colno:    &int67,
+					Lineno:   &int1,
+					Filename: "myfilename",
+					Function: &fct2,
 					AbsPath:  &absPath,
 				},
+				&StacktraceFrame{
+					Colno:    &int7,
+					Lineno:   &int1,
+					Filename: "myfilename",
+					Function: &fct2,
+					AbsPath:  &absPath,
+				},
+				&StacktraceFrame{Colno: &int1, Lineno: &int6, Function: &fct2, AbsPath: &absPath},
 			},
 			Output: []common.MapStr{
 				{
-					"abs_path": "changed path", "filename": "changed filename", "function": "<unknown>",
-					"line":                  common.MapStr{"column": 100, "number": 400, "context": ""},
+					"abs_path": "/a/c",
+					"filename": "webpack:///bundle.js",
+					"function": "exports",
+					"context": common.MapStr{
+						"post": []string{"/******/ \t// The module cache", "/******/ \tvar installedModules = {};", "/******/", "/******/ \t// The require function", "/******/ \tfunction __webpack_require__(moduleId) {"}},
+					"line": common.MapStr{
+						"column":  9,
+						"number":  1,
+						"context": "/******/ (function(modules) { // webpackBootstrap"},
 					"exclude_from_grouping": false,
 					"sourcemap":             common.MapStr{"updated": true},
 					"original": common.MapStr{
-						"abs_path": "original path",
-						"colno":    1,
+						"abs_path": "/../a/c",
+						"colno":    7,
 						"filename": "original filename",
-						"function": "original function",
-						"lineno":   4,
+						"function": "function foo",
+						"lineno":   1,
 					},
 				},
 				{
-					"abs_path": "original path", "filename": "", "function": "original function",
+					"abs_path": "/a/c",
+					"filename": "myfilename",
+					"function": "<unknown>", //prev function
+					"context": common.MapStr{
+						"post": []string{" \t\t\tid: moduleId,", " \t\t\tloaded: false", " \t\t};", "", " \t\t// Execute the module function"},
+						"pre":  []string{" \t\tif(installedModules[moduleId])", " \t\t\treturn installedModules[moduleId].exports;", "", " \t\t// Create a new module (and put it into the cache)", " \t\tvar module = installedModules[moduleId] = {"}},
+					"line": common.MapStr{
+						"column":  0,
+						"number":  13,
+						"context": " \t\t\texports: {},"},
+					"exclude_from_grouping": false,
+					"sourcemap":             common.MapStr{"updated": true},
+					"original": common.MapStr{
+						"abs_path": "/../a/c",
+						"colno":    67,
+						"filename": "myfilename",
+						"function": "function bar",
+						"lineno":   1,
+					},
+				},
+				{
+					"abs_path": "/a/c",
+					"filename": "webpack:///bundle.js",
+					"function": "<anonymous>", //prev function
+					"context": common.MapStr{
+						"post": []string{"/******/ \t// The module cache", "/******/ \tvar installedModules = {};", "/******/", "/******/ \t// The require function", "/******/ \tfunction __webpack_require__(moduleId) {"}},
+					"line": common.MapStr{
+						"column":  9,
+						"number":  1,
+						"context": "/******/ (function(modules) { // webpackBootstrap"},
+					"exclude_from_grouping": false,
+					"sourcemap":             common.MapStr{"updated": true},
+					"original": common.MapStr{
+						"abs_path": "/../a/c",
+						"colno":    7,
+						"filename": "myfilename",
+						"function": "function bar",
+						"lineno":   1,
+					},
+				},
+				{
+					"abs_path":              "/../a/c",
+					"filename":              "",
+					"function":              fct2,
 					"line":                  common.MapStr{"column": 1, "number": 6},
 					"exclude_from_grouping": false,
-					"sourcemap":             common.MapStr{"updated": false, "error": "Some key error"},
-				},
-				{
-					"abs_path": "original path", "filename": "", "function": "original function",
-					"line":                  common.MapStr{"column": 1, "number": 8},
-					"exclude_from_grouping": false,
-				},
-				{
-					"abs_path": "changed path", "filename": "original filename", "function": "changed function",
-					"line":                  common.MapStr{"column": 100, "number": 500, "context": ""},
-					"exclude_from_grouping": false,
-					"sourcemap":             common.MapStr{"updated": true},
-					"original": common.MapStr{
-						"abs_path": "original path",
-						"colno":    1,
-						"filename": "original filename",
-						"function": "original function",
-						"lineno":   5,
-					},
-				},
-				{
-					"abs_path": "changed path", "filename": "changed filename", "function": "<anonymous>",
-					"line":                  common.MapStr{"column": 100, "number": 400, "context": ""},
-					"exclude_from_grouping": false,
-					"sourcemap":             common.MapStr{"updated": true},
-					"original": common.MapStr{
-						"abs_path": "original path",
-						"colno":    1,
-						"filename": "/webpack",
-						"lineno":   4,
-					},
+					"sourcemap":             common.MapStr{"updated": false, "error": "No Sourcemap found for Lineno 6, Colno 1"},
 				},
 			},
-			Msg: "Stacktrace with sourcemapping",
 		},
-	}
+	} {
+		t.Run(name, func(t *testing.T) {
+			tctx := &transform.Context{
+				Config:   transform.Config{SourcemapStore: testSourcemapStore(t, test.ESClientWithValidSourcemap(t))},
+				Metadata: metadata.Metadata{Service: &service},
+			}
 
-	for idx, test := range tests {
-		tctx := &transform.Context{
-			Config:   transform.Config{SourcemapMapper: &FakeMapper{}},
-			Metadata: metadata.Metadata{Service: &service},
-		}
-
-		// run `Stacktrace.Transform` twice to ensure method is idempotent
-		test.Stacktrace.Transform(tctx)
-		output := test.Stacktrace.Transform(tctx)
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+			// run `Stacktrace.Transform` twice to ensure method is idempotent
+			tc.Stacktrace.Transform(tctx)
+			output := tc.Stacktrace.Transform(tctx)
+			assert.Equal(t, tc.Output, output)
+		})
 	}
 }
