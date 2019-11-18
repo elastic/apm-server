@@ -286,8 +286,7 @@ class ClientSideBaseTest(ServerBaseTest):
     def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',
                          service_name='apm-agent-js',
                          service_version='1.0.1',
-                         bundle_filepath='bundle_no_mapping.js.map',
-                         expected_ct=1):
+                         bundle_filepath='bundle_no_mapping.js.map'):
         path = self._beat_path_join(
             'testdata',
             'sourcemap',

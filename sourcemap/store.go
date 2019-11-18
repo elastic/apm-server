@@ -100,7 +100,7 @@ func (s *Store) Fetch(name string, version string, path string) (*Mapper, error)
 
 // Added ensures the internal cache is cleared for the given parameters. This should be called when a sourcemap is uploaded.
 func (s *Store) Added(name string, version string, path string) {
-	if _, err := s.Fetch(name, version, path); err == nil {
+	if sourcemap, err := s.Fetch(name, version, path); err == nil && sourcemap != nil {
 		s.logger.Warnf("Overriding sourcemap for service %s version %s and file %s",
 			name, version, path)
 	}
