@@ -67,6 +67,9 @@ pipeline {
               "^vendor/github.com/elastic/beats"
             ]
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
+
+            // Skip all the stages except docs for PR's with asciidoc changes only
+            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true)
           }
         }
       }
@@ -87,7 +90,10 @@ pipeline {
       }
       when {
         beforeAgent true
-        expression { return params.intake_ci }
+        allOf {
+          expression { return params.intake_ci }
+          expression { return env.ONLY_DOCS == "false" }
+        }
       }
       steps {
         withGithubNotify(context: 'Intake') {
@@ -109,7 +115,10 @@ pipeline {
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            expression { return params.linux_ci }
+            allOf {
+              expression { return params.linux_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Build - Linux') {
@@ -137,7 +146,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.windows_ci }
+            allOf {
+              expression { return params.windows_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Build-Test - Windows') {
@@ -173,7 +185,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_ci }
+            allOf {
+              expression { return params.test_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
@@ -212,7 +227,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_sys_env_ci }
+            allOf {
+              expression { return params.test_sys_env_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'System Tests', tab: 'tests') {
@@ -249,6 +267,7 @@ pipeline {
                 expression { return params.Run_As_Master_Branch }
               }
               expression { return params.bench_ci }
+              expression { return env.ONLY_DOCS == "false" }
             }
           }
           steps {
@@ -277,7 +296,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.kibana_update_ci }
+            allOf {
+              expression { return params.kibana_update_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Sync Kibana') {
@@ -326,6 +348,7 @@ pipeline {
             expression { return !params.Run_As_Master_Branch }
           }
           expression { return params.its_ci }
+          expression { return env.ONLY_DOCS == "false" }
         }
       }
       steps {
@@ -362,6 +385,7 @@ pipeline {
             expression { return env.BEATS_UPDATED != "false" }
           }
           expression { return params.release_ci }
+          expression { return env.ONLY_DOCS == "false" }
         }
       }
       steps {
