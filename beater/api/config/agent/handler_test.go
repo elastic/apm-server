@@ -245,6 +245,7 @@ func TestAgentConfigRum(t *testing.T) {
 	h(ctx)
 	var actual map[string]string
 	json.Unmarshal(w.Body.Bytes(), &actual)
+	assert.Equal(t, headers.Etag, w.Header().Get(headers.AccessControlExposeHeaders))
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	assert.Equal(t, map[string]string{"transaction_sample_rate": "0.5"}, actual)
 }
