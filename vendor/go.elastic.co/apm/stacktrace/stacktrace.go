@@ -35,20 +35,28 @@ func AppendStacktrace(frames []Frame, skip, n int) []Frame {
 		return frames
 	}
 	var pc []uintptr
-	if n > 0 {
+	if n > 0 && n <= 10 {
 		pc = make([]uintptr, n)
 		pc = pc[:runtime.Callers(skip+1, pc)]
 	} else {
-		// n is negative, get all frames.
-		n := 0
+		// n is negative or > 10, allocate space for 10
+		// and make repeated calls to runtime.Callers
+		// until we've got all the frames or reached n.
 		pc = make([]uintptr, 10)
+		m := 0
 		for {
-			n += runtime.Callers(skip+n+1, pc[n:])
-			if n < len(pc) {
-				pc = pc[:n]
+			m += runtime.Callers(skip+m+1, pc[m:])
+			if m < len(pc) || m == n {
+				pc = pc[:m]
 				break
 			}
+			// Extend pc's length, ensuring its length
+			// extends to its new capacity to minimise
+			// the number of calls to runtime.Callers.
 			pc = append(pc, 0)
+			for len(pc) < cap(pc) {
+				pc = append(pc, 0)
+			}
 		}
 	}
 	return AppendCallerFrames(frames, pc, n)

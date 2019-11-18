@@ -33,10 +33,15 @@ type Metrics struct {
 
 	mu      sync.Mutex
 	metrics []*model.Metrics
+
+	// transactionGroupMetrics holds metrics which are scoped to transaction
+	// groups, and are not sorted according to their labels.
+	transactionGroupMetrics []*model.Metrics
 }
 
 func (m *Metrics) reset() {
 	m.metrics = m.metrics[:0]
+	m.transactionGroupMetrics = m.transactionGroupMetrics[:0]
 }
 
 // MetricLabel is a name/value pair for labeling metrics.

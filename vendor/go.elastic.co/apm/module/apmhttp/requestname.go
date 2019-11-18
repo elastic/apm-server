@@ -24,6 +24,17 @@ import (
 	"strings"
 )
 
+// UnknownRouteRequestName returns the transaction name for the server request, req,
+// when the route could not be determined.
+func UnknownRouteRequestName(req *http.Request) string {
+	const suffix = " unknown route"
+	var b strings.Builder
+	b.Grow(len(req.Method) + len(suffix))
+	b.WriteString(req.Method)
+	b.WriteString(suffix)
+	return b.String()
+}
+
 // ServerRequestName returns the transaction name for the server request, req.
 func ServerRequestName(req *http.Request) string {
 	var b strings.Builder

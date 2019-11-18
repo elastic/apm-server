@@ -537,6 +537,51 @@ func (*StringMapItem) MarshalFastJSON(*fastjson.Writer) error {
 	panic("unreachable")
 }
 
+func (m IfaceMap) isZero() bool {
+	return len(m) == 0
+}
+
+// MarshalFastJSON writes the JSON representation of m to w.
+func (m IfaceMap) MarshalFastJSON(w *fastjson.Writer) (firstErr error) {
+	w.RawByte('{')
+	first := true
+	for _, item := range m {
+		if first {
+			first = false
+		} else {
+			w.RawByte(',')
+		}
+		w.String(item.Key)
+		w.RawByte(':')
+		if err := fastjson.Marshal(w, item.Value); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	w.RawByte('}')
+	return nil
+}
+
+// UnmarshalJSON unmarshals the JSON data into m.
+func (m *IfaceMap) UnmarshalJSON(data []byte) error {
+	var mm map[string]interface{}
+	if err := json.Unmarshal(data, &mm); err != nil {
+		return err
+	}
+	*m = make(IfaceMap, 0, len(mm))
+	for k, v := range mm {
+		*m = append(*m, IfaceMapItem{Key: k, Value: v})
+	}
+	sort.Slice(*m, func(i, j int) bool {
+		return (*m)[i].Key < (*m)[j].Key
+	})
+	return nil
+}
+
+// MarshalFastJSON exists to prevent code generation for IfaceMapItem.
+func (*IfaceMapItem) MarshalFastJSON(*fastjson.Writer) error {
+	panic("unreachable")
+}
+
 func (id *TraceID) isZero() bool {
 	return *id == TraceID{}
 }
@@ -575,6 +620,14 @@ func (id *SpanID) MarshalFastJSON(w *fastjson.Writer) error {
 
 func (t *ErrorTransaction) isZero() bool {
 	return *t == ErrorTransaction{}
+}
+
+func (t *MetricsTransaction) isZero() bool {
+	return *t == MetricsTransaction{}
+}
+
+func (s *MetricsSpan) isZero() bool {
+	return *s == MetricsSpan{}
 }
 
 func writeHex(w *fastjson.Writer, v []byte) {

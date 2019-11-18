@@ -14,21 +14,29 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+//
+// Based on Go's pkg/hash/fnv.
+//
+// Copyright 2011 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
-package apmconfig
+package apm
 
-import "strings"
+const (
+	offset64 = 14695981039346656037
+	prime64  = 1099511628211
+)
 
-// ParseList parses s as a list of strings, separated by sep,
-// and with whitespace trimmed from the list items, omitting
-// empty items.
-func ParseList(s, sep string) []string {
-	var list []string
-	for _, item := range strings.Split(s, sep) {
-		item = strings.TrimSpace(item)
-		if item != "" {
-			list = append(list, item)
-		}
+type fnv1a uint64
+
+func newFnv1a() fnv1a {
+	return offset64
+}
+
+func (f *fnv1a) add(s string) {
+	for i := 0; i < len(s); i++ {
+		*f ^= fnv1a(s[i])
+		*f *= prime64
 	}
-	return list
 }
