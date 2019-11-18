@@ -47,6 +47,7 @@ func (g *builtinMetricsGatherer) GatherMetrics(ctx context.Context, m *Metrics) 
 	m.Add("golang.goroutines", nil, float64(runtime.NumGoroutine()))
 	g.gatherSystemMetrics(m)
 	g.gatherMemStatsMetrics(m)
+	g.tracer.breakdownMetrics.gather(m)
 	return nil
 }
 

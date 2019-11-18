@@ -15,17 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmstrings
+package configutil
 
-// Truncate returns s truncated at n runes, and the number
-// of runes in the resulting string (<= n).
-func Truncate(s string, n int) (string, int) {
-	var j int
-	for i := range s {
-		if j == n {
-			return s[:i], n
+import "strings"
+
+// ParseList parses s as a list of strings, separated by sep,
+// and with whitespace trimmed from the list items, omitting
+// empty items.
+func ParseList(s, sep string) []string {
+	var list []string
+	for _, item := range strings.Split(s, sep) {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			list = append(list, item)
 		}
-		j++
 	}
-	return s, j
+	return list
 }

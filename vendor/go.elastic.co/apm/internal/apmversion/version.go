@@ -15,17 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package apmstrings
+package apmversion
 
-// Truncate returns s truncated at n runes, and the number
-// of runes in the resulting string (<= n).
-func Truncate(s string, n int) (string, int) {
-	var j int
-	for i := range s {
-		if j == n {
-			return s[:i], n
-		}
-		j++
-	}
-	return s, j
-}
+const (
+	// AgentVersion is the Elastic APM Go Agent version.
+	AgentVersion = "1.6.0"
+)

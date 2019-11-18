@@ -30,10 +30,19 @@ import (
 const (
 	// TraceparentHeader is the HTTP header for trace propagation.
 	//
-	// NOTE: at this time, the W3C Trace-Context headers are not finalised.
-	// To avoid producing possibly invalid traceparent headers, we will
-	// use an alternative name until the format is frozen.
-	TraceparentHeader = "Elastic-Apm-Traceparent"
+	// For backwards compatibility, this is currently an alias for
+	// for ElasticTraceparentHeader, but the more specific constants
+	// below should be preferred. In a future version this will be
+	// replaced by the standard W3C header.
+	TraceparentHeader = ElasticTraceparentHeader
+
+	// ElasticTraceparentHeader is the legacy HTTP header for trace propagation,
+	// maintained for backwards compatibility with older agents.
+	ElasticTraceparentHeader = "Elastic-Apm-Traceparent"
+
+	// W3CTraceparentHeader is the standard W3C Trace-Context HTTP
+	// header for trace propagation.
+	W3CTraceparentHeader = "Traceparent"
 )
 
 // FormatTraceparentHeader formats the given trace context as a

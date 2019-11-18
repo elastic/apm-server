@@ -1,7 +1,5 @@
 TEST_TIMEOUT?=5m
-GO_LICENSER_EXCLUDE=\
-  module/apmot/internal/harness \
-  stacktrace/testdata
+GO_LICENSER_EXCLUDE=stacktrace/testdata
 
 .PHONY: check
 check: precheck check-modules test

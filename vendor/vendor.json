@@ -2665,132 +2665,148 @@
 			"revisionTime": "2017-06-26T13:12:58Z"
 		},
 		{
-			"checksumSHA1": "oi6Gci6hbYMlPyWNMOrbFe7S9wA=",
+			"checksumSHA1": "HF5aqkyZhDnmusO9bjAtSVIKhvQ=",
 			"path": "go.elastic.co/apm",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "0DlaT3v7dLz9+nRSumt4It4Qfzw=",
-			"path": "go.elastic.co/apm/internal/apmconfig",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"checksumSHA1": "oaKKkmUl8HRP90bd+yNzJ/XVya4=",
+			"path": "go.elastic.co/apm/apmconfig",
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
 			"checksumSHA1": "k47GkPJ3iWtd4Fy5M/4vT7afxNE=",
 			"path": "go.elastic.co/apm/internal/apmcontext",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "nZ1n1rg7avIGutQadrrKG48XwLE=",
+			"checksumSHA1": "8WOKARWQ+jfkpvMrjL7Xf43ih9k=",
 			"path": "go.elastic.co/apm/internal/apmhostutil",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "gpP1JJK7m4j53MydzNNLvyb8eN0=",
+			"checksumSHA1": "zGBzM12UihOALaoJm2NAjjj/DJU=",
 			"path": "go.elastic.co/apm/internal/apmhttputil",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "FQ0kpTNTV854BSbV3Mi9Hn4h3VQ=",
+			"checksumSHA1": "Hd2JFOVlVZ3knxswP3CZp5g0T4w=",
 			"path": "go.elastic.co/apm/internal/apmlog",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "xQ0kHAhP72wTgFFyx1ClsvCFB6c=",
+			"checksumSHA1": "qDpUL5/aUdYlJTci0JVrdTPZeNw=",
 			"path": "go.elastic.co/apm/internal/apmschema",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "JjoM/Kp8bRFt6SApUARdJXHlc7Y=",
+			"checksumSHA1": "1MDHkJKNWEEFp9GOWxtJfDFb+3A=",
 			"path": "go.elastic.co/apm/internal/apmstrings",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
+		},
+		{
+			"checksumSHA1": "F7u3yDZZj0fPfKUy8jBGdvqtLv8=",
+			"path": "go.elastic.co/apm/internal/apmversion",
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
+		},
+		{
+			"checksumSHA1": "5oSAbJ9eS2yv0p/Gm8yPx+ttP2A=",
+			"path": "go.elastic.co/apm/internal/configutil",
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
 			"checksumSHA1": "t3RBXEqNjYBOzkISQ2owvJ7O9ts=",
 			"path": "go.elastic.co/apm/internal/iochan",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "gcLzWzeaTZd6XuCcXq5oJM2crRs=",
+			"checksumSHA1": "iumevVeKXptxLM5WDN7zvHAFChs=",
 			"path": "go.elastic.co/apm/internal/pkgerrorsutil",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
 			"checksumSHA1": "94vpBAGXi3+EKqka4Gj20QYv+dc=",
 			"path": "go.elastic.co/apm/internal/ringbuffer",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
 			"checksumSHA1": "YCmYIuI9nZS67lRGltx8/Zr16dk=",
 			"path": "go.elastic.co/apm/internal/wildcard",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "Sp8+13lbaLcCt39VOGK5oFdxAT8=",
+			"checksumSHA1": "lFKB7pfsb7LkjK1Pd2rRcZVqAYA=",
 			"path": "go.elastic.co/apm/model",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "xhQn3+RPpe8ZyWVqhuk9PzmjmjQ=",
+			"checksumSHA1": "oWoy4s0X9r/nYynIYE23iDpakPE=",
 			"path": "go.elastic.co/apm/module/apmhttp",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "Nc5G5CQd4rhhfHOP9vQgJs1ThlQ=",
+			"checksumSHA1": "5bcIH490Gu1MkwPkphgK0JjIKko=",
 			"path": "go.elastic.co/apm/stacktrace",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
-			"checksumSHA1": "wydiZJQefd6UQV7hg0uqGLVtcs0=",
+			"checksumSHA1": "W00cz49jkuMvfP7/IL132I5SWc4=",
 			"path": "go.elastic.co/apm/transport",
-			"revision": "392aef3d73e277e8e82bb285e98516675130d84f",
-			"revisionTime": "2019-03-21T01:42:55Z",
-			"version": "v1.3.0",
-			"versionExact": "v1.3.0"
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
 		},
 		{
 			"checksumSHA1": "ou8/GMlWF1EShL3NuomgkrmDwb0=",
