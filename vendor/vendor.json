@@ -1497,10 +1497,10 @@
 			"revisionTime": "2019-10-18T23:19:20Z"
 		},
 		{
-			"checksumSHA1": "wgane+Jx/akhNYEAqL/TlxwvkYg=",
+			"checksumSHA1": "cSNhWI3euRSQv1BsIKpx/M59B4o=",
 			"path": "github.com/elastic/go-elasticsearch/v8",
-			"revision": "8efb73c32e7fa9d1e2e905d9ec112d51382cabf4",
-			"revisionTime": "2019-10-22T14:22:00Z",
+			"revision": "413583419151bfec42078b5754120bb4d04bd537",
+			"revisionTime": "2019-11-16T09:03:43Z",
 			"tree": true
 		},
 		{

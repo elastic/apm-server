@@ -12,9 +12,11 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/internal/version"
@@ -56,30 +58,45 @@ type Config struct {
 	MaxRetries           int
 	RetryBackoff         func(attempt int) time.Duration
 
+	EnableMetrics     bool
+	EnableDebugLogger bool
+
+	DiscoverNodesInterval time.Duration
+
 	Transport http.RoundTripper
 	Logger    Logger
+	Selector  Selector
+
+	ConnectionPoolFunc func([]*Connection, Selector) ConnectionPool
 }
 
 // Client represents the HTTP client.
 //
 type Client struct {
+	sync.Mutex
+
 	urls     []*url.URL
 	username string
 	password string
 	apikey   string
 
-	retryOnStatus        []int
-	disableRetry         bool
-	enableRetryOnTimeout bool
-	maxRetries           int
-	retryBackoff         func(attempt int) time.Duration
+	retryOnStatus         []int
+	disableRetry          bool
+	enableRetryOnTimeout  bool
+	maxRetries            int
+	retryBackoff          func(attempt int) time.Duration
+	discoverNodesInterval time.Duration
+
+	metrics *metrics
 
 	transport http.RoundTripper
-	selector  Selector
 	logger    Logger
+	selector  Selector
+	pool      ConnectionPool
+	poolFunc  func([]*Connection, Selector) ConnectionPool
 }
 
-// New creates new HTTP client.
+// New creates new transport client.
 //
 // http.DefaultTransport will be used if no transport is passed in the configuration.
 //
@@ -96,22 +113,58 @@ func New(cfg Config) *Client {
 		cfg.MaxRetries = defaultMaxRetries
 	}
 
-	return &Client{
+	var conns []*Connection
+	for _, u := range cfg.URLs {
+		conns = append(conns, &Connection{URL: u})
+	}
+
+	client := Client{
 		urls:     cfg.URLs,
 		username: cfg.Username,
 		password: cfg.Password,
 		apikey:   cfg.APIKey,
 
-		retryOnStatus:        cfg.RetryOnStatus,
-		disableRetry:         cfg.DisableRetry,
-		enableRetryOnTimeout: cfg.EnableRetryOnTimeout,
-		maxRetries:           cfg.MaxRetries,
-		retryBackoff:         cfg.RetryBackoff,
+		retryOnStatus:         cfg.RetryOnStatus,
+		disableRetry:          cfg.DisableRetry,
+		enableRetryOnTimeout:  cfg.EnableRetryOnTimeout,
+		maxRetries:            cfg.MaxRetries,
+		retryBackoff:          cfg.RetryBackoff,
+		discoverNodesInterval: cfg.DiscoverNodesInterval,
 
 		transport: cfg.Transport,
-		selector:  NewRoundRobinSelector(cfg.URLs...),
 		logger:    cfg.Logger,
+		selector:  cfg.Selector,
+		poolFunc:  cfg.ConnectionPoolFunc,
 	}
+
+	if client.poolFunc != nil {
+		client.pool = client.poolFunc(conns, client.selector)
+	} else {
+		client.pool, _ = NewConnectionPool(conns, client.selector)
+	}
+
+	if cfg.EnableDebugLogger {
+		debugLogger = &debuggingLogger{Output: os.Stdout}
+	}
+
+	if cfg.EnableMetrics {
+		client.metrics = &metrics{responses: make(map[int]int)}
+		// TODO(karmi): Type assertion to interface
+		if pool, ok := client.pool.(*singleConnectionPool); ok {
+			pool.metrics = client.metrics
+		}
+		if pool, ok := client.pool.(*statusConnectionPool); ok {
+			pool.metrics = client.metrics
+		}
+	}
+
+	if client.discoverNodesInterval > 0 {
+		time.AfterFunc(client.discoverNodesInterval, func() {
+			client.scheduleDiscoverNodes(client.discoverNodesInterval)
+		})
+	}
+
+	return &client
 }
 
 // Perform executes the request and returns a response or error.
@@ -122,8 +175,14 @@ func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 		err error
 	)
 
+	// Record metrics, when enabled
+	if c.metrics != nil {
+		c.metrics.Lock()
+		c.metrics.requests++
+		c.metrics.Unlock()
+	}
+
 	// Update request
-	//
 	c.setReqUserAgent(req)
 
 	if req.Body != nil && req.Body != http.NoBody && req.GetBody == nil {
@@ -142,22 +201,24 @@ func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 
 	for i := 1; i <= c.maxRetries; i++ {
 		var (
-			nodeURL     *url.URL
+			conn        *Connection
 			shouldRetry bool
 		)
 
-		// Get URL from the Selector
-		//
-		nodeURL, err = c.getURL()
+		// Get connection from the pool
+		c.Lock()
+		conn, err = c.pool.Next()
+		c.Unlock()
 		if err != nil {
-			// TODO(karmi): Log error
-			return nil, fmt.Errorf("cannot get URL: %s", err)
+			if c.logger != nil {
+				c.logRoundTrip(req, nil, err, time.Time{}, time.Duration(0))
+			}
+			return nil, fmt.Errorf("cannot get connection: %s", err)
 		}
 
 		// Update request
-		//
-		c.setReqURL(nodeURL, req)
-		c.setReqAuth(nodeURL, req)
+		c.setReqURL(conn.URL, req)
+		c.setReqAuth(conn.URL, req)
 
 		if !c.disableRetry && i > 1 && req.Body != nil && req.Body != http.NoBody {
 			body, err := req.GetBody()
@@ -168,13 +229,11 @@ func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 		}
 
 		// Set up time measures and execute the request
-		//
 		start := time.Now().UTC()
 		res, err = c.transport.RoundTrip(req)
 		dur := time.Since(start)
 
 		// Log request and response
-		//
 		if c.logger != nil {
 			if c.logger.RequestBodyEnabled() && req.Body != nil && req.Body != http.NoBody {
 				req.Body, _ = req.GetBody()
@@ -182,18 +241,39 @@ func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 			c.logRoundTrip(req, res, err, start, dur)
 		}
 
-		// Retry only on network errors, but don't retry on timeout errors, unless configured
-		//
 		if err != nil {
+			// Record metrics, when enabled
+			if c.metrics != nil {
+				c.metrics.Lock()
+				c.metrics.failures++
+				c.metrics.Unlock()
+			}
+
+			// Report the connection as unsuccessful
+			c.Lock()
+			c.pool.OnFailure(conn)
+			c.Unlock()
+
+			// Retry only on network errors, but don't retry on timeout errors, unless configured
 			if err, ok := err.(net.Error); ok {
 				if (!err.Timeout() || c.enableRetryOnTimeout) && !c.disableRetry {
 					shouldRetry = true
 				}
 			}
+		} else {
+			// Report the connection as succesfull
+			c.Lock()
+			c.pool.OnSuccess(conn)
+			c.Unlock()
+		}
+
+		if res != nil && c.metrics != nil {
+			c.metrics.Lock()
+			c.metrics.responses[res.StatusCode]++
+			c.metrics.Unlock()
 		}
 
 		// Retry on configured response statuses
-		//
 		if res != nil && !c.disableRetry {
 			for _, code := range c.retryOnStatus {
 				if res.StatusCode == code {
@@ -203,13 +283,11 @@ func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 		}
 
 		// Break if retry should not be performed
-		//
 		if !shouldRetry {
 			break
 		}
 
 		// Delay the retry if a backoff function is configured
-		//
 		if c.retryBackoff != nil {
 			time.Sleep(c.retryBackoff(i))
 		}
@@ -221,12 +299,9 @@ func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 
 // URLs returns a list of transport URLs.
 //
+//
 func (c *Client) URLs() []*url.URL {
-	return c.urls
-}
-
-func (c *Client) getURL() (*url.URL, error) {
-	return c.selector.Select()
+	return c.pool.URLs()
 }
 
 func (c *Client) setReqURL(u *url.URL, req *http.Request) *http.Request {

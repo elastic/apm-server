@@ -42,10 +42,20 @@ type Config struct {
 	EnableRetryOnTimeout bool  // Default: false.
 	MaxRetries           int   // Default: 3.
 
+	DiscoverNodesOnStart  bool          // Discover nodes when initializing the client. Default: false.
+	DiscoverNodesInterval time.Duration // Discover nodes periodically. Default: disabled.
+
+	EnableMetrics     bool // Enable the metrics collection.
+	EnableDebugLogger bool // Enable the debug logging.
+
 	RetryBackoff func(attempt int) time.Duration // Optional backoff duration. Default: nil.
 
-	Transport http.RoundTripper  // The HTTP transport object.
-	Logger    estransport.Logger // The logger object.
+	Transport http.RoundTripper    // The HTTP transport object.
+	Logger    estransport.Logger   // The logger object.
+	Selector  estransport.Selector // The selector object.
+
+	// Optional constructor function for a custom ConnectionPool. Default: nil.
+	ConnectionPoolFunc func([]*estransport.Connection, estransport.Selector) estransport.ConnectionPool
 }
 
 // Client represents the Elasticsearch client.
@@ -90,7 +100,7 @@ func NewClient(cfg Config) (*Client, error) {
 	}
 
 	if len(cfg.Addresses) > 0 && cfg.CloudID != "" {
-		return nil, errors.New("cannot create client: both Adresses and CloudID are set")
+		return nil, errors.New("cannot create client: both Addresses and CloudID are set")
 	}
 
 	if cfg.CloudID != "" {
@@ -101,10 +111,9 @@ func NewClient(cfg Config) (*Client, error) {
 		addrs = append(addrs, cloudAddrs)
 	} else {
 		if len(envAddrs) > 0 {
-			addrs = append(envAddrs, envAddrs...)
-		}
-		if len(cfg.Addresses) > 0 {
-			addrs = append(envAddrs, cfg.Addresses...)
+			addrs = append(addrs, envAddrs...)
+		} else if len(cfg.Addresses) > 0 {
+			addrs = append(addrs, cfg.Addresses...)
 		}
 	}
 
@@ -116,6 +125,13 @@ func NewClient(cfg Config) (*Client, error) {
 	if len(urls) == 0 {
 		u, _ := url.Parse(defaultURL) // errcheck exclude
 		urls = append(urls, u)
+	}
+
+	// TODO(karmi): Refactor
+	if urls[0].User != nil {
+		cfg.Username = urls[0].User.Username()
+		pw, _ := urls[0].User.Password()
+		cfg.Password = pw
 	}
 
 	tp := estransport.New(estransport.Config{
@@ -130,17 +146,48 @@ func NewClient(cfg Config) (*Client, error) {
 		MaxRetries:           cfg.MaxRetries,
 		RetryBackoff:         cfg.RetryBackoff,
 
-		Transport: cfg.Transport,
-		Logger:    cfg.Logger,
+		EnableMetrics:     cfg.EnableMetrics,
+		EnableDebugLogger: cfg.EnableDebugLogger,
+
+		DiscoverNodesInterval: cfg.DiscoverNodesInterval,
+
+		Transport:          cfg.Transport,
+		Logger:             cfg.Logger,
+		Selector:           cfg.Selector,
+		ConnectionPoolFunc: cfg.ConnectionPoolFunc,
 	})
 
-	return &Client{Transport: tp, API: esapi.New(tp)}, nil
+	client := &Client{Transport: tp, API: esapi.New(tp)}
+
+	if cfg.DiscoverNodesOnStart {
+		go client.DiscoverNodes()
+	}
+
+	return client, nil
 }
 
 // Perform delegates to Transport to execute a request and return a response.
 //
 func (c *Client) Perform(req *http.Request) (*http.Response, error) {
 	return c.Transport.Perform(req)
+}
+
+// Metrics returns the client metrics.
+//
+func (c *Client) Metrics() (estransport.Metrics, error) {
+	if mt, ok := c.Transport.(estransport.Measurable); ok {
+		return mt.Metrics()
+	}
+	return estransport.Metrics{}, errors.New("transport is missing method Metrics()")
+}
+
+// DiscoverNodes reloads the client connections by fetching information from the cluster.
+//
+func (c *Client) DiscoverNodes() error {
+	if dt, ok := c.Transport.(estransport.Discoverable); ok {
+		return dt.DiscoverNodes()
+	}
+	return errors.New("transport is missing method DiscoverNodes()")
 }
 
 // addrsFromEnvironment returns a list of addresses by splitting
@@ -178,10 +225,7 @@ func addrsToURLs(addrs []string) ([]*url.URL, error) {
 // See: https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html
 //
 func addrFromCloudID(input string) (string, error) {
-	var (
-		port   = 9243
-		scheme = "https://"
-	)
+	var scheme = "https://"
 
 	values := strings.Split(input, ":")
 	if len(values) != 2 {
@@ -192,5 +236,5 @@ func addrFromCloudID(input string) (string, error) {
 		return "", err
 	}
 	parts := strings.Split(string(data), "$")
-	return fmt.Sprintf("%s%s.%s:%d", scheme, parts[1], parts[0], port), nil
+	return fmt.Sprintf("%s%s.%s", scheme, parts[1], parts[0]), nil
 }
