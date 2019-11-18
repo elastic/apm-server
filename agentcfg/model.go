@@ -33,7 +33,7 @@ const (
 
 var (
 	// RumAgent keywords (new and old)
-	RumAgent = []string{"rum-js", "base-js"}
+	RumAgent = []string{"rum-js", "js-base"}
 	// RumSettings are whitelisted applicable settings for RUM
 	RumSettings = []string{"transaction_sample_rate"}
 )
