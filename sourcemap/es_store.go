@@ -128,39 +128,66 @@ func parse(response *esapi.Response, name, version, path string, logger *logp.Lo
 }
 
 func query(name, version, path string) map[string]interface{} {
+	return searchFirst(
+		boolean(
+			must(
+				term("processor.name", "sourcemap"),
+				term("sourcemap.service.name", name),
+				term("sourcemap.service.version", version),
+				term("processor.name", "sourcemap"),
+				boolean(
+					should(
+						// prefer full URL match
+						boostedTerm("sourcemap.bundle_filepath", path, 2.0),
+						term("sourcemap.bundle_filepath", utility.UrlPath(path)),
+					),
+				),
+			),
+		),
+		"sourcemap.sourcemap",
+		desc("_score"),
+		desc("@timestamp"),
+	)
+}
+
+func wrap(k string, v map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{k: v}
+}
+
+func boolean(clause map[string]interface{}) map[string]interface{} {
+	return wrap("bool", clause)
+}
+
+func should(clauses ...map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{"should": clauses}
+}
+
+func must(clauses ...map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{"must": clauses}
+}
+
+func term(k, v string) map[string]interface{} {
+	return map[string]interface{}{"term": map[string]interface{}{k: v}}
+}
+
+func boostedTerm(k, v string, boost float32) map[string]interface{} {
+	return wrap("term",
+		wrap(k, map[string]interface{}{
+			"value": v,
+			"boost": boost,
+		}),
+	)
+}
+
+func desc(by string) map[string]interface{} {
+	return wrap(by, map[string]interface{}{"order": "desc"})
+}
+
+func searchFirst(query map[string]interface{}, source string, sort ...map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					{"term": map[string]interface{}{"processor.name": "sourcemap"}},
-					{"term": map[string]interface{}{"sourcemap.service.name": name}},
-					{"term": map[string]interface{}{"sourcemap.service.version": version}},
-					{"bool": map[string]interface{}{
-						"should": []map[string]interface{}{
-							{"term": map[string]interface{}{"sourcemap.bundle_filepath": map[string]interface{}{
-								"value": path,
-								// prefer full url match
-								"boost": 2.0,
-							}}},
-							{"term": map[string]interface{}{"sourcemap.bundle_filepath": utility.UrlPath(path)}},
-						},
-					}},
-				},
-			},
-		},
-		"size": 1,
-		"sort": []map[string]interface{}{
-			{
-				"_score": map[string]interface{}{
-					"order": "desc",
-				},
-			},
-			{
-				"@timestamp": map[string]interface{}{
-					"order": "desc",
-				},
-			},
-		},
-		"_source": "sourcemap.sourcemap",
+		"query":   query,
+		"size":    1,
+		"sort":    sort,
+		"_source": source,
 	}
 }

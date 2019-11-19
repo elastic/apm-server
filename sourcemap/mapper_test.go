@@ -30,16 +30,15 @@ import (
 
 func TestApply(t *testing.T) {
 	// no sourcemapConsumer
-	_, _, _, _, _, _, _, ok := (&Mapper{}).Apply(0, 0)
+	_, _, _, _, _, _, _, ok := Map(nil, 0, 0)
 	assert.False(t, ok)
 
-	sourcemapConsumer, err := sourcemap.Parse("", []byte(test.ValidSourcemap))
+	m, err := sourcemap.Parse("", []byte(test.ValidSourcemap))
 	require.NoError(t, err)
-	m := &Mapper{sourcemapConsumer: sourcemapConsumer}
 
 	t.Run("notOK", func(t *testing.T) {
 		// nothing found for lineno and colno
-		file, fc, line, col, ctxLine, _, _, ok := m.Apply(0, 0)
+		file, fc, line, col, ctxLine, _, _, ok := Map(m, 0, 0)
 		require.False(t, ok)
 		assert.Zero(t, file)
 		assert.Zero(t, fc)
@@ -50,7 +49,7 @@ func TestApply(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		// mapping found in minified sourcemap
-		file, fc, line, col, ctxLine, preCtx, postCtx, ok := m.Apply(1, 7)
+		file, fc, line, col, ctxLine, preCtx, postCtx, ok := Map(m, 1, 7)
 		require.True(t, ok)
 		assert.Equal(t, "webpack:///bundle.js", file)
 		assert.Equal(t, "", fc)

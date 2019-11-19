@@ -63,16 +63,13 @@ func NewStore(client *elasticsearch.Client, index string, expiration time.Durati
 }
 
 // Fetch a sourcemap from the store.
-func (s *Store) Fetch(name string, version string, path string) (*Mapper, error) {
+func (s *Store) Fetch(name string, version string, path string) (*sourcemap.Consumer, error) {
 	key := key([]string{name, version, path})
 
 	// fetch from cache
 	if val, found := s.cache.Get(key); found {
-		sourcemapConsumer, ok := val.(*sourcemap.Consumer)
-		if ok && sourcemapConsumer != nil {
-			return &Mapper{sourcemapConsumer: sourcemapConsumer}, nil
-		}
-		return nil, nil
+		consumer, _ := val.(*sourcemap.Consumer)
+		return consumer, nil
 	}
 
 	// fetch from Elasticsearch and ensure caching for all non-temporary results
@@ -95,7 +92,7 @@ func (s *Store) Fetch(name string, version string, path string) (*Mapper, error)
 		return nil, errors.Wrap(err, errMsgParseSourcemap)
 	}
 	s.add(key, consumer)
-	return &Mapper{sourcemapConsumer: consumer}, nil
+	return consumer, nil
 }
 
 // Added ensures the internal cache is cleared for the given parameters. This should be called when a sourcemap is uploaded.

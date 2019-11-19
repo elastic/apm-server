@@ -63,8 +63,7 @@ func TestStore_Fetch(t *testing.T) {
 
 			mapper, err := store.Fetch(serviceName, serviceVersion, path)
 			require.NoError(t, err)
-			require.NotNil(t, mapper)
-			assert.Equal(t, consumer, mapper.sourcemapConsumer)
+			assert.Equal(t, consumer, mapper)
 
 		})
 	})
@@ -74,12 +73,11 @@ func TestStore_Fetch(t *testing.T) {
 		mapper, err := store.Fetch(serviceName, serviceVersion, path)
 		require.NoError(t, err)
 		require.NotNil(t, mapper)
-		require.NotNil(t, mapper.sourcemapConsumer)
 
 		// ensure sourcemap is added to cache
 		cached, found := store.cache.Get(key)
 		require.True(t, found)
-		assert.Equal(t, mapper.sourcemapConsumer, cached)
+		assert.Equal(t, mapper, cached)
 	})
 
 	t.Run("notFoundInES", func(t *testing.T) {
@@ -154,17 +152,15 @@ func TestStore_Added(t *testing.T) {
 
 	mapper, err := store.Fetch(name, version, path)
 	require.NoError(t, err)
-	require.NotNil(t, mapper)
-	assert.Equal(t, &sourcemap.Consumer{}, mapper.sourcemapConsumer)
-	assert.Equal(t, "", mapper.sourcemapConsumer.File())
+	assert.Equal(t, &sourcemap.Consumer{}, mapper)
+	assert.Equal(t, "", mapper.File())
 
 	// remove from cache, afterwards sourcemap should be fetched from ES
 	store.Added(name, version, path)
 	mapper, err = store.Fetch(name, version, path)
 	require.NoError(t, err)
-	require.NotNil(t, mapper)
-	assert.NotNil(t, &sourcemap.Consumer{}, mapper.sourcemapConsumer)
-	assert.Equal(t, "bundle.js", mapper.sourcemapConsumer.File())
+	assert.NotNil(t, &sourcemap.Consumer{}, mapper)
+	assert.Equal(t, "bundle.js", mapper.File())
 }
 
 func TestExpiration(t *testing.T) {
@@ -176,7 +172,7 @@ func TestExpiration(t *testing.T) {
 	// sourcemap is cached
 	mapper, err := store.Fetch(name, version, path)
 	require.NoError(t, err)
-	assert.Equal(t, &sourcemap.Consumer{}, mapper.sourcemapConsumer)
+	assert.Equal(t, &sourcemap.Consumer{}, mapper)
 
 	time.Sleep(25 * time.Millisecond)
 	// cache is cleared, sourcemap is fetched from ES leading to an error

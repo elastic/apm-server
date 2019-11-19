@@ -25,22 +25,16 @@ import (
 
 const sourcemapContentSnippetSize = 5
 
-// Mapper holds a sourcemapper instance to be able to apply sourcemapping
-type Mapper struct {
-	sourcemapConsumer *sourcemap.Consumer
-}
-
-// Apply sourcemapping for given line and column and return values after sourcemapping
-func (m *Mapper) Apply(lineno, colno int) (
+// Map sourcemapping for given line and column and return values after sourcemapping
+func Map(mapper *sourcemap.Consumer, lineno, colno int) (
 	file string, function string, line int, col int,
 	contextLine string, preContext []string, postContext []string, ok bool) {
 
-	if m.sourcemapConsumer == nil {
+	if mapper == nil {
 		return
 	}
-
-	file, function, line, col, ok = m.sourcemapConsumer.Source(lineno, colno)
-	src := strings.Split(m.sourcemapConsumer.SourceContent(file), "\n")
+	file, function, line, col, ok = mapper.Source(lineno, colno)
+	src := strings.Split(mapper.SourceContent(file), "\n")
 	contextLine = strings.Join(subSlice(line-1, line, src), "")
 	preContext = subSlice(line-1-sourcemapContentSnippetSize, line-1, src)
 	postContext = subSlice(line, line+sourcemapContentSnippetSize, src)

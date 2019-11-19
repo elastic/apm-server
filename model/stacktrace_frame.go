@@ -191,7 +191,7 @@ func (s *StacktraceFrame) applySourcemap(store *sourcemap.Store, service *metada
 		return
 	}
 
-	file, fct, line, col, ctxLine, preCtx, postCtx, ok := mapper.Apply(*s.Original.Lineno, *s.Original.Colno)
+	file, fct, line, col, ctxLine, preCtx, postCtx, ok := sourcemap.Map(mapper, *s.Original.Lineno, *s.Original.Colno)
 	if !ok {
 		errMsg = fmt.Sprintf("No Sourcemap found for Lineno %v, Colno %v", *s.Original.Lineno, *s.Original.Colno)
 		s.updateError(errMsg)
