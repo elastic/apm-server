@@ -3,6 +3,7 @@
 
 This section discusses the changes that you need to be aware of when migrating your application from one version of APM to another.
 
+* <<breaking-7.5.0>>
 * <<breaking-7.4.0>>
 * <<breaking-7.3.0>>
 * <<breaking-7.2.0>>
@@ -21,6 +22,29 @@ Also see <<apm-release-notes>>.
 // tag::notable-v8-breaking-changes[]
 
 // end::notable-v8-breaking-changes[]
+
+[[breaking-7.5.0]]
+=== 7.5.0 APM Breaking changes
+
+// tag::notable-v75-breaking-changes[]
+
+APM Server::
++
+* Introduced dedicated `apm-server.ilm.setup.*` flags.
+This means you can now customize ILM behavior from within the APM Server configuration.
+As a side effect, `setup.template.*` settings will be ignored for ILM related templates per event type.
+See {apm-server-ref}/ilm.html#ilm-setup[set up ILM] for more information.
++
+* By default, ILM policies will not longer be versioned.
+All event types will switch to the new default policy: rollover after 30 days or when reaching a size 50gb.
+See {apm-server-ref}/ilm.html#ilm-default[default policy] for more information.
+
+APM::
++
+* To make use of all the new features introduced in 7.5,
+you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
+
+// tag::notable-v75-breaking-changes[]
 
 [[breaking-7.4.0]]
 === 7.4.0 APM Breaking changes
