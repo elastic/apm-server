@@ -8,7 +8,7 @@ mappings in Elasticsearch. If template loading is enabled (the default),
 {beatname_uc} loads the index template automatically after successfully
 connecting to Elasticsearch.
 
-ifndef::no_logstash_output[]
+ifndef::no-output-logstash[]
 
 NOTE: A connection to Elasticsearch is required to load the index template. If
 the output is Logstash, you must <<load-template-manually,load the template
@@ -69,7 +69,7 @@ setup.template.settings:
   index.number_of_replicas: 1
 ----------------------------------------------------------------------
 
-NOTE: If you want to use {ref}/xpack-ccr.html[{ccr}] to replicate {beatname_uc}
+NOTE: If you want to use {stack-ov}/xpack-ccr.html[{ccr}] to replicate {beatname_uc}
 indices to another cluster, you will need to add additional template settings to
 {ref}/ccr-requirements.html#ccr-overview-beats[enable soft deletes] on the
 underlying indices.
