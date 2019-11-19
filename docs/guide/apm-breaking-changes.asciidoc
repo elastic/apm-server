@@ -44,14 +44,14 @@ APM::
 * To make use of all the new features introduced in 7.5,
 you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
 
-// tag::notable-v75-breaking-changes[]
+// end::notable-v75-breaking-changes[]
 
 [[breaking-7.4.0]]
 === 7.4.0 APM Breaking changes
 
 // tag::notable-v74-breaking-changes[]
 No breaking changes.
-// tag::notable-v74-breaking-changes[]
+// end::notable-v74-breaking-changes[]
 
 [[breaking-7.3.0]]
 === 7.3.0 APM Breaking changes
