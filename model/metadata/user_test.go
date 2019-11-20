@@ -20,6 +20,7 @@ package metadata
 import (
 	"encoding/json"
 	"errors"
+	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +30,7 @@ import (
 
 func TestUserFields(t *testing.T) {
 	id := "1234"
-	ip := "127.0.0.1"
+	ip := net.ParseIP("127.0.0.1")
 	email := "test@mail.co"
 	name := "user123"
 	userAgent := "rum-1.0"
@@ -45,7 +46,7 @@ func TestUserFields(t *testing.T) {
 		{
 			User: User{
 				Id:        &id,
-				IP:        &ip,
+				IP:        ip,
 				Email:     &email,
 				Name:      &name,
 				UserAgent: &userAgent,
@@ -67,21 +68,20 @@ func TestUserFields(t *testing.T) {
 func TestUserClientFields(t *testing.T) {
 	id := "1234"
 	email := "test@mail.co"
-	name := "user123"
+	userName := "user123"
 	userAgent := "rum-1.0"
 
-	for _, tc := range map[string]struct {
+	for name, tc := range map[string]struct {
 		ip  string
 		out common.MapStr
 	}{
-		"Empty":        {ip: "", out: nil},
-		"IPv4":         {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
-		"IPv4WithPort": {ip: "192.0.0.1:8080", out: common.MapStr{"ip": "192.0.0.1"}},
-		"IPv6":         {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
-		"Invalid":      {ip: "192.0.1", out: nil},
+		"Empty":   {ip: "", out: nil},
+		"IPv4":    {ip: "192.0.0.1", out: common.MapStr{"ip": "192.0.0.1"}},
+		"IPv6":    {ip: "2001:db8::68", out: common.MapStr{"ip": "2001:db8::68"}},
+		"Invalid": {ip: "192.0.1", out: nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			u := User{IP: &tc.ip, Id: &id, Email: &email, Name: &name, UserAgent: &userAgent}
+			u := User{IP: net.ParseIP(tc.ip), Id: &id, Email: &email, Name: &userName, UserAgent: &userAgent}
 			assert.Equal(t, tc.out, u.ClientFields())
 		})
 	}
@@ -96,7 +96,6 @@ func TestUserClientFields(t *testing.T) {
 
 func TestUserAgentFields(t *testing.T) {
 	id := "1234"
-	ip := "127.0.0.1"
 	email := "test@mail.co"
 	name := "user123"
 	userAgent := "rum-1.0"
@@ -112,7 +111,7 @@ func TestUserAgentFields(t *testing.T) {
 		{
 			User: User{
 				Id:        &id,
-				IP:        &ip,
+				IP:        net.ParseIP("127.0.0.1"),
 				Email:     &email,
 				Name:      &name,
 				UserAgent: &userAgent,
@@ -146,7 +145,7 @@ func TestUserDecode(t *testing.T) {
 			},
 			err: nil,
 			u: &User{
-				Id: &id, Email: &mail, Name: &name, IP: &ip, UserAgent: &agent,
+				Id: &id, Email: &mail, Name: &name, IP: net.ParseIP(ip), UserAgent: &agent,
 			},
 		},
 	} {

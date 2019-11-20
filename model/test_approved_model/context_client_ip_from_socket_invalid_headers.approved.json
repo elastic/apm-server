@@ -1,5 +1,7 @@
 {
-    "Client": null,
+    "Client": {
+        "IP": "10.1.23.5"
+    },
     "Custom": null,
     "Experimental": null,
     "Http": {
@@ -7,11 +9,15 @@
             "Body": null,
             "Cookies": null,
             "Env": null,
-            "Headers": {},
-            "Method": "get",
+            "Headers": {
+                "X-Forwarded-For": [
+                    "192.13.14:8097"
+                ]
+            },
+            "Method": "post",
             "Socket": {
-                "Encrypted": null,
-                "RemoteAddress": null
+                "Encrypted": false,
+                "RemoteAddress": "10.1.23.5"
             }
         },
         "Response": null,
@@ -24,7 +30,7 @@
         "Domain": null,
         "Fragment": null,
         "Full": null,
-        "Original": "127.0.0.1",
+        "Original": null,
         "Path": null,
         "Port": null,
         "Query": null,

@@ -20,6 +20,7 @@ package utility
 import (
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
 	"net/textproto"
 	"strings"
@@ -129,7 +130,8 @@ func (d *ManualDecoder) StringPtr(base map[string]interface{}, key string, keys 
 	val := getDeep(base, keys...)[key]
 	if val == nil {
 		return nil
-	} else if valStr, ok := val.(string); ok {
+	}
+	if valStr, ok := val.(string); ok {
 		return &valStr
 	}
 	d.Err = ErrFetch
@@ -142,6 +144,20 @@ func (d *ManualDecoder) String(base map[string]interface{}, key string, keys ...
 	}
 	d.Err = ErrFetch
 	return ""
+}
+
+// NetIP extracts the value for key nested under keys from base and tries to decode as net.IP.
+// On error the decoder.Err is updated.
+func (d *ManualDecoder) NetIP(base map[string]interface{}, key string, keys ...string) net.IP {
+	val := getDeep(base, keys...)[key]
+	if val == nil {
+		return nil
+	}
+	if valStr, ok := val.(string); ok {
+		return ParseIP(valStr)
+	}
+	d.Err = ErrFetch
+	return nil
 }
 
 func (d *ManualDecoder) StringArr(base map[string]interface{}, key string, keys ...string) []string {
