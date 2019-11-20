@@ -13,6 +13,9 @@
                 "name": "java",
                 "version": "1.10.0"
             },
+            "client": {
+                "ip": "12.53.12.1"
+            },
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
@@ -21,7 +24,81 @@
             },
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
-                "grouping_key": "0ae1d49d1b8ed6f2d1adde5e90f9d1c5",
+                "custom": {
+                    "and_objects": {
+                        "foo": [
+                            "bar",
+                            "baz"
+                        ]
+                    },
+                    "my_key": 1,
+                    "some_other_value": "foobar"
+                },
+                "exception": [
+                    {
+                        "attributes": {
+                            "foo": "bar"
+                        },
+                        "code": "42",
+                        "handled": false,
+                        "message": "Theusernamerootisunknown",
+                        "module": "org.springframework.http.client",
+                        "stacktrace": [
+                            {
+                                "abs_path": "/tmp/AbstractPlainSocketImpl.java",
+                                "context": {
+                                    "post": [
+                                        "line4",
+                                        "line5"
+                                    ],
+                                    "pre": [
+                                        "line1",
+                                        "line2"
+                                    ]
+                                },
+                                "exclude_from_grouping": false,
+                                "filename": "AbstractPlainSocketImpl.java",
+                                "function": "connect",
+                                "library_frame": true,
+                                "line": {
+                                    "column": 4,
+                                    "context": "3",
+                                    "number": 3
+                                },
+                                "module": "java.net",
+                                "vars": {
+                                    "key": "value"
+                                }
+                            },
+                            {
+                                "exclude_from_grouping": false,
+                                "filename": "AbstractClientHttpRequest.java",
+                                "function": "execute",
+                                "line": {
+                                    "number": 102
+                                },
+                                "vars": {
+                                    "key": "value"
+                                }
+                            }
+                        ],
+                        "type": "java.net.UnknownHostException"
+                    },
+                    {
+                        "message": "something wrong writing a file",
+                        "type": "InternalDbError"
+                    },
+                    {
+                        "message": "disk spinning way too fast",
+                        "type": "VeryInternalDbError"
+                    },
+                    {
+                        "message": "on top of it,internet doesn't work",
+                        "parent": 1,
+                        "type": "ConnectionError"
+                    }
+                ],
+                "grouping_key": "9a4054e958afe722b5877e8fac578ff3",
                 "id": "9876543210abcdeffedcba0123456789",
                 "log": {
                     "level": "error",
@@ -79,6 +156,55 @@
                     "platform": "Linux"
                 }
             },
+            "http": {
+                "request": {
+                    "body": {
+                        "original": "HelloWorld"
+                    },
+                    "cookies": {
+                        "c1": "v1",
+                        "c2": "v2"
+                    },
+                    "env": {
+                        "GATEWAY_INTERFACE": "CGI/1.1",
+                        "SERVER_SOFTWARE": "nginx"
+                    },
+                    "headers": {
+                        "Content-Length": [
+                            "0"
+                        ],
+                        "Cookie": [
+                            "c1=v1",
+                            "c2=v2"
+                        ],
+                        "Elastic-Apm-Traceparent": [
+                            "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
+                        ],
+                        "Forwarded": [
+                            "for=192.168.0.1"
+                        ],
+                        "Host": [
+                            "opbeans-java:3000"
+                        ]
+                    },
+                    "method": "post",
+                    "socket": {
+                        "encrypted": true,
+                        "remote_address": "12.53.12.1"
+                    }
+                },
+                "response": {
+                    "finished": true,
+                    "headers": {
+                        "Content-Type": [
+                            "application/json"
+                        ]
+                    },
+                    "headers_sent": true,
+                    "status_code": 200
+                },
+                "version": "1.1"
+            },
             "kubernetes": {
                 "namespace": "default",
                 "node": {
@@ -92,6 +218,7 @@
             "labels": {
                 "ab_testing": true,
                 "group": "experimental",
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "segment": 5
             },
             "observer": {
@@ -120,22 +247,25 @@
             "service": {
                 "environment": "production",
                 "framework": {
-                    "name": "spring",
-                    "version": "5.0.0"
+                    "name": "Node",
+                    "version": "1"
                 },
                 "language": {
                     "name": "Java",
-                    "version": "10.0.2"
+                    "version": "1.2"
                 },
-                "name": "1234_service-12a3",
+                "name": "service1",
                 "node": {
-                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+                    "name": "node-xyz"
                 },
                 "runtime": {
                     "name": "Java",
                     "version": "10.0.2"
                 },
                 "version": "4.3.0"
+            },
+            "source": {
+                "ip": "12.53.12.1"
             },
             "timestamp": {
                 "us": 1571657444929001
@@ -147,6 +277,21 @@
                 "id": "1234567890987654",
                 "sampled": true,
                 "type": "request"
+            },
+            "url": {
+                "domain": "www.example.com",
+                "fragment": "#hash",
+                "full": "https://www.example.com/p/a/t/h?query=string#hash",
+                "original": "/p/a/t/h?query=string#hash",
+                "path": "/p/a/t/h",
+                "port": 8080,
+                "query": "?query=string",
+                "scheme": "https"
+            },
+            "user": {
+                "email": "user@foo.mail",
+                "id": "99",
+                "name": "foo"
             }
         },
         {
