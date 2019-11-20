@@ -38,10 +38,10 @@ func TestNewDoc(t *testing.T) {
 	})
 
 	t.Run("ValidInput", func(t *testing.T) {
-		inp := []byte(`{"_id": "1234", "_source": {"settings":{"sample_rate":0.5}}}`)
+		inp := []byte(`{"_id": "1234", "_source": {"etag":"123", "settings":{"sample_rate":0.5}}}`)
 
 		d, err := newResult(inp, nil)
 		require.NoError(t, err)
-		assert.Equal(t, Result{Source{Settings: Settings{"sample_rate": "0.5"}}}, d)
+		assert.Equal(t, Result{Source{Etag: "123", Settings: Settings{"sample_rate": "0.5"}}}, d)
 	})
 }
