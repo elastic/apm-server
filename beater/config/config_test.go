@@ -19,6 +19,7 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -29,151 +30,208 @@ import (
 
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
-	"github.com/elastic/go-ucfg/yaml"
 )
 
-func TestConfig(t *testing.T) {
-	truthy := true
-	cases := []struct {
-		config         []byte
-		expectedConfig Config
+func Test_UnpackConfig(t *testing.T) {
+	falsy, truthy := false, true
+	version := "8.0.0"
+
+	tests := map[string]struct {
+		inpCfg       map[string]interface{}
+		outCfg       *Config
+		outCfgWithES *Config
 	}{
-		{
-			config: []byte(`{
-        "host": "localhost:3000",
-        "max_header_size": 8,
-        "idle_timeout": 4s,
-        "read_timeout": 3s,
-        "write_timeout": 4s,
-        "shutdown_timeout": 9s,
-        "secret_token": "1234random",
-        "ssl": {
-			"enabled": true,
-			"key": "1234key",
-			"certificate": "1234cert",
-			"certificate_authorities": ["./ca.cert.pem"]
+		"default config": {
+			inpCfg:       map[string]interface{}{},
+			outCfg:       DefaultConfig(version),
+			outCfgWithES: DefaultConfig(version),
 		},
-		"rum": {
-			"enabled": true,
-			"event_rate": {
-				"limit":      8000,
-				"lru_size": 2000,
-			},
-			"allow_origins": ["rum*"],
-			"source_mapping": {
-				"cache": {
-					"expiration": 1m,
+		"overwrite default": {
+			inpCfg: map[string]interface{}{
+				"host":                  "localhost:3000",
+				"max_header_size":       8,
+				"max_event_size":        100,
+				"idle_timeout":          5 * time.Second,
+				"read_timeout":          3 * time.Second,
+				"write_timeout":         4 * time.Second,
+				"shutdown_timeout":      9 * time.Second,
+				"capture_personal_data": true,
+				"secret_token":          "1234random",
+				"ssl": map[string]interface{}{
+					"enabled":                 true,
+					"key":                     "1234key",
+					"certificate":             "1234cert",
+					"certificate_authorities": []string{"./ca.cert.pem"},
+					"client_authentication":   "none",
 				},
-				"index_pattern": "apm-rum-test*"
+				"expvar": map[string]interface{}{
+					"enabled": true,
+					"url":     "/debug/vars",
+				},
+				"rum": map[string]interface{}{
+					"enabled": true,
+					"event_rate": map[string]interface{}{
+						"limit":    7200,
+						"lru_size": 2000,
+					},
+					"allow_origins": []string{"example*"},
+					"source_mapping": map[string]interface{}{
+						"cache": map[string]interface{}{
+							"expiration": 8 * time.Minute,
+						},
+						"index_pattern": "apm-test*",
+					},
+					"library_pattern":       "^custom",
+					"exclude_from_grouping": "^grouping",
+				},
+				"register": map[string]interface{}{
+					"ingest": map[string]interface{}{
+						"pipeline": map[string]interface{}{
+							"overwrite": false,
+							"path":      filepath.Join("tmp", "definition.json"),
+						},
+					},
+				},
+				"kibana":                        map[string]interface{}{"enabled": "true"},
+				"agent.config.cache.expiration": "2m",
 			},
-			"library_pattern": "pattern-rum",
-			"exclude_from_grouping": "group_pattern-rum",
-		},
-		"register": {
-			"ingest": { 
-				"pipeline": {
-					enabled: true,
-					overwrite: true,
-					path: "tmp",
-				}
-			}
-		}
-      }`),
-			expectedConfig: Config{
+			outCfg: &Config{
 				Host:            "localhost:3000",
 				MaxHeaderSize:   8,
-				IdleTimeout:     4000000000,
+				MaxEventSize:    100,
+				IdleTimeout:     5000000000,
 				ReadTimeout:     3000000000,
 				WriteTimeout:    4000000000,
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				TLS: &tlscommon.ServerConfig{
 					Enabled:     &truthy,
-					CAs:         []string{"./ca.cert.pem"},
 					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
-					ClientAuth:  4}, //4=RequireAndVerifyClientCert
+					ClientAuth:  0,
+					CAs:         []string{"./ca.cert.pem"},
+				},
+				AugmentEnabled: true,
+				Expvar: &ExpvarConfig{
+					Enabled: &truthy,
+					URL:     "/debug/vars",
+				},
 				RumConfig: &RumConfig{
 					Enabled: &truthy,
 					EventRate: &EventRate{
-						Limit:   8000,
+						Limit:   7200,
 						LruSize: 2000,
 					},
-					AllowOrigins: []string{"rum*"},
+					AllowOrigins: []string{"example*"},
 					SourceMapping: &SourceMapping{
-						Cache:        &Cache{Expiration: 1 * time.Minute},
-						IndexPattern: "apm-rum-test*",
+						Cache:        &Cache{Expiration: 8 * time.Minute},
+						IndexPattern: "apm-test*",
 					},
-					LibraryPattern:      "pattern-rum",
-					ExcludeFromGrouping: "group_pattern-rum",
+					LibraryPattern:      "^custom",
+					ExcludeFromGrouping: "^grouping",
+					BeatVersion:         version,
 				},
 				Register: &RegisterConfig{
 					Ingest: &IngestConfig{
 						Pipeline: &PipelineConfig{
 							Enabled:   &truthy,
-							Overwrite: &truthy,
-							Path:      "tmp",
+							Overwrite: &falsy,
+							Path:      filepath.Join("tmp", "definition.json"),
+						},
+					},
+				},
+				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
+				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
+				Pipeline:    defaultAPMPipeline,
+			},
+		},
+		"merge config with default": {
+			inpCfg: map[string]interface{}{
+				"host":         "localhost:3000",
+				"secret_token": "1234random",
+				"ssl": map[string]interface{}{
+					"enabled": true,
+				},
+				"expvar": map[string]interface{}{
+					"enabled": true,
+					"url":     "/debug/vars",
+				},
+				"rum": map[string]interface{}{
+					"enabled": true,
+					"source_mapping": map[string]interface{}{
+						"cache": map[string]interface{}{
+							"expiration": 7,
+						},
+					},
+					"library_pattern": "rum",
+				},
+				"register": map[string]interface{}{
+					"ingest": map[string]interface{}{
+						"pipeline": map[string]interface{}{
+							"enabled": false,
 						},
 					},
 				},
 			},
-		},
-		{
-			config: []byte(`{
-        "host": "localhost:8200",
-        "max_header_size": 8,
-        "read_timeout": 3s,
-        "write_timeout": 2s,
-        "shutdown_timeout": 5s,
-        "secret_token": "1234random",
-		"rum": {
-			"source_mapping": {}
-		},
-		"register": {}
-      }`),
-			expectedConfig: Config{
-				Host:            "localhost:8200",
-				MaxHeaderSize:   8,
-				ReadTimeout:     3000000000,
-				WriteTimeout:    2000000000,
+			outCfg: &Config{
+				Host:            "localhost:3000",
+				MaxHeaderSize:   1048576,
+				MaxEventSize:    307200,
+				IdleTimeout:     45000000000,
+				ReadTimeout:     30000000000,
+				WriteTimeout:    30000000000,
 				ShutdownTimeout: 5000000000,
 				SecretToken:     "1234random",
+				TLS: &tlscommon.ServerConfig{
+					Enabled:     &truthy,
+					Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
+					ClientAuth:  3},
+				AugmentEnabled: true,
+				Expvar: &ExpvarConfig{
+					Enabled: &truthy,
+					URL:     "/debug/vars",
+				},
 				RumConfig: &RumConfig{
-					Enabled:      nil,
-					EventRate:    nil,
-					AllowOrigins: nil,
-					SourceMapping: &SourceMapping{
-						IndexPattern: "",
+					Enabled: &truthy,
+					EventRate: &EventRate{
+						Limit:   300,
+						LruSize: 1000,
 					},
+					AllowOrigins: []string{"*"},
+					SourceMapping: &SourceMapping{
+						Cache: &Cache{
+							Expiration: 7 * time.Second,
+						},
+						IndexPattern: "apm-*-sourcemap*",
+					},
+					LibraryPattern:      "rum",
+					ExcludeFromGrouping: "^/webpack",
+					BeatVersion:         "8.0.0",
 				},
 				Register: &RegisterConfig{
-					Ingest: nil,
+					Ingest: &IngestConfig{
+						Pipeline: &PipelineConfig{
+							Enabled: &falsy,
+							Path:    filepath.Join("ingest", "pipeline", "definition.json"),
+						},
+					},
 				},
-			},
-		},
-		{
-			config: []byte(`{ }`),
-			expectedConfig: Config{
-				Host:            "",
-				MaxHeaderSize:   0,
-				IdleTimeout:     0,
-				ReadTimeout:     0,
-				WriteTimeout:    0,
-				ShutdownTimeout: 0,
-				SecretToken:     "",
-				TLS:             nil,
-				RumConfig:       nil,
+				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+				Pipeline:    defaultAPMPipeline,
 			},
 		},
 	}
-	for idx, test := range cases {
-		cfg, err := yaml.NewConfig(test.config)
-		require.NoError(t, err)
-		var beaterConfig Config
-		err = cfg.Unpack(&beaterConfig)
-		require.NoError(t, err)
 
-		msg := fmt.Sprintf("Test number %v failed. Config: %v, ExpectedConfig: %v", idx, beaterConfig, test.expectedConfig)
-		assert.Equal(t, test.expectedConfig, beaterConfig, msg)
+	for name, test := range tests {
+		t.Run(name+"no outputESCfg", func(t *testing.T) {
+			inpCfg, err := common.NewConfigFrom(test.inpCfg)
+			assert.NoError(t, err)
+
+			cfg, err := NewConfig(version, inpCfg, nil)
+			require.NoError(t, err)
+			require.NotNil(t, cfg)
+			assert.Equal(t, test.outCfg, cfg)
+		})
 	}
 }
 
@@ -190,70 +248,6 @@ func TestReplaceBeatVersion(t *testing.T) {
 	for _, test := range cases {
 		out := replaceVersion(test.indexPattern, test.version)
 		assert.Equal(t, test.replaced, out)
-	}
-}
-
-func TestIsRumEnabled(t *testing.T) {
-	truthy := true
-	for _, td := range []struct {
-		c       *Config
-		enabled bool
-	}{
-		{c: &Config{RumConfig: &RumConfig{Enabled: new(bool)}}, enabled: false},
-		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, enabled: true},
-	} {
-		assert.Equal(t, td.enabled, td.c.RumConfig.IsEnabled())
-
-	}
-}
-
-func TestDefaultRum(t *testing.T) {
-	c := DefaultConfig("7.0.0")
-	assert.Equal(t, c.RumConfig, defaultRum("7.0.0"))
-}
-
-func TestMemoizedSourcemapMapper(t *testing.T) {
-	truthy := true
-	esConfig, err := common.NewConfigFrom(map[string]interface{}{
-		"hosts": []string{"localhost:0"},
-	})
-	require.NoError(t, err)
-	mapping := SourceMapping{
-		Cache:        &Cache{Expiration: 1 * time.Minute},
-		IndexPattern: "apm-rum-test*",
-		EsConfig:     esConfig,
-	}
-
-	for idx, td := range []struct {
-		c      *Config
-		mapper bool
-		e      error
-	}{
-		{c: &Config{RumConfig: &RumConfig{}}, mapper: false, e: nil},
-		{c: &Config{RumConfig: &RumConfig{Enabled: new(bool)}}, mapper: false, e: nil},
-		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy}}, mapper: false, e: nil},
-		{c: &Config{RumConfig: &RumConfig{SourceMapping: &mapping}}, mapper: false, e: nil},
-		{c: &Config{
-			RumConfig: &RumConfig{
-				Enabled: &truthy,
-				SourceMapping: &SourceMapping{
-					Cache:        &Cache{Expiration: 1 * time.Minute},
-					IndexPattern: "apm-rum-test*",
-				},
-			}},
-			mapper: false,
-			e:      nil},
-		{c: &Config{RumConfig: &RumConfig{Enabled: &truthy, SourceMapping: &mapping}},
-			mapper: true,
-			e:      nil},
-	} {
-		mapper, e := td.c.RumConfig.MemoizedSourcemapMapper()
-		if td.mapper {
-			assert.NotNil(t, mapper, fmt.Sprintf("Test number <%v> failed", idx))
-		} else {
-			assert.Nil(t, mapper, fmt.Sprintf("Test number <%v> failed", idx))
-		}
-		assert.Equal(t, td.e, e)
 	}
 }
 
@@ -314,7 +308,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := NewConfig("9.9.9", ucfgCfg)
+				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
 			})
@@ -340,7 +334,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := NewConfig("9.9.9", ucfgCfg)
+				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.VerificationMode, cfg.TLS.VerificationMode)
 			})
@@ -373,22 +367,39 @@ func TestTLSSettings(t *testing.T) {
 func TestAgentConfig(t *testing.T) {
 	t.Run("InvalidValueTooSmall", func(t *testing.T) {
 		cfg, err := NewConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}))
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("InvalidUnit", func(t *testing.T) {
 		cfg, err := NewConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}))
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
 		cfg, err := NewConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}))
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
 		require.NoError(t, err)
 		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
 	})
+}
+
+func TestSourcemapESConfig(t *testing.T) {
+	version := "8.0.0"
+	ucfg, err := common.NewConfigFrom(`{"rum":{"enabled":true}}`)
+	require.NoError(t, err)
+
+	// no es config given
+	cfg, err := NewConfig(version, ucfg, nil)
+	require.NoError(t, err)
+	assert.Nil(t, cfg.RumConfig.SourceMapping.ESConfig)
+
+	// with es config
+	outputESCfg := common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
+	cfg, err = NewConfig(version, ucfg, outputESCfg)
+	require.NoError(t, err)
+	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
 }

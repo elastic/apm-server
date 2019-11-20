@@ -1,0 +1,193 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package sourcemap
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
+	"github.com/pkg/errors"
+
+	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+
+	"github.com/elastic/apm-server/utility"
+)
+
+const (
+	emptyResult          = ""
+	errMsgParseSourcemap = "Could not parse Sourcemap."
+)
+
+var (
+	errMsgESFailure         = "failure querying ES"
+	errSourcemapWrongFormat = errors.New("Sourcemapping ES Result not in expected format")
+)
+
+type esStore struct {
+	client *elasticsearch.Client
+	index  string
+	logger *logp.Logger
+}
+
+type esSourcemapResponse struct {
+	Hits struct {
+		Total struct {
+			Value int
+		}
+		Hits []struct {
+			Source struct {
+				Sourcemap struct {
+					Sourcemap string
+				}
+			} `json:"_source"`
+		}
+	} `json:"hits"`
+}
+
+func (s *esStore) fetch(name, version, path string) (string, error) {
+	response, err := s.runSearchQuery(name, version, path)
+	if err != nil {
+		return "", errors.Wrap(err, errMsgESFailure)
+	}
+	defer response.Body.Close()
+	// handle error response
+	if response.IsError() {
+		if response.StatusCode == http.StatusNotFound {
+			return "", nil
+		}
+		b, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return "", errors.Wrap(err, errMsgParseSourcemap)
+		}
+		return "", errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+	}
+
+	// parse response
+	return parse(response, name, version, path, s.logger)
+}
+
+func (s *esStore) runSearchQuery(name, version, path string) (*esapi.Response, error) {
+	// build and encode the query
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {
+		return nil, err
+	}
+
+	// Perform the runSearchQuery request.
+	return s.client.Search(
+		s.client.Search.WithContext(context.Background()),
+		s.client.Search.WithIndex(s.index),
+		s.client.Search.WithBody(&buf),
+		s.client.Search.WithTrackTotalHits(true),
+		s.client.Search.WithPretty(),
+	)
+}
+
+func parse(response *esapi.Response, name, version, path string, logger *logp.Logger) (string, error) {
+	var esSourcemapResponse esSourcemapResponse
+	if err := json.NewDecoder(response.Body).Decode(&esSourcemapResponse); err != nil {
+		return "", err
+	}
+	hits := esSourcemapResponse.Hits.Total.Value
+	if hits == 0 {
+		return emptyResult, nil
+	}
+
+	var esSourcemap string
+	if hits > 1 {
+		logger.Warnf("%d sourcemaps found for service %s version %s and file %s, using the most recent one",
+			hits, name, version, path)
+	}
+	esSourcemap = esSourcemapResponse.Hits.Hits[0].Source.Sourcemap.Sourcemap
+	// until https://github.com/golang/go/issues/19858 is resolved
+	if esSourcemap == emptyResult {
+		return emptyResult, errSourcemapWrongFormat
+	}
+	return esSourcemap, nil
+}
+
+func query(name, version, path string) map[string]interface{} {
+	return searchFirst(
+		boolean(
+			must(
+				term("processor.name", "sourcemap"),
+				term("sourcemap.service.name", name),
+				term("sourcemap.service.version", version),
+				term("processor.name", "sourcemap"),
+				boolean(
+					should(
+						// prefer full URL match
+						boostedTerm("sourcemap.bundle_filepath", path, 2.0),
+						term("sourcemap.bundle_filepath", utility.UrlPath(path)),
+					),
+				),
+			),
+		),
+		"sourcemap.sourcemap",
+		desc("_score"),
+		desc("@timestamp"),
+	)
+}
+
+func wrap(k string, v map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{k: v}
+}
+
+func boolean(clause map[string]interface{}) map[string]interface{} {
+	return wrap("bool", clause)
+}
+
+func should(clauses ...map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{"should": clauses}
+}
+
+func must(clauses ...map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{"must": clauses}
+}
+
+func term(k, v string) map[string]interface{} {
+	return map[string]interface{}{"term": map[string]interface{}{k: v}}
+}
+
+func boostedTerm(k, v string, boost float32) map[string]interface{} {
+	return wrap("term",
+		wrap(k, map[string]interface{}{
+			"value": v,
+			"boost": boost,
+		}),
+	)
+}
+
+func desc(by string) map[string]interface{} {
+	return wrap(by, map[string]interface{}{"order": "desc"})
+}
+
+func searchFirst(query map[string]interface{}, source string, sort ...map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"query":   query,
+		"size":    1,
+		"sort":    sort,
+		"_source": source,
+	}
+}

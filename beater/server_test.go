@@ -30,6 +30,13 @@ import (
 
 	"github.com/gofrs/uuid"
 
+	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/outputs"
+	pubs "github.com/elastic/beats/libbeat/publisher"
+	"github.com/elastic/beats/libbeat/publisher/pipeline"
+	"github.com/elastic/beats/libbeat/publisher/processing"
+	"github.com/elastic/beats/libbeat/publisher/queue"
+	"github.com/elastic/beats/libbeat/publisher/queue/memqueue"
 	"github.com/elastic/beats/libbeat/version"
 
 	"github.com/stretchr/testify/assert"
@@ -40,6 +47,7 @@ import (
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/tests/loader"
 )
 
@@ -234,7 +242,8 @@ func TestServerRumSwitch(t *testing.T) {
 func TestServerSourcemapBadConfig(t *testing.T) {
 	ucfg, err := common.NewConfigFrom(m{"rum": m{"enabled": true, "source_mapping": m{"elasticsearch": m{"hosts": []string{}}}}})
 	require.NoError(t, err)
-	_, teardown, err := setupServer(t, ucfg, nil, nil)
+	s, teardown, err := setupServer(t, ucfg, nil, nil)
+	require.Nil(t, s)
 	if err == nil {
 		defer teardown()
 	}
@@ -318,18 +327,17 @@ func TestServerNoContentType(t *testing.T) {
 }
 
 func TestServerSourcemapElasticsearch(t *testing.T) {
-	cases := []struct {
-		expected     []string
+	for name, tc := range map[string]struct {
+		expected     elasticsearch.Hosts
 		config       m
 		outputConfig m
 	}{
-		{
+		"nil": {
 			expected: nil,
 			config:   m{},
 		},
-		{
-			// source_mapping.elasticsearch.hosts set
-			expected: []string{"localhost:5200"},
+		"esConfigured": {
+			expected: elasticsearch.Hosts{"localhost:5200"},
 			config: m{
 				"rum": m{
 					"enabled":                            "true",
@@ -337,9 +345,8 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 				},
 			},
 		},
-		{
-			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = true
-			expected: []string{"localhost:5201"},
+		"esFromOutput": {
+			expected: elasticsearch.Hosts{"localhost:5201"},
 			config: m{
 				"rum": m{
 					"enabled": "true",
@@ -352,8 +359,7 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 				},
 			},
 		},
-		{
-			// source_mapping.elasticsearch.hosts not set, elasticsearch.enabled = false
+		"esOutputDisabled": {
 			expected: nil,
 			config: m{
 				"rum": m{
@@ -367,25 +373,108 @@ func TestServerSourcemapElasticsearch(t *testing.T) {
 				},
 			},
 		},
-	}
-	for _, testCase := range cases {
-		ucfg, err := common.NewConfigFrom(testCase.config)
-		if !assert.NoError(t, err) {
-			continue
-		}
+	} {
+		t.Run(name, func(t *testing.T) {
+			ucfg, err := common.NewConfigFrom(tc.config)
+			require.NoError(t, err)
 
-		var beatConfig beat.BeatConfig
-		ocfg, err := common.NewConfigFrom(testCase.outputConfig)
-		if !assert.NoError(t, err) {
-			continue
-		}
-		beatConfig.Output.Unpack(ocfg)
-		apm, teardown, err := setupServer(t, ucfg, &beatConfig, nil)
-		if assert.NoError(t, err) {
-			assert.Equal(t, testCase.expected, apm.sourcemapElasticsearchHosts())
-		}
-		teardown()
+			var beatConfig beat.BeatConfig
+			ocfg, err := common.NewConfigFrom(tc.outputConfig)
+			require.NoError(t, err)
+			require.NoError(t, beatConfig.Output.Unpack(ocfg))
+			apm, teardown, err := setupServer(t, ucfg, &beatConfig, nil)
+			require.NoError(t, err)
+			if tc.expected != nil {
+				assert.Equal(t, tc.expected, apm.config.RumConfig.SourceMapping.ESConfig.Hosts)
+			}
+			teardown()
+		})
 	}
+}
+
+type chanClient struct {
+	done    chan struct{}
+	Channel chan beat.Event
+}
+
+func newChanClientWith(ch chan beat.Event) *chanClient {
+	if ch == nil {
+		ch = make(chan beat.Event, 1)
+	}
+	c := &chanClient{
+		done:    make(chan struct{}),
+		Channel: ch,
+	}
+	return c
+}
+
+func (c *chanClient) Close() error {
+	close(c.done)
+	return nil
+}
+
+// Publish will publish every event in the batch on the channel. Options will be ignored.
+// Always returns without error.
+func (c *chanClient) Publish(batch pubs.Batch) error {
+	for _, event := range batch.Events() {
+		select {
+		case <-c.done:
+		case c.Channel <- event.Content:
+		}
+	}
+	batch.ACK()
+	return nil
+}
+
+func (c *chanClient) String() string {
+	return "event capturing test client"
+}
+
+type dummyOutputClient struct {
+}
+
+func (d *dummyOutputClient) Publish(batch pubs.Batch) error {
+	batch.ACK()
+	return nil
+}
+func (d *dummyOutputClient) Close() error   { return nil }
+func (d *dummyOutputClient) String() string { return "" }
+
+func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client) *pipeline.Pipeline {
+	if len(clients) == 0 {
+		clients = []outputs.Client{&dummyOutputClient{}}
+	}
+	if cfg == nil {
+		cfg = common.NewConfig()
+	}
+	processors, err := processing.MakeDefaultObserverSupport(false)(info, logp.NewLogger("testbeat"), cfg)
+	if err != nil {
+		panic(err)
+	}
+	p, err := pipeline.New(
+		info,
+		pipeline.Monitors{},
+		func(e queue.Eventer) (queue.Queue, error) {
+			return memqueue.NewBroker(nil, memqueue.Settings{
+				Eventer: e,
+				Events:  20,
+			}), nil
+		},
+		outputs.Group{
+			Clients:   clients,
+			BatchSize: 5,
+			Retry:     0, // no retry. on error drop events
+		},
+		pipeline.Settings{
+			WaitClose:     0,
+			WaitCloseMode: pipeline.NoWaitOnClose,
+			Processors:    processors,
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	return p
 }
 
 func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
@@ -414,11 +503,11 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
 	var pub beat.Pipeline
 	if events != nil {
 		// capture events
-		pubClient := NewChanClientWith(events)
-		pub = DummyPipeline(cfg, info, pubClient)
+		pubClient := newChanClientWith(events)
+		pub = dummyPipeline(cfg, info, pubClient)
 	} else {
 		// don't capture events
-		pub = DummyPipeline(cfg, info)
+		pub = dummyPipeline(cfg, info)
 	}
 
 	// create a beat
