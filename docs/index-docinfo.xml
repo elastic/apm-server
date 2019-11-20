@@ -11,13 +11,13 @@
         APM Agent documentation:
     </simpara>
     <itemizedlist>
-        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/go/current/introduction.html"><citetitle>Go Agent</citetitle></ulink></simpara></listitem>
-        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/java/current/introduction.html"><citetitle>Java Agent</citetitle></ulink></simpara></listitem>
-        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/dotnet/current/introduction.html"><citetitle>.NET Agent</citetitle></ulink></simpara></listitem>
-        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/nodejs/current/introduction.html"><citetitle>Node.js Agent</citetitle></ulink></simpara></listitem>
-        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/python/current/introduction.html"><citetitle>Python Agent</citetitle></ulink></simpara></listitem>
-        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/ruby/current/introduction.html"><citetitle>Ruby Agent</citetitle></ulink></simpara></listitem>
-        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/rum-js/current/introduction.html"><citetitle>JavaScript RUM Agent</citetitle></ulink></simpara></listitem>
+        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/go/current/index.html"><citetitle>Go Agent</citetitle></ulink></simpara></listitem>
+        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/java/current/index.html"><citetitle>Java Agent</citetitle></ulink></simpara></listitem>
+        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/dotnet/current/index.html"><citetitle>.NET Agent</citetitle></ulink></simpara></listitem>
+        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/nodejs/current/index.html"><citetitle>Node.js Agent</citetitle></ulink></simpara></listitem>
+        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/python/current/index.html"><citetitle>Python Agent</citetitle></ulink></simpara></listitem>
+        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/ruby/current/index.html"><citetitle>Ruby Agent</citetitle></ulink></simpara></listitem>
+        <listitem><simpara><ulink url="https://www.elastic.co/guide/en/apm/agent/rum-js/current/index.html"><citetitle>JavaScript RUM Agent</citetitle></ulink></simpara></listitem>
     </itemizedlist>
 
 </legalnotice>
