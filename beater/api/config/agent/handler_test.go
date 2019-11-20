@@ -106,7 +106,7 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-python"},
 			respStatus:             http.StatusOK,
 			respCacheControlHeader: "max-age=4, must-revalidate",
-			respEtagHeader:         `""`,
+			respEtagHeader:         fmt.Sprintf("\"%s\"", agentcfg.EtagSentinel),
 			respBody:               emptyBody,
 			respBodyToken:          emptyBody,
 		},
