@@ -52,6 +52,8 @@ type Config struct {
 	ProxyDisable bool              `config:"proxy_disable"`
 	Timeout      time.Duration     `config:"timeout"`
 	TLS          *tlscommon.Config `config:"ssl"`
+	Username     string            `config:"username"`
+	Password     string            `config:"password"`
 }
 
 // Hosts is an array of host strings and needs to have at least one entry
@@ -82,6 +84,8 @@ func NewClient(config *Config) (*goelasticsearch.Client, error) {
 	}
 
 	return goelasticsearch.NewClient(goelasticsearch.Config{
+		Username:  config.Username,
+		Password:  config.Password,
 		Addresses: addresses,
 		Transport: &http.Transport{
 			Proxy:   proxy,
