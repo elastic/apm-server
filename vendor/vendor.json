@@ -45,6 +45,12 @@
 			"revisionTime": "2019-09-09T20:46:26Z"
 		},
 		{
+			"checksumSHA1": "R2m2GM40MMllg36k9ZK31fWodxM=",
+			"path": "github.com/OneOfOne/xxhash",
+			"revision": "8f0be54a8d5ccf68817143d8c996147ec5cbd795",
+			"revisionTime": "2019-11-05T18:42:16Z"
+		},
+		{
 			"checksumSHA1": "QfQ5j32qXVWguN/pF1sG9LBje+w=",
 			"origin": "github.com/elastic/beats/vendor/github.com/Shopify/sarama",
 			"path": "github.com/Shopify/sarama",
