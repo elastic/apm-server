@@ -56,9 +56,18 @@ func (pp PprofProfile) Transform(tctx *transform.Context) []beat.Event {
 		valueFieldNames[i] = sampleType.Type + "." + sampleUnit
 	}
 
+	// Generate a unique ID for all samples in the profile.
+	var profileID string
+	if idBytes, err := common.RandomBytes(8); err == nil {
+		profileID = fmt.Sprintf("%x", idBytes)
+	}
+
 	samples := make([]beat.Event, len(pp.Profile.Sample))
 	for i, sample := range pp.Profile.Sample {
 		profileFields := common.MapStr{}
+		if profileID != "" {
+			profileFields["id"] = profileID
+		}
 		if pp.Profile.DurationNanos > 0 {
 			profileFields["duration"] = pp.Profile.DurationNanos
 		}

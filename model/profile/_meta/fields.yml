@@ -7,6 +7,11 @@
       dynamic: false
       fields:
 
+        - name: id
+          type: keyword
+          description: >
+             The unique ID of the profile.
+
         - name: cpu
           type: group
           fields:
