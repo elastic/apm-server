@@ -243,6 +243,9 @@ pipeline {
           }
           post {
             always {
+              archiveArtifacts(allowEmptyArchive: true,
+                artifacts: "${BASE_DIR}/docker-info/**",
+                defaultExcludes: false)
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                 tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               }
