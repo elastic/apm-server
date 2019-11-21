@@ -76,6 +76,7 @@ type Event struct {
 	Labels    *m.Labels
 	Custom    *m.Custom
 	Service   *metadata.Service
+	Client    *m.Client
 
 	Experimental interface{}
 }
@@ -115,6 +116,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Custom:       ctx.Custom,
 		User:         ctx.User,
 		Service:      ctx.Service,
+		Client:       ctx.Client,
 		Experimental: ctx.Experimental,
 		Marks:        decoder.MapStr(raw, "marks"),
 		Sampled:      decoder.BoolPtr(raw, "sampled"),
@@ -182,10 +184,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	// then merge event specific information
 	utility.Update(fields, "user", e.User.Fields())
-	clientFields := e.User.ClientFields()
-	if clientFields == nil {
-		clientFields = e.Http.ClientFields()
-	}
+	clientFields := e.Client.Fields()
 	utility.DeepUpdate(fields, "client", clientFields)
 	utility.DeepUpdate(fields, "source", clientFields)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())

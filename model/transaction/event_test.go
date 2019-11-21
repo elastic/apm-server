@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -73,7 +74,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
-	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId, UserAgent: &ua}
+	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIp), Id: &userId, UserAgent: &ua}
 	page := model.Page{Url: &url, Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
 	response := model.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
@@ -176,6 +177,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Custom:    &custom,
 				Http:      &h,
 				Url:       &ctxUrl,
+				Client:    &model.Client{IP: net.ParseIP(userIp)},
 			},
 		},
 	} {
@@ -298,7 +300,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
-	user := metadata.User{Id: &id, Name: &name, IP: &ip, UserAgent: &userAgent}
+	user := metadata.User{Id: &id, Name: &name, IP: net.ParseIP(ip), UserAgent: &userAgent}
 	url, referer := "https://localhost", "http://localhost"
 	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
 	metadataLabels := common.MapStr{"a": true}
@@ -366,11 +368,12 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Http:      &model.Http{Request: &request, Response: &response},
 		Url:       &model.Url{Original: &url},
 		Custom:    &model.Custom{"foo": "bar"},
+		Client:    &model.Client{IP: net.ParseIP("198.12.13.1")},
 	}
 	txWithContextEs := common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
-		"client":     common.MapStr{"ip": "63.23.123.4"},
-		"source":     common.MapStr{"ip": "63.23.123.4"},
+		"client":     common.MapStr{"ip": "198.12.13.1"},
+		"source":     common.MapStr{"ip": "198.12.13.1"},
 		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",
