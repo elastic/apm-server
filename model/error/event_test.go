@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -89,7 +90,7 @@ func TestErrorEventDecode(t *testing.T) {
 	transactionType := "request"
 	labels := m.Labels{"ab": "c"}
 	ua := "go-1.1"
-	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId, UserAgent: &ua}
+	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIp), Id: &userId, UserAgent: &ua}
 	page := m.Page{Url: &pUrl, Referer: &referer}
 	custom := m.Custom{"a": "b"}
 	request := m.Req{Method: "post", Socket: &m.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}, Cookies: map[string]interface{}{"a": "b"}}
@@ -249,6 +250,7 @@ func TestErrorEventDecode(t *testing.T) {
 				Custom:    &custom,
 				Http:      &h,
 				Url:       &ctxUrl,
+				Client:    &m.Client{IP: net.ParseIP(userIp)},
 				Exception: &Exception{
 					Message:    &exMsg,
 					Code:       code,
@@ -626,10 +628,11 @@ func TestEvents(t *testing.T) {
 				},
 				TransactionId:      &trId,
 				TransactionSampled: &sampledTrue,
-				User:               &metadata.User{Email: &email, IP: &userIp, UserAgent: &userAgent},
+				User:               &metadata.User{Email: &email, IP: net.ParseIP(userIp), UserAgent: &userAgent},
 				Labels:             &labels,
 				Page:               &m.Page{Url: &url, Referer: &referer},
 				Custom:             &custom,
+				Client:             &m.Client{IP: net.ParseIP("192.0.14.10")},
 			},
 
 			Output: common.MapStr{
@@ -637,8 +640,8 @@ func TestEvents(t *testing.T) {
 				"service":    common.MapStr{"name": "myservice", "version": "1.0"},
 				"agent":      common.MapStr{"name": "go", "version": "1.0"},
 				"user":       common.MapStr{"email": email},
-				"client":     common.MapStr{"ip": userIp},
-				"source":     common.MapStr{"ip": userIp},
+				"client":     common.MapStr{"ip": "192.0.14.10"},
+				"source":     common.MapStr{"ip": "192.0.14.10"},
 				"user_agent": common.MapStr{"original": userAgent},
 				"error": common.MapStr{
 					"custom": common.MapStr{

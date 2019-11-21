@@ -23,6 +23,12 @@ import (
 	"strings"
 )
 
+var parseHeadersInOrder = []func(http.Header) string{
+	parseForwarded,
+	parseXRealIP,
+	parseXForwardedFor,
+}
+
 // RemoteAddr returns the remote address for the HTTP request.
 //
 // In order:
@@ -38,21 +44,10 @@ import (
 // the result of this function. The result should therefore not
 // necessarily be trusted to be correct.
 func RemoteAddr(req *http.Request) string {
-	if fwd := req.Header.Get("Forwarded"); fwd != "" {
-		forwarded := ParseForwarded(fwd)
-		if forwarded.For != "" {
-			host, _ := splitHost(forwarded.For)
-			return host
+	for _, parseFn := range parseHeadersInOrder {
+		if remoteAddr := parseFn(req.Header); remoteAddr != "" {
+			return remoteAddr
 		}
-	}
-	if realIP := req.Header.Get("X-Real-Ip"); realIP != "" {
-		return realIP
-	}
-	if xff := req.Header.Get("X-Forwarded-For"); xff != "" {
-		if sep := strings.IndexRune(xff, ','); sep > 0 {
-			xff = xff[:sep]
-		}
-		return strings.TrimSpace(xff)
 	}
 	host, _ := splitHost(req.RemoteAddr)
 	return host
@@ -70,4 +65,29 @@ func splitHost(in string) (host, port string) {
 		return in, ""
 	}
 	return host, port
+}
+
+func parseForwarded(header http.Header) string {
+	if fwd := header.Get("Forwarded"); fwd != "" {
+		forwarded := ParseForwarded(fwd)
+		if forwarded.For != "" {
+			host, _ := splitHost(forwarded.For)
+			return host
+		}
+	}
+	return ""
+}
+
+func parseXRealIP(header http.Header) string {
+	return header.Get("X-Real-Ip")
+}
+
+func parseXForwardedFor(header http.Header) string {
+	if xff := header.Get("X-Forwarded-For"); xff != "" {
+		if sep := strings.IndexRune(xff, ','); sep > 0 {
+			xff = xff[:sep]
+		}
+		return strings.TrimSpace(xff)
+	}
+	return ""
 }

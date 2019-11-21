@@ -19,9 +19,11 @@ package metadata
 
 import (
 	"errors"
+	"net"
+
+	"github.com/elastic/beats/libbeat/common"
 
 	"github.com/elastic/apm-server/utility"
-	"github.com/elastic/beats/libbeat/common"
 )
 
 type System struct {
@@ -29,7 +31,7 @@ type System struct {
 	ConfiguredHostname *string
 	Architecture       *string
 	Platform           *string
-	IP                 *string
+	IP                 net.IP
 
 	Container  *Container
 	Kubernetes *Kubernetes
@@ -47,7 +49,7 @@ func DecodeSystem(input interface{}, err error) (*System, error) {
 	system := System{
 		Platform:     decoder.StringPtr(raw, "platform"),
 		Architecture: decoder.StringPtr(raw, "architecture"),
-		IP:           decoder.StringPtr(raw, "ip"),
+		IP:           decoder.NetIP(raw, "ip"),
 	}
 	if system.Container, err = DecodeContainer(raw["container"], err); err != nil {
 		return nil, err
@@ -109,8 +111,8 @@ func (s *System) fields() common.MapStr {
 	if s.Platform != nil {
 		utility.Set(system, "os", common.MapStr{"platform": s.Platform})
 	}
-	if s.IP != nil && *s.IP != "" {
-		utility.Set(system, "ip", s.IP)
+	if s.IP != nil {
+		utility.Set(system, "ip", s.IP.String())
 	}
 	return system
 }
