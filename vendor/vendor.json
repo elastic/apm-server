@@ -1497,6 +1497,13 @@
 			"revisionTime": "2019-10-16T16:05:51Z"
 		},
 		{
+			"checksumSHA1": "bcGdkHyNag5yNitK9gDwAui9mLs=",
+			"path": "github.com/elastic/go-elasticsearch/v7",
+			"revision": "d8acaa5faade05290d8b500b8f3892a378f2d2e7",
+			"revisionTime": "2019-10-14T09:07:31Z",
+			"tree": true
+		},
+		{
 			"checksumSHA1": "3jizmlZPCyo6FAZY8Trk9jA8NH4=",
 			"origin": "github.com/elastic/beats/vendor/github.com/elastic/go-lumber/client/v2",
 			"path": "github.com/elastic/go-lumber/client/v2",
