@@ -70,7 +70,7 @@
           type: long
           count: 1
           description: >
-            Duration of the span, in microseconds.
+            Duration of the profile, in microseconds.
 
         - name: top
           type: group
