@@ -1194,7 +1194,7 @@ type: long
 *`profile.duration`*::
 +
 --
-Duration of the span, in microseconds.
+Duration of the profile, in microseconds.
 
 
 type: long
