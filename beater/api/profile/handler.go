@@ -50,6 +50,9 @@ const (
 	pprofContentType    = "application/x-protobuf"
 	metadataContentType = "application/json"
 	requestContentType  = "multipart/form-data"
+
+	metadataContentLengthLimit = 10 * 1024
+	profileContentLengthLimit  = 10 * 1024 * 1024
 )
 
 // Handler returns a request.Handler for managing profile requests.
@@ -80,7 +83,7 @@ func Handler(
 			}
 		}
 
-		// Extract metadata from the request, like user-agent and remote address.
+		// Extract metadata from the request, such as the remote address.
 		reqMeta, err := dec(c.Request)
 		if err != nil {
 			return nil, requestError{
@@ -94,7 +97,7 @@ func Handler(
 			Config:      transformConfig,
 		}
 
-		var totalLimitRemaining int64 = 10 * 1024 * 1024 // 10 MiB ought to be enough for anybody
+		var totalLimitRemaining int64 = profileContentLengthLimit
 		var profiles []*pprof_profile.Profile
 		mr, err := c.Request.MultipartReader()
 		if err != nil {
@@ -116,7 +119,7 @@ func Handler(
 						err: errors.Wrap(err, "invalid metadata"),
 					}
 				}
-				r := &limitedReader{r: part, n: 10 * 1024 /* 10 KiB ought to be enough for anybody */}
+				r := &limitedReader{r: part, n: metadataContentLengthLimit}
 				raw, err := decoder.DecodeJSONData(r)
 				if err != nil {
 					if err, ok := r.err.(requestError); ok {
