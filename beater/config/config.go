@@ -36,10 +36,6 @@ const (
 	DefaultPort = "8200"
 
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
-
-	defaultCPUProfilingInterval  = 1 * time.Minute
-	defaultCPUProfilingDuration  = 10 * time.Second
-	defaultHeapProfilingInterval = 1 * time.Minute
 )
 
 var (
@@ -86,44 +82,6 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
-// InstrumentationConfig holds config information about self instrumenting the APM Server
-type InstrumentationConfig struct {
-	Enabled     *bool           `config:"enabled"`
-	Environment *string         `config:"environment"`
-	Hosts       urls            `config:"hosts" validate:"nonzero"`
-	Profiling   ProfilingConfig `config:"profiling"`
-	SecretToken string          `config:"secret_token"`
-}
-
-// ProfilingConfig holds config information about self profiling the APM Server
-type ProfilingConfig struct {
-	CPU  *CPUProfiling  `config:"cpu"`
-	Heap *HeapProfiling `config:"heap"`
-}
-
-// CPUProfiling holds config information about CPU profiling of the APM Server
-type CPUProfiling struct {
-	Enabled  bool          `config:"enabled"`
-	Interval time.Duration `config:"interval" validate:"positive"`
-	Duration time.Duration `config:"duration" validate:"positive"`
-}
-
-// IsEnabled indicates whether CPU profiling is enabled or not
-func (p *CPUProfiling) IsEnabled() bool {
-	return p != nil && p.Enabled
-}
-
-// HeapProfiling holds config information about heap profiling of the APM Server
-type HeapProfiling struct {
-	Enabled  bool          `config:"enabled"`
-	Interval time.Duration `config:"interval" validate:"positive"`
-}
-
-// IsEnabled indicates whether heap profiling is enabled or not
-func (p *HeapProfiling) IsEnabled() bool {
-	return p != nil && p.Enabled
-}
-
 // NewConfig creates a Config struct based on the default config and the given input params
 func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
@@ -157,20 +115,8 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
-	if c.SelfInstrumentation.IsEnabled() {
-		if c.SelfInstrumentation.Profiling.CPU.IsEnabled() {
-			if c.SelfInstrumentation.Profiling.CPU.Interval <= 0 {
-				c.SelfInstrumentation.Profiling.CPU.Interval = defaultCPUProfilingInterval
-			}
-			if c.SelfInstrumentation.Profiling.CPU.Duration <= 0 {
-				c.SelfInstrumentation.Profiling.CPU.Duration = defaultCPUProfilingDuration
-			}
-		}
-		if c.SelfInstrumentation.Profiling.Heap.IsEnabled() {
-			if c.SelfInstrumentation.Profiling.Heap.Interval <= 0 {
-				c.SelfInstrumentation.Profiling.Heap.Interval = defaultHeapProfilingInterval
-			}
-		}
+	if err := c.SelfInstrumentation.setup(logger); err != nil {
+		return nil, err
 	}
 
 	return c, nil
@@ -179,12 +125,6 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 // IsEnabled indicates whether expvar is enabled or not
 func (c *ExpvarConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
-}
-
-// IsEnabled indicates whether self instrumentation is enabled
-func (c *InstrumentationConfig) IsEnabled() bool {
-	// self instrumentation is disabled by default.
-	return c != nil && c.Enabled != nil && *c.Enabled
 }
 
 // DefaultConfig returns a config with default settings for `apm-server` config options.
