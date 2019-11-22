@@ -119,11 +119,14 @@ func Handler(
 						err: errors.Wrap(err, "invalid metadata"),
 					}
 				}
-				r := &limitedReader{r: part, n: metadataContentLengthLimit}
+				r := &decoder.LimitedReader{R: part, N: metadataContentLengthLimit}
 				raw, err := decoder.DecodeJSONData(r)
 				if err != nil {
-					if err, ok := r.err.(requestError); ok {
-						return nil, err
+					if r.N < 0 {
+						return nil, requestError{
+							id:  request.IDResponseErrorsRequestTooLarge,
+							err: err,
+						}
 					}
 					return nil, requestError{
 						id:  request.IDResponseErrorsDecode,
@@ -155,11 +158,14 @@ func Handler(
 						err: errors.Wrap(err, "invalid profile"),
 					}
 				}
-				r := &limitedReader{r: part, n: totalLimitRemaining}
+				r := &decoder.LimitedReader{R: part, N: totalLimitRemaining}
 				profile, err := pprof_profile.Parse(r)
 				if err != nil {
-					if err, ok := r.err.(requestError); ok {
-						return nil, err
+					if r.N < 0 {
+						return nil, requestError{
+							id:  request.IDResponseErrorsRequestTooLarge,
+							err: err,
+						}
 					}
 					return nil, requestError{
 						id:  request.IDResponseErrorsDecode,
@@ -167,7 +173,7 @@ func Handler(
 					}
 				}
 				profiles = append(profiles, profile)
-				totalLimitRemaining = r.n
+				totalLimitRemaining = r.N
 			}
 		}
 
@@ -218,40 +224,6 @@ func validateContentType(header http.Header, contentType string) error {
 		return fmt.Errorf("invalid content type %q, expected %q", got, contentType)
 	}
 	return nil
-}
-
-// limitedReader is like io.LimitedReader, but returns a
-// requestError upon detecting a request that is too large.
-//
-// Based on net/http.maxBytesReader.
-type limitedReader struct {
-	r   io.Reader
-	n   int64
-	err error
-}
-
-func (l *limitedReader) Read(p []byte) (n int, err error) {
-	if l.err != nil || len(p) == 0 {
-		return 0, l.err
-	}
-	if int64(len(p)) > l.n+1 {
-		p = p[:l.n+1]
-	}
-	n, err = l.r.Read(p)
-
-	if int64(n) <= l.n {
-		l.n -= int64(n)
-		l.err = err
-		return n, err
-	}
-
-	n = int(l.n)
-	l.n = 0
-	l.err = requestError{
-		id:  request.IDResponseErrorsRequestTooLarge,
-		err: errors.New("too large"),
-	}
-	return n, l.err
 }
 
 type result struct {
