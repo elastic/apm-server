@@ -19,6 +19,6 @@ have set a password for the +{beat_monitoring_user}+ user. A user with the
 For more
 information, see:
 
-* {xpack-ref}/setting-up-authentication.html[Setting Up User Authentication]
-* {xpack-ref}/built-in-roles.html[Built-in Roles]
+* {ref}/setting-up-authentication.html[User authentication]
+* {ref}/built-in-roles.html[Built-in roles]
 * <<monitoring>>
