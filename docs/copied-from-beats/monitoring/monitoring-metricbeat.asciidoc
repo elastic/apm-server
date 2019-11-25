@@ -81,7 +81,7 @@ For more information, see
 --
 
 ifndef::serverless[]
-. <<{beatname_lc}-starting,Start {beatname_uc}>>.
+. Start {beatname_uc}.
 endif::[]
 
 [float]
@@ -154,7 +154,7 @@ you enabled the HTTP endpoint, update the `hosts` setting.
 
 To monitor multiple 
 ifndef::apm-server[]
-{beats},
+{beats} agents,
 endif::[]
 ifdef::apm-server[]
 APM Server instances,
@@ -176,8 +176,8 @@ ID and password so that {metricbeat} can collect metrics successfully:
 
 .. Create a user on the production cluster that has the 
 `remote_monitoring_collector` {ref}/built-in-roles.html[built-in role]. 
-Alternatively, use the `remote_monitoring_user` 
-{ref}/built-in-users.html[built-in user].
+Alternatively, if it's available in your environment, use the
+`remote_monitoring_user` {ref}/built-in-users.html[built-in user].
 
 .. Add the `username` and `password` settings to the beat module configuration 
 file.
@@ -220,11 +220,13 @@ output.elasticsearch:
   
   # Optional protocol and basic auth credentials.
   #protocol: "https"
+  #api_key:  "id:api_key" <2>
   #username: "elastic"
   #password: "changeme"
 ----------------------------------
 <1> In this example, the data is stored on a monitoring cluster with nodes 
 `es-mon-1` and `es-mon-2`.
+<2> Specify one of `api_key` or `username`/`password`.
 
 If you configured the monitoring cluster to use encrypted communications, you
 must access it via HTTPS. For example, use a `hosts` setting like
@@ -239,8 +241,8 @@ successfully:
 
 .. Create a user on the monitoring cluster that has the 
 `remote_monitoring_agent` {ref}/built-in-roles.html[built-in role]. 
-Alternatively, use the `remote_monitoring_user` 
-{ref}/built-in-users.html[built-in user]. 
+Alternatively, if it's available in your environment, use the
+`remote_monitoring_user` {ref}/built-in-users.html[built-in user]. 
 +
 TIP: If you're using index lifecycle management, the remote monitoring user
 requires additional privileges to create and read indices. For more

@@ -257,8 +257,8 @@ Full details on the `setup` command are below:
 // This include attribute uses tagged regions to pull the **setup-command** instructions
 // in from command-reference.asciidoc. There is also a tagged region for **attributes**
 // as these are defined locally in the command reference file, but must also be accessed here.
-include::./copied-from-beats/command-reference.asciidoc[tag=attributes]
-include::./copied-from-beats/command-reference.asciidoc[tag=setup-command-tag]
+include::{libbeat-dir}/command-reference.asciidoc[tag=attributes]
+include::{libbeat-dir}/command-reference.asciidoc[tag=setup-command-tag]
 
 Once APM Server has been set up, you can edit the `apm-server.yml` configuration file to customize it to your needs.
 The location of this file varies by platform, but the <<directory-layout>> will help you locate it.
@@ -352,7 +352,7 @@ Once you have at least one Agent sending data to APM Server,
 you can start visualizing your data in the {kibana-ref}/xpack-apm.html[Kibana APM UI].
 
 // Shared APM & YUM
-include::./copied-from-beats/repositories.asciidoc[]
+include::{libbeat-dir}/repositories.asciidoc[]
 
 // Shared docker
-include::./copied-from-beats/shared-docker.asciidoc[]
+include::{libbeat-dir}/shared-docker.asciidoc[]

@@ -13,12 +13,12 @@ This section includes additional information on how to set up and run APM Server
 * <<high-availability>>
 * <<running-on-docker>>
 
-include::./copied-from-beats/shared-directory-layout.asciidoc[]
+include::{libbeat-dir}/shared-directory-layout.asciidoc[]
 
-include::./copied-from-beats/keystore.asciidoc[]
+include::{libbeat-dir}/keystore.asciidoc[]
 
-include::./copied-from-beats/command-reference.asciidoc[]
+include::{libbeat-dir}/command-reference.asciidoc[]
 
 include::./high-availability.asciidoc[]
 
-include::./copied-from-beats/shared-systemd.asciidoc[]
+include::{libbeat-dir}/shared-systemd.asciidoc[]
