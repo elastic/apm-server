@@ -23,7 +23,7 @@ For an alternative method, see <<monitoring-metricbeat-collection>>.
 endif::[]
 
 To learn about monitoring in general, see 
-{stack-ov}/xpack-monitoring.html[Monitoring the {stack}]. 
+{ref}/monitor-elasticsearch-cluster.html[Monitoring a cluster]. 
 
 //TODO: Not sure if these docs need to be updated to be parallel with other
 //stack components since this is the old way of configuring monitoring. 
