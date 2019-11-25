@@ -1,5 +1,5 @@
-include::./copied-from-beats/template-config.asciidoc[]
+include::{libbeat-dir}/template-config.asciidoc[]
 
 === Manually loading template configuration
 
-include::./copied-from-beats/shared-template-load.asciidoc[]
+include::{libbeat-dir}/shared-template-load.asciidoc[]
