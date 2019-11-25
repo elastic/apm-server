@@ -60,7 +60,7 @@ func MakeDefaultSupporter(
 		}
 
 		supporter := libilm.NewStdSupport(log, mode, libilm.Alias{Name: alias, Pattern: pattern},
-			libilm.Policy{Name: p.Name, Body: p.Policy}, ilmConfig.Setup.Enabled, true)
+			libilm.Policy{Name: p.Name, Body: p.Policy}, ilmConfig.Setup.Overwrite, true)
 		supporters = append(supporters, supporter)
 	}
 	return supporters, nil

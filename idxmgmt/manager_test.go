@@ -212,6 +212,20 @@ func TestManager_SetupILM(t *testing.T) {
 		version                                   string
 	}
 
+	mappingRollover1Day := common.MapStr{"event_type": "error", "policy_name": "rollover-1-day"}
+	policyRollover1Day := common.MapStr{
+		"name": "rollover-1-day",
+		"policy": common.MapStr{
+			"phases": common.MapStr{
+				"delete": common.MapStr{
+					"actions": common.MapStr{
+						"delete": common.MapStr{},
+					},
+				},
+			},
+		},
+	}
+
 	var testCasesSetupEnabled = map[string]testCase{
 		"Default": {
 			loadMode:            libidxmgmt.LoadModeEnabled,
@@ -222,10 +236,24 @@ func TestManager_SetupILM(t *testing.T) {
 			loadMode:             libidxmgmt.LoadModeEnabled,
 			templatesILMDisabled: 3,
 		},
-		"ILM overwrite": {
-			cfg:                 common.MapStr{"apm-server.ilm.setup.overwrite": true},
+		"ILM setup enabled no overwrite": {
+			cfg: common.MapStr{
+				"apm-server.ilm.setup.enabled":   true,
+				"apm-server.ilm.setup.overwrite": false,
+				"apm-server.ilm.setup.mapping":   []common.MapStr{mappingRollover1Day},
+				"apm-server.ilm.setup.policies":  []common.MapStr{policyRollover1Day},
+			},
 			loadMode:            libidxmgmt.LoadModeEnabled,
-			templatesILMEnabled: 4, policiesLoaded: 1, aliasesLoaded: 3,
+			templatesILMEnabled: 3, policiesLoaded: 1, aliasesLoaded: 3,
+		},
+		"ILM overwrite": {
+			cfg: common.MapStr{
+				"apm-server.ilm.setup.overwrite": true,
+				"apm-server.ilm.setup.mapping":   []common.MapStr{mappingRollover1Day},
+				"apm-server.ilm.setup.policies":  []common.MapStr{policyRollover1Day},
+			},
+			loadMode:            libidxmgmt.LoadModeEnabled,
+			templatesILMEnabled: 4, policiesLoaded: 2, aliasesLoaded: 3,
 		},
 		"LoadModeOverwrite": {
 			loadMode:            libidxmgmt.LoadModeOverwrite,
