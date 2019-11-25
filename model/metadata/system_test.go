@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 	"testing"
 
@@ -35,7 +36,6 @@ import (
 func TestSystem(t *testing.T) {
 	host, configured, detected := "host", "custom hostname", "detected hostname"
 	arch, platform, ip, containerID, namespace := "amd", "osx", "127.0.0.1", "1234", "staging"
-	empty := ""
 	nodename, podname, podUID := "a.node", "a.pod", "b.podID"
 
 	inpErr := errors.New("some error")
@@ -55,7 +55,7 @@ func TestSystem(t *testing.T) {
 		},
 		"empty ip": {
 			input: map[string]interface{}{"ip": ""},
-			s:     &System{IP: &empty},
+			s:     &System{IP: net.ParseIP("")},
 		},
 		"hostname": {
 			input: map[string]interface{}{"hostname": host},
@@ -181,7 +181,7 @@ func TestSystem(t *testing.T) {
 				ConfiguredHostname: &configured,
 				Architecture:       &arch,
 				Platform:           &platform,
-				IP:                 &ip,
+				IP:                 net.ParseIP(ip),
 				Container:          &Container{ID: containerID},
 				Kubernetes:         &Kubernetes{Namespace: &namespace, NodeName: &nodename, PodName: &podname, PodUID: &podUID},
 			},

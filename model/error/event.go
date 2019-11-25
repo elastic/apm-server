@@ -81,6 +81,7 @@ type Event struct {
 	Url     *m.Url
 	Custom  *m.Custom
 	Service *metadata.Service
+	Client  *m.Client
 
 	Exception *Exception
 	Log       *Log
@@ -141,6 +142,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		User:               ctx.User,
 		Service:            ctx.Service,
 		Experimental:       ctx.Experimental,
+		Client:             ctx.Client,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
@@ -194,10 +196,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	tctx.Metadata.Set(fields)
 	// then add event specific information
 	utility.Update(fields, "user", e.User.Fields())
-	clientFields := e.User.ClientFields()
-	if clientFields == nil {
-		clientFields = e.Http.ClientFields()
-	}
+	clientFields := e.Client.Fields()
 	utility.DeepUpdate(fields, "client", clientFields)
 	utility.DeepUpdate(fields, "source", clientFields)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
