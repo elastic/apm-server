@@ -32,8 +32,8 @@ To learn about monitoring in general, see
 data to {es}. For example, you can use the built-in +{beat_monitoring_user}+ user or
 assign the built-in +{beat_monitoring_user}+ role to another user. For more
 information, see
-{stack-ov}/setting-up-authentication.html[Setting Up User Authentication] and
-{stack-ov}/built-in-roles.html[Built-in Roles].
+{ref}/setting-up-authentication.html[User authentication] and
+{ref}/built-in-roles.html[Built-in roles].
 
 . Add the `monitoring` settings in the {beatname_uc} configuration file. If you
 configured the {es} output and want to send {beatname_uc} monitoring events to
