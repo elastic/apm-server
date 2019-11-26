@@ -22,25 +22,37 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/soheilhy/cmux"
+
+	"golang.org/x/sync/errgroup"
+
 	"go.elastic.co/apm"
 	"go.elastic.co/apm/module/apmhttp"
 	"golang.org/x/net/netutil"
+	"google.golang.org/grpc"
+
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
+	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/version"
+	"github.com/open-telemetry/opentelemetry-collector/observability"
 
 	"github.com/elastic/apm-server/beater/api"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/version"
 )
 
-func newServer(cfg *config.Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
+type server struct {
+	http *http.Server
+	grpc *grpc.Server
+}
+
+func newServer(cfg *config.Config, tracer *apm.Tracer, report publish.Reporter) (*server, error) {
 	mux, err := api.NewMux(cfg, report)
 	if err != nil {
 		return nil, err
 	}
 
-	server := &http.Server{
+	httpServer := &http.Server{
 		Addr: cfg.Host,
 		Handler: apmhttp.Wrap(mux,
 			apmhttp.WithServerRequestIgnorer(doNotTrace),
@@ -57,9 +69,12 @@ func newServer(cfg *config.Config, tracer *apm.Tracer, report publish.Reporter) 
 		if err != nil {
 			return nil, err
 		}
-		server.TLSConfig = tlsServerConfig.BuildModuleConfig(cfg.Host)
+		httpServer.TLSConfig = tlsServerConfig.BuildModuleConfig(cfg.Host)
 	}
-	return server, nil
+	grpcServer := observability.GRPCServerWithObservabilityEnabled()
+	api.RegisterGRPC(cfg, report, grpcServer)
+
+	return &server{http: httpServer, grpc: grpcServer}, nil
 }
 
 func doNotTrace(req *http.Request) bool {
@@ -75,9 +90,9 @@ func doNotTrace(req *http.Request) bool {
 	return false
 }
 
-func run(logger *logp.Logger, server *http.Server, lis net.Listener, cfg *config.Config) error {
+func run(logger *logp.Logger, server *server, lis net.Listener, cfg *config.Config) error {
 	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
-	logger.Infof("Listening on: %s", server.Addr)
+	logger.Infof("Listening on: %s", server.http.Addr)
 	switch cfg.RumConfig.IsEnabled() {
 	case true:
 		logger.Info("RUM endpoints enabled!")
@@ -96,19 +111,33 @@ func run(logger *logp.Logger, server *http.Server, lis net.Listener, cfg *config
 		logger.Infof("Connection limit set to: %d", cfg.MaxConnections)
 	}
 
-	if server.TLSConfig != nil {
+	var serveHTTP func(net.Listener) error
+	if server.http.TLSConfig != nil {
 		logger.Info("SSL enabled.")
-		return server.ServeTLS(lis, "", "")
-	}
-	if cfg.SecretToken != "" {
-		logger.Warn("Secret token is set, but SSL is not enabled.")
+		serveHTTP = func(lis net.Listener) error {
+			return server.http.ServeTLS(lis, "", "")
+		}
 	} else {
+		if cfg.SecretToken != "" {
+			logger.Warn("Secret token is set, but SSL is not enabled.")
+		}
 		logger.Info("SSL disabled.")
+		serveHTTP = server.http.Serve
 	}
-	return server.Serve(lis)
+
+	mux := cmux.New(lis)
+	grpcLis := mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldPrefixSendSettings("content-type", "application/grpc"))
+	httpLis := mux.Match(cmux.Any())
+
+	g, _ := errgroup.WithContext(context.Background())
+	g.Go(mux.Serve)
+	g.Go(func() error { return server.grpc.Serve(grpcLis) })
+	g.Go(func() error { return serveHTTP(httpLis) })
+	return g.Wait()
 }
 
 func stop(logger *logp.Logger, server *http.Server) {
+
 	err := server.Shutdown(context.Background())
 	if err != nil {
 		logger.Error(err.Error())

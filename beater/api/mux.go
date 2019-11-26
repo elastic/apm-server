@@ -18,11 +18,19 @@
 package api
 
 import (
+	"context"
 	"expvar"
+	"fmt"
 	"net/http"
 	"regexp"
 
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
+
 	"github.com/elastic/beats/libbeat/monitoring"
+	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
+	"github.com/open-telemetry/opentelemetry-collector/receiver/jaegerreceiver"
+	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/libbeat/logp"
 
@@ -101,6 +109,47 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		mux.Handle(path, expvar.Handler())
 	}
 	return mux, nil
+}
+
+//TODO(simi): move to processors and implement
+type Consumer struct {
+	TransformConfig transform.Config
+	ModelConfig     model.Config
+	Reporter        publish.Reporter
+}
+
+func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
+	fmt.Println("------------------------------------ CONSUMING trace data")
+	return nil
+}
+
+func RegisterGRPC(cfg *config.Config, reporter publish.Reporter, server *grpc.Server) error {
+	traceConsumer := &Consumer{
+		TransformConfig: transform.Config{},
+		ModelConfig:     model.Config{Experimental: cfg.Mode == config.ModeExperimental},
+		Reporter:        reporter,
+	}
+
+	// jaeger
+	//TODO(simi): use proper logger
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	factory := &jaegerreceiver.Factory{}
+	//TODO(simi): use proper config
+	receiverCfg := factory.CreateDefaultConfig()
+	traceReceiver, err := factory.CreateTraceReceiver(context.Background(), logger, receiverCfg, traceConsumer)
+	if err != nil {
+		panic(errors.Wrap(err, "--------------- Building trace receiver not possible"))
+	}
+	//TODO(simi): remove patch from inside jaegers `traceReceiver.StartTraceReception` once
+	// https://github.com/open-telemetry/opentelemetry-collector/pull/434 has landed
+	if err := traceReceiver.StartTraceReception(nil); err != nil {
+		panic(errors.Wrap(err, "--------------- Starting trace receiver not possible"))
+	}
+	//TODO(simi): ensure to call traceReceiver.StopTraceReception on server shutdown
+	return nil
 }
 
 func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {

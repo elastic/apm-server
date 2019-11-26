@@ -200,10 +200,13 @@ func (jr *jReceiver) StartTraceReception(host receiver.Host) error {
 
 	var err = oterr.ErrAlreadyStarted
 	jr.startOnce.Do(func() {
-		if err = jr.startAgent(host); err != nil && err != oterr.ErrAlreadyStarted {
-			jr.stopTraceReceptionLocked()
-			return
-		}
+		//TODO(simi): remove patch once
+		// https://github.com/open-telemetry/opentelemetry-collector/pull/434 has landed
+		
+		//if err = jr.startAgent(host); err != nil && err != oterr.ErrAlreadyStarted {
+		//	jr.stopTraceReceptionLocked()
+		//	return
+		//}
 
 		if err = jr.startCollector(host); err != nil && err != oterr.ErrAlreadyStarted {
 			jr.stopTraceReceptionLocked()
