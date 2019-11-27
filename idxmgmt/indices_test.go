@@ -29,6 +29,7 @@ func TestEventIdxNames(t *testing.T) {
 		expected := map[string]string{
 			"error":       "apm-%{[observer.version]}-error-%{+yyyy.MM.dd}",
 			"metric":      "apm-%{[observer.version]}-metric-%{+yyyy.MM.dd}",
+			"profile":     "apm-%{[observer.version]}-profile-%{+yyyy.MM.dd}",
 			"span":        "apm-%{[observer.version]}-span-%{+yyyy.MM.dd}",
 			"transaction": "apm-%{[observer.version]}-transaction-%{+yyyy.MM.dd}",
 		}
@@ -40,6 +41,7 @@ func TestEventIdxNames(t *testing.T) {
 		expected := map[string]string{
 			"error":       "apm-%{[observer.version]}-error",
 			"metric":      "apm-%{[observer.version]}-metric",
+			"profile":     "apm-%{[observer.version]}-profile",
 			"span":        "apm-%{[observer.version]}-span",
 			"transaction": "apm-%{[observer.version]}-transaction",
 		}
