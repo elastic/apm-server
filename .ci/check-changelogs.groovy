@@ -34,7 +34,8 @@ pipeline {
       }
       steps {
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true)
+        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
+                    depth: 3, reference: "/var/lib/jenkins/.git-references/${REPO}.git"))
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
