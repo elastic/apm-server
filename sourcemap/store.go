@@ -22,11 +22,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/apm-server/elasticsearch"
+
 	"github.com/go-sourcemap/sourcemap"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
-
-	"github.com/elastic/go-elasticsearch/v7"
 
 	"github.com/elastic/beats/libbeat/logp"
 
@@ -50,7 +50,7 @@ type Store struct {
 
 // NewStore creates a new instance for fetching sourcemaps. The client and index parameters are needed to be able to
 // fetch sourcemaps from Elasticsearch. The expiration time is used for the internal cache.
-func NewStore(client *elasticsearch.Client, index string, expiration time.Duration) (*Store, error) {
+func NewStore(client elasticsearch.Client, index string, expiration time.Duration) (*Store, error) {
 	if expiration < 0 {
 		return nil, errInit
 	}

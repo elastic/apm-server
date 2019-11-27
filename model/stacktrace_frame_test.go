@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/apm-server/elasticsearch"
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
@@ -479,7 +479,7 @@ func TestLibraryFrame(t *testing.T) {
 	}
 }
 
-func testSourcemapStore(t *testing.T, client *elasticsearch.Client) *sourcemap.Store {
+func testSourcemapStore(t *testing.T, client elasticsearch.Client) *sourcemap.Store {
 	store, err := sourcemap.NewStore(client, "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	return store
