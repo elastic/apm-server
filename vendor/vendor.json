@@ -2579,12 +2579,6 @@
 			"versionExact": "v1.2.2"
 		},
 		{
-			"checksumSHA1": "v7C+aJ1D/z3MEeCte6bxvpoGjM4=",
-			"path": "github.com/sergi/go-diff/diffmatchpatch",
-			"revision": "feef008d51ad2b3778f85d387ccf91735543008d",
-			"revisionTime": "2017-04-09T07:17:39Z"
-		},
-		{
 			"checksumSHA1": "SxMqZbSPdqINkqEcOT+l5UjXEdQ=",
 			"origin": "github.com/elastic/beats/vendor/github.com/sirupsen/logrus",
 			"path": "github.com/sirupsen/logrus",
@@ -2651,25 +2645,6 @@
 			"path": "github.com/xanzy/go-gitlab",
 			"revision": "9d665abb0c204f579765d16d24d7ec85257e6624",
 			"revisionTime": "2019-05-25T10:57:37Z"
-		},
-		{
-			"checksumSHA1": "8Kj0VH496b0exuyv4wAF4CXa7Y4=",
-			"path": "github.com/yudai/gojsondiff",
-			"revision": "081cda2ee95045a2c26da52c2ba80860838549de",
-			"revisionTime": "2017-06-26T13:12:58Z"
-		},
-		{
-			"checksumSHA1": "50gdo5Kq0/gEKG1A4agCPOZ26JA=",
-			"path": "github.com/yudai/gojsondiff/formatter",
-			"revision": "081cda2ee95045a2c26da52c2ba80860838549de",
-			"revisionTime": "2017-06-26T13:12:58Z"
-		},
-		{
-			"checksumSHA1": "nKKDgRfh40Ym+wg/JlQSXT43TP4=",
-			"origin": "github.com/yudai/gojsondiff/vendor/github.com/yudai/golcs",
-			"path": "github.com/yudai/golcs",
-			"revision": "081cda2ee95045a2c26da52c2ba80860838549de",
-			"revisionTime": "2017-06-26T13:12:58Z"
 		},
 		{
 			"checksumSHA1": "HF5aqkyZhDnmusO9bjAtSVIKhvQ=",
