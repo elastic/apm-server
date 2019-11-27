@@ -191,7 +191,7 @@ func (s *supporter) setIlmState(handler libidxmgmt.ClientHandler) {
 	}
 
 	for _, ilmSupporter := range s.ilmSupporters {
-		if enabled, err := ilmSupporter.Manager(handler).Enabled(); !enabled || err != nil {
+		if enabled, err := ilmSupporter.Manager(handler).CheckEnabled(); !enabled || err != nil {
 			stSet()
 			return
 		}
