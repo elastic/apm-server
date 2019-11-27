@@ -11,12 +11,13 @@
 
 
 // These attributes are used to resolve short descriptions
-tag::attributes[]
+// tag::attributes[]
 
 :global-flags: Also see <<global-flags,Global flags>>.
 
 :deploy-command-short-desc: Deploys the specified function to your serverless environment
 
+ifndef::serverless[]
 ifndef::no_dashboards[]
 :export-command-short-desc: Exports the configuration, index template, ILM policy, or a dashboard to stdout
 endif::no_dashboards[]
@@ -24,6 +25,11 @@ endif::no_dashboards[]
 ifdef::no_dashboards[]
 :export-command-short-desc: Exports the configuration, index template, or ILM policy to stdout
 endif::no_dashboards[]
+endif::serverless[]
+
+ifdef::serverless[]
+:export-command-short-desc: Exports the configuration, index template, or {cloudformation-ref} template to stdout
+endif::serverless[]
 
 :help-command-short-desc: Shows help for any command
 :keystore-command-short-desc: Manages the <<keystore,secrets keystore>>
@@ -48,7 +54,7 @@ endif::[]
 :test-command-short-desc: Tests the configuration
 :version-command-short-desc: Shows information about the current version
 
-end::attributes[]
+// end::attributes[]
 
 [[command-line-options]]
 === {beatname_uc} command reference
@@ -102,7 +108,9 @@ endif::[]
 ifdef::has_modules_command[]
 |<<modules-command,`modules`>> |{modules-command-short-desc}.
 endif::[]
+ifndef::serverless[]
 |<<run-command,`run`>> |{run-command-short-desc}.
+endif::[]
 |<<setup-command,`setup`>> |{setup-command-short-desc}.
 |<<test-command,`test`>> |{test-command-short-desc}.
 ifeval::["{beatname_lc}"=="functionbeat"]
@@ -149,6 +157,7 @@ endif::[]
 [[export-command]]
 ==== `export` command
 
+ifndef::serverless[]
 ifndef::no_dashboards[]
 {export-command-short-desc}. You can use this
 command to quickly view your configuration, see the contents of the index
@@ -160,6 +169,13 @@ ifdef::no_dashboards[]
 command to quickly view your configuration or see the contents of the index
 template or the ILM policy.
 endif::no_dashboards[]
+endif::serverless[]
+
+ifdef::serverless[]
+{export-command-short-desc}. You can use this
+command to quickly view your configuration, see the contents of the index
+template and the ILM policy, or export an CloudFormation template.
+endif::serverless[]
 
 *SYNOPSIS*
 
@@ -210,6 +226,11 @@ Exports the index lifecycle management policy to stdout. You can specify the
 `--es.version` and a `--dir` to which the policy should be exported as a
 file rather than exporting to `stdout`.
 
+ifdef::serverless[]
+[[function-subcommand]]*`function` FUNCTION_NAME*::
+Exports an {cloudformation-ref} template to stdout.
+endif::serverless[]
+
 *FLAGS*
 
 *`--es.version VERSION`*::
@@ -239,6 +260,7 @@ endif::no_dashboards[]
 
 *EXAMPLES*
 
+ifndef::serverless[]
 ifndef::no_dashboards[]
 ["source","sh",subs="attributes"]
 -----
@@ -255,12 +277,24 @@ ifdef::no_dashboards[]
 {beatname_lc} export template --es.version {version} --index myindexname
 -----
 endif::no_dashboards[]
+endif::serverless[]
+
+ifdef::serverless[]
+["source","sh",subs="attributes"]
+-----
+{beatname_lc} export config
+{beatname_lc} export template --es.version {version} --index myindexname
+{beatname_lc} export function cloudwatch
+-----
+endif::serverless[]
 
 [[help-command]]
 ==== `help` command
 
-{help-command-short-desc}. If no command is specified, shows help for the
-`run` command.
+{help-command-short-desc}.
+ifndef::serverless[]
+If no command is specified, shows help for the `run` command.
+endif::[]
 
 *SYNOPSIS*
 
@@ -461,7 +495,7 @@ ifeval::["{beatname_lc}"=="metricbeat"]
 endif::[]
 endif::[]
 
-
+ifndef::serverless[]
 [[run-command]]
 ==== `run` command
 
@@ -495,9 +529,9 @@ network. This option is useful only for testing {beatname_uc}.
 endif::[]
 
 *`-N, --N`*:: Disables publishing for testing purposes.
-ifndef::only-elasticsearch[]
+ifndef::no_file_output[]
 This option disables all outputs except the <<file-output,File output>>.
-endif::only-elasticsearch[]
+endif::[]
 
 ifeval::["{beatname_lc}"=="packetbeat"]
 *`-O, --O`*::
@@ -591,6 +625,8 @@ Or:
 -----
 {beatname_lc} -e
 -----
+endif::[]
+
 
 [[setup-command]]
 ==== `setup` command
