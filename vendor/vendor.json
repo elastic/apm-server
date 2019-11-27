@@ -1497,10 +1497,17 @@
 			"revisionTime": "2019-11-28T22:04:33Z"
 		},
 		{
-			"checksumSHA1": "cSNhWI3euRSQv1BsIKpx/M59B4o=",
+			"checksumSHA1": "bcGdkHyNag5yNitK9gDwAui9mLs=",
+			"path": "github.com/elastic/go-elasticsearch/v7",
+			"revision": "d8acaa5faade05290d8b500b8f3892a378f2d2e7",
+			"revisionTime": "2019-10-14T09:07:31Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "ZxPyJEN87+3pfJJp/+8wWvmtQ78=",
 			"path": "github.com/elastic/go-elasticsearch/v8",
-			"revision": "413583419151bfec42078b5754120bb4d04bd537",
-			"revisionTime": "2019-11-16T09:03:43Z",
+			"revision": "3b3cf00736fa466a528bf1f26d76e298a49de01f",
+			"revisionTime": "2019-11-20T06:38:12Z",
 			"tree": true
 		},
 		{
