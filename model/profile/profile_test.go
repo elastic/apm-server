@@ -95,14 +95,6 @@ func TestPprofProfileTransform(t *testing.T) {
 	require.Len(t, output, 2)
 	assert.Equal(t, output[0], output[1])
 
-	// Each profile is assigned a random ID; all samples within a
-	// document share the same random ID, which is checked by the
-	// equality assertion above.
-	profileField, ok := output[0].Fields["profile"].(common.MapStr)
-	require.True(t, ok)
-	assert.NotEmpty(t, profileField["id"])
-	delete(profileField, "id")
-
 	assert.Equal(t, beat.Event{
 		Timestamp: timestamp,
 		Fields: common.MapStr{

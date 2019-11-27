@@ -1115,16 +1115,6 @@ Profiling-specific data for APM.
 
 
 
-*`profile.id`*::
-+
---
-The unique ID of the profile.
-
-
-type: keyword
-
---
-
 
 *`profile.cpu.ns`*::
 +
