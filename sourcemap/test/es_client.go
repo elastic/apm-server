@@ -23,9 +23,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/apm-server/elasticsearch"
 
-	"github.com/elastic/apm-server/elasticsearch/test"
+	"github.com/elastic/apm-server/elasticsearch/estest"
 )
 
 //ValidSourcemap represents an example for a valid sourcemap string
@@ -70,38 +70,38 @@ var ValidSourcemap = `{
 
 // ESClientWithValidSourcemap returns an elasticsearch client that will always return a document containing
 // a valid sourcemap.
-func ESClientWithValidSourcemap(t *testing.T) *elasticsearch.Client {
-	client, err := test.NewElasticsearchClient(test.NewTransport(t, http.StatusOK, validSourcemapFromES()))
+func ESClientWithValidSourcemap(t *testing.T) elasticsearch.Client {
+	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusOK, validSourcemapFromES()))
 	require.NoError(t, err)
 	return client
 }
 
 // ESClientUnavailable returns an elasticsearch client that will always return an internal server error
-func ESClientUnavailable(t *testing.T) *elasticsearch.Client {
-	client, err := test.NewElasticsearchClient(test.NewTransport(t, http.StatusInternalServerError, nil))
+func ESClientUnavailable(t *testing.T) elasticsearch.Client {
+	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusInternalServerError, nil))
 	require.NoError(t, err)
 	return client
 }
 
 // ESClientWithInvalidSourcemap returns an elasticsearch client that will always return a document containing
 // an invalid sourcemap.
-func ESClientWithInvalidSourcemap(t *testing.T) *elasticsearch.Client {
-	client, err := test.NewElasticsearchClient(test.NewTransport(t, http.StatusOK, invalidSourcemapFromES()))
+func ESClientWithInvalidSourcemap(t *testing.T) elasticsearch.Client {
+	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusOK, invalidSourcemapFromES()))
 	require.NoError(t, err)
 	return client
 }
 
 // ESClientWithUnsupportedSourcemap returns an elasticsearch client that will always return a document containing
 // a sourcemap with an unsupported version.
-func ESClientWithUnsupportedSourcemap(t *testing.T) *elasticsearch.Client {
-	client, err := test.NewElasticsearchClient(test.NewTransport(t, http.StatusOK, sourcemapUnsupportedVersionFromES()))
+func ESClientWithUnsupportedSourcemap(t *testing.T) elasticsearch.Client {
+	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusOK, sourcemapUnsupportedVersionFromES()))
 	require.NoError(t, err)
 	return client
 }
 
 // ESClientWithSourcemapNotFound returns an elasticsearch client that will always return a not found error
-func ESClientWithSourcemapNotFound(t *testing.T) *elasticsearch.Client {
-	client, err := test.NewElasticsearchClient(test.NewTransport(t, http.StatusNotFound, sourcemapNotFoundFromES()))
+func ESClientWithSourcemapNotFound(t *testing.T) elasticsearch.Client {
+	client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusNotFound, sourcemapNotFoundFromES()))
 	require.NoError(t, err)
 	return client
 }

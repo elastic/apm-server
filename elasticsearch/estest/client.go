@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package test
+package estest
 
 import (
 	"bytes"
@@ -27,10 +27,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/pkg/errors"
+	"github.com/elastic/apm-server/elasticsearch"
 
-	"github.com/elastic/go-elasticsearch/v7"
-)
+	"github.com/pkg/errors"
+	)
 
 // Transport can be used to pass to test Elasticsearch Client for more control over client behavior
 type Transport struct {
@@ -65,6 +65,6 @@ func NewTransport(t *testing.T, statusCode int, esBody map[string]interface{}) *
 }
 
 // NewElasticsearchClient creates ES client using the given transport instance
-func NewElasticsearchClient(transport *Transport) (*elasticsearch.Client, error) {
-	return elasticsearch.NewClient(elasticsearch.Config{Addresses: []string{}, Transport: transport})
+func NewElasticsearchClient(transport *Transport) (elasticsearch.Client, error) {
+	return elasticsearch.NewVersionedClient("", "", []string{}, transport)
 }
