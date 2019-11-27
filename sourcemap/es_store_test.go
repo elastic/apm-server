@@ -28,9 +28,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/go-elasticsearch/v8"
 
-	estest "github.com/elastic/apm-server/elasticsearch/test"
+	"github.com/elastic/apm-server/elasticsearch"
+
+	"github.com/elastic/apm-server/elasticsearch/estest"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/sourcemap/test"
 )
@@ -74,7 +75,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 
 func Test_esFetcher_fetch(t *testing.T) {
 	for name, tc := range map[string]struct {
-		client   *elasticsearch.Client
+		client   elasticsearch.Client
 		filePath string
 	}{
 		"no sourcemap found":    {client: test.ESClientWithSourcemapNotFound(t)},
@@ -95,6 +96,6 @@ func Test_esFetcher_fetch(t *testing.T) {
 	}
 }
 
-func testESStore(client *elasticsearch.Client) *esStore {
+func testESStore(client elasticsearch.Client) *esStore {
 	return &esStore{client: client, index: "apm-sourcemap", logger: logp.NewLogger(logs.Sourcemap)}
 }
