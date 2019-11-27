@@ -19,13 +19,12 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/yudai/gojsondiff/formatter"
+	"github.com/fatih/color"
 
 	"github.com/elastic/apm-server/tests/approvals"
 )
@@ -40,23 +39,28 @@ func approval() int {
 
 	for _, rf := range receivedFiles {
 		path := strings.Replace(rf, approvals.ReceivedSuffix, "", 1)
-		_, approved, d, err := approvals.Compare(path, map[string]string{})
-
+		_, _, diff, err := approvals.Compare(path)
 		if err != nil {
 			fmt.Println("Could not create diff ", err)
 			return 3
 		}
 
-		var aJson map[string]interface{}
-		json.Unmarshal(approved, &aJson)
-		config := formatter.AsciiFormatterConfig{
-			ShowArrayIndex: true,
-			Coloring:       true,
+		added := color.New(color.FgBlack, color.BgGreen).SprintFunc()
+		deleted := color.New(color.FgBlack, color.BgRed).SprintFunc()
+		scanner := bufio.NewScanner(strings.NewReader(diff))
+		for scanner.Scan() {
+			line := scanner.Text()
+			if len(line) > 0 {
+				switch line[0] {
+				case '-':
+					line = deleted(line)
+				case '+':
+					line = added(line)
+				}
+			}
+			fmt.Println(line)
 		}
-		formatter := formatter.NewAsciiFormatter(aJson, config)
-		diffString, _ := formatter.Format(d)
 
-		fmt.Println(diffString)
 		fmt.Println(rf)
 		fmt.Println("\nApprove Changes? (y/n)")
 		reader := bufio.NewReader(os.Stdin)
