@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	estest "github.com/elastic/apm-server/elasticsearch/test"
+	"github.com/elastic/apm-server/elasticsearch/estest"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
