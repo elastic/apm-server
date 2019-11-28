@@ -234,7 +234,6 @@ pipeline {
           }
           post {
             always {
-              coverageReport("${BASE_DIR}/build/coverage")
               dir("${BASE_DIR}"){
                 archiveArtifacts(allowEmptyArchive: true,
                   artifacts: "docker-info/**",
