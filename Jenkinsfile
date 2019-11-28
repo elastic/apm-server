@@ -14,7 +14,7 @@ pipeline {
   }
   options {
     timeout(time: 2, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
