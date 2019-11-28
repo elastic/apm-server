@@ -19,6 +19,9 @@ class AgentConfigurationTest(ElasticTest):
     def setUp(self):
         super(AgentConfigurationTest, self).setUp()
         self.wait_until(lambda: requests.get(self.kibana_url).status_code < 400)
+        # with the Kibana platform, the agent config index will be created async
+        # we need to wait until it is ready
+        self.wait_until(lambda: self.es.indices.exists(".apm-agent-configuration"))
 
     def config(self):
         cfg = super(ElasticTest, self).config()
