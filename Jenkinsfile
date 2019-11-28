@@ -53,7 +53,8 @@ pipeline {
       steps {
         pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}")
+        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
+                    depth: 3, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
