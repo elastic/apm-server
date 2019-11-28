@@ -16,6 +16,10 @@ class AgentConfigurationTest(ElasticTest):
         "acm_cache_expiration": "1s",
     }
 
+    def setUp(self):
+        super(AgentConfigurationTest, self).setUp()
+        self.wait_until(lambda: requests.get(self.kibana_url).status_code < 400)
+
     def config(self):
         cfg = super(ElasticTest, self).config()
         cfg.update({
