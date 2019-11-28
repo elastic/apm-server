@@ -22,12 +22,13 @@ import (
 	"fmt"
 
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/open-telemetry/opentelemetry-collector/config/configmodels"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/open-telemetry/opentelemetry-collector/receiver"
 	"github.com/open-telemetry/opentelemetry-collector/receiver/jaegerreceiver"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmgrpc"
+	"google.golang.org/grpc"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model"
@@ -35,13 +36,13 @@ import (
 	"github.com/elastic/apm-server/transform"
 )
 
-type otcollector struct {
+type otelCollector struct {
 	logger         *logp.Logger
 	traceReceivers []receiver.TraceReceiver
 	host           *host
 }
 
-func newOTCollectors(logger *logp.Logger, cfg *config.Config, _ *apm.Tracer, reporter publish.Reporter) (*otcollector, error) {
+func newOtelCollector(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*otelCollector, error) {
 	traceConsumer := &Consumer{
 		TransformConfig: transform.Config{},
 		ModelConfig:     model.Config{Experimental: cfg.Mode == config.ModeExperimental},
@@ -51,27 +52,41 @@ func newOTCollectors(logger *logp.Logger, cfg *config.Config, _ *apm.Tracer, rep
 	ctx := context.Background()
 	host := newHost(ctx)
 
-	factory := &jaegerreceiver.Factory{}
 	//TODO(simi): make port configurable
-	receiverCfg := &jaegerreceiver.Config{
-		TypeVal: jaegerType,
-		NameVal: jaegerType,
-		Protocols: map[string]*receiver.SecureReceiverSettings{
-			protoGRPC: {
-				ReceiverSettings: configmodels.ReceiverSettings{
-					Endpoint: defaultGRPCBindEndpoint,
-				},
-			},
+	//TODO(simi):pass in TLS credentials
+	jaegerCfg := &jaegerreceiver.Configuration{
+		CollectorGRPCPort: 14250,
+		CollectorGRPCOptions: []grpc.ServerOption{
+			grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
+				apmgrpc.WithRecovery(),
+				apmgrpc.WithTracer(tracer))),
 		},
 	}
-	jaegerReceiver, err := factory.CreateTraceReceiver(ctx, nil, receiverCfg, traceConsumer)
+	jaegerReceiver, err := jaegerreceiver.New(ctx, jaegerCfg, traceConsumer)
 	if err != nil {
-		return &otcollector{}, errors.Wrapf(err, "error building trace receiver for Jaeger")
+		return &otelCollector{}, errors.Wrapf(err, "error building trace receiver for Jaeger")
 	}
-	return &otcollector{logger, []receiver.TraceReceiver{jaegerReceiver}, host}, nil
+
+	//receiverCfg := &jaegerreceiver.Config{
+	//	TypeVal: jaegerType,
+	//	NameVal: jaegerType,
+	//	Protocols: map[string]*receiver.SecureReceiverSettings{
+	//		protoGRPC: {
+	//			ReceiverSettings: configmodels.ReceiverSettings{
+	//				Endpoint: defaultGRPCBindEndpoint,
+	//			},
+	//		},
+	//	},
+	//}
+	//factory := &jaegerreceiver.Factory{}
+	//jaegerReceiver, err := factory.CreateTraceReceiver(ctx, nil, receiverCfg, traceConsumer)
+	//if err != nil {
+	//	return &otelCollector{}, errors.Wrapf(err, "error building trace receiver for Jaeger")
+	//}
+	return &otelCollector{logger, []receiver.TraceReceiver{jaegerReceiver}, host}, nil
 }
 
-func (otc *otcollector) start() error {
+func (otc *otelCollector) start() error {
 	for _, r := range otc.traceReceivers {
 		//TODO(simi): remove patch from inside jaegers `jaegerReceiver.StartTraceReception` once
 		// https://github.com/open-telemetry/opentelemetry-collector/pull/434 has landed
@@ -88,7 +103,7 @@ func (otc *otcollector) start() error {
 	}
 }
 
-func (otc *otcollector) stop() {
+func (otc *otelCollector) stop() {
 	otc.host.cancel()
 	for _, r := range otc.traceReceivers {
 		otc.logger.Infof("Stopping trace receiver for %s", r.TraceSource())

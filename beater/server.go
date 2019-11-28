@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"time"
 
+	"go.elastic.co/apm"
 	"golang.org/x/net/context"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -32,7 +33,6 @@ import (
 
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
-	"go.elastic.co/apm"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
@@ -42,8 +42,8 @@ type server struct {
 	logger *logp.Logger
 	cfg    *config.Config
 
-	httpServer   *httpServer
-	otCollectors *otcollector
+	httpServer    *httpServer
+	otelCollector *otelCollector
 }
 
 func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
@@ -51,20 +51,20 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	if err != nil {
 		return server{}, err
 	}
-	grpc, err := newOTCollectors(logger, cfg, tracer, reporter)
+	otelCollector, err := newOtelCollector(logger, cfg, tracer, reporter)
 	if err != nil {
 		return server{}, err
 	}
-	return server{logger, cfg, httpServer, grpc}, nil
+	return server{logger, cfg, httpServer, otelCollector}, nil
 }
 
 func (s server) run(listener, traceListener net.Listener, publish func(beat.Event)) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
 
-	if s.otCollectors != nil {
+	if s.otelCollector != nil {
 		g.Go(func() error {
-			return s.otCollectors.start()
+			return s.otelCollector.start()
 		})
 	}
 	if s.httpServer != nil {
@@ -93,8 +93,8 @@ func (s server) run(listener, traceListener net.Listener, publish func(beat.Even
 }
 
 func (s server) stop(logger *logp.Logger) {
-	if s.otCollectors != nil {
-		s.otCollectors.stop()
+	if s.otelCollector != nil {
+		s.otelCollector.stop()
 	}
 	if s.httpServer != nil {
 		s.httpServer.stop()

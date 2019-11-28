@@ -3437,6 +3437,12 @@
 			"versionExact": "v1.6.0"
 		},
 		{
+			"checksumSHA1": "mmxAHEN4dmPsjrGqaXj9Y8jzWg4=",
+			"path": "go.elastic.co/apm/module/apmgrpc",
+			"revision": "1f298fc337188f6dd7046dbcc14f286a8e52d334",
+			"revisionTime": "2019-11-27T15:32:23Z"
+		},
+		{
 			"checksumSHA1": "oWoy4s0X9r/nYynIYE23iDpakPE=",
 			"path": "go.elastic.co/apm/module/apmhttp",
 			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
