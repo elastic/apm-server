@@ -244,6 +244,15 @@ pipeline {
           }
           post {
             always {
+              dir("${BASE_DIR}"){
+                archiveArtifacts(allowEmptyArchive: true,
+                  artifacts: "docker-info/**",
+                  defaultExcludes: false)
+                  junit(allowEmptyResults: true,
+                    keepLongStdio: true,
+                    testResults: "**/build/TEST-*.xml"
+                  )
+              }
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                 tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               }
