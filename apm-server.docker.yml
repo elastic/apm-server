@@ -317,6 +317,10 @@ apm-server:
       #grpc:
         # Defines the gRPC host and port the server is listening on. Defaults to Jaeger collector default port 14250.
         #host: "0.0.0.0:14250"
+        # Path to file containing the TLS certificate
+        #tls.cert_file: ""
+        # Path to file containing the TLS key
+        #tls.key_file: ""
 
 #================================= General =================================
 

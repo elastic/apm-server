@@ -26,17 +26,18 @@ import (
 	"sync"
 	"time"
 
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/transport"
+
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs/elasticsearch"
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/transport"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/ingest/pipeline"
-	"github.com/elastic/apm-server/log"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/pipelistener"
 	"github.com/elastic/apm-server/publish"
 )

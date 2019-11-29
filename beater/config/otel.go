@@ -35,7 +35,14 @@ type JaegerConfig struct {
 
 // GRPCConfig bundles information around a grpc server
 type GRPCConfig struct {
-	Host string `config:"host"`
+	Host string     `config:"host"`
+	TLS  *TLSConfig `config:"tls"`
+}
+
+// TLSConfig bundles information for TLS communication
+type TLSConfig struct {
+	CertFile string `config:"cert_file"`
+	KeyFile  string `config:"key_file"`
 }
 
 func defaultOtel() *OtelConfig {

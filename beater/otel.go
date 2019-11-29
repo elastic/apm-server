@@ -23,15 +23,19 @@ import (
 	"net"
 	"time"
 
-	"github.com/elastic/beats/libbeat/logp"
+	"google.golang.org/grpc/credentials"
+
+	"go.elastic.co/apm/module/apmgrpc"
+
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/open-telemetry/opentelemetry-collector/observability"
 	"github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmgrpc"
 	"google.golang.org/grpc"
+
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/model/metadata"
@@ -120,13 +124,20 @@ func newJaegerCollector(cfg *config.Config, traceConsumer *Consumer, tracer *apm
 	if cfg.OtelConfig == nil || !cfg.OtelConfig.Jaeger.Enabled {
 		return nil, nil
 	}
+
+	grpcOptions := []grpc.ServerOption{grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
+		apmgrpc.WithRecovery(),
+		apmgrpc.WithTracer(tracer)))}
+	if cfg.OtelConfig.Jaeger.GRPC.TLS != nil {
+		credentials.NewServerTLSFromFile(cfg.OtelConfig.Jaeger.GRPC.TLS.KeyFile, cfg.OtelConfig.Jaeger.GRPC.TLS.CertFile)
+	}
+	grpcServer := grpc.NewServer(grpcOptions...)
+
 	return &jaegerCollector{
-		receiver: &jaegerReceiver{traceConsumer: traceConsumer},
-		grpcServer: grpc.NewServer(grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
-			apmgrpc.WithRecovery(),
-			apmgrpc.WithTracer(tracer)))),
-		host:     cfg.OtelConfig.Jaeger.GRPC.Host,
-		observer: observer,
+		receiver:   &jaegerReceiver{traceConsumer: traceConsumer},
+		grpcServer: grpcServer,
+		host:       cfg.OtelConfig.Jaeger.GRPC.Host,
+		observer:   observer,
 	}, nil
 }
 

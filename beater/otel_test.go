@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
-	"github.com/elastic/beats/libbeat/logp"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
@@ -32,6 +31,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm"
 	"google.golang.org/grpc"
+
+	"github.com/elastic/beats/libbeat/logp"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/publish"
@@ -100,6 +101,7 @@ func Test_otelCollector(t *testing.T) {
 	})
 }
 
+//TODO(simi): add tls test
 func Test_jaegerCollector(t *testing.T) {
 	// jaeger not enabled
 	c, err := newJaegerCollector(&config.Config{}, nil, nil, nil)
