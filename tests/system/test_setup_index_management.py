@@ -193,9 +193,19 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy()
 
-        # load with ilm disabled
+        # load with ilm disabled: setup.overwrite is respected
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=false"])
+        assert exit_code == 0
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_default_policy()
+
+        # load with ilm disabled and setup.overwrite enabled
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false",
+                                              "-E", "apm-server.ilm.setup.overwrite=true"])
         assert exit_code == 0
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(with_ilm=False)
@@ -217,9 +227,18 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
 
-        # load with ilm enabled
+        # load with ilm enabled: setup.overwrite is respected
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=true"])
+        assert exit_code == 0
+        self.idxmgmt.assert_event_template(with_ilm=False)
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_default_policy()
+
+        # load with ilm enabled and setup.overwrite enabled
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=true",
+                                              "-E", "apm-server.ilm.setup.overwrite=true"])
         assert exit_code == 0
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template()
