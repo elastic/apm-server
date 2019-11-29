@@ -36,6 +36,7 @@ pipeline {
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
+    booleanParam(name: 'beats_update_ci', defaultValue: true, description: 'Test Beats update')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
   }
   stages {
@@ -328,24 +329,40 @@ pipeline {
         Then build and test.
         Finally archive the results.
         */
-        /*
         stage('Update Beats') {
-            agent { label 'linux' }
-
-            steps {
-              ansiColor('xterm') {
-                  deleteDir()
-                  dir("${BASE_DIR}"){
-                    unstash 'source'
-                    sh """
-                    #!
-                    ./script/jenkins/update-beats.sh
-                    """
-                    archiveArtifacts allowEmptyArchive: true, artifacts: "${BASE_DIR}/build", onlyIfSuccessful: false
-                  }
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          environment {
+            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+            HOME = "${env.WORKSPACE}"
+            GOPATH = "${env.WORKSPACE}"
+          }
+          when {
+            beforeAgent true
+            allOf {
+              expression { return params.beats_update_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
+          }
+          steps {
+            catchError(buildResult: 'SUCCESS', message: 'Update Beats fails', stageResult: 'UNSTABLE') {
+              withGithubNotify(context: 'Update Beats') {
+                deleteDir()
+                unstash 'source'
+                dir("${BASE_DIR}"){
+                  sh(label: 'Update Beats script', script: './script/jenkins/update-beats.sh')
                 }
               }
-        }*/
+            }
+          }
+          post {
+            always {
+              catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
+                tar(file: "update-betas-system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
+              }
+            }
+          }
+        }
       }
     }
     stage('APM Integration Tests') {
