@@ -161,6 +161,7 @@ func (jr *jaegerReceiver) PostSpans(ctx context.Context, r *api_v2.PostSpansRequ
 		observability.RecordMetricsForTraceReceiver(ctxWithReceiverName, spansCount, spansCount)
 		return nil, err
 	}
+	traceData.SourceFormat = "jaeger"
 	observability.RecordMetricsForTraceReceiver(ctxWithReceiverName, spansCount, spansCount-len(traceData.Spans))
 
 	if err = jr.traceConsumer.ConsumeTraceData(ctx, traceData); err != nil {
