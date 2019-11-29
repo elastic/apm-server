@@ -40,16 +40,6 @@ pipeline {
   }
   stages {
     /**
-    Cancel all the previous running old builds for the current PR.
-    */
-    stage('Cancel old builds') {
-      when { changeRequest() }
-      options { skipDefaultCheckout() }
-      steps {
-        cancelPreviousRunningBuilds()
-      }
-    }
-    /**
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout') {
@@ -60,6 +50,7 @@ pipeline {
       }
       options { skipDefaultCheckout() }
       steps {
+        pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true)
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
