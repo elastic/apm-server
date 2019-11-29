@@ -94,6 +94,8 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				"kibana":                        map[string]interface{}{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
+				"otel.jaeger.enabled":           true,
+				"otel.jaeger.grpc.host":         "localhost:12345",
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -142,6 +144,14 @@ func Test_UnpackConfig(t *testing.T) {
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
 				Pipeline:    defaultAPMPipeline,
+				OtelConfig: &OtelConfig{
+					Jaeger: JaegerConfig{
+						Enabled: true,
+						GRPC: GRPCConfig{
+							Host: "localhost:12345",
+						},
+					},
+				},
 			},
 		},
 		"merge config with default": {
@@ -171,6 +181,7 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
+				"otel.jaeger.enabled": true,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -218,6 +229,14 @@ func Test_UnpackConfig(t *testing.T) {
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 				Pipeline:    defaultAPMPipeline,
+				OtelConfig: &OtelConfig{
+					Jaeger: JaegerConfig{
+						Enabled: true,
+						GRPC: GRPCConfig{
+							Host: "localhost:14250",
+						},
+					},
+				},
 			},
 		},
 	}

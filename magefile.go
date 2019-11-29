@@ -30,8 +30,9 @@ import (
 	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/dev-tools/mage"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func init() {
@@ -99,6 +100,7 @@ func shortConfigFileParams() mage.ConfigFileParams {
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "localhost:9200",
 			"listen_hostport":        "localhost:" + config.DefaultPort,
+			"jaeger_grpc_hostport":   "localhost:14250",
 		},
 	}
 }
@@ -111,6 +113,7 @@ func dockerConfigFileParams() mage.ConfigFileParams {
 		ExtraVars: map[string]interface{}{
 			"elasticsearch_hostport": "elasticsearch:9200",
 			"listen_hostport":        "0.0.0.0:" + config.DefaultPort,
+			"jaeger_grpc_hostport":   "0.0.0.0:14250",
 		},
 	}
 }

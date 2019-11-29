@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
@@ -33,7 +34,8 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
+	"github.com/elastic/apm-server/model/transaction"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
 )
@@ -44,22 +46,6 @@ type collector interface {
 	name() string
 	endpoint() string
 }
-
-type observer struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	ch     chan error
-}
-
-func newObserver(ctx context.Context) *observer {
-	ctx, cancel := context.WithCancel(ctx)
-	return &observer{ctx: ctx, cancel: cancel, ch: make(chan error)}
-}
-
-func (o *observer) Fatal(err error) {
-	o.ch <- err
-}
-
 type otelCollector struct {
 	logger     *logp.Logger
 	collectors []collector
@@ -69,17 +55,20 @@ type otelCollector struct {
 func newOtelCollector(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*otelCollector, error) {
 	observer := newObserver(context.Background())
 	traceConsumer := &Consumer{
-		TransformConfig: transform.Config{},
-		ModelConfig:     model.Config{Experimental: cfg.Mode == config.ModeExperimental},
 		Reporter:        reporter,
+		TransformConfig: transform.Config{},
 	}
+	otelCollector := &otelCollector{logger, []collector{}, observer}
 
-	jaegerCollector, err := newJaegerCollector(traceConsumer, tracer, observer)
+	jaegerCollector, err := newJaegerCollector(cfg, traceConsumer, tracer, observer)
 	if err != nil {
 		return nil, err
 	}
+	if jaegerCollector != nil {
+		otelCollector.collectors = append(otelCollector.collectors, jaegerCollector)
+	}
 
-	return &otelCollector{logger, []collector{jaegerCollector}, observer}, nil
+	return otelCollector, nil
 }
 
 func (otc *otelCollector) start() error {
@@ -105,6 +94,21 @@ func (otc *otelCollector) stop() {
 	}
 }
 
+type observer struct {
+	ctx    context.Context
+	cancel context.CancelFunc
+	ch     chan error
+}
+
+func newObserver(ctx context.Context) *observer {
+	ctx, cancel := context.WithCancel(ctx)
+	return &observer{ctx: ctx, cancel: cancel, ch: make(chan error)}
+}
+
+func (o *observer) fatal(err error) {
+	o.ch <- err
+}
+
 type jaegerCollector struct {
 	grpcServer *grpc.Server
 	host       string
@@ -112,13 +116,16 @@ type jaegerCollector struct {
 	observer   *observer
 }
 
-func newJaegerCollector(traceConsumer *Consumer, tracer *apm.Tracer, observer *observer) (*jaegerCollector, error) {
+func newJaegerCollector(cfg *config.Config, traceConsumer *Consumer, tracer *apm.Tracer, observer *observer) (*jaegerCollector, error) {
+	if cfg.OtelConfig == nil || !cfg.OtelConfig.Jaeger.Enabled {
+		return nil, nil
+	}
 	return &jaegerCollector{
 		receiver: &jaegerReceiver{traceConsumer: traceConsumer},
 		grpcServer: grpc.NewServer(grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(
 			apmgrpc.WithRecovery(),
 			apmgrpc.WithTracer(tracer)))),
-		host:     grpcEndpoint,
+		host:     cfg.OtelConfig.Jaeger.GRPC.Host,
 		observer: observer,
 	}, nil
 }
@@ -131,14 +138,14 @@ func (jc *jaegerCollector) start() error {
 	}
 	go func() {
 		if err := jc.grpcServer.Serve(listener); err != nil {
-			jc.observer.Fatal(err)
+			jc.observer.fatal(err)
 		}
 	}()
 	return nil
 }
 
-func (js *jaegerCollector) stop() {
-	js.grpcServer.GracefulStop()
+func (jc *jaegerCollector) stop() {
+	jc.grpcServer.GracefulStop()
 }
 
 func (jc *jaegerCollector) name() string {
@@ -153,6 +160,10 @@ type jaegerReceiver struct {
 	traceConsumer *Consumer
 }
 
+// PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry
+// TraceData and passes them on to the internal Consumer taking care of converting into Elastic APM format.
+// The implementation of the protobuf contract is based on the open-telemetry implementation at
+// https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
 func (jr *jaegerReceiver) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
 	ctxWithReceiverName := observability.ContextWithReceiverName(ctx, jaegerReceiverName)
 	spansCount := len(r.Batch.Spans)
@@ -161,7 +172,7 @@ func (jr *jaegerReceiver) PostSpans(ctx context.Context, r *api_v2.PostSpansRequ
 		observability.RecordMetricsForTraceReceiver(ctxWithReceiverName, spansCount, spansCount)
 		return nil, err
 	}
-	traceData.SourceFormat = "jaeger"
+	traceData.SourceFormat = jaegerType
 	observability.RecordMetricsForTraceReceiver(ctxWithReceiverName, spansCount, spansCount-len(traceData.Spans))
 
 	if err = jr.traceConsumer.ConsumeTraceData(ctx, traceData); err != nil {
@@ -173,18 +184,34 @@ func (jr *jaegerReceiver) PostSpans(ctx context.Context, r *api_v2.PostSpansRequ
 const (
 	jaegerType         = "jaeger"
 	jaegerReceiverName = jaegerType + "-collector"
-	grpcEndpoint       = "localhost:14250"
 	networkTCP         = "tcp"
 )
 
+// Consumer is a place holder for proper implementation of transforming open-telemetry to elastic APM conform data
+// This needs to be moved to the processor package when implemented properly
 //TODO(simi): move to processors when implementing
 type Consumer struct {
-	TransformConfig transform.Config
-	ModelConfig     model.Config
 	Reporter        publish.Reporter
+	TransformConfig transform.Config
 }
 
+// ConsumeTraceData is only a place holder right now, needs to be implemented.
 func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
-	fmt.Println("------------------------------------ CONSUMING trace data")
-	return nil
+	transformables := []transform.Transformable{}
+	for _, traceData := range td.Spans {
+		transformables = append(transformables, &transaction.Event{
+			TraceId: fmt.Sprintf("%x", traceData.TraceId),
+			Id:      fmt.Sprintf("%x", traceData.SpanId),
+		})
+	}
+	transformContext := &transform.Context{
+		RequestTime: time.Now(),
+		Config:      c.TransformConfig,
+		Metadata:    metadata.Metadata{},
+	}
+	return c.Reporter(ctx, publish.PendingReq{
+		Transformables: transformables,
+		Tcontext:       transformContext,
+		Trace:          true,
+	})
 }

@@ -62,6 +62,7 @@ type Config struct {
 	Kibana              *common.Config          `config:"kibana"`
 	AgentConfig         *AgentConfig            `config:"agent.config"`
 	SecretToken         string                  `config:"secret_token"`
+	OtelConfig          *OtelConfig             `config:"otel"`
 
 	Pipeline string
 }
@@ -159,5 +160,6 @@ func DefaultConfig(beatVersion string) *Config {
 		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 		AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 		Pipeline:    defaultAPMPipeline,
+		OtelConfig:  defaultOtel(),
 	}
 }

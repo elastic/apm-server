@@ -68,8 +68,8 @@ func adjustMissingTimestamp(event *beat.Event) {
 // It posts a payload to a running APM server via the intake API and gathers the resulting documents that would
 // normally be published to Elasticsearch.
 func testPublish(t *testing.T, apm *beater, events <-chan beat.Event, url string, payload io.Reader) []byte {
-	baseUrl, client := apm.client(false)
-	req, err := http.NewRequest(http.MethodPost, baseUrl+url, payload)
+	baseURL, client := apm.client(false)
+	req, err := http.NewRequest(http.MethodPost, baseURL+url, payload)
 	require.NoError(t, err)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	rsp, err := client.Do(req)
