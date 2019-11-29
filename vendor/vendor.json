@@ -45,6 +45,12 @@
 			"revisionTime": "2019-09-09T20:46:26Z"
 		},
 		{
+			"checksumSHA1": "R2m2GM40MMllg36k9ZK31fWodxM=",
+			"path": "github.com/OneOfOne/xxhash",
+			"revision": "8f0be54a8d5ccf68817143d8c996147ec5cbd795",
+			"revisionTime": "2019-11-05T18:42:16Z"
+		},
+		{
 			"checksumSHA1": "QfQ5j32qXVWguN/pF1sG9LBje+w=",
 			"origin": "github.com/elastic/beats/vendor/github.com/Shopify/sarama",
 			"path": "github.com/Shopify/sarama",
@@ -1981,6 +1987,12 @@
 			"path": "github.com/google/gofuzz",
 			"revision": "8859ead59b4531961fbc9f0da4db0183df815d20",
 			"revisionTime": "2019-11-28T22:04:33Z"
+		},
+		{
+			"checksumSHA1": "qa49Pn3pSb7pJIAVbQX95qjNilw=",
+			"path": "github.com/google/pprof/profile",
+			"revision": "27840fff0d09770c422884093a210ac5ce453ea6",
+			"revisionTime": "2019-11-05T19:32:34Z"
 		},
 		{
 			"checksumSHA1": "c0Z2sKLKi+IKRVzq0IzNvqvfCrQ=",

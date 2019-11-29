@@ -54,7 +54,7 @@ func eventIdxNames(dateSuffix bool) map[string]string {
 		suffix = apmSuffix
 	}
 	idcs := map[string]string{}
-	for _, k := range []string{"span", "transaction", "error", "metric"} {
+	for _, k := range []string{"span", "transaction", "error", "metric", "profile"} {
 		idcs[k] = idxStr(k, suffix)
 	}
 	return idcs
