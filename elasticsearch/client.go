@@ -83,22 +83,23 @@ func NewClient(config *Config) (Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewVersionedClient(config.Username, config.Password, addresses, transport)
+	return NewVersionedClient(config.APIKey, config.Username, config.Password, addresses, transport)
 }
 
 // NewVersionedClient returns the right elasticsearch client for the current Stack version, as an interface
-func NewVersionedClient(user, pwd string, addresses []string, transport http.RoundTripper) (Client, error) {
+func NewVersionedClient(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (Client, error) {
 	version := common.MustNewVersion(version.GetDefaultVersion())
 	if version.IsMajor(8) {
-		c, err := newV8Client(user, pwd, addresses, transport)
+		c, err := newV8Client(apikey, user, pwd, addresses, transport)
 		return clientV8{c}, err
 	}
-	c, err := newV7Client(user, pwd, addresses, transport)
+	c, err := newV7Client(apikey, user, pwd, addresses, transport)
 	return clientV7{c}, err
 }
 
-func newV7Client(user, pwd string, addresses []string, transport http.RoundTripper) (*v7.Client, error) {
+func newV7Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*v7.Client, error) {
 	return v7.NewClient(v7.Config{
+		APIKey:    apikey,
 		Username:  user,
 		Password:  pwd,
 		Addresses: addresses,
@@ -106,8 +107,9 @@ func newV7Client(user, pwd string, addresses []string, transport http.RoundTripp
 	})
 }
 
-func newV8Client(user, pwd string, addresses []string, transport http.RoundTripper) (*v8.Client, error) {
+func newV8Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*v8.Client, error) {
 	return v8.NewClient(v8.Config{
+		APIKey:    apikey,
 		Username:  user,
 		Password:  pwd,
 		Addresses: addresses,

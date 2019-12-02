@@ -37,8 +37,9 @@ const (
 )
 
 var (
-	errInvalidHosts  = errors.New("`Hosts` must at least contain one hostname")
-	errConfigMissing = errors.New("config missing")
+	errInvalidHosts     = errors.New("`Hosts` must at least contain one hostname")
+	errConfigMissing    = errors.New("config missing")
+	esConnectionTimeout = 5 * time.Second
 )
 
 // Config holds all configurable fields that are used to create a Client
@@ -52,6 +53,12 @@ type Config struct {
 	TLS          *tlscommon.Config `config:"ssl"`
 	Username     string            `config:"username"`
 	Password     string            `config:"password"`
+	APIKey       string            `config:"api_key"`
+}
+
+// DefaultConfig returns a default config.
+func DefaultConfig() *Config {
+	return &Config{Hosts: []string{"localhost:9200"}, Protocol: "http", Timeout: esConnectionTimeout}
 }
 
 // Hosts is an array of host strings and needs to have at least one entry
