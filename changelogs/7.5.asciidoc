@@ -16,6 +16,11 @@ https://github.com/elastic/apm-server/compare/v7.4.1\...v7.5.0[View commits]
 - Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
 
 [float]
+==== Bug fixes
+- Fixed APM Server DSA Public key panic: CVE-2019-17596.
+See https://www.elastic.co/community/security/[Elastic security issues] for more information.
+
+[float]
 ==== Added
 - Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
 - Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
