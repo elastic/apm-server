@@ -17,8 +17,11 @@ https://github.com/elastic/apm-server/compare/v7.4.1\...v7.5.0[View commits]
 
 [float]
 ==== Bug fixes
-- Fixed APM Server DSA Public key panic: CVE-2019-17596.
-See https://www.elastic.co/community/security/[Elastic security issues] for more information.
+- Fix a denial of service flaw when parsing malformed DSA public keys in Go.
+If APM Server is configured to accept incoming TLS connections with client
+authentication enabled, a remote attacker could cause the APM Server to stop
+processing events (CVE-2019-17596).
+See https://www.elastic.co/community/security/[Elastic security issues].
 
 [float]
 ==== Added
