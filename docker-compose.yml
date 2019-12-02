@@ -34,7 +34,6 @@ services:
       - "xpack.security.authc.realms.native.native1.order=1"
       - "xpack.security.enabled=true"
       - "xpack.license.self_generated.type=trial"
-      - "xpack.monitoring.collection.enabled=true"
     volumes:
       - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
       - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
