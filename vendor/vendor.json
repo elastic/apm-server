@@ -2836,26 +2836,26 @@
 		{
 			"checksumSHA1": "//ZjXT6POCFpH5T5LO5teeNdCvo=",
 			"path": "github.com/open-telemetry/opentelemetry-collector/consumer",
-			"revision": "e94dd19191e0ba67d5d17c4504de5e97f512eb75",
-			"revisionTime": "2019-11-26T18:32:05Z"
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
 		},
 		{
 			"checksumSHA1": "AxRGGTFSZ/tDJAA3ggVLyK7BezU=",
 			"path": "github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata",
-			"revision": "e94dd19191e0ba67d5d17c4504de5e97f512eb75",
-			"revisionTime": "2019-11-26T18:32:05Z"
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
 		},
 		{
 			"checksumSHA1": "KnWNDLlF3ouOU/kYgwL5JRr2DzE=",
 			"path": "github.com/open-telemetry/opentelemetry-collector/internal",
-			"revision": "e94dd19191e0ba67d5d17c4504de5e97f512eb75",
-			"revisionTime": "2019-11-26T18:32:05Z"
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
 		},
 		{
 			"checksumSHA1": "Z8uHnYgxWHS4pN1glj68BnqV3OI=",
 			"path": "github.com/open-telemetry/opentelemetry-collector/observability",
-			"revision": "e94dd19191e0ba67d5d17c4504de5e97f512eb75",
-			"revisionTime": "2019-11-26T18:32:05Z"
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
 		},
 		{
 			"checksumSHA1": "6CFveJVEyWZ8sDxLxWS71GJwABA=",
@@ -2864,16 +2864,28 @@
 			"revisionTime": "2019-11-25T16:14:22Z"
 		},
 		{
+			"checksumSHA1": "O+ley4R5ebgNf/oQtdiZnDzeQ6A=",
+			"path": "github.com/open-telemetry/opentelemetry-collector/receiver",
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
+		},
+		{
+			"checksumSHA1": "ljDBObBD6c5whuBy+/c91fXJLfs=",
+			"path": "github.com/open-telemetry/opentelemetry-collector/receiver/jaegerreceiver",
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
+		},
+		{
 			"checksumSHA1": "HjobqvyvYgPg7XjAP3JuLz5nNxI=",
 			"path": "github.com/open-telemetry/opentelemetry-collector/translator/trace",
-			"revision": "e94dd19191e0ba67d5d17c4504de5e97f512eb75",
-			"revisionTime": "2019-11-26T18:32:05Z"
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
 		},
 		{
 			"checksumSHA1": "wPwJBg6lv3/ydqpc+3/OxkOb6w0=",
 			"path": "github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger",
-			"revision": "e94dd19191e0ba67d5d17c4504de5e97f512eb75",
-			"revisionTime": "2019-11-26T18:32:05Z"
+			"revision": "12daa2e201b75d8885474affc75c194555d4174a",
+			"revisionTime": "2019-11-25T16:14:22Z"
 		},
 		{
 			"checksumSHA1": "2AyUkWjutec6p+470tgio8mYOxI=",
