@@ -19,6 +19,7 @@ package beater
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
