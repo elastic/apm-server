@@ -38,8 +38,6 @@ const (
 	defaultLibraryPattern           = "node_modules|bower_components|~"
 	defaultSourcemapCacheExpiration = 5 * time.Minute
 	defaultSourcemapIndexPattern    = "apm-*-sourcemap*"
-
-	esConnectionTimeout = 5 * time.Second
 )
 
 // RumConfig holds config information related to the RUM endpoint
@@ -125,7 +123,7 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *common.Config) error {
 		return nil
 	}
 	log.Info("Falling back to elasticsearch output for sourcemap storage")
-	esCfg := &elasticsearch.Config{Hosts: []string{"localhost:9200"}, Protocol: "http", Timeout: esConnectionTimeout}
+	esCfg := elasticsearch.DefaultConfig()
 	if err := outputESCfg.Unpack(esCfg); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch config into Sourcemap config")
 	}
