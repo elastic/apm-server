@@ -63,7 +63,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 		"DocFromCache":         {fetchFunc: testFn, init: true, doc: defaultResult},
 		"DocFromFunctionFails": {fetchFunc: testFnErr, shouldFail: true},
 		"DocFromFunction":      {fetchFunc: testFn, doc: externalResult},
-		"EmptyDocFromFunction": {fetchFunc: testFnSettingsNil, doc: Result{Source{Settings: Settings{}}}},
+		"EmptyDocFromFunction": {fetchFunc: testFnSettingsNil, doc: zeroResult()},
 		"NilDocFromFunction":   {fetchFunc: testFnNil},
 	} {
 		t.Run(name, func(t *testing.T) {

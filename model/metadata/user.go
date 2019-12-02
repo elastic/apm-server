@@ -20,6 +20,7 @@ package metadata
 import (
 	"encoding/json"
 	"errors"
+	"net"
 
 	"github.com/elastic/beats/libbeat/common"
 
@@ -30,7 +31,7 @@ type User struct {
 	Id        *string
 	Email     *string
 	Name      *string
-	IP        *string
+	IP        net.IP
 	UserAgent *string
 }
 
@@ -45,9 +46,9 @@ func DecodeUser(input interface{}, err error) (*User, error) {
 	decoder := utility.ManualDecoder{}
 	user := User{
 		UserAgent: decoder.StringPtr(raw, "user-agent"),
-		IP:        decoder.StringPtr(raw, "ip"),
 		Name:      decoder.StringPtr(raw, "username"),
 		Email:     decoder.StringPtr(raw, "email"),
+		IP:        decoder.NetIP(raw, "ip"),
 	}
 
 	//id can be string or int
@@ -75,14 +76,10 @@ func (u *User) Fields() common.MapStr {
 }
 
 func (u *User) ClientFields() common.MapStr {
-	ip := ""
-	if u != nil && u.IP != nil {
-		ip = utility.ParseHost(*u.IP)
-	}
-	if ip == "" {
+	if u == nil || u.IP == nil {
 		return nil
 	}
-	return common.MapStr{"ip": ip}
+	return common.MapStr{"ip": u.IP.String()}
 }
 
 func (u *User) UserAgentFields() common.MapStr {

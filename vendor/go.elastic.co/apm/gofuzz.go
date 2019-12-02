@@ -62,7 +62,7 @@ func Fuzz(data []byte) int {
 			return nil
 		}
 		for k, v := range in.Tags {
-			out.SetTag(k, v)
+			out.SetLabel(k, v)
 		}
 		if in.Request != nil {
 			var body io.Reader

@@ -18,9 +18,11 @@
 package apm
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"strings"
@@ -41,13 +43,27 @@ var (
 	localSystem    model.System
 
 	serviceNameInvalidRegexp = regexp.MustCompile("[^" + serviceNameValidClass + "]")
-	tagKeyReplacer           = strings.NewReplacer(`.`, `_`, `*`, `_`, `"`, `_`)
+	labelKeyReplacer         = strings.NewReplacer(`.`, `_`, `*`, `_`, `"`, `_`)
+
+	rtypeBool    = reflect.TypeOf(false)
+	rtypeFloat64 = reflect.TypeOf(float64(0))
 )
 
 const (
-	envHostname = "ELASTIC_APM_HOSTNAME"
+	envHostname        = "ELASTIC_APM_HOSTNAME"
+	envServiceNodeName = "ELASTIC_APM_SERVICE_NODE_NAME"
 
 	serviceNameValidClass = "a-zA-Z0-9 _-"
+
+	// At the time of writing, all keyword length limits
+	// are 1024 runes, enforced by JSON Schema.
+	stringLengthLimit = 1024
+
+	// Non-keyword string fields are not limited in length
+	// by JSON Schema, but we still truncate all strings.
+	// Some strings, such as database statement, we explicitly
+	// allow to be longer than others.
+	longStringLengthLimit = 10000
 )
 
 func init() {
@@ -70,7 +86,7 @@ func getCurrentProcess() model.Process {
 }
 
 func makeService(name, version, environment string) model.Service {
-	return model.Service{
+	service := model.Service{
 		Name:        truncateString(name),
 		Version:     truncateString(version),
 		Environment: truncateString(environment),
@@ -78,6 +94,13 @@ func makeService(name, version, environment string) model.Service {
 		Language:    &goLanguage,
 		Runtime:     &goRuntime,
 	}
+
+	serviceNodeName := os.Getenv(envServiceNodeName)
+	if serviceNodeName != "" {
+		service.Node = &model.ServiceNode{ConfiguredName: truncateString(serviceNodeName)}
+	}
+
+	return service
 }
 
 func getLocalSystem() model.System {
@@ -137,8 +160,33 @@ func getKubernetesMetadata() *model.Kubernetes {
 	return kubernetes
 }
 
-func cleanTagKey(k string) string {
-	return tagKeyReplacer.Replace(k)
+func cleanLabelKey(k string) string {
+	return labelKeyReplacer.Replace(k)
+}
+
+// makeLabelValue returns v as a value suitable for including
+// in a label value. If v is numerical or boolean, then it will
+// be returned as-is; otherwise the value will be returned as a
+// string, using fmt.Sprint if necessary, and possibly truncated
+// using truncateString.
+func makeLabelValue(v interface{}) interface{} {
+	switch v.(type) {
+	case nil, bool, float32, float64,
+		uint, uint8, uint16, uint32, uint64,
+		int, int8, int16, int32, int64:
+		return v
+	case string:
+		return truncateString(v.(string))
+	}
+	// Slow path. If v has a non-basic type whose underlying
+	// type is convertible to bool or float64, return v as-is.
+	// Otherwise, stringify.
+	rtype := reflect.TypeOf(v)
+	if rtype.ConvertibleTo(rtypeBool) || rtype.ConvertibleTo(rtypeFloat64) {
+		// Custom type
+		return v
+	}
+	return truncateString(fmt.Sprint(v))
 }
 
 func validateServiceName(name string) error {
@@ -157,18 +205,13 @@ func sanitizeServiceName(name string) string {
 }
 
 func truncateString(s string) string {
-	// At the time of writing, all keyword length
-	// limits are 1024, enforced by JSON Schema.
-	return apmstrings.Truncate(s, 1024)
+	s, _ = apmstrings.Truncate(s, stringLengthLimit)
+	return s
 }
 
 func truncateLongString(s string) string {
-	// Non-keyword string fields are not limited
-	// in length by JSON Schema, but we still
-	// truncate all strings. Some strings, such
-	// as database statement, we explicitly allow
-	// to be longer than others.
-	return apmstrings.Truncate(s, 10000)
+	s, _ = apmstrings.Truncate(s, longStringLengthLimit)
+	return s
 }
 
 func nextGracePeriod(p time.Duration) time.Duration {
@@ -190,4 +233,10 @@ func jitterDuration(d time.Duration, rng *rand.Rand, j float64) time.Duration {
 	}
 	r := (rng.Float64() * j * 2) - j
 	return d + time.Duration(float64(d)*r)
+}
+
+func durationMicros(d time.Duration) float64 {
+	us := d / time.Microsecond
+	ns := d % time.Microsecond
+	return float64(us) + float64(ns)/1e9
 }

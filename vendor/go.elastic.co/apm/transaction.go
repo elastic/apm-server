@@ -43,6 +43,7 @@ func (t *Tracer) StartTransactionOptions(name, transactionType string, opts Tran
 			Context: Context{
 				captureBodyMask: CaptureBodyTransactions,
 			},
+			spanTimings: make(spanTimingsMap),
 		}
 		var seed int64
 		if err := binary.Read(cryptorand.Reader, binary.LittleEndian, &seed); err != nil {
@@ -80,25 +81,18 @@ func (t *Tracer) StartTransactionOptions(name, transactionType string, opts Tran
 		}
 	}
 
-	// Take a snapshot of the max spans config to ensure
-	// that once the maximum is reached, all future span
-	// creations are dropped.
-	t.maxSpansMu.RLock()
-	tx.maxSpans = t.maxSpans
-	t.maxSpansMu.RUnlock()
-
-	t.spanFramesMinDurationMu.RLock()
-	tx.spanFramesMinDuration = t.spanFramesMinDuration
-	t.spanFramesMinDurationMu.RUnlock()
-
-	t.captureHeadersMu.RLock()
-	tx.Context.captureHeaders = t.captureHeaders
-	t.captureHeadersMu.RUnlock()
+	// Take a snapshot of config that should apply to all spans within the
+	// transaction.
+	instrumentationConfig := t.instrumentationConfig()
+	tx.maxSpans = instrumentationConfig.maxSpans
+	tx.spanFramesMinDuration = instrumentationConfig.spanFramesMinDuration
+	tx.stackTraceLimit = instrumentationConfig.stackTraceLimit
+	tx.Context.captureHeaders = instrumentationConfig.captureHeaders
+	tx.breakdownMetricsEnabled = t.breakdownMetrics.enabled
+	tx.propagateLegacyHeader = instrumentationConfig.propagateLegacyHeader
 
 	if root {
-		t.samplerMu.RLock()
-		sampler := t.sampler
-		t.samplerMu.RUnlock()
+		sampler := instrumentationConfig.sampler
 		if sampler == nil || sampler.Sample(tx.traceContext) {
 			o := tx.traceContext.Options.WithRecorded(true)
 			tx.traceContext.Options = o
@@ -162,6 +156,21 @@ func (tx *Transaction) TraceContext() TraceContext {
 		return TraceContext{}
 	}
 	return tx.traceContext
+}
+
+// ShouldPropagateLegacyHeader reports whether instrumentation should
+// propagate the legacy "Elastic-Apm-Traceparent" header in addition to
+// the standard W3C "traceparent" header.
+//
+// This method will be removed in a future major version when we remove
+// support for propagating the legacy header.
+func (tx *Transaction) ShouldPropagateLegacyHeader() bool {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	if tx.ended() {
+		return false
+	}
+	return tx.propagateLegacyHeader
 }
 
 // EnsureParent returns the span ID for for tx's parent, generating a
@@ -237,6 +246,9 @@ func (tx *Transaction) enqueue() {
 	case tx.tracer.events <- event:
 	default:
 		// Enqueuing a transaction should never block.
+		tx.tracer.breakdownMetrics.recordTransaction(tx.TransactionData)
+
+		// TODO(axw) use an atomic operation to increment.
 		tx.tracer.statsMu.Lock()
 		tx.tracer.stats.TransactionsDropped++
 		tx.tracer.statsMu.Unlock()
@@ -276,14 +288,19 @@ type TransactionData struct {
 	// Result holds the transaction result.
 	Result string
 
-	maxSpans              int
-	spanFramesMinDuration time.Duration
-	timestamp             time.Time
+	maxSpans                int
+	spanFramesMinDuration   time.Duration
+	stackTraceLimit         int
+	breakdownMetricsEnabled bool
+	propagateLegacyHeader   bool
+	timestamp               time.Time
 
-	mu           sync.Mutex
-	spansCreated int
-	spansDropped int
-	rand         *rand.Rand // for ID generation
+	mu            sync.Mutex
+	spansCreated  int
+	spansDropped  int
+	childrenTimer childrenTimer
+	spanTimings   spanTimingsMap
+	rand          *rand.Rand // for ID generation
 	// parentSpan holds the transaction's parent ID. It is protected by
 	// mu, since it can be updated by calling EnsureParent.
 	parentSpan SpanID
@@ -293,10 +310,12 @@ type TransactionData struct {
 // into the transaction pool.
 func (td *TransactionData) reset(tracer *Tracer) {
 	*td = TransactionData{
-		Context:  td.Context,
-		Duration: -1,
-		rand:     td.rand,
+		Context:     td.Context,
+		Duration:    -1,
+		rand:        td.rand,
+		spanTimings: td.spanTimings,
 	}
 	td.Context.reset()
+	td.spanTimings.reset()
 	tracer.transactionDataPool.Put(td)
 }

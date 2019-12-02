@@ -17,7 +17,7 @@ To get started with APM please see our [Getting Started Guide](https://www.elast
 
 ### Requirements
 
-* [Golang](https://golang.org/dl/) 1.12.9
+* [Golang](https://golang.org/dl/) 1.13.4
 
 ### Install
 
@@ -123,6 +123,16 @@ To update the dependency to a specific commit or branch run command as following
 
 ```
 BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27 make update-beats
+```
+### Go-elasticsearch client Update
+
+It is important to keep the used [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync with the according major version. 
+We also recommend to use the latest available client for minor versions.
+Since APM Server does not yet support go modules, you can update the dependency using govendor, e.g. by running: 
+```
+git clone --branch v7.4.1 https://github.com/elastic/go-elasticsearch.git $GOPATH/src/github.com/elastic/go-elasticsearch/v7
+govendor add github.com/elastic/go-elasticsearch/v7/^
+mv ./vendor/github.com/elastic/go-elasticsearch/v7/LICENSE ./vendor/github.com/elastic/go-elasticsearch/
 ```
 
 ## Packaging

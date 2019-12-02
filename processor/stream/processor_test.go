@@ -96,7 +96,7 @@ func TestIntegrationESOutput(t *testing.T) {
 			events = append(events, transformable.Transform(p.Tcontext)...)
 		}
 		name := ctx.Value("name").(string)
-		verifyErr := approvals.ApproveEvents(events, name, nil)
+		verifyErr := approvals.ApproveEvents(events, name)
 		if verifyErr != nil {
 			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
 		}
@@ -151,7 +151,7 @@ func TestIntegrationRum(t *testing.T) {
 			events = append(events, transformable.Transform(p.Tcontext)...)
 		}
 		name := ctx.Value("name").(string)
-		verifyErr := approvals.ApproveEvents(events, name, nil)
+		verifyErr := approvals.ApproveEvents(events, name)
 		if verifyErr != nil {
 			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", name, verifyErr.Error()))
 		}

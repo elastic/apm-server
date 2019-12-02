@@ -22,7 +22,7 @@ import (
 	"regexp"
 	"sync"
 
-	"go.elastic.co/apm/internal/apmconfig"
+	"go.elastic.co/apm/internal/configutil"
 	"go.elastic.co/apm/internal/wildcard"
 )
 
@@ -41,7 +41,7 @@ var (
 // patterns will be ignored.
 func DefaultServerRequestIgnorer() RequestIgnorerFunc {
 	defaultServerRequestIgnorerOnce.Do(func() {
-		matchers := apmconfig.ParseWildcardPatternsEnv(envIgnoreURLs, nil)
+		matchers := configutil.ParseWildcardPatternsEnv(envIgnoreURLs, nil)
 		if len(matchers) != 0 {
 			defaultServerRequestIgnorer = NewWildcardPatternsRequestIgnorer(matchers)
 		}

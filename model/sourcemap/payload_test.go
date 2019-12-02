@@ -18,13 +18,20 @@
 package sourcemap
 
 import (
+	"net/http"
 	"testing"
 	"time"
+
+	"go.uber.org/zap/zapcore"
+
+	"github.com/elastic/beats/libbeat/logp"
 
 	s "github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/elasticsearch/estest"
+	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/tests/loader"
 	"github.com/elastic/apm-server/transform"
@@ -95,43 +102,56 @@ func TestParseSourcemaps(t *testing.T) {
 }
 
 func TestInvalidateCache(t *testing.T) {
+	// load sourcemap from file and decode
 	data, err := loader.LoadData("../testdata/sourcemap/payload.json")
 	assert.NoError(t, err)
-
-	smapId := sourcemap.Id{Path: "/tmp"}
-	smapMapper := smapMapperFake{
-		c: map[string]*sourcemap.Mapping{
-			"/tmp": &(sourcemap.Mapping{}),
-		},
-	}
-	mapping, err := smapMapper.Apply(smapId, 0, 0)
+	decoded, err := DecodeSourcemap(data)
 	require.NoError(t, err)
-	assert.NotNil(t, mapping)
+	event := decoded.(*Sourcemap)
 
-	conf := transform.Config{SourcemapMapper: &smapMapper}
-	tctx := &transform.Context{Config: conf}
+	t.Run("withSourcemapStore", func(t *testing.T) {
+		// collect logs
+		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
-	sourcemap, err := DecodeSourcemap(data)
-	require.NoError(t, err)
-	sourcemap.Transform(tctx)
+		// create sourcemap store
+		client, err := estest.NewElasticsearchClient(estest.NewTransport(t, http.StatusOK, nil))
+		require.NoError(t, err)
+		store, err := sourcemap.NewStore(client, "foo", time.Minute)
+		require.NoError(t, err)
 
-	sourcemap, err = DecodeSourcemap(data)
-	require.NoError(t, err)
-	sourcemap.Transform(tctx)
+		// transform with sourcemap store
+		event.Transform(&transform.Context{Config: transform.Config{SourcemapStore: store}})
 
-	mapping, err = smapMapper.Apply(smapId, 0, 0)
-	require.NoError(t, err)
-	assert.Nil(t, mapping)
-}
+		logCollection := logp.ObserverLogs().TakeAll()
+		assert.Equal(t, 2, len(logCollection))
 
-type smapMapperFake struct {
-	c map[string]*sourcemap.Mapping
-}
+		// first sourcemap was added
+		for i, entry := range logCollection {
+			assert.Equal(t, logs.Sourcemap, entry.LoggerName)
+			assert.Equal(t, zapcore.DebugLevel, entry.Level)
+			if i == 0 {
+				assert.Contains(t, entry.Message, "Added id service_1_js/bundle.js. Cache now has 1 entries.")
+			} else {
+				assert.Contains(t, entry.Message, "Removed id service_1_js/bundle.js. Cache now has 0 entries.")
+			}
+		}
 
-func (a *smapMapperFake) Apply(id sourcemap.Id, lineno, colno int) (*sourcemap.Mapping, error) {
-	return a.c[id.Path], nil
-}
+	})
 
-func (sm *smapMapperFake) NewSourcemapAdded(id sourcemap.Id) {
-	sm.c = map[string]*sourcemap.Mapping{}
+	t.Run("noSourcemapStore", func(t *testing.T) {
+		// collect logs
+		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+
+		// transform with sourcemap store
+		event.Transform(&transform.Context{Config: transform.Config{SourcemapStore: nil}})
+
+		logCollection := logp.ObserverLogs().TakeAll()
+		assert.Equal(t, 1, len(logCollection))
+		for _, entry := range logCollection {
+			assert.Equal(t, logs.Sourcemap, entry.LoggerName)
+			assert.Equal(t, zapcore.ErrorLevel, entry.Level)
+			assert.Contains(t, entry.Message, "cache cannot be invalidated")
+		}
+
+	})
 }

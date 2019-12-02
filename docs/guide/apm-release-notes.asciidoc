@@ -7,6 +7,7 @@ For a full list of changes, see the
 {apm-server-ref-v}/release-notes.html[APM Server Release Notes] or the
 {kibana-ref}/release-notes.html[Kibana Release Notes].
 
+* <<release-highlights-7.5.0>>
 * <<release-highlights-7.4.0>>
 * <<release-highlights-7.3.0>>
 * <<release-highlights-7.2.0>>
@@ -24,6 +25,46 @@ For a full list of changes, see the
 // tag::notable-v8-highlights[]
 
 // end::notable-v8-highlights[]
+
+[[release-highlights-7.5.0]]
+=== APM version 7.5.0
+
+// tag::notable-v75-highlights[]
+
+IMPORTANT: To make use of all the new features introduced in 7.5,
+you must ensure you are using version 7.5+ of APM Server and version 7.5+ of Kibana.
+
+*APM app in Kibana*
+
+* {kibana-ref}/transactions.html[Aggregate Service Breakdown Charts] is GA.
+Visualize where your applications and services are spending most of their
+time, and find the root cause of a performance problem quickly.
+Not yet available for the .NET Agent.
+
+[role="screenshot"]
+image::images/breakdown-release-notes.png[Aggregate Service Breakdown Charts]
+
+* {kibana-ref}/agent-configuration.html[APM Agent remote configuration] is GA.
+View and edit certain configurations directly in Kibana without having to restart your Agents.
+In 7.5, we're introducing two additional configurations:
+** `CAPTURE_BODY` - Optionally capture the request body of an HTTP transaction.
+** `TRANSACTION_MAX_SPANS` - Limit the number of spans recorded per transaction.
+
+In addition, Agent remote configuration now supports all services and environments.
+This means you can configure multiple services and environments in just one setting.
+
+[role="screenshot"]
+image::images/remote-config-release-notes.png[APM Agent configuration]
+
+* {apm-java-ref}/metrics.html[JVM instance level visibility]:
+It's easier than ever to troubleshoot your individual JVM instances.
+Select a JVM to see individual CPU usage, memory usage, heap or non-heap memory,
+thread count, garbage collection rate, and garbage collection time spent per minute.
+
+[role="screenshot"]
+image::images/jvm-release-notes.png[JVM instance level visibility]
+
+// end::notable-v75-highlights[]
 
 [[release-highlights-7.4.0]]
 === APM version 7.4.0

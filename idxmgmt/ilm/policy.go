@@ -37,11 +37,12 @@ const (
 	spanEvent        = "span"
 	transactionEvent = "transaction"
 	metricEvent      = "metric"
+	profileEvent     = "profile"
 )
 
 func policyMapping() map[string]string {
 	m := map[string]string{}
-	for _, event := range []string{errorEvent, spanEvent, transactionEvent, metricEvent} {
+	for _, event := range []string{errorEvent, spanEvent, transactionEvent, metricEvent, profileEvent} {
 		m[event] = rollover30Days
 	}
 	return m

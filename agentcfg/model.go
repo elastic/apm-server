@@ -29,11 +29,13 @@ const (
 	ServiceEnv = "service.environment"
 	// Etag / If-None-Match keyword
 	Etag = "ifnonematch"
+	// EtagSentinel is a value to return back to agents when Kibana doesn't have any configuration
+	EtagSentinel = "-"
 )
 
 var (
 	// RumAgent keywords (new and old)
-	RumAgent = []string{"rum-js", "base-js"}
+	RumAgent = []string{"rum-js", "js-base"}
 	// RumSettings are whitelisted applicable settings for RUM
 	RumSettings = []string{"transaction_sample_rate"}
 )
@@ -86,7 +88,7 @@ func (s Settings) UnmarshalJSON(b []byte) error {
 }
 
 func zeroResult() Result {
-	return Result{Source: Source{Settings: Settings{}}}
+	return Result{Source: Source{Settings: Settings{}, Etag: EtagSentinel}}
 }
 
 func newResult(b []byte, err error) (Result, error) {

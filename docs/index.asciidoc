@@ -1,6 +1,7 @@
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
+:libbeat-dir: {docdir}/copied-from-beats
 :version: {apm_server_version}
 :beatname_lc: apm-server
 :beatname_uc: APM Server
@@ -55,9 +56,9 @@ include::./upgrading.asciidoc[]
 include::./configuring.asciidoc[]
 
 :beat-specific-security: ../security.asciidoc
-include::./copied-from-beats/shared-securing-beat.asciidoc[]
+include::{libbeat-dir}/shared-securing-beat.asciidoc[]
 
-include::./copied-from-beats/monitoring/monitoring-beats.asciidoc[]
+include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[]
 
 include::./rum.asciidoc[]
 

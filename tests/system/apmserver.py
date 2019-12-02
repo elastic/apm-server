@@ -37,6 +37,7 @@ class BaseTest(TestCase):
         cls.index_span = "apm-{}-span".format(cls.apm_version)
         cls.index_metric = "apm-{}-metric".format(cls.apm_version)
         cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
+        cls.index_profile = "apm-{}-profile".format(cls.apm_version)
         cls.index_acm = ".apm-agent-configuration"
         cls.indices = [cls.index_onboarding, cls.index_error,
                        cls.index_transaction, cls.index_span, cls.index_metric, cls.index_smap]
@@ -307,8 +308,7 @@ class ClientSideBaseTest(ServerBaseTest):
     def upload_sourcemap(self, file_name='bundle_no_mapping.js.map',
                          service_name='apm-agent-js',
                          service_version='1.0.1',
-                         bundle_filepath='bundle_no_mapping.js.map',
-                         expected_ct=1):
+                         bundle_filepath='bundle_no_mapping.js.map'):
         path = self._beat_path_join(
             'testdata',
             'sourcemap',

@@ -24,9 +24,12 @@ import (
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
+	"github.com/elastic/beats/libbeat/logp"
+
 	"github.com/elastic/apm-server/beater/api/asset/sourcemap"
 	"github.com/elastic/apm-server/beater/api/config/agent"
 	"github.com/elastic/apm-server/beater/api/intake"
+	"github.com/elastic/apm-server/beater/api/profile"
 	"github.com/elastic/apm-server/beater/api/root"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/middleware"
@@ -39,7 +42,6 @@ import (
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 const (
@@ -56,6 +58,9 @@ const (
 	IntakePath = "/intake/v2/events"
 	// IntakeRUMPath defines the path to ingest monitored RUM events
 	IntakeRUMPath = "/intake/v2/rum/events"
+
+	// ProfilePath defines the path to ingest profiles
+	ProfilePath = "/intake/v2/profile"
 
 	// AssetSourcemapPath defines the path to upload sourcemaps
 	AssetSourcemapPath = "/assets/v1/sourcemaps"
@@ -85,6 +90,15 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		{IntakePath, backendHandler},
 	}
 
+	// Profiling is currently experimental, and intended for profiling the
+	// server itself, so we only add the route if self-profiling is enabled.
+	if beaterConfig.SelfInstrumentation.IsEnabled() {
+		if beaterConfig.SelfInstrumentation.Profiling.CPU.IsEnabled() ||
+			beaterConfig.SelfInstrumentation.Profiling.Heap.IsEnabled() {
+			routeMap = append(routeMap, route{ProfilePath, profileHandler})
+		}
+	}
+
 	for _, route := range routeMap {
 		h, err := route.handlerFn(beaterConfig, report)
 		if err != nil {
@@ -100,6 +114,11 @@ func NewMux(beaterConfig *config.Config, report publish.Reporter) (*http.ServeMu
 		mux.Handle(path, expvar.Handler())
 	}
 	return mux, nil
+}
+
+func profileHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
+	h := profile.Handler(systemMetadataDecoder(cfg, emptyDecoder), transform.Config{}, reporter)
+	return middleware.Wrap(h, backendMiddleware(cfg, profile.MonitoringMap)...)
 }
 
 func backendHandler(cfg *config.Config, reporter publish.Reporter) (request.Handler, error) {
@@ -213,12 +232,12 @@ func userMetaDataDecoder(beaterConfig *config.Config, d decoder.ReqDecoder) deco
 }
 
 func rumTransformConfig(beaterConfig *config.Config) (*transform.Config, error) {
-	mapper, err := beaterConfig.RumConfig.MemoizedSourcemapMapper()
+	store, err := beaterConfig.RumConfig.MemoizedSourcemapStore()
 	if err != nil {
 		return nil, err
 	}
 	return &transform.Config{
-		SourcemapMapper:     mapper,
+		SourcemapStore:      store,
 		LibraryPattern:      regexp.MustCompile(beaterConfig.RumConfig.LibraryPattern),
 		ExcludeFromGrouping: regexp.MustCompile(beaterConfig.RumConfig.ExcludeFromGrouping),
 	}, nil

@@ -7,8 +7,9 @@
 <titleabbrev>Use {security}</titleabbrev>
 ++++
 
-If you want {beatname_uc} to connect to a cluster that has {security} enabled,
-there are extra configuration steps:
+If you want {beatname_uc} to connect to a cluster that has
+{ref}/elasticsearch-security.html[{security-features}] enabled, there are extra
+configuration steps:
 
 . <<feature-roles>>.
 +
@@ -32,7 +33,7 @@ you plan to monitor {beatname_uc} in {kib} and have not yet set up the
 password, set it up now.
 
 For more information about {security}, see
-{xpack-ref}/elasticsearch-security.html[Securing the {stack}].
+{ref}/elasticsearch-security.html[Security overview].
 
 include::users.asciidoc[]
 

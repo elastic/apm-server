@@ -31,3 +31,18 @@ type StringMapItem struct {
 	// Value is the map item's value.
 	Value string
 }
+
+// IfaceMap is a slice-representation of map[string]interface{},
+// optimized for fast JSON encoding.
+//
+// Slice items are expected to be ordered by key.
+type IfaceMap []IfaceMapItem
+
+// IfaceMapItem holds a string key and value.
+type IfaceMapItem struct {
+	// Key is the map item's key.
+	Key string
+
+	// Value is the map item's value.
+	Value interface{}
+}

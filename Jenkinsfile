@@ -15,7 +15,7 @@ pipeline {
   }
   options {
     timeout(time: 2, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -51,7 +51,8 @@ pipeline {
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true)
+        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
+                    depth: 3, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           dir("${BASE_DIR}"){
@@ -66,7 +67,10 @@ pipeline {
               "^tests/packaging",
               "^vendor/github.com/elastic/beats"
             ]
-            env.BEATS_UPDATED = isGitRegionMatch(regexps: regexps)
+            env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
+
+            // Skip all the stages except docs for PR's with asciidoc changes only
+            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true)
           }
         }
       }
@@ -87,7 +91,10 @@ pipeline {
       }
       when {
         beforeAgent true
-        expression { return params.intake_ci }
+        allOf {
+          expression { return params.intake_ci }
+          expression { return env.ONLY_DOCS == "false" }
+        }
       }
       steps {
         withGithubNotify(context: 'Intake') {
@@ -109,7 +116,10 @@ pipeline {
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            expression { return params.linux_ci }
+            allOf {
+              expression { return params.linux_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Build - Linux') {
@@ -137,7 +147,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.windows_ci }
+            allOf {
+              expression { return params.windows_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Build-Test - Windows') {
@@ -173,7 +186,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_ci }
+            allOf {
+              expression { return params.test_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
@@ -212,7 +228,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_sys_env_ci }
+            allOf {
+              expression { return params.test_sys_env_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'System Tests', tab: 'tests') {
@@ -225,6 +244,15 @@ pipeline {
           }
           post {
             always {
+              dir("${BASE_DIR}"){
+                archiveArtifacts(allowEmptyArchive: true,
+                  artifacts: "docker-info/**",
+                  defaultExcludes: false)
+                  junit(allowEmptyResults: true,
+                    keepLongStdio: true,
+                    testResults: "**/build/TEST-*.xml"
+                  )
+              }
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                 tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               }
@@ -249,6 +277,7 @@ pipeline {
                 expression { return params.Run_As_Master_Branch }
               }
               expression { return params.bench_ci }
+              expression { return env.ONLY_DOCS == "false" }
             }
           }
           steps {
@@ -277,7 +306,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.kibana_update_ci }
+            allOf {
+              expression { return params.kibana_update_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Sync Kibana') {
@@ -326,6 +358,7 @@ pipeline {
             expression { return !params.Run_As_Master_Branch }
           }
           expression { return params.its_ci }
+          expression { return env.ONLY_DOCS == "false" }
         }
       }
       steps {
@@ -362,6 +395,7 @@ pipeline {
             expression { return env.BEATS_UPDATED != "false" }
           }
           expression { return params.release_ci }
+          expression { return env.ONLY_DOCS == "false" }
         }
       }
       steps {

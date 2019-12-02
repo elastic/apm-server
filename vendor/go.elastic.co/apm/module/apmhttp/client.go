@@ -95,9 +95,10 @@ func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	req = &reqCopy
 
+	propagateLegacyHeader := tx.ShouldPropagateLegacyHeader()
 	traceContext := tx.TraceContext()
 	if !traceContext.Options.Recorded() {
-		req.Header.Set(TraceparentHeader, FormatTraceparentHeader(traceContext))
+		r.setHeaders(req, traceContext, propagateLegacyHeader)
 		return r.r.RoundTrip(req)
 	}
 
@@ -113,7 +114,7 @@ func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		span = nil
 	}
 
-	req.Header.Set(TraceparentHeader, FormatTraceparentHeader(traceContext))
+	r.setHeaders(req, traceContext, propagateLegacyHeader)
 	resp, err := r.r.RoundTrip(req)
 	if span != nil {
 		if err != nil {
@@ -124,6 +125,14 @@ func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 	}
 	return resp, err
+}
+
+func (r *roundTripper) setHeaders(req *http.Request, traceContext apm.TraceContext, propagateLegacyHeader bool) {
+	headerValue := FormatTraceparentHeader(traceContext)
+	if propagateLegacyHeader {
+		req.Header.Set(ElasticTraceparentHeader, headerValue)
+	}
+	req.Header.Set(W3CTraceparentHeader, headerValue)
 }
 
 // CloseIdleConnections calls r.r.CloseIdleConnections if the method exists.
@@ -176,3 +185,15 @@ func (b *responseBody) endSpan() {
 
 // ClientOption sets options for tracing client requests.
 type ClientOption func(*roundTripper)
+
+// WithClientRequestName returns a ClientOption which sets r as the function
+// to use to obtain the span name for the given http request.
+func WithClientRequestName(r RequestNameFunc) ClientOption {
+	if r == nil {
+		panic("r == nil")
+	}
+
+	return ClientOption(func(rt *roundTripper) {
+		rt.requestName = r
+	})
+}

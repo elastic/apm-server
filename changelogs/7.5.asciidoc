@@ -12,7 +12,7 @@ https://github.com/elastic/apm-server/compare/v7.4.1\...v7.5.0[View commits]
 
 [float]
 ==== Breaking Changes
-- Introduce dedicated ILM setup flags and ignore `setup.template.*` flags for ILM {pull}2764[2764],{pull}2877[2877].
+- Introduce dedicated ILM setup flags and ignore `setup.template.*` flags for ILM {pull}2764[2764], {pull}2877[2877].
 - Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
 
 [float]
@@ -23,3 +23,4 @@ https://github.com/elastic/apm-server/compare/v7.4.1\...v7.5.0[View commits]
 - Add support for agent config GA {pull}2747[2747].
 - Change ILM default policies to rollover after 30 days {pull}2798[2798].
 - Introduce `apm-server.ilm.setup.overwrite` config option and stop overwriting by default {pull}2877[2877].
+- Upgrade Go to 1.12.12 {pull}2922[2922].

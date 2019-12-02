@@ -85,6 +85,13 @@ func (w *modelWriter) writeError(e *ErrorData) {
 // Note that we do not write metrics to the main ring buffer (w.buffer), as
 // periodic metrics would be evicted by transactions/spans in a busy system.
 func (w *modelWriter) writeMetrics(m *Metrics) {
+	for _, m := range m.transactionGroupMetrics {
+		w.json.RawString(`{"metricset":`)
+		m.MarshalFastJSON(&w.json)
+		w.json.RawString("}")
+		w.metricsBuffer.WriteBlock(w.json.Bytes(), metricsBlockTag)
+		w.json.Reset()
+	}
 	for _, m := range m.metrics {
 		w.json.RawString(`{"metricset":`)
 		m.MarshalFastJSON(&w.json)
@@ -98,7 +105,8 @@ func (w *modelWriter) writeMetrics(m *Metrics) {
 func (w *modelWriter) buildModelTransaction(out *model.Transaction, tx *Transaction, td *TransactionData) {
 	out.ID = model.SpanID(tx.traceContext.Span)
 	out.TraceID = model.TraceID(tx.traceContext.Trace)
-	if !tx.traceContext.Options.Recorded() {
+	sampled := tx.traceContext.Options.Recorded()
+	if !sampled {
 		out.Sampled = &notSampled
 	}
 
@@ -110,8 +118,10 @@ func (w *modelWriter) buildModelTransaction(out *model.Transaction, tx *Transact
 	out.Duration = td.Duration.Seconds() * 1000
 	out.SpanCount.Started = td.spansCreated
 	out.SpanCount.Dropped = td.spansDropped
+	if sampled {
+		out.Context = td.Context.build()
+	}
 
-	out.Context = td.Context.build()
 	if len(w.cfg.sanitizedFieldNames) != 0 && out.Context != nil {
 		if out.Context.Request != nil {
 			sanitizeRequest(out.Context.Request, w.cfg.sanitizedFieldNames)
@@ -158,30 +168,58 @@ func (w *modelWriter) buildModelError(out *model.Error, e *ErrorData) {
 		}
 	}
 
+	// Create model stacktrace frames, and set the context.
 	w.modelStacktrace = w.modelStacktrace[:0]
-	if len(e.stacktrace) != 0 {
-		w.modelStacktrace = appendModelStacktraceFrames(w.modelStacktrace, e.stacktrace)
-		w.setStacktraceContext(w.modelStacktrace)
+	var appendModelErrorStacktraceFrames func(exception *exceptionData)
+	appendModelErrorStacktraceFrames = func(exception *exceptionData) {
+		if len(exception.stacktrace) != 0 {
+			w.modelStacktrace = appendModelStacktraceFrames(w.modelStacktrace, exception.stacktrace)
+		}
+		for _, cause := range exception.cause {
+			appendModelErrorStacktraceFrames(&cause)
+		}
 	}
+	appendModelErrorStacktraceFrames(&e.exception)
+	if len(e.logStacktrace) != 0 {
+		w.modelStacktrace = appendModelStacktraceFrames(w.modelStacktrace, e.logStacktrace)
+	}
+	w.setStacktraceContext(w.modelStacktrace)
 
+	var modelStacktraceOffset int
 	if e.exception.message != "" {
-		out.Exception = model.Exception{
-			Message: e.exception.message,
-			Code: model.ExceptionCode{
-				String: e.exception.Code.String,
-				Number: e.exception.Code.Number,
-			},
-			Type:       e.exception.Type.Name,
-			Module:     e.exception.Type.PackagePath,
-			Handled:    e.Handled,
-			Stacktrace: w.modelStacktrace[:e.exceptionStacktraceFrames],
+		var buildException func(exception *exceptionData) model.Exception
+		culprit := e.Culprit
+		buildException = func(exception *exceptionData) model.Exception {
+			out := model.Exception{
+				Message: exception.message,
+				Code: model.ExceptionCode{
+					String: exception.Code.String,
+					Number: exception.Code.Number,
+				},
+				Type:    exception.Type.Name,
+				Module:  exception.Type.PackagePath,
+				Handled: e.Handled,
+			}
+			if n := len(exception.stacktrace); n != 0 {
+				out.Stacktrace = w.modelStacktrace[modelStacktraceOffset : modelStacktraceOffset+n]
+				modelStacktraceOffset += n
+			}
+			if len(exception.attrs) != 0 {
+				out.Attributes = exception.attrs
+			}
+			if n := len(exception.cause); n > 0 {
+				out.Cause = make([]model.Exception, n)
+				for i := range exception.cause {
+					out.Cause[i] = buildException(&exception.cause[i])
+				}
+			}
+			if culprit == "" {
+				culprit = stacktraceCulprit(out.Stacktrace)
+			}
+			return out
 		}
-		if len(e.exception.attrs) != 0 {
-			out.Exception.Attributes = e.exception.attrs
-		}
-		if out.Culprit == "" {
-			out.Culprit = stacktraceCulprit(out.Exception.Stacktrace)
-		}
+		out.Exception = buildException(&e.exception)
+		out.Culprit = culprit
 	}
 	if e.log.Message != "" {
 		out.Log = model.Log{
@@ -189,12 +227,16 @@ func (w *modelWriter) buildModelError(out *model.Error, e *ErrorData) {
 			Level:        e.log.Level,
 			LoggerName:   e.log.LoggerName,
 			ParamMessage: e.log.MessageFormat,
-			Stacktrace:   w.modelStacktrace[e.exceptionStacktraceFrames:],
 		}
-		if out.Culprit == "" {
-			out.Culprit = stacktraceCulprit(out.Log.Stacktrace)
+		if n := len(e.logStacktrace); n != 0 {
+			out.Log.Stacktrace = w.modelStacktrace[modelStacktraceOffset : modelStacktraceOffset+n]
+			modelStacktraceOffset += n
+			if out.Culprit == "" {
+				out.Culprit = stacktraceCulprit(out.Log.Stacktrace)
+			}
 		}
 	}
+	out.Culprit = truncateString(out.Culprit)
 }
 
 func stacktraceCulprit(frames []model.StacktraceFrame) string {

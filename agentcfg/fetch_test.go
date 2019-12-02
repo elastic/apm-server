@@ -52,7 +52,7 @@ func TestFetcher_Fetch(t *testing.T) {
 		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
 		result, err := NewFetcher(kb, testExpiration).Fetch(query(t.Name()))
 		require.NoError(t, err)
-		assert.Equal(t, Result{Source: Source{Settings: Settings{}}}, result)
+		assert.Equal(t, zeroResult(), result)
 	})
 
 	t.Run("Success", func(t *testing.T) {
