@@ -129,7 +129,11 @@ func newJaegerCollector(cfg *config.Config, traceConsumer *Consumer, tracer *apm
 		apmgrpc.WithRecovery(),
 		apmgrpc.WithTracer(tracer)))}
 	if cfg.OtelConfig.Jaeger.GRPC.TLS != nil {
-		credentials.NewServerTLSFromFile(cfg.OtelConfig.Jaeger.GRPC.TLS.KeyFile, cfg.OtelConfig.Jaeger.GRPC.TLS.CertFile)
+		creds, err := credentials.NewServerTLSFromFile(cfg.OtelConfig.Jaeger.GRPC.TLS.Certificate, cfg.OtelConfig.Jaeger.GRPC.TLS.Key)
+		if err != nil {
+			return nil, err
+		}
+		grpcOptions = append(grpcOptions, grpc.Creds(creds))
 	}
 	grpcServer := grpc.NewServer(grpcOptions...)
 
@@ -186,6 +190,9 @@ func (jr *jaegerReceiver) PostSpans(ctx context.Context, r *api_v2.PostSpansRequ
 	traceData.SourceFormat = jaegerType
 	observability.RecordMetricsForTraceReceiver(ctxWithReceiverName, spansCount, spansCount-len(traceData.Spans))
 
+	if jr.traceConsumer == nil {
+		return nil, errors.New("no traceConsumer available for jaeger receiver")
+	}
 	if err = jr.traceConsumer.ConsumeTraceData(ctx, traceData); err != nil {
 		return nil, err
 	}
@@ -220,6 +227,7 @@ func (c *Consumer) ConsumeTraceData(ctx context.Context, td consumerdata.TraceDa
 		Config:      c.TransformConfig,
 		Metadata:    metadata.Metadata{},
 	}
+
 	return c.Reporter(ctx, publish.PendingReq{
 		Transformables: transformables,
 		Tcontext:       transformContext,

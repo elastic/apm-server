@@ -20,8 +20,14 @@ package beater
 import (
 	"context"
 	"errors"
+	"fmt"
+	"path"
 	"sync"
 	"testing"
+
+	"google.golang.org/grpc/credentials"
+
+	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 
 	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
@@ -40,6 +46,14 @@ import (
 )
 
 func Test_otelCollector(t *testing.T) {
+	setupOtelCollector := func(t *testing.T, cfg *config.Config) *otelCollector {
+		logger := logp.NewLogger("otelTest")
+		tracer := apm.DefaultTracer
+		reporter := func(context.Context, publish.PendingReq) error { return nil }
+		otelColl, err := newOtelCollector(logger, cfg, tracer, reporter)
+		require.NoError(t, err)
+		return otelColl
+	}
 
 	t.Run("new", func(t *testing.T) {
 		cfg := config.DefaultConfig("9.9.9")
@@ -101,76 +115,6 @@ func Test_otelCollector(t *testing.T) {
 	})
 }
 
-//TODO(simi): add tls test
-func Test_jaegerCollector(t *testing.T) {
-	// jaeger not enabled
-	c, err := newJaegerCollector(&config.Config{}, nil, nil, nil)
-	assert.NoError(t, err)
-	assert.Nil(t, c)
-
-	// default config
-	cfg := config.DefaultConfig("9.9.9")
-	c, err = newJaegerCollector(cfg, nil, nil, nil)
-	assert.NoError(t, err)
-	assert.Nil(t, c)
-
-	// setup jaeger collector
-	cfg.OtelConfig.Jaeger.Enabled = true
-	endpoint := "localhost:44444"
-	cfg.OtelConfig.Jaeger.GRPC.Host = endpoint
-	var transformed []transform.Transformable
-	testReporter := func(ctx context.Context, pub publish.PendingReq) error {
-		transformed = append(transformed, pub.Transformables...)
-		return nil
-	}
-	traceConsumer := &Consumer{Reporter: testReporter}
-	c, err = newJaegerCollector(cfg, traceConsumer, apm.DefaultTracer, newObserver(context.Background()))
-	require.NoError(t, err)
-	require.NotNil(t, c)
-
-	assert.Equal(t, endpoint, c.endpoint())
-	assert.Equal(t, "jaeger", c.name())
-
-	// start
-	require.NoError(t, c.start())
-
-	// build grpc client and send data
-	client := grpcClient(t, c.endpoint())
-	jaegerCollectorClient := api_v2.NewCollectorServiceClient(client)
-	span := &tracepb.Span{
-		TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-		SpanId:  []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}
-	td := consumerdata.TraceData{Spans: []*tracepb.Span{span}}
-	batch, err := jaeger.OCProtoToJaegerProto(td)
-	require.NoError(t, err)
-	require.NotNil(t, batch)
-
-	// send data via grpc client and expect them to be collected
-	_, err = jaegerCollectorClient.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *batch})
-	require.NoError(t, err)
-	assert.Equal(t, 1, len(transformed))
-
-	// stop grpc server
-	c.stop()
-	_, err = jaegerCollectorClient.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *batch})
-	assert.Error(t, err)
-}
-
-func setupOtelCollector(t *testing.T, cfg *config.Config) *otelCollector {
-	logger := logp.NewLogger("otelTest")
-	tracer := apm.DefaultTracer
-	reporter := func(context.Context, publish.PendingReq) error { return nil }
-	otelColl, err := newOtelCollector(logger, cfg, tracer, reporter)
-	require.NoError(t, err)
-	return otelColl
-}
-
-func grpcClient(t *testing.T, host string) *grpc.ClientConn {
-	c, err := grpc.Dial(host, grpc.WithInsecure())
-	require.NoError(t, err)
-	return c
-}
-
 type testCollector struct {
 	started, stopped bool
 }
@@ -179,3 +123,104 @@ func (tc *testCollector) start() error     { tc.started = true; return nil }
 func (tc *testCollector) stop()            { tc.stopped = true }
 func (tc *testCollector) name() string     { return "testCollector" }
 func (tc *testCollector) endpoint() string { return "testCollector:12345" }
+
+func Test_jaegerCollector(t *testing.T) {
+	for name, tc := range map[string]testcaseJaeger{
+		"no otel config": {cfg: &config.Config{}},
+		"default config": {cfg: config.DefaultConfig("9.9.9")},
+		"withJaegerDefault": {
+			cfg: func() *config.Config {
+				cfg := config.DefaultConfig("8.0.0")
+				cfg.OtelConfig.Jaeger.Enabled = true
+				return cfg
+			}()},
+		"withJaeger withTLS": {
+			cfg: &config.Config{OtelConfig: &config.OtelConfig{
+				Jaeger: config.JaegerConfig{
+					Enabled: true,
+					GRPC: config.GRPCConfig{
+						Host: "localhost:4444",
+						TLS: &tlscommon.CertificateConfig{
+							Certificate: path.Join("..", "testdata", "tls", "certificate.pem"),
+							Key:         path.Join("..", "testdata", "tls", "key.pem"),
+						},
+					}}}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			tc.setup(t)
+
+			if tc.cfg.OtelConfig == nil || !tc.cfg.OtelConfig.Jaeger.Enabled {
+				assert.Nil(t, tc.collector)
+			} else {
+				// start
+				require.NoError(t, tc.collector.start())
+
+				// send data via grpc client
+				span := &tracepb.Span{
+					TraceId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+						0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+					SpanId: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}
+				td := consumerdata.TraceData{Spans: []*tracepb.Span{span}}
+				batch, err := jaeger.OCProtoToJaegerProto(td)
+				require.NoError(t, err)
+				require.NotNil(t, batch)
+				jaegerCollectorClient := api_v2.NewCollectorServiceClient(tc.client)
+				_, err = jaegerCollectorClient.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *batch})
+				require.NoError(t, err)
+				assert.Equal(t, 1, len(tc.transformed))
+
+				// stop grpc server
+				tc.collector.stop()
+				_, err = jaegerCollectorClient.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *batch})
+				assert.Error(t, err)
+
+				assert.Equal(t, tc.cfg.OtelConfig.Jaeger.GRPC.Host, tc.collector.endpoint())
+				assert.Equal(t, "jaeger", tc.collector.name())
+
+			}
+
+		})
+	}
+
+}
+
+type testcaseJaeger struct {
+	cfg         *config.Config
+	reporter    func(ctx context.Context, pub publish.PendingReq) error
+	transformed []transform.Transformable
+	collector   *jaegerCollector
+	client      *grpc.ClientConn
+}
+
+func (tc *testcaseJaeger) setup(t *testing.T) {
+	if tc.cfg == nil {
+		tc.cfg = config.DefaultConfig("9.9.9")
+	}
+
+	// build grpc receiver
+	tc.reporter = func(ctx context.Context, pub publish.PendingReq) error {
+		tc.transformed = append(tc.transformed, pub.Transformables...)
+		return nil
+	}
+	traceConsumer := &Consumer{Reporter: tc.reporter}
+	var err error
+	tc.collector, err = newJaegerCollector(tc.cfg, traceConsumer, apm.DefaultTracer, newObserver(context.Background()))
+	require.NoError(t, err)
+
+	if tc.cfg.OtelConfig == nil || !tc.cfg.OtelConfig.Jaeger.Enabled {
+		return
+	}
+
+	// build grpc client
+	if tc.cfg.OtelConfig.Jaeger.GRPC.TLS != nil {
+		creds, err := credentials.NewClientTLSFromFile(tc.cfg.OtelConfig.Jaeger.GRPC.TLS.Certificate, "apm-server")
+		require.NoError(t, err)
+		tc.client, err = grpc.Dial(tc.cfg.OtelConfig.Jaeger.GRPC.Host, grpc.WithTransportCredentials(creds))
+		require.NoError(t, err)
+
+	} else {
+		fmt.Println("---------------- Insecure client")
+		tc.client, err = grpc.Dial(tc.cfg.OtelConfig.Jaeger.GRPC.Host, grpc.WithInsecure())
+		require.NoError(t, err)
+	}
+}

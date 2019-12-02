@@ -92,12 +92,12 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"kibana":                         map[string]interface{}{"enabled": "true"},
-				"agent.config.cache.expiration":  "2m",
-				"otel.jaeger.enabled":            true,
-				"otel.jaeger.grpc.host":          "localhost:12345",
-				"otel.jaeger.grpc.tls.cert_file": "/tmp/tls_cert",
-				"otel.jaeger.grpc.tls.key_file":  "/tmp/tls_key",
+				"kibana":                           map[string]interface{}{"enabled": "true"},
+				"agent.config.cache.expiration":    "2m",
+				"otel.jaeger.enabled":              true,
+				"otel.jaeger.grpc.host":            "localhost:12345",
+				"otel.jaeger.grpc.tls.certificate": "/tmp/tls_cert",
+				"otel.jaeger.grpc.tls.key":         "/tmp/tls_key",
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -151,9 +151,9 @@ func Test_UnpackConfig(t *testing.T) {
 						Enabled: true,
 						GRPC: GRPCConfig{
 							Host: "localhost:12345",
-							TLS: &TLSConfig{
-								CertFile: "/tmp/tls_cert",
-								KeyFile:  "/tmp/tls_key",
+							TLS: &tlscommon.CertificateConfig{
+								Certificate: "/tmp/tls_cert",
+								Key:         "/tmp/tls_key",
 							},
 						},
 					},
