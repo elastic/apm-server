@@ -211,6 +211,19 @@ func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.T
 		return tracer, nil, err
 	}
 
+	if cfg.SelfInstrumentation.Profiling.CPU.IsEnabled() {
+		interval := cfg.SelfInstrumentation.Profiling.CPU.Interval
+		duration := cfg.SelfInstrumentation.Profiling.CPU.Duration
+		logger.Infof("CPU profiling: every %s for %s", interval, duration)
+		os.Setenv("ELASTIC_APM_CPU_PROFILE_INTERVAL", fmt.Sprintf("%dms", int(interval.Seconds()*1000)))
+		os.Setenv("ELASTIC_APM_CPU_PROFILE_DURATION", fmt.Sprintf("%dms", int(duration.Seconds()*1000)))
+	}
+	if cfg.SelfInstrumentation.Profiling.Heap.IsEnabled() {
+		interval := cfg.SelfInstrumentation.Profiling.Heap.Interval
+		logger.Infof("Heap profiling: every %s", interval)
+		os.Setenv("ELASTIC_APM_HEAP_PROFILE_INTERVAL", fmt.Sprintf("%dms", int(interval.Seconds()*1000)))
+	}
+
 	var tracerTransport transport.Transport
 	var lis net.Listener
 	if cfg.SelfInstrumentation.Hosts != nil {
@@ -260,6 +273,7 @@ func initTracer(info beat.Info, cfg *config.Config, logger *logp.Logger) (*apm.T
 		return nil, nil, err
 	}
 	tracer.SetLogger(logp.NewLogger(logs.Tracing))
+
 	return tracer, lis, nil
 }
 

@@ -20,8 +20,11 @@ package beater
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"path/filepath"
 	"testing"
 	"time"
@@ -67,11 +70,44 @@ func adjustMissingTimestamp(event *beat.Event) {
 // testPublish exercises the publishing pipeline, from apm-server intake to beat publishing.
 // It posts a payload to a running APM server via the intake API and gathers the resulting documents that would
 // normally be published to Elasticsearch.
-func testPublish(t *testing.T, apm *beater, events <-chan beat.Event, url string, payload io.Reader) []byte {
+func testPublishIntake(t *testing.T, apm *beater, events <-chan beat.Event, payload io.Reader) []byte {
 	baseURL, client := apm.client(false)
-	req, err := http.NewRequest(http.MethodPost, baseURL+url, payload)
+	req, err := http.NewRequest(http.MethodPost, baseURL+api.IntakePath, payload)
 	require.NoError(t, err)
 	req.Header.Add("Content-Type", "application/x-ndjson")
+	return testPublish(t, client, req, events)
+}
+
+func testPublishProfile(t *testing.T, apm *beater, events <-chan beat.Event, metadata, profile io.Reader) []byte {
+	var buf bytes.Buffer
+	mpw := multipart.NewWriter(&buf)
+	writePart := func(name, contentType string, body io.Reader) {
+		h := make(textproto.MIMEHeader)
+		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"`, name))
+		h.Set("Content-Type", contentType)
+		part, err := mpw.CreatePart(h)
+		require.NoError(t, err)
+		_, err = io.Copy(part, body)
+		require.NoError(t, err)
+	}
+	if metadata != nil {
+		writePart("metadata", "application/json", metadata)
+	}
+	writePart("profile", `application/x-protobuf; messageType="perftools.profiles.Profile"`, profile)
+	err := mpw.Close()
+	require.NoError(t, err)
+
+	baseURL, client := apm.client(false)
+	req, err := http.NewRequest(http.MethodPost, baseURL+api.ProfilePath, &buf)
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", mpw.FormDataContentType())
+	return testPublish(t, client, req, events)
+}
+
+// testPublish exercises the publishing pipeline, from apm-server intake to beat publishing.
+// It posts a payload to a running APM server via the intake API and gathers the resulting
+// documents that would normally be published to Elasticsearch.
+func testPublish(t *testing.T, client *http.Client, req *http.Request, events <-chan beat.Event) []byte {
 	rsp, err := client.Do(req)
 	require.NoError(t, err)
 	got := body(t, rsp)
@@ -127,7 +163,7 @@ func TestPublishIntegration(t *testing.T) {
 
 			b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/intake-v2/", tc.payload))
 			require.NoError(t, err)
-			docs := testPublish(t, apm, events, api.IntakePath, bytes.NewReader(b))
+			docs := testPublishIntake(t, apm, events, bytes.NewReader(b))
 			approvals.AssertApproveResult(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
 		})
 	}
@@ -153,4 +189,42 @@ func TestPublishIntegrationOnboarding(t *testing.T) {
 	hasListen, err := event.Fields.HasKey("observer.listening")
 	require.NoError(t, err)
 	assert.True(t, hasListen, "missing field: observer.listening")
+}
+
+func TestPublishIntegrationProfile(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping slow tc")
+	}
+
+	for name, tc := range map[string]struct {
+		metadata string
+		profile  string
+	}{
+		"CPUProfile":         {profile: "cpu.pprof"},
+		"HeapProfile":        {profile: "heap.pprof"},
+		"CPUProfileMetadata": {profile: "cpu.pprof", metadata: "metadata.json"},
+	} {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			// fresh APM Server for each run
+			events := make(chan beat.Event)
+			defer close(events)
+			apm, teardown, err := setupServer(t, nil, nil, events)
+			require.NoError(t, err)
+			defer teardown()
+
+			var metadata io.Reader
+			if tc.metadata != "" {
+				b, err := loader.LoadDataAsBytes(filepath.Join("../testdata/profile/", tc.metadata))
+				require.NoError(t, err)
+				metadata = bytes.NewReader(b)
+			}
+			profileBytes, err := loader.LoadDataAsBytes(filepath.Join("../testdata/profile/", tc.profile))
+			require.NoError(t, err)
+
+			docs := testPublishProfile(t, apm, events, metadata, bytes.NewReader(profileBytes))
+			approvals.AssertApproveResult(t, "test_approved_es_documents/TestPublishIntegrationProfile"+name, docs)
+		})
+	}
 }

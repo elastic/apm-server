@@ -8,13 +8,15 @@ from nose.tools import raises
 
 INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
 
+EVENT_NAMES = ('error', 'span', 'transaction', 'metric', 'profile')
+
 
 class IdxMgmt(object):
 
     def __init__(self, client, index):
         self._client = client
         self._index = index
-        self._event_indices = ["{}-{}".format(self._index, e) for e in ['error', 'span', 'transaction', 'metric']]
+        self._event_indices = ["{}-{}".format(self._index, e) for e in EVENT_NAMES]
         self.default_policy = "apm-rollover-30-days"
 
     def indices(self):
@@ -40,7 +42,7 @@ class IdxMgmt(object):
         s, i, l = 'settings', 'index', 'lifecycle'
         assert l not in resp[self._index][s][i]
 
-    def assert_event_template(self, loaded=4, with_ilm=True):
+    def assert_event_template(self, loaded=len(EVENT_NAMES), with_ilm=True):
         resp = self._client.indices.get_template(name=self._index + '*', ignore=[404])
 
         if self._index in resp:
@@ -60,7 +62,7 @@ class IdxMgmt(object):
             assert t[l]['name'] is not None, t[l]
             assert t[l]['rollover_alias'] == idx, t[l]
 
-    def assert_alias(self, loaded=4):
+    def assert_alias(self, loaded=len(EVENT_NAMES)):
         resp = self._client.transport.perform_request('GET', '/_alias/' + self._index + '*')
         if loaded == 0:
             return self.assert_empty(resp)
@@ -193,9 +195,19 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy()
 
-        # load with ilm disabled
+        # load with ilm disabled: setup.overwrite is respected
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=false"])
+        assert exit_code == 0
+        self.idxmgmt.assert_template()
+        self.idxmgmt.assert_event_template()
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_default_policy()
+
+        # load with ilm disabled and setup.overwrite enabled
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=false",
+                                              "-E", "apm-server.ilm.setup.overwrite=true"])
         assert exit_code == 0
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template(with_ilm=False)
@@ -217,9 +229,18 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
 
-        # load with ilm enabled
+        # load with ilm enabled: setup.overwrite is respected
         exit_code = self.run_beat(extra_args=["setup", self.cmd,
                                               "-E", "apm-server.ilm.enabled=true"])
+        assert exit_code == 0
+        self.idxmgmt.assert_event_template(with_ilm=False)
+        self.idxmgmt.assert_alias()
+        self.idxmgmt.assert_default_policy()
+
+        # load with ilm enabled and setup.overwrite enabled
+        exit_code = self.run_beat(extra_args=["setup", self.cmd,
+                                              "-E", "apm-server.ilm.enabled=true",
+                                              "-E", "apm-server.ilm.setup.overwrite=true"])
         assert exit_code == 0
         self.idxmgmt.assert_template()
         self.idxmgmt.assert_event_template()
@@ -302,7 +323,7 @@ class TestILMConfiguredPolicies(ElasticTest):
                         max_timeout=5)
 
         self.idxmgmt.assert_event_template(with_ilm=True)
-        self.idxmgmt.assert_alias(loaded=4)
+        self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy(loaded=True)
 
         # check out configured policy in apm-server.yml.j2

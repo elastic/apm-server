@@ -83,14 +83,6 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
-// InstrumentationConfig holds config information about self instrumenting the APM Server
-type InstrumentationConfig struct {
-	Enabled     *bool   `config:"enabled"`
-	Environment *string `config:"environment"`
-	Hosts       urls    `config:"hosts" validate:"nonzero"`
-	SecretToken string  `config:"secret_token"`
-}
-
 // NewConfig creates a Config struct based on the default config and the given input params
 func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
 	logger := logp.NewLogger(logs.Config)
@@ -124,18 +116,16 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
+	if err := c.SelfInstrumentation.setup(logger); err != nil {
+		return nil, err
+	}
+
 	return c, nil
 }
 
 // IsEnabled indicates whether expvar is enabled or not
 func (c *ExpvarConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
-}
-
-// IsEnabled indicates whether self instrumentation is enabled
-func (c *InstrumentationConfig) IsEnabled() bool {
-	// self instrumentation is disabled by default.
-	return c != nil && c.Enabled != nil && *c.Enabled
 }
 
 // DefaultConfig returns a config with default settings for `apm-server` config options.

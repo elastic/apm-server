@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/apm-server/elasticsearch"
 
 	"github.com/elastic/apm-server/sourcemap/test"
 )
@@ -100,7 +100,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("invalidFromES", func(t *testing.T) {
-		for name, client := range map[string]*elasticsearch.Client{
+		for name, client := range map[string]elasticsearch.Client{
 			"invalid":            test.ESClientWithInvalidSourcemap(t),
 			"unsupportedVersion": test.ESClientWithUnsupportedSourcemap(t),
 		} {
@@ -200,7 +200,7 @@ func TestCleanupInterval(t *testing.T) {
 	}
 }
 
-func testStore(t *testing.T, client *elasticsearch.Client) *Store {
+func testStore(t *testing.T, client elasticsearch.Client) *Store {
 	store, err := NewStore(client, "apm-*sourcemap*", time.Minute)
 	require.NoError(t, err)
 	return store

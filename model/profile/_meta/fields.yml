@@ -1,0 +1,112 @@
+- key: apm-profile
+  title: APM Profile
+  description: Profiling-specific data for APM.
+  fields:
+    - name: profile
+      type: group
+      dynamic: false
+      fields:
+        - name: cpu
+          type: group
+          fields:
+            - name: ns
+              type: long
+              count: 1
+              description: >
+                Amount of CPU time profiled, in nanoseconds.
+
+        - name: samples
+          type: group
+          fields:
+            - name: count
+              type: long
+              count: 1
+              description: >
+                Number of profile samples for the profiling period.
+
+        - name: alloc_objects
+          type: group
+          fields:
+            - name: count
+              type: long
+              count: 1
+              description: >
+                Number of objects allocated since the process started.
+
+        - name: alloc_space
+          type: group
+          fields:
+            - name: bytes
+              type: long
+              count: 1
+              description: >
+                Amount of memory allocated, in bytes, since the process started.
+
+        - name: inuse_objects
+          type: group
+          fields:
+            - name: count
+              type: long
+              count: 1
+              description: >
+                Number of objects allocated and currently in use.
+
+        - name: inuse_space
+          type: group
+          fields:
+            - name: bytes
+              type: long
+              count: 1
+              description: >
+                Amount of memory allocated, in bytes, and currently in use.
+
+        - name: duration
+          type: long
+          count: 1
+          description: >
+            Duration of the profile, in microseconds.
+
+        - name: top
+          type: group
+          dynamic: false
+          fields:
+            - name: id
+              type: keyword
+              description: >
+                Unique ID for the top stack frame in the context of its callers.
+            - name: function
+              type: keyword
+              count: 1
+              description: >
+                Function name for the top stack frame.
+            - name: filename
+              type: keyword
+              count: 1
+              description: >
+                Source code filename for the top stack frame.
+            - name: line
+              type: long
+              count: 1
+              description: >
+                Source code line number for the top stack frame.
+
+        - name: stack
+          type: group
+          dynamic: false
+          fields:
+            - name: id
+              type: keyword
+              description: >
+                Unique ID for a stack frame in the context of its callers.
+            - name: function
+              type: keyword
+              description: >
+                Function name for a stack frame.
+            - name: filename
+              type: keyword
+              description: >
+                Source code filename for a stack frame.
+            - name: line
+              type: long
+              description: >
+                Source code line number for a stack frame.

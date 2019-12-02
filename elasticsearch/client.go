@@ -18,133 +18,101 @@
 package elasticsearch
 
 import (
+	"context"
+	"io"
 	"net/http"
-	"net/url"
-	"strings"
-	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
-	"github.com/elastic/beats/libbeat/outputs/transport"
+	"github.com/elastic/beats/libbeat/version"
 
-	goelasticsearch "github.com/elastic/go-elasticsearch/v8"
+	v7 "github.com/elastic/go-elasticsearch/v7"
+
+	v8 "github.com/elastic/go-elasticsearch/v8"
 )
 
-const (
-	prefixHTTP       = "http"
-	prefixHTTPSchema = prefixHTTP + "://"
-	defaultESPort    = 9200
-)
-
-var (
-	errInvalidHosts  = errors.New("`Hosts` must at least contain one hostname")
-	errConfigMissing = errors.New("config missing")
-)
-
-// Config holds all configurable fields that are used to create a Client
-type Config struct {
-	Hosts        Hosts             `config:"hosts" validate:"required"`
-	Protocol     string            `config:"protocol"`
-	Path         string            `config:"path"`
-	ProxyURL     string            `config:"proxy_url"`
-	ProxyDisable bool              `config:"proxy_disable"`
-	Timeout      time.Duration     `config:"timeout"`
-	TLS          *tlscommon.Config `config:"ssl"`
-	Username     string            `config:"username"`
-	Password     string            `config:"password"`
+// Client is an interface designed to abstract away version differences between elasticsearch clients
+type Client interface {
+	// Search performs a query against the given index with the given body
+	Search(index string, body io.Reader) (int, io.ReadCloser, error)
 }
 
-// Hosts is an array of host strings and needs to have at least one entry
-type Hosts []string
+type clientV8 struct {
+	c *v8.Client
+}
 
-// NewClient creates an elasticsearch client from given config
-func NewClient(config *Config) (*goelasticsearch.Client, error) {
+// Search satisfies the Client interface for version 8
+func (v8 clientV8) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
+	response, err := v8.c.Search(
+		v8.c.Search.WithContext(context.Background()),
+		v8.c.Search.WithIndex(index),
+		v8.c.Search.WithBody(body),
+		v8.c.Search.WithTrackTotalHits(true),
+		v8.c.Search.WithPretty(),
+	)
+	if err != nil {
+		return 0, nil, err
+	}
+	return response.StatusCode, response.Body, nil
+}
+
+type clientV7 struct {
+	c *v7.Client
+}
+
+// Search satisfies the Client interface for version 7
+func (v7 clientV7) Search(index string, body io.Reader) (int, io.ReadCloser, error) {
+	response, err := v7.c.Search(
+		v7.c.Search.WithContext(context.Background()),
+		v7.c.Search.WithIndex(index),
+		v7.c.Search.WithBody(body),
+		v7.c.Search.WithTrackTotalHits(true),
+		v7.c.Search.WithPretty(),
+	)
+	if err != nil {
+		return 0, nil, err
+	}
+	return response.StatusCode, response.Body, nil
+}
+
+// NewClient parses the given config and returns  a version-aware client as an interface
+func NewClient(config *Config) (Client, error) {
 	if config == nil {
 		return nil, errConfigMissing
 	}
-
-	//following logic is inspired by libbeat functionality
-
-	var err error
-	proxy, err := httpProxyURL(config)
+	transport, addresses, err := connectionConfig(config)
 	if err != nil {
 		return nil, err
 	}
+	return NewVersionedClient(config.APIKey, config.Username, config.Password, addresses, transport)
+}
 
-	addresses, err := addresses(config)
-	if err != nil {
-		return nil, err
+// NewVersionedClient returns the right elasticsearch client for the current Stack version, as an interface
+func NewVersionedClient(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (Client, error) {
+	version := common.MustNewVersion(version.GetDefaultVersion())
+	if version.IsMajor(8) {
+		c, err := newV8Client(apikey, user, pwd, addresses, transport)
+		return clientV8{c}, err
 	}
+	c, err := newV7Client(apikey, user, pwd, addresses, transport)
+	return clientV7{c}, err
+}
 
-	dialer, tlsDialer, err := dialer(config)
-	if err != nil {
-		return nil, err
-	}
-
-	return goelasticsearch.NewClient(goelasticsearch.Config{
-		Username:  config.Username,
-		Password:  config.Password,
+func newV7Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*v7.Client, error) {
+	return v7.NewClient(v7.Config{
+		APIKey:    apikey,
+		Username:  user,
+		Password:  pwd,
 		Addresses: addresses,
-		Transport: &http.Transport{
-			Proxy:   proxy,
-			Dial:    dialer.Dial,
-			DialTLS: tlsDialer.Dial,
-		},
+		Transport: transport,
 	})
 }
 
-// Validate ensures Hosts instance has at least one entry
-func (h Hosts) Validate() error {
-	if len(h) == 0 {
-		return errInvalidHosts
-	}
-	return nil
-}
-
-func httpProxyURL(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
-	if cfg.ProxyDisable {
-		return nil, nil
-	}
-
-	if cfg.ProxyURL == "" {
-		return http.ProxyFromEnvironment, nil
-	}
-
-	proxyStr := cfg.ProxyURL
-	if !strings.HasPrefix(proxyStr, prefixHTTP) {
-		proxyStr = prefixHTTPSchema + proxyStr
-	}
-	u, err := url.Parse(proxyStr)
-	if err != nil {
-		return nil, err
-	}
-	return http.ProxyURL(u), nil
-}
-
-func addresses(cfg *Config) ([]string, error) {
-	var addresses []string
-	for _, host := range cfg.Hosts {
-		address, err := common.MakeURL(cfg.Protocol, cfg.Path, host, defaultESPort)
-		if err != nil {
-			return nil, err
-		}
-		addresses = append(addresses, address)
-	}
-	return addresses, nil
-}
-
-func dialer(cfg *Config) (transport.Dialer, transport.Dialer, error) {
-	var tlsConfig *tlscommon.TLSConfig
-	var err error
-	if cfg.TLS.IsEnabled() {
-		if tlsConfig, err = tlscommon.LoadTLSConfig(cfg.TLS); err != nil {
-			return nil, nil, err
-		}
-	}
-
-	dialer := transport.NetDialer(cfg.Timeout)
-	tlsDialer, err := transport.TLSDialer(dialer, tlsConfig, cfg.Timeout)
-	return dialer, tlsDialer, err
+func newV8Client(apikey, user, pwd string, addresses []string, transport http.RoundTripper) (*v8.Client, error) {
+	return v8.NewClient(v8.Config{
+		APIKey:    apikey,
+		Username:  user,
+		Password:  pwd,
+		Addresses: addresses,
+		Transport: transport,
+	})
 }
