@@ -19,18 +19,17 @@ package sourcemap
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 
+	"github.com/elastic/apm-server/elasticsearch"
 	"github.com/elastic/apm-server/utility"
 )
 
@@ -45,7 +44,7 @@ var (
 )
 
 type esStore struct {
-	client *elasticsearch.Client
+	client elasticsearch.Client
 	index  string
 	logger *logp.Logger
 }
@@ -66,17 +65,17 @@ type esSourcemapResponse struct {
 }
 
 func (s *esStore) fetch(name, version, path string) (string, error) {
-	response, err := s.runSearchQuery(name, version, path)
+	statusCode, body, err := s.runSearchQuery(name, version, path)
 	if err != nil {
 		return "", errors.Wrap(err, errMsgESFailure)
 	}
-	defer response.Body.Close()
+	defer body.Close()
 	// handle error response
-	if response.IsError() {
-		if response.StatusCode == http.StatusNotFound {
+	if statusCode >= http.StatusMultipleChoices {
+		if statusCode == http.StatusNotFound {
 			return "", nil
 		}
-		b, err := ioutil.ReadAll(response.Body)
+		b, err := ioutil.ReadAll(body)
 		if err != nil {
 			return "", errors.Wrap(err, errMsgParseSourcemap)
 		}
@@ -84,29 +83,22 @@ func (s *esStore) fetch(name, version, path string) (string, error) {
 	}
 
 	// parse response
-	return parse(response, name, version, path, s.logger)
+	return parse(body, name, version, path, s.logger)
 }
 
-func (s *esStore) runSearchQuery(name, version, path string) (*esapi.Response, error) {
+func (s *esStore) runSearchQuery(name, version, path string) (int, io.ReadCloser, error) {
 	// build and encode the query
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {
-		return nil, err
+		return 0, nil, err
 	}
-
 	// Perform the runSearchQuery request.
-	return s.client.Search(
-		s.client.Search.WithContext(context.Background()),
-		s.client.Search.WithIndex(s.index),
-		s.client.Search.WithBody(&buf),
-		s.client.Search.WithTrackTotalHits(true),
-		s.client.Search.WithPretty(),
-	)
+	return s.client.Search(s.index, &buf)
 }
 
-func parse(response *esapi.Response, name, version, path string, logger *logp.Logger) (string, error) {
+func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
 	var esSourcemapResponse esSourcemapResponse
-	if err := json.NewDecoder(response.Body).Decode(&esSourcemapResponse); err != nil {
+	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
 		return "", err
 	}
 	hits := esSourcemapResponse.Hits.Total.Value
