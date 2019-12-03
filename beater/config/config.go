@@ -62,7 +62,7 @@ type Config struct {
 	Kibana              *common.Config          `config:"kibana"`
 	AgentConfig         *AgentConfig            `config:"agent.config"`
 	SecretToken         string                  `config:"secret_token"`
-	OtelConfig          *OtelConfig             `config:"otel"`
+	JaegerConfig        JaegerConfig            `config:"jaeger"`
 
 	Pipeline string
 }
@@ -120,6 +120,10 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
+	if err := c.JaegerConfig.setup(c); err != nil {
+		return nil, err
+	}
+
 	return c, nil
 }
 
@@ -144,12 +148,12 @@ func DefaultConfig(beatVersion string) *Config {
 			Enabled: new(bool),
 			URL:     "/debug/vars",
 		},
-		RumConfig:   defaultRum(beatVersion),
-		Register:    defaultRegisterConfig(true),
-		Mode:        ModeProduction,
-		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-		Pipeline:    defaultAPMPipeline,
-		OtelConfig:  defaultOtel(),
+		RumConfig:    defaultRum(beatVersion),
+		Register:     defaultRegisterConfig(true),
+		Mode:         ModeProduction,
+		Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+		AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+		Pipeline:     defaultAPMPipeline,
+		JaegerConfig: defaultJaeger(),
 	}
 }

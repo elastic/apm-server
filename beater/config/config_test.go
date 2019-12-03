@@ -18,7 +18,9 @@
 package config
 
 import (
+	"crypto/tls"
 	"fmt"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -59,9 +61,9 @@ func Test_UnpackConfig(t *testing.T) {
 				"secret_token":          "1234random",
 				"ssl": map[string]interface{}{
 					"enabled":                 true,
-					"key":                     "1234key",
-					"certificate":             "1234cert",
-					"certificate_authorities": []string{"./ca.cert.pem"},
+					"key":                     path.Join("../..", "testdata", "tls", "key.pem"),
+					"certificate":             path.Join("../..", "testdata", "tls", "certificate.pem"),
+					"certificate_authorities": []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
 					"client_authentication":   "none",
 				},
 				"expvar": map[string]interface{}{
@@ -92,12 +94,10 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"kibana":                           map[string]interface{}{"enabled": "true"},
-				"agent.config.cache.expiration":    "2m",
-				"otel.jaeger.enabled":              true,
-				"otel.jaeger.grpc.host":            "localhost:12345",
-				"otel.jaeger.grpc.tls.certificate": "/tmp/tls_cert",
-				"otel.jaeger.grpc.tls.key":         "/tmp/tls_key",
+				"kibana":                        map[string]interface{}{"enabled": "true"},
+				"agent.config.cache.expiration": "2m",
+				"jaeger.enabled":                true,
+				"jaeger.grpc.host":              "localhost:12345",
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -109,10 +109,12 @@ func Test_UnpackConfig(t *testing.T) {
 				ShutdownTimeout: 9000000000,
 				SecretToken:     "1234random",
 				TLS: &tlscommon.ServerConfig{
-					Enabled:     &truthy,
-					Certificate: outputs.CertificateConfig{Certificate: "1234cert", Key: "1234key"},
-					ClientAuth:  0,
-					CAs:         []string{"./ca.cert.pem"},
+					Enabled: &truthy,
+					Certificate: outputs.CertificateConfig{
+						Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
+						Key:         path.Join("../..", "testdata", "tls", "key.pem")},
+					ClientAuth: 0,
+					CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")},
 				},
 				AugmentEnabled: true,
 				Expvar: &ExpvarConfig{
@@ -146,16 +148,21 @@ func Test_UnpackConfig(t *testing.T) {
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
 				Pipeline:    defaultAPMPipeline,
-				OtelConfig: &OtelConfig{
-					Jaeger: JaegerConfig{
-						Enabled: true,
-						GRPC: GRPCConfig{
-							Host: "localhost:12345",
-							TLS: &tlscommon.CertificateConfig{
-								Certificate: "/tmp/tls_cert",
-								Key:         "/tmp/tls_key",
-							},
-						},
+				JaegerConfig: JaegerConfig{
+					Enabled: true,
+					GRPC: GRPCConfig{
+						Host: "localhost:12345",
+						TLS: func() *tls.Config {
+							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
+								Enabled: &truthy,
+								Certificate: outputs.CertificateConfig{
+									Certificate: path.Join("../..", "testdata", "tls", "certificate.pem"),
+									Key:         path.Join("../..", "testdata", "tls", "key.pem")},
+								ClientAuth: 0,
+								CAs:        []string{path.Join("../..", "testdata", "tls", "./ca.crt.pem")}})
+							require.NoError(t, err)
+							return tlsServerConfig.BuildModuleConfig("localhost:12345")
+						}(),
 					},
 				},
 			},
@@ -187,7 +194,7 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				"otel.jaeger.enabled": true,
+				"jaeger.enabled": true,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -235,12 +242,18 @@ func Test_UnpackConfig(t *testing.T) {
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 				Pipeline:    defaultAPMPipeline,
-				OtelConfig: &OtelConfig{
-					Jaeger: JaegerConfig{
-						Enabled: true,
-						GRPC: GRPCConfig{
-							Host: "localhost:14250",
-						},
+				JaegerConfig: JaegerConfig{
+					Enabled: true,
+					GRPC: GRPCConfig{
+						Host: "localhost:14250",
+						TLS: func() *tls.Config {
+							tlsServerConfig, err := tlscommon.LoadTLSServerConfig(&tlscommon.ServerConfig{
+								Enabled:     &truthy,
+								Certificate: outputs.CertificateConfig{Certificate: "", Key: ""},
+								ClientAuth:  3})
+							require.NoError(t, err)
+							return tlsServerConfig.BuildModuleConfig("localhost:14250")
+						}(),
 					},
 				},
 			},
@@ -320,12 +333,13 @@ func TestTLSSettings(t *testing.T) {
 			},
 			"DefaultRequiredByCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
-					"certificate_authorities": []string{"./path"}}},
+					"certificate_authorities": []string{path.Join("..", "..", "testdata", "tls", "./ca.crt.pem")}}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 4},
 			},
 			"ConfiguredWithCA": {
 				config: map[string]interface{}{"ssl": map[string]interface{}{
-					"certificate_authorities": []string{"./path"}, "client_authentication": "none"}},
+					"certificate_authorities": []string{path.Join("..", "..", "testdata", "tls", "./ca.crt.pem")},
+					"client_authentication":   "none"}},
 				tls: &tlscommon.ServerConfig{ClientAuth: 0},
 			},
 		} {

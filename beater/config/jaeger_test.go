@@ -17,36 +17,18 @@
 
 package config
 
-import "github.com/elastic/beats/libbeat/common/transport/tlscommon"
+import (
+	"testing"
 
-const (
-	defaultJaegerGRPCHost = "localhost:14250"
+	"github.com/stretchr/testify/assert"
 )
 
-// OtelConfig bundles information for supported open-telemetry collectors
-type OtelConfig struct {
-	Jaeger JaegerConfig `config:"jaeger"`
-}
-
-// JaegerConfig holds configuration for jaeger collector
-type JaegerConfig struct {
-	Enabled bool       `config:"enabled"`
-	GRPC    GRPCConfig `config:"grpc"`
-}
-
-// GRPCConfig bundles information around a grpc server
-type GRPCConfig struct {
-	Host string                       `config:"host"`
-	TLS  *tlscommon.CertificateConfig `config:"tls"`
-}
-
-func defaultOtel() *OtelConfig {
-	return &OtelConfig{
-		Jaeger: JaegerConfig{
-			Enabled: false,
-			GRPC: GRPCConfig{
-				Host: defaultJaegerGRPCHost,
-			},
+func TestJeager_default(t *testing.T) {
+	expected := JaegerConfig{
+		Enabled: false,
+		GRPC: GRPCConfig{
+			Host: "localhost:14250",
 		},
 	}
+	assert.Equal(t, expected, defaultJaeger())
 }

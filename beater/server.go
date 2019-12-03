@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/beats/libbeat/version"
 
 	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/jaeger"
 	"github.com/elastic/apm-server/publish"
 )
 
@@ -42,8 +43,8 @@ type server struct {
 	logger *logp.Logger
 	cfg    *config.Config
 
-	httpServer    *httpServer
-	otelCollector *otelCollector
+	httpServer       *httpServer
+	jaegerGRPCServer *jaeger.GRPCServer
 }
 
 func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
@@ -51,20 +52,20 @@ func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, repo
 	if err != nil {
 		return server{}, err
 	}
-	otelCollector, err := newOtelCollector(logger, cfg, tracer, reporter)
+	jaegerGRPCServer, err := jaeger.NewGRPCServer(logger, cfg, tracer, reporter)
 	if err != nil {
 		return server{}, err
 	}
-	return server{logger, cfg, httpServer, otelCollector}, nil
+	return server{logger, cfg, httpServer, jaegerGRPCServer}, nil
 }
 
 func (s server) run(listener, traceListener net.Listener, publish func(beat.Event)) error {
 	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
 	var g errgroup.Group
 
-	if s.otelCollector != nil {
+	if s.jaegerGRPCServer != nil {
 		g.Go(func() error {
-			return s.otelCollector.start()
+			return s.jaegerGRPCServer.Start()
 		})
 	}
 	if s.httpServer != nil {
@@ -93,8 +94,8 @@ func (s server) run(listener, traceListener net.Listener, publish func(beat.Even
 }
 
 func (s server) stop(logger *logp.Logger) {
-	if s.otelCollector != nil {
-		s.otelCollector.stop()
+	if s.jaegerGRPCServer != nil {
+		s.jaegerGRPCServer.Stop()
 	}
 	if s.httpServer != nil {
 		s.httpServer.stop()
