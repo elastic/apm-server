@@ -105,7 +105,6 @@ func TestGRPCServerIntegration(t *testing.T) {
 				tc.server.Stop()
 				_, err = tc.client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *tc.batch})
 				require.Error(t, err)
-				assert.Contains(t, err.Error(), "connection refused")
 			}
 		})
 	}
