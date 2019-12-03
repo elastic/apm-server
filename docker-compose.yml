@@ -40,6 +40,8 @@ services:
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
 
   kibana:
+    ports:
+      - 5601:5601
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: kibana
