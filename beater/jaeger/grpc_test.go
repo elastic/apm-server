@@ -165,15 +165,15 @@ func (tc *testcaseJaeger) sendSpans(timeout time.Duration) error {
 	start := time.Now()
 	var err error
 	for {
+		_, err = tc.client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *tc.batch})
+		if err == nil {
+			break
+		}
 		if time.Since(start) > timeout {
 			err = errors.New("timeout")
 			break
 		}
 		time.Sleep(time.Second / 50)
-		_, err = tc.client.PostSpans(context.Background(), &api_v2.PostSpansRequest{Batch: *tc.batch})
-		if err == nil {
-			break
-		}
 	}
 	return err
 }
