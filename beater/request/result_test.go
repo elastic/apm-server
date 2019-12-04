@@ -21,9 +21,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/elastic/beats/libbeat/monitoring"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/pkg/errors"
 )
@@ -176,10 +176,20 @@ func TestResult_Failure(t *testing.T) {
 	assert.True(t, (&Result{StatusCode: http.StatusServiceUnavailable}).Failure())
 }
 
-func TestMonitoringMapForRegistry(t *testing.T) {
-	mockRegistry := monitoring.Default.NewRegistry("mock", monitoring.PublishExpvar)
-	m := MonitoringMapForRegistry(mockRegistry)
+func TestDefaultMonitoringMapForRegistry(t *testing.T) {
+	mockRegistry := monitoring.Default.NewRegistry("mock-default", monitoring.PublishExpvar)
+	m := DefaultMonitoringMapForRegistry(mockRegistry)
 	assert.Equal(t, 21, len(m))
+	for id := range m {
+		assert.Equal(t, int64(0), m[id].Get())
+	}
+}
+
+func TestMonitoringMapForRegistry(t *testing.T) {
+	keys := []ResultID{IDEventDroppedCount, IDResponseErrorsServiceUnavailable}
+	mockRegistry := monitoring.Default.NewRegistry("mock-with-keys", monitoring.PublishExpvar)
+	m := MonitoringMapForRegistry(mockRegistry, keys)
+	assert.Equal(t, 2, len(m))
 	for id := range m {
 		assert.Equal(t, int64(0), m[id].Get())
 	}

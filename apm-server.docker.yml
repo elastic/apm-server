@@ -319,6 +319,16 @@ apm-server:
                   #readonly: {}
 
 
+
+  #---------------------------- APM Server - Open Telemetry Collector integration ----------------------------
+
+  #jaeger:
+    # Enable jaeger collector listening for traces sent from jaeger agent via gRPC. Disabled by default.
+    #enabled: false
+    #grpc:
+      # Defines the gRPC host and port the server is listening on. Defaults to Jaeger collector default port 14250.
+      #host: "0.0.0.0:14250"
+
 #================================= General =================================
 
 # Data is buffered in a memory queue before it is published to the configured output.
