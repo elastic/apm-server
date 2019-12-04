@@ -161,8 +161,10 @@ func Package() {
 		filterPackages(packageTypes)
 	}
 
-	mg.Deps(Update, prepareIngestPackaging)
-	mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
+	if os.Getenv("SKIP_BUILD") != "true" {
+		mg.Deps(Update, prepareIngestPackaging)
+		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
+	}
 	mg.SerialDeps(mage.Package, TestPackages)
 }
 
