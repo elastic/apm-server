@@ -146,6 +146,12 @@ class ServerSetUpBaseTest(BaseTest):
         self.apmserver_proc = self.start_beat(**self.start_args())
         self.wait_until_started()
 
+        # try make sure APM Server is fully up
+        cfg = self.config()
+        # enabled by default
+        if cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
+            self.wait_until_pipelines_registered()
+
     def start_args(self):
         return {}
 
