@@ -88,7 +88,7 @@ var (
 		IDResponseErrorsInvalidQuery:       {Code: http.StatusBadRequest, Keyword: "invalid query"},
 		IDResponseErrorsDecode:             {Code: http.StatusBadRequest, Keyword: "data decoding error"},
 		IDResponseErrorsValidate:           {Code: http.StatusBadRequest, Keyword: "data validation error"},
-		IDResponseErrorsMethodNotAllowed:   {Code: http.StatusMethodNotAllowed, Keyword: "only POST requests are supported"},
+		IDResponseErrorsMethodNotAllowed:   {Code: http.StatusMethodNotAllowed, Keyword: "method not supported"},
 		IDResponseErrorsRateLimit:          {Code: http.StatusTooManyRequests, Keyword: "too many requests"},
 		IDResponseErrorsFullQueue:          {Code: http.StatusServiceUnavailable, Keyword: "queue is full"},
 		IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
@@ -165,6 +165,16 @@ func (r *Result) SetWithError(id ResultID, err error) {
 // SetWithBody derives information about the result from the given ID. The body is set to the passed value.
 func (r *Result) SetWithBody(id ResultID, body interface{}) {
 	r.set(id, body, nil)
+}
+
+// SetDeniedAuthorization sets the result when authorization is denied
+func (r *Result) SetDeniedAuthorization(err error) {
+	if err != nil {
+		id := IDResponseErrorsServiceUnavailable
+		status := MapResultIDToStatus[id]
+		r.Set(id, status.Code, status.Keyword, status.Keyword, err)
+	}
+	r.SetDefault(IDResponseErrorsUnauthorized)
 }
 
 // Set allows for the most flexibility in setting a result's properties.
