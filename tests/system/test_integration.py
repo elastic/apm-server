@@ -142,7 +142,7 @@ class Test(ElasticTest):
 class EnrichEventIntegrationTest(ClientSideElasticTest):
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
-        # for backend events librar_frame information should not be changed,
+        # for backend events library_frame information should not be changed,
         # as no regex pattern is defined.
         self.load_docs_with_template(self.get_backend_error_payload_path(),
                                      self.backend_intake_url,
@@ -160,7 +160,7 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_transaction(self):
-        # for backend events librar_frame information should not be changed,
+        # for backend events library_frame information should not be changed,
         # as no regex pattern is defined.
         self.load_docs_with_template(self.get_backend_transaction_payload_path(),
                                      self.backend_intake_url,

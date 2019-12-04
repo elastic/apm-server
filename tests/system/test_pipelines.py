@@ -196,5 +196,6 @@ class PipelineEnableRegisterOverwriteTest(ElasticTest):
 
     def test_pipeline_overwritten(self):
         pipeline_id = "apm"
-        self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == "Default enrichment for APM events",
+        desc = "Default enrichment for APM events"
+        self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == desc,
                         name="fetching pipeline {}".format(pipeline_id))
