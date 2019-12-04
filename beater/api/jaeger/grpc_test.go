@@ -42,7 +42,7 @@ func TestGRPCCollector_PostSpans(t *testing.T) {
 			request: &api_v2.PostSpansRequest{},
 			monitoringInt: map[request.ResultID]int64{request.IDRequestCount: 1, request.IDResponseCount: 1,
 				request.IDResponseValidCount: 1}},
-		"succesful request": {
+		"successful request": {
 			monitoringInt: map[request.ResultID]int64{request.IDRequestCount: 1, request.IDResponseCount: 1,
 				request.IDResponseValidCount: 1, request.IDEventReceivedCount: 2}},
 		"failing request": {
