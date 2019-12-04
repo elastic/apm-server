@@ -23,9 +23,8 @@ import (
 	"testing"
 
 	v1 "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
-	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
-
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
+	"github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata"
 	"github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

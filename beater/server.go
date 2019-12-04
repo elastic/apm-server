@@ -24,15 +24,11 @@ import (
 	"net/http"
 	"time"
 
-	"go.elastic.co/apm"
-	"golang.org/x/net/context"
-
 	"github.com/elastic/beats/libbeat/beat"
-
-	"golang.org/x/sync/errgroup"
-
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
+	"go.elastic.co/apm"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/jaeger"
@@ -83,7 +79,7 @@ func (s server) run(listener, traceListener net.Listener, publish func(beat.Even
 			})
 		}
 
-		if err := g.Wait(); err != http.ErrServerClosed && err != context.Canceled {
+		if err := g.Wait(); err != http.ErrServerClosed {
 			return err
 		}
 

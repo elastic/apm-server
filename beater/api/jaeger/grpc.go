@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/elastic/beats/libbeat/monitoring"
-
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	trjaeger "github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
 
@@ -40,7 +39,7 @@ var (
 	monitoringMap = request.MonitoringMapForRegistry(gRPCRegistry, monitoringKeys)
 )
 
-// GRPCCollector implements jaeger api_v2 protocol for receiving tracing data
+// GRPCCollector implements Jaeger api_v2 protocol for receiving tracing data
 type GRPCCollector struct {
 	consumer *otel.Consumer
 }

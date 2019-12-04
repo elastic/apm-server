@@ -20,19 +20,15 @@ package jaeger
 import (
 	"net"
 
-	"google.golang.org/grpc/credentials"
-
-	"go.elastic.co/apm/module/apmgrpc"
-
+	"github.com/elastic/beats/libbeat/logp"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmgrpc"
 	"google.golang.org/grpc"
-
-	"github.com/elastic/beats/libbeat/logp"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/elastic/apm-server/beater/api/jaeger"
-
 	"github.com/elastic/apm-server/beater/config"
 	processor "github.com/elastic/apm-server/processor/otel"
 	"github.com/elastic/apm-server/publish"
@@ -43,7 +39,7 @@ const (
 	networkTCP = "tcp"
 )
 
-// GRPCServer allows to start and stop a jaeger gRPC collector
+// GRPCServer allows to start and stop a Jaeger gRPC Server with a Jaeger Collector
 type GRPCServer struct {
 	logger     *logp.Logger
 	grpcServer *grpc.Server
@@ -51,7 +47,7 @@ type GRPCServer struct {
 	collector  jaeger.GRPCCollector
 }
 
-// NewGRPCServer creates instance of jaeger.GRPCServer
+// NewGRPCServer creates instance of Jaeger GRPCServer
 func NewGRPCServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (*GRPCServer, error) {
 	if !cfg.JaegerConfig.Enabled {
 		return nil, nil
@@ -78,22 +74,22 @@ func NewGRPCServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, 
 	}, nil
 }
 
-// Start gRPC server to listen for incoming jaeger trace requests.
+// Start gRPC server to listen for incoming Jaeger trace requests.
 //TODO(simi) to add support for sampling: api_v2.RegisterSamplingManagerServer
 func (jc *GRPCServer) Start() error {
-	jc.logger.Infof("Starting jaeger collector listening on: %s", jc.host)
+	jc.logger.Infof("Starting Jaeger collector listening on: %s", jc.host)
 
 	api_v2.RegisterCollectorServiceServer(jc.grpcServer, jc.collector)
 
 	listener, err := net.Listen(networkTCP, jc.host)
 	if err != nil {
-		return errors.Wrapf(err, "error starting jaeger collector listening on: %s", jc.host)
+		return errors.Wrapf(err, "error starting Jaeger collector listening on: %s", jc.host)
 	}
 	return jc.grpcServer.Serve(listener)
 }
 
 // Stop gRPC server gracefully.
 func (jc *GRPCServer) Stop() {
-	jc.logger.Infof("Stopping jaeger collector listening on: %s", jc.host)
+	jc.logger.Infof("Stopping Jaeger collector listening on: %s", jc.host)
 	jc.grpcServer.GracefulStop()
 }
