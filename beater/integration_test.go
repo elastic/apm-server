@@ -67,6 +67,9 @@ func adjustMissingTimestamp(event *beat.Event) {
 	}
 }
 
+// testPublishIntake exercises the publishing pipeline, from apm-server intake to beat publishing.
+// It posts a payload to a running APM server via the intake API and gathers the resulting documents that would
+// normally be published to Elasticsearch.
 func testPublishIntake(t *testing.T, apm *beater, events <-chan beat.Event, payload io.Reader) []byte {
 	baseURL, client := apm.client(false)
 	req, err := http.NewRequest(http.MethodPost, baseURL+api.IntakePath, payload)

@@ -18,95 +18,105 @@
 package beater
 
 import (
-	"context"
+	"bufio"
+	"fmt"
 	"net"
 	"net/http"
+	"time"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmhttp"
-	"golang.org/x/net/netutil"
-
-	"github.com/elastic/apm-server/beater/api"
-	"github.com/elastic/apm-server/beater/config"
-	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/beats/libbeat/common/transport/tlscommon"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/version"
+	"go.elastic.co/apm"
+	"golang.org/x/sync/errgroup"
+
+	"github.com/elastic/apm-server/beater/config"
+	"github.com/elastic/apm-server/beater/jaeger"
+	"github.com/elastic/apm-server/publish"
 )
 
-func newServer(cfg *config.Config, tracer *apm.Tracer, report publish.Reporter) (*http.Server, error) {
-	mux, err := api.NewMux(cfg, report)
+type server struct {
+	logger *logp.Logger
+	cfg    *config.Config
+
+	httpServer       *httpServer
+	jaegerGRPCServer *jaeger.GRPCServer
+}
+
+func newServer(logger *logp.Logger, cfg *config.Config, tracer *apm.Tracer, reporter publish.Reporter) (server, error) {
+	httpServer, err := newHTTPServer(logger, cfg, tracer, reporter)
 	if err != nil {
-		return nil, err
+		return server{}, err
 	}
-
-	server := &http.Server{
-		Addr: cfg.Host,
-		Handler: apmhttp.Wrap(mux,
-			apmhttp.WithServerRequestIgnorer(doNotTrace),
-			apmhttp.WithTracer(tracer),
-		),
-		IdleTimeout:    cfg.IdleTimeout,
-		ReadTimeout:    cfg.ReadTimeout,
-		WriteTimeout:   cfg.WriteTimeout,
-		MaxHeaderBytes: cfg.MaxHeaderSize,
-	}
-
-	if cfg.TLS.IsEnabled() {
-		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
-		if err != nil {
-			return nil, err
-		}
-		server.TLSConfig = tlsServerConfig.BuildModuleConfig(cfg.Host)
-	}
-	return server, nil
-}
-
-func doNotTrace(req *http.Request) bool {
-	// Don't trace root url (healthcheck) requests.
-	return req.URL.Path == api.RootPath
-}
-
-func run(logger *logp.Logger, server *http.Server, lis net.Listener, cfg *config.Config) error {
-	logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
-	logger.Infof("Listening on: %s", server.Addr)
-	switch cfg.RumConfig.IsEnabled() {
-	case true:
-		logger.Info("RUM endpoints enabled!")
-		for _, s := range cfg.RumConfig.AllowOrigins {
-			if s == "*" {
-				logger.Warn("CORS related setting `apm-server.rum.allow_origins` allows all origins. Consider more restrictive setting for production use.")
-				break
-			}
-		}
-	case false:
-		logger.Info("RUM endpoints disabled.")
-	}
-
-	if cfg.MaxConnections > 0 {
-		lis = netutil.LimitListener(lis, cfg.MaxConnections)
-		logger.Infof("Connection limit set to: %d", cfg.MaxConnections)
-	}
-
-	if server.TLSConfig != nil {
-		logger.Info("SSL enabled.")
-		return server.ServeTLS(lis, "", "")
-	}
-	if cfg.SecretToken != "" {
-		logger.Warn("Secret token is set, but SSL is not enabled.")
-	} else {
-		logger.Info("SSL disabled.")
-	}
-	return server.Serve(lis)
-}
-
-func stop(logger *logp.Logger, server *http.Server) {
-	err := server.Shutdown(context.Background())
+	jaegerGRPCServer, err := jaeger.NewGRPCServer(logger, cfg, tracer, reporter)
 	if err != nil {
-		logger.Error(err.Error())
-		err = server.Close()
-		if err != nil {
-			logger.Error(err.Error())
-		}
+		return server{}, err
 	}
+	return server{logger, cfg, httpServer, jaegerGRPCServer}, nil
+}
+
+func (s server) run(listener net.Listener, tracerServer *tracerServer, pub *publish.Publisher) error {
+	s.logger.Infof("Starting apm-server [%s built %s]. Hit CTRL-C to stop it.", version.Commit(), version.BuildTime())
+	var g errgroup.Group
+
+	if s.jaegerGRPCServer != nil {
+		g.Go(func() error {
+			return s.jaegerGRPCServer.Start()
+		})
+	}
+	if s.httpServer != nil {
+		g.Go(func() error {
+			return s.httpServer.start(listener)
+		})
+
+		if s.isAvailable() {
+			go notifyListening(s.cfg, pub.Client().Publish)
+		}
+
+		if tracerServer != nil {
+			g.Go(func() error {
+				return tracerServer.serve(pub.Send)
+			})
+		}
+
+		if err := g.Wait(); err != http.ErrServerClosed {
+			return err
+		}
+
+		s.logger.Infof("Server stopped")
+	}
+
+	return nil
+}
+
+func (s server) stop(logger *logp.Logger) {
+	if s.jaegerGRPCServer != nil {
+		s.jaegerGRPCServer.Stop()
+	}
+	if s.httpServer != nil {
+		s.httpServer.stop()
+	}
+}
+
+func (s server) isAvailable() bool {
+	// following an example from https://golang.org/pkg/net/
+	// dial into tcp connection to ensure listener is ready, send get request and read response,
+	// in case tls is enabled, the server will respond with 400,
+	// as this only checks the server is up and reachable errors can be ignored
+	timeout := s.cfg.ShutdownTimeout
+	conn, err := net.DialTimeout("tcp", s.cfg.Host, timeout)
+	if err != nil {
+		return false
+	}
+	err = conn.SetReadDeadline(time.Now().Add(timeout))
+	if err != nil {
+		return false
+	}
+	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
+	_, err = bufio.NewReader(conn).ReadByte()
+	if err != nil {
+		return false
+	}
+
+	err = conn.Close()
+	return err == nil
 }

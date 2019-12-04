@@ -31,7 +31,7 @@ import (
 var (
 	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring", monitoring.PublishExpvar)
 	mockMonitoringNil      = map[request.ResultID]*monitoring.Int{}
-	mockMonitoring         = request.MonitoringMapForRegistry(mockMonitoringRegistry)
+	mockMonitoring         = request.DefaultMonitoringMapForRegistry(mockMonitoringRegistry)
 )
 
 func TestMonitoringHandler(t *testing.T) {
