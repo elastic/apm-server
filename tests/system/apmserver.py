@@ -230,6 +230,8 @@ class ElasticTest(ServerBaseTest):
 
         if self.es.indices.get_template(name="apm*", ignore=[400, 404]):
             self.es.indices.delete_template(name="apm*", ignore=[400, 404])
+            for idx in self.indices:
+                self.wait_until(lambda: not self.es.indices.exists_template(idx))
 
         # truncate, don't delete agent configuration index since it's only created when kibana starts up
         if self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] > 0:
