@@ -63,7 +63,7 @@ class PipelineRegisterTest(ElasticTest):
             ("apm", "Default enrichment for APM events"),
         ]
         loaded_msg = "Pipeline successfully registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
+        self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
 
         for pipeline_id, pipeline_desc in pipelines:
             pipeline = self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id),
@@ -149,7 +149,8 @@ class MissingPipelineTest(ElasticTest):
 
     @raises(TimeoutError)
     def test_pipeline_not_registered(self):
-        self.wait_until(lambda: self.log_contains("No pipeline callback registered"))
+        self.wait_until(lambda: self.log_contains("No pipeline callback registered"),
+                        name="pipeline callback not registered")
         self.wait_until_ilm_setup()
         # ensure events get stored properly nevertheless
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
@@ -171,11 +172,11 @@ class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
         es.ingest.put_pipeline(
             id="apm",
             body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: es.ingest.get_pipeline("apm"))
+        self.wait_until(lambda: es.ingest.get_pipeline("apm"), name="apm ingest pipeline created")
 
     def test_pipeline_not_overwritten(self):
         loaded_msg = "Pipeline already registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
+        self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -191,7 +192,7 @@ class PipelineEnableRegisterOverwriteTest(ElasticTest):
         es.ingest.put_pipeline(
             id="apm",
             body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: es.ingest.get_pipeline("apm"))
+        self.wait_until(lambda: es.ingest.get_pipeline("apm"), name="apm ingest pipeline created")
         super(PipelineEnableRegisterOverwriteTest, self).setUp()
 
     def test_pipeline_overwritten(self):

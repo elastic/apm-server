@@ -17,7 +17,7 @@ class Test(ElasticTest):
         """
         This test starts the beat and checks that the onboarding doc has been published to ES
         """
-        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding))
+        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding), name="onboarding index created")
         self.es.indices.refresh(index=self.index_onboarding)
 
         self.wait_until(

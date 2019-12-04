@@ -157,13 +157,14 @@ class ServerSetUpBaseTest(BaseTest):
         return {}
 
     def wait_until_started(self):
-        self.wait_until(lambda: self.log_contains("Starting apm-server"))
+        self.wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
 
     def wait_until_ilm_setup(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until(lambda: self.log_contains("Finished index management setup."), name="ILM setup")
 
     def wait_until_pipelines_registered(self):
-        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"))
+        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
+                                                  name="pipelines registered")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -238,20 +239,21 @@ class ElasticTest(ServerBaseTest):
         if self.es.indices.get("apm*"):
             self.es.indices.delete(index="apm*", ignore=[400, 404])
             for idx in self.indices:
-                self.wait_until(lambda: not self.es.indices.exists(idx))
+                self.wait_until(lambda: not self.es.indices.exists(idx), name="index {} to be deleted".format(idx))
         assert all(idx.startswith("apm") for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
 
         if self.es.indices.get_template(name="apm*", ignore=[400, 404]):
             self.es.indices.delete_template(name="apm*", ignore=[400, 404])
             for idx in self.indices:
-                self.wait_until(lambda: not self.es.indices.exists_template(idx))
+                self.wait_until(lambda: not self.es.indices.exists_template(idx),
+                                name="index template {} to be deleted".format(idx))
 
         # truncate, don't delete agent configuration index since it's only created when kibana starts up
         if self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] > 0:
             self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
                                     ignore_unavailable=True, wait_for_completion=True)
             self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0,
-                            max_timeout=30)
+                            max_timeout=30, name="acm index {} to be empty".format(self.index_acm))
 
         # Cleanup pipelines
         if self.es.ingest.get_pipeline(ignore=[400, 404]):
@@ -280,7 +282,8 @@ class ElasticTest(ServerBaseTest):
             lambda: (self.es.count(index=query_index, body={
                 "query": {"term": {"processor.name": endpoint}}}
             )['count'] == expected_events_count),
-            max_timeout=max_timeout
+            max_timeout=max_timeout,
+            name="{} documents to reach {}".format(endpoint, expected_events_count),
         )
 
     def check_backend_error_sourcemap(self, index, count=1):
@@ -372,7 +375,8 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
         self.wait_until(
             lambda: (self.es.count(index=idx, body={
                 "query": {"term": {"processor.name": 'sourcemap'}}}
-            )['count'] == expected_ct)
+            )['count'] == expected_ct),
+            name="{} sourcemaps to ingest".format(expected_ct),
         )
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
