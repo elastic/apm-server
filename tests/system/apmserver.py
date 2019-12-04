@@ -222,19 +222,25 @@ class ElasticTest(ServerBaseTest):
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
-        self.es.indices.delete(index="apm*", ignore=[400, 404])
-        for idx in self.indices:
-            self.wait_until(lambda: not self.es.indices.exists(idx))
+        if self.es.indices.get("apm*"):
+            self.es.indices.delete(index="apm*", ignore=[400, 404])
+            for idx in self.indices:
+                self.wait_until(lambda: not self.es.indices.exists(idx))
+        assert all(idx.startswith("apm") for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
 
-        self.es.indices.delete_template(name="apm*", ignore=[400, 404])
-        for idx in self.indices:
-            self.wait_until(lambda: not self.es.indices.exists_template(idx))
+        if self.es.indices.get_template(name="apm*", ignore=[400, 404]):
+            self.es.indices.delete_template(name="apm*", ignore=[400, 404])
+
         # truncate, don't delete agent configuration index since it's only created when kibana starts up
-        self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
-                                ignore_unavailable=True, wait_for_completion=True)
-        self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0, max_timeout=30)
+        if self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] > 0:
+            self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
+                                    ignore_unavailable=True, wait_for_completion=True)
+            self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0,
+                            max_timeout=30)
+
         # Cleanup pipelines
-        self.es.ingest.delete_pipeline(id="*")
+        if self.es.ingest.get_pipeline(ignore=[400, 404]):
+            self.es.ingest.delete_pipeline(id="*")
 
         super(ElasticTest, self).setUp()
 
