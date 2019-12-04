@@ -152,6 +152,12 @@ class ServerSetUpBaseTest(BaseTest):
     def wait_until_started(self):
         self.wait_until(lambda: self.log_contains("Starting apm-server"))
 
+    def wait_until_ilm_setup(self):
+        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+
+    def wait_until_pipelines_registered(self):
+        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"))
+
     def assert_no_logged_warnings(self, suppress=None):
         """
         Assert that the log file contains no ERR or WARN lines.

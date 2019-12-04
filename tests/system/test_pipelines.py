@@ -72,8 +72,8 @@ class PipelineRegisterTest(ElasticTest):
 
     def test_pipeline_applied(self):
         # setup
-        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"))
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until_pipelines_registered()
+        self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
 
@@ -101,7 +101,7 @@ class PipelineDisabledTest(ElasticTest):
     config_overrides = {"disable_pipeline": True}
 
     def test_pipeline_not_applied(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
         uaFound = False
@@ -120,10 +120,12 @@ class PipelineDisabledTest(ElasticTest):
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 class PipelinesConfigurationNoneTest(ElasticTest):
-    config_overrides = {"disable_pipelines": True}
+    config_overrides = {
+        "disable_pipelines": True,
+    }
 
     def test_pipeline_not_applied(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
 
@@ -148,7 +150,7 @@ class MissingPipelineTest(ElasticTest):
     @raises(TimeoutError)
     def test_pipeline_not_registered(self):
         self.wait_until(lambda: self.log_contains("No pipeline callback registered"))
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until_ilm_setup()
         # ensure events get stored properly nevertheless
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
@@ -193,8 +195,6 @@ class PipelineEnableRegisterOverwriteTest(ElasticTest):
         self.wait_until(lambda: es.ingest.get_pipeline("apm"))
 
     def test_pipeline_overwritten(self):
-        loaded_msg = "Registered Ingest Pipelines successfully"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
         pipeline_id = "apm"
         self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == "Default enrichment for APM events",
                         name="fetching pipeline {}".format(pipeline_id))
