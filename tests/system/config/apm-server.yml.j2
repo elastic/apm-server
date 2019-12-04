@@ -66,10 +66,10 @@ apm-server:
   expvar.url: {{ expvar_url }}
   {% endif %}
 
-  {% if register_pipeline_enabled %}
+  {% if register_pipeline_enabled is not none %}
   register.ingest.pipeline.enabled: {{ register_pipeline_enabled }}
   {% endif %}
-  {% if register_pipeline_overwrite %}
+  {% if register_pipeline_overwrite is not none %}
   register.ingest.pipeline.overwrite: {{ register_pipeline_overwrite  }}
   {% endif %}
 
