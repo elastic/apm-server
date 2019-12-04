@@ -97,7 +97,6 @@ func (h *httpServer) start(lis net.Listener) error {
 	}
 	h.logger.Info("SSL disabled.")
 	return h.Serve(lis)
-
 }
 
 func (h *httpServer) stop() {

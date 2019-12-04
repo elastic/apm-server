@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJeager_default(t *testing.T) {
+func TestJaeger_default(t *testing.T) {
 	expected := JaegerConfig{
 		Enabled: false,
 		GRPC: GRPCConfig{
