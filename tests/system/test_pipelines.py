@@ -63,7 +63,7 @@ class PipelineRegisterTest(ElasticTest):
             ("apm", "Default enrichment for APM events"),
         ]
         loaded_msg = "Pipeline successfully registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
+        self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
 
         for pipeline_id, pipeline_desc in pipelines:
             pipeline = self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id),
@@ -170,11 +170,11 @@ class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
         es.ingest.put_pipeline(
             id="apm",
             body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: es.ingest.get_pipeline("apm"))
+        self.wait_until(lambda: es.ingest.get_pipeline("apm"), name="apm ingest pipeline created")
 
     def test_pipeline_not_overwritten(self):
         loaded_msg = "Pipeline already registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
+        self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
 
 
 @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
@@ -191,11 +191,12 @@ class PipelineEnableRegisterOverwriteTest(ElasticTest):
         es.ingest.put_pipeline(
             id="apm",
             body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: es.ingest.get_pipeline("apm"))
+        self.wait_until(lambda: es.ingest.get_pipeline("apm"), name="apm ingest pipeline created")
 
     def test_pipeline_overwritten(self):
         loaded_msg = "Registered Ingest Pipelines successfully"
         self.wait_until(lambda: self.log_contains(loaded_msg))
         pipeline_id = "apm"
-        self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == "Default enrichment for APM events",
+        desc = "Default enrichment for APM events"
+        self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == desc,
                         name="fetching pipeline {}".format(pipeline_id))

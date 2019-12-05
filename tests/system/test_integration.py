@@ -17,7 +17,7 @@ class Test(ElasticTest):
         """
         This test starts the beat and checks that the onboarding doc has been published to ES
         """
-        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding))
+        self.wait_until(lambda: self.es.indices.exists(self.index_onboarding), name="onboarding index created")
         self.es.indices.refresh(index=self.index_onboarding)
 
         self.wait_until(
@@ -643,7 +643,7 @@ class ProfileIntegrationTest(ElasticTest):
             self.es.indices.refresh(index=self.index_profile)
             response = self.es.count(index=self.index_profile, body={"query": {"term": {"processor.name": "profile"}}})
             return response['count'] != 0
-        self.wait_until(cond, max_timeout=10)
+        self.wait_until(cond, max_timeout=10, name="waiting for profile")
 
 
 class CPUProfileIntegrationTest(ProfileIntegrationTest):

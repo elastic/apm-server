@@ -226,7 +226,8 @@ class ElasticTest(ServerBaseTest):
             lambda: (self.es.count(index=query_index, body={
                 "query": {"term": {"processor.name": endpoint}}}
             )['count'] == expected_events_count),
-            max_timeout=max_timeout
+            max_timeout=max_timeout,
+            name="{} documents to reach {}".format(endpoint, expected_events_count),
         )
 
     def check_backend_error_sourcemap(self, index, count=1):
@@ -318,7 +319,8 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
         self.wait_until(
             lambda: (self.es.count(index=idx, body={
                 "query": {"term": {"processor.name": 'sourcemap'}}}
-            )['count'] == expected_ct)
+            )['count'] == expected_ct),
+            name="{} sourcemaps to ingest".format(expected_ct),
         )
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):
