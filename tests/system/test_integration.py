@@ -705,7 +705,7 @@ class HeapProfileIntegrationTest(ProfileIntegrationTest):
 
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
-        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"), max_timeout=10)
+        self.wait_until_pipelines_registered()
         self.load_docs_with_template(self.get_payload_path("experimental.ndjson"),
                                      self.intake_url, 'transaction', 2)
         self.wait_until(lambda: self.log_contains("events have been published"), max_timeout=10)

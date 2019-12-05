@@ -276,9 +276,7 @@ class TestRunIndexManagementDefault(ElasticTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template_loaded(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."),
-                        max_timeout=5)
-
+        self.wait_until_ilm_setup()
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy()
@@ -299,9 +297,7 @@ class TestRunIndexManagementWithoutILM(ElasticTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template_and_ilm_loaded(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."),
-                        max_timeout=5)
-
+        self.wait_until_ilm_setup()
         self.idxmgmt.assert_event_template(with_ilm=False)
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
@@ -319,9 +315,7 @@ class TestILMConfiguredPolicies(ElasticTest):
 
     @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_ilm_loaded(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."),
-                        max_timeout=5)
-
+        self.wait_until_ilm_setup()
         self.idxmgmt.assert_event_template(with_ilm=True)
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy(loaded=True)

@@ -109,7 +109,14 @@ class ServerSetUpBaseTest(BaseTest):
         return {}
 
     def wait_until_started(self):
-        self.wait_until(lambda: self.log_contains("Starting apm-server"))
+        self.wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
+
+    def wait_until_ilm_setup(self):
+        self.wait_until(lambda: self.log_contains("Finished index management setup."), name="ILM setup")
+
+    def wait_until_pipelines_registered(self):
+        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
+                                                  name="pipelines registered")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
