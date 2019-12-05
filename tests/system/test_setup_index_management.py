@@ -265,7 +265,7 @@ class TestCommandSetupIndexManagement(BaseTest):
 
 
 class TestRunIndexManagementDefault(ElasticTest):
-
+    register_pipeline_disabled = True
     config_overrides = {"queue_flush": 2048}
 
     def setUp(self):
@@ -283,7 +283,7 @@ class TestRunIndexManagementDefault(ElasticTest):
 
 
 class TestRunIndexManagementWithoutILM(ElasticTest):
-
+    register_pipeline_disabled = True
     config_overrides = {"queue_flush": 2048}
 
     def setUp(self):

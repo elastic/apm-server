@@ -185,17 +185,15 @@ class PipelineEnableRegisterOverwriteTest(ElasticTest):
     }
 
     def setUp(self):
-        super(PipelineEnableRegisterOverwriteTest, self).setUp()
         es = Elasticsearch([self.get_elasticsearch_url()])
         # Write empty default pipeline
         es.ingest.put_pipeline(
             id="apm",
             body={"description": "empty apm test pipeline", "processors": []})
         self.wait_until(lambda: es.ingest.get_pipeline("apm"), name="apm ingest pipeline created")
+        super(PipelineEnableRegisterOverwriteTest, self).setUp()
 
     def test_pipeline_overwritten(self):
-        loaded_msg = "Registered Ingest Pipelines successfully"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
         pipeline_id = "apm"
         desc = "Default enrichment for APM events"
         self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == desc,

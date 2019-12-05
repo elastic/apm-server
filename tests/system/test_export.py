@@ -5,7 +5,11 @@ import shutil
 from apmserver import SubCommandTest
 
 
-class ExportConfigDefaultTest(SubCommandTest):
+class ExportCommandTest(SubCommandTest):
+    register_pipeline_disabled = True
+
+
+class ExportConfigDefaultTest(ExportCommandTest):
     """
     Test export config subcommand.
     """
@@ -44,7 +48,7 @@ class ExportConfigDefaultTest(SubCommandTest):
             }, config["setup"])
 
 
-class ExportConfigTest(SubCommandTest):
+class ExportConfigTest(ExportCommandTest):
     """
     Test export config subcommand.
     """
@@ -86,7 +90,7 @@ class ExportConfigTest(SubCommandTest):
             }, config["setup"])
 
 
-class TestExportTemplate(SubCommandTest):
+class TestExportTemplate(ExportCommandTest):
     """
     Test export template
     """
@@ -118,7 +122,7 @@ class TestExportTemplate(SubCommandTest):
         assert template['order'] == 1
 
 
-class TestExportILMPolicy(SubCommandTest):
+class TestExportILMPolicy(ExportCommandTest):
     """
     Test export ilm-policy
     """
