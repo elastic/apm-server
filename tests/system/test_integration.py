@@ -1,18 +1,19 @@
+from datetime import datetime, timedelta
 import json
 import os
 import time
-import unittest
 
-from apmserver import ElasticTest, ExpvarBaseTest
-from apmserver import ClientSideElasticTest
+import requests
+
+from apmserver import integration_test
+from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest
 from apmserver import OverrideIndicesTest, OverrideIndicesFailureTest
-from beat.beat import INTEGRATION_TESTS
 from sets import Set
 
 
+@integration_test
 class Test(ElasticTest):
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_onboarding_doc(self):
         """
         This test starts the beat and checks that the onboarding doc has been published to ES
@@ -27,7 +28,6 @@ class Test(ElasticTest):
         # Makes sure no error or warnings were logged
         self.assert_no_logged_warnings()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template(self):
         """
         This test starts the beat and checks that the template has been loaded to ES
@@ -40,7 +40,6 @@ class Test(ElasticTest):
         total_fields_limit = t['settings']['index']['mapping']['total_fields']['limit']
         assert total_fields_limit == "2000", total_fields_limit
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_tags_type(self):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
                                      self.intake_url, 'transaction', 9)
@@ -57,7 +56,6 @@ class Test(ElasticTest):
                 else:
                     assert mtype == "keyword", name + " mapped as " + mtype + ", not keyword"
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_mark_type(self):
         self.load_docs_with_template(self.get_payload_path("transactions_spans.ndjson"),
                                      self.intake_url, 'transaction', 9)
@@ -68,7 +66,6 @@ class Test(ElasticTest):
                 mtype = mapping["type"]
                 assert mtype == "scaled_float", name + " mapped as " + mtype + ", not scaled_float"
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_transaction(self):
         """
         This test starts the beat with a loaded template and sends transaction data to elasticsearch.
@@ -93,7 +90,6 @@ class Test(ElasticTest):
             approved = json.load(f)
         self.check_docs(approved, rs['hits']['hits'], 'span')
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_load_docs_with_template_and_add_error(self):
         """
         This test starts the beat with a loaded template and sends error data to elasticsearch.
@@ -139,8 +135,8 @@ class Test(ElasticTest):
         return json.dumps(data, indent=4, separators=(',', ': '))
 
 
+@integration_test
 class EnrichEventIntegrationTest(ClientSideElasticTest):
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         # for backend events library_frame information should not be changed,
         # as no regex pattern is defined.
@@ -150,7 +146,6 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      4)
         self.check_library_frames({"true": 1, "false": 1, "empty": 2}, self.index_error)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
@@ -158,7 +153,6 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      1)
         self.check_library_frames({"true": 5, "false": 1, "empty": 0}, self.index_error)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_transaction(self):
         # for backend events library_frame information should not be changed,
         # as no regex pattern is defined.
@@ -168,7 +162,6 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      9)
         self.check_library_frames({"true": 1, "false": 0, "empty": 1}, self.index_span)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction(self):
         self.load_docs_with_template(self.get_transaction_payload_path(),
                                      self.intake_url,
@@ -176,7 +169,6 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                                      2)
         self.check_library_frames({"true": 1, "false": 1, "empty": 0}, self.index_span)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_enrich_backend_event(self):
         self.load_docs_with_template(self.get_backend_transaction_payload_path(),
                                      self.backend_intake_url, 'transaction', 9)
@@ -185,7 +177,6 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
 
         assert "ip" in rs['hits']['hits'][0]["_source"]["host"], rs['hits']
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_enrich_rum_event(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
@@ -200,7 +191,6 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
             assert "original" in hit["_source"]["user_agent"], rs['hits']
             assert "ip" in hit["_source"]["client"], rs['hits']
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_grouping_key_for_error(self):
         # upload the same error, once via rum, once via backend endpoint
         # check they don't have the same grouping key, as the
@@ -248,10 +238,10 @@ class EnrichEventIntegrationTest(ClientSideElasticTest):
                 lf["empty"] += 1
 
 
+@integration_test
 class ILMDisabledIntegrationTest(ElasticTest):
     config_overrides = {"ilm_enabled": "false"}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_override_indices_config(self):
         # load error and transaction document to ES
         self.load_docs_with_template(self.get_error_payload_path(),
@@ -261,10 +251,10 @@ class ILMDisabledIntegrationTest(ElasticTest):
                                      query_index="{}-2017.05.09".format(self.index_error))
 
 
+@integration_test
 class OverrideIndicesIntegrationTest(OverrideIndicesTest):
     # default ILM=auto disables ILM when custom indices given
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_override_indices_config(self):
         # load error and transaction document to ES
         self.load_docs_with_template(self.get_error_payload_path(),
@@ -282,10 +272,10 @@ class OverrideIndicesIntegrationTest(OverrideIndicesTest):
         assert 4+2+1 == self.es.count(index=self.index_name)['count']
 
 
+@integration_test
 class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
     config_overrides = {"ilm_enabled": "false"}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_override_indices_config(self):
         # load error and transaction document to ES
         self.load_docs_with_template(self.get_error_payload_path(),
@@ -296,10 +286,10 @@ class OverrideIndicesILMFalseIntegrationTest(OverrideIndicesTest):
         assert 4+1 == self.es.count(index=self.index_name)['count']
 
 
+@integration_test
 class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
     config_overrides = {"ilm_enabled": "true"}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_override_indices_config(self):
         # load error and transaction document to ES
         self.load_docs_with_template(self.get_error_payload_path(),
@@ -310,17 +300,17 @@ class OverrideIndicesILMTrueIntegrationTest(OverrideIndicesTest):
         assert 4 == self.es.count(index=self.ilm_index(self.index_error))['count']
 
 
+@integration_test
 class OverrideIndicesFailureIntegrationTest(OverrideIndicesFailureTest):
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template_setup_error(self):
         loaded_msg = "Exiting: setup.template.name and setup.template.pattern have to be set"
         self.wait_until(lambda: self.log_contains(loaded_msg),
                         max_timeout=5)
 
 
+@integration_test
 class SourcemappingIntegrationTest(ClientSideElasticTest):
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_error(self):
         # ensure source mapping is not applied to backend events
         # load event for which a sourcemap would be applied when sent to rum endpoint,
@@ -339,7 +329,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_backend_error_sourcemap(self.index_error)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_duplicated_sourcemap_warning(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
 
@@ -359,7 +348,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings(
             ["WARN.*Overriding sourcemap", "WARN.*2 sourcemaps found for service"])
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error(self):
         # use an uncleaned path to test that path is cleaned in upload
         path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
@@ -374,7 +362,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_rum_error_sourcemap(True)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_backend_span(self):
         # ensure source mapping is not applied to backend events
         # load event for which a sourcemap would be applied when sent to rum endpoint,
@@ -394,7 +381,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_backend_span_sourcemap()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(file_name='bundle.js.map',
@@ -410,7 +396,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_rum_transaction_sourcemap(True)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction_different_subdomain(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(file_name='bundle.js.map',
@@ -426,7 +411,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_rum_transaction_sourcemap(True)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_sourcemap(self):
         self.load_docs_with_template(self.get_error_payload_path(),
                                      self.intake_url,
@@ -435,7 +419,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.check_rum_error_sourcemap(
             False, expected_err="No Sourcemap available")
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_no_matching_sourcemap(self):
         r = self.upload_sourcemap('bundle_no_mapping.js.map')
         self.assert_no_logged_warnings()
@@ -443,7 +426,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.wait_for_sourcemaps()
         self.test_no_sourcemap()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_fetch_latest_of_multiple_sourcemaps(self):
         # upload sourcemap file that finds no matchings
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
@@ -476,7 +458,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
                                      1)
         self.check_rum_error_sourcemap(True, count=1)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_mapping_cache_usage(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(
@@ -506,7 +487,6 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.assert_no_logged_warnings()
         self.check_rum_error_sourcemap(True)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_error_changed_index(self):
         # use an uncleaned path to test that path is cleaned in upload
         path = 'http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map'
@@ -523,10 +503,10 @@ class SourcemappingIntegrationTest(ClientSideElasticTest):
         self.check_rum_error_sourcemap(True)
 
 
+@integration_test
 class SourcemappingCacheIntegrationTest(ClientSideElasticTest):
     config_overrides = {"smap_cache_expiration": "1"}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_sourcemap_cache_expiration(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(
@@ -557,12 +537,12 @@ class SourcemappingCacheIntegrationTest(ClientSideElasticTest):
         self.check_rum_error_sourcemap(False, expected_err="No Sourcemap available")
 
 
+@integration_test
 class SourcemappingDisabledIntegrationTest(ClientSideElasticTest):
     config_overrides = {
         "rum_sourcemapping_disabled": True,
     }
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_transaction(self):
         path = 'http://localhost:8000/test/e2e/general-usecase/bundle.js.map'
         r = self.upload_sourcemap(file_name='bundle.js.map',
@@ -586,39 +566,39 @@ class SourcemappingDisabledIntegrationTest(ClientSideElasticTest):
         assert frames_checked > 0, "no frames checked"
 
 
+@integration_test
 class ExpvarDisabledIntegrationTest(ExpvarBaseTest):
     config_overrides = {"expvar_enabled": "false"}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_expvar_exists(self):
         """expvar disabled, should 404"""
         r = self.get_debug_vars()
         assert r.status_code == 404, r.status_code
 
 
+@integration_test
 class ExpvarEnabledIntegrationTest(ExpvarBaseTest):
     config_overrides = {"expvar_enabled": "true"}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_expvar_exists(self):
         """expvar enabled, should 200"""
         r = self.get_debug_vars()
         assert r.status_code == 200, r.status_code
 
 
+@integration_test
 class ExpvarCustomUrlIntegrationTest(ExpvarBaseTest):
     config_overrides = {"expvar_enabled": "true", "expvar_url": "/foo"}
     expvar_url = ExpvarBaseTest.expvar_url.replace("/debug/vars", "/foo")
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_expvar_exists(self):
         """expvar enabled, should 200"""
         r = self.get_debug_vars()
         assert r.status_code == 200, r.status_code
 
 
+@integration_test
 class MetricsIntegrationTest(ElasticTest):
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_metric_doc(self):
         self.load_docs_with_template(self.get_metricset_payload_payload_path(), self.intake_url, 'metric', 2)
         mappings = self.es.indices.get_field_mapping(
@@ -629,6 +609,7 @@ class MetricsIntegrationTest(ElasticTest):
         assert expected_type == actual_type, "want: {}, got: {}".format(expected_type, actual_type)
 
 
+@integration_test
 class ProfileIntegrationTest(ElasticTest):
     def metric_fields(self):
         metric_fields = set()
@@ -643,9 +624,10 @@ class ProfileIntegrationTest(ElasticTest):
             self.es.indices.refresh(index=self.index_profile)
             response = self.es.count(index=self.index_profile, body={"query": {"term": {"processor.name": "profile"}}})
             return response['count'] != 0
-        self.wait_until(cond, max_timeout=10)
+        self.wait_until(cond, max_timeout=10, name="waiting for profile")
 
 
+@integration_test
 class CPUProfileIntegrationTest(ProfileIntegrationTest):
     config_overrides = {
         "instrumentation_enabled": "true",
@@ -654,11 +636,8 @@ class CPUProfileIntegrationTest(ProfileIntegrationTest):
         "profiling_cpu_duration": "5s",
     }
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_self_profiling(self):
         """CPU profiling enabled"""
-
-        import requests
 
         def create_load():
             payload_path = self.get_payload_path("transactions_spans.ndjson")
@@ -667,7 +646,7 @@ class CPUProfileIntegrationTest(ProfileIntegrationTest):
 
         # Wait for profiling to begin, and then start sending data
         # to the server to create some CPU load.
-        from datetime import datetime, timedelta
+
         time.sleep(1)
         start = datetime.now()
         while datetime.now()-start < timedelta(seconds=5):
@@ -679,6 +658,7 @@ class CPUProfileIntegrationTest(ProfileIntegrationTest):
         self.assertEqual(metric_fields, expected_metric_fields)
 
 
+@integration_test
 class HeapProfileIntegrationTest(ProfileIntegrationTest):
     config_overrides = {
         "instrumentation_enabled": "true",
@@ -686,7 +666,6 @@ class HeapProfileIntegrationTest(ProfileIntegrationTest):
         "profiling_heap_interval": "1s",
     }
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_self_profiling(self):
         """Heap profiling enabled"""
 
@@ -703,6 +682,7 @@ class HeapProfileIntegrationTest(ProfileIntegrationTest):
         self.assertEqual(metric_fields, expected_metric_fields)
 
 
+@integration_test
 class ExperimentalBaseTest(ElasticTest):
     def check_experimental_key_indexed(self, experimental):
         self.wait_until_pipelines_registered()
@@ -723,17 +703,17 @@ class ExperimentalBaseTest(ElasticTest):
             assert rs['hits']['total']['value'] == ct
 
 
+@integration_test
 class ProductionModeTest(ExperimentalBaseTest):
     config_overrides = {"mode": "production", "queue_flush": 2048}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_experimental_key_indexed(self):
         self.check_experimental_key_indexed(False)
 
 
+@integration_test
 class ExperimentalModeTest(ExperimentalBaseTest):
     config_overrides = {"mode": "experimental", "queue_flush": 2048}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_experimental_key_indexed(self):
         self.check_experimental_key_indexed(True)

@@ -5,8 +5,7 @@ import uuid
 
 import requests
 
-from apmserver import ElasticTest
-from beat.beat import INTEGRATION_TESTS
+from apmserver import ElasticTest, integration_test
 
 
 class AgentConfigurationTest(ElasticTest):
@@ -57,7 +56,7 @@ class AgentConfigurationTest(ElasticTest):
         assert config.json()["result"] == "updated"
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class AgentConfigurationIntegrationTest(AgentConfigurationTest):
     def test_config_requests(self):
         service_name = uuid.uuid4().hex
@@ -199,7 +198,6 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         for want, got in zip(expect_log, config_request_logs):
             self.assertDictContainsSubset(want, got)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_rum_disabled(self):
         r = requests.get(self.rum_agent_config_url,
                          params={
@@ -211,7 +209,7 @@ class AgentConfigurationIntegrationTest(AgentConfigurationTest):
         assert "RUM endpoint is disabled" in r.json().get('error'), r.json()
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
     config_overrides = {
         "logging_json": "true",
@@ -250,7 +248,7 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
         }, config_request_logs[1])
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
     config_overrides = {
         "logging_json": "true",
@@ -271,7 +269,7 @@ class AgentConfigurationKibanaDisabledIntegrationTest(ElasticTest):
         }, config_request_logs[0])
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class RumAgentConfigurationIntegrationTest(AgentConfigurationTest):
     config_overrides = {
         "enable_rum": "true",

@@ -3,6 +3,7 @@ import json
 import os
 import re
 import shutil
+import unittest
 from time import gmtime, strftime
 from urlparse import urlparse
 
@@ -14,8 +15,9 @@ import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
-from beat.beat import TestCase, TimeoutError
+from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 
+integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 
 class BaseTest(TestCase):
     maxDiff = None
@@ -186,11 +188,13 @@ class ServerSetUpBaseTest(BaseTest):
             log = re.sub(s, "", log)
         self.assertNotRegexpMatches(log, "ERR|WARN")
 
-    def request_intake(self, data="", url="", headers={'content-type': 'application/x-ndjson'}):
-        if url == "":
+    def request_intake(self, data=None, url=None, headers=None):
+        if not url:
             url = self.intake_url
-        if data == "":
+        if data is None:
             data = self.get_event_payload()
+        if headers is None:
+            headers = {'content-type': 'application/x-ndjson'}
         return requests.post(url, data=data, headers=headers)
 
 
