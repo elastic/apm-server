@@ -16,3 +16,4 @@ https://github.com/elastic/apm-server/compare/7.5\...master[View commits]
 - Only use extracted hostname when valid IP for enriching events {pull}2935[2935].
 - Added experimental support for continuous profiling of the server {pull}2839[2839]
 - Upgrade Go to 1.13.4 {pull}2984[2984].
+- Build UBI based images also {pull}2994[2994].
