@@ -149,7 +149,8 @@ class ServerSetUpBaseTest(BaseTest):
         # try make sure APM Server is fully up
         cfg = self.config()
         # pipeline registration is enabled by default and only happens if the output is elasticsearch
-        if cfg.get("elasticsearch_host") and \
+        if not getattr(self, "register_pipeline_disabled", False) and \
+            cfg.get("elasticsearch_host") and \
             cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
             self.wait_until_pipelines_registered()
 
