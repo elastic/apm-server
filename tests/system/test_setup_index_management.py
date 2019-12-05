@@ -296,6 +296,7 @@ class TestILMConfiguredPolicies(ElasticTest):
         self.idxmgmt = IdxMgmt(self.es, self.index_name)
         self.idxmgmt.delete()
 
+    @unittest.skip("flaky")
     def test_ilm_loaded(self):
         self.wait_until_ilm_setup()
         self.idxmgmt.assert_event_template(with_ilm=True)
