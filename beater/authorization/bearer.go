@@ -19,6 +19,8 @@ package authorization
 
 import (
 	"crypto/subtle"
+
+	"github.com/elastic/apm-server/elasticsearch"
 )
 
 type bearerBuilder struct {
@@ -39,7 +41,7 @@ func (b bearerBuilder) forToken(token string) *bearerAuth {
 		configured: true}
 }
 
-func (b *bearerAuth) AuthorizedFor(_ string) (bool, error) {
+func (b *bearerAuth) AuthorizedFor(_ elasticsearch.Resource) (bool, error) {
 	return b.authorized, nil
 }
 

@@ -37,7 +37,7 @@ type Handler Builder
 
 // Authorization interface to be implemented by different auth types
 type Authorization interface {
-	AuthorizedFor(string) (bool, error)
+	AuthorizedFor(_ elasticsearch.Resource) (bool, error)
 	IsAuthorizationConfigured() bool
 }
 
@@ -46,10 +46,15 @@ const (
 )
 
 // NewBuilder creates authorization builder based off of the given information
-func NewBuilder(cfg *config.Config) (*Builder, error) {
+// if apm-server.api_key is enabled, authorization is granted/denied solely
+// based on the request Authorization header
+func NewBuilder(cfg config.Config) (*Builder, error) {
 	b := Builder{}
 	b.fallback = AllowAuth{}
 	if cfg.APIKeyConfig.IsEnabled() {
+		// do not use username+password for API Key requests
+		cfg.APIKeyConfig.ESConfig.Username = ""
+		cfg.APIKeyConfig.ESConfig.Password = ""
 		client, err := elasticsearch.NewClient(cfg.APIKeyConfig.ESConfig)
 		if err != nil {
 			return nil, err
@@ -57,7 +62,7 @@ func NewBuilder(cfg *config.Config) (*Builder, error) {
 
 		size := cfg.APIKeyConfig.LimitMin * cacheTimeoutMinute
 		cache := newPrivilegesCache(cacheTimeoutMinute*time.Minute, size)
-		b.apikey = newApikeyBuilder(client, cache, []string{})
+		b.apikey = newApikeyBuilder(client, cache, []elasticsearch.Privilege{})
 		b.fallback = DenyAuth{}
 	}
 	if cfg.SecretToken != "" {
@@ -69,12 +74,12 @@ func NewBuilder(cfg *config.Config) (*Builder, error) {
 }
 
 // ForPrivilege creates an authorization Handler checking for this privilege
-func (b *Builder) ForPrivilege(privilege string) *Handler {
-	return b.ForAnyOfPrivileges([]string{privilege})
+func (b *Builder) ForPrivilege(privilege elasticsearch.Privilege) *Handler {
+	return b.ForAnyOfPrivileges(privilege)
 }
 
 // ForAnyOfPrivileges creates an authorization Handler checking for any of the provided privileges
-func (b *Builder) ForAnyOfPrivileges(privileges []string) *Handler {
+func (b *Builder) ForAnyOfPrivileges(privileges ...elasticsearch.Privilege) *Handler {
 	handler := Handler{bearer: b.bearer, fallback: b.fallback}
 	if b.apikey != nil {
 		handler.apikey = newApikeyBuilder(b.apikey.esClient, b.apikey.cache, privileges)

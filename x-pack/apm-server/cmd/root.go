@@ -14,5 +14,5 @@ import (
 var RootCmd = cmd.RootCmd
 
 func init() {
-	xpackcmd.AddXPack(RootCmd, cmd.Name)
+	xpackcmd.AddXPack(RootCmd.BeatsRootCmd, cmd.Name)
 }
