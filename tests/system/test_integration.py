@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta
 import json
 import os
 import time
+
+import requests
 
 from apmserver import integration_test
 from apmserver import ClientSideElasticTest, ElasticTest, ExpvarBaseTest
@@ -636,8 +639,6 @@ class CPUProfileIntegrationTest(ProfileIntegrationTest):
     def test_self_profiling(self):
         """CPU profiling enabled"""
 
-        import requests
-
         def create_load():
             payload_path = self.get_payload_path("transactions_spans.ndjson")
             with open(payload_path) as f:
@@ -645,7 +646,7 @@ class CPUProfileIntegrationTest(ProfileIntegrationTest):
 
         # Wait for profiling to begin, and then start sending data
         # to the server to create some CPU load.
-        from datetime import datetime, timedelta
+
         time.sleep(1)
         start = datetime.now()
         while datetime.now()-start < timedelta(seconds=5):
