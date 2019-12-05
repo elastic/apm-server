@@ -20,7 +20,7 @@ class SetupPipelinesDefaultTest(SubCommandTest):
 
     def setUp(self):
         # TODO (gr): consolidate with ElasticTest
-        self.es = Elasticsearch([self.get_elasticsearch_url()], timeout=30)
+        self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.es.ingest.delete_pipeline(id="*")
         super(SetupPipelinesDefaultTest, self).setUp()
 
@@ -119,9 +119,7 @@ class PipelineDisabledTest(ElasticTest):
 
 @integration_test
 class PipelinesConfigurationNoneTest(ElasticTest):
-    config_overrides = {
-        "disable_pipelines": True,
-    }
+    config_overrides = {"disable_pipelines": True}
 
     def test_pipeline_not_applied(self):
         self.wait_until_ilm_setup()

@@ -237,7 +237,7 @@ class ElasticTest(ServerBaseTest):
         return result
 
     def setUp(self):
-        self.es = Elasticsearch([self.get_elasticsearch_url()], timeout=30)
+        self.es = Elasticsearch([self.get_elasticsearch_url()])
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
