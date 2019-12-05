@@ -60,16 +60,10 @@ class Test(ServerBaseTest):
 
     def test_gzip(self):
         events = self.get_event_payload()
-        try:
-            out = StringIO()
-        except:
-            out = io.BytesIO()
+        out = StringIO()
 
         with gzip.GzipFile(fileobj=out, mode="w") as f:
-            try:
-                f.write(events)
-            except:
-                f.write(bytes(events, 'utf-8'))
+            f.write(events)
 
         r = requests.post(self.intake_url, data=out.getvalue(),
                           headers={'Content-Encoding': 'gzip', 'Content-Type': 'application/x-ndjson'})
@@ -77,10 +71,7 @@ class Test(ServerBaseTest):
 
     def test_deflate(self):
         events = self.get_event_payload()
-        try:
-            compressed_data = zlib.compress(events)
-        except:
-            compressed_data = zlib.compress(bytes(events, 'utf-8'))
+        compressed_data = zlib.compress(events)
 
         r = requests.post(self.intake_url, data=compressed_data,
                           headers={'Content-Encoding': 'deflate', 'Content-Type': 'application/x-ndjson'})
