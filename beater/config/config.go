@@ -68,6 +68,8 @@ type Config struct {
 	Pipeline string
 }
 
+type RawConfig Config
+
 // ExpvarConfig holds config information about exposing expvar
 type ExpvarConfig struct {
 	Enabled *bool  `config:"enabled"`
@@ -84,9 +86,8 @@ type Cache struct {
 	Expiration time.Duration `config:"expiration"`
 }
 
-// NewConfig creates a Config struct based on the default config and the given input params
-func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
-	logger := logp.NewLogger(logs.Config)
+// NewRawConfig unpacks the ucfg data
+func NewRawConfig(version string, ucfg *common.Config) (*RawConfig, error) {
 	c := DefaultConfig(version)
 
 	if ucfg.HasField("ssl") {
@@ -104,6 +105,16 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
+	return c, nil
+}
+
+// Setup contains ad-hoc logic for apm-server configuration
+func Setup(rawConfig *RawConfig, outputESCfg *common.Config) (*Config, error) {
+	logger := logp.NewLogger(logs.Config)
+	if rawConfig == nil {
+		return nil, nil
+	}
+	c := Config(*rawConfig)
 
 	if float64(int(c.AgentConfig.Cache.Expiration.Seconds())) != c.AgentConfig.Cache.Expiration.Seconds() {
 		return nil, errors.New(msgInvalidConfigAgentCfg)
@@ -125,7 +136,15 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
-	return c, nil
+	return &c, nil
+}
+
+func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) (*Config, error) {
+	raw, err := NewRawConfig(version, ucfg)
+	if err != nil {
+		return nil, err
+	}
+	return Setup(raw, outputESCfg)
 }
 
 // IsEnabled indicates whether expvar is enabled or not
@@ -134,8 +153,8 @@ func (c *ExpvarConfig) IsEnabled() bool {
 }
 
 // DefaultConfig returns a config with default settings for `apm-server` config options.
-func DefaultConfig(beatVersion string) *Config {
-	return &Config{
+func DefaultConfig(beatVersion string) *RawConfig {
+	return &RawConfig{
 		Host:            net.JoinHostPort("localhost", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
 		MaxConnections:  0,               // unlimited

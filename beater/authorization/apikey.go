@@ -18,43 +18,39 @@
 package authorization
 
 import (
-	"encoding/json"
-	"net/http"
-	"strings"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/beater/headers"
-	"github.com/elastic/apm-server/elasticsearch"
+	es "github.com/elastic/apm-server/elasticsearch"
 )
 
-const (
-	//DefaultResource for apm backend enabled API Keys
-	DefaultResource = "-"
+const cleanupInterval = 60 * time.Second
 
-	application = "apm"
-	sep         = `","`
-
-	cleanupInterval = 60 * time.Second
+var (
+	// Constant mapped to the "application" field for the Elasticsearch security API
+	// This identifies privileges and keys created for APM
+	Application = es.AppName("apm")
+	// Only valid for first authorization of a request.
+	// The API Key needs to grant privileges to additional resources for successful processing of requests.
+	ResourceInternal = es.Resource("-")
+	ResourceAny      = es.Resource("*")
 )
 
 type apikeyBuilder struct {
-	esClient        elasticsearch.Client
+	esClient        es.Client
 	cache           *privilegesCache
-	anyOfPrivileges []string
+	anyOfPrivileges []es.Privilege
 }
 
 type apikeyAuth struct {
 	*apikeyBuilder
+	// key is base64(id:apiKey)
 	key string
 }
 
-type hasPrivilegesResponse struct {
-	Applications map[string]map[string]privileges `json:"application"`
-}
-
-func newApikeyBuilder(client elasticsearch.Client, cache *privilegesCache, anyOfPrivileges []string) *apikeyBuilder {
+func newApikeyBuilder(client es.Client, cache *privilegesCache, anyOfPrivileges []es.Privilege) *apikeyBuilder {
 	return &apikeyBuilder{client, cache, anyOfPrivileges}
 }
 
@@ -69,12 +65,8 @@ func (a *apikeyAuth) IsAuthorizationConfigured() bool {
 
 // AuthorizedFor checks if the configured api key is authorized.
 // An api key is considered to be authorized when the api key has the configured privileges for the requested resource.
-// Privileges are fetched from Elasticsearch and then cached in a global cache.
-func (a *apikeyAuth) AuthorizedFor(resource string) (bool, error) {
-	if resource == "" {
-		resource = DefaultResource
-	}
-
+// PrivilegeGroup are fetched from Elasticsearch and then cached in a global cache.
+func (a *apikeyAuth) AuthorizedFor(resource es.Resource) (bool, error) {
 	//fetch from cache
 	if allowed, found := a.fromCache(resource); found {
 		return allowed, nil
@@ -98,7 +90,7 @@ func (a *apikeyAuth) AuthorizedFor(resource string) (bool, error) {
 	return allowed, nil
 }
 
-func (a *apikeyAuth) fromCache(resource string) (allowed bool, found bool) {
+func (a *apikeyAuth) fromCache(resource es.Resource) (allowed bool, found bool) {
 	privileges := a.cache.get(id(a.key, resource))
 	if privileges == nil {
 		return
@@ -114,43 +106,28 @@ func (a *apikeyAuth) fromCache(resource string) (allowed bool, found bool) {
 	return
 }
 
-func (a *apikeyAuth) queryES(resource string) (privileges, error) {
-	query := buildQuery(PrivilegesAll, resource)
-	statusCode, body, err := a.esClient.SecurityHasPrivilegesRequest(strings.NewReader(query),
-		http.Header{headers.Authorization: []string{headers.APIKey + " " + a.key}})
+func (a *apikeyAuth) queryES(resource es.Resource) (es.Perms, error) {
+	request := es.HasPrivilegesRequest{
+		Applications: []es.Application{
+			{
+				Name:       Application,
+				Privileges: a.anyOfPrivileges,
+				Resources:  []es.Resource{resource},
+			},
+		},
+	}
+	info, err := es.HasPrivileges(a.esClient, request, a.key)
 	if err != nil {
 		return nil, err
 	}
-	defer body.Close()
-	if statusCode != http.StatusOK {
-		// return nil privileges for queried apps to ensure they are cached
-		return privileges{}, nil
-	}
-
-	var decodedResponse hasPrivilegesResponse
-	if err := json.NewDecoder(body).Decode(&decodedResponse); err != nil {
-		return nil, err
-	}
-	if resources, ok := decodedResponse.Applications[application]; ok {
+	if resources, ok := info.Application[Application]; ok {
 		if privileges, ok := resources[resource]; ok {
 			return privileges, nil
 		}
 	}
-	return privileges{}, nil
+	return es.Perms{}, nil
 }
 
-func buildQuery(privileges []string, resource string) string {
-	var b strings.Builder
-	b.WriteString(`{"application":[{"application":"`)
-	b.WriteString(application)
-	b.WriteString(`","privileges":["`)
-	b.WriteString(strings.Join(privileges, sep))
-	b.WriteString(`"],"resources":"`)
-	b.WriteString(resource)
-	b.WriteString(`"}]}`)
-	return b.String()
-}
-
-func id(apiKey, resource string) string {
-	return apiKey + "_" + resource
+func id(apiKey string, resource es.Resource) string {
+	return apiKey + "_" + fmt.Sprintf("%v", resource)
 }

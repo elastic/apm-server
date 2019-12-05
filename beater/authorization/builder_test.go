@@ -41,8 +41,9 @@ func TestBuilder(t *testing.T) {
 	} {
 
 		setup := func() *Builder {
-			cfg := config.DefaultConfig("9.9.9")
-
+			rawCfg := config.DefaultConfig("9.9.9")
+			cfg, err := config.Setup(nil, rawCfg, nil)
+			require.NoError(t, err)
 			if tc.withBearer {
 				cfg.SecretToken = "xvz"
 			}
@@ -51,7 +52,7 @@ func TestBuilder(t *testing.T) {
 					Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()}
 			}
 
-			builder, err := NewBuilder(cfg)
+			builder, err := NewBuilder(*cfg)
 			require.NoError(t, err)
 			return builder
 		}
@@ -68,12 +69,12 @@ func TestBuilder(t *testing.T) {
 
 		t.Run("ForPrivilege"+name, func(t *testing.T) {
 			builder := setup()
-			h := builder.ForPrivilege(PrivilegeSourcemapWrite)
+			h := builder.ForPrivilege(PrivilegeSourcemapWrite.Action)
 			assert.Equal(t, builder.bearer, h.bearer)
 			assert.Equal(t, builder.fallback, h.fallback)
 			if tc.withApikey {
-				assert.Equal(t, []string{}, builder.apikey.anyOfPrivileges)
-				assert.Equal(t, []string{PrivilegeSourcemapWrite}, h.apikey.anyOfPrivileges)
+				assert.Equal(t, []elasticsearch.Privilege{}, builder.apikey.anyOfPrivileges)
+				assert.Equal(t, []elasticsearch.Privilege{PrivilegeSourcemapWrite.Action}, h.apikey.anyOfPrivileges)
 				assert.Equal(t, builder.apikey.esClient, h.apikey.esClient)
 				assert.Equal(t, builder.apikey.cache, h.apikey.cache)
 			}
@@ -81,7 +82,7 @@ func TestBuilder(t *testing.T) {
 
 		t.Run("AuthorizationFor"+name, func(t *testing.T) {
 			builder := setup()
-			h := builder.ForPrivilege(PrivilegeSourcemapWrite)
+			h := builder.ForPrivilege(PrivilegeSourcemapWrite.Action)
 			auth := h.AuthorizationFor("ApiKey", "")
 			if tc.withApikey {
 				assert.IsType(t, &apikeyAuth{}, auth)

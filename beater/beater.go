@@ -95,6 +95,7 @@ func New(b *beat.Beat, ucfg *common.Config) (beat.Beater, error) {
 	if isElasticsearchOutput(b) {
 		esOutputCfg = b.Config.Output.Config()
 	}
+
 	beaterConfig, err := config.NewConfig(b.Info.Version, ucfg, esOutputCfg)
 	if err != nil {
 		return nil, err

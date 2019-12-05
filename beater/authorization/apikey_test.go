@@ -41,11 +41,11 @@ func TestApikeyBuilder(t *testing.T) {
 	handler2 := tc.builder.forKey(key)
 
 	// add existing privileges to shared cache
-	privilegesValid := privileges{}
+	privilegesValid := elasticsearch.Perms{}
 	for _, p := range PrivilegesAll {
-		privilegesValid[p] = true
+		privilegesValid[p.Action] = true
 	}
-	resource := "service-go"
+	resource := elasticsearch.Resource("service-go")
 	tc.cache.add(id(key, resource), privilegesValid)
 
 	// check that cache is actually shared between apiKeyHandlers
@@ -85,12 +85,12 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		tc.setup(t)
 		key := ""
 		handler := tc.builder.forKey(key)
-		resourceValid := "foo"
-		resourceInvalid := "bar"
-		resourceMissing := "missing"
+		resourceValid := elasticsearch.Resource("foo")
+		resourceInvalid := elasticsearch.Resource("bar")
+		resourceMissing := elasticsearch.Resource("missing")
 
-		tc.cache.add(id(key, resourceValid), privileges{tc.anyOfPrivileges[0]: true})
-		tc.cache.add(id(key, resourceInvalid), privileges{tc.anyOfPrivileges[0]: false})
+		tc.cache.add(id(key, resourceValid), elasticsearch.Perms{tc.anyOfPrivileges[0]: true})
+		tc.cache.add(id(key, resourceInvalid), elasticsearch.Perms{tc.anyOfPrivileges[0]: false})
 
 		valid, err := handler.AuthorizedFor(resourceValid)
 		require.NoError(t, err)
@@ -163,7 +163,7 @@ type apikeyTestcase struct {
 	transport       *estest.Transport
 	client          elasticsearch.Client
 	cache           *privilegesCache
-	anyOfPrivileges []string
+	anyOfPrivileges []elasticsearch.Privilege
 
 	builder *apikeyBuilder
 }
@@ -174,9 +174,9 @@ func (tc *apikeyTestcase) setup(t *testing.T) {
 		if tc.transport == nil {
 			tc.transport = estest.NewTransport(t, http.StatusOK, map[string]interface{}{
 				"application": map[string]interface{}{
-					application: map[string]privileges{
-						"foo": {PrivilegeAgentConfigRead: true, PrivilegeEventWrite: true, PrivilegeSourcemapWrite: false},
-						"bar": {PrivilegeAgentConfigRead: true, PrivilegeEventWrite: false},
+					"application": map[string]map[string]interface{}{
+						"foo": {"agentconfig": true, "event": true, "sourcemap": false},
+						"bar": {"agentConfig": true, "event": false},
 					}}})
 		}
 		tc.client, err = estest.NewElasticsearchClient(tc.transport)
@@ -186,7 +186,7 @@ func (tc *apikeyTestcase) setup(t *testing.T) {
 		tc.cache = newPrivilegesCache(time.Millisecond, 5)
 	}
 	if tc.anyOfPrivileges == nil {
-		tc.anyOfPrivileges = []string{PrivilegeEventWrite, PrivilegeSourcemapWrite}
+		tc.anyOfPrivileges = []elasticsearch.Privilege{PrivilegeEventWrite.Action, PrivilegeSourcemapWrite.Action}
 	}
 	tc.builder = newApikeyBuilder(tc.client, tc.cache, tc.anyOfPrivileges)
 }

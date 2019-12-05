@@ -20,30 +20,24 @@ package authorization
 import (
 	"time"
 
+	es "github.com/elastic/apm-server/elasticsearch"
+
 	"github.com/patrickmn/go-cache"
 )
 
-//Privileges
-const (
-	PrivilegeAgentConfigRead = "config_agent:read"
-	PrivilegeEventWrite      = "event:write"
-	PrivilegeSourcemapWrite  = "sourcemap:write"
-)
-
 var (
-	//PrivilegesAll returns all available privileges
-	PrivilegesAll = []string{
-		PrivilegeAgentConfigRead,
-		PrivilegeEventWrite,
-		PrivilegeSourcemapWrite}
+	PrivilegeAgentConfigRead = es.NewPrivilege("agentConfig", "config_agent:read")
+	PrivilegeEventWrite      = es.NewPrivilege("event", "event:write")
+	PrivilegeSourcemapWrite  = es.NewPrivilege("sourcemap", "sourcemap:write")
+	PrivilegesAll            = []es.NamedPrivilege{PrivilegeAgentConfigRead, PrivilegeEventWrite, PrivilegeSourcemapWrite}
+	// ActionAny can't be used for querying
+	ActionAny = es.Privilege("*")
 )
 
 type privilegesCache struct {
 	cache *cache.Cache
 	size  int
 }
-
-type privileges map[string]bool
 
 func newPrivilegesCache(expiration time.Duration, size int) *privilegesCache {
 	return &privilegesCache{cache: cache.New(expiration, cleanupInterval), size: size}
@@ -53,13 +47,13 @@ func (c *privilegesCache) isFull() bool {
 	return c.cache.ItemCount() >= c.size
 }
 
-func (c *privilegesCache) get(id string) privileges {
+func (c *privilegesCache) get(id string) es.Perms {
 	if val, exists := c.cache.Get(id); exists {
-		return val.(privileges)
+		return val.(es.Perms)
 	}
 	return nil
 }
 
-func (c *privilegesCache) add(id string, privileges privileges) {
+func (c *privilegesCache) add(id string, privileges es.Perms) {
 	c.cache.SetDefault(id, privileges)
 }
