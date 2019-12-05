@@ -6,7 +6,6 @@ services:
       - proxy_dep
     env_file:
       - ${PWD}/build/test.env
-      - ${PWD}/build/kibana.test.env
     working_dir: /go/src/github.com/elastic/apm-server
     volumes:
       - ${PWD}:/go/src/github.com/elastic/apm-server/
