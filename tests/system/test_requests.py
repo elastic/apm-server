@@ -5,7 +5,7 @@ import threading
 import time
 import zlib
 
-from apmserver import ServerBaseTest, ClientSideBaseTest, CorsBaseTest
+from apmserver import ServerBaseTest, ClientSideBaseTest, CorsBaseTest, integration_test
 
 
 try:
@@ -14,6 +14,7 @@ except ImportError:
     from io import StringIO
 
 
+@integration_test
 class Test(ServerBaseTest):
 
     def test_ok(self):
@@ -103,6 +104,7 @@ class Test(ServerBaseTest):
         assert r.status_code == 404, r.status_code
 
 
+@integration_test
 class ClientSideTest(ClientSideBaseTest):
 
     def test_ok(self):
@@ -120,6 +122,7 @@ class ClientSideTest(ClientSideBaseTest):
         assert r.status_code == 400, r.status_code
 
 
+@integration_test
 class CorsTest(CorsBaseTest):
 
     def test_ok(self):
@@ -161,6 +164,7 @@ class CorsTest(CorsBaseTest):
             assert r.headers['Access-Control-Allow-Methods'] == 'POST, OPTIONS', r.headers
 
 
+@integration_test
 class RateLimitTest(ClientSideBaseTest):
 
     def fire_events(self, data_file, iterations, split_ips=False):

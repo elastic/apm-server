@@ -9,7 +9,7 @@ import unittest
 
 from nose.tools import raises
 from requests.exceptions import SSLError, ChunkedEncodingError
-from beat.beat import INTEGRATION_TESTS, TimeoutError
+from apmserver import TimeoutError, integration_test
 from requests.packages.urllib3.exceptions import SubjectAltNameWarning
 requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
@@ -56,7 +56,7 @@ class TestAccessWithCredentials(ServerBaseTest):
         assert r.status_code == 401, r.status_code
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class TestSecureServerBaseTest(ServerSetUpBaseTest):
     @classmethod
     def setUpClass(cls):
@@ -145,6 +145,7 @@ class TestSSLBadPassphraseTest(TestSecureServerBaseTest):
         super(TestSecureServerBaseTest, self).setUp()
 
 
+@integration_test
 class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "none"}
@@ -163,6 +164,7 @@ class TestSSLEnabledNoClientVerificationTest(TestSecureServerBaseTest):
         assert r.status_code == 202, r.status_code
 
 
+@integration_test
 class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
     # no ssl_overrides necessary as `optional` is default
 
@@ -183,6 +185,7 @@ class TestSSLEnabledOptionalClientVerificationTest(TestSecureServerBaseTest):
         assert r.status_code == 202, r.status_code
 
 
+@integration_test
 class TestSSLEnabledOptionalClientVerificationWithCATest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_certificate_authorities": self.ca_cert}
@@ -205,6 +208,7 @@ class TestSSLEnabledOptionalClientVerificationWithCATest(TestSecureServerBaseTes
         assert r.status_code == 202, r.status_code
 
 
+@integration_test
 class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_client_authentication": "required",
@@ -225,6 +229,7 @@ class TestSSLEnabledRequiredClientVerificationTest(TestSecureServerBaseTest):
         assert r.status_code == 202, r.status_code
 
 
+@integration_test
 class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_certificate_authorities": self.ca_cert}
@@ -240,6 +245,7 @@ class TestSSLDefaultSupportedProcotolsTest(TestSecureServerBaseTest):
         self.ssl_connect()
 
 
+@integration_test
 class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_supported_protocols": ["TLSv1.2"],
@@ -253,6 +259,7 @@ class TestSSLSupportedProcotolsTest(TestSecureServerBaseTest):
         self.ssl_connect()
 
 
+@integration_test
 class TestSSLSupportedCiphersTest(TestSecureServerBaseTest):
     def ssl_overrides(self):
         return {"ssl_cipher_suites": ['ECDHE-RSA-AES-128-GCM-SHA256'],

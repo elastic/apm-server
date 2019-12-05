@@ -1,13 +1,12 @@
 import unittest
-from apmserver import ElasticTest, SubCommandTest
-from beat.beat import INTEGRATION_TESTS, TimeoutError
+from apmserver import ElasticTest, SubCommandTest, TimeoutError, integration_test
 from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import raises
 
 
 # APM Server `setup`
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class SetupPipelinesDefaultTest(SubCommandTest):
     pipeline_name = "apm_user_agent"
 
@@ -40,7 +39,7 @@ class SetupPipelinesDefaultTest(SubCommandTest):
         assert self.log_contains("Registered Ingest Pipelines successfully.")
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
     def config(self):
         cfg = super(SetupPipelinesDisabledTest, self).config()
@@ -54,7 +53,7 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         assert self.log_contains("No pipeline callback registered")
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineRegisterTest(ElasticTest):
     def test_default_pipelines_registered(self):
         pipelines = [
@@ -96,7 +95,7 @@ class PipelineRegisterTest(ElasticTest):
         assert ua_found
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineDisabledTest(ElasticTest):
     config_overrides = {"disable_pipeline": True}
 
@@ -118,7 +117,7 @@ class PipelineDisabledTest(ElasticTest):
         assert uaFound
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelinesConfigurationNoneTest(ElasticTest):
     config_overrides = {"disable_pipelines": True}
 
@@ -141,7 +140,7 @@ class PipelinesConfigurationNoneTest(ElasticTest):
         assert uaFound
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class MissingPipelineTest(ElasticTest):
     config_overrides = {"register_pipeline_enabled": "false"}
 
@@ -155,7 +154,7 @@ class MissingPipelineTest(ElasticTest):
                                      self.intake_url, 'transaction', 3)
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
 
     config_overrides = {
@@ -177,7 +176,7 @@ class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
         self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineEnableRegisterOverwriteTest(ElasticTest):
     config_overrides = {
         "register_pipeline_overwrite": "true",

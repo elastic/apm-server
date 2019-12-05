@@ -3,6 +3,7 @@ import json
 import os
 import re
 import shutil
+import unittest
 from time import gmtime, strftime
 from urlparse import urlparse
 
@@ -14,8 +15,9 @@ import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
-from beat.beat import TestCase, TimeoutError
+from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 
+integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 
 class BaseTest(TestCase):
     maxDiff = None
