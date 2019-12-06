@@ -50,6 +50,47 @@ class BaseTest(TestCase):
     def _beat_path_join(cls, *paths):
         return os.path.abspath(os.path.join(cls.beat_path, *paths))
 
+    @staticmethod
+    def get_elasticsearch_url(user="", password=""):
+        """
+        Returns an elasticsearch.Elasticsearch instance built from the
+        env variables like the integration tests.
+        """
+        host = os.getenv("ES_HOST", "localhost")
+
+        if not user:
+            user = os.getenv("ES_USER", "elastic")
+        if not password:
+            password = os.getenv("ES_PASS", "changeme")
+
+        if user and password:
+            host = user + ":" + password + "@" + host
+
+        return "http://{host}:{port}".format(
+            host=host,
+            port=os.getenv("ES_PORT", "9200"),
+        )
+
+    @staticmethod
+    def get_kibana_url(user="", password=""):
+        """
+        Returns kibana host URL
+        """
+        host = os.getenv("KIBANA_HOST", "localhost")
+
+        if not user:
+            user = os.getenv("KIBANA_USER")
+        if not password:
+            password = os.getenv("KIBANA_PASS")
+
+        if user and password:
+            host = user + ":" + password + "@" + host
+
+        return "http://{host}:{port}".format(
+            host=host,
+            port=os.getenv("KIBANA_PORT", "5601"),
+        )
+
     def get_payload_path(self, name):
         return self._beat_path_join(
             'testdata',
