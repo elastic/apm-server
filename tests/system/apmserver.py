@@ -200,11 +200,11 @@ class ElasticTest(ServerBaseTest):
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
+        assert all(idx.startswith("apm") for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
         if self.es.indices.get("apm*"):
             self.es.indices.delete(index="apm*", ignore=[400, 404])
             for idx in self.indices:
                 self.wait_until(lambda: not self.es.indices.exists(idx), name="index {} to be deleted".format(idx))
-        assert all(idx.startswith("apm") for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
 
         if self.es.indices.get_template(name="apm*", ignore=[400, 404]):
             self.es.indices.delete_template(name="apm*", ignore=[400, 404])
