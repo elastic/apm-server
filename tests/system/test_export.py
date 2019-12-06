@@ -2,10 +2,15 @@ import yaml
 import os
 import json
 import shutil
-from apmserver import SubCommandTest
+from apmserver import SubCommandTest, integration_test
 
 
-class ExportConfigDefaultTest(SubCommandTest):
+class ExportCommandTest(SubCommandTest):
+    register_pipeline_disabled = True
+
+
+@integration_test
+class ExportConfigDefaultTest(ExportCommandTest):
     """
     Test export config subcommand.
     """
@@ -44,7 +49,8 @@ class ExportConfigDefaultTest(SubCommandTest):
             }, config["setup"])
 
 
-class ExportConfigTest(SubCommandTest):
+@integration_test
+class ExportConfigTest(ExportCommandTest):
     """
     Test export config subcommand.
     """
@@ -86,7 +92,8 @@ class ExportConfigTest(SubCommandTest):
             }, config["setup"])
 
 
-class TestExportTemplate(SubCommandTest):
+@integration_test
+class TestExportTemplate(ExportCommandTest):
     """
     Test export template
     """
@@ -118,7 +125,8 @@ class TestExportTemplate(SubCommandTest):
         assert template['order'] == 1
 
 
-class TestExportILMPolicy(SubCommandTest):
+@integration_test
+class TestExportILMPolicy(ExportCommandTest):
     """
     Test export ilm-policy
     """
@@ -153,6 +161,7 @@ class TestExportILMPolicy(SubCommandTest):
                 assert "delete" not in policy["policy"]["phases"]
 
 
+@integration_test
 class TestExportILMPolicyILMDisabled(TestExportILMPolicy):
     """
     Test export ilm-policy independent of ILM enabled state
