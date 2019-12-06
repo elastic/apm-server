@@ -237,8 +237,8 @@ class AgentConfigurationKibanaDownIntegrationTest(ElasticTest):
         assert len(config_request_logs) == 2, config_request_logs
         self.assertDictContainsSubset({
             "level": "error",
-            "message": "invalid token",
-            "error": "invalid token",
+            "message": "unauthorized",
+            "error": "unauthorized",
             "response_code": 401,
         }, config_request_logs[0])
         self.assertDictContainsSubset({
