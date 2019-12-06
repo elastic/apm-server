@@ -82,7 +82,7 @@ var (
 		IDResponseValidAccepted:            {Code: http.StatusAccepted, Keyword: "request accepted"},
 		IDResponseValidNotModified:         {Code: http.StatusNotModified, Keyword: "not modified"},
 		IDResponseErrorsForbidden:          {Code: http.StatusForbidden, Keyword: "forbidden request"},
-		IDResponseErrorsUnauthorized:       {Code: http.StatusUnauthorized, Keyword: "invalid token"},
+		IDResponseErrorsUnauthorized:       {Code: http.StatusUnauthorized, Keyword: "unauthorized"},
 		IDResponseErrorsNotFound:           {Code: http.StatusNotFound, Keyword: "404 page not found"},
 		IDResponseErrorsRequestTooLarge:    {Code: http.StatusRequestEntityTooLarge, Keyword: "request body too large"},
 		IDResponseErrorsInvalidQuery:       {Code: http.StatusBadRequest, Keyword: "invalid query"},
