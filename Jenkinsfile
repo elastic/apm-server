@@ -50,6 +50,7 @@ pipeline {
       }
       options { skipDefaultCheckout() }
       steps {
+        pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
                     shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
