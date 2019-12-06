@@ -46,18 +46,19 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // NewTransport creates test transport instance returning status code and body according to input parameters when called.
 func NewTransport(t *testing.T, statusCode int, esBody map[string]interface{}) *Transport {
-	var body io.ReadCloser
-	if esBody == nil {
-		body = ioutil.NopCloser(bytes.NewReader([]byte{}))
-	} else {
-		resp, err := json.Marshal(esBody)
-		require.NoError(t, err)
-		body = ioutil.NopCloser(bytes.NewReader(resp))
-	}
+
 	return &Transport{
 		roundTripFn: func(_ *http.Request) (*http.Response, error) {
 			if statusCode == http.StatusInternalServerError {
 				return &http.Response{}, errors.New("Internal server error")
+			}
+			var body io.ReadCloser
+			if esBody == nil {
+				body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+			} else {
+				resp, err := json.Marshal(esBody)
+				require.NoError(t, err)
+				body = ioutil.NopCloser(bytes.NewReader(resp))
 			}
 			return &http.Response{StatusCode: statusCode, Body: body}, nil
 		},
