@@ -198,3 +198,9 @@ check-changelogs: ## @testing Checks the changelogs for certain branches.
 .PHONY: rm-empty-folders
 rm-empty-folders:
 	find vendor/ -type d -empty -delete
+
+.PHONY: run-system-test
+run-system-test: python-env
+	INTEGRATION_TESTS=1 TZ=UTC \
+	ES_USER=$(ES_USER) ES_PASS=$(ES_PASS) KIBANA_USER=$(BEAT_KIBANA_USER) KIBANA_PASS=$(BEAT_KIBANA_PASS) \
+	$(PYTHON_ENV)/bin/nosetests --with-timer -x -v $(SYSTEM_TEST_TARGET)
