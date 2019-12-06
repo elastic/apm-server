@@ -31,7 +31,7 @@ import (
 // LogMiddleware returns a middleware taking care of logging processing a request in the middleware and the request handler
 func LogMiddleware() Middleware {
 	logger := logp.NewLogger(logs.Request)
-	return func(h request.Handler) request.Handler {
+	return func(h request.Handler) (request.Handler, error) {
 
 		return func(c *request.Context) {
 			reqID, err := uuid.NewV4()
@@ -76,6 +76,6 @@ func LogMiddleware() Middleware {
 				reqLogger.Infow(keyword, keysAndValues...)
 			}
 
-		}
+		}, nil
 	}
 }

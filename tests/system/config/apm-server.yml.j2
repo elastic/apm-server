@@ -70,7 +70,26 @@ apm-server:
   register.ingest.pipeline.enabled: {{ register_pipeline_enabled }}
   {% endif %}
   {% if register_pipeline_overwrite %}
-  register.ingest.pipeline.overwrite: {{ register_pipeline_overwrite  }}
+  register.ingest.pipeline.overwrite: {{ register_pipeline_overwrite }}
+  {% endif %}
+
+  {% if instrumentation_enabled %}
+  instrumentation.enabled: {{ instrumentation_enabled }}
+  {% endif %}
+  {% if profiling_cpu_enabled %}
+  instrumentation.profiling.cpu.enabled: {{ profiling_cpu_enabled }}
+  {% endif %}
+  {% if profiling_cpu_interval %}
+  instrumentation.profiling.cpu.interval: {{ profiling_cpu_interval }}
+  {% endif %}
+  {% if profiling_cpu_duration %}
+  instrumentation.profiling.cpu.duration: {{ profiling_cpu_duration }}
+  {% endif %}
+  {% if profiling_heap_enabled %}
+  instrumentation.profiling.heap.enabled: {{ profiling_heap_enabled }}
+  {% endif %}
+  {% if profiling_heap_interval %}
+  instrumentation.profiling.heap.interval: {{ profiling_heap_interval }}
   {% endif %}
 
   {% if mode %}
@@ -79,6 +98,39 @@ apm-server:
 
   {% if ilm_enabled %}
   ilm.enabled: {{ ilm_enabled }}
+  {% endif %}
+
+  {% if ilm_policies %}
+  ilm.setup.mapping:
+    - event_type: "error"
+      policy_name: "rollover-10-days"
+    - event_type: "span"
+      policy_name: "apm-rollover-30-days"
+
+  ilm.setup.policies:
+    - name: "rollover-10-days"
+      policy:
+        phases:
+          hot:
+            actions:
+              rollover:
+                max_size: "50gb"
+                max_age: "10d"
+              set_priority:
+                priority: 100
+    - name: "apm-rollover-30-days"
+      policy:
+        phases:
+          hot:
+            actions:
+              rollover:
+                max_size: "50gb"
+                max_age: "30d"
+              set_priority:
+                priority: 100
+          delete:
+            actions:
+              delete: {}
   {% endif %}
 
   {% if kibana_enabled is not none or kibana_host is not none %}
@@ -195,3 +247,5 @@ logging:
 
     # Number of rotated log files to keep. Oldest files will be deleted first.
     #keepfiles: 7
+
+queue.mem.flush.min_events: {{ queue_flush }}

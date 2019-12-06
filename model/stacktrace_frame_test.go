@@ -22,13 +22,16 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-
-	"github.com/stretchr/testify/require"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/elasticsearch"
 
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/sourcemap/test"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 
@@ -48,7 +51,7 @@ func TestStacktraceFrameDecode(t *testing.T) {
 	}{
 		{input: nil, err: nil, s: nil},
 		{input: nil, inpErr: errors.New("a"), err: errors.New("a"), s: nil},
-		{input: "", err: ErrInvalidStacktraceFrameType, s: nil},
+		{input: "", err: errInvalidStacktraceFrameType, s: nil},
 		{
 			input: map[string]interface{}{},
 			err:   utility.ErrFetch,
@@ -159,177 +162,139 @@ func TestStacktraceFrameTransform(t *testing.T) {
 	}
 }
 
-func TestApplySourcemap(t *testing.T) {
-	colno := 1
-	l0, l5, l6, l7, l8, l9 := 0, 5, 6, 7, 8, 9
-	fct := "original function"
-	absPath := "original path"
-	tests := []struct {
-		fr                          StacktraceFrame
-		lineno, colno               int
-		filename, function, absPath string
-		smapUpdated                 bool
-		smapError                   string
-		fct                         string
-		outFct                      string
-		msg                         string
-	}{
-		{
-			fr:          StacktraceFrame{Lineno: &l0, Function: &fct, AbsPath: &absPath},
-			lineno:      l0,
-			filename:    "",
-			function:    "original function",
-			absPath:     "original path",
-			smapUpdated: false,
-			smapError:   "Colno mandatory for sourcemapping.",
-			fct:         "<anonymous>",
-			outFct:      "<anonymous>",
-			msg:         "No colno",
-		},
-		{
-			fr: StacktraceFrame{
-				Colno:    &colno,
-				Lineno:   &l9,
-				Filename: "filename",
-				Function: &fct,
-				AbsPath:  &absPath,
-			},
-			colno:       1,
-			lineno:      l9,
-			filename:    "filename",
-			function:    "original function",
-			absPath:     "original path",
-			smapUpdated: false,
-			smapError:   "Some untyped error",
-			fct:         "<anonymous>",
-			outFct:      "<anonymous>",
-			msg:         "Some error occured in mapper.",
-		},
-		{
-			fr:       StacktraceFrame{Colno: &colno, Lineno: &l8, Function: &fct, AbsPath: &absPath},
-			colno:    1,
-			lineno:   l8,
-			filename: "",
-			function: "original function",
-			absPath:  "original path",
-			fct:      "<anonymous>",
-			outFct:   "<anonymous>",
-			msg:      "Some access error occured in mapper.",
-		},
-		{
-			fr:          StacktraceFrame{Colno: &colno, Lineno: &l7, Function: &fct, AbsPath: &absPath},
-			colno:       1,
-			lineno:      l7,
-			filename:    "",
-			function:    "original function",
-			absPath:     "original path",
-			smapUpdated: false,
-			smapError:   "Some mapping error",
-			fct:         "<anonymous>",
-			outFct:      "<anonymous>",
-			msg:         "Some mapping error occured in mapper.",
-		},
-		{
-			fr:          StacktraceFrame{Colno: &colno, Lineno: &l6, Function: &fct, AbsPath: &absPath},
-			colno:       1,
-			lineno:      l6,
-			filename:    "",
-			function:    "original function",
-			absPath:     "original path",
-			smapUpdated: false,
-			smapError:   "Some key error",
-			fct:         "<anonymous>",
-			outFct:      "<anonymous>",
-			msg:         "Some key error occured in mapper.",
-		},
-		{
-			fr: StacktraceFrame{
-				Colno:    &colno,
-				Lineno:   &l5,
-				Filename: "original filename",
-				Function: &fct,
-				AbsPath:  &absPath,
-			},
-			colno:       100,
-			lineno:      500,
-			filename:    "original filename",
-			function:    "other function",
-			absPath:     "changed path",
-			smapUpdated: true,
+func TestSourcemap_Apply(t *testing.T) {
 
-			fct:    "other function",
-			outFct: "<unknown>",
-			msg:    "Sourcemap with empty filename and function mapping applied.",
-		},
-		{
-			fr: StacktraceFrame{
-				Colno:    &colno,
-				Lineno:   &l0,
-				Filename: "original filename",
-				Function: &fct,
-				AbsPath:  &absPath,
-			},
-			colno:       100,
-			lineno:      400,
-			filename:    "changed filename",
-			function:    "prev function",
-			absPath:     "changed path",
-			smapUpdated: true,
-
-			fct:    "prev function",
-			outFct: "changed function",
-			msg:    "Full sourcemap mapping applied.",
-		},
+	name, version, col, line, path := "myservice", "2.1.4", 10, 15, "/../a/path"
+	validService := func() *metadata.Service {
+		return &metadata.Service{Name: &name, Version: &version}
+	}
+	validFrame := func() *StacktraceFrame {
+		return &StacktraceFrame{Colno: &col, Lineno: &line, AbsPath: &path}
 	}
 
-	ver, name := "1", "foo"
-	service := &metadata.Service{Name: &name, Version: &ver}
-	for idx, test := range tests {
-		// check that original data are preserved,
-		// even when Transform function is applied twice.
-		if test.smapUpdated {
-			origAbsPath := *test.fr.AbsPath
-			origFilename := test.fr.Filename
-			origLineno := test.fr.Lineno
-			origColno := test.fr.Colno
-			origFunction := test.fr.Function
+	t.Run("frame", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			frame *StacktraceFrame
 
-			(&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
-			(&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
+			expectedErrorMsg string
+		}{
+			"noColumn": {
+				frame:            &StacktraceFrame{},
+				expectedErrorMsg: "Colno mandatory"},
+			"noLine": {
+				frame:            &StacktraceFrame{Colno: &col},
+				expectedErrorMsg: "Lineno mandatory"},
+			"noPath": {
+				frame:            &StacktraceFrame{Colno: &col, Lineno: &line},
+				expectedErrorMsg: "AbsPath mandatory",
+			},
+		} {
+			t.Run(name, func(t *testing.T) {
+				function, msg := tc.frame.applySourcemap(&sourcemap.Store{}, validService(), "foo")
+				assert.Equal(t, "foo", function)
+				assert.Contains(t, msg, tc.expectedErrorMsg)
+				assert.Equal(t, new(bool), tc.frame.Sourcemap.Updated)
+				require.NotNil(t, tc.frame.Sourcemap.Error)
+				assert.Contains(t, *tc.frame.Sourcemap.Error, msg)
+				assert.Zero(t, tc.frame.Original)
+			})
+		}
+	})
 
-			assert.Equal(t, origAbsPath, *test.fr.Original.AbsPath)
-			assert.Equal(t, origFilename, test.fr.Original.Filename)
-			assert.Equal(t, origLineno, test.fr.Original.Lineno)
-			if origColno == nil {
-				assert.Nil(t, test.fr.Original.Colno)
-			} else {
-				assert.Equal(t, *origColno, *test.fr.Original.Colno)
-			}
-			if origFunction == nil {
-				assert.Nil(t, test.fr.Original.Function)
-			} else {
-				assert.Equal(t, *origFunction, *test.fr.Original.Function)
-			}
+	t.Run("errorPerFrame", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			store            *sourcemap.Store
+			expectedErrorMsg string
+		}{
+			"noSourcemap": {store: testSourcemapStore(t, test.ESClientWithSourcemapNotFound(t)),
+				expectedErrorMsg: "No Sourcemap available"},
+			"noMapping": {store: testSourcemapStore(t, test.ESClientWithValidSourcemap(t)),
+				expectedErrorMsg: "No Sourcemap found for Lineno",
+			},
+		} {
+			t.Run(name, func(t *testing.T) {
+				frame := validFrame()
+				function, msg := frame.applySourcemap(tc.store, validService(), "xyz")
+				assert.Equal(t, "xyz", function)
+				require.Contains(t, msg, tc.expectedErrorMsg)
+				assert.NotZero(t, frame.Sourcemap.Error)
+				assert.Equal(t, new(bool), frame.Sourcemap.Updated)
+			})
 		}
+	})
 
-		// check that source mapping is applied as expected
-		output, errMsg := (&test.fr).applySourcemap(&FakeMapper{}, service, test.fct)
-		assert.Equal(t, test.smapError, errMsg)
-		assert.Equal(t, test.outFct, output)
-		assert.Equal(t, test.lineno, *test.fr.Lineno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
-		assert.Equal(t, test.filename, test.fr.Filename, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
-		assert.Equal(t, test.function, *test.fr.Function, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
-		assert.Equal(t, test.absPath, *test.fr.AbsPath, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
-		if test.colno != 0 {
-			assert.Equal(t, test.colno, *test.fr.Colno, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+	t.Run("mappingError", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			store            *sourcemap.Store
+			expectedErrorMsg string
+		}{
+			"ESUnavailable": {store: testSourcemapStore(t, test.ESClientUnavailable(t)),
+				expectedErrorMsg: "Internal server error"},
+			"invalidSourcemap": {store: testSourcemapStore(t, test.ESClientWithInvalidSourcemap(t)),
+				expectedErrorMsg: "Could not parse Sourcemap."},
+			"unsupportedSourcemap": {store: testSourcemapStore(t, test.ESClientWithUnsupportedSourcemap(t)),
+				expectedErrorMsg: "only 3rd version is supported"},
+		} {
+			t.Run(name, func(t *testing.T) {
+				frame := validFrame()
+				function, msg := frame.applySourcemap(tc.store, validService(), "xyz")
+				assert.Equal(t, "xyz", function)
+				require.Contains(t, msg, tc.expectedErrorMsg)
+				assert.NotZero(t, msg)
+				assert.Zero(t, frame.Sourcemap)
+			})
 		}
-		if test.smapError != "" || test.smapUpdated {
-			assert.Equal(t, test.smapUpdated, *test.fr.Sourcemap.Updated, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
+	})
+
+	t.Run("mapping", func(t *testing.T) {
+
+		for name, tc := range map[string]struct {
+			origCol, origLine int
+			origPath          string
+
+			function, file, path, ctxLine string
+			preCtx, postCtx               []string
+			col, line                     int
+		}{
+			"withFunction": {origCol: 67, origLine: 1, origPath: "/../a/path",
+				function: "exports", file: "", path: "/a/path", ctxLine: " \t\t\texports: {},", col: 0, line: 13,
+				preCtx:  []string{" \t\tif(installedModules[moduleId])", " \t\t\treturn installedModules[moduleId].exports;", "", " \t\t// Create a new module (and put it into the cache)", " \t\tvar module = installedModules[moduleId] = {"},
+				postCtx: []string{" \t\t\tid: moduleId,", " \t\t\tloaded: false", " \t\t};", "", " \t\t// Execute the module function"}},
+			"withFilename": {origCol: 7, origLine: 1, origPath: "/../a/path",
+				function: "<unknown>", file: "webpack:///bundle.js", path: "/a/path",
+				ctxLine: "/******/ (function(modules) { // webpackBootstrap", preCtx: []string{},
+				postCtx: []string{"/******/ \t// The module cache", "/******/ \tvar installedModules = {};", "/******/", "/******/ \t// The require function", "/******/ \tfunction __webpack_require__(moduleId) {"},
+				col:     9, line: 1},
+			"withoutFilename": {origCol: 23, origLine: 1, origPath: "/../a/path",
+				function: "__webpack_require__", file: "", path: "/a/path", ctxLine: " \tfunction __webpack_require__(moduleId) {",
+				preCtx:  []string{" \t// The module cache", " \tvar installedModules = {};", "", " \t// The require function"},
+				postCtx: []string{"", " \t\t// Check if module is in cache", " \t\tif(installedModules[moduleId])", " \t\t\treturn installedModules[moduleId].exports;", ""},
+				col:     0, line: 5},
+		} {
+			t.Run(name, func(t *testing.T) {
+				frame := &StacktraceFrame{Colno: &tc.origCol, Lineno: &tc.origLine, AbsPath: &tc.origPath}
+
+				prevFunction := "xyz"
+				function, msg := frame.applySourcemap(testSourcemapStore(t, test.ESClientWithValidSourcemap(t)), validService(), prevFunction)
+				require.Empty(t, msg)
+				assert.Zero(t, frame.Sourcemap.Error)
+				updated := true
+				assert.Equal(t, &updated, frame.Sourcemap.Updated)
+
+				assert.Equal(t, tc.function, function)
+				assert.Equal(t, tc.file, frame.Filename)
+				assert.Equal(t, prevFunction, *frame.Function)
+				assert.Equal(t, tc.col, *frame.Colno)
+				assert.Equal(t, tc.line, *frame.Lineno)
+				assert.Equal(t, tc.path, *frame.AbsPath)
+				assert.Equal(t, tc.ctxLine, *frame.ContextLine)
+				assert.Equal(t, tc.preCtx, frame.PreContext)
+				assert.Equal(t, tc.postCtx, frame.PostContext)
+
+				assert.NotZero(t, frame.Original)
+			})
 		}
-		if test.smapError != "" {
-			assert.Equal(t, test.smapError, *test.fr.Sourcemap.Error, fmt.Sprintf("Failed at idx %v; %s", idx, test.msg))
-		}
-	}
+	})
 }
 
 func TestIsLibraryFrame(t *testing.T) {
@@ -514,63 +479,8 @@ func TestLibraryFrame(t *testing.T) {
 	}
 }
 
-func TestBuildSourcemap(t *testing.T) {
-	version := "1.0"
-	path := "././a/b/../c"
-	serviceName, empty := "foo", ""
-	tests := []struct {
-		service metadata.Service
-		fr      StacktraceFrame
-		out     string
-		err     string
-	}{
-		{service: metadata.Service{}, fr: StacktraceFrame{}, out: "", err: "Cannot apply sourcemap without a service name."},
-		{service: metadata.Service{Version: &version, Name: &empty}, fr: StacktraceFrame{}, out: "1.0"},
-		{service: metadata.Service{Name: &serviceName}, fr: StacktraceFrame{}, out: "foo"},
-		{service: metadata.Service{Name: &empty}, fr: StacktraceFrame{AbsPath: &path}, out: "a/c"},
-		{
-			service: metadata.Service{Name: &serviceName, Version: &version},
-			fr:      StacktraceFrame{AbsPath: &path},
-			out:     "foo_1.0_a/c",
-		},
-	}
-	for _, test := range tests {
-		id, errStr := test.fr.buildSourcemapId(&test.service)
-		require.Equal(t, test.err, errStr)
-		assert.Equal(t, test.out, (&id).Key())
-	}
+func testSourcemapStore(t *testing.T, client elasticsearch.Client) *sourcemap.Store {
+	store, err := sourcemap.NewStore(client, "apm-*sourcemap*", time.Minute)
+	require.NoError(t, err)
+	return store
 }
-
-// Fake implemenations for Mapper
-
-type FakeMapper struct{}
-
-func (m *FakeMapper) Apply(smapId sourcemap.Id, lineno, colno int) (*sourcemap.Mapping, error) {
-	switch lineno {
-	case 9:
-		return nil, errors.New("Some untyped error")
-	case 8:
-		return nil, sourcemap.Error{Kind: sourcemap.AccessError}
-	case 7:
-		return nil, sourcemap.Error{Kind: sourcemap.MapError, Msg: "Some mapping error"}
-	case 6:
-		return nil, sourcemap.Error{Kind: sourcemap.KeyError, Msg: "Some key error"}
-	case 5:
-		return &sourcemap.Mapping{
-			Filename: "",
-			Function: "",
-			Colno:    100,
-			Lineno:   500,
-			Path:     "changed path",
-		}, nil
-	default:
-		return &sourcemap.Mapping{
-			Filename: "changed filename",
-			Function: "changed function",
-			Colno:    100,
-			Lineno:   400,
-			Path:     "changed path",
-		}, nil
-	}
-}
-func (m *FakeMapper) NewSourcemapAdded(smapId sourcemap.Id) {}

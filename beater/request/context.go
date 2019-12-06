@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"strings"
 
+	"golang.org/x/time/rate"
+
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/beats/libbeat/logp"
@@ -38,12 +40,13 @@ var (
 
 // Context abstracts request and response information for http requests
 type Context struct {
-	Request              *http.Request
-	Logger               *logp.Logger
-	TokenSet, Authorized bool
-
-	Result Result
-
+	Request       *http.Request
+	Logger        *logp.Logger
+	RateLimiter   *rate.Limiter
+	TokenSet      bool
+	Authorized    bool
+	IsRum         bool
+	Result        Result
 	w             http.ResponseWriter
 	writeAttempts int
 }
@@ -54,9 +57,9 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Logger = nil
 	c.TokenSet = false
 	c.Authorized = false
-
+	c.IsRum = false
+	c.RateLimiter = nil
 	c.Result.Reset()
-
 	c.w = w
 	c.writeAttempts = 0
 }

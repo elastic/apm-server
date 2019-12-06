@@ -24,64 +24,44 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	libilm "github.com/elastic/beats/libbeat/idxmgmt/ilm"
 )
 
 func TestMakeDefaultSupporter(t *testing.T) {
 	info := beat.Info{Beat: "mockapm", Version: "9.9.9"}
 
-	t.Run("invalid config", func(t *testing.T) {
-		cfg := common.MustNewConfigFrom(map[string]interface{}{
-			"policy_name": "apm-test-span",
-			"alias_name":  "test",
-			"event":       123,
-		})
+	config := func(policies []EventPolicy) Config {
+		return Config{Setup: Setup{Policies: policies}}
+	}
 
-		s, err := MakeDefaultSupporter(nil, info, cfg)
+	t.Run("missing index", func(t *testing.T) {
+		cfg := config([]EventPolicy{{EventType: "abc", Policy: map[string]interface{}{}}})
+		indexNames := map[string]string{}
+		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
 		assert.Nil(t, s)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "policy for 123 undefined")
+		assert.Contains(t, err.Error(), "index name missing")
 	})
-
-	t.Run("alias and policy missing in config", func(t *testing.T) {
-		cfg := common.MustNewConfigFrom(map[string]interface{}{
-			"event": 123,
-		})
-
-		s, err := MakeDefaultSupporter(nil, info, cfg)
+	t.Run("invalid index name", func(t *testing.T) {
+		cfg := config([]EventPolicy{{EventType: "error", Policy: map[string]interface{}{}}})
+		indexNames := map[string]string{"error": "%{[xyz.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}"}
+		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
 		assert.Nil(t, s)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must be configured")
+		assert.Contains(t, err.Error(), "key not found")
 	})
-
-	t.Run("replace parameters in config", func(t *testing.T) {
-		cfg := common.MustNewConfigFrom(map[string]interface{}{
-			"policy_name": "%{[observer.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}",
-			"alias_name":  "alias-%{[observer.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}",
-			"event":       "span",
-			"enabled":     "true",
+	t.Run("valid", func(t *testing.T) {
+		cfg := config([]EventPolicy{
+			{EventType: "error", Policy: map[string]interface{}{"a": "b"}, Name: "foo"},
+			{EventType: "transaction", Policy: map[string]interface{}{"b": "c"}},
 		})
-
-		s, err := MakeDefaultSupporter(nil, info, cfg)
+		indexNames := map[string]string{
+			"error":       "%{[observer.name]}-%{[observer.version]}-%{[beat.name]}-%{[beat.version]}",
+			"transaction": "apm-8.0.0-transaction",
+		}
+		s, err := MakeDefaultSupporter(nil, info, 0, cfg, indexNames)
+		assert.Equal(t, 2, len(s))
+		assert.Equal(t, "mockapm-9.9.9-mockapm-9.9.9", s[0].Alias().Name)
+		assert.Equal(t, "foo", s[0].Policy().Name)
 		require.NoError(t, err)
-		assert.Equal(t, "mockapm-9.9.9-mockapm-9.9.9", s.Policy().Name)
-		assert.Equal(t, eventPolicies["span"], s.Policy().Body)
-		assert.Equal(t, "alias-mockapm-9.9.9-mockapm-9.9.9", s.Alias().Name)
-		assert.Equal(t, "000001", s.Alias().Pattern)
-		assert.Equal(t, libilm.ModeEnabled, s.Mode())
 	})
-
-	t.Run("default mode", func(t *testing.T) {
-		cfg := common.MustNewConfigFrom(map[string]interface{}{
-			"policy_name": "policy",
-			"alias_name":  "alias",
-			"event":       "span",
-		})
-
-		s, err := MakeDefaultSupporter(nil, info, cfg)
-		require.NoError(t, err)
-		assert.Equal(t, libilm.ModeAuto, s.Mode())
-	})
-
 }

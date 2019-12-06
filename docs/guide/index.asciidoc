@@ -23,6 +23,8 @@ include::./rum.asciidoc[]
 
 include::./opentracing.asciidoc[]
 
+include::./obs-integrations.asciidoc[]
+
 include::./agent-server-compatibility.asciidoc[]
 
 include::./troubleshooting.asciidoc[]

@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -36,54 +35,34 @@ import (
 type m map[string]interface{}
 
 var (
-	testExp     = time.Nanosecond
-	mockVersion = *common.MustNewVersion("7.3.0")
+	testExpiration = time.Nanosecond
+	mockVersion    = *common.MustNewVersion("7.3.0")
 )
 
 func TestFetcher_Fetch(t *testing.T) {
-	t.Run("ErrorInput", func(t *testing.T) {
-		kerr := errors.New("test error")
-		_, _, ferr := NewFetcher(&kibana.ConnectingClient{}, testExp).Fetch(query(t.Name()), kerr)
-		require.Error(t, ferr)
-		assert.Equal(t, kerr, ferr)
-	})
-
-	t.Run("FetchError", func(t *testing.T) {
-		kb := tests.MockKibana(http.StatusMultipleChoices, m{"error": "an error"}, mockVersion, true)
-		_, _, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), ErrMsgMultipleChoices)
-	})
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
-		_, _, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
+		_, err := NewFetcher(kb, testExpiration).Fetch(query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "{\"error\":\"an error\"}", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
-		doc, err := NewDoc([]byte{})
+		result, err := NewFetcher(kb, testExpiration).Fetch(query(t.Name()))
 		require.NoError(t, err)
-
-		result, etag, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
-		require.NoError(t, err)
-		assert.Equal(t, doc.ID, etag)
-		assert.Equal(t, doc.Settings, Settings(result))
+		assert.Equal(t, zeroResult(), result)
 	})
 
 	t.Run("Success", func(t *testing.T) {
 		kb := tests.MockKibana(http.StatusOK, mockDoc(0.5), mockVersion, true)
 		b, err := json.Marshal(mockDoc(0.5))
+		expectedResult, err := newResult(b, err)
 		require.NoError(t, err)
-		doc, err := NewDoc(b)
+		result, err := NewFetcher(kb, testExpiration).Fetch(query(t.Name()))
 		require.NoError(t, err)
-
-		result, etag, err := NewFetcher(kb, testExp).Fetch(query(t.Name()), nil)
-		require.NoError(t, err)
-		assert.Equal(t, doc.ID, etag)
-		assert.Equal(t, doc.Settings, Settings(result))
+		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("FetchFromCache", func(t *testing.T) {
@@ -93,17 +72,16 @@ func TestFetcher_Fetch(t *testing.T) {
 			client := func(samplingRate float64) kibana.Client {
 				return tests.MockKibana(http.StatusOK, mockDoc(samplingRate), mockVersion, true)
 			}
-			f.kbClient = client(kibanaSamplingRate)
+			f.client = client(kibanaSamplingRate)
 
 			b, err := json.Marshal(mockDoc(expectedSamplingRate))
 			require.NoError(t, err)
-			doc, err := NewDoc(b)
+			expectedResult, err := newResult(b, err)
 			require.NoError(t, err)
 
-			result, etag, err := f.Fetch(query(t.Name()), nil)
+			result, err := f.Fetch(query(t.Name()))
 			require.NoError(t, err)
-			assert.Equal(t, doc.ID, etag)
-			assert.Equal(t, doc.Settings, Settings(result))
+			assert.Equal(t, expectedResult, result)
 		}
 
 		fetcher := NewFetcher(nil, time.Minute)
@@ -115,14 +93,33 @@ func TestFetcher_Fetch(t *testing.T) {
 		fetch(fetcher, 0.8, 0.5)
 
 		// after key is expired, fetch from Kibana again
-		fetcher.docCache.gocache.Delete(query(t.Name()).ID())
+		fetcher.cache.gocache.Delete(query(t.Name()).id())
 		fetch(fetcher, 0.7, 0.7)
 
 	})
 }
 
+func TestSanitize(t *testing.T) {
+	input := Result{Source: Source{
+		Agent:    "python",
+		Settings: Settings{"transaction_sample_rate": "0.1", "capture_body": "false"}}}
+	assert.Equal(t, input, sanitize(false, input))
+	assert.Equal(t, zeroResult(), sanitize(true, input))
+	input.Source.Agent = "rum-js"
+	assert.Equal(t, Settings{"transaction_sample_rate": "0.1"}, sanitize(true, input).Source.Settings)
+}
+
+func TestCustomJSON(t *testing.T) {
+	expected := Result{Source: Source{
+		Etag:     "123",
+		Settings: map[string]string{"transaction_sampling_rate": "0.3"}}}
+	input := `{"_id": "1", "_source":{"etag":"123", "settings":{"transaction_sampling_rate": 0.3}}}`
+	actual, _ := newResult([]byte(input), nil)
+	assert.Equal(t, expected, actual)
+}
+
 func query(name string) Query {
-	return Query{Service: Service{Name: name}}
+	return Query{Service: Service{Name: name}, Etag: "123"}
 }
 
 func mockDoc(sampleRate float64) m {
@@ -132,6 +129,8 @@ func mockDoc(sampleRate float64) m {
 			"settings": m{
 				"sampling_rate": sampleRate,
 			},
+			"etag":       "123",
+			"agent_name": "rum-js",
 		},
 	}
 }

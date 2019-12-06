@@ -23,20 +23,22 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/model/transaction/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
 )
 
 const (
 	processorName      = "transaction"
 	transactionDocType = "transaction"
+	emptyString        = ""
 )
 
 var (
@@ -74,6 +76,7 @@ type Event struct {
 	Labels    *m.Labels
 	Custom    *m.Custom
 	Service   *metadata.Service
+	Client    *m.Client
 
 	Experimental interface{}
 }
@@ -113,6 +116,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		Custom:       ctx.Custom,
 		User:         ctx.User,
 		Service:      ctx.Service,
+		Client:       ctx.Client,
 		Experimental: ctx.Experimental,
 		Marks:        decoder.MapStr(raw, "marks"),
 		Sampled:      decoder.BoolPtr(raw, "sampled"),
@@ -180,9 +184,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 
 	// then merge event specific information
 	utility.Update(fields, "user", e.User.Fields())
-	utility.DeepUpdate(fields, "client", e.Http.ClientFields(e.User.ClientFields()))
+	clientFields := e.Client.Fields()
+	utility.DeepUpdate(fields, "client", clientFields)
+	utility.DeepUpdate(fields, "source", clientFields)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
-	utility.DeepUpdate(fields, "service", e.Service.Fields())
+	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	utility.AddId(fields, "parent", e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)

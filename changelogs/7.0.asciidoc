@@ -1,7 +1,7 @@
 [[release-notes-7.0]]
 == APM Server version 7.0
 
-https://github.com/elastic/apm-server/compare/6.7\...7.0[View commits]
+https://github.com/elastic/apm-server/compare/6.8\...7.0[View commits]
 
 * <<release-notes-7.0.1>>
 * <<release-notes-7.0.0>>
@@ -23,7 +23,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0\...v7.0.1[View commits]
 [[release-notes-7.0.0]]
 === APM Server version 7.0.0
 
-https://github.com/elastic/apm-server/compare/v6.7.2\...v7.0.0[View commits]
+https://github.com/elastic/apm-server/compare/v6.8.5\...v7.0.0[View commits]
 
 These release notes include all changes made in the alpha, beta, and RC releases of 7.0.0.
 
@@ -60,7 +60,7 @@ Also see:
 ==== Bug fixes
 
 - Fix index template always being overwritten {pull}2077[2077].
-- Ensure setup cmd uses expected configuration {pull}1934[1934]. 
+- Ensure setup cmd uses expected configuration {pull}1934[1934].
 - Ensure `host.name` is not added {pull}1934[1934], {pull}1982[1982].
 - Ensure enabling user-agent pipeline indexes data at the same key by default {pull}1966[1966].
 - Request and Response headers are stored in a canonicalized way {pull}1966[1966].
@@ -68,7 +68,7 @@ Also see:
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
 - Rename `transaction.span_count.dropped.total` to `transaction.span_count.dropped` {pull}1809[1809].
 - Rename `span.hex_id` to `span.id` {pull}1811[1811].
 - Index `error.exception` as array of objects {pull}1825[1825]
@@ -90,7 +90,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-beta1\...v7.0.0-rc1[View co
 [float]
 ==== Bug fixes
 
-- Ensure setup cmd uses expected configuration {pull}1934[1934]. 
+- Ensure setup cmd uses expected configuration {pull}1934[1934].
 - Ensure host.name is not added {pull}1934[1934], {pull}1982[1982].
 - Update Go version to 1.11.5 {pull}1840[1840], {pull}1950[1950].
 - Ensure enabling user-agent pipeline indexes data at the same key by default {pull}1966[1966].
@@ -104,7 +104,7 @@ https://github.com/elastic/apm-server/compare/v7.0.0-alpha2\...v7.0.0-beta1[View
 
 [float]
 ==== Breaking Changes
-- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766],{pull}1783[1783],{pull}1813[1813],{pull}1836[1836],{pull}1838[1838],{pull}1844[1844],{pull}1848[1848],{pull}1849[1849],{pull}1863[1863],{pull}1870[1870].
+- Move fields in ES to be ECS compliant. {apm-overview-ref-v}/breaking-7.0.0.html#breaking-ecs[More information], {pull}1766[1766], {pull}1783[1783], {pull}1813[1813], {pull}1836[1836], {pull}1838[1838], {pull}1844[1844], {pull}1848[1848], {pull}1849[1849], {pull}1863[1863], {pull}1870[1870].
 
 [float]
 ==== Added

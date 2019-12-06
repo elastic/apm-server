@@ -57,7 +57,6 @@ func TestSourcemapProcessorOK(t *testing.T) {
 	for _, info := range data {
 		p := sourcemap.Processor
 		tctx := transform.Context{}
-		ignored := map[string]string{"@timestamp": "***IGNORED***"}
 
 		data, err := loader.LoadData(info.Path)
 		require.NoError(t, err)
@@ -73,7 +72,7 @@ func TestSourcemapProcessorOK(t *testing.T) {
 		for _, transformable := range payload {
 			events = append(events, transformable.Transform(&tctx)...)
 		}
-		verifyErr := approvals.ApproveEvents(events, info.Name, ignored)
+		verifyErr := approvals.ApproveEvents(events, info.Name, "@timestamp")
 		if verifyErr != nil {
 			assert.Fail(t, fmt.Sprintf("Test %s failed with error: %s", info.Name, verifyErr.Error()))
 		}

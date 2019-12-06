@@ -119,6 +119,7 @@ func parseLogLevel(s string) (logLevel, error) {
 type Logger interface {
 	Debugf(format string, args ...interface{})
 	Errorf(format string, args ...interface{})
+	Warningf(format string, args ...interface{})
 }
 
 type levelLogger struct {
@@ -134,6 +135,11 @@ func (l levelLogger) Debugf(format string, args ...interface{}) {
 // Errorf logs a message with log.Printf, with an ERROR prefix.
 func (l levelLogger) Errorf(format string, args ...interface{}) {
 	l.logf(errorLevel, format, args...)
+}
+
+// Warningf logs a message with log.Printf, with a WARNING prefix.
+func (l levelLogger) Warningf(format string, args ...interface{}) {
+	l.logf(warnLevel, format, args...)
 }
 
 func (l levelLogger) logf(level logLevel, format string, args ...interface{}) {

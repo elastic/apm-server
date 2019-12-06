@@ -4,9 +4,6 @@
     display-name: APM Server check changelogs MBP
     description: APM Server check changelogs MBP
     project-type: multibranch
-    view: APM-CI
-    number-to-keep: '5'
-    days-to-keep: '1'
     script-path: .ci/check-changelogs.groovy
     scm:
     - github:
@@ -15,6 +12,7 @@
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
         discover-tags: false
+        notification-context: 'apm-ci'
         property-strategies:
           all-branches:
           - suppress-scm-triggering: true
@@ -35,8 +33,8 @@
           recursive: true
           parent-credentials: true
           timeout: 100
+          reference-repo: /var/lib/jenkins/.git-references/apm-server.git
         timeout: '15'
         use-author: true
         wipe-workspace: 'True'
     periodic-folder-trigger: 1w
-    prune-dead-branches: true

@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/beats/libbeat/monitoring"
 
@@ -33,7 +32,6 @@ import (
 	"github.com/elastic/apm-server/decoder"
 	"github.com/elastic/apm-server/processor/stream"
 	"github.com/elastic/apm-server/publish"
-	"github.com/elastic/apm-server/utility"
 )
 
 var (
@@ -43,7 +41,7 @@ var (
 )
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimiterManager, report publish.Reporter) request.Handler {
+func Handler(dec decoder.ReqDecoder, processor *stream.Processor, report publish.Reporter) request.Handler {
 	return func(c *request.Context) {
 
 		serr := validateRequest(c.Request)
@@ -52,9 +50,10 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimite
 			return
 		}
 
-		rl, serr := rateLimit(c.Request, rlm)
-		if serr != nil {
-			sendError(c, serr)
+		ok := c.RateLimiter == nil || c.RateLimiter.Allow()
+		if !ok {
+			sendError(c, &stream.Error{
+				Type: stream.RateLimitErrType, Message: "rate limit exceeded"})
 			return
 		}
 
@@ -72,7 +71,7 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimite
 			sendResponse(c, &sr)
 			return
 		}
-		res := processor.HandleStream(c.Request.Context(), rl, reqMeta, reader, report)
+		res := processor.HandleStream(c.Request.Context(), c.RateLimiter, reqMeta, reader, report)
 
 		sendResponse(c, res)
 	}
@@ -81,9 +80,6 @@ func Handler(dec decoder.ReqDecoder, processor *stream.Processor, rlm RateLimite
 func sendResponse(c *request.Context, sr *stream.Result) {
 	code := http.StatusAccepted
 	id := request.IDResponseValidAccepted
-	err := errors.New(sr.Error())
-	var body interface{}
-
 	set := func(c int, i request.ResultID) {
 		if c > code {
 			code = c
@@ -115,6 +111,7 @@ L:
 		}
 	}
 
+	var body interface{}
 	if code >= http.StatusBadRequest {
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:
@@ -124,7 +121,10 @@ L:
 	} else if _, ok := c.Request.URL.Query()["verbose"]; ok {
 		body = sr
 	}
-
+	var err error
+	if errMsg := sr.Error(); errMsg != "" {
+		err = errors.New(errMsg)
+	}
 	c.Result.Set(id, code, request.MapResultIDToStatus[id].Keyword, body, err)
 	c.Write()
 }
@@ -149,22 +149,6 @@ func validateRequest(r *http.Request) *stream.Error {
 		}
 	}
 	return nil
-}
-
-func rateLimit(r *http.Request, rlm RateLimiterManager) (*rate.Limiter, *stream.Error) {
-	if rlm == nil {
-		return nil, nil
-	}
-	if rl, ok := rlm.RateLimiter(utility.RemoteAddr(r)); ok {
-		if !rl.Allow() {
-			return nil, &stream.Error{
-				Type:    stream.RateLimitErrType,
-				Message: "rate limit exceeded",
-			}
-		}
-		return rl, nil
-	}
-	return nil, nil
 }
 
 func bodyReader(r *http.Request) (io.ReadCloser, *stream.Error) {

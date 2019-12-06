@@ -156,6 +156,7 @@ const ModelSchema = `{
                     "type": ["boolean", "null"]
                 },
                 "remote_address": {
+                    "description": "The network address sending the request. Should be obtained through standard APIs and not parsed from any headers like 'Forwarded'.",
                     "type": ["string", "null"]
                 }
             }
@@ -347,6 +348,16 @@ const ModelSchema = `{
             "description": "Version of the service emitting this event",
             "type": ["string", "null"],
             "maxLength": 1024
+        },
+        "node": {
+            "description": "Unique meaningful name of the service node.",
+            "type": ["object", "null"],
+            "properties": {
+                "configured_name": {
+                    "type": ["string", "null"],
+                    "maxLength": 1024
+                }
+            }
         }
     }
         }

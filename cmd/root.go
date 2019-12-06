@@ -20,6 +20,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/elastic/beats/libbeat/cfgfile"
+
 	"github.com/spf13/pflag"
 
 	"github.com/elastic/apm-server/beater"
@@ -72,16 +74,23 @@ func init() {
 
 	var runFlags = pflag.NewFlagSet(Name, pflag.ExitOnError)
 	settings := instance.Settings{
-		ConfigOverrides: overrides,
-		Name:            Name,
-		IndexPrefix:     IdxPattern,
-		Version:         "",
-		RunFlags:        runFlags,
+		Name:        Name,
+		IndexPrefix: IdxPattern,
+		Version:     "",
+		RunFlags:    runFlags,
 		Monitoring: report.Settings{
 			DefaultUsername: "apm_system",
 		},
 		IndexManagement: idxmgmt.MakeDefaultSupporter,
 		Processing:      processing.MakeDefaultObserverSupport(false),
+		ConfigOverrides: []cfgfile.ConditionalOverride{
+			{
+				Check: func(_ *common.Config) bool {
+					return true
+				},
+				Config: overrides,
+			},
+		},
 	}
 	RootCmd = cmd.GenRootCmdWithSettings(beater.New, settings)
 

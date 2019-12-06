@@ -22,10 +22,11 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/elastic/apm-server/model/metadata/generated/schema"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/common"
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "metadata")
@@ -80,14 +81,16 @@ func NewMetadata(service *Service, system *System, process *Process, user *User,
 }
 
 func (m *Metadata) Set(fields common.MapStr) common.MapStr {
-	utility.Set(fields, "service", m.Service.Fields())
+	containerFields := m.System.containerFields()
+	hostFields := m.System.fields()
+	utility.Set(fields, "service", m.Service.Fields(get(containerFields, "id"), get(hostFields, "name")))
 	utility.Set(fields, "agent", m.Service.AgentFields())
-	utility.Set(fields, "host", m.System.fields())
+	utility.Set(fields, "host", hostFields)
 	utility.Set(fields, "process", m.Process.fields())
 	utility.Set(fields, "user", m.User.Fields())
 	utility.Set(fields, "client", m.User.ClientFields())
 	utility.Set(fields, "user_agent", m.User.UserAgentFields())
-	utility.Set(fields, "container", m.System.containerFields())
+	utility.Set(fields, "container", containerFields)
 	utility.Set(fields, "kubernetes", m.System.kubernetesFields())
 	// to be merged with specific event labels, these should be overwritten in case of conflict
 	utility.Set(fields, "labels", m.Labels)
@@ -97,5 +100,14 @@ func (m *Metadata) Set(fields common.MapStr) common.MapStr {
 func (m *Metadata) SetMinimal(fields common.MapStr) common.MapStr {
 	utility.Set(fields, "agent", m.Service.AgentFields())
 	utility.Set(fields, "service", m.Service.MinimalFields())
+	// to be merged with specific event labels, these should be overwritten in case of conflict
+	utility.Set(fields, "labels", m.Labels)
 	return fields
+}
+
+func get(m common.MapStr, key string) string {
+	if val, ok := m[key].(string); ok {
+		return val
+	}
+	return ""
 }

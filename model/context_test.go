@@ -95,6 +95,51 @@ func TestDecodeContext(t *testing.T) {
 				"experimental": "experimental data",
 			}},
 		},
+		"client_ip_from_socket": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"request": map[string]interface{}{
+						"method": "POST",
+						"socket": map[string]interface{}{"encrypted": false, "remote_address": "10.1.23.5"},
+					},
+				}},
+		},
+		"client_ip_from_socket_invalid_headers": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"request": map[string]interface{}{
+						"method":  "POST",
+						"headers": map[string]interface{}{"X-Forwarded-For": "192.13.14:8097"},
+						"socket":  map[string]interface{}{"encrypted": false, "remote_address": "10.1.23.5"},
+					},
+				}},
+		},
+		"client_ip_from_forwarded_header": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"request": map[string]interface{}{
+						"method": "POST",
+						"headers": map[string]interface{}{
+							"Forwarded":       "for=192.13.14.5",
+							"X-Forwarded-For": "178.3.11.17",
+						},
+						"socket": map[string]interface{}{"encrypted": false, "remote_address": "10.1.23.5"},
+					},
+				}},
+		},
+		"client_ip_header_case_insensitive": {
+			input: map[string]interface{}{
+				"context": map[string]interface{}{
+					"request": map[string]interface{}{
+						"method": "POST",
+						"headers": map[string]interface{}{
+							"x-real-ip":       "192.13.14.5",
+							"X-Forwarded-For": "178.3.11.17",
+						},
+						"socket": map[string]interface{}{"encrypted": false, "remote_address": "10.1.23.5"},
+					},
+				}},
+		},
 		"full_event with experimental=true": {
 			input: map[string]interface{}{
 				"context": map[string]interface{}{
@@ -128,7 +173,7 @@ func TestDecodeContext(t *testing.T) {
 					"user": map[string]interface{}{
 						"username":   "john",
 						"email":      "doe",
-						"ip":         "10.15.21.3",
+						"ip":         "192.158.0.1",
 						"id":         "12345678ab",
 						"user-agent": "go-1.1"},
 					"service": map[string]interface{}{

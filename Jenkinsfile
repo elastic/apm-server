@@ -1,16 +1,8 @@
 #!/usr/bin/env groovy
 @Library('apm@current') _
 
-import groovy.transform.Field
-
-/**
-This is the git commit sha which it's required to be used in different stages.
-It does store the env GIT_BASE_COMMIT
-*/
-@Field def gitCommit
-
 pipeline {
-  agent none
+  agent { label 'linux && immutable' }
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
@@ -22,8 +14,8 @@ pipeline {
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
   }
   options {
-    timeout(time: 1, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
+    timeout(time: 2, unit: 'HOURS')
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -51,7 +43,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout') {
-      agent { label 'immutable' }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
         HOME = "${env.WORKSPACE}"
@@ -59,11 +50,12 @@ pipeline {
       }
       options { skipDefaultCheckout() }
       steps {
+        pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true)
+        gitCheckout(basedir: "${BASE_DIR}", githubNotifyFirstTimeContributor: true,
+                    shallow: false, reference: "/var/lib/jenkins/.git-references/${REPO}.git")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          gitCommit = env.GIT_BASE_COMMIT
           dir("${BASE_DIR}"){
             env.GO_VERSION = readFile(".go-version").trim()
             def regexps =[
@@ -76,7 +68,10 @@ pipeline {
               "^tests/packaging",
               "^vendor/github.com/elastic/beats"
             ]
-            env.BEATS_UPDATED = isGitRegionMatch(regexps: regexps)
+            env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
+
+            // Skip all the stages except docs for PR's with asciidoc changes only
+            env.ONLY_DOCS = isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true)
           }
         }
       }
@@ -89,7 +84,6 @@ pipeline {
     Validate that all updates were committed.
     */
     stage('Intake') {
-      agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -98,7 +92,10 @@ pipeline {
       }
       when {
         beforeAgent true
-        expression { return params.intake_ci }
+        allOf {
+          expression { return params.intake_ci }
+          expression { return env.ONLY_DOCS == "false" }
+        }
       }
       steps {
         withGithubNotify(context: 'Intake') {
@@ -117,11 +114,13 @@ pipeline {
         Build on a linux environment.
         */
         stage('linux build') {
-          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            expression { return params.linux_ci }
+            allOf {
+              expression { return params.linux_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Build - Linux') {
@@ -149,7 +148,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.windows_ci }
+            allOf {
+              expression { return params.windows_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Build-Test - Windows') {
@@ -185,7 +187,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_ci }
+            allOf {
+              expression { return params.test_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
@@ -198,9 +203,15 @@ pipeline {
           }
           post {
             always {
+              coverageReport("${BASE_DIR}/build/coverage")
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml")
+                testResults: "${BASE_DIR}/build/junit-*.xml"
+              )
+              catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
+                tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
+              }
+              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -218,7 +229,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.test_sys_env_ci }
+            allOf {
+              expression { return params.test_sys_env_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'System Tests', tab: 'tests') {
@@ -231,16 +245,18 @@ pipeline {
           }
           post {
             always {
-              coverageReport("${BASE_DIR}/build/coverage")
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/junit-*.xml,${BASE_DIR}/build/TEST-*.xml"
-              )
+              dir("${BASE_DIR}"){
+                archiveArtifacts(allowEmptyArchive: true,
+                  artifacts: "docker-info/**",
+                  defaultExcludes: false)
+                  junit(allowEmptyResults: true,
+                    keepLongStdio: true,
+                    testResults: "**/build/TEST-*.xml"
+                  )
+              }
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
                 tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
-                tar(file: "coverage-files.tgz", archive: true, dir: "coverage", pathPrefix: "${BASE_DIR}/build")
               }
-              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
             }
           }
         }
@@ -262,6 +278,7 @@ pipeline {
                 expression { return params.Run_As_Master_Branch }
               }
               expression { return params.bench_ci }
+              expression { return env.ONLY_DOCS == "false" }
             }
           }
           steps {
@@ -290,7 +307,10 @@ pipeline {
           }
           when {
             beforeAgent true
-            expression { return params.kibana_update_ci }
+            allOf {
+              expression { return params.kibana_update_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             withGithubNotify(context: 'Sync Kibana') {
@@ -339,16 +359,17 @@ pipeline {
             expression { return !params.Run_As_Master_Branch }
           }
           expression { return params.its_ci }
+          expression { return env.ONLY_DOCS == "false" }
         }
       }
       steps {
         log(level: 'INFO', text: "Launching Async ${env.GITHUB_CHECK_ITS_NAME}")
         build(job: env.ITS_PIPELINE, propagate: false, wait: false,
               parameters: [string(name: 'AGENT_INTEGRATION_TEST', value: 'All'),
-                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${gitCommit}"),
+                           string(name: 'BUILD_OPTS', value: "--apm-server-build https://github.com/elastic/${env.REPO}@${env.GIT_BASE_COMMIT}"),
                            string(name: 'GITHUB_CHECK_NAME', value: env.GITHUB_CHECK_ITS_NAME),
                            string(name: 'GITHUB_CHECK_REPO', value: env.REPO),
-                           string(name: 'GITHUB_CHECK_SHA1', value: gitCommit)])
+                           string(name: 'GITHUB_CHECK_SHA1', value: env.GIT_BASE_COMMIT)])
         githubNotify(context: "${env.GITHUB_CHECK_ITS_NAME}", description: "${env.GITHUB_CHECK_ITS_NAME} ...", status: 'PENDING', targetUrl: "${env.JENKINS_URL}search/?q=${env.ITS_PIPELINE.replaceAll('/','+')}")
       }
     }
@@ -356,7 +377,6 @@ pipeline {
       build release packages.
     */
     stage('Release') {
-      agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
       environment {
         PATH = "${env.PATH}:${env.WORKSPACE}/bin"
@@ -376,6 +396,7 @@ pipeline {
             expression { return env.BEATS_UPDATED != "false" }
           }
           expression { return params.release_ci }
+          expression { return env.ONLY_DOCS == "false" }
         }
       }
       steps {

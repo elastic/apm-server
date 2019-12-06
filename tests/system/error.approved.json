@@ -9,7 +9,7 @@
                 "us": 1494342245000000
             },
             "ecs": {
-                "version": "1.0.1"
+                "version": "1.2.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -54,6 +54,9 @@
             },
             "service": {
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "myservice-node"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
@@ -98,7 +101,7 @@
                 "us": 1494342245999999
             },
             "ecs":{
-                "version":"1.0.1"
+                "version":"1.2.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -139,6 +142,9 @@
             },
             "service": {
                 "name": "abc",
+                "node": {
+                    "name": "myservice-xz"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
@@ -178,7 +184,7 @@
                     "method": "post",
                     "socket": {
                         "encrypted": true,
-                        "remote_address": "12.53.12.1"
+                        "remote_address": "8.8.8.8"
                     }
                 },
                 "response": {
@@ -191,18 +197,18 @@
                 }
             },
             "client": {
-                "ip": "12.53.12.1",
+                "ip": "8.8.8.8",
                 "geo": {
-                    "region_iso_code": "US-IN",
                     "country_iso_code": "US",
-                    "city_name": "Indianapolis",
                     "location": {
-                        "lat": 39.9115,
-                        "lon": -86.0706
+                        "lat": 37.751,
+                        "lon": -97.822
                     },
-                    "continent_name": "North America",
-                    "region_name": "Indiana"
+                    "continent_name": "North America"
                 }
+            },
+            "source": {
+                "ip": "8.8.8.8"
             },
             "url": {
                 "domain": "www.example.com",
@@ -413,7 +419,7 @@
                 "us": 1494342245000000
             },
             "ecs":{
-                "version":"1.0.1"
+                "version":"1.2.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -458,6 +464,9 @@
             },
             "service": {
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "myservice-node"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"
@@ -503,7 +512,7 @@
                 "us": 1494342245999000
             },
             "ecs":{
-                "version":"1.0.1"
+                "version":"1.2.0"
             },
             "observer": {
                 "type": "apm-server",
@@ -548,6 +557,9 @@
             },
             "service": {
                 "name": "1234_service-12a3",
+                "node": {
+                    "name": "myservice-node"
+                },
                 "language": {
                     "version": "8",
                     "name": "ecmascript"

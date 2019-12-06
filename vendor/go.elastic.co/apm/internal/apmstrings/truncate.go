@@ -17,14 +17,15 @@
 
 package apmstrings
 
-// Truncate returns s truncated at n runes.
-func Truncate(s string, n int) string {
+// Truncate returns s truncated at n runes, and the number
+// of runes in the resulting string (<= n).
+func Truncate(s string, n int) (string, int) {
 	var j int
 	for i := range s {
 		if j == n {
-			return s[:i]
+			return s[:i], n
 		}
 		j++
 	}
-	return s
+	return s, j
 }

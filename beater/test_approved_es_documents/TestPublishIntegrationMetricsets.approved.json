@@ -20,7 +20,7 @@
             },
             "double_gauge": 3.141592653589793,
             "ecs": {
-                "version": "1.0.1"
+                "version": "1.2.0"
             },
             "float_gauge": 9.16,
             "integer_gauge": 42767,
@@ -64,7 +64,10 @@
                 "language": {
                     "name": "ecmascript"
                 },
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
             },
             "short_counter": 227,
             "span": {
@@ -109,13 +112,13 @@
                 "type": "_doc",
                 "version": "8.0.0"
             },
-            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "@timestamp": "2019-01-09T21:40:53.000Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
             "ecs": {
-                "version": "1.0.1"
+                "version": "1.2.0"
             },
             "go": {
                 "memstats": {
@@ -149,7 +152,10 @@
                 "language": {
                     "name": "ecmascript"
                 },
-                "name": "1234_service-12a3"
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
             },
             "user": {
                 "email": "user@mail.com",

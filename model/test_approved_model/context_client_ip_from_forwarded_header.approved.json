@@ -1,0 +1,43 @@
+{
+    "Client": {
+        "IP": "192.13.14.5"
+    },
+    "Custom": null,
+    "Experimental": null,
+    "Http": {
+        "Request": {
+            "Body": null,
+            "Cookies": null,
+            "Env": null,
+            "Headers": {
+                "Forwarded": [
+                    "for=192.13.14.5"
+                ],
+                "X-Forwarded-For": [
+                    "178.3.11.17"
+                ]
+            },
+            "Method": "post",
+            "Socket": {
+                "Encrypted": false,
+                "RemoteAddress": "10.1.23.5"
+            }
+        },
+        "Response": null,
+        "Version": null
+    },
+    "Labels": null,
+    "Page": null,
+    "Service": null,
+    "Url": {
+        "Domain": null,
+        "Fragment": null,
+        "Full": null,
+        "Original": null,
+        "Path": null,
+        "Port": null,
+        "Query": null,
+        "Scheme": null
+    },
+    "User": null
+}

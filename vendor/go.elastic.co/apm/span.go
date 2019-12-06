@@ -27,9 +27,11 @@ import (
 	"go.elastic.co/apm/stacktrace"
 )
 
-// droppedSpanDataPool holds *SpanData which are used when the span
-// is created for a nil or non-sampled Transaction, or one whose max
-// spans limit has been reached.
+// droppedSpanDataPool holds *SpanData which are used when the span is created
+// for a nil or non-sampled trace context, without a transaction reference.
+//
+// Spans started with a non-nil transaction, even if it is non-sampled, are
+// always created with the transaction's tracer span pool.
 var droppedSpanDataPool sync.Pool
 
 // StartSpan starts and returns a new Span within the transaction,
@@ -55,14 +57,14 @@ func (tx *Transaction) StartSpan(name, spanType string, parent *Span) *Span {
 // StartSpanOptions starts and returns a new Span within the transaction,
 // with the specified name, type, and options.
 //
-// StartSpan always returns a non-nil Span. Its End method must
-// be called when the span completes.
+// StartSpan always returns a non-nil Span. Its End method must be called
+// when the span completes.
 //
-// If the span type contains two dots, they are assumed to separate
-// the span type, subtype, and action; a single dot separates span
-// type and subtype, and the action will not be set.
+// If the span type contains two dots, they are assumed to separate the
+// span type, subtype, and action; a single dot separates span type and
+// subtype, and the action will not be set.
 func (tx *Transaction) StartSpanOptions(name, spanType string, opts SpanOptions) *Span {
-	if tx == nil || !tx.traceContext.Options.Recorded() {
+	if tx == nil {
 		return newDroppedSpan()
 	}
 
@@ -78,18 +80,8 @@ func (tx *Transaction) StartSpanOptions(name, spanType string, opts SpanOptions)
 	// Prevent tx from being ended while we're starting a span.
 	tx.mu.RLock()
 	defer tx.mu.RUnlock()
-
 	if tx.ended() {
 		return tx.tracer.StartSpan(name, spanType, transactionID, opts)
-	}
-
-	// Guard access to spansCreated, spansDropped, maxSpans, timestamp,
-	// rand, and spanFramesMinDuration.
-	tx.TransactionData.mu.Lock()
-	defer tx.TransactionData.mu.Unlock()
-	if tx.maxSpans > 0 && tx.spansCreated >= tx.maxSpans {
-		tx.spansDropped++
-		return newDroppedSpan()
 	}
 
 	// Calculate the span time relative to the transaction timestamp so
@@ -100,16 +92,40 @@ func (tx *Transaction) StartSpanOptions(name, spanType string, opts SpanOptions)
 	} else {
 		opts.Start = tx.timestamp.Add(opts.Start.Sub(tx.timestamp))
 	}
-
 	span := tx.tracer.startSpan(name, spanType, transactionID, opts)
-	if opts.SpanID.Validate() == nil {
-		span.traceContext.Span = opts.SpanID
-	} else {
-		binary.LittleEndian.PutUint64(span.traceContext.Span[:], tx.rand.Uint64())
-	}
-	span.stackFramesMinDuration = tx.spanFramesMinDuration
 	span.tx = tx
-	tx.spansCreated++
+	span.parent = opts.parent
+
+	// Guard access to spansCreated, spansDropped, rand, and childrenTimer.
+	tx.TransactionData.mu.Lock()
+	defer tx.TransactionData.mu.Unlock()
+	if !span.traceContext.Options.Recorded() {
+		span.tracer = nil // span is dropped
+	} else if tx.maxSpans >= 0 && tx.spansCreated >= tx.maxSpans {
+		span.tracer = nil // span is dropped
+		tx.spansDropped++
+	} else {
+		if opts.SpanID.Validate() == nil {
+			span.traceContext.Span = opts.SpanID
+		} else {
+			binary.LittleEndian.PutUint64(span.traceContext.Span[:], tx.rand.Uint64())
+		}
+		span.stackFramesMinDuration = tx.spanFramesMinDuration
+		span.stackTraceLimit = tx.stackTraceLimit
+		tx.spansCreated++
+	}
+
+	if tx.breakdownMetricsEnabled {
+		if span.parent != nil {
+			span.parent.mu.Lock()
+			defer span.parent.mu.Unlock()
+			if !span.parent.ended() {
+				span.parent.childrenTimer.childStarted(span.timestamp)
+			}
+		} else {
+			tx.childrenTimer.childStarted(span.timestamp)
+		}
+	}
 	return span
 }
 
@@ -142,9 +158,11 @@ func (t *Tracer) StartSpan(name, spanType string, transactionID SpanID, opts Spa
 	}
 	span := t.startSpan(name, spanType, transactionID, opts)
 	span.traceContext.Span = spanID
-	t.spanFramesMinDurationMu.RLock()
-	span.stackFramesMinDuration = t.spanFramesMinDuration
-	t.spanFramesMinDurationMu.RUnlock()
+
+	instrumentationConfig := t.instrumentationConfig()
+	span.stackFramesMinDuration = instrumentationConfig.spanFramesMinDuration
+	span.stackTraceLimit = instrumentationConfig.stackTraceLimit
+
 	return span
 }
 
@@ -200,6 +218,7 @@ func (t *Tracer) startSpan(name, spanType string, transactionID SpanID, opts Spa
 	return span
 }
 
+// newDropped returns a new Span with a non-nil SpanData.
 func newDroppedSpan() *Span {
 	span, _ := droppedSpanDataPool.Get().(*Span)
 	if span == nil {
@@ -210,8 +229,9 @@ func newDroppedSpan() *Span {
 
 // Span describes an operation within a transaction.
 type Span struct {
-	tracer        *Tracer      // nil if span is dropped
-	tx            *Transaction // nil if span is dropped
+	tracer        *Tracer // nil if span is dropped
+	tx            *Transaction
+	parent        *Span
 	traceContext  TraceContext
 	transactionID SpanID
 
@@ -270,19 +290,58 @@ func (s *Span) End() {
 	if s.ended() {
 		return
 	}
-	if s.dropped() {
-		droppedSpanDataPool.Put(s.SpanData)
-		s.SpanData = nil
-		return
-	}
 	if s.Duration < 0 {
 		s.Duration = time.Since(s.timestamp)
+	}
+	if s.dropped() {
+		if s.tx == nil {
+			droppedSpanDataPool.Put(s.SpanData)
+		} else {
+			s.reportSelfTime()
+			s.reset(s.tx.tracer)
+		}
+		s.SpanData = nil
+		return
 	}
 	if len(s.stacktrace) == 0 && s.Duration >= s.stackFramesMinDuration {
 		s.setStacktrace(1)
 	}
+	if s.tx != nil {
+		s.reportSelfTime()
+	}
 	s.enqueue()
 	s.SpanData = nil
+}
+
+// reportSelfTime reports the span's self-time to its transaction, and informs
+// the parent that it has ended in order for the parent to later calculate its
+// own self-time.
+//
+// This must only be called from Span.End, with s.mu.Lock held for writing and
+// s.Duration set.
+func (s *Span) reportSelfTime() {
+	endTime := s.timestamp.Add(s.Duration)
+
+	// TODO(axw) try to find a way to not lock the transaction when
+	// ending every span. We already lock them when starting spans.
+	s.tx.mu.RLock()
+	defer s.tx.mu.RUnlock()
+	if s.tx.ended() || !s.tx.breakdownMetricsEnabled {
+		return
+	}
+
+	s.tx.TransactionData.mu.Lock()
+	defer s.tx.TransactionData.mu.Unlock()
+	if s.parent != nil {
+		s.parent.mu.Lock()
+		if !s.parent.ended() {
+			s.parent.childrenTimer.childEnded(endTime)
+		}
+		s.parent.mu.Unlock()
+	} else {
+		s.tx.childrenTimer.childEnded(endTime)
+	}
+	s.tx.spanTimings.add(s.Type, s.Subtype, s.Duration-s.childrenTimer.finalDuration(endTime))
 }
 
 func (s *Span) enqueue() {
@@ -310,7 +369,9 @@ func (s *Span) ended() bool {
 type SpanData struct {
 	parentID               SpanID
 	stackFramesMinDuration time.Duration
+	stackTraceLimit        int
 	timestamp              time.Time
+	childrenTimer          childrenTimer
 
 	// Name holds the span name, initialized with the value passed to StartSpan.
 	Name string
@@ -340,7 +401,7 @@ type SpanData struct {
 }
 
 func (s *SpanData) setStacktrace(skip int) {
-	s.stacktrace = stacktrace.AppendStacktrace(s.stacktrace[:0], skip+1, -1)
+	s.stacktrace = stacktrace.AppendStacktrace(s.stacktrace[:0], skip+1, s.stackTraceLimit)
 }
 
 func (s *SpanData) reset(tracer *Tracer) {

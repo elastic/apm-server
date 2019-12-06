@@ -22,13 +22,17 @@ import (
 )
 
 // Middleware wraps a request.Handler
-type Middleware func(request.Handler) request.Handler
+type Middleware func(request.Handler) (request.Handler, error)
 
 // Wrap wraps a request.Handler into given middleware functions,
 // maintaining order from the last to the first middleware
-func Wrap(h request.Handler, m ...Middleware) request.Handler {
+func Wrap(h request.Handler, m ...Middleware) (request.Handler, error) {
 	for i := len(m) - 1; i >= 0; i-- {
-		h = m[i](h)
+		var e error
+		h, e = m[i](h)
+		if e != nil {
+			return nil, e
+		}
 	}
-	return h
+	return h, nil
 }

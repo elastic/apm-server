@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/stretchr/testify/assert"
@@ -33,7 +34,6 @@ import (
 
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 )
 
@@ -104,7 +104,7 @@ func TestDecodeSpan(t *testing.T) {
 				"name": name, "type": "db.postgresql.query.custom", "start": start, "duration": duration, "parent_id": parentId,
 				"timestamp": timestampEpoch, "id": id, "trace_id": traceId, "stacktrace": []interface{}{"foo"},
 			},
-			err: m.ErrInvalidStacktraceFrameType.Error(),
+			err: "invalid type for stacktrace frame",
 		},
 		"minimal payload": {
 			input: map[string]interface{}{
@@ -230,8 +230,8 @@ func TestDecodeSpan(t *testing.T) {
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	start := 0.65
-	serviceName, env := "myService", "staging"
-	service := metadata.Service{Name: &serviceName, Environment: &env}
+	serviceName, serviceVersion, env := "myService", "1.2", "staging"
+	service := metadata.Service{Name: &serviceName, Version: &serviceVersion, Environment: &env}
 	hexId, parentId, traceId := "0147258369012345", "abcdef0123456789", "01234567890123456789abcdefa"
 	subtype := "myspansubtype"
 	action := "myspanquery"
@@ -240,6 +240,7 @@ func TestSpanTransform(t *testing.T) {
 	timestampUs := timestamp.UnixNano() / 1000
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user := "db01", "select *", "sql", "jane"
+	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
 
 	tests := []struct {
 		Event  Event
@@ -256,6 +257,7 @@ func TestSpanTransform(t *testing.T) {
 					"name":     "",
 					"type":     "",
 				},
+				"labels":    metadataLabels,
 				"timestamp": common.MapStr{"us": timestampUs},
 			},
 			Msg: "Span without a Stacktrace",
@@ -305,7 +307,7 @@ func TestSpanTransform(t *testing.T) {
 						"method":   "get",
 					},
 				},
-				"labels":    common.MapStr{"label.a": 12},
+				"labels":    common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
 				"processor": common.MapStr{"event": "span", "name": "transaction"},
 				"service":   common.MapStr{"name": serviceName, "environment": env},
 				"timestamp": common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
@@ -317,8 +319,8 @@ func TestSpanTransform(t *testing.T) {
 	}
 
 	tctx := &transform.Context{
-		Config:      transform.Config{SourcemapMapper: &sourcemap.SmapMapper{}},
-		Metadata:    metadata.Metadata{Service: &service},
+		Config:      transform.Config{SourcemapStore: &sourcemap.Store{}},
+		Metadata:    metadata.Metadata{Service: &service, Labels: metadataLabels},
 		RequestTime: timestamp,
 	}
 	for _, test := range tests {

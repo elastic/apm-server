@@ -18,8 +18,6 @@
 package agentcfg
 
 import (
-	"crypto/md5"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,48 +27,21 @@ import (
 
 func TestNewDoc(t *testing.T) {
 	t.Run("InvalidInput", func(t *testing.T) {
-		d, err := NewDoc([]byte("some string"))
+		_, err := newResult([]byte("some string"), nil)
 		assert.Error(t, err)
-		assert.Empty(t, d)
 	})
 
 	t.Run("EmptyInput", func(t *testing.T) {
-		d, err := NewDoc([]byte{})
+		d, err := newResult([]byte{}, nil)
 		require.NoError(t, err)
-		expectedDoc := Doc{
-			Settings: map[string]string{},
-			ID:       fmt.Sprintf("%x", md5.Sum([]byte{}))}
-		assert.Equal(t, &expectedDoc, d)
+		assert.Equal(t, zeroResult(), d)
 	})
 
 	t.Run("ValidInput", func(t *testing.T) {
-		inp := []byte(`{"_id": "1234", 
-"_source": {"settings":{"sample_rate":0.5,"name":"testconfig","sampling":true,
-"b":["b", "a"],
-"nested":{"ab":"val","ac":[3,1,2],"aa":{"c":45.6}}}}}`)
+		inp := []byte(`{"_id": "1234", "_source": {"etag":"123", "settings":{"sample_rate":0.5}}}`)
 
-		settings := Settings{
-			"b":           "b,a",
-			"sample_rate": "0.5",
-			"name":        "testconfig",
-			"sampling":    "true",
-			"nested.ab":   "val",
-			"nested.ac":   "3,1,2",
-			"nested.aa.c": "45.6",
-		}
-
-		var b []byte
-		b = append(b, []byte("b_b,a")...)
-		b = append(b, []byte("name_testconfig")...)
-		b = append(b, []byte("nested.aa.c_45.6")...)
-		b = append(b, []byte("nested.ab_val")...)
-		b = append(b, []byte("nested.ac_3,1,2")...)
-		b = append(b, []byte("sample_rate_0.5")...)
-		b = append(b, []byte("sampling_true")...)
-		id := fmt.Sprintf("%x", md5.Sum(b))
-
-		d, err := NewDoc(inp)
+		d, err := newResult(inp, nil)
 		require.NoError(t, err)
-		assert.Equal(t, &Doc{Settings: settings, ID: id}, d)
+		assert.Equal(t, Result{Source{Etag: "123", Settings: Settings{"sample_rate": "0.5"}}}, d)
 	})
 }

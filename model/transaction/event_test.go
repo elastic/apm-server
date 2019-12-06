@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -31,9 +32,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/beats/libbeat/common"
+
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/transform"
-	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestTransactionEventDecodeFailure(t *testing.T) {
@@ -72,7 +74,7 @@ func TestTransactionEventDecode(t *testing.T) {
 	sampled := true
 	labels := model.Labels{"foo": "bar"}
 	ua := "go-1.1"
-	user := metadata.User{Name: &name, Email: &email, IP: &userIp, Id: &userId, UserAgent: &ua}
+	user := metadata.User{Name: &name, Email: &email, IP: net.ParseIP(userIp), Id: &userId, UserAgent: &ua}
 	page := model.Page{Url: &url, Referer: &referer}
 	request := model.Req{Method: "post", Socket: &model.Socket{}, Headers: http.Header{"User-Agent": []string{ua}}}
 	response := model.Resp{Finished: new(bool), Headers: http.Header{"Content-Type": []string{"text/html"}}}
@@ -175,6 +177,7 @@ func TestTransactionEventDecode(t *testing.T) {
 				Custom:    &custom,
 				Http:      &h,
 				Url:       &ctxUrl,
+				Client:    &model.Client{IP: net.ParseIP(userIp)},
 			},
 		},
 	} {
@@ -297,9 +300,9 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
 	timestampUs := timestamp.UnixNano() / 1000
 	id, name, ip, userAgent := "123", "jane", "63.23.123.4", "node-js-2.3"
-	user := metadata.User{Id: &id, Name: &name, IP: &ip, UserAgent: &userAgent}
+	user := metadata.User{Id: &id, Name: &name, IP: net.ParseIP(ip), UserAgent: &userAgent}
 	url, referer := "https://localhost", "http://localhost"
-	serviceName := "myservice"
+	serviceName, serviceNodeName, serviceVersion := "myservice", "service-123", "2.1.3"
 	metadataLabels := common.MapStr{"a": true}
 	service := metadata.Service{Name: &serviceName}
 	system := func() *metadata.System {
@@ -317,7 +320,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"name":  "transaction",
 		},
 		"service": common.MapStr{
-			"name": "myservice",
+			"name": serviceName,
 		},
 		"transaction": common.MapStr{
 			"duration": common.MapStr{"us": 0},
@@ -329,7 +332,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		"timestamp": common.MapStr{"us": timestampUs},
 	}
 
-	txValidWithSystem := common.MapStr{
+	txValidWithSystemES := common.MapStr{
 		"host": common.MapStr{
 			"architecture": architecture,
 			"hostname":     hostname,
@@ -343,7 +346,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"name":  "transaction",
 		},
 		"service": common.MapStr{
-			"name": "myservice",
+			"name": serviceName, "node": common.MapStr{"name": hostname},
 		},
 		"labels":    common.MapStr{"a": true},
 		"timestamp": common.MapStr{"us": timestampUs},
@@ -365,10 +368,12 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 		Http:      &model.Http{Request: &request, Response: &response},
 		Url:       &model.Url{Original: &url},
 		Custom:    &model.Custom{"foo": "bar"},
+		Client:    &model.Client{IP: net.ParseIP("198.12.13.1")},
 	}
 	txWithContextEs := common.MapStr{
 		"user":       common.MapStr{"id": "123", "name": "jane"},
-		"client":     common.MapStr{"ip": "63.23.123.4"},
+		"client":     common.MapStr{"ip": "198.12.13.1"},
+		"source":     common.MapStr{"ip": "198.12.13.1"},
 		"user_agent": common.MapStr{"original": userAgent},
 		"host": common.MapStr{
 			"architecture": "darwin",
@@ -383,7 +388,7 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			"name":  "transaction",
 		},
 		"service": common.MapStr{
-			"name": "myservice",
+			"name": "myservice", "node": common.MapStr{"name": "jane"},
 		},
 		"timestamp": common.MapStr{"us": timestampUs},
 		"transaction": common.MapStr{
@@ -442,14 +447,13 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Output: []common.MapStr{txValidEs, spanEs},
 			Msg:    "Payload with multiple Events",
 		},
-
 		{
 			Metadata: metadata.NewMetadata(
 				&service, system(),
 				nil, nil, metadataLabels,
 			),
 			Event:  &txValid,
-			Output: []common.MapStr{txValidWithSystem},
+			Output: []common.MapStr{txValidWithSystemES},
 			Msg:    "Payload with System and Event",
 		},
 		{
@@ -460,6 +464,27 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 			Event:  &txWithContext,
 			Output: []common.MapStr{txWithContextEs},
 			Msg:    "Payload with Service, System and Event with context",
+		},
+		{
+			Metadata: metadata.NewMetadata(
+				func() *metadata.Service {
+					s, err := metadata.DecodeService(map[string]interface{}{
+						"name":    "m-name",
+						"version": "m-version",
+						"node":    map[string]interface{}{"configured_name": serviceNodeName}}, nil)
+					require.NoError(t, err)
+					return s
+				}(),
+				nil, nil, nil, nil,
+			),
+			Event: &Event{Timestamp: timestamp, Service: &metadata.Service{Version: &serviceVersion}},
+			Output: []common.MapStr{{
+				"processor":   common.MapStr{"event": "transaction", "name": "transaction"},
+				"service":     common.MapStr{"name": "m-name", "version": serviceVersion, "node": common.MapStr{"name": serviceNodeName}},
+				"timestamp":   common.MapStr{"us": timestampUs},
+				"transaction": common.MapStr{"duration": common.MapStr{"us": 0}, "id": "", "type": "", "sampled": true},
+			}},
+			Msg: "Deep update service fields",
 		},
 	}
 

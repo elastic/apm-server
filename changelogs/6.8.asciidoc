@@ -3,7 +3,50 @@
 
 https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
 
+* <<release-notes-6.8.5>>
+* <<release-notes-6.8.4>>
+* <<release-notes-6.8.3>>
+* <<release-notes-6.8.2>>
+* <<release-notes-6.8.1>>
 * <<release-notes-6.8.0>>
+
+[[release-notes-6.8.5]]
+=== APM Server version 6.8.5
+
+https://github.com/elastic/apm-server/compare/v6.8.4\...v6.8.5[View commits]
+
+No significant changes.
+
+[[release-notes-6.8.4]]
+=== APM Server version 6.8.4
+
+https://github.com/elastic/apm-server/compare/v6.8.3\...v6.8.4[View commits]
+
+No significant changes.
+
+[[release-notes-6.8.3]]
+=== APM Server version 6.8.3
+
+https://github.com/elastic/apm-server/compare/v6.8.2\...v6.8.3[View commits]
+
+No significant changes.
+
+[[release-notes-6.8.2]]
+=== APM Server version 6.8.2
+
+https://github.com/elastic/apm-server/compare/v6.8.1\...v6.8.2[View commits]
+
+No significant changes.
+
+[[release-notes-6.8.1]]
+=== APM Server version 6.8.1
+
+https://github.com/elastic/apm-server/compare/v6.8.0\...v6.8.1[View commits]
+
+[float]
+==== Added
+
+- Support more SSL config options for agent/server communication {pull}2224[2224], {pull}2281[2281].
 
 [[release-notes-6.8.0]]
 === APM Server version 6.8.0

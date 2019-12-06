@@ -18,88 +18,83 @@
 package agentcfg
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"hash"
-	"sort"
-	"strings"
 )
 
-// Doc represents an elasticsearch document
-type Doc struct {
-	Settings Settings
-	ID       string
+const (
+	// ServiceName keyword
+	ServiceName = "service.name"
+	// ServiceEnv keyword
+	ServiceEnv = "service.environment"
+	// Etag / If-None-Match keyword
+	Etag = "ifnonematch"
+	// EtagSentinel is a value to return back to agents when Kibana doesn't have any configuration
+	EtagSentinel = "-"
+)
+
+var (
+	// RumAgent keywords (new and old)
+	RumAgent = []string{"rum-js", "js-base"}
+	// RumSettings are whitelisted applicable settings for RUM
+	RumSettings = []string{"transaction_sample_rate"}
+)
+
+// Result models a Kibana response
+type Result struct {
+	Source Source `json:"_source"`
+}
+
+// Source is the Elasticsearch _source
+type Source struct {
+	Settings Settings `json:"settings"`
+	Etag     string   `json:"etag"`
+	Agent    string   `json:"agent_name"`
+}
+
+// Query represents an URL body or query params for agent configuration
+type Query struct {
+	Service Service `json:"service"`
+	Etag    string  `json:"etag"`
+	IsRum   bool    `json:"-"`
+}
+
+func (q Query) id() string {
+	return q.Service.Name + q.Service.Environment
+}
+
+// NewQuery creates a Query struct
+func NewQuery(name, env string) Query {
+	return Query{Service: Service{name, env}}
+}
+
+// Service holds supported attributes for querying configuration
+type Service struct {
+	Name        string `json:"name"`
+	Environment string `json:"environment,omitempty"`
 }
 
 // Settings hold agent configuration
 type Settings map[string]string
 
-// NewDoc unmarshals given byte slice into a Doc instance
-func NewDoc(inp []byte) (*Doc, error) {
-	settings, err := unmarshal(inp)
-	if err != nil {
-		return nil, err
+// UnmarshalJSON overrides default method to convert any JSON type to string
+func (s Settings) UnmarshalJSON(b []byte) error {
+	in := make(map[string]interface{})
+	err := json.Unmarshal(b, &in)
+	for k, v := range in {
+		s[k] = fmt.Sprintf("%v", v)
 	}
-
-	h := md5.New()
-	var out = map[string]string{}
-	if err := parse(settings, out, "", h); err != nil {
-		return nil, err
-	}
-
-	return &Doc{ID: fmt.Sprintf("%x", h.Sum(nil)), Settings: out}, nil
+	return err
 }
 
-func unmarshal(inp []byte) (map[string]interface{}, error) {
-	if len(inp) == 0 {
-		return nil, nil
-	}
-	type tmpDoc struct {
-		Source struct {
-			Settings map[string]interface{} `json:"settings"`
-		} `json:"_source"`
-	}
-	var tmp tmpDoc
-	if err := json.Unmarshal(inp, &tmp); err != nil {
-		return nil, err
-	}
-	return tmp.Source.Settings, nil
+func zeroResult() Result {
+	return Result{Source: Source{Settings: Settings{}, Etag: EtagSentinel}}
 }
 
-func parse(inp map[string]interface{}, out map[string]string, rootKey string, h hash.Hash) error {
-	var keys []string
-	for k := range inp {
-		keys = append(keys, k)
+func newResult(b []byte, err error) (Result, error) {
+	r := zeroResult()
+	if err == nil && len(b) > 0 {
+		err = json.Unmarshal(b, &r)
 	}
-	sort.Strings(keys)
-	var localkey string
-	for _, k := range keys {
-		localkey = dotKey(rootKey, k)
-
-		switch val := inp[k].(type) {
-		case map[string]interface{}:
-			if err := parse(val, out, localkey, h); err != nil {
-				return err
-			}
-		case []interface{}:
-			var strArr = make([]string, len(val))
-			for idx, entry := range val {
-				strArr[idx] = fmt.Sprintf("%+v", entry)
-			}
-			out[localkey] = strings.Join(strArr, ",")
-			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, out[localkey])))
-		default:
-			out[localkey] = fmt.Sprintf("%+v", val)
-			h.Write([]byte(fmt.Sprintf("%s_%v", localkey, val)))
-		}
-	}
-	return nil
-}
-
-func dotKey(k1, k2 string) string {
-	if k1 == "" {
-		return k2
-	}
-	return fmt.Sprintf("%s.%s", k1, k2)
+	return r, err
 }

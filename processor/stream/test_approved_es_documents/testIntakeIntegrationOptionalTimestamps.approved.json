@@ -39,6 +39,9 @@
                     "version": "8"
                 },
                 "name": "backendspans",
+                "node": {
+                    "name": "prod1.example.com"
+                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -147,6 +150,9 @@
                     "version": "8"
                 },
                 "name": "backendspans",
+                "node": {
+                    "name": "prod1.example.com"
+                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"

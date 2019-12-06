@@ -2,10 +2,15 @@ import yaml
 import os
 import json
 import shutil
-from apmserver import SubCommandTest
+from apmserver import SubCommandTest, integration_test
 
 
-class ExportConfigDefaultTest(SubCommandTest):
+class ExportCommandTest(SubCommandTest):
+    register_pipeline_disabled = True
+
+
+@integration_test
+class ExportConfigDefaultTest(ExportCommandTest):
     """
     Test export config subcommand.
     """
@@ -44,7 +49,8 @@ class ExportConfigDefaultTest(SubCommandTest):
             }, config["setup"])
 
 
-class ExportConfigTest(SubCommandTest):
+@integration_test
+class ExportConfigTest(ExportCommandTest):
     """
     Test export config subcommand.
     """
@@ -86,7 +92,8 @@ class ExportConfigTest(SubCommandTest):
             }, config["setup"])
 
 
-class TestExportTemplate(SubCommandTest):
+@integration_test
+class TestExportTemplate(ExportCommandTest):
     """
     Test export template
     """
@@ -117,69 +124,9 @@ class TestExportTemplate(SubCommandTest):
         assert len(template['mappings']) > 0
         assert template['order'] == 1
 
-    def test_export_event_templates_to_file(self):
-        """
-        Test export default event templates without ILM
-        """
-        for e in ['error', 'span', 'transaction', 'metric']:
-            name = "{}-{}".format(self.index_name, e)
-            file = os.path.join(self.dir, "template", name + '.json')
-            with open(file) as f:
-                template = json.load(f)
-            assert template['index_patterns'] == [name + '*']
-            assert template['settings']['index'] == None
-            assert 'mapping' not in template
-            assert template['order'] == 2
 
-
-class TestExportTemplateWithILM(SubCommandTest):
-    """
-    Test export template with ilm
-    """
-
-    def start_args(self):
-        return {
-            "extra_args": ["export", "template", "--dir", self.dir,
-                           "-E", "apm-server.ilm.enabled=true",
-                           "-E", "output.elasticsearch.enabled=true"],
-        }
-
-    def setUp(self):
-        self.dir = os.path.abspath(os.path.join(self.beat_path, os.path.dirname(__file__), "test-export-template-ilm"))
-        super(TestExportTemplateWithILM, self).setUp()
-
-    def tearDown(self):
-        shutil.rmtree(self.dir)
-
-    def test_export_template_to_file(self):
-        """
-        Test export default ilm policy
-        """
-        file = os.path.join(self.dir, "template", self.index_name + '.json')
-        with open(file) as f:
-            template = json.load(f)
-        assert template['index_patterns'] == [self.index_name + '*']
-        assert len(template['mappings']) > 0
-        assert template['order'] == 1
-
-    def test_export_event_templates_to_file(self):
-        """
-        Test export default event templates
-        """
-        for e in ['error', 'span', 'transaction', 'metric']:
-            name = "{}-{}".format(self.index_name, e)
-            file = os.path.join(self.dir, "template", name + '.json')
-            with open(file) as f:
-                template = json.load(f)
-            assert template['index_patterns'] == [name + '*']
-            assert template['settings']['index'] is not None
-            assert template['settings']['index']['lifecycle.name'] == name
-            assert template['settings']['index']['lifecycle.rollover_alias'] == name
-            assert 'mapping' not in template
-            assert template['order'] == 2
-
-
-class TestExportILMPolicy(SubCommandTest):
+@integration_test
+class TestExportILMPolicy(ExportCommandTest):
     """
     Test export ilm-policy
     """
@@ -201,16 +148,20 @@ class TestExportILMPolicy(SubCommandTest):
         """
         Test export default ilm policy
         """
-        for e in ['error', 'span', 'transaction', 'metric']:
-            name = "{}-{}".format(self.index_name, e)
-            file = os.path.join(self.dir, "policy", name + '.json')
-            with open(file) as f:
-                policy = json.load(f)
-            assert "hot" in policy["policy"]["phases"]
-            assert "warm" in policy["policy"]["phases"]
-            assert "delete" not in policy["policy"]["phases"]
+
+        assert os.path.exists(self.dir)
+        dir = os.path.join(self.dir, "policy")
+        for subdir, dirs, files in os.walk(dir):
+            assert len(files) == 1, files
+            for file in files:
+                with open(os.path.join(dir, file)) as f:
+                    policy = json.load(f)
+                assert "hot" in policy["policy"]["phases"]
+                assert "warm" in policy["policy"]["phases"]
+                assert "delete" not in policy["policy"]["phases"]
 
 
+@integration_test
 class TestExportILMPolicyILMDisabled(TestExportILMPolicy):
     """
     Test export ilm-policy independent of ILM enabled state

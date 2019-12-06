@@ -26,14 +26,19 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema"
 
+	"github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/monitoring"
+
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/span/generated/schema"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
-	"github.com/elastic/beats/libbeat/beat"
-	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/monitoring"
+)
+
+const (
+	spanDocType = "span"
 )
 
 var (
@@ -42,8 +47,6 @@ var (
 
 	stacktraceCounter = monitoring.NewInt(Metrics, "stacktraces")
 	frameCounter      = monitoring.NewInt(Metrics, "frames")
-
-	spanDocType = "span"
 
 	processorEntry    = common.MapStr{"name": "transaction", "event": spanDocType}
 	cachedModelSchema = validation.CreateSchema(schema.ModelSchema, "span")
@@ -277,7 +280,8 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	// then add event specific information
 	utility.DeepUpdate(fields, "service", e.Service.MinimalFields())
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
-	utility.Set(fields, "labels", e.Labels)
+	// merges with metadata labels, overrides conflicting keys
+	utility.DeepUpdate(fields, "labels", e.Labels)
 	utility.AddId(fields, "parent", &e.ParentId)
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.AddId(fields, "transaction", e.TransactionId)

@@ -22,9 +22,34 @@ import (
 	"net/http"
 )
 
-// ExtractIP calls RemoteAddr(r), and passes the result into net.ParseIP
-// and returns that. If the request does not have a valid IP remote address,
-// this function will return nil.
+// ExtractIP calls ExtractIPFromHeader(r) to extract a valid IP address. If no valid IP can be extracted from headers,
+// ParseIP(r.RemoteAddr) is called.
 func ExtractIP(r *http.Request) net.IP {
-	return net.ParseIP(RemoteAddr(r))
+	if ip := ExtractIPFromHeader(r.Header); ip != nil {
+		return ip
+	}
+	return ParseIP(r.RemoteAddr)
+}
+
+// ExtractIPFromHeader extracts host information from `Forwarded`, `X-Real-IP`, `X-Forwarded-For` headers,
+// in this order. The first valid IP address extracted is returned.
+func ExtractIPFromHeader(header http.Header) net.IP {
+	for _, parseFn := range parseHeadersInOrder {
+		if ip := ParseIP(parseFn(header)); ip != nil {
+			return ip
+		}
+	}
+	return nil
+}
+
+// ParseIP returns the IP address parsed from a given input if a valid IP can be extracted. Otherwise returns nil.
+func ParseIP(inp string) net.IP {
+	if inp == "" {
+		return nil
+	}
+	host, _ := splitHost(inp)
+	if ip := net.ParseIP(host); ip != nil {
+		return ip
+	}
+	return nil
 }

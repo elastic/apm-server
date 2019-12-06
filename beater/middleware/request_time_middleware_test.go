@@ -29,6 +29,6 @@ import (
 func TestRequestTimeMiddleware(t *testing.T) {
 	c, _ := beatertest.DefaultContextWithResponseRecorder()
 	assert.Empty(t, utility.RequestTime(c.Request.Context()))
-	RequestTimeMiddleware()(beatertest.HandlerIdle)(c)
+	Apply(RequestTimeMiddleware(), beatertest.HandlerIdle)(c)
 	assert.NotEmpty(t, utility.RequestTime(c.Request.Context()))
 }

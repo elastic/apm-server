@@ -43,7 +43,6 @@ func TestAttributesPresenceInMetric(t *testing.T) {
 		"service",
 		"metricset",
 		"metricset.samples",
-		"metricset.timestamp",
 		"metricset.samples.+.value",
 	)
 	metricsetProcSetup().AttrsPresence(t, requiredKeys, nil)
@@ -54,9 +53,6 @@ func TestInvalidPayloads(t *testing.T) {
 	type val = []interface{}
 
 	validMetric := obj{"value": json.Number("1.0")}
-	// every payload needs a timestamp, these reduce the clutter
-	//tsk, ts := "timestamp", "2017-05-30T18:53:42.281Z"
-
 	payloadData := []tests.SchemaTestData{
 		{Key: "metricset.timestamp",
 			Valid: val{json.Number("1496170422281000")},

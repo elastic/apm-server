@@ -22,7 +22,7 @@ TEST_ENVIRONMENT=true
 ES_BEATS?=./_beats
 BEATS_VERSION?=master
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%S')
-GOBUILD_FLAGS=-i -ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
+GOBUILD_FLAGS=-ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.buildTime=$(NOW) -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbeat/version.commit=$(COMMIT_ID)"
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
@@ -33,6 +33,7 @@ STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 -include $(ES_BEATS)/libbeat/scripts/Makefile
 
 # updates beats updates the framework part and go parts of beats
+.PHONY: update-beats
 update-beats: govendor
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
@@ -43,6 +44,7 @@ update-beats: govendor
 	@govendor fetch github.com/elastic/beats/licenses@$(BEATS_VERSION)
 	@govendor fetch github.com/elastic/beats/x-pack/libbeat/cmd@$(BEATS_VERSION)
 	@BEATS_VERSION=$(BEATS_VERSION) script/update_beats.sh
+	@$(MAKE) rm-empty-folders
 	@$(MAKE) update
 	@echo --- Use this commit message: Update beats framework to `cat vendor/vendor.json | python -c 'import sys, json; print([p["revision"] for p in json.load(sys.stdin)["package"] if p["path"] == "github.com/elastic/beats/libbeat/beat"][0][:7])'`
 
@@ -94,18 +96,21 @@ create-docs:
 	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationMetricsets.approved.json docs/data/elasticsearch/generated/metricsets.json
 
 # Start manual testing environment with agents
+.PHONY: start-env
 start-env:
 	@docker-compose -f tests/docker-compose.yml build
 	@docker-compose -f tests/docker-compose.yml up -d
 
 # Stop manual testing environment with agents
+.PHONY: stop-env
 stop-env:
 	@docker-compose -f tests/docker-compose.yml down -v
 
-.PHONY: golint golint-install
+.PHONY: golint-install
 golint-install:
 	go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
 
+.PHONY: golint
 golint: golint-install
 	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
 
@@ -118,9 +123,10 @@ staticcheck:
 	go get $(STATICCHECK_REPO)
 	staticcheck $(BEAT_PATH)/...
 
-.PHONY: staticcheck
+.PHONY: check-deps
 check-deps: test-deps golint staticcheck
 
+.PHONY: check-full
 check-full: check-deps check
 	@# Validate that all updates were committed
 	@$(MAKE) update
@@ -151,7 +157,7 @@ update-beats-docs:
 
 # Builds a snapshot release. The Go version defined in .go-version will be
 # installed and used for the build.
-.PHONY: release-manager-release
+.PHONY: release-manager-snapshot
 release-manager-snapshot:
 	@$(MAKE) SNAPSHOT=true release-manager-release
 
@@ -181,3 +187,7 @@ import-dashboards:
 .PHONY: check-changelogs
 check-changelogs: ## @testing Checks the changelogs for certain branches.
 	@python script/check_changelogs.py
+
+.PHONY: rm-empty-folders
+rm-empty-folders:
+	find vendor/ -type d -empty -delete

@@ -5,7 +5,7 @@ import threading
 import time
 import zlib
 
-from apmserver import ServerBaseTest, ClientSideBaseTest, CorsBaseTest
+from apmserver import ServerBaseTest, ClientSideBaseTest, CorsBaseTest, integration_test
 
 
 try:
@@ -14,6 +14,7 @@ except ImportError:
     from io import StringIO
 
 
+@integration_test
 class Test(ServerBaseTest):
 
     def test_ok(self):
@@ -59,16 +60,10 @@ class Test(ServerBaseTest):
 
     def test_gzip(self):
         events = self.get_event_payload()
-        try:
-            out = StringIO()
-        except:
-            out = io.BytesIO()
+        out = StringIO()
 
         with gzip.GzipFile(fileobj=out, mode="w") as f:
-            try:
-                f.write(events)
-            except:
-                f.write(bytes(events, 'utf-8'))
+            f.write(events)
 
         r = requests.post(self.intake_url, data=out.getvalue(),
                           headers={'Content-Encoding': 'gzip', 'Content-Type': 'application/x-ndjson'})
@@ -76,10 +71,7 @@ class Test(ServerBaseTest):
 
     def test_deflate(self):
         events = self.get_event_payload()
-        try:
-            compressed_data = zlib.compress(events)
-        except:
-            compressed_data = zlib.compress(bytes(events, 'utf-8'))
+        compressed_data = zlib.compress(events)
 
         r = requests.post(self.intake_url, data=compressed_data,
                           headers={'Content-Encoding': 'deflate', 'Content-Type': 'application/x-ndjson'})
@@ -103,14 +95,11 @@ class Test(ServerBaseTest):
         assert r.status_code == 404, r.status_code
 
 
+@integration_test
 class ClientSideTest(ClientSideBaseTest):
 
     def test_ok(self):
         r = self.request_intake()
-        assert r.status_code == 202, r.status_code
-
-    def test_sourcemap_upload(self):
-        r = self.upload_sourcemap(file_name='bundle.js.map')
         assert r.status_code == 202, r.status_code
 
     def test_sourcemap_upload_fail(self):
@@ -124,6 +113,7 @@ class ClientSideTest(ClientSideBaseTest):
         assert r.status_code == 400, r.status_code
 
 
+@integration_test
 class CorsTest(CorsBaseTest):
 
     def test_ok(self):
@@ -165,6 +155,7 @@ class CorsTest(CorsBaseTest):
             assert r.headers['Access-Control-Allow-Methods'] == 'POST, OPTIONS', r.headers
 
 
+@integration_test
 class RateLimitTest(ClientSideBaseTest):
 
     def fire_events(self, data_file, iterations, split_ips=False):

@@ -151,9 +151,17 @@ deleting data collected for specific services or customers,
 or deleting specific indices.
 
 Depending on your use case,
-you can delete data periodically with {curator-ref-current}[Curator],
-by using the {ref}/docs-delete-by-query.html[Delete By Query API],
-or by using the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
+you can delete data periodically with <<delete-data-ilm,index lifecycle management>>,
+{curator-ref-current}[Curator], the {ref}/docs-delete-by-query.html[Delete By Query API],
+or in the {kibana-ref}/managing-indices.html[Kibana Index Management UI].
+
+[float]
+[[delete-data-ilm]]
+==== Delete data with ILM
+
+Index Lifecycle management (ILM) enables you to automate how you want to manage your indices over time.
+You can base actions on factors such as shard size and performance requirements.
+See <<ilm>> to learn more.
 
 [float]
 [[delete-data-periodically]]
@@ -166,29 +174,29 @@ With the curator command line interface you can, for instance, see all your exis
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-curator_cli --host localhost show_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-"\}]'
+curator_cli --host localhost show_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-"}]'
 
-apm-{stack-version}-error-{sample_date_0}
-apm-{stack-version}-error-{sample_date_1}
-apm-{stack-version}-error-{sample_date_2}
-apm-{stack-version}-sourcemap
-apm-{stack-version}-span-{sample_date_0}
-apm-{stack-version}-span-{sample_date_1}
-apm-{stack-version}-span-{sample_date_2}
-apm-{stack-version}-transaction-{sample_date_0}
-apm-{stack-version}-transaction-{sample_date_1}
-apm-{stack-version}-transaction-{sample_date_2}
+apm-{version}-error-{sample_date_0}
+apm-{version}-error-{sample_date_1}
+apm-{version}-error-{sample_date_2}
+apm-{version}-sourcemap
+apm-{version}-span-{sample_date_0}
+apm-{version}-span-{sample_date_1}
+apm-{version}-span-{sample_date_2}
+apm-{version}-transaction-{sample_date_0}
+apm-{version}-transaction-{sample_date_1}
+apm-{version}-transaction-{sample_date_2}
 ------------------------------------------------------------
 
 And then delete any span indices older than 1 day:
 
 ["source","sh",subs="attributes"]
 ------------------------------------------------------------
-curator_cli --host localhost delete_indices --filter_list '[\{"filtertype":"pattern","kind":"prefix","value":"apm-{stack-version}-span-"\}, \{"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"\}]'
+curator_cli --host localhost delete_indices --filter_list '[{"filtertype":"pattern","kind":"prefix","value":"apm-{version}-span-"}, {"filtertype":"age","source":"name","timestring":"%Y.%m.%d","unit":"days","unit_count":1,"direction":"older"}]'
 
-INFO      Deleting selected indices: [apm-{stack-version}-span-{sample_date_0}, apm-{stack-version}-span-{sample_date_1}]
-INFO      ---deleting index apm-{stack-version}-span-{sample_date_0}
-INFO      ---deleting index apm-{stack-version}-span-{sample_date_1}
+INFO      Deleting selected indices: [apm-{version}-span-{sample_date_0}, apm-{version}-span-{sample_date_1}]
+INFO      ---deleting index apm-{version}-span-{sample_date_0}
+INFO      ---deleting index apm-{version}-span-{sample_date_1}
 INFO      "delete_indices" action completed.
 ------------------------------------------------------------
 

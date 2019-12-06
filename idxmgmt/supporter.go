@@ -101,7 +101,7 @@ func newSupporter(
 		st.isSet.CAS(false, true)
 	}
 
-	ilmSupporters, err := ilmSupporters(log, mode, info)
+	ilmSupporters, err := ilm.MakeDefaultSupporter(log, info, mode, ilmConfig, eventIdxNames(false))
 	if err != nil {
 		return nil, err
 	}
@@ -118,9 +118,11 @@ func newSupporter(
 	}, nil
 }
 
-// Enabled indicates whether template or ilm setup is set to enabled in config.
+// Enabled indicates whether or not a callback should be registered to take care of setup.
+// As long as ILM is enabled, this needs to return true, even if ilm.setup.enabled is set to false.
+// The callback will not set up anything for ILM in that case, but signal the index selector that the setup is finished.
 func (s *supporter) Enabled() bool {
-	return s.templateConfig.Enabled || s.ilmConfig.Enabled()
+	return s.templateConfig.Enabled || s.ilmConfig.Setup.Enabled || s.ilmConfig.Mode != libilm.ModeDisabled
 }
 
 // Manager instance takes only care of the setup.
@@ -189,7 +191,7 @@ func (s *supporter) setIlmState(handler libidxmgmt.ClientHandler) {
 	}
 
 	for _, ilmSupporter := range s.ilmSupporters {
-		if enabled, err := ilmSupporter.Manager(handler).Enabled(); !enabled || err != nil {
+		if enabled, err := ilmSupporter.Manager(handler).CheckEnabled(); !enabled || err != nil {
 			stSet()
 			return
 		}
@@ -258,29 +260,4 @@ func checkTemplateESSettings(tmplCfg template.TemplateConfig, esIndexCfg *esInde
 		return errors.New("`setup.template.name` and `setup.template.pattern` have to be set if `output.elasticsearch` index name is modified")
 	}
 	return nil
-}
-
-func ilmSupporters(log *logp.Logger, mode libilm.Mode, info beat.Info) ([]libilm.Supporter, error) {
-	var (
-		ilmSupporters []libilm.Supporter
-		err           error
-		ilmCfg        *common.Config
-	)
-
-	for event, index := range eventIdxNames(false) {
-		if ilmCfg, err = common.NewConfigFrom(common.MapStr{
-			"enabled":     ilm.ModeString(mode),
-			"event":       event,
-			"policy_name": idxStr(event, ""),
-			"alias_name":  index},
-		); err != nil {
-			return nil, errors.Wrapf(err, "error creating index-management config")
-		}
-		ilmSupporter, err := ilm.MakeDefaultSupporter(log, info, ilmCfg)
-		if err != nil {
-			return nil, err
-		}
-		ilmSupporters = append(ilmSupporters, ilmSupporter)
-	}
-	return ilmSupporters, nil
 }

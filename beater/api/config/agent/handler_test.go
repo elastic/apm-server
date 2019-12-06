@@ -18,21 +18,24 @@
 package agent
 
 import (
-	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
+
+	"golang.org/x/time/rate"
+
+	"github.com/elastic/apm-server/agentcfg"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/common"
 
-	"github.com/elastic/apm-server/agentcfg"
-	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
@@ -44,20 +47,19 @@ import (
 type m map[string]interface{}
 
 var (
-	mockVersion = *common.MustNewVersion("7.3.0")
+	mockVersion = *common.MustNewVersion("7.5.0")
 	mockEtag    = "1c9588f5a4da71cdef992981a9c9735c"
-	emptyEtag   = fmt.Sprintf("%x", md5.New().Sum([]byte{}))
-	successBody = `{"sampling_rate":"0.5"}` + "\n"
-	emptyBody   = `{}` + "\n"
+	successBody = map[string]string{"sampling_rate": "0.5"}
+	emptyBody   = map[string]string{}
 
 	testcases = map[string]struct {
-		kbClient      kibana.Client
-		requestHeader map[string]string
-		queryParams   map[string]string
-		method        string
-
+		kbClient                               kibana.Client
+		requestHeader                          map[string]string
+		queryParams                            map[string]string
+		method                                 string
 		respStatus                             int
-		respBody, respBodyToken                string
+		respBodyToken                          map[string]string
+		respBody                               map[string]string
 		respEtagHeader, respCacheControlHeader string
 	}{
 		"NotModified": {
@@ -67,6 +69,7 @@ var (
 					"settings": m{
 						"sampling_rate": 0.5,
 					},
+					"etag": mockEtag,
 				},
 			}, mockVersion, true),
 			method:                 http.MethodGet,
@@ -84,6 +87,7 @@ var (
 					"settings": m{
 						"sampling_rate": 0.5,
 					},
+					"etag": mockEtag,
 				},
 			}, mockVersion, true),
 			method:                 http.MethodGet,
@@ -102,7 +106,7 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-python"},
 			respStatus:             http.StatusOK,
 			respCacheControlHeader: "max-age=4, must-revalidate",
-			respEtagHeader:         `"` + emptyEtag + `"`,
+			respEtagHeader:         fmt.Sprintf("\"%s\"", agentcfg.EtagSentinel),
 			respBody:               emptyBody,
 			respBodyToken:          emptyBody,
 		},
@@ -113,18 +117,8 @@ var (
 			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               beatertest.ResultErrWrap(agentcfg.ErrMsgSendToKibanaFailed),
-			respBodyToken:          beatertest.ResultErrWrap(fmt.Sprintf("%s: testerror", agentcfg.ErrMsgSendToKibanaFailed)),
-		},
-
-		"MultipleConfigs": {
-			kbClient:               tests.MockKibana(http.StatusMultipleChoices, m{"s1": 1}, mockVersion, true),
-			method:                 http.MethodGet,
-			queryParams:            map[string]string{"service.name": "opbeans-ruby"},
-			respStatus:             http.StatusServiceUnavailable,
-			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               beatertest.ResultErrWrap(agentcfg.ErrMsgMultipleChoices),
-			respBodyToken:          beatertest.ResultErrWrap(fmt.Sprintf("%s: {\\\"s1\\\":1}", agentcfg.ErrMsgMultipleChoices)),
+			respBody:               map[string]string{"error": agentcfg.ErrMsgSendToKibanaFailed},
+			respBodyToken:          map[string]string{"error": fmt.Sprintf("%s: testerror", agentcfg.ErrMsgSendToKibanaFailed)},
 		},
 
 		"NoConnection": {
@@ -132,8 +126,8 @@ var (
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               beatertest.ResultErrWrap(msgNoKibanaConnection),
-			respBodyToken:          beatertest.ResultErrWrap(msgNoKibanaConnection),
+			respBody:               map[string]string{"error": msgNoKibanaConnection},
+			respBodyToken:          map[string]string{"error": msgNoKibanaConnection},
 		},
 
 		"InvalidVersion": {
@@ -142,17 +136,17 @@ var (
 			method:                 http.MethodGet,
 			respStatus:             http.StatusServiceUnavailable,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               beatertest.ResultErrWrap(msgKibanaVersionNotCompatible),
-			respBodyToken: beatertest.ResultErrWrap(fmt.Sprintf("%s: min version 7.3.0, configured version 7.2.0",
-				msgKibanaVersionNotCompatible)),
+			respBody:               map[string]string{"error": msgKibanaVersionNotCompatible},
+			respBodyToken: map[string]string{"error": fmt.Sprintf("%s: min version 7.5.0, "+
+				"configured version 7.2.0", msgKibanaVersionNotCompatible)},
 		},
 
 		"NoService": {
 			kbClient:               tests.MockKibana(http.StatusOK, m{}, mockVersion, true),
 			method:                 http.MethodGet,
 			respStatus:             http.StatusBadRequest,
-			respBody:               beatertest.ResultErrWrap(msgInvalidQuery),
-			respBodyToken:          beatertest.ResultErrWrap(`service.name is required`),
+			respBody:               map[string]string{"error": msgInvalidQuery},
+			respBodyToken:          map[string]string{"error": "service.name is required"},
 			respCacheControlHeader: "max-age=300, must-revalidate",
 		},
 
@@ -161,8 +155,8 @@ var (
 			method:                 http.MethodPut,
 			respStatus:             http.StatusMethodNotAllowed,
 			respCacheControlHeader: "max-age=300, must-revalidate",
-			respBody:               beatertest.ResultErrWrap(msgMethodUnsupported),
-			respBodyToken:          beatertest.ResultErrWrap(fmt.Sprintf("%s: PUT", msgMethodUnsupported)),
+			respBody:               map[string]string{"error": msgMethodUnsupported},
+			respBodyToken:          map[string]string{"error": fmt.Sprintf("%s: PUT", msgMethodUnsupported)},
 		},
 	}
 )
@@ -172,7 +166,7 @@ func TestAgentConfigHandler(t *testing.T) {
 
 	for name, tc := range testcases {
 
-		runTest := func(t *testing.T, body string, tokenSet bool) {
+		runTest := func(t *testing.T, expectedBody map[string]string, tokenSet bool) {
 			h := Handler(tc.kbClient, &cfg)
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
@@ -187,13 +181,11 @@ func TestAgentConfigHandler(t *testing.T) {
 			require.Equal(t, tc.respStatus, w.Code)
 			require.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
 			require.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
-			if body == "" {
-				assert.Empty(t, w.Body)
-			} else {
-				b, err := ioutil.ReadAll(w.Body)
-				require.NoError(t, err)
-				assert.Equal(t, body, string(b))
-			}
+			b, err := ioutil.ReadAll(w.Body)
+			require.NoError(t, err)
+			var actualBody map[string]string
+			json.Unmarshal(b, &actualBody)
+			assert.Equal(t, expectedBody, actualBody)
 		}
 
 		t.Run(name+"NoSecretToken", func(t *testing.T) {
@@ -205,6 +197,7 @@ func TestAgentConfigHandler(t *testing.T) {
 		})
 	}
 }
+
 func TestAgentConfigHandler_NoKibanaClient(t *testing.T) {
 	cfg := config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
 	h := Handler(nil, &cfg)
@@ -239,6 +232,112 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 	h(ctx)
 
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
+
+func TestAgentConfigRum(t *testing.T) {
+	h := getHandler("rum-js")
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
+		"service": m{"name": "opbeans"}}))
+	ctx := &request.Context{}
+	ctx.Reset(w, r)
+	ctx.IsRum = true
+	h(ctx)
+	var actual map[string]string
+	json.Unmarshal(w.Body.Bytes(), &actual)
+	assert.Equal(t, headers.Etag, w.Header().Get(headers.AccessControlExposeHeaders))
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Equal(t, map[string]string{"transaction_sample_rate": "0.5"}, actual)
+}
+
+func TestAgentConfigRumEtag(t *testing.T) {
+	h := getHandler("rum-js")
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/rum?ifnonematch=123&service.name=opbeans", nil)
+	ctx := &request.Context{}
+	ctx.Reset(w, r)
+	ctx.IsRum = true
+	h(ctx)
+	assert.Equal(t, http.StatusNotModified, w.Code, w.Body.String())
+}
+
+func TestAgentConfigNotRum(t *testing.T) {
+	h := getHandler("node-js")
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/backend", convert.ToReader(m{
+		"service": m{"name": "opbeans"}}))
+	ctx := &request.Context{}
+	ctx.Reset(w, r)
+	h(ctx)
+	var actual map[string]string
+	json.Unmarshal(w.Body.Bytes(), &actual)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Equal(t, map[string]string{"capture_body": "transactions", "transaction_sample_rate": "0.5"}, actual)
+}
+
+func TestAgentConfigNoLeak(t *testing.T) {
+	h := getHandler("node-js")
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
+		"service": m{"name": "opbeans"}}))
+	ctx := &request.Context{}
+	ctx.Reset(w, r)
+	ctx.IsRum = true
+	h(ctx)
+	var actual map[string]string
+	json.Unmarshal(w.Body.Bytes(), &actual)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Equal(t, map[string]string{}, actual)
+}
+
+func TestAgentConfigRateLimit(t *testing.T) {
+	h := getHandler("rum-js")
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/rum", convert.ToReader(m{
+		"service": m{"name": "opbeans"}}))
+	ctx := &request.Context{}
+	ctx.Reset(w, r)
+	ctx.IsRum = true
+	ctx.RateLimiter = rate.NewLimiter(rate.Limit(0), 0)
+	h(ctx)
+	var actual map[string]string
+	json.Unmarshal(w.Body.Bytes(), &actual)
+	assert.Equal(t, http.StatusTooManyRequests, w.Code, w.Body.String())
+	assert.Equal(t, map[string]string{"error": "too many requests"}, actual)
+}
+
+func getHandler(agent string) request.Handler {
+	kb := tests.MockKibana(http.StatusOK, m{
+		"_id": "1",
+		"_source": m{
+			"settings": m{
+				"transaction_sample_rate": 0.5,
+				"capture_body":            "transactions",
+			},
+			"etag":       "123",
+			"agent_name": agent,
+		},
+	}, mockVersion, true)
+
+	var cfg = config.AgentConfig{Cache: &config.Cache{Expiration: time.Nanosecond}}
+	return Handler(kb, &cfg)
+}
+
+func TestIfNoneMatch(t *testing.T) {
+	var fromHeader = func(s string) *request.Context {
+		r := &http.Request{Header: map[string][]string{"If-None-Match": {s}}}
+		return &request.Context{Request: r}
+	}
+
+	var fromQueryArg = func(s string) *request.Context {
+		r := &http.Request{}
+		r.URL, _ = url.Parse("http://host:8200/path?ifnonematch=123")
+		return &request.Context{Request: r}
+	}
+
+	assert.Equal(t, "123", ifNoneMatch(fromHeader("123")))
+	assert.Equal(t, "123", ifNoneMatch(fromHeader(`"123"`)))
+	assert.Equal(t, "123", ifNoneMatch(fromQueryArg("123")))
 }
 
 func target(params map[string]string) string {

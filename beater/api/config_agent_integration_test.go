@@ -48,7 +48,7 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := configEnabledConfigAgent()
 		cfg.SecretToken = "1234"
-		h, err := configAgentHandler(cfg, beatertest.NilReporter)
+		h, err := backendAgentConfigHandler(cfg, beatertest.NilReporter)
 		require.NoError(t, err)
 		c, rec := beatertest.DefaultContextWithResponseRecorder()
 		c.Request.Header.Set(headers.Authorization, "Bearer 1234")
@@ -77,7 +77,7 @@ func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
 }
 
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
-	h, err := configAgentHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := backendAgentConfigHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
 	require.NoError(t, err)
 	rec := &beatertest.WriterPanicOnce{}
 	c := &request.Context{}
@@ -88,7 +88,7 @@ func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
-	h, err := configAgentHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
+	h, err := backendAgentConfigHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
 	require.NoError(t, err)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
 
@@ -103,7 +103,7 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 }
 
 func requestToConfigAgentHandler(t *testing.T, cfg *config.Config) *httptest.ResponseRecorder {
-	h, err := configAgentHandler(cfg, beatertest.NilReporter)
+	h, err := backendAgentConfigHandler(cfg, beatertest.NilReporter)
 	require.NoError(t, err)
 	c, rec := beatertest.DefaultContextWithResponseRecorder()
 	h(c)

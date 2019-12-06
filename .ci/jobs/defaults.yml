@@ -8,10 +8,12 @@
 ##### JOB DEFAULTS
 
 - job:
+    view: APM-CI
     logrotate:
-      daysToKeep: 30
       numToKeep: 100
     node: linux
+    periodic-folder-trigger: 1d
+    prune-dead-branches: true
     publishers:
     - email:
         recipients: infra-root+build@elastic.co

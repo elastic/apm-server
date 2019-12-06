@@ -1,0 +1,75 @@
+[[agent-server-ssl]]
+=== SSL input settings
+
+You can specify the following options in the `apm-server.ssl` section of the +{beatname_lc}.yml+ config file.
+They apply to SSL/TLS communication between the APM Server and APM Agents.
+
+[float]
+==== `enabled`
+
+The `enabled` setting can be used to enable the ssl configuration by setting
+it to `true`. The default value is `false`.
+
+[float]
+==== `certificate`
+
+The path to the file containing the certificate for Server authentication.
+Required if `apm-server.enabled` is `true`.
+
+[float]
+==== `key`
+
+The path to the file containing the Server certificate key.
+Required if `apm-server.enabled` is `true`.
+
+[float]
+==== `certificate_authorities`
+
+The list of root certificates for verifying client certificates.
+If `certificate_authorities` is empty or not set, the trusted certificate authorities of the host system are used.
+
+[float]
+==== `key_passphrase`
+
+The passphrase used to decrypt an encrypted key stored in the configured `key` file.
+We recommend saving the `key_passphrase` in the APM Server <<keystore>>.
+
+[float]
+==== `supported_protocols`
+
+This setting is a list of allowed protocol versions:
+`SSLv3`, `TLSv1.0`, `TLSv1.1` and `TLSv1.2`. We do not recommend using `SSLv3` or `TLSv1.0`.
+The default value is `[TLSv1.1, TLSv1.2]`.
+
+[float]
+==== `cipher_suites`
+
+The list of cipher suites to use. The first entry has the highest priority.
+If this option is omitted, the Go crypto library's default
+suites are used (recommended).
+
+[float]
+==== `curve_types`
+
+The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key exchange).
+
+[float]
+==== `client_authentication`
+
+This configures what types of client authentication are supported. The valid options
+are `none`, `optional`, and `required`. The default is `optional`.
+If `certificate_authorities` has been specified, this setting will automatically change to `required`.
+
+* `none` - Disables client authentication.
+* `optional` - When a client certificate is given, the server will verify it.
+* `required` - Requires clients to provide a valid certificate.
+
+[float]
+==== `verification_mode`
+
+This option controls whether the client verifies server certificates and host
+names. Valid values are `none` and `full`. If `none` is used,
+SSL-based connections are susceptible to man-in-the-middle attacks. Use this
+option for testing only.
+
+The default is `full`.

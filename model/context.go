@@ -19,14 +19,16 @@ package model
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/elastic/apm-server/model/metadata"
 
-	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/beats/libbeat/common"
+
+	"github.com/elastic/apm-server/utility"
 )
 
 // Context holds all information sent under key context
@@ -38,6 +40,7 @@ type Context struct {
 	Custom       *Custom
 	User         *metadata.User
 	Service      *metadata.Service
+	Client       *Client
 	Experimental interface{}
 }
 
@@ -96,6 +99,11 @@ type Resp struct {
 	Headers     http.Header
 }
 
+// Client holds information about the client.ip of the event.
+type Client struct {
+	IP net.IP
+}
+
 // DecodeContext parses all information from input, nested under key context and returns an instance of Context.
 func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	if input == nil || err != nil {
@@ -103,7 +111,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	}
 	raw, ok := input.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("invalid type for fetching Context fields")
+		return nil, errors.New("invalid type for fetching Context out")
 	}
 
 	decoder := utility.ManualDecoder{}
@@ -118,8 +126,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	if cfg.Experimental {
 		experimental = decoder.Interface(ctxInp, "experimental")
 	}
-	err = decoder.Err
-	http, err := decodeHttp(ctxInp, err)
+	http, err := decodeHttp(ctxInp, decoder.Err)
 	url, err := decodeUrl(ctxInp, err)
 	labels, err := decodeLabels(ctxInp, err)
 	custom, err := decodeCustom(ctxInp, err)
@@ -127,6 +134,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 	service, err := metadata.DecodeService(serviceInp, err)
 	user, err := metadata.DecodeUser(userInp, err)
 	user = addUserAgent(user, http)
+	client, err := decodeClient(user, http, err)
 
 	ctx := Context{
 		Http:         http,
@@ -136,6 +144,7 @@ func DecodeContext(input interface{}, cfg Config, err error) (*Context, error) {
 		Custom:       custom,
 		User:         user,
 		Service:      service,
+		Client:       client,
 		Experimental: experimental,
 	}
 
@@ -173,20 +182,6 @@ func (h *Http) Fields() common.MapStr {
 	return fields
 }
 
-// ClientFields returns common.MapStr holding transformed data for attribute client. If given data include IP information,
-// data are returned unchanged, otherwise IP information will be extracted from http data if possible.
-func (h *Http) ClientFields(fields common.MapStr) common.MapStr {
-	if fields != nil && fields["ip"] != nil {
-		return fields
-	}
-	if h == nil ||
-		h.Request == nil || h.Request.Socket == nil ||
-		h.Request.Socket.RemoteAddress == nil || *h.Request.Socket.RemoteAddress == "" {
-		return fields
-	}
-	return common.MapStr{"ip": *h.Request.Socket.RemoteAddress}
-}
-
 // UserAgent parses User Agent information from attribute http.
 func (h *Http) UserAgent() string {
 	if h == nil || h.Request == nil {
@@ -221,6 +216,14 @@ func (custom *Custom) Fields() common.MapStr {
 		return nil
 	}
 	return common.MapStr(*custom)
+}
+
+// Fields returns common.MapStr holding transformed data for attribute client.
+func (c *Client) Fields() common.MapStr {
+	if c == nil || c.IP == nil {
+		return nil
+	}
+	return common.MapStr{"ip": c.IP.String()}
 }
 
 func addUserAgent(user *metadata.User, h *Http) *metadata.User {
@@ -268,6 +271,27 @@ func decodeUrl(raw common.MapStr, err error) (*Url, error) {
 	}
 
 	return &url, err
+}
+
+func decodeClient(user *metadata.User, http *Http, err error) (*Client, error) {
+	if err != nil {
+		return nil, err
+	}
+	// user.IP is only set for RUM events
+	if user != nil && user.IP != nil {
+		return &Client{IP: user.IP}, nil
+	}
+	// http.Request.Headers and http.Request.Socket information is only set for backend events
+	// try to first extract an IP address from the headers, if not possible use IP address from socket remote_address
+	if http != nil && http.Request != nil {
+		if ip := utility.ExtractIPFromHeader(http.Request.Headers); ip != nil {
+			return &Client{IP: ip}, nil
+		}
+		if http.Request.Socket != nil && http.Request.Socket.RemoteAddress != nil {
+			return &Client{IP: utility.ParseIP(*http.Request.Socket.RemoteAddress)}, nil
+		}
+	}
+	return nil, nil
 }
 
 func decodeHttp(raw common.MapStr, err error) (*Http, error) {

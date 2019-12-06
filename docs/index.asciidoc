@@ -1,7 +1,8 @@
 include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
-:version: {stack-version}
+:libbeat-dir: {docdir}/copied-from-beats
+:version: {apm_server_version}
 :beatname_lc: apm-server
 :beatname_uc: APM Server
 :beatname_pkg: {beatname_lc}
@@ -16,9 +17,9 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :dockerconfig: https://raw.githubusercontent.com/elastic/apm-server/{doc-branch}/apm-server.docker.yml
 :discuss_forum: apm
 :github_repo_name: apm-server
-:sample_date_0: 2019.03.10
-:sample_date_1: 2019.03.11
-:sample_date_2: 2019.03.12
+:sample_date_0: 2019.10.20
+:sample_date_1: 2019.10.21
+:sample_date_2: 2019.10.22
 :repo: apm-server
 :no_kibana:
 :no_ilm:
@@ -33,6 +34,8 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :win_os:
 :linux_os:
 
+:downloads: https://artifacts.elastic.co/downloads/apm-server
+
 ifdef::env-github[]
 NOTE: For the best reading experience,
 please view this documentation at https://www.elastic.co/guide/en/apm/server[elastic.co]
@@ -43,19 +46,19 @@ endif::[]
 
 include::./overview.asciidoc[]
 
-include::./installing.asciidoc[]
-
-include::./upgrading.asciidoc[]
+include::./getting-started-apm-server.asciidoc[]
 
 include::./setting-up-and-running.asciidoc[]
+
+include::./upgrading.asciidoc[]
 
 :beat-specific-output-config: ./../configuring-output-after.asciidoc
 include::./configuring.asciidoc[]
 
 :beat-specific-security: ../security.asciidoc
-include::./copied-from-beats/shared-securing-beat.asciidoc[]
+include::{libbeat-dir}/shared-securing-beat.asciidoc[]
 
-include::./copied-from-beats/monitoring/monitoring-beats.asciidoc[]
+include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[]
 
 include::./rum.asciidoc[]
 

@@ -29,7 +29,6 @@ import (
 
 	logs "github.com/elastic/apm-server/log"
 	"github.com/elastic/apm-server/model/sourcemap/generated/schema"
-	smap "github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 	"github.com/elastic/apm-server/validation"
@@ -66,14 +65,10 @@ func (pa *Sourcemap) Transform(tctx *transform.Context) []beat.Event {
 		return nil
 	}
 
-	if tctx.Config.SourcemapMapper == nil {
+	if tctx.Config.SourcemapStore == nil {
 		logp.NewLogger(logs.Sourcemap).Error("Sourcemap Accessor is nil, cache cannot be invalidated.")
 	} else {
-		tctx.Config.SourcemapMapper.NewSourcemapAdded(smap.Id{
-			ServiceName:    pa.ServiceName,
-			ServiceVersion: pa.ServiceVersion,
-			Path:           pa.BundleFilepath,
-		})
+		tctx.Config.SourcemapStore.Added(pa.ServiceName, pa.ServiceVersion, pa.BundleFilepath)
 	}
 
 	ev := beat.Event{

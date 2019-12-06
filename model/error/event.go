@@ -56,6 +56,7 @@ var (
 const (
 	processorName = "error"
 	errorDocType  = "error"
+	emptyString   = ""
 )
 
 var cachedModelSchema = validation.CreateSchema(schema.ModelSchema, processorName)
@@ -80,6 +81,7 @@ type Event struct {
 	Url     *m.Url
 	Custom  *m.Custom
 	Service *metadata.Service
+	Client  *m.Client
 
 	Exception *Exception
 	Log       *Log
@@ -140,6 +142,7 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 		User:               ctx.User,
 		Service:            ctx.Service,
 		Experimental:       ctx.Experimental,
+		Client:             ctx.Client,
 		Timestamp:          decoder.TimeEpochMicro(raw, "timestamp"),
 		TransactionId:      decoder.StringPtr(raw, "transaction_id"),
 		ParentId:           decoder.StringPtr(raw, "parent_id"),
@@ -193,9 +196,11 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	tctx.Metadata.Set(fields)
 	// then add event specific information
 	utility.Update(fields, "user", e.User.Fields())
-	utility.DeepUpdate(fields, "client", e.Http.ClientFields(e.User.ClientFields()))
+	clientFields := e.Client.Fields()
+	utility.DeepUpdate(fields, "client", clientFields)
+	utility.DeepUpdate(fields, "source", clientFields)
 	utility.DeepUpdate(fields, "user_agent", e.User.UserAgentFields())
-	utility.DeepUpdate(fields, "service", e.Service.Fields())
+	utility.DeepUpdate(fields, "service", e.Service.Fields(emptyString, emptyString))
 	utility.DeepUpdate(fields, "agent", e.Service.AgentFields())
 	// merges with metadata labels, overrides conflicting keys
 	utility.DeepUpdate(fields, "labels", e.Labels.Fields())
@@ -248,7 +253,7 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 }
 
 func (e *Event) updateCulprit(tctx *transform.Context) {
-	if tctx.Config.SourcemapMapper == nil {
+	if tctx.Config.SourcemapStore == nil {
 		return
 	}
 	var fr *m.StacktraceFrame

@@ -21,6 +21,12 @@ package apmhttp
 
 import "net/http"
 
+// UnknownRouteRequestName returns the transaction name for the server request, req,
+// when the route could not be determined.
+func UnknownRouteRequestName(req *http.Request) string {
+	return req.Method + " unknown route"
+}
+
 // ServerRequestName returns the transaction name for the server request, req.
 func ServerRequestName(req *http.Request) string {
 	buf := make([]byte, len(req.Method)+len(req.URL.Path)+1)

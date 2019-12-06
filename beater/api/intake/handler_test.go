@@ -25,10 +25,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/elastic/apm-server/beater/api/ratelimit"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/beater/beatertest"
 	"github.com/elastic/apm-server/beater/config"
@@ -44,7 +45,8 @@ import (
 )
 
 func TestIntakeHandler(t *testing.T) {
-
+	var rateLimit, err = ratelimit.NewStore(1, 0, 0)
+	require.NoError(t, err)
 	for name, tc := range map[string]testcaseIntakeHandler{
 		"Method": {
 			path: "errors.ndjson",
@@ -61,9 +63,9 @@ func TestIntakeHandler(t *testing.T) {
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
 		},
 		"RateLimit": {
-			path: "errors.ndjson",
-			rlc:  &mockBlockingRateLimiter{},
-			code: http.StatusTooManyRequests, id: request.IDResponseErrorsRateLimit,
+			path:      "errors.ndjson",
+			rateLimit: rateLimit,
+			code:      http.StatusTooManyRequests, id: request.IDResponseErrorsRateLimit,
 		},
 		"BodyReader": {
 			path: "errors.ndjson",
@@ -139,8 +141,11 @@ func TestIntakeHandler(t *testing.T) {
 		// setup
 		tc.setup(t)
 
+		if tc.rateLimit != nil {
+			tc.c.RateLimiter = tc.rateLimit.ForIP(&http.Request{})
+		}
 		// call handler
-		h := Handler(tc.dec, tc.processor, tc.rlc, tc.reporter)
+		h := Handler(tc.dec, tc.processor, tc.reporter)
 		h(tc.c)
 
 		t.Run(name+"ID", func(t *testing.T) {
@@ -152,6 +157,9 @@ func TestIntakeHandler(t *testing.T) {
 
 			if tc.code == http.StatusAccepted {
 				assert.NotNil(t, tc.w.Body.Len())
+				assert.Nil(t, tc.c.Result.Err)
+			} else {
+				assert.NotNil(t, tc.c.Result.Err)
 			}
 			body := tc.w.Body.Bytes()
 			approvals.AssertApproveResult(t, "test_approved/"+name, body)
@@ -165,7 +173,7 @@ type testcaseIntakeHandler struct {
 	r         *http.Request
 	dec       decoder.ReqDecoder
 	processor *stream.Processor
-	rlc       RateLimiterManager
+	rateLimit *ratelimit.Store
 	reporter  func(ctx context.Context, p publish.PendingReq) error
 	path      string
 
@@ -206,12 +214,6 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	tc.c.Reset(tc.w, tc.r)
 }
 
-type mockBlockingRateLimiter struct{}
-
-func (m *mockBlockingRateLimiter) RateLimiter(key string) (*rate.Limiter, bool) {
-	return rate.NewLimiter(rate.Limit(0), 0), true
-}
-
-func emptyDec(*http.Request) (map[string]interface{}, error) {
+func emptyDec(_ *http.Request) (map[string]interface{}, error) {
 	return map[string]interface{}{}, nil
 }

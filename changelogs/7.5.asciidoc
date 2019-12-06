@@ -1,0 +1,34 @@
+[[release-notes-7.5]]
+== APM Server version 7.5
+
+https://github.com/elastic/apm-server/compare/7.4\...7.5[View commits]
+
+* <<release-notes-7.5.0>>
+
+[[release-notes-7.5.0]]
+=== APM Server version 7.5.0
+
+https://github.com/elastic/apm-server/compare/v7.4.1\...v7.5.0[View commits]
+
+[float]
+==== Breaking Changes
+- Introduce dedicated ILM setup flags and ignore `setup.template.*` flags for ILM {pull}2764[2764], {pull}2877[2877].
+- Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
+
+[float]
+==== Bug fixes
+- Fix a denial of service flaw when parsing malformed DSA public keys in Go.
+If APM Server is configured to accept incoming TLS connections with client
+authentication enabled, a remote attacker could cause the APM Server to stop
+processing events (CVE-2019-17596).
+See https://www.elastic.co/community/security/[Elastic security issues].
+
+[float]
+==== Added
+- Add `service.node.configured_name` to Intake API and transform to `service.node.name` for ES output {pull}2746[2746].
+- Index value from `client.ip` in `source.ip` for ECS compatibility {pull}2771[2771].
+- Make ILM policies configurable {pull}2764[2764].
+- Add support for agent config GA {pull}2747[2747].
+- Change ILM default policies to rollover after 30 days {pull}2798[2798].
+- Introduce `apm-server.ilm.setup.overwrite` config option and stop overwriting by default {pull}2877[2877].
+- Upgrade Go to 1.12.12 {pull}2922[2922].

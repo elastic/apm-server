@@ -35,7 +35,7 @@ func TestCORSMiddleware(t *testing.T) {
 	cors := func(origin string, allowedOrigins []string, m string) (*request.Context, *httptest.ResponseRecorder) {
 		c, rec := beatertest.ContextWithResponseRecorder(m, "/")
 		c.Request.Header.Set(headers.Origin, origin)
-		CORSMiddleware(allowedOrigins)(beatertest.Handler202)(c)
+		Apply(CORSMiddleware(allowedOrigins), beatertest.Handler202)(c)
 		return c, rec
 	}
 
