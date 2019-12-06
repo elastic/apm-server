@@ -42,8 +42,12 @@ ES_USER?=beats
 ES_PASS?=testing
 KIBANA_HOST?=kibana
 KIBANA_PORT?=5601
+# Kibana's Elaticsearch user
 KIBANA_ES_USER?=beats
 KIBANA_ES_PASS?=testing
+# The beat's Kibana user
+BEAT_KIBANA_USER?=${KIBANA_ES_USER}
+BEAT_KIBANA_PASS?=${KIBANA_ES_PASS}
 PWD=$(shell pwd)
 BUILD_DIR?=$(shell pwd)/build
 PKG_BUILD_DIR?=$(BUILD_DIR)/package${PKG_SUFFIX}
@@ -391,6 +395,8 @@ write-environment:
 	echo "ES_PASS=${ES_PASS}" >> ${BUILD_DIR}/test.env
 	echo "KIBANA_HOST=${KIBANA_HOST}" >> ${BUILD_DIR}/test.env
 	echo "KIBANA_PORT=${KIBANA_PORT}" >> ${BUILD_DIR}/test.env
+	echo "KIBANA_USER=${BEAT_KIBANA_USER}" >> ${BUILD_DIR}/test.env
+	echo "KIBANA_PASS=${BEAT_KIBANA_PASS}" >> ${BUILD_DIR}/test.env
 	# set Kibana ENV variables
 	echo "ELASTICSEARCH_URL=${ES_HOST}:${ES_PORT}" > ${BUILD_DIR}/kibana.test.env
 	echo "ELASTICSEARCH_USERNAME=${KIBANA_ES_USER}" >> ${BUILD_DIR}/kibana.test.env
