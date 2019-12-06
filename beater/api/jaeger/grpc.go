@@ -20,9 +20,10 @@ package jaeger
 import (
 	"context"
 
-	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	trjaeger "github.com/open-telemetry/opentelemetry-collector/translator/trace/jaeger"
+
+	"github.com/elastic/beats/libbeat/monitoring"
 
 	"github.com/elastic/apm-server/beater/request"
 	"github.com/elastic/apm-server/processor/otel"

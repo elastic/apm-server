@@ -1,0 +1,28 @@
+{
+    "Labels": {},
+    "Process": null,
+    "Service": {
+        "Agent": {
+            "EphemeralId": null,
+            "Name": "Foo",
+            "Version": "\u003cunknown\u003e"
+        },
+        "Environment": null,
+        "Framework": {
+            "Name": null,
+            "Version": null
+        },
+        "Language": {
+            "Name": "\u003cunknown\u003e",
+            "Version": null
+        },
+        "Name": "\u003cunknown\u003e",
+        "Runtime": {
+            "Name": null,
+            "Version": null
+        },
+        "Version": null
+    },
+    "System": null,
+    "User": null
+}

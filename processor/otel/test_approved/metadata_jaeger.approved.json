@@ -1,0 +1,46 @@
+{
+    "Labels": {
+        "a": "b",
+        "c": "d",
+        "foo": "bar",
+        "resource": "request"
+    },
+    "Process": {
+        "Argv": null,
+        "Pid": 107892,
+        "Ppid": null,
+        "Title": null
+    },
+    "Service": {
+        "Agent": {
+            "EphemeralId": "xxf0",
+            "Name": "Jaeger/Java",
+            "Version": "12345"
+        },
+        "Environment": null,
+        "Framework": {
+            "Name": null,
+            "Version": null
+        },
+        "Language": {
+            "Name": "Java",
+            "Version": null
+        },
+        "Name": "foo",
+        "Runtime": {
+            "Name": null,
+            "Version": null
+        },
+        "Version": null
+    },
+    "System": {
+        "Architecture": null,
+        "ConfiguredHostname": null,
+        "Container": null,
+        "DetectedHostname": "host-foo",
+        "IP": "17.0.10.123",
+        "Kubernetes": null,
+        "Platform": null
+    },
+    "User": null
+}

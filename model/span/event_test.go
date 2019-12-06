@@ -24,16 +24,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/beats/libbeat/common"
+
 	m "github.com/elastic/apm-server/model"
 	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
 	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/beats/libbeat/common"
 )
 
 func TestDecodeSpan(t *testing.T) {
@@ -219,10 +219,10 @@ func TestDecodeSpan(t *testing.T) {
 				TraceId:       traceId,
 				ParentId:      parentId,
 				TransactionId: &transactionId,
-				HTTP:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				DB:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user, Link: &link},
-				Destination:   &destination{Address: &address, Port: &port},
-				DestinationService: &destinationService{
+				HTTP:          &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				DB:            &DB{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user, Link: &link},
+				Destination:   &Destination{Address: &address, Port: &port},
+				DestinationService: &DestinationService{
 					Type:     &destServiceType,
 					Name:     &destServiceName,
 					Resource: &destServiceResource,
@@ -293,10 +293,10 @@ func TestSpanTransform(t *testing.T) {
 				Duration:    1.20,
 				Stacktrace:  m.Stacktrace{{AbsPath: &path}},
 				Labels:      common.MapStr{"label.a": 12},
-				HTTP:        &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				DB:          &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
-				Destination: &destination{Address: &address, Port: &port},
-				DestinationService: &destinationService{
+				HTTP:        &HTTP{Method: &method, StatusCode: &statusCode, URL: &url},
+				DB:          &DB{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
+				Destination: &Destination{Address: &address, Port: &port},
+				DestinationService: &DestinationService{
 					Type:     &destServiceType,
 					Name:     &destServiceName,
 					Resource: &destServiceResource,

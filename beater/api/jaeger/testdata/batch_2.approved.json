@@ -1,0 +1,187 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-17T14:22:30.561315+01:00",
+            "agent": {
+                "ephemeral_id": "78dd6e017f54a2c1",
+                "name": "Jaeger",
+                "version": "Go-2.20.1"
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "127.0.0.1",
+                "name": "host01"
+            },
+            "http": {
+                "request": {
+                    "method": "GET"
+                },
+                "response": {
+                    "status_code": 201
+                }
+            },
+            "labels": {
+                "component": "http_request",
+                "message_bus_destination": "messagebus.listener01",
+                "peer_additional": "foo",
+                "peer_address": "mysql://test:3306",
+                "peer_hostname": "17.21.15.81",
+                "peer_ipv4": "17.21.15.81",
+                "peer_ipv6": "[2001:db8:0:1]:80",
+                "peer_port": 3306,
+                "peer_service": "mysql"
+            },
+            "parent": {
+                "id": "65b4115c7ebe6014"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "\u003cunknown\u003e"
+                },
+                "name": "customer",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576588950561315
+            },
+            "trace": {
+                "id": "000000000000000065b4115c7ebe6014"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 270206
+                },
+                "id": "77454f04219daaec",
+                "name": "RecordHTTP",
+                "result": "HTTP 2xx",
+                "sampled": true,
+                "type": "request"
+            },
+            "url": {
+                "domain": "jaeger-test.com",
+                "full": "http://jaeger-test.com",
+                "original": "http://jaeger-test.com",
+                "scheme": "http"
+            }
+        },
+        {
+            "@timestamp": "2019-12-17T14:22:30.561044+01:00",
+            "agent": {
+                "ephemeral_id": "78dd6e017f54a2c1",
+                "name": "Jaeger",
+                "version": "Go-2.20.1"
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "127.0.0.1",
+                "name": "host01"
+            },
+            "http": {
+                "request": {
+                    "method": "GET"
+                },
+                "response": {
+                    "status_code": 200
+                }
+            },
+            "labels": {
+                "component": "net/http",
+                "sampler_param": true,
+                "sampler_type": "const"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "\u003cunknown\u003e"
+                },
+                "name": "customer",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576588950561044
+            },
+            "trace": {
+                "id": "000000000000000065b4115c7ebe6014"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 271692
+                },
+                "id": "65b4115c7ebe6014",
+                "name": "HTTP GET /customer",
+                "result": "HTTP 2xx",
+                "sampled": true,
+                "type": "request"
+            },
+            "url": {
+                "domain": "host01",
+                "full": "http://host01/customer?customer=123",
+                "original": "/customer?customer=123",
+                "path": "/customer",
+                "query": "customer=123",
+                "scheme": "http"
+            }
+        },
+        {
+            "@timestamp": "2019-12-17T14:22:30.83546+01:00",
+            "agent": {
+                "ephemeral_id": "78dd6e017f54a2c1",
+                "name": "Jaeger",
+                "version": "Go-2.20.1"
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": "127.0.0.1",
+                "name": "host01"
+            },
+            "labels": {
+                "as": "thrift",
+                "peer_ipv4": 2130706433,
+                "peer_port": 57470,
+                "peer_service": "driver-client",
+                "sampler_param": true,
+                "sampler_type": "const"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "\u003cunknown\u003e"
+                },
+                "name": "customer",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576588950835460
+            },
+            "trace": {
+                "id": "000000000000000065b4115c7ebe6014"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 236082
+                },
+                "id": "65b4115c7ebe6014",
+                "name": "Driver::findNearest",
+                "result": "Success",
+                "sampled": true,
+                "type": "custom"
+            }
+        }
+    ]
+}

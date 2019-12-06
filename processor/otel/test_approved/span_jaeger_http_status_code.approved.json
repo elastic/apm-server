@@ -1,0 +1,26 @@
+{
+    "Action": null,
+    "DB": null,
+    "Destination": null,
+    "DestinationService": null,
+    "Duration": 79000,
+    "Experimental": null,
+    "HTTP": {
+        "Method": "get",
+        "StatusCode": 202,
+        "URL": "http://foo.bar.com?a=12"
+    },
+    "Id": "41414646",
+    "Labels": null,
+    "Name": "HTTP GET",
+    "ParentId": "58585858",
+    "Service": null,
+    "Stacktrace": null,
+    "Start": null,
+    "Subtype": "http",
+    "Sync": null,
+    "Timestamp": "2019-12-16T13:46:58.000768068+01:00",
+    "TraceId": "46467830",
+    "TransactionId": null,
+    "Type": "external"
+}
