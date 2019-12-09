@@ -241,7 +241,7 @@ class ElasticTest(ServerBaseTest):
                     print(self.es.tasks.list())
                 except:
                     print("failed to query tasks")
-                raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
+                raise TimeoutError("Timed out waiting for '{}' to be true. ".format(name) +
                                    "Waited {} seconds.".format(max_timeout))
             time.sleep(poll_interval)
         return result
