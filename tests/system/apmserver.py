@@ -232,6 +232,11 @@ class ElasticTest(ServerBaseTest):
                 result = False
             if datetime.now() - start > timedelta(seconds=max_timeout):
                 try:
+                    print(self.es.nodes.hot_threads(threads=99999))
+                except:
+                    print("failed to query hot threads")
+
+                try:
                     print(self.es.cluster.pending_tasks())
                     print(self.es.tasks.list())
                 except:
