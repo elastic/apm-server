@@ -33,7 +33,6 @@ services:
       - "xpack.security.authc.realms.native.native1.order=1"
       - "xpack.security.enabled=true"
       - "xpack.license.self_generated.type=trial"
-      - "xpack.security.transport.ssl.verification_mode=none"
       - "xpack.security.authc.token.enabled=true"
       - "xpack.security.authc.api_key.enabled=true"
     volumes:
