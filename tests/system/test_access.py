@@ -131,6 +131,9 @@ class BaseAPIKeySetup(ServerBaseTest):
 
     @classmethod
     def tearDownClass(cls):
+        if not INTEGRATION_TESTS:
+            return
+
         for id in cls.created_api_keys:
             url = "{}/_security/api_key".format(cls.admin_es_url)
             payload = json.dumps({'id': id})
