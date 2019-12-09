@@ -30,8 +30,8 @@
           after: true
           before: true
         prune: true
-        shallow-clone: true
-        depth: 3
+        shallow-clone: false
+        depth: 100
         do-not-fetch-tags: true
         submodule:
           disable: false
