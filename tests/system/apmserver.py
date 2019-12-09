@@ -19,6 +19,7 @@ from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 
+
 class BaseTest(TestCase):
     maxDiff = None
 
@@ -59,7 +60,7 @@ class BaseTest(TestCase):
         host = os.getenv("ES_HOST", "localhost")
 
         if not user:
-            user = os.getenv("ES_USER", "elastic")
+            user = os.getenv("ES_USER", "admin")
         if not password:
             password = os.getenv("ES_PASS", "changeme")
 
@@ -119,9 +120,12 @@ class BaseTest(TestCase):
 
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
+    root_url = "{}/".format(host)
     agent_config_url = "{}/{}".format(host, "config/v1/agents")
     rum_agent_config_url = "{}/{}".format(host, "config/v1/rum/agents")
     intake_url = "{}/{}".format(host, 'intake/v2/events')
+    rum_intake_url = "{}/{}".format(host, 'intake/v2/rum/events')
+    sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
     def config(self):
@@ -152,8 +156,8 @@ class ServerSetUpBaseTest(BaseTest):
         cfg = self.config()
         # pipeline registration is enabled by default and only happens if the output is elasticsearch
         if not getattr(self, "register_pipeline_disabled", False) and \
-            cfg.get("elasticsearch_host") and \
-            cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
+                cfg.get("elasticsearch_host") and \
+                cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
             self.wait_until_pipelines_registered()
 
     def start_args(self):
@@ -167,7 +171,7 @@ class ServerSetUpBaseTest(BaseTest):
 
     def wait_until_pipelines_registered(self):
         self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
-                                                  name="pipelines registered")
+                        name="pipelines registered")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -241,7 +245,8 @@ class ElasticTest(ServerBaseTest):
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
-        assert all(idx.startswith("apm") for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
+        assert all(idx.startswith("apm")
+                   for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
         if self.es.indices.get("apm*"):
             self.es.indices.delete(index="apm*", ignore=[400, 404])
             for idx in self.indices:

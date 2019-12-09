@@ -68,6 +68,10 @@ func (a *apikeyAuth) IsAuthorizationConfigured() bool {
 // An api key is considered to be authorized when the api key has the configured privileges for the requested resource.
 // Privileges are fetched from Elasticsearch and then cached in a global cache.
 func (a *apikeyAuth) AuthorizedFor(resource string) (bool, error) {
+	if resource == "" {
+		resource = DefaultResource
+	}
+
 	//fetch from cache
 	if allowed, found := a.fromCache(resource); found {
 		return allowed, nil

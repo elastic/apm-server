@@ -25,6 +25,10 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 )
 
+const (
+	DefaultResource = "-"
+)
+
 // Builder creates an authorization Handler depending on configuration options
 type Builder struct {
 	apikey   *apikeyBuilder
@@ -37,7 +41,7 @@ type Handler Builder
 
 // Authorization interface to be implemented by different auth types
 type Authorization interface {
-	AuthorizedFor(_ string) (bool, error)
+	AuthorizedFor(string) (bool, error)
 	IsAuthorizationConfigured() bool
 }
 
@@ -55,10 +59,7 @@ func NewBuilder(cfg *config.Config) (*Builder, error) {
 			return nil, err
 		}
 
-		size := cfg.APIKeyConfig.LimitMin / cacheTimeoutMinute
-		if size <= 0 {
-			size = 1
-		}
+		size := cfg.APIKeyConfig.LimitMin * cacheTimeoutMinute
 		cache := newPrivilegesCache(cacheTimeoutMinute*time.Minute, size)
 		b.apikey = newApikeyBuilder(client, cache, []string{})
 		b.fallback = DenyAuth{}

@@ -32,6 +32,8 @@ KIBANA_ES_USER?=kibana_system_user
 KIBANA_ES_PASS?=changeme
 BEAT_KIBANA_USER?=apm_user_ro
 BEAT_KIBANA_PASS?=changeme
+ES_SUPERUSER_USER?=admin
+ES_SUPERUSER_PASS?=changeme
 
 # overwrite some beats targets cleanly
 .OVER := original-

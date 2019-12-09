@@ -3,6 +3,10 @@
 apm-server:
   host: "localhost:8200"
   secret_token: {{ secret_token }}
+  {% if api_key_enabled %}
+  api_key.enabled: {{ api_key_enabled }}
+  api_key.limit: {{ api_key_limit | default(100) }}
+  {% endif %}
 
   {% if max_event_size %}
   # Maximum allowed size in bytes of a single event

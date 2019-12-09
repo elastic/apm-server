@@ -5,7 +5,11 @@ import ssl
 import os
 import subprocess
 import shutil
-import unittest
+import json
+import random
+import string
+import base64
+
 
 from nose.tools import raises
 from requests.exceptions import SSLError, ChunkedEncodingError
@@ -16,44 +20,313 @@ requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
 
 
-class TestAccessWithCredentials(ServerBaseTest):
+def headers(auth=None, content_type='application/x-ndjson'):
+    h = {'content-type': content_type}
+    if auth is not None:
+        auth_headers = {'Authorization': auth}
+        auth_headers.update(h)
+        return auth_headers
+    return h
 
+
+class TestAccessDefault(ServerBaseTest):
+    """
+    Unsecured endpoints
+    """
+
+    def test_full_access(self):
+        """
+        Test that authorized API Key is not accepted when API Key usage is disabled
+        """
+        events = self.get_event_payload()
+
+        # access without token allowed
+        resp = requests.post(self.intake_url, data=events, headers=headers())
+        assert resp.status_code == 202, resp.status_code
+
+        # access with any Bearer token allowed
+        resp = requests.post(self.intake_url, data=events, headers=headers(auth="Bearer 1234"))
+        assert resp.status_code == 202, resp.status_code
+
+        # access with any API Key allowed
+        resp = requests.post(self.intake_url, data=events, headers=headers(auth=""))
+        assert resp.status_code == 202, resp.status_code
+
+
+class TestAccessWithSecretToken(ServerBaseTest):
     def config(self):
-        cfg = super(TestAccessWithCredentials, self).config()
+        cfg = super(TestAccessWithSecretToken, self).config()
         cfg.update({"secret_token": "1234"})
         return cfg
 
-    def test_with_token(self):
+    def test_backend_intake(self):
         """
         Test that access works with token
         """
 
-        url = 'http://localhost:8200/intake/v2/events'
         events = self.get_event_payload()
-        headers = {'content-type': 'application/x-ndjson'}
 
-        def oauth(v):
-            aheaders = {'Authorization': v}
-            aheaders.update(headers)
-            return aheaders
-
-        r = requests.post(url, data=events, headers=headers)
+        r = requests.post(self.intake_url, data=events, headers=headers(""))
         assert r.status_code == 401, r.status_code
 
-        r = requests.post(url,
-                          data=events,
-                          headers=oauth('Bearer 1234'))
+        r = requests.post(self.intake_url, data=events, headers=headers('Bearer 1234'))
         assert r.status_code == 202, r.status_code
 
-        r = requests.post(url,
-                          data=events,
-                          headers=oauth('Bearer wrongtoken'))
-        assert r.status_code == 401, r.status_code
 
-        r = requests.post(url,
-                          data=events,
-                          headers=oauth('Wrongbearer 1234'))
-        assert r.status_code == 401, r.status_code
+@integration_test
+class BaseAPIKeySetup(ServerBaseTest):
+
+    @classmethod
+    def setUpClass(cls):
+        # According to https://docs.python.org/2/library/unittest.html#setupclass-and-teardownclass setUp and tearDown
+        # should be skipped when class is skipped, which is apparently not true.
+        # This is a hack to avoid running the setup while it should be skipped
+        if not INTEGRATION_TESTS:
+            return
+
+        # application
+        cls.application = "apm"
+
+        # apm-backend privileges
+        cls.privilege_intake = "event:write"
+        cls.privilege_config = "config_agent:read"
+        cls.privilege_sourcemap = "sourcemap:write"
+        cls.privileges_all = [cls.privilege_intake, cls.privilege_sourcemap, cls.privilege_config]
+        cls.privilege_any = "*"
+
+        # resources
+        cls.resource_any = ["*"]
+        cls.resource_backend = ["-"]
+
+        user = os.getenv("ES_SUPERUSER_USER", "admin")
+        password = os.getenv("ES_SUPERUSER_PASS", "changeme")
+        cls.admin_es_url = cls.get_elasticsearch_url(user, password)
+
+        content_type = 'application/json'
+
+        # create privileges
+        url_privileges = "{}/_security/privilege".format(cls.admin_es_url)
+        payload = json.dumps({cls.application: {
+            "sourcemap": {"actions": [cls.privilege_sourcemap]},
+            "intake": {"actions": [cls.privilege_intake]},
+            "config": {"actions": [cls.privilege_config]}}})
+        resp = requests.put(url_privileges, data=payload, headers=headers(content_type=content_type))
+        assert resp.status_code == 200, resp.status_code
+
+        # ensure user that creates the api keys has all privileges
+        # see how application privileges can be added to user roles in testing/docker/elasticsearch/roles.yml
+        url_user_privileges = "{}/_security/user/_has_privileges".format(cls.admin_es_url)
+        payload = json.dumps({"application": [{
+            "application": cls.application,
+            "privileges": [cls.privilege_config, cls.privilege_sourcemap, cls.privilege_intake],
+            "resources": cls.resource_backend}]})
+        resp = requests.post(url_user_privileges, data=payload, headers=headers(content_type=content_type))
+        assert resp.status_code == 200, resp.status_code
+        assert "has_all_requested" in resp.json(), resp.content
+        assert resp.json()["has_all_requested"] == True, resp.json()
+
+        cls.created_api_keys = []
+
+        super(BaseAPIKeySetup, cls).setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        for id in cls.created_api_keys:
+            url = "{}/_security/api_key".format(cls.admin_es_url)
+            payload = json.dumps({'id': id})
+            resp = requests.delete(url, data=payload, headers=headers(content_type='application/json'))
+            assert resp.status_code == 200, resp.status_code
+
+        super(BaseAPIKeySetup, cls).tearDownClass()
+
+    @classmethod
+    def create_api_key(cls, privileges, resources, application="apm"):
+        url = "{}/_security/api_key".format(cls.admin_es_url)
+        random_str = "".join(random.choice(string.ascii_letters) for i in range(16))
+        name = "apm-{}".format(random_str)
+        payload = json.dumps({
+            "name": name,
+            "role_descriptors": {
+                name+"role_desc": {
+                    "applications": [
+                        {"application": application, "privileges": privileges, "resources": resources}]}}})
+        resp = requests.post(url, data=payload, headers=headers(content_type='application/json'))
+        assert resp.status_code == 200, resp.status_code
+        cls.created_api_keys += [resp.json()["id"]]
+        return "ApiKey {}".format(base64.b64encode("{}:{}".format(resp.json()["id"], resp.json()["api_key"])))
+
+
+@integration_test
+class TestAPIKeyCache(BaseAPIKeySetup):
+    def config(self):
+        cfg = super(TestAPIKeyCache, self).config()
+        cfg.update({"api_key_enabled": True,
+                    "api_key_limit": 1})
+        return cfg
+
+    def test_cache_full(self):
+        """
+        Test that authorized API Key is not accepted when cache is full
+        api_key.limit: number of unique API Keys per minute
+        cache expires every 5 minutes
+        => cache size is api_key_limit*5
+        """
+
+        def assert_intake(api_key, authorized=True):
+            resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(api_key))
+            if authorized:
+                assert resp.status_code != 401,  "token: {}, status_code: {}".format(api_key, resp.status_code)
+            else:
+                assert resp.status_code == 401,  "token: {}, status_code: {}".format(api_key, resp.status_code)
+
+        # fill cache up until one spot
+        for i in range(4):
+            assert_intake("ApiKey xyz{}".format(i), authorized=False)
+
+        # allow for authorized api key
+        key1 = self.create_api_key([self.privilege_intake], self.resource_any)
+        assert_intake(key1, authorized=True)
+
+        # hit cache size
+        key2 = self.create_api_key([self.privilege_intake], self.resource_any)
+        assert_intake(key2, authorized=False)
+
+        # still allow already cached api key
+        assert_intake(key1, authorized=True)
+
+
+@integration_test
+class TestAccessWithAuthorization(BaseAPIKeySetup):
+
+    @classmethod
+    def setUpClass(cls):
+        # According to https://docs.python.org/2/library/unittest.html#setupclass-and-teardownclass setUp and tearDown
+        # should be skipped when class is skipped, which is apparently not true.
+        # This is a hack to avoid running the setup while it should be skipped
+        if not INTEGRATION_TESTS:
+            return
+
+        super(TestAccessWithAuthorization, cls).setUpClass()
+
+        cls.api_key_privileges_all_resource_any = cls.create_api_key(cls.privileges_all, cls.resource_any)
+        cls.api_key_privileges_all_resource_backend = cls.create_api_key(cls.privileges_all, cls.resource_backend)
+        cls.api_key_privilege_any_resource_any = cls.create_api_key(cls.privilege_any, cls.resource_any)
+        cls.api_key_privilege_any_resource_backend = cls.create_api_key(cls.privilege_any, cls.resource_backend)
+
+        cls.api_key_privilege_intake = cls.create_api_key([cls.privilege_intake], cls.resource_any)
+        cls.api_key_privilege_config = cls.create_api_key([cls.privilege_config], cls.resource_any)
+        cls.api_key_privilege_sourcemap = cls.create_api_key([cls.privilege_sourcemap], cls.resource_any)
+
+        cls.api_key_invalid_application = cls.create_api_key(cls.privileges_all, cls.resource_any, application="foo")
+        cls.api_key_invalid_privilege = cls.create_api_key(["foo"], cls.resource_any)
+        cls.api_key_invalid_resource = cls.create_api_key(cls.privileges_all, "foo")
+
+        cls.authorized_keys = ["Bearer 1234",
+                               cls.api_key_privileges_all_resource_any, cls.api_key_privileges_all_resource_backend,
+                               cls.api_key_privilege_any_resource_any, cls.api_key_privilege_any_resource_backend]
+
+        cls.unauthorized_keys = ['', 'Bearer ', 'Bearer wrongtoken', 'Wrongbearer 1234',
+                                 cls.api_key_invalid_privilege, cls.api_key_invalid_resource, "ApiKey nonexisting"]
+
+    def config(self):
+        cfg = super(TestAccessWithAuthorization, self).config()
+        cfg.update({"secret_token": "1234", "api_key_enabled": True, "enable_rum": True})
+        return cfg
+
+    def test_root(self):
+        """
+        Test authorization logic for root endpoint
+        """
+        url = self.root_url
+
+        for token in self.unauthorized_keys:
+            resp = requests.get(url, headers=headers(token))
+            assert resp.status_code == 200, "token: {}, status_code: {}".format(token, resp.status_code)
+            assert resp.content == '', "token: {}, response: {}".format(token, resp.content)
+
+        keys_one_privilege = [self.api_key_privilege_config,
+                              self.api_key_privilege_sourcemap, self.api_key_privilege_intake]
+        for token in self.authorized_keys+keys_one_privilege:
+            resp = requests.get(url, headers=headers(token))
+            assert resp.status_code == 200,  "token: {}, status_code: {}".format(token, resp.status_code)
+            assert resp.content != '',  "token: {}, response: {}".format(token, resp.content)
+            for token in ["build_date", "build_sha", "version"]:
+                assert token in resp.json(), "token: {}, response: {}".format(token, resp.content)
+
+    def test_backend_intake(self):
+        """
+        Test authorization logic for backend Intake endpoint
+        """
+        url = self.intake_url
+        events = self.get_event_payload()
+
+        for token in self.authorized_keys+[self.api_key_privilege_intake]:
+            resp = requests.post(url, data=events, headers=headers(token))
+            assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
+
+        for token in self.unauthorized_keys+[self.api_key_privilege_config, self.api_key_privilege_sourcemap]:
+            resp = requests.post(url, data=events, headers=headers(token))
+            assert resp.status_code == 401,  "token: {}, status_code: {}".format(token, resp.status_code)
+
+    def test_rum_intake(self):
+        """
+        Test authorization logic for RUM Intake endpoint.
+        """
+        url = self.rum_intake_url
+        events = self.get_event_payload()
+
+        # Endpoint is not secured, all keys are expected to be allowed.
+        for token in self.authorized_keys + self.unauthorized_keys:
+            resp = requests.post(url, data=events, headers=headers(token))
+            assert resp.status_code != 401,  "token: {}, status_code: {}".format(token, resp.status_code)
+
+    def test_agent_config(self):
+        """
+        Test authorization logic for backend Agent Configuration endpoint
+        """
+        url = self.agent_config_url
+
+        for token in self.authorized_keys+[self.api_key_privilege_config]:
+            resp = requests.get(url, headers=headers(token, content_type="application/json"))
+            assert resp.status_code != 401,  "token: {}, status_code: {}".format(token, resp.status_code)
+
+        for token in self.unauthorized_keys+[self.api_key_privilege_intake, self.api_key_privilege_sourcemap]:
+            resp = requests.get(url, headers=headers(token, content_type="application/json"))
+            assert resp.status_code == 401,  "token: {}, status_code: {}".format(token, resp.status_code)
+
+    def test_rum_agent_config(self):
+        """
+        Test authorization logic for RUM Agent Configuration endpoint
+        """
+        url = self.rum_agent_config_url
+
+        # Endpoint is not secured, all keys are expected to be allowed.
+        for token in self.authorized_keys + self.unauthorized_keys:
+            resp = requests.get(url, headers=headers(token, content_type="application/json"))
+            assert resp.status_code != 401, "token: {}, status_code: {}".format(token, resp.status_code)
+
+    def test_sourcemap(self):
+        """
+        Test authorization logic for Sourcemap upload endpoint
+        """
+        def upload(token):
+            f = open(self._beat_path_join('testdata', 'sourcemap', 'bundle_no_mapping.js.map'))
+            resp = requests.post(self.sourcemap_url,
+                                 headers=headers(token, content_type="application/json"),
+                                 files={'sourcemap': f},
+                                 data={'service_version': '1.0.1',
+                                       'bundle_filepath': 'mapping.js.map',
+                                       'service_name': 'apm-agent-js'
+                                       })
+            return resp
+
+        for token in self.unauthorized_keys+[self.api_key_privilege_config, self.api_key_privilege_intake]:
+            resp = upload(token)
+            assert resp.status_code == 401, "token: {}, status_code: {}".format(token, resp.status_code)
+
+        for token in self.authorized_keys+[self.api_key_privilege_sourcemap]:
+            resp = upload(token)
+            assert resp.status_code != 401, "token: {}, status_code: {}".format(token, resp.status_code)
 
 
 @integration_test
