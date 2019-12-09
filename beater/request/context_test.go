@@ -20,6 +20,7 @@ package request
 import (
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/elastic/beats/libbeat/logp"
 
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 )
 
@@ -48,16 +50,25 @@ func TestContext_Reset(t *testing.T) {
 	}
 	c.Reset(w2, r2)
 
-	assert.Equal(t, http.MethodHead, c.Request.Method)
-	assert.Empty(t, c.Logger)
-	assert.False(t, c.TokenSet)
-	assert.False(t, c.Authorized)
-
-	assert.Equal(t, w2, c.w)
-
-	assert.Equal(t, http.StatusOK, c.Result.StatusCode)
-	assert.Empty(t, c.Result.Err)
-	assert.Empty(t, c.Result.Stacktrace)
+	// use reflection to ensure all fields of `context` are tested
+	cType := reflect.TypeOf(c)
+	cVal := reflect.ValueOf(c)
+	for i := 0; i < cVal.NumField(); i++ {
+		switch cType.Field(i).Name {
+		case "Request":
+			assert.Equal(t, r2, cVal.Field(i).Interface())
+		case "Authorization":
+			assert.Equal(t, &authorization.AllowAuth{}, cVal.Field(i).Interface())
+		case "w":
+			assert.Equal(t, w2, c.w)
+		case "writeAttempts":
+			assert.Equal(t, 0, c.writeAttempts)
+		case "Result":
+			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
+		default:
+			assert.Empty(t, cVal.Field(i).Interface(), cType.Field(i).Name)
+		}
+	}
 }
 
 func TestContext_Header(t *testing.T) {
@@ -199,4 +210,5 @@ func mockContextAccept(accept string) (*Context, *httptest.ResponseRecorder) {
 	r.Header.Set(headers.Accept, accept)
 	c.Reset(w, r)
 	return c, w
+
 }

@@ -30,6 +30,8 @@ import (
 
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/outputs"
+
+	"github.com/elastic/apm-server/elasticsearch"
 )
 
 func Test_UnpackConfig(t *testing.T) {
@@ -37,14 +39,12 @@ func Test_UnpackConfig(t *testing.T) {
 	version := "8.0.0"
 
 	tests := map[string]struct {
-		inpCfg       map[string]interface{}
-		outCfg       *Config
-		outCfgWithES *Config
+		inpCfg map[string]interface{}
+		outCfg *Config
 	}{
 		"default config": {
-			inpCfg:       map[string]interface{}{},
-			outCfg:       DefaultConfig(version),
-			outCfgWithES: DefaultConfig(version),
+			inpCfg: map[string]interface{}{},
+			outCfg: DefaultConfig(version),
 		},
 		"overwrite default": {
 			inpCfg: map[string]interface{}{
@@ -94,6 +94,11 @@ func Test_UnpackConfig(t *testing.T) {
 				},
 				"kibana":                        map[string]interface{}{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
+				"api_key": map[string]interface{}{
+					"enabled":             true,
+					"limit":               200,
+					"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
+				},
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -142,6 +147,11 @@ func Test_UnpackConfig(t *testing.T) {
 				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"}),
 				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 2 * time.Minute}},
 				Pipeline:    defaultAPMPipeline,
+				APIKeyConfig: &APIKeyConfig{
+					Enabled:  true,
+					LimitMin: 200,
+					ESConfig: &elasticsearch.Config{Hosts: elasticsearch.Hosts{"localhost:9201", "localhost:9202"}},
+				},
 			},
 		},
 		"merge config with default": {
@@ -171,6 +181,7 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
+				"api_key.enabled": true,
 			},
 			outCfg: &Config{
 				Host:            "localhost:3000",
@@ -215,9 +226,10 @@ func Test_UnpackConfig(t *testing.T) {
 						},
 					},
 				},
-				Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-				AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-				Pipeline:    defaultAPMPipeline,
+				Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+				AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+				Pipeline:     defaultAPMPipeline,
+				APIKeyConfig: &APIKeyConfig{Enabled: true, LimitMin: 100, ESConfig: elasticsearch.DefaultConfig()},
 			},
 		},
 	}
@@ -387,19 +399,23 @@ func TestAgentConfig(t *testing.T) {
 	})
 }
 
-func TestSourcemapESConfig(t *testing.T) {
+func TestNewConfig_ESConfig(t *testing.T) {
 	version := "8.0.0"
-	ucfg, err := common.NewConfigFrom(`{"rum":{"enabled":true}}`)
+	ucfg, err := common.NewConfigFrom(`{"rum.enabled":true,"api_key.enabled":true}`)
 	require.NoError(t, err)
 
 	// no es config given
 	cfg, err := NewConfig(version, ucfg, nil)
 	require.NoError(t, err)
 	assert.Nil(t, cfg.RumConfig.SourceMapping.ESConfig)
+	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.APIKeyConfig.ESConfig)
 
 	// with es config
 	outputESCfg := common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
 	cfg, err = NewConfig(version, ucfg, outputESCfg)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
+	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))
+	assert.NotNil(t, cfg.APIKeyConfig.ESConfig)
+	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.APIKeyConfig.ESConfig.Hosts))
 }

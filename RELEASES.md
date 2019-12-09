@@ -4,9 +4,7 @@
 
 * Backport all relevant commits
 
-* Create a PR that:
-    1. Uncomments out relevant release notes. Release notes are in the [changelogs](https://github.com/elastic/apm-server/tree/master/changelogs).
-    2. Updates the `:stack-version:`
+* Create a PR that uncomments out relevant release notes. Release notes are in the [changelogs](https://github.com/elastic/apm-server/tree/master/changelogs).
     * [Sample PR](https://github.com/elastic/apm-server/pull/2064/files)
 
 * Create a separate PR to update `vendor/github.com/elastic/beats/libbeat/version/version.go`
@@ -33,12 +31,7 @@
 
 ## When compatibility between Agents & Server changes
 
-1. Update the [agent/server compatibility matrix](https://github.com/elastic/apm-server/blob/master/docs/guide/agent-server-compatibility.asciidoc).
-
-2. Update the version in APM Server's [`/docs/version.asciidoc`](https://github.com/elastic/apm-server/blob/master/docs/version.asciidoc). This ensures cross document links point to the correct documentation version.
-
-3. Ensure the agent points to the correct server version by changing the `:branch:` attribute.
-    * Example: [Node 1.x](https://raw.githubusercontent.com/elastic/apm-agent-nodejs/1.x/docs/index.asciidoc) vs. [Node Master](https://raw.githubusercontent.com/elastic/apm-agent-nodejs/master/docs/index.asciidoc)
+* Update the [agent/server compatibility matrix](https://github.com/elastic/apm-server/blob/master/docs/guide/agent-server-compatibility.asciidoc).
 
 ## Templates
 
