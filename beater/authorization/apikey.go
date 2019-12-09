@@ -30,6 +30,9 @@ import (
 )
 
 const (
+	//DefaultResource for apm backend enabled API Keys
+	DefaultResource = "-"
+
 	application = "apm"
 	sep         = `","`
 

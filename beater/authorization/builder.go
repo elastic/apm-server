@@ -25,10 +25,6 @@ import (
 	"github.com/elastic/apm-server/elasticsearch"
 )
 
-const (
-	DefaultResource = "-"
-)
-
 // Builder creates an authorization Handler depending on configuration options
 type Builder struct {
 	apikey   *apikeyBuilder
