@@ -231,6 +231,11 @@ class ElasticTest(ServerBaseTest):
             except:
                 result = False
             if datetime.now() - start > timedelta(seconds=max_timeout):
+                try:
+                    print(self.es.cluster.pending_tasks())
+                    print(self.es.tasks.list())
+                except:
+                    print("failed to query tasks")
                 raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
                                    "Waited {} seconds.".format(max_timeout))
             time.sleep(poll_interval)
