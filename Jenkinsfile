@@ -12,6 +12,7 @@ pipeline {
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     GITHUB_CHECK_ITS_NAME = 'APM Integration Tests'
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
+    PIPELINE_LOG_LEVEL = 'DEBUG'
   }
   options {
     timeout(time: 2, unit: 'HOURS')
