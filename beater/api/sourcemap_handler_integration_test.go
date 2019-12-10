@@ -37,31 +37,28 @@ func TestSourcemapHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := cfgEnabledRUM()
 		cfg.SecretToken = "1234"
-		rec := requestToSourcemapHandler(t, cfg)
-
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
+		rec, err := requestToMuxerWithPattern(cfg, AssetSourcemapPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusUnauthorized, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
 		cfg := cfgEnabledRUM()
 		cfg.SecretToken = "1234"
-		h, err := sourcemapHandler(cfg, beatertest.NilReporter)
+		h := map[string]string{headers.Authorization: "Bearer 1234"}
+		rec, err := requestToMuxerWithHeader(cfg, AssetSourcemapPath, http.MethodPost, h)
 		require.NoError(t, err)
-		c, rec := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
-		c.Request.Header.Set(headers.Authorization, "Bearer 1234")
-		h(c)
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 }
 
 func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("OffRum", func(t *testing.T) {
-		rec := requestToSourcemapHandler(t, config.DefaultConfig(beatertest.MockBeatVersion()))
-
-		assert.Equal(t, http.StatusForbidden, rec.Code)
+		rec, err := requestToMuxerWithPattern(config.DefaultConfig(beatertest.MockBeatVersion()), AssetSourcemapPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
@@ -70,34 +67,32 @@ func TestSourcemapHandler_KillSwitchMiddleware(t *testing.T) {
 		rum := true
 		cfg.RumConfig.Enabled = &rum
 		cfg.RumConfig.SourceMapping.Enabled = new(bool)
-		rec := requestToSourcemapHandler(t, cfg)
-
-		assert.Equal(t, http.StatusForbidden, rec.Code)
+		rec, err := requestToMuxerWithPattern(config.DefaultConfig(beatertest.MockBeatVersion()), AssetSourcemapPath)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 
 	t.Run("On", func(t *testing.T) {
-		rec := requestToSourcemapHandler(t, cfgEnabledRUM())
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), AssetSourcemapPath)
+		require.NoError(t, err)
+		require.NotEqual(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 	})
 }
 
 func TestSourcemapHandler_PanicMiddleware(t *testing.T) {
-	h, err := sourcemapHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
-	require.NoError(t, err)
+	h := testHandler(t, sourcemapHandler)
 	rec := &beatertest.WriterPanicOnce{}
 	c := &request.Context{}
 	c.Reset(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	h(c)
-	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
+	require.Equal(t, http.StatusInternalServerError, rec.StatusCode)
 	approvals.AssertApproveResult(t, approvalPathAsset(t.Name()), rec.Body.Bytes())
 }
 
 func TestSourcemapHandler_MonitoringMiddleware(t *testing.T) {
-	h, err := sourcemapHandler(config.DefaultConfig(beatertest.MockBeatVersion()), beatertest.NilReporter)
-	require.NoError(t, err)
+	h := testHandler(t, sourcemapHandler)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
 
 	// send GET request resulting in 403 Forbidden error as RUM is disabled by default
@@ -109,14 +104,6 @@ func TestSourcemapHandler_MonitoringMiddleware(t *testing.T) {
 
 	equal, result := beatertest.CompareMonitoringInt(h, c, expected, sourcemap.MonitoringMap)
 	assert.True(t, equal, result)
-}
-
-func requestToSourcemapHandler(t *testing.T, cfg *config.Config) *httptest.ResponseRecorder {
-	h, err := sourcemapHandler(cfg, beatertest.NilReporter)
-	require.NoError(t, err)
-	c, rec := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
-	h(c)
-	return rec
 }
 
 func approvalPathAsset(f string) string { return "asset/sourcemap/test_approved/integration/" + f }

@@ -6,9 +6,6 @@ services:
       - proxy_dep
     env_file:
       - ${PWD}/build/test.env
-    environment:
-      - KIBANA_HOST=kibana
-      - KIBANA_PORT=5601
     working_dir: /go/src/github.com/elastic/apm-server
     volumes:
       - ${PWD}:/go/src/github.com/elastic/apm-server/
@@ -23,11 +20,31 @@ services:
       kibana: { condition: service_healthy }
 
   elasticsearch:
+    ports:
+      - 9200:9200
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: elasticsearch
+    environment:
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
+      - "discovery.type=single-node"
+      - "xpack.security.authc.anonymous.roles=remote_monitoring_collector"
+      - "xpack.security.authc.realms.file.file1.order=0"
+      - "xpack.security.authc.realms.native.native1.order=1"
+      - "xpack.security.enabled=true"
+      - "xpack.license.self_generated.type=trial"
+    volumes:
+      - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
+      - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
+      - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
 
   kibana:
+    ports:
+      - 5601:5601
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: kibana
+    env_file:
+      - ${PWD}/build/kibana.test.env
+    environment:
+      STATUS_ALLOWANONYMOUS: "true"

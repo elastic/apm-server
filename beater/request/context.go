@@ -24,9 +24,11 @@ import (
 
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/beats/libbeat/logp"
+
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 	logs "github.com/elastic/apm-server/log"
-	"github.com/elastic/beats/libbeat/logp"
 )
 
 const (
@@ -43,10 +45,10 @@ type Context struct {
 	Request       *http.Request
 	Logger        *logp.Logger
 	RateLimiter   *rate.Limiter
-	TokenSet      bool
-	Authorized    bool
+	Authorization authorization.Authorization
 	IsRum         bool
 	Result        Result
+
 	w             http.ResponseWriter
 	writeAttempts int
 }
@@ -55,11 +57,11 @@ type Context struct {
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Request = r
 	c.Logger = nil
-	c.TokenSet = false
-	c.Authorized = false
-	c.IsRum = false
 	c.RateLimiter = nil
+	c.Authorization = &authorization.AllowAuth{}
+	c.IsRum = false
 	c.Result.Reset()
+
 	c.w = w
 	c.writeAttempts = 0
 }

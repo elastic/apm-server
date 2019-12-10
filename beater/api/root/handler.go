@@ -46,12 +46,19 @@ func Handler() request.Handler {
 	return func(c *request.Context) {
 		if c.Request.URL.Path != "/" {
 			c.Result.SetDefault(request.IDResponseErrorsNotFound)
-		} else {
-			c.Result.SetDefault(request.IDResponseValidOK)
-			if c.Authorized {
-				c.Result.Body = serverInfo
-			}
+			c.Write()
+			return
 		}
+
+		c.Result.SetDefault(request.IDResponseValidOK)
+		authorized, err := c.Authorization.AuthorizedFor("")
+		if err != nil {
+			c.Result.Err = err
+		}
+		if authorized {
+			c.Result.Body = serverInfo
+		}
+
 		c.Write()
 	}
 }
