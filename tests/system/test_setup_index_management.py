@@ -100,9 +100,9 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.delete()
         self.render_config()
 
-    def tearDown(self):
-        self.idxmgmt.delete()
-
+    # def tearDown(self):
+    #     self.idxmgmt.delete()
+    #
     def render_config(self):
         cfg = {"elasticsearch_host": self.get_elasticsearch_url(),
                "file_enabled": "false"}
