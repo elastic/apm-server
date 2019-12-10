@@ -7,7 +7,7 @@ systemd commands.
 
 ifdef::apm-server[]
 We recommend that the {beatname_lc} process is run as a non-root user.
-Therefor, that is the default setup for {beatname_uc}'s DEB package and RPM installation.
+Therefore, that is the default setup for {beatname_uc}'s DEB package and RPM installation.
 endif::apm-server[]
 
 ==== Start and stop {beatname_uc}
