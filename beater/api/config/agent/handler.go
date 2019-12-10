@@ -75,21 +75,21 @@ func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
 			return
 		}
 
-		if valid := validateClient(c, client, c.TokenSet); !valid {
+		if valid := validateClient(c, client, c.Authorization.IsAuthorizationConfigured()); !valid {
 			c.Write()
 			return
 		}
 
 		query, queryErr := buildQuery(c)
 		if queryErr != nil {
-			extractQueryError(c, queryErr, c.TokenSet)
+			extractQueryError(c, queryErr, c.Authorization.IsAuthorizationConfigured())
 			c.Write()
 			return
 		}
 
 		result, err := fetcher.Fetch(query)
 		if err != nil {
-			extractInternalError(c, err, c.TokenSet)
+			extractInternalError(c, err, c.Authorization.IsAuthorizationConfigured())
 			c.Write()
 			return
 		}
