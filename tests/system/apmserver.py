@@ -29,12 +29,13 @@ class BaseTest(TestCase):
         self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
         os.makedirs(self.diagnostics_path)
         self.running = True
-        self.diagnostic_thread = threading.Thread(target=self.dump_hot_threads)
+        self.diagnostic_thread = threading.Thread(target=self.dump_diagnotics)
+        self.diagnostic_thread.daemon = True
         self.diagnostic_thread.start()
 
     def tearDown(self):
         self.running = False
-        self.diagnostic_thread.join()
+        self.diagnostic_thread.join(timeout=30)
         super(BaseTest, self).tearDown()
 
     @classmethod
@@ -131,7 +132,7 @@ class BaseTest(TestCase):
     def ilm_index(self, index):
         return "{}-000001".format(index)
 
-    def dump_hot_threads(self, interval=.5):
+    def dump_diagnotics(self, interval=.5):
         while self.running:
             time.sleep(interval)
             with open(os.path.join(self.diagnostics_path,
