@@ -132,15 +132,15 @@ class BaseTest(TestCase):
     def ilm_index(self, index):
         return "{}-000001".format(index)
 
-    def dump_diagnotics(self, interval=.5):
+    def dump_diagnotics(self, interval=2):
         while self.running:
             time.sleep(interval)
             with open(os.path.join(self.diagnostics_path,
                                    datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
                 try:
                     out.write(self.es.nodes.hot_threads(threads=99999))
-                except:
-                    out.write("failed to query hot threads")
+                except Exception as e:
+                    out.write("failed to query hot threads: {}\n".format(e))
 
             with open(os.path.join(self.diagnostics_path,
                                    datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
