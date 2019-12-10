@@ -3,7 +3,6 @@ import json
 import os
 import re
 import shutil
-import threading
 import unittest
 from time import gmtime, strftime
 from urlparse import urlparse
@@ -20,23 +19,8 @@ from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 
-
 class BaseTest(TestCase):
     maxDiff = None
-
-    def setUp(self):
-        super(BaseTest, self).setUp()
-        self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
-        os.makedirs(self.diagnostics_path)
-        self.running = True
-        self.diagnostic_thread = threading.Thread(target=self.dump_diagnotics)
-        self.diagnostic_thread.daemon = True
-        self.diagnostic_thread.start()
-
-    def tearDown(self):
-        self.running = False
-        self.diagnostic_thread.join(timeout=30)
-        super(BaseTest, self).tearDown()
 
     @classmethod
     def setUpClass(cls):
@@ -131,23 +115,6 @@ class BaseTest(TestCase):
 
     def ilm_index(self, index):
         return "{}-000001".format(index)
-
-    def dump_diagnotics(self, interval=2):
-        while self.running:
-            time.sleep(interval)
-            with open(os.path.join(self.diagnostics_path,
-                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
-                try:
-                    out.write(self.es.nodes.hot_threads(threads=99999))
-                except Exception as e:
-                    out.write("failed to query hot threads: {}\n".format(e))
-
-            with open(os.path.join(self.diagnostics_path,
-                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
-                try:
-                    json.dump(self.es.tasks.list(), out, indent=True, sort_keys=True)
-                except Exception as e:
-                    out.write("failed to query tasks: {}\n".format(e))
 
 
 class ServerSetUpBaseTest(BaseTest):
@@ -264,7 +231,7 @@ class ElasticTest(ServerBaseTest):
             except:
                 result = False
             if datetime.now() - start > timedelta(seconds=max_timeout):
-                raise TimeoutError("Timed out waiting for '{}' to be true. ".format(name) +
+                raise TimeoutError("Timeout waiting for '{}' to be true. ".format(name) +
                                    "Waited {} seconds.".format(max_timeout))
             time.sleep(poll_interval)
         return result
