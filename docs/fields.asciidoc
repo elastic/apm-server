@@ -14,6 +14,7 @@ grouped in the following categories:
 
 * <<exported-fields-apm>>
 * <<exported-fields-apm-error>>
+* <<exported-fields-apm-profile>>
 * <<exported-fields-apm-sourcemap>>
 * <<exported-fields-apm-span>>
 * <<exported-fields-apm-transaction>>
@@ -1104,6 +1105,171 @@ A parametrized message. E.g. 'Could not connect to %s'. The property message is 
 
 
 type: keyword
+
+--
+
+[[exported-fields-apm-profile]]
+== APM Profile fields
+
+Profiling-specific data for APM.
+
+
+
+
+*`profile.cpu.ns`*::
++
+--
+Amount of CPU time profiled, in nanoseconds.
+
+
+type: long
+
+--
+
+
+*`profile.samples.count`*::
++
+--
+Number of profile samples for the profiling period.
+
+
+type: long
+
+--
+
+
+*`profile.alloc_objects.count`*::
++
+--
+Number of objects allocated since the process started.
+
+
+type: long
+
+--
+
+
+*`profile.alloc_space.bytes`*::
++
+--
+Amount of memory allocated, in bytes, since the process started.
+
+
+type: long
+
+--
+
+
+*`profile.inuse_objects.count`*::
++
+--
+Number of objects allocated and currently in use.
+
+
+type: long
+
+--
+
+
+*`profile.inuse_space.bytes`*::
++
+--
+Amount of memory allocated, in bytes, and currently in use.
+
+
+type: long
+
+--
+
+*`profile.duration`*::
++
+--
+Duration of the profile, in microseconds.
+
+
+type: long
+
+--
+
+
+*`profile.top.id`*::
++
+--
+Unique ID for the top stack frame in the context of its callers.
+
+
+type: keyword
+
+--
+
+*`profile.top.function`*::
++
+--
+Function name for the top stack frame.
+
+
+type: keyword
+
+--
+
+*`profile.top.filename`*::
++
+--
+Source code filename for the top stack frame.
+
+
+type: keyword
+
+--
+
+*`profile.top.line`*::
++
+--
+Source code line number for the top stack frame.
+
+
+type: long
+
+--
+
+
+*`profile.stack.id`*::
++
+--
+Unique ID for a stack frame in the context of its callers.
+
+
+type: keyword
+
+--
+
+*`profile.stack.function`*::
++
+--
+Function name for a stack frame.
+
+
+type: keyword
+
+--
+
+*`profile.stack.filename`*::
++
+--
+Source code filename for a stack frame.
+
+
+type: keyword
+
+--
+
+*`profile.stack.line`*::
++
+--
+Source code line number for a stack frame.
+
+
+type: long
 
 --
 

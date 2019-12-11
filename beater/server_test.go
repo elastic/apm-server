@@ -485,6 +485,19 @@ func setupServer(t *testing.T, cfg *common.Config, beatConfig *beat.BeatConfig,
 
 	baseConfig := common.MustNewConfigFrom(map[string]interface{}{
 		"host": "localhost:0",
+
+		// Enable instrumentation so the profile endpoint is
+		// available, but set the profiling interval to something
+		// long enough that it won't kick in.
+		"instrumentation": map[string]interface{}{
+			"enabled": true,
+			"profiling": map[string]interface{}{
+				"cpu": map[string]interface{}{
+					"enabled":  true,
+					"interval": "360s",
+				},
+			},
+		},
 	})
 	if cfg != nil {
 		err := cfg.Unpack(baseConfig)
