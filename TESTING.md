@@ -28,6 +28,10 @@ example from within an editor, while still allowing all dependencies to run in c
  SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error make run-system-test
 ```
 
+Elasticsearch diagnostics may be enabled by setting `DIAGNOSTIC_INTERVAL`.
+`DIAGNOSTIC_INTERVAL=1` will dump hot threads and task lists every second while tests are running
+to `build/system-tests/run/$test_name/diagnostics/`.
+
 ## Coverage Report
 For insights about test-coverage, run `make coverage-report`. The test coverage is reported in the folder `./build/coverage/`
 
