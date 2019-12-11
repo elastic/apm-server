@@ -27,9 +27,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/agentcfg"
+
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/apm-server/agentcfg"
 	"github.com/elastic/apm-server/beater/authorization"
 
 	"github.com/stretchr/testify/assert"
