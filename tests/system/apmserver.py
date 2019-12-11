@@ -3,6 +3,7 @@ import json
 import os
 import re
 import shutil
+import threading
 import unittest
 from time import gmtime, strftime
 from urlparse import urlparse
@@ -18,10 +19,29 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..',
 from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
 
 integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
+
 
 
 class BaseTest(TestCase):
     maxDiff = None
+
+    def setUp(self):
+        super(BaseTest, self).setUp()
+        if diagnostic_interval > 0:
+            self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
+            os.makedirs(self.diagnostics_path)
+            self.running = True
+            self.diagnostic_thread = threading.Thread(
+                target=self.dump_diagnotics, kwargs=dict(interval=diagnostic_interval))
+            self.diagnostic_thread.daemon = True
+            self.diagnostic_thread.start()
+
+    def tearDown(self):
+        if diagnostic_interval > 0:
+            self.running = False
+            self.diagnostic_thread.join(timeout=30)
+        super(BaseTest, self).tearDown()
 
     @classmethod
     def setUpClass(cls):
@@ -116,6 +136,23 @@ class BaseTest(TestCase):
 
     def ilm_index(self, index):
         return "{}-000001".format(index)
+
+    def dump_diagnotics(self, interval=2):
+        while self.running:
+            time.sleep(interval)
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
+                try:
+                    out.write(self.es.nodes.hot_threads(threads=99999))
+                except Exception as e:
+                    out.write("failed to query hot threads: {}\n".format(e))
+
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
+                try:
+                    json.dump(self.es.tasks.list(), out, indent=True, sort_keys=True)
+                except Exception as e:
+                    out.write("failed to query tasks: {}\n".format(e))
 
 
 class ServerSetUpBaseTest(BaseTest):
