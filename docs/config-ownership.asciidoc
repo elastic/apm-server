@@ -33,7 +33,7 @@ can only be writable by the owner but the permissions are "-rw-rw-r--"
 (to fix the permissions use: 'chmod go-w /etc/{beatname_lc}/{beatname_lc}.yml')
 -----
 
-To correct this problem, use `chmod go-w /etc/{beatname_lc}/{beatname_lc}.yml` to
+To correct this problem, use +chmod go-w /etc/{beatname_lc}/{beatname_lc}.yml+ to
 remove write privileges from anyone other than the owner.
 
 ===== Disabling strict permission checks
