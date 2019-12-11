@@ -358,7 +358,7 @@ pipeline {
           post {
             always {
               catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                tar(file: "update-betas-system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
+                tar(file: "update-beats-system-tests-linux-files.tgz", archive: true, dir: "system-tests", pathPrefix: "${BASE_DIR}/build")
               }
             }
           }
