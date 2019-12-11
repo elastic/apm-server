@@ -3,10 +3,10 @@
 	"ignore": "test tools",
 	"package": [
 		{
-			"checksumSHA1": "vBY5JVo2RftJoZExAKoCCTOr5fU=",
+			"checksumSHA1": "HQMYtd0TnYGOJZxKxODjBy+OyVw=",
 			"path": "4d63.com/tz",
-			"revision": "bd6cee76f7319745d44ff235e42124b3891e293d",
-			"revisionTime": "2019-03-11T03:41:57Z"
+			"revision": "acbe7ac603850b02c7bc4329a2354e389857bf18",
+			"revisionTime": "2019-08-31T23:37:02Z"
 		},
 		{
 			"checksumSHA1": "NkpNQgmrdzGr9HUDL8Bp5YAxt0k=",
@@ -175,12 +175,6 @@
 			"path": "github.com/Microsoft/hcsshim/osversion",
 			"revision": "84b0c364e1e3bb91e43b85bf20d72e7948666817",
 			"revisionTime": "2019-09-04T14:17:38Z"
-		},
-		{
-			"checksumSHA1": "rDoYEddGYvQT73l9V8Uqjk7SHAY=",
-			"path": "github.com/OneOfOne/xxhash",
-			"revision": "74ace4fe5525ef62ce28d5093d6b0faaa6a575f3",
-			"revisionTime": "2018-07-23T16:30:02Z"
 		},
 		{
 			"checksumSHA1": "w5NkRQ2Cebz7a6UfrbwFdhyRWnM=",
@@ -722,6 +716,12 @@
 			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1",
 			"revision": "26aa36c099c2041b432cf3cc8a26c5fb858d218b",
 			"revisionTime": "2019-07-23T11:24:16Z"
+		},
+		{
+			"checksumSHA1": "Fo6XV4q33h7fXJuYrvOyDB6kw8I=",
+			"path": "github.com/cespare/xxhash",
+			"revision": "2372543dd2bbab7a55ce14c54eb357abe23a42f5",
+			"revisionTime": "2019-10-31T20:04:18Z"
 		},
 		{
 			"checksumSHA1": "Mu77HNTb0SVN0IEBB+hSDeZzO+g=",
@@ -1462,12 +1462,12 @@
 			"revisionTime": "2016-08-05T00:47:13Z"
 		},
 		{
-			"checksumSHA1": "iFJq2WHNE7dIM4+7yOflAahyk0Q=",
+			"checksumSHA1": "HHke2QXMP829s8Fe5qa8oLlejAw=",
 			"path": "github.com/elastic/ecs/code/go/ecs",
-			"revision": "cc1d96bf3f70a8e6af1e436a0283ef22b6af3dd2",
-			"revisionTime": "2019-08-22T17:44:49Z",
-			"version": "v1.1.0",
-			"versionExact": "v1.1.0"
+			"revision": "2eaac192a1ca67edab727d7d9d526c5142ae3eb5",
+			"revisionTime": "2019-10-03T15:52:51Z",
+			"version": "v1.2.0",
+			"versionExact": "v1.2.0"
 		},
 		{
 			"checksumSHA1": "vNnw1bUS8Ct+8H64QuA2DWRJ9SQ=",
@@ -2273,10 +2273,11 @@
 			"revisionTime": "2019-10-09T16:37:24Z"
 		},
 		{
-			"checksumSHA1": "sN9Kuv7R0K4gjRYnyG95vEb0k9s=",
+			"checksumSHA1": "msNKeCHS4V89szexDN6/ixw1gYs=",
+			"origin": "github.com/adriansr/gopacket/afpacket",
 			"path": "github.com/google/gopacket/afpacket",
-			"revision": "0ad7f2610e344e58c1c95e2adda5c3258da8e97b",
-			"revisionTime": "2019-10-09T16:37:24Z"
+			"revision": "a13a1c6078605c1b528df079debf4ffe33be7f8d",
+			"revisionTime": "2019-10-18T08:38:32Z"
 		},
 		{
 			"checksumSHA1": "CElVSky7n3cuKstd4LrIxGUREuA=",
@@ -2753,36 +2754,36 @@
 			"revisionTime": "2017-08-19T20:10:35Z"
 		},
 		{
-			"checksumSHA1": "KUrV5Esg6Wdcrv+hDc6/p0Q3/qw=",
+			"checksumSHA1": "GV2wj5dmLfI8SONK/PApiZO0jKs=",
 			"path": "github.com/shirou/gopsutil",
-			"revision": "0f70a4a06f7a1039305ec9b3ba9c2800f8929fba",
-			"revisionTime": "2018-11-24T14:38:04Z",
-			"version": "v2.18.11",
-			"versionExact": "v2.18.11"
+			"revision": "fc7e5e7af6052e36e83e5539148015ed2c09d8f9",
+			"revisionTime": "2019-11-27T18:28:36Z",
+			"version": "v2.19.11",
+			"versionExact": "v2.19.11"
 		},
 		{
-			"checksumSHA1": "Qr93LUVvC2g/aTZSXEIrw4OhuXQ=",
+			"checksumSHA1": "h9IgMsg5hwNg5cYMLIx3Ssm+iFg=",
 			"path": "github.com/shirou/gopsutil/disk",
-			"revision": "0f70a4a06f7a1039305ec9b3ba9c2800f8929fba",
-			"revisionTime": "2018-11-24T14:38:04Z",
-			"version": "v2.18.11",
-			"versionExact": "v2.18.11"
+			"revision": "fc7e5e7af6052e36e83e5539148015ed2c09d8f9",
+			"revisionTime": "2019-11-27T18:28:36Z",
+			"version": "v2.19.11",
+			"versionExact": "v2.19.11"
 		},
 		{
-			"checksumSHA1": "GR7l7Ez4ppxIfonl7aJayYRVPWc=",
+			"checksumSHA1": "+iFA/hHmdWehBFBa3uAetswSoug=",
 			"path": "github.com/shirou/gopsutil/internal/common",
-			"revision": "0f70a4a06f7a1039305ec9b3ba9c2800f8929fba",
-			"revisionTime": "2018-11-24T14:38:04Z",
-			"version": "v2.18.11",
-			"versionExact": "v2.18.11"
+			"revision": "fc7e5e7af6052e36e83e5539148015ed2c09d8f9",
+			"revisionTime": "2019-11-27T18:28:36Z",
+			"version": "v2.19.11",
+			"versionExact": "v2.19.11"
 		},
 		{
-			"checksumSHA1": "wAc1Qo6T9MTYdSog78uJfCYZPtc=",
+			"checksumSHA1": "I0kTdVfvfbrboyXnaTeZNmXtT0o=",
 			"path": "github.com/shirou/gopsutil/net",
-			"revision": "0f70a4a06f7a1039305ec9b3ba9c2800f8929fba",
-			"revisionTime": "2018-11-24T14:38:04Z",
-			"version": "v2.18.11",
-			"versionExact": "v2.18.11"
+			"revision": "fc7e5e7af6052e36e83e5539148015ed2c09d8f9",
+			"revisionTime": "2019-11-27T18:28:36Z",
+			"version": "v2.19.11",
+			"versionExact": "v2.19.11"
 		},
 		{
 			"checksumSHA1": "1KA6FgHyBKaIqBbOMFYt5wkMap8=",
@@ -4487,6 +4488,11 @@
 			"path": "howett.net/plist",
 			"revision": "233df3c4f07b0c562da0e8a6fb850681ac49bb90",
 			"revisionTime": "2017-11-05T00:43:39Z"
+		},
+		{
+			"path": "https://github.com/shirou/gopsutil",
+			"revision": "v2.19.11",
+			"version": "v2.19.11"
 		},
 		{
 			"checksumSHA1": "qt2NIBMPd2LABq8WO+l5rFaUPx0=",
