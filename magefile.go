@@ -22,16 +22,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/beater/config"
 	"github.com/elastic/beats/dev-tools/mage"
+
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func init() {
@@ -115,9 +118,38 @@ func dockerConfigFileParams() mage.ConfigFileParams {
 	}
 }
 
+func keepPackages(types []string) map[mage.PackageType]struct{} {
+	keep := make(map[mage.PackageType]struct{})
+	for _, t := range types {
+		var pt mage.PackageType
+		if err := pt.UnmarshalText([]byte(t)); err != nil {
+			log.Printf("skipped filtering package type %s", t)
+			continue
+		}
+		keep[pt] = struct{}{}
+	}
+	return keep
+}
+
+func filterPackages(types string) {
+	var packages []mage.OSPackageArgs
+	keep := keepPackages(strings.Split(types, " "))
+	for _, p := range mage.Packages {
+		for _, t := range p.Types {
+			if _, ok := keep[t]; !ok {
+				continue
+			}
+			packages = append(packages, p)
+			break
+		}
+	}
+	mage.Packages = packages
+}
+
 // Package packages the Beat for distribution.
 // Use SNAPSHOT=true to build snapshots.
-// Use PLATFORMS to control the target platforms.
+// Use PLATFORMS to control the target platforms. eg linux/amd64
+// Use TYPES to control the target types. eg docker
 func Package() {
 	start := time.Now()
 	defer func() { fmt.Println("package ran for", time.Since(start)) }()
@@ -125,8 +157,14 @@ func Package() {
 	mage.UseElasticBeatPackaging()
 	customizePackaging()
 
-	mg.Deps(Update, prepareIngestPackaging)
-	mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
+	if packageTypes := os.Getenv("TYPES"); packageTypes != "" {
+		filterPackages(packageTypes)
+	}
+
+	if os.Getenv("SKIP_BUILD") != "true" {
+		mg.Deps(Update, prepareIngestPackaging)
+		mg.Deps(CrossBuild, CrossBuildXPack, CrossBuildGoDaemon)
+	}
 	mg.SerialDeps(mage.Package, TestPackages)
 }
 
