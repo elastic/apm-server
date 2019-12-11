@@ -22,7 +22,6 @@ integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
 diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
 
 
-
 class BaseTest(TestCase):
     maxDiff = None
 
@@ -100,9 +99,9 @@ class BaseTest(TestCase):
         host = os.getenv("KIBANA_HOST", "localhost")
 
         if not user:
-            user = os.getenv("KIBANA_USER")
+            user = os.getenv("KIBANA_USER", "admin")
         if not password:
-            password = os.getenv("KIBANA_PASS")
+            password = os.getenv("KIBANA_PASS", "changeme")
 
         if user and password:
             host = user + ":" + password + "@" + host

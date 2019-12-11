@@ -1,15 +1,14 @@
 from apmserver import ServerBaseTest, ServerSetUpBaseTest
 
-import requests
-import ssl
-import os
-import subprocess
-import shutil
-import json
-import random
-import string
 import base64
-
+import json
+import os
+import random
+import requests
+import shutil
+import ssl
+import string
+import subprocess
 
 from nose.tools import raises
 from requests.exceptions import SSLError, ChunkedEncodingError
@@ -76,75 +75,61 @@ class TestAccessWithSecretToken(ServerBaseTest):
 @integration_test
 class BaseAPIKeySetup(ServerBaseTest):
 
-    @classmethod
-    def setUpClass(cls):
-        # According to https://docs.python.org/2/library/unittest.html#setupclass-and-teardownclass setUp and tearDown
-        # should be skipped when class is skipped, which is apparently not true.
-        # This is a hack to avoid running the setup while it should be skipped
-        if not INTEGRATION_TESTS:
-            return
-
+    def setUp(self):
         # application
-        cls.application = "apm"
+        self.application = "apm"
 
         # apm-backend privileges
-        cls.privilege_intake = "event:write"
-        cls.privilege_config = "config_agent:read"
-        cls.privilege_sourcemap = "sourcemap:write"
-        cls.privileges_all = [cls.privilege_intake, cls.privilege_sourcemap, cls.privilege_config]
-        cls.privilege_any = "*"
+        self.privilege_intake = "event:write"
+        self.privilege_config = "config_agent:read"
+        self.privilege_sourcemap = "sourcemap:write"
+        self.privileges_all = [self.privilege_intake, self.privilege_sourcemap, self.privilege_config]
+        self.privilege_any = "*"
 
         # resources
-        cls.resource_any = ["*"]
-        cls.resource_backend = ["-"]
+        self.resource_any = ["*"]
+        self.resource_backend = ["-"]
 
         user = os.getenv("ES_SUPERUSER_USER", "admin")
         password = os.getenv("ES_SUPERUSER_PASS", "changeme")
-        cls.admin_es_url = cls.get_elasticsearch_url(user, password)
+        self.admin_es_url = self.get_elasticsearch_url(user, password)
 
         content_type = 'application/json'
 
         # create privileges
-        url_privileges = "{}/_security/privilege".format(cls.admin_es_url)
-        payload = json.dumps({cls.application: {
-            "sourcemap": {"actions": [cls.privilege_sourcemap]},
-            "intake": {"actions": [cls.privilege_intake]},
-            "config": {"actions": [cls.privilege_config]}}})
+        url_privileges = "{}/_security/privilege".format(self.admin_es_url)
+        payload = json.dumps({self.application: {
+            "sourcemap": {"actions": [self.privilege_sourcemap]},
+            "intake": {"actions": [self.privilege_intake]},
+            "config": {"actions": [self.privilege_config]}}})
         resp = requests.put(url_privileges, data=payload, headers=headers(content_type=content_type))
         assert resp.status_code == 200, resp.status_code
 
         # ensure user that creates the api keys has all privileges
         # see how application privileges can be added to user roles in testing/docker/elasticsearch/roles.yml
-        url_user_privileges = "{}/_security/user/_has_privileges".format(cls.admin_es_url)
+        url_user_privileges = "{}/_security/user/_has_privileges".format(self.admin_es_url)
         payload = json.dumps({"application": [{
-            "application": cls.application,
-            "privileges": [cls.privilege_config, cls.privilege_sourcemap, cls.privilege_intake],
-            "resources": cls.resource_backend}]})
+            "application": self.application,
+            "privileges": [self.privilege_config, self.privilege_sourcemap, self.privilege_intake],
+            "resources": self.resource_backend}]})
         resp = requests.post(url_user_privileges, data=payload, headers=headers(content_type=content_type))
         assert resp.status_code == 200, resp.status_code
         assert "has_all_requested" in resp.json(), resp.content
         assert resp.json()["has_all_requested"] == True, resp.json()
 
-        cls.created_api_keys = []
+        self.created_api_keys = []
 
-        super(BaseAPIKeySetup, cls).setUpClass()
+        super(BaseAPIKeySetup, self).setUp()
 
-    @classmethod
-    def tearDownClass(cls):
-        if not INTEGRATION_TESTS:
-            return
-
-        for id in cls.created_api_keys:
-            url = "{}/_security/api_key".format(cls.admin_es_url)
+    def tearDown(self):
+        for id in self.created_api_keys:
+            url = "{}/_security/api_key".format(self.admin_es_url)
             payload = json.dumps({'id': id})
-            resp = requests.delete(url, data=payload, headers=headers(content_type='application/json'))
-            assert resp.status_code == 200, resp.status_code
+            requests.delete(url, data=payload, headers=headers(content_type='application/json'))
+        super(BaseAPIKeySetup, self).tearDown()
 
-        super(BaseAPIKeySetup, cls).tearDownClass()
-
-    @classmethod
-    def create_api_key(cls, privileges, resources, application="apm"):
-        url = "{}/_security/api_key".format(cls.admin_es_url)
+    def create_api_key(self, privileges, resources, application="apm"):
+        url = "{}/_security/api_key".format(self.admin_es_url)
         random_str = "".join(random.choice(string.ascii_letters) for i in range(16))
         name = "apm-{}".format(random_str)
         payload = json.dumps({
@@ -155,7 +140,7 @@ class BaseAPIKeySetup(ServerBaseTest):
                         {"application": application, "privileges": privileges, "resources": resources}]}}})
         resp = requests.post(url, data=payload, headers=headers(content_type='application/json'))
         assert resp.status_code == 200, resp.status_code
-        cls.created_api_keys += [resp.json()["id"]]
+        self.created_api_keys.append([resp.json()["id"]])
         return "ApiKey {}".format(base64.b64encode("{}:{}".format(resp.json()["id"], resp.json()["api_key"])))
 
 
@@ -163,8 +148,7 @@ class BaseAPIKeySetup(ServerBaseTest):
 class TestAPIKeyCache(BaseAPIKeySetup):
     def config(self):
         cfg = super(TestAPIKeyCache, self).config()
-        cfg.update({"api_key_enabled": True,
-                    "api_key_limit": 1})
+        cfg.update({"api_key_enabled": True, "api_key_limit": 1})
         return cfg
 
     def test_cache_full(self):
@@ -201,39 +185,34 @@ class TestAPIKeyCache(BaseAPIKeySetup):
 @integration_test
 class TestAccessWithAuthorization(BaseAPIKeySetup):
 
-    @classmethod
-    def setUpClass(cls):
-        # According to https://docs.python.org/2/library/unittest.html#setupclass-and-teardownclass setUp and tearDown
-        # should be skipped when class is skipped, which is apparently not true.
-        # This is a hack to avoid running the setup while it should be skipped
-        if not INTEGRATION_TESTS:
-            return
+    def setUp(self):
+        super(TestAccessWithAuthorization, self).setUp()
 
-        super(TestAccessWithAuthorization, cls).setUpClass()
+        self.api_key_privileges_all_resource_any = self.create_api_key(self.privileges_all, self.resource_any)
+        self.api_key_privileges_all_resource_backend = self.create_api_key(self.privileges_all, self.resource_backend)
+        self.api_key_privilege_any_resource_any = self.create_api_key(self.privilege_any, self.resource_any)
+        self.api_key_privilege_any_resource_backend = self.create_api_key(self.privilege_any, self.resource_backend)
 
-        cls.api_key_privileges_all_resource_any = cls.create_api_key(cls.privileges_all, cls.resource_any)
-        cls.api_key_privileges_all_resource_backend = cls.create_api_key(cls.privileges_all, cls.resource_backend)
-        cls.api_key_privilege_any_resource_any = cls.create_api_key(cls.privilege_any, cls.resource_any)
-        cls.api_key_privilege_any_resource_backend = cls.create_api_key(cls.privilege_any, cls.resource_backend)
+        self.api_key_privilege_intake = self.create_api_key([self.privilege_intake], self.resource_any)
+        self.api_key_privilege_config = self.create_api_key([self.privilege_config], self.resource_any)
+        self.api_key_privilege_sourcemap = self.create_api_key([self.privilege_sourcemap], self.resource_any)
 
-        cls.api_key_privilege_intake = cls.create_api_key([cls.privilege_intake], cls.resource_any)
-        cls.api_key_privilege_config = cls.create_api_key([cls.privilege_config], cls.resource_any)
-        cls.api_key_privilege_sourcemap = cls.create_api_key([cls.privilege_sourcemap], cls.resource_any)
+        self.api_key_invalid_application = self.create_api_key(
+            self.privileges_all, self.resource_any, application="foo")
+        self.api_key_invalid_privilege = self.create_api_key(["foo"], self.resource_any)
+        self.api_key_invalid_resource = self.create_api_key(self.privileges_all, "foo")
 
-        cls.api_key_invalid_application = cls.create_api_key(cls.privileges_all, cls.resource_any, application="foo")
-        cls.api_key_invalid_privilege = cls.create_api_key(["foo"], cls.resource_any)
-        cls.api_key_invalid_resource = cls.create_api_key(cls.privileges_all, "foo")
+        self.authorized_keys = ["Bearer 1234",
+                                self.api_key_privileges_all_resource_any, self.api_key_privileges_all_resource_backend,
+                                self.api_key_privilege_any_resource_any, self.api_key_privilege_any_resource_backend]
 
-        cls.authorized_keys = ["Bearer 1234",
-                               cls.api_key_privileges_all_resource_any, cls.api_key_privileges_all_resource_backend,
-                               cls.api_key_privilege_any_resource_any, cls.api_key_privilege_any_resource_backend]
-
-        cls.unauthorized_keys = ['', 'Bearer ', 'Bearer wrongtoken', 'Wrongbearer 1234',
-                                 cls.api_key_invalid_privilege, cls.api_key_invalid_resource, "ApiKey nonexisting"]
+        self.unauthorized_keys = ['', 'Bearer ', 'Bearer wrongtoken', 'Wrongbearer 1234',
+                                  self.api_key_invalid_privilege, self.api_key_invalid_resource, "ApiKey nonexisting"]
 
     def config(self):
         cfg = super(TestAccessWithAuthorization, self).config()
-        cfg.update({"secret_token": "1234", "api_key_enabled": True, "enable_rum": True})
+        cfg.update({"secret_token": "1234", "api_key_enabled": True, "enable_rum": True,
+                    "kibana_enabled": "true", "kibana_host": self.get_kibana_url()})
         return cfg
 
     def test_root(self):
@@ -290,8 +269,10 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
         url = self.agent_config_url
 
         for token in self.authorized_keys+[self.api_key_privilege_config]:
-            resp = requests.get(url, headers=headers(token, content_type="application/json"))
-            assert resp.status_code != 401,  "token: {}, status_code: {}".format(token, resp.status_code)
+            resp = requests.get(url,
+                                params={"service.name": "myservice"},
+                                headers=headers(token, content_type="application/json"))
+            assert resp.status_code == 200,  "token: {}, status_code: {}".format(token, resp.status_code)
 
         for token in self.unauthorized_keys+[self.api_key_privilege_intake, self.api_key_privilege_sourcemap]:
             resp = requests.get(url, headers=headers(token, content_type="application/json"))
@@ -315,7 +296,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
         def upload(token):
             f = open(self._beat_path_join('testdata', 'sourcemap', 'bundle_no_mapping.js.map'))
             resp = requests.post(self.sourcemap_url,
-                                 headers=headers(token, content_type="application/json"),
+                                 headers=headers(token, content_type=None),
                                  files={'sourcemap': f},
                                  data={'service_version': '1.0.1',
                                        'bundle_filepath': 'mapping.js.map',
@@ -329,7 +310,7 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
 
         for token in self.authorized_keys+[self.api_key_privilege_sourcemap]:
             resp = upload(token)
-            assert resp.status_code != 401, "token: {}, status_code: {}".format(token, resp.status_code)
+            assert resp.status_code == 202, "token: {}, status_code: {}".format(token, resp.status_code)
 
 
 @integration_test
