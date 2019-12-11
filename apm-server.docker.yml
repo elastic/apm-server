@@ -53,6 +53,20 @@ apm-server:
     # secret_token for the remote apm-servers.
     #secret_token:
 
+    # Enable profiling of the server, recording profile samples as events.
+    #
+    # This feature is experimental.
+    #profiling:
+      #cpu:
+        # Set to true to enable CPU profiling.
+        #enabled: false
+        #interval: 60s
+        #duration: 10s
+      #heap:
+        # Set to true to enable heap profiling.
+        #enabled: false
+        #interval: 60s
+
   # A pipeline is a definition of processors applied to documents when ingesting them to Elasticsearch.
   # Using pipelines involves two steps:
   # (1) registering a pipeline
