@@ -248,6 +248,11 @@
                 "name": "elastic-ruby",
                 "version": "2.2"
             },
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1",
+                "port": 5432
+            },
             "ecs": {
                 "version": "1.2.0"
             },
@@ -282,6 +287,13 @@
                     "type": "sql",
                     "user": {
                         "name": "readonly_user"
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "name": "postgresql",
+                        "resource": "postgresql",
+                        "type": "db"
                     }
                 },
                 "duration": {
