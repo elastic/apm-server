@@ -26,7 +26,12 @@ GOBUILD_FLAGS=-ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbe
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
-.DEFAULT_GOAL := ${BEAT_NAME}
+ES_USER?=apm_user
+ES_PASS?=changeme
+KIBANA_ES_USER?=kibana_system_user
+KIBANA_ES_PASS?=changeme
+BEAT_KIBANA_USER?=apm_user_ro
+BEAT_KIBANA_PASS?=changeme
 
 # overwrite some beats targets cleanly
 .OVER := original-
@@ -193,3 +198,9 @@ check-changelogs: ## @testing Checks the changelogs for certain branches.
 .PHONY: rm-empty-folders
 rm-empty-folders:
 	find vendor/ -type d -empty -delete
+
+.PHONY: run-system-test
+run-system-test: python-env
+	INTEGRATION_TESTS=1 TZ=UTC \
+	ES_USER=$(ES_USER) ES_PASS=$(ES_PASS) KIBANA_USER=$(BEAT_KIBANA_USER) KIBANA_PASS=$(BEAT_KIBANA_PASS) \
+	$(PYTHON_ENV)/bin/nosetests --with-timer -x -v $(SYSTEM_TEST_TARGET)
