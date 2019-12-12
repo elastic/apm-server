@@ -58,7 +58,10 @@ func (c *MockKibanaClient) GetVersion() (common.Version, error) {
 func (c *MockKibanaClient) Connected() bool { return c.connected }
 
 // SupportsVersion returns whether or not mock client is compatible with given version
-func (c *MockKibanaClient) SupportsVersion(v *common.Version) (bool, error) {
+func (c *MockKibanaClient) SupportsVersion(v *common.Version, _ bool) (bool, error) {
+	if !c.connected {
+		return false, errors.New("unable to retrieve connection to Kibana")
+	}
 	return v.LessThanOrEqual(true, &c.v), nil
 }
 
