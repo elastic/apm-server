@@ -3,18 +3,15 @@ import unittest
 
 import requests
 
-from apmserver import ElasticTest
-from beat.beat import INTEGRATION_TESTS
-
-from apmserver import ElasticTest
+from apmserver import ElasticTest, integration_test
 
 
+@integration_test
 class LoggingIntegrationTest(ElasticTest):
     config_overrides = {
         "logging_json": "true",
     }
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_log_valid_event(self):
         with open(self.get_transaction_payload_path()) as f:
             r = requests.post(self.intake_url,
@@ -30,7 +27,6 @@ class LoggingIntegrationTest(ElasticTest):
                 "response_code": 202,
             }, req)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_log_invalid_event(self):
         with open(self.get_payload_path("invalid-event.ndjson")) as f:
             r = requests.post(self.intake_url,
@@ -49,13 +45,13 @@ class LoggingIntegrationTest(ElasticTest):
             assert error.startswith("error validating JSON document against schema:"), json.dumps(req)
 
 
+@integration_test
 class LoggingIntegrationEventSizeTest(ElasticTest):
     config_overrides = {
         "logging_json": "true",
         "max_event_size": "100",
     }
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_log_event_size_exceeded(self):
         with open(self.get_transaction_payload_path()) as f:
             r = requests.post(self.intake_url,

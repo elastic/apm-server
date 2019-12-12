@@ -23,11 +23,15 @@ services:
       kibana: { condition: service_healthy }
 
   elasticsearch:
+    ports:
+      - 9200:9200
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: elasticsearch
 
   kibana:
+    ports:
+      - 5601:5601
     extends:
       file: ./_beats/testing/environments/${TESTING_ENVIRONMENT}.yml
       service: kibana

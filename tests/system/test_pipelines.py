@@ -1,13 +1,12 @@
 import unittest
-from apmserver import ElasticTest, SubCommandTest
-from beat.beat import INTEGRATION_TESTS, TimeoutError
+from apmserver import ElasticTest, SubCommandTest, TimeoutError, integration_test
 from elasticsearch import Elasticsearch, NotFoundError
 from nose.tools import raises
 
 
 # APM Server `setup`
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class SetupPipelinesDefaultTest(SubCommandTest):
     pipeline_name = "apm_user_agent"
 
@@ -40,7 +39,7 @@ class SetupPipelinesDefaultTest(SubCommandTest):
         assert self.log_contains("Registered Ingest Pipelines successfully.")
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
     def config(self):
         cfg = super(SetupPipelinesDisabledTest, self).config()
@@ -54,7 +53,7 @@ class SetupPipelinesDisabledTest(SetupPipelinesDefaultTest):
         assert self.log_contains("No pipeline callback registered")
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineRegisterTest(ElasticTest):
     def test_default_pipelines_registered(self):
         pipelines = [
@@ -63,7 +62,7 @@ class PipelineRegisterTest(ElasticTest):
             ("apm", "Default enrichment for APM events"),
         ]
         loaded_msg = "Pipeline successfully registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
+        self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
 
         for pipeline_id, pipeline_desc in pipelines:
             pipeline = self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id),
@@ -72,8 +71,8 @@ class PipelineRegisterTest(ElasticTest):
 
     def test_pipeline_applied(self):
         # setup
-        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"))
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until_pipelines_registered()
+        self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
 
@@ -88,7 +87,7 @@ class PipelineRegisterTest(ElasticTest):
                 assert ua["original"] == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 " \
                                          "(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
                 assert ua["name"] == "Chrome"
-                assert ua["version"] == "51.0.2704"
+                assert ua["version"] == "51.0.2704.103"
                 assert ua["os"]["name"] == "Mac OS X"
                 assert ua["os"]["version"] == "10.10.5"
                 assert ua["os"]["full"] == "Mac OS X 10.10.5"
@@ -96,12 +95,12 @@ class PipelineRegisterTest(ElasticTest):
         assert ua_found
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineDisabledTest(ElasticTest):
     config_overrides = {"disable_pipeline": True}
 
     def test_pipeline_not_applied(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
         uaFound = False
@@ -118,12 +117,12 @@ class PipelineDisabledTest(ElasticTest):
         assert uaFound
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelinesConfigurationNoneTest(ElasticTest):
     config_overrides = {"disable_pipelines": True}
 
     def test_pipeline_not_applied(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until_ilm_setup()
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
 
@@ -141,20 +140,21 @@ class PipelinesConfigurationNoneTest(ElasticTest):
         assert uaFound
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class MissingPipelineTest(ElasticTest):
     config_overrides = {"register_pipeline_enabled": "false"}
 
     @raises(TimeoutError)
     def test_pipeline_not_registered(self):
-        self.wait_until(lambda: self.log_contains("No pipeline callback registered"))
-        self.wait_until(lambda: self.log_contains("Finished index management setup."))
+        self.wait_until(lambda: self.log_contains("No pipeline callback registered"),
+                        name="pipeline callback not registered")
+        self.wait_until_ilm_setup()
         # ensure events get stored properly nevertheless
         self.load_docs_with_template(self.get_payload_path("transactions.ndjson"),
                                      self.intake_url, 'transaction', 3)
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
 
     config_overrides = {
@@ -169,14 +169,14 @@ class PipelineDefaultDisableRegisterOverwriteTest(ElasticTest):
         es.ingest.put_pipeline(
             id="apm",
             body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: es.ingest.get_pipeline("apm"))
+        self.wait_until(lambda: es.ingest.get_pipeline("apm"), name="apm ingest pipeline created")
 
     def test_pipeline_not_overwritten(self):
         loaded_msg = "Pipeline already registered"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
+        self.wait_until(lambda: self.log_contains(loaded_msg), name=loaded_msg)
 
 
-@unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+@integration_test
 class PipelineEnableRegisterOverwriteTest(ElasticTest):
     config_overrides = {
         "register_pipeline_overwrite": "true",
@@ -184,17 +184,16 @@ class PipelineEnableRegisterOverwriteTest(ElasticTest):
     }
 
     def setUp(self):
-        super(PipelineEnableRegisterOverwriteTest, self).setUp()
         es = Elasticsearch([self.get_elasticsearch_url()])
         # Write empty default pipeline
         es.ingest.put_pipeline(
             id="apm",
             body={"description": "empty apm test pipeline", "processors": []})
-        self.wait_until(lambda: es.ingest.get_pipeline("apm"))
+        self.wait_until(lambda: es.ingest.get_pipeline("apm"), name="apm ingest pipeline created")
+        super(PipelineEnableRegisterOverwriteTest, self).setUp()
 
     def test_pipeline_overwritten(self):
-        loaded_msg = "Registered Ingest Pipelines successfully"
-        self.wait_until(lambda: self.log_contains(loaded_msg))
         pipeline_id = "apm"
-        self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == "Default enrichment for APM events",
+        desc = "Default enrichment for APM events"
+        self.wait_until(lambda: self.es.ingest.get_pipeline(id=pipeline_id)[pipeline_id]['description'] == desc,
                         name="fetching pipeline {}".format(pipeline_id))
