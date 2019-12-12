@@ -117,15 +117,17 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 			errMsgKibanaDisabled)
 		return false
 	}
-	if !client.Connected() {
-		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
-			http.StatusServiceUnavailable,
-			msgNoKibanaConnection,
-			msgNoKibanaConnection,
-			errMsgNoKibanaConnection)
-		return false
-	}
-	if supported, _ := client.SupportsVersion(minKibanaVersion); !supported {
+
+	if supported, err := client.SupportsVersion(minKibanaVersion, true); !supported {
+		if err != nil {
+			c.Result.Set(request.IDResponseErrorsServiceUnavailable,
+				http.StatusServiceUnavailable,
+				msgNoKibanaConnection,
+				msgNoKibanaConnection,
+				errMsgNoKibanaConnection)
+			return false
+		}
+
 		version, _ := client.GetVersion()
 
 		errMsg := fmt.Sprintf("%s: min version %+v, configured version %+v",
