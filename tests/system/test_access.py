@@ -183,6 +183,54 @@ class TestAPIKeyCache(BaseAPIKeySetup):
 
 
 @integration_test
+class TestAPIKeyWithInvalidESConfig(BaseAPIKeySetup):
+    def config(self):
+        cfg = super(TestAPIKeyWithInvalidESConfig, self).config()
+        cfg.update({"api_key_enabled": True, "api_key_es": "localhost:9999"})
+        return cfg
+
+    def test_backend_intake(self):
+        """
+        API Key cannot be verified when invalid Elasticsearch instance configured
+        """
+        key = self.create_api_key([self.privilege_intake], self.resource_any)
+        resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
+        assert resp.status_code == 401,  "token: {}, status_code: {}".format(key, resp.status_code)
+
+
+@integration_test
+class TestAPIKeyWithESConfig(BaseAPIKeySetup):
+    def config(self):
+        cfg = super(TestAPIKeyWithESConfig, self).config()
+        cfg.update({"api_key_enabled": True, "api_key_es": self.get_elasticsearch_url()})
+        return cfg
+
+    def test_backend_intake(self):
+        """
+        Use dedicated Elasticsearch configuration for API Key validation
+        """
+        key = self.create_api_key([self.privilege_intake], self.resource_any)
+        resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
+        assert resp.status_code == 202,  "token: {}, status_code: {}".format(key, resp.status_code)
+
+
+# @integration_test
+# class TestAPIKeyWithESConfig(BaseAPIKeySetup):
+#     def config(self):
+#         cfg = super(TestAPIKeyWithESConfig, self).config()
+#         cfg.update({"api_key_enabled": True, "elasticsearch_host": "http://localhost:9200"})
+#         return cfg
+#
+#     def test_backend_intake(self):
+#         """
+#         Test authorization logic for backend Intake endpoint with configured Elasticsearch
+#         """
+#         key = self.create_api_key([self.privilege_intake], self.resource_any)
+#         resp = requests.post( self.intake_url, data=self.get_event_payload(), headers=headers(key))
+#         assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
+
+
+@integration_test
 class TestAccessWithAuthorization(BaseAPIKeySetup):
 
     def setUp(self):
