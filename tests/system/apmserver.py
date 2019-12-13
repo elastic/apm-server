@@ -61,8 +61,8 @@ class BaseTest(TestCase):
         cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
         cls.index_profile = "apm-{}-profile".format(cls.apm_version)
         cls.index_acm = ".apm-agent-configuration"
-        cls.indices = [cls.index_onboarding, cls.index_error,
-                       cls.index_transaction, cls.index_span, cls.index_metric, cls.index_smap]
+        cls.indices = [cls.index_onboarding, cls.index_error, cls.index_transaction,
+                       cls.index_span, cls.index_metric, cls.index_smap, cls.index_profile]
 
         super(BaseTest, cls).setUpClass()
 

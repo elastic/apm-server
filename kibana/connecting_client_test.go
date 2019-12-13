@@ -76,20 +76,20 @@ func TestConnectingClient_GetVersion(t *testing.T) {
 func TestConnectingClient_SupportsVersion(t *testing.T) {
 	t.Run("SupportsVersionTrue", func(t *testing.T) {
 		c := mockClient()
-		s, err := c.SupportsVersion(common.MustNewVersion("7.3.0"))
+		s, err := c.SupportsVersion(common.MustNewVersion("7.3.0"), false)
 		require.NoError(t, err)
 		assert.True(t, s)
 	})
 	t.Run("SupportsVersionFalse", func(t *testing.T) {
 		c := mockClient()
-		s, err := c.SupportsVersion(common.MustNewVersion("7.4.0"))
+		s, err := c.SupportsVersion(common.MustNewVersion("7.4.0"), false)
 		require.NoError(t, err)
 		assert.False(t, s)
 	})
 
 	t.Run("SupportsVersionError", func(t *testing.T) {
 		c := NewConnectingClient(mockCfg)
-		s, err := c.SupportsVersion(common.MustNewVersion("7.3.0"))
+		s, err := c.SupportsVersion(common.MustNewVersion("7.3.0"), false)
 		require.Error(t, err)
 		assert.Equal(t, err, errNotConnected)
 		assert.False(t, s)
