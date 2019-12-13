@@ -28,6 +28,7 @@ STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
 ES_USER?=apm_user
 ES_PASS?=changeme
+ES_LOG_LEVEL?=debug
 KIBANA_ES_USER?=kibana_system_user
 KIBANA_ES_PASS?=changeme
 BEAT_KIBANA_USER?=apm_user_ro

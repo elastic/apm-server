@@ -35,6 +35,7 @@ services:
       - "xpack.license.self_generated.type=trial"
       - "xpack.security.authc.token.enabled=true"
       - "xpack.security.authc.api_key.enabled=true"
+      - "logger.org.elasticsearch=${ES_LOG_LEVEL}"
     volumes:
       - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
       - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
