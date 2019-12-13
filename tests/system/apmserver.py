@@ -189,8 +189,8 @@ class ServerSetUpBaseTest(BaseTest):
         cfg = self.config()
         # pipeline registration is enabled by default and only happens if the output is elasticsearch
         if not getattr(self, "register_pipeline_disabled", False) and \
-            cfg.get("elasticsearch_host") and \
-            cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
+                cfg.get("elasticsearch_host") and \
+                cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
             self.wait_until_pipelines_registered()
 
     def start_args(self):
@@ -204,7 +204,7 @@ class ServerSetUpBaseTest(BaseTest):
 
     def wait_until_pipelines_registered(self):
         self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
-                                                  name="pipelines registered")
+                        name="pipelines registered")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -278,7 +278,8 @@ class ElasticTest(ServerBaseTest):
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
-        assert all(idx.startswith("apm") for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
+        assert all(idx.startswith("apm")
+                   for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
         if self.es.indices.get("apm*"):
             self.es.indices.delete(index="apm*", ignore=[400, 404])
             for idx in self.indices:

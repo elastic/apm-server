@@ -126,7 +126,8 @@ class Test(ElasticTest):
                 # as they are dependent on the environment.
                 rec_id = rec[doc_type]['id']
                 rec_observer = rec['observer']
-                self.assertEqual(Set(rec_observer.keys()), Set(["hostname", "version", "id", "ephemeral_id", "type", "version_major"]))
+                self.assertEqual(Set(rec_observer.keys()), Set(
+                    ["hostname", "version", "id", "ephemeral_id", "type", "version_major"]))
                 assert rec_observer["version"].startswith(str(rec_observer["version_major"]) + ".")
                 for appr in approved:
                     if appr[doc_type]['id'] == rec_id:
@@ -147,6 +148,7 @@ class Test(ElasticTest):
             class ApprovalException(Exception):
                 def __init__(self, cause):
                     super(ApprovalException, self).__init__(cause.message)
+
                 def __str__(self):
                     return self.message + "\n\nReceived data differs from approved data. Run 'make update' and then 'approvals' to verify the diff."
             ApprovalException.__name__ = type(exc).__name__
