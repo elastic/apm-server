@@ -1,4 +1,4 @@
-from apmserver import ServerBaseTest, ServerSetUpBaseTest
+from apmserver import ServerBaseTest, ServerSetUpBaseTest, ElasticTest
 
 import base64
 import json
@@ -73,7 +73,7 @@ class TestAccessWithSecretToken(ServerBaseTest):
 
 
 @integration_test
-class BaseAPIKeySetup(ServerBaseTest):
+class BaseAPIKeySetup(ElasticTest):
 
     def setUp(self):
         # application
