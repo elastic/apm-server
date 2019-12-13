@@ -127,11 +127,14 @@ class BaseAPIKeySetup(ServerBaseTest):
 
         super(BaseAPIKeySetup, self).setUp()
 
-    def api_keys_invalidated(self):
+    def fetch_api_keys(self):
         resp = requests.get("{}?name={}".format(self.api_key_url, self.api_key_name))
         assert resp.status_code == 200
         assert "api_keys" in resp.json(), resp.json()
-        for entry in resp.json()["api_keys"]:
+        return resp.json()["api_keys"]
+
+    def api_keys_invalidated(self):
+        for entry in self.fetch_api_keys():
             if not entry["invalidated"]:
                 return False
         return True
@@ -172,26 +175,29 @@ class TestAPIKeyCache(BaseAPIKeySetup):
         => cache size is api_key_limit*5
         """
 
-        def assert_intake(api_key, authorized=True):
+        key1 = self.create_api_key([self.privilege_intake], self.resource_any)
+        key2 = self.create_api_key([self.privilege_intake], self.resource_any)
+        api_keys = self.fetch_api_keys()
+
+        def assert_intake(api_key, authorized):
             resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(api_key))
             if authorized:
-                assert resp.status_code != 401,  "token: {}, status_code: {}".format(api_key, resp.status_code)
+                assert resp.status_code != 401, "token: {}, status_code: {}, api_keys: {}".format(
+                    api_key, resp.status_code, api_keys)
             else:
-                assert resp.status_code == 401,  "token: {}, status_code: {}".format(api_key, resp.status_code)
+                assert resp.status_code == 401, "token: {}, status_code: {}, api_keys: {}".format(
+                    api_key, resp.status_code, api_keys)
 
         # fill cache up until one spot
         for i in range(4):
             assert_intake("ApiKey xyz{}".format(i), authorized=False)
 
-        key1 = self.create_api_key([self.privilege_intake], self.resource_any)
-        key2 = self.create_api_key([self.privilege_intake], self.resource_any)
-
         # allow for authorized api key
-        assert_intake(key1, authorized=True)
+        assert_intake(key1, True)
         # hit cache size
-        assert_intake(key2, authorized=False)
+        assert_intake(key2, False)
         # still allow already cached api key
-        assert_intake(key1, authorized=True)
+        assert_intake(key1, True)
 
 
 @integration_test
@@ -224,22 +230,6 @@ class TestAPIKeyWithESConfig(BaseAPIKeySetup):
         key = self.create_api_key([self.privilege_intake], self.resource_any)
         resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(key))
         assert resp.status_code == 202,  "token: {}, status_code: {}".format(key, resp.status_code)
-
-
-# @integration_test
-# class TestAPIKeyWithESConfig(BaseAPIKeySetup):
-#     def config(self):
-#         cfg = super(TestAPIKeyWithESConfig, self).config()
-#         cfg.update({"api_key_enabled": True, "elasticsearch_host": "http://localhost:9200"})
-#         return cfg
-#
-#     def test_backend_intake(self):
-#         """
-#         Test authorization logic for backend Intake endpoint with configured Elasticsearch
-#         """
-#         key = self.create_api_key([self.privilege_intake], self.resource_any)
-#         resp = requests.post( self.intake_url, data=self.get_event_payload(), headers=headers(key))
-#         assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
 
 
 @integration_test
@@ -301,10 +291,12 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
         """
         url = self.intake_url
         events = self.get_event_payload()
+        api_keys = self.fetch_api_keys()
 
         for token in self.authorized_keys+[self.api_key_privilege_intake]:
             resp = requests.post(url, data=events, headers=headers(token))
-            assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
+            assert resp.status_code == 202,  "token: {}, status_code: {}, api_keys: {}".format(
+                token, resp.status_code, api_keys)
 
         for token in self.unauthorized_keys+[self.api_key_privilege_config, self.api_key_privilege_sourcemap]:
             resp = requests.post(url, data=events, headers=headers(token))
