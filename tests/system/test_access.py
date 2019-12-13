@@ -94,9 +94,17 @@ class BaseAPIKeySetup(ServerBaseTest):
         password = os.getenv("ES_SUPERUSER_PASS", "changeme")
         self.admin_es_url = self.get_elasticsearch_url(user, password)
 
-        content_type = 'application/json'
+        self.api_key_url = "{}/_security/api_key".format(self.admin_es_url)
+        self.api_key_name = "apm-systemtest"
+
+        # clean setup: delete all existing api_keys of current user
+        requests.delete(self.api_key_url,
+                        data=json.dumps({'name': self.api_key_name}),
+                        headers=headers(content_type='application/json'))
+        self.wait_until(lambda: self.api_keys_invalidated(), name="delete former api keys")
 
         # create privileges
+        content_type = 'application/json'
         url_privileges = "{}/_security/privilege".format(self.admin_es_url)
         payload = json.dumps({self.application: {
             "sourcemap": {"actions": [self.privilege_sourcemap]},
@@ -117,31 +125,36 @@ class BaseAPIKeySetup(ServerBaseTest):
         assert "has_all_requested" in resp.json(), resp.content
         assert resp.json()["has_all_requested"] == True, resp.json()
 
-        self.created_api_keys = []
-
         super(BaseAPIKeySetup, self).setUp()
 
-    def tearDown(self):
-        for id in self.created_api_keys:
-            url = "{}/_security/api_key".format(self.admin_es_url)
-            payload = json.dumps({'id': id})
-            requests.delete(url, data=payload, headers=headers(content_type='application/json'))
-        super(BaseAPIKeySetup, self).tearDown()
+    def api_keys_invalidated(self):
+        resp = requests.get("{}?name={}".format(self.api_key_url, self.api_key_name))
+        assert resp.status_code == 200
+        assert "api_keys" in resp.json(), resp.json()
+        for entry in resp.json()["api_keys"]:
+            if not entry["invalidated"]:
+                return False
+        return True
+
+    def api_key_exists(self, id):
+        resp = requests.get("{}?id={}".format(self.api_key_url, id))
+        assert resp.status_code == 200, resp.status_code
+        return len(resp.json()["api_keys"]) == 1
 
     def create_api_key(self, privileges, resources, application="apm"):
-        url = "{}/_security/api_key".format(self.admin_es_url)
-        random_str = "".join(random.choice(string.ascii_letters) for i in range(16))
-        name = "apm-{}".format(random_str)
         payload = json.dumps({
-            "name": name,
+            "name": self.api_key_name,
             "role_descriptors": {
-                name+"role_desc": {
+                self.api_key_name+"role_desc": {
                     "applications": [
                         {"application": application, "privileges": privileges, "resources": resources}]}}})
-        resp = requests.post(url, data=payload, headers=headers(content_type='application/json'))
+        resp = requests.post(self.api_key_url,
+                             data=payload,
+                             headers=headers(content_type='application/json'))
         assert resp.status_code == 200, resp.status_code
-        self.created_api_keys.append([resp.json()["id"]])
-        return "ApiKey {}".format(base64.b64encode("{}:{}".format(resp.json()["id"], resp.json()["api_key"])))
+        id = resp.json()["id"]
+        self.wait_until(lambda: self.api_key_exists(id), name="create api key")
+        return "ApiKey {}".format(base64.b64encode("{}:{}".format(id, resp.json()["api_key"])))
 
 
 @integration_test
@@ -170,14 +183,13 @@ class TestAPIKeyCache(BaseAPIKeySetup):
         for i in range(4):
             assert_intake("ApiKey xyz{}".format(i), authorized=False)
 
-        # allow for authorized api key
         key1 = self.create_api_key([self.privilege_intake], self.resource_any)
-        assert_intake(key1, authorized=True)
-
-        # hit cache size
         key2 = self.create_api_key([self.privilege_intake], self.resource_any)
-        assert_intake(key2, authorized=False)
 
+        # allow for authorized api key
+        assert_intake(key1, authorized=True)
+        # hit cache size
+        assert_intake(key2, authorized=False)
         # still allow already cached api key
         assert_intake(key1, authorized=True)
 
