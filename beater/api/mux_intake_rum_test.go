@@ -38,9 +38,7 @@ func TestOPTIONS(t *testing.T) {
 	requestTaken := make(chan struct{}, 1)
 	done := make(chan struct{}, 1)
 
-	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
-	rumEnabled := true
-	cfg.RumConfig.Enabled = &rumEnabled
+	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
 	h, _ := middleware.Wrap(
 		func(c *request.Context) {
