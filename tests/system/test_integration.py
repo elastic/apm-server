@@ -116,10 +116,6 @@ class Test(ElasticTest):
         received = [doc['_source'] for doc in received]
         received.sort(key=lambda source: source[doc_type]['id'])
 
-        # NOTE(axw) this is temporary
-        approved = [doc['_source'] for doc in approved]
-        approved.sort(key=lambda source: source[doc_type]['id'])
-
         try:
             for rec in received:
                 # Overwrite received observer values with the approved ones,
