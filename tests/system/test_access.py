@@ -177,16 +177,13 @@ class TestAPIKeyCache(BaseAPIKeySetup):
 
         key1 = self.create_api_key([self.privilege_intake], self.resource_any)
         key2 = self.create_api_key([self.privilege_intake], self.resource_any)
-        api_keys = self.fetch_api_keys()
 
         def assert_intake(api_key, authorized):
             resp = requests.post(self.intake_url, data=self.get_event_payload(), headers=headers(api_key))
             if authorized:
-                assert resp.status_code != 401, "token: {}, status_code: {}, api_keys: {}".format(
-                    api_key, resp.status_code, api_keys)
+                assert resp.status_code != 401, "token: {}, status_code: {}".format(api_key, resp.status_code)
             else:
-                assert resp.status_code == 401, "token: {}, status_code: {}, api_keys: {}".format(
-                    api_key, resp.status_code, api_keys)
+                assert resp.status_code == 401, "token: {}, status_code: {}".format(api_key, resp.status_code)
 
         # fill cache up until one spot
         for i in range(4):
@@ -291,12 +288,10 @@ class TestAccessWithAuthorization(BaseAPIKeySetup):
         """
         url = self.intake_url
         events = self.get_event_payload()
-        api_keys = self.fetch_api_keys()
 
         for token in self.authorized_keys+[self.api_key_privilege_intake]:
             resp = requests.post(url, data=events, headers=headers(token))
-            assert resp.status_code == 202,  "token: {}, status_code: {}, api_keys: {}".format(
-                token, resp.status_code, api_keys)
+            assert resp.status_code == 202,  "token: {}, status_code: {}".format(token, resp.status_code)
 
         for token in self.unauthorized_keys+[self.api_key_privilege_config, self.api_key_privilege_sourcemap]:
             resp = requests.post(url, data=events, headers=headers(token))
