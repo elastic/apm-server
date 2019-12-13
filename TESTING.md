@@ -21,8 +21,9 @@ make unit
 While developing new tests or troubleshooting test failures, it is handy to run tests from outside of docker, for
 example from within an editor, while still allowing all dependencies to run in containers.  To accomplish this:
 
-* Run `make start-environment` to start docker containers for the Elastic Stack.
+* Run `make build-image start-environment` to start docker containers for the Elastic Stack.
 * Run `PYTHON_EXE=python2.7 make python-env` to build a python virtualenv
+* Run `make apm-server.test` to (re)build the executable used to run the apm-server
 * Run tests using the `run-system-tests` target, eg:
  ```
  SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error make run-system-test
