@@ -79,7 +79,7 @@ class BaseTest(TestCase):
         host = os.getenv("ES_HOST", "localhost")
 
         if not user:
-            user = os.getenv("ES_USER", "elastic")
+            user = os.getenv("ES_USER", "admin")
         if not password:
             password = os.getenv("ES_PASS", "changeme")
 
@@ -99,9 +99,9 @@ class BaseTest(TestCase):
         host = os.getenv("KIBANA_HOST", "localhost")
 
         if not user:
-            user = os.getenv("KIBANA_USER")
+            user = os.getenv("KIBANA_USER", "admin")
         if not password:
-            password = os.getenv("KIBANA_PASS")
+            password = os.getenv("KIBANA_PASS", "changeme")
 
         if user and password:
             host = user + ":" + password + "@" + host
@@ -156,9 +156,12 @@ class BaseTest(TestCase):
 
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
+    root_url = "{}/".format(host)
     agent_config_url = "{}/{}".format(host, "config/v1/agents")
     rum_agent_config_url = "{}/{}".format(host, "config/v1/rum/agents")
     intake_url = "{}/{}".format(host, 'intake/v2/events')
+    rum_intake_url = "{}/{}".format(host, 'intake/v2/rum/events')
+    sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
     def config(self):

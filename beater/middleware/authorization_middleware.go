@@ -28,7 +28,7 @@ import (
 
 // AuthorizationMiddleware returns a Middleware to only let authorized requests pass through
 func AuthorizationMiddleware(auth *authorization.Handler, apply bool) Middleware {
-	resource := "-"
+	resource := authorization.DefaultResource
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			c.Authorization = auth.AuthorizationFor(fetchAuthHeader(c.Request))
