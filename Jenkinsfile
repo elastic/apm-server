@@ -267,9 +267,9 @@ pipeline {
             allOf {
               anyOf {
                 branch 'master'
-                branch "\\d+\\.\\d+"
-                branch "v\\d?"
-                tag "v\\d+\\.\\d+\\.\\d+*"
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                branch pattern: 'v\\d?', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return params.Run_As_Master_Branch }
               }
               expression { return params.bench_ci }
