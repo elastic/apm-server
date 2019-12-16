@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -65,57 +64,70 @@ func ApproveEvents(events []beat.Event, name string, ignored ...string) error {
 	return ApproveJSON(receivedJSON, name, ignored...)
 }
 
-// ApproveJSON iterates over received data and verifies them against already approved data. If data differ a message
-// will be print suggesting how to proceed with approval procedure.
+// ApproveJSON iterates over received data and verifies them against already approved data.
+// If data differ a message will be print suggesting how to proceed with approval procedure.
 func ApproveJSON(received map[string]interface{}, name string, ignored ...string) error {
 	cwd, _ := os.Getwd()
 	path := filepath.Join(cwd, name)
-	receivedPath := path + ReceivedSuffix
-
-	r, _ := json.MarshalIndent(received, "", "    ")
-	ioutil.WriteFile(receivedPath, r, 0644)
-	received, _, diff, err := Compare(path, ignored...)
-	if err != nil {
-		return err
+	approved := readApproved(path)
+	if approved == nil {
+		approved = map[string]interface{}(nil)
 	}
-	if diff != "" {
-		r, _ := json.MarshalIndent(received, "", "    ")
-		if len(r) > 0 && r[len(r)-1] != '\n' {
-			r = append(r, '\n')
+
+	// Encode/decode the received data to convert common.MapStr to map[string]interface{}, etc.
+	data, _ := json.Marshal(received)
+	json.Unmarshal(data, &received)
+
+	if diff := CompareObjects(received, approved, ignored...); diff != "" {
+		f, err := os.OpenFile(path+ReceivedSuffix, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			return err
 		}
-		ioutil.WriteFile(receivedPath, r, 0644)
+		defer f.Close()
+
+		enc := json.NewEncoder(f)
+		enc.SetIndent("", "    ")
+		if err := enc.Encode(received); err != nil {
+			return err
+		}
 		return errors.New("received data differs from approved data. Run 'make update' and then 'approvals' to verify the diff")
 	}
-
-	os.Remove(receivedPath)
 	return nil
 }
 
 // Compare compares given data to approved data and returns diff if not equal.
-func Compare(path string, ignoredFields ...string) (map[string]interface{}, map[string]interface{}, string, error) {
+func Compare(path string, ignoredFields ...string) (received interface{}, approved interface{}, diff string, _ error) {
 	receivedf, err := os.Open(path + ReceivedSuffix)
 	if err != nil {
-		fmt.Println("Cannot read file ", path, err)
-		return nil, nil, "", err
+		return nil, nil, "", fmt.Errorf("cannot read file %q: %w", path, err)
 	}
 	defer receivedf.Close()
 
-	var received map[string]interface{}
 	if err := json.NewDecoder(receivedf).Decode(&received); err != nil {
-		fmt.Println("Cannot unmarshal received file ", path, err)
-		return nil, nil, "", err
+		return nil, nil, "", fmt.Errorf("cannot unmarshal file %q: %w", path, err)
 	}
 
-	var approved map[string]interface{}
+	approved = readApproved(path)
+	return received, approved, CompareObjects(received, approved, ignoredFields...), nil
+}
+
+func readApproved(path string) interface{} {
 	approvedf, err := os.Open(path + ApprovedSuffix)
-	if err == nil {
-		defer approvedf.Close()
-		if err := json.NewDecoder(approvedf).Decode(&approved); err != nil {
-			fmt.Println("Cannot unmarshal approved file ", path, err)
-			return nil, nil, "", err
-		}
+	if err != nil {
+		return nil
 	}
+	defer approvedf.Close()
 
+	var approved interface{}
+	if err := json.NewDecoder(approvedf).Decode(&approved); err != nil {
+		panic(fmt.Errorf("cannot unmarshal file %q: %w", path, err))
+	}
+	return approved
+}
+
+// CompareObjects compares two given objects, returning a
+// diff if not equal, and an empty string if they are equal.
+func CompareObjects(received, approved interface{}, ignoredFields ...string) (diff string) {
 	ignored := make(map[string]bool)
 	for _, field := range ignoredFields {
 		ignored[field] = true
@@ -128,7 +140,5 @@ func Compare(path string, ignoredFields ...string) (map[string]interface{}, map[
 			return false
 		}, cmp.Ignore()),
 	}
-
-	diff := cmp.Diff(approved, received, opts...)
-	return received, approved, diff, nil
+	return cmp.Diff(approved, received, opts...)
 }
