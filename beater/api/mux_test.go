@@ -55,8 +55,9 @@ func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseReco
 }
 
 func testHandler(t *testing.T, fn func(*config.Config, *authorization.Builder, publish.Reporter) (request.Handler, error)) request.Handler {
-	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
-	builder, err := authorization.NewBuilder(cfg)
+	cfg, err := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
+	require.NoError(t, err)
+	builder, err := authorization.NewBuilder(*cfg)
 	require.NoError(t, err)
 	h, err := fn(cfg, builder, beatertest.NilReporter)
 	require.NoError(t, err)

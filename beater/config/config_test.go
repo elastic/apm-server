@@ -37,15 +37,15 @@ import (
 func Test_UnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
 	version := "8.0.0"
-	defaultRawConfig := DefaultConfig(version)
-	defaultConfig, _ := Setup(nil, defaultRawConfig, nil)
+	cfg, err := Setup(DefaultConfig(version), nil)
+	require.NoError(t, err)
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
 		outCfg *Config
 	}{
 		"default config": {
 			inpCfg: map[string]interface{}{},
-			outCfg: defaultConfig,
+			outCfg: cfg,
 		},
 		"overwrite default": {
 			inpCfg: map[string]interface{}{
@@ -240,8 +240,7 @@ func Test_UnpackConfig(t *testing.T) {
 			inpCfg, err := common.NewConfigFrom(test.inpCfg)
 			assert.NoError(t, err)
 
-			rawCfg, err := NewRawConfig(version, inpCfg)
-			cfg, err := Setup(nil, rawCfg, err)
+			cfg, err := NewConfig(version, inpCfg, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
 			assert.Equal(t, test.outCfg, cfg)
@@ -322,7 +321,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := NewRawConfig("9.9.9", ucfgCfg)
+				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
 			})
@@ -348,7 +347,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := common.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := NewRawConfig("9.9.9", ucfgCfg)
+				cfg, err := NewConfig("9.9.9", ucfgCfg, nil)
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.VerificationMode, cfg.TLS.VerificationMode)
 			})
@@ -380,25 +379,22 @@ func TestTLSSettings(t *testing.T) {
 
 func TestAgentConfig(t *testing.T) {
 	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		rawCfg, err := NewRawConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}))
-		cfg, err := Setup(nil, rawCfg, err)
+		cfg, err := NewConfig("9.9.9",
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("InvalidUnit", func(t *testing.T) {
-		rawCfg, err := NewRawConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}))
-		cfg, err := Setup(nil, rawCfg, err)
+		cfg, err := NewConfig("9.9.9",
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		rawCfg, err := NewRawConfig("9.9.9",
-			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}))
-		cfg, err := Setup(nil, rawCfg, err)
+		cfg, err := NewConfig("9.9.9",
+			common.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
 		require.NoError(t, err)
 		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
 	})
@@ -410,16 +406,14 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	// no es config given
-	rawCfg, err := NewRawConfig(version, ucfg)
-	cfg, err := Setup(nil, rawCfg, err)
+	cfg, err := NewConfig(version, ucfg, nil)
 	require.NoError(t, err)
 	assert.Nil(t, cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.APIKeyConfig.ESConfig)
 
 	// with es config
 	outputESCfg := common.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
-	rawCfg, err = NewRawConfig(version, ucfg)
-	cfg, err = Setup(outputESCfg, rawCfg, err)
+	cfg, err = NewConfig(version, ucfg, outputESCfg)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))

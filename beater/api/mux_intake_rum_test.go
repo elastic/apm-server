@@ -77,7 +77,9 @@ func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 
 func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("OffRum", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(beatertest.MockBeatVersion()), IntakeRUMPath)
+		cfg, err := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
+		require.NoError(t, err)
+		rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
 		approvals.AssertApproveResult(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
@@ -104,7 +106,9 @@ func TestRUMHandler_CORSMiddleware(t *testing.T) {
 }
 
 func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
-	h, err := rumIntakeHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
+	cfg, err := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
+	require.NoError(t, err)
+	h, err := rumIntakeHandler(cfg, nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	rec := &beatertest.WriterPanicOnce{}
 	c := &request.Context{}
@@ -115,7 +119,9 @@ func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestRumHandler_MonitoringMiddleware(t *testing.T) {
-	h, err := rumIntakeHandler(config.DefaultConfig(beatertest.MockBeatVersion()), nil, beatertest.NilReporter)
+	cfg, err := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
+	require.NoError(t, err)
+	h, err := rumIntakeHandler(cfg, nil, beatertest.NilReporter)
 	require.NoError(t, err)
 	c, _ := beatertest.ContextWithResponseRecorder(http.MethodPost, "/")
 	// send GET request resulting in 403 Forbidden error
@@ -130,7 +136,7 @@ func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 }
 
 func cfgEnabledRUM() *config.Config {
-	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
+	cfg, _ := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
 	t := true
 	cfg.RumConfig.Enabled = &t
 	return cfg

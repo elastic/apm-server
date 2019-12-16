@@ -35,7 +35,8 @@ import (
 
 func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
-		cfg := config.DefaultConfig(beatertest.MockBeatVersion())
+		cfg, err := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
+		require.NoError(t, err)
 		cfg.SecretToken = "1234"
 		rec, err := requestToMuxerWithPattern(cfg, IntakePath)
 		require.NoError(t, err)
@@ -45,7 +46,8 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
-		cfg := config.DefaultConfig(beatertest.MockBeatVersion())
+		cfg, err := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
+		require.NoError(t, err)
 		cfg.SecretToken = "1234"
 		h := map[string]string{headers.Authorization: "Bearer 1234"}
 		rec, err := requestToMuxerWithHeader(cfg, IntakePath, http.MethodGet, h)

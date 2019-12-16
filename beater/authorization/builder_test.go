@@ -41,9 +41,9 @@ func TestBuilder(t *testing.T) {
 	} {
 
 		setup := func() *Builder {
-			rawCfg := config.DefaultConfig("9.9.9")
-			cfg, err := config.Setup(nil, rawCfg, nil)
+			cfg, err := config.Setup(config.DefaultConfig("9.9.9"), nil)
 			require.NoError(t, err)
+
 			if tc.withBearer {
 				cfg.SecretToken = "xvz"
 			}

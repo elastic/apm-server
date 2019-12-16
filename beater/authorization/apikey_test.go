@@ -143,9 +143,9 @@ func TestAPIKey_AuthorizedFor(t *testing.T) {
 		handler := tc.builder.forKey("12a3")
 
 		valid, err := handler.AuthorizedFor("xyz")
-		require.NoError(t, err)
+		require.Error(t, err)
 		assert.False(t, valid)
-		assert.Equal(t, 1, tc.cache.cache.ItemCount())
+		assert.Equal(t, 0, tc.cache.cache.ItemCount())
 	})
 
 	t.Run("decode error from ES", func(t *testing.T) {
@@ -174,16 +174,16 @@ func (tc *apikeyTestcase) setup(t *testing.T) {
 		if tc.transport == nil {
 			tc.transport = estest.NewTransport(t, http.StatusOK, map[string]interface{}{
 				"application": map[string]interface{}{
-					"application": map[string]map[string]interface{}{
-						"foo": {"agentconfig": true, "event": true, "sourcemap": false},
-						"bar": {"agentConfig": true, "event": false},
+					"apm": map[string]map[string]interface{}{
+						"foo": {"config_agent:read": true, "event:write": true, "sourcemap:write": false},
+						"bar": {"config_agent:read": true, "event:write": false},
 					}}})
 		}
 		tc.client, err = estest.NewElasticsearchClient(tc.transport)
 		require.NoError(t, err)
 	}
 	if tc.cache == nil {
-		tc.cache = newPrivilegesCache(time.Millisecond, 5)
+		tc.cache = newPrivilegesCache(time.Minute, 5)
 	}
 	if tc.anyOfPrivileges == nil {
 		tc.anyOfPrivileges = []elasticsearch.Privilege{PrivilegeEventWrite.Action, PrivilegeSourcemapWrite.Action}

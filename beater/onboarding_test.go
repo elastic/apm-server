@@ -33,12 +33,13 @@ import (
 )
 
 func TestNotifyUpServerDown(t *testing.T) {
-	config := config.DefaultConfig("7.0.0")
+	config, err := config.Setup(config.DefaultConfig("7.0.0"), nil)
+	require.NoError(t, err)
 	var saved beat.Event
 	var publisher = func(e beat.Event) { saved = e }
 
 	lis, err := net.Listen("tcp", "localhost:0")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer lis.Close()
 	config.Host = lis.Addr().String()
 
