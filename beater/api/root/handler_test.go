@@ -62,7 +62,7 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("authorized", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
-		builder, err := authorization.NewBuilder(&config.Config{SecretToken: "abc"})
+		builder, err := authorization.NewBuilder(config.Config{SecretToken: "abc"})
 		require.NoError(t, err)
 		c.Authorization = builder.ForPrivilege("").AuthorizationFor("Bearer", "abc")
 		Handler()(c)

@@ -77,6 +77,8 @@ func TestAPIKeyConfig_ESConfig(t *testing.T) {
 				LimitMin: 20,
 				ESConfig: &elasticsearch.Config{
 					Timeout:  5 * time.Second,
+					Username: "foo",
+					Password: "bar",
 					Protocol: "http",
 					Hosts:    elasticsearch.Hosts{"192.0.0.168:9200"}}},
 		},
