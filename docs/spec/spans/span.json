@@ -41,6 +41,43 @@
                     "type": ["object", "null"],
                     "description": "Any other arbitrary data captured by the agent, optionally provided by the user",
                     "properties": {
+                        "destination": {
+                            "type": ["object", "null"],
+                            "description": "An object containing contextual data about the destination for spans",
+                            "properties": {
+                                "address": {
+                                    "type": ["string", "null"],
+                                    "description": "Destination network address: hostname (e.g. 'localhost'), FQDN (e.g. 'elastic.co'), IPv4 (e.g. '127.0.0.1') or IPv6 (e.g. '::1')",
+                                    "maxLength": 1024
+                                },
+                                "port": {
+                                    "type": ["integer", "null"],
+                                    "description": "Destination network port (e.g. 443)"
+                                },
+                                "service": {
+                                    "description": "Destination service context",
+                                    "type": ["object", "null"],
+                                    "properties": {
+                                        "type": {
+                                            "description": "Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.",
+                                            "type": ["string", "null"],
+                                            "maxLength": 1024
+                                        },
+                                        "name": {
+                                            "description": "Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')",
+                                            "type": ["string", "null"],
+                                            "maxLength": 1024
+                                        },
+                                        "resource": {
+                                            "description": "Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')",
+                                            "type": ["string", "null"],
+                                            "maxLength": 1024
+                                        }
+                                    },
+				    "required": ["type", "name", "resource"]
+                                }
+                            }
+                        },
                         "db": {
                             "type": ["object", "null"],
                             "description": "An object containing contextual data for database spans",
