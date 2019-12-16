@@ -61,7 +61,9 @@ type Config struct {
 	Mode                Mode                    `config:"mode"`
 	Kibana              *common.Config          `config:"kibana"`
 	AgentConfig         *AgentConfig            `config:"agent.config"`
-	SecretToken         string                  `config:"secret_token"`
+
+	SecretToken  string        `config:"secret_token"`
+	APIKeyConfig *APIKeyConfig `config:"api_key"`
 
 	Pipeline string
 }
@@ -115,6 +117,10 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
+	if err := c.APIKeyConfig.setup(logger, outputESCfg); err != nil {
+		return nil, err
+	}
+
 	if err := c.SelfInstrumentation.setup(logger); err != nil {
 		return nil, err
 	}
@@ -143,11 +149,12 @@ func DefaultConfig(beatVersion string) *Config {
 			Enabled: new(bool),
 			URL:     "/debug/vars",
 		},
-		RumConfig:   defaultRum(beatVersion),
-		Register:    defaultRegisterConfig(true),
-		Mode:        ModeProduction,
-		Kibana:      common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
-		AgentConfig: &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
-		Pipeline:    defaultAPMPipeline,
+		RumConfig:    defaultRum(beatVersion),
+		Register:     defaultRegisterConfig(true),
+		Mode:         ModeProduction,
+		Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
+		AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
+		Pipeline:     defaultAPMPipeline,
+		APIKeyConfig: defaultAPIKeyConfig(),
 	}
 }
