@@ -12,6 +12,8 @@ pipeline {
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     GITHUB_CHECK_ITS_NAME = 'APM Integration Tests'
     ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
+    DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
+    ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -37,6 +39,9 @@ pipeline {
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
     booleanParam(name: 'its_ci', defaultValue: true, description: 'Enable async ITs')
+    string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
+    string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
+
   }
   stages {
     /**
@@ -272,9 +277,9 @@ pipeline {
             allOf {
               anyOf {
                 branch 'master'
-                branch "\\d+\\.\\d+"
-                branch "v\\d?"
-                tag "v\\d+\\.\\d+\\.\\d+*"
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                branch pattern: 'v\\d?', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
                 expression { return params.Run_As_Master_Branch }
               }
               expression { return params.bench_ci }
@@ -389,9 +394,9 @@ pipeline {
         allOf {
           anyOf {
             branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
+            branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+            branch pattern: 'v\\d?', comparator: 'REGEXP'
+            tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
             expression { return params.Run_As_Master_Branch }
             expression { return env.BEATS_UPDATED != "false" }
           }

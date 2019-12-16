@@ -542,6 +542,36 @@
           This is typically obtained from a request's X-Forwarded-For or the X-Real-IP header or falls back to a given configuration for remote address.
         overwrite: true
 
+    - name: destination
+      title: Destination
+      group: 2
+      description: 'Destination fields describe details about the destination of a packet/event.
+
+        Destination fields are usually populated in conjunction with source fields.'
+      type: group
+      fields:
+      - name: address
+        level: extended
+        type: keyword
+        ignore_above: 1024
+        description: 'Some event destination addresses are defined ambiguously. The
+          event will sometimes list an IP, a domain or a unix socket.  You should always
+          store the raw address in the `.address` field.
+
+          Then it should be duplicated to `.ip` or `.domain`, depending on which one
+          it is.'
+      - name: ip
+        level: core
+        type: ip
+        description: 'IP addess of the destination.
+
+          Can be one of multiple IPv4 or IPv6 addresses.'
+      - name: port
+        level: core
+        type: long
+        format: string
+        description: Port of the destination.
+
     - name: user_agent
       dynamic: false
       title: User agent

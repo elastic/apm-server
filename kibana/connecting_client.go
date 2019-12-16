@@ -50,14 +50,14 @@ type Client interface {
 	// Connected indicates whether or not a connection to Kibana has been established
 	Connected() bool
 	// SupportsVersion compares given version to version of connected Kibana instance
-	SupportsVersion(v *common.Version) (bool, error)
+	SupportsVersion(*common.Version, bool) (bool, error)
 }
 
 // ConnectingClient implements Client interface
 type ConnectingClient struct {
 	client *kibana.Client
 	cfg    *common.Config
-	m      sync.Mutex
+	m      sync.RWMutex
 }
 
 // NewConnectingClient returns instance of ConnectingClient and starts a background routine trying to connect
@@ -88,8 +88,9 @@ func NewConnectingClient(cfg *common.Config) Client {
 // If no connection is established an error is returned
 func (c *ConnectingClient) Send(method, extraPath string, params url.Values,
 	headers http.Header, body io.Reader) (*http.Response, error) {
-
-	if !c.Connected() {
+	c.m.RLock()
+	defer c.m.RUnlock()
+	if c.client == nil {
 		return nil, errNotConnected
 	}
 	return c.client.Send(method, extraPath, params, headers, body)
@@ -98,22 +99,44 @@ func (c *ConnectingClient) Send(method, extraPath string, params url.Values,
 // GetVersion returns Kibana version or an error
 // If no connection is established an error is returned
 func (c *ConnectingClient) GetVersion() (common.Version, error) {
-	if !c.Connected() {
+	c.m.RLock()
+	defer c.m.RUnlock()
+	if c.client == nil {
 		return common.Version{}, errNotConnected
 	}
 	return c.client.GetVersion(), nil
 }
 
 // Connected checks if a connection has been established
-func (c *ConnectingClient) Connected() bool { return c.client != nil }
+func (c *ConnectingClient) Connected() bool {
+	c.m.RLock()
+	defer c.m.RUnlock()
+	return c.client != nil
+}
 
 // SupportsVersion checks if connected Kibana instance is compatible to given version
 // If no connection is established an error is returned
-func (c *ConnectingClient) SupportsVersion(v *common.Version) (bool, error) {
-	if !c.Connected() {
+func (c *ConnectingClient) SupportsVersion(v *common.Version, retry bool) (bool, error) {
+	log := logp.NewLogger(logs.Kibana)
+	c.m.RLock()
+	if c.client == nil && !retry {
+		c.m.RUnlock()
 		return false, errNotConnected
 	}
-	return v.LessThanOrEqual(false, &c.client.Version), nil
+	upToDate := c.client != nil && v.LessThanOrEqual(false, &c.client.Version)
+	c.m.RUnlock()
+	if !retry || upToDate {
+		return upToDate, nil
+	}
+	client, err := kibana.NewKibanaClient(c.cfg)
+	if err != nil {
+		log.Errorf("failed to obtain connection to Kibana: %s", err.Error())
+		return upToDate, err
+	}
+	c.m.Lock()
+	c.client = client
+	c.m.Unlock()
+	return c.SupportsVersion(v, false)
 }
 
 func (c *ConnectingClient) connect() error {
