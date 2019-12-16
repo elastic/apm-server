@@ -24,17 +24,16 @@ import (
 	"testing"
 	"time"
 
+	m "github.com/elastic/apm-server/model"
+	"github.com/elastic/apm-server/model/metadata"
 	"github.com/elastic/apm-server/sourcemap"
+	"github.com/elastic/apm-server/transform"
 	"github.com/elastic/apm-server/utility"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/beats/libbeat/common"
-
-	m "github.com/elastic/apm-server/model"
-	"github.com/elastic/apm-server/model/metadata"
-	"github.com/elastic/apm-server/transform"
 )
 
 func TestDecodeSpan(t *testing.T) {
@@ -46,11 +45,22 @@ func TestDecodeSpan(t *testing.T) {
 	start, duration := 1.2, 3.4
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user, link := "db01", "select *", "sql", "joe", "other.db.com"
+	address, port := "localhost", 8080
+	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 	context := map[string]interface{}{
 		"a":    "b",
 		"tags": map[string]interface{}{"a": "tag", "tag.key": 17},
 		"http": map[string]interface{}{"method": "GET", "status_code": json.Number("200"), "url": url},
 		"db":   map[string]interface{}{"instance": instance, "statement": statement, "type": dbType, "user": user, "link": link},
+		"destination": map[string]interface{}{
+			"address": address,
+			"port":    float64(port),
+			"service": map[string]interface{}{
+				"type":     destServiceType,
+				"name":     destServiceName,
+				"resource": destServiceResource,
+			},
+		},
 	}
 	subtype := "postgresql"
 	action, action2 := "query", "query.custom"
@@ -209,8 +219,14 @@ func TestDecodeSpan(t *testing.T) {
 				TraceId:       traceId,
 				ParentId:      parentId,
 				TransactionId: &transactionId,
-				Http:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				Db:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user, Link: &link},
+				HTTP:          &http{Method: &method, StatusCode: &statusCode, Url: &url},
+				DB:            &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user, Link: &link},
+				Destination:   &destination{Address: &address, Port: &port},
+				DestinationService: &destinationService{
+					Type:     &destServiceType,
+					Name:     &destServiceName,
+					Resource: &destServiceResource,
+				},
 			},
 		},
 	} {
@@ -241,6 +257,8 @@ func TestSpanTransform(t *testing.T) {
 	method, statusCode, url := "get", 200, "http://localhost"
 	instance, statement, dbType, user := "db01", "select *", "sql", "jane"
 	metadataLabels := common.MapStr{"label.a": "a", "label.b": "b", "c": 1}
+	address, port := "127.0.0.1", 8080
+	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 
 	tests := []struct {
 		Event  Event
@@ -264,19 +282,25 @@ func TestSpanTransform(t *testing.T) {
 		},
 		{
 			Event: Event{
-				Id:         hexId,
-				TraceId:    traceId,
-				ParentId:   parentId,
-				Name:       "myspan",
-				Type:       "myspantype",
-				Subtype:    &subtype,
-				Action:     &action,
-				Start:      &start,
-				Duration:   1.20,
-				Stacktrace: m.Stacktrace{{AbsPath: &path}},
-				Labels:     common.MapStr{"label.a": 12},
-				Http:       &http{Method: &method, StatusCode: &statusCode, Url: &url},
-				Db:         &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
+				Id:          hexId,
+				TraceId:     traceId,
+				ParentId:    parentId,
+				Name:        "myspan",
+				Type:        "myspantype",
+				Subtype:     &subtype,
+				Action:      &action,
+				Start:       &start,
+				Duration:    1.20,
+				Stacktrace:  m.Stacktrace{{AbsPath: &path}},
+				Labels:      common.MapStr{"label.a": 12},
+				HTTP:        &http{Method: &method, StatusCode: &statusCode, Url: &url},
+				DB:          &db{Instance: &instance, Statement: &statement, Type: &dbType, UserName: &user},
+				Destination: &destination{Address: &address, Port: &port},
+				DestinationService: &destinationService{
+					Type:     &destServiceType,
+					Name:     &destServiceName,
+					Resource: &destServiceResource,
+				},
 			},
 			Output: common.MapStr{
 				"span": common.MapStr{
@@ -306,13 +330,21 @@ func TestSpanTransform(t *testing.T) {
 						"response": common.MapStr{"status_code": statusCode},
 						"method":   "get",
 					},
+					"destination": common.MapStr{
+						"service": common.MapStr{
+							"type":     destServiceType,
+							"name":     destServiceName,
+							"resource": destServiceResource,
+						},
+					},
 				},
-				"labels":    common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
-				"processor": common.MapStr{"event": "span", "name": "transaction"},
-				"service":   common.MapStr{"name": serviceName, "environment": env},
-				"timestamp": common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
-				"trace":     common.MapStr{"id": traceId},
-				"parent":    common.MapStr{"id": parentId},
+				"labels":      common.MapStr{"label.a": 12, "label.b": "b", "c": 1},
+				"processor":   common.MapStr{"event": "span", "name": "transaction"},
+				"service":     common.MapStr{"name": serviceName, "environment": env},
+				"timestamp":   common.MapStr{"us": int64(float64(timestampUs) + start*1000)},
+				"trace":       common.MapStr{"id": traceId},
+				"parent":      common.MapStr{"id": parentId},
+				"destination": common.MapStr{"address": address, "ip": address, "port": port},
 			},
 			Msg: "Full Span",
 		},

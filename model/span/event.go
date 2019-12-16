@@ -19,6 +19,7 @@ package span
 
 import (
 	"errors"
+	"net"
 	"strings"
 	"time"
 
@@ -79,11 +80,14 @@ type Event struct {
 	Subtype *string
 	Action  *string
 
-	Db   *db
-	Http *http
+	DB                 *db
+	HTTP               *http
+	Destination        *destination
+	DestinationService *destinationService
 
 	Experimental interface{}
 }
+
 type db struct {
 	Instance  *string
 	Statement *string
@@ -92,7 +96,7 @@ type db struct {
 	Link      *string
 }
 
-func DecodeDb(input interface{}, err error) (*db, error) {
+func decodeDB(input interface{}, err error) (*db, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -136,7 +140,7 @@ type http struct {
 	Method     *string
 }
 
-func DecodeHttp(input interface{}, err error) (*http, error) {
+func decodeHTTP(input interface{}, err error) (*http, error) {
 	if input == nil || err != nil {
 		return nil, err
 	}
@@ -176,6 +180,77 @@ func (http *http) fields() common.MapStr {
 	return fields
 }
 
+type destination struct {
+	Address *string
+	Port    *int
+}
+
+func decodeDestination(input interface{}, err error) (*destination, *destinationService, error) {
+	if input == nil || err != nil {
+		return nil, nil, err
+	}
+	raw, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, nil, errors.New("invalid type for destination")
+	}
+	decoder := utility.ManualDecoder{}
+	destinationInput := decoder.MapStr(raw, "destination")
+	if decoder.Err != nil || destinationInput == nil {
+		return nil, nil, decoder.Err
+	}
+	serviceInput := decoder.MapStr(destinationInput, "service")
+	if decoder.Err != nil {
+		return nil, nil, decoder.Err
+	}
+	var service *destinationService
+	if serviceInput != nil {
+		service = &destinationService{
+			Type:     decoder.StringPtr(serviceInput, "type"),
+			Name:     decoder.StringPtr(serviceInput, "name"),
+			Resource: decoder.StringPtr(serviceInput, "resource"),
+		}
+	}
+	dest := destination{
+		Address: decoder.StringPtr(destinationInput, "address"),
+		Port:    decoder.IntPtr(destinationInput, "port"),
+	}
+	return &dest, service, decoder.Err
+}
+
+func (d *destination) fields() common.MapStr {
+	if d == nil {
+		return nil
+	}
+	var fields = common.MapStr{}
+	if d.Address != nil {
+		address := *d.Address
+		fields["address"] = address
+		if ip := net.ParseIP(address); ip != nil {
+			fields["ip"] = address
+		}
+	}
+	utility.Set(fields, "port", d.Port)
+	return fields
+}
+
+func (d *destinationService) fields() common.MapStr {
+	if d == nil {
+		return nil
+	}
+	var fields = common.MapStr{}
+	utility.Set(fields, "type", d.Type)
+	utility.Set(fields, "name", d.Name)
+	utility.Set(fields, "resource", d.Resource)
+	return fields
+}
+
+type destinationService struct {
+	Type     *string
+	Name     *string
+	Resource *string
+}
+
+// DecodeEvent decodes a span event.
 func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transformable, error) {
 	if err != nil {
 		return nil, err
@@ -210,20 +285,27 @@ func DecodeEvent(input interface{}, cfg m.Config, err error) (transform.Transfor
 			event.Labels = labels
 		}
 
-		db, err := DecodeDb(ctx, decoder.Err)
+		db, err := decodeDB(ctx, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
-		event.Db = db
+		event.DB = db
 
-		http, err := DecodeHttp(ctx, nil)
+		http, err := decodeHTTP(ctx, decoder.Err)
 		if err != nil {
 			return nil, err
 		}
-		event.Http = http
+		event.HTTP = http
+
+		dest, destService, err := decodeDestination(ctx, decoder.Err)
+		if err != nil {
+			return nil, err
+		}
+		event.Destination = dest
+		event.DestinationService = destService
 
 		if s, set := ctx["service"]; set {
-			service, err := metadata.DecodeService(s, nil)
+			service, err := metadata.DecodeService(s, decoder.Err)
 			if err != nil {
 				return nil, err
 			}
@@ -286,6 +368,7 @@ func (e *Event) Transform(tctx *transform.Context) []beat.Event {
 	utility.AddId(fields, "trace", &e.TraceId)
 	utility.AddId(fields, "transaction", e.TransactionId)
 	utility.Set(fields, "experimental", e.Experimental)
+	utility.Set(fields, "destination", e.Destination.fields())
 
 	timestamp := e.Timestamp
 	if timestamp.IsZero() {
@@ -329,8 +412,9 @@ func (e *Event) fields(tctx *transform.Context) common.MapStr {
 
 	utility.Set(tr, "duration", utility.MillisAsMicros(e.Duration))
 
-	utility.Set(tr, "db", e.Db.fields())
-	utility.Set(tr, "http", e.Http.fields())
+	utility.Set(tr, "db", e.DB.fields())
+	utility.Set(tr, "http", e.HTTP.fields())
+	utility.DeepUpdate(tr, "destination.service", e.DestinationService.fields())
 
 	st := e.Stacktrace.Transform(tctx)
 	utility.Set(tr, "stacktrace", st)
