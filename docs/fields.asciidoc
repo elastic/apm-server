@@ -813,6 +813,44 @@ type: ip
 --
 
 [float]
+=== destination
+
+Destination fields describe details about the destination of a packet/event.
+Destination fields are usually populated in conjunction with source fields.
+
+
+*`destination.address`*::
++
+--
+Some event destination addresses are defined ambiguously. The event will sometimes list an IP, a domain or a unix socket.  You should always store the raw address in the `.address` field.
+Then it should be duplicated to `.ip` or `.domain`, depending on which one it is.
+
+type: keyword
+
+--
+
+*`destination.ip`*::
++
+--
+IP addess of the destination.
+Can be one of multiple IPv4 or IPv6 addresses.
+
+type: ip
+
+--
+
+*`destination.port`*::
++
+--
+Port of the destination.
+
+type: long
+
+format: string
+
+--
+
+[float]
 === user_agent
 
 The user_agent fields normally come from a browser request. They often show up in web service logs coming from the parsed user agent string.
@@ -1398,6 +1436,43 @@ type: boolean
 +
 --
 Database link.
+
+
+type: keyword
+
+--
+
+
+[float]
+=== service
+
+Destination service context
+
+
+*`span.destination.service.type`*::
++
+--
+Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.
+
+
+type: keyword
+
+--
+
+*`span.destination.service.name`*::
++
+--
+Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')
+
+
+type: keyword
+
+--
+
+*`span.destination.service.resource`*::
++
+--
+Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')
 
 
 type: keyword
