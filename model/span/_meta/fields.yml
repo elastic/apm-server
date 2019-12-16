@@ -61,3 +61,29 @@
               type: keyword
               description: >
                 Database link.
+
+        - name: destination
+          type: group
+          dynamic: false
+          fields:
+
+            - name: service
+              type: group
+              dynamic: false
+              description: Destination service context
+              fields:
+
+                - name: type
+                  type: keyword
+                  description: >
+                    Type of the destination service (e.g. 'db', 'elasticsearch'). Should typically be the same as span.type.
+
+                - name: name
+                  type: keyword
+                  description: >
+                    Identifier for the destination service (e.g. 'http://elastic.co', 'elasticsearch', 'rabbitmq')
+
+                - name: resource
+                  type: keyword
+                  description: >
+                    Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')

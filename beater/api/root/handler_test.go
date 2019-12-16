@@ -22,11 +22,15 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/beats/libbeat/version"
 
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/beatertest"
+	"github.com/elastic/apm-server/beater/config"
 )
 
 func TestRootHandler(t *testing.T) {
@@ -40,6 +44,7 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("ok", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c.Authorization = &authorization.DenyAuth{}
 		Handler()(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -48,6 +53,7 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("unauthorized", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c.Authorization = authorization.DenyAuth{}
 		Handler()(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -56,7 +62,9 @@ func TestRootHandler(t *testing.T) {
 
 	t.Run("authorized", func(t *testing.T) {
 		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
-		c.Authorized = true
+		builder, err := authorization.NewBuilder(&config.Config{SecretToken: "abc"})
+		require.NoError(t, err)
+		c.Authorization = builder.ForPrivilege("").AuthorizationFor("Bearer", "abc")
 		Handler()(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)

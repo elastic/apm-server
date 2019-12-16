@@ -18,61 +18,40 @@
 package middleware
 
 import (
-	"crypto/subtle"
 	"net/http"
 	"strings"
 
+	"github.com/elastic/apm-server/beater/authorization"
 	"github.com/elastic/apm-server/beater/headers"
 	"github.com/elastic/apm-server/beater/request"
 )
 
-// RequireAuthorizationMiddleware returns a Middleware to only let authorized requests pass through
-func RequireAuthorizationMiddleware(token string) Middleware {
+// AuthorizationMiddleware returns a Middleware to only let authorized requests pass through
+func AuthorizationMiddleware(auth *authorization.Handler, apply bool) Middleware {
+	resource := authorization.DefaultResource
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			c.TokenSet = tokenSet(token)
+			c.Authorization = auth.AuthorizationFor(fetchAuthHeader(c.Request))
 
-			if !isAuthorized(c.Request, token) {
-				c.Authorized = false
-				c.Result.SetDefault(request.IDResponseErrorsUnauthorized)
-				c.Write()
-				return
+			if apply {
+				authorized, err := c.Authorization.AuthorizedFor(resource)
+				if !authorized {
+					c.Result.SetDeniedAuthorization(err)
+					c.Write()
+					return
+				}
 			}
 
-			c.Authorized = true
 			h(c)
 		}, nil
 	}
 }
 
-// SetAuthorizationMiddleware returns a middleware setting authorization information in the context without terminating the
-// request if it is not authorized
-func SetAuthorizationMiddleware(token string) Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			c.Authorized = isAuthorized(c.Request, token)
-			c.TokenSet = tokenSet(token)
-			h(c)
-		}, nil
-	}
-}
-
-// isAuthorized checks the Authorization header. It must be in the form of:
-//   Authorization: Bearer <secret-token>
-// Bearer must be part of it.
-func isAuthorized(req *http.Request, token string) bool {
-	// No token configured
-	if !tokenSet(token) {
-		return true
-	}
+func fetchAuthHeader(req *http.Request) (string, string) {
 	header := req.Header.Get(headers.Authorization)
 	parts := strings.Split(header, " ")
-	if len(parts) != 2 || parts[0] != headers.Bearer {
-		return false
+	if len(parts) != 2 {
+		return "", ""
 	}
-	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(token)) == 1
-}
-
-func tokenSet(token string) bool {
-	return token != ""
+	return parts[0], parts[1]
 }

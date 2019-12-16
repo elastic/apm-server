@@ -1,12 +1,9 @@
-import os
-from nose.plugins.attrib import attr
 import unittest
 import logging
 from elasticsearch import Elasticsearch, NotFoundError, RequestError
-from apmserver import BaseTest, ElasticTest
+from nose.plugins.attrib import attr
 from nose.tools import raises
-
-INTEGRATION_TESTS = os.environ.get('INTEGRATION_TESTS', False)
+from apmserver import BaseTest, ElasticTest, integration_test
 
 EVENT_NAMES = ('error', 'span', 'transaction', 'metric', 'profile')
 
@@ -85,6 +82,7 @@ class IdxMgmt(object):
         assert len(a) == 0, a
 
 
+@integration_test
 class TestCommandSetupIndexManagement(BaseTest):
     """
     Test beat command `setup --index-management`
@@ -102,16 +100,11 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.delete()
         self.render_config()
 
-    def tearDown(self):
-        self.idxmgmt.delete()
-
     def render_config(self):
         cfg = {"elasticsearch_host": self.get_elasticsearch_url(),
                "file_enabled": "false"}
         self.render_config_template(**cfg)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_setup_default_template_enabled_ilm_auto(self):
         """
         Test setup --index-management when template enabled and ilm auto
@@ -123,8 +116,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_setup_default_template_ilm_setup_disabled(self):
         """
         Test setup --index-management when ilm setup false
@@ -137,8 +128,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_setup_template_enabled_ilm_disabled(self):
         """
         Test setup --index-management when template enabled and ilm disabled
@@ -151,8 +140,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_setup_template_disabled_ilm_auto(self):
         """
         Test setup --index-management when template disabled and ilm enabled
@@ -165,8 +152,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_setup_template_disabled_ilm_disabled(self):
         """
         Test setup --index-management when template disabled and ilm disabled
@@ -180,8 +165,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_enable_ilm(self):
         """
         Test setup --index-management when ilm was enabled and gets disabled
@@ -214,8 +197,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()  # aliases do not get deleted
         self.idxmgmt.assert_default_policy()  # policies do not get deleted
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_disable(self):
         """
         Test setup --index-management when ilm was disabled and gets enabled
@@ -247,8 +228,6 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     @raises(RequestError)
     def test_ensure_policy_is_used(self):
         """
@@ -264,8 +243,9 @@ class TestCommandSetupIndexManagement(BaseTest):
         self.idxmgmt.delete_policies()
 
 
+@integration_test
 class TestRunIndexManagementDefault(ElasticTest):
-
+    register_pipeline_disabled = True
     config_overrides = {"queue_flush": 2048}
 
     def setUp(self):
@@ -274,18 +254,16 @@ class TestRunIndexManagementDefault(ElasticTest):
         self.idxmgmt = IdxMgmt(self.es, self.index_name)
         self.idxmgmt.delete()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template_loaded(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."),
-                        max_timeout=5)
-
+        self.wait_until_ilm_setup()
         self.idxmgmt.assert_event_template()
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy()
 
 
+@integration_test
 class TestRunIndexManagementWithoutILM(ElasticTest):
-
+    register_pipeline_disabled = True
     config_overrides = {"queue_flush": 2048}
 
     def setUp(self):
@@ -297,16 +275,14 @@ class TestRunIndexManagementWithoutILM(ElasticTest):
     def start_args(self):
         return {"extra_args": ["-E", "apm-server.ilm.enabled=false"]}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template_and_ilm_loaded(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."),
-                        max_timeout=5)
-
+        self.wait_until_ilm_setup()
         self.idxmgmt.assert_event_template(with_ilm=False)
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
 
 
+@integration_test
 class TestILMConfiguredPolicies(ElasticTest):
 
     config_overrides = {"queue_flush": 2048, "ilm_policies": True}
@@ -317,11 +293,9 @@ class TestILMConfiguredPolicies(ElasticTest):
         self.idxmgmt = IdxMgmt(self.es, self.index_name)
         self.idxmgmt.delete()
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+    @unittest.skip("flaky")
     def test_ilm_loaded(self):
-        self.wait_until(lambda: self.log_contains("Finished index management setup."),
-                        max_timeout=5)
-
+        self.wait_until_ilm_setup()
         self.idxmgmt.assert_event_template(with_ilm=True)
         self.idxmgmt.assert_alias()
         self.idxmgmt.assert_default_policy(loaded=True)
@@ -342,6 +316,7 @@ class TestILMConfiguredPolicies(ElasticTest):
         assert "hot" in phases
 
 
+@integration_test
 class TestRunIndexManagementWithSetupDisabled(ElasticTest):
 
     config_overrides = {"queue_flush": 2048}
@@ -355,7 +330,6 @@ class TestRunIndexManagementWithSetupDisabled(ElasticTest):
     def start_args(self):
         return {"extra_args": ["-E", "apm-server.ilm.setup.enabled=false"]}
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
     def test_template_and_ilm_loaded(self):
         self.wait_until(lambda: self.log_contains("Manage ILM setup is disabled."),
                         max_timeout=5)
@@ -365,6 +339,7 @@ class TestRunIndexManagementWithSetupDisabled(ElasticTest):
         self.idxmgmt.assert_default_policy(loaded=False)
 
 
+@integration_test
 class TestCommandSetupTemplate(BaseTest):
     """
     Test beat command `setup --template`
@@ -387,8 +362,6 @@ class TestCommandSetupTemplate(BaseTest):
                "file_enabled": "false"}
         self.render_config_template(**cfg)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_setup_default(self):
         """
         Test setup --template default
@@ -402,8 +375,6 @@ class TestCommandSetupTemplate(BaseTest):
         self.idxmgmt.assert_alias(loaded=0)
         self.idxmgmt.assert_default_policy(loaded=False)
 
-    @unittest.skipUnless(INTEGRATION_TESTS, "integration test")
-    @attr('integration')
     def test_setup_template_disabled_ilm_enabled(self):
         """
         Test setup --template when template disabled and ilm enabled

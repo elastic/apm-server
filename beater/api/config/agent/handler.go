@@ -75,21 +75,21 @@ func Handler(client kibana.Client, config *config.AgentConfig) request.Handler {
 			return
 		}
 
-		if valid := validateClient(c, client, c.TokenSet); !valid {
+		if valid := validateClient(c, client, c.Authorization.IsAuthorizationConfigured()); !valid {
 			c.Write()
 			return
 		}
 
 		query, queryErr := buildQuery(c)
 		if queryErr != nil {
-			extractQueryError(c, queryErr, c.TokenSet)
+			extractQueryError(c, queryErr, c.Authorization.IsAuthorizationConfigured())
 			c.Write()
 			return
 		}
 
 		result, err := fetcher.Fetch(query)
 		if err != nil {
-			extractInternalError(c, err, c.TokenSet)
+			extractInternalError(c, err, c.Authorization.IsAuthorizationConfigured())
 			c.Write()
 			return
 		}
@@ -117,15 +117,17 @@ func validateClient(c *request.Context, client kibana.Client, withAuth bool) boo
 			errMsgKibanaDisabled)
 		return false
 	}
-	if !client.Connected() {
-		c.Result.Set(request.IDResponseErrorsServiceUnavailable,
-			http.StatusServiceUnavailable,
-			msgNoKibanaConnection,
-			msgNoKibanaConnection,
-			errMsgNoKibanaConnection)
-		return false
-	}
-	if supported, _ := client.SupportsVersion(minKibanaVersion); !supported {
+
+	if supported, err := client.SupportsVersion(minKibanaVersion, true); !supported {
+		if err != nil {
+			c.Result.Set(request.IDResponseErrorsServiceUnavailable,
+				http.StatusServiceUnavailable,
+				msgNoKibanaConnection,
+				msgNoKibanaConnection,
+				errMsgNoKibanaConnection)
+			return false
+		}
+
 		version, _ := client.GetVersion()
 
 		errMsg := fmt.Sprintf("%s: min version %+v, configured version %+v",

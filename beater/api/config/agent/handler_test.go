@@ -27,9 +27,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/agentcfg"
+
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/apm-server/agentcfg"
+	"github.com/elastic/apm-server/beater/authorization"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -166,7 +168,7 @@ func TestAgentConfigHandler(t *testing.T) {
 
 	for name, tc := range testcases {
 
-		runTest := func(t *testing.T, expectedBody map[string]string, tokenSet bool) {
+		runTest := func(t *testing.T, expectedBody map[string]string, auth authorization.Authorization) {
 			h := Handler(tc.kbClient, &cfg)
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(tc.method, target(tc.queryParams), nil)
@@ -175,7 +177,7 @@ func TestAgentConfigHandler(t *testing.T) {
 			}
 			ctx := &request.Context{}
 			ctx.Reset(w, r)
-			ctx.TokenSet = tokenSet
+			ctx.Authorization = auth
 			h(ctx)
 
 			require.Equal(t, tc.respStatus, w.Code)
@@ -189,11 +191,11 @@ func TestAgentConfigHandler(t *testing.T) {
 		}
 
 		t.Run(name+"NoSecretToken", func(t *testing.T) {
-			runTest(t, tc.respBody, false)
+			runTest(t, tc.respBody, authorization.AllowAuth{})
 		})
 
 		t.Run(name+"WithSecretToken", func(t *testing.T) {
-			runTest(t, tc.respBodyToken, true)
+			runTest(t, tc.respBodyToken, authorization.DenyAuth{})
 		})
 	}
 }

@@ -16,6 +16,23 @@ Only run unit tests without external dependencies:
 make unit
 ```
 
+### Developing Tests
+
+While developing new tests or troubleshooting test failures, it is handy to run tests from outside of docker, for
+example from within an editor, while still allowing all dependencies to run in containers.  To accomplish this:
+
+* Run `make build-image start-environment` to start docker containers for the Elastic Stack.
+* Run `PYTHON_EXE=python2.7 make python-env` to build a python virtualenv
+* Run `make apm-server.test` to (re)build the executable used to run the apm-server
+* Run tests using the `run-system-tests` target, eg:
+ ```
+ SYSTEM_TEST_TARGET=./tests/system/test_integration.py:SourcemappingIntegrationTest.test_backend_error make run-system-test
+```
+
+Elasticsearch diagnostics may be enabled by setting `DIAGNOSTIC_INTERVAL`.
+`DIAGNOSTIC_INTERVAL=1` will dump hot threads and task lists every second while tests are running
+to `build/system-tests/run/$test_name/diagnostics/`.
+
 ## Coverage Report
 For insights about test-coverage, run `make coverage-report`. The test coverage is reported in the folder `./build/coverage/`
 
@@ -25,25 +42,6 @@ Following workflow is intended:
 * Run `make update` to create the `approvals` binary that supports reviewing changes. 
 * Run `make unit` to create a `*.received.json` file for every newly created or changed snapshot.
 * Run `./approvals` to review and interactively accept the changes. 
-
-## Manual Testing
-
-For manual testing with the elastic stack there is a test environment based on docker. 
-To get this running execute the following commands.
-
-* Run `STACK_VERSION=6.1.2 make start-env` to start docker containers for the elastic stack. 
-Set the version you want to test with via the environment variable `STACK_VERSION`.
-* Run `make import-dashboards` to import the Elasticsearch template and the Kibana dashboards
-* Check instructions at the 
-[Elastic APM agents docs](https://www.elastic.co/guide/en/apm/agent/index.html) 
-to setup an agent of your choice and create test data.
-Alternatively you can send a `curl` request to the 
-[transaction](https://www.elastic.co/guide/en/apm/server/current/transaction-api.html#transaction-api-examples) or the 
-[error](https://www.elastic.co/guide/en/apm/server/current/error-api.html#transaction-api-examples) endpoint   
-* Open `localhost:5601` in your browser
-* In Kibana go to the Dashboards to see APM Data
-* In Kibana go to the Discovery tab to query for APM Data
-
 
 ## Benchmarking
 

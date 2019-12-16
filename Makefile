@@ -26,6 +26,16 @@ GOBUILD_FLAGS=-ldflags "-s -X $(BEAT_PATH)/vendor/github.com/elastic/beats/libbe
 MAGE_IMPORT_PATH=${BEAT_PATH}/vendor/github.com/magefile/mage
 STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 
+ES_USER?=apm_user
+ES_PASS?=changeme
+ES_LOG_LEVEL?=debug
+KIBANA_ES_USER?=kibana_system_user
+KIBANA_ES_PASS?=changeme
+BEAT_KIBANA_USER?=apm_user_ro
+BEAT_KIBANA_PASS?=changeme
+ES_SUPERUSER_USER?=admin
+ES_SUPERUSER_PASS?=changeme
+
 # overwrite some beats targets cleanly
 .OVER := original-
 
@@ -33,6 +43,7 @@ STATICCHECK_REPO=${BEAT_PATH}/vendor/honnef.co/go/tools/cmd/staticcheck
 -include $(ES_BEATS)/libbeat/scripts/Makefile
 
 # updates beats updates the framework part and go parts of beats
+.PHONY: update-beats
 update-beats: govendor
 	rm -rf vendor/github.com/elastic/beats
 	@govendor fetch github.com/elastic/beats/...@$(BEATS_VERSION)
@@ -95,18 +106,21 @@ create-docs:
 	@cp processor/stream/test_approved_es_documents/testIntakeIntegrationMetricsets.approved.json docs/data/elasticsearch/generated/metricsets.json
 
 # Start manual testing environment with agents
+.PHONY: start-env
 start-env:
 	@docker-compose -f tests/docker-compose.yml build
 	@docker-compose -f tests/docker-compose.yml up -d
 
 # Stop manual testing environment with agents
+.PHONY: stop-env
 stop-env:
 	@docker-compose -f tests/docker-compose.yml down -v
 
-.PHONY: golint golint-install
+.PHONY: golint-install
 golint-install:
 	go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
 
+.PHONY: golint
 golint: golint-install
 	test -z "$(GOLINT_COMMAND)" || (echo "$(GOLINT_COMMAND)" && exit 1)
 
@@ -119,9 +133,10 @@ staticcheck:
 	go get $(STATICCHECK_REPO)
 	staticcheck $(BEAT_PATH)/...
 
-.PHONY: staticcheck
+.PHONY: check-deps
 check-deps: test-deps golint staticcheck
 
+.PHONY: check-full
 check-full: check-deps check
 	@# Validate that all updates were committed
 	@$(MAKE) update
@@ -152,7 +167,7 @@ update-beats-docs:
 
 # Builds a snapshot release. The Go version defined in .go-version will be
 # installed and used for the build.
-.PHONY: release-manager-release
+.PHONY: release-manager-snapshot
 release-manager-snapshot:
 	@$(MAKE) SNAPSHOT=true release-manager-release
 
@@ -186,3 +201,9 @@ check-changelogs: ## @testing Checks the changelogs for certain branches.
 .PHONY: rm-empty-folders
 rm-empty-folders:
 	find vendor/ -type d -empty -delete
+
+.PHONY: run-system-test
+run-system-test: python-env
+	INTEGRATION_TESTS=1 TZ=UTC \
+	ES_USER=$(ES_USER) ES_PASS=$(ES_PASS) KIBANA_USER=$(BEAT_KIBANA_USER) KIBANA_PASS=$(BEAT_KIBANA_PASS) \
+	$(PYTHON_ENV)/bin/nosetests --with-timer -x -v $(SYSTEM_TEST_TARGET)

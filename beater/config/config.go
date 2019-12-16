@@ -62,6 +62,7 @@ type Config struct {
 	Kibana              *common.Config          `config:"kibana"`
 	AgentConfig         *AgentConfig            `config:"agent.config"`
 	SecretToken         string                  `config:"secret_token"`
+	APIKeyConfig        *APIKeyConfig           `config:"api_key"`
 	JaegerConfig        JaegerConfig            `config:"jaeger"`
 
 	Pipeline string
@@ -116,6 +117,10 @@ func NewConfig(version string, ucfg *common.Config, outputESCfg *common.Config) 
 		return nil, err
 	}
 
+	if err := c.APIKeyConfig.setup(logger, outputESCfg); err != nil {
+		return nil, err
+	}
+
 	if err := c.SelfInstrumentation.setup(logger); err != nil {
 		return nil, err
 	}
@@ -154,6 +159,7 @@ func DefaultConfig(beatVersion string) *Config {
 		Kibana:       common.MustNewConfigFrom(map[string]interface{}{"enabled": "false"}),
 		AgentConfig:  &AgentConfig{Cache: &Cache{Expiration: 30 * time.Second}},
 		Pipeline:     defaultAPMPipeline,
+		APIKeyConfig: defaultAPIKeyConfig(),
 		JaegerConfig: defaultJaeger(),
 	}
 }

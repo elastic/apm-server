@@ -3,6 +3,8 @@ import json
 import os
 import re
 import shutil
+import threading
+import unittest
 from time import gmtime, strftime
 from urlparse import urlparse
 
@@ -14,11 +16,31 @@ import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..',
                              '..', '_beats', 'libbeat', 'tests', 'system'))
-from beat.beat import TestCase, TimeoutError
+from beat.beat import INTEGRATION_TESTS, TestCase, TimeoutError
+
+integration_test = unittest.skipUnless(INTEGRATION_TESTS, "integration test")
+diagnostic_interval = float(os.environ.get('DIAGNOSTIC_INTERVAL', 0))
 
 
 class BaseTest(TestCase):
     maxDiff = None
+
+    def setUp(self):
+        super(BaseTest, self).setUp()
+        if diagnostic_interval > 0:
+            self.diagnostics_path = os.path.join(self.working_dir, "diagnostics")
+            os.makedirs(self.diagnostics_path)
+            self.running = True
+            self.diagnostic_thread = threading.Thread(
+                target=self.dump_diagnotics, kwargs=dict(interval=diagnostic_interval))
+            self.diagnostic_thread.daemon = True
+            self.diagnostic_thread.start()
+
+    def tearDown(self):
+        if diagnostic_interval > 0:
+            self.running = False
+            self.diagnostic_thread.join(timeout=30)
+        super(BaseTest, self).tearDown()
 
     @classmethod
     def setUpClass(cls):
@@ -39,14 +61,55 @@ class BaseTest(TestCase):
         cls.index_smap = "apm-{}-sourcemap".format(cls.apm_version)
         cls.index_profile = "apm-{}-profile".format(cls.apm_version)
         cls.index_acm = ".apm-agent-configuration"
-        cls.indices = [cls.index_onboarding, cls.index_error,
-                       cls.index_transaction, cls.index_span, cls.index_metric, cls.index_smap]
+        cls.indices = [cls.index_onboarding, cls.index_error, cls.index_transaction,
+                       cls.index_span, cls.index_metric, cls.index_smap, cls.index_profile]
 
         super(BaseTest, cls).setUpClass()
 
     @classmethod
     def _beat_path_join(cls, *paths):
         return os.path.abspath(os.path.join(cls.beat_path, *paths))
+
+    @staticmethod
+    def get_elasticsearch_url(user="", password=""):
+        """
+        Returns an elasticsearch.Elasticsearch instance built from the
+        env variables like the integration tests.
+        """
+        host = os.getenv("ES_HOST", "localhost")
+
+        if not user:
+            user = os.getenv("ES_USER", "admin")
+        if not password:
+            password = os.getenv("ES_PASS", "changeme")
+
+        if user and password:
+            host = user + ":" + password + "@" + host
+
+        return "http://{host}:{port}".format(
+            host=host,
+            port=os.getenv("ES_PORT", "9200"),
+        )
+
+    @staticmethod
+    def get_kibana_url(user="", password=""):
+        """
+        Returns kibana host URL
+        """
+        host = os.getenv("KIBANA_HOST", "localhost")
+
+        if not user:
+            user = os.getenv("KIBANA_USER", "admin")
+        if not password:
+            password = os.getenv("KIBANA_PASS", "changeme")
+
+        if user and password:
+            host = user + ":" + password + "@" + host
+
+        return "http://{host}:{port}".format(
+            host=host,
+            port=os.getenv("KIBANA_PORT", "5601"),
+        )
 
     def get_payload_path(self, name):
         return self._beat_path_join(
@@ -73,12 +136,32 @@ class BaseTest(TestCase):
     def ilm_index(self, index):
         return "{}-000001".format(index)
 
+    def dump_diagnotics(self, interval=2):
+        while self.running:
+            time.sleep(interval)
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".hot_threads"), mode="w") as out:
+                try:
+                    out.write(self.es.nodes.hot_threads(threads=99999))
+                except Exception as e:
+                    out.write("failed to query hot threads: {}\n".format(e))
+
+            with open(os.path.join(self.diagnostics_path,
+                                   datetime.now().strftime("%Y%m%d_%H%M%S") + ".tasks"), mode="w") as out:
+                try:
+                    json.dump(self.es.tasks.list(), out, indent=True, sort_keys=True)
+                except Exception as e:
+                    out.write("failed to query tasks: {}\n".format(e))
+
 
 class ServerSetUpBaseTest(BaseTest):
     host = "http://localhost:8200"
+    root_url = "{}/".format(host)
     agent_config_url = "{}/{}".format(host, "config/v1/agents")
     rum_agent_config_url = "{}/{}".format(host, "config/v1/rum/agents")
     intake_url = "{}/{}".format(host, 'intake/v2/events')
+    rum_intake_url = "{}/{}".format(host, 'intake/v2/rum/events')
+    sourcemap_url = "{}/{}".format(host, 'assets/v1/sourcemaps')
     expvar_url = "{}/{}".format(host, 'debug/vars')
 
     def config(self):
@@ -105,11 +188,26 @@ class ServerSetUpBaseTest(BaseTest):
         self.apmserver_proc = self.start_beat(**self.start_args())
         self.wait_until_started()
 
+        # try make sure APM Server is fully up
+        cfg = self.config()
+        # pipeline registration is enabled by default and only happens if the output is elasticsearch
+        if not getattr(self, "register_pipeline_disabled", False) and \
+                cfg.get("elasticsearch_host") and \
+                cfg.get("register_pipeline_enabled") != "false" and cfg.get("register_pipeline_overwrite") != "false":
+            self.wait_until_pipelines_registered()
+
     def start_args(self):
         return {}
 
     def wait_until_started(self):
-        self.wait_until(lambda: self.log_contains("Starting apm-server"))
+        self.wait_until(lambda: self.log_contains("Starting apm-server"), name="apm-server started")
+
+    def wait_until_ilm_setup(self):
+        self.wait_until(lambda: self.log_contains("Finished index management setup."), name="ILM setup")
+
+    def wait_until_pipelines_registered(self):
+        self.wait_until(lambda: self.log_contains("Registered Ingest Pipelines successfully"),
+                        name="pipelines registered")
 
     def assert_no_logged_warnings(self, suppress=None):
         """
@@ -130,11 +228,13 @@ class ServerSetUpBaseTest(BaseTest):
             log = re.sub(s, "", log)
         self.assertNotRegexpMatches(log, "ERR|WARN")
 
-    def request_intake(self, data="", url="", headers={'content-type': 'application/x-ndjson'}):
-        if url == "":
+    def request_intake(self, data=None, url=None, headers=None):
+        if not url:
             url = self.intake_url
-        if data == "":
+        if data is None:
             data = self.get_event_payload()
+        if headers is None:
+            headers = {'content-type': 'application/x-ndjson'}
         return requests.post(url, data=data, headers=headers)
 
 
@@ -181,20 +281,29 @@ class ElasticTest(ServerBaseTest):
         self.kibana_url = self.get_kibana_url()
 
         # Cleanup index and template first
-        self.es.indices.delete(index="apm*", ignore=[400, 404])
-        for idx in self.indices:
-            self.wait_until(lambda: not self.es.indices.exists(idx))
+        assert all(idx.startswith("apm")
+                   for idx in self.indices), "not all indices prefixed with apm, cleanup assumption broken"
+        if self.es.indices.get("apm*"):
+            self.es.indices.delete(index="apm*", ignore=[400, 404])
+            for idx in self.indices:
+                self.wait_until(lambda: not self.es.indices.exists(idx), name="index {} to be deleted".format(idx))
 
-        self.es.indices.delete_template(name="apm*", ignore=[400, 404])
-        for idx in self.indices:
-            self.wait_until(lambda: not self.es.indices.exists_template(idx))
+        if self.es.indices.get_template(name="apm*", ignore=[400, 404]):
+            self.es.indices.delete_template(name="apm*", ignore=[400, 404])
+            for idx in self.indices:
+                self.wait_until(lambda: not self.es.indices.exists_template(idx),
+                                name="index template {} to be deleted".format(idx))
 
         # truncate, don't delete agent configuration index since it's only created when kibana starts up
-        self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
-                                ignore_unavailable=True, wait_for_completion=True)
-        self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0)
+        if self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] > 0:
+            self.es.delete_by_query(self.index_acm, {"query": {"match_all": {}}},
+                                    ignore_unavailable=True, wait_for_completion=True)
+            self.wait_until(lambda: self.es.count(index=self.index_acm, ignore_unavailable=True)["count"] == 0,
+                            max_timeout=30, name="acm index {} to be empty".format(self.index_acm))
+
         # Cleanup pipelines
-        self.es.ingest.delete_pipeline(id="*")
+        if self.es.ingest.get_pipeline(ignore=[400, 404]):
+            self.es.ingest.delete_pipeline(id="*")
 
         super(ElasticTest, self).setUp()
 
@@ -219,7 +328,8 @@ class ElasticTest(ServerBaseTest):
             lambda: (self.es.count(index=query_index, body={
                 "query": {"term": {"processor.name": endpoint}}}
             )['count'] == expected_events_count),
-            max_timeout=max_timeout
+            max_timeout=max_timeout,
+            name="{} documents to reach {}".format(endpoint, expected_events_count),
         )
 
     def check_backend_error_sourcemap(self, index, count=1):
@@ -311,7 +421,8 @@ class ClientSideElasticTest(ClientSideBaseTest, ElasticTest):
         self.wait_until(
             lambda: (self.es.count(index=idx, body={
                 "query": {"term": {"processor.name": 'sourcemap'}}}
-            )['count'] == expected_ct)
+            )['count'] == expected_ct),
+            name="{} sourcemaps to ingest".format(expected_ct),
         )
 
     def check_rum_error_sourcemap(self, updated, expected_err=None, count=1):

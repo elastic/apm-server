@@ -114,6 +114,19 @@ func spanCondRequiredKeys() map[string]tests.Condition {
 	return map[string]tests.Condition{
 		"span.start":     {Absence: []string{"span.timestamp"}},
 		"span.timestamp": {Absence: []string{"span.start"}},
+
+		"span.context.destination.service.type": {Existence: map[string]interface{}{
+			"span.context.destination.service.name":     "postgresql",
+			"span.context.destination.service.resource": "postgresql",
+		}},
+		"span.context.destination.service.name": {Existence: map[string]interface{}{
+			"span.context.destination.service.type":     "db",
+			"span.context.destination.service.resource": "postgresql",
+		}},
+		"span.context.destination.service.resource": {Existence: map[string]interface{}{
+			"span.context.destination.service.type": "db",
+			"span.context.destination.service.name": "postgresql",
+		}},
 	}
 }
 
@@ -173,7 +186,10 @@ func TestKeywordLimitationOnSpanAttrs(t *testing.T) {
 			{Template: "trace.id", Mapping: "trace_id"},
 			{Template: "span.id", Mapping: "id"},
 			{Template: "span.db.link", Mapping: "context.db.link"},
+			{Template: "span.destination.service", Mapping: "context.destination.service"},
 			{Template: "span.", Mapping: ""},
+			{Template: "destination.address", Mapping: "context.destination.address"},
+			{Template: "destination.port", Mapping: "context.destination.port"},
 		},
 	)
 }

@@ -4,6 +4,16 @@
 https://github.com/elastic/apm-server/compare/7.4\...7.5[View commits]
 
 * <<release-notes-7.5.0>>
+* <<release-notes-7.5.1>>
+
+[[release-notes-7.5.1]]
+=== APM Server version 7.5.1
+
+https://github.com/elastic/apm-server/compare/v7.5.0\...v7.5.1[View commits]
+
+[float]
+==== Bug fixes
+- Update Kibana client when its version becomes stale {pull}3031[3031].
 
 [[release-notes-7.5.0]]
 === APM Server version 7.5.0
@@ -14,6 +24,14 @@ https://github.com/elastic/apm-server/compare/v7.4.1\...v7.5.0[View commits]
 ==== Breaking Changes
 - Introduce dedicated ILM setup flags and ignore `setup.template.*` flags for ILM {pull}2764[2764], {pull}2877[2877].
 - Remove ILM specific templates from `apm-server export template` command {pull}2764[2764].
+
+[float]
+==== Bug fixes
+- Fix a denial of service flaw when parsing malformed DSA public keys in Go.
+If APM Server is configured to accept incoming TLS connections with client
+authentication enabled, a remote attacker could cause the APM Server to stop
+processing events (CVE-2019-17596).
+See https://www.elastic.co/community/security/[Elastic security issues].
 
 [float]
 ==== Added
