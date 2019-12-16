@@ -51,7 +51,6 @@ BEAT_KIBANA_PASS?=${KIBANA_ES_PASS}
 # Define a superuser, e.g. for initial setup
 ES_SUPERUSER_USER?=admin
 ES_SUPERUSER_PASS?=changeme
->>>>>>> master
 PWD=$(shell pwd)
 BUILD_DIR?=$(shell pwd)/build
 PKG_BUILD_DIR?=$(BUILD_DIR)/package${PKG_SUFFIX}
