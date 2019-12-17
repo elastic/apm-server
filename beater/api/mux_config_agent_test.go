@@ -99,7 +99,7 @@ func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 
 func configEnabledConfigAgent() *config.Config {
 	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
-	cfg.Kibana = common.MustNewConfigFrom(map[string]interface{}{"enabled": "true"})
+	cfg.Kibana = common.MustNewConfigFrom(map[string]interface{}{"enabled": "true", "host": "localhost:foo"})
 	return cfg
 }
 
