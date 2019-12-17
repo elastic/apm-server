@@ -1,0 +1,29 @@
+[[apm-cross-cluster-search]]
+== Cross-cluster search
+
+Cross-cluster search lets you run a single search request against one or more
+{ref}/modules-remote-clusters.html[remote clusters].
+This means you can have deployments per data type, making sizing and scaling more predictable,
+and allowing for better performance while managing multiple observability use cases.
+
+Elastic APM utilizes Elasticsearch's cross-cluster search functionality,
+making it easy to search APM data across multiple sources.
+
+[[set-up-ccs]]
+=== Set up cross-cluster search
+
+1. Set up remote clusters
+
+There a number of ways to accomplish this, but the easiest is directly in Kibana.
+
+You can also {ref}/modules-remote-clusters.html#configuring-remote-clusters[configure remote clusters]
+in Elasticsearch's `elasticsearch.yml` file.
+
+Before users can use ccs in apm ui indices they have to setup the remote cluster via this page
+<KIB_URL>/app/kibana#/management/elasticsearch/remote_clusters/add
+
+Kib: /apm-settings-kb.html[APM settings in Kibana]
+
+ESS: /ec-enable-ccs.html[Enable cross-cluster search]
+
+ES: 
