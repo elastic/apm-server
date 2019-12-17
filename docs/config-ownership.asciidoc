@@ -24,7 +24,7 @@ To correct this problem you can change the ownership of the configuration file w
 +chown {beatname_lc}:{beatname_lc} /etc/{beatname_lc}/{beatname_lc}.yml+.
 
 You can also make root the config owner, although this is not recommended:
-+sudo chown root:root /etc/{beatname_lc}/{beatname_lc}.yml`+.
++sudo chown root:root /etc/{beatname_lc}/{beatname_lc}.yml+.
 
 ["source", "systemd", subs="attributes"]
 -----
