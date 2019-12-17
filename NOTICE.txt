@@ -480,7 +480,7 @@ SOFTWARE.
 --------------------------------------------------------------------
 Dependency: github.com/elastic/beats
 Version: 7.5
-Revision: b110c7aa40e8ca4e0f1b0129f41051209abf688f
+Revision: e1b49cead86d104ce4c0a35332d54df7ba7ffaba
 License type (autodetected): Apache-2.0
 ./vendor/github.com/elastic/beats/LICENSE.txt:
 --------------------------------------------------------------------
@@ -2837,7 +2837,7 @@ DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------
 Dependency: github.com/Shopify/sarama
-Revision: 46c83074a05474240f9620fb7c70fb0d80ca401a
+Revision: 71dcfe72351b8daf910276a46540ca0b7bbe0a2b
 License type (autodetected): MIT
 ./vendor/github.com/Shopify/sarama/LICENSE:
 --------------------------------------------------------------------
