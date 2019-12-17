@@ -11,17 +11,16 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 *Affecting all Beats*
 
 - Update to Golang 1.12.1. {pull}11330[11330]
-- By default, all Beats-created files and folders will have a umask of 0027 (on POSIX systems). {pull}14119[14119]
 
 *Auditbeat*
 
 
 *Filebeat*
 
+- Fix parsing of Elasticsearch node name by `elasticsearch/slowlog` fileset. {pull}14547[14547]
 
 *Heartbeat*
 
-- JSON/Regex checks against HTTP bodies will only consider the first 100MiB of the HTTP body to prevent excessive memory usage. {pull}14223[pull]
 
 *Journalbeat*
 
@@ -42,37 +41,50 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 *Affecting all Beats*
 
 - Fix a race condition with the Kafka pipeline client, it is possible that `Close()` get called before `Connect()` . {issue}11945[11945]
-- Fix memory leak in kubernetes autodiscover provider and add_kubernetes_metadata processor happening when pods are terminated without sending a delete event. {pull}14259[14259]
-- Fix kubernetes `metaGenerator.ResourceMetadata` when parent reference controller is nil {issue}14320[14320] {pull}14329[14329]
+- Allow users to configure only `cluster_uuid` setting under `monitoring` namespace. {pull}14338[14338]
+- Fix `proxy_url` option in Elasticsearch output. {pull}14950[14950]
+- Fix bug with potential concurrent reads and writes from event.Meta map by Kafka output. {issue}14542[14542] {pull}14568[14568]
 
 *Auditbeat*
 
 
 *Filebeat*
 
-- Fix timezone parsing of MySQL module ingest pipelines. {pull}14130[14130]
-- Improve error message in s3 input when handleSQSMessage failed. {pull}14113[14113]
-- Fix race condition in S3 input plugin. {pull}14359[14359]
+- Change iis url path grok pattern from URIPATH to NOTSPACE. {issue}12710[12710] {pull}13225[13225] {issue}7951[7951] {pull}13378[13378] {pull}14754[14754]
+- Fix azure filesets test files. {issue}14185[14185] {pull}14235[14235]
+- cisco/asa fileset: Fix parsing of 302021 message code. {pull}14519[14519]
+- Fix filebeat azure dashboards, event category should be `Alert`. {pull}14668[14668]
+- Update Logstash module's Grok patterns to support Logstash 7.4 logs. {pull}14743[14743]
 
 *Heartbeat*
 
-- Fix storage of HTTP bodies to work when JSON/Regex body checks are enabled. {pull}14223[14223]
+- Fix recording of SSL cert metadata for Expired/Unvalidated x509 certs. {pull}13687[13687]
 
 *Journalbeat*
 
 
 *Metricbeat*
 
+- Fix checking tagsFilter using length in cloudwatch metricset. {pull}14525[14525]
+- Fixed bug with `elasticsearch/cluster_stats` metricset not recording license expiration date correctly. {issue}14541[14541] {pull}14591[14591]
 - Convert indexed ms-since-epoch timestamp fields in `elasticsearch/ml_job` metricset to ints from float64s. {issue}14220[14220] {pull}14222[14222]
 - Fix ARN parsing function to work for ELB ARNs. {pull}14316[14316]
 - Update azure configuration example. {issue}14224[14224]
 - Limit some of the error messages to the logs only {issue}14317[14317] {pull}14327[14327]
 - Fix cloudwatch metricset with names and dimensions in config. {issue}14376[14376] {pull}14391[14391]
 - Fix marshaling of ms-since-epoch values in `elasticsearch/cluster_stats` metricset. {pull}14378[14378]
+- Log bulk failures from bulk API requests to monitoring cluster. {issue}14303[14303] {pull}14356[14356]
+- Fixed bug with `elasticsearch/cluster_stats` metricset not recording license ID in the correct field. {pull}14592[14592]
+- Fix perfmon expanding counter path/adding counter to query when OS language is not english. {issue}14684[14684] {pull}14800[14800]
+- Add extra check on `ignore_non_existent_counters` flag if the PdhExpandWildCardPathW returns no errors but does not expand the counter path successfully in windows/perfmon metricset. {pull}14797[14797]
+- Fix rds metricset from reporting same values for different instances. {pull}14702[14702]
+- Closing handler after verifying the registry key in diskio metricset. {issue}14683[14683] {pull}14759[14759]
+- Fix docker network stats when multiple interfaces are configured. {issue}14586[14586] {pull}14825[14825]
+- Fix ListMetrics pagination in aws module. {issue}14926[14926] {pull}14942[14942]
+- Fix CPU count in docker/cpu in cases where no `online_cpus` are reported {pull}15070[15070]
 
 *Packetbeat*
 
-- Fix parsing of the HTTP host header when it contains a port or an IPv6 address. {pull}14215[14215]
 
 *Winlogbeat*
 
@@ -84,7 +96,6 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 
 *Affecting all Beats*
 
-- Ensure that init containers are no longer tailed after they stop {pull}14394[14394]
 
 *Auditbeat*
 
@@ -92,6 +103,7 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 *Filebeat*
 
 - `container` and `docker` inputs now support reading of labels and env vars written by docker JSON file logging driver. {issue}8358[8358]
+- Add `index` option to all inputs to directly set a per-input index value. {pull}14010[14010]
 
 *Heartbeat*
 
@@ -100,7 +112,6 @@ https://github.com/elastic/beats/compare/v7.0.0-alpha2...master[Check the HEAD d
 
 *Metricbeat*
 
-- Add `elasticsearch/enrich` metricset. {pull}14243[14243] {issue}14221[14221]
 
 *Packetbeat*
 
