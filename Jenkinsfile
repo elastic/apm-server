@@ -239,7 +239,6 @@ pipeline {
               expression { return params.bench_ci }
               expression { return env.ONLY_DOCS == "false" }
             }
->>>>>>> 8d7e66a0... ci(jenkins): when regexp comparator (#2644)
           }
           steps {
             deleteDir()
