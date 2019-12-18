@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-17T14:22:31.109109+01:00",
+            "@timestamp": "2019-12-17T13:22:31.109109Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -48,7 +48,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.109102+01:00",
+            "@timestamp": "2019-12-17T13:22:31.109102Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -80,7 +80,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.14472+01:00",
+            "@timestamp": "2019-12-17T13:22:31.14472Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -127,7 +127,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.144713+01:00",
+            "@timestamp": "2019-12-17T13:22:31.144713Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -159,7 +159,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.135848+01:00",
+            "@timestamp": "2019-12-17T13:22:31.135848Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -206,7 +206,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.13584+01:00",
+            "@timestamp": "2019-12-17T13:22:31.13584Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -238,7 +238,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.172725+01:00",
+            "@timestamp": "2019-12-17T13:22:31.172725Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -285,7 +285,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.172703+01:00",
+            "@timestamp": "2019-12-17T13:22:31.172703Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -317,7 +317,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.205873+01:00",
+            "@timestamp": "2019-12-17T13:22:31.205873Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -364,7 +364,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.205862+01:00",
+            "@timestamp": "2019-12-17T13:22:31.205862Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -396,7 +396,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.195974+01:00",
+            "@timestamp": "2019-12-17T13:22:31.195974Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -443,7 +443,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.195963+01:00",
+            "@timestamp": "2019-12-17T13:22:31.195963Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -475,7 +475,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.211941+01:00",
+            "@timestamp": "2019-12-17T13:22:31.211941Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -522,7 +522,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:31.211902+01:00",
+            "@timestamp": "2019-12-17T13:22:31.211902Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -554,7 +554,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:30.559111+01:00",
+            "@timestamp": "2019-12-17T13:22:30.559111Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",

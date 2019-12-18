@@ -19,13 +19,13 @@ package approvals
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -90,8 +90,7 @@ func ApproveJSON(received map[string]interface{}, name string, ignored ...string
 		if err := enc.Encode(received); err != nil {
 			return err
 		}
-		return errors.Errorf("received data differs from approved data. Run 'make update' and then 'approvals'"+
-			" to verify the diff\n%s", diff)
+		return errors.New("received data differs from approved data. Run 'make update' and then 'approvals' to verify the diff")
 	}
 	return nil
 }

@@ -412,7 +412,7 @@ func parseTimestamp(timestampT *timestamp.Timestamp) time.Time {
 	if timestampT == nil {
 		return time.Time{}
 	}
-	return time.Unix(timestampT.Seconds, int64(timestampT.Nanos))
+	return time.Unix(timestampT.Seconds, int64(timestampT.Nanos)).UTC()
 }
 
 func parseURL(original, hostname string) *model.Url {

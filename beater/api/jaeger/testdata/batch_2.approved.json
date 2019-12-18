@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-17T14:22:30.561315+01:00",
+            "@timestamp": "2019-12-17T13:22:30.561315Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -71,7 +71,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:30.561044+01:00",
+            "@timestamp": "2019-12-17T13:22:30.561044Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
@@ -134,7 +134,7 @@
             }
         },
         {
-            "@timestamp": "2019-12-17T14:22:30.83546+01:00",
+            "@timestamp": "2019-12-17T13:22:30.83546Z",
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
