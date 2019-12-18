@@ -133,7 +133,7 @@ func (c *Consumer) convert(td consumerdata.TraceData) (metadata.Metadata, []tran
 func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 	serviceName := td.Node.GetServiceInfo().GetName()
 	if serviceName == "" {
-		serviceName = "<unknown>"
+		serviceName = "unknown"
 	}
 	serviceName = truncate(serviceName)
 	md.Service = &metadata.Service{Name: &serviceName}
@@ -152,16 +152,20 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 
 	switch td.SourceFormat {
 	case sourceFormatJaeger:
-		jaegerVersion := truncate(strings.TrimPrefix(td.Node.GetLibraryInfo().GetExporterVersion(), agentNameJaeger+"-"))
-		if jaegerVersion == "" {
-			jaegerVersion = "<unknown>"
+		// version is of format `Jaeger-<agentlanguage>-<version>`, e.g. `Jaeger-Go-2.20.0`
+		versionParts := strings.SplitN(td.Node.GetLibraryInfo().GetExporterVersion(), "-", 3)
+		if v := versionParts[len(versionParts)-1]; v != "" {
+			md.Service.Agent.Version = &v
+		} else {
+			jaegerVersion := "unknown"
+			md.Service.Agent.Version = &jaegerVersion
 		}
 		agentName := agentNameJaeger
 		if md.Service.Language.Name != nil {
 			agentName = truncate(agentName + "/" + *md.Service.Language.Name)
 		}
 		md.Service.Agent.Name = &agentName
-		md.Service.Agent.Version = &jaegerVersion
+
 		if attributes := td.Node.GetAttributes(); attributes != nil {
 			if clientUUID, ok := attributes["client-uuid"]; ok {
 				clientUUID = truncate(clientUUID)
@@ -179,12 +183,12 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 	default:
 		agentName := strings.Title(td.SourceFormat)
 		md.Service.Agent.Name = &agentName
-		version := "<unknown>"
+		version := "unknown"
 		md.Service.Agent.Version = &version
 	}
 
 	if md.Service.Language.Name == nil {
-		unknown := "<unknown>"
+		unknown := "unknown"
 		md.Service.Language.Name = &unknown
 	}
 
@@ -202,14 +206,6 @@ func parseMetadata(td consumerdata.TraceData, md *metadata.Metadata) {
 
 func parseTransaction(span *tracepb.Span, hostname string, event *transaction.Event) {
 	labels := make(common.MapStr)
-
-	if count := span.GetChildSpanCount(); count != nil {
-		labels["span_count.started"] = count.Value
-	}
-	if span.SameProcessAsParentSpan != nil {
-		labels["parent_process"] = span.SameProcessAsParentSpan.Value
-	}
-
 	var http model.Http
 	var component string
 	var result string
@@ -323,7 +319,6 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 		case *tracepb.AttributeValue_IntValue:
 			switch kDots {
 			case "http.status_code":
-				//v.IntValue is int64, considering the semantics of the field converting to an int should be fine
 				code := int(v.IntValue)
 				http.StatusCode = &code
 				isHTTPSpan = true
@@ -345,9 +340,6 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 				http.Method = &method
 				isHTTPSpan = true
 			case "sql.query":
-				// NOTE(axw) in theory we could override
-				// the span name here with our own method
-				// based on the SQL query.
 				db.Statement = &v.StringValue.Value
 				if db.Type == nil {
 					dbType := "sql"
@@ -369,9 +361,6 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 			case "peer.address":
 				val := truncate(v.StringValue.Value)
 				destination.Address = &val
-			case "peer.service":
-				val := truncate(v.StringValue.Value)
-				event.DestinationService = &model_span.DestinationService{Name: &val}
 			case "component":
 				component = truncate(v.StringValue.Value)
 				fallthrough
@@ -398,11 +387,15 @@ func parseSpan(span *tracepb.Span, event *model_span.Event) {
 		event.HTTP = &http
 	case isDBSpan:
 		event.Type = "db"
-		event.Subtype = db.Type
+		if db.Type != nil && *db.Type != "" {
+			event.Subtype = db.Type
+		}
 		event.DB = &db
 	default:
 		event.Type = "custom"
-		event.Subtype = &component
+		if component != "" {
+			event.Subtype = &component
+		}
 	}
 
 	if len(labels) == 0 {

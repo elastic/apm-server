@@ -5,7 +5,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "labels": {
                 "component": "net/http",
@@ -52,7 +52,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "parent": {
                 "id": "65b4115c7ebe6014"
@@ -70,7 +70,6 @@
                 },
                 "id": "2ec2cdaf8abcaf1d",
                 "name": "HTTP GET: /route",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {
@@ -85,7 +84,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "labels": {
                 "component": "net/http",
@@ -132,7 +131,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "parent": {
                 "id": "65b4115c7ebe6014"
@@ -150,7 +149,6 @@
                 },
                 "id": "5cdd7786d035fce0",
                 "name": "HTTP GET: /route",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {
@@ -165,7 +163,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "labels": {
                 "component": "net/http",
@@ -212,7 +210,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "parent": {
                 "id": "65b4115c7ebe6014"
@@ -230,7 +228,6 @@
                 },
                 "id": "2035f6699f7ef4be",
                 "name": "HTTP GET: /route",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {
@@ -245,7 +242,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "labels": {
                 "component": "net/http",
@@ -292,7 +289,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "parent": {
                 "id": "65b4115c7ebe6014"
@@ -310,7 +307,6 @@
                 },
                 "id": "20eef4bc17b9ec0d",
                 "name": "HTTP GET: /route",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {
@@ -325,7 +321,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "labels": {
                 "component": "net/http",
@@ -372,7 +368,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "parent": {
                 "id": "65b4115c7ebe6014"
@@ -390,7 +386,6 @@
                 },
                 "id": "2f92192445a2469e",
                 "name": "HTTP GET: /route",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {
@@ -405,7 +400,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "labels": {
                 "component": "net/http",
@@ -452,7 +447,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "parent": {
                 "id": "65b4115c7ebe6014"
@@ -470,7 +465,6 @@
                 },
                 "id": "28fdfe572b25bef2",
                 "name": "HTTP GET: /route",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {
@@ -485,7 +479,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "labels": {
                 "component": "net/http",
@@ -532,7 +526,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "parent": {
                 "id": "65b4115c7ebe6014"
@@ -550,7 +544,6 @@
                 },
                 "id": "395a0dc632768a21",
                 "name": "HTTP GET: /route",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {
@@ -565,7 +558,7 @@
             "agent": {
                 "ephemeral_id": "78dd6e017f54a2c1",
                 "name": "Jaeger",
-                "version": "Go-2.20.1"
+                "version": "2.20.1"
             },
             "host": {
                 "hostname": "host01",
@@ -591,7 +584,7 @@
             },
             "service": {
                 "language": {
-                    "name": "\u003cunknown\u003e"
+                    "name": "unknown"
                 },
                 "name": "frontend",
                 "node": {

@@ -5,7 +5,7 @@
         "Agent": {
             "EphemeralId": null,
             "Name": "Jaeger",
-            "Version": "\u003cunknown\u003e"
+            "Version": "unknown"
         },
         "Environment": null,
         "Framework": {
@@ -13,10 +13,10 @@
             "Version": null
         },
         "Language": {
-            "Name": "\u003cunknown\u003e",
+            "Name": "unknown",
             "Version": null
         },
-        "Name": "\u003cunknown\u003e",
+        "Name": "unknown",
         "Runtime": {
             "Name": null,
             "Version": null

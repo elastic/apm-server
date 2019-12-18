@@ -27,8 +27,6 @@
         "double_a": 14.65,
         "error": true,
         "int_a": 148,
-        "parent_process": true,
-        "span_count.started": 10,
         "string_a_b": "some note"
     },
     "Marks": null,

@@ -5,11 +5,7 @@
         "Address": "mysql://db:3306",
         "Port": 3306
     },
-    "DestinationService": {
-        "Name": "sql",
-        "Resource": null,
-        "Type": null
-    },
+    "DestinationService": null,
     "Duration": 79000,
     "Experimental": null,
     "HTTP": {
@@ -24,6 +20,7 @@
         "error": true,
         "hasErrors": true,
         "int_a": 148,
+        "peer_service": "sql",
         "string_a_b": "some note",
         "type": "db_request"
     },

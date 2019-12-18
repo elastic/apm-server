@@ -14,8 +14,8 @@
     "Service": {
         "Agent": {
             "EphemeralId": "xxf0",
-            "Name": "Jaeger/Java",
-            "Version": "12345"
+            "Name": "Jaeger/C++",
+            "Version": "3.2.1"
         },
         "Environment": null,
         "Framework": {
@@ -23,7 +23,7 @@
             "Version": null
         },
         "Language": {
-            "Name": "Java",
+            "Name": "C++",
             "Version": null
         },
         "Name": "foo",

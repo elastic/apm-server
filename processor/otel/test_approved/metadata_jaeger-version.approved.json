@@ -4,8 +4,8 @@
     "Service": {
         "Agent": {
             "EphemeralId": null,
-            "Name": "Foo",
-            "Version": "unknown"
+            "Name": "Jaeger/PHP",
+            "Version": "3.4.12"
         },
         "Environment": null,
         "Framework": {
@@ -13,7 +13,7 @@
             "Version": null
         },
         "Language": {
-            "Name": "unknown",
+            "Name": "PHP",
             "Version": null
         },
         "Name": "unknown",

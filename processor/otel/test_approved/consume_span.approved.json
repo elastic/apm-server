@@ -4,7 +4,7 @@
             "@timestamp": "2019-12-16T13:46:58.000768068+01:00",
             "agent": {
                 "name": "Jaeger",
-                "version": "\u003cunknown\u003e"
+                "version": "unknown"
             },
             "processor": {
                 "event": "transaction",
@@ -12,9 +12,9 @@
             },
             "service": {
                 "language": {
-                    "name": "\u003cunknown\u003e"
+                    "name": "unknown"
                 },
-                "name": "\u003cunknown\u003e"
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -34,7 +34,7 @@
             "@timestamp": "2019-12-16T13:46:58.000768068+01:00",
             "agent": {
                 "name": "Jaeger",
-                "version": "\u003cunknown\u003e"
+                "version": "unknown"
             },
             "parent": {
                 "id": "46463058"
@@ -44,14 +44,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "\u003cunknown\u003e"
+                "name": "unknown"
             },
             "span": {
                 "duration": {
                     "us": 0
                 },
                 "name": "",
-                "subtype": "",
                 "type": "custom"
             },
             "timestamp": {

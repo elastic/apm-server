@@ -86,13 +86,17 @@ func TestConsumer_Metadata(t *testing.T) {
 						HostName:       "host-foo",
 						Pid:            107892,
 						StartTimestamp: testStartTime()},
-					LibraryInfo: &commonpb.LibraryInfo{Language: 5, ExporterVersion: "Jaeger-12345"},
+					LibraryInfo: &commonpb.LibraryInfo{Language: 1, ExporterVersion: "Jaeger-C++-3.2.1"},
 					ServiceInfo: &commonpb.ServiceInfo{Name: "foo"},
 					Attributes:  map[string]string{"client-uuid": "xxf0", "ip": "17.0.10.123", "foo": "bar"}},
 				Resource: &resourcepb.Resource{
 					Type:   "request",
 					Labels: map[string]string{"a": "b", "c": "d"},
 				}}},
+		{name: "jaeger-version",
+			td: consumerdata.TraceData{SourceFormat: "jaeger",
+				Node: &commonpb.Node{LibraryInfo: &commonpb.LibraryInfo{
+					Language: 7, ExporterVersion: "Jaeger-3.4.12"}}}},
 		{name: "jaeger_minimal",
 			td: consumerdata.TraceData{
 				SourceFormat: "jaeger",
