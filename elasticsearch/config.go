@@ -44,7 +44,7 @@ var (
 
 // Config holds all configurable fields that are used to create a Client
 type Config struct {
-	Hosts        Hosts             `config:"hosts" validate:"required"`
+	Hosts        Hosts             `config:"hosts"`
 	Protocol     string            `config:"protocol"`
 	Path         string            `config:"path"`
 	ProxyURL     string            `config:"proxy_url"`

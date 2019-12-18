@@ -111,9 +111,9 @@ func createApiKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 }
 
 func getApiKey(client es.Client, id, name *string, validOnly, asJson bool) error {
-	if id != nil {
+	if isSet(id) {
 		name = nil
-	} else if id == nil && name == nil {
+	} else if !(isSet(id) || isSet(name)) {
 		return printErr(errors.New("could not query Elasticsearch"),
 			`either "id" or "name" are required`,
 			asJson)
@@ -154,9 +154,9 @@ func getApiKey(client es.Client, id, name *string, validOnly, asJson bool) error
 }
 
 func invalidateApiKey(client es.Client, id, name *string, deletePrivileges, asJson bool) error {
-	if id != nil {
+	if isSet(id) {
 		name = nil
-	} else if id == nil && name == nil {
+	} else if !(isSet(id) || isSet(name)) {
 		return printErr(errors.New("could not query Elasticsearch"),
 			`either "id" or "name" are required`,
 			asJson)
@@ -210,22 +210,29 @@ func invalidateApiKey(client es.Client, id, name *string, deletePrivileges, asJs
 }
 
 func verifyApiKey(config *config.Config, privileges []es.Privilege, credentials string, asJson bool) error {
-	builder, err := auth.NewBuilder(*config)
 	perms := make(es.Perms)
 
 	printText, printJson := printers(asJson)
+	var err error
 
 	for _, privilege := range privileges {
+		var builder *auth.Builder
+		builder, err := auth.NewBuilder(*config)
 		if err != nil {
 			break
 		}
+
 		var authorized bool
 		authorized, err = builder.
 			ForPrivilege(privilege).
 			AuthorizationFor(headers.APIKey, credentials).
 			AuthorizedFor(auth.ResourceInternal)
+		if err != nil {
+			break
+		}
+
 		perms[privilege] = authorized
-		printText("Authorized for %s...: %s\n", humanPrivilege(privilege), humanBool(authorized))
+		printText("Authorized for %s...: %s", humanPrivilege(privilege), humanBool(authorized))
 	}
 
 	if err != nil {
@@ -323,4 +330,8 @@ func printErr(err error, help string, asJson bool) error {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
 	return errors.Wrap(err, help)
+}
+
+func isSet(s *string) bool {
+	return s != nil && *s != ""
 }
