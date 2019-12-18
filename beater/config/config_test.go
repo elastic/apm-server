@@ -37,15 +37,14 @@ import (
 func Test_UnpackConfig(t *testing.T) {
 	falsy, truthy := false, true
 	version := "8.0.0"
-	cfg, err := Setup(DefaultConfig(version), nil)
-	require.NoError(t, err)
+
 	tests := map[string]struct {
 		inpCfg map[string]interface{}
 		outCfg *Config
 	}{
 		"default config": {
 			inpCfg: map[string]interface{}{},
-			outCfg: cfg,
+			outCfg: DefaultConfig(version),
 		},
 		"overwrite default": {
 			inpCfg: map[string]interface{}{
