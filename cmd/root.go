@@ -312,16 +312,7 @@ func bootstrap(settings instance.Settings) (*config.Config, error) {
 	}
 
 	outCfg := beat.Config.Output
-	apmRawConfig, err := config.NewRawConfig(settings.Version, beat.RawConfig)
-	if apmRawConfig == nil {
-		return nil, err
-	}
-	if apmRawConfig.APIKeyConfig == nil {
-		apmRawConfig.APIKeyConfig = &config.APIKeyConfig{}
-	}
-	apmRawConfig.APIKeyConfig.Enabled = true
-
-	return config.Setup(apmRawConfig, outCfg.Config())
+	return config.NewConfig(settings.Version, beat.RawConfig, outCfg.Config())
 }
 
 // if all are false, returns any ("*")

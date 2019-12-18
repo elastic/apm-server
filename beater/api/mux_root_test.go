@@ -34,8 +34,7 @@ import (
 )
 
 func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
-	cfg, err := config.Setup(config.DefaultConfig(beatertest.MockBeatVersion()), nil)
-	require.NoError(t, err)
+	cfg := config.DefaultConfig(beatertest.MockBeatVersion())
 	cfg.SecretToken = "1234"
 
 	t.Run("No auth", func(t *testing.T) {
