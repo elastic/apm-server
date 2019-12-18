@@ -9,6 +9,7 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
+    DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -34,6 +35,7 @@ pipeline {
     booleanParam(name: 'doc_ci', defaultValue: true, description: 'Enable build documentation')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     booleanParam(name: 'kibana_update_ci', defaultValue: true, description: 'Enable build the Check kibana Obj. Updated')
+    string(name: 'DIAGNOSTIC_INTERVAL', defaultValue: "0", description: 'Elasticsearch detailed logging every X seconds')
   }
   stages {
     /**
@@ -48,6 +50,7 @@ pipeline {
       }
       options { skipDefaultCheckout() }
       steps {
+        pipelineManager([ cancelPreviousRunningBuilds: [ when: 'PR' ] ])
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
@@ -227,7 +230,17 @@ pipeline {
           options { skipDefaultCheckout() }
           when {
             beforeAgent true
-            expression { return params.windows_ci }
+            allOf {
+              anyOf {
+                branch 'master'
+                branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+                branch pattern: 'v\\d?', comparator: 'REGEXP'
+                tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
+                expression { return params.Run_As_Master_Branch }
+              }
+              expression { return params.bench_ci }
+              expression { return env.ONLY_DOCS == "false" }
+            }
           }
           steps {
             deleteDir()
@@ -372,9 +385,9 @@ pipeline {
         allOf {
           anyOf {
             branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
+            branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP'
+            branch pattern: 'v\\d?', comparator: 'REGEXP'
+            tag pattern: 'v\\d+\\.\\d+\\.\\d+.*', comparator: 'REGEXP'
             expression { return params.Run_As_Master_Branch }
             expression { return env.BEATS_UPDATED != "0" }
           }
