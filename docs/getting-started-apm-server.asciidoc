@@ -301,7 +301,11 @@ You can change the defaults in `apm-server.yml` or by supplying a different addr
 [[running-deb-rpm]]
 ==== Debian Package / RPM
 
-The Debian package and RPM installations of APM Server create an `apm-server` user.
+For Debian package and RPM installations, we recommend the apm-server process runs as a non-root user.
+Therefore, these installation methods create an `apm-server` user which you can use to start the process.
+In addition, {beatname_uc} will only start if the configuration file is
+<<config-file-ownership,owned by the user running the process>>.
+
 To start the APM Server in this case, run:
 
 [source,bash]
