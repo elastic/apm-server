@@ -91,19 +91,19 @@ func (h *httpHandler) handleTraces(c *request.Context) {
 		return
 	}
 
-	if contentType, _, err := mime.ParseMediaType(c.Request.Header.Get("Content-Type")); err != nil {
+	contentType, _, err := mime.ParseMediaType(c.Request.Header.Get("Content-Type"))
+	if err != nil {
 		c.Result.SetWithError(request.IDResponseErrorsValidate, err)
 		return
-	} else {
-		switch contentType {
-		case "application/x-thrift", "application/vnd.apache.thrift.binary":
-		default:
-			c.Result.SetWithError(
-				request.IDResponseErrorsValidate,
-				fmt.Errorf("unsupported content-type %q", contentType),
-			)
-			return
-		}
+	}
+	switch contentType {
+	case "application/x-thrift", "application/vnd.apache.thrift.binary":
+	default:
+		c.Result.SetWithError(
+			request.IDResponseErrorsValidate,
+			fmt.Errorf("unsupported content-type %q", contentType),
+		)
+		return
 	}
 
 	var batch jaeger.Batch
