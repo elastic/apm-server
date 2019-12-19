@@ -46,9 +46,9 @@ func createApiKeyWithPrivileges(client es.Client, apikeyName, expiry string, pri
 	agentConfig := auth.PrivilegeAgentConfigRead
 	sourcemap := auth.PrivilegeSourcemapWrite
 	privilegesRequest[auth.Application] = map[es.PrivilegeName]es.Actions{
-		agentConfig.Name: {[]es.Privilege{agentConfig.Action}},
-		event.Name:       {[]es.Privilege{event.Action}},
-		sourcemap.Name:   {[]es.Privilege{sourcemap.Action}},
+		agentConfig.Name: {Actions: []es.Privilege{agentConfig.Action}},
+		event.Name:       {Actions: []es.Privilege{event.Action}},
+		sourcemap.Name:   {Actions: []es.Privilege{sourcemap.Action}},
 	}
 
 	privilegesCreated, err := es.CreatePrivileges(client, privilegesRequest)
