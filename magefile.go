@@ -103,6 +103,7 @@ func shortConfigFileParams() mage.ConfigFileParams {
 			"elasticsearch_hostport": "localhost:9200",
 			"listen_hostport":        "localhost:" + config.DefaultPort,
 			"jaeger_grpc_hostport":   "localhost:14250",
+			"jaeger_http_hostport":   "localhost:14268",
 		},
 	}
 }
@@ -116,6 +117,7 @@ func dockerConfigFileParams() mage.ConfigFileParams {
 			"elasticsearch_hostport": "elasticsearch:9200",
 			"listen_hostport":        "0.0.0.0:" + config.DefaultPort,
 			"jaeger_grpc_hostport":   "0.0.0.0:14250",
+			"jaeger_http_hostport":   "0.0.0.0:14268",
 		},
 	}
 }
