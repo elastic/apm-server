@@ -2240,6 +2240,12 @@
 			"revisionTime": "2019-11-30T19:27:31Z"
 		},
 		{
+			"checksumSHA1": "jVQeChfPIzcnAv/TO2ZcIsxwFDU=",
+			"path": "github.com/jaegertracing/jaeger/model/converter/thrift/jaeger",
+			"revision": "e4b97b38c4785d9a593483241f0a1d3abe007e1c",
+			"revisionTime": "2019-11-30T19:27:31Z"
+		},
+		{
 			"checksumSHA1": "lHuUnLE5USvuwdMJcbXlSWbWB4M=",
 			"path": "github.com/jaegertracing/jaeger/proto-gen/api_v2",
 			"revision": "8c89e641eacafc5315de3c6486d398d6ce0d441c",
@@ -2568,6 +2574,14 @@
 			"revisionTime": "2019-12-04T15:10:13Z"
 		},
 		{
+			"checksumSHA1": "//ZjXT6POCFpH5T5LO5teeNdCvo=",
+			"path": "github.com/open-telemetry/opentelemetry-collector/consumer",
+			"revision": "c300f13417023e53ddb643b312e6559899b54ac7",
+			"revisionTime": "2019-12-18T18:22:25Z",
+			"version": "master",
+			"versionExact": "master"
+		},
+		{
 			"checksumSHA1": "AxRGGTFSZ/tDJAA3ggVLyK7BezU=",
 			"path": "github.com/open-telemetry/opentelemetry-collector/consumer/consumerdata",
 			"revision": "e94dd19191e0ba67d5d17c4504de5e97f512eb75",
@@ -2881,6 +2895,12 @@
 			"revisionTime": "2019-12-04T15:10:13Z"
 		},
 		{
+			"checksumSHA1": "ZE+byoICO3nIHzeHRc7EQ85hLu4=",
+			"path": "github.com/stretchr/testify/suite",
+			"revision": "41d0ae8564c694926432378eec30c1d35e926fb6",
+			"revisionTime": "2019-12-12T17:09:15Z"
+		},
+		{
 			"checksumSHA1": "X6WTt1wvfs59cC1Dr9WxDmitfnE=",
 			"path": "github.com/t-yuki/gocover-cobertura",
 			"revision": "aaee18c8195c3f2d90e5ef80ca918d265463842a",
@@ -2977,6 +2997,14 @@
 		{
 			"checksumSHA1": "oaKKkmUl8HRP90bd+yNzJ/XVya4=",
 			"path": "go.elastic.co/apm/apmconfig",
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
+		},
+		{
+			"checksumSHA1": "3YhQhpZAqSMHPxWk1nIDJTzJMM0=",
+			"path": "go.elastic.co/apm/apmtest",
 			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
 			"revisionTime": "2019-11-18T01:19:44Z",
 			"version": "v1.6.0",
@@ -3111,6 +3139,14 @@
 		{
 			"checksumSHA1": "W00cz49jkuMvfP7/IL132I5SWc4=",
 			"path": "go.elastic.co/apm/transport",
+			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
+			"revisionTime": "2019-11-18T01:19:44Z",
+			"version": "v1.6.0",
+			"versionExact": "v1.6.0"
+		},
+		{
+			"checksumSHA1": "M2+F+/52KqvfgU7HNh7u0fm9oCg=",
+			"path": "go.elastic.co/apm/transport/transporttest",
 			"revision": "d66d9b5ecaba855dbd3acc4bebfb6d495e0b5837",
 			"revisionTime": "2019-11-18T01:19:44Z",
 			"version": "v1.6.0",
